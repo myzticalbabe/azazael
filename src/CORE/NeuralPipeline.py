@@ -134,6 +134,16 @@ from CORE.inference.providers import get_provider
 # -- LocalMemoryStore --------------------------------------------------
 from CORE.local_memory import LocalMemoryStore
 
+# -- Audit provenance (E2, Engram #865) --------------------------------
+# `graph_capsule` seals a bounded state delta and binds it to the audit
+# chain's current head -- the same seam `technique_wiring/_l3_verify.py`
+# uses (`at.graph_capsule(delta, at.get_head_hash() or "")`). Module scope is
+# deliberate and safe: audit_trail imports only uuid7, failure_ledger and
+# cryptography, and opens no session file at import (its session, atexit hook
+# and anchors are all created lazily on first write), so there is neither an
+# import cycle nor an import-time side effect here.
+from CORE.audit_trail import get_head_hash, graph_capsule
+
 # -- CUTTING_EDGE ablation (optional) ------------------------------------
 # The comment that used to sit here said cutting_edge_model.py was "not yet
 # committed". That was measurably false by 2026-10-15: the module is tracked
@@ -1106,7 +1116,34 @@ class NeuralPipeline:
     # -- Persistence ---------------------------------------------------
 
     def _persist_run(self, metrics: Dict) -> None:
-        """Persist pipeline run to LocalMemoryStore."""
+        """Persist pipeline run to LocalMemoryStore.
+
+        E2 (Engram #865): the persisted payload carries a hash-chained
+        provenance capsule -- `graph_capsule` over a bounded run summary,
+        bound to the audit chain's current head. Additive only (one new
+        `capsule` key; every existing key is written exactly as before), and
+        FAIL-OPEN: provenance is a side effect of persisting a run, never a
+        precondition for it, so a signing problem is recorded and the run
+        still persists.
+        """
+        # Bounded on purpose: identity + status, not the whole metrics dict
+        # (that grows with training results, and the signed payload is what
+        # every capsule has to carry).
+        try:
+            metrics["capsule"] = graph_capsule(
+                {
+                    "pipeline": "NeuralPipeline",
+                    "version": self.VERSION,
+                    "agent_type": str(metrics.get("agent_type", "")),
+                    "source": str(metrics.get("source", "")),
+                    "status": str(metrics.get("status", "")),
+                    "run_index": self._run_count,
+                    "timestamp": str(metrics.get("timestamp", "")),
+                },
+                get_head_hash() or "",
+            )
+        except Exception as exc:
+            note_failure("NeuralPipeline:provenance-capsule", exc)
         try:
             store = LocalMemoryStore()
             store.record_event(
