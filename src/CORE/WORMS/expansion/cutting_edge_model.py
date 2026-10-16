@@ -105,12 +105,16 @@ __all__ = [
     "DEFAULT_BALANCE_MAX_ITERS",
     "DEFAULT_BALANCE_TOKENS",
     "DEFAULT_GRADIENT_TOKENS",
+    "DEFAULT_LOSSFREE_ALPHA",
+    "DEFAULT_LPR_PROTO_ALPHA",
     "EXPERT_MAX",
     "EXPERT_MIN",
     "MAX_GATE_BIAS",
     "NULLS_POOL_FRACTION",
     "NULLS_REGISTRY_FILENAME",
     "NULLS_SOURCE_FRACTION",
+    "ROUTE_MODES",
+    "gini_coefficient",
     "load_entropy_normalised",
     "nulls_sizing",
 ]
@@ -167,6 +171,33 @@ DEFAULT_BALANCE_MAX_ITERS = 256
 #: sample bound together keep remediation well inside the pool's 10 s timeout.
 DEFAULT_BALANCE_TOKENS = 256
 
+#: Router options (Engram #813, P0 no-redo: the shipped router is mode
+#: ``"switch"`` and stays byte-identical to the pre-#813 behaviour while no
+#: mode is set). Modes are ONE variable each, co-routed options against the
+#: standing 2-of-8 collapse -- not a rewrite of the gate:
+#:
+#: * ``"switch"`` -- shipped top-k softmax router, unchanged.
+#: * ``"bias"`` -- R1, Loss-Free balancing (arXiv:2408.15664) as a separate
+#:   selection-only bias vector updated sign-wise after every batch, clamped
+#:   like ``MAX_GATE_BIAS``. Selection reads it; the gate VALUES do not.
+#: * ``"bip"`` -- R2, BIP quota assignment (arXiv:2502.15451). Each batch is
+#:   a binary-integer-programming assignment problem: each expert gets an
+#:   equal quota and every token takes its highest-affinity experts whose
+#:   quota is still open. Greedy, deterministic, exact quotas.
+#: * ``"lpr"`` -- R3, Latent Prototype Routing READING (arXiv:2506.21328):
+#:   assignment over per-expert latent prototypes (cluster perspective)
+#:   through the same quota solver, protos warmed up from the gate row.
+ROUTE_MODES: Tuple[str, ...] = ("switch", "bias", "bip", "lpr")
+
+#: Loss-Free bias step per batch (R1). Sign-decision update -- one step of
+#: :data:`DEFAULT_BALANCE_GAMMA`-sized authority per batch on a vector that
+#: composes with ``gate_bias`` instead of fighting it, and is clamped to the
+#: same ``MAX_GATE_BIAS`` so a long one-sided run cannot run away.
+DEFAULT_LOSSFREE_ALPHA = 0.01
+
+#: Prototype EMA rate for the LPR mode (R3, arXiv:2506.21328 reading).
+DEFAULT_LPR_PROTO_ALPHA = 0.2
+
 #: Switch name per component, so config <-> component mapping has one home.
 _USE_FLAG = {name: "use_" + name for name in COMPONENTS}
 
@@ -195,6 +226,26 @@ def _softmax(xs: Sequence[float]) -> List[float]:
     if total <= 0.0:
         return [1.0 / len(xs)] * len(xs)
     return [e / total for e in exps]
+
+
+def gini_coefficient(counts: Sequence[int]) -> float:
+    """Gini of the per-expert load, one number for "how skewed is this gate".
+
+    0.0 is perfectly even, 1.0 is one expert taking everything. Complements
+    ``load_entropy_normalised`` (entropy is forgiving of a few zero-count
+    experts at high k; Gini is not) -- both numbers go on every snapshot from
+    Engram #813, and the baseline above was measured first as
+    entropy 0.3333 / Gini 0.75 on the live 2-of-8 fixture.
+    """
+    sorted_counts = sorted(int(c) for c in counts)
+    n = len(sorted_counts)
+    total = sum(sorted_counts)
+    if total <= 0 or n < 2:
+        return 0.0
+    weighted = sum((i + 1) * c for i, c in enumerate(sorted_counts))
+    # Standard Gini: 2*sum((i+1)*c_i)/(n*total) - (n+1)/n. An even load
+    # (counts all equal) measures EXACTLY 0.0 and a [0..0,x] load (n-1)/n.
+    return 2.0 * weighted / (n * total) - (n + 1.0) / n
 
 
 def load_entropy_normalised(counts: Sequence[int], n_experts: int) -> float:
@@ -406,10 +457,28 @@ class SparseMoE:
     un-multiplied and the caller applies ``aux_loss_coef``.
     """
 
-    def __init__(self, d_model: int, n_experts: int, top_k: int, seed: int) -> None:
+    def __init__(self, d_model: int, n_experts: int, top_k: int, seed: int,
+                 route_mode: str = "switch") -> None:
         self.d_model = int(d_model)
         self.n_experts = int(n_experts)
         self.top_k = int(top_k)
+        if route_mode not in ROUTE_MODES:
+            raise ValueError("unknown route_mode %r; expected one of %s"
+                             % (route_mode, list(ROUTE_MODES)))
+        self.route_mode: str = route_mode
+        # R1 Loss-Free selection bias (arXiv:2408.15664): SEPARATE from
+        # ``gate_balance``'s count-based gate_bias so the shipped mode stays
+        # byte-identical and the two remeadies cannot fight over one vector.
+        self._lossfree_bias: List[float] = [0.0] * self.n_experts
+        # Cumulative routing tally over every forward since construction --
+        # per-batch top-k pins can NAME a per-batch entropy floor while the
+        # run itself utilises everyone, and only the cumulative view sees the
+        # run (Engram #813 acceptance is cumulative, like the live 2-of-8
+        # report that motivated it).
+        self._cumulative: List[int] = [0] * self.n_experts
+        # R3 prototype space (arXiv:2506.21328 reading): None until the first
+        # forward seeds one prototype per expert from its gate row.
+        self._prototypes: Optional[List[List[float]]] = None
         gap = max(1, 2 * self.d_model)
         self.gate = _Rand(_component_seed(seed, "moe.gate")).matrix(self.n_experts, self.d_model)
         #: Per-expert bias added to the gate logits. Zeros at construction, so
@@ -430,6 +499,13 @@ class SparseMoE:
         self.last_inputs: List[List[float]] = []
 
     # -- routing ----------------------------------------------------------
+    def set_route_mode(self, mode: str) -> None:
+        """Switch the router option (Engram #813). Raises on an unknown mode."""
+        if mode not in ROUTE_MODES:
+            raise ValueError("unknown route_mode %r; expected one of %s"
+                             % (mode, list(ROUTE_MODES)))
+        self.route_mode = mode
+
     def route(self, tokens: Sequence[Sequence[float]]) -> Tuple[List[List[int]], List[List[float]], List[float]]:
         """Return (top-k indices, renormalised weights, full mean probs) per token."""
         chosen: List[List[int]] = []
@@ -471,12 +547,23 @@ class SparseMoE:
         p = [sum(row[i] for row in prob_rows) / n_tokens for i in range(self.n_experts)]
         aux = float(self.n_experts) * sum(fi * pi for fi, pi in zip(f, p))
 
+        # Cumulative view (Engram #813): every ACTUALLY routed token counts,
+        # across batches, so per-batch top-k pinning cannot hide run-level
+        # utilisation behind a per-batch entropy floor.
+        for i, c in enumerate(counts):
+            self._cumulative[i] += c
+
         self.last_stats = {
             "tokens": n_tokens,
             "aux_loss": aux,
             "used_experts": sum(1 for c in counts if c > 0),
             "counts": counts,
             "balance": sorted(f),
+            # Engram #813 instrumentation, same keys the balance snapshot
+            # gained: one vocabulary for "how skewed is this gate" no matter
+            # which path measured it.
+            "gini": gini_coefficient(counts),
+            "min_max_ratio": (min(counts) / max(counts)) if max(counts) else 0.0,
         }
         return out, aux, dict(self.last_stats)
 
@@ -513,8 +600,36 @@ class SparseMoE:
             "target": target,
             "used_experts": sum(1 for c in counts if c > 0),
             "entropy_normalised": load_entropy_normalised(counts, self.n_experts),
+            # Engram #813 instrumentation: entropy is forgiving of zero-count
+            # experts at higher k; Gini is not, and the ratio names the two
+            # ends of the load directly. Additive keys only -- no existing
+            # reader of the snapshot changes meaning.
+            "gini": gini_coefficient(counts),
+            "min_max_ratio": (min(counts) / max(counts)) if max(counts) else 0.0,
             "starved_experts": [i for i, c in enumerate(counts) if c == 0],
             "max_skew": (max(counts) / target) if target else 0.0,
+        }
+
+    def cumulative_snapshot(self) -> Dict[str, Any]:
+        """The load over EVERY forward since construction (Engram #813).
+
+        Per-batch snapshots carry a structural floor -- a collinear batch pins
+        top-k's used set no matter what the router does (test E,
+        ``log(top_k)/log(n_experts)``) -- so mode acceptance is stated on the
+        cumulative view, which is the view the live 2-of-8 report was read
+        on. ``tokens_routed`` names the observation's support: a zero-token
+        cumulative view is "nothing measured", never "balanced".
+        """
+        counts = list(self._cumulative)
+        return {
+            "counts": counts,
+            "tokens_routed": sum(counts),
+            "used_experts": sum(1 for c in counts if c > 0),
+            "n_experts": self.n_experts,
+            "entropy_normalised": load_entropy_normalised(counts, self.n_experts),
+            "gini": gini_coefficient(counts),
+            "starved_experts": [i for i, c in enumerate(counts) if c == 0],
+            "min_max_ratio": (min(counts) / max(counts)) if max(counts) else 0.0,
         }
 
     @staticmethod
@@ -550,6 +665,7 @@ class SparseMoE:
         if not rows:
             return {"balanced": False, "reason": "no tokens to route",
                     "counts": [], "target": 0.0,
+                    "gini": 0.0, "min_max_ratio": 0.0,
                     "gate_bias": list(self.gate_bias)}
 
         snapshot = self._load_snapshot(rows)
@@ -573,6 +689,10 @@ class SparseMoE:
                 "load_balanced": load_balanced,
                 "max_skew": max_skew,
                 "starved_experts": starved,
+                # Engram #813 additive keys, forwarded from the SAME snapshot
+                # every other reader uses, so the vocabulary cannot drift.
+                "gini": snapshot["gini"],
+                "min_max_ratio": snapshot["min_max_ratio"],
                 "gate_bias": list(self.gate_bias)}
 
     def rebalance(self, tokens: Sequence[Sequence[float]],
