@@ -40,6 +40,8 @@ Includes comprehensive logging, debugging, and error handling.
 
 import sys
 import json
+import shutil
+import subprocess
 import time
 import hashlib
 import logging
@@ -373,6 +375,47 @@ class GGUFAnalyzer:
             is_vision=is_vision,
             sha256=self._compute_sha256(model_path),
         )
+
+    KNOWN_QUANTS = frozenset({
+        "Q2_K", "Q2_K_S", "Q3_K_S", "Q3_K_M", "Q3_K_L",
+        "Q4_0", "Q4_1", "Q4_K_S", "Q4_K_M",
+        "Q5_0", "Q5_1", "Q5_K_S", "Q5_K_M",
+        "Q6_K", "Q8_0", "F16", "F32",
+        "IQ2_XXS", "IQ2_XS", "IQ3_XXS", "IQ4_XS",
+    })
+
+    @staticmethod
+    def find_quantizer():
+        return shutil.which("llama-quantize")
+
+    @staticmethod
+    def _run_quantizer(argv):
+        return subprocess.run(argv, capture_output=True, text=True, timeout=600)
+
+    def convert(self, model_path: str, output_dir: str,
+                quantization: str = "Q4_K_M"):
+        src = Path(model_path)
+        if not src.is_file():
+            return False, "", ["source not found: %s" % model_path]
+        if quantization not in self.KNOWN_QUANTS:
+            return False, "", ["unknown quant type: %s" % quantization]
+        quantizer = self.find_quantizer()
+        if not quantizer:
+            return False, "", ["llama-quantize not on PATH: cannot quantize %s" % src.name]
+        out_dir = Path(output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        dst = out_dir / ("%s-%s.gguf" % (src.stem, quantization))
+        try:
+            proc = self._run_quantizer([quantizer, str(src), str(dst), quantization])
+        except Exception as exc:
+            return False, "", ["quantizer backend failed: %s" % exc]
+        if getattr(proc, "returncode", 1) != 0:
+            return False, "", ["llama-quantize exited %s" % getattr(proc, "returncode", "?")]
+        if not dst.is_file():
+            return False, "", ["llama-quantize produced no artifact at %s" % dst]
+        return True, str(dst), {"bytes": dst.stat().st_size,
+                                "quantization": quantization,
+                                "quantizer_binary": quantizer}
 
 
 class PyTorchConverter:

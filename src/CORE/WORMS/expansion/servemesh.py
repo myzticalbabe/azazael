@@ -12,6 +12,7 @@ itself (mesh.py).
 import time
 import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any, List
 from collections import deque
 
@@ -601,16 +602,35 @@ class ModelShardServerWorm:
         fabric_hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def publish(self, model: str, shard: str, env: str, fmt: str,
-                quant: str = "Q4_K_M") -> dict[str, Any]:
+                quant: str = "Q4_K_M",
+                artifact_path: str | None = None) -> dict[str, Any]:
         with self._lock:
-            self._shards[f"{model}:{shard}"] = {
+            entry: dict[str, Any] = {
                 "model": model, "shard": shard, "env": env,
                 "format": fmt, "quant": quant,
                 "at": datetime.now().isoformat(),
             }
+            if artifact_path:
+                entry["artifact_path"] = artifact_path
+                try:
+                    _p = Path(artifact_path)
+                    if _p.is_file():
+                        entry["bytes"] = _p.stat().st_size
+                except OSError as exc:
+                    note_failure("servemesh:publish-artifact-stat", exc)
+            self._shards[f"{model}:{shard}"] = entry
             fabric_cap_map(self._shards, self.SHARDS_MAX)
             fabric_publish(self, self.PROVIDER, self._STATE_ATTRS)
             return {"success": True, "shards": len(self._shards)}
+
+    def verify(self, model: str, shard: str) -> dict[str, Any]:
+        with self._lock:
+            entry = self._shards.get(f"{model}:{shard}")
+            if entry is None:
+                return {"verified": False, "reason": "shard not published"}
+            if "bytes" in entry:
+                return {"verified": True, "bytes": entry["bytes"]}
+            return {"verified": True, "bytes": 0}
 
     def locate(self, model: str) -> dict[str, Any]:
         with self._lock:
