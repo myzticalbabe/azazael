@@ -585,6 +585,7 @@ class SB3Agent(FreeThreadedAgent):
               learning_rate: (float | None) = None, use_data_split: bool = True,
               max_age_days: int = 30, model_name: (str | None) = None,
               register_model: bool = True, exclude_sources: (list[str] | None) = None,
+              records: list[dict] | None = None,  # frozen-record seam
               **kwargs) -> dict[str, Any]:
         """
         Train the SB3 model using data from LocalMemoryStore.
@@ -630,13 +631,19 @@ class SB3Agent(FreeThreadedAgent):
 
         start = time.perf_counter()
 
-        # -- Step 1: Extract training data ------------------------------
-        pipeline = self._get_pipeline()
-        records = pipeline.extract_from_memory(
-            source=source, event_type=event_type,
-            limit=5000, max_age_days=max_age_days,
-            exclude_sources=exclude_sources,
-        )
+        # -- Step 1: Extract training data (or use frozen records) -----------
+        if records is not None:
+            # Frozen-record seam: use the provided records and skip store extraction
+            # this is the entry point that lets technique-intake records reach
+            # trainers deterministically without touching the live store
+            pass  # records already in scope; skip pipeline.extract_from_memory
+        else:
+            pipeline = self._get_pipeline()
+            records = pipeline.extract_from_memory(
+                source=source, event_type=event_type,
+                limit=5000, max_age_days=max_age_days,
+                exclude_sources=exclude_sources,
+            )
 
         if not records:
             return {"error": f"No training data found for source={source}", "trained": False}
