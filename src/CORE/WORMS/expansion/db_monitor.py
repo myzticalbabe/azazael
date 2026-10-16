@@ -20,13 +20,14 @@ Features:
 """
 
 import sys
+import os
 import time
 import random
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -464,6 +465,67 @@ class DatabaseMonitorWorm:
                     "state_key": "%s:%s" % (source, severity),
                     "source": source}
 
+    #: The ONE learned action promoted to actuation. The policy may only
+    #: ever ADD an alert row, never suppress one: ignore/log/remediate stay
+    #: advisory-only. Suppression hides incidents and remediation acts on
+    #: the world -- neither is earned by a pool that has never seen a
+    #: failure (ok_rate=1.0 live). An actuated row is cooldown-deduped on
+    #: its own policy: metric key and tagged policy_actuated, so a chatty
+    #: table cannot flood the store.
+    POLICY_ACTUATED_ACTION = "alert"
+
+    def _alert_report(self, alert: DbAlert) -> dict:
+        """Report dict for one alert, with learned-policy advice attached.
+
+        The advice call is the advisory half of the promotion: every alert
+        now carries what the table thought, whether or not the gate below
+        lets it act. _policy_advice never raises (unknown on failure), so
+        this cannot break the report.
+        """
+        return {
+            "alert_id": alert.alert_id,
+            "severity": alert.severity,
+            "message": alert.message,
+            "metric": alert.metric,
+            "value": alert.value,
+            "threshold": alert.threshold,
+            "timestamp": alert.timestamp,
+            "policy_advice": self._policy_advice(alert.severity),
+        }
+
+    def _maybe_policy_alert(self, alert: DbAlert) -> bool:
+        """Let the learned policy raise ONE additive alert row, gated.
+
+        Gate (all required): kill-switch MONITOR_POLICY_ACTUATION != "0";
+        advice known=True; advised action exactly POLICY_ACTUATED_ACTION.
+        The extra row reuses _record_alert, so base alert recording is
+        untouched. Fail-open: any failure skips the extra row, noted.
+        Returns True when the extra row was recorded.
+        """
+        try:
+            if os.environ.get("MONITOR_POLICY_ACTUATION", "1") == "0":
+                return False
+            advice = self._policy_advice(alert.severity)
+            if not advice.get("known", False):
+                return False
+            if advice.get("action_name") != self.POLICY_ACTUATED_ACTION:
+                return False
+            extra = replace(
+                alert,
+                alert_id="policy_%s" % alert.alert_id,
+                metric="policy:%s" % alert.metric,
+                message="[policy:%s] %s" % (advice.get("action_name"),
+                                            alert.message),
+            )
+            self._record_alert(
+                extra, extra_tags=("policy_actuated",),
+                extra_data={"policy_state": advice.get("state_key"),
+                            "policy_action": advice.get("action_name")})
+            return True
+        except Exception as e:
+            note_failure("db_monitor:policy-actuation", e)
+            return False
+
     # -- Recording to Memory ----------------------------------------
 
     def _record_snapshot(self, snapshot: DbHealthSnapshot):
@@ -530,27 +592,35 @@ class DatabaseMonitorWorm:
                 continue
         return False
 
-    def _record_alert(self, alert: DbAlert):
-        """Record an alert to LocalMemoryStore (cooldown-deduped)."""
+    def _record_alert(self, alert: DbAlert, extra_tags: tuple = (),
+                      extra_data: (dict | None) = None):
+        """Record an alert to LocalMemoryStore (cooldown-deduped).
+
+        extra_tags/extra_data ride along for policy-actuated rows; both
+        default empty so every existing caller is unaffected.
+        """
         store = self._get_store()
         if not store:
             return
         try:
             if self._recently_alerted(store, alert.metric, alert.severity):
                 return
+            data = {
+                "alert_id": alert.alert_id,
+                "severity": alert.severity,
+                "message": alert.message,
+                "metric": alert.metric,
+                "value": alert.value,
+                "threshold": alert.threshold,
+            }
+            data.update(extra_data or {})
             store.record_event(
                 source="DatabaseMonitorWorm",
                 event_type="db_health_alert",
-                data={
-                    "alert_id": alert.alert_id,
-                    "severity": alert.severity,
-                    "message": alert.message,
-                    "metric": alert.metric,
-                    "value": alert.value,
-                    "threshold": alert.threshold,
-                },
+                data=data,
                 severity=alert.severity,
-                tags=["db_monitor", "alert", alert.severity],
+                tags=["db_monitor", "alert", alert.severity,
+                      *extra_tags],
             )
         except Exception as exc:
             note_failure("db_monitor:L535", exc)
@@ -578,6 +648,7 @@ class DatabaseMonitorWorm:
             self._alerts.clear()
         for alert in pending_alerts:
             self._record_alert(alert)
+            self._maybe_policy_alert(alert)
 
         # Build rich report
         return {
@@ -594,18 +665,7 @@ class DatabaseMonitorWorm:
             "event_types_count": snapshot.event_types_count,
             "auto_vacuum_running": snapshot.auto_vacuum_running,
             "storage_backend": snapshot.storage_backend,
-            "alerts": [
-                {
-                    "alert_id": a.alert_id,
-                    "severity": a.severity,
-                    "message": a.message,
-                    "metric": a.metric,
-                    "value": a.value,
-                    "threshold": a.threshold,
-                    "timestamp": a.timestamp,
-                }
-                for a in pending_alerts
-            ],
+            "alerts": [self._alert_report(a) for a in pending_alerts],
             "total_alerts": len(pending_alerts),
             "free_threaded": is_free_threaded(),
         }
