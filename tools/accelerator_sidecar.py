@@ -282,6 +282,15 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
+    # Estate convention (engram #707): stdout is cp1252 on this host, so
+    # argparse help text with non-latin characters crashes printing it.
+    # Reconfigure instead of sprinkling encodes at every print site.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception as exc:
+        print("sidecar: stdio reconfigure failed: %s" % exc,
+              file=sys.stderr)
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--port", type=int, default=18180)
     ap.add_argument("--no-spawn", action="store_true",
