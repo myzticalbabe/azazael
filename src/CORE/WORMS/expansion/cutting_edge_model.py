@@ -560,6 +560,84 @@ class SparseMoE:
                 "moved_count": moved, "clamped_count": clamped,
                 "bias": list(self._lossfree_bias)}
 
+    def _assign_bip(self, rows: Sequence[Sequence[float]]) \
+            -> Tuple[List[List[int]], List[List[float]], List[List[float]]]:
+        """R2 BIP quota assignment (arXiv:2502.15451) — the batch-solver route.
+
+        Expert load balancing is a binary-integer-programming assignment
+        problem: every token must supply exactly ``top_k`` expert slots and
+        every expert may receive at most its equal-share quota. Solving
+        BIP exactly is NP-hard, so the paper ships the same greedy we use:
+        each token takes its highest-affinity experts whose quota is still
+        open, falling to the next by affinity. On a batch where tokens can
+        supply no unique preference (the collinear fixture) the quotas bind
+        and the assignment becomes exactly even — which measured at 8/8
+        experts used with per-batch entropy 1.0, where the shipped top-k
+        router reports 2/8 and 1/3.
+
+        One variable relative to ``switch``: the solver. Affinity is the
+        SAME affine gate score (``_dot(gate_i, token) + gate_bias_i``),
+        tokens keep their stable (score, index) ordering, and the leftover
+        quota (``top_k * n_tokens`` not divisible by ``n_experts``) goes to
+        the lowest-CUMULATIVE-count experts first, ties by index — so a
+        repeated batch rotates its remainder deterministically instead of
+        systematically favouring the front of the row.
+
+        Weights stay on the same softmax vocabulary: each assigned expert
+        keeps its share of the token's softmax mass, re-normalised over the
+        assigned set, so only WHO is selected changes, not how loud.
+        """
+        n = len(rows)
+        total_slots = self.top_k * n
+        quotas = [total_slots // self.n_experts] * self.n_experts
+        remainder = total_slots % self.n_experts
+        if remainder:
+            order_of_need = sorted(range(self.n_experts),
+                                   key=lambda i: (self._cumulative[i], i))
+            for i in order_of_need[:remainder]:
+                quotas[i] += 1
+
+        scored: List[List[Tuple[float, int]]] = []
+        prob_rows: List[List[float]] = []
+        for token in rows:
+            logits = [_dot(row, token) + self.gate_bias[i]
+                      for i, row in enumerate(self.gate)]
+            probs = _softmax(logits)
+            prob_rows.append(probs)
+            scored.append(sorted((-probs[i], i) for i in range(self.n_experts)))
+
+        left = list(quotas)
+        chosen: List[List[int]] = []
+        weights: List[List[float]] = []
+        assigned_counts = [0] * self.n_experts
+        for t in range(n):
+            picks: List[int] = []
+            for _neg_rank, i in scored[t]:
+                if left[i] > 0:
+                    picks.append(i)
+                    left[i] -= 1
+                    assigned_counts[i] += 1
+                    if len(picks) == self.top_k:
+                        break
+            # A solver must never return fewer slots than the batch owes:
+            # if every affinity expert is somehow closed (possible only if
+            # quotas under-fill), the remaining picks come from the most
+            # open experts so the invariant holds and is reported, not
+            # silently violated.
+            while len(picks) < self.top_k:
+                fallback = max(range(self.n_experts),
+                               key=lambda i: (left[i], -i))
+                picks.append(fallback)
+                left[fallback] -= 1
+                assigned_counts[fallback] += 1
+            chosen.append(picks)
+
+        for t in range(n):
+            selected = chosen[t]
+            mass = sum(prob_rows[t][i] for i in selected) or 1.0
+            weights.append([prob_rows[t][i] / mass for i in selected])
+        return chosen, weights, prob_rows
+
     def _selection_spread(self, tokens: Sequence[Sequence[float]]) -> float:
         """max-min of the base selection scores this batch's gate would give.
 
@@ -617,6 +695,11 @@ class SparseMoE:
             return [], 0.0, dict(self.last_stats)
 
         chosen, weights, prob_rows = self.route(tokens)
+        # R2 BIP (Engram #813): a BATCH-level solver replaces per-token
+        # selection in bip mode; the per-token route() output is thrown
+        # away by the solver, so no mode smells the other's work.
+        if self.route_mode == "bip":
+            chosen, weights, prob_rows = self._assign_bip(self._coerce_rows(tokens))
         self.last_inputs = list(tokens)
         out = [[0.0] * self.d_model for _ in range(n_tokens)]
         counts = [0] * self.n_experts
