@@ -35,6 +35,7 @@ HOOK_SCRIPTS = {
     "tools/canon_drift_check.py",
     "tools/anti_pattern_gate.py",
     "tools/mesh_function_preflight.py",
+    "tools/paradigm_gate.py",
     "tools/pmb_session_observe.py",
 }
 
@@ -59,7 +60,7 @@ class TestHookParity:
     def test_registry_and_hook_agree(self):
         ok, message = pf.hook_parity(pf.GATES, pf.read_hook())
         assert ok, message
-        assert "7 gates" in message
+        assert "8 gates" in message
 
     def test_an_unreadable_hook_is_missing_evidence_not_a_pass(self):
         ok, message = pf.hook_parity(pf.GATES, None)
