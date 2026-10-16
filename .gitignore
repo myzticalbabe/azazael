@@ -260,6 +260,14 @@ state/*
 !state/suite_baseline.jsonl
 !state/SOLAR_PRO4_EVIDENCE_2026-10-14.jsonl
 !state/SOLAR_PRO4_EVIDENCE_2026-10-14.md
+# Engram lane deliverables whose whole value is the text, so they must be
+# durable rather than regenerable scratch. Added 2026-10-15 with the negation
+# pattern documented above (re-include the dir, re-exclude contents, then
+# negate the file). #770 = intake red inventory; #793 = doc-census lane.
+!state/REPORT_770_DEEPSEEK_INTAKE.md
+!state/DOC_CENSUS_793_BATCH06.md
+!state/DOC_DRIFT_793.md
+!state/EP237_SEAM_793.md
 # Still ignored on purpose: every other state/ file, and every SUBDIRECTORY of
 # state/ (`state/*` re-excludes them as directories, and a file inside an ignored
 # directory cannot be re-included). No rule here may be relaxed to `!state/**`.
