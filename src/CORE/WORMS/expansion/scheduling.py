@@ -12,6 +12,7 @@ import time
 import random
 import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
@@ -96,6 +97,19 @@ class ScheduleConfig:
     # to train. `contribution_arm` names the arm this schedule follows.
     contribution_weights: (dict[str, float] | None) = None
     contribution_arm: (str | None) = None
+
+    @classmethod
+    def evolved_param_paths(cls):
+        """Promotion files production may adopt, most-preferred first.
+
+        Mirrors the locations ``apply_evolved_overrides`` reads: the untracked
+        runtime state file first, the legacy tracked config as fallback.
+        (Added 2026-10-16: ``evolution_audit._champion_in_use`` called this
+        and it did not exist, so every audit crashed with AttributeError.)
+        """
+        _root = (Path(__file__).resolve().parent.parent.parent.parent.parent)
+        return [_root / "state" / "evolved_rl_params.json",
+                _root / "config" / "evolved_rl_params.json"]
 
     def apply_evolved_overrides(self) -> bool:
         """Load champion genes promoted by evolution_cycle.py, if present.
