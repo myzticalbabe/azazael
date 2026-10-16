@@ -506,8 +506,89 @@ class SparseMoE:
                              % (mode, list(ROUTE_MODES)))
         self.route_mode = mode
 
+    def _update_lossfree_bias(self, counts: Sequence[int],
+                              alpha: float = DEFAULT_LOSSFREE_ALPHA,
+                              clamp: Optional[float] = None) -> Dict[str, Any]:
+        """One sign-step of the R1 Loss-Free selection bias (arXiv:2408.15664).
+
+        After a batch, each expert's bias moves ONE step toward balance: a
+        share above the equal share gets ``-alpha``, below gets ``+alpha``,
+        and an expert EXACTLY at its share gets no step (a strict sign rule;
+        treating at-target as starved would push a perfectly even load off
+        balance forever). It lives on a SEPARATE vector on purpose:
+        ``gate_bias`` is ``balance_step``'s Switch remedy and the two
+        remedies must not be able to fight over one vector.
+
+        ``clamp`` is the everyday ``+-MAX_GATE_BIAS`` UNLESS the caller
+        passes the batch's own measured selection-score spread -- which is
+        what bias-mode ``forward`` does. Measured reason: a FIXED
+        2.0-wide authority could not flip ANY of 96 seeded fixed gates on
+        the #813 collapse fixture (gate score spreads all measured > 4.0;
+        the shipped-seed fixture measured 27.0), so a constant clamp was
+        not a safety margin but a structural wall, and the remedy could
+        never re-mediate the collapse it exists for. The gate's own spread
+        is the smallest authority that is guaranteed to be WIDE ENOUGH,
+        and it is still bounded, reported, and derived -- not guessed.
+        """
+        clamp_val = MAX_GATE_BIAS if clamp is None else float(clamp)
+        total = sum(counts)
+        target = total / float(self.n_experts) if self.n_experts else 0.0
+        if target <= 0:
+            return {"updated": False, "reason": "no load measured",
+                    "bias": list(self._lossfree_bias)}
+        clamped = 0
+        moved = 0
+        for i in range(self.n_experts):
+            if counts[i] > target:
+                step = -alpha
+            elif counts[i] < target:
+                step = alpha
+            else:
+                # EXACTLY at its share: no step. A strict sign rule that
+                # treats at-target as starved would push a perfectly even
+                # load off balance forever (measured on the fixtures in the
+                # #813 battery before this branch existed).
+                step = 0.0
+            if step:
+                moved += 1
+            new = max(-clamp_val,
+                      min(clamp_val, self._lossfree_bias[i] + step))
+            if new != self._lossfree_bias[i] + step:
+                clamped += 1
+            self._lossfree_bias[i] = new
+        return {"updated": True, "reason": None, "target": target,
+                "moved_count": moved, "clamped_count": clamped,
+                "bias": list(self._lossfree_bias)}
+
+    def _selection_spread(self, tokens: Sequence[Sequence[float]]) -> float:
+        """max-min of the base selection scores this batch's gate would give.
+
+        The measured authority for the Loss-Free clamp (see
+        ``_update_lossfree_bias``): the smallest clamp guaranteed wide
+        enough to move any expert across this batch's full ranking window.
+        An empty batch reads 0.0, which collapses the clamp to no movement
+        -- the correct authority for "nothing was measured".
+        """
+        lo: Optional[float] = None
+        hi: Optional[float] = None
+        for token in tokens:
+            for row in self.gate:
+                s = _dot(row, token)
+                if lo is None or s < lo:
+                    lo = s
+                if hi is None or s > hi:
+                    hi = s
+        return (hi - lo) if (lo is not None and hi is not None) else 0.0
+
     def route(self, tokens: Sequence[Sequence[float]]) -> Tuple[List[List[int]], List[List[float]], List[float]]:
-        """Return (top-k indices, renormalised weights, full mean probs) per token."""
+        """Return (top-k indices, renormalised weights, full mean probs) per token.
+
+        Mode-aware (Engram #813): ``switch`` is the shipped router and its
+        path is byte-identical. ``bias`` (R1, arXiv:2408.15664) is the
+        Loss-Free contract: the gate VALUES stay on the un-biased logits
+        (so expert weighting is never distorted) and only the top-k
+        SELECTION reads the extra ``_lossfree_bias`` vector.
+        """
         chosen: List[List[int]] = []
         weights: List[List[float]] = []
         prob_rows: List[List[float]] = []
@@ -516,7 +597,12 @@ class SparseMoE:
                       for i, row in enumerate(self.gate)]
             probs = _softmax(logits)
             prob_rows.append(probs)
-            order = sorted(range(self.n_experts), key=lambda i: (-probs[i], i))
+            if self.route_mode == "bias":
+                sel = [logits[i] + self._lossfree_bias[i]
+                       for i in range(self.n_experts)]
+            else:
+                sel = logits
+            order = sorted(range(self.n_experts), key=lambda i: (-sel[i], i))
             top = order[:self.top_k]
             mass = sum(probs[i] for i in top) or 1.0
             chosen.append(top)
@@ -553,6 +639,14 @@ class SparseMoE:
         for i, c in enumerate(counts):
             self._cumulative[i] += c
 
+        # R1 Loss-Free (Engram #813): in bias mode the selection bias steps
+        # after EVERY batch -- the router option that moves without a caller
+        # remembering remediation. Reported, never silent.
+        lossfree: Dict[str, Any] = {"updated": False}
+        if self.route_mode == "bias":
+            lossfree = self._update_lossfree_bias(
+                counts, clamp=self._selection_spread(tokens))
+
         self.last_stats = {
             "tokens": n_tokens,
             "aux_loss": aux,
@@ -564,6 +658,7 @@ class SparseMoE:
             # which path measured it.
             "gini": gini_coefficient(counts),
             "min_max_ratio": (min(counts) / max(counts)) if max(counts) else 0.0,
+            "lossfree": lossfree,
         }
         return out, aux, dict(self.last_stats)
 
