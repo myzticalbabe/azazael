@@ -13,15 +13,24 @@ This module is that intake. All reads, fail-open, stdlib-only:
   per-hook ok-rates, per-subject canonical rewards, calibration error stats.
   Consumers: monitor/fitness level only.
 
+- build_training_records(): the TRAINER-facing half (Engram #770 / item H-3 of
+  `state/ACTION_REGISTRY_2026-10-10.md`): normalise the measured technique
+  outcomes into the record shape the four trainers actually consume, so a
+  trajectory of run/exercise results is training INPUT instead of telemetry.
+  Consumers: a trainer, through the orchestrator's INTAKE track.
+
 REJECTED (prior Phase-2 lesson, obs #382): per-worm GRPO reward shaping
 from global link terms — group normalization washes global terms, and
 per-worm mapping would be substring-guessing. No shaping wrapper ships
 in this module for that reason; shaping stays out until per-worm hook
-identity exists.
+identity exists. `build_training_records` is NOT that wrapper: it introduces
+no per-worm term and changes no trainer's objective — it only stops the row
+from arriving with its outcome erased (see its docstring).
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, List
 
 from CORE.local_memory import get_memory_store
@@ -102,5 +111,132 @@ def gather(limit: int = 200) -> Dict[str, Any]:
                           "n_scored": len(errs),
                           "mean_abs_error": (round(sum(errs) / len(errs), 6)
                                              if errs else None)}
+    return out
+
+
+#: The source the trainers already know how to read. A `source=` filter is how
+#: `DataPipelineWorm.extract_from_memory` and `LocalMemoryStore.query_memories`
+#: accept input, so this is the H-3 "rows DataPipelineWorm consumes" channel.
+TRAINER_SOURCE = "technique-link"
+
+
+def _row_data(row: Any) -> Dict[str, Any]:
+    """A row's payload as a dict. Never raises: a row may carry a JSON string.
+
+    `data` arrives as a dict from `query_memories()` (it decodes the column) but
+    a hand-built or foreign row may still hold the raw JSON text, and the caller
+    here must not die on it -- the intake's whole contract is fail-open.
+    """
+    data = (row or {}).get("data")
+    if isinstance(data, dict):
+        return data
+    if isinstance(data, str):
+        try:
+            decoded = json.loads(data)
+        except (TypeError, ValueError) as exc:
+            note_failure("training-intake:row-data", exc)
+            return {}
+        return decoded if isinstance(decoded, dict) else {}
+    return {}
+
+
+def build_training_records(limit: int = 500) -> Dict[str, Any]:
+    """Normalise measured technique outcomes into trainer-consumable records.
+
+    TWO GAPS, MEASURED (not assumed), and this closes the second. The first is
+    that no trainer was pointed at the stream: `technique-link` rows existed and
+    zero trainer filtered on that source (`tools/training_intake_audit.py`'s P3),
+    which is why EP412/EP423/EP431/EP463 read PARTIAL -- the host module is
+    imported, the outcomes reach no learning signal. The second is that the row
+    carries its verdict HALF-VISIBLY to the trainers' reward model
+    (`learning_rl._compute_reward`):
+
+    * `severity` is declared by the producer (`record_link()` writes "info" for
+      a success and "warning" for a failure), so that half already lands. This
+      function PRESERVES it -- re-labelling a failure "error" would invent a
+      verdict the producer did not make and would silently buy the learner a
+      different incentive than the one the hook author chose;
+    * the OUTCOME REFINEMENT is unreachable: the reward model reads
+      `data["success"]` ("when present") and the row's payload carries `ok`.
+      For a succeeded hook that is a real loss -- a `log`/`ignore` action on a
+      known-good outcome earns +0.1 and earned nothing before -- and for any
+      producer that declares `error` it is the difference between the
+      remediation bonus/penalty firing and not. This function sets it.
+
+    So the translation is additive and total: carry the verdict up as the
+    producer declared it, add the missing refinement field, and change nothing
+    else. Also:
+
+    * a row whose `ok` is absent or not a real bool is COUNTED and SKIPPED,
+      never labelled. An unmeasured row is not an outcome, and inventing one
+      would train the policy on a fact nobody measured;
+    * nothing is written: this is a read-side adapter, so an intake run cannot
+      perturb the store it reads.
+
+    Returns a dict with `records` (the trainer input), the counts that make a
+    thin or unmeasured stream diagnosable (`n_rows`, `n_unmeasured`, `ok_rate`,
+    `by_hook`), and `store_error` / `read_error` when the store could not be
+    opened or read. Both failure points are named in the RESULT as well as the
+    failure ledger: a store that cannot be read yields an empty pool, and an
+    empty pool must never be indistinguishable from "nothing was measured".
+    """
+    out: Dict[str, Any] = {"records": [], "n": 0, "n_rows": 0,
+                           "n_unmeasured": 0, "ok_rate": None,
+                           "source": TRAINER_SOURCE, "by_hook": {}}
+    try:
+        store = get_memory_store()
+    except Exception as exc:
+        note_failure("training-intake:records-store", exc)
+        out["store_error"] = type(exc).__name__
+        return out
+    try:
+        rows = store.query_memories(source=TRAINER_SOURCE,
+                                    limit=int(limit)) or []
+    except Exception as exc:
+        note_failure("training-intake:records-read", exc)
+        out["read_error"] = type(exc).__name__
+        rows = []
+    if not isinstance(rows, list):
+        rows = []
+
+    records: List[Dict[str, Any]] = []
+    by_hook: Dict[str, List[int]] = {}
+    unmeasured = 0
+    for row in rows:
+        data = _row_data(row)
+        ok = data.get("ok")
+        if not isinstance(ok, bool):
+            unmeasured += 1
+            continue
+        event_type = str((row or {}).get("event_type") or "")
+        # `record_link()` carries the hook in `event_type` ("hook:<hook>") and
+        # not always in the payload, so the fallback strips the prefix and the
+        # grouping key is the hook name rather than "hook:name".
+        hook = str(data.get("hook") or "")
+        if not hook:
+            hook = event_type[len("hook:"):] if event_type.startswith("hook:") \
+                else event_type
+        hook = hook or "?"
+        slot = by_hook.setdefault(hook, [0, 0])
+        slot[0] += 1 if ok else 0
+        slot[1] += 1
+        records.append({
+            "source": TRAINER_SOURCE,
+            "event_type": event_type or "hook:%s" % hook,
+            # The producer's own severity, untouched (see the docstring).
+            "severity": str((row or {}).get("severity") or "info"),
+            "data": {"success": ok, "ok": ok, "hook": hook,
+                     "subject": str(data.get("subject", "")),
+                     "citation": str(data.get("citation", ""))},
+            "timestamp": (row or {}).get("timestamp"),
+            "session_id": (row or {}).get("session_id"),
+        })
+    out["records"] = records
+    out["n"] = len(records)
+    out["n_rows"] = len(rows)
+    out["n_unmeasured"] = unmeasured
+    out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
+                      if records else None)
+    out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
     return out
 

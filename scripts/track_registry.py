@@ -56,6 +56,14 @@ TRACKS: dict[str, dict] = {
                   "event": ("dreamtune_training_orchestrated", "eval_mean_reward", None)},
     "WORMGA": {"kind": "cycle", "runner": "run_wormga_cycle",
                "event": ("wormga_training_orchestrated", "eval_mean_reward", None)},
+    # The technique-outcome intake track (Engram #770 / ACTION_REGISTRY H-3).
+    # Its input is a row SHAPE, not a new module: `technique-link` rows already
+    # existed and reached no trainer's learning signal because the measured
+    # outcome sits in `data["ok"]` while the reward model reads `severity` and
+    # `data["success"]`. `CORE.training_intake.build_training_records()` is the
+    # translation; `run_intake_cycle` is its production caller.
+    "INTAKE": {"kind": "cycle", "runner": "run_intake_cycle",
+               "event": ("intake_training_orchestrated", "eval_mean_reward", None)},
 
     # -- The former shadow orchestrator, folded in as one arm -------------
     # CORE/NeuralPipeline's parallel SB3+GRPO+QLEARN ensemble used to be a
