@@ -58,10 +58,12 @@ TRACKS: dict[str, dict] = {
                "event": ("wormga_training_orchestrated", "eval_mean_reward", None)},
     # The technique-outcome intake track (Engram #770 / ACTION_REGISTRY H-3).
     # Its input is a row SHAPE, not a new module: `technique-link` rows already
-    # existed and reached no trainer's learning signal because the measured
-    # outcome sits in `data["ok"]` while the reward model reads `severity` and
-    # `data["success"]`. `CORE.training_intake.build_training_records()` is the
-    # translation; `run_intake_cycle` is its production caller.
+    # existed and no trainer filtered on that source, and the row's verdict was
+    # half-visible to the reward model -- the measured outcome sits in
+    # `data["ok"]` while `learning_rl._compute_reward` reads the refinement
+    # `data["success"]` (the producer's `severity` already distinguishes the
+    # two). `CORE.training_intake.build_training_records()` is the translation;
+    # `run_intake_cycle` is its production caller.
     "INTAKE": {"kind": "cycle", "runner": "run_intake_cycle",
                "event": ("intake_training_orchestrated", "eval_mean_reward", None)},
 
