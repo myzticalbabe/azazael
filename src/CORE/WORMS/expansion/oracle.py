@@ -430,6 +430,198 @@ class FitnessOracle:
             sd = [0.0] * n
         return mean, sd
 
+    # --- Engran #814 U1: cheap pure-python uncertainty -----------------------
+    # CSD (committee-based single-pass disagreement) = ensemble sd, already
+    # computed by `predict_pure`. NUQLS adds post-hoc linearized uncertainty:
+    # linearize the mean network around its weights, take the diagonal weight
+    # posterior (ensemble variance across models) as Sigma, and compute
+    # predictive variance = J * Sigma * J^T. No torch at decision time.
+    def uncertainty_pure(self, X: Sequence[Sequence[float]]
+                         ) -> Tuple[List[float], List[float], List[float]]:
+        """Return (mean, csd_sd, nuqls_sd) pure-python, no torch.
+
+        csd_sd: standard deviation across ensemble members (CSD single-pass
+        variance). nuqls_sd: post-hoc linearized uncertainty from the NUQLS
+        weight-posterior diagonal. Acceptance: uncertainty correlates with
+        holdout misses.
+        """
+        if not self._json_models:
+            raise RuntimeError("uncertainty_pure without load_json/export_json")
+        if self._mu is None or self._sd is None:
+            raise RuntimeError("uncertainty_pure without standardisation stats")
+        col = []
+        for row in X:
+            if len(row) != len(self._mu):
+                raise ValueError("expected %d features, got %d"
+                                 % (len(self._mu), len(row)))
+            col.append([(float(row[j]) - self._mu[j]) / self._sd[j]
+                        for j in range(len(row))])
+        n = len(col)
+        k = len(self._json_models)
+        per_model = []
+        for layers in self._json_models:
+            per_model.append([self._forward_layers(layers, x) for x in col])
+        mean = [sum(per_model[mi][i] for mi in range(k)) / k for i in range(n)]
+        if k > 1:
+            csd_sd = [math.sqrt(max(0.0, sum((per_model[mi][i] - mean[i]) ** 2
+                                             for mi in range(k)) / (k - 1)))
+                      for i in range(n)]
+        else:
+            csd_sd = [0.0] * n
+        nuqls_sd = [math.sqrt(max(0.0, self._nuqls_jac_var(col[i])))
+                    for i in range(n)]
+        return mean, csd_sd, nuqls_sd
+
+    def _nuqls_weight_variance(self):
+        """Diagonal weight posterior = ensemble variance across models."""
+        if not self._json_models:
+            return None
+        k = len(self._json_models)
+        if k < 2:
+            return None
+        model_weights = []
+        for layers in self._json_models:
+            flat = []
+            for layer in layers:
+                flat.extend([float(v) for row in layer["w"] for v in row])
+                flat.extend([float(v) for v in layer["b"]])
+            model_weights.append(flat)
+        n_params = len(model_weights[0])
+        variances = []
+        for pi in range(n_params):
+            vals = [mw[pi] for mw in model_weights]
+            m = sum(vals) / k
+            v = sum((v - m) ** 2 for v in vals) / max(1, k - 1)
+            variances.append(v)
+        return variances
+
+    def _mean_layers(self):
+        """Element-wise mean of weights across ensemble models."""
+        k = len(self._json_models)
+        if k == 0:
+            return []
+        mean_layers = []
+        for li in range(len(self._json_models[0])):
+            layer_in = self._json_models[0][li]
+            mean_layer = {"w": [], "b": []}
+            for r in range(len(layer_in["w"])):
+                mean_layer["w"].append([
+                    sum(m[li]["w"][r][c] for m in self._json_models) / k
+                    for c in range(len(layer_in["w"][r]))])
+            mean_layer["b"] = [sum(m[li]["b"][r] for m in self._json_models) / k
+                               for r in range(len(layer_in["b"]))]
+            mean_layers.append(mean_layer)
+        return mean_layers
+
+    def _nuqls_jacobian(self, layers, x):
+        """Jacobian of network output w.r.t. all weights (flat list), via backprop."""
+        acts = [list(x)]
+        pre_acts = []
+        act = list(x)
+        last = len(layers) - 1
+        for li, layer in enumerate(layers):
+            W, b = layer["w"], layer["b"]
+            z = []
+            for r in range(len(W)):
+                s = b[r]
+                for c in range(len(W[r])):
+                    s += W[r][c] * act[c]
+                z.append(s)
+            pre_acts.append(z)
+            act = [math.tanh(v) for v in z] if li < last else z
+            acts.append(act)
+        n_layers = len(layers)
+        delta = [None] * n_layers
+        delta[n_layers - 1] = [1.0]
+        for li in range(n_layers - 2, -1, -1):
+            next_d = delta[li + 1]
+            W_next = layers[li + 1]["w"]
+            z_li = pre_acts[li]
+            d = []
+            for r in range(len(z_li)):
+                tanh_p = 1.0 - math.tanh(z_li[r]) ** 2
+                s = 0.0
+                for nxt_r in range(len(next_d)):
+                    s += W_next[nxt_r][r] * next_d[nxt_r]
+                d.append(s * tanh_p)
+            delta[li] = d
+        jac = []
+        for li, layer in enumerate(layers):
+            W = layer["w"]
+            for r in range(len(W)):
+                for c in range(len(W[r])):
+                    jac.append(delta[li][r] * acts[li][c])
+            for r in range(len(layer["b"])):
+                jac.append(delta[li][r])
+        return jac
+
+    def _nuqls_jac_var(self, x):
+        """NUQLS predictive variance = J * diag(Sigma) * J^T."""
+        variances = self._nuqls_weight_variance()
+        if variances is None:
+            return 0.0
+        jac = self._nuqls_jacobian(self._mean_layers(), x)
+        var = 0.0
+        for ji, j in enumerate(jac):
+            if ji < len(variances):
+                var += j * j * variances[ji]
+        return max(0.0, var)
+
+    # --- Engran #814 U2: overlapping holdout protocol -------------------------
+    # For tiny-pool holdout design: instead of one train/holdout split, create
+    # n_holds overlapping train/holdout splits and evaluate on each. Overlapping
+    # holdouts (rather than k-fold disjoint) keep training set size adequate on
+    # tiny pools while still giving a variance estimate across holdouts.
+    def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],
+                                        y: Sequence[float],
+                                        n_holds: int = 5, holdout_frac: float = 0.3,
+                                        seed: int = 0) -> dict:
+        """Overlapping holdout uncertainty for tiny-pool designs.
+
+        Draws n_holds random holdout subsets (each holdout_frac of rows), fits
+        a fresh ensemble on the complement, predicts on the holdout, and returns
+        the variance of holdout predictions plus per-holdout errors. Overlap
+        between holdouts (controlled by seed + random draw) gives more stable
+        estimates than k-fold when the pool is tiny.
+        """
+        n = len(X)
+        if n < 4 or n_holds < 2:
+            return {"holds": [], "holdout_var": 0.0, "mean_abs_error": 0.0,
+                    "n_holds": 0, "note": "pool too small"}
+        rng = random.Random(seed)
+        hold_size = max(1, int(n * holdout_frac))
+        hold_size = min(hold_size, n - 1)
+        errors = []
+        for h in range(n_holds):
+            idx = list(range(n))
+            rng.shuffle(idx)
+            hold_idx = set(idx[:hold_size])
+            train_rows = [X[i] for i in range(n) if i not in hold_idx]
+            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]
+            hold_rows = [X[i] for i in range(n) if i in hold_idx]
+            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]
+            if not train_rows or not hold_rows:
+                continue
+            # Fit a fresh ensemble on the train complement
+            try:
+                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,
+                                       self.n_models, self.seed + h)
+                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),
+                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))
+                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)
+                for j, hi in enumerate(sorted(hold_idx)):
+                    errors.append(abs(mean[j] - hold_y[j]))
+            except Exception:
+                continue
+        if not errors:
+            return {"holds": [], "holdout_var": 0.0, "mean_abs_error": 0.0,
+                    "n_holds": 0, "note": "all holds failed"}
+        m = sum(errors) / len(errors)
+        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)
+        return {"holds": errors, "holdout_var": round(var, 6),
+                "mean_abs_error": round(m, 6), "n_holds": len(errors),
+                "note": "overlapping holdout protocol (U2)"}
+
     def era_robust_decision_pure(self, genes: Sequence[float],
                                  era_features: Sequence[Sequence[float]],
                                  threshold: float, min_prob: float = 0.75,
