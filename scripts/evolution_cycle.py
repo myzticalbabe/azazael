@@ -1533,9 +1533,16 @@ QD_SOFT_ARCHIVE = _flag('AZAZAEL_QD_SOFT_ARCHIVE')
 QD_SOFT_ARCHIVE_ALPHA = _env_float('AZAZAEL_QD_SOFT_ALPHA', 0.3)
 # Q3: VQ-Elites-lite cell-remap measurement (adopt only if coverage > 9/16)
 QD_VQ_ELITES = _flag('AZAZAEL_QD_VQ_ELITES')
+# --- Engran #849 QD-ESCAPE: bounded non-operator novelty trials -------------
 QD_ARCHIVE_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     '..', 'state', 'qd_archive.json'))
+QD_ESCAPE = _flag('AZAZAEL_QD_ESCAPE')
+QD_ESCAPE_MAX_TRIALS = 3
+QD_ESCAPE_JSONL = os.path.join(os.path.dirname(QD_ARCHIVE_PATH),
+                               'bake_kilo_qdescape.jsonl')
+QD_ESCAPE_BASELINE_QD_SCORE = 507.82
+QD_ESCAPE_BASELINE_FILLED = 9
 # TPE seeds per cycle (evaluated inside the GA population, zero extra evals).
 TPE_SUGGEST_N = 2
 TPE_HISTORY_LIMIT = 40
@@ -2726,6 +2733,73 @@ def main(crossover_operator=None, mutation_operator=None,
             'qd_score=%(qd_score)s best=%(best)s (+%(added)d this cycle)' % qd_report)
     except Exception as e:
         log('qd update failed: %s' % str(e)[:120])
+
+    # --- Engran #849 QD-ESCAPE: bounded non-operator novelty trials ----------
+    # When the QD archive is flat (filled stuck at baseline, score at/below
+    # baseline) and operators are exhausted, run a bounded number of pure-random
+    # novelty trials (no GA/CMA operators) to stir behavior-space. Each trial
+    # is appended to state/bake_kilo_qdescape.jsonl. Gated by AZAZAEL_QD_ESCAPE.
+    if QD_ESCAPE:
+        try:
+            _bt_report = {}
+            try:
+                with open(os.path.join(_REPO, 'state', 'backtrack_report.json'),
+                          encoding='utf-8') as _bfh:
+                    _bt_report = json.load(_bfh)
+            except Exception:
+                _bt_report = {}
+            _bt_overall = _bt_report.get('overall', {}) if isinstance(_bt_report, dict) else {}
+            _flip_rate = float(_bt_overall.get('flip_rate', 0.0) or 0.0)
+            _stuck = (qd_report.get('filled', 0) <= QD_ESCAPE_BASELINE_FILLED
+                      and qd_report.get('qd_score', 0.0) <= QD_ESCAPE_BASELINE_QD_SCORE)
+            if _stuck:
+                _nstat = _qd_norm_stats()
+                _trials = []
+                for _ti in range(QD_ESCAPE_MAX_TRIALS):
+                    _g = {}
+                    for _k, (_lo, _hi) in GENE_BOUNDS.items():
+                        _g[_k] = random.uniform(_lo, _hi)
+                    try:
+                        _t, _i, _a = fitness_parts(_g, info_pool, alert_pool)
+                    except Exception:
+                        continue
+                    _ni = (_i - _nstat["info"][0]) / _nstat["info"][1]
+                    _na = (_a - _nstat["alert"][0]) / _nstat["alert"][1]
+                    _cell = _qd_cell_of((_ni, _na))
+                    _key = '%d,%d' % _cell
+                    _before = len(_qd_cells)
+                    _admit = _qd_admit_cell(_qd_cells, _key, _g, float(_t),
+                                            (_ni, _na),
+                                            (round(_i, 3), round(_a, 3)))
+                    _trials.append({
+                        'trial': _ti,
+                        'admitted': bool(_admit),
+                        'genes': _g,
+                        'fitness': round(float(_t), 4),
+                        'info': round(float(_i), 4),
+                        'alert': round(float(_a), 4),
+                        'behavior': [round(_ni, 4), round(_na, 4)],
+                        'cell': _key,
+                        'added': len(_qd_cells) - _before,
+                    })
+                    log('qd escape trial %d: admitted=%s fitness=%s cell=%s' % (
+                        _ti, _admit, round(float(_t), 4), _key))
+                if _trials:
+                    _save_qd_archive(_qd_cells)
+                    try:
+                        os.makedirs(os.path.dirname(QD_ESCAPE_JSONL), exist_ok=True)
+                        with open(QD_ESCAPE_JSONL, 'a', encoding='utf-8') as _efh:
+                            for _tr in _trials:
+                                _efh.write(json.dumps(_tr) + '\n')
+                    except Exception as e:
+                        log('qd escape jsonl write failed: %s' % str(e)[:100])
+                log('qd escape: stuck(flip_rate=%.4f) ran %d trials, archive %d->%d' % (
+                    _flip_rate, len(_trials), qd_report.get('filled', 0), len(_qd_cells)))
+            else:
+                log('qd escape: not stuck (filled=%d score=%s) - no trials' % (
+                    qd_report.get('filled', 0), qd_report.get('qd_score', 0.0)))
+        except Exception as e:
+            log('qd escape failed: %s' % str(e)[:120])
 
     # Champion re-evaluation on the current pool: with deterministic fitness
     # this score is comparable across runs, separating 'genome got worse'
