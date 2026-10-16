@@ -524,6 +524,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(_last_evidence_line(out), file=sys.stderr)
             return 1
 
+    # NO SUMMARY LINE MEANS NO VERDICT, and a run without a verdict does not
+    # overwrite the evidence. `parse_pytest_output` leaves every count at zero
+    # when the text has no `N passed` summary line -- an interrupted run, a
+    # pytest that died before printing one, or an empty file handed to
+    # `--parse-from` -- so the write below would store 0 failed / 0 passed /
+    # 0 errors with an empty summary_line, which at a glance is what a clean
+    # suite looks like, replacing a real baseline. Measured 2026-10-15:
+    # `logs/aggregate_suite_report.json` went from 3698 passed / 2 failed with
+    # failed_ids to all-zero with summary_line "". This is the same rule as
+    # NO_VERDICT_CODES above: neither a killed run nor an unparsed one is a
+    # pass, and neither may be read as one.
+    if not args.diff_from and not parsed.get("summary_line"):
+        print("no pytest summary line in the output: the run produced no "
+              "verdict, so %s is left untouched -- an all-zero report cannot "
+              "be told apart from a clean suite" % REPORT, file=sys.stderr)
+        print(_last_evidence_line(out), file=sys.stderr)
+        return 1
+
     # The RAW OUTPUT is persisted next to the report, unconditionally.
     # Reason: the report stores nodeids only, and a nodeid names the failure but
     # says nothing about its cause -- so the previous runs left ~50 failures that

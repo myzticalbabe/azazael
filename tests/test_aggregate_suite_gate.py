@@ -350,3 +350,43 @@ def test_the_isolation_profile_stays_dependency_light():
     assert not offenders, (
         "isolation profile must stay installable without the ML stack: %s"
         % offenders)
+
+
+def test_output_with_no_summary_line_is_not_a_verdict_and_leaves_the_report(
+        tmp_path, monkeypatch, capsys):
+    """A run that produced nothing must not be stored where a clean run goes.
+
+    Measured 2026-10-15: `logs/aggregate_suite_report.json` was replaced by an
+    all-zero record with `summary_line` "" -- 3698 passed / 2 failed with
+    failed_ids became 0/0/0/0, and nothing in the file said the run had failed
+    to produce a verdict at all. `parse_pytest_output` leaves every count at
+    zero for input with no summary line, so the guard has to sit at the write
+    site; this test pins both halves -- the parse that makes the zeros, and the
+    refusal to store them.
+    """
+    parsed = gate.parse_pytest_output("")
+    assert parsed["summary_line"] == ""
+    assert parsed["counts"] == {"failed": 0, "passed": 0, "errors": 0,
+                                "skipped": 0}
+
+    sentinel = {"recorded_at": "2026-09-22T16:03:26+00:00",
+                "counts": {"failed": 2, "passed": 3698, "errors": 0,
+                           "skipped": 38}}
+    report = tmp_path / "aggregate_report.json"
+    report.write_text(json.dumps(sentinel), encoding="utf-8")
+    monkeypatch.setattr(gate, "REPORT", report)
+
+    # The path that actually did the damage: pytest exited 0 having printed no
+    # summary line, which used to be written out as a clean-looking report.
+    monkeypatch.setattr(gate, "run_pytest", lambda *a, **k: (0, ""))
+    assert gate.main([]) == 1, "a run with no summary line must not report 0"
+    assert "no pytest summary line" in capsys.readouterr().err
+    assert json.loads(report.read_text(encoding="utf-8")) == sentinel, (
+        "a run with no verdict must not overwrite recorded evidence with an "
+        "all-zero report")
+
+    # And the same refusal on the saved-output path.
+    empty = tmp_path / "empty.raw.txt"
+    empty.write_text("", encoding="utf-8")
+    assert gate.main(["--parse-from", str(empty)]) == 1
+    assert json.loads(report.read_text(encoding="utf-8")) == sentinel
