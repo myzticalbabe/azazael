@@ -1,5 +1,7 @@
 # Engram #793 — batch06 SOTA census recount (worker A)
 
+> **Model ID**: DeepSeek V4.1 Flash Fast. **Repo root** (`git rev-parse --show-toplevel`): `C:/Azazael/azazael`, branch `migration/baseline-20261001`. Coordinator-supplied at commit time.
+
 Docs-only lane. Sources read: `state/sota_batches/batch06/technique_codebase_map.json`
 (the per-row census), `.../absent_disposition.json` (the 2026-10-11 absence swarm),
 `.../techniques_manifest.json`, `.../technique_index.json`, and the live tree.

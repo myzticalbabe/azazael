@@ -1,5 +1,7 @@
 # DOC-DRIFT AUDIT — Engram #793 (worker B of 3), 2026-10-15
 
+> **Model ID**: DeepSeek V4.1 Flash Fast. **Repo root** (`git rev-parse --show-toplevel`): `C:/Azazael/azazael`, branch `migration/baseline-20261001`. Coordinator-supplied at commit time.
+
 Lane: docs-only. Every claim below was checked against the live tree; the `proof`
 column cites a line that was actually opened, not an assumption. Claims I could not
 check are in **UNVERIFIED**, not in the table.
