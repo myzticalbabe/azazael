@@ -1088,7 +1088,8 @@ def _builtin_default_genes():
 
 
 # ── PROTEUS Phase C: counterfactual-era oracle gate ─────────────────────
-# OFF BY DEFAULT and advisory. See PROTEUS_DEEP_EXPANSION.md section 2.2.
+# ON BY DEFAULT and binding when a model evaluates. See PROTEUS_DEEP_EXPANSION.md
+# section 2.2.
 #
 # Why it exists (E9). On the 2026-09-11 batches all 50 cycles beat the FROZEN
 # SNAPSHOT pool by +2.91..+3.39 and SPRT promoted 50/50, yet of the 4 cycles
@@ -1100,10 +1101,12 @@ def _builtin_default_genes():
 # draw? It is falsifiable against criterion 1 of the ANIMA plan (holdout pass
 # rate, currently 0/4).
 #
-# Fail-open by design: if the oracle cannot be trained or queried the cycle
-# proceeds and says so in the log. An advisory organ that can silently block
-# promotion would be worse than not having it.
-PROTEUS_ORACLE = str(os.environ.get('AZAZAEL_PROTEUS_ORACLE', '0')).strip().lower() not in (
+# Fail-open by design: every skip path (disabled flag, no model file, model
+# without eras, gene-count mismatch, query error) returns ok=True WITH a
+# stated reason, and the promotion condition binds on ok — so the gate can
+# only block when it actually evaluated. An advisory organ that can silently
+# block promotion would be worse than not having it.
+PROTEUS_ORACLE = str(os.environ.get('AZAZAEL_PROTEUS_ORACLE', '1')).strip().lower() not in (
     '0', '', 'false', 'no', 'off')
 PROTEUS_ORACLE_MIN_P = float(os.environ.get('AZAZAEL_PROTEUS_MIN_P', '0.75'))
 PROTEUS_ORACLE_TRAIN = str(os.environ.get('AZAZAEL_PROTEUS_TRAIN', '1')).strip().lower() not in (
