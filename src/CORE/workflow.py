@@ -35,6 +35,7 @@ Usage:
     result = engine.execute(wf)
 """
 
+import os
 import time
 import threading
 from datetime import datetime, timezone
@@ -51,6 +52,15 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+#: EP237 MapBeforeAct substrate. Top-level (not lazy) so the import is
+#: counted once by the anti-pattern ratchet; `None` only when the sibling
+#: module is absent, and the seam treats that as map-unavailable (advice
+#: stays None, noted) rather than a silent skip.
+try:
+    from CORE.graph_artifacts import MapBeforeAct as _MapBeforeAct
+except ImportError:                             # never break the host
+    _MapBeforeAct = None  # substrate absent; seam stands off loudly
 
 #: EP44 ReAct driver (thought -> action -> observation). Imported at module level
 #: because a workflow step is now able to use it; `None` only when the sibling
@@ -122,6 +132,10 @@ class WorkflowStep:
     started_at: (str | None) = None
     completed_at: (str | None) = None
     duration_ms: float = 0.0
+    # EP237 caller seam: shadow-stage map advice attached by _execute_step.
+    # Advisory only — never read by dispatch, so a wrong map cannot steer
+    # execution. None when the seam is off or the consultation failed.
+    map_advice: Any = None
 
 
 @dataclass
@@ -539,6 +553,24 @@ class DependencyGraph:
 # WORKFLOW ENGINE
 # =======================================================================
 
+def _map_target_for(step: "WorkflowStep") -> str:
+    """Derive the act-time map target for a step (EP237 caller seam).
+
+    The step carries no ``target`` field (it names an action, not a thing),
+    so the target is derived per action: the worm / nature / pipeline being
+    acted on, else the step id itself (still consultable — a miss returns
+    notes, never an exception).
+    """
+    params = step.params or {}
+    if step.action == "execute_worm":
+        return str(params.get("worm") or step.id)
+    if step.action == "execute_nature":
+        return str(params.get("nature") or step.id)
+    if step.action == "run_pipeline":
+        return str(params.get("pipeline") or step.id)
+    return step.id
+
+
 class WorkflowEngine:
     """Executes workflows with dependency resolution and conditional routing.
 
@@ -564,6 +596,38 @@ class WorkflowEngine:
         self._templates = dict(BUILTIN_TEMPLATES)
         self._history: list[WorkflowResult] = []
         self._lock = threading.Lock()
+        self._map_stage = None  # EP237: lazy MapBeforeAct, one graph per engine
+
+    def _get_map_stage(self):
+        """Lazily built MapBeforeAct stage, one graph per engine (EP237).
+
+        The graph cost falls once per engine, not per step. Separated for
+        tests, which substitute a fake stage without scanning any tree.
+        """
+        if self._map_stage is None:
+            if _MapBeforeAct is None:
+                raise RuntimeError("MapBeforeAct substrate unavailable")
+            root = os.path.dirname(os.path.dirname(
+                os.path.dirname(os.path.abspath(__file__))))
+            self._map_stage = _MapBeforeAct(root=root)
+        return self._map_stage
+
+    def _consult_map_shadow(self, step: WorkflowStep) -> None:
+        """Attach map advice to a step WITHOUT changing execution (EP237).
+
+        Shadow stage: the consultation is recorded on ``step.map_advice``
+        for forensics and future promotion, but nothing in dispatch reads
+        it. Kill-switch ``MAP_BEFORE_ACT=0`` skips the consultation
+        entirely. Any failure (scan, consult, shape) leaves
+        ``step.map_advice`` as None and is noted, never raised.
+        """
+        try:
+            if os.environ.get("MAP_BEFORE_ACT", "1") == "0":
+                return
+            target = _map_target_for(step)
+            step.map_advice = self._get_map_stage().consult(target).to_dict()
+        except Exception as e:
+            note_failure("workflow:map-seam", e)
 
     # -- Template Management -----------------------------------------
 
@@ -679,6 +743,11 @@ class WorkflowEngine:
         step.status = StepStatus.RUNNING
         step.started_at = datetime.now(timezone.utc).isoformat()
         start = time.perf_counter()
+
+        # EP237 caller seam (shadow stage): consult the map for this step's
+        # target and attach the answer to step.map_advice. Advisory only and
+        # internally fail-open, so it can never change what runs below.
+        self._consult_map_shadow(step)
 
         try:
             action = step.action
