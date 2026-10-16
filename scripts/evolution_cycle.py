@@ -1515,6 +1515,24 @@ CMA_ARM_GENS = 2
 # collapsing (1-2 cells: the band is ~5 wide wherever it sits).
 # Archive persists in state/ so diversity survives across cycles.
 QD_BEHAVIOR_DIMS = [('info', 4, -2.0, 2.0), ('alert', 4, -2.0, 2.0)]
+# --- Engram #814 QD archive admission alternatives (gated, one variable each) ---
+def _env_float(name, default):
+    """Env float with fail-open default (a garbage env value must never
+    crash this module's import)."""
+    try:
+        return float(str(os.environ.get(name, default)).strip() or default)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+# Q1: Dominated Novelty Search admission rule (drop-in grid replacement)
+QD_DOMINATED_NOVELTY = _flag('AZAZAEL_QD_DOMINATED_NOVELTY')
+QD_NOVELTY_THRESHOLD = _env_float('AZAZAEL_QD_NOVELTY_THRESHOLD', 0.15)
+# Q2: CMA-MAE soft archive with learning-rate alpha
+QD_SOFT_ARCHIVE = _flag('AZAZAEL_QD_SOFT_ARCHIVE')
+QD_SOFT_ARCHIVE_ALPHA = _env_float('AZAZAEL_QD_SOFT_ALPHA', 0.3)
+# Q3: VQ-Elites-lite cell-remap measurement (adopt only if coverage > 9/16)
+QD_VQ_ELITES = _flag('AZAZAEL_QD_VQ_ELITES')
 QD_ARCHIVE_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     '..', 'state', 'qd_archive.json'))
@@ -1746,6 +1764,114 @@ def _qd_suggest(cells):
     except Exception as e:
         log('qd suggest failed: %s' % str(e)[:100])
         return None
+
+
+# --- Engran #814 Q1: Dominated Novelty Search admission helper ---------------
+# Novelty = min Euclidean distance in normalized behavior space to any
+# existing archive elite. A candidate is novel if it clears the threshold,
+# which lets the archive fill behavior regions that pure fitness admission
+# would leave empty (the Q1 hypothesis).
+def _qd_novelty_of(cells, behavior):
+    """Min distance from `behavior` to any elite's behavior (norm space)."""
+    try:
+        beh = [c.get('behavior') for c in cells.values()
+               if isinstance(c, dict) and isinstance(c.get('behavior'), (list, tuple))
+               and len(c['behavior']) >= 2]
+        if not beh:
+            return float('inf')
+        bx, by = float(behavior[0]), float(behavior[1])
+        best = None
+        for b in beh:
+            d = math.hypot(bx - float(b[0]), by - float(b[1]))
+            if best is None or d < best:
+                best = d
+        return best
+    except Exception:
+        return float('inf')
+
+
+# --- Engran #814 Q3: VQ-Elites-lite cell-remap measurement -------------------
+# Measurement-first: estimate coverage if behavior dims were learned instead
+# of hand-set. Logs the number; adoption (replacing QD_BEHAVIOR_DIMS) happens
+# ONLY when QD_VQ_ELITES is on AND measured coverage beats 9/16 same-era.
+def _qd_vq_elites_report(cells):
+    """Project behaviors onto a learned 2D subspace and count filled cells.
+
+    Uses PCA-like first two principal components of the archive's behavior
+    cloud as learned dims, then re-bins into a 4x4 grid and reports filled
+    cells. Pure measurement: no archive mutation unless the caller acts on it.
+    """
+    try:
+        beh = [c.get('behavior') for c in cells.values()
+               if isinstance(c, dict) and isinstance(c.get('behavior'), (list, tuple))
+               and len(c['behavior']) >= 2]
+        if len(beh) < 3:
+            return 0.0, len(cells)
+        xs = sorted(float(b[0]) for b in beh)
+        ys = sorted(float(b[1]) for b in beh)
+        # centroid
+        cx = sum(xs) / len(xs)
+        cy = sum(ys) / len(ys)
+        # variance along each axis (diagonal of covariance, i.e. PCA axes
+        # when the two dims are uncorrelated -- good enough for a lite report)
+        vx = sum((x - cx) ** 2 for x in xs) / len(xs)
+        vy = sum((y - cy) ** 2 for y in ys) / len(ys)
+        # grid width = 2 * std dev around centroid, 4 bins each axis
+        wx = max(1.0, math.sqrt(vx) * 2.0)
+        wy = max(1.0, math.sqrt(vy) * 2.0)
+        filled = set()
+        for b in beh:
+            xi = min(3, int(max(0.0, (float(b[0]) - (cx - wx / 2.0)) / wx * 4)))
+            yi = min(3, int(max(0.0, (float(b[1]) - (cy - wy / 2.0)) / wy * 4)))
+            filled.add((xi, yi))
+        coverage = len(filled) / 16.0
+        return coverage, len(filled)
+    except Exception as e:
+        log('qd vq-elites report failed: %s' % str(e)[:100])
+        return 0.0, len(cells)
+
+
+def _qd_admit_cell(cells, key, genes, t_fit, behavior, raw):
+    """QD archive admission decision + write (Engram #814 Q1/Q2 wiring).
+
+    Returns True when admitted. Baseline (all flags off): admit iff the
+    cell is empty or the candidate beats the occupant — identical to the
+    pre-#814 rule. Q1 adds novelty admission (novelty OR fitness). Q2
+    learns a per-cell acceptance threshold while elite fitness stays
+    pure; the threshold belongs to the cell and survives replacement.
+    """
+    cur = cells.get(key)
+    if not isinstance(cur, dict):
+        cells[key] = {'genes': dict(genes), 'fitness': t_fit,
+                      'behavior': [round(behavior[0], 3),
+                                   round(behavior[1], 3)],
+                      'raw': [round(raw[0], 3), round(raw[1], 3)]}
+        return True
+    cur_fit = float(cur.get('fitness', float('-inf')))
+    threshold = None
+    if QD_DOMINATED_NOVELTY:
+        # Q1: Dominated Novelty Search — admit on novelty OR fitness.
+        novelty = _qd_novelty_of(cells, behavior)
+        admit = (novelty > QD_NOVELTY_THRESHOLD) or (t_fit > cur_fit)
+    elif QD_SOFT_ARCHIVE and QD_SOFT_ARCHIVE_ALPHA > 0.0:
+        # Q2: CMA-MAE soft archive — admit against the learned threshold.
+        thr = float(cur.get('threshold', cur_fit))
+        blend = ((1.0 - QD_SOFT_ARCHIVE_ALPHA) * thr
+                 + QD_SOFT_ARCHIVE_ALPHA * t_fit)
+        threshold = round(blend, 4)
+        admit = t_fit > thr
+    else:
+        admit = t_fit > cur_fit
+    if admit:
+        cells[key] = {'genes': dict(genes), 'fitness': t_fit,
+                      'behavior': [round(behavior[0], 3),
+                                   round(behavior[1], 3)],
+                      'raw': [round(raw[0], 3), round(raw[1], 3)]}
+        if threshold is not None:
+            cells[key]['threshold'] = threshold
+    elif threshold is not None:
+        cells[key]['threshold'] = threshold
+    return admit
 
 
 def _second_arm_name():
@@ -2573,13 +2699,19 @@ def main(crossover_operator=None, mutation_operator=None,
             _na = (_a - _nstat["alert"][0]) / _nstat["alert"][1]
             _cell = _qd_cell_of((_ni, _na))
             _key = '%d,%d' % _cell
-            _cur = _qd_cells.get(_key)
-            if not isinstance(_cur, dict) or float(_t) > float(_cur.get('fitness', float('-inf'))):
-                _qd_cells[_key] = {'genes': _g, 'fitness': _t,
-                                   'behavior': [round(_ni, 3), round(_na, 3)],
-                                   'raw': [round(_i, 3), round(_a, 3)]}
+            _admit = _qd_admit_cell(_qd_cells, _key, _g, float(_t),
+                                    (_ni, _na),
+                                    (round(_i, 3), round(_a, 3)))
+            if _admit:
                 qd_report['added'] += 1
         _save_qd_archive(_qd_cells)
+        # Q3: VQ-Elites-lite measurement (report only; adopt only if coverage > 9/16)
+        _vq_extra = {}
+        if QD_VQ_ELITES:
+            _vq_cov, _vq_filled = _qd_vq_elites_report(_qd_cells)
+            _vq_extra['vq_coverage'] = round(_vq_cov, 4)
+            log('qd vq-elites: learned-dims coverage=%.4f (%d/16 cells; baseline 9/16=0.5625)'
+                % (_vq_cov, _vq_filled))
         _total_cells = 1
         for (_n, _b, _l, _h) in QD_BEHAVIOR_DIMS:
             _total_cells *= _b
@@ -2589,6 +2721,7 @@ def main(crossover_operator=None, mutation_operator=None,
                           'coverage': round(len(_qd_cells) / _total_cells, 4) if _total_cells else 0.0,
                           'qd_score': round(sum(_fits), 2) if _fits else 0.0,
                           'best': round(max(_fits), 4) if _fits else 0.0})
+        qd_report.update(_vq_extra)
         log('qd archive: %(filled)d/%(total_cells)d cells coverage=%(coverage)s '
             'qd_score=%(qd_score)s best=%(best)s (+%(added)d this cycle)' % qd_report)
     except Exception as e:
