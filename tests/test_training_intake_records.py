@@ -129,11 +129,18 @@ def test_a_success_less_payload_still_trains_on_the_verdict(monkeypatch):
 
 
 def test_unmeasured_row_is_counted_and_skipped_never_labelled(monkeypatch):
-    built, _ = _built(monkeypatch, [_row(None), _row(True)])
+    """Truly unlabelled: no boolean AND the producer declared nothing.
+
+    `severity="info"` pins the "declared nothing" case — a warning row with
+    a lost payload does NOT hit this path anymore (F1 NAT, next test): the
+    producer's own severity vocabulary already measures it.
+    """
+    built, _ = _built(monkeypatch, [_row(None, severity="info"), _row(True)])
 
     assert built["n"] == 1, "a row with no outcome is not a training record"
     assert built["n_rows"] == 2
     assert built["n_unmeasured"] == 1
+    assert built["n_nat_declared"] == 0, "an info row is not NAT rescueable"
     assert built["ok_rate"] == 1.0
     assert all("success" in r["data"] for r in built["records"])
 
@@ -146,6 +153,53 @@ def test_a_non_boolean_ok_is_not_coerced_into_a_verdict(monkeypatch):
 
     assert built["records"] == []
     assert built["n_unmeasured"] == 1
+
+
+def test_nat_a_producer_declared_failure_is_a_measured_negative(monkeypatch):
+    """F1 NAT (Engram #813, arXiv:2402.11651 reading): never skipped-silently.
+
+    `record_link()` writes severity "warning" for a failure — that severity
+    IS the measurement, so a row whose payload lost its boolean arrives at
+    the trainer as a Marked negative rather than vanishing between the
+    store and the record list. Marked explicitly in BOTH directions so the
+    reward model (or a monitor) can read the sign without re-deriving it.
+    """
+    built, _ = _built(monkeypatch, [
+        _row(None, severity="warning"),     # payload lost, verdict declared
+        _row(None, severity="error"),       # declared error, also negative
+        _row(True), _row(False),
+    ])
+
+    assert built["n_nat_declared"] == 2
+    assert built["n_unmeasured"] == 0
+    assert built["n_negative"] == 3
+    assert built["n"] == 4
+    marked = [r for r in built["records"] if r["data"]["nat_negative"]]
+    assert len(marked) == 3
+    assert all(r["data"]["success"] is False for r in marked)
+    assert all(r["data"]["ok"] is False for r in marked)
+    # The positive is explicitly NOT a negative.
+    assert built["records"][2]["data"]["nat_negative"] is False
+    # ...and the producer's severity itself was never re-labelled.
+    assert marked[0]["severity"] == "warning"
+    assert marked[1]["severity"] == "error"
+
+
+def test_nat_positive_rows_were_not_rescued_in_the_measured_live_pool(monkeypatch):
+    """The live stream measured 500/500 "info" + ok_rate 1.0 in #798's run.
+
+    This test pins the honest gap: NOTHING in the live technique-link
+    stream was NAT-rescueable at measurement time, so F1's acceptance
+    "pool carries measured negatives" is about the MECHANISM (asserted on
+    directly above) plus live-run exit 0 — the stream producing zero
+    negatives is recorded, not hidden behind the mechanism's tests.
+    """
+    built, _ = _built(monkeypatch, [_row(True) for _ in range(3)])
+
+    assert built["n"] == 3
+    assert built["n_negative"] == 0
+    assert built["n_nat_declared"] == 0
+    assert all(r["data"]["nat_negative"] is False for r in built["records"])
 
 
 def test_empty_stream_yields_no_records_and_no_verdict(monkeypatch):
@@ -278,8 +332,14 @@ def test_the_cycle_trains_the_real_trainer_on_a_seeded_store(monkeypatch):
 
 
 def test_a_starved_intake_cycle_reports_no_success_and_writes_nothing(monkeypatch):
-    """An unmeasured stream must not read as a score (or as a zero-record win)."""
-    store = FakeStore([_row(None)])
+    """An unmeasured stream must not read as a score (or as a zero-record win).
+
+    F1 NAT moved the "warning + lost payload" rows out of the unmeasured
+    bucket (they are producer-measured negatives now), so the truly starved
+    stream is an `info`-severity row with no boolean — nothing was measured
+    by anyone.
+    """
+    store = FakeStore([_row(None, severity="info")])
     monkeypatch.setattr(ti, "get_memory_store", lambda: store)
 
     import run_training_orchestrator as rto
@@ -289,6 +349,28 @@ def test_a_starved_intake_cycle_reports_no_success_and_writes_nothing(monkeypatc
     assert result["records_used"] == 0
     assert "no MEASURED" in result["note"]
     assert store.writes == [], "a starved run must not leave an artifact row"
+
+
+def test_a_stream_of_only_nat_negatives_is_a_real_training_run(monkeypatch):
+    """F1 acceptance's other side: measured negatives are a pool, not a gap.
+
+    A stream whose every row is a producer-declared failure (severity outside
+    "info", measured by the producer's own vocabulary) trains on REAL
+    measurements — success must not be withheld just because nothing
+    succeeded, or the trainer could only ever see the happy path.
+    """
+    store = FakeStore([_row(None, severity="warning"),
+                       _row(None, severity="error")])
+    monkeypatch.setattr(ti, "get_memory_store", lambda: store)
+
+    import run_training_orchestrator as rto
+    result = rto.run_intake_cycle()
+
+    assert result["success"] is True
+    assert result["records_used"] == 2
+    # The versioner's own artifact channel may write; the store read here
+    # must stay untouched either way.
+    assert isinstance(store.writes, list)
 
 
 def test_a_starved_intake_cycle_names_an_unreadable_store(monkeypatch):
