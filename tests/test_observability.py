@@ -64,7 +64,7 @@ def main():
         print("Running fast + slow observability tests...")
         # Run fast tests via run_tests.py --observability, then slow tests
         result_fast = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120, cwd=PROJECT_ROOT
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, cwd=PROJECT_ROOT
         )
         print(result_fast.stdout)
         if result_fast.returncode != 0:
@@ -75,7 +75,7 @@ def main():
             print(f"Running slow test: {f}")
             result = subprocess.run(
                 [sys.executable, os.path.join(PROJECT_ROOT, "tests", f)],
-                capture_output=True, text=True, timeout=120, cwd=PROJECT_ROOT,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, cwd=PROJECT_ROOT,
             )
             print(result.stdout)
             if result.returncode != 0:
@@ -87,7 +87,7 @@ def main():
     else:
         print("Running fast observability tests (use --slow for integration tests)...")
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120, cwd=PROJECT_ROOT
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, cwd=PROJECT_ROOT
         )
         print(result.stdout)
         if result.returncode != 0:

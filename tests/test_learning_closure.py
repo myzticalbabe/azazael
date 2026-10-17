@@ -675,7 +675,7 @@ def _homeostat_dynamics(params):
     env["AZAZAEL_HYPEROPT_PARAMS"] = str(path)
     env["PYTHONPATH"] = str(ROOT / "src")
     proc = subprocess.run([sys.executable, "-c", _DYNAMICS_PROBE], env=env,
-                          cwd=str(ROOT), capture_output=True, text=True,
+                          cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace",
                           timeout=300)
     assert proc.returncode == 0, proc.stderr[-800:]
     for line in proc.stdout.splitlines():

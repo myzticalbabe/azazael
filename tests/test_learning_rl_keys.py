@@ -28,10 +28,10 @@ def test_stable_across_hash_seeds():
     env0 = dict(os.environ, PYTHONHASHSEED="0")
     env1 = dict(os.environ, PYTHONHASHSEED="1")
     a = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, timeout=120, env=env0,
+                       text=True, encoding="utf-8", errors="replace", timeout=120, env=env0,
                        cwd=os.path.join(os.path.dirname(__file__), '..'))
     b = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, timeout=120, env=env1,
+                       text=True, encoding="utf-8", errors="replace", timeout=120, env=env1,
                        cwd=os.path.join(os.path.dirname(__file__), '..'))
     assert a.returncode == 0 and b.returncode == 0
     assert a.stdout.strip() == b.stdout.strip()
