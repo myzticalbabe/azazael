@@ -202,7 +202,8 @@ class GRPOTrainer:
         #      (modern cluster events, recorded by NATURE_CLUSTERS/CLUSTERWORMS)
         #   2. any recent events from that worm source (fallback), minus
         #      self-recorded training bookkeeping
-        # Reward = success_rate - duration penalty (success = severity != error).
+        # Reward = success_rate (success = severity != error). Duration is
+        # emitted canonically but no longer subtracted (fusion removed, #1037).
         rewards = []
         try:
             from CORE.local_memory import LocalMemoryStore
