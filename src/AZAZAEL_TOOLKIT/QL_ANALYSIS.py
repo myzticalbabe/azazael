@@ -21,6 +21,15 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+try:
+    from CORE.WORMS.expansion.hybrid_rewards import (
+        HybridRewardComputer as _HybridRewardComputer,
+        RewardConfig as _HybridRewardConfig,
+        RewardSource as _RewardSource,
+    )
+except ImportError:                               # never break the host
+    _HybridRewardComputer = _HybridRewardConfig = _RewardSource = None
+
 
 class QLearningAnalyzer:
     def __init__(self):
@@ -31,6 +40,8 @@ class QLearningAnalyzer:
         self.gamma = 0.9  # Discount factor
         self.epsilon = 0.1  # Exploration rate
         self.history = []
+        self.hybrid_history = []
+        self._hybrid_computer = None
 
     def define_states(self):
         """Define problem states"""
@@ -188,6 +199,28 @@ class QLearningAnalyzer:
 
         return max(-1, min(1, reward))
 
+    def hybrid_reward(self, outcome_reward, user_feedback=None, tool_outcome=None):
+        """Process-weighted hybrid alongside the Q outcome reward (additive metric).
+
+        Feeds the outcome reward as the ENVIRONMENT source plus optional
+        feedback/tool sources; falls back to the raw outcome when the hybrid
+        module is unavailable. Never alters Q-values or the training objective.
+        """
+        if _HybridRewardComputer is None:
+            return float(outcome_reward)
+        if self._hybrid_computer is None:
+            self._hybrid_computer = _HybridRewardComputer(_HybridRewardConfig(
+                source_weights={_RewardSource.ENVIRONMENT: 0.5,
+                                _RewardSource.USER_FEEDBACK: 0.2,
+                                _RewardSource.TOOL_OUTPUT: 0.2,
+                                _RewardSource.PREDICTIVE: 0.1}))
+        self._hybrid_computer.update(_RewardSource.ENVIRONMENT, float(outcome_reward))
+        if user_feedback is not None:
+            self._hybrid_computer.update(_RewardSource.USER_FEEDBACK, float(user_feedback))
+        if tool_outcome is not None:
+            self._hybrid_computer.update(_RewardSource.TOOL_OUTPUT, float(tool_outcome))
+        return self._hybrid_computer.compute_hybrid()
+
     def choose_action(self, state, use_epsilon_greedy=True):
         """Choose action using epsilon-greedy strategy"""
         if use_epsilon_greedy and random.random() < self.epsilon:
@@ -223,6 +256,10 @@ class QLearningAnalyzer:
                 action = self.choose_action(state)
                 reward = self.calculate_reward(state, action)
                 total_reward += reward
+                try:
+                    self.hybrid_history.append(self.hybrid_reward(reward))
+                except Exception as exc:              # never break training
+                    note_failure("QL_ANALYSIS:train-hybrid", exc)
 
                 # Update Q-value
                 old_q = self.q_table[state][action]
@@ -243,6 +280,10 @@ class QLearningAnalyzer:
             if (episode + 1) % 200 == 0:
                 avg_reward = sum(rewards[-100:]) / 100
                 print(f"Episode {episode + 1}: Avg Reward = {avg_reward:.4f}")
+                if self.hybrid_history:  # hybrid metric consumer: ops log line
+                    tail = self.hybrid_history[-100:]
+                    print(f"Episode {episode + 1}: Avg Hybrid = "
+                          f"{sum(tail) / len(tail):.4f}")
 
         print("-" * 70)
         print("Training Complete!")

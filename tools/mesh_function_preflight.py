@@ -790,7 +790,7 @@ VERDICT_OUT = REPO / "NEURAL_MESH_WIRE_OR_CUT.json"
 #: `wired` fails its own contract test while PF16 still fires. This is the same
 #: distinction as `PROTOCOL_METHODS` ("no explicit reference can ever satisfy
 #: it"), kept as data rather than folded into the probe's filter.
-VERDICT_STATUSES = ("wired", "retired", "dispatched", "pending")
+VERDICT_STATUSES = ("wired", "retired", "dispatched", "accepted_gap", "rejected", "pending")
 
 #: Evidence classes for the `pending` backlog -- see `triage()`.
 #: Where the `--worklist` artifact is written. Its own file rather than a

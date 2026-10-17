@@ -40,21 +40,48 @@ def load_jsonl(fp):
     return rows
 
 
-def base_rows():
+def base_rows(report=None):
+    """Load the base set, refusing rows a title-keyed consumer would read as "".
+
+    The base set (corpus + harvest) is NOT lane-validated -- it is written by
+    harvesters rather than under the lane contract -- so a harvest file that
+    drifts shape used to land in bake_merged.jsonl unexamined. That happened on
+    2026-10-16: state/bake_harvest_web9/web10 arrived as {angle, arxiv, note,
+    technique, verdict}, so every `title` lookup on those 19 rows silently
+    returned "". A row is now admitted only if it is a dict carrying a
+    non-empty title, and exclusions are appended to `report` (never dropped
+    quietly) so the next drift is loud instead of invisible. Returns
+    (rows, report) is deliberately NOT the contract -- `report` is mutated in
+    place so the 4-tuple `merge()` already returns keeps its arity.
+    """
     rows = []
-    corpus = ROOT / "state" / "bake_corpus.jsonl"
-    if corpus.exists():
-        rows.extend(load_jsonl(corpus))
-    for fp in sorted((ROOT / "state").glob("bake_harvest_*.jsonl")):
-        rows.extend(load_jsonl(fp))
+    files = [ROOT / "state" / "bake_corpus.jsonl"]
+    files += sorted((ROOT / "state").glob("bake_harvest_*.jsonl"))
+    for fp in files:
+        if not fp.exists():
+            continue
+        try:
+            loaded = load_jsonl(fp)
+        except (OSError, ValueError) as e:
+            if report is not None:
+                report.append((fp.name, "base-unreadable", str(e)[:80]))
+            continue
+        for i, r in enumerate(loaded):
+            if not isinstance(r, dict) or not str(r.get("title", "")).strip():
+                if report is not None:
+                    report.append(("%s:%d" % (fp.name, i + 1), "base-no-title",
+                                   str(sorted(r))[:60]
+                                   if isinstance(r, dict) else type(r).__name__))
+                continue
+            rows.append(r)
     return rows
 
 
 def merge(lanes):
-    base = base_rows()
+    dropped = []
+    base = base_rows(dropped)
     seen = set(norm_title(r.get("title", "")) for r in base)
     merged = list(base)
-    dropped = []
     accepted = 0
     for lane in lanes:
         try:
@@ -98,6 +125,18 @@ def main():
     ap.add_argument("--lane", action="append", default=[])
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
+
+    # The drop report echoes harvested titles verbatim, and a cp1252 console
+    # raised UnicodeEncodeError part-way through it on
+    # state/bake_harvest_wslkilo (2026-10-16). That did two harms at once: it
+    # truncated the report -- 14 of 112 drops printed, so anything past the
+    # crash point was invisible -- and it exited 1 on a healthy dry run, which
+    # is a fabricated failure where exit status is the oracle. Re-encode
+    # lossily instead of raising. Convention follows lane_acceptance.py, which
+    # captures with encoding="utf-8", errors="replace".
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     lanes = args.lane or [str(ROOT / "state" / "bake_deepseek_712.jsonl")]
 
     merged, dropped, accepted, base_n = merge(lanes)
