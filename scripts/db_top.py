@@ -26,7 +26,11 @@ def top_writers(minutes: int = 15, limit: int = 12) -> dict:
     """Per (source, event) row counts + byte volume over trailing window."""
     out: dict = {"window_min": minutes, "writers": [], "error": None}
     try:
-        con = sqlite3.connect(_db(), timeout=10)
+        # Read-only (mode=ro): this tool only SELECTs; an rw open would
+        # take a writer-class lock on the live store for no reason.
+        con = sqlite3.connect(
+            "file:%s?mode=ro" % _db().replace("\\", "/"),
+            uri=True, timeout=10)
         try:
             cutoff = (datetime.now(timezone.utc)
                       - timedelta(minutes=minutes)).isoformat()
