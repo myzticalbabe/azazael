@@ -194,7 +194,7 @@ class WSAClient:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=timeout or self.timeout,
+                timeout=timeout or self.timeout, encoding="utf-8", errors="replace"
             )
             return result.stdout, result.stderr, result.returncode
         except subprocess.TimeoutExpired as exc:

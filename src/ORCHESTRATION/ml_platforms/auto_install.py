@@ -96,7 +96,7 @@ def install_package(package):
         result = subprocess.run(
             [sys.executable, "-m", "uv", "pip", "install", package],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace"
         )
         if result.returncode == 0:
             return True, "OK"

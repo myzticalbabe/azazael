@@ -390,7 +390,7 @@ class GGUFAnalyzer:
 
     @staticmethod
     def _run_quantizer(argv):
-        return subprocess.run(argv, capture_output=True, text=True, timeout=600)
+        return subprocess.run(argv, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
 
     def convert(self, model_path: str, output_dir: str,
                 quantization: str = "Q4_K_M"):
