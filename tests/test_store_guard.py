@@ -1,6 +1,9 @@
 """Regression guard: production store must be unwritable from tests."""
 import os
+import sys
 import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 
 def test_local_memory_store_refuses_default_under_pytest(monkeypatch):
