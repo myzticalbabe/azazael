@@ -61,6 +61,24 @@ def log(msg):
     _LOG.flush()
 
 
+def _git_sha():
+    """Runner tree's git sha for row attribution. Returns None if unavailable."""
+    try:
+        import subprocess as _sp
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        r = _sp.run(['git', 'rev-parse', 'HEAD'], cwd=root,
+                    capture_output=True, text=True, timeout=10,
+                    encoding='utf-8', errors='replace')
+        if r.returncode == 0:
+            return r.stdout.strip() or None
+    except Exception as e:
+        try:
+            log('git sha lookup failed: %s' % str(e)[:80])
+        except Exception:
+            _ = None
+    return None
+
+
 from CORE.WORMS.expansion.evolution import EvolutionEngine
 from CORE.WORMS.expansion.learning import RLTrainLoop
 from CORE.WORMS.expansion.scheduling import EVAL_EPISODES
@@ -3349,7 +3367,34 @@ def main(crossover_operator=None, mutation_operator=None,
                       # The attributable reading, recorded next to the
                       # comparison so a batch can be judged on the A/B rather
                       # than on the confounded fitness delta.
-                      'ab': _morph_ab},
+                       'ab': _morph_ab},
+            # P0 tail-gate instrumentation (#985): per-row tail verdicts that
+            # were previously blind (0/200). Additive only; no decision changed.
+            'alert_pool_context': {
+                'size': len(alert_pool or []),
+                'info_size': len(info_pool or []),
+                'mix': {s: sum(1 for d in (alert_pool or [])
+                               if str(d.get('severity', '')).lower() == s)
+                        for s in ('critical', 'error', 'warning')},
+                'distinct_states': len({_state_key_for(d) for d in (alert_pool or [])}),
+            },
+            'tail_gates': {
+                'morph_block': bool(_morph_blocks_promotion),
+                'morph_block_reason': ('trial gene %s present; fitness not '
+                                       'production-comparable'
+                                       % ((_morph_gene or {}).get('name'))
+                                       if _morph_blocks_promotion else None),
+                'oracle_ok': bool((oracle_gate or {}).get('ok', True)),
+                'oracle_skipped_reason': (oracle_gate or {}).get('skipped'),
+                'integrity_ok': bool(_integrity),
+                'integrity_reason': _integ_reason,
+                'adaptive_margin_base': PROMOTE_MARGIN,
+                'adaptive_margin_effective': round(_eff_margin, 4),
+                'adaptive_ok': bool(_adaptive_ok),
+                'margin_now': margin_now,
+                'canary': canary_report if canary_report else None,
+            },
+            'git_sha': _git_sha(),
         }, tags=['evolution', 'artifact'])
 
         # --- PROTEUS Phase D/E feedback (2026-09-12) -----------------------
