@@ -116,7 +116,7 @@ def ffmpeg_with_progress(cmd: list[str], duration: float = 0,
             cmd,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             bufsize=1,
         )
 

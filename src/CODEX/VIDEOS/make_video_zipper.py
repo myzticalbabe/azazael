@@ -769,7 +769,7 @@ def create_video():
 
 
 
-    result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+    result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
     if result.returncode == 0:
 

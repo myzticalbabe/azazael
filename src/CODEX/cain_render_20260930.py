@@ -85,7 +85,7 @@ cmd = ["node", EDGE, "--html", STAGE, "--out", OUTMP4,
        "--fps", "30", "--crf", "26"]
 print("\nrendering:", " ".join(cmd[1:]))
 r = subprocess.run(cmd, cwd=os.path.dirname(os.path.dirname(EDGE)),
-                   capture_output=True, text=True, timeout=1800)
+                   capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
 print("rc =", r.returncode)
 tail = (r.stdout or "")[-700:] + (r.stderr or "")[-700:]
 print(tail)
@@ -93,7 +93,7 @@ if os.path.exists(OUTMP4):
     sz = os.path.getsize(OUTMP4)
     print("\nMP4: %s  %.2f MB" % (OUTMP4, sz / 2 ** 20))
     p = subprocess.run(["ffmpeg", "-hide_banner", "-i", OUTMP4],
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
     for ln in p.stderr.splitlines():
         if any(k in ln for k in ("Duration", "Video:", "bitrate")):
             print("   ", ln.strip())
