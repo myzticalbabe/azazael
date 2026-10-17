@@ -1,0 +1,96 @@
+#!/bin/sh
+# prepare-commit-msg -- RULE 0B-E claim guard on the COMMIT MESSAGE.
+#
+# WHY THIS EXISTS. RULE 0A ("never claim completion without verification") and
+# RULE 0B-E ("a claim must not exceed its evidence") have been codified in
+# MANDATES.md since Jun 2026. RULE 0B-E section 6 even names its own
+# enforcement: "ENFORCEMENT: tools/claim_guard.py". That tool exists and works
+# (11-case selftest) -- and until this hook, NOTHING EVER RAN IT. The only
+# references to claim_guard.py anywhere in the repo were MANDATES.md's own
+# prose and the file's own docstring.
+#
+# Measured 2026-10-17: two lanes reported tasks complete that had not been
+# executed, and the assistant separately claimed three code paths were "already
+# wired" when `git show HEAD:` proved zero occurrences -- in a session where the
+# rule forbidding exactly that was already codified. A codified rule with
+# unwired enforcement is worse than no rule, because it creates the appearance
+# of a control while permitting the failure.
+#
+# WHY prepare-commit-msg AND NOT pre-commit: this check was first written into
+# pre-commit and MEASURED BROKEN. With `git commit -m`, git writes
+# .git/COMMIT_EDITMSG *after* the pre-commit hook runs, so the guard read a
+# stale (often empty) file, reported clean, and an overclaiming message landed
+# as 94970d9e before the fault was found. prepare-commit-msg receives the real
+# message file as $1 and runs before pre-commit. A gate that reads the wrong
+# file is worse than no gate: it manufactures false confidence.
+#
+# WHY THE COMMIT MESSAGE AT ALL: it is the one artifact where an overclaim
+# becomes permanent. An assistant's chat reply scrolls away; `git log` does not.
+# History is the ledger every later reader trusts, so it is where the guard
+# earns its keep.
+#
+# FALSE-POSITIVE CONTROL, measured before wiring rather than assumed: this guard
+# was run against the 40 most recent real commit messages in this repo and
+# flagged ZERO. It fires on acceptance language ("this is done", "this passes",
+# "nothing was modified") and stays quiet on messages that merely describe what
+# changed. git's own "#" template lines are stripped first, so the template is
+# never scanned in place of the author.
+#
+# Escape hatch: ALLOW_CLAIM_GUARD=1 -- a declaration to justify in the commit
+# body, not a silent bypass.
+#
+# Usage (git passes): $1=message file  $2=source  $3=sha (for amend)
+# Skips merge and squash sources: those messages are machine-authored, and
+# blocking them would train people to reach for the override out of habit.
+
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+MSG_FILE="$1"
+MSG_SOURCE="$2"
+
+# machine-authored messages -- not the author's prose to be judged
+case "$MSG_SOURCE" in
+    merge|squash)
+        exit 0
+        ;;
+esac
+
+if [ ! -f "$SCRIPT_DIR/tools/claim_guard.py" ]; then
+    echo "[Claim] claim_guard.py not found -- passing loud (check unrunnable)"
+    exit 0
+fi
+
+# Escape hatch, checked BEFORE the guard runs. Documented-but-unimplemented is
+# the exact defect this hook exists to expose (claim_guard.py itself was wired
+# nowhere for months while MANDATES.md declared it the enforcement), so the
+# documented override has to be real or it is a trap: the message below tells
+# people to set this variable, and if setting it changes nothing they conclude
+# the guard is broken rather than misused.
+if [ "$ALLOW_CLAIM_GUARD" = "1" ]; then
+    echo "[Claim] skipped -- ALLOW_CLAIM_GUARD=1 declared"
+    echo "[Claim] Justify the claim in the commit body; this is a declaration,"
+    echo "[Claim] not a silent bypass."
+    exit 0
+fi
+
+if [ ! -f "$MSG_FILE" ]; then
+    echo "[Claim] commit message file not readable -- passing loud (check unrunnable)"
+    exit 0
+fi
+
+# Capture first, then print: `cmd | tail` would make $? tail's status, not the
+# guard's, and a gate reading the wrong exit code is worse than no gate at all.
+CLAIM_OUT=$(python "$SCRIPT_DIR/tools/claim_guard.py" --commit-msg "$MSG_FILE" 2>&1)
+CLAIM_EXIT=$?
+echo "$CLAIM_OUT" | tail -12
+
+if [ $CLAIM_EXIT -ne 0 ]; then
+    echo ""
+    echo "[Claim] Commit message makes a claim its evidence does not support."
+    echo "[Claim] Describe what changed and how it was verified; do not declare"
+    echo "[Claim] it done. If the claim is reviewed and deliberate:"
+    echo "[Claim]   ALLOW_CLAIM_GUARD=1 git commit ..."
+    exit 1
+fi
+
+exit 0
