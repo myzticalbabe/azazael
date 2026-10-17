@@ -150,7 +150,7 @@ def check_status() -> dict:
         result = subprocess.run(
             ["tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV"],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=10,
         )
         status["daemon_running"] = "parallax_validator" in result.stdout
