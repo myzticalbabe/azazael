@@ -45,7 +45,7 @@ def detect_version(name: str) -> str:
     for args in attempts:
         try:
             r = subprocess.run([name, *args], capture_output=True,
-                               text=True, timeout=15)
+                               text=True, encoding="utf-8", errors="replace", timeout=15)
             out = _strip_ansi(r.stdout or r.stderr).strip().splitlines()
             # prefer lines that actually mention version
             version_lines = [l for l in out if re.search(r"version|v\d+\.\d+", l, re.I)]
