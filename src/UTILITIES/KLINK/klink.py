@@ -72,6 +72,8 @@ COMMANDS = {
     # Full runs
     "all": {"func": "cmd_all", "help": "Run full ecosystem"},
     "full": {"func": "cmd_all", "help": "Run full ecosystem"},
+    # EVE UNLEASHED
+    "eve": {"func": "cmd_eve", "help": "Eve Unleashed autonomous control", "has_args": True},
 }
 
 
@@ -609,6 +611,157 @@ def cmd_metaworm(args):
     else:
         log(f"Unknown metaworm subcommand: {args[0]}", "ERROR")
         print("Subcommands: status, start, run, morph, demo [duration], export [filepath]")
+
+
+_engine = None
+
+
+def _get_engine():
+    global _engine
+    if _engine is None:
+        try:
+            from eve_unleashed.decision_engine import (
+                AutonomousDecisionEngine, AutonomyLevel,
+            )
+            _engine = AutonomousDecisionEngine()
+        except Exception as exc:  # fail-open
+            log(f"Eve decision engine unavailable: {exc}", "WARN")
+            _engine = False
+    return _engine
+
+
+def cmd_eve(args):
+    """Eve Unleashed — autonomous decision control (V9.0)."""
+    engine = _get_engine()
+    if not engine:
+        print("Eve decision engine is not available.")
+        return
+
+    if not args or args[0] in ["help", "--help", "-h"]:
+        print()
+        print("=" * 60)
+        print("  EVE UNLEASHED — Autonomous Decision-Making (V9.0)")
+        print("=" * 60)
+        print()
+        print("  Subcommands:")
+        print("    status              Show engine stats and pending decisions")
+        print("    pending             List decisions awaiting human approval")
+        print("    approve <id>        Approve a pending decision")
+        print("    reject <id>         Reject a pending decision")
+        print("    veto <action> [reason]  Human override: block an action name")
+        print("    unveto <action>     Remove a human veto on an action name")
+        print("    stats               Print decision statistics (JSON)")
+        print("    autonomy <level>    Set autonomy level (recommend_only|supervised|autonomous)")
+        print("    threshold <value>   Set confidence threshold (0.0-1.0)")
+        print()
+        return
+
+    sub = args[0].lower()
+
+    from eve_unleashed.decision_engine import DecisionStatus, AutonomyLevel  # noqa: WPS433
+
+    if sub == "status":
+        s = engine.stats()
+        print()
+        print("=" * 60)
+        print("  EVE — Autonomous Decision Engine Status")
+        print("=" * 60)
+        print(f"  Total decisions:   {s['total']}")
+        print(f"  By status:         {s['by_status']}")
+        print(f"  Autonomy level:    {s['autonomy_level']}")
+        print(f"  Confidence thresh: {s['confidence_threshold']}")
+        print(f"  Vetoed actions:    {s['vetoed_actions']}")
+        print(f"  Executed rate:     {s['executed_rate']:.2f}")
+        pend = engine.pending()
+        print(f"  Pending approval:  {len(pend)}")
+        for d in pend[:10]:
+            print(f"    - {d['id'][:8]}  {d['action']}  (conf={d['confidence']:.2f}, risk={d['risk']})")
+        print()
+
+    elif sub == "pending":
+        pend = engine.pending()
+        if not pend:
+            print("No pending decisions.")
+            return
+        print()
+        print(f"Pending decisions ({len(pend)}):")
+        for d in pend:
+            print(f"  {d['id'][:8]}  {d['action']}  conf={d['confidence']:.2f}  risk={d['risk']}")
+            print(f"       rationale: {d['rationale']}")
+        print()
+
+    elif sub == "approve":
+        if len(args) < 2:
+            print("Usage: eve approve <id>")
+            return
+        full = engine.resolve_id(args[1])
+        if full is None:
+            print(f"Could not find a decision matching '{args[1]}'.")
+            return
+        ok = engine.approve(full, decided_by="human")
+        print("Approved." if ok else "Already decided.")
+
+    elif sub == "reject":
+        if len(args) < 2:
+            print("Usage: eve reject <id>")
+            return
+        full = engine.resolve_id(args[1])
+        if full is None:
+            print(f"Could not find a decision matching '{args[1]}'.")
+            return
+        ok = engine.reject(full, decided_by="human")
+        print("Rejected." if ok else "Already decided.")
+
+    elif sub == "veto":
+        if len(args) < 2:
+            print("Usage: eve veto <action> [reason]")
+            return
+        reason = args[2] if len(args) > 2 else "human override"
+        # Veto applies to the action name; find a pending decision with that action or record standalone.
+        vetoed = False
+        for d in list(engine._decisions.values()):
+            if d.action == args[1] and d.status == DecisionStatus.PENDING:
+                engine.veto(d.id, decided_by="human", reason=reason)
+                vetoed = True
+        engine._vetoed_actions.add(args[1])
+        print(f"Vetoed action '{args[1]}' (reason: {reason})." + (" Pending decision(s) vetoed." if vetoed else ""))
+
+    elif sub == "unveto":
+        if len(args) < 2:
+            print("Usage: eve unveto <action>")
+            return
+        engine._vetoed_actions.discard(args[1])
+        print(f"Unvetoed action '{args[1]}'.")
+
+    elif sub == "stats":
+        print(json.dumps(engine.stats(), indent=2))
+
+    elif sub == "autonomy":
+        if len(args) < 2:
+            print(f"Current autonomy: {engine.autonomy_level.name}")
+            return
+        mapping = {"recommend_only": 0, "supervised": 1, "autonomous": 2}
+        lvl = mapping.get(args[1].lower())
+        if lvl is None:
+            print("Valid levels: recommend_only, supervised, autonomous")
+            return
+        engine.set_autonomy_level(AutonomyLevel(lvl))
+        print(f"Autonomy set to {args[1].lower()}.")
+
+    elif sub == "threshold":
+        if len(args) < 2:
+            print(f"Current threshold: {engine.confidence_threshold}")
+            return
+        try:
+            val = float(args[1])
+            engine.set_confidence_threshold(val)
+            print(f"Confidence threshold set to {val}.")
+        except ValueError:
+            print("Invalid threshold value.")
+
+    else:
+        log(f"Unknown eve subcommand: {sub}", "ERROR")
+        print("Run 'eve help' for subcommands.")
 
 
 def cmd_insights():
