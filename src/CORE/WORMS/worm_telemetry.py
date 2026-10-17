@@ -115,12 +115,24 @@ def emit_worm_outcome(
     if standby:
         success = False
 
+    # Additive gap hunt (2026-10-17): the two-interpreter gate
+    # (ci_two_interpreter_gate) compares per-interpreter outcomes, but the
+    # tap never records WHICH interpreter produced the row. One short
+    # version string closes that join. stdlib-only; never raises (guarded).
+    try:
+        import sys as _sys  # noqa: PLC0415 (lazy: keep leaf import-light)
+        _interp = str(getattr(_sys, "version", "").split()[0] or "?")
+        _gil = "gil-disabled" if getattr(_sys, "_is_gil_enabled", None) is not None and not _sys._is_gil_enabled() else "gil"
+    except Exception:  # noqa: BLE001 - telemetry must never break execution
+        _interp, _gil = "?", "?"
     data: Dict[str, Any] = {
         "worm": name,
         "success": bool(success),
         "standby": bool(standby),
         "duration_ms": float(duration_ms or 0.0),
         "error": str(error)[:MAX_ERROR_CHARS] if error else None,
+        "interp": _interp,
+        "gil": _gil,
     }
     if nature:
         data["nature"] = str(nature)
