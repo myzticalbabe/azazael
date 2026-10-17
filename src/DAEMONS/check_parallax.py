@@ -47,7 +47,7 @@ def check_daemon_running() -> bool:
         result = subprocess.run(
             ["tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV"],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=10,
         )
         return "parallax_validator" in result.stdout

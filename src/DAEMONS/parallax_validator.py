@@ -236,7 +236,7 @@ def revert_file(filepath: str) -> tuple[bool, str]:
             ["git", "checkout", "--", filepath],
             cwd=str(_WORKSPACE),
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=10,
         )
         if result.returncode == 0:
@@ -442,7 +442,7 @@ def audit_once(dry_run: bool = False) -> dict:
             ["git", "diff", "--name-only"],
             cwd=str(_WORKSPACE),
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=30,
         )
         modified = [f.strip() for f in result.stdout.split("\n") if f.strip()]
@@ -509,7 +509,7 @@ Examples:
         try:
             result = subprocess.run(
                 ["tasklist", "/FI", "IMAGENAME eq python.exe"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5,
             )
             if "parallax_validator" in result.stdout:
                 print("Parallax Validator: RUNNING")
