@@ -183,3 +183,34 @@ def test_a_corrupt_database_file_is_rejected_at_construction_not_half_read(tmp_p
 
     with pytest.raises(sqlite3.DatabaseError):
         LocalMemoryStore(db_path=str(db))
+
+
+# -- the base set: drift must be loud, not silently untitled -----------------
+
+def test_a_drifted_base_harvest_row_is_excluded_and_reported(tmp_path, monkeypatch):
+    """A base-set file is not lane-validated, so a shape drift must be loud.
+
+    The 2026-10-16 web9/web10 harvest files arrived as {angle, arxiv, note,
+    technique, verdict}. Because ``base_rows()`` fed base files straight into
+    bake_merged.jsonl, every ``title`` lookup on those 19 rows returned "" --
+    the defect this guard exists for. The guard must exclude such a row AND
+    name it in the report; dropping it quietly would reproduce the very
+    silence being fixed, so both halves are asserted.
+    """
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "bake_corpus.jsonl").write_text(
+        json.dumps(VALID_ROW) + "\n", encoding="utf-8")
+    (state / "bake_harvest_drift.jsonl").write_text(
+        json.dumps({"angle": "a", "arxiv": "1", "note": "n",
+                    "technique": "t", "verdict": "CONCEPT"}) + "\n",
+        encoding="utf-8")
+    monkeypatch.setattr(merge_bake_lane, "ROOT", tmp_path)
+
+    report = []
+    rows = merge_bake_lane.base_rows(report)
+
+    assert len(rows) == 1, "only the shape-correct base row may be admitted"
+    assert [reason for _where, reason, _detail in report] == ["base-no-title"]
+    assert [where for where, _reason, _detail in report] == [
+        "bake_harvest_drift.jsonl:1"]
