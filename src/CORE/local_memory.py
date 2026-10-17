@@ -3013,9 +3013,10 @@ class LocalMemoryStore:
             avg_conf = conn.execute(
                 "SELECT AVG(confidence) as avg_c FROM knowledge_patterns"
             ).fetchone()["avg_c"] or 0.0
-            # EP206: the typed node/edge layer, counted on the connection that is
-            # already open. Counts only -- see `_object_graph_counts`.
             object_graph = self._object_graph_counts(conn)
+            total_memories = conn.execute(
+                "SELECT COUNT(*) as n FROM memories WHERE severity != 'deleted'"
+            ).fetchone()["n"]
         finally:
             conn.close()
 
@@ -3024,10 +3025,7 @@ class LocalMemoryStore:
             "by_agent": by_agent,
             "by_type": by_type,
             "avg_confidence": round(avg_conf, 4),
-            # Additive key. Every existing caller reads the keys above BY NAME
-            # (WORMS/WORM_SELECTOR.py:300 forwards the whole dict; the tests index
-            # specific keys), so the typed layer becomes visible to production
-            # without changing anything that was already returned.
+            "total_memories": total_memories,
             "object_graph": object_graph,
         }
 

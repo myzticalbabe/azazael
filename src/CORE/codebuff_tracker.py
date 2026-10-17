@@ -56,6 +56,43 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+try:
+    from CORE.WORMS.expansion.xmemory_decouple_aggregate import (
+        MemoryBank as _XMemoryBank,
+        XMemoryDecoupler as _XMemoryDecoupler,
+    )
+    _XMEMORY = True
+except ImportError:                               # never break the host
+    _XMEMORY = False
+    _XMemoryBank = None
+    _XMemoryDecoupler = None
+
+_FACT_HINTS = ("defin", "claim", "fact", "decis", "conclud")
+_UPDATE_HINTS = ("updat", "edit", "fix", "chang", "modif", "revis")
+
+
+def _decouple_rows(rows):
+    """xMemory decouple-aggregate on recall (additive metadata, fail-open caller).
+
+    Isolates facts/updates/details BEFORE organizing: classifies each recalled
+    row by event_type and bank-tags it. Never drops or reorders rows.
+    """
+    dec = _XMemoryDecoupler() if _XMEMORY else None
+    out = []
+    for r in rows:
+        et = str(r.get("event_type", "")).lower()
+        kind = ("fact" if any(h in et for h in _FACT_HINTS)
+                else "update" if any(h in et for h in _UPDATE_HINTS)
+                else "detail")
+        if dec is not None:
+            dec.write(_XMemoryBank.SHORT_TERM, "recall:%s" % r.get("id"),
+                      kind, worm="recall_recent")
+        r = dict(r)
+        r["_xkind"] = kind
+        r["_bank"] = "short_term"
+        out.append(r)
+    return out
+
 # ── Deprecation ────────────────────────────────────────────────────
 warnings.warn(
     "codebuff_tracker.CodebuffTracker is DEPRECATED. "
@@ -176,7 +213,12 @@ class _DirectStore:
             rows = conn.execute("SELECT * FROM memories ORDER BY id DESC LIMIT ?",
                                (limit,)).fetchall()
         conn.close()
-        return [_parse_row(r) for r in rows]
+        rows = [_parse_row(r) for r in rows]
+        try:
+            rows = _decouple_rows(rows)
+        except Exception as exc:                      # never break recall
+            note_failure("codebuff_tracker:recall-decouple", exc)
+        return rows
 
     def search_memories(self, query: str, source: str | None = None,
                         limit: int = 30) -> list[dict]:

@@ -414,16 +414,30 @@ def rehearse_dispatch(dag: Dict[str, Any],
             "pool_load": pool_load, "go": not predicted}
 
 
-def record_backtrack(branch: str, corrective_lesson: str) -> str:
+def record_backtrack(branch: str, corrective_lesson: str,
+                     _from_rcpd: bool = False) -> str:
     """Prune a failed branch but keep its corrective lesson (LoongReflect).
 
     Always accepted — backtracking is a finding, never a deny. The lesson
     rides the ledger as the remediation so the failure mode stays measured.
     Returns the citation (fails open).
+
+    Central RCPD hook: every backtrack also feeds the flip counter via
+    monitor_backtrack, so the ladder step-downs and plan prunes that call
+    this are measured as flips without each caller wiring RCPD itself.
+    `_from_rcpd` is the recursion guard for RCPDEarlyExit.evaluate_flip,
+    which records through this function.
     """
     branch = str(branch or "?").strip()
     lesson = str(corrective_lesson or "").strip() or "no lesson recorded"
     _remember_prefix(branch, lesson)
+    if not _from_rcpd:
+        try:
+            from CORE.WORMS.expansion.rcpd_early_exit import (  # noqa: PLC0415 (lazy: no cycle)
+                monitor_backtrack as _monitor)
+            _monitor(branch, lesson)
+        except Exception as exc:                  # noqa: BLE001 — telemetry best-effort
+            _note_failure("dispatch_plan:rcpd-hook", exc)
     citation = ""
     try:
         from CORE import audit_trail as _at  # noqa: PLC0415 (lazy: no cycle)

@@ -2426,6 +2426,21 @@ class DirectMemory:
                 except (json.JSONDecodeError, TypeError) as exc:
                     _note_failure("direct_memory:L2086", exc)
             results.append(d)
+        # xMemory decouple-aggregate tags (additive metadata, fail-open).
+        # Inline classifier (no CORE.WORMS.expansion import: that package
+        # __init__ is heavy and this is a low-level module — import risk).
+        # Hint source of truth duplicated from codebuff_tracker._decouple_rows.
+        for d in results:
+            try:
+                et = str(d.get("event_type", "")).lower()
+                d["_xkind"] = ("fact" if ("defin" in et or "claim" in et
+                                          or "fact" in et or "decis" in et)
+                                 else "update" if ("updat" in et or "edit" in et
+                                                   or "fix" in et)
+                                 else "detail")
+                d["_bank"] = "short_term"
+            except Exception as exc:  # never break recall
+                _note_failure("direct_memory:recall-decouple", exc)
         return results
 
 
