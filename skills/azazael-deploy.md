@@ -25,11 +25,11 @@ Azazael runs as a Python CLI application from `C:/Users/clint/azazael/`. No cont
 
 | Script | Purpose | How to Run |
 |--------|---------|-----------|
-| `python azazael/src/CORE/WORMS/CLUSTERWORMS.py --popup` | GUI cluster manager | Interactive |
-| `python azazael/src/CORE/WORMS/CLUSTERWORMS.py --discover` | List all Nature categories | CLI |
-| `python azazael/src/CORE/WORMS/CLUSTERWORMS.py --build-nature security --execute` | Run a Nature cluster | CLI |
-| `python azazael/src/CORE/WORMS/METACLUSTER.py --orchestrate` | Full ecosystem orchestration | CLI |
-| `python azazael/src/CORE/WORMS/CONCURRENCY.py --ecosystem` | Parallel full ecosystem | CLI |
+| `python src/CORE/WORMS/CLUSTERWORMS.py --popup` | GUI cluster manager | Interactive |
+| `python src/CORE/WORMS/CLUSTERWORMS.py --discover` | List all Nature categories | CLI |
+| `python src/CORE/WORMS/CLUSTERWORMS.py --build-nature security --execute` | Run a Nature cluster | CLI |
+| `python src/CORE/WORMS/METACLUSTER.py --orchestrate` | Full ecosystem orchestration | CLI |
+| `python src/CORE/WORMS/CONCURRENCY.py --ecosystem` | Parallel full ecosystem | CLI |
 
 ## CLI Packaging (Planned)
 
@@ -97,7 +97,7 @@ services:
 ```powershell
 # Run full ecosystem scan every 4 hours
 $action = New-ScheduledTaskAction -Execute "python" `
-    -Argument "C:/Users/clint/azazael/src/CORE/WORMS/METACLUSTER.py --orchestrate"
+    -Argument "C:/Users/clint/src/CORE/WORMS/METACLUSTER.py --orchestrate"
 $trigger = New-ScheduledTaskTrigger -Daily -At "00:00" -RepetitionInterval (New-TimeSpan -Hours 4)
 Register-ScheduledTask -TaskName "AzazaelEcosystem" -Action $action -Trigger $trigger
 ```
@@ -105,10 +105,10 @@ Register-ScheduledTask -TaskName "AzazaelEcosystem" -Action $action -Trigger $tr
 ### Cron (Linux)
 ```cron
 # Full ecosystem scan every 6 hours
-0 */6 * * * cd /app && python azazael/src/CORE/WORMS/METACLUSTER.py --orchestrate >> /var/log/azazael.log 2>&1
+0 */6 * * * cd /app && python src/CORE/WORMS/METACLUSTER.py --orchestrate >> /var/log/azazael.log 2>&1
 
 # Security audit daily at 3am
-0 3 * * * cd /app && python azazael/src/CORE/WORMS/CLUSTERWORMS.py --build-nature security --execute
+0 3 * * * cd /app && python src/CORE/WORMS/CLUSTERWORMS.py --build-nature security --execute
 ```
 
 ## G:/ Archive Integration

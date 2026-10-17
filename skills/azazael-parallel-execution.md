@@ -13,7 +13,7 @@ metadata:
 # Azazael Parallel Execution Mandate (RULE 0Z-F)
 
 > **Codified:** June 14, 2026
-> **Canonical source:** azazael/SYSTEM_INSTRUCTIONS.md (RULE 0Z-F), azazael/SOP.md, azazael/MANDATES.md
+> **Canonical source:** SYSTEM_INSTRUCTIONS.md (RULE 0Z-F), SOP.md, MANDATES.md
 > **Violation:** CRITICAL process violation — must be recorded in ERROR_LOG.md
 
 ---

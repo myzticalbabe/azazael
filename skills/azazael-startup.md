@@ -116,12 +116,12 @@ Packages for 3.14t may need `--force-reinstall --no-deps` to get correct `cp314t
 ### Project Path Setup
 ```python
 import sys
-sys.path.insert(0, 'azazael/src')  # Required before any imports
+sys.path.insert(0, 'src')  # Required before any imports
 ```
 
 ## Quick Start — Run Your First Worm
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.worm_registry import discover_worms; discover_worms()
 from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 

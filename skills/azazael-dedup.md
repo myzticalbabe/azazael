@@ -13,7 +13,7 @@ metadata:
 # Azazael Deduplication Procedures
 
 > **Purpose:** Find and eliminate duplicate files using MD5 hash comparison, establish deprecation shims for moved code.
-> **Context:** The Azazael codebase has accumulated duplicate modules across `azazael/src/`, `azazael/packages/`, and `Desktop/` directories.
+> **Context:** The Azazael codebase has accumulated duplicate modules across `src/`, `azazael/packages/`, and `Desktop/` directories.
 
 ---
 
@@ -38,7 +38,7 @@ def find_duplicates(directory: str = ".") -> dict:
     return duplicates
 
 # Usage
-dups = find_duplicates("azazael/src")
+dups = find_duplicates("src")
 for md5, files in sorted(dups.items(), key=lambda x: -len(x[1])):
     sizes = [f.stat().st_size for f in files]
     print(f"[{len(files)} copies] {sizes[0]} bytes")
@@ -79,7 +79,7 @@ When a module is relocated, DO NOT delete the original file. Instead, create a s
 
 import warnings
 warnings.warn(
-    "azazael/src/TOOLS/foo.py is deprecated. "
+    "src/TOOLS/foo.py is deprecated. "
     "Use 'from AZAZAEL_TOOLKIT.foo import bar' instead.",
     DeprecationWarning,
     stacklevel=2,

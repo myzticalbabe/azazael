@@ -10,7 +10,7 @@ metadata:
 
 # Azazael UTILITIES — Sub-System Catalog
 
-> **Implementation:** `azazael/src/UTILITIES/`
+> **Implementation:** `src/UTILITIES/`
 > **5 sub-systems:** KLINK, PERSEPHONE, POINDEXTER, TARBABY, TERENCE (~20 files)
 
 ---
@@ -28,7 +28,7 @@ indexing, file operations, and analysis tools.
 |------|---------|
 | `klink.py` | KLINK system — cross-environment linking |
 
-**Location:** `azazael/src/UTILITIES/KLINK/`
+**Location:** `src/UTILITIES/KLINK/`
 
 ---
 
@@ -58,11 +58,11 @@ Persephone is an environment management system with CLI interface.
 | `path_manager.py` | Path resolution management |
 | `sync_manager.py` | Environment synchronization |
 
-**Location:** `azazael/src/UTILITIES/PERSEPHONE/`
+**Location:** `src/UTILITIES/PERSEPHONE/`
 
 ### Quick Start
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from UTILITIES.PERSEPHONE.lib.environment import Environment
 from UTILITIES.PERSEPHONE.lib.path_manager import PathManager
 from UTILITIES.PERSEPHONE.lib.sync_manager import SyncManager
@@ -76,7 +76,7 @@ from UTILITIES.PERSEPHONE.lib.sync_manager import SyncManager
 |------|---------|
 | `POINDEXTER.py` | Indexing tool — codebase indexing and search |
 
-**Location:** `azazael/src/UTILITIES/POINDEXTER/`
+**Location:** `src/UTILITIES/POINDEXTER/`
 
 ---
 
@@ -87,7 +87,7 @@ from UTILITIES.PERSEPHONE.lib.sync_manager import SyncManager
 | `TARBABY.py` | File searching and binary compilation |
 | `tarbaby_enhanced.py` | Enhanced TARBABY capabilities |
 
-**Location:** `azazael/src/UTILITIES/TARBABY/`
+**Location:** `src/UTILITIES/TARBABY/`
 
 ---
 
@@ -98,7 +98,7 @@ from UTILITIES.PERSEPHONE.lib.sync_manager import SyncManager
 | `TERENCE.py` | Analysis tool |
 | `terence_enhanced.py` | Enhanced TERENCE capabilities |
 
-**Location:** `azazael/src/UTILITIES/TERENCE/`
+**Location:** `src/UTILITIES/TERENCE/`
 
 ---
 

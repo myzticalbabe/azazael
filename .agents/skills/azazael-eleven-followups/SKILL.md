@@ -75,7 +75,7 @@ To ensure exactly 11 diverse followups, the assistant draws from these categorie
 | 4 | Refactoring | "Extract the 15-layer VLP into its own module" |
 | 5 | Execution | "Run the full worm registry integration test" |
 | 6 | Recording | "Record all pending session actions to DirectMemory" |
-| 7 | Code Review | "Run a full anti-pattern scan on azazael/src/" |
+| 7 | Code Review | "Run a full anti-pattern scan on src/" |
 | 8 | Sync | "Run sync_skills.py to propagate all canonical changes" |
 | 9 | Verification | "Run the compliance orchestrator self-test" |
 | 10 | Cleanup | "Clean up any temporary scripts and stale files" |
@@ -95,6 +95,6 @@ To ensure exactly 11 diverse followups, the assistant draws from these categorie
 
 - `skill("azazael-mandates")` — Full mandate codification (37 total)
 - `skill("azazael-pre-action-gate")` — PRE-ACTION GATE enforcement
-- `azazael/MANDATES.md` — Canonical single source of truth
+- `MANDATES.md` — Canonical single source of truth
 - `azazael/ERROR_LOG.md` — Errors #195, #203, #207 (all RULE 0Z-B violations)
 - `azazael/PROTOCOL_VIOLATIONS.md` — Root cause pattern #1 (substituting own judgment)

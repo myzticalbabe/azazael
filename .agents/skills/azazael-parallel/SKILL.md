@@ -206,7 +206,7 @@ def execute_batched(self, configs: List[WormConfig], batch_size: int = 8) -> Lis
 # Write to _test_parallel.py, then execute:
 # python _test_parallel.py && rm _test_parallel.py
 
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 from CORE.freethreading import is_free_threaded
 import time

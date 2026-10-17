@@ -10,7 +10,7 @@ metadata:
 
 # Azazael ML Platforms — Model Execution & Learning Infrastructure
 
-> **Implementation:** `azazael/src/ORCHESTRATION/ml_platforms/`, `azazael/src/HYDRA/ml_platforms/`
+> **Implementation:** `src/ORCHESTRATION/ml_platforms/`, `src/HYDRA/ml_platforms/`
 > **Total files:** ~44 across 3 locations
 > **Related skill:** `azazael-orchestration` (parent domain)
 

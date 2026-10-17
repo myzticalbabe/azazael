@@ -10,8 +10,8 @@ metadata:
 
 # Azazael Inference Protocol — 12-Provider Failover
 
-> **Canonical source:** `azazael/SYSTEM_INSTRUCTIONS.md` (RULE 0D, RULE 0Z-A)
-> **Implementation:** `azazael/src/CORE/inference/`, `azazael/src/CORE/inference/providers.py`
+> **Canonical source:** `SYSTEM_INSTRUCTIONS.md` (RULE 0D, RULE 0Z-A)
+> **Implementation:** `src/CORE/inference/`, `src/CORE/inference/providers.py`
 
 ---
 

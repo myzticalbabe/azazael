@@ -10,7 +10,7 @@ metadata:
 
 # Azazael Verifiable Truth — 15-Layer VLP Framework
 
-> **Canonical source:** `azazael/SYSTEM_INSTRUCTIONS.md` (RULE 0T, RULE 0T-A, RULE 0T-B)
+> **Canonical source:** `SYSTEM_INSTRUCTIONS.md` (RULE 0T, RULE 0T-A, RULE 0T-B)
 > **Version:** v3.2.0 — 15 verification layers, Ed25519-signed, Merkle-proved
 
 ---

@@ -114,9 +114,9 @@ print("Memory OK:", results[0])
 
 ## Related Files
 
-- `azazael/src/CORE/local_memory.py` — SQLite memory store (primary)
-- `azazael/src/CORE/PamsRecorder.py` — Event recorder with local fallback
-- `azazael/src/CORE/MemoryBus.py` — Pub/sub messaging bus
+- `src/CORE/local_memory.py` — SQLite memory store (primary)
+- `src/CORE/PamsRecorder.py` — Event recorder with local fallback
+- `src/CORE/MemoryBus.py` — Pub/sub messaging bus
 - `Desktop/EveUnleashed_Selector/eve_unleashed_app.py` — Eve Unleashed app (consumer)
 
 ## Related Skills

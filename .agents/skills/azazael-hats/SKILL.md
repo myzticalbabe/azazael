@@ -33,9 +33,9 @@ use only; nothing is currently deemed Red Hat.
   explicitly listed with designation and status
 - **Load as skill:** `skill("azazael-hats")` — loads from
   `.agents/skills/azazael-hats/SKILL.md`
-- **Sync after edit:** `python azazael/src/scripts/sync_skills.py`
+- **Sync after edit:** `python src/SCRIPTS/sync_skills.py`
 
 ## Related
 
 - `azazael/HAT_TAXONOMY.md` — Canonical single source of truth
-- `azazael/SYSTEM_INSTRUCTIONS.md` — Hat Codification section
+- `SYSTEM_INSTRUCTIONS.md` — Hat Codification section

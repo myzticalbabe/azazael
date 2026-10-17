@@ -28,7 +28,7 @@ from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 **Rules:**
 - All imports at top of file (no function-body imports)
 - Remove unused imports when refactoring
-- Use absolute imports from `azazael/src/`
+- Use absolute imports from `src/`
 
 ## Path Handling
 ```python

@@ -10,7 +10,7 @@ metadata:
 
 # Azazael Orchestration — ORCHESTRATION + HYDRA Systems
 
-> **Implementation:** `azazael/src/ORCHESTRATION/`, `azazael/src/HYDRA/`
+> **Implementation:** `src/ORCHESTRATION/`, `src/HYDRA/`
 > **Combined footprint:** 70+ .py files across 6 subdirectories
 
 ---
@@ -92,7 +92,7 @@ HYDRA is an adaptive sequential ML cluster with dependency-aware processing.
 
 ### Import Pattern
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from ORCHESTRATION import ECOSYSTEM_CRAWLER_LAUNCHER
 from ORCHESTRATION.HYDRA import HYDRA_ANALYZER
 ```

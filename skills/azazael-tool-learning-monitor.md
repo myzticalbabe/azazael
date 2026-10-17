@@ -9,7 +9,7 @@ metadata:
 ---
 # monitor_learning
 
-Location: `azazael/src/SCRIPTS/monitor_learning.py`
+Location: `src/SCRIPTS/monitor_learning.py`
 
 ## When to use
 - Watch the learning loop live (reward plot, cycle cadence).
@@ -17,7 +17,7 @@ Location: `azazael/src/SCRIPTS/monitor_learning.py`
 
 ## How to run
 ```
-python azazael/src/SCRIPTS/monitor_learning.py
+python src/SCRIPTS/monitor_learning.py
 ```
 
 ## Notes

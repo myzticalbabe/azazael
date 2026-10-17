@@ -17,7 +17,7 @@ metadata:
 ## Quick Start (CANONICAL — DirectMemory)
 
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.direct_memory import DirectMemory
 
 dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
@@ -34,14 +34,14 @@ Completes in **<0.1s**. Zero worm registry discovery.
 ## Three Recording Methods (HISTORICAL — Pick One)
 
 ### 1. `CORE.record_session.SessionRecorder` (preferred)
-- **Location:** `azazael/src/CORE/record_session.py`
+- **Location:** `src/CORE/record_session.py`
 - **Import:** `from CORE.record_session import SessionRecorder`
 - **Speed:** <0.1s (stdlib only — sqlite3, json, pathlib)
 - **API:** Convenience methods: `file_edit()`, `file_create()`, `code_review()`, `test_run()`, `milestone()`, `skill_loaded()`, `tooling_verify()`, etc.
 - **Use when:** You need structured recording with clean method names.
 
 ### 2. `CORE.codebuff_tracker.CodebuffTracker` (v2.2+)
-- **Location:** `azazael/src/CORE/codebuff_tracker.py`
+- **Location:** `src/CORE/codebuff_tracker.py`
 - **Import:** `from CORE.codebuff_tracker import CodebuffTracker, get_tracker`
 - **Speed:** <0.1s (uses `_DirectStore` — stdlib-only SQLite backend, no CORE imports)
 - **API:** Same as before: `record_file_edit()`, `record_code_review()`, `record_test_run()`, `record_session_start()`, `record_session_end()`, quality validation, atexit handler.

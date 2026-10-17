@@ -2,7 +2,7 @@
 
 > *Canonical reference: All active mandates governing Codebuff sessions on the Azazael codebase.*
 > *Created: Jun 12, 2026 — Comprehensive listing of all 37 mandates. (Corrected 2026-09-16: this line read "30" while this file's own footer already read "37". The document contradicted itself; the footer was right. Cross-check the summary against the body before declaring a canonical doc current — see the 2026-09-16 addendum in SOP.md.)*
-> *Canonical sources: `azazael/SYSTEM_INSTRUCTIONS.md`, `azazael/SOP.md`*
+> *Canonical sources: `SYSTEM_INSTRUCTIONS.md`, `SOP.md`*
 > *Reading order (RULE 0K): SYSTEM_INSTRUCTIONS.md → SOP.md → ERROR_LOG.md → MEMORIES.md → SESSION_STARTUP.md → LESSONS_MASTER.md → PRODUCTION_TODO.md*
 
 ---
@@ -40,7 +40,7 @@ MUST run actual code before declaring "complete", "final", "done", "finished", o
 
 **Enforcement:** Every re-interpretation MUST be recorded as CRITICAL in ERROR_LOG.md.
 
-**Related:** Error #77, #78 (repeated protocol violations from re-interpretation). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Error #77, #78 (repeated protocol violations from re-interpretation). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 
@@ -97,7 +97,7 @@ alone. An instrument's own output is likewise not verification of itself
 A prose mandate failed three times in one day, so this ships with a check:
 
 ```
-python azazael\tools\claim_guard.py --text "<the response text>"
+python tools/claim_guard.py --commit-msg "<the response text>"
 ```
 
 Rejects, quoting the offending span:
@@ -116,6 +116,26 @@ writer can phrase around it. It raises the cost of the exact failure that
 occurred; it does not make misrepresentation impossible. Claiming otherwise
 would itself be the RULE 0B-D error.
 
+### Oracle table (#979 - named-but-unwired enforcements)
+
+| # | Enforcement | Status | Trigger / evidence |
+|---|---|---|---|
+| 1 | sentinel_gate.py --audit | ORPHANED | zero invokers |
+| 2 | gate_str_replace.py script | ORPHANED | no machine caller (class method separate) |
+| 3 | sync_skills.py | ORPHANED | startup SKILL Step 2.5 instructs; session_start.py never runs it |
+| 4 | auto_sync.py | ORPHANED | zero starters; daemon never launched |
+| 5 | pre_action_gate.py | ORPHANED | library-only, no trigger |
+| 6 | heuristic_recorder.py | ORPHANED | library-only, no trigger |
+| 7 | enforce_pre_action_gate.py | ORPHANED | zero callers |
+| 8 | prepare_guard.py | ORPHANED | comment-mentions only |
+| 9 | CORE/python_env.py | DANGLING | file exists nowhere |
+| 10 | .codebuff/rules.md | DANGLING | directory absent |
+| 11 | azazael/src/* + azazael/src/SCRIPTS/* prefixes | DANGLING | files live under src/ |
+| 12 (added, AP-ZB-1) | resolve canon path before citing | - | path must resolve at HEAD |
+| 13 (added, AP-ZB-1) | skill cited must exist in .agents/skills | - | file must exist |
+
+WIRED controls (contrast): claim_guard (prepare-commit-msg), 5 pre-commit gates, providers/inference_cache (production imports + auto-log), terence_invariants (chain_controller), fencing/silence/liveness (evolution/log_hygiene), check_tooling (startup+test pin). 0X/0Y: aspirational (own gate text admits N/A unimplemented).
+
 **Related:** Error #219, Errors #211–#217, RULE 0B, RULE 0A, RULE 0B-B,
 RULE 0B-D, `tools/claim_guard.py`, `tools/prepare_guard.py`, VLP trail
 `session_20260930_055744_01a0.jsonl` (verified, head `aba133f9…`).
@@ -131,7 +151,7 @@ NOT a post-action audit. PRE-ACTION AUTHORIZATION GATE. Before EVERY code-modify
 
 **Enforcement:** Taking any code-modifying action without passing the sentinel = CRITICAL process violation.
 
-**Related:** Error #202 (5th process violation from skipping sentinel). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Error #202 (5th process violation from skipping sentinel). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 ## RULE 0D: QUOTA JAIL — AUTOMATIC PROVIDER FAILOVER (CRITICAL — Jun 7, 2026)
@@ -149,10 +169,13 @@ When ANY inference provider fails, MUST IMMEDIATELY fall through to the next wor
 3. IF ALL FAIL: report raw errors to user — do NOT substitute with own analysis
 4. MANDATORY: Do NOT block. Do NOT wait. Do NOT ask permission.
 
-**Related:** Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 ## RULE 0E: 10-PHASE MULTI-TIER PROTOCOL — 6 GEMINI INJECTION POINTS (CRITICAL — Jun 7, 2026)
+
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
 
 **Minimum 4 Gemini spawns per complex task. 6 Gemini injection points across 10 phases.**
 
@@ -176,11 +199,14 @@ dm.record("phase_complete", {"phase": N, "name": "...", "status": "completed"})
 
 Skipping any phase or missing the 4x Gemini quota = CRITICAL process violation.
 
-**Related:** Error #74 (protocol incomplete). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Error #74 (protocol incomplete). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 
 ## RULE 0E-1: MANDATORY 10-PHASE MULTI-TIER PROTOCOL (4X GEMINI MANDATE — SECONDARY SECTION)
+
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
 
 **The user directive is absolute: Gemini must be spawned OFTEN, FREQUENTLY, CONSISTENTLY. A minimum of 4 Gemini spawns per complex task is heavily enforced.**
 
@@ -199,7 +225,7 @@ Skipping any phase or missing the 4x Gemini quota = CRITICAL process violation.
 
 Execution of this 10-phase multi-tier protocol is a **strict requirement** and skipping any phase (or missing the 4x Gemini quota) is a CRITICAL process violation.
 
-**Related:** Error #74 (protocol incomplete). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Error #74 (protocol incomplete). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 ## RULE 0F: SESSION STARTUP PROCEDURE (CRITICAL — Jun 8, 2026)
@@ -220,11 +246,14 @@ This ONE call executes:
 6. Provides domain skill loading guidance
 7. Loads the 6-API Analysis Standard
 
-**Related:** Error #92 (took action before reading SYSTEM_INSTRUCTIONS.md first). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+**Related:** Error #92 (took action before reading SYSTEM_INSTRUCTIONS.md first). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
 
 ## RULE 0G: GEMINI MANDATE — SPAWN THINKER-WITH-FILES-GEMINI AT EVERY MAJOR PHASE (CRITICAL — Jun 8, 2026)
+
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
 
 **"Spawn thinking with files Gemini deep thinker for all complex problems. Respawn Gemini each time the complex task proceeds." — User directive**
 
@@ -350,23 +379,23 @@ BEFORE EVERY `str_replace`, `write_file`, `spawn_agents` (for scripts), OR destr
 
 ```bash
 # Write old/new strings to temp files, then run:
-python azazael/src/SCRIPTS/gate_str_replace.py <filepath> <old_file> <new_file>
+python src/SCRIPTS/gate_str_replace.py <filepath> <old_file> <new_file>
 
 # Or via stdin (recommended for agent use):
 printf "old_string\n---GATE-SPLIT---\nnew_string\n" | \
-    python azazael/src/SCRIPTS/gate_str_replace.py <filepath> --stdin
+    python src/SCRIPTS/gate_str_replace.py <filepath> --stdin
 ```
 
 **FALLBACK PATH — Manual gate (only if gate_str_replace.py unavailable):**
-1. BEFORE edit: `python azazael/src/SCRIPTS/sentinel_gate.py --pre-validate-str-replace <filepath>` (read old/new from stdin)
+1. BEFORE edit: `python src/SCRIPTS/sentinel_gate.py --pre-validate-str-replace <filepath>` (read old/new from stdin)
 2. Perform the platform str_replace
-3. AFTER edit: `python azazael/src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>`
+3. AFTER edit: `python src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>`
 
 **For `write_file`**:
 ```bash
-python azazael/src/SCRIPTS/sentinel_gate.py --pre-validate-write-file <filepath> <content_file>
+python src/SCRIPTS/sentinel_gate.py --pre-validate-write-file <filepath> <content_file>
 # ... perform write_file ...
-python azazael/src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>
+python src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>
 ```
 
 **Pipeline phases (executed by gate_str_replace.py or manually):**
@@ -390,9 +419,9 @@ python azazael/src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>
 - RULE 0J — Pre-Action Gate (parent rule)
 - RULE 0Z-C — Destructive Basher Gate
 - Error #214 — Catastrophic heuristic indentation destruction
-- `azazael/src/SCRIPTS/gate_str_replace.py` — Primary gated pipeline
-- `azazael/src/CORE/compliance/pre_action_gate.py` — PreActionGate class
-- `azazael/src/CORE/compliance/heuristic_recorder.py` — Error pattern catalog
+- `src/SCRIPTS/gate_str_replace.py` — Primary gated pipeline
+- `src/CORE/compliance/pre_action_gate.py` — PreActionGate class
+- `src/CORE/compliance/heuristic_recorder.py` — Error pattern catalog
 
 ---
 
@@ -400,7 +429,7 @@ python azazael/src/SCRIPTS/sentinel_gate.py --post-validate <filepath> <backup>
 
 **"You keep destroying my code base because you are making unprompted changes without checking." — User directive, Jun 8, 2026**
 
-**RULE 0S is an active mandate everywhere.** This designation applies across ALL canonical documents — not limited to SOP.md context. The PRE-ACTION GATE BANNER in `azazael/SOP.md` is designated as **RULE 0S**, and this same mandate applies in `azazael/SYSTEM_INSTRUCTIONS.md` and this document. RULE 0S is the permanent enforcement designation for the PRE-ACTION GATE BANNER as the visible mechanism of RULE 0J. This is PERMANENT. NOT negotiable. NOT limitable to any single document.
+**RULE 0S is an active mandate everywhere.** This designation applies across ALL canonical documents — not limited to SOP.md context. The PRE-ACTION GATE BANNER in `SOP.md` is designated as **RULE 0S**, and this same mandate applies in `SYSTEM_INSTRUCTIONS.md` and this document. RULE 0S is the permanent enforcement designation for the PRE-ACTION GATE BANNER as the visible mechanism of RULE 0J. This is PERMANENT. NOT negotiable. NOT limitable to any single document.
 
 ### PRE-ACTION GATE — PERMANENT ASSERTION BANNER (Permanent — Jun 8)
 
@@ -424,8 +453,8 @@ Contains 18 mandatory checks: AP-1 (Scope), RULE 0G (Gemini Phase), RULE 0H (Ant
 
 | # | Document | Purpose |
 |---|----------|---------|
-| 1 | `azazael/SYSTEM_INSTRUCTIONS.md` | All RULEs 0A-0Z, COMPLIANCE SENTINEL, PRE-ACTION GATE — CANONICAL SOURCE OF TRUTH |
-| 2 | `azazael/SOP.md` | All canonical mandates, error recording, cleanup, enforcement |
+| 1 | `SYSTEM_INSTRUCTIONS.md` | All RULEs 0A-0Z, COMPLIANCE SENTINEL, PRE-ACTION GATE — CANONICAL SOURCE OF TRUTH |
+| 2 | `SOP.md` | All canonical mandates, error recording, cleanup, enforcement |
 | 3 | `azazael/ERROR_LOG.md` | All recorded errors with root causes, fixes, preventions |
 | 4 | `azazael/MEMORIES.md` | Persistent cross-session knowledge, anti-patterns, architecture |
 | 5 | `azazael/SESSION_STARTUP.md` | Current state snapshot, congruency marker |
@@ -499,6 +528,9 @@ spawn_agents([
 
 ## RULE 0P: RULE PRIORITY CHAIN — ALL LEVEL 1 USER DIRECTIVES ARE ABSOLUTE (CRITICAL — Jun 7, 2026; Corrected Jun 12, 2026)
 
+> **Measured practice (2026-10-17, #986):** MANDATES frames this as EXCLUDE/never-merge, SOP frames it as DO-ALL-NOT-EITHER/OR; both are CRITICAL and both are inaccurate descriptions of actual practice. Measured practice is **segregate-by-content within one store** (#975 junk taxonomy + #938 ABTestRunner reversal). Strict EXCLUDE would be lossy: it would have discarded 35 ABTestRunner rows that proved real. Do not pick a winner between EXCLUDE and DO-ALL — both are wrong descriptions of what the project actually does.
+
+
 **"ALL LEVEL 1 USER DIRECTIVES ARE ABSOLUTE" — User directive**
 
 Level 1 user directives are ABSOLUTE and UNCONDITIONAL. No other rule, reminder, mandate, or obligation may dilute, override, or "balance" a Level 1 directive. The priority ladder is a LADDER — higher levels EXCLUDE lower levels on conflict, never merge with them.
@@ -561,7 +593,7 @@ The assistant SHALL NOT claim inference models were spawned based on mental asse
 
 **TRIGGER:** Any skill file in `azazael/skills/` is created, modified, or updated — OR any canonical document change references skills needing propagation.
 
-**ACTION:** MUST run `python azazael/src/scripts/sync_skills.py` in the same session to propagate changes from `azazael/skills/*.md` to `.agents/skills/<name>/SKILL.md`.
+**ACTION:** MUST run `python src/SCRIPTS/sync_skills.py` in the same session to propagate changes from `azazael/skills/*.md` to `.agents/skills/<name>/SKILL.md`.
 
 **AUTOMATION:** sync_skills.py runs automatically at session startup via `azazael-system-startup` Step 2.5.
 
@@ -1037,7 +1069,7 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 **Root Cause:** This rule exists because `azazael/skills/` contained 109 canonical skill files but `.agents/skills/` was empty — skill() calls loaded ZERO skills. The `sync_skills.py` script referenced in RULE 0R was never built. Error #211 records this gap.
 
-**Related:** Error #211 (109 skills not synced), `azazael/src/scripts/sync_skills.py`, `azazael/src/scripts/auto_sync.py`
+**Related:** Error #211 (109 skills not synced), `src/SCRIPTS/sync_skills.py`, `src/SCRIPTS/auto_sync.py`
 
 ---
 
@@ -1072,4 +1104,4 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 ---
 
 *End of MANDATES.md — 37 total mandates codified (31 RULEs 0A-0Z-C + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
-*Canonical sources: `azazael/SYSTEM_INSTRUCTIONS.md` (primary), `azazael/SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified; 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
+*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified; 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*

@@ -12,7 +12,7 @@ metadata:
 
 ## Overview
 
-The compliance infrastructure in `azazael/src/CORE/compliance/` provides **programmatic
+The compliance infrastructure in `src/CORE/compliance/` provides **programmatic
 enforcement** of RULE 0X (Auto-Compliance) and RULE 0Y (Multi-Agent Governance). It
 replaces the old manual text-only assertions with verifiable, component-level checks.
 
@@ -45,7 +45,7 @@ replaces the old manual text-only assertions with verifiable, component-level ch
 Per `skill("azazael-system-startup")` Step 4.5, initialize at every session start:
 
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.compliance.orchestrator import ComplianceOrchestrator
 from CORE.compliance.state_machine import ComplianceState
 
@@ -254,7 +254,7 @@ default to `False`). No OR chains between unrelated keys.
 
 ## sentinel_gate.py Integration
 
-The ComplianceOrchestrator is wired into `azazael/src/SCRIPTS/sentinel_gate.py`
+The ComplianceOrchestrator is wired into `src/SCRIPTS/sentinel_gate.py`
 as the programmatic backend for RULE 0X and RULE 0Y validation.
 
 ### How It Works
@@ -352,8 +352,8 @@ from CORE.compliance.state_machine import ComplianceState  # For transitions
 4. **Thread safety**: All mutable state is protected by `threading.Lock` or
    `threading.RLock`. The orchestrator itself uses a Lock for `_check_count`.
 
-5. **No stdlib shadowing**: Only `azazael/src/` is added to `sys.path` (not
-   `azazael/src/CORE/`) to avoid `CORE/logging.py` masking the stdlib `logging`
+5. **No stdlib shadowing**: Only `src/` is added to `sys.path` (not
+   `src/CORE/`) to avoid `CORE/logging.py` masking the stdlib `logging`
    module.
 
 6. **Verifiable telemetry**: Every check emits a `ComplianceTelemetry` event with
@@ -432,7 +432,7 @@ co.reset()  # StateMachine -> IDLE, scores cleared, graph cleared
 ## Running the Self-Test
 
 ```bash
-python azazael/src/CORE/compliance/orchestrator.py
+python src/CORE/compliance/orchestrator.py
 ```
 
 This runs 8 tests covering all 13 components. Test 8 requires the state machine
@@ -458,14 +458,14 @@ to be in `CODE_EDIT` — the self-test handles this internally via
 
 | Component | Path |
 |-----------|------|
-| Package init | `azazael/src/CORE/compliance/__init__.py` |
-| Orchestrator | `azazael/src/CORE/compliance/orchestrator.py` |
-| Policy | `azazael/src/CORE/compliance/policy.py` |
-| State Machine | `azazael/src/CORE/compliance/state_machine.py` |
-| Validating | `azazael/src/CORE/compliance/validating.py` |
-| Scanner | `azazael/src/CORE/compliance/scanner.py` |
-| Telemetry | `azazael/src/CORE/compliance/telemetry.py` |
-| Governance | `azazael/src/CORE/compliance/governance.py` |
-| Sentinel Gate | `azazael/src/SCRIPTS/sentinel_gate.py` |
+| Package init | `src/CORE/compliance/__init__.py` |
+| Orchestrator | `src/CORE/compliance/orchestrator.py` |
+| Policy | `src/CORE/compliance/policy.py` |
+| State Machine | `src/CORE/compliance/state_machine.py` |
+| Validating | `src/CORE/compliance/validating.py` |
+| Scanner | `src/CORE/compliance/scanner.py` |
+| Telemetry | `src/CORE/compliance/telemetry.py` |
+| Governance | `src/CORE/compliance/governance.py` |
+| Sentinel Gate | `src/SCRIPTS/sentinel_gate.py` |
 | Startup Skill | `azazael/skills/azazael-system-startup.md` (Step 4.5) |
 | Checklist | `azazael/COMPLIANCE_CHECKLIST.md` |

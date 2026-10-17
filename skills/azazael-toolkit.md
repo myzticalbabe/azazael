@@ -10,7 +10,7 @@ metadata:
 
 # Azazael TOOLKIT — Core Framework Tools
 
-> **Implementation:** `azazael/src/AZAZAEL_TOOLKIT/`
+> **Implementation:** `src/AZAZAEL_TOOLKIT/`
 > **7 .py files**
 
 ---
@@ -37,7 +37,7 @@ comprehensive fixes.
 
 ### Import Pattern
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from AZAZAEL_TOOLKIT.azazael_toolkit import AzazaelToolkit
 from AZAZAEL_TOOLKIT.environment_manager import EnvironmentManager
 ```

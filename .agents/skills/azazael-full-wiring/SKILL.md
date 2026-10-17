@@ -183,11 +183,11 @@ python regenerate_bats.py        # Regenerate BAT launchers
 # Python 3.14t is the ONLY build Python. Run patch before building.
 python azazael/docs/scripts/patch_nuitka_314t.py --apply
 
-PYTHONPATH="C:/Users/clint/azazael/src" python -m nuitka \
+PYTHONPATH="C:/Users/clint/src" python -m nuitka \
   --standalone --onefile --assume-yes-for-downloads \
   --output-filename=MODULE_314t.exe \
   --nofollow-import-to=torch --nofollow-import-to=optree \
-  C:/Users/clint/azazael/src/CORE/WORMS/MODULE.py
+  C:/Users/clint/src/CORE/WORMS/MODULE.py
 ```
 
 ### Test Suite
@@ -198,7 +198,7 @@ python run_tests.py
 
 ### Source-of-Truth Sync
 ```bash
-cd azazael/src
+cd src
 python -c "import shutil; from pathlib import Path; ..."
 # See SESSION_INSIGHTS_2026-05-29_PHASE14.md for full script
 ```

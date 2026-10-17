@@ -90,7 +90,7 @@ ffmpeg -i puppeteer_output.mp4 \
 cd azazael && python src/CODEX/inject_session_cain.py --output src/CODEX/CAIN_injected.html
 
 # Record with Puppeteer (captures all CSS animations, 1920×1080)
-cd azazael/src/CODEX && node record_session_cain.js
+cd src/CODEX && node record_session_cain.js
 
 # Encode to 1080p HEVC (smallest, recommended)
 ffmpeg -y -i Desktop/CAIN_session_final.mp4 \

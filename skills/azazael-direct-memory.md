@@ -10,8 +10,8 @@ metadata:
 
 # Azazael DirectMemory — Canonical Session Recording
 
-> **Canonical source:** `azazael/SYSTEM_INSTRUCTIONS.md` (RULE 5), `azazael/DIRECT_MEMORY_INSTRUCTIONS.md`
-> **Implementation:** `azazael/src/CORE/direct_memory.py`
+> **Canonical source:** `SYSTEM_INSTRUCTIONS.md` (RULE 5), `azazael/DIRECT_MEMORY_INSTRUCTIONS.md`
+> **Implementation:** `src/CORE/direct_memory.py`
 > **Status:** CANONICAL — replaces deprecated CodebuffTracker + SessionRecorder (hard-blocked)
 
 ---
@@ -30,7 +30,7 @@ DirectMemory is the **CANONICAL** session recording system:
 ## Quick Start
 
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.direct_memory import DirectMemory
 
 dm = DirectMemory()  # Auto-starts session, auto-records session_start

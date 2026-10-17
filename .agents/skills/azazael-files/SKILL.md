@@ -82,7 +82,7 @@ azazael/
 - `azazael-architecture` — High-level project layout and key numbers
 
 ## Import Resolution
-- All imports use `sys.path.insert(0, 'azazael/src')` to add src to path
+- All imports use `sys.path.insert(0, 'src')` to add src to path
 - Project imports: `from CORE.worm_registry import register_worm`
 - Cluster imports: `from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ`
 

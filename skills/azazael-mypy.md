@@ -112,7 +112,7 @@ cd azazael && python -m mypy src/PATH/TO/file.py --ignore-missing-imports --expl
 
 ### Find files with __init__.py gaps
 ```bash
-find azazael/src -type d | while read d; do
+find src -type d | while read d; do
     if ls "$d"/*.py 2>/dev/null | grep -qv __init__; then
         [ ! -f "$d/__init__.py" ] && echo "Missing: $d"
     fi

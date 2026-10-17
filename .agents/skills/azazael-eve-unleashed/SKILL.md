@@ -139,5 +139,5 @@ cd ~/Desktop/AZAZAEL_Standalone
 
 - **build_all.py** — Listed in Tier 3 (CODEX Analysis) with `NEEDS_TKINTER` flag
 - **Desktop path** — `~/Desktop/AZAZAEL_Standalone/Eve_Unleashed_314t.exe`
-- **Source** — `~/Desktop/EveUnleashed_Selector/eve_unleashed_app.py` (external project, not in azazael/src)
+- **Source** — `~/Desktop/EveUnleashed_Selector/eve_unleashed_app.py` (external project, not in src)
 - **Skills directory** — This file at `azazael/skills/azazael-eve-unleashed.md`

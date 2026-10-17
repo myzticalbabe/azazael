@@ -26,7 +26,7 @@ and renders to 1080p HEVC MP4 via Puppeteer scroll capture.
 
 ## Prerequisites
 
-- Python 3.14t with azazael/src on path
+- Python 3.14t with src on path
 - Node.js v24+ with puppeteer installed
 - ffmpeg with libx265 support
 - benchmark_data.json in AOA directory

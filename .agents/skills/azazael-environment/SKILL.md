@@ -76,7 +76,7 @@ python scripts/check_tooling.py
 ### Required Before Any Imports
 ```python
 import sys
-sys.path.insert(0, 'azazael/src')
+sys.path.insert(0, 'src')
 ```
 
 ### Using the Paths Module
@@ -84,7 +84,7 @@ sys.path.insert(0, 'azazael/src')
 from CORE.paths import get_project_root, get_src_dir, get_g_drive, get_output_dir
 
 root = get_project_root()      # Always returns project root
-src = get_src_dir()            # azazael/src/
+src = get_src_dir()            # src/
 g_drive = get_g_drive()        # Optional[Path] — G:\ drive
 output = get_output_dir()      # G:\AZAZAEL\ or project output/
 ```

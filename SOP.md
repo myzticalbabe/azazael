@@ -2,26 +2,39 @@
 
 > *Effective: June 8, 2026 — Updated: June 11, 2026 (RULE 0H-A + RULE 0Q + RULE 0Q-A + RULE 0R + RULE 0T v3.2.0 + RULE 0U + RULE 0V + RULE 0W codified)*
 > *Applies to: All Codebuff / Azazael development sessions*
-> *Canonical source: `azazael/SOP.md` — readable via `read_files(["azazael/SOP.md"])`*
+> *Canonical source: `SOP.md` — readable via `read_files(["SOP.md"])`*
 > *Skill mirror: `skill("azazael-sop")` loads identical content from `.agents/skills/azazael-sop/SKILL.md`*
 
 ---
 
-## 🛑🛑🛑 PERMANENT PRE-ACTION GATE — ALWAYS ACTIVE — CANNOT BE DISABLED 🛑🛑🛑
+## 🛑🛑🛑 PERMANENT PRE-ACTION GATE — ALWAYS ACTIVE — CANNOT BE DISABLED. Checks whose agent is UNAVAILABLE per the pre-check resolve to N/A, not HALT. 🛑🛑🛑
 
 **THIS GATE IS PERMANENTLY ACTIVE FOR THE ENTIRE SESSION. IT IS IMPOSSIBLE TO SKIP.**
 
 **BEFORE EVERY** `str_replace`, `write_file`, or `spawn_agents` call, YOU MUST PRINT in your response text (NOT in a thinking/reasoning block):
 
 ```text
+AVAILABILITY PRE-CHECK (state result inline, once per block):
+  thinker-with-files-gemini : [AVAILABLE | UNAVAILABLE - cite: no key | zero calls | no agent def]
+  thinker-gpt               : [AVAILABLE | UNAVAILABLE - cite: ...]
+  code-reviewer-deepseek    : [AVAILABLE | UNAVAILABLE - cite: ...]
+  .inference_cache/         : [PRESENT <path> | ABSENT]
+
+Any UNAVAILABLE agent, or an ABSENT cache, converts every check that DEPENDS
+ON IT from HALT to N/A. UNAVAILABLE is never an exemption for checks that do
+not depend on it: AP-1, RULE 0H (anti-pattern scan), RULE 0I, RULE 0L-local
+analysis, RULE 0U, RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
+```
+
+```text
 🛑 **[PRE-ACTION GATE ASSERTION]**
 - **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain)
-- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If none: HALT and spawn)
+- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If agent UNAVAILABLE per pre-check: N/A. If available and none spawned: HALT and spawn)
 - **RULE 0H (Anti-Pattern Scan):** Scanned for emoji, backslash f-strings, t-strings, os.system, C:\ paths? — MUST cite scan method and results per RULE 0H-A (Passed/Found X/NOT SCANNED)
 - **RULE 0I (Algorithms/Batch):** If batch script: Gemini designed? One-file test? Backup? (Yes/No/N/A)
 - **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Yes/No/N/A)
-- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If none: HALT)
-- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If no cache files exist: HALT and spawn now)
+- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent UNAVAILABLE: N/A. If available and not concurrent: HALT)
+- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If cache ABSENT: N/A. If PRESENT and not cited: HALT)
 - **RULE 0T-B (VLP Hardening):** Are all 15 VLP verification layers active? If --audit mode: have mandatory layers 11-13 (non-canonical sig, replay prevention, cross-session chain) been verified? (Explain: [Yes, all 15 / N/A not in --audit mode])
 - **RULE 0U (System Reminders):** Did the last system prompt remind you to spawn Gemini or a Code Reviewer? If yes, are you spawning them INSTANTLY right now BEFORE any other tool calls? (Explain: [Yes, spawning now / No reminder / N/A])
 - **RULE 0V (Code Reviewer):** Is a code change being made? Was code-reviewer-deepseek spawned BEFORE this change to review the plan? Will code-reviewer-deepseek be spawned AFTER to review the result? (Explain: [Yes, spawned before / About to spawn after / N/A no code change])
@@ -34,6 +47,7 @@
 
 **FAILURE TO PRINT THIS BLOCK IN RESPONSE TEXT BEFORE ANY CODE-MODIFYING TOOL = 🔴 CRITICAL PROCESS VIOLATION**
 - Error #146 precedent: str_replace executed without PRE-ACTION GATE assertion
+- Precedent note (Engram #1019): A permanently-HALT gate whose required agent has no key and zero calls is unsatisfiable, not strict. Measured Oct 17: 0 of ~18 modifying calls passed through it. Conditional resolution keeps the 7 enforceable checks binding.
 - Error #147: This permanent banner codified across all canonical documents
 - Error #148: Gate assertion put in thinking block, not response text
 - Error #171: Failed to obey system reminders to spawn Gemini/Code-Reviewer instantly (RULE 0U violation)
@@ -111,6 +125,9 @@ without running actual code. Syntax analysis alone is NOT verification — code 
 ---
 
 ## 🔴 RULE 0P: RULE PRIORITY CHAIN — DO ALL, NOT EITHER/OR (CRITICAL)
+
+> **Measured practice (2026-10-17, #986):** MANDATES frames this as EXCLUDE/never-merge, SOP frames it as DO-ALL-NOT-EITHER/OR; both are CRITICAL and both are inaccurate descriptions of actual practice. Measured practice is **segregate-by-content within one store** (#975 junk taxonomy + #938 ABTestRunner reversal). Strict EXCLUDE would be lossy: it would have discarded 35 ABTestRunner rows that proved real. Do not pick a winner between EXCLUDE and DO-ALL — both are wrong descriptions of what the project actually does.
+
 
 **"You do not analyze. you have broken protocol." — User directive**
 
@@ -215,7 +232,6 @@ task — NOT just once at the beginning.
 
 ### Related
 - **RULE 0L** in `SYSTEM_INSTRUCTIONS.md` — canonical mandate
-- **`.codebuff/rules.md`** — Machine-enforceable original mandate file
 - **Error #155** — Catalyst: blind test fix iteration documented
 
 ---
@@ -322,7 +338,7 @@ The assistant SHALL NOT claim inference models were spawned based on mental asse
 
 **TRIGGER:** Any canonical skill file in `azazael/skills/` is created, modified, or updated.
 
-**ACTION:** The assistant MUST run `python azazael/src/scripts/sync_skills.py` to propagate changes from `azazael/skills/*.md` to `.agents/skills/<name>/SKILL.md`. Without sync, `skill()` loads stale policies.
+**ACTION:** The assistant MUST run `python src/SCRIPTS/sync_skills.py` to propagate changes from `azazael/skills/*.md` to `.agents/skills/<name>/SKILL.md`. Without sync, `skill()` loads stale policies.
 
 **AUTOMATION:** `sync_skills.py` runs automatically at session startup via `azazael-system-startup` Step 2.5.
 
@@ -342,7 +358,7 @@ The assistant SHALL NOT claim inference models were spawned based on mental asse
 **Related:**
 - RULE 0K — Canonical document reading order (SYSTEM_INSTRUCTIONS.md = SSoT)
 - Error #160 — Skills not updated after canonical changes
-- `azazael/src/scripts/sync_skills.py` — Automation script
+- `src/SCRIPTS/sync_skills.py` — Automation script
 
 ---
 
@@ -370,8 +386,8 @@ Every session action that CAN be backed by disk evidence MUST cite an audit trai
 - RULE 0A — Never claim completion without verification
 - RULE 0Q-A — Inference cache filepath citations
 - RULE 0T-A — Sentinel self-recording mandate (v3.2.0)
-- `azazael/src/CORE/audit_trail.py` — Append-only hash-chained + signed + Merkle audit trail
-- `azazael/src/SCRIPTS/sentinel_gate.py` — --audit mode validates all 10 layers
+- `src/CORE/audit_trail.py` — Append-only hash-chained + signed + Merkle audit trail
+- `src/SCRIPTS/sentinel_gate.py` — --audit mode validates all 10 layers
 - Error #163 — RULE 0T mandate codification
 - Error #164 — VLP v3.1.0 robustness improvements implemented
 
@@ -798,8 +814,8 @@ Damaging algorithms go to `algorithm_failures/` with:
 ### The Permanent Canonical Order
 | # | Document | Method | Purpose |
 |---|----------|--------|---------|
-| 1 | `azazael/SYSTEM_INSTRUCTIONS.md` | `read_files(["azazael/SYSTEM_INSTRUCTIONS.md"])` | All RULEs 0A-0R, compliance sentinel, pre-action gate, canonical source of truth |
-| 2 | `azazael/SOP.md` | `read_files(["azazael/SOP.md"])` | This file — all canonical mandates, error recording, cleanup, enforcement |
+| 1 | `SYSTEM_INSTRUCTIONS.md` | `read_files(["SYSTEM_INSTRUCTIONS.md"])` | All RULEs 0A-0R, compliance sentinel, pre-action gate, canonical source of truth |
+| 2 | `SOP.md` | `read_files(["SOP.md"])` | This file — all canonical mandates, error recording, cleanup, enforcement |
 | 3 | `azazael/ERROR_LOG.md` | `read_files(["azazael/ERROR_LOG.md"])` | All recorded errors with root causes, fixes, preventions |
 | 4 | `azazael/MEMORIES.md` | `read_files(["azazael/MEMORIES.md"])` | Persistent cross-session knowledge, anti-patterns, architecture |
 | 5 | `azazael/SESSION_STARTUP.md` | `read_files(["azazael/SESSION_STARTUP.md"])` | Current state snapshot, congruency marker |
@@ -944,7 +960,7 @@ returns HALT, the action is NOT authorized and MUST NOT be taken.
    [ ] RULE 0H-A: Confirm anti-pattern scan results are cited with method + counts in PRE-ACTION GATE (not just "Passed").
    [ ] RULE 0I: Confirm no batch script is written without a Gemini pre-analysis and per-file validation.
    [ ] RULE 0J: Ensure the PRE-ACTION GATE assertion is printed before EVERY str_replace/write_file/spawn_agents call.
-   [ ] RULE 0K: Verify canonical documents are loaded strictly in the PERMANENT RULE 0K order (SYSTEM_INSTRUCTIONS.md FIRST, `azazael/SOP.md` SECOND).
+   [ ] RULE 0K: Verify canonical documents are loaded strictly in the PERMANENT RULE 0K order (SYSTEM_INSTRUCTIONS.md FIRST, `SOP.md` SECOND).
    [ ] RULE 0L: Confirm NO test failure fixes or repeated test runs are attempted without prior thinker-with-files-gemini analysis.
    [ ] RULE 0M: Confirm ALL available inference agents were spawned CONCURRENTLY with thinker-with-files-gemini, not sequentially.
    [ ] RULE 0Q: Confirm the LAST completed phase/sub-task was verified by Gemini + concurrent API endpoints. If a complex phase was executed without Gemini, HALT and force Gemini spawn BEFORE authorizing any next action.
@@ -1050,7 +1066,7 @@ retention, auditing, and debugging.
 
 ### DirectMemory Quick Reference
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.direct_memory import DirectMemory
 dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
 
@@ -1117,8 +1133,8 @@ See `azazael-error-prevention` skill for the full DO-NOT-REPEAT catalog.
 
 | # | Document | Contents |
 |---|----------|----------|
-| 1 | `azazael/SYSTEM_INSTRUCTIONS.md` | All RULEs 0A-0R, compliance sentinel, canonical source of truth |
-| 2 | `azazael/SOP.md` | This file — all SOP mandates, error recording, cleanup, enforcement |
+| 1 | `SYSTEM_INSTRUCTIONS.md` | All RULEs 0A-0R, compliance sentinel, canonical source of truth |
+| 2 | `SOP.md` | This file — all SOP mandates, error recording, cleanup, enforcement |
 | 3 | `azazael/ERROR_LOG.md` | All recorded errors with cause/fix/prevention |
 | 4 | `azazael/MEMORIES.md` | Persistent memory, anti-patterns, architecture |
 | 5 | `azazael/SESSION_STARTUP.md` | Current state snapshot, congruency marker |

@@ -10,7 +10,7 @@ metadata:
 
 # Azazael INTERPRETERS — Go & Rust Runners
 
-> **Implementation:** `azazael/src/INTERPRETERS/`
+> **Implementation:** `src/INTERPRETERS/`
 > **3 .py files**
 
 ---
@@ -31,7 +31,7 @@ code within the Azazael ecosystem, enabling cross-language analysis and automati
 
 ### Import Pattern
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from INTERPRETERS.go_runner import GoRunner
 from INTERPRETERS.rust_runner import RustRunner
 ```

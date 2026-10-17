@@ -9,7 +9,7 @@ metadata:
 ---
 # lsp_diagnosis
 
-Location: `azazael/src/SCRIPTS/lsp_diagnosis.py`
+Location: `src/SCRIPTS/lsp_diagnosis.py`
 
 ## When to use
 - Diagnose LSP attach failures or stale language-server state.
@@ -17,7 +17,7 @@ Location: `azazael/src/SCRIPTS/lsp_diagnosis.py`
 
 ## How to run
 ```
-python azazael/src/SCRIPTS/lsp_diagnosis.py
+python src/SCRIPTS/lsp_diagnosis.py
 ```
 
 ## Notes
