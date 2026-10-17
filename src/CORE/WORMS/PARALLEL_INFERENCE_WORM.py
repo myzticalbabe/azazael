@@ -305,7 +305,7 @@ class ParallelInferenceWorm:
         ollama_models: list[str] = []
         try:
             result = subprocess.run(
-                ["ollama", "list"], capture_output=True, text=True, timeout=10
+                ["ollama", "list"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
             )
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")

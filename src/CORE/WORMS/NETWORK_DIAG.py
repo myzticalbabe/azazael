@@ -244,7 +244,7 @@ class NetworkDiag:
         try:
             result = subprocess.run(
                 ["tracert", "-d", "-h", str(max_hops), "-w", str(timeout_sec * 1000), host],
-                capture_output=True, text=True, timeout=max_hops * timeout_sec + 10,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=max_hops * timeout_sec + 10,
             )
             for line in result.stdout.splitlines()[4:]:  # Skip header
                 line = line.strip()
@@ -311,7 +311,7 @@ class NetworkDiag:
             result = subprocess.run(
                 ["traceroute", "-n", "-m", str(max_hops), "-w", str(timeout_sec),
                  "-q", str(probes), host],
-                capture_output=True, text=True, timeout=max_hops * timeout_sec + 10,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=max_hops * timeout_sec + 10,
             )
             for line in result.stdout.splitlines()[1:]:
                 line = line.strip()
@@ -425,7 +425,7 @@ class NetworkDiag:
             result = subprocess.run(
                 ["ping", "-n", str(count), "-w", str(timeout * 1000),
                  "-l", str(size), host],
-                capture_output=True, text=True, timeout=timeout * count + 10,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout * count + 10,
             )
             for line in result.stdout.splitlines():
                 # Extract IP: "Pinging google.com [142.250.80.14] with 32 bytes"
@@ -479,7 +479,7 @@ class NetworkDiag:
         try:
             result = subprocess.run(
                 ["ping", "-c", str(count), "-W", str(timeout), "-s", str(size), host],
-                capture_output=True, text=True, timeout=timeout * count + 10,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout * count + 10,
             )
             for line in result.stdout.splitlines():
                 # Extract IP: "64 bytes from 142.250.80.14: icmp_seq=1 ttl=118 time=12.3 ms"
@@ -626,7 +626,7 @@ class NetworkDiag:
             try:
                 proc = subprocess.run(
                     ["tracepath", "-n", "-m", str(max_hops), host],
-                    capture_output=True, text=True, timeout=max_hops * timeout_sec + 10,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=max_hops * timeout_sec + 10,
                 )
                 for line in proc.stdout.splitlines():
                     line = line.strip()
@@ -720,7 +720,7 @@ class NetworkDiag:
 
         try:
             args = ["netstat", "-ano"]
-            result = subprocess.run(args, capture_output=True, text=True, timeout=15)
+            result = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15)
 
             # Skip header lines robustly: skip until we find the first data line (starts with "  TCP" or "  UDP")
             lines = result.stdout.splitlines()
@@ -800,7 +800,7 @@ class NetworkDiag:
         # Try `ss` first (faster), fall back to netstat
         cmd = ["ss", "-tunlp"] if listening else ["ss", "-tuna"]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15)
             if result.returncode != 0:
                 raise FileNotFoundError("ss not available")
 
@@ -896,7 +896,7 @@ class NetworkDiag:
             try:
                 strace_cmd = ["strace", "-f", "-c", command] + args
                 proc = subprocess.run(
-                    strace_cmd, capture_output=True, text=True,
+                    strace_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=timeout_sec,
                 )
                 result["output"] = proc.stdout[:10000]
@@ -927,7 +927,7 @@ class NetworkDiag:
             try:
                 start = time.perf_counter()
                 proc = subprocess.run(
-                    [command] + args, capture_output=True, text=True,
+                    [command] + args, capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=timeout_sec,
                 )
                 elapsed = time.perf_counter() - start
@@ -1078,7 +1078,7 @@ class NetworkDiag:
             try:
                 ltrace_cmd = ["ltrace", "-c", command] + args
                 proc = subprocess.run(
-                    ltrace_cmd, capture_output=True, text=True,
+                    ltrace_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=timeout_sec,
                 )
                 result["output"] = proc.stderr[:10000] + "\n" + proc.stdout[:10000]
@@ -1107,7 +1107,7 @@ class NetworkDiag:
             # Windows: DLL loading analysis
             try:
                 proc = subprocess.run(
-                    [command] + args, capture_output=True, text=True,
+                    [command] + args, capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=timeout_sec,
                 )
                 result["output"] = proc.stdout[:10000]

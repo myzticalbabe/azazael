@@ -109,7 +109,7 @@ class MorphingWorm:
             result = subprocess.run(
                 [sys.executable, "-m", "py_compile", str(fp)],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=10,
             )
             if result.returncode != 0:
