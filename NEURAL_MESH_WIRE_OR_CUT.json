@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-17T08:03:27.010863",
+ "generated_at": "2026-10-17T22:27:05.481999+00:00",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 184,
+  "wired": 171,
   "retired": 61,
   "dispatched": 60,
-  "accepted_gap": 59,
+  "accepted_gap": 72,
   "rejected": 5,
   "pending": 0
  },
@@ -43,8 +43,8 @@
    "qualname": "LinUCBAllocator.__init__",
    "line": 409,
    "seg": "def __init__(self, arms, dim: int = 4, alpha: float = 1.0):\n        self.arms = list(arms)\n        self.dim = dim\n        self.alpha = alpha\n        import copy\n        self._A = {a: [[1.0 if i == j else 0.0 for j in range(dim)]\n                       for i in range(dim)] for a in self.arms}\n        self._b = {a: [0.0] * dim for a in self.arms}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:11, scripts/_evo_graph_build.py:93, scripts/ecosystem_graph.py:146), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): nearest text is vendored SCons/clcache __init__ copies; allocation module never imported; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ABTestRunner, ADLPClient, AOAState"
@@ -55,15 +55,16 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "allocation:SuccessiveHalvingPruner.__init__": {
    "module": "allocation",
    "qualname": "SuccessiveHalvingPruner.__init__",
    "line": 456,
    "seg": "def __init__(self, rungs=(10, 20, 80), eta: int = 3):\n        self.rungs = list(rungs)\n        self.eta = eta",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:11, scripts/_evo_graph_build.py:93, scripts/ecosystem_graph.py:146), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): nearest text is vendored SCons/clcache __init__ copies; allocation module never imported; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ABTestRunner, ADLPClient, AOAState"
@@ -74,15 +75,16 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "allocation:SuccessiveHalvingPruner.promote": {
    "module": "allocation",
    "qualname": "SuccessiveHalvingPruner.promote",
    "line": 460,
    "seg": "def promote(self, scored):\n        \"\"\"scored: [(id, score)] -> ids promoted to next rung (top 1/eta).\"\"\"\n        scored = sorted(scored, key=lambda t: t[1], reverse=True)\n        n = max(1, len(scored) // self.eta)\n        return [i for i, _ in scored[:n]]",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_cranium_degeneracy_probe.py:56, scripts/evolution_cycle.py:2662, scripts/evolution_cycle.py:932), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): wiring_cycle.py:843 calls wiring_cycle.py:575 local def promote; spine.py hits are comments; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: MorphogenesisWorm"
@@ -93,7 +95,8 @@
     "scripts/_cranium_degeneracy_probe.py:56",
     "scripts/evolution_cycle.py:2662",
     "scripts/evolution_cycle.py:932"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "dead_candidate",
@@ -124,8 +127,8 @@
    "qualname": "ThompsonAllocator.select",
    "line": 113,
    "seg": "def select(self, k: int = 1):\n        \"\"\"Alias for choose() \u2014 backward-compat for thompson_env.py.\"\"\"\n        return self.choose(k)[0] if k == 1 else self.choose(k)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/meta_evolution_cycle.py:587, scripts/meta_evolution_cycle.py:595, scripts/meta_evolution_cycle.py:607), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): jinja2 vendored filters only; no committed caller of this member; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: NSGAIII, ScoutBeeWorm"
@@ -136,7 +139,8 @@
     "scripts/meta_evolution_cycle.py:587",
     "scripts/meta_evolution_cycle.py:595",
     "scripts/meta_evolution_cycle.py:607"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "allocation:joint_action_space": {
    "module": "allocation",
@@ -154,8 +158,8 @@
    "qualname": "Arena.save",
    "line": 291,
    "seg": "def save(self, path: str) -> None:\n        payload = {\"worlds\": [w.to_dict() for w in self.worlds],\n                   \"history\": self.history[-64:],\n                   \"mc_low\": self.mc_low, \"mc_high\": self.mc_high}\n        with open(path, \"w\", encoding=\"utf-8\") as fh:\n            json.dump(payload, fh, indent=1, default=str)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/meta_cognition.py:992, src/CORE/sb3_agent.py:1079, tools/dead_function_check.py:81), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): sb3_agent mentions are comments; tools/dict_key_triage save() is a dict helper; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: AutoencoderAnomalyWorm, AzazaelConfig, CPPNGenome"
@@ -166,7 +170,8 @@
     "src/CORE/WORMS/expansion/meta_cognition.py:992",
     "src/CORE/sb3_agent.py:1079",
     "tools/dead_function_check.py:81"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "axon:LatencyCompensatorWorm.__init__": {
    "module": "axon",
@@ -317,8 +322,8 @@
    "qualname": "SaltatoryRouterWorm.send",
    "line": 69,
    "seg": "def send(self, dst_env: str, partitioned: bool = False) -> dict[str, Any]:\n        with self._lock:\n            if partitioned:\n                self._multi += 1\n                mode = \"multi-hop\"\n            else:\n                self._direct += 1\n                mode = \"direct\"\n            return {\"success\": True, \"dst\": dst_env, \"mode\": mode,\n                    \"direct\": self._direct, \"multi\": self._multi}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/communication.py:204), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): verify_*_cdp send(\"Page.enable\") strings are CDP traffic, not this member; mesh_gossip hit is a comment; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: CDP, IPCBridge, MeshRouterWorm"
@@ -327,7 +332,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'send' in 5 file(s) [scripts/mesh_gossip_cycle.py, scripts/verify_aoa_cdp.py, scripts/verify_lead_links_cdp.py, src/CORE/WORMS/expansion/mesh.py, tools/verify_mesh_html.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/communication.py:204"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "axon:SpikeEncoderWorm.__init__": {
    "module": "axon",
@@ -353,8 +359,8 @@
    "qualname": "SpikeEncoderWorm.encode",
    "line": 98,
    "seg": "def encode(self, stream: list[float]) -> dict[str, Any]:\n        spikes = [i for i, v in enumerate(stream) if v >= self._thr]\n        with self._lock:\n            self._spikes.extend(spikes)\n            self._spikes = self._spikes[-500:]\n            return {\"success\": True, \"spikes\": spikes, \"count\": len(spikes),\n                    \"retained\": len(self._spikes)}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/reencode_large_videos.py:202), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): argparse/docstring mentions only (\"don't encode\", binding prose); missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: HDC"
@@ -363,7 +369,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'encode' in 124 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
    "evidence": [
     "scripts/reencode_large_videos.py:202"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "axon:SpikeEncoderWorm.execute": {
    "module": "axon",
@@ -551,14 +558,15 @@
    "qualname": "BerksMonitorWorm.start_monitor",
    "line": 276,
    "seg": "def start_monitor(self, interval_seconds: float = 1800.0):\n        \"\"\"Continuous monitoring daemon (mirrors DatabaseMonitorWorm).\"\"\"\n        stop = threading.Event()\n\n        def loop():\n            while not stop.wait(interval_seconds):\n                try:\n                    self.check_health()\n                except Exception as exc:\n                    note_failure(\"berks:monitor-loop\", exc)\n        t = threading.Thread(target=loop, name=\"berks-monitor\",\n                             daemon=True)\n        t.start()\n        return stop",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): live start_monitor calls target DatabaseMonitorWorm (db_monitor.py); run_db_monitor.py imports DatabaseMonitorWorm only, never BerksMonitorWorm; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: DatabaseMonitorWorm, ThreatIntelMonitorWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_monitor' in 3 file(s) [scripts/run_db_monitor.py, src/CORE/WORMS/expansion/db_monitor.py, src/CORE/dashboard.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_monitor' in 3 file(s) [scripts/run_db_monitor.py, src/CORE/WORMS/expansion/db_monitor.py, src/CORE/dashboard.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "chaos:ChaosWorm.__init__": {
    "module": "chaos",
@@ -632,22 +640,23 @@
    "qualname": "WeeklyCodeAuditWorm.start_scheduler",
    "line": 204,
    "seg": "def start_scheduler(self) -> None:\n        \"\"\"Start the daemon scheduler thread.\"\"\"\n        if self._scheduler_thread and self._scheduler_thread.is_alive():\n            return\n        self._stop.clear()\n        self._scheduler_thread = threading.Thread(\n            target=self._loop, daemon=True, name=\"azazael-weekly-audit\",\n        )\n        self._scheduler_thread.start()",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): audit_wiring.py:9 and wiring_audit.py:12 comments explicitly state the daemon entry has no caller; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: EvolutionIntegrityWorm, ScheduledDbMonitorWorm, ScheduledTrainingWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_scheduler' in 1 file(s) [src/CORE/dashboard.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_scheduler' in 1 file(s) [src/CORE/dashboard.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "code_audit:WeeklyCodeAuditWorm.stop": {
    "module": "code_audit",
    "qualname": "WeeklyCodeAuditWorm.stop",
    "line": 214,
    "seg": "def stop(self) -> None:\n        self._stop.set()\n        if self._scheduler_thread:\n            self._scheduler_thread.join(timeout=10)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/container.py:95, src/CORE/inference/providers.py:1552, src/CORE/inference/providers.py:1679), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): generic stop() mentions in comments/strings (FleetZ, MetaWormSpawner prose, claim_guard regex); missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ContainerOrch, EcaHttpServer, EvolutionIntegrityWorm"
@@ -658,7 +667,8 @@
     "src/CORE/WORMS/expansion/container.py:95",
     "src/CORE/inference/providers.py:1552",
     "src/CORE/inference/providers.py:1679"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "communication:IPCBridge.__init__": {
    "module": "communication",
@@ -723,8 +733,8 @@
    "qualname": "IPCBridge.send",
    "line": 182,
    "seg": "def send(self, channel: str, data: Any) -> bool:\n        with self._lock:\n            ch = self._channels.get(channel)\n            if ch:\n                ch[\"messages\"].append({\"data\": data, \"timestamp\": time.time()})\n                return True\n        return False",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/communication.py:204), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): CDP send(\"Page.enable\"/\"Runtime.enable\") strings only; mesh_gossip hit is a comment; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: CDP, MeshRouterWorm, MeshTransport"
@@ -733,7 +743,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'send' in 5 file(s) [scripts/mesh_gossip_cycle.py, scripts/verify_aoa_cdp.py, scripts/verify_lead_links_cdp.py, src/CORE/WORMS/expansion/mesh.py, tools/verify_mesh_html.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/communication.py:204"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "communication:MessageBroker.__init__": {
    "module": "communication",
@@ -778,8 +789,8 @@
    "qualname": "MessageBroker.subscribe",
    "line": 65,
    "seg": "def subscribe(self, topic: str, handler: Callable[[dict], None]):\n        with self._lock:\n            self._topics[topic].append(handler)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:536, src/CORE/worm_governance.py:373, src/CORE/worm_registry.py:1170), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): MemoryBus.py:569 defines its own subscribe; no communication import in MemoryBus; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: EventBus, EventRouter, MemoryBus"
@@ -790,7 +801,8 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:536",
     "src/CORE/worm_governance.py:373",
     "src/CORE/worm_registry.py:1170"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "communication:ProtocolNegotiator.__init__": {
    "module": "communication",
@@ -901,8 +913,8 @@
    "qualname": "RPCEndpoint.handle_request",
    "line": 103,
    "seg": "def handle_request(self, request: dict[str, Any]) -> dict[str, Any]:\n        \"\"\"Handle a JSON-RPC 2.0 request.\"\"\"\n        try:\n            method = request.get(\"method\", \"\")\n            params = request.get(\"params\", {})\n            req_id = request.get(\"id\")\n            func = self._methods.get(method)\n            if not func:\n                return {\"jsonrpc\": \"2.0\", \"id\": req_id, \"error\": {\"code\": -32601, \"message\": f\"Method '{method}' not found\"}}\n            result = func(**params) if isinstance(params, dict) else func(*params)\n            return {\"jsonrpc\": \"2.0\", \"id\": req_id, \"result\": result}\n        except Exception as e:\n            note_failure(\"communication:L102\", e)\n            return {\"jsonrpc\": \"2.0\", \"id\": request.get(\"id\"), \"error\": {\"code\": -32000, \"message\": str(e)}}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:537, src/CORE/worm_registry.py:1171), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): only hit is web_dashboard BaseHTTPServer self.server.handle_request (stdlib); missing piece = production consumer.",
    "decider": "dead_candidate",
    "decider_evidence": [],
    "carried": true,
@@ -910,7 +922,8 @@
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:537",
     "src/CORE/worm_registry.py:1171"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "communication:RPCEndpoint.list_methods": {
    "evidence": [],
