@@ -55,7 +55,7 @@ def _probe_bash(exe: str | None) -> str | None:
         return None
     try:
         r = subprocess.run([exe, "-c", "printf '%s' ok"], capture_output=True,
-                           text=True, timeout=30)
+                           text=True, encoding="utf-8", errors="replace", timeout=30)
     except Exception:
         return None
     return exe if (r.returncode == 0 and r.stdout == "ok") else None
@@ -82,7 +82,7 @@ def _bash(script: str, env: dict | None = None) -> subprocess.CompletedProcess:
     if env:
         full_env.update(env)
     return subprocess.run([_BASH, "-c", script], capture_output=True,
-                          text=True, env=full_env, timeout=30)
+                          text=True, encoding="utf-8", errors="replace", env=full_env, timeout=30)
 
 
 # ── #59 / #63: backslash paths are eaten by bash ─────────────────────────

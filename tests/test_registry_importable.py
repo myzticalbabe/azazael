@@ -270,7 +270,7 @@ def test_repair_purges_and_rebuilds_in_a_fresh_process():
     env = dict(os.environ)
     env["PYTHONPATH"] = str(Path(__file__).resolve().parent.parent / "src")
     proc = subprocess.run([sys.executable, "-c", code], env=env,
-                          capture_output=True, text=True, timeout=300)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
     assert proc.returncode == 0, proc.stderr[-800:]
     line = next((ln for ln in proc.stdout.splitlines()
                  if ln.startswith("REPAIR")), None)

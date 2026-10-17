@@ -234,7 +234,7 @@ class TestCliExportSubcommand(unittest.TestCase):
         import subprocess
         cmd = [sys.executable, self.CLI_SCRIPT] + list(args)
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, cwd=self.PROJECT_ROOT,
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, cwd=self.PROJECT_ROOT,
         )
         return result
 
