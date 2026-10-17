@@ -40,7 +40,7 @@ for i, tf in enumerate(test_files, 1):
         proc_start = time.time()
         result = subprocess.run(
             [PYTHON, path],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=600,  # 10 min per file
         )
         duration = time.time() - proc_start
