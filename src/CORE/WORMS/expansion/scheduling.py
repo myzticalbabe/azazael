@@ -91,6 +91,10 @@ class ScheduleConfig:
     source_filter: (str | None) = None  # None = all sources
     record_to_memory: bool = True        # Persist results
     exclude_sources: (list[str] | None) = None  # Skip self-generated bookkeeping sources
+    tune_before_train: bool = False  # Opt-in: Stage 3 runs RLTrainLoop.tune_and_train
+    # (CV over lr/gamma/eps, then final train on best) instead of a single
+    # train_from_memory. Default False preserves the scheduled cost profile;
+    # set True when a tuning pass is wanted before the scheduled train.
     # EP187 contribution-weighted scheduling: arm name -> contribution score.
     # None (the default) keeps the flat `interval_hours` above; supplying weights
     # is what puts the allocation policy, not the constant, in charge of *when*
@@ -784,6 +788,14 @@ class ScheduledTrainingWorm:
             )
             n_records = len(records)
 
+            # Production caller for DataPipelineWorm.schedule_dynamic_refresh:
+            # refresh DYNAMIC_SHAPES on the data just extracted so the next
+            # run's Stage 2 sees current shapes (fail-open telemetry).
+            try:
+                pipeline.schedule_dynamic_refresh()
+            except Exception as se:
+                note_failure("scheduling:shape-refresh", se)
+
             # Fallback to mock data if no records (2026-09-10 honesty
             # fix): fakes used to be counted as real records and the run
             # reported success on invented data. Now flagged synthetic
@@ -808,6 +820,7 @@ class ScheduledTrainingWorm:
             # q_table_persisted rows piled up write-only. Load failure
             # falls back to fresh (logged, never fatal).
             rl = self._get_rl()
+            _hybrid_reward = 0.0  # bound for both branches; set for real below
             if rl:
                 try:
                     _resumed = bool(rl.load_q_table_from_store())
@@ -816,16 +829,41 @@ class ScheduledTrainingWorm:
                     print(f"[train] {run_id} Q-resume failed, fresh start: {e}", flush=True)
                 if _resumed:
                     print(f"[train] {run_id} resumed persisted Q-table", flush=True)
-                training_result = rl.train_from_memory(
-                    source=self.config.source_filter,
-                    n_episodes=self.config.n_episodes,
-                    max_steps=min(50, max(10, n_records // 2)),
-                    learning_rate=self.config.learning_rate,
-                    discount_factor=self.config.discount_factor,
-                    epsilon=self.config.epsilon,
-                )
+                _max_steps = min(50, max(10, n_records // 2))
+                if self.config.tune_before_train:
+                    # Production caller for RLTrainLoop.tune_and_train:
+                    # CV-tune then final-train. tune_and_train nests the
+                    # train result, so unwrap before reading metrics.
+                    _tt = rl.tune_and_train(
+                        source=self.config.source_filter,
+                        n_episodes=self.config.n_episodes,
+                        max_steps=_max_steps,
+                    )
+                    training_result = _tt.get("train_result", {}) \
+                        if isinstance(_tt, dict) else {}
+                else:
+                    training_result = rl.train_from_memory(
+                        source=self.config.source_filter,
+                        n_episodes=self.config.n_episodes,
+                        max_steps=_max_steps,
+                        learning_rate=self.config.learning_rate,
+                        discount_factor=self.config.discount_factor,
+                        epsilon=self.config.epsilon,
+                    )
                 avg_reward = training_result.get("avg_reward", 0)
                 q_table_size = training_result.get("q_table_size", 0)
+                # Hybrid-reward telemetry (additive): this run's reward as
+                # the ENVIRONMENT source; the aggregate rides the run record.
+                try:
+                    from CORE.WORMS.expansion.hybrid_rewards import (  # noqa: PLC0415 (lazy: no cycle)
+                        HybridRewardComputer, RewardConfig, RewardSource)
+                    _hr = HybridRewardComputer(RewardConfig(
+                        source_weights={RewardSource.ENVIRONMENT: 1.0}))
+                    _hr.update(RewardSource.ENVIRONMENT,
+                               float(avg_reward or 0.0))
+                    _hybrid_reward = _hr.compute_hybrid()
+                except Exception as he:
+                    note_failure("scheduling:hybrid-telemetry", he)
             else:
                 avg_reward = 0.0
                 q_table_size = 0
@@ -874,6 +912,7 @@ class ScheduledTrainingWorm:
                         "rampup": str(rampup.get("action") or "hold"),
                         "avg_reward": avg_reward,
                         "q_table_size": q_table_size,
+                        "hybrid_reward": _hybrid_reward,
                         "model_version": new_version,
                         "regime": _track_regime(),
                     },
@@ -1106,6 +1145,15 @@ class ScheduledDbMonitorWorm:
             errors = result.get("error_count_7d", 0)
             warnings = result.get("warning_count_7d", 0)
             alerts = result.get("total_alerts", 0)
+
+            # Production caller for DatabaseMonitorWorm.create_backup: a
+            # healthy run snapshots the DB it just verified (fail-open;
+            # create_backup returns "" and records its own event on failure).
+            if healthy:
+                try:
+                    monitor.create_backup()
+                except Exception as be:
+                    note_failure("scheduling:dbmon-backup", be)
 
         except Exception as e:
             note_failure("scheduling:L668", e)

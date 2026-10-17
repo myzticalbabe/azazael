@@ -1441,17 +1441,38 @@ class GeneticOptimizer:
         return {"worm_type": worm_type, "method": "de", **result}
 
     def optimize(self, worm_type: str, generations: int = 10,
-                 fitness_fn=None) -> dict[str, Any]:
+                 fitness_fn=None, backend: str = "ga") -> dict[str, Any]:
         """Run evolutionary optimization for a worm type.
 
         Args:
             worm_type: Worm type to optimize
             generations: Number of generations to evolve
             fitness_fn: Optional custom fitness function
+            backend: "ga" (default, in-place loop below), "cma" (sep-CMA-ES,
+                preferred for float-only params), or "de" (differential
+                evolution). The cma/de backends (optimize_cma/optimize_de)
+                previously had no caller — this dispatch is their production
+                entry point; existing callers pass nothing and keep GA.
 
         Returns:
             dict with best parameters and optimization stats
         """
+        if backend in ("cma", "de"):
+            # CMA-ES/DE need float (lo, hi) bounds; mixed-type specs stay on GA.
+            try:
+                bounds = dict(self._engines[worm_type]._gene_bounds)
+            except (KeyError, AttributeError) as exc:
+                note_failure("evolution:L1443", exc)
+                bounds = {}
+            if (bounds and all(isinstance(v, tuple) and len(v) == 2
+                               and all(isinstance(x, (int, float)) for x in v)
+                               for v in bounds.values())):
+                if backend == "cma":
+                    return self.optimize_cma(worm_type, bounds, fitness_fn,
+                                             generations=generations)
+                return self.optimize_de(worm_type, bounds, fitness_fn,
+                                        generations=generations)
+            note_failure("evolution:backend-bounds", None)
         engine = self._engines.get(worm_type)
         if not engine:
             return {"error": f"No engine initialized for {worm_type}"}

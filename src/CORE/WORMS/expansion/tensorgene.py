@@ -427,6 +427,15 @@ class TensorGenome:
         # not say "history had no payloads" is indistinguishable from a bug.
         self.meta["history_rows"] = n_rows
         self.meta["payload_genes_found"] = bool(latest)
+        # Production caller for boruta_relevance: the per-gene Spearman
+        # `usefulness` above ranks one gene at a time; the all-relevant
+        # shadow bake-off rides alongside in meta (additive, fail-open —
+        # thin history returns ok=False inside the callee, never raises).
+        try:
+            self.meta["boruta"] = boruta_relevance(history)
+        except Exception as exc:
+            note_failure("tensorgene:L432", exc)
+            self.meta["boruta"] = {"ok": False, "reason": "declare-hook"}
         values = dict(value_map if value_map is not None else latest)
         for name in sorted(values.keys()):
             stats = correlate(history, name)

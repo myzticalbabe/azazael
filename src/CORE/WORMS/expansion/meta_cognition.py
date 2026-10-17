@@ -344,7 +344,7 @@ class MetaCognitionWorm:
         if worm_type:
             self._confidence_models[worm_type] = confidence
 
-        return {
+        result = {
             "total": total,
             "error_count": error_count,
             "error_rate": round(error_rate, 4),
@@ -352,6 +352,18 @@ class MetaCognitionWorm:
             "confidence": confidence,
             "worm_type": worm_type or "all",
         }
+        # Production caller for compute_cross_worm_correlation: every
+        # pattern analysis also reports whether errors in one worm predict
+        # errors in another (additive key, fail-open; thin data returns
+        # early inside the callee, never raises here).
+        try:
+            result["cross_worm_correlation"] = (
+                self.compute_cross_worm_correlation(
+                    worm_types=[worm_type] if worm_type else None))
+        except Exception as exc:
+            note_failure("meta_cognition:L348", exc)
+            result["cross_worm_correlation"] = {"correlations": []}
+        return result
 
     def _compute_confidence(self, worm_type: (str | None),
                             observations: list[dict]) -> dict[str, float]:

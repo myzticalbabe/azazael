@@ -289,8 +289,11 @@ class ErrorRecoveryOrchestrator:
                     stale_worms.append(worm_type)
             for worm_type in stale_worms:
                 del self._failure_windows[worm_type]
-                self._failure_counts.pop(worm_type, None)
-                self._circuit_open.pop(worm_type, None)
+                # Production caller for reset_circuit: a worm whose failure
+                # window has fully aged out AND stopped being called gets a
+                # clean slate through the same path an operator reset uses
+                # (RLock: reset_circuit re-acquires safely).
+                self.reset_circuit(worm_type)
 
     def _record_recovery(self, entry: RecoveryEntry) -> None:
         """Record a recovery attempt."""
