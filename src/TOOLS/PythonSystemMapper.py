@@ -52,7 +52,7 @@ class PythonSystemMapper:
         """Run a command and return output."""
         try:
             result = subprocess.run(
-                shlex.split(cmd), capture_output=True, text=True, timeout=timeout
+                shlex.split(cmd), capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
             )
             return result.stdout.strip(), result.stderr.strip(), result.returncode
         except Exception as e:

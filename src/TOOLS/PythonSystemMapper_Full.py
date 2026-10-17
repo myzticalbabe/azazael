@@ -64,7 +64,7 @@ class FullSystemPythonMapper:
     def run_cmd(self, cmd, timeout=15):
         try:
             result = subprocess.run(
-                shlex.split(cmd), capture_output=True, text=True, timeout=timeout
+                shlex.split(cmd), capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
