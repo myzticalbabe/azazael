@@ -917,7 +917,7 @@ class WeaknessTester:
                     duration=1.0,
                     success=True,
                 )
-            except Exception as exc:  # noqa: BLE001 — harness verifies target does not raise
+            except (TypeError, KeyError) as exc:  # narrowed from Exception; harness verifies target does not raise
                 note_failure("weakness_testing:L891", exc)
                 passed = False
 

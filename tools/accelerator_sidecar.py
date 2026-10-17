@@ -71,6 +71,11 @@ BACKENDS = (
         "binary": BIN_DIR / "llama-b10964-vulkan" / "llama-server.exe",
     },
     {
+        "name": "llama_cpp_cuda",
+        "device": "cuda",
+        "binary": BIN_DIR / "llama-b10964-cuda" / "llama-server.exe",
+    },
+    {
         "name": "llama_cpp_cpu",
         "device": "cpu",
         "binary": BIN_DIR / "llama-b10964-cpu" / "llama-server.exe",

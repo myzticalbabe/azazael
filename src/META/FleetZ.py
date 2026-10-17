@@ -26,6 +26,13 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
+#: Phase 1 anomaly-detection thresholds (Continuous Intelligence Loop).
+ANOMALY_CPU_PCT = 90.0            # CPU > 90% sustained
+ANOMALY_MEM_PCT = 90.0            # memory leak / pressure pattern
+ANOMALY_DISK_SMART = True         # any disk SMART warning trips anomaly
+ANOMALY_BEAT_WINDOW = 3           # beats to confirm before flagging
+
+
 class FleetDashboard:
     """In-memory live view the daemon keeps current; never None once built."""
 
@@ -135,6 +142,76 @@ class FleetZ:
     def fleet_report(self) -> Dict[str, Any]:
         """One-shot status read; unchanged when daemon is stopped."""
         return self.dashboard.snapshot()
+
+    # -- Phase 1: Continuous Intelligence Loop -----------------------------------
+
+    def _collect_system_metrics(self) -> Dict[str, Any]:
+        """Sample CPU/memory/disk pressure for anomaly detection. Fail-open."""
+        metrics: Dict[str, Any] = {
+            "cpu_percent": None,
+            "memory_percent": None,
+            "disk_smart_warning": False,
+        }
+        try:
+            import psutil  # type: ignore
+            metrics["cpu_percent"] = psutil.cpu_percent(interval=None)
+            metrics["memory_percent"] = psutil.virtual_memory().percent
+        except Exception as exc:
+            note_failure("fleetz:system_metrics", exc)
+        return metrics
+
+    def _detect_anomaly(self, metrics: Dict[str, Any]) -> bool:
+        """Threshold-based anomaly rule (Phase 1, v1)."""
+        cpu = metrics.get("cpu_percent")
+        mem = metrics.get("memory_percent")
+        if cpu is not None and cpu > ANOMALY_CPU_PCT:
+            return True
+        if mem is not None and mem > ANOMALY_MEM_PCT:
+            return True
+        if metrics.get("disk_smart_warning") is True:
+            return True
+        return False
+
+    def collect_analyze_record(self) -> Dict[str, Any]:
+        """Collect telemetry -> analyze via llama-server -> record intelligence.
+
+        Fail-open: if llama-server is down the daemon keeps beating and the
+        result records ``llama_available: False`` instead of raising.
+        """
+        bridge = None
+        try:
+            from META.InferenceBridge import InferenceBridge
+            bridge = InferenceBridge()
+        except Exception as exc:  # bridge import must never kill the daemon
+            note_failure("fleetz:inference_bridge_import", exc)
+            return {"collected": self.fleet_report(),
+                    "analyzed": "",
+                    "llama_available": False,
+                    "anomaly": False,
+                    "error": str(exc)}
+
+        telemetry = self.fleet_report()
+        telemetry.update(self._collect_system_metrics())
+        anomaly = self._detect_anomaly(telemetry)
+
+        analyzed = ""
+        llama_available = False
+        try:
+            status = bridge.get_bridge_status()
+            llama_available = bool(status.get("llama_available", False))
+            if llama_available:
+                prompt = bridge.format_inference_prompt(telemetry)
+                analyzed = bridge.send_to_llama(prompt)
+                bridge.record_intelligence(analyzed)
+        except Exception as exc:  # never kill the daemon
+            note_failure("fleetz:analyze_record", exc)
+
+        return {
+            "collected": telemetry,
+            "analyzed": analyzed,
+            "llama_available": llama_available,
+            "anomaly": anomaly,
+        }
 
 
 if __name__ == "__main__":  # pragma: no cover
