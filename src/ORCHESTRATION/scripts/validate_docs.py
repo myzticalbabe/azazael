@@ -224,7 +224,7 @@ class DocumentationValidator:
                     ],
                     capture_output=True,
                     text=True,
-                    timeout=self.EXTERNAL_TIMEOUT + 2,
+                    timeout=self.EXTERNAL_TIMEOUT + 2, encoding="utf-8", errors="replace"
                 )
                 http_code = result.stdout.strip()
                 if http_code not in ["200", "301", "302"]:
@@ -260,7 +260,7 @@ class DocumentationValidator:
                     [sys.executable, temp_file],
                     capture_output=True,
                     text=True,
-                    timeout=30,
+                    timeout=30, encoding="utf-8", errors="replace"
                 )
 
                 if result.returncode != 0:

@@ -57,7 +57,7 @@ def test_module_import(path: str) -> dict:
             "-c",
             f'import sys; sys.path.insert(0, "{Path(path).parent}"); exec(open("{path}").read())',
         ]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace")
         result["passed"] = proc.returncode == 0
         if proc.returncode != 0:
             result["error"] = proc.stderr[:200]

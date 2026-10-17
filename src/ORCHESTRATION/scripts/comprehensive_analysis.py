@@ -255,7 +255,7 @@ class ModuleTester:
             ]
 
             proc = subprocess.run(
-                import_cmd, capture_output=True, text=True, timeout=30
+                import_cmd, capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace"
             )
 
             if proc.returncode == 0:
