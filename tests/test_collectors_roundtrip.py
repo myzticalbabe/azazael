@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", __file__, "-q", "--tb=short"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     last = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else ""
     m = _re.search(r"(\d+) passed", last)

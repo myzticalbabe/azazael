@@ -104,7 +104,7 @@ print("RESULT " + json.dumps(out))
 def _run_child():
     proc = subprocess.run(
         [sys.executable, "-c", _CHILD % {"src": str(_SRC)}],
-        capture_output=True, text=True, timeout=180,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180,
     )
     lines = [ln for ln in proc.stdout.splitlines() if ln.startswith("RESULT ")]
     assert lines, "child produced no RESULT line\nstdout=%s\nstderr=%s" % (

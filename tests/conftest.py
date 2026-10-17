@@ -513,7 +513,7 @@ def run_standalone_script():
     def _run(path: str, timeout: float = 300.0):
         return subprocess.run(
             [sys.executable, str(path)],
-            capture_output=True, text=True, timeout=timeout, cwd=str(pathlib.Path(__file__).parent.parent),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, cwd=str(pathlib.Path(__file__).parent.parent),
         )
 
     return _run

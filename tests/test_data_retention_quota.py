@@ -61,7 +61,7 @@ def _run_maintenance_isolated(tmp_path):
     env["AZAZAEL_MEMORY_DIR"] = str(tmp_path)
     env["PYTHONPATH"] = SRC + os.pathsep + env.get("PYTHONPATH", "")
     proc = subprocess.run([sys.executable, "-c", _CHILD], env=env,
-                          capture_output=True, text=True, timeout=900)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     assert proc.returncode == 0, (
         "isolated maintenance child failed:\n" + proc.stdout + "\n" + proc.stderr)
     return json.loads(proc.stdout.strip().splitlines()[-1])
