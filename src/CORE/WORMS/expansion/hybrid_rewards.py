@@ -12,6 +12,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass
+
 
 class RewardSource(Enum):
     """Sources of reward signal for hybrid computation."""
@@ -45,25 +51,45 @@ class HybridRewardComputer:
         }
         self._step = 0
 
-    def update(self, source: RewardSource, reward: float, step: Optional[int] = None) -> None:
-        """Update accumulated reward for a source.
+    def update(self, source: RewardSource, reward: float, step: Optional[int] = None) -> bool:
+        """Accumulate one source observation. Unit contract: [0, 1].
+
+        Refuses (False) non-numeric, non-finite, and out-of-range values
+        instead of blending-then-clamping them: the old path silently
+        recorded every negative reward as 0.0. Only the producer knows
+        its native scale, so normalization belongs at the call site —
+        the blender enforces the contract and logs refusals. NaN and
+        infinities fail the range check and are refused without branches.
 
         Args:
             source: The reward source enum value.
-            reward: The reward value from that source.
+            reward: The reward value from that source, must be in [0, 1].
             step: Optional step number for decay adjustment.
+
+        Returns:
+            True when the observation was kept, False when refused.
         """
+        if isinstance(reward, bool) or not isinstance(reward, (int, float)):
+            note_failure("hybrid-rewards:non-numeric", None)
+            return False
+        v = float(reward)
+        if not 0.0 <= v <= 1.0:
+            note_failure("hybrid-rewards:out-of-range", None)
+            return False
         if step is not None:
             self._step = step
         decay = self.config.decay_rate ** max(0, self._step - 1)
-        adj = reward * decay
+        adj = v * decay
         self._source_total[source] += adj
         self._source_count[source] += 1
+        return True
 
     def compute_hybrid(self, step: Optional[int] = None) -> float:
         """Compute the aggregated hybrid reward across all sources.
 
         Returns a weighted, confidence-adjusted aggregate in [0, 1].
+        The [0, 1] holds by construction (update() refuses anything
+        else); the final clamp below is a backstop, not a normalizer.
         """
         if step is not None:
             self._step = step
