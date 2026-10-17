@@ -132,7 +132,7 @@ def run_python(script_path, args=None):
 
     cmd = [sys.executable, str(full_path)] + (args or [])
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
         ok = result.returncode == 0
         return ok, "Success" if ok else f"Exit {result.returncode}: {result.stderr[:200].strip()}"
     except Exception as e:
@@ -292,7 +292,7 @@ def cmd_monitor():
             [sys.executable, monitor_path],
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=5, encoding="utf-8", errors="replace"
         )
         if result.returncode == 0:
             log("Live monitor launched", "OK")
