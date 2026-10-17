@@ -108,7 +108,7 @@ _CHILD = (
 def _child_masks(width):
     """Run the registry in a FRESH process and return what it printed."""
     out = subprocess.run([sys.executable, "-c", _CHILD, str(SRC), str(width)],
-                         capture_output=True, text=True, timeout=180)
+                         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
     assert out.returncode == 0, out.stderr
     return json.loads(out.stdout.strip().splitlines()[-1])
 
@@ -443,7 +443,7 @@ def test_registry_round_trip_in_a_fresh_process_reproduces_the_exclusion(tmp_pat
 
     child = subprocess.run([sys.executable, "-c", _ROUNDTRIP, str(SRC),
                             str(sidecar)],
-                           capture_output=True, text=True, timeout=180)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
     assert child.returncode == 0, child.stderr
     decoded = json.loads(child.stdout.strip().splitlines()[-1])
     assert decoded["sources"] == model.nulls_registry.sources

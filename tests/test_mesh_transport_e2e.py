@@ -145,7 +145,7 @@ def test_port_for_is_stable_across_processes():
             "from CORE.mesh_transport import port_for;"
             "print(port_for('probe-unknown-env'))")
     out = subprocess.run([sys.executable, "-c", code, src_dir],
-                         capture_output=True, text=True, timeout=60)
+                         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
     assert out.returncode == 0, out.stderr
     child_port = int(out.stdout.strip())
 

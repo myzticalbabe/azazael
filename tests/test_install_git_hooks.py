@@ -35,7 +35,7 @@ import install_git_hooks as igh  # noqa: E402
 
 def _git(repo: Path, *args: str) -> str:
     r = subprocess.run(["git", *args], cwd=str(repo), check=True,
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.stdout
 
 
@@ -47,7 +47,7 @@ def repo(tmp_path, monkeypatch):
     (r / ".githooks" / "pre-commit").write_text("#!/bin/sh\nexit 0\n",
                                                 encoding="utf-8")
     subprocess.run(["git", "init", "-q"], cwd=str(r), check=True,
-                   capture_output=True, text=True)
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
     monkeypatch.setattr(igh, "ROOT", r)
     return r
 
@@ -116,6 +116,6 @@ class TestRealRepoHooksDir:
         """The real repo must ship the hook the installer activates."""
         tracked = subprocess.run(
             ["git", "ls-files", ".githooks/pre-commit"], cwd=str(ROOT),
-            capture_output=True, text=True).stdout.strip()
+            capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip()
         assert tracked == ".githooks/pre-commit", (
             "the pre-commit hook is not tracked; a fresh clone would have none")

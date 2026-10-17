@@ -140,7 +140,7 @@ def test_qd_flags_default_off_clean_env():
     env = {k: v for k, v in os.environ.items()
            if not k.startswith("AZAZAEL_QD_")}
     p = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, cwd=str(ROOT), env=env, timeout=120)
+                       text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), env=env, timeout=120)
     assert p.returncode == 0, p.stderr[-500:]
     assert p.stdout.strip() == "(False, False, False)"
 
@@ -153,7 +153,7 @@ def test_qd_escape_flag_defaults_off_clean_env():
     env = {k: v for k, v in os.environ.items()
            if not k.startswith("AZAZAEL_QD_")}
     p = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, cwd=str(ROOT), env=env, timeout=120)
+                       text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), env=env, timeout=120)
     assert p.returncode == 0, p.stderr[-500:]
     assert p.stdout.strip() == "False"
 
@@ -166,7 +166,7 @@ def test_qd_escape_flag_on_when_env_set():
     env = dict(os.environ)
     env["AZAZAEL_QD_ESCAPE"] = "1"
     p = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, cwd=str(ROOT), env=env, timeout=120)
+                       text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), env=env, timeout=120)
     assert p.returncode == 0, p.stderr[-500:]
     assert p.stdout.strip() == "True"
 
@@ -180,7 +180,7 @@ def test_qd_escape_constants():
     env = {k: v for k, v in os.environ.items()
            if not k.startswith("AZAZAEL_QD_")}
     p = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                       text=True, cwd=str(ROOT), env=env, timeout=120)
+                       text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), env=env, timeout=120)
     assert p.returncode == 0, p.stderr[-500:]
     out = p.stdout.strip()
     assert "(3, 507.82, 9," in out

@@ -53,7 +53,7 @@ def test_missing_inputs_are_inconclusive_not_ok(tool, tmp_path):
          "--graph", str(tmp_path / "nope.json"),
          "--root", str(tmp_path),
          "--repo", str(tmp_path)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 2, \
         f"{tool} returned {r.returncode}, expected INCONCLUSIVE(2)"
 
@@ -63,7 +63,7 @@ def test_dict_key_contract_empty_scan_is_inconclusive(tmp_path):
     r = subprocess.run(
         [sys.executable, str(TOOLS / "dict_key_contract.py"),
          "--root", str(tmp_path), "--json"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 2, "empty tree must be INCONCLUSIVE"
 
 
@@ -379,7 +379,7 @@ def test_manifest_with_no_entries_is_inconclusive(tmp_path):
         [sys.executable, str(TOOLS / "manifest_reconcile.py"),
          "--graph", str(tmp_path / "graph.json"),
          "--repo", str(tmp_path)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 2, \
         f"no entries must be INCONCLUSIVE, got rc={r.returncode}: {r.stdout}"
     assert "INCONCLUSIVE" in r.stderr
@@ -393,7 +393,7 @@ def test_manifest_reports_a_missing_entry_end_to_end(tmp_path):
         [sys.executable, str(TOOLS / "manifest_reconcile.py"),
          "--graph", str(tmp_path / "graph.json"),
          "--repo", str(tmp_path)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 1, f"expected rc=1, got {r.returncode}"
     assert "MISSING" in r.stdout and "nowhere.py" in r.stdout
 
@@ -492,7 +492,7 @@ def test_low_coverage_tree_is_inconclusive_end_to_end(tmp_path):
     r = subprocess.run(
         [sys.executable, str(TOOLS / "dict_key_contract.py"),
          "--root", str(tmp_path), "--min-sites", "9999", "--json"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 2, \
         f"nothing examined must be INCONCLUSIVE, got rc={r.returncode}"
 
@@ -518,7 +518,7 @@ def test_no_tool_reports_ok_without_saying_what_it_examined():
                  "dict_key_contract"):
         r = subprocess.run(
             [sys.executable, str(TOOLS / (name + ".py")), "--help"],
-            capture_output=True, text=True)
+            capture_output=True, text=True, encoding="utf-8", errors="replace")
         assert r.returncode == 0, name
 
 
@@ -534,7 +534,7 @@ def _dkc_run(tmp_path, files):
     return subprocess.run(
         [sys.executable, str(TOOLS / "dict_key_contract.py"),
          "--root", str(tmp_path), "--min-sites", "1", "--json"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def test_dict_key_end_to_end_reports_and_exits_nonzero(tmp_path):
@@ -722,7 +722,7 @@ def test_scope_coverage_end_to_end_exit_codes(tmp_path):
     r = subprocess.run(
         [sys.executable, str(TOOLS / "scope_coverage.py"),
          "--preflight", str(bad), "--src", str(src)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 1, "a phantom scope entry must exit 1"
     assert "DECLARED BUT ABSENT" in r.stdout
 
@@ -730,7 +730,7 @@ def test_scope_coverage_end_to_end_exit_codes(tmp_path):
     r = subprocess.run(
         [sys.executable, str(TOOLS / "scope_coverage.py"),
          "--preflight", str(good), "--src", str(src)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 0, "an intact scope must exit 0"
 
 
@@ -859,7 +859,7 @@ def test_commit_scope_noise_detection():
 def test_commit_scope_not_a_repo_is_inconclusive(tmp_path):
     r = subprocess.run(
         [sys.executable, str(TOOLS / "commit_scope_check.py"),
-         "--repo", str(tmp_path)], capture_output=True, text=True)
+         "--repo", str(tmp_path)], capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert r.returncode == 2, "a non-repo must be INCONCLUSIVE, not OK"
 
 
