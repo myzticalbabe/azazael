@@ -68,7 +68,7 @@ def run_cmd(args: list[str], timeout: int = 120, label: str = "") -> tuple[bool,
             args,
             cwd=str(ROOT),
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:
