@@ -79,7 +79,7 @@ def run_metaworms_popup():
         cmd = [sys.executable, "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/META/METAWORMS.py", "--all"]
 
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1
         )
 
         worms = ["METAZ", "DEPENDZ", "VALIDZ", "DEADZ", "METRICZ", "LOGZ", "CHANGEZ"]
