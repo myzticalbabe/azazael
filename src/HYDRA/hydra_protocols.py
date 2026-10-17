@@ -237,7 +237,7 @@ class HydraProtocols:
                 proc = subprocess.run(
                     [str(venv_python), "-c", f"import {pkg}; print({pkg}.__version__)"],
                     capture_output=True,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     timeout=30,
                 )
                 if proc.returncode == 0:
