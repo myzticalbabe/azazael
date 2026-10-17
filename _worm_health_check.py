@@ -135,7 +135,7 @@ for i, (worm_name, info) in enumerate(registry.items(), 1):
     try:
         proc = subprocess.run(
             [sys.executable, worker_path, module_name, worm_name, source_file],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
             cwd=src_dir, env=env,
         )
         if proc.returncode == 0 and proc.stdout.strip():
