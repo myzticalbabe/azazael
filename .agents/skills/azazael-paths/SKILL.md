@@ -13,7 +13,7 @@ metadata:
 ```python
 from CORE.paths import (
     get_project_root,   # Path to azazael/ directory
-    get_src_dir,        # Path to azazael/src/
+    get_src_dir,        # Path to src/
     get_output_dir,     # G:\AZAZAEL\ or project output/
     get_desktop_dir,    # User's desktop
     get_g_drive,        # Optional[Path] — G:\ drive
@@ -38,7 +38,7 @@ if g_drive:
 
 ### get_project_root()
 1. Check `AZAZAEL_ROOT` environment variable
-2. Walk up from `__file__` to find `azazael/src/CORE/`
+2. Walk up from `__file__` to find `src/CORE/`
 3. Return parent of `src/` directory
 
 ### get_g_drive()

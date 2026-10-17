@@ -48,7 +48,7 @@ All functionality has been moved to:
 
 import warnings
 warnings.warn(
-    "azazael/src/OLD_LOCATION.py is deprecated. "
+    "src/OLD_LOCATION.py is deprecated. "
     "Use 'from NEW_LOCATION import NEW_NAME' instead.",
     FutureWarning,
     stacklevel=2,

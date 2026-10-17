@@ -7,7 +7,7 @@ description: CODEX Studio standalone desktop app v3.1 — HTML to MP4/WMV video 
 
 ## Overview
 Standalone Tkinter desktop app for HTML→MP4/WMV video generation.
-**Location:** `azazael/src/CODEX/CODEX_Studio.py` | **Version:** 3.1.0
+**Location:** `src/CODEX/CODEX_Studio.py` | **Version:** 3.1.0
 
 ## Launch
 ```bash

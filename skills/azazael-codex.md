@@ -18,7 +18,7 @@ metadata:
 | Archived superseded scripts | ✅ 14 scripts → `G:\AZAZAEL\CODEX_VIDEOS\` |
 
 ### Video Scripts (Remaining — 6 files)
-In `azazael/src/CODEX/VIDEOS/`:
+In `src/CODEX/VIDEOS/`:
 - `create_scrolling_video.py` — Main scrolling video generator (HTML → frames → mp4)
 - Other active scripts retained
 

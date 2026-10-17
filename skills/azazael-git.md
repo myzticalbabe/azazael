@@ -77,7 +77,7 @@ Run BEFORE every commit:
 python -c "
 import ast, os
 ok = fail = 0
-for r, ds, fs in os.walk('azazael/src'):
+for r, ds, fs in os.walk('src'):
     for f in fs:
         if f.endswith('.py'):
             try:
@@ -96,7 +96,7 @@ print(f'OK={ok} FAIL={fail}')
 # Write to _unicode_check.py, execute, then remove
 python -c "
 import os
-for r, ds, fs in os.walk('azazael/src'):
+for r, ds, fs in os.walk('src'):
     for f in fs:
         if f.endswith('.py'):
             fp = os.path.join(r,f)
@@ -111,7 +111,7 @@ for r, ds, fs in os.walk('azazael/src'):
 ```bash
 # Write to _reg_test.py, execute, then remove
 python -c "
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.worm_registry import discover_worms, WORM_REGISTRY
 discover_worms()
 print(f'Registry OK: {len(WORM_REGISTRY)} worms')

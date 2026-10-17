@@ -29,7 +29,7 @@ BLOCK on any hit. `.env` files, `use_model.dat`, API keys in scripts
 
 ```powershell
 pip install semgrep
-semgrep --config auto azazael/src/CORE --quiet
+semgrep --config auto src/CORE --quiet
 ```
 
 Focus: `os._exit`, `shutil.rmtree`, `subprocess` with `shell=True`,

@@ -12,7 +12,7 @@ metadata:
 ### File: `CORE/worm_registry.py`
 - `WORM_REGISTRY` — dict of all 77 registered worms
 - `@register_worm(category, priority, cooldown_seconds, version, description)` — decorator
-- `discover_worms()` — scans all `.py` files in `azazael/src/` for registered worms
+- `discover_worms()` — scans all `.py` files in `src/` for registered worms
 - `get_all_categories()` — returns list of 17 category names
 - `get_worms_by_category(cat)` — returns dict of worms in a category
 

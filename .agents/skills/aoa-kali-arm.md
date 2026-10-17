@@ -14,7 +14,7 @@ metadata:
 
 | Field | Value |
 |-------|-------|
-| Source | `azazael/src/AOA/arms/kali_arm.py` (in-repo, runnable) |
+| Source | `src/AOA/arms/kali_arm.py` (in-repo, runnable) |
 | Registration | `@register_arm(arm_id="kali", category="support", priority=6)` |
 | Added | 2026-09-02 (closes the documented no-toolchain-arm gap; AOA went 8 arms/31 caps → **9 arms/71 caps**) |
 | Edit convention | CRLF line endings (matches AOA source tree) |

@@ -21,18 +21,18 @@ For the complete separation plan, see `PATH_FORWARD.md`.
 ### Core Framework
 | Project | Location | Files | Dependencies | Extractable? |
 |---------|----------|-------|-------------|-------------|
-| **CORE/** | `azazael/src/CORE/` | 20+ | stdlib only | ✅ Low effort |
-| **CORE/WORMS/** | `azazael/src/CORE/WORMS/` | 50 worms | CORE | ✅ Medium (after CORE extracted) |
-| **ORCHESTRATION/** | `azazael/src/ORCHESTRATION/` | 15+ | CORE, HYDRA, META | ⚠️ Medium (cross-deps) |
-| **HYDRA/** | `azazael/src/HYDRA/` | 10+ | CORE, ORCHESTRATION/ml_platforms | ⚠️ Medium (duplicates resolved) |
-| **META/** | `azazael/src/META/` | 8 | CORE, root modules | ✅ Low (all shimmed) |
-| **CODEX/** | `azazael/src/CODEX/` | 30+ | CORE, ORCHESTRATION | ⚠️ Medium |
-| **UTILITIES/** | `azazael/src/UTILITIES/` | 20+ | CORE (partial), or standalone | Varies |
-| **CLI/** | `azazael/src/CLI/` | 5+ | CORE | ✅ Low |
-| **TOOLS/** | `azazael/src/TOOLS/` | 3+ | CORE | ✅ Low |
+| **CORE/** | `src/CORE/` | 20+ | stdlib only | ✅ Low effort |
+| **CORE/WORMS/** | `src/CORE/WORMS/` | 50 worms | CORE | ✅ Medium (after CORE extracted) |
+| **ORCHESTRATION/** | `src/ORCHESTRATION/` | 15+ | CORE, HYDRA, META | ⚠️ Medium (cross-deps) |
+| **HYDRA/** | `src/HYDRA/` | 10+ | CORE, ORCHESTRATION/ml_platforms | ⚠️ Medium (duplicates resolved) |
+| **META/** | `src/META/` | 8 | CORE, root modules | ✅ Low (all shimmed) |
+| **CODEX/** | `src/CODEX/` | 30+ | CORE, ORCHESTRATION | ⚠️ Medium |
+| **UTILITIES/** | `src/UTILITIES/` | 20+ | CORE (partial), or standalone | Varies |
+| **CLI/** | `src/CLI/` | 5+ | CORE | ✅ Low |
+| **TOOLS/** | `src/TOOLS/` | 3+ | CORE | ✅ Low |
 
 ### Root-Level Modules (17 canonical .py files)
-All in `azazael/src/`:
+All in `src/`:
 UVZ, OPTIMIZ, DOCKERZ, METAWORMS, METRICZ, TELEMETRYZ, HEALTHZ, ERRORZ, TRIMZ,
 MISSING_TOOLS, HYDRA_CONTAINER, HYDRAMETA_UV, CHANGELOG_GENERATOR,
 HORUS_INTEGRATION, ECOSYSTEM_HEALTH_CHECK, FILE_MANIFEST_GENERATOR,
@@ -75,7 +75,7 @@ UTILITIES/KLINK: STANDALONE (env-var-driven, no CORE dependency)
 
 ### Phase I: Extract `azazael-core` Package
 ```bash
-# Target: azazael/src/CORE/ → pip-installable azazael-core
+# Target: src/CORE/ → pip-installable azazael-core
 # Files: paths.py, worm_registry.py, freethreading.py, MemoryBus.py,
 #         PamsRecorder.py, Agent.py, AgentPool.py, NODE.py, STRUCTURE.py,
 #         __init__.py, PYTHON_MANAGER.py, FREETHREAD_UPGRADE.py

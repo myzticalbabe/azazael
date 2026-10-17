@@ -102,7 +102,7 @@ The Verifiable Layer Protocol (VLP) checks 15 integrity layers:
 ```bash
 cd /c/Users/clint
 python -c "
-import sys; sys.path.insert(0, 'azazael/src');
+import sys; sys.path.insert(0, 'src');
 from CORE.compliance.governance import RealtimeAuditPipeline;
 p = RealtimeAuditPipeline();
 result = p.process('.audit/session_20260612_231506_019e.jsonl');
@@ -115,7 +115,7 @@ print(json.dumps({'all_passed': result.get('all_passed'), 'passed_count': result
 ```bash
 cd /c/Users/clint
 python -c "
-import sys; sys.path.insert(0, 'azazael/src');
+import sys; sys.path.insert(0, 'src');
 from CORE.compliance.governance import DualLedgerValidator;
 v = DualLedgerValidator();
 result = v.cross_validate();
@@ -132,7 +132,7 @@ ls .audit/session_*.jsonl
 ```bash
 cd /c/Users/clint
 python -c "
-import sys; sys.path.insert(0, 'azazael/src');
+import sys; sys.path.insert(0, 'src');
 from CORE.direct_memory import get_dm;
 dm = get_dm();
 events = dm.recall_recent(10);

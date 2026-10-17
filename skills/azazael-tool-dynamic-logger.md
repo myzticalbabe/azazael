@@ -9,7 +9,7 @@ metadata:
 ---
 # AzazaelDynamicLogger
 
-Locations: `azazael/src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py`, `azazael/src/TOOLS/AzazaelDynamicLogger.py`, `azazael/src/UTILITIES/AzazaelDynamicLogger.py` (shared implementation).
+Locations: `src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py`, `src/TOOLS/AzazaelDynamicLogger.py`, `src/UTILITIES/AzazaelDynamicLogger.py` (shared implementation).
 
 ## When to use
 - Add leveled, file-backed logging to a toolbelt script.

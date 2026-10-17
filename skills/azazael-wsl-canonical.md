@@ -94,14 +94,14 @@ pip3 install psutil mypy
 cd /root/azazael && python3 -m mypy src/CORE/ --ignore-missing-imports --explicit-package-bases
 
 # Restore from G: archive
-cp /mnt/g/AZAZAEL_SOURCE_OF_TRUTH/src/PATH/TO/file.py azazael/src/PATH/TO/file.py
+cp /mnt/g/AZAZAEL_SOURCE_OF_TRUTH/src/PATH/TO/file.py src/PATH/TO/file.py
 
 # Sync files to G: archive
 cp azazael/DISCLOSURE_WHITEPAPER_TODO.md /mnt/g/AZAZAEL_SOURCE_OF_TRUTH/
 cp azazael/SESSION_STARTUP.md /mnt/g/AZAZAEL_SOURCE_OF_TRUTH/
 
 # Record session to DirectMemory
-python3 -c "import sys; sys.path.insert(0, 'azazael/src'); from CORE.direct_memory import DirectMemory; dm=DirectMemory(); dm.record('session_start', '{}')"
+python3 -c "import sys; sys.path.insert(0, 'src'); from CORE.direct_memory import DirectMemory; dm=DirectMemory(); dm.record('session_start', '{}')"
 ```
 
 **Created:** July 8, 2026 (Session 4)

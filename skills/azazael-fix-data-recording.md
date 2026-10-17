@@ -16,10 +16,10 @@ metadata:
 Pre-warm the registry in a separate process BEFORE session recording:
 ```
 # Step 1: Pre-warm registry (takes ~40s but discards process)
-python -c "import sys; sys.path.insert(0,'azazael/src'); from CORE.worm_registry import discover_worms; n=discover_worms(); print(f'Warmed: {n}')"
+python -c "import sys; sys.path.insert(0,'src'); from CORE.worm_registry import discover_worms; n=discover_worms(); print(f'Warmed: {n}')"
 
 # Step 2: Session recording now works (<2s)
-python -c "import sys; sys.path.insert(0,'azazael/src'); from CORE.codebuff_tracker import get_tracker; t=get_tracker(); t.record_session_end({'summary':'ok'})"
+python -c "import sys; sys.path.insert(0,'src'); from CORE.codebuff_tracker import get_tracker; t=get_tracker(); t.record_session_end({'summary':'ok'})"
 ```
 **Prevention:**
 1. Always pre-warm registry before CodebuffTracker or LocalMemoryStore calls

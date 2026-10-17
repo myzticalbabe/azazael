@@ -66,7 +66,7 @@ in non-azazael sessions.
 
 ---
 
-## 🛑🛑🛑 PERMANENT PRE-ACTION GATE — ALWAYS ACTIVE — CANNOT BE DISABLED 🛑🛑🛑
+## 🛑🛑🛑 PERMANENT PRE-ACTION GATE — ALWAYS ACTIVE — CANNOT BE DISABLED. Checks whose agent is UNAVAILABLE per the pre-check resolve to N/A, not HALT. 🛑🛑🛑
 
 **THIS GATE IS PERMANENTLY ACTIVE FOR THE ENTIRE SESSION. IT IS IMPOSSIBLE TO SKIP.**
 
@@ -75,22 +75,35 @@ in non-azazael sessions.
 **Tier system:** Full 14-check assertion for modifying tool calls (`str_replace`, `write_file`, `spawn_agents`). Abbreviated AP-1-only gate (`🛑 [GATE — READ] AP-1: user asked for X. PROCEED.`) acceptable for read-only tool calls (`read_files`, `skill`, `list_directory`, `glob`, `read_subtree`, `read_url`, `gravity_index`, `render_ui`, `write_todos`, `browser_use`, `tmux_cli`, `researcher_web`, `researcher_docs`, `code_searcher`, `file_picker`). `suggest_followups` is exempt (non-modifying UI call, always last). The gate declaration itself is exempt. For `spawn_agents`, gate severity is determined by the spawned agent's action type. For `ask_user`, the gate appears in the same turn as the ask_user call. For `basher`, gate severity is determined by the command's effect (non-destructive = abbreviated, destructive = full):
 
 ```text
+AVAILABILITY PRE-CHECK (state result inline, once per block):
+  thinker-with-files-gemini : [AVAILABLE | UNAVAILABLE - cite: no key | zero calls | no agent def]
+  thinker-gpt               : [AVAILABLE | UNAVAILABLE - cite: ...]
+  code-reviewer-deepseek    : [AVAILABLE | UNAVAILABLE - cite: ...]
+  .inference_cache/         : [PRESENT <path> | ABSENT]
+
+Any UNAVAILABLE agent, or an ABSENT cache, converts every check that DEPENDS
+ON IT from HALT to N/A. UNAVAILABLE is never an exemption for checks that do
+not depend on it: AP-1, RULE 0H (anti-pattern scan), RULE 0I, RULE 0L-local
+analysis, RULE 0U, RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
+```
+
+```text
 🛑 **[PRE-ACTION GATE ASSERTION]**
 - **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain)
-- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If none: HALT and spawn)
+- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If agent UNAVAILABLE per pre-check: N/A. If available and none spawned: HALT and spawn)
 - **RULE 0H (Anti-Pattern Scan):** Scanned for emoji, backslash f-strings, t-strings, os.system, C:\ paths? — MUST cite scan method and results per RULE 0H-A (Passed/Found X/NOT SCANNED)
 - **RULE 0I (Algorithms/Batch):** If batch script: Gemini designed? One-file test? Backup? (Yes/No/N/A)
 - **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Yes/No/N/A)
-- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If none: HALT)
-- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If no cache files exist: HALT and spawn now)
+- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent UNAVAILABLE: N/A. If available and not concurrent: HALT)
+- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If cache ABSENT: N/A. If PRESENT and not cited: HALT)
 - **RULE 0T-B (VLP Hardening):** Are all 15 VLP verification layers active? If --audit mode: have mandatory layers 11-13 (non-canonical sig, replay prevention, cross-session chain) been verified? (Explain: [Yes, all 15 / N/A not in --audit mode])
 - **RULE 0U (System Reminders):** Did the last system prompt remind you to spawn Gemini or a Code Reviewer? If yes, are you spawning them INSTANTLY right now BEFORE any other tool calls? (Explain: [Yes, spawning now / No reminder / N/A])
 - **RULE 0V (Code Reviewer):** Is a code change being made? Was code-reviewer-deepseek spawned BEFORE this change to review the plan? Will code-reviewer-deepseek be spawned AFTER to review the result? (Explain: [Yes, spawned before / About to spawn after / N/A no code change])
 - **RULE 0W / 0Z-D (100% Omni-Agent Utilization):** Are ALL 10 spawnable agent types being spawned concurrently for this task? (Count: [N]/10. Benchmark Utilization: [X]% — [PASS (100%) / FAIL (<100%) - HALT])
 - **RULE 0X (Auto-Compliance):** Has the plan passed Z3 SMT formal verification, Casbin gate policies, and transitions state-machine sequence? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
 - **RULE 0Y (Multi-Agent Governance):** Has 2/3 Judge consensus been achieved, confidence thresholds met, and dual-ledger --cross-ref executed automatically? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
-- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / No - CRITICAL violation])
-- **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / No - CRITICAL violation])
+- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / N/A - all three UNAVAILABLE / CRITICAL - any available and not spawned])
+- **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / N/A - thinker-gpt UNAVAILABLE / No - CRITICAL violation])
 - **RULE 0Z-B (Followups):** Has 11 diverse followup suggestions been prepared via suggest_followups for this response? (Explain: [Yes, preparing exactly 11 / N/A])
 - **RULE 0Z-E (Web Augmentation):** For complex decisions (canonical doc changes, architecture, new features): has researcher-web + researcher-docs been queried to validate this decision tree against 2025-2026 industry standards? (Explain: [Yes, CITING: [source] / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
@@ -101,6 +114,7 @@ in non-azazael sessions.
 
 **FAILURE TO PRINT THIS BLOCK IN RESPONSE TEXT BEFORE ANY TOOL CALL = 🔴 CRITICAL PROCESS VIOLATION**
 - Error #146 precedent: str_replace executed without PRE-ACTION GATE assertion
+- Precedent note (Engram #1019): A permanently-HALT gate whose required agent has no key and zero calls is unsatisfiable, not strict. Measured Oct 17: 0 of ~18 modifying calls passed through it. Conditional resolution keeps the 7 enforceable checks binding.
 - Error #147: This permanent banner codified to prevent recurrence
 - Error #148: Gate assertion put in thinking block, not response text — 8th violation this session
 - Error #171: Failed to obey system reminders to spawn Gemini/Code-Reviewer instantly (RULE 0U violation)
@@ -200,6 +214,9 @@ When the user says "you do not analyze" or equivalent:
 ---
 
 ## 🚨 RULE 0G: GEMINI MANDATE — SPAWN THINKER-WITH-FILES-GEMINI AT EVERY MAJOR PHASE (CRITICAL — Jun 8, 2026)
+
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
 
 **"Spawn thinking with files Gemini deep thinker for all complex problems. Respawn Gemini each time the complex task proceeds." — User directive**
 
@@ -471,19 +488,19 @@ Copy and paste this exact block into your response and fill it out BEFORE modify
 ```text
 🛑 **[PRE-ACTION GATE ASSERTION]**
 - **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain: [Yes, user asked for X / No, this is my own idea])
-- **RULE 0G (Gemini Phase):** Is this a complex task? Was `thinker-with-files-gemini` spawned specifically for THIS immediate phase? MUST CITE specific plan/verdict Gemini provided. (If none: HALT and spawn)
+- **RULE 0G (Gemini Phase):** Is this a complex task? Was `thinker-with-files-gemini` spawned specifically for THIS immediate phase? MUST CITE specific plan/verdict Gemini provided. (If agent UNAVAILABLE per pre-check: N/A. If available and none spawned: HALT and spawn)
 - **RULE 0H (Anti-Pattern Scan):** Did I scan the proposed text for Unicode emoji, backslash f-strings, t-strings, `os.system`, and hardcoded `C:\` paths? — MUST cite scan method and results per RULE 0H-A (Explain: [Passed/Found X/NOT SCANNED])
 - **RULE 0I (Algorithms/Batch):** If this writes or runs a batch python/bash script: Did Gemini design it? Is it scoped to exactly ONE test file first? Does a backup exist? (Explain: [Yes/No/N/A not a batch script])
 - **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Explain: [Yes/No/N/A])
-- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If none: HALT)
-- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If no cache files exist: HALT and spawn now)
+- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent UNAVAILABLE: N/A. If available and not concurrent: HALT)
+- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If cache ABSENT: N/A. If PRESENT and not cited: HALT)
 - **RULE 0U (System Reminders):** Did the last system prompt remind you to spawn Gemini or a Code Reviewer? If yes, are you spawning them INSTANTLY right now BEFORE any other tool calls? (Explain: [Yes, spawning now / No reminder / N/A])
 - **RULE 0V (Code Reviewer):** Is a code change being made? Was code-reviewer-deepseek spawned BEFORE this change to review the plan? Will code-reviewer-deepseek be spawned AFTER to review the result? (Explain: [Yes, spawned before / About to spawn after / N/A no code change])
 - **RULE 0W / 0Z-D (100% Omni-Agent Utilization):** Are ALL 10 spawnable agent types being spawned concurrently for this task? (Count: [N]/10. Benchmark Utilization: [X]% — [PASS (100%) / FAIL (<100%) - HALT])
 - **RULE 0X (Auto-Compliance):** Has the plan passed Z3 SMT formal verification, Casbin gate policies, and transitions state-machine sequence? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
 - **RULE 0Y (Multi-Agent Governance):** Has 2/3 Judge consensus been achieved, confidence thresholds met, and dual-ledger --cross-ref executed automatically? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
-- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / No - CRITICAL violation])
-- **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / No - CRITICAL violation])
+- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / N/A - all three UNAVAILABLE / CRITICAL - any available and not spawned])
+- **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / N/A - thinker-gpt UNAVAILABLE / No - CRITICAL violation])
 - **RULE 0Z-B (Followups):** Has 11 diverse followup suggestions been prepared via suggest_followups for this response? (Explain: [Yes, preparing exactly 11 / N/A])
 - **RULE 0Z-E (Web Augmentation):** For complex decisions (canonical doc changes, architecture, new features): has researcher-web + researcher-docs been queried to validate this decision tree against 2025-2026 industry standards? (Explain: [Yes, CITING: [source] / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A]) For complex decisions (canonical doc changes, architecture, new features): has researcher-web + researcher-docs been queried to validate this decision tree against 2025-2026 industry standards? (Explain: [Yes, CITING: [source] / N/A - routine edit / NOT DONE - CRITICAL])
@@ -588,7 +605,6 @@ Every Codebuff session on the Azazael codebase MUST read canonical documents in 
 
 ### Related
 - **RULE 0L** in `azazael/SOP.md` — canonical mandate mirror
-- **`.codebuff/rules.md`** — Machine-enforceable original mandate file
 - **Error #155** — Catalyst: blind test fix iteration documented
 
 ---
@@ -1779,6 +1795,9 @@ through to the next working provider. No manual intervention allowed.**
 
 ## 🚨 RULE 0E: 10-PHASE MULTI-TIER PROTOCOL — 6 GEMINI INJECTION POINTS (CRITICAL — Jun 7, 2026)
 
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
+
 **Inference from Mistral/GitHub compliance review: "Automate enforcement of the 10-phase
 protocol to remove reliance on manual compliance."**
 
@@ -1828,6 +1847,9 @@ Skipping any phase or missing the 4x Gemini quota = CRITICAL process violation.-
 ---
 
 ## 🚨 RULE 0E-1: MANDATORY 10-PHASE MULTI-TIER PROTOCOL (4X GEMINI MANDATE — SECONDARY SECTION)
+
+> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
+
 
 **The user directive is absolute: Gemini must be spawned OFTEN, FREQUENTLY, CONSISTENTLY. A minimum of 4 Gemini spawns per complex task is heavily enforced.**
 

@@ -10,8 +10,8 @@ metadata:
 
 # Azazael Compliance Orchestrator — RULE 0X / 0Y
 
-> **Canonical source:** `azazael/SYSTEM_INSTRUCTIONS.md` (RULE 0X, RULE 0Y)
-> **Implementation:** `azazael/src/CORE/compliance/` (13 components)
+> **Canonical source:** `SYSTEM_INSTRUCTIONS.md` (RULE 0X, RULE 0Y)
+> **Implementation:** `src/CORE/compliance/` (13 components)
 
 ---
 
@@ -50,7 +50,7 @@ Democratize decision-making via cross-agent consensus and automate behavioral ve
 
 At every session start (via `azazael-system-startup` Step 4.5):
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.compliance.orchestrator import ComplianceOrchestrator
 from CORE.compliance.state_machine import ComplianceState
 

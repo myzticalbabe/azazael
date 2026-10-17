@@ -25,7 +25,7 @@ Turn any YouTube video into a structured digest without watching it. Transcript-
 ## Single video
 
 ```bash
-python azazael/tools/youtube_transcript.py fetch "<url-or-id>" [--lang en] [--format text|json]
+python tools/youtube_transcript.py fetch "<url-or-id>" [--lang en] [--format text|json]
 ```
 
 Output is timestamped Markdown with `youtu.be/?t=` deep links. If `--format json`, the agent formats the digest itself. Keep the transcript in context for follow-up questions, quotes, and re-formatting.
@@ -33,7 +33,7 @@ Output is timestamped Markdown with `youtu.be/?t=` deep links. If `--format json
 ## Batch mode (link lists)
 
 ```bash
-python azazael/tools/youtube_transcript.py batch --input urls.txt [--out .cache/yt] [--manifest manifest.json] [--delay 1.0]
+python tools/youtube_transcript.py batch --input urls.txt [--out .cache/yt] [--manifest manifest.json] [--delay 1.0]
 ```
 
 - One URL/id per line; `#` comments and duplicates ignored.

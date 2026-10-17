@@ -124,9 +124,9 @@ You MUST print the gate assertion block before every code-modifying tool call fo
 ### Step 1: Read ALL Canonical Files in RULE 0K Order (+ MANDATES.md)
 ```
 read_files([
-    "azazael/SYSTEM_INSTRUCTIONS.md",
-    "azazael/SOP.md",
-    "azazael/MANDATES.md",
+    "SYSTEM_INSTRUCTIONS.md",
+    "SOP.md",
+    "MANDATES.md",
     "azazael/ERROR_LOG.md",
     "azazael/MEMORIES.md",
     "azazael/SESSION_STARTUP.md",
@@ -135,7 +135,7 @@ read_files([
 ])
 ```
 
-> **Note:** `azazael/MANDATES.md` is placed after SOP.md in the read order (not part of the original RULE 0K order). `skill("azazael-mandates")` now loads directly at session start (`auto_load: true`), so the Step 1 read_files() inclusion serves as an additional safety net. The Step 2 `skill("azazael-mandates")` call is the primary loading mechanism.
+> **Note:** `MANDATES.md` is placed after SOP.md in the read order (not part of the original RULE 0K order). `skill("azazael-mandates")` now loads directly at session start (`auto_load: true`), so the Step 1 read_files() inclusion serves as an additional safety net. The Step 2 `skill("azazael-mandates")` call is the primary loading mechanism.
 
 ### Step 2: Load Mandatory Guardrail Skills
 ```
@@ -146,37 +146,37 @@ skill("azazael-pams-memory")
 skill("azazael-hats")
 ```
 
-> **Note:** `skill("azazael-sop")` loads the SOP skill (mirror of `azazael/SOP.md`). `skill("azazael-mandates")` loads the MANDATES skill (mirror of `azazael/MANDATES.md`). The canonical docs are already read in Step 1 via `read_files()`. These skills provide loadable references for in-session access via `skill()`. If these skills are unloadable (pre-loaded list limitation), use `read_files(["azazael/SOP.md"])` and `read_files(["azazael/MANDATES.md"])` as fallback.
+> **Note:** `skill("azazael-sop")` loads the SOP skill (mirror of `SOP.md`). `skill("azazael-mandates")` loads the MANDATES skill (mirror of `MANDATES.md`). The canonical docs are already read in Step 1 via `read_files()`. These skills provide loadable references for in-session access via `skill()`. If these skills are unloadable (pre-loaded list limitation), use `read_files(["SOP.md"])` and `read_files(["MANDATES.md"])` as fallback.
 
 ### Step 2.5: Sync Skills to .agents/ (RULE 0R)
 ```bash
-python azazael/src/scripts/sync_skills.py
+python src/SCRIPTS/sync_skills.py
 ```
 **RULE 0R mandates** that canonical skill files in `azazael/skills/` must be propagated to `.agents/skills/<name>/SKILL.md` for loadability via `skill()`. This script runs automatically at every session start. Without this sync, skill edits are invisible to the agent loading system.
 
 ### Step 2.55: Launch Auto-Sync Daemon (RULE 0R-A auto-sync)
 ```bash
 # Start the auto-sync polling daemon in background (single poll mode)
-python azazael/src/scripts/auto_sync.py --quiet
+python src/SCRIPTS/auto_sync.py --quiet
 ```
 **RULE 0R-A mandates** that skill changes in `azazael/skills/` are propagated to
 `.agents/skills/` within 5 seconds. This single poll syncs current state.
 For continuous watch mode during active session:
 ```bash
-start /B python azazael/src/scripts/auto_sync.py --watch --quiet
+start /B python src/SCRIPTS/auto_sync.py --watch --quiet
 ```
 
 ### Step 2.56: Generate Telemetry for Dashboard (RULE 0Z-F)
 ```bash
-python azazael/src/scripts/generate_telemetry.py
+python src/SCRIPTS/generate_telemetry.py
 ```
-**Generates `azazael/src/scripts/telemetry.json`** with RULE 0Z-F compliance
+**Generates `src/SCRIPTS/telemetry.json`** with RULE 0Z-F compliance
 counters (parallel_batches, sequential_violations, compliance_ratio) for the
-RULE 0Z-F dashboard at `azazael/src/scripts/rule_0zf_dashboard.html`.
+RULE 0Z-F dashboard at `src/SCRIPTS/rule_0zf_dashboard.html`.
 
 To view the dashboard:
 ```bash
-cd azazael/src/scripts && python -m http.server 8080
+cd src/scripts && python -m http.server 8080
 # Then open http://localhost:8080/rule_0zf_dashboard.html
 ```
 
@@ -186,7 +186,7 @@ protocol).
 
 ### Step 2.6: Pre-Warm Worm Registry Cache (Error #57 fix)
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.startup_warm import ensure_registry_warm
 ensure_registry_warm()  # Non-blocking — returns immediately, warms in background
 ```
@@ -204,7 +204,7 @@ Write-Host "=== Done ===" -ForegroundColor Cyan
 ### Step 4: Initialize Memory System (DirectMemory — CANONICAL)
 ```python
 # DirectMemory is the CANONICAL recording system (stdlib-only, <0.1s, atexit-safe)
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.direct_memory import DirectMemory
 dm = DirectMemory()
 # dm.record("session_start", {"purpose": "Coding session"})  # auto-recorded
@@ -212,7 +212,7 @@ dm = DirectMemory()
 
 ### Step 4.5: Initialize Compliance Infrastructure (RULE 0X/0Y)
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.compliance.orchestrator import ComplianceOrchestrator
 from CORE.compliance.state_machine import ComplianceState
 
@@ -222,7 +222,7 @@ co.state_machine.transition_to(ComplianceState.GATE_ASSERT)
 ```
 
 **RULE 0X (Auto-Compliance)** and **RULE 0Y (Multi-Agent Governance)** are fully
-implemented in `azazael/src/CORE/compliance/` with 13 components total. The
+implemented in `src/CORE/compliance/` with 13 components total. The
 `ComplianceOrchestrator` provides programmatic `check_rule_0x()` and `check_rule_0y()`
 calls that replace the old manual text assertions in `sentinel_gate.py`.
 
@@ -242,11 +242,11 @@ This ensures check_rule_0x() reports state_machine.valid = True.
 
 ### Step 4.68: Generate Telemetry Dataset (RULE 0Z-F Dashboard)
 ```bash
-python azazael/src/scripts/generate_telemetry.py
+python src/SCRIPTS/generate_telemetry.py
 ```
 Before running the RULE 0Z-F compliance check (Step 4.8), generate fresh
 telemetry data so the dashboard reflects the current session's compliance
-counters. This produces `azazael/src/scripts/telemetry.json`.
+counters. This produces `src/SCRIPTS/telemetry.json`.
 
 ---
 
@@ -441,8 +441,8 @@ python tests/test_clusterworms_unit.py
 | File | Location |
 |------|----------|
 | Memory store DB | `~/.azazael/memory_store.db` |
-| DirectMemory (CANONICAL) | `azazael/src/CORE/direct_memory.py` |
-| LocalMemoryStore (FTS5 queries) | `azazael/src/CORE/local_memory.py` |
+| DirectMemory (CANONICAL) | `src/CORE/direct_memory.py` |
+| LocalMemoryStore (FTS5 queries) | `src/CORE/local_memory.py` |
 | Eve Unleashed app | `Desktop/EveUnleashed_Selector/eve_unleashed_app.py` |
 | FreeBuff binary | `~/.config/manicode/freebuff.exe` |
 | Skills catalog | `azazael/SKILLS_CATALOG.md` |

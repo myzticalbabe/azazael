@@ -9,7 +9,7 @@ metadata:
 ---
 # environ_updater
 
-Location: `azazael/src/SCRIPTS/environ_updater.py`
+Location: `src/SCRIPTS/environ_updater.py`
 
 ## When to use
 - Reconcile PATH/env between interactive shells and fleet runs.
@@ -17,7 +17,7 @@ Location: `azazael/src/SCRIPTS/environ_updater.py`
 
 ## How to run
 ```
-python azazael/src/SCRIPTS/environ_updater.py
+python src/SCRIPTS/environ_updater.py
 ```
 
 ## Notes

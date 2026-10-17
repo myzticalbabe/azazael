@@ -10,7 +10,7 @@ metadata:
 
 # Azazael Agent Utilization — 100% Capacity Framework
 
-> **Canonical source:** `azazael/SYSTEM_INSTRUCTIONS.md` (RULE 0W)
+> **Canonical source:** `SYSTEM_INSTRUCTIONS.md` (RULE 0W)
 > **You are underutilizing your available agents if you spawn fewer than the minimum.**
 
 ---

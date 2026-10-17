@@ -10,7 +10,7 @@ metadata:
 
 # Azazael TOOLS — Miscellaneous System Tools
 
-> **Implementation:** `azazael/src/TOOLS/`
+> **Implementation:** `src/TOOLS/`
 > **5 .py files** (1 deprecation shim, 3 substantive tools, 1 package init)
 
 ---
@@ -28,7 +28,7 @@ metadata:
 ## Import Pattern
 
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from TOOLS.debug_runner import DebugRunner
 from TOOLS.archive_system import ArchiveSystem
 from TOOLS.COMPREHENSIVE_FIX import comprehensive_fix

@@ -141,7 +141,7 @@ This fix runs every time the cache is loaded, ensuring backward compatibility wi
 ```bash
 rm -f ~/.azazael/worm_registry_cache.pkl
 python -c "
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.worm_registry import WORM_REGISTRY, discover_worms
 discover_worms()
 short = sum(1 for n,i in WORM_REGISTRY.items() 
@@ -154,7 +154,7 @@ print(f'Short names: {short}')
 ### Cache path (second call)
 ```bash
 python -c "
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.worm_registry import WORM_REGISTRY, discover_worms
 n = discover_worms()  # Should return 0 (cache hit)
 ...

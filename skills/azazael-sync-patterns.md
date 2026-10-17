@@ -10,7 +10,7 @@ metadata:
 
 # Azazael Sync Patterns — Multi-Environment Propagation
 
-> **Implementation:** `azazael/scripts/sync_all.py`, `azazael/src/SCRIPTS/sync_skills.py`
+> **Implementation:** `azazael/scripts/sync_all.py`, `src/SCRIPTS/sync_skills.py`
 > **5 environments:** Windows 11, WSL2 Ubuntu-26.04, Desktop Standalone, G: source-of-truth, G: AZAZAEL_ROOT
 
 ---
@@ -30,8 +30,8 @@ metadata:
 ### sync_skills.py — Propagate Skills to .agents/
 
 ```bash
-python azazael/src/SCRIPTS/sync_skills.py
-python azazael/src/SCRIPTS/sync_skills.py --dry-run --verbose  # Check drift
+python src/SCRIPTS/sync_skills.py
+python src/SCRIPTS/sync_skills.py --dry-run --verbose  # Check drift
 ```
 
 **Purpose:** Copies `azazael/skills/*.md` → `.agents/skills/<name>/SKILL.md`
@@ -91,7 +91,7 @@ python azazael/scripts/sync_all.py --sync-all         # Sync to ALL environments
   with `unexpected EOF while looking for matching ''`. Copy skill files to
   WSL targets directly (or via `\\wsl$\`) instead.
 - **`sync_canonical_docs.py` does not exist.** RULE 0Z-J names
-  `src/scripts/sync_canonical_docs.py`, but no such file exists on any pillar.
+  `src/SCRIPTS/sync_canonical_docs.py`, but no such file exists on any pillar.
   The operative mechanism is `sync_all.py`; doc patterns now explicitly
   include `SYSTEM_INSTRUCTIONS.md` and `HAT_TAXONOMY.md` (added 2026-09-06).
 - **Fidelity:** unicode dashes normalize in transit on G: copies (observed

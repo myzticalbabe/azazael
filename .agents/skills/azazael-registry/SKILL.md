@@ -59,7 +59,7 @@ class VulnScanner:
 
 ## Discovery Mechanism
 
-`discover_worms()` recursively scans `azazael/src/` for `.py` files:
+`discover_worms()` recursively scans `src/` for `.py` files:
 1. Imports each module
 2. Detects classes decorated with `@register_worm`
 3. Adds them to `WORM_REGISTRY`

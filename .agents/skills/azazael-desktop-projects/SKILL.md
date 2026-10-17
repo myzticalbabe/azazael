@@ -180,7 +180,7 @@ METAWORMS        -> G:/AZAZAEL/Desktop_METAWORMS_archive_2026-05-29/
 ### Priority 3: Clean Up Stubs
 1. Decide: develop or delete `agent_system`
 2. Archive `SysTools_JSON_Converter` data
-3. Consolidate loose scripts into `azazael/tools/`
+3. Consolidate loose scripts into `tools/`
 
 ---
 

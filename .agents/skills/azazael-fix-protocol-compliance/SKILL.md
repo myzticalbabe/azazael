@@ -94,7 +94,7 @@ All unauthorized files deleted. Inference models queried exclusively for curativ
 
 ---
 ## Error #80 — 3,822 Anti-Pattern Instances Exist with Zero Individual Recording
-**Symptom:** Anti-pattern scan of azazael/src/ revealed 3,822 instances across 7 categories
+**Symptom:** Anti-pattern scan of src/ revealed 3,822 instances across 7 categories
 that have never been individually recorded in ERROR_LOG.
 **Fix Solution:**
 1. RULE 0H codified in SYSTEM_INSTRUCTIONS.md and azazael-sop SKILL.md — Anti-Pattern Recording Mandate

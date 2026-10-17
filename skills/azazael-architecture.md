@@ -9,7 +9,7 @@ metadata:
 
 ## Project Layout
 ```
-azazael/src/
+src/
 ├── CORE/
 │   ├── worm_registry.py      # @register_worm decorator, discover_worms()
 │   ├── paths.py              # Centralized path resolution (get_project_root, get_g_drive, etc.)
@@ -30,7 +30,7 @@ azazael/src/
 
 ## Worm Registry
 - `@register_worm` decorator registers worms at import time
-- `discover_worms()` scans all `.py` files in `azazael/src/`
+- `discover_worms()` scans all `.py` files in `src/`
 - 35 categories, 226 registered worms
 - See `azazael-registry` skill for full API details
 

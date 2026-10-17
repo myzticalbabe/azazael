@@ -12,7 +12,7 @@ metadata:
 
 Write to `_run_test.py`, then `python _run_test.py && rm _run_test.py`:
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
+import sys; sys.path.insert(0, 'src')
 from CORE.worm_registry import discover_worms; discover_worms()
 from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 cluster = ClusterWORMZ.build_from_nature("monitor")
@@ -29,7 +29,7 @@ Write to `_syntax_check.py`:
 ```python
 import ast, os
 ok = 0; fail = 0
-for r, ds, fs in os.walk('azazael/src'):
+for r, ds, fs in os.walk('src'):
     for f in fs:
         if f.endswith('.py'):
             fp = os.path.join(r, f)
@@ -48,7 +48,7 @@ Then: `python _syntax_check.py && rm _syntax_check.py`
 Write to `_reg_test.py`:
 ```python
 import sys, os
-sys.path.insert(0, 'azazael/src')
+sys.path.insert(0, 'src')
 os.environ['PYTHONIOENCODING'] = 'utf-8'
 from CORE.worm_registry import discover_worms, WORM_REGISTRY, get_all_categories
 discover_worms()
@@ -62,7 +62,7 @@ Then: `python _reg_test.py && rm _reg_test.py`
 Write to `_trace.py`:
 ```python
 import sys, os, json
-sys.path.insert(0, 'azazael/src')
+sys.path.insert(0, 'src')
 os.environ['PYTHONIOENCODING'] = 'utf-8'
 from CORE.worm_registry import discover_worms, WORM_REGISTRY, get_all_categories
 discover_worms()

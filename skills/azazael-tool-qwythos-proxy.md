@@ -1,6 +1,6 @@
 ---
 name: azazael-tool-qwythos-proxy
-description: qwythos_proxy — local HTTP proxy tool in azazael/src/TOOLS. Use when traffic inspection, request interception, or proxy-mediated downloads are needed.
+description: qwythos_proxy — local HTTP proxy tool in src/TOOLS. Use when traffic inspection, request interception, or proxy-mediated downloads are needed.
 metadata:
   category: process
   project: azazael
@@ -9,7 +9,7 @@ metadata:
 ---
 # qwythos_proxy
 
-Location: `azazael/src/TOOLS/qwythos_proxy.py`
+Location: `src/TOOLS/qwythos_proxy.py`
 
 ## When to use
 - Intercept/inspect HTTP traffic from local tooling.
@@ -17,7 +17,7 @@ Location: `azazael/src/TOOLS/qwythos_proxy.py`
 
 ## How to run
 ```
-python azazael/src/TOOLS/qwythos_proxy.py --help
+python src/TOOLS/qwythos_proxy.py --help
 ```
 
 ## Notes
