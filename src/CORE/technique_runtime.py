@@ -322,7 +322,12 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
             question=question, what_failed=what_failed, what_next=what_next,
             decision_id=decision_id))
         if predicted is not None:
-            _record_calibration(question, predicted, decision_id)
+            # Forensic alignment fix: this function runs only after a failed
+            # attempt, so the realised outcome is measured right here — the
+            # attempt failed (0.0). Storing predicted alone left every row
+            # unscored downstream; storing 0.0 is the observation, not a guess.
+            _record_calibration(question, predicted, decision_id,
+                                realised=0.0)
     except Exception as exc:
         record_link("technique_runtime.reflect_on_failure", question, False,
                     citation=str(exc) or "")
@@ -440,16 +445,25 @@ def recall_with_feedback(query: str, consolidate: bool = False,
 
 
 def _record_calibration(question: str, predicted: float,
-                        decision_id: str | None) -> None:
-    """Store a predicted-vs-realised row (EP294). Fail-open."""
+                        decision_id: str | None,
+                        realised: float | None = None) -> None:
+    """Store a predicted-vs-realised row (EP294). Fail-open.
+
+    `realised` travels only when the caller measured it — never invented.
+    Omit it (None) and the row counts as unscored downstream instead of
+    carrying a guess.
+    """
     try:
         from CORE.local_memory import get_memory_store
+        data = {"question": _short(question, 200),
+                "predicted": float(predicted),
+                "decision_id": str(decision_id or "")}
+        if realised is not None:
+            data["realised"] = float(realised)
         get_memory_store().record_event(
             source="reflection_calibration",
             event_type="reflection_calibration",
-            data={"question": _short(question, 200),
-                  "predicted": float(predicted),
-                  "decision_id": str(decision_id or "")},
+            data=data,
             severity="info", tags=["reflection", "calibration"])
     except Exception as exc:
         note_failure("reflection-calibration", exc)

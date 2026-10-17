@@ -391,7 +391,12 @@ def authority_ceiling(subject: str,
         repairs.append(f"reduce scope: exercised={exercised} > ceiling={max_allowed}")
         repairs.append(f"request grant for {subject}")
         repairs.append(f"increase ceiling[{subject}]")
-    if gap > 0:
+    # Forensic alignment fix: no producer in the tree writes `granted_to`,
+    # so `granted` is unmeasured, not zero. Asserting a "privilege gap"
+    # from unmeasured grants is absence-of-evidence as evidence (RULE 0B-E).
+    # The repair fires only when grant information was actually recorded.
+    grants_measured = any(v != 0.0 for v in ledger["granted"].values())
+    if gap > 0 and grants_measured:
         repairs.append(f"privilege gap: exercised={exercised} > granted={granted}")
 
     return {"subject": subject, "exercised": exercised, "granted": granted,

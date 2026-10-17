@@ -87,17 +87,35 @@ def gather(limit: int = 200) -> Dict[str, Any]:
     out["link_ok_rate"] = round(ok / len(link_rows), 4) if link_rows else None
     out["by_hook"] = {h: round(g / max(t, 1), 4) for h, (g, t) in by_hook.items()}
 
+    # Scale-aware rewards (forensic fix, Engram trace): values from
+    # different scale_ids must never be mixed as if comparable, and rows
+    # with no scale_id (100 blind rows in the live ledger) must be marked,
+    # not silently absorbed. `rewards` keeps its float shape (no callers
+    # depend on more); `reward_scales` + blind counts travel alongside so
+    # the first comparing caller inherits the units instead of guessing.
     rewards: Dict[str, float] = {}
+    reward_scales: Dict[str, str] = {}
+    blind_subjects: list = []
     for r in reward_rows:
-        d = r.get("data") or {}
+        d = _row_data(r)
         subj = str(d.get("subject", d.get("team", d.get("worm", "?"))))
+        sid = d.get("scale_id")
+        if not isinstance(sid, str) or not sid:
+            if subj not in blind_subjects:
+                blind_subjects.append(subj)
+            note_failure("training-intake:blind-reward-scale", None)
+            continue
         try:
             rewards[subj] = float(d.get("value", d.get("reward", 0.0)))
         except (TypeError, ValueError) as exc:
             note_failure("training-intake:86", exc)
             continue
+        reward_scales[subj] = sid
     out["rewards"] = rewards
     out["n_rewards"] = len(rewards)
+    out["reward_scales"] = reward_scales
+    out["n_blind_rewards"] = len(blind_subjects)
+    out["blind_subjects"] = blind_subjects
 
     errs: List[float] = []
     for r in cal_rows:
