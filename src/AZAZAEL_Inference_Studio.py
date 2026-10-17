@@ -274,7 +274,7 @@ def detect_hardware() -> HardwareProfile:
         r = subprocess.run(
             ["nvidia-smi", "--query-gpu=name,driver_version,memory.total",
              "--format=csv,noheader"],
-            capture_output=True, text=True, timeout=8
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8
         )
         if r.returncode == 0:
             for line in r.stdout.strip().split("\n"):
@@ -295,7 +295,7 @@ def detect_hardware() -> HardwareProfile:
     if not profile.gpus:
         try:
             r = subprocess.run(["rocm-smi", "--showproductname"],
-                             capture_output=True, text=True, timeout=8)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8)
             if r.returncode == 0:
                 for line in r.stdout.split("\n"):
                     if "GPU" in line and "[" in line:
@@ -311,7 +311,7 @@ def detect_hardware() -> HardwareProfile:
         try:
             r = subprocess.run(
                 ["wmic", "path", "win32_videocontroller", "get", "name,adapterram"],
-                capture_output=True, text=True, timeout=8
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8
             )
             for line in r.stdout.split("\n"):
                 line = line.strip()
