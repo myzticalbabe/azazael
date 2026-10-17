@@ -5,7 +5,7 @@ from collections import Counter
 print("Running full-project pyright...")
 result = subprocess.run(
     ["npx", "pyright", "src/"],
-    capture_output=True, text=True, shell=True, timeout=300
+    capture_output=True, text=True, encoding="utf-8", errors="replace", shell=True, timeout=300
 )
 
 dir_counts = Counter()
