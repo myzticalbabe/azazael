@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-17T22:27:05.481999+00:00",
+ "generated_at": "2026-10-17T22:28:46.451896+00:00",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 171,
+  "wired": 159,
   "retired": 61,
   "dispatched": 60,
-  "accepted_gap": 72,
+  "accepted_gap": 84,
   "rejected": 5,
   "pending": 0
  },
@@ -1180,8 +1180,8 @@
    "qualname": "SharpWaveReplayWorm.push",
    "line": 47,
    "seg": "def push(self, mem_id: str, td_error: float) -> dict[str, Any]:\n        with self._lock:\n            self._queue.append({\"mem\": mem_id, \"td\": td_error})\n            self._queue.sort(key=lambda x: -x[\"td\"])\n            self._queue = self._queue[:1000]\n            return {\"success\": True, \"queued\": len(self._queue)}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/structured_action.py:141, src/CORE/technique_wiring/_l3_verify.py:491, src/DOCKERZ.py:342), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): qlearning_table.py:9 is a comment line; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ExperienceReplay, ExperienceReplayBuffer, PrioritizedReplay"
@@ -1192,21 +1192,23 @@
     "src/CORE/structured_action.py:141",
     "src/CORE/technique_wiring/_l3_verify.py:491",
     "src/DOCKERZ.py:342"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "consolidation:SharpWaveReplayWorm.replay_batch": {
    "module": "consolidation",
    "qualname": "SharpWaveReplayWorm.replay_batch",
    "line": 54,
    "seg": "def replay_batch(self, n: int = 8) -> dict[str, Any]:\n        with self._lock:\n            batch = self._queue[:n]\n            self._queue = self._queue[n:]\n            self._replayed += len(batch)\n            return {\"success\": True, \"batch\": [b[\"mem\"] for b in batch],\n                    \"replayed\": self._replayed, \"remaining\": len(self._queue)}",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): learning_grpo.py:419 calls GRPOTrainer.replay_batch (own def grpo.py:406), different receiver; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: GRPOTrainer"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'replay_batch' in 1 file(s) [src/CORE/WORMS/expansion/learning_grpo.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'replay_batch' in 1 file(s) [src/CORE/WORMS/expansion/learning_grpo.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "consolidation:SleepConsolidatorWorm.__init__": {
    "module": "consolidation",
@@ -1299,8 +1301,8 @@
    "qualname": "ComposeValidator.validate",
    "line": 128,
    "seg": "def validate(self, compose_path: str) -> dict[str, Any]:\n        \"\"\"Validate a docker-compose.yml file.\"\"\"\n        path = Path(compose_path)\n        if not path.exists():\n            self._last_validated = str(path)\n            self._last_valid = False\n            return {\"valid\": False, \"issues\": [{\"msg\": \"File not found\"}]}\n        issues = []\n        try:\n            import yaml\n            with open(path, \"r\") as f:\n                data = yaml.safe_load(f)\n            if \"services\" not in data:\n                issues.append({\"msg\": \"Missing 'services' key\"})\n            else:\n                for svc_name, svc in (data.get(\"services\") or {}).items():\n                    if \"image\" not in svc and \"build\" not in svc:\n                        issues.append({\"msg\": f\"Service '{svc_name}' missing image or build\"})\n        except ImportError as exc:\n            note_failure(\"container:L125\", exc)\n            content = path.read_text(encoding=\"utf-8\")\n            if \"services:\" not in content:\n                issues.append({\"msg\": \"Missing 'services:' section\"})\n        except Exception as e:\n            note_failure(\"container:L129\", e)\n            issues.append({\"msg\": str(e)})\n        self._issues = issues\n        self._last_validated = str(path)\n        self._last_valid = len(issues) == 0\n        return {\"valid\": self._last_valid, \"issues\": issues}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CODEX/TESTING/UNIT/test_hydra.py:76, src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py:161, src/CORE/WORMS/CLUSTERWORMS.py:535), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): wiring_cycle.py:55 is a comment; pre_action_gate validate_* are different functions; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: AzazaelConfig, CuttingEdgeConfig, LogEntry"
@@ -1311,7 +1313,8 @@
     "src/CODEX/TESTING/UNIT/test_hydra.py:76",
     "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py:161",
     "src/CORE/WORMS/CLUSTERWORMS.py:535"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "container:ContainerOrch.__init__": {
    "module": "container",
@@ -1376,22 +1379,23 @@
    "qualname": "ContainerOrch.list_all",
    "line": 105,
    "seg": "def list_all(self) -> list[dict]:\n        with self._lock:\n            return [{\"name\": n, **c} for n, c in self._containers.items()]",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): eve cli reg.list_all() is eve_unleashed model_registry (own method); no ContainerOrch import; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ModelRegistry, PathManager"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'list_all' in 4 file(s) [src/UTILITIES/PERSEPHONE/bin/persephone_cli.py, src/UTILITIES/PERSEPHONE/bin/setup_wizard.py, src/UTILITIES/PERSEPHONE/lib/path_manager.py, src/eve_unleashed/cli.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'list_all' in 4 file(s) [src/UTILITIES/PERSEPHONE/bin/persephone_cli.py, src/UTILITIES/PERSEPHONE/bin/setup_wizard.py, src/UTILITIES/PERSEPHONE/lib/path_manager.py, src/eve_unleashed/cli.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "container:ContainerOrch.stop": {
    "module": "container",
    "qualname": "ContainerOrch.stop",
    "line": 92,
    "seg": "def stop(self, name: str) -> dict[str, Any]:\n        \"\"\"Stop and remove a container.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"stop\", name], capture_output=True, text=True, timeout=30)\n            subprocess.run([\"docker\", \"rm\", name], capture_output=True, text=True, timeout=15)\n            with self._lock:\n                if name in self._containers:\n                    self._containers[name][\"status\"] = \"stopped\"\n            return {\"success\": True, \"container\": name, \"output\": r.stdout.strip()}\n        except Exception as e:\n            note_failure(\"container:L88\", e)\n            return {\"success\": False, \"error\": str(e)}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/container.py:95, src/CORE/inference/providers.py:1552, src/CORE/inference/providers.py:1679), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): generic stop() mentions in comments/strings only; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: EcaHttpServer, EvolutionIntegrityWorm, FleetZ"
@@ -1402,7 +1406,8 @@
     "src/CORE/WORMS/expansion/container.py:95",
     "src/CORE/inference/providers.py:1552",
     "src/CORE/inference/providers.py:1679"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "container:ImageAuditor.__init__": {
    "module": "container",
@@ -1568,8 +1573,8 @@
    "qualname": "CPPNGenome.mutate",
    "line": 105,
    "seg": "def mutate(self, vec: Sequence[float], rate: float = 0.2,\n               sigma: float = 0.3, rng: Optional[random.Random] = None,\n               levy_alpha: Optional[float] = None) -> List[float]:\n        \"\"\"Gaussian (or Levy) mutation, clamped to the gene bound.\n\n        `levy_alpha` switches to a heavy-tailed step. Heavy tails are what let a\n        search escape a local optimum that Gaussian noise cannot leave - the\n        signature of the 42/50 flat trajectories seen on 2026-09-11.\n        \"\"\"\n        r = rng or random.Random()\n        out = []\n        for g in vec:\n            v = float(g)\n            if r.random() < rate:\n                if levy_alpha:\n                    u = max(r.random(), 1e-12)\n                    step = sigma * (u ** (-1.0 / float(levy_alpha)))\n                    step *= -1.0 if r.random() < 0.5 else 1.0\n                    v += step\n                else:\n                    v += r.gauss(0.0, sigma)\n                v = max(-self.bound, min(self.bound, v))\n            out.append(v)\n        return out",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/budget_policy.py:59, scripts/budget_policy.py:60, scripts/mutate.py:194), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): mesh_trusted_key/diversity/test_wiring mutate() calls target other mutate helpers; cppn never imported there; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: Environment"
@@ -1580,15 +1585,16 @@
     "scripts/budget_policy.py:59",
     "scripts/budget_policy.py:60",
     "scripts/mutate.py:194"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "cppn:CPPNGenome.save": {
    "module": "cppn",
    "qualname": "CPPNGenome.save",
    "line": 228,
    "seg": "def save(self, path: str) -> None:\n        with open(path, \"w\", encoding=\"utf-8\") as fh:\n            json.dump(self.describe(), fh, indent=2)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/meta_cognition.py:992, src/CORE/sb3_agent.py:1079, tools/dead_function_check.py:81), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): sb3_agent mentions are comments; dict_key_triage save() is a dict helper; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: Arena, AutoencoderAnomalyWorm, AzazaelConfig"
@@ -1599,7 +1605,8 @@
     "src/CORE/WORMS/expansion/meta_cognition.py:992",
     "src/CORE/sb3_agent.py:1079",
     "tools/dead_function_check.py:81"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "db_monitor:DatabaseMonitorWorm._policy_advice": {
    "module": "db_monitor",
@@ -1680,8 +1687,8 @@
    "qualname": "AttentionGateWorm.gate",
    "line": 73,
    "seg": "def gate(self, scores: dict[str, float]) -> dict[str, Any]:\n        with self._lock:\n            adj = {k: v + self._bias.get(k, 0.0) for k, v in scores.items()}\n            ranked = sorted(adj.items(), key=lambda kv: -kv[1])[:self._top_k]\n            total = sum(s for _, s in ranked) or 1.0\n            return {\"success\": True, \"pass\": [k for k, _ in ranked],\n                    \"weights\": {k: round(s / total, 3) for k, s in ranked}}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/code_evo_pilot.py:250, scripts/code_evo_pilot.py:270, scripts/code_evo_pilot.py:272), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): argparse --tests label plus prose \"gate\"; no committed call of this member; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ActivationRouterWorm, GateBash, SparseMoE"
@@ -1692,7 +1699,8 @@
     "scripts/code_evo_pilot.py:250",
     "scripts/code_evo_pilot.py:270",
     "scripts/code_evo_pilot.py:272"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "dendrite:AttentionGateWorm.set_bias": {
    "decider": "dead_candidate",
@@ -1747,8 +1755,8 @@
    "qualname": "ContextConcatWorm.merge",
    "line": 103,
    "seg": "def merge(self, chunks: dict[str, str]) -> dict[str, Any]:\n        with self._lock:\n            # deterministic order = sorted keys; per-chunk fair share\n            keys = sorted(chunks.keys())\n            per = max(256, self._budget // max(1, len(keys)))\n            parts = []\n            for k in keys:\n                parts.append(f\"[{k}]\\n{chunks[k][:per]}\")\n            out = \"\\n\\n\".join(parts)[:self._budget]\n            self._merges += 1\n            return {\"success\": True, \"chars\": len(out), \"sources\": keys,\n                    \"merges\": self._merges, \"text\": out[:500]}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:455, src/CORE/WORMS/expansion/mesh.py:458, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): prose \"merge\" in mesh transport / skill audit comments; merge_bake_lane hit is its own merge(); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by state/wire_or_cut_slice_0_43.json:834",
@@ -1761,7 +1769,8 @@
     "src/CORE/WORMS/expansion/mesh.py:455",
     "src/CORE/WORMS/expansion/mesh.py:458",
     "src/CORE/cli_completion.py:26"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "dendrite:DendriteAggregatorWorm.__init__": {
    "module": "dendrite",
@@ -1865,8 +1874,8 @@
    "qualname": "SensoryFuseWorm.fuse",
    "line": 132,
    "seg": "def fuse(self, monitor: dict | None = None, security: dict | None = None) -> dict[str, Any]:\n        monitor = monitor or {}\n        security = security or {}\n        vec = {\n            \"cpu_load\": min(1.0, float(monitor.get(\"cpu\", 0)) / 100.0),\n            \"mem_load\": min(1.0, float(monitor.get(\"mem\", 0)) / 100.0),\n            \"net_anomaly\": 1.0 if monitor.get(\"net_anomaly\") else 0.0,\n            \"vuln_count_norm\": min(1.0, float(security.get(\"vulns\", 0)) / 20.0),\n            \"threat\": 1.0 if security.get(\"threat\") else 0.0,\n        }\n        with self._lock:\n            self._fusions += 1\n            n = self._fusions\n        return {\"success\": True, \"vector\": vec, \"fusions\": n,\n                \"at\": datetime.now().isoformat()}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/ORCHESTRATION/ADLP_FusionCore.py:151, src/ORCHESTRATION/ADLP_FusionCore.py:63), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): STRUCTURE.py:102 and ADLP_FusionCore hits call the fusion fuse() API, different function; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: FusionCore"
@@ -1876,7 +1885,8 @@
    "evidence": [
     "src/ORCHESTRATION/ADLP_FusionCore.py:151",
     "src/ORCHESTRATION/ADLP_FusionCore.py:63"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "dreaming:DreamingModule.get_dream_stats": {
    "decider": "dead_candidate",
@@ -1951,8 +1961,8 @@
    "qualname": "CoherenceValidatorWorm.check",
    "line": 583,
    "seg": "def check(self, mem_id: str, replica_hashes: list,\n              replica_texts: Optional[list] = None,\n              threshold: Optional[float] = None) -> dict[str, Any]:\n        thr = self._threshold if threshold is None else float(threshold)\n        exact = len(set(replica_hashes)) <= 1\n        mode = \"exact\"\n        min_sim = None\n        coherent = exact\n\n        if not exact and replica_texts and len(replica_texts) >= 2:\n            vecs = [_embed(str(t)) for t in replica_texts[:8]]\n            vecs = [v for v in vecs if v]\n            if len(vecs) >= 2:\n                sims = [_cosine(vecs[0], v) for v in vecs[1:]]\n                min_sim = round(min(sims), 4)\n                mode = \"drift\"\n                coherent = min_sim >= thr\n        elif not exact:\n            mode = \"hash\"\n\n        with self._lock:\n            self._checked += 1\n            if not exact:\n                self._mismatched.append(mem_id)\n                if mode == \"drift\" and coherent:\n                    self._drifting.append(mem_id)\n        return {\"success\": True, \"mem\": mem_id, \"coherent\": coherent,\n                \"replicas\": len(replica_hashes), \"mode\": mode,\n                \"min_similarity\": min_sim, \"threshold\": thr,\n                \"checked\": self._checked}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_emoji_mood_probe.py:17, src/CORE/WORMS/CLUSTERWORMS.py:533, src/CORE/WORMS/REVERSE_TOOLS.py:850), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): benchmark script local check() helpers; different receivers; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: DriftAlert, HEALTHZ, StepMonitor"
@@ -1963,7 +1973,8 @@
     "scripts/_emoji_mood_probe.py:17",
     "src/CORE/WORMS/CLUSTERWORMS.py:533",
     "src/CORE/WORMS/REVERSE_TOOLS.py:850"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "engram:CoherenceValidatorWorm.execute": {
    "module": "engram",
@@ -2061,8 +2072,8 @@
    "qualname": "_VectorIndex.vector",
    "line": 267,
    "seg": "def vector(self, mem_id: str) -> list:\n        with self._lock:\n            i = self._pos.get(mem_id)\n            return list(self._vecs[i]) if i is not None else []",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/dendrite.py:145), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): prose \"vector\" (embedding dims, OCEAN traits); no committed call; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: Genome, _Rand"
@@ -2071,7 +2082,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'vector' in 3 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/dendrite.py:145"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "envmesh:BarePassthroughWorm.execute": {
    "module": "envmesh",
