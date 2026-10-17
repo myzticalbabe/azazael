@@ -18,7 +18,7 @@ except ImportError:                               # never break the host
 
 def run_cmd(args, timeout=30):
     try:
-        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
         return result.stdout + result.stderr
     except Exception as e:
         note_failure("lsp_diagnosis:L13", e)
@@ -31,7 +31,7 @@ print("=" * 60)
 # Python versions
 print("\n[1] Python Installations:")
 # Use subprocess with stderr capture to avoid shell=True
-r = subprocess.run(["where", "python", "python3"], capture_output=True, text=True, timeout=30)
+r = subprocess.run(["where", "python", "python3"], capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
 print(r.stdout + r.stderr)
 
 # venv check

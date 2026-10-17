@@ -330,7 +330,7 @@ class GateBash:
                 ["bash", "-c", command],
                 capture_output=True,
                 text=True,
-                timeout=timeout,
+                timeout=timeout, encoding="utf-8", errors="replace"
             )
         except (FileNotFoundError, OSError) as exc:
             note_failure("gate_bash:L322", exc)
@@ -338,7 +338,7 @@ class GateBash:
                 ["cmd.exe", "/c", command],
                 capture_output=True,
                 text=True,
-                timeout=timeout,
+                timeout=timeout, encoding="utf-8", errors="replace"
             )
 
     def gate_and_execute(

@@ -85,7 +85,7 @@ def scan_pip():
 
 def scan_pm(cmd):
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
         return [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
     except Exception as exc:
         note_failure("generate_tool_skills:L79", exc)

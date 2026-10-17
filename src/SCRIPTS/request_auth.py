@@ -118,7 +118,7 @@ def _native_import_ok(module: str) -> bool:
     try:
         proc = subprocess.run(
             [sys.executable, "-c", "import %s" % module],
-            capture_output=True, text=True, timeout=60)
+            capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
         ok = proc.returncode == 0
     except Exception as exc:
         note_failure("request_auth:L111", exc)

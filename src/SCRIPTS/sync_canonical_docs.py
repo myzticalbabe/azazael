@@ -123,7 +123,7 @@ def _wsl_distro_running(name: str) -> bool | None:
     try:
         result = subprocess.run(
             ["wsl.exe", "--list", "--verbose"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace"
         )
         for line in result.stdout.splitlines():
             if name.lower() in line.lower():
