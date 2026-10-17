@@ -236,7 +236,10 @@ class GRPOTrainer:
                                             worm=worm_name)
                         except Exception as exc:
                             note_failure("learning_grpo:reward-shadow", exc)
-                    reward = success_rate - avg_duration / 10000.0
+                    # millis baseline is unusable (n=1, zero variance) -> to_common_scale
+                    # refuses; fusion removed. reward derives from rate_01 alone.
+                    # (See Engram #1037.) Both quantities still emitted canonically.
+                    reward = success_rate
                 else:
                     reward = 0.0  # No execution history yet: neutral reward
                 rewards.append(reward)
