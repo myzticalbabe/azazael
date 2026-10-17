@@ -361,7 +361,7 @@ def auto_lint_after_edit(target: str, lint_cmd: str,
     """Run linter after edit/create — guardrail for EP125."""
     cmd = [lint_cmd] + (lint_args or [target])
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                              cwd=os.path.dirname(target) or ".")
         return {"ran": True, "exit_code": res.returncode,
                 "stdout": res.stdout, "stderr": res.stderr,

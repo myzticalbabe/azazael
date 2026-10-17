@@ -218,7 +218,7 @@ def _find_gil_python() -> (str | None):
         proc = subprocess.run(
             ["py", "-V:3.14", "-c",
              "import sys; print(sys.executable)"],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
         )
         if proc.returncode == 0:
             p = proc.stdout.strip().splitlines()[-1].strip()
@@ -261,7 +261,7 @@ def _run_training_in_gil_subprocess(
     env["PYTHONIOENCODING"] = "utf-8"
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=1800, env=env,
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800, env=env,
         )
     except subprocess.TimeoutExpired as exc:
         note_failure("sb3_agent:L246", exc)

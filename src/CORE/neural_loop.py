@@ -536,7 +536,7 @@ def _stage_act(ctx: LoopContext) -> StageResult:
         return StageResult("act", False, error="executor missing: %s" % script)
     try:
         proc = subprocess.run([sys.executable, str(script)],
-                              capture_output=True, text=True, timeout=ctx.limit)
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=ctx.limit)
     except subprocess.TimeoutExpired as exc:
         note_failure("neural_loop:L488", exc)
         return StageResult("act", False, error="executor timed out after %ds" % ctx.limit)
@@ -797,7 +797,7 @@ def _run_script_stage(stage: str, script_name: str, timeout: int,
         return StageResult(stage, False, error="missing: %s" % script_name)
     try:
         proc = subprocess.run([sys.executable, str(script)],
-                              capture_output=True, text=True, timeout=timeout)
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         note_failure("neural_loop:L739", exc)
         return StageResult(stage, True, changed=False,
