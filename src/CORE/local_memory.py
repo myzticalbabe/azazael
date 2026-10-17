@@ -257,6 +257,11 @@ class LocalMemoryStore:
     MAX_QUERY_LIMIT: int = 500
 
     def __init__(self, db_path: Optional[str] = None):
+        if db_path is None and os.environ.get("PYTEST_CURRENT_TEST"):
+            raise RuntimeError(
+                "LocalMemoryStore() with no db_path is forbidden under pytest; "
+                "pass an explicit db_path to avoid writing to the production store."
+            )
         self.db_path = str(db_path or DB_PATH)
         self._lock = threading.Lock()
         self._maintenance_lock = threading.Lock()
