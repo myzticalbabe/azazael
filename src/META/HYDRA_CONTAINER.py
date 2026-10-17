@@ -133,7 +133,7 @@ class HYDRA_CONTAINER:
             result = subprocess.run(
                 ["docker", "--version"],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=10,
             )
             return result.returncode == 0
@@ -148,7 +148,7 @@ class HYDRA_CONTAINER:
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=timeout,
             )
             return result.returncode == 0, result.stdout, result.stderr
