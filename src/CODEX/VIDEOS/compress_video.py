@@ -87,7 +87,7 @@ def _codec_available(codec_name):
     """Check if a specific ffmpeg encoder codec is available."""
     try:
         result = subprocess.run(
-            ["ffmpeg", "-encoders"], capture_output=True, text=True, timeout=10
+            ["ffmpeg", "-encoders"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
         )
         return codec_name in result.stdout
     except Exception as exc:
@@ -100,7 +100,7 @@ def check_ffmpeg():
     if not shutil.which("ffmpeg"):
         print("ERROR: ffmpeg not found. Install: sudo apt install ffmpeg")
         return False
-    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     print(f"  ffmpeg: {result.stdout.split(chr(10))[0]}")
     return True
 
@@ -124,7 +124,7 @@ def probe_video(input_path):
                 "ffprobe", "-v", "quiet", "-print_format", "json",
                 "-show_format", "-show_streams", str(input_path)
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if result.returncode == 0:
                 data = json.loads(result.stdout)
 
@@ -180,7 +180,7 @@ def encode_gif(input_path, output_path, fps=15, width=960):
     vf = f"fps={fps},scale={width}:-1:flags=lanczos"
     cmd1 = ["ffmpeg", "-y", "-i", str(input_path), "-vf", f"{vf},palettegen",
             palette]
-    r1 = subprocess.run(cmd1, capture_output=True, text=True)
+    r1 = subprocess.run(cmd1, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r1.returncode != 0 or not Path(palette).exists():
         print(f"  [FAIL] palettegen: {r1.stderr[:200]}")
         return False
@@ -188,7 +188,7 @@ def encode_gif(input_path, output_path, fps=15, width=960):
             "-lavfi", f"{vf} [x]; [x][1:v] paletteuse",
             "-loop", "0", str(out_file)]
     print(f"  GIF:    {fps}fps / {width}px / loop forever")
-    r2 = subprocess.run(cmd2, capture_output=True, text=True)
+    r2 = subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace")
     try:
         Path(palette).unlink()
     except OSError as exc:
@@ -313,7 +313,7 @@ def compress_video(input_path, output_path, profile=None,
             cmd1.insert(-12, ",".join(filters))
 
         print(f"\n  Pass 1: {' '.join(cmd1)[:120]}...")
-        r1 = subprocess.run(cmd1, capture_output=True, text=True)
+        r1 = subprocess.run(cmd1, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
         # Pass 2 (with CAIN standard profile + GOP)
         cmd2 = [
@@ -333,7 +333,7 @@ def compress_video(input_path, output_path, profile=None,
             cmd2.insert(-13, ",".join(filters))
 
         print(f"  Pass 2: {' '.join(cmd2)[:120]}...")
-        r2 = subprocess.run(cmd2, capture_output=True, text=True)
+        r2 = subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
         # Cleanup pass logs (use passlog parent dir for reliable glob)
         passlog_path = Path(passlog)
@@ -367,7 +367,7 @@ def compress_video(input_path, output_path, profile=None,
 
         print(f"\n  CRF: {crf}  |  Preset: {preset}  |  Audio: {audio_bitrate}")
         print(f"  Command: {' '.join(cmd)[:150]}...")
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
         success = result.returncode == 0
 
     if success and out_file.exists():

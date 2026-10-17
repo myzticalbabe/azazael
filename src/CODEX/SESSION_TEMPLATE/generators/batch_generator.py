@@ -53,7 +53,7 @@ def generate_single(style, data_file=None):
 
     cmd = [sys.executable, str(GENERATOR), style, str(data_file)]
     print(f"Generating: {style}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode == 0:
         print(f"  [OK] {style} generated successfully")
         return True

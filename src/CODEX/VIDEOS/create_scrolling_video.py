@@ -892,7 +892,7 @@ ffmpeg_cmd = [
 
 try:
 
-    subprocess.run(ffmpeg_cmd, check=True, capture_output=True, text=True)
+    subprocess.run(ffmpeg_cmd, check=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
     print("Video created: {video_file}")
 

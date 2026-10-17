@@ -250,7 +250,7 @@ def get_verify_command(self) -> list[str]:
 def get_version(self) -> (str | None):
     try:
         result = subprocess.run(
-            self.get_verify_command(), capture_output=True, text=True, timeout=30
+            self.get_verify_command(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         for line in result.stdout.split("\n"):
             if line.startswith("Version:"):
@@ -504,7 +504,7 @@ def _install_with_retry(
             start_time = time.time()
 
             result = subprocess.run(
-                command, capture_output=True, text=True, timeout=3600
+                command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600
             )
 
             install_time = time.time() - start_time

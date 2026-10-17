@@ -156,7 +156,7 @@ const {{ PuppeteerScreenRecorder }} = require('puppeteer-screen-recorder');
     result = subprocess.run(
         ["node", str(recorder_script)],
         capture_output=True,
-        text=True,
+        text=True, encoding="utf-8", errors="replace",
         cwd=str(RECORDERS_DIR),
     )
 
