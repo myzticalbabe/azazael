@@ -393,7 +393,8 @@ class DirectMemory:
     })
 
     def __init__(self, session_id: Optional[str] = None,
-                 merged_session_id: Optional[str] = None):
+                 merged_session_id: Optional[str] = None,
+                 db_path: Optional[str] = None):
         """Initialize DirectMemory.
 
         Args:
@@ -401,8 +402,20 @@ class DirectMemory:
             merged_session_id: If provided, reuse this existing session instead
                 of creating a new one. Events will be recorded under this session.
                 Use this to group multiple Codebuff messages into one session.
+            db_path: Explicit database path. Required under pytest to avoid
+                writing to the production store.
         """
-        self._db_path = str(DB_PATH)
+        if db_path is None and os.environ.get("PYTEST_CURRENT_TEST"):
+            try:
+                _prod = str(_get_db_path())
+            except Exception:
+                _prod = None
+            if _prod is not None and str(DB_PATH) == _prod:
+                raise RuntimeError(
+                    "DirectMemory() with no db_path is forbidden under pytest; "
+                    "pass an explicit db_path to avoid writing to the production store."
+                )
+        self._db_path = str(db_path) if db_path is not None else str(DB_PATH)
         self._lock = threading.Lock()
         self._session_id = session_id or (
             datetime.now().strftime("codebuff_%Y%m%d_%H%M%S") + f"_{os.getpid()}")
