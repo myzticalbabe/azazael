@@ -71,7 +71,7 @@ class DebugRunner:
             result = subprocess.run(
                 [sys.executable, "-c", code],
                 capture_output=True, text=True, timeout=30,
-                env={**os.environ, "AZAZAEL_ROOT": AZAZAEL_ROOT},
+                env={**os.environ, "AZAZAEL_ROOT": AZAZAEL_ROOT}, encoding="utf-8", errors="replace"
             )
             duration = (time.time() - start) * 1000
             return TestResult(

@@ -44,7 +44,7 @@ class QuickMapper:
     def run(self, cmd):
         try:
             r = subprocess.run(
-                shlex.split(cmd), capture_output=True, text=True, timeout=30
+                shlex.split(cmd), capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace"
             )
             return r.stdout.strip(), r.returncode
         except Exception as exc:
