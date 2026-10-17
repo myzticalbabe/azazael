@@ -97,7 +97,7 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
         if section:
             args.extend([f"/SECTION:{section}"])
 
-        proc = subprocess.run(args, capture_output=True, text=True, timeout=60)
+        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
 
         current_section = ""
         for line in proc.stdout.splitlines():
@@ -156,7 +156,7 @@ def _objdump_linux(path: Path, section: str, max_ins: int) -> dict[str, Any]:
             args.extend(["-j", section])
         args.append(str(path))
 
-        proc = subprocess.run(args, capture_output=True, text=True, timeout=60)
+        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
 
         current_section = ""
         for line in proc.stdout.splitlines():
@@ -240,7 +240,7 @@ def extract_strings(
         try:
             proc = subprocess.run(
                 ["strings", "-n", str(min_length), str(full_path)],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             for line in proc.stdout.splitlines():
                 if line not in results:

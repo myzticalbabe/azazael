@@ -65,7 +65,7 @@ class AzazaelStressTest:
 
         try:
             result = subprocess.run(
-                [path, "-c", "print('OK')"], capture_output=True, text=True, timeout=10
+                [path, "-c", "print('OK')"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
             )
             duration = (time.time() - start) * 1000
 
@@ -109,7 +109,7 @@ class AzazaelStressTest:
                 subprocess.run(
                     [sys.executable, "-m", "py_compile", str(fp)],
                     capture_output=True,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     timeout=5,
                 )
                 checked += 1
@@ -286,7 +286,7 @@ class AzazaelStressTest:
                 result = subprocess.run(
                     [sys.executable, str(path)],
                     capture_output=True,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     timeout=60,
                 )
                 if result.returncode == 0:
