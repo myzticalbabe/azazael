@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-17T22:29:53.370210+00:00",
+ "generated_at": "2026-10-17T22:31:00.762018+00:00",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 146,
+  "wired": 136,
   "retired": 61,
   "dispatched": 60,
-  "accepted_gap": 97,
+  "accepted_gap": 107,
   "rejected": 5,
   "pending": 0
  },
@@ -1613,16 +1613,15 @@
    "qualname": "DatabaseMonitorWorm._policy_advice",
    "line": 436,
    "seg": "def _policy_advice(self, severity: str, source: str = \"db\") -> dict:\n        \"\"\"Attach learned-policy advice WITHOUT changing firing.\n\n        Pure query: delegates to RLTrainLoop.recommend (itself read-only\n        and never-raising) and returns its envelope. No alerts are\n        recorded, no cooldowns touched, no thresholds moved \u2014 a wrong\n        table therefore cannot trigger anything by itself. Works on a\n        partially constructed worm: any failure degrades to unknown.\n        \"\"\"\n        try:\n            loop = getattr(self, \"_rl_loop\", None)\n            if loop is None:\n                try:\n                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop\n                    loop = RLTrainLoop()\n                except Exception as exc:\n                    note_failure(\"db_monitor:L435\", exc)\n                    loop = None\n            if loop is None:\n                raise RuntimeError(\"no policy loop available\")\n            out = loop.recommend(severity, source=source)\n            if out.get(\"action_name\") not in (\n                    \"ignore\", \"log\", \"alert\", \"remediate\", \"unknown\"):\n                out[\"action_name\"] = \"unknown\"\n            return out\n        except Exception as exc:\n            note_failure(\"db_monitor:L444\", exc)\n            return {\"action\": -1, \"action_name\": \"unknown\", \"known\": False,\n                    \"state_key\": \"%s:%s\" % (source, severity),\n                    \"source\": source}",
-   "status": "accepted_gap",
-   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "status": "wired",
+   "reason": "STATIC (refutes sibling downgrade): committed same-class callers db_monitor.py:513 (_alert_report) and :528 (_maybe_policy_alert), both self._policy_advice(...) in live code.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by state/wire_or_cut_slice_0_43.json:762",
     "named by state/wire_or_cut_slice_0_43.json:764"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no",
-   "disposition": "ACCEPT-GAP"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "decider": "declared_in_data",
@@ -4468,8 +4467,8 @@
    "qualname": "VulnScanner.scan_requirements",
    "line": 64,
    "seg": "def scan_requirements(self, req_path: str = \"requirements.txt\") -> list[dict]:\n        \"\"\"Parse requirements.txt and check for known vulnerable packages.\"\"\"\n        vulns = []\n        try:\n            path = Path(req_path)\n            if path.exists():\n                content = path.read_text(encoding=\"utf-8\", errors=\"replace\")\n                for line in content.split(\"\\n\"):\n                    line = line.strip()\n                    if line and not line.startswith(\"#\"):\n                        pkg = line.split(\"==\")[0].split(\">=\")[0].split(\"<=\")[0].strip()\n                        self._scanned_deps.add(pkg)\n        except Exception as exc:\n            note_failure(\"security:L64\", exc)\n\n        with self._lock:\n            self._vulns.extend(vulns)\n        return vulns",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1182), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): MISSING_TOOLS.py:686 calls DependencyAuditor.scan_requirements (own method); missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: DependencyAuditor"
@@ -4478,7 +4477,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'scan_requirements' in 1 file(s) [src/MISSING_TOOLS.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1182"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "session_state:SessionStateManager.__init__": {
    "module": "session_state",
@@ -4504,8 +4504,8 @@
    "qualname": "SessionStateManager.execute",
    "line": 566,
    "seg": "def execute(self) -> dict[str, Any]:\n        \"\"\"Standard worm execute() \u2014 snapshot all and report.\n\n        Runs a full snapshot cycle, persists results, and returns\n        a summary of registered and snapshotted worms.\n        \"\"\"\n        start = time.perf_counter()\n        self._execution_count += 1\n\n        result = self.snapshot_all()\n\n        # Persist snapshot file\n        try:\n            self.export_snapshots()\n        except Exception as exc:\n            note_failure(\"session_state:L565\", exc)\n\n        dm = _get_dm()\n        if dm:\n            try:\n                dm.record(\n                    \"session_state_executed\",\n                    {\n                        \"execution\": self._execution_count,\n                        \"worms\": result.get(\"worms_snapshot\", 0),\n                        \"ok\": result.get(\"ok\", 0),\n                        \"fail\": result.get(\"fail\", 0),\n                    },\n                    tags=[\"session_state\", \"execute\"],\n                )\n            except Exception as exc:\n                note_failure(\"session_state:L581\", exc)\n\n        result[\"execution_count\"] = self._execution_count\n        result[\"manager_version\"] = self.VERSION\n\n        return result",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:107, scripts/_evo_graph_build.py:68, scripts/_evo_graph_build.py:70), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): trace/monitor comments about the execute() idiom; no committed call; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
@@ -4516,15 +4516,16 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "session_state:SessionStateManager.get_status": {
    "module": "session_state",
    "qualname": "SessionStateManager.get_status",
    "line": 552,
    "seg": "def get_status(self) -> dict[str, Any]:\n        \"\"\"Get SessionStateManager status.\"\"\"\n        with self._lock:\n            return {\n                \"version\": self.VERSION,\n                \"registrations\": len(self._registrations),\n                \"snapshots\": len(self._snapshots),\n                \"last_snapshot_id\": self._last_snapshot_id,\n                \"restore_count\": self._restore_count,\n                \"registered_worms\": sorted(self._registrations.keys()),\n            }",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/false_zero_audit.py:37, src/AOA/aoa_monitor.py:250, src/AOA/aoa_monitor.py:300), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): sync_g_drive.py:206 defines its own get_status; :443 is a self-call; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: AzazaelOptimizer, BaseArm, BaseWormMixin"
@@ -4535,7 +4536,8 @@
     "scripts/false_zero_audit.py:37",
     "src/AOA/aoa_monitor.py:250",
     "src/AOA/aoa_monitor.py:300"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "session_state:SessionStateManager.get_summary": {
    "module": "session_state",
@@ -4622,8 +4624,8 @@
    "qualname": "MeshArchitectWorm.rollback",
    "line": 1653,
    "seg": "def rollback(self, edge: str | None = None) -> dict[str, Any]:\n        \"\"\"Drop one overlay entry, or all of them when `edge` is None.\"\"\"\n        with self._lock:\n            if edge is None:\n                removed = list(self._overlay)\n                self._overlay.clear()\n            else:\n                removed = [edge] if self._overlay.pop(edge, None) else []\n            size = len(self._overlay)\n        if removed:\n            self.save()\n        return {\"success\": True, \"removed\": removed, \"overlay_size\": size}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/evolution_cycle.py:3155, src/CORE/WORMS/expansion/learning_versioner.py:201, src/CORE/sentinel_enforcer.py:516), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): sentinel_enforcer.py:505 own rollback(filepath); terence same pattern; neither touches this member; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ModelVersioner, UnifiedInstaller"
@@ -4634,7 +4636,8 @@
     "scripts/evolution_cycle.py:3155",
     "src/CORE/WORMS/expansion/learning_versioner.py:201",
     "src/CORE/sentinel_enforcer.py:516"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "spine:MorphogenesisWorm.retrieve_staged": {
    "decider": "dynamic_call",
@@ -5030,8 +5033,8 @@
    "qualname": "EventRouter.subscribe",
    "line": 184,
    "seg": "def subscribe(self, topic: str, callback: Callable):\n        with self._lock:\n            self._subscribers[topic].append(callback)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:536, src/CORE/worm_governance.py:373, src/CORE/worm_registry.py:1170), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): MemoryBus own subscribe plus comments; no EventRouter import; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: EventBus, MemoryBus, MessageBroker"
@@ -5042,7 +5045,8 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:536",
     "src/CORE/worm_governance.py:373",
     "src/CORE/worm_registry.py:1170"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "telemetry:LogStreamer.__init__": {
    "module": "telemetry",
@@ -5131,8 +5135,8 @@
    "qualname": "MetricAggregator.set_gauge",
    "line": 110,
    "seg": "def set_gauge(self, name: str, value: float):\n        with self._lock:\n            self._gauges[name] = value",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1180), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): only committed caller is tests/test_collectors_roundtrip.py:119 (test-only); metrics.py and src/CORE/metrics.py define own set_gauge; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: MetricsRegistry"
@@ -5141,7 +5145,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'set_gauge' in 1 file(s) [src/CORE/metrics.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1180"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "telemetry:SpanTracer.__init__": {
    "module": "telemetry",
@@ -5224,14 +5229,15 @@
    "qualname": "ArousalSwitchWorm.set_mode",
    "line": 103,
    "seg": "def set_mode(self, mode: str) -> dict[str, Any]:\n        if mode not in self.MODES:\n            return {\"success\": False, \"error\": f\"mode must be one of {self.MODES}\"}\n        with self._lock:\n            self._mode = mode\n            return {\"success\": True, \"mode\": self._mode, \"at\": datetime.now().isoformat()}",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): SCons vendored scripts only (non-live tree); missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: _MorphEngine"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'set_mode' in 1 file(s) [src/azazael_pygame.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'set_mode' in 1 file(s) [src/azazael_pygame.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "thalamus:SensoryRelayWorm.__init__": {
    "module": "thalamus",
@@ -5289,14 +5295,15 @@
    "qualname": "ThreatIntelMonitorWorm.start_monitor",
    "line": 239,
    "seg": "def start_monitor(self, interval_seconds: float = 3600.0):\n        stop = threading.Event()\n\n        def loop():\n            while not stop.wait(interval_seconds):\n                try:\n                    self.check_health()\n                except Exception as exc:\n                    note_failure(\"threatmon:monitor-loop\", exc)\n        t = threading.Thread(target=loop, name=\"threat-monitor\", daemon=True)\n        t.start()\n        return stop",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): live start_monitor calls target DatabaseMonitorWorm; threatmon.py:239 never invoked; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: BerksMonitorWorm, DatabaseMonitorWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_monitor' in 3 file(s) [scripts/run_db_monitor.py, src/CORE/WORMS/expansion/db_monitor.py, src/CORE/dashboard.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'start_monitor' in 3 file(s) [scripts/run_db_monitor.py, src/CORE/WORMS/expansion/db_monitor.py, src/CORE/dashboard.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:DashboardGen.__init__": {
    "module": "visualization",
@@ -5388,8 +5395,8 @@
    "qualname": "GraphRenderer.add_edge",
    "line": 108,
    "seg": "def add_edge(self, src: str, dst: str, label: str = \"\"):\n        with self._lock:\n            self._edges.append((src, dst))",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1209), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): graph_semantic/doc_layer.py:150 defines its own add_edge; no visualization import; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ConflictGraph"
@@ -5398,15 +5405,16 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'add_edge' in 18 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1209"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:GraphRenderer.add_node": {
    "module": "visualization",
    "qualname": "GraphRenderer.add_node",
    "line": 104,
    "seg": "def add_node(self, name: str, label: str = \"\"):\n        with self._lock:\n            self._nodes.add(name)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1209), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): coverage_layer local add_node defs; no visualization import; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ConflictGraph"
@@ -5415,23 +5423,23 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'add_node' in 16 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1209"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:GraphRenderer.render_svg": {
    "module": "visualization",
    "qualname": "GraphRenderer.render_svg",
    "line": 124,
    "seg": "def render_svg(self, output_path: str = \"/tmp/azazael_graph.svg\") -> bool:\n        \"\"\"Render to SVG using graphviz (dot) CLI.\"\"\"\n        dot = self.to_dot()\n        try:\n            r = subprocess.run([\"dot\", \"-Tsvg\", \"-o\", output_path],\n                input=dot, capture_output=True, text=True, timeout=10)\n            return r.returncode == 0\n        except Exception as exc:\n            note_failure(\"visualization:L119\", exc)\n            return False",
-   "status": "accepted_gap",
-   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "status": "wired",
+   "reason": "DISPATCH (refutes sibling downgrade): member of @register_worm GraphRenderer (visualization.py:94), #961 TRUE-WIRED; render_graph_svg.py:122 defines its own render_svg (script self-call, different receiver).",
    "decider": "declared_in_data",
    "decider_evidence": [],
    "carried": true,
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'render_svg' in 1 file(s) [scripts/render_graph_svg.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1193"
-   ],
-   "disposition": "ACCEPT-GAP"
+   ]
   },
   "visualization:HeatmapBuilder.__init__": {
    "module": "visualization",
@@ -5466,8 +5474,8 @@
    "qualname": "HeatmapBuilder.record_event",
    "line": 187,
    "seg": "def record_event(self, category: str, timestamp: (float | None) = None):\n        with self._lock:\n            self._events.append({\"category\": category, \"timestamp\": timestamp or time.time()})",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:109, scripts/_evo_graph_build.py:113, src/AOA/arms/support_arms.py:31), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): build_final.py mermaid text; local_memory.py defines own record_event; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: AzazaelIntelligence, AzazaelIntelligenceHardened, LocalMemoryStore"
@@ -5478,7 +5486,8 @@
     "scripts/_evo_graph_build.py:109",
     "scripts/_evo_graph_build.py:113",
     "src/AOA/arms/support_arms.py:31"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:ReportCompiler.__init__": {
    "module": "visualization",
@@ -5646,8 +5655,8 @@
    "qualname": "FacehuggerWorm.plan",
    "line": 141,
    "seg": "def plan(self, target_worm: str, input_keys: list) -> dict[str, Any]:\n        with self._lock:\n            self._attachments += 1\n            return {\"success\": True, \"target\": target_worm,\n                    \"inject_at\": (input_keys or [\"input\"])[:3],\n                    \"single_shot\": True, \"needs_quorum\": True,\n                    \"attachments\": self._attachments}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/chain_controller.py:416, src/CORE/WORMS/METACLUSTER.py:884, src/CORE/WORMS/expansion/cutting_edge_model.py:1311), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): chain_controller.py:402 defines its own plan(); :504/:674 are self-calls; oracle.py:21 is prose; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: MCTSPlanner"
@@ -5658,7 +5667,8 @@
     "scripts/chain_controller.py:416",
     "src/CORE/WORMS/METACLUSTER.py:884",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:1311"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "xenomorph:OvomorphWorm.__init__": {
    "module": "xenomorph",
