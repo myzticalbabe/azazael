@@ -35,7 +35,7 @@ def run_cli(python_exe: str, cli_module: str):
         return subprocess.run(
             [python_exe, "-m", cli_module, command],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
             **kwargs,
         )

@@ -14,7 +14,7 @@ import sys
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
 
 
 def test(name: str, condition: bool, detail: str = ""):
