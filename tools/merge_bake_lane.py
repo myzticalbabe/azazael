@@ -24,6 +24,13 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT_MERGED = ROOT / "state" / "bake_merged.jsonl"
 OUT_REPORT = ROOT / "state" / "bake_merge_report.txt"
 REQUIRED = ("source", "item_id", "title", "body", "kind")
+
+#: Absolute paths of the lane file(s) under validation. Populated by
+#: merge() before base_rows() runs so input rows are never mistaken for
+#: already-baked base rows. Module-global (not a parameter) because
+#: base_rows(report) arity is load-bearing (see its docstring).
+_EXCLUDE_FILES = set()  # lane file NAMES (see below: Path equality is
+                             # unreliable across C:/ vs c:/ spellings)
 KINDS = {"error_fix", "lesson", "mandate", "sop_rule", "violation", "anti_pattern"}
 
 
@@ -60,6 +67,11 @@ def base_rows(report=None):
     for fp in files:
         if not fp.exists():
             continue
+        if fp.name in _EXCLUDE_FILES:
+            continue  # the lane under validation is input, not base:
+            # without this every row self-matches as "dup" and no lane
+            # can ever be accepted (found 2026-10-17: 8/8 novel rows
+            # dropped as dup).
         try:
             loaded = load_jsonl(fp)
         except (OSError, ValueError) as e:
@@ -79,6 +91,9 @@ def base_rows(report=None):
 
 def merge(lanes):
     dropped = []
+    _EXCLUDE_FILES.clear()
+    for _lane in lanes:
+        _EXCLUDE_FILES.add(Path(_lane).name)
     base = base_rows(dropped)
     seen = set(norm_title(r.get("title", "")) for r in base)
     merged = list(base)
