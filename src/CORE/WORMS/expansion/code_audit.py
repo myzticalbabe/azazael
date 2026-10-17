@@ -94,7 +94,7 @@ class WeeklyCodeAuditWorm:
             try:
                 proc = subprocess.run(
                     [sys.executable, "-m", "pyflakes", str(rp)],
-                    capture_output=True, text=True,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace",
                     timeout=self.config.max_duration_seconds,
                     env={**os.environ, "PYTHONUTF8": "1"},
                 )

@@ -51,7 +51,7 @@ class _ToolBeltWorm:
         try:
             r = subprocess.run(
                 [sys.executable, "-m", "py_compile", str(path)],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
                 timeout=self.TIMEOUT, errors="replace",
             )
             head = ((r.stdout or "") + (r.stderr or "")).strip()[:300]

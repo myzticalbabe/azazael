@@ -68,7 +68,7 @@ class ContainerOrch:
                 cmd.extend(["-p", f"{hp}:{cp}"])
         cmd.append(image)
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
             cid = r.stdout.strip()
             with self._lock:
                 self._containers[name] = {"id": cid, "image": image, "status": "running", "launched": time.time()}
@@ -80,7 +80,7 @@ class ContainerOrch:
     def health_check(self, name: str) -> dict[str, Any]:
         """Check container health via docker inspect."""
         try:
-            r = subprocess.run(["docker", "inspect", name], capture_output=True, text=True, timeout=10)
+            r = subprocess.run(["docker", "inspect", name], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
             if r.returncode == 0:
                 data = json.loads(r.stdout)
                 state = data[0].get("State", {}) if data else {}
@@ -92,8 +92,8 @@ class ContainerOrch:
     def stop(self, name: str) -> dict[str, Any]:
         """Stop and remove a container."""
         try:
-            r = subprocess.run(["docker", "stop", name], capture_output=True, text=True, timeout=30)
-            subprocess.run(["docker", "rm", name], capture_output=True, text=True, timeout=15)
+            r = subprocess.run(["docker", "stop", name], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+            subprocess.run(["docker", "rm", name], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15)
             with self._lock:
                 if name in self._containers:
                     self._containers[name]["status"] = "stopped"
@@ -182,7 +182,7 @@ class ImageAuditor:
     def audit_image(self, image: str) -> dict[str, Any]:
         """Audit a single image."""
         try:
-            r = subprocess.run(["docker", "image", "inspect", image], capture_output=True, text=True, timeout=30)
+            r = subprocess.run(["docker", "image", "inspect", image], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if r.returncode == 0:
                 data = json.loads(r.stdout)[0]
                 audit = {
@@ -215,7 +215,7 @@ class RegistryPoller:
     def check_latest(self, image: str) -> dict[str, Any]:
         """Check for latest tag via docker pull dry-run."""
         try:
-            r = subprocess.run(["docker", "pull", image], capture_output=True, text=True, timeout=120)
+            r = subprocess.run(["docker", "pull", image], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
             status = "updated" if "Downloaded newer" in r.stdout else ("unchanged" if "Image is up to date" in r.stdout else "unknown")
             with self._lock:
                 self._tags[image] = {"status": status, "checked": time.time()}
@@ -247,7 +247,7 @@ class ResourceQuotaWatch:
         """Check container resource usage via docker stats."""
         try:
             r = subprocess.run(["docker", "stats", "--no-stream", "--format", "{{.CPUPerc}}|{{.MemUsage}}", container],
-                             capture_output=True, text=True, timeout=10)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
             if r.returncode == 0 and "|" in r.stdout:
                 cpu_str, mem_str = r.stdout.strip().split("|", 1)
                 cpu = float(cpu_str.replace("%", ""))
