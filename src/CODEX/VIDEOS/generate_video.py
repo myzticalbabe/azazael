@@ -20,7 +20,7 @@ except ImportError:                               # never break the host
 def run_ffmpeg(cmd):
     """Execute ffmpeg command."""
     print(f"Running: {' '.join(cmd[:30])}...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print(f"Error: {result.stderr}")
     return result.returncode == 0

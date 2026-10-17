@@ -107,7 +107,7 @@ def compile_video(frames_dir, output):
         output,
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print(f"Error: {result.stderr}")
         return False
@@ -157,7 +157,7 @@ drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='Azazael ECOSYSTEM':fontsize
     ]
 
     print("Creating Matrix-style video...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print(f"Error: {result.stderr[:500]}")
         return False
@@ -209,7 +209,7 @@ drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='Azazael COMPLETE':fontsize=
     ]
 
     print("Creating pastel Morie-style video...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print(f"Error: {result.stderr[:500]}")
         return False
@@ -280,7 +280,7 @@ drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='COTEMPORANEOUS EXECUTION - 
     ]
 
     print("Creating fluorescent waterfall video...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print(f"Error: {result.stderr[:500]}")
         return False
