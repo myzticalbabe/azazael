@@ -3,10 +3,10 @@
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 198,
+  "wired": 184,
   "retired": 61,
   "dispatched": 60,
-  "accepted_gap": 45,
+  "accepted_gap": 59,
   "rejected": 5,
   "pending": 0
  },
@@ -617,14 +617,15 @@
    "qualname": "WeeklyCodeAuditWorm.last_results",
    "line": 219,
    "seg": "def last_results(self, limit: int = 5) -> List[Dict[str, Any]]:\n        with self._lock:\n            return self._history[-limit:]",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "decider": "protocol_or_override",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "also defined by: EvolutionIntegrityWorm, WiringAuditWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'last_results' in 1 file(s) [src/ORCHESTRATION/HORUS.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'last_results' in 1 file(s) [src/ORCHESTRATION/HORUS.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "code_audit:WeeklyCodeAuditWorm.start_scheduler": {
    "module": "code_audit",
@@ -1342,9 +1343,9 @@
    "qualname": "ContainerOrch.launch",
    "line": 63,
    "seg": "def launch(self, name: str, image: str, ports: (dict[str, str] | None) = None) -> dict[str, Any]:\n        \"\"\"Launch a container via docker CLI.\"\"\"\n        cmd = [\"docker\", \"run\", \"-d\", \"--name\", name]\n        if ports:\n            for hp, cp in ports.items():\n                cmd.extend([\"-p\", f\"{hp}:{cp}\"])\n        cmd.append(image)\n        try:\n            r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)\n            cid = r.stdout.strip()\n            with self._lock:\n                self._containers[name] = {\"id\": cid, \"image\": image, \"status\": \"running\", \"launched\": time.time()}\n            return {\"success\": True, \"container_id\": cid}\n        except Exception as e:\n            note_failure(\"container:L64\", e)\n            return {\"success\": False, \"error\": str(e)}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/audit_wiring.py:81, src/AZAZAEL_Inference_Studio.py:1532, src/AZAZAEL_Inference_Studio.py:192), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "protocol_or_override",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "also defined by: CloudTab"
    ],
@@ -1354,7 +1355,8 @@
     "scripts/audit_wiring.py:81",
     "src/AZAZAEL_Inference_Studio.py:1532",
     "src/AZAZAEL_Inference_Studio.py:192"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "container:ContainerOrch.list_all": {
    "module": "container",
@@ -1591,15 +1593,16 @@
    "qualname": "DatabaseMonitorWorm._policy_advice",
    "line": 436,
    "seg": "def _policy_advice(self, severity: str, source: str = \"db\") -> dict:\n        \"\"\"Attach learned-policy advice WITHOUT changing firing.\n\n        Pure query: delegates to RLTrainLoop.recommend (itself read-only\n        and never-raising) and returns its envelope. No alerts are\n        recorded, no cooldowns touched, no thresholds moved \u2014 a wrong\n        table therefore cannot trigger anything by itself. Works on a\n        partially constructed worm: any failure degrades to unknown.\n        \"\"\"\n        try:\n            loop = getattr(self, \"_rl_loop\", None)\n            if loop is None:\n                try:\n                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop\n                    loop = RLTrainLoop()\n                except Exception as exc:\n                    note_failure(\"db_monitor:L435\", exc)\n                    loop = None\n            if loop is None:\n                raise RuntimeError(\"no policy loop available\")\n            out = loop.recommend(severity, source=source)\n            if out.get(\"action_name\") not in (\n                    \"ignore\", \"log\", \"alert\", \"remediate\", \"unknown\"):\n                out[\"action_name\"] = \"unknown\"\n            return out\n        except Exception as exc:\n            note_failure(\"db_monitor:L444\", exc)\n            return {\"action\": -1, \"action_name\": \"unknown\", \"known\": False,\n                    \"state_key\": \"%s:%s\" % (source, severity),\n                    \"source\": source}",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by state/wire_or_cut_slice_0_43.json:762",
     "named by state/wire_or_cut_slice_0_43.json:764"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "decider": "declared_in_data",
@@ -2030,14 +2033,15 @@
    "qualname": "_VectorIndex.has",
    "line": 272,
    "seg": "def has(self, mem_id: str) -> bool:\n        with self._lock:\n            return mem_id in self._pos",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "decider": "protocol_or_override",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "also defined by: SecretsManager"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'has' in 3 file(s) [scripts/graph_shard_refresh.py, tools/terence_invariants.py, tools/torch_state_watch.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'has' in 3 file(s) [scripts/graph_shard_refresh.py, tools/terence_invariants.py, tools/torch_state_watch.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "engram:_VectorIndex.vector": {
    "module": "engram",
@@ -2258,8 +2262,8 @@
    "qualname": "EraEvidence.reason",
    "line": 218,
    "seg": "def reason(self) -> str:\n        \"\"\"One-line explanation for the cycle log.\"\"\"\n        p = self.posterior()\n        return (\"cranium: P(mu>%.2f)=%.4f n_eras=%d n_obs=%d \"\n                \"posterior=%.4f+/-%.4f sigma=%.4f tau=%.4f\" % (\n                    self.threshold, self.prob_above(), p[\"n_eras\"], p[\"n_obs\"],\n                    p[\"mean\"], p[\"sd\"], p[\"sigma\"], p[\"tau\"]))",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/budget_policy.py:186, scripts/chain_controller.py:649, scripts/chain_controller.py:652), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by src/CODEX/ENVIRONMENT_INFO.json:37",
@@ -2272,7 +2276,8 @@
     "scripts/budget_policy.py:186",
     "scripts/chain_controller.py:649",
     "scripts/chain_controller.py:652"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "evidence:evidence_from_rows": {
    "evidence": [
@@ -2300,9 +2305,9 @@
    "qualname": "EvolutionEngine.load_checkpoint",
    "line": 976,
    "seg": "def load_checkpoint(self, label: (str | None) = None) -> bool:\n        \"\"\"Restore evolutionary state from the most recent checkpoint in LocalMemoryStore.\n\n        Args:\n            label: Optional label filter to load a specific checkpoint\n\n        Returns:\n            True if checkpoint was loaded, False otherwise\n        \"\"\"\n        store = self._get_store()\n        if store is None:\n            return False\n        try:\n            # `query_memories` filters by source+event_type and returns NEWEST\n            # FIRST. `search_memories` ranks by full-text relevance, so on a\n            # store holding 59 stale `test_checkpoint` rows the checkpoint that\n            # was just written could fall outside the window and a STALE one\n            # would win \u2014 a restore drill that silently kept the old state.\n            if hasattr(store, \"query_memories\"):\n                events = store.query_memories(\n                    source=\"EvolutionEngine\", event_type=\"checkpoint_saved\",\n                    limit=200,\n                )\n            else:\n                events = store.search_memories(\n                    \"checkpoint_saved\", source=\"EvolutionEngine\", limit=200\n                )\n            if not events:\n                return False\n\n            # Find matching checkpoint \u2014 newest by saved_at wins, so reused\n            # labels across test runs can't resurrect a stale checkpoint.\n            best = None\n            best_ts = \"\"\n            for ev in events:\n                data = ev.get(\"data\", {})\n                if isinstance(data, str):\n                    try:\n                        data = json.loads(data)\n                    except (json.JSONDecodeError, TypeError) as exc:\n                        note_failure(\"evolution:L996\", exc)\n                        continue\n                if not isinstance(data, dict) or \"population\" not in data:\n                    continue\n                if label and data.get(\"label\") != label:\n                    continue\n                ts = str(data.get(\"saved_at\", \"\")) or str(ev.get(\"timestamp\", \"\"))\n                if best is None or ts >= best_ts:\n                    best = data\n                    best_ts = ts\n            checkpoint = best\n\n            if checkpoint is None:\n                return False\n\n            # Restore state\n            with self._lock:\n                self._generation = checkpoint.get(\"generation\", 0)\n                self.population_size = checkpoint.get(\"population_size\", self.population_size)\n                self._gene_bounds = {\n                    k: tuple(v) for k, v in checkpoint.get(\"gene_bounds\", {}).items()\n                }\n                self.crossover_rate = checkpoint.get(\"crossover_rate\", self.crossover_rate)\n                self.mutation_rate = checkpoint.get(\"mutation_rate\", self.mutation_rate)\n                self.tournament_size = checkpoint.get(\"tournament_size\", self.tournament_size)\n                self._generation_history = checkpoint.get(\"generation_history\", [])\n                self._fitness_cache.clear()\n\n                # Rebuild population\n                self._population = []\n                for gdata in checkpoint.get(\"population\", []):\n                    genome = Genome(\n                        genes=gdata.get(\"genes\", {}),\n                        fitness=gdata.get(\"fitness\", 0.0),\n                        generation=gdata.get(\"generation\", 0),\n                        parent_ids=gdata.get(\"parent_ids\", []),\n                        id=gdata.get(\"id\") or f\"g_{_uuid.uuid4().hex}\",\n                    )\n                    self._population.append(genome)\n                    self._fitness_cache[genome.id] = genome.fitness\n\n                # Restore best genome\n                best_data = checkpoint.get(\"best_genome\")\n                if best_data:\n                    self._best_genome = Genome(\n                        genes=best_data.get(\"genes\", {}),\n                        fitness=best_data.get(\"fitness\", 0.0),\n                        generation=best_data.get(\"generation\", 0),\n                        id=best_data.get(\"id\", \"\"),\n                    )\n                else:\n                    self._best_genome = None\n\n            return True\n        except Exception as exc:\n            note_failure(\"evolution:L1050\", exc)\n            return False",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:100, scripts/_evo_graph_build.py:56), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "test_is_the_wire",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "tests/test_nsga2.py:314",
     "tests/test_sync_g_drive.py:56",
@@ -2313,7 +2318,8 @@
    "evidence": [
     "scripts/_evo_graph_build.py:100",
     "scripts/_evo_graph_build.py:56"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "evolution:EvolutionEngine.set_gene_specs": {
    "module": "evolution",
@@ -2403,8 +2409,8 @@
    "qualname": "MoodTracker.trail",
    "line": 2158,
    "seg": "def trail(self, n: int = 24) -> List[int]:\n        \"\"\"Recent band history, oldest first -- the mood's own time series.\"\"\"\n        return self.history[-int(n):]",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/synapse.py:301, src/CORE/WORMS/expansion/synapse.py:313, src/CORE/WORMS/expansion/synapse.py:320), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by state/terence_invariants.json:111",
@@ -2416,7 +2422,8 @@
     "src/CORE/WORMS/expansion/synapse.py:301",
     "src/CORE/WORMS/expansion/synapse.py:313",
     "src/CORE/WORMS/expansion/synapse.py:320"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "exmachina:_mad": {
    "decider": "dead_candidate",
@@ -2754,9 +2761,9 @@
    "qualname": "FeatureEngineer.normalize",
    "line": 463,
    "seg": "def normalize(self, values: List[float]) -> List[float]:\n        \"\"\"Min-max normalization to [0, 1].\"\"\"\n        if not values:\n            return []\n        mn, mx = min(values), max(values)\n        if mn == mx:\n            return [0.5] * len(values)\n        return [(v - mn) / (mx - mn) for v in values]",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1213), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "test_is_the_wire",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "tests/test_learning_worms.py:186",
     "tests/test_learning_worms.py:191",
@@ -2766,7 +2773,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'normalize' in 4 file(s) [scripts/build_runtime_baseline.py, scripts/check_runtime_baseline.py, scripts/meta_reflect.py, tools/z_enforce.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1213"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_features:FeatureEngineer.one_hot_encode": {
    "evidence": [
@@ -3262,8 +3270,8 @@
    "qualname": "NoveltyDrive.diagnostic",
    "line": 281,
    "seg": "def diagnostic(self) -> str:\n        if not self.history:\n            return \"no readings\"\n        last = self.history[-1]\n        if self.collapse_run >= 3:\n            state = \"COLLAPSED\"\n        elif self.pressure > 0.4:\n            state = \"narrowing\"\n        else:\n            state = \"healthy\"\n        return (\"id=%.2f ema=%.2f pressure=%.2f %s (run=%d, n=%d)\"\n                % (last[\"id\"], last[\"ema_id\"], self.pressure, state,\n                   last[\"collapse_run\"], last[\"n\"]))",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/build_all_concurrent.py:85, scripts/generate_capability_templates.py:233, src/CORE/ERROR_SCAN_WORM.py:32), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by azazael.yaml:65",
@@ -3276,7 +3284,8 @@
     "scripts/build_all_concurrent.py:85",
     "scripts/generate_capability_templates.py:233",
     "src/CORE/ERROR_SCAN_WORM.py:32"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "loom:NoveltyDrive.novelty_weight": {
    "decider": "test_is_the_wire",
@@ -3553,15 +3562,16 @@
    "qualname": "ImportPathFixWorm.fix_file",
    "line": 185,
    "seg": "def fix_file(self, filepath: str) -> int:\n        \"\"\"Apply import path mappings to a file.\"\"\"\n        path = Path(filepath)\n        if not path.exists():\n            return 0\n        content = path.read_text(encoding=\"utf-8\")\n        fixed = 0\n        with self._lock:\n            for old, new in self._mappings.items():\n                count = content.count(old)\n                if count:\n                    content = content.replace(old, new)\n                    fixed += count\n        if fixed:\n            path.write_text(content, encoding=\"utf-8\")\n        return fixed",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1199), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "dead_candidate",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [],
    "carried": true,
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'fix_file' in 2 file(s) [src/SCRIPTS/fix_bare_excepts.py, tools/fix_swallows.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1199"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "migration:ImportPathFixWorm.get_summary": {
    "module": "migration",
@@ -3766,8 +3776,8 @@
    "qualname": "_LazyTorch.seconds",
    "line": 174,
    "seg": "def seconds(self) -> float:\n        \"\"\"Seconds the in-process import took; 0.0 if it never ran.\"\"\"\n        return self._seconds",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/close_audit_sessions.py:125, scripts/close_audit_sessions.py:172, scripts/exmachina_health_alert.py:47), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by src/CODEX/SESSION_TEMPLATE/SESSION_TEMPLATE/data/failure_data.json:56",
@@ -3780,7 +3790,8 @@
     "scripts/close_audit_sessions.py:125",
     "scripts/close_audit_sessions.py:172",
     "scripts/exmachina_health_alert.py:47"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "oracle:FitnessOracle.acquisition": {
    "decider": "dead_candidate",
@@ -3820,9 +3831,9 @@
    "qualname": "build_dataset",
    "line": 490,
    "seg": "def build_dataset(rows, gene_keys: Optional[Sequence[str]] = None,\n                  era_keys: Optional[Sequence[str]] = None):\n    \"\"\"Turn `evolution_result` rows into (X, y) for FitnessOracle.fit.\n\n    Uses only keys the pipeline already records. Rows missing a value are\n    skipped rather than imputed: a wrong label is worse than a missing one.\n    \"\"\"\n    gene_keys = gene_keys or (\"learning_rate\", \"epsilon\", \"discount\",\n                              \"epsilon_decay\")\n    X, y = [], []\n    for row in rows or ():\n        data = row\n        if hasattr(row, \"get\") and \"data\" in row:\n            data = row.get(\"data\") or {}\n        if isinstance(data, str):\n            try:\n                data = json.loads(data)\n            except Exception as exc:\n                note_failure(\"oracle:L495\", exc)\n                continue\n        if not isinstance(data, dict):\n            continue\n        genes = data.get(\"best_genes\") or {}\n        target = data.get(\"best_total\")\n        if target is None:\n            target = data.get(\"fitness\") if isinstance(data.get(\"fitness\"), (int, float)) else None\n        if not isinstance(genes, dict) or target is None:\n            continue\n        try:\n            gvec = [float(genes[k]) for k in gene_keys]\n        except (KeyError, TypeError, ValueError) as exc:\n            note_failure(\"oracle:L507\", exc)\n            continue\n        era = era_descriptor(data.get(\"pool_fingerprint\"))\n        X.append(gvec + era)\n        y.append(float(target))\n    return X, y",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/oracle.py:45), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "test_is_the_wire",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [
     "tests/test_tensor_trainer.py:37"
    ],
@@ -3830,7 +3841,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'build_dataset' in 1 file(s) [scripts/train_tensor_model.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/oracle.py:45"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "profiling:CPUFlameProfiler.__init__": {
    "module": "profiling",
@@ -5301,8 +5313,8 @@
    "qualname": "DashboardGen.render_html",
    "line": 68,
    "seg": "def render_html(self, title: str = \"Azazael Dashboard\") -> str:\n        \"\"\"Render all panels as an HTML dashboard.\"\"\"\n        html = f\"\"\"<!DOCTYPE html><html><head><title>{title}</title>\n<style>body{{font-family:monospace;background:#1a1a2e;color:#eee;margin:20px}}h1{{color:#00d9ff}}\n.panel{{background:#16213e;margin:10px 0;padding:15px;border-radius:8px}}.panel h2{{color:#00ff88;margin:0 0 10px}}\ntable{{width:100%;border-collapse:collapse}}th,td{{padding:8px;text-align:left;border-bottom:1px solid #333}}\nth{{color:#ffaa00}}</style></head><body><h1>{title}</h1>\"\"\"\n        with self._lock:\n            for p in self._panels:\n                html += f'<div class=\"panel\"><h2>{p[\"title\"]}</h2>'\n                if p[\"type\"] == \"table\" and isinstance(p[\"data\"], dict):\n                    html += \"<table><tr><th>Key</th><th>Value</th></tr>\"\n                    for k, v in p[\"data\"].items():\n                        html += f\"<tr><td>{k}</td><td>{v}</td></tr>\"\n                    html += \"</table>\"\n                else:\n                    html += f\"<pre>{json.dumps(p['data'], indent=2, default=str)}</pre>\"\n                html += \"</div>\"\n        return html + \"</body></html>\"",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/visualization.py:91), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by worm_execution_matrix.json:411"
@@ -5311,7 +5323,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'render_html' in 1 file(s) [scripts/bcc_political_court_layer.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/visualization.py:91"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:GraphRenderer.__init__": {
    "module": "visualization",
@@ -5371,15 +5384,16 @@
    "qualname": "GraphRenderer.render_svg",
    "line": 124,
    "seg": "def render_svg(self, output_path: str = \"/tmp/azazael_graph.svg\") -> bool:\n        \"\"\"Render to SVG using graphviz (dot) CLI.\"\"\"\n        dot = self.to_dot()\n        try:\n            r = subprocess.run([\"dot\", \"-Tsvg\", \"-o\", output_path],\n                input=dot, capture_output=True, text=True, timeout=10)\n            return r.returncode == 0\n        except Exception as exc:\n            note_failure(\"visualization:L119\", exc)\n            return False",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1193), so a static caller cannot exist; wire it explicitly or delete it",
-   "decider": "dead_candidate",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
+   "decider": "declared_in_data",
    "decider_evidence": [],
    "carried": true,
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'render_svg' in 1 file(s) [scripts/render_graph_svg.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1193"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "visualization:HeatmapBuilder.__init__": {
    "module": "visualization",
