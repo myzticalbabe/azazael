@@ -90,7 +90,7 @@ class DependencyAuditor:
         try:
             r = subprocess.run(
                 [sys.executable, "-m", "pip", "check"],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             conflicts = []
             for line in r.stdout.split("\n") + r.stderr.split("\n"):
@@ -478,7 +478,7 @@ class PackageLicenseChecker:
         try:
             r = subprocess.run(
                 [sys.executable, "-m", "pip", "list", "--format", "json"],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             packages = json.loads(r.stdout) if r.returncode == 0 else []
         except Exception as exc:
@@ -490,7 +490,7 @@ class PackageLicenseChecker:
             try:
                 r = subprocess.run(
                     [sys.executable, "-m", "pip", "show", pkg["name"]],
-                    capture_output=True, text=True, timeout=10,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10,
                 )
                 for line in r.stdout.split("\n"):
                     if line.startswith("License:"):
@@ -532,7 +532,7 @@ class SecurityAuditRunner:
         try:
             r = subprocess.run(
                 [sys.executable, "-m", "bandit", "-r", target_dir, "-f", "json", "-q"],
-                capture_output=True, text=True, timeout=60,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
             )
             if r.stdout.strip():
                 data = json.loads(r.stdout)
@@ -556,7 +556,7 @@ class SecurityAuditRunner:
             try:
                 cmd = [sys.executable, "-m", "pip_audit", "--format", "json"] if tool == "pip-audit" else \
                       [sys.executable, "-m", "safety", "check", "--json"]
-                r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
                 if r.returncode != 0 and r.stdout.strip():
                     findings.extend(json.loads(r.stdout) if isinstance(json.loads(r.stdout), list) else [])
             except Exception as exc:
