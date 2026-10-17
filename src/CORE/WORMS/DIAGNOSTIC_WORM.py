@@ -173,7 +173,7 @@ class DiagnosticWorm:
             result = subprocess.run(
                 [str(VENV_PYTHON), "-c", code],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=30,
                 cwd=str(AZAAZEL_ROOT),
                 env=env,

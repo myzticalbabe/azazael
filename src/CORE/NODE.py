@@ -120,7 +120,7 @@ class AzazaelNode:
                 result = subprocess.run(
                     [str(VENV_PYTHON), "-c", code],
                     capture_output=True,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     timeout=30,
                 )
                 version = result.stdout.strip() or result.stderr.strip()

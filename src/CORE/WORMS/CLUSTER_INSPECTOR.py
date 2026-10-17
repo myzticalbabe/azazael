@@ -141,7 +141,7 @@ class EnvironmentalVariableInspector:
             if os.path.exists(pypath):
                 try:
                     result = subprocess.run(
-                        [pypath, "--version"], capture_output=True, text=True, timeout=5
+                        [pypath, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5
                     )
                     if result.returncode != 0:
                         issues.append(

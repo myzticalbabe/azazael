@@ -264,7 +264,7 @@ def _nm_linux(path: Path, demangle: bool = False) -> list[SymbolEntry]:
         if demangle:
             cmd.append("--demangle")
         cmd.append(str(path))
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         for line in proc.stdout.splitlines():
             line = line.strip()
             if not line:
@@ -302,7 +302,7 @@ def _nm_external(path: Path) -> list[SymbolEntry]:
     symbols = []
     for cmd_name in [["nm", str(path)], ["dumpbin", "/EXPORTS", str(path)], ["objdump", "-T", str(path)]]:
         try:
-            proc = subprocess.run(cmd_name, capture_output=True, text=True, timeout=30)
+            proc = subprocess.run(cmd_name, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if proc.returncode == 0:
                 for line in proc.stdout.splitlines():
                     parts = line.split()
