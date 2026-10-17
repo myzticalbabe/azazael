@@ -46,13 +46,13 @@ class OrkGIntegration:
     and openalex_integration.py.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, db_path=None, **kwargs):
         """Initialize ORKG integration.
 
         Note: This is a reference implementation. In production, this would
         need ORKG API credentials and authentication setup.
         """
-        pass
+        self.db_path = db_path
 
     def _extract_keywords_from_title_abstract(self, title: str, abstract: str) -> List[str]:
         """Extract simple keywords from paper title + abstract.
@@ -108,7 +108,7 @@ class OrkGIntegration:
         try:
             from CORE.local_memory import LocalMemoryStore
 
-            store = LocalMemoryStore()
+            store = LocalMemoryStore(db_path=self.db_path)
 
             # Build embedding from title + abstract keywords
             keywords = self._extract_keywords_from_title_abstract(
@@ -211,7 +211,7 @@ class OrkGIntegration:
         """
         from CORE.local_memory import LocalMemoryStore
 
-        store = LocalMemoryStore()
+        store = LocalMemoryStore(db_path=self.db_path)
 
         conn = store._get_conn()
         try:
@@ -264,21 +264,24 @@ class OrkGIntegration:
         """
         from CORE.local_memory import LocalMemoryStore
 
-        store = LocalMemoryStore()
+        store = LocalMemoryStore(db_path=self.db_path)
 
         # Get knowledge_patterns stats from the store
         kp_stats = store.get_knowledge_graph_stats()
 
         # Add ORKG-specific stats
+        conn = None
         try:
             conn = store._get_conn()
             orkg_count = conn.execute(
                 "SELECT COUNT(*) as n FROM knowledge_patterns WHERE source = 'orkg_integration'"
             ).fetchone()["n"]
-            conn.close()
             kp_stats["orkg_integration_count"] = orkg_count
         except Exception:
             kp_stats["orkg_integration_count"] = 0
+        finally:
+            if conn is not None:
+                conn.close()
 
         return kp_stats
 
