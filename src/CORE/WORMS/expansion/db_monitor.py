@@ -89,6 +89,9 @@ class DbHealthSnapshot:
     current_session: str
     storage_backend: str  # "sqlite" or "postgres"
     healthy: bool
+    # Additive 2026-10-17: critical-severity 7d count was invisible to health.
+    # Trailing + default so all existing positional/keyword constructions keep working.
+    critical_count_7d: int = 0
 
 
 @dataclass
@@ -281,6 +284,7 @@ class DatabaseMonitorWorm:
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 db_size_mb=0.0, total_memories=0, total_sessions=0,
                 memory_growth_24h=0, error_count_7d=0, warning_count_7d=0,
+                critical_count_7d=0,
                 sources_count=0, event_types_count=0,
                 auto_vacuum_running=False, current_session="",
                 storage_backend=self._get_store_backend(), healthy=False,
@@ -296,8 +300,11 @@ class DatabaseMonitorWorm:
             real = store.query_real_errors(
                 days=7, limit=500,
                 exclude_sources=self._SELF_EXCLUDE_SOURCES)
-            error_count = real.get("total_errors_exact", 0)
-            warning_count = real.get("total_warnings_exact", 0)
+            error_count = real.get("total_errors_exact", real.get("total_errors", 0))
+            warning_count = real.get("total_warnings_exact", real.get("total_warnings", 0))
+            # Additive 2026-10-17: criticals were invisible to health; .get keeps
+            # old stores/dicts (no key) reading as 0.
+            critical_count = real.get("total_criticals_exact", real.get("total_criticals", 0))
 
             # Get daily growth (actual 24h count, not a projection)
             growth = store.get_db_growth(days=1)
@@ -321,6 +328,8 @@ class DatabaseMonitorWorm:
                 healthy = False
             if error_count >= self.WARN_ERRORS_7D:
                 healthy = False
+            if critical_count > 0:
+                healthy = False  # additive 2026-10-17: any critical is unhealthy
             if not integrity_ok:
                 healthy = False  # DB corruption always marks unhealthy
 
@@ -332,6 +341,7 @@ class DatabaseMonitorWorm:
                 memory_growth_24h=growth_24h,
                 error_count_7d=error_count,
                 warning_count_7d=warning_count,
+                critical_count_7d=critical_count,
                 sources_count=len(sources),
                 event_types_count=len(event_types),
                 auto_vacuum_running=vacuum_running,
@@ -376,6 +386,15 @@ class DatabaseMonitorWorm:
                     metric="db_size_mb", value=db_size, threshold=self.WARN_DB_SIZE_MB,
                 )
 
+            # Critical-severity rows get their own alert (additive 2026-10-17):
+            # previously they were counted nowhere, so a host-down storm was silent.
+            if critical_count > 0:
+                self._add_alert(
+                    severity="critical",
+                    message=f"{critical_count} critical-severity rows in last 7 days",
+                    metric="critical_count_7d", value=critical_count, threshold=1,
+                )
+
             # Check error thresholds
             if error_count >= self.CRITICAL_ERRORS_7D:
                 self._add_alert(
@@ -413,6 +432,7 @@ class DatabaseMonitorWorm:
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 db_size_mb=0.0, total_memories=0, total_sessions=0,
                 memory_growth_24h=0, error_count_7d=0, warning_count_7d=0,
+                critical_count_7d=0,
                 sources_count=0, event_types_count=0,
                 auto_vacuum_running=False, current_session="",
                 storage_backend=self._get_store_backend(), healthy=False,
@@ -736,6 +756,7 @@ class DatabaseMonitorWorm:
                     "db_size_mb": s.db_size_mb,
                     "total_memories": s.total_memories,
                     "healthy": s.healthy,
+                    "criticals_7d": getattr(s, "critical_count_7d", 0),
                 }
                 for s in recent_snapshots
             ],
@@ -769,6 +790,7 @@ class DatabaseMonitorWorm:
             "growth_24h": snapshot.memory_growth_24h,
             "errors_7d": snapshot.error_count_7d,
             "warnings_7d": snapshot.warning_count_7d,
+            "criticals_7d": getattr(snapshot, "critical_count_7d", 0),
             "sources": snapshot.sources_count,
             "event_types": snapshot.event_types_count,
             "auto_vacuum": snapshot.auto_vacuum_running,

@@ -778,39 +778,46 @@ class PostgresMemoryStore:
     # -- Interface Compatibility Methods ---------------------------------
 
     def query_real_errors(self, days: int = 7, limit: int = 100) -> Dict[str, Any]:
-        """Query real errors/warnings, excluding known test artifacts.
+        """Query real errors/warnings/criticals, excluding known test artifacts.
 
-        Now has full parity with LocalMemoryStore.query_real_errors.
+        Now has full parity with LocalMemoryStore.query_real_errors
+        (2026-10-17: 'criticals' + exact totals added additively).
         """
         if days <= 0:
             return {
-                "errors": [], "warnings": [],
-                "total_errors": 0, "total_warnings": 0,
+                "errors": [], "warnings": [], "criticals": [],
+                "total_errors": 0, "total_warnings": 0, "total_criticals": 0,
                 "filtered_errors": 0, "filtered_warnings": 0,
+                "filtered_criticals": 0,
             }
         all_errors = self.query_memories(severity="error", max_age_days=days, limit=limit * 2)
         all_warnings = self.query_memories(severity="warning", max_age_days=days, limit=limit * 2)
+        all_criticals = self.query_memories(severity="critical", max_age_days=days, limit=limit * 2)
 
         real_errors = [e for e in all_errors if not self._is_test_artifact(e)]
         real_warnings = [w for w in all_warnings if not self._is_test_artifact(w)]
+        real_criticals = [c for c in all_criticals if not self._is_test_artifact(c)]
 
         return {
             "errors": real_errors[:limit],
             "warnings": real_warnings[:limit],
+            "criticals": real_criticals[:limit],
             "total_errors": len(real_errors),
             "total_warnings": len(real_warnings),
+            "total_criticals": len(real_criticals),
             "filtered_errors": len(all_errors) - len(real_errors),
             "filtered_warnings": len(all_warnings) - len(real_warnings),
+            "filtered_criticals": len(all_criticals) - len(real_criticals),
         }
 
     def get_error_trends(self, days: int = 30) -> List[Dict]:
-        """Get daily error/warning counts for trend analysis."""
+        """Get daily error/warning/critical counts (additive 'criticals', 2026-10-17)."""
         conn = self._get_conn()
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     "SELECT date(timestamp) as day, severity, COUNT(*) as cnt "
-                    "FROM memories WHERE severity IN ('error', 'warning') "
+                    "FROM memories WHERE severity IN ('error', 'warning', 'critical') "
                     "AND timestamp > NOW() - INTERVAL '%s days' "
                     "GROUP BY day, severity ORDER BY day",
                     (str(days),)
@@ -823,11 +830,14 @@ class PostgresMemoryStore:
         for r in rows:
             day = r["day"]
             if day not in trend:
-                trend[day] = {"date": day, "errors": 0, "warnings": 0}
+                trend[day] = {"date": day, "errors": 0, "warnings": 0,
+                              "criticals": 0}
             if r["severity"] == "error":
                 trend[day]["errors"] = r["cnt"]
             elif r["severity"] == "warning":
                 trend[day]["warnings"] = r["cnt"]
+            elif r["severity"] == "critical":
+                trend[day]["criticals"] = r["cnt"]
 
         return sorted(trend.values(), key=lambda d: d["date"])
     def get_db_growth(self, days: int = 30) -> List[Dict]:
