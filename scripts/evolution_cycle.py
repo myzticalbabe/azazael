@@ -3394,6 +3394,26 @@ def main(crossover_operator=None, mutation_operator=None,
                 'margin_now': margin_now,
                 'canary': canary_report if canary_report else None,
             },
+            # Promotion-input instrument (#965 follow-up): the full
+            # conjunction at the promotion `if` (beats/beats_anchor/
+            # _adaptive_ok/sprt_ok/pareto_ok/holdout/oracle/morph/arm-veto/
+            # integrity-veto). tail_gates covers 4 of them; these are the
+            # rest, so a green row that still does not promote names its
+            # blocker. Additive only; no decision changed.
+            'promotion_inputs': {
+                'beats': bool(beats),
+                'beats_anchor': bool(beats_anchor),
+                'sprt_ok': bool(sprt_ok),
+                'pareto_ok': bool(pareto_ok),
+                'arm_veto_cfg': bool(FITNESS_ARM_VETO),
+                'arms_live': bool(_arms_live),
+                'dead_arms': list(_dead_arms or []),
+                'arm_veto_active': bool(FITNESS_ARM_VETO
+                                       and not _arms_live),
+                'integrity_veto_cfg': bool(LOOP_INTEGRITY_VETO),
+                'integrity_veto_active': bool(_integrity
+                                             and LOOP_INTEGRITY_VETO),
+            },
             'git_sha': _git_sha(),
         }, tags=['evolution', 'artifact'])
 
