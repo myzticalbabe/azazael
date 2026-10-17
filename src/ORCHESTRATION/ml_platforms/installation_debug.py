@@ -241,7 +241,7 @@ class InstallationDebugger:
         cmd.append(package_name)
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace")
             return result.returncode == 0
         except subprocess.TimeoutExpired as exc:
             note_failure("installation_debug:L235", exc)

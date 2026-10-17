@@ -40,7 +40,7 @@ def run_pip_install(packages):
     """Install packages with pip."""
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade"] + packages
     print(f"  OK: {' '.join(packages)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode == 0:
         print("  [OK]")
     else:

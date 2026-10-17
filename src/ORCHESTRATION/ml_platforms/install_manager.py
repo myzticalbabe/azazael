@@ -162,7 +162,7 @@ class UnifiedInstaller:
         try:
             # cmd is already a list — no need for shell=True
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=600
+                cmd, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace"
             )
             if result.returncode == 0:
                 return True, result.stdout
@@ -241,7 +241,7 @@ class UnifiedInstaller:
                     f"import {package}; print({package}.__version__)",
                 ],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace"
             )
             if result.returncode == 0:
                 return result.stdout.strip()

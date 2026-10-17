@@ -555,7 +555,7 @@ class SystemManagerGUI:
         return installations
 
     def _get_processes(self) -> list[dict]:
-        result = subprocess.run("tasklist /FO CSV /NH", capture_output=True, text=True)
+        result = subprocess.run("tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace")
         processes = []
         for line in result.stdout.split("\n"):
             if line.strip():
