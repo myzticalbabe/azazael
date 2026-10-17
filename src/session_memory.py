@@ -492,7 +492,7 @@ class SessionMemory:
             try:
                 r = _sp.run(
                     [sys.executable, str(dashboard_script)],
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                     cwd=str(workspace.parent),
                 )
                 if r.returncode == 0:
@@ -509,7 +509,7 @@ class SessionMemory:
             try:
                 r = _sp.run(
                     [sys.executable, str(readme_script)],
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                     cwd=str(workspace.parent),
                 )
                 if r.returncode == 0:
