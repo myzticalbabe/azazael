@@ -175,6 +175,16 @@ if [ -f "$SCRIPT_DIR/tools/paradigm_gate.py" ]; then
     fi
 fi
 
+# NOTE: the RULE 0B-E commit-message claim guard lives in
+# .githooks/prepare-commit-msg, NOT here. It was first written into this file
+# and MEASURED BROKEN: `git commit -m` writes .git/COMMIT_EDITMSG *after*
+# pre-commit runs, so the check read a stale file, passed, and an overclaiming
+# message ("this is done, nothing was modified, this passes") landed as
+# 94970d9e before the fault was found. prepare-commit-msg receives the message
+# file as $1 and runs BEFORE this hook, so it sees the real text. A guard that
+# reads the wrong file is worse than no guard -- it manufactures false
+# confidence, which is the exact defect class RULE 0B-E exists to stop.
+
 # ─── Check 6 (non-blocking): PMB outcome observer ───
 # A commit is an outcome-bearing turn. Recording it here feeds PMB's
 # Earned-Memory loop (`lesson_impact`) and its adherence pass, both of which

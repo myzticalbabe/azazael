@@ -214,21 +214,43 @@ def selftest() -> int:
     return 1 if fails else 0
 
 
+def _strip_git_comments(text: str) -> str:
+    """Drop git's comment scaffolding from a commit message.
+
+    `.git/COMMIT_EDITMSG` carries the template's own `#` guidance lines, which
+    are stripped by git before the message is stored. They are not the author's
+    prose, so scanning them would flag the template rather than the author. A
+    `#` only opens a comment at the start of a line (or after leading space),
+    so a `#` inside a code fence or a word like `fixes #123` survives.
+    """
+    out = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("#"):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--text")
     ap.add_argument("--file")
+    ap.add_argument("--commit-msg", metavar="FILE",
+                    help="scan a commit message, stripping git's # comment lines")
     ap.add_argument("--report", help="what the user just said, for defence-detection")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
-    if a.file:
+    if a.commit_msg:
+        text = _strip_git_comments(
+            open(a.commit_msg, encoding="utf-8", errors="replace").read())
+    elif a.file:
         text = open(a.file, encoding="utf-8", errors="replace").read()
     elif a.text:
         text = a.text
     else:
-        ap.error("--text, --file or --selftest required")
+        ap.error("--text, --file, --commit-msg or --selftest required")
     f = scan(text, a.report or "")
     if not f:
         print("clean -- no RULE 0B-E violation detected")
