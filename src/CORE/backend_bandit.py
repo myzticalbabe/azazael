@@ -35,7 +35,12 @@ class BackendBandit:
         self._hydrate_from_bench()
 
     def _hydrate_from_bench(self):
-        """Seed priors from measured tok/s rows (backend-compare + GO rows)."""
+        """Seed priors from measured tok/s rows (backend-compare + GO rows).
+
+        Throughput is carried as its own annotated quantity (tok_sum, n) and
+        is NEVER folded into the success count: counts and tok/s are different
+        spaces and a Beta posterior cannot tell them apart (unit fusion).
+        """
         try:
             lines = BENCH.read_text().splitlines()
         except Exception as exc:
@@ -53,13 +58,12 @@ class BackendBandit:
                     t = float(r.get(k) or 0)
                     if t > 0:
                         s = self._stats.setdefault((m, b), [0.0, 0.0, 0.0, 0])
-                        s[0] += t  # pseudo-successs proportional to tok/s
+                        # throughput recorded as its own quantity; NOT a pseudo-success
                         s[2] += t
                         s[3] += 1
             elif r.get("status") == "GO" and r.get("tps"):
                 key = (r.get("file", "?")[:30], "cpu")
                 s = self._stats.setdefault(key, [0.0, 0.0, 0.0, 0])
-                s[0] += float(r["tps"])
                 s[2] += float(r["tps"])
                 s[3] += 1
             elif r.get("status") == "GO-VIA-OLLAMA":
@@ -83,24 +87,33 @@ class BackendBandit:
             except Exception as exc:
                 note_failure("backend_bandit:L71", exc)
         cands = {}
-        for (m, b), (s, f, _t, _n) in self._stats.items():
+        for (m, b), (s, f, t, n) in self._stats.items():
             if m in model or model in m:
-                cands.setdefault(b, [0.0, 0.0])
+                if b not in cands:
+                    cands[b] = [0.0, 0.0, 0.0, 0]
                 cands[b][0] += s + self._seed
                 cands[b][1] += f + self._seed
+                cands[b][2] += t
+                cands[b][3] += n
         if not cands:
             return "cpu"  # doctrine default: CPU wins ties on this box
-        draws = {b: self._rng.betavariate(max(1.0, s), max(1.0, f))
-                 for b, (s, f) in cands.items()}
+        draws = {}
+        mean_tps = {}
+        for b, (s, f, t, n) in cands.items():
+            draws[b] = self._rng.betavariate(max(1.0, s), max(1.0, f))
+            mean_tps[b] = t / max(1, n)
         # unseen backends get a small exploration draw
         for b in BACKENDS:
-            draws.setdefault(b, self._rng.betavariate(1.0, 3.0))
-        return max(draws, key=lambda b: draws[b])
+            if b not in draws:
+                draws[b] = self._rng.betavariate(1.0, 3.0)
+                mean_tps[b] = 0.0
+        # throughput (tok/s) is a documented tiebreak only, never the posterior
+        return max(draws, key=lambda b: (draws[b], mean_tps[b]))
 
     def update(self, model: str, backend: str, ok: bool, tps: float = 0.0):
         s = self._stats.setdefault((model[:30], backend), [0.0, 0.0, 0.0, 0])
         if ok:
-            s[0] += 1.0 + min(5.0, tps / 10.0)
+            s[0] += 1.0
         else:
             s[1] += 1.0
         s[2] += tps
