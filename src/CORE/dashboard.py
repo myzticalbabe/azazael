@@ -638,10 +638,12 @@ def render_db_health():
     print()
 
     # ── Real Errors (filtered) ──
-    icon = "[OK]" if real["total_errors"] == 0 else "[!!]"
-    print(f"  Real Errors (last 7d): {icon} {real['total_errors']}")
-    print(f"  Real Warnings (last 7d): {real['total_warnings']}")
-    print(f"  Test artifacts filtered: {real['filtered_errors']} errors, {real['filtered_warnings']} warnings")
+    icon = "[OK]" if real.get("total_errors", 0) == 0 else "[!!]"
+    print(f"  Real Errors (last 7d): {icon} {real.get('total_errors', 0)}")
+    print(f"  Real Warnings (last 7d): {real.get('total_warnings', 0)}")
+    # Additive 2026-10-17: criticals were invisible here; .get keeps old dicts working.
+    print(f"  Real Criticals (last 7d): {real.get('total_criticals', real.get('total_criticals_exact', 0))}")
+    print(f"  Test artifacts filtered: {real.get('filtered_errors', 0)} errors, {real.get('filtered_warnings', 0)} warnings, {real.get('filtered_criticals', 0)} criticals")
     print()
 
     # ── Recent real errors ──
@@ -656,15 +658,16 @@ def render_db_health():
 
     # ── Error Trends ──
     if trends:
-        render_subheader("Error/Warning Trend (30 days)")
-        max_count = max((d.get("errors", 0) + d.get("warnings", 0)) for d in trends) if trends else 1
+        render_subheader("Error/Warning/Critical Trend (30 days)")
+        max_count = max((d.get("errors", 0) + d.get("warnings", 0) + d.get("criticals", 0)) for d in trends) if trends else 1
         for d in trends:
             err = d.get("errors", 0)
             warn = d.get("warnings", 0)
-            total = err + warn
+            crit = d.get("criticals", 0)
+            total = err + warn + crit
             bar_len = min(int(total / max(max_count, 1) * 30), 30) if max_count > 0 else 0
             bar = "#" * bar_len
-            print(f"  {d['date']} | {bar:<30s} | E={err:3d} W={warn:3d}")
+            print(f"  {d['date']} | {bar:<30s} | E={err:3d} W={warn:3d} C={crit:3d}")
         print()
 
     # ── Event Growth ──
@@ -689,7 +692,9 @@ def render_db_health():
 
     if db_size_mb > max_size_warn:
         verdict_txt = "[!!] DB is large (>" + str(round(db_size_mb)) + " MB) -- consider purging old data"
-    elif real["total_errors"] > 10:
+    elif real.get("total_criticals", real.get("total_criticals_exact", 0)) > 0:
+        verdict_txt = "[!!] Critical-severity rows present - investigate immediately"
+    elif real.get("total_errors", 0) > 10:
         verdict_txt = "[!!] High error count - investigate real errors"
     elif not vacuum_status.get("running"):
         verdict_txt = "[..] Auto-vacuum is OFF -- enable for long-running instances"
@@ -724,6 +729,7 @@ def render_db_monitor():
     print(f"  Growth 24h:  {summary.get('growth_24h', 0)}")
     print(f"  Errors 7d:   {summary.get('errors_7d', 0)}")
     print(f"  Warnings 7d: {summary.get('warnings_7d', 0)}")
+    print(f"  Criticals 7d:{summary.get('criticals_7d', 0)}")
     print(f"  Sources:     {summary.get('sources', 0)}")
     print(f"  Events:      {summary.get('event_types', 0)}")
     print(f"  Auto-Vacuum: {'[ON]' if summary.get('auto_vacuum', False) else '[OFF]'}")

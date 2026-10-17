@@ -1900,19 +1900,27 @@ class LocalMemoryStore:
         """
         if days <= 0:
             return {
-                "errors": [], "warnings": [],
-                "total_errors": 0, "total_warnings": 0,
+                "errors": [], "warnings": [], "criticals": [],
+                "total_errors": 0, "total_warnings": 0, "total_criticals": 0,
                 "total_errors_exact": 0, "total_warnings_exact": 0,
+                "total_criticals_exact": 0,
                 "capped": False,
                 "filtered_errors": 0, "filtered_warnings": 0,
+                "filtered_criticals": 0,
             }
         all_errors = self.query_memories(severity="error", max_age_days=days,
                                          limit=limit * 2, exclude_sources=exclude_sources)
         all_warnings = self.query_memories(severity="warning", max_age_days=days,
                                            limit=limit * 2, exclude_sources=exclude_sources)
+        # Additive gap hunt (2026-10-17): severity=critical rows (berks
+        # host-down/TLS alerts) were invisible to this query — error+warning
+        # only. New 'criticals' key; error/warning paths untouched.
+        all_criticals = self.query_memories(severity="critical", max_age_days=days,
+                                            limit=limit * 2, exclude_sources=exclude_sources)
 
         real_errors = [e for e in all_errors if not self._is_test_artifact(e)]
         real_warnings = [w for w in all_warnings if not self._is_test_artifact(w)]
+        real_criticals = [c for c in all_criticals if not self._is_test_artifact(c)]
 
         # Exact totals with the same predicates (sample lists above are
         # fetch-capped at 500 rows by query_memories, so len() is a floor).
@@ -1931,19 +1939,26 @@ class LocalMemoryStore:
             total_warnings_exact = conn.execute(
                 f"SELECT COUNT(*) FROM memories WHERE {where}",
                 ["warning", cutoff, *(exclude_sources or [])]).fetchone()[0]
+            total_criticals_exact = conn.execute(
+                f"SELECT COUNT(*) FROM memories WHERE {where}",
+                ["critical", cutoff, *(exclude_sources or [])]).fetchone()[0]
         finally:
             conn.close()
 
         return {
             "errors": real_errors[:limit],
             "warnings": real_warnings[:limit],
+            "criticals": real_criticals[:limit],
             "total_errors": len(real_errors),
             "total_warnings": len(real_warnings),
+            "total_criticals": len(real_criticals),
             "total_errors_exact": total_errors_exact,
             "total_warnings_exact": total_warnings_exact,
-            "capped": len(all_errors) >= 500 or len(all_warnings) >= 500,
+            "total_criticals_exact": total_criticals_exact,
+            "capped": len(all_errors) >= 500 or len(all_warnings) >= 500 or len(all_criticals) >= 500,
             "filtered_errors": len(all_errors) - len(real_errors),
             "filtered_warnings": len(all_warnings) - len(real_warnings),
+            "filtered_criticals": len(all_criticals) - len(real_criticals),
         }
 
     @staticmethod
@@ -1981,7 +1996,7 @@ class LocalMemoryStore:
         qr = self.query_real_errors(days=days, limit=limit,
                                     exclude_sources=exclude_sources)
         clusters: Dict[tuple, Dict[str, Any]] = {}
-        for sev_key in ("errors", "warnings"):
+        for sev_key in ("errors", "warnings", "criticals"):
             for m in qr.get(sev_key, []):
                 key = (m.get("source", "?"), m.get("severity", "?"),
                        self._triage_signature(m))
@@ -2006,26 +2021,33 @@ class LocalMemoryStore:
             "window_days": days,
             "total_errors_exact": qr.get("total_errors_exact", 0),
             "total_warnings_exact": qr.get("total_warnings_exact", 0),
+            "total_criticals_exact": qr.get("total_criticals_exact", 0),
             "capped": qr.get("capped", False),
             "filtered_errors": qr.get("filtered_errors", 0),
             "filtered_warnings": qr.get("filtered_warnings", 0),
+            "filtered_criticals": qr.get("filtered_criticals", 0),
             "cluster_count": len(ranked),
             "clusters": ranked[:25],
         }
 
     def get_error_trends(self, days: int = 30) -> List[Dict]:
-        """Get daily error/warning counts for trend analysis.
+        """Get daily error/warning/critical counts for trend analysis.
 
         Args:
             days: Number of days to look back.
 
         Returns:
-            List of daily counts: [{"date": "...", "errors": N, "warnings": M}, ...]
+            List of daily counts: [{"date": "...", "errors": N, "warnings": M,
+            "criticals": K}, ...]. The 'criticals' key is additive
+            (2026-10-17): error/warning keys and values are unchanged so
+existing
+            callers keep their shape; critical rows were previously dropped
+            from the WHERE filter.
         """
         conn = self._get_conn()
         rows = conn.execute(
             "SELECT date(timestamp) as day, severity, COUNT(*) as cnt "
-            "FROM memories WHERE severity IN ('error', 'warning') "
+            "FROM memories WHERE severity IN ('error', 'warning', 'critical') "
             "AND timestamp > ? "
             "GROUP BY day, severity ORDER BY day",
             ((datetime.now(timezone.utc) - timedelta(days=days)).isoformat(),)
@@ -2037,11 +2059,14 @@ class LocalMemoryStore:
         for r in rows:
             day = r["day"]
             if day not in trend:
-                trend[day] = {"date": day, "errors": 0, "warnings": 0}
+                trend[day] = {"date": day, "errors": 0, "warnings": 0,
+                              "criticals": 0}
             if r["severity"] == "error":
                 trend[day]["errors"] = r["cnt"]
             elif r["severity"] == "warning":
                 trend[day]["warnings"] = r["cnt"]
+            elif r["severity"] == "critical":
+                trend[day]["criticals"] = r["cnt"]
 
         return sorted(trend.values(), key=lambda d: d["date"])
 
