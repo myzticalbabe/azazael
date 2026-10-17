@@ -4,7 +4,7 @@ from collections import Counter
 
 result = subprocess.run(
     ["npx", "pyright", "src/ORCHESTRATION/"],
-    capture_output=True, text=True, shell=True, timeout=120
+    capture_output=True, text=True, encoding="utf-8", errors="replace", shell=True, timeout=120
 )
 
 file_counts = Counter()
