@@ -137,6 +137,7 @@ _MEMORY_DB_RESOLVERS = (
     ("CORE.local_memory", "_get_store_path", "DB_PATH"),
     ("CORE.record_session", "_get_db_path", "DB_PATH"),
     ("CORE.MemoryBus", "_get_memorybus_db_path", "_MEMORYBUS_DB_PATH"),
+    ("CORE.PamsRecorder", "_get_db_path", "DB_PATH"),
 )
 
 #: Modules that cache MORE than one value from the env dir. The third element

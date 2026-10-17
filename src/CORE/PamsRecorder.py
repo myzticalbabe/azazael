@@ -94,6 +94,23 @@ PAMS_DB_DIR = os.environ.get(
 )
 RECORDINGS_DB = os.path.join(PAMS_DB_DIR, "conversations.db")
 
+# -- Memory-dir-aware DB path (conftest rebind target) --------------------
+# PamsRecorder instantiates LocalMemoryStore() lazily; without its own cached
+# path derived from AZAZAEL_MEMORY_DIR it cannot be rebound by the test
+# harness, so writes leak to the production store. Mirror the shape used by
+# CORE.direct_memory / CORE.local_memory so conftest can restore it.
+def _get_db_path() -> "Path":
+    env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
+    if env_dir:
+        base = Path(env_dir)
+    else:
+        base = Path.home() / ".azazael"
+    base.mkdir(parents=True, exist_ok=True)
+    return base / "memory_store.db"
+
+
+DB_PATH = _get_db_path()
+
 
 class PamsRecorder:
     """
@@ -288,7 +305,7 @@ class PamsRecorder:
 
         if LOCAL_MEMORY_OK and LocalMemoryStore is not None:
             try:
-                self._local_store = LocalMemoryStore()
+                self._local_store = LocalMemoryStore(db_path=str(DB_PATH))
                 self._local_ok = True
                 # Flush any old fallback buffer into local store
                 self._migrate_fallback_to_local()
