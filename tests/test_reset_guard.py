@@ -34,7 +34,7 @@ import reset_guard as rg  # noqa: E402
 
 def _git(repo: Path, *args: str) -> None:
     subprocess.run(["git", *args], cwd=str(repo), check=True,
-                   capture_output=True, text=True)
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 @pytest.fixture
@@ -220,7 +220,7 @@ def test_the_installed_alias_is_a_name_git_will_actually_run(repo, capsys):
 
     stored = subprocess.run(["git", "config", "--get",
                              f"alias.{rg.ALIAS_NAME}"],
-                            cwd=str(repo), capture_output=True, text=True)
+                            cwd=str(repo), capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert stored.returncode == 0, "the alias was not stored"
     assert stored.stdout.strip().startswith("!"), (
         "a `!` alias is what runs a shell command; anything else is a git "

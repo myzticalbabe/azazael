@@ -166,7 +166,7 @@ class TestASTAntiPatternScanner:
             [sys.executable, "src/CORE/compliance/scanner.py",
              "--report", "--dir", "src/CORE/compliance",
              "--format", "json"],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
             cwd=os.path.join(os.path.dirname(__file__), ".."),
         )
         data = json.loads(result.stdout)
