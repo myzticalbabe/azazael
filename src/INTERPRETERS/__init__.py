@@ -126,7 +126,7 @@ def run_bash(command: str) -> RunResult:
     start = time.time()
     try:
         result = subprocess.run(
-            command, shell=True, capture_output=True, text=True, timeout=30
+            command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return RunResult(
             language="bash",
@@ -161,7 +161,7 @@ def run_javascript(code: str) -> RunResult:
     start = time.time()
     try:
         result = subprocess.run(
-            ["node", temp_path], capture_output=True, text=True, timeout=30
+            ["node", temp_path], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return RunResult(
             language="javascript",
