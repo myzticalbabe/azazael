@@ -28,13 +28,17 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
+# 3.15t production interpreter (python3 previously resolved to 3.13.14
+# WindowsApps — a fourth interpreter). Pin here so every gate runs on 3.15t.
+PYTHON3="C:/Azazael/.venvs/py315t/Scripts/python.exe"
+
 # ─── Check 1: bulk-diff focus gate ───
 # Runs FIRST, on every commit, because the scanner below skips when no .py
 # files are staged -- and bulk dirt is usually docs/data, not code. Focused
 # commits pass; deliberate bulk ops declare ALLOW_BULK_COMMIT=1.
 echo "[Gate] Checking changeset focus..."
-if command -v python3 >/dev/null 2>&1; then
-    python3 scripts/commit_gate.py --hook 2>&1
+if [ -x "$PYTHON3" ]; then
+    "$PYTHON3" scripts/commit_gate.py --hook 2>&1
     if [ $? -ne 0 ]; then
         echo ""
         echo "[Gate] Bulk changeset blocked (see above)."
@@ -42,7 +46,7 @@ if command -v python3 >/dev/null 2>&1; then
     fi
     echo "[Gate] Changeset is focused."
 else
-    echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
+    echo "[Gate] 3.15t python not found -- passing loud (gate unrunnable)"
 fi
 echo ""
 
@@ -197,6 +201,16 @@ if [ -f "$SCRIPT_DIR/tools/pmb_session_observe.py" ]; then
     if [ -x "$PMB_PY" ]; then
         "$PMB_PY" "$SCRIPT_DIR/tools/pmb_session_observe.py" --commit-ok --quiet 2>/dev/null || true
     fi
+fi
+
+# ─── Advisory: transcript AP-5 gate (Engram #1012) ───
+# Scans persisted assistant prose for permission-seeking language (AP-5).
+# Fail-open: a missing/locked store or any error never blocks the commit.
+# Report only — adjudication is human. Runs on 3.15t (pinned above).
+if [ -f "$SCRIPT_DIR/tools/transcript_ap5_gate.py" ]; then
+    echo "[AP5] Scanning persisted assistant prose..."
+    "$PYTHON3" "$SCRIPT_DIR/tools/transcript_ap5_gate.py" --limit 500 2>&1 || true
+    echo ""
 fi
 
 exit 0
