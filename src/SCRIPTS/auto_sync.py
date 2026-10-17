@@ -91,7 +91,7 @@ def run_sync() -> bool:
     try:
         result = subprocess.run(
             [sys.executable, str(SYNC_SCRIPT)],
-            capture_output=True, text=True, timeout=60
+            capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace"
         )
         if result.returncode == 0:
             _LAST_SYNC_TIME = time.strftime("%Y-%m-%d %H:%M:%S")

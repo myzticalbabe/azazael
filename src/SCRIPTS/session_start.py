@@ -64,7 +64,7 @@ def main() -> int:
     try:
         result = subprocess.run(
             [sys.executable, str(sync_script)],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace"
         )
         sync_output = result.stdout.strip()
         if result.returncode == 0:
