@@ -61,7 +61,7 @@ class UVZ:
 
     def _find_uv(self) -> str:
         """Find uv executable."""
-        result = subprocess.run(["where", "uv"], capture_output=True, text=True)
+        result = subprocess.run(["where", "uv"], capture_output=True, text=True, encoding="utf-8", errors="replace")
         if result.returncode == 0:
             return result.stdout.strip().split("\n")[0]
         for path in [
@@ -92,7 +92,7 @@ class UVZ:
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 cwd=cwd or str(Path(__file__).parent.parent),
                 timeout=300,
             )
