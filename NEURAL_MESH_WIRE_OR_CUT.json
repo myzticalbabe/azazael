@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-17T06:40:24.745401",
+ "generated_at": "2026-10-17T08:03:27.010863",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -1416,7 +1416,7 @@
    "module": "container",
    "qualname": "ImageAuditor.audit_image",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def audit_image(self, image: str) -> dict[str, Any]:\n        \"\"\"Audit a single image.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"image\", \"inspect\", image], capture_output=True, text=True, timeout=30)\n            if r.returncode == 0:\n                data = json.loads(r.stdout)[0]\n                audit = {\n                    \"image\": image, \"size_mb\": round(data.get(\"Size\", 0) / (1024**2), 2),\n                    \"layers\": len(data.get(\"RootFS\", {}).get(\"Layers\", [])),\n                    \"created\": data.get(\"Created\", \"\"), \"os\": data.get(\"Os\", \"\"),\n                }\n                self._audits[image] = audit\n                return audit\n        except Exception as e:\n            note_failure(\"container:L161\", e)\n            return {\"image\": image, \"error\": str(e)}\n        return {\"image\": image, \"error\": \"Not found\"}",
+   "seg": "def audit_image(self, image: str) -> dict[str, Any]:\n        \"\"\"Audit a single image.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"image\", \"inspect\", image], capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=30)\n            if r.returncode == 0:\n                data = json.loads(r.stdout)[0]\n                audit = {\n                    \"image\": image, \"size_mb\": round(data.get(\"Size\", 0) / (1024**2), 2),\n                    \"layers\": len(data.get(\"RootFS\", {}).get(\"Layers\", [])),\n                    \"created\": data.get(\"Created\", \"\"), \"os\": data.get(\"Os\", \"\"),\n                }\n                self._audits[image] = audit\n                return audit\n        except Exception as e:\n            note_failure(\"container:L161\", e)\n            return {\"image\": image, \"error\": str(e)}\n        return {\"image\": image, \"error\": \"Not found\"}",
    "status": "dispatched"
   },
   "container:ImageAuditor.get_summary": {
@@ -1466,7 +1466,7 @@
    "module": "container",
    "qualname": "RegistryPoller.check_latest",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def check_latest(self, image: str) -> dict[str, Any]:\n        \"\"\"Check for latest tag via docker pull dry-run.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"pull\", image], capture_output=True, text=True, timeout=120)\n            status = \"updated\" if \"Downloaded newer\" in r.stdout else (\"unchanged\" if \"Image is up to date\" in r.stdout else \"unknown\")\n            with self._lock:\n                self._tags[image] = {\"status\": status, \"checked\": time.time()}\n            return {\"image\": image, \"status\": status}\n        except Exception as e:\n            note_failure(\"container:L188\", e)\n            return {\"image\": image, \"error\": str(e)}",
+   "seg": "def check_latest(self, image: str) -> dict[str, Any]:\n        \"\"\"Check for latest tag via docker pull dry-run.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"pull\", image], capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=120)\n            status = \"updated\" if \"Downloaded newer\" in r.stdout else (\"unchanged\" if \"Image is up to date\" in r.stdout else \"unknown\")\n            with self._lock:\n                self._tags[image] = {\"status\": status, \"checked\": time.time()}\n            return {\"image\": image, \"status\": status}\n        except Exception as e:\n            note_failure(\"container:L188\", e)\n            return {\"image\": image, \"error\": str(e)}",
    "status": "dispatched"
   },
   "container:RegistryPoller.get_summary": {
@@ -1516,7 +1516,7 @@
    "module": "container",
    "qualname": "ResourceQuotaWatch.check_usage",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def check_usage(self, container: str) -> dict[str, Any]:\n        \"\"\"Check container resource usage via docker stats.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"stats\", \"--no-stream\", \"--format\", \"{{.CPUPerc}}|{{.MemUsage}}\", container],\n                             capture_output=True, text=True, timeout=10)\n            if r.returncode == 0 and \"|\" in r.stdout:\n                cpu_str, mem_str = r.stdout.strip().split(\"|\", 1)\n                cpu = float(cpu_str.replace(\"%\", \"\"))\n                mem_mb = float(mem_str.split(\"/\")[0].replace(\"MiB\", \"\").strip() or 0)\n                quota = self._quotas.get(container, {})\n                return {\"container\": container, \"cpu_pct\": cpu, \"mem_mb\": mem_mb,\n                        \"over_cpu\": cpu > quota.get(\"cpu_limit\", 100),\n                        \"over_mem\": mem_mb > quota.get(\"mem_mb\", 1024)}\n        except Exception as exc:\n            note_failure(\"container:L223\", exc)\n        return {\"container\": container, \"error\": \"Could not read stats\"}",
+   "seg": "def check_usage(self, container: str) -> dict[str, Any]:\n        \"\"\"Check container resource usage via docker stats.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"stats\", \"--no-stream\", \"--format\", \"{{.CPUPerc}}|{{.MemUsage}}\", container],\n                             capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=10)\n            if r.returncode == 0 and \"|\" in r.stdout:\n                cpu_str, mem_str = r.stdout.strip().split(\"|\", 1)\n                cpu = float(cpu_str.replace(\"%\", \"\"))\n                mem_mb = float(mem_str.split(\"/\")[0].replace(\"MiB\", \"\").strip() or 0)\n                quota = self._quotas.get(container, {})\n                return {\"container\": container, \"cpu_pct\": cpu, \"mem_mb\": mem_mb,\n                        \"over_cpu\": cpu > quota.get(\"cpu_limit\", 100),\n                        \"over_mem\": mem_mb > quota.get(\"mem_mb\", 1024)}\n        except Exception as exc:\n            note_failure(\"container:L223\", exc)\n        return {\"container\": container, \"error\": \"Could not read stats\"}",
    "status": "dispatched"
   },
   "container:ResourceQuotaWatch.get_summary": {
@@ -3454,7 +3454,7 @@
    "module": "migration",
    "qualname": "CodeMigrator.run_2to3",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def run_2to3(self, filepath: str, dry_run: bool = True) -> dict[str, Any]:\n        \"\"\"Run lib2to3 on a file.\"\"\"\n        try:\n            cmd = [sys.executable, \"-m\", \"lib2to3\", \"-n\"]\n            if not dry_run:\n                cmd.append(\"-w\")\n            cmd.append(filepath)\n            r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)\n            return {\"success\": True, \"dry_run\": dry_run, \"output\": r.stdout[:500]}\n        except Exception as e:\n            note_failure(\"migration:L76\", e)\n            return {\"success\": False, \"error\": str(e)}",
+   "seg": "def run_2to3(self, filepath: str, dry_run: bool = True) -> dict[str, Any]:\n        \"\"\"Run lib2to3 on a file.\"\"\"\n        try:\n            cmd = [sys.executable, \"-m\", \"lib2to3\", \"-n\"]\n            if not dry_run:\n                cmd.append(\"-w\")\n            cmd.append(filepath)\n            r = subprocess.run(cmd, capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=30)\n            return {\"success\": True, \"dry_run\": dry_run, \"output\": r.stdout[:500]}\n        except Exception as e:\n            note_failure(\"migration:L76\", e)\n            return {\"success\": False, \"error\": str(e)}",
    "status": "retired"
   },
   "migration:DepUpgrader.__init__": {
@@ -3485,7 +3485,7 @@
    "module": "migration",
    "qualname": "DepUpgrader.check_outdated",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def check_outdated(self, req_path: str) -> list[dict]:\n        \"\"\"Check for outdated packages using pip list --outdated.\"\"\"\n        try:\n            r = subprocess.run([sys.executable, \"-m\", \"pip\", \"list\", \"--outdated\", \"--format\", \"json\"],\n                             capture_output=True, text=True, timeout=30)\n            if r.returncode == 0:\n                return json.loads(r.stdout)\n        except Exception as exc:\n            note_failure(\"migration:L118\", exc)\n        return []",
+   "seg": "def check_outdated(self, req_path: str) -> list[dict]:\n        \"\"\"Check for outdated packages using pip list --outdated.\"\"\"\n        try:\n            r = subprocess.run([sys.executable, \"-m\", \"pip\", \"list\", \"--outdated\", \"--format\", \"json\"],\n                             capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=30)\n            if r.returncode == 0:\n                return json.loads(r.stdout)\n        except Exception as exc:\n            note_failure(\"migration:L118\", exc)\n        return []",
    "status": "dispatched"
   },
   "migration:DepUpgrader.get_summary": {
@@ -5676,16 +5676,5 @@
    "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        import os\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
    "status": "retired"
   }
- },
- "triage_counts": {
-  "test_reached_only": 0,
-  "no_reference_anywhere": 0
- },
- "decider_counts": {
-  "protocol_or_override": 0,
-  "declared_in_data": 0,
-  "dynamic_call": 0,
-  "test_is_the_wire": 0,
-  "dead_candidate": 0
  }
 }
