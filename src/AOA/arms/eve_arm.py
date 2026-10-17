@@ -37,7 +37,7 @@ class EveArm(BaseArm):
                     return {"status": "ok", "data": {"selected_model": "gemini", "task": task, "confidence": 0.95, "note": "EveUnleashed not found, using cached recommendation"}}
                 result = subprocess.run(
                     [self._python, str(_EVE_APP), "--cli", "--select-model", task],
-                    capture_output=True, text=True, timeout=60
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60
                 )
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
@@ -51,7 +51,7 @@ class EveArm(BaseArm):
                     return {"status": "ok", "data": {"models_tested": 5, "top_model": "gemini-2.5-pro", "score": 94.2, "note": "EveUnleashed not found, using cached benchmark"}}
                 result = subprocess.run(
                     [self._python, str(_EVE_APP), "--cli", "--benchmark"],
-                    capture_output=True, text=True, timeout=300
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300
                 )
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
@@ -66,7 +66,7 @@ class EveArm(BaseArm):
                     return {"status": "ok", "data": {"prompt_length": len(prompt), "model": "local", "tokens": 150, "response": "[EveUnleashed not found -- inference skipped]"}}
                 result = subprocess.run(
                     [self._python, str(_EVE_APP), "--cli", "--infer", prompt],
-                    capture_output=True, text=True, timeout=300
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300
                 )
                 return {
                     "status": "ok" if result.returncode == 0 else "error",

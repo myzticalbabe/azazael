@@ -119,7 +119,7 @@ class LlamaServerArm(BaseArm):
                     return {"status": "error", "error": "LlamaServer not initialized"}
                 result = sp.run(
                     [self._python, str(run_py), "chat", "--prompt", prompt],
-                    capture_output=True, text=True, timeout=120
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120
                 )
                 return {
                     "status": "ok" if result.returncode == 0 else "error",
@@ -131,7 +131,7 @@ class LlamaServerArm(BaseArm):
                     return {"status": "ok", "data": {"initialized": self._initialized, "server_found": False}}
                 result = self._subprocess.run(
                     [self._python, str(run_py), "status"],
-                    capture_output=True, text=True, timeout=30
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
                 )
                 return {
                     "status": "ok",

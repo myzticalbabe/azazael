@@ -376,7 +376,7 @@ class AOAState:
         try:
             r = subprocess.run(
                 [sys.executable, str(HERE / "test_benchmark_workflow.py")],
-                capture_output=True, text=True, timeout=WORKFLOW_TIMEOUT,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=WORKFLOW_TIMEOUT,
                 cwd=str(HERE))
             txt = (r.stdout or "") + (r.stderr or "")[-500:]
             out["ran"] = True
