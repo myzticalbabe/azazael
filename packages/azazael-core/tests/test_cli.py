@@ -15,7 +15,7 @@ def run_cli(command: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, "-m", CLI_MODULE, command],
         capture_output=True,
-        text=True,
+        text=True, encoding="utf-8", errors="replace",
         timeout=30,
     )
 
@@ -114,7 +114,7 @@ class TestHelp:
         result = subprocess.run(
             [sys.executable, "-m", CLI_MODULE],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=30,
         )
         assert result.returncode == 0
