@@ -117,7 +117,7 @@ class AzazaelOptimizer:
 
         try:
             cmd = [sys.executable, str(self.base_path / script_path)] + (args or [])
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
 
             return OptimizationResult(
                 script=script_path,
@@ -153,7 +153,7 @@ class AzazaelOptimizer:
                 )
 
             cmd = [str(full_path)] + (args or [])
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
 
             return OptimizationResult(
                 script=script_path,
