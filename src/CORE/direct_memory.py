@@ -406,11 +406,7 @@ class DirectMemory:
                 writing to the production store.
         """
         if db_path is None and os.environ.get("PYTEST_CURRENT_TEST"):
-            try:
-                _prod = str(_get_db_path())
-            except Exception:
-                _prod = None
-            if _prod is not None and str(DB_PATH) == _prod:
+            if not os.environ.get("AZAZAEL_MEMORY_DIR"):
                 raise RuntimeError(
                     "DirectMemory() with no db_path is forbidden under pytest; "
                     "pass an explicit db_path to avoid writing to the production store."
