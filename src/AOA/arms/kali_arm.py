@@ -114,7 +114,7 @@ class KaliArm(BaseArm):
             try:
                 r = sp.run(
                     ["wsl", "-d", WSL_DISTRO, "--", "bash", "-lc", f"command -v {tool}"],
-                    capture_output=True, text=True, timeout=8,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8,
                 )
                 present[tool] = r.returncode == 0 and r.stdout.strip() != ""
             except Exception as exc:
@@ -172,7 +172,7 @@ class KaliArm(BaseArm):
             for flag in ("--version", "-V", "--help"):
                 r = sp.run(["wsl", "-d", WSL_DISTRO, "--", "bash", "-lc",
                             f"{tool} {flag} 2>&1 | head -2"],
-                           capture_output=True, text=True, timeout=12)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=12)
                 if r.stdout.strip():
                     return {"version": r.stdout.strip().splitlines()[0][:90]}
             return {"version": None}
@@ -190,7 +190,7 @@ class KaliArm(BaseArm):
         cmd = f"{tool} {' '.join(clean)}"
         try:
             r = sp.run(["wsl", "-d", WSL_DISTRO, "--", "bash", "-lc", cmd],
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
             return {
                 "status": "ok" if r.returncode == 0 else "error",
                 "tool": tool,

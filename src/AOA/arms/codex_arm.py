@@ -52,7 +52,7 @@ class CodexArm(BaseArm):
                     "--fps", str(fps), "--duration", str(duration),
                     "--resolution", resolution
                 ]
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+                result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
                 return {
                     "status": "ok" if result.returncode == 0 else "error",
                     "data": {
