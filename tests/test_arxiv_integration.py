@@ -18,7 +18,7 @@ class TestArxivIntegrationKeywords(unittest.TestCase):
 
     def setUp(self):
         from CORE.arxiv_integration import ArxivIntegration
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def test_keyword_extraction_basic(self):
         """Basic keyword extraction from title + abstract."""
@@ -70,7 +70,7 @@ class TestArxivIntegrationIndexPaper(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -118,7 +118,7 @@ class TestArxivIntegrationFetchPapers(unittest.TestCase):
 
     def setUp(self):
         from CORE.arxiv_integration import ArxivIntegration
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     @patch("CORE.arxiv_integration.urllib.request.urlopen")
     def test_fetch_papers_with_concept_filter(self, mock_urlopen):
@@ -240,7 +240,7 @@ class TestArxivIntegrationFetchAndIndex(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -329,7 +329,7 @@ class TestArxivIntegrationQueryKnowledge(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -378,7 +378,7 @@ class TestArxivIntegrationStats(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.ai = ArxivIntegration()
+        self.ai = ArxivIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
