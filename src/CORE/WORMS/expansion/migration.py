@@ -83,7 +83,7 @@ class CodeMigrator:
             if not dry_run:
                 cmd.append("-w")
             cmd.append(filepath)
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             return {"success": True, "dry_run": dry_run, "output": r.stdout[:500]}
         except Exception as e:
             note_failure("migration:L76", e)
@@ -125,7 +125,7 @@ class DepUpgrader:
         """Check for outdated packages using pip list --outdated."""
         try:
             r = subprocess.run([sys.executable, "-m", "pip", "list", "--outdated", "--format", "json"],
-                             capture_output=True, text=True, timeout=30)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if r.returncode == 0:
                 return json.loads(r.stdout)
         except Exception as exc:

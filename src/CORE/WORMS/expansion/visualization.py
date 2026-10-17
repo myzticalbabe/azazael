@@ -126,7 +126,7 @@ class GraphRenderer:
         dot = self.to_dot()
         try:
             r = subprocess.run(["dot", "-Tsvg", "-o", output_path],
-                input=dot, capture_output=True, text=True, timeout=10)
+                input=dot, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
             return r.returncode == 0
         except Exception as exc:
             note_failure("visualization:L119", exc)

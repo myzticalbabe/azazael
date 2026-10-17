@@ -98,7 +98,7 @@ class WinBridgeWorm:
 
     def wsl_distros(self) -> dict[str, Any]:
         try:
-            r = subprocess.run(["wsl", "-l", "-v"], capture_output=True, text=True, timeout=10)
+            r = subprocess.run(["wsl", "-l", "-v"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
             out = (r.stdout or "") + (r.stderr or "")
             has_ubuntu = "ubuntu-26.04" in out.lower() or "ubuntu" in out.lower()
             has_kali = "kali" in out.lower()
@@ -213,7 +213,7 @@ class BarePassthroughWorm:
         try:
             r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
                                 target, "cat /proc/version; echo ---; ls /dev/dri 2>&1 | head -3"],
-                               capture_output=True, text=True, timeout=12)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=12)
             out = (r.stdout or "") + (r.stderr or "")
             is_bare = "microsoft" not in out.lower() and r.returncode == 0
             return {"success": r.returncode == 0, "path": f"ssh:{target}",
