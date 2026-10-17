@@ -195,7 +195,7 @@ class HYDRAMETA_UV:
         try:
             r = subprocess.run(
                 [self.uv_path, "--version"],
-                capture_output=True, text=True, timeout=timeout,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
             )
             if r.returncode == 0:
                 return True, r.stdout.strip()[:80]
@@ -254,7 +254,7 @@ class HYDRAMETA_UV:
             result = subprocess.run(
                 cmd,
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 cwd=str(self.output_dir),
                 timeout=timeout,
             )
