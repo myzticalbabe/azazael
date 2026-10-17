@@ -645,7 +645,7 @@ def main():
         try:
             proc = subprocess.run(
                 [sys.executable, worker_path, module_name, worm_name],
-                capture_output=True, text=True, timeout=timeout,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
                 cwd=SRC_DIR, env=env,
             )
             if proc.returncode == 0 and proc.stdout.strip():
