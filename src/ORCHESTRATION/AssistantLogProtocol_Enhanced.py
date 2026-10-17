@@ -466,7 +466,7 @@ class AssistantLogProtocol:
         for path in known:
             if os.path.exists(path):
                 result = subprocess.run(
-                    [path, "--version"], capture_output=True, text=True
+                    [path, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
                 )
                 info.append(
                     {
@@ -493,7 +493,7 @@ class AssistantLogProtocol:
         result = subprocess.run(
             'tasklist /FO CSV /FI "IMAGENAME eq python.exe"',
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
         )
         return [l for l in result.stdout.split("\n") if "python" in l.lower()]
 

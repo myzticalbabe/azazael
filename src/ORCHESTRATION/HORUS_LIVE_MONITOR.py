@@ -85,7 +85,7 @@ class HORUSLiveMonitor:
             cmd = [sys.executable, str(self.base_path / info["cmd"][0])] + info["cmd"][
                 1:
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             output = result.stdout + result.stderr
             info.last_output = output[:500]
             info.status = "error" if "error" in output.lower() else "active"
@@ -168,7 +168,7 @@ def launch_monitor():
                     ]
                     cmd.extend(HORUSLiveMonitor.COMPONENTS[name]["cmd"][1:])
                     result = subprocess.run(
-                        cmd, capture_output=True, text=True, timeout=30
+                        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
                     )
                     log(result.stdout[:300], name)
                 except Exception as e:

@@ -189,7 +189,7 @@ class SystemToolExecutor:
                 command,
                 shell=shell,
                 capture_output=capture_output,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=timeout,
                 cwd=workdir,
             )

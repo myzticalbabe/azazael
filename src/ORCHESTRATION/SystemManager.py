@@ -158,7 +158,7 @@ class PythonCrawler(SystemCrawler):
     def _run_cmd(self, cmd: str) -> tuple:
         try:
             result = subprocess.run(
-                shlex.split(cmd, posix=False), capture_output=True, text=True, timeout=30
+                shlex.split(cmd, posix=False), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
@@ -205,7 +205,7 @@ class ProcessCrawler(SystemCrawler):
 
     def _run_cmd(self, cmd: str) -> tuple:
         result = subprocess.run(
-            shlex.split(cmd, posix=False), capture_output=True, text=True, timeout=30
+            shlex.split(cmd, posix=False), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return result.stdout, result.stderr, result.returncode
 
@@ -253,7 +253,7 @@ class DiskCrawler(SystemCrawler):
 
     def _run_cmd(self, cmd: str) -> tuple:
         result = subprocess.run(
-            shlex.split(cmd, posix=False), capture_output=True, text=True, timeout=30
+            shlex.split(cmd, posix=False), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return result.stdout, result.stderr, result.returncode
 
@@ -298,7 +298,7 @@ class NetworkCrawler(SystemCrawler):
 
     def _run_cmd(self, cmd: str) -> tuple:
         result = subprocess.run(
-            shlex.split(cmd, posix=False), capture_output=True, text=True, timeout=30
+            shlex.split(cmd, posix=False), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return result.stdout, result.stderr, result.returncode
 
@@ -369,7 +369,7 @@ class ServiceCrawler(SystemCrawler):
 
     def _run_cmd(self, cmd: str) -> tuple:
         result = subprocess.run(
-            shlex.split(cmd, posix=False), capture_output=True, text=True, timeout=30
+            shlex.split(cmd, posix=False), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return result.stdout, result.stderr, result.returncode
 
@@ -564,7 +564,7 @@ class SystemManager:
     def kill_python_processes(self) -> dict:
         """Kill all Python processes."""
         out, _, _ = subprocess.run(
-            "tasklist /FO CSV /NH", capture_output=True, text=True
+            "tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace"
         )
         killed = []
         for line in out.split("\n"):

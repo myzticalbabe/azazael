@@ -1218,7 +1218,7 @@ class HORUSLiveMonitor:
         def _run_in_background():
             try:
                 cmd = [sys.executable] + comp.args
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
                 output = result.stdout + result.stderr
                 status = (
                     MonitorComponentStatus.ACTIVE
