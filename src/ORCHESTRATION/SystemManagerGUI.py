@@ -575,7 +575,7 @@ class SystemManagerGUI:
         }
 
     def _get_network_info(self) -> dict:
-        result = subprocess.run("ipconfig /all", capture_output=True, text=True)
+        result = subprocess.run("ipconfig /all", capture_output=True, text=True, encoding="utf-8", errors="replace")
         return {"ipconfig": result.stdout[:3000]}
 
     def _optimize_system(self) -> dict:
