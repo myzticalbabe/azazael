@@ -558,7 +558,7 @@ class TestRealRegistryIntegration(unittest.TestCase):
             paths + [env.get("PYTHONPATH", "")]).strip(os.pathsep)
         proc = subprocess.run([sys.executable, "-c", code], env=env,
                               cwd=_project_root, capture_output=True,
-                              text=True, timeout=180)
+                              text=True, encoding="utf-8", errors="replace", timeout=180)
         line = [ln for ln in (proc.stdout or "").splitlines()
                 if ln.startswith("SENTINEL")]
         self.assertTrue(line, "probe produced no result:\n%s\n%s"

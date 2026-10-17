@@ -20,7 +20,7 @@ class TestCliDashboardSubcommand(unittest.TestCase):
         cmd = [sys.executable, CLI_SCRIPT] + list(args)
         result = subprocess.run(
             cmd,
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
             cwd=PROJECT_ROOT,
         )
@@ -90,7 +90,7 @@ class TestCliHealthSubcommand(unittest.TestCase):
         cmd = [sys.executable, CLI_SCRIPT] + list(args)
         result = subprocess.run(
             cmd,
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
             cwd=PROJECT_ROOT,
         )
@@ -110,7 +110,7 @@ class TestCliTrainSubcommand(unittest.TestCase):
         cmd = [sys.executable, CLI_SCRIPT] + list(args)
         result = subprocess.run(
             cmd,
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
             cwd=PROJECT_ROOT,
         )
@@ -138,7 +138,7 @@ class TestCliHelp(unittest.TestCase):
         cmd = [sys.executable, CLI_SCRIPT] + list(args)
         result = subprocess.run(
             cmd,
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout,
             cwd=PROJECT_ROOT,
         )

@@ -95,7 +95,7 @@ def _run(tmp_path, body):
     env["PYTHONPATH"] = SRC + os.pathsep + env.get("PYTHONPATH", "")
     env["PYTHONIOENCODING"] = "utf-8"
     proc = subprocess.run([sys.executable, "-c", _PREAMBLE + body], env=env,
-                          capture_output=True, text=True, timeout=900)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     assert proc.returncode == 0, (
         "isolated quota child failed:\n" + proc.stdout + "\n" + proc.stderr)
     return json.loads(proc.stdout.strip().splitlines()[-1])
