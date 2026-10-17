@@ -207,7 +207,7 @@ class FirewallAudit:
         try:
             result = subprocess.run(
                 ["netsh", "advfirewall", "firewall", "show", "rule", "name=all"],
-                capture_output=True, text=True, timeout=15,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
             )
             for block in result.stdout.split("\n\n"):
                 rule = {}

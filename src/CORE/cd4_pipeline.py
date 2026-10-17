@@ -95,7 +95,7 @@ def _detect_nuitka(timeout: int = _NUITKA_PROBE_TIMEOUT) -> dict[str, Any]:
     try:
         result = subprocess.run(
             [sys.executable, "-m", "nuitka", "--version"],
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
         )
         probed = True
         if result.returncode == 0:
@@ -412,7 +412,7 @@ class NuitkaBuildPipeline:
 
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=300
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300
             )
             passed = result.returncode == 0
             summary = (
@@ -496,7 +496,7 @@ class NuitkaBuildPipeline:
             try:
                 subprocess.run(
                     [sys.executable, patch_script, "--apply", "--verify"],
-                    capture_output=True, text=True, timeout=60,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
                 )
             except Exception as exc:
                 note_failure("cd4_pipeline:L400", exc) # Non-fatal - build may still work
@@ -526,7 +526,7 @@ class NuitkaBuildPipeline:
 
             try:
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=600
+                    cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600
                 )
                 passed = result.returncode == 0
                 summary = (
@@ -649,7 +649,7 @@ class NuitkaBuildPipeline:
 
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=300,
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
                 env=env,
             )
             passed = result.returncode == 0

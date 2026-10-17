@@ -137,7 +137,7 @@ class EvolutionIntegrityWorm:
         try:
             proc = subprocess.run(
                 [sys.executable, str(script)],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
                 timeout=self.config.max_duration_seconds,
                 cwd=str(script.parent.parent),
                 env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"},
