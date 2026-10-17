@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-17T22:28:46.451896+00:00",
+ "generated_at": "2026-10-17T22:29:53.370210+00:00",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 159,
+  "wired": 146,
   "retired": 61,
   "dispatched": 60,
-  "accepted_gap": 84,
+  "accepted_gap": 97,
   "rejected": 5,
   "pending": 0
  },
@@ -2530,14 +2530,15 @@
    "qualname": "TrustRegionBO.ask",
    "line": 536,
    "seg": "def ask(self, n_candidates: int = 256) -> List[float]:\n        \"\"\"Next point by EI inside the trust region (random if too few points).\"\"\"\n        d = len(self.keys)\n        if self.best_x is None or len(self.X) < 3:\n            return self._denorm([self.rng.random() for _ in range(d)]) if self.best_x is None \\\n                else self._denorm([min(1.0, max(0.0, self.best_x[i] + self.rng.uniform(-self.radius, self.radius)))\n                                   for i in range(d)])\n        self.gp.fit(self.X, self.y)\n        cands = []\n        for _ in range(int(n_candidates)):\n            cands.append([min(1.0, max(0.0, self.best_x[i] + self.rng.uniform(-self.radius, self.radius)))\n                          for i in range(d)])\n        preds = self.gp.predict(cands)\n        best_i, best_ei = 0, float(\"-inf\")\n        for i, (mu, sd) in enumerate(preds):\n            ei = expected_improvement(mu, sd, self.best_y)\n            if ei > best_ei:\n                best_ei, best_i = ei, i\n        return self._denorm(cands[best_i])",
-   "status": "wired",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): jev_advise grade/ask CLI plus an evolution.py error string; different receivers; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: SepCMAES"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'ask' in 2 file(s) [scripts/jev_advise.py, src/CORE/WORMS/expansion/evolution.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'ask' in 2 file(s) [scripts/jev_advise.py, src/CORE/WORMS/expansion/evolution.py]; module-linked: no",
+   "disposition": "ACCEPT-GAP"
   },
   "exmachina_operators:operator_report": {
    "evidence": [
@@ -2595,8 +2596,8 @@
    "qualname": "AstrocyteWorm.sweep",
    "line": 45,
    "seg": "def sweep(self, root: str, dry_run: bool = True) -> dict[str, Any]:\n        p = Path(root)\n        victims = []\n        if p.exists():\n            for f in p.rglob(\"*\"):\n                try:\n                    if f.is_file() and (f.suffix in (\".pyc\", \".tmp\") or f.name.endswith(\".log.1\")\n                                        or f.name == \"__pycache__\"):\n                        victims.append(str(f))\n                except Exception as exc:\n                    note_failure(\"glia:L44\", exc)\n                    continue\n                if len(victims) >= 200:\n                    break\n        removed = 0\n        if not dry_run:\n            for v in victims[:200]:\n                try:\n                    Path(v).unlink(missing_ok=True)\n                    removed += 1\n                except Exception as exc:\n                    note_failure(\"glia:L54\", exc)\n                    continue\n        with self._lock:\n            self._cleaned += removed\n            total = self._cleaned\n        return {\"success\": True, \"root\": root, \"candidates\": len(victims),\n                \"removed\": removed, \"dry_run\": dry_run, \"total_cleaned\": total}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (tools/harvest_bake_errors.py:106, tools/harvest_bake_errors.py:98), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): servemesh.py:105 comment plus a print label; no committed call; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: InferenceLoadBalancerWorm"
@@ -2606,7 +2607,8 @@
    "evidence": [
     "tools/harvest_bake_errors.py:106",
     "tools/harvest_bake_errors.py:98"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "glia:EpendymalWorm.execute": {
    "module": "glia",
@@ -2699,8 +2701,8 @@
    "qualname": "SelfHealWorm.heal",
    "line": 575,
    "seg": "def heal(self, component: str, source: str = \"ColdArchivist\") -> dict[str, Any]:\n        rec = {\"component\": component, \"source\": source,\n               \"at\": datetime.now().isoformat(), \"ok\": True}\n        with self._lock:\n            self._heals.append(rec)\n        return {\"success\": True, \"healed\": rec, \"heals\": len(self._heals)}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:536, src/CORE/dream_arena.py:36, src/CORE/worm_governance.py:372), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): chaos.py:63 calls PartitionHealerWorm().heal(); mesh.py:648 is PartitionHealerWorm self-call; different receivers; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: PartitionHealerWorm"
@@ -2711,7 +2713,8 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:536",
     "src/CORE/dream_arena.py:36",
     "src/CORE/worm_governance.py:372"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_ab:ABTestRunner.get_summary": {
    "module": "learning_ab",
@@ -2845,8 +2848,8 @@
    "qualname": "SchemaAwareFeatureExtractor.get_summary",
    "line": 429,
    "seg": "def get_summary(self) -> Dict[str, Any]:\n        \"\"\"Worm contract: return a summary dict (see BaseWormMixin).\n\n        `SchemaAwareFeatureExtractor` was split out of the `learning.py`\n        monolith without a `get_summary()`, so the smoke test that instantiates\n        every registered worm saw `None` here. Reports the fitted vocabularies\n        without extracting from any record set.\n        \"\"\"\n        return {\n            \"success\": True,\n            \"method\": \"get_summary\",\n            \"result\": {\n                \"version\": self.VERSION,\n                \"fitted\": self._fit_done,\n                \"vocab_fields\": len(self._category_vocabs),\n                \"known_shapes\": len(DATA_SHAPES),\n            },\n        }",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:532, src/CORE/WORMS/expansion/cutting_edge_model.py:2375, src/CORE/WORMS/expansion/learning_features.py:439), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): WORM_FLEET.py:198 and grpo:672 comments about the get_summary idiom, not calls; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
@@ -2857,7 +2860,8 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_grpo:ABTestRunner.get_summary": {
    "module": "learning_grpo",
@@ -2883,8 +2887,8 @@
    "qualname": "GRPOTrainer.get_summary",
    "line": 664,
    "seg": "def get_summary(self) -> dict[str, Any]:\n        \"\"\"Worm contract: return a summary dict (see BaseWormMixin).\n\n        `GRPOTrainer` was split out of the `learning.py` monolith without a\n        `get_summary()`, so the smoke test that instantiates every registered\n        worm saw `None` here. `get_stats()` already computes the policy\n        telemetry; this only adds the `success` envelope the registry executors\n        expect.\n        \"\"\"\n        return {\"success\": True, \"method\": \"get_stats\", \"result\": self.get_stats()}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:532, src/CORE/WORMS/expansion/cutting_edge_model.py:2375, src/CORE/WORMS/expansion/learning_features.py:439), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): same idiom comments; no committed call; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
@@ -2895,7 +2899,8 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_grpo:GRPOTrainer.ingest_replay_trajectory": {
    "module": "learning_grpo",
@@ -2945,8 +2950,8 @@
    "qualname": "DataPipelineWorm.execute",
    "line": 720,
    "seg": "def execute(self) -> Dict[str, Any]:\n        \"\"\"Standard worm execute() \u2014 runs pipeline with default params.\"\"\"\n        return self.run_pipeline(limit=100, max_age_days=7)",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/_evo_graph_build.py:107, scripts/_evo_graph_build.py:68, scripts/_evo_graph_build.py:70), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): archive monitor comments only; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
@@ -2957,7 +2962,8 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "decider": "test_is_the_wire",
@@ -3138,8 +3144,8 @@
    "qualname": "DataPipelineWorm.transform",
    "line": 193,
    "seg": "def transform(self, data: Any, transformations: List[Callable]) -> Any:\n        \"\"\"Apply a chain of transformations with caching.\"\"\"\n        result = data\n        for tf in transformations:\n            try:\n                result = tf(result)\n            except Exception as e:  # noqa: BLE001 \u2014 record fallback then re-raise\n                self._record_fallback(\"transform\", {\"error\": str(e)})\n                raise\n        return result",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/ANIMATION_PROTOCOLS.py:102, src/ANIMATION_PROTOCOLS.py:135, src/ANIMATION_PROTOCOLS.py:17), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): learning_pipeline.py:76 sits in the class-docstring usage example; gosp.py hits are sklearn vectorizer calls; missing piece = production consumer.",
    "decider": "test_is_the_wire",
    "decider_evidence": [
     "tests/test_learning_worms.py:54",
@@ -3151,7 +3157,8 @@
     "src/ANIMATION_PROTOCOLS.py:102",
     "src/ANIMATION_PROTOCOLS.py:135",
     "src/ANIMATION_PROTOCOLS.py:17"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_rl:RLTrainLoop.load_q_table_from_store": {
    "module": "learning_rl",
@@ -3266,8 +3273,8 @@
    "qualname": "ModelVersioner.rollback",
    "line": 184,
    "seg": "def rollback(self, name: str, target_version: str) -> Dict[str, Any]:\n        \"\"\"Rollback to a specific version (soft rollback \u2014 marks active).\"\"\"\n        versions = self._models.get(name, [])\n        target = next((v for v in versions if v[\"version\"] == target_version), None)\n        if not target:\n            return {\"error\": f\"Version {target_version} not found for model {name}\"}\n\n        # Record rollback event\n        store = self._get_store()\n        if store:\n            store.record_event(\n                source=\"ModelVersioner\", event_type=\"model_rollback\",\n                data={\n                    \"model_name\": name,\n                    \"rolled_back_to\": target_version,\n                    \"current_version\": versions[-1][\"version\"] if versions else \"none\",\n                },\n                severity=\"warning\", tags=[\"model\", \"rollback\"]\n            )\n\n        return {\n            \"model\": name,\n            \"rolled_back_to\": target_version,\n            \"target\": target,\n        }",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/evolution_cycle.py:3155, src/CORE/WORMS/expansion/learning_versioner.py:201, src/CORE/sentinel_enforcer.py:516), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): sentinel_enforcer.py:505 defines its own rollback(filepath); terence same pattern; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: MeshArchitectWorm, UnifiedInstaller"
@@ -3278,7 +3285,8 @@
     "scripts/evolution_cycle.py:3155",
     "src/CORE/WORMS/expansion/learning_versioner.py:201",
     "src/CORE/sentinel_enforcer.py:516"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "learning_versioner:pareto_retain": {
    "module": "learning_versioner",
@@ -3418,8 +3426,8 @@
    "qualname": "PowerBudgetWorm.reset",
    "line": 145,
    "seg": "def reset(self) -> dict[str, Any]:\n        with self._lock:\n            self._spent.clear()\n            return {\"success\": True, \"reset\": True}",
-   "status": "wired",
-   "reason": "only production reference is a string literal (scripts/reset_guard.py:232, scripts/reset_guard.py:250, src/CORE/WORMS/CONCURRENCY.py:482), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): archive learner plus jinja bccache prose only; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ASTAntiPatternScanner, AtomicCounter, BehavioralGraphAnalyzer"
@@ -3430,7 +3438,8 @@
     "scripts/reset_guard.py:232",
     "scripts/reset_guard.py:250",
     "src/CORE/WORMS/CONCURRENCY.py:482"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "migration:CodeMigrator.__init__": {
    "module": "migration",
@@ -3757,8 +3766,8 @@
    "qualname": "Genome.vector",
    "line": 240,
    "seg": "def vector(self) -> List[float]:\n        \"\"\"Numeric flattening for arms that require a fixed-width vector.\"\"\"\n        out: List[float] = []\n        for s, v in zip(self.specs, self.values):\n            if s.kind == \"bool\":\n                out.append(1.0 if v else 0.0)\n            elif s.kind == \"choice\":\n                ch = s.choices or [None]\n                out.append(float(ch.index(v)) if v in ch else 0.0)\n            elif s.kind == \"schedule\":\n                out.extend(float(x) for x in v)\n            else:\n                try:\n                    out.append(float(v))\n                except (TypeError, ValueError) as exc:\n                    note_failure(\"morph:L243\", exc)\n                    out.append(0.0)\n        return out",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/dendrite.py:145), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): cutting_edge_model _Rand.vector plus prose; different receivers; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: _Rand, _VectorIndex"
@@ -3767,7 +3776,8 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'vector' in 3 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/dendrite.py:145"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "morph:load_genome": {
    "decider": "test_is_the_wire",
@@ -3912,8 +3922,8 @@
    "qualname": "CPUFlameProfiler.sample",
    "line": 219,
    "seg": "def sample(self, duration_sec: float = 5.0, interval_sec: float = 0.1) -> int:\n        \"\"\"Sample call stacks at regular intervals using sys._current_frames.\"\"\"\n        end = time.time() + duration_sec\n        count = 0\n        while time.time() < end:\n            frames = sys._current_frames()\n            for tid, frame in frames.items():\n                stack = []\n                while frame:\n                    stack.append(frame.f_code.co_name)\n                    frame = frame.f_back\n                if stack:\n                    self._stacks.append(stack)\n                    count += 1\n            time.sleep(interval_sec)\n        return count",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/engram.py:621, src/CORE/WORMS/expansion/profiling.py:245, src/CORE/neural_loop.py:779), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): archive retired-trainer scripts only (non-live tree); missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: CPPNGenome, ExperienceReplay, ExperienceReplayBuffer"
@@ -3924,7 +3934,8 @@
     "src/CORE/WORMS/expansion/engram.py:621",
     "src/CORE/WORMS/expansion/profiling.py:245",
     "src/CORE/neural_loop.py:779"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "profiling:CPUFlameProfiler.to_flamegraph_data": {
    "decider": "dead_candidate",
@@ -4370,8 +4381,8 @@
    "qualname": "PermissionScanner.scan_directory",
    "line": 250,
    "seg": "def scan_directory(self, path: str, max_depth: int = 3) -> list[dict]:\n        \"\"\"Scan directory tree for world-writable files.\"\"\"\n        findings = []\n        base = Path(path)\n        if not base.exists():\n            return findings\n        for f in base.rglob(\"*\"):\n            if f.is_file():\n                try:\n                    st = f.stat()\n                    world_writable = bool(st.st_mode & 0o002)\n                    if world_writable:\n                        findings.append({\"path\": str(f), \"mode\": oct(st.st_mode), \"world_writable\": True})\n                except OSError as exc:\n                    note_failure(\"security:L236\", exc)\n        with self._lock:\n            self._findings = findings\n        return findings",
-   "status": "wired",
-   "reason": "only production reference is a string literal (tools/graph_semantic/semantic_layer.py:580, tools/graph_semantic/semantic_layer.py:581), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): DISKZ.py:154 defines its own nested scan_directory; :177/:183 are self-calls; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: ASTAntiPatternScanner, VideoAnalyzerWorm"
@@ -4381,7 +4392,8 @@
    "evidence": [
     "tools/graph_semantic/semantic_layer.py:580",
     "tools/graph_semantic/semantic_layer.py:581"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "security:PortAuditor.__init__": {
    "module": "security",
@@ -4437,8 +4449,8 @@
    "qualname": "VulnScanner.check_package",
    "line": 83,
    "seg": "def check_package(self, pkg_name: str, version: str = \"\") -> dict[str, Any]:\n        \"\"\"Check a specific package-version pair against known vulnerabilities.\"\"\"\n        result = {\"package\": pkg_name, \"version\": version, \"vulnerable\": False, \"cvss_score\": 0.0, \"advisories\": []}\n        dangerous_patterns = {\"0.0.0\", \"0.0.1\", \"alpha\", \"beta\", \"dev\", \"rc0\", \"rc1\"}\n        if any(p in version.lower() for p in dangerous_patterns) if version else False:\n            result[\"vulnerable\"] = True\n            result[\"cvss_score\"] = 5.0\n            result[\"advisories\"].append({\"id\": \"AZA-HEURISTIC-001\", \"desc\": \"Pre-release or zero-version package\"})\n        return result",
-   "status": "wired",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:539, src/CORE/worm_registry.py:1174), so a static caller cannot exist; wire it explicitly or delete it",
+   "status": "accepted_gap",
+   "reason": "NO-CALLER (#970 re-derivation at HEAD a6ce2799): check_315t_compat.py:114 and auto_install.py:83 define own helpers; no security import in either file; missing piece = production consumer.",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: InstallationDebugger"
@@ -4448,7 +4460,8 @@
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:539",
     "src/CORE/worm_registry.py:1174"
-   ]
+   ],
+   "disposition": "ACCEPT-GAP"
   },
   "security:VulnScanner.scan_requirements": {
    "module": "security",
