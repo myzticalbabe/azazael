@@ -132,7 +132,7 @@ class OSCongruency:
             result = subprocess.run(
                 ["powershell", "-Command", command],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=30,
             )
             return result.stdout.strip()

@@ -142,7 +142,7 @@ class NETWORXZ:
             result = subprocess.run(
                 ["ping", "-n", str(count), "-w", str(timeout * 1000), host],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=timeout * count + 5,
             )
             return {

@@ -41,7 +41,7 @@ def _wsl(argv, timeout=_PROBE_TIMEOUT):
     """Run argv inside kali-linux. Returns (rc, output_head). No shell."""
     try:
         r = subprocess.run(
-            _WSL + list(argv), capture_output=True, text=True,
+            _WSL + list(argv), capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout, errors="replace",
         )
         text = ((r.stdout or "") + (r.stderr or "")).strip()[:400]
