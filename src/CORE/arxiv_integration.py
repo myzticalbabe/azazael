@@ -42,9 +42,10 @@ _ssl_context.verify_mode = ssl.CERT_NONE
 class ArxivIntegration:
     """Fetch arXiv papers and index them into the knowledge graph."""
 
-    def __init__(self, max_retries: int = 3, backoff_factor: float = 1.0):
+    def __init__(self, max_retries: int = 3, backoff_factor: float = 1.0, db_path: Optional[str] = None):
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
+        self.db_path = db_path
         self.session_count = 0
 
     def _arxiv_api_query(
@@ -251,7 +252,7 @@ class ArxivIntegration:
         try:
             from CORE.local_memory import LocalMemoryStore
 
-            store = LocalMemoryStore()
+            store = LocalMemoryStore(db_path=self.db_path)
 
             # Build embedding from title + abstract keywords
             keywords = self._extract_keywords_from_title_abstract(
@@ -369,7 +370,7 @@ class ArxivIntegration:
         """
         from CORE.local_memory import LocalMemoryStore
 
-        store = LocalMemoryStore()
+        store = LocalMemoryStore(db_path=self.db_path)
 
         # Use the existing search_memories which does FTS5 search
         results = store.search_memories(
@@ -388,12 +389,13 @@ class ArxivIntegration:
         """
         from CORE.local_memory import LocalMemoryStore
 
-        store = LocalMemoryStore()
+        store = LocalMemoryStore(db_path=self.db_path)
 
         # Get knowledge_patterns stats
         kp_stats = store.get_knowledge_graph_stats()
 
         # Add arXiv-specific stats
+        conn = None
         try:
             conn = store._get_conn()
             kp_count = conn.execute(
@@ -402,13 +404,14 @@ class ArxivIntegration:
             arxiv_count = conn.execute(
                 "SELECT COUNT(*) as n FROM knowledge_patterns WHERE source = 'arxiv_integration'"
             ).fetchone()["n"]
-            conn.close()
-
+        except Exception:
+            kp_count = 0
+            arxiv_count = 0
+        finally:
+            if conn is not None:
+                conn.close()
             kp_stats["research_paper_count"] = kp_count
             kp_stats["arxiv_integration_count"] = arxiv_count
-        except Exception:
-            kp_stats["research_paper_count"] = 0
-            kp_stats["arxiv_integration_count"] = 0
 
         return kp_stats
 
