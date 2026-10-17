@@ -115,7 +115,7 @@ class RustRunner:
 
         try:
             start = time.time()
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
             duration = (time.time() - start) * 1000
 
             return RustResult(
@@ -167,7 +167,7 @@ class RustRunner:
         cmd = [str(binary_path)] + (args or [])
         try:
             start = time.time()
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             duration = (time.time() - start) * 1000
 
             return RustResult(
@@ -232,7 +232,7 @@ class RustRunner:
 
         cmd = ["rustc", "--edition", self.edition.value, "--check", str(source)]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             return RustResult(
                 success=result.returncode == 0,
                 stdout=result.stdout,
@@ -258,7 +258,7 @@ class RustRunner:
 
         try:
             result = subprocess.run(
-                cmd, cwd=project_dir, capture_output=True, text=True, timeout=120
+                cmd, cwd=project_dir, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120
             )
             return RustResult(
                 success=result.returncode == 0,
@@ -282,7 +282,7 @@ class RustRunner:
         cmd = ["cargo", "test"]
         try:
             result = subprocess.run(
-                cmd, cwd=project_dir, capture_output=True, text=True, timeout=120
+                cmd, cwd=project_dir, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120
             )
             return RustResult(
                 success=result.returncode == 0,
@@ -303,7 +303,7 @@ class RustRunner:
         cmd = ["cargo", "new", name]
         try:
             result = subprocess.run(
-                cmd, cwd=str(target), capture_output=True, text=True, timeout=30
+                cmd, cwd=str(target), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
             )
             return RustResult(
                 success=result.returncode == 0,
@@ -322,7 +322,7 @@ class RustRunner:
 
         try:
             result = subprocess.run(
-                ["rustfmt", str(file_path)], capture_output=True, text=True, timeout=30
+                ["rustfmt", str(file_path)], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
             )
             return RustResult(
                 success=result.returncode == 0,

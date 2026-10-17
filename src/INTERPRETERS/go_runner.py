@@ -130,7 +130,7 @@ class GoRunner:
                 cwd=str(module_root or source.parent),
                 env=self._go_env(),
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=60,
             )
             duration = (time.time() - start) * 1000
@@ -192,7 +192,7 @@ class GoRunner:
                 cwd=str(module_root or source.parent),
                 env=self._go_env(),
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=120,
             )
             duration = (time.time() - start) * 1000
@@ -244,7 +244,7 @@ class GoRunner:
         try:
             result = subprocess.run(
                 cmd, cwd=project_dir, env=self._go_env(),
-                capture_output=True, text=True, timeout=120,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
             )
             return GoResult(
                 success=result.returncode == 0,
@@ -264,7 +264,7 @@ class GoRunner:
         try:
             result = subprocess.run(
                 ["gofmt", "-w", str(file_path)],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             return GoResult(
                 success=result.returncode == 0,
@@ -282,7 +282,7 @@ class GoRunner:
         try:
             result = subprocess.run(
                 ["go", "vet", "./..."],
-                cwd=project_dir, capture_output=True, text=True, timeout=60,
+                cwd=project_dir, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
             )
             return GoResult(
                 success=result.returncode == 0,
@@ -304,7 +304,7 @@ class GoRunner:
         try:
             result = subprocess.run(
                 ["go", "mod", "init", module_name],
-                cwd=str(target), capture_output=True, text=True, timeout=30,
+                cwd=str(target), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             return GoResult(
                 success=result.returncode == 0,
