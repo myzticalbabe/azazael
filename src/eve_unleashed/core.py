@@ -47,7 +47,7 @@ def _check_xpu_available() -> bool:
         result = subprocess.run(
             [sys.executable, "-c", code],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             timeout=5,
             env=os.environ.copy(),
         )
@@ -98,7 +98,7 @@ def _import_ok(name: str) -> bool:
             proc = subprocess.run(
                 [sys.executable, "-c", "import %s" % name],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 timeout=60,
                 env=os.environ.copy(),
             )
