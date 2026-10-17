@@ -257,7 +257,14 @@ class LocalMemoryStore:
     MAX_QUERY_LIMIT: int = 500
 
     def __init__(self, db_path: Optional[str] = None):
-        if db_path is None and os.environ.get("PYTEST_CURRENT_TEST"):
+        # Forensic fix (Engram trace): the guard used to fire whenever the
+        # ARG was None, but conftest isolates pytest via AZAZAEL_MEMORY_DIR,
+        # which DB_PATH already honors — so the guard broke the very
+        # mechanism built for it (2 intake tests constructing the session
+        # store). Fire only when the resolved path is the live production
+        # default with no override: that is the actual hazard.
+        if (db_path is None and os.environ.get("PYTEST_CURRENT_TEST")
+                and not os.environ.get("AZAZAEL_MEMORY_DIR")):
             raise RuntimeError(
                 "LocalMemoryStore() with no db_path is forbidden under pytest; "
                 "pass an explicit db_path to avoid writing to the production store."
