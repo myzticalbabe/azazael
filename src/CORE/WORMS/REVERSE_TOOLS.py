@@ -241,7 +241,7 @@ class ReverseTools:
         # Try to run r2
         for cmd in ["r2", "radare2", "rizin"]:
             try:
-                proc = subprocess.run([cmd, "-v"], capture_output=True, text=True, timeout=5)
+                proc = subprocess.run([cmd, "-v"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5)
                 if proc.returncode == 0:
                     status.installed = True
                     status.path = shutil.which(cmd) or cmd
@@ -291,7 +291,7 @@ class ReverseTools:
         try:
             proc = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "r2pipe", "--quiet"],
-                capture_output=True, text=True, timeout=60,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
             )
             if proc.returncode == 0:
                 result["success"] = True
@@ -308,7 +308,7 @@ class ReverseTools:
             try:
                 proc = subprocess.run(
                     ["choco", "install", "radare2", "-y"],
-                    capture_output=True, text=True, timeout=120,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
                 )
                 if proc.returncode == 0:
                     result["success"] = True
@@ -324,7 +324,7 @@ class ReverseTools:
             try:
                 proc = subprocess.run(
                     ["winget", "install", "radare2.radare2", "--silent"],
-                    capture_output=True, text=True, timeout=120,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
                 )
                 if proc.returncode == 0:
                     result["success"] = True
@@ -339,7 +339,7 @@ class ReverseTools:
         elif IS_LINUX:
             for pm in [["apt", "install", "-y", "radare2"], ["dnf", "install", "-y", "radare2"]]:
                 try:
-                    proc = subprocess.run(["sudo"] + pm, capture_output=True, text=True, timeout=120)
+                    proc = subprocess.run(["sudo"] + pm, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
                     if proc.returncode == 0:
                         result["success"] = True
                         result["method"] = pm[0]
@@ -354,7 +354,7 @@ class ReverseTools:
         try:
             proc = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "radare2-binary", "--quiet"],
-                capture_output=True, text=True, timeout=60,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
             )
             if proc.returncode == 0:
                 result["success"] = True
@@ -391,7 +391,7 @@ class ReverseTools:
         java_version = 0
         for java_cmd in ["java", "javaw"]:
             try:
-                proc = subprocess.run([java_cmd, "-version"], capture_output=True, text=True, timeout=10)
+                proc = subprocess.run([java_cmd, "-version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
                 ver_out = proc.stderr or proc.stdout
                 # Parse version: "version "17.0.1"" or "version "1.8.0_301""
                 match = re.search(r'version "(?:1\.)?(\d+)', ver_out)
@@ -578,7 +578,7 @@ class ReverseTools:
                 # Get architecture
                 proc = subprocess.run(
                     base_cmd + ["-c", "ij", "-c", "q"],
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                 )
                 try:
                     info = json.loads(proc.stdout)
@@ -591,7 +591,7 @@ class ReverseTools:
                 # Get functions
                 proc = subprocess.run(
                     base_cmd + ["-c", "aflj", "-c", "q"],
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                 )
                 try:
                     funcs = json.loads(proc.stdout)
@@ -652,7 +652,7 @@ class ReverseTools:
             try:
                 proc = subprocess.run(
                     ["objdump", "-d", "-M", "intel", str(full_path)],
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                 )
                 in_func = False
                 for line in proc.stdout.splitlines():
@@ -735,7 +735,7 @@ class ReverseTools:
             if post_script:
                 args.extend(["-postScript", post_script])
 
-            proc = subprocess.run(args, capture_output=True, text=True, timeout=600)
+            proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
 
             # Parse output for function/data type counts
             for line in proc.stdout.splitlines():

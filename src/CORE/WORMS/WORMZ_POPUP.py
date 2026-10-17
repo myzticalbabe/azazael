@@ -81,7 +81,7 @@ def run_wormz_popup():
         cmd = [sys.executable, str(wormz_script), "--all"]
 
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1
         )
 
         for line in iter(process.stdout.readline, ""):

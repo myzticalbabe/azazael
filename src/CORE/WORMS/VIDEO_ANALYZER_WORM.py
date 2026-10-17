@@ -98,7 +98,7 @@ class VideoAnalyzerWorm:
             return VideoAnalyzerWorm._ffprobe_available
         available = subprocess.run(
             ["ffprobe", "-version"],
-            capture_output=True, text=True, timeout=5
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5
         ).returncode == 0
         VideoAnalyzerWorm._ffprobe_checked = True
         VideoAnalyzerWorm._ffprobe_available = available
@@ -147,7 +147,7 @@ class VideoAnalyzerWorm:
                 "ffprobe", "-v", "quiet", "-print_format", "json",
                 "-show_format", "-show_streams", str(video_path)
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             if result.returncode != 0:
                 info["error"] = "ffprobe failed"
                 return info
