@@ -18,7 +18,7 @@ class TestORKGIntegrationKeywords(unittest.TestCase):
 
     def setUp(self):
         from CORE.orkg_integration import ORKGIntegration
-        self.orkg = ORKGIntegration()
+        self.orkg = ORKGIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def test_keyword_extraction_basic(self):
         """Basic keyword extraction from title + abstract."""
@@ -65,7 +65,7 @@ class TestORKGIntegrationIndexPaper(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.orkg = ORKGIntegration()
+        self.orkg = ORKGIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -106,7 +106,7 @@ class TestORKGIntegrationFetchAndIndex(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.orkg = ORKGIntegration()
+        self.orkg = ORKGIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -146,7 +146,7 @@ class TestORKGIntegrationQueryKnowledge(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.orkg = ORKGIntegration()
+        self.orkg = ORKGIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()
@@ -186,7 +186,7 @@ class TestORKGIntegrationStats(unittest.TestCase):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.tmp.close()
         self.store = LocalMemoryStore(db_path=self.tmp.name)
-        self.orkg = ORKGIntegration()
+        self.orkg = ORKGIntegration(db_path=(self.tmp.name if hasattr(self, "tmp") else None))
 
     def tearDown(self):
         self.store.close()

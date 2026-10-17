@@ -1,20 +1,18 @@
 {
-  "recorded_at": "2026-10-17T10:47:04+00:00",
+  "recorded_at": "2026-10-17T12:26:21+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 724,
+  "files_scanned": 722,
   "category_counts": {
-    "except_return_default": 7,
     "hardcoded_win_path": 14,
-    "import_inside_function": 1112,
+    "import_inside_function": 1101,
     "open_no_encoding": 239,
     "shell_true": 1,
-    "silent_except_pass": 5,
-    "subprocess_no_timeout": 96,
+    "subprocess_no_timeout": 95,
     "unicode_emoji": 1260
   },
-  "total_findings": 2734,
+  "total_findings": 2710,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 7
@@ -581,8 +579,7 @@
       "import_inside_function": 3
     },
     "CORE\\arxiv_integration.py": {
-      "import_inside_function": 7,
-      "silent_except_pass": 2
+      "import_inside_function": 7
     },
     "CORE\\audit_export_html.py": {
       "unicode_emoji": 1
@@ -756,10 +753,6 @@
     "CORE\\notifier.py": {
       "import_inside_function": 5
     },
-    "CORE\\openalex_integration.py": {
-      "import_inside_function": 7,
-      "silent_except_pass": 1
-    },
     "CORE\\orkg_integration.py": {
       "import_inside_function": 4
     },
@@ -777,9 +770,6 @@
       "open_no_encoding": 1
     },
     "CORE\\sb3_agent.py": {
-      "import_inside_function": 4
-    },
-    "CORE\\semrepo_integration.py": {
       "import_inside_function": 4
     },
     "CORE\\sentinel_enforcer.py": {
@@ -1323,29 +1313,22 @@
       "import_inside_function": 2
     },
     "eve_unleashed\\pams_evolution.py": {
-      "except_return_default": 1,
       "import_inside_function": 2
     },
     "eve_unleashed\\predictive_worms.py": {
-      "except_return_default": 4,
       "import_inside_function": 2
     },
     "eve_unleashed\\self_modifying_worms.py": {
       "import_inside_function": 4
     },
     "eve_unleashed\\service_manager.py": {
-      "except_return_default": 1,
-      "import_inside_function": 2,
-      "silent_except_pass": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 2
     },
     "eve_unleashed\\streaming.py": {
       "import_inside_function": 2
     },
     "eve_unleashed\\terence_v2.py": {
-      "except_return_default": 1,
-      "import_inside_function": 3,
-      "silent_except_pass": 1
+      "import_inside_function": 3
     },
     "matrix_animation.py": {
       "open_no_encoding": 1,
