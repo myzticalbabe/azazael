@@ -881,7 +881,7 @@ def generate_vibrant_video(html_path, output_path, fps, duration, width, height,
     print(f"  [CODEX] Running: {' '.join(str(c) for c in cmd[:6])} ...")
     start_ts = time.time()
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600)
 
     elapsed = time.time() - start_ts
     print(f"  [CODEX] Encoding completed in {elapsed:.1f}s")

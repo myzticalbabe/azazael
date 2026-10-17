@@ -941,7 +941,7 @@ class CODEXStudio:
         try:
             result = subprocess.run(
                 [self.ffmpeg_path, "-version"],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
             )
             version_line = result.stdout.split("\n")[0] if result.stdout else "Unknown"
             self.log(f"FFmpeg: {version_line}", "info")
@@ -1194,7 +1194,7 @@ class CODEXStudio:
         self._log_safe(f"  Running: {' '.join(cmd[:6])} ...", "info")
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600)
 
             if result.returncode == 0:
                 self._log_safe("  FFmpeg encoding successful.", "success")
@@ -1354,7 +1354,7 @@ CAIN Standard: 25 fps @ 1920x1080, H.264 High, CRF 23, keyframe every 250 frames
                "-g", str(CAIN_GOP),
                "-pix_fmt", "yuv420p", args.output]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600)
 
     shutil.rmtree(frames_dir, ignore_errors=True)
 
