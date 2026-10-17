@@ -95,7 +95,7 @@ class RealFrameworkTest:
                     [str(venv_python), "-m", "pip", "list", "--format=json"],
                     capture_output=True,
                     text=True,
-                    timeout=60,
+                    timeout=60, encoding="utf-8", errors="replace"
                 )
                 if result.returncode == 0:
                     packages = json.loads(result.stdout)
