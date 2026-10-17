@@ -99,7 +99,11 @@ def test_dict_path_writes_the_canonical_payload(captured):
         "standby": False,
         "duration_ms": 903.5,
         "error": None,
+        "interp": event["data"]["interp"],
+        "gil": event["data"]["gil"],
     }
+    assert isinstance(event["data"]["interp"], str)
+    assert event["data"]["gil"] in ("gil", "gil-disabled", "?")
 
 
 def test_failure_is_recorded_at_error_severity(captured):
@@ -126,7 +130,10 @@ def test_result_object_path_normalises_an_execution_result(captured):
         "standby": False,
         "duration_ms": 12.5,
         "error": None,
+        "interp": captured.payloads[0]["interp"],
+        "gil": captured.payloads[0]["gil"],
     }
+    assert isinstance(captured.payloads[0]["interp"], str)
 
 
 def test_decision_id_is_the_join_key(captured):
@@ -263,7 +270,8 @@ def test_every_producer_writes_the_same_schema(captured):
     # Extras are ATTRIBUTION, allowed only from a known set. A producer inventing
     # a new key is how the four schemas drifted apart in the first place, so the
     # allowed set is pinned rather than merely observed.
-    allowed = core | {"nature", "cluster_id", "cluster_type", "decision_id"}
+    allowed = core | {"nature", "cluster_id", "cluster_type", "decision_id",
+                       "interp", "gil"}
     for payload in captured.payloads:
         assert payload.keys() <= allowed, \
             f"undeclared field {payload.keys() - allowed} = schema drift"
