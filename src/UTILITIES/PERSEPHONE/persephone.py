@@ -390,7 +390,7 @@ class Persephone:
 
         try:
             result = subprocess.run(
-                ["wsl", "bash", "-c", full_command], capture_output=True, text=True
+                ["wsl", "bash", "-c", full_command], capture_output=True, text=True, encoding="utf-8", errors="replace"
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
