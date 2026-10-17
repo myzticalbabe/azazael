@@ -200,14 +200,165 @@ def check_hook():
     return ["nudge: " + first]
 
 
-def check_plan():
-    text = strip_banner(run(["context", PROJECT]))
-    items = []
+def _plan_tasks(text):
+    """Parse `search --type task` headers -> [(numeric_id, title)].
+
+    Header format (transcribed from a real run, 2026-10-17):
+      [1] #1007 (task) — Task — Kilo: has #985 tail-gate ...
+    followed within a few lines by a date line:
+      2026-10-17 09:47:42 | project: azazael | scope: project
+    Returns [(numeric_id, title, yyyy-mm-dd)] or None when the output is
+    unrecognized (never an empty list - an empty list means "no tasks",
+    which is a claim, not a fallback).
+    """
+    import re
+    tasks = []
+    cur = None
+    seen_header = False
     for line in text.splitlines():
-        if "[topic:plan/" in line:
-            title = line.split("**")[1] if line.count("**") >= 2 else line[:60]
-            items.append("  - " + title)
-    return ["open plan items: " + str(len(items))] + items
+        m = re.match(r"^\[\d+\] #(\d+) \(task\) — (.*)$", line)
+        if m:
+            seen_header = True
+            if cur is not None:
+                tasks.append(cur)
+            cur = [m.group(1), m.group(2).strip(), ""]
+            continue
+        dm = re.match(r"^\s*(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} \|", line)
+        if dm and cur is not None and not cur[2]:
+            cur[2] = dm.group(1)
+    if cur is not None:
+        tasks.append(cur)
+    if not seen_header and "Found" not in text and "No memories" not in text:
+        return None
+    return [(tid, title, date) for tid, title, date in tasks]
+
+
+def _superseded_task_ids(text):
+    """Task numbers closed by a judged `supersedes` relation.
+
+    Block format (transcribed from a real run, 2026-10-17):
+      relation:       related
+      judgment_status: judged
+      source:         obs-378f32744e609fdd — Task — Kilo: ... (c...
+      target:         obs-9149fa4509d9380a — #1046 verdict: ... (c...
+    Closure records are titled "Task #NNNN DONE — ..."; any judged
+    supersedes edge touching such an endpoint closes that task number.
+    Matching is by NUMBER, not title text: titles truncate (~60 chars
+    + ...) and a closure title never equals the task title word for
+    word, so prefix matching broke on the first real use. Only judged
+    supersedes counts: related/compatible/not_conflict leave the task
+    owed, and pending pairs are not verdicts yet. The DONE marker is
+    required so an outcome record's own #NNN (e.g. a verdict citing
+    other tasks) cannot close tasks it merely mentions. Returns None
+    when the output is unrecognized.
+    """
+    import re as _re
+    ids = set()
+    relation = status = ""
+    endpoints = []
+    recognized = False
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("relation:"):
+            relation = s.split(":", 1)[1].strip()
+            endpoints = []
+        elif s.startswith("judgment_status:"):
+            status = s.split(":", 1)[1].strip()
+        elif s.startswith("source:") or s.startswith("target:"):
+            recognized = True
+            endpoints.append(s.split("—", 1)[1].strip() if "—" in s else "")
+            if s.startswith("target:"):
+                if relation == "supersedes" and status == "judged":
+                    for ep in endpoints:
+                        if "DONE" in ep.upper():
+                            ids.update(_re.findall(r"#(\d{3,})\b", ep))
+                relation = status = ""
+                endpoints = []
+    if not recognized and "Total:" not in text and "No relations" not in text:
+        return None
+    return ids
+
+
+def check_plan():
+    """Open plan items = tasks with no judged `supersedes` pointing at them.
+
+    A task is done when an execution record judges it superseded
+    (source=execution, target=task). Minted-but-unexecuted and
+    executed-but-never-judged are both still owed: the next session
+    cannot tell them apart, so the gate must not pretend otherwise.
+
+    (Replaces a parser that matched `[topic:plan/` against `context`
+    output - a marker the command never emits, so the count read 0
+    forever. Found 2026-10-17: `context` renders `- [task] **Title**`.)
+    """
+    # NOTE: the search API caps at 20 rows per query with no offset, so
+    # no single query enumerates all tasks (verified 2026-10-17: every
+    # broad query returns exactly 20). Union several diverse queries and
+    # dedupe by numeric id. Closure is not provable from outside, so the
+    # count is reported as a lower bound when the union stops growing -
+    # which is still infinitely more honest than the old silent 0.
+    # 2026-10-17: a 20-token probe outside this list surfaced dozens of
+    # missed tasks (#592-#999: DeepSeek/opencode/MiMo-era backlog). The
+    # union only covers vocabularies it queries, so the list grows when
+    # probes find gaps. Still a lower bound, never a census.
+    queries = ("task", "Kilo", "Freebuff", "fix", "verify", "wire",
+               "bandit", "grpo", "hybrid", "consumer",
+               "DeepSeek", "opencode", "MiMo", "audit", "build",
+               "design", "retire", "quantize", "ablation",
+               "quarantine", "manifest", "adjudicate", "falsify",
+               "persist", "commit", "map", "mock")
+    tasks = {}
+    for q in queries:
+        raw = strip_banner(run(
+            ["search", q, "--type", "task", "--project", PROJECT,
+             "--limit", "100"]))
+        if raw.startswith("__ERR__"):
+            return ["open plan items: unknown (task search unreachable)"]
+        parsed = _plan_tasks(raw)
+        if parsed is None:
+            return ["open plan items: unknown (unrecognized search output)"]
+        for tid, title, date in parsed:
+            tasks.setdefault(tid, (title, date))
+    # NOTE: `--limit` caps at 500 and the list is newest-first, so very
+    # old supersedes (below the window) read as still-open. That errs
+    # toward showing work, which is the safe direction for a plan gate -
+    # the opposite error (silent 0) is what this fix removes.
+    raw_rels = strip_banner(run(
+        ["conflicts", "list", "--project", PROJECT, "--limit", "500"]))
+    if raw_rels.startswith("__ERR__"):
+        return ["open plan items: unknown (relations unreachable)"]
+    done_ids = _superseded_task_ids(raw_rels)
+    if done_ids is None:
+        return ["open plan items: unknown (unrecognized relations output)"]
+    # No recency split: this store's whole backlog is 6 days old, so any
+    # day-cutoff is arbitrary line-drawing inside one active lane, not a
+    # signal. Every unjudged task is listed; closing dead ones is triage
+    # work (judge them superseded), not display work. Dates are still
+    # captured per task for future use.
+    open_items = [(tid, t) for tid, (t, d) in tasks.items()
+                  if tid not in done_ids]
+    lines = ["open plan items: %d (union of %d queries; lower bound)"
+             % (len(open_items), len(queries))]
+    # Newest first: the current lane lives at the top of the numbering,
+    # so descending puts tonight's plans where eyes land.
+    for tid, t in sorted(open_items, key=lambda x: -int(x[0]))[:20]:
+        lines.append("  - #%s %s" % (tid, t[:100]))
+    if len(open_items) > 20:
+        lines.append("  - ... +%d more" % (len(open_items) - 20))
+    return lines
+
+
+def safe_print(text):
+    """Print on Windows consoles whose codec is cp1252, not UTF-8.
+
+    Titles carry arrows (U+2192) and em-dashes; an unguarded print()
+    raises UnicodeEncodeError and kills the gate AFTER it measured -
+    the failure mode is a crash that looks like a clean bill."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "utf-8"
+        sys.stdout.write(text.encode(enc, "replace").decode(enc) + "\n")
 
 
 def main() -> int:
@@ -223,9 +374,9 @@ def main() -> int:
         for l in lines:
             print("  " + l)
     for l in check_hook():
-        print("  " + l)
+        safe_print("  " + l)
     for l in check_plan():
-        print(l)
+        safe_print(l)
 
     nogos = [v for v in verdicts if v == "NO-GO"]
     if nogos:

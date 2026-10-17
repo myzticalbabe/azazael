@@ -1073,6 +1073,45 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 ---
 
+## RULE 0Z-J: NO OLD CYCLES — BUILD NEW TRIGGERS, NEVER RE-ENABLE RIPPED-OUT CYCLES (CRITICAL — Oct 17, 2026)
+
+**"WE RIPPED THEM OUT. BUILD NEW ONES. DO NOT USE OLD CYCLES." — User directive, Oct 17, 2026**
+
+**TRIGGER:** Any task requiring a new automatic trigger, schedule, runner, or cycle — including wiring a gate, monitor, or evolution step to fire on its own.
+
+**ACTION:** Build a NEW scheduler task AND a NEW runner script, named for what they run today. NEVER `/change /enable` a Disabled task, NEVER re-arm a retired runner (`.bat`/script), NEVER repoint new work at a ripped-out cycle file. A stale name is a landmine: `scripts/run_evolution_cycle_314t.bat` runs the 3.15t interpreter despite its name — do not trust cycle filenames, read the invoked command.
+
+**INCIDENT (why this exists):** On 2026-10-17 the old `Azazael-EvolutionCycle` task (5-minute evolution trigger, since disabled by operator order alongside `Azazael-Chain`, `Azazael-ChainWatchdog`, `Azazael-DreamCycle`, `Azazael-EveBattery`) was found Ready — re-enabled as the wire target for the #1059 tail-gate trigger instead of building a new one. Taken control same day: task disabled (`Next Run: N/A`, `Status: Disabled`), #1059 amended so its wire half MUST be a new trigger. Attribution per operator report (Task Scheduler records author `LAPTOP-8U5MSH3G\clint` for every task, so the actor is not independently verifiable from metadata).
+
+**Enforcement:**
+- Re-enabling, re-arming, or repointing at a ripped-out/retired cycle or trigger = CRITICAL process violation
+- Before wiring ANY automatic trigger: query `schtasks` for existing `Azazael-*` tasks and name the NEW task + NEW runner in the plan; reusing an old name is forbidden even with new contents
+- Checked by PRE-ACTION GATE: a trigger-wiring action without a named-new task fails the gate
+
+**Related:** RULE 0P (user directives absolute), #1048 (3.14 retired), #1059 (wire target must be new), PMB lesson 2260 (re-enabling the retired chain violates standing order)
+
+---
+
+## RULE 0Z-K: LIVE-PROOF DEVELOPMENT MANDATE — NO FAKES, NO THEATER, THIS IS LIVE (CRITICAL — Oct 17, 2026)
+
+**"THIS IS HOW WE DO DEVELOPMENT GOING FORWARD. NO FAKING/THEATER. THIS IS LIVE." — User directive, Oct 17, 2026**
+
+**TRIGGER:** Any code fix or feature that claims to work.
+
+**ACTION:** A behavior claim is proven ONLY by live evidence — a read-only run against the live store, a round trip through a REAL store (tmp path, genuine record→query, zero monkeypatching of the store API), or an explicitly ordered production run. Hermetic tests with fakes/monkeypatched stores are SHAPE-PINS: they pin interfaces, they are never cited as proof the behavior works in production. Fixtures are transcribed from the producer's source or captured from a real run (VERIFY ORACLES) — a self-written fixture validates assumptions, not reality. Every session accounts its production writes explicitly: what rows, what store, under whose sanction.
+
+**FIRST PROOF (why this exists):** On 2026-10-17 `#1074` proved the gather/realised/ceiling fixes live (live-store gather with correct per-subject scales; real tmp-store calibration row and empty repair list) after the operator ruled fakes do not prove it — and the session accounted exactly two live writes (one sanctioned baseline census, one ordered-then-stopped cycle).
+
+**Enforcement:**
+- Citing fake/monkeypatched-green suites as proof of production behavior = CRITICAL process violation (RULE 0N runtime truth, RULE 0A no unverified completion)
+- A fix with only hermetic evidence ships as UNPROVEN — the live-proof step is part of the task, not a follow-up
+- Production writes without per-session accounting = CRITICAL process violation
+- Checked by PRE-ACTION GATE: behavior claims cite live evidence + write accounting
+
+**Related:** RULE 0N, RULE 0A, VERIFY ORACLES, #1074 (first live-proof), RULE 0Z-J (same session: evidence over assumption)
+
+---
+
 ## 🔴 SECTION 3: AGENT CLASSIFICATION & SPAWN REFERENCE
 
 ### Complete Agent Inventory (11 Agents: 10 Spawnable + 1 Auto-Managed)
@@ -1103,5 +1142,5 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 ---
 
-*End of MANDATES.md — 37 total mandates codified (31 RULEs 0A-0Z-C + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+*End of MANDATES.md — 39 total mandates codified (33 RULEs 0A-0Z-K + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
 *Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified; 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
