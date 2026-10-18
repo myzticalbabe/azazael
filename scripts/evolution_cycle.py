@@ -3281,6 +3281,25 @@ def main(crossover_operator=None, mutation_operator=None,
     except Exception as e:
         log('checkpoint save failed: %s' % str(e)[:120])
 
+    # T-3 (2026-10-18): refresh the arm-liveness instrument every cycle.
+    # state/fitness_arms.json was written ONLY by the standalone tool, so the
+    # live loop rotted it (Oct 11 -> 595917s stale) and EV-7 read BLIND.
+    # Fail-open: a liveness failure must never break the cycle.
+    try:
+        _tools = os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), 'tools')
+        if _tools not in sys.path:
+            sys.path.insert(0, _tools)
+        import fitness_arm_liveness as _fal
+        _rep = _fal.analyse(_fal.parse(_fal.LOG))
+        _rep['input'] = _fal._input_state(_fal.LOG)
+        if _rep.get('verdict') != 'NO_DATA':
+            with open(_fal.OUT, 'w', encoding='utf-8') as _fh:
+                json.dump(_rep, _fh, indent=2, default=str)
+        log('fitness_arms refreshed: %s' % _rep.get('verdict'))
+    except Exception as e:
+        log('fitness_arms refresh failed: %s' % str(e)[:120])
+
     # (NSGA-II refinement ran earlier, before the promotion decision —
     # followup #1, 2026-09-11. `pareto` is already populated above.)
     try:
