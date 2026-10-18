@@ -25,9 +25,11 @@ _ft_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src")
 if _ft_path not in sys.path:
     sys.path.insert(0, _ft_path)
 
-from CORE.MemoryBus import MemoryBus, MemoryMessage
+from CORE.MemoryBus import BusMessage, MemoryBus
 from CORE.FreeThreadedAgent import FreeThreadedAgent
-from CORE.freethreading import FreeThreadPool, IS_FREE_THREADED
+from CORE.freethreading import FreeThreadPool, is_free_threaded
+
+IS_FREE_THREADED = is_free_threaded()
 
 # Attempt to import PamsBusBridge (will work if PAMS is available)
 HAS_PAMS_BRIDGE = False
@@ -65,9 +67,9 @@ class DemoAgent(FreeThreadedAgent):
         while self.is_running:
             counter += 1
             # Publish an event to MemoryBus
-            msg = MemoryMessage(
+            count = self.memory_bus.publish(
                 topic="demo.heartbeat",
-                payload={
+                content={
                     "agent": self.name,
                     "counter": counter,
                     "free_threaded": IS_FREE_THREADED,
@@ -75,7 +77,6 @@ class DemoAgent(FreeThreadedAgent):
                 },
                 source=self.name,
             )
-            count = self.memory_bus.publish(msg)
             self.events_published += 1
             self.log("info", f"Published heartbeat #{counter} ({count} subscribers)")
             # Sleep between heartbeats
@@ -109,10 +110,10 @@ class DemoSubscriber(FreeThreadedAgent):
         )
         self.log("info", f"Subscribed to demo.heartbeat")
 
-    def _on_heartbeat(self, message: MemoryMessage):
+    def _on_heartbeat(self, message: BusMessage):
         """Handle incoming heartbeat messages."""
         self.received_events.append(message)
-        payload = message.payload
+        payload = message.content
         self.log("info", f"Received heartbeat #{payload.get("counter")} from {payload.get("agent")}")
 
     def run(self):
