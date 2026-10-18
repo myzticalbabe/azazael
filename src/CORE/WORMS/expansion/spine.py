@@ -91,13 +91,15 @@ def _loud(message: str) -> None:
 
 try:
     from CORE.worm_registry import (register_worm, WORM_REGISTRY,
-                                    is_protected_worm, PROTECTED_NATURES)
+                                    is_protected_worm, PROTECTED_NATURES,
+                                    VALID_CATEGORIES as _VALID_CATS)
 except ImportError as exc:  # pragma: no cover — registry optional
     note_failure("spine:L80", exc)
     def register_worm(**kw):
         return lambda cls: cls
     WORM_REGISTRY = {}
     PROTECTED_NATURES = frozenset()
+    _VALID_CATS = frozenset({"expansion"})
 
     def is_protected_worm(info):  # pragma: no cover
         return False
@@ -3685,6 +3687,13 @@ class MorphogenesisWorm:
         cls = "Gen" + "".join(w.capitalize() for w in
                               __import__("re").sub(r"[^A-Za-z0-9]+", " ",
                                                    f"{worm} {sig}").split()[:4])
+        # NOTE (runtime trace 2026-10-18): the template below interpolated
+        # the raw failure nature as the registry category, so a nature like
+        # "route" emitted @register_worm(category="route") which raises
+        # ValueError at import (gen_windows_mesh_unknown.py). Natures are an
+        # open vocabulary; categories are closed. Map through the registry
+        # vocabulary, falling back to "expansion".
+        category = nature if nature in _VALID_CATS else "expansion"
         if trigger == "opportunity":
             headline = ("Specialist for a CAPABILITY GAP (opportunity-driven):\n"
                         "  requested by:  {n}\n"
@@ -3721,7 +3730,7 @@ except ImportError:  # pragma: no cover
     _spine = None
 
 
-@register_worm(category="{nature}", priority=5, cooldown_seconds=120.0,
+@register_worm(category="{category}", priority=5, cooldown_seconds=120.0,
     description="Generated specialist for {worm} failure: {sig}")
 class {cls}:
     """Evidence-collecting specialist (non-autonomous)."""
