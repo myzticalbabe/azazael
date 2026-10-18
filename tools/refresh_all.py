@@ -4,15 +4,14 @@
 
 The refresh order is the measured dependency chain, not a guess:
 
-    mesh_function_preflight.py             -> NEURAL_MESH_FUNCTION_TODO.md
     mesh_function_preflight.py --verdict --propose --triage --worklist
                                            -> NEURAL_MESH_WIRE_OR_CUT.json
                                            + NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md
 
-The census must run first because `--verdict` reads the probe results. Running
-them out of order produces a verdict table built on a previous census -- which
-is exactly how the table went stale in the first place (section 12 of the audit
-analysis).
+(The census step that wrote NEURAL_MESH_FUNCTION_TODO.md was cut 2026-10-18
+with the artifact: a generated probe census, not task state. `--verdict` calls
+build() itself in main(), so the verdict table never consumed the census file
+-- the historical "census must run first" coupling is gone with the step.)
 
 The intermesh step (`nature_integration_map.py` -> NEURAL_MESH_INTEGRATION_MAP
 .json + NEURAL_MESH_INTEROP.mmd + logs/capability_wiring_dataset.jsonl) was
@@ -114,7 +113,8 @@ def attempts() -> dict:
 
 # (argv tail, human label). Order is the dependency chain.
 STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
-    (("tools/mesh_function_preflight.py",), "census -> NEURAL_MESH_FUNCTION_TODO.md"),
+    # census step cut 2026-10-18 (it wrote NEURAL_MESH_FUNCTION_TODO.md;
+    # --verdict below runs build() itself and consumes no census output),
     # `--propose` fills the statuses the evidence decides and `--triage` labels
     # the ones it cannot. Without both, the table keeps the previous run's labels
     # while its findings have changed -- a reviewed row quietly described by a

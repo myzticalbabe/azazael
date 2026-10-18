@@ -38,7 +38,12 @@ ROOT = Path(__file__).resolve().parents[1]
 # (artifact, source roots, source patterns). Roots are relative to the repo root
 # so the audit is portable across the W11 / WSL / bare-metal checkouts.
 REGISTRY: tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...] = (
-    ("NEURAL_MESH_FUNCTION_TODO.md", ("src",), ("*.py",)),
+    # NEURAL_MESH_FUNCTION_TODO.md cut 2026-10-18 (verified, not assumed): a
+    # generated probe census, not task state -- 0 of its 3,659 boxes were ever
+    # ticked and a rebuild (one `tools/mesh_function_preflight.py` run) no
+    # longer matched the tracked copy. Keeping it tracked would turn every
+    # future audit into a permanent `missing` verdict, and spine.py's
+    # proprioception gate reads this module, so a missing row reads as stale.
     ("NEURAL_MESH_WIRE_OR_CUT.json", ("src",), ("*.py",)),
     ("NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md", ("src",), ("*.py",)),
     # The three intermesh artifacts (NEURAL_MESH_INTEGRATION_MAP.json,
