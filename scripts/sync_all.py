@@ -121,6 +121,11 @@ SYNC_DOC_PATTERNS = [
     "MASTER_TASKS.md",
     "SYSTEM_INSTRUCTIONS.md",
     "HAT_TAXONOMY.md",
+    # SOP.md added 2026-10-18: canon (RULE 0S) that was missing from the sync
+    # patterns, which is exactly how G: source-of-truth drifted to a stale
+    # copy carrying a duplicate 6-box checklist (16 open boxes vs 10 in every
+    # other environment -- measured, see state/MISSING_TASKS_FORENSIC_2026-10-18.md).
+    "SOP.md",
 ]
 
 SYNC_SCRIPT_PATTERNS = [
