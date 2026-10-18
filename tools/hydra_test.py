@@ -1,21 +1,43 @@
 """
 Unit Tests for HYDRA — Adaptive Sequential ML Cluster
-Run with:  KERAS_BACKEND=torch pytest hydra_test.py -v
+Run with:  pytest tools/hydra_test.py -v   (from azazael/ repo root)
+
+Rewritten 2026-10-18 against the current src/ORCHESTRATION/HYDRA.py API:
+  - import from src.ORCHESTRATION.HYDRA (was bare `from HYDRA import ...`
+    plus a dead sys.path pointing at ~/Desktop/azazael-project-e)
+  - constructor takes ClusterConfig(base_path=...) (was base_path kwarg)
+  - nodes are added via the nodes dict (register_node/load_nodes were removed
+    in the rewrite); status shape is nodes{total,...}/stages{...}
+  - AdaptationType / build_sequence / adaptive_learn no longer exist, so the
+    tests that covered them are dropped (documented, not silently skipped).
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.expanduser("~/Desktop/azazael-project-e"))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
-from pathlib import Path
-from HYDRA import HYDRACluster, ProcessingStage, AdaptationType, ClusterNode
+
+from ORCHESTRATION.HYDRA import (
+    ClusterConfig,
+    ClusterNode,
+    HYDRACluster,
+    ProcessingStage,
+)
 
 
 @pytest.fixture
 def cluster(tmp_path):
-    c = HYDRACluster(base_path=str(tmp_path))
+    c = HYDRACluster(config=ClusterConfig(base_path=str(tmp_path)))
     return c
+
+
+def _add_node(cluster, name="test_node", group="Core", priority=5):
+    node = ClusterNode(name=name, group=group, priority=priority)
+    with cluster._cluster_lock:
+        cluster.nodes[name] = node
+    return node
 
 
 class TestHYDRAInit:
@@ -25,23 +47,22 @@ class TestHYDRAInit:
         assert cluster.nodes == {}
 
     def test_default_config(self, cluster):
-        assert cluster.config["version"] == "1.0.0"
-        assert cluster.config["auto_adapt"] is True
-        assert len(cluster.config["stages"]) == 6
+        assert cluster.config.auto_retry is True
+        assert cluster.config.max_retries == 3
+        assert len(HYDRACluster.STAGES) == 6
 
 
 class TestHYDRANodes:
     def test_register_node(self, cluster):
-        node = ClusterNode(name="test_node", group="Core", priority=5)
-        cluster.register_node(node)
+        _add_node(cluster)
         assert "test_node" in cluster.nodes
         assert cluster.nodes["test_node"].group == "Core"
 
-    def test_load_nodes(self, cluster):
-        node = ClusterNode(name="saved_node", group="Analysis", priority=3)
-        cluster.register_node(node)
-        c2 = HYDRACluster(base_path=str(cluster.base_path))
-        c2.load_nodes()
+    def test_nodes_persist_in_state(self, cluster):
+        _add_node(cluster, name="saved_node", group="Analysis", priority=3)
+        cluster._save_state()
+        c2 = HYDRACluster(config=ClusterConfig(base_path=str(cluster.base_path)))
+        c2.load_state()
         assert "saved_node" in c2.nodes
         assert c2.nodes["saved_node"].group == "Analysis"
 
@@ -49,49 +70,23 @@ class TestHYDRANodes:
 class TestHYDRAStatus:
     def test_empty_status(self, cluster):
         status = cluster.get_cluster_status()
-        assert status["total_nodes"] == 0
-        assert status["successful"] == 0
-        assert status["failed"] == 0
-        assert status["pending"] == 0
+        assert status["nodes"]["total"] == 0
+        assert status["stages"]["successful"] == 0
+        assert status["stages"]["failed"] == 0
 
     def test_populated_status(self, cluster):
         for i in range(3):
-            cluster.register_node(ClusterNode(name=f"node_{i}", group="Core"))
+            _add_node(cluster, name=f"node_{i}", group="Core")
         status = cluster.get_cluster_status()
-        assert status["total_nodes"] == 3
+        assert status["nodes"]["total"] == 3
 
 
 class TestHYDRASequence:
-    def test_build_sequence_empty(self, cluster):
-        seq = cluster.build_sequence()
-        assert len(seq) == 6
-
-    def test_build_sequence_with_nodes(self, cluster):
-        cluster.register_node(ClusterNode(name="ql_node", group="Q-Learning", priority=5))
-        cluster.register_node(ClusterNode(name="core_node", group="Core", priority=3))
-        seq = cluster.build_sequence()
-        assert len(seq) == 6
-        stages = [s.stage.value for s in seq]
-        assert "discovery" in stages
-        assert "feedback" in stages
-
-
-class TestHYDRAAdaptation:
-    def test_no_adaptation_needed(self, cluster):
-        node = ClusterNode(name="healthy", group="Core")
-        cluster.register_node(node)
-        cluster.adaptive_learn()
-        # No history, no failures — no adaptation needed
-        assert len(cluster.adaptations) == 0
-
-    def test_adaptation_on_failure(self, cluster):
-        node = ClusterNode(name="failing", group="Core")
-        # Simulate failures
-        for _ in range(3):
-            node.history.append({"success": False, "stage": "test"})
-        cluster.register_node(node)
-        cluster.adaptive_learn()
-        assert len(cluster.adaptations) >= 0  # adaptation may or may not trigger
+    def test_stages_constant(self, cluster):
+        assert len(HYDRACluster.STAGES) == 6
+        values = [s.value for s in HYDRACluster.STAGES]
+        assert "Discovery" in values
+        assert "Feedback" in values
 
 
 class TestProcessingStage:
@@ -100,8 +95,3 @@ class TestProcessingStage:
         assert stages[0] == ProcessingStage.DISCOVERY
         assert stages[-1] == ProcessingStage.FEEDBACK
         assert len(stages) == 6
-
-    def test_adaptation_types(self):
-        types = list(AdaptationType)
-        assert AdaptationType.PARAMETER in types
-        assert AdaptationType.RETRY in types
