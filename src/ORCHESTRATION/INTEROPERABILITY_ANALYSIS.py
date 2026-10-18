@@ -25,30 +25,30 @@ from pathlib import Path
 class SystemNode:
     """Represents a node in the interoperability graph."""
 
-name: str
-version: str
-inputs: set[str] = field(default_factory=set)
-outputs: set[str] = field(default_factory=set)
-interfaces: set[str] = field(default_factory=set)
-protocols: set[str] = field(default_factory=set)
-dependencies: set[str] = field(default_factory=set)
+    name: str
+    version: str
+    inputs: set[str] = field(default_factory=set)
+    outputs: set[str] = field(default_factory=set)
+    interfaces: set[str] = field(default_factory=set)
+    protocols: set[str] = field(default_factory=set)
+    dependencies: set[str] = field(default_factory=set)
 
 
 class InteroperabilityAnalyzer:
     """Mathematical analysis of system interoperability."""
 
-def __init__(self):
+    def __init__(self):
         self.systems = {}
         self.data_flows = []
         self.interface_matrix = None
 
-def add_system(self, name: str, version: str, **kwargs) -> SystemNode:
+    def add_system(self, name: str, version: str, **kwargs) -> SystemNode:
         """Add a system to the analysis graph."""
         node = SystemNode(name=name, version=version, **kwargs)
         self.systems[name] = node
         return node
 
-def define_interfaces(self):
+    def define_interfaces(self):
         """Define interfaces between all systems."""
         interface_definitions = {
             "HYDRA": {
@@ -207,7 +207,7 @@ def define_interfaces(self):
         for name, defs in interface_definitions.items():
             self.add_system(name, "1.0.0", **defs)
 
-def build_interface_matrix(self) -> list[list[float]]:
+    def build_interface_matrix(self) -> list[list[float]]:
         """Build interface compatibility matrix using dot product of interface sets."""
         systems = list(self.systems.keys())
         n = len(systems)
@@ -255,7 +255,7 @@ def build_interface_matrix(self) -> list[list[float]]:
         self.systems_list = systems
         return matrix
 
-def compute_interoperability_index(self) -> float:
+    def compute_interoperability_index(self) -> float:
         """Compute overall interoperability index (matrix trace / n^2)."""
         if not self.interface_matrix:
             self.build_interface_matrix()
@@ -264,7 +264,7 @@ def compute_interoperability_index(self) -> float:
         total = sum(sum(row) for row in self.interface_matrix)
         return total / (n * n)
 
-def compute_centrality_scores(self) -> dict[str, float]:
+    def compute_centrality_scores(self) -> dict[str, float]:
         """Compute eigenvector centrality for each system."""
         if not self.interface_matrix:
             self.build_interface_matrix()
@@ -294,7 +294,7 @@ def compute_centrality_scores(self) -> dict[str, float]:
 
         return scores
 
-def compute_coupling_coefficients(self) -> dict[tuple[str, str], float]:
+    def compute_coupling_coefficients(self) -> dict[tuple[str, str], float]:
         """Compute coupling between system pairs."""
         if not self.interface_matrix:
             self.build_interface_matrix()
@@ -308,7 +308,7 @@ def compute_coupling_coefficients(self) -> dict[tuple[str, str], float]:
 
         return couplings
 
-def analyze_data_flows(self) -> dict[str, dict[str, list[str]]]:
+    def analyze_data_flows(self) -> dict[str, dict[str, list[str]]]:
         """Analyze data flow paths through the system."""
         flows = {
             "HYDRA -> HORUS": {
@@ -356,7 +356,7 @@ def analyze_data_flows(self) -> dict[str, dict[str, list[str]]]:
         }
         return flows
 
-def compute_entropy(self, system_name: str) -> float:
+    def compute_entropy(self, system_name: str) -> float:
         """Compute interface entropy for a system."""
         if system_name not in self.systems:
             return 0.0
@@ -373,7 +373,7 @@ def compute_entropy(self, system_name: str) -> float:
 
         return entropy
 
-def compute_redundancy_index(self) -> float:
+    def compute_redundancy_index(self) -> float:
         """Compute system redundancy (shared interfaces / total interfaces)."""
         all_interfaces = set()
         shared_interfaces = None
@@ -393,7 +393,7 @@ def compute_redundancy_index(self) -> float:
             len(shared_interfaces) / len(all_interfaces) if shared_interfaces else 0.0
         )
 
-def compute_fan_in_fan_out(self) -> dict[str, dict[str, int]]:
+    def compute_fan_in_fan_out(self) -> dict[str, dict[str, int]]:
         """Compute fan-in and fan-out for each system."""
         if not self.interface_matrix:
             self.build_interface_matrix()
@@ -415,7 +415,7 @@ def compute_fan_in_fan_out(self) -> dict[str, dict[str, int]]:
 
         return {"fan_in": fan_in, "fan_out": fan_out}
 
-def generate_report(self) -> dict:
+    def generate_report(self) -> dict:
         """Generate comprehensive interoperability report."""
         if not self.interface_matrix:
             self.build_interface_matrix()
@@ -477,94 +477,94 @@ def generate_report(self) -> dict:
 
 def main():
     """Run interoperability analysis."""
-print("=" * 70)
-print("  MATHEMATICAL INTEROPERABILITY ANALYSIS")
-print("  Azazael Ecosystem")
-print("=" * 70)
-print()
+    print("=" * 70)
+    print("  MATHEMATICAL INTEROPERABILITY ANALYSIS")
+    print("  Azazael Ecosystem")
+    print("=" * 70)
+    print()
 
-analyzer = InteroperabilityAnalyzer()
-analyzer.define_interfaces()
-analyzer.build_interface_matrix()
+    analyzer = InteroperabilityAnalyzer()
+    analyzer.define_interfaces()
+    analyzer.build_interface_matrix()
 
-report = analyzer.generate_report()
+    report = analyzer.generate_report()
 
-print(
-"INTEROPERABILITY INDEX:", round(report["summary"]["interoperability_index"], 4)
-)
-print("REDUNDANCY INDEX:", round(report["summary"]["redundancy_index"], 4))
-print("TOTAL SYSTEMS:", report["summary"]["total_systems"])
-print("TOTAL DATA FLOWS:", report["summary"]["total_data_flows"])
-print()
+    print(
+    "INTEROPERABILITY INDEX:", round(report["summary"]["interoperability_index"], 4)
+    )
+    print("REDUNDANCY INDEX:", round(report["summary"]["redundancy_index"], 4))
+    print("TOTAL SYSTEMS:", report["summary"]["total_systems"])
+    print("TOTAL DATA FLOWS:", report["summary"]["total_data_flows"])
+    print()
 
-print("-" * 70)
-print("CENTRALITY RANKING (Most Connected Systems)")
-print("-" * 70)
-for item in report["centrality_ranking"]:
-    print(f"  {item['system']:20s} : {item['centrality']:.4f}")
-print()
+    print("-" * 70)
+    print("CENTRALITY RANKING (Most Connected Systems)")
+    print("-" * 70)
+    for item in report["centrality_ranking"]:
+        print(f"  {item['system']:20s} : {item['centrality']:.4f}")
+    print()
 
-print("-" * 70)
-print("TOP COUPLINGS (Strongest Connections)")
-print("-" * 70)
-for item in report["top_couplings"]:
-    print(f"  {item['pair']:40s} : {item['strength']:.4f}")
-print()
+    print("-" * 70)
+    print("TOP COUPLINGS (Strongest Connections)")
+    print("-" * 70)
+    for item in report["top_couplings"]:
+        print(f"  {item['pair']:40s} : {item['strength']:.4f}")
+    print()
 
-print("-" * 70)
-print("ENTROPY ANALYSIS (Interface Diversity)")
-print("-" * 70)
-for system, entropy in sorted(
-report["entropy_analysis"].items(), key=lambda x: x[1], reverse=True
-):
-    print(f"  {system:20s} : {entropy:.4f}")
-print()
+    print("-" * 70)
+    print("ENTROPY ANALYSIS (Interface Diversity)")
+    print("-" * 70)
+    for system, entropy in sorted(
+    report["entropy_analysis"].items(), key=lambda x: x[1], reverse=True
+    ):
+        print(f"  {system:20s} : {entropy:.4f}")
+    print()
 
-print("-" * 70)
-print("DATA FLOW SUMMARY")
-print("-" * 70)
-for flow_name, flow_data in report["data_flows"].items():
-    print(f"  {flow_name}")
-print(f"    Path: {' -> '.join(flow_data['path'])}")
-print(
-        f"    Latency: {flow_data['latency_ms']}ms | Throughput: {flow_data['throughput_files_per_sec']}/s"
-)
-print()
+    print("-" * 70)
+    print("DATA FLOW SUMMARY")
+    print("-" * 70)
+    for flow_name, flow_data in report["data_flows"].items():
+        print(f"  {flow_name}")
+    print(f"    Path: {' -> '.join(flow_data['path'])}")
+    print(
+            f"    Latency: {flow_data['latency_ms']}ms | Throughput: {flow_data['throughput_files_per_sec']}/s"
+    )
+    print()
 
-print("=" * 70)
-print("  MATHEMATICAL PROPERTIES")
-print("=" * 70)
-props = report["mathematical_properties"]
-print(f"  Interface Sparsity:      {props['interface_sparsity']:.4f}")
-print(f"  Average Path Length:     {props['avg_path_length']:.2f}")
-print(f"  Clustering Coefficient:   {props['clustering_coefficient']:.4f}")
-print(f"  Graph Diameter:          {props['graph_diameter']}")
-print()
+    print("=" * 70)
+    print("  MATHEMATICAL PROPERTIES")
+    print("=" * 70)
+    props = report["mathematical_properties"]
+    print(f"  Interface Sparsity:      {props['interface_sparsity']:.4f}")
+    print(f"  Average Path Length:     {props['avg_path_length']:.2f}")
+    print(f"  Clustering Coefficient:   {props['clustering_coefficient']:.4f}")
+    print(f"  Graph Diameter:          {props['graph_diameter']}")
+    print()
 
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+    #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+    #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
+    try:
+        from CORE.failure_ledger import note_failure
+    except ImportError:                               # never break the host
+        def note_failure(where: str, exc: BaseException | None = None) -> None:
+            pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-    # Save report
-try:
+        # Save report
+    try:
+        from CORE.paths import get_desktop_dir
+    except ImportError as exc:
+        note_failure("INTEROPERABILITY_ANALYSIS:L547", exc)
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_desktop_dir
-except ImportError as exc:
-    note_failure("INTEROPERABILITY_ANALYSIS:L547", exc)
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from CORE.paths import get_desktop_dir
-from typing import List
+    from typing import List
 
-output_path = str(get_desktop_dir() / "HORUS" / "results" / "interoperability_analysis.json")
-with open(output_path, "w") as f:
-    json.dump(report, f, indent=2)
-# print(f"Report saved to: {output_path}")
+    output_path = str(get_desktop_dir() / "HORUS" / "results" / "interoperability_analysis.json")
+    with open(output_path, "w") as f:
+        json.dump(report, f, indent=2)
+    # print(f"Report saved to: {output_path}")
 
-# return report
+    # return report
 
 
 if __name__ == "__main__":
