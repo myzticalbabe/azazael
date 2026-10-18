@@ -242,7 +242,7 @@ reports/env_inventory/
 
 # Evidence INSIDE state/ (2026-10-10, flaw S6). `state/` above is ignored because
 # most of it is live runtime state that must never be reverted by a checkout -- but
-# three of its files are the EVIDENCE for the adoption, reachability and suite
+# five of its files are the EVIDENCE for the adoption, reachability and suite
 # numbers quoted in commit messages and in STRUCTURAL_FLAWS_315T.md. While they are
 # ignored, a fresh clone cannot reproduce those numbers, only trust them: the same
 # defect as S10 (an untracked commit gate). See EVIDENCE.md.
