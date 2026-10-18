@@ -126,6 +126,11 @@ SYNC_DOC_PATTERNS = [
     # copy carrying a duplicate 6-box checklist (16 open boxes vs 10 in every
     # other environment -- measured, see state/MISSING_TASKS_FORENSIC_2026-10-18.md).
     "SOP.md",
+    # MANDATES.md added 2026-10-18: measured same gap (all 3 G:/G:\\ copies
+    # drifted in content) -- together with SOP.md this closes the only two
+    # canon (RULE 0K) docs that had no sync path. MD-only by design: the
+    # module map source is Nuitka build output, not markdown.
+    "MANDATES.md",
 ]
 
 SYNC_SCRIPT_PATTERNS = [
