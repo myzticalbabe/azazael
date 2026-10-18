@@ -62,6 +62,31 @@ _DEFAULT_ROOT = str(_get_project_root_safe() if _get_project_root_safe is not No
                     else _ROOT_FALLBACK)
 
 
+def _discover_modules() -> dict:
+    """Resolve discover_modules across the two ml_platforms copies.
+
+    Runtime trace 2026-10-18: the bare ``from ml_platforms.config import``
+    only resolved when src/HYDRA happened to be on sys.path, so
+    discover_nodes() raised ModuleNotFoundError under the standard src/-on-
+    path layout and DISCOVERY always scored 0. Try the sibling copy first
+    (ORCHESTRATION-local, consistent with this module), then the HYDRA copy,
+    then the legacy top-level path. Raises ModuleNotFoundError only if none
+    resolve — never silently return empty."""
+    for mod in (
+        "ORCHESTRATION.ml_platforms.config",
+        "HYDRA.ml_platforms.config",
+        "ml_platforms.config",
+    ):
+        try:
+            module = __import__(mod, fromlist=["discover_modules"])
+            return module.discover_modules()
+        except ImportError:
+            continue
+    raise ModuleNotFoundError(
+        "No ml_platforms.config found (tried ORCHESTRATION/HYDRA/top-level)"
+    )
+
+
 class ProcessingStage(Enum):
     """HYDRA processing stages."""
 
@@ -153,9 +178,7 @@ class HYDRACluster:
 
     def discover_nodes(self) -> dict[str, ClusterNode]:
         """Auto-discover available ML processing nodes (thread-safe)."""
-        from ml_platforms.config import discover_modules
-
-        modules = discover_modules()
+        modules = _discover_modules()
 
         node_groups = {
             "core": [],

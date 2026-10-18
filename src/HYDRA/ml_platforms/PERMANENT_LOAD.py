@@ -44,14 +44,18 @@ except ImportError:                               # never break the host
 ML_PATH = Path.home() / "Desktop" / "Azazael" / "ml_platforms"
 if ML_PATH not in sys.path:
     sys.path.insert(0, ML_PATH)
-    # Try to persist via user sitecustomize
-    try:
-        site_path = os.path.join(os.path.expanduser("~"), "sitecustomize.py")
-        with open(site_path, "a") as f:
-            f.write(f"\nimport sys\nsys.path.insert(0, r'{ML_PATH}')\n")
-        print("[OK] Persisted to user sitecustomize.py")
-    except Exception as exc:
-        note_failure("PERMANENT_LOAD:L43", exc)
+    # Persist via user sitecustomize ONLY when run as a script. Importing
+    # this module must be side-effect free: runtime trace 2026-10-18 showed
+    # a bare import appending a dead Desktop path to ~/sitecustomize.py,
+    # which then prepends a nonexistent dir on EVERY interpreter startup.
+    if __name__ == "__main__":
+        try:
+            site_path = os.path.join(os.path.expanduser("~"), "sitecustomize.py")
+            with open(site_path, "a") as f:
+                f.write(f"\nimport sys\nsys.path.insert(0, r'{ML_PATH}')\n")
+            print("[OK] Persisted to user sitecustomize.py")
+        except Exception as exc:
+            note_failure("PERMANENT_LOAD:L43", exc)
 
 # 2. Import all ML platform tools
 try:
@@ -61,6 +65,10 @@ try:
 
     print("[OK] All ML tools imported")
 except Exception as e:
+    # NOTE (runtime trace 2026-10-17): the section-4 call below used the
+    # name unconditionally, so a failed import died with NameError instead
+    # of the warned degradation. The flag keeps import and use consistent.
+    list_platforms = None
     print(f"[WARN] Import error: {e}")
 
 
@@ -116,7 +124,10 @@ def debug_all_errors():
 print("\n" + "=" * 60)
 print("ML PLATFORMS AUTO-LOADED")
 print("=" * 60)
-list_platforms()
+if list_platforms is not None:
+    list_platforms()
+else:
+    print("[SKIP] platform listing unavailable (import failed above)")
 print("\nAvailable commands:")
 print("  convert(arr, 'pytorch')  # Convert tensors")
 print("  debug('error message')   # Debug errors")

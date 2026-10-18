@@ -1,33 +1,35 @@
 """HYDRA Node Dependency Graph — Generates Graphviz DOT output.
 
-Usage:  python3 hydra_graph.py | dot -Tpng -o hydra_graph.png
+Usage:  python3 tools/hydra_graph.py | dot -Tpng -o hydra_graph.png
+        (run from the azazael/ repo root)
 """
 
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path.home() / "Desktop/azazael-project-e"))
 
-from HYDRA import HYDRACluster
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from ORCHESTRATION.HYDRA import HYDRACluster
 
 cluster = HYDRACluster()
-cluster.load_nodes()
+cluster.discover_nodes()
 
 if not cluster.nodes:
-    print("// No nodes registered. Run --discover first.", file=sys.stderr)
+    print("// No nodes discovered.", file=sys.stderr)
     sys.exit(1)
 
 # Color mapping by group
 GROUP_COLORS = {
-    "Core": "#4CAF50",
-    "Analysis": "#2196F3",
-    "Q-Learning": "#FF9800",
-    "Integration": "#9C27B0",
-    "Monitoring": "#00BCD4",
-    "LM Studio": "#E91E63",
-    "Installation": "#795548",
-    "Conversion": "#607D8B",
-    "Autoload": "#3F51B5",
-    "Improvements": "#009688",
+    "core": "#4CAF50",
+    "analysis": "#2196F3",
+    "qlearning": "#FF9800",
+    "integration": "#9C27B0",
+    "monitoring": "#00BCD4",
+    "lm_studio": "#E91E63",
+    "installation": "#795548",
+    "conversion": "#607D8B",
+    "autoload": "#3F51B5",
+    "improvements": "#009688",
 }
 
 print("digraph HYDRA {")
@@ -50,7 +52,7 @@ for group, members in groups.items():
     print(f'    color="{color}22";')
     print(f'    fontname="monospace";')
     for m in members:
-        status_color = "palegreen" if cluster.nodes[m].status == "success" else "lightyellow"
+        status_color = "palegreen" if cluster.nodes[m].enabled else "lightyellow"
         print(f'    "{m}" [fillcolor="{status_color}"];')
     print("  }")
     print()

@@ -70,7 +70,7 @@ sys.path.insert(0, _META_DIR) if _META_DIR not in sys.path else None
 sys.path.insert(0, _UTIL_DIR) if _UTIL_DIR not in sys.path else None
 
 # Import core components
-from HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
+from ORCHESTRATION.HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
 
 # PAMS recording
 try:

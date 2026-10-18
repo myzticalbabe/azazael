@@ -28,7 +28,14 @@ INFLATION, measured not guessed
 import re
 
 DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-h = open(DOC, encoding="utf-8").read()
+
+
+def _read_dashboard(path=DOC):
+    # NOTE (runtime trace 2026-10-18): importing this one-shot patch script
+    # executed open(DOC) at module level, so any import (tests, sweeps)
+    # crashed with FileNotFoundError/AttributeError when the dashboard was
+    # absent. Reads now happen inside main() only.
+    return open(path, encoding="utf-8").read()
 
 SPAN = 10.74
 DEST_MIN = 180.0
@@ -127,22 +134,36 @@ rate and re-reading the totals is the whole remaining financial action.</div>
 </section>
 """
 
-if 'id="value-taken"' in h or "id='value-taken'" in h:
-    print("already present")
-else:
-    m = re.search(r"<h2[^>]*>", h)
-    h = h[:m.start()] + BLOCK + "\n" + h[m.start():]
-    open(DOC, "w", encoding="utf-8").write(h)
-    print("value block inserted")
+def main(path=DOC):
+    try:
+        h = _read_dashboard(path)
+    except FileNotFoundError as exc:
+        print(f"dashboard not found, nothing to patch: {path} ({exc})")
+        return 1
+    if 'id="value-taken"' in h or "id='value-taken'" in h:
+        print("already present")
+    else:
+        m = re.search(r"<h2[^>]*>", h)
+        if m is None:
+            print("no <h2> anchor found, nothing inserted")
+            return 1
+        h = h[:m.start()] + BLOCK + "\n" + h[m.start():]
+        open(path, "w", encoding="utf-8").write(h)
+        print("value block inserted")
 
-b = open(DOC, encoding="utf-8").read()
-txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", b))
-i = txt.find("THE VALUE TAKEN")
-print()
-print(txt[i:i + 1250])
-print()
-print("=" * 72)
-print("  block present :", b.count("value-taken"))
-print("  CPI 3.4 cited :", "bls.gov" in b)
-print("  $0.00 societal remaining:",
-      len([m for m in re.finditer(r"[Ss]ociet\w*[^.|]{0,40}\$0\.00", txt)]))
+    b = open(path, encoding="utf-8").read()
+    txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", b))
+    i = txt.find("THE VALUE TAKEN")
+    print()
+    print(txt[i:i + 1250])
+    print()
+    print("=" * 72)
+    print("  block present :", b.count("value-taken"))
+    print("  CPI 3.4 cited :", "bls.gov" in b)
+    print("  $0.00 societal remaining:",
+          len([m for m in re.finditer(r"[Ss]ociet\w*[^.|]{0,40}\$0\.00", txt)]))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
