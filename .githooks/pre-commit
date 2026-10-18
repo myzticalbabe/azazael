@@ -4,6 +4,7 @@
 #
 # Check order (cheap-and-broad first, so a bad commit is rejected early):
 #   1. bulk-diff focus gate      (scripts/commit_gate.py)
+#   7b. testing-paradigm G1     (tools/test_paradigm_gate.py, blocking)
 #   1b. stale-index guard        (tools/index_drift_check.py) -- a path staged
 #       and then edited again would be committed as the STALE blob, and the
 #       scanner below reads the INDEX, so it would certify a version that is
@@ -163,6 +164,26 @@ else
     echo "[Mesh] check not found -- passing loud (check unrunnable)"
 fi
 echo ""
+
+# ─── Check 7b (blocking): testing-paradigm G1 (Engram #890 item 4) ───
+# Every NEW staged src/ module must be named by at least one tests/ file.
+# Narrow by design (Added-only, name-presence only) so it cannot
+# false-positive on the existing tree; measured green on wiring day
+# (modules=0 on the landing index). Blocking from birth: an advisory
+# presence gate that never blocks is the #889 drift shape (mechanized
+# but not enforced). Bypass only by naming the module in a test.
+if [ -f "$SCRIPT_DIR/tools/test_paradigm_gate.py" ]; then
+    if [ -x "$PYTHON3" ]; then
+        "$PYTHON3" "$SCRIPT_DIR/tools/test_paradigm_gate.py" 2>&1
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo "[Paradigm] BLOCKED (G1). Name the new src/ module in a tests/ file."
+            exit 1
+        fi
+    else
+        echo "[Paradigm] 3.15t python not found -- passing loud (gate unrunnable)"
+    fi
+fi
 
 # ─── Check 7 (advisory): testing-paradigm rule 1 (Engram #784) ───
 # A new src/ function needs a staged Hypothesis property test. Advisory by
