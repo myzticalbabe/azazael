@@ -408,6 +408,89 @@ class TestArxivIntegrationStats(unittest.TestCase):
                       "get_knowledge_graph_stats should include total_memories key")
 
 
+class TestArxivMutationKills(unittest.TestCase):
+    """Named tests closing scripts/mutate.py survivors (2026-10-17 lane).
+
+    Each test names the site it kills; re-run mutate.py to verify."""
+
+    def setUp(self):
+        from CORE.arxiv_integration import ArxivIntegration
+        self.ai = ArxivIntegration(db_path=None)
+
+    def test_none_title_guarded_to_empty(self):
+        """Kills Or@259/260 (paper.get(..) or "" -> and "").
+
+        Must go through index_paper: the guard lives at the call site,
+        not in the method (which stringifies None into a "none" keyword
+        — latent sharp edge, pipeline-safe only via these guards)."""
+        import tempfile
+        from CORE.arxiv_integration import ArxivIntegration
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            ai = ArxivIntegration(db_path=tmp.name)
+            with patch.object(
+                    ArxivIntegration,
+                    "_extract_keywords_from_title_abstract",
+                    return_value=[]) as m:
+                ai.index_paper({"title": None,
+                                "abstract": "Learning systems explored."},
+                               source_agent="test_mut")
+            # Both guards pinned: title None -> "", abstract passes whole.
+            # (Or@260 survived the first version, which asserted arg 0 only.)
+            self.assertEqual(m.call_args[0][0], "")
+            self.assertEqual(m.call_args[0][1],
+                             "Learning systems explored.")
+        finally:
+            os.unlink(tmp.name)
+
+    def test_entry_id_without_abs_leaves_arxiv_id_none(self):
+        """Kills And@124 (entry_id and "/abs/" in entry_id -> or)."""
+        xml = ("<feed><entry><title>Some Research Paper</title>"
+               "<id>http://arxiv.org/api/query?id=1234</id>"
+               "<summary>An abstract about learning systems.</summary>"
+               "</entry></feed>")
+        out = self.ai._parse_arxiv_atom(xml)
+        self.assertEqual(len(out["entries"]), 1)
+        self.assertIsNone(out["entries"][0]["arxiv_id"])
+
+    def test_retry_backoff_counts(self):
+        """Kills Lt@81 / Sub@81 / Mult@82 (retry comparison + backoff)."""
+        from CORE.arxiv_integration import ArxivIntegration
+        ai = ArxivIntegration(max_retries=3, backoff_factor=1.0,
+                              db_path=None)
+        with patch("CORE.arxiv_integration.urllib.request.urlopen",
+                    side_effect=Exception("down")) as uo, \
+                patch("time.sleep") as sl:
+            with self.assertRaises(RuntimeError):
+                ai._arxiv_api_query("all")
+        self.assertEqual(uo.call_count, 3)
+        self.assertEqual(sl.call_count, 2)
+        self.assertEqual([c.args for c in sl.call_args_list],
+                         [(1.0,), (2.0,)])
+
+    def test_age_filter_keeps_dateless_paper(self):
+        """Kills And@321 (max_age_days and paper.get("published") -> or)."""
+        import tempfile
+        from CORE.arxiv_integration import ArxivIntegration
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            ai = ArxivIntegration(db_path=tmp.name)
+            paper = {"title": "Dateless Research Paper",
+                     "abstract": "Learning systems explored."}
+            with patch.object(ai, "_arxiv_api_query",
+                              return_value={"entries": [paper]}):
+                res = ai.fetch_and_index(query="all", limit=10,
+                                         max_age_days=30,
+                                         source_agent="test_mut")
+            self.assertEqual(res["fetched"], 1)
+            self.assertEqual(res["indexed"], 1)
+            self.assertEqual(res["skipped"], 0)
+        finally:
+            os.unlink(tmp.name)
+
+
 class TestArxivIntegrationDemo(unittest.TestCase):
     """Test demo() function."""
 

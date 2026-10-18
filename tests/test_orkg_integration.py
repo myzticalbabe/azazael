@@ -199,6 +199,44 @@ class TestORKGIntegrationStats(unittest.TestCase):
         self.assertIn("total_memories", stats)
 
 
+class TestORKGMutationKills(unittest.TestCase):
+    """Named tests closing scripts/mutate.py survivors (2026-10-17 lane).
+
+    Or@241 (`r["metadata"] or {}`) is NOT covered here: index_paper always
+    stores metadata as a JSON string, so the else-branch is defensive dead
+    code through the public API — documented equivalent, not a test hole."""
+
+    def setUp(self):
+        from CORE.orkg_integration import ORKGIntegration
+        self.orkg = ORKGIntegration(db_path=None)
+
+    def test_none_title_guarded_to_empty(self):
+        """Kills Or@115/116 (paper.get(..) or "" -> and "").
+
+        Guard lives at the index_paper call site, so the test captures
+        the call args there (see arxiv twin for the rationale)."""
+        import os
+        import tempfile
+        from unittest.mock import patch
+        from CORE.orkg_integration import ORKGIntegration
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            orkg = ORKGIntegration(db_path=tmp.name)
+            with patch.object(
+                    ORKGIntegration,
+                    "_extract_keywords_from_title_abstract",
+                    return_value=[]) as m:
+                orkg.index_paper({"title": None,
+                                  "abstract": "Learning systems explored."},
+                                 source_agent="test_mut")
+            self.assertEqual(m.call_args[0][0], "")
+            self.assertEqual(m.call_args[0][1],
+                             "Learning systems explored.")
+        finally:
+            os.unlink(tmp.name)
+
+
 class TestORKGIntegrationDemo(unittest.TestCase):
     """Test demo() function."""
 
