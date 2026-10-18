@@ -1142,5 +1142,30 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 ---
 
-*End of MANDATES.md — 39 total mandates codified (33 RULEs 0A-0Z-K + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+### RULE 0Z-L — FREE-THREADED PARALLEL SWEEP PROTOCOL (codified 2026-10-17)
+
+**ACTION:** Every whole-tree evidence sweep runs parallel-first on the free-threaded interpreter — no sequential file-by-file sweep is ever the first instrument.
+
+**PROTOCOL:**
+- Interpreter: `C:/Azazael/.venvs/py315t/Scripts/python.exe` (free-threaded 3.15t; no GIL — threads run truly concurrent). Plain `python` (GIL-bound) is the fallback, never the default for sweeps.
+- Fan-out: `concurrent.futures.ThreadPoolExecutor(max_workers=16..32)` over files; one task = one file (read + tokenize + classify). Batch independent tool calls in the same turn alongside it.
+- Evidence source: `git show HEAD:<path>` per file (committed code only), never the worktree — RULE: `wired` is a claim about committed code (#955).
+- Comment/string-proof: `tokenize` every file; match `NAME + '('` tokens (bare + attribute `.name(`/ both — bare-name regexes MISS `obj.method(` and OVER-MATCH generic names like `execute`/`__init__` across unrelated classes); exclude `def name(` lines; exclude `archived*`, `nuitka_build_backup`, vendored trees from live-wiring conclusions.
+- Tier the verdict, don't count matches: T1 module-linked caller (caller file imports declaring module — resolve receivers through lazy/function-level imports, `learning.py`-style re-exports) · T2 dispatch/registration (`@register_worm`, assignment form, `_STANDARD_METHODS` reachability) · T3 weak/unlinked · T4 no-caller.
+- `git grep` has no lookbehind — post-filter in Python instead of fighting the dialect. Subprocess calls always `encoding="utf-8", errors="replace"` (#590/#591 r5).
+- Scripts live in `/tmp` (`audit_*.py` pattern), never in the repo; `git status` before==after for every read-only pass.
+
+**FIRST PROOF (why this exists):** On 2026-10-17 a 5018-file HEAD sweep (show + tokenize + classify, 32 workers) returned near-instantaneously where sequential would have taken hundreds of subprocess round-trips; the same session caught and corrected two sweep-method flaws mid-pass (attribute-call blindness, generic-name collision) because the tiered protocol forced receiver resolution (#950/#955).
+
+**Enforcement:**
+- A sequential whole-tree sweep when the 3.15t venv is available = process violation (speed is correctness: slow sweeps get skipped, skipped sweeps get hand-waved)
+- A `wired`/caller verdict cited from worktree reads or bare-name counts = CRITICAL process violation (the exact #955 over-claim shape)
+- Checked by PRE-ACTION GATE: sweep tasks cite interpreter + HEAD-pinning + tier rule
+
+**Related:** RULE 0Z-F (parallel execution), #950 (attribute-call blind spot), #955 (HEAD rule, tiered evidence), #959 (dispatch model), #590/#591 r5 (encoding discipline)
+
+---
+
+*End of MANDATES.md — 40 total mandates codified (34 RULEs 0A-0Z-L + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+
 *Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified; 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
