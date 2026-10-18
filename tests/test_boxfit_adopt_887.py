@@ -85,6 +85,16 @@ def test_schema_channel_enforcement():
           f"enforcement_after={rejected}/20 wellformed_accepted={accepted}/6")
 
 
+def test_schema_optional_field_accepted_and_validated():
+    # Kills Or@44 (optional_fields or set -> and: drops the declared key)
+    # and const True@72 (validate True -> False): the declared optional
+    # key must validate, and validate must report True.
+    sch = _schema()
+    assert sch.validate({"tool": "grep", "params": {},
+                         "trace_id": "t-1"}) is True
+    print("MEASURE schema optional_field_accepted=1/1 validate_true=1/1")
+
+
 class _StubBacktrack(unittest.TestCase):
     def runTest(self):
         pass

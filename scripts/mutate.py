@@ -90,6 +90,69 @@ class MutantFinder(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+def _main_guard_ranges(tree):
+    """Line ranges of `if __name__ == "__main__":` blocks.
+
+    Sites in there never execute under pytest (import does not run the
+    block), so every mutant sampled there SURVIVES by construction and
+    depresses the score with zero signal about the suite. coverage.py
+    excludes the same blocks by default; this matches that precedent.
+    Returns a list of (first, last) inclusive line numbers."""
+    ranges = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.If):
+            continue
+        test = node.test
+        if not (isinstance(test, ast.Compare)
+                and len(test.ops) == 1
+                and isinstance(test.ops[0], ast.Eq)):
+            continue
+        left = test.left
+        rights = test.comparators
+        names = set()
+        consts = set()
+        for part in [left, *rights]:
+            if isinstance(part, ast.Name):
+                names.add(part.id)
+            elif isinstance(part, ast.Constant):
+                consts.add(part.value)
+        if names == {"__name__"} and consts == {"__main__"}:
+            ranges.append((node.lineno, node.end_lineno or node.lineno))
+    return ranges
+
+
+def _guard_only_ranges(tree, guards):
+    """Line ranges of functions called ONLY from main-guard blocks.
+
+    A demo()/main() invoked solely under `if __name__ == "__main__":`
+    is uncovered-script code under pytest: nothing imports-and-calls it
+    (verified shape: the demo tests assert callability only, never run
+    the body), so its mutants survive by construction. A function called
+    from anywhere else (including `from mod import f; f()` in a test,
+    which is a Name call) is kept: this is call-graph reachability,
+    not name-matching. Attribute calls (`mod.f()`) are NOT tracked —
+    grep for those before trusting an exclusion on a new target."""
+    if not guards:
+        return []
+    guard_calls = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if any(lo <= node.lineno <= hi for lo, hi in guards):
+                guard_calls.add(node.func.id)
+    outside = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if not any(lo <= node.lineno <= hi for lo, hi in guards):
+                outside.add(node.func.id)
+    guard_only = guard_calls - outside
+    ranges = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) \
+                and node.name in guard_only:
+            ranges.append((node.lineno, node.end_lineno or node.lineno))
+    return ranges
+
+
 class MutantApplier(ast.NodeTransformer):
     """Apply exactly one site (lineno, col, kind)."""
 
@@ -208,9 +271,19 @@ def main():
     original = sha(target)
 
     src = open(target, encoding="utf-8").read()
+    tree = ast.parse(src)
+    guards = _main_guard_ranges(tree)
+    excluded = list(guards) + _guard_only_ranges(tree, guards)
     finder = MutantFinder()
-    finder.visit(ast.parse(src))
+    finder.visit(tree)
     sites = finder.sites
+    if excluded:
+        before = len(sites)
+        sites = [s for s in sites
+                 if not any(lo <= s[0] <= hi for lo, hi in excluded)]
+        print(f"mutate: excluded {before - len(sites)} guard-only site(s)"
+              f" in {len(excluded)} main-guard/guard-only range(s)"
+              f" (uncovered-script code; verify with grep before trusting)")
     total_sites = len(sites)
     sampled = False
     print(f"mutate: {total_sites} sites in {args.target}")
