@@ -722,7 +722,12 @@ class METAWORMS:
         "METRICZ": METRICZ,
         "LOGZ": LOGZ,
         "CHANGEZ": CHANGEZ,
-        "ERRORZ": ERRORZ,
+        # NOTE (runtime trace 2026-10-17): the "ERRORZ": ERRORZ entry born
+        # in the tracking snapshot referenced a class that never existed in
+        # this file, so the module could never import (NameError at class
+        # creation). src/ERRORZ.py's ERRORZ is interface-incompatible
+        # (ErrorReport lacks WormResult's success/files_processed/items_found
+        # fields), so it cannot fill the slot. Entry removed, not replaced.
     }
 
     EXTENDED_WORMS = {}

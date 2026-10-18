@@ -47,7 +47,7 @@ Usage:
 
 # from typing import Union, Optional  # removed — all names have native equivalents
 import numpy as np
-from typing import List
+from typing import List, Union
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -83,8 +83,11 @@ except ImportError as exc:
     HAS_JAX = False
 
 
-ArrayType = np.ndarray | "torch.Tensor" | "tf.Tensor" | "jnp.ndarray"
-TensorLike = ArrayType | list | tuple
+# NOTE (runtime trace 2026-10-17): `X | "literal"` raises TypeError at
+# runtime (PEP 604 unions need real types on both sides outside
+# annotations). Union[] carries the same meaning and evaluates eagerly.
+ArrayType = Union[np.ndarray, "torch.Tensor", "tf.Tensor", "jnp.ndarray"]
+TensorLike = Union[ArrayType, list, tuple]
 
 
 class TensorConverter:
