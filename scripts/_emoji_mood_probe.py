@@ -11,6 +11,14 @@ import unicodedata
 sys.path.insert(0, "scripts")
 import live_monitor as lm
 
+# NOTE (runtime trace 2026-10-18): detect_glyph_tier lives in
+# exmachina_live_monitor, not live_monitor — the probe imported the wrong
+# module and died with AttributeError. Resolve from the right one.
+try:
+    from exmachina_live_monitor import detect_glyph_tier as _detect_tier
+except ImportError:
+    _detect_tier = None
+
 # Single-codepoint mood/severity glyphs
 SINGLE = {
     "green_circle": "\U0001f7e2", "yellow_circle": "\U0001f7e1", "red_circle": "\U0001f534",
@@ -45,7 +53,7 @@ def row(name, s, true_w):
 
 def main():
     print("=== glyph tier capability ===")
-    print("  detected tier :", lm.detect_glyph_tier("auto"))
+    print("  detected tier :", _detect_tier("auto") if _detect_tier else "unknown (tier module unavailable)")
     print("  stdout enc    :", sys.stdout.encoding)
     try:
         import ctypes

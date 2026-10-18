@@ -35,7 +35,7 @@ except ImportError as exc:  # pragma: no cover
     _spine = None
 
 
-@register_worm(category="route", priority=5, cooldown_seconds=120.0,
+@register_worm(category="expansion", priority=5, cooldown_seconds=120.0,
     description="Generated specialist for windows>mesh failure: unknown")
 class GenWindowsMeshUnknown:
     """Evidence-collecting specialist (non-autonomous)."""

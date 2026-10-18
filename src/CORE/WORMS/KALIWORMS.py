@@ -42,7 +42,7 @@ def _wsl(argv, timeout=_PROBE_TIMEOUT):
     try:
         r = subprocess.run(
             _WSL + list(argv), capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=timeout, errors="replace",
+            timeout=timeout,
         )
         text = ((r.stdout or "") + (r.stderr or "")).strip()[:400]
         return r.returncode, text

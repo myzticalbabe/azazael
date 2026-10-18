@@ -8,6 +8,11 @@ DB = os.environ.get("AZAZAEL_MEMORY_DIR", r"C:\Users\clint\.azazael")
 if not DB.endswith(".db"):
     DB = os.path.join(DB, "memory_store.db")
 print("db:", DB, "exists:", os.path.exists(DB))
+# NOTE (runtime trace 2026-10-18): with mode=ro a missing DB raises
+# OperationalError at import. Report absence instead of traceback.
+if not os.path.exists(DB):
+    print("no database at %s (set AZAZAEL_MEMORY_DIR)" % DB)
+    raise SystemExit(0)
 con = sqlite3.connect("file:%s?mode=ro" % DB, uri=True)
 cur = con.cursor()
 cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%evolution%'")

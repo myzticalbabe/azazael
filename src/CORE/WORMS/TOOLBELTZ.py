@@ -52,7 +52,7 @@ class _ToolBeltWorm:
             r = subprocess.run(
                 [sys.executable, "-m", "py_compile", str(path)],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=self.TIMEOUT, errors="replace",
+                timeout=self.TIMEOUT,
             )
             head = ((r.stdout or "") + (r.stderr or "")).strip()[:300]
             return {
