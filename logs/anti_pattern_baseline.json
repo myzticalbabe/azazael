@@ -1,9 +1,9 @@
 {
-  "recorded_at": "2026-10-17T12:26:21+00:00",
+  "recorded_at": "2026-10-18T14:44:56+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 722,
+  "files_scanned": 723,
   "category_counts": {
     "hardcoded_win_path": 14,
     "import_inside_function": 1101,
@@ -1027,7 +1027,7 @@
       "import_inside_function": 1
     },
     "ORCHESTRATION\\HYDRA.py": {
-      "import_inside_function": 3,
+      "import_inside_function": 2,
       "open_no_encoding": 2
     },
     "ORCHESTRATION\\HYDRA_ANALYZER.py": {
@@ -1038,6 +1038,7 @@
       "unicode_emoji": 3
     },
     "ORCHESTRATION\\INTEROPERABILITY_ANALYSIS.py": {
+      "import_inside_function": 1,
       "open_no_encoding": 1
     },
     "ORCHESTRATION\\SelfImprovingGUI.py": {
