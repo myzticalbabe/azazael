@@ -10,6 +10,8 @@ import threading
 from datetime import datetime
 from typing import Any, Callable, List
 from collections import defaultdict
+import io
+import sysconfig
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -41,7 +43,6 @@ except ImportError as exc:
     ThreadSafeDict = dict
     ThreadSafeList = list
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:
@@ -64,7 +65,6 @@ class CodeProfiler:
         """Profile a single function call and return stats."""
         import cProfile
         import pstats
-        import io
         pr = cProfile.Profile()
         pr.enable()
         result = func(*args, **kwargs)

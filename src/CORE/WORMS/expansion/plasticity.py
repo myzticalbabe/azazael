@@ -12,6 +12,7 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, List
+import math as _m
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -140,7 +141,6 @@ class ForgettingCurveWorm:
         return math.exp(-hours_since / (24.0 * max(0.1, self._s)))
 
     def next_review_hours(self) -> dict[str, Any]:
-        import math as _m
         if self._thr >= 1.0:
             h = 1.0
         else:

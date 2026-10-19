@@ -49,6 +49,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -84,7 +85,6 @@ def _census_paths() -> Tuple[Path, Path]:
     already writes. ``AZAZAEL_ENTRENCHMENT_PATH`` overrides it so a test run
     never writes into the tree it is testing.
     """
-    import os
     root = Path(__file__).resolve().parents[4]  # .../azazael
     census = Path(os.environ.get("AZAZAEL_WIRE_OR_CUT_PATH")
                   or (root / "NEURAL_MESH_WIRE_OR_CUT.json"))
