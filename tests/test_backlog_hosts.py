@@ -125,7 +125,9 @@ def test_adapters_invoke_new_hosts():
     assert l2._ep34()["rendered_steps"] == 4
     assert l2._ep427()["skill_md_chars"] > 0
     assert l2._ep427()["delta"] == ""
-    assert l2._ep363()["version_field_consumed"] is True
+    assert l2._ep363()["skill_accepted"] is True
+    assert l2._ep363()["prompt_accepted"] is True
+    assert l2._ep363()["packs_untrusted_at_build"] is True
     assert l2._ep364()["depth"] == 2
     assert l2._ep458()["accepted"] is True
     assert l2._ep458()["invoked"] == "CORE.skill_library:commit_gate"

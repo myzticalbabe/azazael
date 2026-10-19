@@ -13,7 +13,7 @@ verdict is SURVEY the adapter restates the extracted rule and re-tests that no
 mechanism was invented for it — the honest form for a paper with no technique.
 """
 
-from CORE.dispatch_plan import record_backtrack, reuse_prefix
+from CORE.dispatch_plan import locate_pivot, record_backtrack, reuse_prefix
 from CORE.skill_library import family_index
 from CORE.technique_runtime import register
 from typing import List
@@ -104,9 +104,18 @@ def _ep345():
         "technique-wiring:EP345",
         "pivotal-turn recorded; prefix reuse is the residual delta")
     back = reuse_prefix("technique-wiring:EP345")
+    pivot = locate_pivot([
+        {"branch": "read", "ok": True},
+        {"branch": "plan", "ok": True},
+        {"branch": "edit", "ok": False},
+        {"branch": "verify", "ok": False},
+    ])
     return {"invoked": True, "cited": bool(citation),
             "prefix_reusable": bool(back.get("reusable")),
-            "gap": "reuse live; caller-side plan splitting deferred "
+            "pivot_found": bool(pivot.get("found")),
+            "pivot_branch": pivot.get("pivot_branch"),
+            "reusable_prefix": list(pivot.get("reusable_prefix") or []),
+            "gap": "locate + reuse live; caller-side plan splitting deferred "
                    "(no live plan object at this layer)"}
 
 
