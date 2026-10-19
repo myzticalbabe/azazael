@@ -24,6 +24,8 @@ import os
 # from typing import List  # removed — all names have native equivalents
 from dataclasses import dataclass
 from typing import List
+import io
+import subprocess
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -49,7 +51,6 @@ class RunResult:
 
 def run_python(code: str, args: list[str] = None) -> RunResult:
     """Run Python code via exec."""
-    import io
     import time
     from contextlib import redirect_stdout, redirect_stderr
 
@@ -120,14 +121,13 @@ def run_bash(command: str) -> RunResult:
     This function is the designated shell execution path for the interpreter.
     Do NOT pass untrusted input through this function without sanitization.
     """
-    import subprocess
     import time
 
     start = time.time()
     try:
         result = subprocess.run(
             command, shell=True,  # scanner:ignore -- run_bash IS the designated shell path; input is user shell by contract
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30, timeout=30
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
         )
         return RunResult(
             language="bash",
@@ -149,7 +149,6 @@ def run_bash(command: str) -> RunResult:
 
 def run_javascript(code: str) -> RunResult:
     """Run JavaScript code via Node.js."""
-    import subprocess
     import tempfile
     import time
 
