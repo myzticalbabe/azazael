@@ -477,6 +477,39 @@ def reuse_prefix(branch: str) -> dict:
                           "do not blend into the reused prefix")}
 
 
+def locate_pivot(turns: Any) -> Dict[str, Any]:
+    """Pivotal-turn identification (EP345, locate half).
+
+    reuse_prefix remembers lessons but never said WHERE the backtrack
+    point is. Given an ordered turn list [{branch, ok}], the pivotal turn
+    is the first failing turn: branches before it form the reusable
+    prefix, branches from it on form the quarantined suffix (the
+    isolation rule reuse_prefix states). All-ok runs have no pivot
+    (found=False); empty input is unlocatable, not a pivot at zero.
+    Pure function: no memory, no ledger, no plan mutation.
+    """
+    seq = list(turns or [])
+    if not seq:
+        return {"found": False, "pivot_index": None, "pivot_branch": None,
+                "reusable_prefix": [], "quarantined_suffix": [],
+                "reason": "no-turns"}
+    branches = [str((t or {}).get("branch", "?")) for t in seq]
+    pivot = None
+    for i, t in enumerate(seq):
+        if not bool((t or {}).get("ok", True)):
+            pivot = i
+            break
+    if pivot is None:
+        return {"found": False, "pivot_index": None, "pivot_branch": None,
+                "reusable_prefix": branches, "quarantined_suffix": [],
+                "reason": "all-ok"}
+    return {"found": True, "pivot_index": pivot,
+            "pivot_branch": branches[pivot],
+            "reusable_prefix": branches[:pivot],
+            "quarantined_suffix": branches[pivot:],
+            "reason": "first-failure"}
+
+
 # -- L5: simulate-vs-spawn costing (EP110) --------------------------------------
 #: Default prices: a rehearsal costs ~8% of a spawn per task, so confirming an
 #: n-task plan costs sim*n while blindly spawning it risks spawn*n.
