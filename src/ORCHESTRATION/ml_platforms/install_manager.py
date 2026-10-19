@@ -241,8 +241,8 @@ class UnifiedInstaller:
                     f"import {package}; print({package}.__version__)",
                 ],
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace"
-            )
+                text=True, encoding="utf-8", errors="replace",
+            timeout=1800)
             if result.returncode == 0:
                 return result.stdout.strip()
         except Exception as exc:

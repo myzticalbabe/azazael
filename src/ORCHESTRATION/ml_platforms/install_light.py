@@ -45,7 +45,7 @@ ESSENTIALS = [
 
 def install(pkg, desc):
     print(f"Installing {pkg}...")
-    subprocess.run([sys.executable, "-m", "pip", "install", pkg], capture_output=True)
+    subprocess.run([sys.executable, "-m", "pip", "install", pkg], capture_output=True, timeout=1800)
     print(f"  [OK] {desc}")
 
 

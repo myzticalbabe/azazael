@@ -144,19 +144,19 @@ def page_overview():
         actions = [
             (
                 "Run Tests",
-                lambda: subprocess.run([sys.executable, "scripts/run_tests.py"]),
+                lambda: subprocess.run([sys.executable, "scripts/run_tests.py"], timeout=1800),
             ),
             (
                 "Validate Docs",
-                lambda: subprocess.run([sys.executable, "scripts/validate_docs.py"]),
+                lambda: subprocess.run([sys.executable, "scripts/validate_docs.py"], timeout=1800),
             ),
             (
                 "Analyze BAT",
-                lambda: subprocess.run([sys.executable, "scripts/bat_analysis.py"]),
+                lambda: subprocess.run([sys.executable, "scripts/bat_analysis.py"], timeout=1800),
             ),
             (
                 "Open CLI",
-                lambda: subprocess.run([sys.executable, "scripts/azazael_cli.py"]),
+                lambda: subprocess.run([sys.executable, "scripts/azazael_cli.py"], timeout=1800),
             ),
         ]
 
@@ -252,8 +252,8 @@ def page_qlearning():
                     sys.executable,
                     "-c",
                     "from ml_platforms.improvements.enhanced_qlearning import *; print('Training complete')",
-                ]
-            )
+                ],
+            timeout=1800)
         st.success("Training complete!")
 
 
@@ -337,7 +337,7 @@ def page_documentation():
 
     for label, script in actions:
         if st.button(label):
-            subprocess.run([sys.executable, script])
+            subprocess.run([sys.executable, script], timeout=1800)
 
     st.markdown("---")
 
@@ -405,14 +405,14 @@ def page_tests():
         st.subheader("Run Tests")
         if st.button("Run Full Test Suite"):
             with st.spinner("Running tests..."):
-                subprocess.run([sys.executable, "scripts/run_tests.py"])
+                subprocess.run([sys.executable, "scripts/run_tests.py"], timeout=1800)
             st.success("Tests complete!")
 
     with col_right:
         st.subheader("Enhancement Tests")
         if st.button("Run Property-Based Tests"):
             with st.spinner("Running property tests..."):
-                subprocess.run([sys.executable, "scripts/test_enhancements.py"])
+                subprocess.run([sys.executable, "scripts/test_enhancements.py"], timeout=1800)
             st.success("Tests complete!")
 
 
