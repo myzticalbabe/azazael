@@ -2439,7 +2439,7 @@ def _acquire_cycle_lock():
     lock_path = os.path.abspath(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         '..', 'logs', 'evolution_cycle.lock'))
-    fh = open(lock_path, 'w')
+    fh = open(lock_path, 'w', encoding="utf-8")
     try:
         msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
         return fh

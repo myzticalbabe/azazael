@@ -243,7 +243,7 @@ class TestCliExportSubcommand(unittest.TestCase):
         result = self._run_cli("export", self.tmp_json)
         self.assertEqual(result.returncode, 0)
         self.assertTrue(os.path.exists(self.tmp_json))
-        with open(self.tmp_json) as f:
+        with open(self.tmp_json, encoding="utf-8") as f:
             data = json.load(f)
         self.assertIn("timestamp", data)
         self.assertIn("health", data)

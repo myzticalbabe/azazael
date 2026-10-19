@@ -140,7 +140,7 @@ class MLFrameworkQA:
         """Load Q-table from file or initialize."""
         q_table_path = BASE_DIR / "ml_platforms" / "analysis_logs" / "qa_q_table.json"
         if q_table_path.exists():
-            with open(q_table_path) as f:
+            with open(q_table_path, encoding="utf-8") as f:
                 self.q_table = json.load(f)
         else:
             self._initialize_q_table()
@@ -155,7 +155,7 @@ class MLFrameworkQA:
         """Persist Q-table to disk."""
         q_table_path = BASE_DIR / "ml_platforms" / "analysis_logs" / "qa_q_table.json"
         q_table_path.parent.mkdir(exist_ok=True)
-        with open(q_table_path, "w") as f:
+        with open(q_table_path, "w", encoding="utf-8") as f:
             json.dump(self.q_table, f, indent=2)
 
     def build_doc_index(self):

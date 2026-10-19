@@ -180,7 +180,7 @@ class HydraProtocols:
                 continue
             files_scanned += 1
 
-            content = py_file.read_text(errors="ignore")
+            content = py_file.read_text(encoding="utf-8", errors="ignore")
 
             for old_path, new_path in self.old_path_patterns:
                 if old_path in content:
@@ -291,7 +291,7 @@ class HydraProtocols:
                 continue
 
             try:
-                content = py_file.read_text(errors="ignore")
+                content = py_file.read_text(encoding="utf-8", errors="ignore")
                 original = content
 
                 for old_pattern, new_pattern in self.correct_paths.items():
@@ -301,7 +301,7 @@ class HydraProtocols:
                         result.conflicts_resolved += 1
 
                 if content != original:
-                    py_file.write_text(content)
+                    py_file.write_text(content, encoding="utf-8")
                     result.files_modified.append(str(py_file))
                     print(f"[MODIFIED] {py_file.relative_to(self.root)}")
 
@@ -348,7 +348,7 @@ class HydraProtocols:
                 continue
 
             try:
-                content = py_file.read_text(errors="ignore")
+                content = py_file.read_text(encoding="utf-8", errors="ignore")
                 original = content
 
                 for wrong, correct in self.spelling_errors.items():
@@ -358,7 +358,7 @@ class HydraProtocols:
                         result.conflicts_resolved += count
 
                 if content != original:
-                    py_file.write_text(content)
+                    py_file.write_text(content, encoding="utf-8")
                     result.files_modified.append(str(py_file))
                     print(f"[SPELLING] {py_file.relative_to(self.root)}")
 
@@ -410,7 +410,7 @@ class HydraProtocols:
                 continue
 
             try:
-                content = py_file.read_text(errors="ignore")
+                content = py_file.read_text(encoding="utf-8", errors="ignore")
                 original = content
 
                 for pattern, fixer in import_fixers.items():
@@ -421,7 +421,7 @@ class HydraProtocols:
                             content = new_content
 
                 if content != original:
-                    py_file.write_text(content)
+                    py_file.write_text(content, encoding="utf-8")
                     result.files_modified.append(str(py_file))
                     print(f"[IMPORT_FIX] {py_file.relative_to(self.root)}")
 
@@ -491,22 +491,22 @@ class HydraProtocols:
         }
 
         if env_file.exists():
-            content = env_file.read_text()
+            content = env_file.read_text(encoding="utf-8")
             for key, value in env_vars.items():
                 if key not in content:
                     content += f'\nset "{key}={value}"'
                     result.conflicts_resolved += 1
                     result.files_modified.append(str(env_file))
-            env_file.write_text(content)
+            env_file.write_text(content, encoding="utf-8")
             print(f"[UPDATED] {env_file.name}")
 
         if env_json.exists():
-            data = json.loads(env_json.read_text())
+            data = json.loads(env_json.read_text(encoding="utf-8"))
             for key, value in env_vars.items():
                 if key not in data:
                     data[key] = value
                     result.conflicts_resolved += 1
-            env_json.write_text(json.dumps(data, indent=2))
+            env_json.write_text(json.dumps(data, indent=2), encoding="utf-8")
             print("[UPDATED] .env.json")
 
         result.duration_ms = (time.time() - start) * 1000

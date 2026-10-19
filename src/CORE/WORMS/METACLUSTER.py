@@ -1165,7 +1165,7 @@ class MetaCluster:
             ],
         }
         
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(export, f, indent=2, default=str)
         
         _record_event("metacluster_exported", {"filepath": filepath})

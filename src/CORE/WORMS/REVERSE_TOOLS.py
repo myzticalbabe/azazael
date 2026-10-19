@@ -215,7 +215,7 @@ class ReverseTools:
                     props = d_path / "Ghidra" / "application.properties"
                     if props.exists():
                         try:
-                            with open(props, "r") as f:
+                            with open(props, "r", encoding="utf-8") as f:
                                 for line in f:
                                     if "application.version" in line:
                                         status.version = line.split("=")[-1].strip()

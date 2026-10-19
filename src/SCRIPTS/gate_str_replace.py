@@ -406,7 +406,7 @@ def self_test() -> int:
             print("  FAIL: Valid replacement should pass")
             passed_all = False
         else:
-            content = Path(temp_path).read_text()
+            content = Path(temp_path).read_text(encoding="utf-8")
             if "        return 2" in content:
                 print("  PASS: Valid replacement applied and validated")
             else:
@@ -429,7 +429,7 @@ def self_test() -> int:
             passed_all = False
         else:
             # Verify file was NOT changed (pre-validate rejected it)
-            content = Path(temp_path).read_text()
+            content = Path(temp_path).read_text(encoding="utf-8")
             if "    def bar(self):" in content:
                 print("  PASS: 0-indent replacement correctly denied")
             else:
@@ -448,7 +448,7 @@ def self_test() -> int:
             print("  FAIL: Dry-run should pass validation")
             passed_all = False
         else:
-            content = Path(temp_path).read_text()
+            content = Path(temp_path).read_text(encoding="utf-8")
             if "        return 3" not in content:
                 print("  PASS: Dry-run validated but didn't modify file")
             else:
@@ -460,12 +460,13 @@ def self_test() -> int:
         # ---------------------------------------------------------------
         print("[4/4] Post-validate auto-revert...")
         # Manually corrupt the file to simulate a bad edit
-        original_content = Path(temp_path).read_text()
+        original_content = Path(temp_path).read_text(encoding="utf-8")
         backup_path = pipeline.gate.take_snapshot(temp_path)
 
         # Corrupt: insert bad indentation
         Path(temp_path).write_text(
-            original_content + "\n    : bad syntax\n"
+            original_content + "\n    : bad syntax\n",
+            encoding="utf-8",
         )
 
         # Post-validate should detect and auto-revert
@@ -478,7 +479,7 @@ def self_test() -> int:
             print("  FAIL: Should have detected syntax error")
             passed_all = False
         else:
-            restored = Path(temp_path).read_text()
+            restored = Path(temp_path).read_text(encoding="utf-8")
             if restored == original_content:
                 print("  PASS: Auto-revert restored original content")
             else:

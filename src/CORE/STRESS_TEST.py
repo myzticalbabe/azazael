@@ -135,10 +135,10 @@ class AzazaelStressTest:
         test_file = self.root / "STRESS_TEST_TEMP.txt"
 
         try:
-            with open(test_file, "w") as f:
+            with open(test_file, "w", encoding="utf-8") as f:
                 f.write("STRESS TEST DATA\n" * 1000)
 
-            with open(test_file, "r") as f:
+            with open(test_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             test_file.unlink()
@@ -437,7 +437,7 @@ class AzazaelStressTest:
         }
 
         report_file = self.root / "STRESS_TEST_REPORT.json"
-        with open(report_file, "w") as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         print(f"Report saved: {report_file}")
 

@@ -262,7 +262,7 @@ def save_results(results: List[Dict[str, Any]], output_dir: str = AZAZAEL_OUTPUT
             if tps > 0:
                 summary["speedup"][f"{label}_vs_default"] = round(tps / default_tps, 2)
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, default=str)
 
     print(f"  Results saved to: {output_path}")
@@ -307,7 +307,7 @@ def main():
 
     # JSON-only output for programmatic consumption
     if args.json_only:
-        with open(output_path) as f:
+        with open(output_path, encoding="utf-8") as f:
             print(f.read().strip())
 
     return 0 if any("tps" in r for r in results) else 1

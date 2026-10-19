@@ -99,7 +99,7 @@ def record_single(template_key):
     output_path = output_file.as_posix().replace("C:", "").replace("/", backslash)
     template_output = template["output"]
 
-    with open(recorder_script, "w") as f:
+    with open(recorder_script, "w", encoding="utf-8") as f:
         f.write(f"""const puppeteer = require('puppeteer');
 const {{ PuppeteerScreenRecorder }} = require('puppeteer-screen-recorder');
 

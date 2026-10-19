@@ -156,7 +156,7 @@ class HYDRAMETA_UV:
         state_file = Path(self.config.STATE_FILE)
         if state_file.exists():
             try:
-                with open(state_file) as f:
+                with open(state_file, encoding="utf-8") as f:
                     self.state = json.load(f)
             except Exception as exc:
                 note_failure("HYDRAMETA_UV:L152", exc)
@@ -166,7 +166,7 @@ class HYDRAMETA_UV:
         """Persist state."""
         state_file = Path(self.config.STATE_FILE)
         state_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(state_file, "w") as f:
+        with open(state_file, "w", encoding="utf-8") as f:
             json.dump(self.state, f, indent=2)
 
     def _run_uv_command(
@@ -358,7 +358,7 @@ class HYDRAMETA_UV:
         """Persist trials to file."""
         trials_file = Path(self.config.TRIALS_FILE)
         trials_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(trials_file, "w") as f:
+        with open(trials_file, "w", encoding="utf-8") as f:
             json.dump(
                 [
                     {

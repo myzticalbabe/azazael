@@ -69,12 +69,12 @@ class FusionCore:
         self._reg("knowledge", TIER.KNOWLEDGE, "1.0", ["learn", "recall"])
 
     def _write(self, p, d):
-        with open(p, "w") as f:
+        with open(p, "w", encoding="utf-8") as f:
             json.dump(d, f, indent=2, default=str)
 
     def _read(self, p):
         try:
-            with open(p, "r") as f:
+            with open(p, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as exc:
             note_failure("ADLP_FusionCore:L69", exc)

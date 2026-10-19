@@ -199,7 +199,7 @@ class FastErrorScanner:
         return {"total_errors": total_errors, "critical": critical, "medium": medium}
 
     def save_report(self, report):
-        with open(self.root / "ERROR_SCAN_REPORT.json", "w") as f:
+        with open(self.root / "ERROR_SCAN_REPORT.json", "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         print(f"Report saved: {self.root / 'ERROR_SCAN_REPORT.json'}")
 

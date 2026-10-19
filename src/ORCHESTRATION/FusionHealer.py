@@ -49,7 +49,7 @@ class FusionHealer:
             "level": level,
             "message": msg,
         }
-        with open(HEAL_LOG, "a") as f:
+        with open(HEAL_LOG, "a", encoding="utf-8") as f:
             json.dump(entry, f)
             f.write("\n")
         print(f"[{level}] {msg}")
@@ -161,7 +161,7 @@ class FusionHealer:
         }
 
         report_file = LOG_DIR / "healing_report.json"
-        with open(report_file, "w") as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         CORE.log_entry(

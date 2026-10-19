@@ -370,7 +370,7 @@ class AzazaelEducationalVideo:
     def create_concat_file(self, files: list[Path]):
         """Create concat file for FFmpeg."""
         list_file = self.output_dir / f"video_list_{self.timestamp}.txt"
-        with open(list_file, "w") as f:
+        with open(list_file, "w", encoding="utf-8") as f:
             for file in files:
                 if file.exists():
                     f.write(f"file '{file}'\n")

@@ -96,14 +96,15 @@ class MetricsTracker:
                     "stage_times": metrics.stage_times,
                 },
                 indent=2,
-            )
+            ),
+            encoding="utf-8",
         )
 
     def get_all_runs(self) -> list[PerformanceMetrics]:
         """Get all recorded runs."""
         runs = []
         for f in self.metrics_path.glob("*.json"):
-            data = json.loads(f.read_text())
+            data = json.loads(f.read_text(encoding="utf-8"))
             runs.append(
                 PerformanceMetrics(
                     run_id=data["run_id"],

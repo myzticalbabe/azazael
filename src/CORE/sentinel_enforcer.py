@@ -590,12 +590,12 @@ echo "=== All checks passed ==="
     with permit_here("install_git_hooks"):  # Authorized admin operation
         pre_commit_path = hooks_dir / "pre-commit"
         if pre_commit_path.exists():
-            existing = pre_commit_path.read_text()
+            existing = pre_commit_path.read_text(encoding="utf-8")
             if "Sentinel Enforcer" in existing:
                 return True
-            pre_commit_path.write_text(existing + hook_script)
+            pre_commit_path.write_text(existing + hook_script, encoding="utf-8")
         else:
-            pre_commit_path.write_text("#!/bin/bash\n" + hook_script)
+            pre_commit_path.write_text("#!/bin/bash\n" + hook_script, encoding="utf-8")
 
         pre_commit_path.chmod(0o755)
         return True
@@ -641,7 +641,7 @@ def self_test() -> bool:
     # in the finally block below.
     try:
         with permit_here("self_test fixture"):
-            with open("test.py", "w") as f:
+            with open("test.py", "w", encoding="utf-8") as f:
                 f.write("x = 1\n")
     except PermissionError:
         print("FAIL: audit-hook blocked fixture creation")
@@ -689,10 +689,10 @@ def self_test() -> bool:
                 f.write("original content")
                 tmp_path = f.name
             backup_path = f"{tmp_path}.pre_gate_backup"
-            with open(backup_path, "w") as f:
+            with open(backup_path, "w", encoding="utf-8") as f:
                 f.write("backup content")
         result = rollback(tmp_path)
-        restored = Path(tmp_path).read_text()
+        restored = Path(tmp_path).read_text(encoding="utf-8")
         os.unlink(tmp_path)
         os.unlink(backup_path)
         if result and restored == "backup content":

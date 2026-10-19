@@ -31,7 +31,7 @@ print(f"  Warnings:{fh_warnings}")
 print("\n[2/2] SystemManager report...", flush=True)
 sm_report_path = Path.home() / ".appdata" / "SystemManager" / "system_report.json"
 if sm_report_path.exists():
-    report = json.loads(sm_report_path.read_text())
+    report = json.loads(sm_report_path.read_text(encoding="utf-8"))
     sm_crawlers = len(report.get("crawlers", {}))
     sm_total_items = sum(report.get("crawlers", {}).values())
     print(f"  Crawlers:     {sm_crawlers}")

@@ -109,7 +109,7 @@ def _measure(env: str) -> tuple:
                          capture_output=True, timeout=60).returncode == 0
         elif env == "g_archive":
             p = "G:/source-of-truth/azazael_models/probe.tmp"
-            open(p, "w").write("x" * 4096)
+            open(p, "w", encoding="utf-8").write("x" * 4096)
             os.stat(p)
             os.remove(p)
             ok = True
@@ -300,7 +300,10 @@ def main() -> int:
         from CORE.WORMS.expansion.driver import GemmaDriverWorm
         stats = {}
         try:
-            gt = json.load(open("G:/source-of-truth/azazael_models/groundtruth.json"))
+            gt = json.load(
+                open("G:/source-of-truth/azazael_models/groundtruth.json",
+                     encoding="utf-8")
+            )
             vw = sp.get_homeostat_view()
             for e in cands:
                 rk = [k for k in vw if k.endswith(">" + e)]

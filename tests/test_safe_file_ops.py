@@ -50,11 +50,11 @@ def src_dir(tmp_dir):
     """Create a source directory with test files."""
     src = tmp_dir / "source"
     src.mkdir()
-    (src / "a.txt").write_text("hello")
-    (src / "b.txt").write_text("world")
+    (src / "a.txt").write_text("hello", encoding="utf-8")
+    (src / "b.txt").write_text("world", encoding="utf-8")
     sub = src / "sub"
     sub.mkdir()
-    (sub / "c.txt").write_text("nested content")
+    (sub / "c.txt").write_text("nested content", encoding="utf-8")
     return src
 
 
@@ -73,14 +73,14 @@ class TestFileMd5:
     def test_basic_hash(self, tmp_dir):
         """MD5 of known content should match expected hash."""
         f = tmp_dir / "test.txt"
-        f.write_text("hello")
+        f.write_text("hello", encoding="utf-8")
         h = _file_md5(f)
         assert h == "5d41402abc4b2a76b9719d911017c592", f"Unexpected hash: {h}"
 
     def test_empty_file(self, tmp_dir):
         """Empty file should produce known MD5."""
         f = tmp_dir / "empty.txt"
-        f.write_text("")
+        f.write_text("", encoding="utf-8")
         h = _file_md5(f)
         assert h == "d41d8cd98f00b204e9800998ecf8427e", f"Unexpected hash: {h}"
 
@@ -122,7 +122,7 @@ class TestVerifyTreeIntegrity:
     def test_extra_files(self, src_dir, dst_dir):
         """Destination with extra files should report match=False and list extra."""
         shutil.copytree(str(src_dir), str(dst_dir / "source"))
-        (dst_dir / "source" / "extra.txt").write_text("extra")
+        (dst_dir / "source" / "extra.txt").write_text("extra", encoding="utf-8")
         result = verify_tree_integrity(src_dir, dst_dir / "source")
         assert result["match"] is False
         assert "extra.txt" in result["extra"]
@@ -130,7 +130,7 @@ class TestVerifyTreeIntegrity:
     def test_size_mismatch(self, src_dir, dst_dir):
         """Files with same name but different sizes should report size_mismatch."""
         shutil.copytree(str(src_dir), str(dst_dir / "source"))
-        (dst_dir / "source" / "a.txt").write_text("different content")
+        (dst_dir / "source" / "a.txt").write_text("different content", encoding="utf-8")
         result = verify_tree_integrity(src_dir, dst_dir / "source")
         assert result["match"] is False
         assert "a.txt" in result["size_mismatch"]
@@ -161,7 +161,7 @@ class TestVerifyTreeIntegrity:
         """Hash sampling should detect content differences (same-length content)."""
         shutil.copytree(str(src_dir), str(dst_dir / "source"))
         # Modify b.txt with same-length content so size check passes but hash differs
-        (dst_dir / "source" / "b.txt").write_text("w0rld")
+        (dst_dir / "source" / "b.txt").write_text("w0rld", encoding="utf-8")
         result = verify_tree_integrity(
             src_dir, dst_dir / "source",
             sample_hashes=True, hash_max_files=10,
@@ -265,7 +265,7 @@ class TestSafeRmtree:
     def test_remove_single_file(self, tmp_dir):
         """Removing a single file (not directory) should work."""
         f = tmp_dir / "file.txt"
-        f.write_text("hello")
+        f.write_text("hello", encoding="utf-8")
         result = safe_rmtree(f)
         assert result["success"] is True
         assert not f.exists()
@@ -290,21 +290,21 @@ class TestSafeMove:
         """Moving a file with verify should copy then delete source."""
         src = tmp_dir / "src_move.txt"
         dst = tmp_dir / "dst_move.txt"
-        src.write_text("move content")
+        src.write_text("move content", encoding="utf-8")
         result = safe_move(src, dst, verify=True)
         assert result["success"] is True
         assert not src.exists()
-        assert dst.read_text() == "move content"
+        assert dst.read_text(encoding="utf-8") == "move content"
 
     def test_file_move_no_verify(self, tmp_dir):
         """Moving a file without verify should still succeed."""
         src = tmp_dir / "src.txt"
         dst = tmp_dir / "dst.txt"
-        src.write_text("content")
+        src.write_text("content", encoding="utf-8")
         result = safe_move(src, dst, verify=False)
         assert result["success"] is True
         assert not src.exists()
-        assert dst.read_text() == "content"
+        assert dst.read_text(encoding="utf-8") == "content"
 
     def test_directory_move(self, src_dir, tmp_dir):
         """Moving a directory should copy then delete."""
@@ -331,7 +331,7 @@ class TestAtomicWrite:
         f = tmp_dir / "out.txt"
         result = atomic_write(f, "hello world")
         assert result["success"] is True
-        assert f.read_text() == "hello world"
+        assert f.read_text(encoding="utf-8") == "hello world"
 
     def test_write_bytes(self, tmp_dir):
         """Writing bytes content should create the file."""
@@ -343,36 +343,36 @@ class TestAtomicWrite:
     def test_overwrite_existing(self, tmp_dir):
         """Overwriting an existing file should succeed."""
         f = tmp_dir / "out.txt"
-        f.write_text("original")
+        f.write_text("original", encoding="utf-8")
         result = atomic_write(f, "modified")
         assert result["success"] is True
-        assert f.read_text() == "modified"
+        assert f.read_text(encoding="utf-8") == "modified"
 
     def test_make_backup(self, tmp_dir):
         """make_backup=True should create a .bak file."""
         f = tmp_dir / "out.txt"
-        f.write_text("original")
+        f.write_text("original", encoding="utf-8")
         result = atomic_write(f, "modified", make_backup=True)
         assert result["success"] is True
-        assert f.read_text() == "modified"
+        assert f.read_text(encoding="utf-8") == "modified"
         # Check backup exists
         bak = f.with_suffix(".txt.bak")
         assert bak.exists()
-        assert bak.read_text() == "original"
+        assert bak.read_text(encoding="utf-8") == "original"
 
     def test_write_nested_directory(self, tmp_dir):
         """Writing to a nested path should create intermediate dirs."""
         f = tmp_dir / "a" / "b" / "c" / "deep.txt"
         result = atomic_write(f, "nested")
         assert result["success"] is True
-        assert f.read_text() == "nested"
+        assert f.read_text(encoding="utf-8") == "nested"
 
     def test_write_empty_string(self, tmp_dir):
         """Writing empty string should create empty file."""
         f = tmp_dir / "empty.txt"
         result = atomic_write(f, "")
         assert result["success"] is True
-        assert f.read_text() == ""
+        assert f.read_text(encoding="utf-8") == ""
 
 
 # ── safe_copytree_chunked Tests ────────────────────────────────────
@@ -398,7 +398,7 @@ class TestSafeCopytreeChunked:
         dst_file = dst / "a.txt"
         shutil.copy2(str(src_file), str(dst_file))
         cp = dst / ".copy_checkpoint"
-        cp.write_text(json.dumps({src_file.name: src_file.stat().st_size}))
+        cp.write_text(json.dumps({src_file.name: src_file.stat().st_size}), encoding="utf-8")
 
         # Run chunked copy — should resume, copying only b.txt and sub/c.txt
         result = safe_copytree_chunked(src_dir, dst)
@@ -488,15 +488,15 @@ class TestEdgeCases:
         # Create nesting: deep/a/b/c/d/e/file.txt
         deep_file = src / "a" / "b" / "c" / "d" / "e" / "file.txt"
         deep_file.parent.mkdir(parents=True)
-        deep_file.write_text("deeply nested content")
+        deep_file.write_text("deeply nested content", encoding="utf-8")
         # Also create a file at root level
-        (src / "root.txt").write_text("root")
+        (src / "root.txt").write_text("root", encoding="utf-8")
 
         dst = tmp_dir / "deep_copy"
         result = safe_copytree(src, dst)
         assert result["success"] is True
         assert (dst / "a" / "b" / "c" / "d" / "e" / "file.txt").exists()
-        assert (dst / "a" / "b" / "c" / "d" / "e" / "file.txt").read_text() == "deeply nested content"
+        assert (dst / "a" / "b" / "c" / "d" / "e" / "file.txt").read_text(encoding="utf-8") == "deeply nested content"
         assert (dst / "root.txt").exists()
 
 
@@ -524,7 +524,7 @@ class TestCrossPlatformPathHandling:
         """POSIX-style forward-slash paths should work as input."""
         src = tmp_dir / "posix_src"
         src.mkdir()
-        (src / "file.txt").write_text("posix test")
+        (src / "file.txt").write_text("posix test", encoding="utf-8")
 
         # Use forward-slash string path
         dst = str(tmp_dir).replace("\\", "/") + "/posix_dst"
@@ -532,20 +532,20 @@ class TestCrossPlatformPathHandling:
         assert result["success"] is True
         dst_p = Path(dst)
         assert dst_p.exists()
-        assert (dst_p / "file.txt").read_text() == "posix test"
+        assert (dst_p / "file.txt").read_text(encoding="utf-8") == "posix test"
 
     def test_mixed_separator_paths(self, tmp_dir):
         """Mixed forward/backslash paths should normalize correctly."""
         # Create a path with mixed separators
         src = tmp_dir / "mixed_src"
         src.mkdir()
-        (src / "data.txt").write_text("mixed")
+        (src / "data.txt").write_text("mixed", encoding="utf-8")
 
         # Use mixed separators: backslash after drive, forward slash in subpath
         mixed = str(tmp_dir) + "/mixed_dst"
         result = safe_copytree(str(src).replace("\\", "/"), mixed)
         assert result["success"] is True
-        assert Path(tmp_dir / "mixed_dst" / "data.txt").read_text() == "mixed"
+        assert Path(tmp_dir / "mixed_dst" / "data.txt").read_text(encoding="utf-8") == "mixed"
 
     def test_relative_to_produces_portable_separators(self, tmp_dir):
         """relative_to() output should produce consistent relative paths.
@@ -558,7 +558,7 @@ class TestCrossPlatformPathHandling:
         src = tmp_dir / "rel_src"
         sub = src / "sub" / "nested"
         sub.mkdir(parents=True)
-        (sub / "file.txt").write_text("deep")
+        (sub / "file.txt").write_text("deep", encoding="utf-8")
 
         # Mirror the exact logic from verify_tree_integrity
         file_map = {}
@@ -571,14 +571,14 @@ class TestCrossPlatformPathHandling:
         for rel_key in file_map:
             reconstructed = src / rel_key
             assert reconstructed.exists(), f"Reconstructed path not found: {reconstructed}"
-            assert reconstructed.read_text() == "deep"
+            assert reconstructed.read_text(encoding="utf-8") == "deep"
 
     def test_verify_integrity_with_posix_style_paths(self, tmp_dir):
         """verify_tree_integrity should work with forward-slash paths."""
         src = tmp_dir / "vi_src"
         src.mkdir()
-        (src / "a.txt").write_text("alpha")
-        (src / "b.txt").write_text("beta")
+        (src / "a.txt").write_text("alpha", encoding="utf-8")
+        (src / "b.txt").write_text("beta", encoding="utf-8")
 
         dst = tmp_dir / "vi_dst"
         shutil.copytree(str(src), str(dst))
@@ -594,8 +594,8 @@ class TestCrossPlatformPathHandling:
         """verify_tree_integrity missing-file detection with POSIX paths."""
         src = tmp_dir / "vm_src"
         src.mkdir()
-        (src / "a.txt").write_text("alpha")
-        (src / "b.txt").write_text("beta")
+        (src / "a.txt").write_text("alpha", encoding="utf-8")
+        (src / "b.txt").write_text("beta", encoding="utf-8")
 
         dst = tmp_dir / "vm_dst"
         dst.mkdir()
@@ -649,7 +649,7 @@ class TestCrossPlatformPathHandling:
         posix_path = str(tmp_dir).replace("\\", "/") + "/posix_atomic.txt"
         result = atomic_write(posix_path, "forward slash content")
         assert result["success"] is True
-        assert Path(posix_path).read_text() == "forward slash content"
+        assert Path(posix_path).read_text(encoding="utf-8") == "forward slash content"
 
     def test_atomic_write_with_mixed_separators(self, tmp_dir):
         """atomic_write should handle mixed separator paths."""
@@ -657,13 +657,13 @@ class TestCrossPlatformPathHandling:
         mixed = str(tmp_dir) + "/mixed" + "\\" + "out.txt"
         result = atomic_write(mixed, "mixed separator content")
         assert result["success"] is True
-        assert Path(mixed).read_text() == "mixed separator content"
+        assert Path(mixed).read_text(encoding="utf-8") == "mixed separator content"
 
     def test_safe_rmtree_with_posix_style(self, tmp_dir):
         """safe_rmtree should work with forward-slash paths."""
         src = tmp_dir / "rm_posix"
         src.mkdir()
-        (src / "f.txt").write_text("delete me")
+        (src / "f.txt").write_text("delete me", encoding="utf-8")
 
         posix_src = str(src).replace("\\", "/")
         result = safe_rmtree(posix_src)
@@ -674,14 +674,14 @@ class TestCrossPlatformPathHandling:
         """safe_move should work with forward-slash paths."""
         src = tmp_dir / "mv_posix_src.txt"
         dst = tmp_dir / "mv_posix_dst.txt"
-        src.write_text("move me")
+        src.write_text("move me", encoding="utf-8")
 
         src_fwd = str(src).replace("\\", "/")
         dst_fwd = str(dst).replace("\\", "/")
         result = safe_move(src_fwd, dst_fwd, verify=True)
         assert result["success"] is True
         assert not src.exists()
-        assert dst.read_text() == "move me"
+        assert dst.read_text(encoding="utf-8") == "move me"
 
     def test_safe_copytree_chunked_with_posix_style(self, src_dir, tmp_dir):
         """safe_copytree_chunked should work with forward-slash paths."""
@@ -691,12 +691,12 @@ class TestCrossPlatformPathHandling:
         result = safe_copytree_chunked(src_fwd, dst_fwd, verify=True)
         assert result["success"] is True
         assert result["total"] == 3
-        assert (dst / "sub" / "c.txt").read_text() == "nested content"
+        assert (dst / "sub" / "c.txt").read_text(encoding="utf-8") == "nested content"
 
     def test_file_md5_with_posix_style_path(self, tmp_dir):
         """_file_md5 should work with forward-slash paths."""
         f = tmp_dir / "hash_posix.txt"
-        f.write_text("hash me")
+        f.write_text("hash me", encoding="utf-8")
 
         posix_path = str(f).replace("\\", "/")
         h = _file_md5(Path(posix_path))
@@ -707,7 +707,7 @@ class TestCrossPlatformPathHandling:
         """Paths with trailing separators should normalize correctly."""
         src = tmp_dir / "trail_src"
         src.mkdir()
-        (src / "f.txt").write_text("trailing")
+        (src / "f.txt").write_text("trailing", encoding="utf-8")
 
         dst = tmp_dir / "trail_dst"
 
@@ -715,13 +715,13 @@ class TestCrossPlatformPathHandling:
         trailing = str(src).replace("\\", "/") + "/"
         result = safe_copytree(trailing, str(dst))
         assert result["success"] is True
-        assert (dst / "f.txt").read_text() == "trailing"
+        assert (dst / "f.txt").read_text(encoding="utf-8") == "trailing"
 
     def test_path_with_dot_segments(self, tmp_dir):
         """Paths with ./ and ../ segments should resolve correctly."""
         src = tmp_dir / "dot_src"
         src.mkdir()
-        (src / "f.txt").write_text("dots")
+        (src / "f.txt").write_text("dots", encoding="utf-8")
 
         dst = tmp_dir / "dot_dst"
 
@@ -729,7 +729,7 @@ class TestCrossPlatformPathHandling:
         dot_path = str(tmp_dir) + "/./dot_extra/../dot_src"
         result = safe_copytree(dot_path, str(dst))
         assert result["success"] is True
-        assert (dst / "f.txt").read_text() == "dots"
+        assert (dst / "f.txt").read_text(encoding="utf-8") == "dots"
 
     def test_case_sensitivity_detection(self, tmp_dir):
         """Detect whether current filesystem is case-sensitive.
@@ -739,7 +739,7 @@ class TestCrossPlatformPathHandling:
         two distinct files.
         """
         f = tmp_dir / "CaseTest.txt"
-        f.write_text("case")
+        f.write_text("case", encoding="utf-8")
         alt = tmp_dir / "casetest.txt"
         same_file = alt.exists()
         fs_case_sensitive = not same_file
@@ -755,7 +755,7 @@ class TestCrossPlatformPathHandling:
         case-insensitive filesystems."""
         src = tmp_dir / "case_src"
         src.mkdir()
-        (src / "ReadMe.txt").write_text("case content")
+        (src / "ReadMe.txt").write_text("case content", encoding="utf-8")
 
         dst = tmp_dir / "case_dst"
         shutil.copytree(str(src), str(dst))

@@ -1062,7 +1062,7 @@ def self_test() -> bool:
     # Test 4: registry file exists
     print("[4/5] Registry file...")
     if _REGISTRY_FILE.exists():
-        with open(_REGISTRY_FILE, "r") as f:
+        with open(_REGISTRY_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         pattern_count = len(data["patterns"]) if isinstance(data, dict) else len(data)
         print(f"  PASS: {pattern_count} patterns in registry")
@@ -1074,7 +1074,7 @@ def self_test() -> bool:
     print("[5/5] Pattern-version fingerprint...")
     current_fp = _compute_pattern_fingerprint(DEFAULT_PATTERNS)
     if _REGISTRY_FILE.exists():
-        with open(_REGISTRY_FILE, "r") as f:
+        with open(_REGISTRY_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         stored_fp = data.get("fingerprint", "") if isinstance(data, dict) else ""
         stored_ver = data.get("version", 0) if isinstance(data, dict) else 0

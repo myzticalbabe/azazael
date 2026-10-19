@@ -408,12 +408,12 @@ class MultiAgentQLearning:
                     "reward_history": agent["reward_history"],
                 }
             )
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def load(self, path: str):
         """Load agent states."""
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         self.num_agents = data["num_agents"]
@@ -659,12 +659,12 @@ class EnhancedQLearningTable:
             "gamma": self.gamma,
             "tau": self.tau,
         }
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def load(self, path: str):
         """Load training state."""
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         self.q_table = np.array(data["q_table"])

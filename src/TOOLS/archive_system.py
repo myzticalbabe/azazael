@@ -261,7 +261,7 @@ class ArchiveSystem:
         for path, reason, size in self.archived:
             lines.append(f"  {reason:<30} {self._size_str(size):>10}")
         lines.append(f"  {'TOTAL':<30} {self._size_str(self.total_size):>10}")
-        manifest_path.write_text("\n".join(lines))
+        manifest_path.write_text("\n".join(lines), encoding="utf-8")
         print(f"Manifest: {manifest_path}")
 
 

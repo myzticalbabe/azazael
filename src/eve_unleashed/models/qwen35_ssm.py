@@ -78,7 +78,7 @@ class Qwen35SSMConfig:
     @classmethod
     def from_json(cls, path: str) -> "Qwen35SSMConfig":
         import json
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         ssm = data.get("ssm_config", {})
         return cls(

@@ -167,7 +167,7 @@ class MemoryStatus:
                 if report.exists():
                     import json
                     try:
-                        data = json.loads(report.read_text())
+                        data = json.loads(report.read_text(encoding="utf-8"))
                         sesh["total_tests"] = data.get("total", 0)
                         sesh["passed"] = data.get("passed", 0)
                         sesh["failed"] = data.get("failed", 0)
@@ -201,7 +201,7 @@ class MemoryStatus:
             if log_file.exists():
                 size = log_file.stat().st_size
                 mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
-                with open(log_file, "r") as f:
+                with open(log_file, "r", encoding="utf-8") as f:
                     line_count = sum(1 for _ in f)
                 status.available = True
                 status.details = {

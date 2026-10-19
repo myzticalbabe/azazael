@@ -172,7 +172,7 @@ def cmd_export(args):
     store = get_memory_store()
     report = store.get_health_report()
     path = args[0] if args else f"db_health_report_{store.current_session_id}.json"
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, default=str)
     print(f"Report exported to: {path}")
 

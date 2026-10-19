@@ -56,8 +56,8 @@ def pop_skills_dir(fake_project):
     Returns (project_root, skills_src, skills_dest) with two skills created.
     """
     root, skills_src, skills_dest = fake_project
-    (skills_src / "azazael-test-one.md").write_text("# Test Skill One\n\nSimple test skill.")
-    (skills_src / "azazael-test-two.md").write_text("# Test Skill Two\n\nAnother test skill.")
+    (skills_src / "azazael-test-one.md").write_text("# Test Skill One\n\nSimple test skill.", encoding="utf-8")
+    (skills_src / "azazael-test-two.md").write_text("# Test Skill Two\n\nAnother test skill.", encoding="utf-8")
     return root, skills_src, skills_dest
 
 
@@ -122,7 +122,7 @@ class TestSyncAll:
         two = skills_dest / "azazael-test-two" / "SKILL.md"
         assert one.exists()
         assert two.exists()
-        assert one.read_text() == "# Test Skill One\n\nSimple test skill."
+        assert one.read_text(encoding="utf-8") == "# Test Skill One\n\nSimple test skill."
 
     def test_sync_updates_changed_file(self, pop_skills_dir):
         """Sync should update SKILL.md when source changes."""
@@ -132,7 +132,7 @@ class TestSyncAll:
 
         # Modify source
         src = skills_src / "azazael-test-one.md"
-        src.write_text("# Updated Skill One\n\nChanged content.")
+        src.write_text("# Updated Skill One\n\nChanged content.", encoding="utf-8")
 
         # Second sync
         stats = _run_sync(skills_src, skills_dest)
@@ -141,7 +141,7 @@ class TestSyncAll:
 
         # Verify target was updated
         target = skills_dest / "azazael-test-one" / "SKILL.md"
-        assert target.read_text() == "# Updated Skill One\n\nChanged content."
+        assert target.read_text(encoding="utf-8") == "# Updated Skill One\n\nChanged content."
 
     def test_sync_unchanged_file(self, pop_skills_dir):
         """Sync should report skipped when source matches target."""
@@ -170,16 +170,16 @@ class TestSyncAll:
         # First real sync
         _run_sync(skills_src, skills_dest)
         target = skills_dest / "azazael-test-one" / "SKILL.md"
-        original_content = target.read_text()
+        original_content = target.read_text(encoding="utf-8")
 
         # Modify source
         src = skills_src / "azazael-test-one.md"
-        src.write_text("# Different content")
+        src.write_text("# Different content", encoding="utf-8")
 
         # Dry-run sync should NOT overwrite
         stats = _run_sync(skills_src, skills_dest, dry_run=True)
         assert stats["updated"] >= 1
-        assert target.read_text() == original_content  # Unchanged
+        assert target.read_text(encoding="utf-8") == original_content  # Unchanged
 
     def test_new_directory_counted(self, pop_skills_dir):
         """First sync should count new directories as created."""
@@ -193,8 +193,8 @@ class TestSyncAll:
     def test_handles_special_chars_in_skill_name(self, fake_project):
         """Skill names with special characters should sync correctly."""
         root, skills_src, skills_dest = fake_project
-        (skills_src / "azazael-fix-data-recording.md").write_text("# Data Fix")
-        (skills_src / "azazael_314t_master.md").write_text("# 3.14t Master")
+        (skills_src / "azazael-fix-data-recording.md").write_text("# Data Fix", encoding="utf-8")
+        (skills_src / "azazael_314t_master.md").write_text("# 3.14t Master", encoding="utf-8")
 
         stats = _run_sync(skills_src, skills_dest)
         assert stats["errors"] == 0
@@ -246,10 +246,10 @@ class TestSyncAll:
 
         # Modify source so update is triggered
         src = skills_src / "azazael-test-one.md"
-        src.write_text("# Updated Skill One\n\nChanged content.")
+        src.write_text("# Updated Skill One\n\nChanged content.", encoding="utf-8")
 
         target = skills_dest / "azazael-test-one" / "SKILL.md"
-        original_content = target.read_text()
+        original_content = target.read_text(encoding="utf-8")
 
         with patch.object(Path, "write_text", side_effect=OSError("No space left on device")):
             with _patch_paths(skills_src, skills_dest):
@@ -258,7 +258,7 @@ class TestSyncAll:
         assert stats["errors"] >= 1, f"Expected >=1 error, got {stats}"
         assert stats["updated"] == 0, f"Expected 0 updated, got {stats}"
         # Original content preserved unchanged
-        assert target.read_text() == original_content
+        assert target.read_text(encoding="utf-8") == original_content
 
     def test_read_failure_on_create(self, pop_skills_dir):
         """When read fails on source, error should be reported."""
@@ -285,7 +285,7 @@ class TestSyncOne:
         assert ok is True
         target = skills_dest / "azazael-test-one" / "SKILL.md"
         assert target.exists()
-        assert target.read_text() == "# Test Skill One\n\nSimple test skill."
+        assert target.read_text(encoding="utf-8") == "# Test Skill One\n\nSimple test skill."
 
     def test_sync_one_dry_run(self, pop_skills_dir):
         """sync_one dry-run should not create files."""

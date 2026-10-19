@@ -77,16 +77,18 @@ azactivate() {{
     source "$AZAZAEL_ROOT/azazael_env.sh"
 }}
 '''
-        alias_script.write_text(content)
+        alias_script.write_text(content, encoding="utf-8")
         print(f"   [OK] Created: {alias_script.name}")
 
         # Add to bashrc if not present
         bashrc = Path.home() / ".bashrc"
         marker = "# Azazael Environment"
 
-        if bashrc.exists() and marker not in bashrc.read_text():
+        if bashrc.exists() and marker not in bashrc.read_text(encoding="utf-8"):
             bashrc.write_text(
-                bashrc.read_text() + f"\n{marker}\nsource {alias_script}\n"
+                bashrc.read_text(encoding="utf-8")
+                + f"\n{marker}\nsource {alias_script}\n",
+                encoding="utf-8",
             )
             print("   [OK] Added to ~/.bashrc")
 
@@ -112,14 +114,14 @@ azactivate() {{
     "PYTHONPATH": "${workspaceFolder}/UTILITIES:${workspaceFolder}/CORE:${workspaceFolder}/HYDRA/ml_platforms"
   }
 }
-""")
+""", encoding="utf-8")
         print("   [OK] Created: .vscode/settings.json")
 
         # .env file for environment
         env_file = self.project_root / ".env"
         env_file.write_text(f"""PYTHONPATH={self.project_root}/UTILITIES:{self.project_root}/CORE:{self.project_root}/HYDRA/ml_platforms
 AZAZAEL_ROOT={self.project_root}
-""")
+""", encoding="utf-8")
         print("   [OK] Created: .env")
 
     def apply(self):

@@ -340,7 +340,7 @@ class TELEMETRYZ:
         html += "</body></html>"
 
         path = output_path or self.config.FLAMEGRAPH_FILE
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(html)
 
         return path
@@ -406,7 +406,7 @@ class TELEMETRYZ:
         path_obj = Path(path)
         path_obj.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(
                 [
                     {
@@ -424,7 +424,7 @@ class TELEMETRYZ:
 
     def load_trace(self, path: str):
         """Load trace from file."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
             self.trace_events = [
                 TraceEvent(

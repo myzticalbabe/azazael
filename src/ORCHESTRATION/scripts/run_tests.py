@@ -205,7 +205,7 @@ def run_all_tests() -> dict:
     print("\n[4] Saving Results...")
 
     # JSON
-    with open("TEST_RESULTS.json", "w") as f:
+    with open("TEST_RESULTS.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=str)
 
     # Text report
@@ -236,7 +236,7 @@ Generated: {results["timestamp"]}
         report += f"- {detail['path']}\n"
         report += f"  Error: {detail['error']}\n\n"
 
-    with open("TEST_RESULTS.md", "w") as f:
+    with open("TEST_RESULTS.md", "w", encoding="utf-8") as f:
         f.write(report)
 
     print("   JSON: TEST_RESULTS.json")

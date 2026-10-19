@@ -236,7 +236,7 @@ output = {
     },
 }
 
-with open(report_dir / f"dlq_full_converge_{timestamp}.json", "w") as f:
+with open(report_dir / f"dlq_full_converge_{timestamp}.json", "w", encoding="utf-8") as f:
     json.dump(output, f, indent=2)
 print(f"  Saved: analysis_logs/dlq_full_converge_{timestamp}.json")
 

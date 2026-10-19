@@ -266,7 +266,7 @@ class PythonManager:
             ],
         }
 
-        with open(self.root / filename, "w") as f:
+        with open(self.root / filename, "w", encoding="utf-8") as f:
             import json
 
             json.dump(inventory, f, indent=2)

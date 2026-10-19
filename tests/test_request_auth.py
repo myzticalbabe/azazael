@@ -51,7 +51,7 @@ class TestTokenManagement(unittest.TestCase):
         """drop_token() should create a valid token file."""
         path = drop_token("test_file.py", "str_replace", {"authorized": True})
         self.assertTrue(path.exists(), "Token file should exist after drop")
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(data["target"], "test_file.py")
         self.assertEqual(data["intent"], "str_replace")
         self.assertIn("signature", data)
@@ -70,14 +70,14 @@ class TestTokenManagement(unittest.TestCase):
         """is_token_valid() should return False for expired tokens."""
         path = drop_token("expired.py", "str_replace", {})
         # Manipulate token timestamp to simulate expiry
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         # Set timestamp to 30 seconds ago
         from datetime import datetime, timezone, timedelta
         old_time = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
         data["timestamp"] = old_time
         # Re-sign with new timestamp
         data["signature"] = _sign_token(data)
-        path.write_text(json.dumps(data))
+        path.write_text(json.dumps(data), encoding="utf-8")
         self.assertFalse(is_token_valid(path, "expired.py", max_age_seconds=15))
 
     def test_consume_token_deletes_file(self):

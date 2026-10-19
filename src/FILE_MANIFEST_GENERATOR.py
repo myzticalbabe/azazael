@@ -149,7 +149,7 @@ def generate_manifest(base_path: str, output_path: str) -> dict:
             manifest["statistics"]["by_component"].get(c, 0) + 1
         )
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
     return manifest

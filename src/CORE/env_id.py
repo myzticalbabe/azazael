@@ -56,7 +56,7 @@ WSL_ENVS = ("wsl2-ubuntu", "wsl2-kali")
 
 def _read(path: str) -> str:
     try:
-        with open(path, "r", errors="replace") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
     except Exception as exc:
         note_failure("env_id:L51", exc)
@@ -161,7 +161,7 @@ def describe_env() -> dict:
     except Exception as exc:
         note_failure("env_id:L150", exc)
         try:
-            with open("/proc/meminfo", "r") as f:
+            with open("/proc/meminfo", "r", encoding="utf-8") as f:
                 mem_kb = int(f.readline().split()[1])
             mem_gb = round(mem_kb / 1e6, 1)
         except Exception as exc:

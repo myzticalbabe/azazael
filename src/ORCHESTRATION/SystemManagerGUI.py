@@ -65,13 +65,13 @@ class ADLPClient:
             try:
                 log_data = {"entries": []}
                 if self.log_file.exists():
-                    with open(self.log_file, "r") as f:
+                    with open(self.log_file, "r", encoding="utf-8") as f:
                         log_data = json.load(f)
                 if "entries" not in log_data:
                     log_data["entries"] = []
                 log_data["entries"].append(entry)
                 log_data["total_entries"] = len(log_data["entries"])
-                with open(self.log_file, "w") as f:
+                with open(self.log_file, "w", encoding="utf-8") as f:
                     json.dump(log_data, f, indent=2)
             except Exception as e:
                 print(f"ADLP log error: {e}")

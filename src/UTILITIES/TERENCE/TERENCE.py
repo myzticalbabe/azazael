@@ -794,7 +794,7 @@ class TERENCE:
                 fix.original, fix.fixed, 1)
             try:
                 import msvcrt
-                _lfh = open(fix.file + ".terence.lock", "w")
+                _lfh = open(fix.file + ".terence.lock", "w", encoding="utf-8")
                 try:
                     msvcrt.locking(_lfh.fileno(), msvcrt.LK_NBLCK, 1)
                     _locked = True
@@ -941,7 +941,7 @@ class TERENCE:
     def fix_syntax_error(self, file_path: str, line_num: int, error_msg: str) -> bool:
         """Fix a specific syntax error."""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Common syntax fixes
@@ -954,7 +954,7 @@ class TERENCE:
                 elif "{" in error_msg:
                     lines.append("}\n")
 
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.writelines(lines)
 
             return True

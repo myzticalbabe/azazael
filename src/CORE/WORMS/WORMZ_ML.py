@@ -223,7 +223,7 @@ class WORMZ_ML:
         predictions = []
         for file_path in files:
             try:
-                content = file_path.read_text(errors="ignore")
+                content = file_path.read_text(encoding="utf-8", errors="ignore")
                 category, confidence = self._predict_category(content)
 
                 hashlib.md5(content.encode()).hexdigest()
@@ -310,7 +310,7 @@ class WORMZ_ML:
         if not path.exists():
             return []
 
-        content = path.read_text(errors="ignore")
+        content = path.read_text(encoding="utf-8", errors="ignore")
         terms = self._extract_terms(content)
         category, confidence = self._predict_category(content)
 
@@ -394,7 +394,7 @@ class WORMZ_ML:
         }
 
         output_file = self.output_path / f"wormz_ml_{int(time.time())}.json"
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(output, f, indent=2)
 
         return output
@@ -462,14 +462,14 @@ class WORMZ_ML:
     def _save_patterns(self):
         """Persist learned patterns."""
         self.patterns_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.patterns_path, "w") as f:
+        with open(self.patterns_path, "w", encoding="utf-8") as f:
             json.dump(self.learned_patterns, f, indent=2)
 
     def _load_patterns(self):
         """Load persisted patterns."""
         if self.patterns_path.exists():
             try:
-                with open(self.patterns_path) as f:
+                with open(self.patterns_path, encoding="utf-8") as f:
                     self.learned_patterns = json.load(f)
             except Exception as exc:
                 note_failure("WORMZ_ML:L458", exc)
@@ -482,7 +482,7 @@ class WORMZ_ML:
 
         for of in output_files[-10:]:
             try:
-                with open(of) as f:
+                with open(of, encoding="utf-8") as f:
                     data = json.load(f)
                     all_entries.extend(
                         MLEntry(

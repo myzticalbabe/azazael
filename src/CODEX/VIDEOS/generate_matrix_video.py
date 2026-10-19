@@ -73,7 +73,7 @@ def generate_matrix_frames():
             lines.append(" ".join(line))
 
         # Write frame
-        with open(f"{frames_dir}/frame_{frame_num:04d}.ppm", "w") as f:
+        with open(f"{frames_dir}/frame_{frame_num:04d}.ppm", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
 
         if frame_num % 100 == 0:

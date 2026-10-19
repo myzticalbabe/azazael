@@ -469,7 +469,7 @@ class PlatformHealthMonitor:
             }
             for h in self.health_history
         ]
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(history_data, f, indent=2)
 
     def get_recommendations(self) -> list[str]:

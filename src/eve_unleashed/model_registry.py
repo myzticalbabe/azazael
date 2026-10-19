@@ -112,7 +112,7 @@ class ModelRegistry:
         """Load registry from JSON file."""
         if self._path.exists():
             try:
-                data = json.loads(self._path.read_text())
+                data = json.loads(self._path.read_text(encoding="utf-8"))
                 for entry in data.get("models", []):
                     record = ModelRecord.from_dict(entry)
                     self._models[record.canonical_path] = record
@@ -128,7 +128,7 @@ class ModelRegistry:
             "model_count": len(self._models),
             "models": [m.to_dict() for m in self._models.values()],
         }
-        self._path.write_text(json.dumps(data, indent=2))
+        self._path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     # ── Registration ────────────────────────────────────────────
 

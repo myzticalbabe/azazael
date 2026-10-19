@@ -132,7 +132,7 @@ class AzazaelConfig:
         """Load configuration from file."""
         if self.config_path.exists():
             try:
-                with open(self.config_path) as f:
+                with open(self.config_path, encoding="utf-8") as f:
                     loaded = json.load(f)
                     config = self.DEFAULT_CONFIG.copy()
                     config.update(loaded)
@@ -144,7 +144,7 @@ class AzazaelConfig:
 
     def save(self):
         """Save configuration to file."""
-        with open(self.config_path, "w") as f:
+        with open(self.config_path, "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=2)
 
     def get_aliases(self) -> dict[str, str]:
@@ -241,12 +241,12 @@ class AzazaelCLI:
         """Load command history."""
         self.history = []
         if self.history_file.exists():
-            self.history = self.history_file.read_text().split("\n")
+            self.history = self.history_file.read_text(encoding="utf-8").split("\n")
 
     def save_history(self):
         """Save command history."""
         max_size = self.config.config.get("history_size", 1000)
-        self.history_file.write_text("\n".join(self.history[-max_size:]))
+        self.history_file.write_text("\n".join(self.history[-max_size:]), encoding="utf-8")
 
     def resolve_alias(self, cmd: str) -> str:
         """Resolve command aliases."""
@@ -503,10 +503,10 @@ EXAMPLES:
                 path = self.ROOT / file_path
 
             if path.exists():
-                content = path.read_text()[:5000]
+                content = path.read_text(encoding="utf-8")[:5000]
                 print(content)
-                if len(path.read_text()) > 5000:
-                    print(f"\n... ({len(path.read_text())} bytes total)")
+                if len(path.read_text(encoding="utf-8")) > 5000:
+                    print(f"\n... ({len(path.read_text(encoding='utf-8'))} bytes total)")
             else:
                 self.output.error(f"File not found: {file_path}")
         except Exception as e:

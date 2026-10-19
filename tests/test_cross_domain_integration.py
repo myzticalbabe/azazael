@@ -671,7 +671,7 @@ def test_cd5_docker_benchmark(correlation_id: str = "") -> dict[str, Any]:
     check("CD5: Docker Compose file generated", os.path.isfile(compose_path))
     
     # Read generated compose and verify CD5 split config
-    with open(compose_path, "r") as f:  # scanner:ignore
+    with open(compose_path, "r", encoding="utf-8") as f:  # scanner:ignore
         compose_content = f.read()
     
     check("CD5: Compose has azazael service", "azazael:" in compose_content)
@@ -682,7 +682,7 @@ def test_cd5_docker_benchmark(correlation_id: str = "") -> dict[str, Any]:
     dockerfile_path = dz.generate_dockerfile(base_image="python:3.14-slim-bookworm")
     check("CD5: Dockerfile generated", os.path.isfile(dockerfile_path))
     
-    with open(dockerfile_path, "r") as f:  # scanner:ignore
+    with open(dockerfile_path, "r", encoding="utf-8") as f:  # scanner:ignore
         dockerfile_content = f.read()
     
     check("CD5: Dockerfile uses python:3.14-slim-base", "python:3.14" in dockerfile_content)

@@ -481,7 +481,7 @@ class FullSystemPythonMapper:
 
     def save_json(self, filename="python_full_system_map.json"):
         filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=2, default=str)
         print(f"\n[+] Full map saved to: {filepath}")
         return filepath

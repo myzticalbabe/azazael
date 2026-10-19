@@ -145,7 +145,7 @@ class TestMetaClusterOrchestration(unittest.TestCase):
             exported = self.mc.export_state(tmp_path)
             self.assertTrue(os.path.exists(exported))
             import json
-            with open(exported) as f:
+            with open(exported, encoding="utf-8") as f:
                 data = json.load(f)
             self.assertIn("version", data)
             self.assertIn("routes", data)

@@ -67,7 +67,7 @@ class AzazaelIntelligence:
         """Load historical data."""
         history_file = self.data_dir / "workflow_history.json"
         if history_file.exists():
-            with open(history_file, "r") as f:
+            with open(history_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.workflow_history = [
                     WorkflowEvent(**e) for e in data.get("events", [])
@@ -82,7 +82,7 @@ class AzazaelIntelligence:
             "framework_scores": self.framework_scores,
             "last_updated": datetime.now().isoformat(),
         }
-        with open(history_file, "w") as f:
+        with open(history_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def record_event(

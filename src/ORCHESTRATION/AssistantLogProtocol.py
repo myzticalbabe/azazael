@@ -116,7 +116,7 @@ class AssistantLogProtocol:
 
     def _read_json(self, path: Path) -> dict:
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as exc:
             note_failure("AssistantLogProtocol:L112", exc)
@@ -127,7 +127,7 @@ class AssistantLogProtocol:
             }
 
     def _write_json(self, path: Path, data: Any):
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=str)
 
     def log(

@@ -522,7 +522,7 @@ class METAWORMS:
 
         for name, result in self.results.items():
             output_file = Path(MetaWormConfig.OUTPUT_PATH) / f"{name.lower()}.json"
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(
                     {
                         "name": result.name,
@@ -539,7 +539,7 @@ class METAWORMS:
 
         # Save summary
         summary_file = Path(MetaWormConfig.OUTPUT_PATH) / "summary.json"
-        with open(summary_file, "w") as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "timestamp": datetime.now().isoformat(),

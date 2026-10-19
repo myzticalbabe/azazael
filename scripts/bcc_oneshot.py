@@ -31,7 +31,7 @@ def main():
         subprocess.run(["sudo", "-n", "mount", "--types", "tracefs",
                         "nodev", "/sys/kernel/tracing"],
                        capture_output=True, timeout=30)
-        open(BT, "w").write(PROG)
+        open(BT, "w", encoding="utf-8").write(PROG)
         r = subprocess.run(["sudo", "-n", "bpftrace", BT], capture_output=True,
                            text=True, timeout=60, encoding="utf-8", errors="replace")
         counts: dict = {}

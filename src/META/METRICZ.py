@@ -468,7 +468,7 @@ class METRICZ:
         """Export metrics to file."""
         metrics = self.get_metrics(limit=self.config.HISTORY_LENGTH)
         try:
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 if format == "json":
                     json.dump(metrics, f, indent=2)
             return True
@@ -481,7 +481,7 @@ class METRICZ:
         metrics_file = Path(self.config.METRICS_FILE)
         metrics_file.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(metrics_file, "w") as f:
+            with open(metrics_file, "w", encoding="utf-8") as f:
                 json.dump(
                     [
                         {
@@ -504,7 +504,7 @@ class METRICZ:
         executions_file = Path(self.config.EXECUTIONS_FILE)
         executions_file.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(executions_file, "w") as f:
+            with open(executions_file, "w", encoding="utf-8") as f:
                 json.dump(
                     [
                         {
@@ -532,7 +532,7 @@ class METRICZ:
         alerts_file = Path(self.config.ALERTS_FILE)
         alerts_file.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(alerts_file, "w") as f:
+            with open(alerts_file, "w", encoding="utf-8") as f:
                 json.dump(self.alerts[-1000:], f, indent=2)
         except Exception as exc:
             note_failure("METRICZ:L526", exc)
@@ -542,7 +542,7 @@ class METRICZ:
         metrics_file = Path(self.config.METRICS_FILE)
         if metrics_file.exists():
             try:
-                with open(metrics_file) as f:
+                with open(metrics_file, encoding="utf-8") as f:
                     data = json.load(f)
                     for d in data:
                         self.metrics_buffer.append(

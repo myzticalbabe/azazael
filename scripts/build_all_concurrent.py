@@ -317,7 +317,7 @@ def build_concurrent(targets: List[str], platform: str = "both",
     }
 
     manifest = build_root / "build_manifest.json"
-    manifest.write_text(json.dumps(summary, indent=2, default=str))
+    manifest.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
     print(f"\n{success}/{len(results)} succeeded | Manifest: {manifest}")
     return summary
 

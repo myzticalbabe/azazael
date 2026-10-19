@@ -59,9 +59,9 @@ def test_a_tampered_token_is_rejected():
     """
     _clear_tokens()
     path = ra.drop_token(TARGET, "str_replace", {"authorized": True})
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     data["gate_data"] = {"authorized": False}  # tamper after signing
-    path.write_text(json.dumps(data))
+    path.write_text(json.dumps(data), encoding="utf-8")
 
     valid, reason = pv.verify_token(TARGET, max_age_seconds=60)
     assert not valid
@@ -76,10 +76,10 @@ def test_an_expired_token_is_rejected_and_not_consumed():
 
     _clear_tokens()
     path = ra.drop_token(TARGET, "str_replace", {})
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     data["timestamp"] = (
         datetime.now(timezone.utc) - timedelta(seconds=120)).isoformat()
-    path.write_text(json.dumps(data))
+    path.write_text(json.dumps(data), encoding="utf-8")
 
     valid, reason = pv.verify_token(TARGET, max_age_seconds=15)
     assert not valid

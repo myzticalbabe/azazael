@@ -131,7 +131,7 @@ def load_checkpoint() -> Dict[str, Any]:
     if not CHECKPOINT_FILE.exists():
         return {}
     try:
-        data = json.loads(CHECKPOINT_FILE.read_text())
+        data = json.loads(CHECKPOINT_FILE.read_text(encoding="utf-8"))
         if isinstance(data, dict):
             return data
         return {}
@@ -143,7 +143,7 @@ def save_checkpoint(completed: Dict[str, Any]):
     """Save sync checkpoint to disk."""
     CHECKPOINT_FILE.parent.mkdir(parents=True, exist_ok=True)
     try:
-        CHECKPOINT_FILE.write_text(json.dumps(completed, indent=2))
+        CHECKPOINT_FILE.write_text(json.dumps(completed, indent=2), encoding="utf-8")
     except OSError:
         pass
 
@@ -511,7 +511,7 @@ def main():
         if not args.dry_run:
             # Write sync timestamp
             ts_file = G_SOURCE_OF_TRUTH / ".last_sync"
-            ts_file.write_text(f"Synced: {ts}\nSource: {SOURCE_ROOT}\n")
+            ts_file.write_text(f"Synced: {ts}\nSource: {SOURCE_ROOT}\n", encoding="utf-8")
             # Clear checkpoint on full success so future syncs detect changes
             if failed == 0:
                 clear_checkpoint()

@@ -65,7 +65,7 @@ class HEALTHZ:
         """Load health state."""
         try:
             if Path(self.STATE_FILE).exists():
-                return json.loads(Path(self.STATE_FILE).read_text())
+                return json.loads(Path(self.STATE_FILE).read_text(encoding="utf-8"))
         except Exception as exc:
             note_failure("HEALTHZ:L60", exc)
         return {"checks": 0, "last_healthy": True, "history": []}
@@ -74,7 +74,7 @@ class HEALTHZ:
         """Save health state."""
         try:
             Path(self.STATE_FILE).parent.mkdir(exist_ok=True)
-            Path(self.STATE_FILE).write_text(json.dumps(self.state, indent=2))
+            Path(self.STATE_FILE).write_text(json.dumps(self.state, indent=2), encoding="utf-8")
         except Exception as exc:
             note_failure("HEALTHZ:L69", exc)
 

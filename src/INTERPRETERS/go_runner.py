@@ -161,7 +161,7 @@ class GoRunner:
         """Run Go source code from a string (writes to temp file)."""
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
         source_path = GO_BUILD_DIR / f"azazael_{code_hash}.go"
-        source_path.write_text(code)
+        source_path.write_text(code, encoding="utf-8")
         return self.run_file(str(source_path), args)
 
     def build_binary(self, file_path: str, output_name: str = "",

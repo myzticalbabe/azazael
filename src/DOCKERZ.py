@@ -377,7 +377,7 @@ CMD ["python", "Azazael/Azazael_INTEGRATION.py"]
 """
 
         path = Path(self.config.DOCKERFILE_TEMPLATE)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(dockerfile_content)
 
         return str(path)
@@ -429,7 +429,7 @@ CMD ["python", "Azazael/Azazael_INTEGRATION.py"]
             compose += "\n"
 
         path = Path(self.config.COMPOSE_TEMPLATE)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(compose)
 
         return str(path)

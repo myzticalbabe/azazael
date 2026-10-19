@@ -694,7 +694,7 @@ print("Done generating frames!")
 
     script_file = os.path.join(output_dir, "generate_video_frames.py")
 
-    with open(script_file, "w") as f:
+    with open(script_file, "w", encoding="utf-8") as f:
 
         f.write(create_script)
 

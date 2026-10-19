@@ -459,7 +459,7 @@ class QLearningAnalyzer:
 
         # Save report
         report_file = Path(__file__).parent / "QL_ANALYSIS_REPORT.json"
-        report_file.write_text(json.dumps(report, indent=2, default=str))
+        report_file.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
 
         print(f"\n[OK] Report saved to: {report_file}")
 

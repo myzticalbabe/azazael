@@ -315,7 +315,9 @@ def main(argv: list[str] | None = None) -> int:
     baseline: dict = {}
     if args.baseline_file.exists():
         try:
-            baseline = json.loads(args.baseline_file.read_text())
+            baseline = json.loads(
+                args.baseline_file.read_text(encoding="utf-8")
+            )
         except Exception as exc:  # pragma: no cover - defensive
             print(f"unreadable baseline {args.baseline_file}: {exc}", file=sys.stderr)
 
@@ -326,7 +328,7 @@ def main(argv: list[str] | None = None) -> int:
         }
         baseline["recorded_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         args.baseline_file.parent.mkdir(parents=True, exist_ok=True)
-        args.baseline_file.write_text(json.dumps(baseline, indent=2))
+        args.baseline_file.write_text(json.dumps(baseline, indent=2), encoding="utf-8")
         print(f"baseline recorded -> {args.baseline_file}")
 
     payload = {
@@ -353,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
 
     payload["problems"] = problems
     args.report_file.parent.mkdir(parents=True, exist_ok=True)
-    args.report_file.write_text(json.dumps(payload, indent=2))
+    args.report_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     _print_summary(results, problems)
     print(f"report -> {args.report_file}")

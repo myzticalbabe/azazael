@@ -351,7 +351,7 @@ print()
 root = os.environ.get("AZAZAEL_ROOT", str(Path(__file__).resolve().parents[3]))
 output_path = os.path.join(root, "output", "poindexter_report.json")
 Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-with open(output_path, "w") as f:
+with open(output_path, "w", encoding="utf-8") as f:
     json.dump(report, f, indent=2)
 # print(f"Report saved to: {output_path}")
 

@@ -214,7 +214,7 @@ class TestPostgresMemoryStore(unittest.TestCase):
             result_path = self.store.export_json(path=export_path)
             self.assertEqual(result_path, export_path)
             self.assertTrue(os.path.exists(export_path))
-            with open(export_path) as f:
+            with open(export_path, encoding="utf-8") as f:
                 data = json.load(f)
             self.assertIn("memories", data)
             self.assertIn("count", data)
@@ -322,7 +322,7 @@ class TestPostgresMemoryStore(unittest.TestCase):
             result = self.store.backup(target)
             self.assertEqual(result, target)
             self.assertTrue(os.path.exists(target))
-            with open(target, "r") as f:
+            with open(target, "r", encoding="utf-8") as f:
                 content = f.read()
             self.assertIn("INSERT INTO", content,
                           "Backup should contain INSERT statements")

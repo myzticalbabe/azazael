@@ -149,7 +149,7 @@ class PersistentState:
         }
         if self.state_file.exists():
             try:
-                with open(self.state_file, "r") as f:
+                with open(self.state_file, "r", encoding="utf-8") as f:
                     loaded = json.load(f)
                     defaults.update(loaded)
                     logger.info(f"Loaded state from {self.state_file}")
@@ -162,7 +162,7 @@ def save_state(self):
     with self._lock:
         self._state["last_updated"] = datetime.now().isoformat()
         try:
-            with open(self.state_file.with_suffix(".tmp"), "w") as f:
+            with open(self.state_file.with_suffix(".tmp"), "w", encoding="utf-8") as f:
                 json.dump(self._state, f, indent=2, default=str)
             self.state_file.with_suffix(".tmp").replace(self.state_file)
         except Exception as e:

@@ -159,7 +159,7 @@ class DocumentationGenerator:
             output_file = self.output_dir / (pyfile.stem + ".md")
 
             markdown = self.generate_markdown(docstrings)
-            output_file.write_text(markdown)
+            output_file.write_text(markdown, encoding="utf-8")
 
             results["files"].append({"source": str(pyfile), "doc": str(output_file)})
 

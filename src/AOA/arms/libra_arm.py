@@ -102,7 +102,7 @@ class LibraArm(BaseArm):
                     ft_path=self._libra_src.parent/"data"/"filing_types.json"
                 else:
                     ft_path=Path.home()/"Desktop"/"Libra"/"data"/"filing_types.json"
-                with open(ft_path) as f:
+                with open(ft_path, encoding="utf-8") as f:
                     ft=json.load(f)
                 types=ft.get("filing_types",{})
                 return {"status":"ok","data":{"total":len(types),"categories":list(set(v["category"] for v in types.values()))}}

@@ -99,7 +99,7 @@ def load_json(path: Path) -> dict:
     """Load JSON file safely."""
     try:
         if path.exists():
-            return json.loads(path.read_text())
+            return json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
         note_failure("HYDRA_ANALYZER:L93", exc)
     return {}

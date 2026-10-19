@@ -38,7 +38,7 @@ class ComprehensiveFix:
         line = f"{symbol} {timestamp} {msg}\n"
         print(line, end="")
         try:
-            with open(self.log_file, "a") as f:
+            with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(line)
         except Exception as exc:
             note_failure("COMPREHENSIVE_FIX:L33", exc)
@@ -52,7 +52,7 @@ class ComprehensiveFix:
             "executable": sys.executable,
         }
         if os.path.exists("/proc/version"):
-            with open("/proc/version") as f:
+            with open("/proc/version", encoding="utf-8") as f:
                 content = f.read()
                 if "microsoft" in content.lower() or "wsl" in content.lower():
                     platform_info["is_wsl"] = True
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     else:
         print("Usage: python azazael_run.py <script_name>")
 '''
-        wrapper.write_text(content)
+        wrapper.write_text(content, encoding="utf-8")
         self.log(f"Created: {wrapper.name}", "OK")
         return str(wrapper)
 

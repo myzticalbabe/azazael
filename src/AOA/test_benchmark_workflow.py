@@ -37,7 +37,7 @@ except Exception as _e:
 
 # Load benchmark data
 bm_path = Path(__file__).resolve().parent / "benchmark_data.json"
-with open(bm_path) as f:
+with open(bm_path, encoding="utf-8") as f:
     benchmark = json.load(f)
 
 print("=" * 70)

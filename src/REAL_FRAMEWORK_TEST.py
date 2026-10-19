@@ -63,7 +63,7 @@ class RealFrameworkTest:
         # Check WSL
         if os.path.exists("/proc/version"):
             try:
-                with open("/proc/version") as f:
+                with open("/proc/version", encoding="utf-8") as f:
                     platform_info["proc_version"] = f.read().strip()
             except Exception as exc:
                 note_failure("REAL_FRAMEWORK_TEST:L58", exc)
@@ -475,7 +475,7 @@ class RealFrameworkTest:
         }
 
         report_file = self.azazael / "REAL_FRAMEWORK_TEST_REPORT.json"
-        report_file.write_text(json.dumps(report, indent=2, default=str))
+        report_file.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
 
         self.log(f"\n{'=' * 70}", "INFO")
         self.log("TEST SUMMARY", "INFO")

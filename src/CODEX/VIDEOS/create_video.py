@@ -198,7 +198,7 @@ Featuring advanced ML orchestration through HYDRA and HYDRAMETA."""
         for i, frame in enumerate(frames):
             # Write PPM frame
             ppm_path = os.path.join(frames_dir, f"frame_{i:05d}.ppm")
-            with open(ppm_path, "w") as f:
+            with open(ppm_path, "w", encoding="utf-8") as f:
                 f.write(f"P3\n{width} {height}\n255\n")
                 for y in range(height):
                     for x in range(width):

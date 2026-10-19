@@ -144,7 +144,7 @@ class DeadLetterQueue:
             }
         try:
             tmp = self._storage_path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(data, indent=2, default=str))
+            tmp.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
             tmp.replace(self._storage_path)
         except OSError as exc:
             note_failure("dead_letter_queue:L140", exc)

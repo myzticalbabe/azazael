@@ -404,7 +404,7 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
         dockerfile_path = temp_dir / "Dockerfile"
 
         dockerfile = self._generate_dockerfile(worm_name)
-        with open(dockerfile_path, "w") as f:
+        with open(dockerfile_path, "w", encoding="utf-8") as f:
             f.write(dockerfile)
 
         shutil.copytree(
@@ -501,14 +501,14 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
         """Persist trials."""
         trials_file = Path(self.config.TRIALS_FILE)
         trials_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(trials_file, "w") as f:
+        with open(trials_file, "w", encoding="utf-8") as f:
             json.dump(self.trials, f, indent=2)
 
     def _save_state(self):
         """Persist state."""
         state_file = Path(self.config.STATE_FILE)
         state_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(state_file, "w") as f:
+        with open(state_file, "w", encoding="utf-8") as f:
             json.dump(self.state, f, indent=2)
 
     def _load_state(self):
@@ -516,7 +516,7 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
         state_file = Path(self.config.STATE_FILE)
         if state_file.exists():
             try:
-                with open(state_file) as f:
+                with open(state_file, encoding="utf-8") as f:
                     self.state = json.load(f)
             except (OSError, ValueError) as exc:
                 note_failure("HYDRA_CONTAINER:L508", exc)

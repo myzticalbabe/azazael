@@ -291,7 +291,7 @@ class Tarbaby:
     def _convert_for_version(self, filepath: Path, target_version: str) -> bytes:
         """Convert file for target Python version."""
         if filepath.suffix == ".py":
-            content = filepath.read_text()
+            content = filepath.read_text(encoding="utf-8")
 
             # Remove 3.14+ only syntax
             # No backward-compat transforms needed — project targets 3.14t
@@ -354,7 +354,7 @@ class Tarbaby:
                 input_data, input_format, target_format
             )
 
-            Path(output_path).write_text(str(output_data))
+            Path(output_path).write_text(str(output_data), encoding="utf-8")
             return True
         except Exception as e:
             print(f"Conversion error: {e}")
@@ -363,11 +363,11 @@ class Tarbaby:
     def _read_file(self, filepath: str, format: BinaryFormat) -> Any:
         """Read file based on format."""
         if format == BinaryFormat.JSON:
-            return json.loads(Path(filepath).read_text())
+            return json.loads(Path(filepath).read_text(encoding="utf-8"))
         elif format == BinaryFormat.YAML:
             import yaml
 
-            return yaml.safe_load(Path(filepath).read_text())
+            return yaml.safe_load(Path(filepath).read_text(encoding="utf-8"))
         elif format == BinaryFormat.PICKLE:
             return pickle.loads(Path(filepath).read_bytes())
         return Path(filepath).read_bytes()
@@ -384,7 +384,7 @@ class Tarbaby:
         }
 
         meta_file = self.metadata_path / f"{archive.stem}.meta.json"
-        meta_file.write_text(json.dumps(metadata, indent=2))
+        meta_file.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     def _save_metadata(self, name: str, source: str, dest: str, files: int):
         """Save migration metadata."""
@@ -397,7 +397,7 @@ class Tarbaby:
         }
 
         meta_file = self.metadata_path / f"{name.lower().replace(' ', '_')}.meta.json"
-        meta_file.write_text(json.dumps(meta, indent=2))
+        meta_file.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
     def _calculate_checksum(self, filepath: Path) -> str:
         """Calculate SHA256 checksum."""
@@ -422,11 +422,11 @@ class Tarbaby:
         output_file = self.output_path / f"{name}.{format.value}"
 
         if format == BinaryFormat.JSON:
-            output_file.write_text(json.dumps(data, indent=2))
+            output_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
         elif format == BinaryFormat.YAML:
             import yaml
 
-            output_file.write_text(yaml.dump(data))
+            output_file.write_text(yaml.dump(data), encoding="utf-8")
         elif format == BinaryFormat.PICKLE:
             output_file.write_bytes(pickle.dumps(data))
 

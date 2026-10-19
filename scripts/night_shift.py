@@ -129,7 +129,7 @@ def main():
         log("round " + json.dumps(rep))
         time.sleep(max(60, ROUND_S - (time.perf_counter() - t0)))
     summary["end"] = datetime.now(timezone.utc).isoformat()
-    open(os.path.join(BASE, "nightshift_summary.json"), "w").write(json.dumps(summary, indent=1))
+    open(os.path.join(BASE, "nightshift_summary.json"), "w", encoding="utf-8").write(json.dumps(summary, indent=1))
     log("PROGRAM COMPLETE " + json.dumps(summary["rounds"][-1]))
 
 

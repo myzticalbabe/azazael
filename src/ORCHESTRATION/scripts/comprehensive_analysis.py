@@ -315,9 +315,10 @@ class ModuleFixer:
                 b"\xc0" in first_lines.encode("utf-8", errors="replace")[:800]
             ):
                 # Check if file has non-ASCII characters that might cause issues
-                if any(
-                    ord(c) > 127 for c in Path(path).read_text(errors="replace")[:500]
-                ):
+                sample = Path(path).read_text(
+                    encoding="utf-8", errors="replace"
+                )[:500]
+                if any(ord(c) > 127 for c in sample):
                     issues.append(
                         "Potential encoding issues - recommend adding # coding: utf-8"
                     )
@@ -339,9 +340,9 @@ class ModuleFixer:
 
             if "encoding" in issue.lower():
                 try:
-                    content = Path(path).read_text()
+                    content = Path(path).read_text(encoding="utf-8")
                     if not content.startswith("#"):
-                        Path(path).write_text("# coding: utf-8\n" + content)
+                        Path(path).write_text("# coding: utf-8\n" + content, encoding="utf-8")
                     result.fix_applied = True
                     result.fix_details = "Added UTF-8 encoding declaration"
                 except Exception as e:
@@ -518,7 +519,7 @@ class BATImprover:
         improvements = {"file": bat_path, "applied": [], "recommendations": []}
 
         try:
-            content = Path(bat_path).read_text()
+            content = Path(bat_path).read_text(encoding="utf-8")
             lines = content.split("\n")
 
             # Check and add missing elements
@@ -546,7 +547,9 @@ class BATImprover:
 
             # Write improved content
             if improvements["applied"]:
-                Path(bat_path).write_text("\n".join(lines))
+                Path(bat_path).write_text(
+                    "\n".join(lines), encoding="utf-8"
+                )
 
         except Exception as e:
             note_failure("comprehensive_analysis:L534", e)
@@ -699,14 +702,14 @@ Generated: {results["timestamp"]}
 
     # Write report
     report_path = "COMPREHENSIVE_ANALYSIS_REPORT.md"
-    with open(report_path, "w") as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
 
     print(f"\nReport saved to: {report_path}")
 
     # Save JSON results
     json_path = "ANALYSIS_RESULTS.json"
-    with open(json_path, "w") as f:
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=str)
 
     print(f"JSON results saved to: {json_path}")

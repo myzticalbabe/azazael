@@ -42,14 +42,14 @@ def test_gate_rejects_syntax_error():
     try:
         backup = gate.take_snapshot(tmp)
         # Corrupt the file
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             f.write("x = 1\n    : bad\n")
         ok, msg = gate.validate_after_edit(tmp, backup)
         if ok:
             print("FAIL: Gate should have rejected syntax error")
             return False
         # Check revert happened
-        restored = open(tmp).read()
+        restored = open(tmp, encoding="utf-8").read()
         if restored != "x = 1\n":
             print(f"FAIL: Revert failed. Got: {restored!r}")
             return False
@@ -75,13 +75,13 @@ def test_gate_rejects_merged_statements():
     try:
         backup = gate.take_snapshot(tmp)
         # Merge two statements onto one line
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             f.write("class Foo:\n    def bar(self):\n        return 1        self.x = 2\n")
         ok, msg = gate.validate_after_edit(tmp, backup)
         if ok:
             print("FAIL: Gate should have detected merged statements")
             return False
-        restored = open(tmp).read()
+        restored = open(tmp, encoding="utf-8").read()
         expected = "class Foo:\n    def bar(self):\n        return 1\n        self.x = 2\n"
         if restored != expected:
             print(f"FAIL: Revert failed. Got: {restored!r}")

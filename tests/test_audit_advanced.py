@@ -54,7 +54,7 @@ class TestAuditAdvanced:
         from CORE.audit_compress import compress_session
         import gzip
         tmp = Path(tempfile.mktemp(suffix=".jsonl"))
-        tmp.write_text('{"type":"session_start","ts":"2026-01-01","uuid":"test"}')
+        tmp.write_text('{"type":"session_start","ts":"2026-01-01","uuid":"test"}', encoding="utf-8")
         gz = compress_session(tmp)
         assert gz.exists()
         assert gz.suffix == ".gz"
@@ -69,7 +69,8 @@ class TestAuditAdvanced:
         tmp = Path(tempfile.mktemp(suffix=".jsonl"))
         tmp.write_text(
             '{"type":"session_start","ts":"2026-01-01","uuid":"a","hash":"a"}\n'
-            '{"type":"file_read","ts":"2026-01-01T00:00:01","uuid":"b","hash":"b","files":["x.py"]}\n'
+            '{"type":"file_read","ts":"2026-01-01T00:00:01","uuid":"b","hash":"b","files":["x.py"]}\n',
+            encoding="utf-8",
         )
         html = audit_to_html(str(tmp))
         assert "<!DOCTYPE html>" in html

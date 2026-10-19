@@ -62,7 +62,7 @@ def load_qlearning_history():
     """Load Q-learning training history."""
     history_path = Path("qlearning_history.json")
     if history_path.exists():
-        with open(history_path) as f:
+        with open(history_path, encoding="utf-8") as f:
             return json.load(f)
     return {
         "rewards": [np.random.randn() * 0.1 for _ in range(100)],
@@ -75,7 +75,7 @@ def load_test_results():
     """Load test results."""
     results_path = Path("TEST_RESULTS.json")
     if results_path.exists():
-        with open(results_path) as f:
+        with open(results_path, encoding="utf-8") as f:
             return json.load(f)
     return {
         "python_modules": {"passed": 45, "total": 45},
@@ -310,7 +310,7 @@ def page_documentation():
         st.subheader("Documentation Index")
         index_file = docs_dir / "INDEX.md"
         if index_file.exists():
-            st.markdown(index_file.read_text()[:500])
+            st.markdown(index_file.read_text(encoding="utf-8")[:500])
 
     with col2:
         st.subheader("Validation Status")
@@ -344,7 +344,7 @@ def page_documentation():
     st.subheader("Protocol Compliance")
     protocol = Path("DOCUMENTATION_PROTOCOL.md")
     if protocol.exists():
-        st.markdown(protocol.read_text()[:1000])
+        st.markdown(protocol.read_text(encoding="utf-8")[:1000])
 
 
 def page_tests():
@@ -424,7 +424,7 @@ def page_settings():
 
     config_path = Path.home() / ".azazaelrc"
     if config_path.exists():
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
         st.json(config)
     else:

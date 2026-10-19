@@ -256,7 +256,7 @@ class AzazaelOptimizer:
 
     def _save_report(self, report: dict[str, Any]):
         report_path = self.base_path / "OPTIMIZATION_REPORT.json"
-        report_path.write_text(json.dumps(report, indent=2))
+        report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
         print(f"\n{'=' * 60}")
         print(f"Report saved: {report_path}")
 

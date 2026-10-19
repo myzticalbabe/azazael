@@ -587,7 +587,7 @@ class ERRORZ:
             "summary": report.summary,
         }
 
-        with open(output_path / "errorz_report.json", "w") as f:
+        with open(output_path / "errorz_report.json", "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2)
 
         print(f"\nReport saved to: {output_path / 'errorz_report.json'}")

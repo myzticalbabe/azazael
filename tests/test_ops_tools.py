@@ -53,5 +53,5 @@ def test_freeze_pool_file_roundtrip(tmp_path, monkeypatch):
         rc = e.code
     assert rc in (0, 1)
     if rc == 0:
-        body = json.loads(out.read_text())
+        body = json.loads(out.read_text(encoding="utf-8"))
         assert set(body) >= {"info", "alert", "meta"}

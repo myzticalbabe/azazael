@@ -178,7 +178,7 @@ def main():
 
                                 status_path = AZAAZEL_ROOT / "CODEX" / "DOCUMENTATION" / "NODE_STATUS.json"
                                 status_path.parent.mkdir(parents=True, exist_ok=True)
-                                with open(status_path, "w") as f:
+                                with open(status_path, "w", encoding="utf-8") as f:
                                     json.dump(status, f, indent=2, default=str)
                                     print(f"      Status: {status_path}")
 

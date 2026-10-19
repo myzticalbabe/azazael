@@ -297,7 +297,7 @@ class TestExMachinaAbsentArtifacts(unittest.TestCase):
     def test_absent_file_is_omitted_not_infinite(self):
         import exmachina_live_monitor as em
         with tempfile.TemporaryDirectory() as tmp:
-            with open(os.path.join(tmp, "fitness_oracle.json"), "w") as fh:
+            with open(os.path.join(tmp, "fitness_oracle.json"), "w", encoding="utf-8") as fh:
                 fh.write("{}")
             saved = em._EX_ARTIFACTS, em._EX_MORPH, em._EX_STATE
             em._EX_ARTIFACTS = (("oracle", "fitness_oracle.json"),

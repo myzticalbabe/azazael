@@ -557,7 +557,7 @@ def safe_copytree_chunked(
     completed: dict[str, int] = {}
     if cp.exists():
         try:
-            completed = json.loads(cp.read_text())
+            completed = json.loads(cp.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
             note_failure("safe_file_ops:L546", exc)
             completed = {}
@@ -593,7 +593,7 @@ def safe_copytree_chunked(
         # Save checkpoint every 10 files
         if (i + 1) % 10 == 0:
             try:
-                cp.write_text(json.dumps(completed))
+                cp.write_text(json.dumps(completed), encoding="utf-8")
             except OSError as exc:
                 note_failure("safe_file_ops:L580", exc)
 
@@ -602,7 +602,7 @@ def safe_copytree_chunked(
 
     # Save final checkpoint
     try:
-        cp.write_text(json.dumps(completed))
+        cp.write_text(json.dumps(completed), encoding="utf-8")
     except OSError as exc:
         note_failure("safe_file_ops:L589", exc)
 

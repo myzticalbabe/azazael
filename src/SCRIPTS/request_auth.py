@@ -223,7 +223,7 @@ def drop_token(filepath: str, intent: str, gate_data: dict) -> Path:
     }
     token_data["signature"] = _sign_token(token_data)
     
-    token_path.write_text(json.dumps(token_data, indent=2, default=str))
+    token_path.write_text(json.dumps(token_data, indent=2, default=str), encoding="utf-8")
     return token_path
 
 
@@ -242,7 +242,7 @@ def is_token_valid(token_path: Path, filepath: str, max_age_seconds: int = 15) -
         return False
     
     try:
-        data = json.loads(token_path.read_text())
+        data = json.loads(token_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as exc:
         note_failure("request_auth:L232", exc)
         return False

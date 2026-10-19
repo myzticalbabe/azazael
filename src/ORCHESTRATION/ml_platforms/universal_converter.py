@@ -193,7 +193,7 @@ class ConversionLogger:
             "warnings": result.warnings,
             "metadata": result.metadata,
         }
-        with open(self.json_log, "w") as f:
+        with open(self.json_log, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         self.logger.info(f"JSON report saved to {self.json_log}")
 
@@ -482,7 +482,7 @@ class PyTorchConverter:
 
                         config_path = output_path / "config.json"
                         config = self._create_config(metadata)
-                        with open(config_path, "w") as f:
+                        with open(config_path, "w", encoding="utf-8") as f:
                             json.dump(config, f, indent=2)
 
                         self.logger.info(f"Saved config to {config_path}")
@@ -863,7 +863,7 @@ class TensorFlowConverter:
         }
 
         config_path = output_path / "config.json"
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
 
         self.logger.info(f"Placeholder config saved to {config_path}")
@@ -915,7 +915,7 @@ class JAXConverter:
                 }
 
                 config_path = output_path / "config.json"
-                with open(config_path, "w") as f:
+                with open(config_path, "w", encoding="utf-8") as f:
                     json.dump(model_config, f, indent=2)
 
                 self.logger.info(f"JAX config saved to {config_path}")
@@ -965,7 +965,7 @@ class JAXConverter:
         }
 
         config_path = output_path / "config.json"
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
 
         return True, str(output_path), {"format": "jax_placeholder"}
