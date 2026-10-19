@@ -181,6 +181,91 @@ def commit_gate(skill: Dict[str, Any],
             "version_consumed": version_consumed}
 
 
+# -- LOGOS living logic: versioned agent-pack bundle + promotion gate (EP363) ----
+PROMOTION_KINDS = ("skill", "prompt", "memory", "role", "workflow")
+
+
+def promotion_pack(kind: str, name: str, version: Any,
+                   artifact: Any, evidence: Any = None) -> Dict[str, Any]:
+    """Build a versioned agent-pack bundle (LOGOS, EP363).
+
+    The commit gate promotes skills only; prompts, memory, roles and
+    workflows had no bundle and no gate. A pack carries {kind, name,
+    version, artifact, evidence} and is UNTRUSTED until a gate accepts it:
+    "trusted" is always False here — only promotion_gate flips it.
+    Unknown kinds are kept (auditable) but never gateable.
+    """
+    return {"kind": str(kind or "").strip().lower(),
+            "name": str(name or "?").strip(),
+            "version": version,
+            "artifact": artifact,
+            "evidence": evidence or {},
+            "trusted": False}
+
+
+def promotion_gate(pack: Any, record: bool = True) -> Dict[str, Any]:
+    """Extend untrusted-until-evidenced promotion beyond skills (EP363).
+
+    Skills route to commit_gate (family + execution proof + masking).
+    Every other known kind requires stated evidence: {proof, scope_note}
+    (scope_note names where the artifact may act, even if "n/a: read-only").
+    Unknown kinds are rejected with a remediation, never trusted. Verdicts
+    are ledger-cited via the module-top audit_trail import (no new lazy
+    import); rejections carry remediations, never bare denies.
+    """
+    pack = pack if isinstance(pack, dict) else {}
+    kind = str(pack.get("kind", "")).strip().lower()
+    name = str(pack.get("name", "?")).strip()
+    reasons: List[str] = []
+    remediations: List[str] = []
+    accepted = True
+    if kind not in PROMOTION_KINDS:
+        accepted = False
+        reasons.append(f"unknown-kind({kind or '?'})")
+        remediations.append(
+            "pack kind must be one of %s before promotion"
+            % ", ".join(PROMOTION_KINDS))
+    elif kind == "skill":
+        skill = {"name": name,
+                 "family": str((pack.get("artifact") or {}).get("family", ""))
+                 if isinstance(pack.get("artifact"), dict) else ""}
+        sub = commit_gate(skill, pack.get("evidence"), record=False)
+        reasons.extend(sub.get("reasons", []))
+        remediations.extend(sub.get("remediations", []))
+        accepted = bool(sub.get("accepted"))
+    else:
+        ev = pack.get("evidence") or {}
+        proof = str(ev.get("proof", "")).strip()
+        scope = str(ev.get("scope_note", "")).strip()
+        if not proof:
+            accepted = False
+            reasons.append("no-evidence-proof")
+            remediations.append(
+                "cite measured evidence for this %s before promotion" % kind)
+        else:
+            reasons.append("proof-ok")
+        if not scope:
+            accepted = False
+            reasons.append("no-scope-note")
+            remediations.append(
+                "state where this %s may act (scope_note), even if "
+                "'n/a: read-only'" % kind)
+        else:
+            reasons.append("scope-ok")
+    citation = ""
+    if record:
+        try:
+            citation = _at.audit_verification_gate(
+                f"pack:{kind}:{name}", accepted, reasons, remediations)
+        except Exception as exc:                      # noqa: BLE001 - ledger best-effort
+            _note_failure("skill_library:promotion-gate-cite", exc)
+    out = dict(pack)
+    out["trusted"] = accepted
+    out["gate"] = {"accepted": accepted, "reasons": reasons,
+                    "remediations": remediations, "citation": citation}
+    return out
+
+
 # -- CASS: family-level audit input ----------------------------------------------
 def family_index(skills: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Group skill descriptors into procedural families (CASS audit input).

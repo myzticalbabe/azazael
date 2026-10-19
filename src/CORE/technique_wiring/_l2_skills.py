@@ -40,7 +40,8 @@ from CORE.audit_trail import read_citation
 from CORE.skill_library import (
     PROTOCOL_REQUIRED, check_transfer_mask, commit_gate,
     compile_leaf_rules, distill_trajectory_to_protocol, emit_skill_md,
-    family_index, mine_action_sequences, protocol_artifact,
+    family_index, mine_action_sequences, promotion_gate, promotion_pack,
+    protocol_artifact,
     record_experience, render_plan_to_prompt, replicator_step,
     route_hierarchy, scan_witness_canonical, shapley_marginal,
     spine_eval,
@@ -391,17 +392,27 @@ def _ep354() -> Dict[str, Any]:
 
 # --- EP363: LOGOS living logic / versioned agent packs ---------------------------
 def _ep363() -> Dict[str, Any]:
-    """`evidence[\"version\"]` is recorded and NEVER read — a dead input.
+    """Untrusted-until-evidenced promotion beyond skills is live.
 
-    Invoked: `commit_gate` with a version, showing it is carried but unused.
+    Review verdict PARTIAL. Invoked: `promotion_pack` + `promotion_gate`
+    across a skill and a non-skill kind — the versioned bundle plus the
+    extended rule the row said was missing.
     """
-    verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
-            "accepted": bool(verdict.get("accepted")),
-            "version_field_accepted": True,
-            "version_field_consumed": bool(verdict.get("version_consumed")),
-            "delta": "version now consumed; versioned packs + promotion "
-                     "beyond skills deferred"}
+    skill = promotion_gate(promotion_pack(
+        "skill", "WormEdit", 2, {"family": "dispatch"}, _evidence()),
+        record=False)
+    prompt = promotion_gate(promotion_pack(
+        "prompt", "Router", 1, {"template": "route {q}"},
+        {"proof": ".audit/session_2026-10-09.jsonl:12",
+         "scope_note": "dispatch only"}), record=False)
+    return {"ok": True, "invoked": "CORE.skill_library:promotion_pack+"
+                                   "promotion_gate",
+            "skill_accepted": bool(skill["gate"]["accepted"]),
+            "prompt_accepted": bool(prompt["gate"]["accepted"]),
+            "packs_untrusted_at_build": promotion_pack(
+                "role", "R", 1, {})["trusted"] is False,
+            "delta": "packs + extended rule live; per-kind evidence "
+                     "thresholds deferred"}
 
 
 # --- EP364: capability trees -----------------------------------------------------
@@ -573,7 +584,7 @@ _L2 = [
     ("EP308", "SoftSkill virtual tokens", "no-host: trainable soft-prompt skill representation", _ep308),
     ("EP347", "Auto AGI compiler", "CORE.skill_library:commit_gate", _ep347),
     ("EP354", "EvoSOP procedure synthesis", "CORE.skill_library:merge_sops", _ep354),
-    ("EP363", "LOGOS living logic", "CORE.skill_library:commit_gate", _ep363),
+    ("EP363", "LOGOS living logic", "CORE.skill_library:promotion_gate", _ep363),
     ("EP364", "Capability trees", "CORE.skill_library:family_index", _ep364),
     ("EP387", "Knowledge-centric self-improvement", "CORE.skill_library:family_index", _ep387),
     ("EP401", "MAPD protocol distillation", "CORE.skill_library:protocol_artifact", _ep401),
