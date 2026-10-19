@@ -47,6 +47,7 @@ import sqlite3
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Sequence, List
+import time as _time
 
 #: This list used to sit INSIDE the module docstring above, i.e. inside a string
 #: literal, so it was never assigned: `from CORE.cd3_exporter import *` exported
@@ -509,7 +510,6 @@ def purge_old_spans(older_than_days: int = 30, db_path: (str | None) = None) -> 
     Returns:
         Number of deleted rows.
     """
-    import time as _time
     path = db_path or str(TELEMETRY_DB_PATH)
     conn = sqlite3.connect(path, timeout=5)
     try:

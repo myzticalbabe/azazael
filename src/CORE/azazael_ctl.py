@@ -204,7 +204,6 @@ def cmd_status_json():
 
 def cmd_backup(output_dir: str = None):
     """Backup memory_store.db and .audit/ to a directory."""
-    import shutil
     from datetime import datetime
     from pathlib import Path
     from CORE.direct_memory import DB_PATH

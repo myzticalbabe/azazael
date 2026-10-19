@@ -12,6 +12,8 @@ that joint policy can drive it. The policy itself is not here -- it spans the
 other two files.
 """
 from typing import List
+import math
+import random
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -46,7 +48,6 @@ def hdbscan_lite(vecs, min_size: int = 5):
     except Exception as exc:
         note_failure("cluster_route:L29", exc)
     # fallback: greedy threshold (mean pairwise dist / 2)
-    import math
     n = len(vecs)
     if n == 0:
         return {"labels": [], "noise_rate": 0.0, "backend": "fallback"}
@@ -71,7 +72,6 @@ def hdbscan_lite(vecs, min_size: int = 5):
 
 def proto_route(query, protos: dict):
     """Nearest-prototype routing. protos: {worm: vec}. Returns best worm."""
-    import math
 
     def d(a, b):
         return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
@@ -125,7 +125,6 @@ def tpe_lite_suggest(trials, bounds: dict, n_candidates: int = 24, suggest=None)
     is clamped into `bounds`. Absent, or unusable, the local sampler runs
     exactly as before -- the default path is unchanged.
     """
-    import random
     rng = random.Random(0)
     if suggest is not None:
         try:

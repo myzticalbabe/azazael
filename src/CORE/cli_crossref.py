@@ -42,6 +42,8 @@ import time
 from datetime import datetime
 from CORE.direct_memory import DirectMemory
 from typing import List
+import shutil
+from pathlib import Path
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -193,7 +195,6 @@ def cmd_search(event_type: str):
 
 def cmd_interactive():
     """Interactive cross-reference browser."""
-    import shutil
     cols, _ = shutil.get_terminal_size()
     print("=" * cols)
     print("  Cross-Reference Interactive Browser")
@@ -251,7 +252,6 @@ def cmd_interactive():
 def cmd_archive(filepath: str):
     """Archive/close a session (mark as ended if open)."""
     from CORE.audit_trail import lock_audit_file
-    from pathlib import Path
     fp = Path(filepath)
     if not fp.exists():
         print(f"  File not found: {filepath}")

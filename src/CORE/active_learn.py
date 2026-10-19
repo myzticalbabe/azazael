@@ -2,6 +2,7 @@
 """active_learn.py — P1-4 FixMatch-cache + BALD-lite + core-set (2026-09-15)."""
 import random
 from typing import List
+import math
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -72,7 +73,6 @@ def bald_lite(scores_list):
 
 def kcenter_greedy(vecs, k: int, seed: int = 0):
     """Core-set k-center greedy on embedding vecs (euclidean)."""
-    import math
     n = len(vecs)
     if n == 0 or k <= 0:
         return []
