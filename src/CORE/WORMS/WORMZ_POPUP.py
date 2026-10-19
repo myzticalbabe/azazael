@@ -91,7 +91,7 @@ def run_wormz_popup():
                 if "Crawl complete" in line or "COMPLETE" in line:
                     progress["value"] = 100
 
-        process.wait()
+        process.wait(timeout=1800)
 
         log("")
         log("=" * 60)

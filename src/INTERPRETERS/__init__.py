@@ -126,7 +126,8 @@ def run_bash(command: str) -> RunResult:
     start = time.time()
     try:
         result = subprocess.run(
-            command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
+            command, shell=True,  # scanner:ignore -- run_bash IS the designated shell path; input is user shell by contract
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30, timeout=30
         )
         return RunResult(
             language="bash",

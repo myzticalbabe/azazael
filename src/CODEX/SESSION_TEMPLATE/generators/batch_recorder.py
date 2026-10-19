@@ -158,7 +158,7 @@ const {{ PuppeteerScreenRecorder }} = require('puppeteer-screen-recorder');
         capture_output=True,
         text=True, encoding="utf-8", errors="replace",
         cwd=str(RECORDERS_DIR),
-    )
+    timeout=1800)
 
     if result.returncode == 0:
         print(f"  [OK] Recorded: {template['output']}")

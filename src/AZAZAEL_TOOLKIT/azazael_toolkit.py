@@ -56,9 +56,9 @@ def main():
     }
 
     if choice in scripts:
-        subprocess.run([sys.executable, "-c", scripts[choice]])
+        subprocess.run([sys.executable, "-c", scripts[choice]], timeout=1800)
     elif choice in file_scripts:
-        subprocess.run([sys.executable, file_scripts[choice]])
+        subprocess.run([sys.executable, file_scripts[choice]], timeout=1800)
     elif choice == "0":
         print("Exiting...")
     else:
