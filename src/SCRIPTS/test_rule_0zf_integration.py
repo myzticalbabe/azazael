@@ -49,7 +49,8 @@ def test_gate_rejects_syntax_error():
             print("FAIL: Gate should have rejected syntax error")
             return False
         # Check revert happened
-        restored = open(tmp, encoding="utf-8").read()
+        with open(tmp, encoding="utf-8") as _restore_f:
+            restored = _restore_f.read()
         if restored != "x = 1\n":
             print(f"FAIL: Revert failed. Got: {restored!r}")
             return False
@@ -81,7 +82,8 @@ def test_gate_rejects_merged_statements():
         if ok:
             print("FAIL: Gate should have detected merged statements")
             return False
-        restored = open(tmp, encoding="utf-8").read()
+        with open(tmp, encoding="utf-8") as _restore_f:
+            restored = _restore_f.read()
         expected = "class Foo:\n    def bar(self):\n        return 1\n        self.x = 2\n"
         if restored != expected:
             print(f"FAIL: Revert failed. Got: {restored!r}")

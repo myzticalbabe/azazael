@@ -560,7 +560,7 @@ try:
 
     font_small = ImageFont.truetype("consolas.ttf", 36)
 
-except:
+except (OSError, IOError):
 
     font_large = ImageFont.load_default()
 

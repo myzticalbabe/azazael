@@ -21,9 +21,14 @@ ML Platform Session Launcher
 Unified entry point for ML platform configuration and diagnostics.
 """
 
-from ml_platforms.config import (
-    load_config,
-)
+try:
+    from ml_platforms.config import (
+        load_config,
+    )
+except ImportError:  # same-dir fallback when ml_platforms/ itself is on sys.path
+    from config import (
+        load_config,
+    )
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
