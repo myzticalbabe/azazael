@@ -13,6 +13,9 @@ import py_compile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List
+import json as _json
+import random as _rng
+import math
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -74,7 +77,6 @@ class ImmuneSentinelWorm:
     def _load_ebpf(cls) -> dict:
         if cls._EBPF_BASELINE is not None:
             return cls._EBPF_BASELINE
-        import json as _json
         import os as _os
         for p in ("G:/source-of-truth/azazael_models/bcc_baseline.json",
                   "C:/Users/clint/azazael/output/bcc_baseline.json",
@@ -332,7 +334,6 @@ class AutoencoderAnomalyWorm:
         self._momentum = float(momentum)
         # Deterministic init: reproducible across processes (and the seeded
         # start is no longer load-bearing, since both layers now train).
-        import random as _rng
         _r = _rng.Random(42)
         self._W_enc: list[list[float]] = [
             [_r.gauss(0, 0.1) for _ in range(self._input_dim)]
@@ -353,13 +354,11 @@ class AutoencoderAnomalyWorm:
     # ── forward ────────────────────────────────────────────────────
 
     def _encode(self, x: list[float]) -> list[float]:
-        import math
         return [math.tanh(sum(self._W_enc[h][i] * x[i]
                              for i in range(min(len(x), self._input_dim))))
                 for h in range(self._hidden_dim)]
 
     def _decode(self, z: list[float]) -> list[float]:
-        import math
         return [math.tanh(sum(self._W_dec[i][h] * z[h]
                              for h in range(self._hidden_dim)))
                 for i in range(self._input_dim)]

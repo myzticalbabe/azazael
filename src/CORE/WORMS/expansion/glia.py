@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List
+import os as _os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -128,7 +129,6 @@ class MicrogliaWorm:
 
     def check_path(self, path: str) -> dict[str, Any]:
         """3-sigma file-size anomaly check against task3 density model."""
-        import os as _os
         try:
             size = _os.stat(path).st_size
         except OSError as exc:

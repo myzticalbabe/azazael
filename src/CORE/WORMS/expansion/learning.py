@@ -48,7 +48,6 @@ FreeThreadPool = None
 ThreadSafeDict = dict
 ThreadSafeList = list
 def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
@@ -60,6 +59,7 @@ from CORE.WORMS.expansion.learning_versioner import ModelVersioner
 from CORE.WORMS.expansion.learning_pipeline import DataPipelineWorm, DYNAMIC_SHAPES, refresh_dynamic_shapes
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES, SchemaAwareFeatureExtractor, FeatureEngineer
 
+import sysconfig
 
 # ABTestRunner: prefer the v2.0.0 DPO-capable version from learning_grpo.py;
 # fall back to the v1.0.0 basic stub in learning_ab.py only if that fails.

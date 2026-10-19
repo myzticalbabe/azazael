@@ -41,7 +41,6 @@ FreeThreadPool = None
 ThreadSafeDict = dict
 ThreadSafeList = list
 def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
@@ -50,6 +49,7 @@ def is_free_threaded() -> bool:
 
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES
 
+import sysconfig
 
 @register_worm(category="learning", priority=5, cooldown_seconds=90.0,
     description="Data pipeline worm — ETL from LocalMemoryStore with caching, batching, and validation")

@@ -18,6 +18,7 @@ import time
 import random
 import threading
 from typing import Any, Callable, List
+import json as _json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -962,7 +963,6 @@ class ABTestRunner:
         except Exception as exc:
             note_failure("learning_grpo:L517", exc)
             return 0
-        import json as _json
         loaded = 0
         with self._lock:
             cur = self._preferences.setdefault(experiment, [])
