@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 import kuzu
+import time
 
 HOME = Path.home()
 OUT = HOME / "BCC_KUZU_TIMELINE_evidence.json"
@@ -68,7 +69,6 @@ def main() -> int:
         "elapsed_s": 0.0,
         "timeline": timeline,
     }
-    import time
     t0 = time.time()
     out["elapsed_s"] = round(time.time() - t0, 2)
     with open(OUT, "w", encoding="utf-8") as f:
