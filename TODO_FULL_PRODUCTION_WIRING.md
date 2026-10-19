@@ -1,6 +1,14 @@
 # AZAZAEL — Full Production Wiring TODO
 
 > **SUPERSEDED as of Sep 2, 2026 — see `CODEBASE_AUDIT_TODO.md` (primary living production plan).** Legacy 15-area roadmap, kept for reference only.
+>
+> **Reconciled 2026-10-19** with `docs/archive/TODO_FULL_PRODUCTION_WIRING.md`: this
+> copy is the newer one (it carries the supersession banner and the corrected
+> figures). Nothing was migrated, because the archive copy has no unique section —
+> its only differences are the pre-correction numbers it was written with
+> (46 routes / 264 paths, 77 worms) that this copy has since corrected to
+> 70 routes / 594 paths and 226 worms. The archive copy is left untouched as the
+> historical record.
 
 > **Created:** May 29, 2026 — Codebuff Session Phase 12
 > **Status:** Comprehensive roadmap for production readiness

@@ -18,6 +18,17 @@ Usage:
 
 `--verdict` writes NEURAL_MESH_WIRE_OR_CUT.json: every function nothing in the
 repo reaches, with a declared disposition. See `wire_or_cut`.
+
+`--check` judges two things and says which: the KEY SET (a caller added or
+removed makes the ledger stale) and the STATUS MAP against `git show
+HEAD:` (a decision moved). The HEAD comparison is the one that can fail: the
+in-memory prior `wire_or_cut(funcs, committed)` uses cannot, because it takes
+the committed map as input and can only read it back. A status move whose
+justification moved with it -- `reason`, `decider`, `decider_evidence`,
+`disposition` or `triage` -- is a recorded decision and passes with a note; a
+bare move leaves the row arguing for a disposition it no longer declares and
+fails. When HEAD is unreadable the run says the comparison was SKIPPED and why;
+it never claims the statuses are unchanged.
 """
 
 from __future__ import annotations
@@ -25,7 +36,9 @@ from __future__ import annotations
 import argparse
 import ast
 import builtins
+import json
 import re
+import subprocess
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -1503,6 +1516,177 @@ def worklist_markdown(table: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --------------------------------------------------------------------------- #
+# --check: what a freshness gate can actually judge
+# --------------------------------------------------------------------------- #
+# The status map has to be compared against GIT, not against the in-memory
+# prior. `wire_or_cut(funcs, committed)` takes the committed map as prior so
+# hand-set decisions survive a regeneration, which makes every comparison
+# THROUGH that prior self-fulfilling: it reads whatever the file already says
+# and therefore cannot disagree (negative control 2026-10-10 flipped a status
+# pending->retired and the old check still printed "statuses unchanged"). HEAD
+# is fixed, so a difference against it is a real edit.
+#
+# A move is DOCUMENTED when the row's justification moved with it. That split is
+# what keeps the gate usable: adjudicating a row (backlog #739) rewrites its
+# reason, and a bare flip -- the ledger now says `retired` while its reasons
+# still argue for `wired` -- is exactly the unrecorded decision worth failing.
+
+#: Fields that carry a row's decision. A status move with any of these changed
+#: was recorded; `carry_evidence` is excluded on purpose -- it is recomputed on
+#: every regeneration (token counts), so it moves without any decision moving.
+JUSTIFICATION_FIELDS = ("reason", "decider", "decider_evidence",
+                        "disposition", "triage")
+
+
+def head_ledger(path: Path | None = None,
+                timeout: int = 20) -> "tuple[dict | None, str]":
+    """The declaration map as committed at HEAD, plus why it is unavailable.
+
+    Returns ``(declared, "")`` on success and ``(None, reason)`` when the
+    comparison cannot run. The caller must report the reason rather than
+    assume freshness: an unreadable HEAD is missing evidence, never a pass.
+    """
+    target = path or VERDICT_OUT
+    try:
+        rel = target.resolve().relative_to(REPO.resolve()).as_posix()
+    except (ValueError, OSError) as exc:
+        return None, f"ledger path is outside the repository ({type(exc).__name__})"
+    try:
+        proc = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"], cwd=str(REPO),
+            capture_output=True, text=True, encoding="utf-8",
+            errors="replace", timeout=timeout)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return None, f"git unavailable ({type(exc).__name__}: {exc})"
+    if proc.returncode != 0:
+        first = (proc.stderr or "").strip().splitlines()
+        detail = first[0] if first else "no stderr"
+        return None, f"git show exited {proc.returncode} ({detail})"
+    try:
+        doc = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        return None, f"HEAD ledger is not valid JSON ({exc})"
+    if not isinstance(doc, dict):
+        return None, "HEAD ledger is not a JSON object"
+    declared = doc.get("declared")
+    if not isinstance(declared, dict):
+        return None, "HEAD ledger has no `declared` map"
+    return declared, ""
+
+
+def _justification(row: object) -> tuple:
+    """The fields that state WHY a row holds its status, comparable by value."""
+    if not isinstance(row, dict):
+        return ()
+    return tuple(repr(row.get(name)) for name in JUSTIFICATION_FIELDS)
+
+
+def status_drift(current: dict,
+                 head: dict) -> "tuple[list[dict], list[dict]]":
+    """Compare statuses between the worktree ledger and HEAD.
+
+    Returns ``(documented, undocumented)``, each a list of
+    ``{"id", "old", "new"}``. ``documented`` moved with its justification;
+    ``undocumented`` moved alone, which is the move a reader would be misled by.
+    """
+    documented: "list[dict]" = []
+    undocumented: "list[dict]" = []
+    for key in sorted(set(current) & set(head)):
+        new_row, old_row = current.get(key), head.get(key)
+        old = old_row.get("status") if isinstance(old_row, dict) else None
+        new = new_row.get("status") if isinstance(new_row, dict) else None
+        if old == new:
+            continue
+        move = {"id": key, "old": old, "new": new}
+        if _justification(new_row) != _justification(old_row):
+            documented.append(move)
+        else:
+            undocumented.append(move)
+    return documented, undocumented
+
+
+def assess_ledger(committed: dict, current: dict,
+                  head: "dict | None") -> dict:
+    """What ``--check`` decides, as a value instead of printed prose.
+
+    Pure: no filesystem, no git. ``head=None`` means the comparison could not
+    run, and the verdict then says so in ``head_available`` so no caller can
+    print "unchanged" over a comparison that never happened.
+    """
+    added = sorted(set(current) - set(committed))
+    removed = sorted(set(committed) - set(current))
+    documented: "list[dict]" = []
+    undocumented: "list[dict]" = []
+    if head is not None:
+        documented, undocumented = status_drift(current, head)
+    return {
+        "added": added,
+        "removed": removed,
+        "documented": documented,
+        "undocumented": undocumented,
+        "head_available": head is not None,
+        "ok": not (added or removed or undocumented),
+    }
+
+
+def report_ledger(verdict: dict, current: dict,
+                  head_reason: str = "", limit: int = 10) -> "list[str]":
+    """The lines ``--check`` prints. Pure, so the wording is testable."""
+    lines: "list[str]" = []
+    added, removed = verdict["added"], verdict["removed"]
+    documented, undocumented = verdict["documented"], verdict["undocumented"]
+    if not verdict["head_available"]:
+        lines.append(f"[Mesh] status comparison SKIPPED -- {head_reason or 'no reason given'}")
+    if verdict["ok"]:
+        if verdict["head_available"]:
+            if documented:
+                lines.append(
+                    f"[Mesh] ledger fresh: {len(current)} declaration(s), "
+                    f"key set unchanged, {len(documented)} documented "
+                    f"status move(s)")
+            else:
+                lines.append(
+                    f"[Mesh] ledger fresh: {len(current)} declaration(s), "
+                    f"statuses unchanged against HEAD")
+        else:
+            lines.append(
+                f"[Mesh] ledger fresh: {len(current)} declaration(s), key set "
+                f"unchanged -- statuses NOT compared")
+        for key, row in sorted(current.items()):
+            if isinstance(row, dict) and row.get("carried"):
+                lines.append(f"   = {key}  (carried: "
+                             f"{str(row.get('carry_evidence', ''))[:160]})")
+                if len([x for x in lines if x.startswith("   = ")]) >= limit:
+                    break
+        for move in documented:
+            lines.append(f"   ~ {move['id']}: {move['old']} -> {move['new']}"
+                         f"  (justification updated)")
+        return lines
+    lines.append(f"[Mesh] ledger STALE -- {len(added)} added, {len(removed)} "
+                 f"removed, {len(undocumented)} undocumented status "
+                 f"move(s)")
+    lines.append("[Mesh] staleness mode: the set of unreferenced functions "
+                 "moved. Status legality is enforced by "
+                 "tests/test_mesh_wire_or_cut.py.")
+    for key in added[:limit]:
+        row = current.get(key)
+        status = row.get("status") if isinstance(row, dict) else None
+        lines.append(f"   + {key}  -> {status}")
+    for key in removed[:limit]:
+        lines.append(f"   - {key}")
+    for move in documented[:limit]:
+        lines.append(f"   ~ {move['id']}: {move['old']} -> {move['new']}"
+                     f"  (justification updated)")
+    for move in undocumented[:limit]:
+        lines.append(f"   ! {move['id']}: {move['old']} -> {move['new']}"
+                     f"  -- reason unchanged, so the row still argues for "
+                     f"'{move['old']}'")
+    lines.append("[Mesh] refresh: python tools/mesh_function_preflight.py "
+                 "--verdict --triage")
+    return lines
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--module", default=None, help="filter to modules matching this")
@@ -1539,7 +1723,9 @@ def main() -> int:
         # `dispatched` after the restored EP235 loop made it statically called.
         #
         # Compares the DECLARATION MAP only, never the bytes: `generated_at`
-        # changes on every run, so a byte compare could never pass.
+        # changes on every run, so a byte compare could never pass. What it
+        # does judge is the key set and -- against HEAD, see `head_ledger` --
+        # whether a status moved without its justification moving with it.
         import json as _json
 
         if not VERDICT_OUT.exists():
@@ -1555,47 +1741,16 @@ def main() -> int:
         # status as a change and fail forever.
         fresh = wire_or_cut(funcs, committed)
         current = fresh.get("declared") or {}
-        added = sorted(set(current) - set(committed))
-        removed = sorted(set(committed) - set(current))
-        # This check deliberately does NOT compare statuses, and that is a
-        # measured decision, not an omission. `wire_or_cut(funcs, prior)` takes
-        # the committed map as prior precisely so hand-set decisions survive a
-        # regeneration -- which makes a status comparison SELF-FULFILLING: it
-        # reads whatever the file already says and can never disagree. Verified
-        # by negative control 2026-10-10 (flipped a status pending->retired; the
-        # check still reported "statuses unchanged"). A control the instrument
-        # cannot fail is not a control.
-        #
-        # What this check CAN judge is the set of unreferenced functions: if a
-        # caller is added or removed, a key appears or vanishes and the ledger is
-        # stale. That is exactly the read_pressure case (the key disappeared once
-        # the restored EP235 loop statically called it). Status LEGALITY -- a
-        # `wired` declaration that is not wired, a `dispatched` one hiding a
-        # static caller -- is enforced by tests/test_mesh_wire_or_cut.py, which
-        # re-derives the evidence instead of trusting the file.
-        changed: list[str] = []
-        carried = sorted(k for k, e in current.items()
-                         if isinstance(e, dict) and e.get("carried"))
-        if not (added or removed or changed):
-            print(f"[Mesh] ledger fresh: {len(current)} declaration(s), "
-                  f"statuses unchanged")
-            for k in carried[:10]:
-                print(f"   = {k}  (carried: "
-                      f"{current[k].get('carry_evidence', '')[:160]})")
-            return 0
-        print(f"[Mesh] ledger STALE -- {len(added)} added, {len(removed)} "
-              f"removed")
-        print("[Mesh] staleness mode: the set of unreferenced functions moved. "
-              "Status legality is enforced by tests/test_mesh_wire_or_cut.py.")
-        for k in added[:10]:
-            print(f"   + {k}  -> {current[k].get('status')}")
-        for k in removed[:10]:
-            print(f"   - {k}")
-        for k in changed[:10]:
-            print(f"   ~ {k}")
-        print("[Mesh] refresh: python tools/mesh_function_preflight.py "
-              "--verdict --triage")
-        return 1
+        # Two judgements, both from `assess_ledger`: the key set moved (a
+        # caller was added or a function disappeared) or a status moved without
+        # its justification. Status LEGALITY -- a `wired` row that is not wired
+        # -- is still tests/test_mesh_wire_or_cut.py's job, because it re-derives
+        # the evidence instead of trusting the file.
+        head, head_reason = head_ledger()
+        verdict = assess_ledger(committed, current, head)
+        for line in report_ledger(verdict, current, head_reason):
+            print(line)
+        return 0 if verdict["ok"] else 1
     if args.verdict:
         import json
 

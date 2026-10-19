@@ -5,6 +5,8 @@
 > already superseded (see the note below); its 3.14t rules are historical.
 
 > **SUPERSEDED as of Sep 2, 2026 — see `CODEBASE_AUDIT_TODO.md` (primary living production plan, Phase 23+, Session 28 refresh).** Keep in place for reference only; do not add new items here.
+>
+> **Reconciled 2026-10-19** with `docs/archive/PRODUCTION_TODO.md` (the June 3 2026 snapshot, formerly the only copy carrying that session's record). The archive was NOT newer — this file continues to July 2, then carries the 2026-09-16 staleness note and the 2026-10-19 3.14-retirement banner — but it held sections this file had dropped. Those were recovered below under *Recovered from the archive copy* rather than left to rot in the archive.
 
 > *Generated: May 28, 2026 — Last updated: July 2, 2026 — **AOA Architecture Disclosure Rebuild session***
 > *Current state: 300+ syntax-clean files, 129 registered worms, 188+ tests passed (3.14t), 23 categories, 52 Desktop EXEs, 14/14 Desktop projects standalone, PostgreSQL adapter available, DB monitoring live, AOA whitepaper published (14 diagrams, 2 MP4s)*
@@ -23,6 +25,61 @@ Lessons: #38, #39, #40, #41, #42, #43 — see LESSONS_MASTER.md for details.
 | #41 | Semantic color palettes need global classDef per diagram mapped to function | Design |
 | #42 | Heredoc with single-quoted delimiter prevents shell expansion on Windows bash | Tooling |
 | #43 | Puppeteer needs 5-8s wait for 14 Mermaid diagrams before scroll capture | Tooling |
+
+---
+
+## 📦 Recovered from the archive copy (2026-10-19)
+
+> Source: `docs/archive/PRODUCTION_TODO.md`, the June 3, 2026 snapshot. These
+> sections existed only there — this file went from June 2 straight to July 2 and
+> dropped the intervening session. Restored verbatim; the archive copy is left
+> untouched as the historical record.
+
+### 🚨 Lessons Learned — June 3, 2026 Session (Part 2) — LangChain 3.14t Fix + Codebase Dedup + Knowledge Distillation
+
+Lessons from this session: **#19, #20, #21, #22, #23** — see [`LESSONS_MASTER.md`](LESSONS_MASTER.md) for details.
+
+**Key outcomes:**
+- ✅ **LangChain 3.14t wheel fix** — pydantic-core and uuid-utils cp314t wheels reinstalled (were segfaulting)
+- ✅ **All fallback patches reverted** — uuid_utils/__init__.py, pydantic_core/__init__.py, conftest.py, pytest.ini — all originals restored
+- ✅ **37/37 CurativePool tests pass** with native extensions, no plugin suppression
+- ✅ **Codebase dedup** — `azazael_toolkit.py` in TOOLS/ → deprecation shim (identical 53-line file removed)
+- ✅ **ERROR_LOG.md** updated: Error #54 (pydantic-core/uuid-utils 3.14t wheel segfault)
+- ✅ **MEMORIES.md** updated: Session 2026-06-03 (Part 2) — LangChain 3.14t fix
+- ✅ **LESSONS_MASTER.md** updated: Lessons #19-23 added (9 categories, 47 total)
+- ✅ **Permanent rule**: No monkeypatches — never patch site-packages, fix the actual installation
+
+### 🚨 Lessons Learned — June 3, 2026 Session (Mypy Round) — 5 CORE Files Cleaned + Real Bug Found
+
+Lessons from this session: **#32** (double-checked locking for 3.14t free-threading) — see [`LESSONS_MASTER.md`](LESSONS_MASTER.md) for details.
+
+**Key outcomes:**
+- ✅ **CLUSTERWORMS.py** — 0 own-file mypy errors (~24 fixed): fallback signatures, Optional params, sentinel `# type: ignore[misc, assignment]`, `aggregate_results()` float typing, `clear_messages` signature
+- ✅ **METACLUSTER.py** — 0 own-file mypy errors (~9 fixed): `NATURE_DEFINITIONS` assignment type, `CrossNatureRoute` type:ignore moved to correct line, `truthy-function` silenced, `self.ncm` None guard
+- ✅ **NATURE_CLUSTERS.py** — Fixed `truthy-function`, `cluster is not None` guard, sentinel assignments. 13 deep-structural errors remain (sentinel `Any` propagation → `object` type inference in `retry_failed_worms`/`get_dead_letter_summary`)
+- ✅ **local_memory.py** — All ~30 mypy errors fixed: 15+ `Optional[str/dict/list/int]` param defaults, `Optional[threading.Thread]` annotations, `cursor.lastrowid or 0` pattern, `is not None` guards
+- ✅ **learning.py** — ~30+ Optional param defaults fixed. **BUG FIX**: `result` dict moved before persistence block (was used-before-definition — `result["registered_model"]` referenced before `result = {...}`)
+- ✅ **CI workflow** — `.github/workflows/test-3.14t.yml` now has mypy step before test suite
+- ✅ **Lesson #32** — Double-checked locking pattern documented in LESSONS_MASTER.md
+
+### 🚨 Dedup Round — 3 Stale Copies Deleted + 1 Consumer Updated
+
+**Key outcomes:**
+- ✅ **Deleted** `src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py` (198 lines) — 0 Python consumers, stale copy of root canonical
+- ✅ **Deleted** `src/UTILITIES/AzazaelDynamicLogger.py` (70 lines) — compressed copy, 1 consumer updated
+- ✅ **Deleted** `src/UTILITIES/PamsRecorder.py` (194 lines) — stale v1.0 copy, canonical is CORE/PamsRecorder.py v2.0
+- ✅ **Updated** `src/UTILITIES/Loggers/__init__.py` — changed relative import `from ..AzazaelDynamicLogger` → absolute import from root
+- ✅ **Confirmed not duplicates**: AZAZAEL_TOOLKIT root-name files (root files are thin wrappers, not stale copies); METAWORMS_ENRICHED.py classes (independent implementations); CONCURRENCY.py WormExecutor (different context)
+
+### Test-status bullets this file had dropped (item 1, June 3 2026)
+
+> These were part of the 3.14t test status block in the archive copy. The figures
+> are historical — 3.14t is retired as of 2026-10-19 — but the record is kept.
+
+- ✅ **17 DLQ tests added** (8 test_dlq.py + 9 test_dlq_watch.py) — all passing
+- ✅ **RL production pipeline verified** — PyTorch 2.12.0 + SB3 2.8.0 + gymnasium 1.2.3 end-to-end (test_rl_314t.py)
+- ✅ **uuid-utils** 0.16.0 has proper `cp314-cp314t-win_amd64.whl` — upgraded from broken version
+- ✅ **All fallback patches removed** — uuid_utils/__init__.py, pydantic_core/__init__.py, conftest.py, pytest.ini all reverted to originals
 
 ---
 
@@ -134,13 +191,18 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 - [ ] Conditional routing: if security scan fails → escalate to diagnostic
 - [ ] Workflow history and replay
 
-### 9. CODEX Video Pipeline
-> Lessons: [#6](LESSONS_MASTER.md) (winget timeout), [#5](LESSONS_MASTER.md) (network drives)
+### 9. CODEX Video Pipeline & Template Viewer
+> Lessons: [#6](LESSONS_MASTER.md) (winget timeout), [#5](LESSONS_MASTER.md) (network drives), [#59-62](LESSONS_MASTER.md) (CODEX restoration)
 - [x] Install ffmpeg (`winget install ffmpeg` or manual) — **DONE** (ffmpeg 8.1.1 via WinGet)
 - [x] Test full `.html` → `.mp4` scrolling video generation — **DONE**
 - [ ] Add progress bar to video generation
 - [x] Support multiple output formats (mp4, webm, gif) — **DONE**
 - [x] Batch video generation for all CODEX HTML files — **DONE**
+- [x] Restore 8 CODEX CORE + 3 META scripts from G: drive — **DONE** *(recovered from archive)*
+- [x] Fix circular import in all 11 deprecation shim files — **DONE** *(recovered from archive)*
+- [x] CAIN template functional — verified generator + output — **DONE** *(recovered from archive)*
+- [x] Unified template_viewer.html — switch between all 11 styles — **DONE** *(recovered from archive)*
+- [x] generate_all.bat — batch regenerate all 11 styles — **DONE** *(recovered from archive)*
 
 ### 10. AOA Architecture Disclosure *(NEW — July 2, 2026)*
 > Lessons: #38, #39, #40, #41, #42, #43
@@ -164,9 +226,13 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 ### 10. Code Hygiene
 > Lessons: [#19](LESSONS_MASTER.md) (import hygiene), [#7](LESSONS_MASTER.md) (nohup/cleanup), [#17](LESSONS_MASTER.md) (HAS_* flags)
 - [x] Remove `PurePosixPath` import from `WORMZ.py` (unused) — **DONE**
+- [x] Remove unused imports (`hashlib`, `traceback`) from CLUSTERWORMS.py — **DONE** (June 3) *(recovered from archive)*
+- [x] Unify sequential/parallel retry logic via `_execute_single_worm()` — **DONE** (June 3) *(recovered from archive)*
 - [ ] Standardize error handling across all worms (some use bare except)
 - [ ] Remove `sys` import from `paths.py` (unused) — **DONE**
-- [ ] Consolidate duplicate `_LOCAL_TARGETS` / `_DESKTOP_TARGETS` config in TRIMZ.py and ERRORZ.py into `paths.py`
+- [x] Consolidate duplicate `_LOCAL_TARGETS` / `_DESKTOP_TARGETS` config from TRIMZ.py, ERRORZ.py, METAWORMS_ENRICHED.py, HYDRAMETA_UV.py into `CORE/paths.py` — **DONE** (June 3) *(recovered from archive)*
+- [x] **Mypy cleanup — 5 CORE files cleared** (CLUSTERWORMS.py: 0 own-file errors, METACLUSTER.py: 0 own-file errors, local_memory.py: all fixed, learning.py: ~30 fixed + real bug, NATURE_CLUSTERS.py: partial) — **DONE** (June 3) *(recovered from archive)*
+- [x] **CI mypy step added** to test-3.14t.yml (`mypy src/CORE/ --ignore-missing-imports --check-untyped-defs`) — **DONE** (June 3) *(recovered from archive)*
 - [ ] Add `__all__` to all module exports
 - [ ] **NEW** `eval` usage in `wsl2_cleanup.sh` — refactor to array-based dispatch
 
