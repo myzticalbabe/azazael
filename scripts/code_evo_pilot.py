@@ -37,6 +37,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+import os as _os
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -188,7 +189,6 @@ def run_gate(sandbox: Path, tests: str, python: str = None) -> dict:
     modules run their sys.path redirects — without the pin the gate
     silently tests prod instead of the patch (measured 2026-09-26).
     """
-    import os as _os
     py = python or sys.executable
     env = dict(_os.environ)
     env["PYTHONPATH"] = str(sandbox / "src") + _os.pathsep + env.get(

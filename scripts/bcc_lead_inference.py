@@ -35,6 +35,7 @@ import json
 import os
 import re
 import sys
+import re as _re
 
 PYIO = sys.stdout.reconfigure(encoding="utf-8", errors="replace") if hasattr(sys.stdout, "reconfigure") else None
 
@@ -105,7 +106,6 @@ def _first_token_before(text, surname):
     before the surname, so they are skipped (no given name present). Walks back
     over middle initials / titles (Jr, Esq, Y., J.) to the given-name token.
     """
-    import re as _re
     found = []
     for m in _re.finditer(_re.escape(surname), text):
         before = text[:m.start()]

@@ -18,6 +18,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
+import csv
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -366,7 +367,6 @@ def _own_task_state() -> tuple[str, int | None, str]:
         return "unknown", None, str(exc)[:160]
     if result.returncode != 0:
         return "unknown", result.returncode, (result.stderr or result.stdout or "")[:160]
-    import csv
     import io
 
     rows = [row for row in csv.reader(io.StringIO(result.stdout or "")) if row and any(row)]

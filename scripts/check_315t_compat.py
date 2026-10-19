@@ -21,6 +21,8 @@ import json
 import importlib
 import warnings
 from pathlib import Path
+import subprocess
+import argparse
 
 warnings.filterwarnings("ignore")
 
@@ -159,7 +161,6 @@ def check_optional_package(name: str, description: str) -> dict:
     result = {"module": name, "description": description}
 
     # Check via subprocess for packages known to crash on 3.14t
-    import subprocess
     try:
         proc = subprocess.run(
             [sys.executable, "-c", f"import {name}" if "." not in name else f"import importlib; importlib.import_module('{name}')"],
@@ -298,7 +299,6 @@ def run_check(quick: bool = False, verbose: bool = False) -> dict:
 
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Check Python 3.14t compatibility of RL/ML packages"

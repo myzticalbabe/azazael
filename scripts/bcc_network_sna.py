@@ -40,6 +40,7 @@ import sys
 
 import networkx as nx
 from networkx.algorithms.community import louvain_communities
+import os
 
 
 def load_graph(cosmos_dir: str) -> "tuple[nx.Graph, list[dict]]":
@@ -305,7 +306,6 @@ def core_and_clique(G: nx.Graph) -> dict:
 
 def export_csv(G: nx.Graph, nodes: list, outdir: str, results: dict) -> tuple:
     """Write Gephi-ready nodes.csv + edges.csv. Returns (nodes_path, edges_path)."""
-    import os
     os.makedirs(outdir, exist_ok=True)
     node_path = os.path.join(outdir, "nodes.csv")
     edge_path = os.path.join(outdir, "edges.csv")

@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import sys
+import random
 
 # metadata enrichment: category per doc (best-effort from FINAL_STATUS inventory wording)
 CATEGORY_HINTS = [
@@ -207,7 +208,6 @@ def _q(name: str) -> str:
 
 def build_canvas(notes: dict, seed: int = 42) -> dict:
     """Canvas JSON: one file node per note, one edge per cross-link."""
-    import random
     rng = random.Random(seed)
     nodes, edges = [], []
     positions = {}
@@ -258,3 +258,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     sys.exit(main())
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

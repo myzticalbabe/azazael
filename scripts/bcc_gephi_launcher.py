@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import time
+import csv
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))  # ~/
 SNA = os.path.join(ROOT, "azazael", "scripts", "bcc_network_sna.py")
@@ -58,7 +59,6 @@ def regen():
            "--person-edges", PERSON_EDGES, "--export-csv", OUT]
     subprocess.run(cmd, check=True, cwd=ROOT, timeout=1800)
     # GraphML with centrality + community + k-core attributes (import = one drag)
-    import csv
     import networkx as nx
     d = json.load(open(RESULTS, encoding="utf-8"))
     rows = []
