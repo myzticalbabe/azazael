@@ -22,6 +22,10 @@ import argparse
 import contextlib
 from datetime import datetime
 from pathlib import Path
+import json as _json
+import hashlib
+import random as _random
+import tempfile
 
 # Add src/ to path
 _src = str(Path(__file__).resolve().parent.parent / "src")
@@ -563,7 +567,6 @@ def run_dpo_cycle() -> dict:
     pair, records it with ABTestRunner, then computes the DPO loss over the
     accumulated preference dataset. Recorded under dpo_training_orchestrated.
     """
-    import json as _json
     from CORE.WORMS.expansion.learning_grpo import ABTestRunner
     from CORE.local_memory import get_memory_store
     from CORE.direct_memory import DirectMemory
@@ -723,7 +726,6 @@ def run_dreamtune_cycle() -> dict:
     v1 scope: reports the best params; application (dream_cycle reading
     a tuned-creativity file) is a follow-up, like evolution's promotion.
     """
-    import hashlib
     import random as _random
     from CORE.WORMS.expansion.dreaming import DreamingModule
     from CORE.WORMS.expansion.evolution import GeneticOptimizer
@@ -882,7 +884,6 @@ def run_wormga_cycle() -> dict:
     succeeds and the GA honestly converges immediately).
     Retries apply per worm on failure inside one rep.
     """
-    import random as _random
     from CORE.WORMS.expansion.evolution import GeneticOptimizer
     from CORE.local_memory import get_memory_store
 
@@ -1053,7 +1054,6 @@ def _run_impl():
     # non-blocking lock serializes runs instead. Held open for process
     # life; OS releases on death.
     import msvcrt
-    import tempfile
     try:
         _lock_fh = open(os.path.join(tempfile.gettempdir(),
                                      'training_orchestrator.lock'), 'w', encoding='utf-8')

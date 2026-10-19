@@ -18,6 +18,7 @@ import json
 import math
 import sys
 from pathlib import Path
+import math as _m
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "src"))
@@ -29,7 +30,6 @@ ALPHA = 1.0
 
 def features(regime: dict) -> list[float]:
     """Regime dict -> fixed feature vector. Unknowns (-1/None) -> 0."""
-    import math as _m
 
     def num(v, default=0.0):
         return float(v) if isinstance(v, (int, float)) and v >= 0 else default

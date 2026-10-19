@@ -238,3 +238,4 @@ print('Diagram 7 done')
 
 print(f'Built {len(N)} lines of new content')
 
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)
