@@ -42,3 +42,4 @@ if __name__ == "__main__":
     url = sys.argv[1] if len(sys.argv) > 1 else input("Webhook URL: ")
     test = notify_new_links(5, 100, url)
     print(f"Notification {'sent' if test else 'failed'}")
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

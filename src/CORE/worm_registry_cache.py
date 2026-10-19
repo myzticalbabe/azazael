@@ -32,6 +32,8 @@ import pickle
 from pathlib import Path
 from datetime import datetime
 from typing import Any, List
+import hashlib
+import re as _re
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -83,7 +85,6 @@ def _repo_root_fingerprint() -> str:
     WRONG tree after the second checkout warms it — measured 2026-10-02 as
     test_no_worm_name_collisions failing in C:\\Azazael with C:\\Users paths.
     """
-    import hashlib
     root = Path(__file__).resolve().parents[2]
     return hashlib.sha1(str(root).encode("utf-8")).hexdigest()[:10]
 
@@ -161,7 +162,6 @@ def _count_declared_worms(worms_dir: str) -> int:
     registered worms, so the healthy case has ~20% headroom and this check only
     fires on a real undercount.
     """
-    import re as _re
     # MULTILINE is load-bearing: without it `^` anchors to the start of the
     # STRING, so only a module whose first line is the decorator matches -- the
     # scan reported 0 declarations against 188 on disk, and because the
@@ -207,7 +207,6 @@ def _registry_fingerprint() -> str:
     is deliberately not a valid digest, so `_is_cache_fresh` compares unequal
     and the cache is refused: unprovable freshness is not freshness.
     """
-    import hashlib
     digest = hashlib.md5()
     try:
         base = Path(__file__).resolve().parent

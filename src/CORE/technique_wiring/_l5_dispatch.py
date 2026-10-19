@@ -36,6 +36,7 @@ from typing import Any, Dict, List
 from CORE.dispatch_plan import plan_dag, rehearse_dispatch, simulate_vs_spawn
 from CORE.technique_runtime import register
 from CORE.WORMS.expansion.policy_optimization import depo_filter, espo_tripwire
+import random
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -247,7 +248,6 @@ def _ep259() -> Dict[str, Any]:
 
 def _ep248() -> Dict[str, Any]:
     """Monte-Carlo latency cost model over the real plan (JIT plan compiler)."""
-    import random
     random.seed(7)
     durations = {"discover": (2.0, 0.5), "execute": (8.0, 2.0),
                  "report": (1.0, 0.2), "monitor": (3.0, 0.8)}

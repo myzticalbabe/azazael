@@ -17,6 +17,7 @@ from CORE.dispatch_plan import locate_pivot, record_backtrack, reuse_prefix
 from CORE.skill_library import family_index
 from CORE.technique_runtime import register
 from typing import List
+import random
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -74,7 +75,6 @@ def _ep122():
 # -- EP142 DR-Arena: difficulty escalation already real, Information Tree not --
 @_safe
 def _ep142():
-    import random
     from CORE.WORMS.expansion import arena as ar
     env = ar.Environment(severity_mix=[0.2, 0.5, 0.3], hard_ratio=0.25,
                          era_pressure=0.1, seed=7)

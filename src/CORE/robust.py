@@ -7,6 +7,7 @@ the minority class (sklearn NearestNeighbors if present, else brute force).
 """
 import random
 from typing import List
+import math
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -61,7 +62,6 @@ def fgsm_delta_f1(X, y, eps: float = 0.05, seed: int = 0) -> dict:
 def smote(X, y, k: int = 3, seed: int = 0):
     """Return (X_bal, y_bal) with minority interpolated up to majority size."""
     rng = random.Random(seed)
-    import math
     pos = [i for i, t in enumerate(y) if t]
     neg = [i for i, t in enumerate(y) if not t]
     if not pos or not neg:

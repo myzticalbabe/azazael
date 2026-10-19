@@ -64,3 +64,4 @@ if __name__ == "__main__":
     out = Path("xref_dashboard.html")
     out.write_text(html, encoding="utf-8")
     print(f"Dashboard written to {out.resolve()}")
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)
