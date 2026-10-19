@@ -881,9 +881,11 @@ def graph_capsule(state_delta: dict, prev_hash: str = "") -> dict:
 
     The chain is linear; a capsule binds {delta, prev_hash} under the same
     canonical-JSON + Ed25519 seal the entries use, so a capsule is
-    verifiable off-chain via verify_signature. Riding the linear chain
-    (appending capsules as entries) stays deferred: no capsule consumer
-    exists yet — the unit is built and signed, not yet chained.
+    verifiable off-chain via verify_signature. Chained capsules now have a
+    consumer: `verify_capsule_chain` (below) re-verifies each seal the way
+    this constructor sealed it and checks the signature-linkage rule.
+    Appending capsules as entries OF the linear chain stays deferred:
+    capsules ride in-payload instead (test_pipeline_provenance_capsule.py).
     """
     body = {"type": "graph_capsule",
             "ts": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -894,6 +896,62 @@ def graph_capsule(state_delta: dict, prev_hash: str = "") -> dict:
     body["signature"] = _sign_payload(canonical)
     body["sealed"] = bool(body["signature"])
     return body
+
+
+def verify_capsule_chain(capsules: list) -> dict:
+    """Verify a chain of graph capsules (EP446 EXTEND: the capsule consumer).
+
+    `graph_capsule` records that chaining its signable units was deferred
+    "no capsule consumer exists yet". This is that consumer, for the
+    chaining rule the units already imply:
+
+    - each capsule re-verifies its own Ed25519 seal the way `graph_capsule`
+      sealed it: the body it signed is {type, ts, delta, prev_hash}; `sealed`
+      was appended AFTER signing, so it is excluded before re-verification
+      (passing it back would make verify_signature compare against a body
+      the capsule never signed);
+    - linkage: capsule[i]["prev_hash"] must equal capsule[i-1]["signature"]
+      — a chained capsule binds the PREVIOUS capsule's signature, the
+      strongest commitment its predecessor carries;
+    - tamper: a mutated signed body fails the seal; a mutated link fails the
+      equality. Index 0 has no predecessor to bind, so its link is None.
+
+    Without cryptography (the 3.15t box) signatures degrade to "" and the
+    seal check rides verify_signature's graceful rule, so an unsigned chain
+    passes structurally but reports `carried=False` — "verified on this box"
+    always distinguishes the case without inventing a pass. A mutated link
+    is caught on any box (prev_hash equality needs no crypto); a mutated
+    signed body is caught wherever Ed25519 verifies. Empty input is a named
+    failure, never a vacuous pass.
+    """
+    caps = [c for c in (capsules or []) if isinstance(c, dict)]
+    if not caps:
+        return {"n": 0, "chain_ok": False, "carried": False,
+                "per_capsule": [], "reason": "no-capsules"}
+    per: list = []
+    broken: list = []
+    prev_sig = ""
+    ok = True
+    for i, cap in enumerate(caps):
+        sig = str(cap.get("signature", "") or "")
+        body = {k: v for k, v in cap.items() if k != "sealed"}
+        sig_verified = bool(verify_signature(body))
+        if i == 0:
+            link_ok = None                       # no predecessor to bind
+        else:
+            link_ok = str(cap.get("prev_hash", "")) == prev_sig
+            if not link_ok:
+                broken.append(f"link@{i}")
+        ok = ok and sig_verified and (link_ok is None or link_ok)
+        per.append({"index": i, "sealed": bool(cap.get("sealed")),
+                    "signature": bool(sig), "sig_verified": sig_verified,
+                    "link_ok": link_ok})
+        prev_sig = sig
+    return {"n": len(caps),
+            "chain_ok": bool(ok),
+            "carried": all(p["signature"] for p in per),
+            "per_capsule": per,
+            "reason": "; ".join(broken)}
 
 
 def claim_evidence_index(filepath: str) -> dict:
