@@ -63,7 +63,7 @@ def main():
     if choice in scripts:
         cmd = scripts[choice]
         try:
-            subprocess.run(cmd, check=False)
+            subprocess.run(cmd, check=False, timeout=1800)
         except FileNotFoundError as e:
             print(f"Command failed - missing dependency: {e}")
         except Exception as e:

@@ -250,7 +250,7 @@ if __name__ == "__main__":
         "-c:v", "libx264", "-pix_fmt", "yuv420p",
         "-prese", "medium", "-crf", "20", "-", str(DURATION_SECONDS),
         output_video
-    ], capture_output=True)
+    ], capture_output=True, timeout=1800)
 
     print(f"\nVideo saved to: {output_video}")
 

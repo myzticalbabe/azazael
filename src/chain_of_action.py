@@ -59,7 +59,7 @@ def verification_log(message: str):
 def sync_backup():
     """Sync to backup location"""
     cmd = ["rsync", "-av", "--progress", str(AZAZAEL_ROOT) + "/", str(BACKUP_ROOT) + "/"]
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, timeout=1800)
 
 # ================================================================================
 # TYPE 1: NEW PACKAGE (.whl)

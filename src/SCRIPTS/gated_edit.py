@@ -136,7 +136,7 @@ def run(filepath: str, old_b64: str, new_b64: str,
         cmd.append("--all")
 
     # Delegate
-    result = subprocess.run(cmd, capture_output=False)
+    result = subprocess.run(cmd, capture_output=False, timeout=1800)
     return result.returncode
 
 
