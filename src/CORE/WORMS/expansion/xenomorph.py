@@ -15,6 +15,8 @@ Queen election consults EnvBeaconWorm peers + LeaderElectorWorm terms.
 import threading
 from datetime import datetime
 from typing import Any, List
+import os
+import time as _t
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -75,7 +77,6 @@ def _host_capable(min_cpu: int = 2, min_ram_gb: float = 2.0) -> dict:
     (FederatedAggregator, NASMeshSearcher, EvolutionEngine) enforce their
     own gates. Default WSL2 VMs ship ~4CPU/4GB, which must qualify.
     """
-    import os
     reasons = []
     cpu = os.cpu_count() or 0
     if cpu < min_cpu:
@@ -298,7 +299,6 @@ class Lilith:
         This is the value `claim()` now consults before declaring itself
         queen. Must be called with `self._lock` held.
         """
-        import time as _t
         now = _t.time() if now is None else now
         until = self._lease_until_ts(self._lease_until)
         return {"env": self._lease_env, "term": self._term,
@@ -423,7 +423,6 @@ class ResinWorm:
         self._lock = threading.Lock()
 
     def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:
-        import os
         g_ok = os.path.exists(r'G:\source-of-truth') or os.path.exists('/mnt/g')
         with self._lock:
             self._traces.append({"id": trace_id, "summary": summary[:120],

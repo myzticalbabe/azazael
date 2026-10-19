@@ -15,6 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List
 from collections import deque
+import urllib.request
+import os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -516,7 +518,6 @@ class ProviderFailoverMeshWorm:
         base = cls._registry_base_url(provider)
         if not base:
             return False
-        import urllib.request
         url = base.rstrip("/") + "/models"
         try:
             req = urllib.request.Request(url, method="GET")
@@ -538,7 +539,6 @@ class ProviderFailoverMeshWorm:
         a dead endpoint is not hammered. Set `AZAZAEL_SERVEMESH_REPROBE=0` to
         disable the default network probe entirely.
         """
-        import os
         limit = self.REPROBE_LIMIT if limit is None else max(0, int(limit))
         due = self.probe_due()
         if not due:

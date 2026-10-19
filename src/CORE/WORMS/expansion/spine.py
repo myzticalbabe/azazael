@@ -129,6 +129,12 @@ NATURE_DEFINITIONS = {}
 
 # Sibling mesh worms (same package, direct imports — no cycle risk)
 from CORE.WORMS.expansion.xenomorph import Lilith
+from pathlib import Path
+import hashlib
+from pathlib import Path as _Path
+import sys as _sys
+import math
+import json
 try:
     from CORE.WORMS.expansion.mesh import (
         EnvBeaconWorm, MeshRouterWorm, GossipSyncWorm,
@@ -1051,7 +1057,6 @@ class SpineGossipWorm:
     @staticmethod
     def _compute_id(env: str) -> int:
         """Kademlia node ID: 160-bit hash of env name."""
-        import hashlib
         h = hashlib.sha1(env.encode()).hexdigest()
         return int(h[:8], 16)  # use first 32 bits for simplicity
 
@@ -1085,7 +1090,6 @@ class SpineGossipWorm:
         Contact peers from the closest k-bucket (most similar envs)
         and one random farther bucket. Reduces from O(n) to O(log n).
         """
-        from pathlib import Path as _Path
         all_peers = []
         for bucket_peers in self._k_buckets.values():
             all_peers.extend(bucket_peers)
@@ -1127,7 +1131,6 @@ class SpineGossipWorm:
         `publish=False` (quota-gated by the cycle) still merges peers — losing
         visibility briefly must not blind this env to theirs.
         """
-        from pathlib import Path as _Path
         if _spine is None:
             return {"success": False, "error": "spine_registry unavailable"}
         # G3: Use Kademlia routing instead of scanning all peers
@@ -1669,7 +1672,6 @@ class MeshArchitectWorm:
 
     @classmethod
     def overlay_path(cls):
-        from pathlib import Path
         return Path.home() / cls.OVERLAY_DIR / cls.OVERLAY_NAME
 
     def save(self) -> dict[str, Any]:
@@ -1877,7 +1879,6 @@ class SpineCycleWorm:
         "cannot verify", which is not the same as "verified", so the write is
         refused and the reason names what was missing.
         """
-        import sys as _sys
         from pathlib import Path as _Path
 
         root = _Path(__file__).resolve().parents[4]
@@ -2491,7 +2492,6 @@ class SpineCycleWorm:
             note_failure("spine:L2383", exc)
             return []
 
-        import math
         natures: dict[str, list[float]] = {}
         for key, rec in (homeo or {}).items():
             nature = str(key).split(":", 1)[0]
@@ -2841,7 +2841,6 @@ class SpineCycleWorm:
         with no registry entry (e.g. `opencode`) is omitted entirely: no
         evidence is not evidence of absence.
         """
-        import os
         try:
             from CORE.inference.providers import (
                 PROVIDER_REGISTRY,
@@ -2880,7 +2879,6 @@ class SpineCycleWorm:
         different keys — which is exactly what makes a split-brain fork
         detectable by `SplitBrainResolverWorm` (see `_model_fork_reports`).
         """
-        import hashlib
         from pathlib import Path
         try:
             from CORE.fs_probe import bounded_first_dir
@@ -3243,7 +3241,6 @@ class SpineCycleWorm:
             # better than optimizing against a number nothing produced.
             return {"success": False, "reason": "no_measured_q"}
 
-        import math
 
         genes = sorted(q_by_nature)
         total_q = sum(q_by_nature.values()) or 1.0
@@ -3330,7 +3327,6 @@ class SpineCycleWorm:
         Scope: the load-bearing state files one level under the state dir,
         not the state dir itself (see the staging note below).
         """
-        import json
         import shutil
         import tempfile
         from pathlib import Path
@@ -4061,7 +4057,6 @@ def _generated_dir():
     real uses: an installed/cx_frozen package directory may be read-only, and
     a test run must never write source into the tree it is testing.
     """
-    import os
     from pathlib import Path
     override = os.environ.get("AZAZAEL_GENERATED_DIR")
     if override:
@@ -4078,7 +4073,6 @@ def _staging_dir():
     so a file written here cannot be imported as a worm — promotion moves it
     up one level into the discovery-visible `generated/`.
     """
-    from pathlib import Path
     return _generated_dir() / "_staging"
 
 
