@@ -13,6 +13,7 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 from typing import List
+import subprocess
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -782,7 +783,6 @@ def create_video():
 
 
 
-    import subprocess
 
 
 
