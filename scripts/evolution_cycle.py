@@ -3526,6 +3526,16 @@ def main(crossover_operator=None, mutation_operator=None,
             log('auto-thought record failed: %s' % e)
     except Exception as e:
         log('artifact record failed: %s' % e)
+    # Terminal line (2026-10-19): main() used to return silently, so a
+    # finished early-converged cycle was indistinguishable from a kill.
+    # Every exit path through here now says so with the run's numbers.
+    try:
+        log('cycle complete: seed=%s best=%s baseline=%s promoted=%s' % (
+            seed, round(best_total, 4) if best else None,
+            round(baseline_fit, 4), bool(promoted)))
+    except Exception as _cc_exc:
+        log('cycle-complete line failed: %s' % str(_cc_exc)[:100])
+        _cycle_complete_unlogged = True
 
 
 if __name__ == '__main__':
