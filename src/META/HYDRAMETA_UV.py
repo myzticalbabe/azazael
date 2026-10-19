@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -443,7 +444,6 @@ class HYDRAMETA_UV:
 
     def benchmark_uv_speed(self, packages: list[str]) -> dict[str, Any]:
         """Benchmark uv vs pip installation speed."""
-        import time
 
         uv_start = time.time()
         success, output, uv_duration = self._run_uv_command(
@@ -504,7 +504,6 @@ class HYDRAMETA_UV:
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="HYDRAMETA_UV - uv-Powered Optimization"
