@@ -316,7 +316,7 @@ def _telemetry(db: Path, retention_days: int, apply: bool) -> dict:
         return result
 
     try:
-        conn = sqlite3.connect(str(db))
+        conn = sqlite3.connect(str(db), timeout=30)
         conn.isolation_level = None
         deleted = conn.execute(
             'DELETE FROM "%s" WHERE "%s" < ?' % (TABLE, column), (cutoff,)
