@@ -22,7 +22,7 @@ TRACK_EVENTS = ('sb3_training_orchestrated', 'grpo_training_orchestrated',
 def counts():
     store = get_memory_store()
     c = sqlite3.connect(str(getattr(store, 'db_path',
-                                    'C:/Users/clint/.azazael/memory_store.db')))
+                                    'C:/Users/clint/.azazael/memory_store.db')), timeout=30)
     trk = {}
     for (d,) in c.execute(
             "SELECT data FROM memories WHERE event_type IN (%s)" %

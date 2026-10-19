@@ -171,7 +171,7 @@ def apply_drill(rows, batch_id):
 def purge_drills(db_path, apply):
     """Remove only rows explicitly marked drill:true (never touches real alerts)."""
     import sqlite3
-    con = sqlite3.connect(db_path)
+    con = sqlite3.connect(db_path, timeout=30)
     try:
         sel = ("SELECT COUNT(*) FROM memories WHERE event_type='db_health_alert' "
                "AND json_extract(data,'$.drill') = 1")
