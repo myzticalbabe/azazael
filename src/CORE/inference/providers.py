@@ -1464,6 +1464,7 @@ class OpenAIProvider:
 # ================================================================
 
 from abc import ABC, abstractmethod
+import subprocess
 
 
 @dataclass
@@ -1615,7 +1616,6 @@ class NativeAPIProvider(ABC):
         if not self.has_valid_key():
             return {'error': 'No valid API key', 'elapsed_ms': 0, 'provider': self.provider_name}
         
-        import json
         import urllib.request
         
         start = time.time()
@@ -1680,7 +1680,6 @@ class NativeAPIProvider(ABC):
             yield 'ERROR: No valid API key for ' + self.provider_name
             return
         
-        import json
         import urllib.request
         
         model = kwargs.pop('model', self.config.model)
@@ -2281,7 +2280,6 @@ class OpenVINOProvider:
         if module_name in cls._BACKEND_PROBE:
             return cls._BACKEND_PROBE[module_name]
 
-        import subprocess
         import sys
 
         # Quick check: is it even installed?

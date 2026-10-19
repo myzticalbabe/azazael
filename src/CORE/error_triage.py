@@ -745,3 +745,4 @@ def print_triage_summary(error_log_path: (str | None) = None) -> None:
     """Quick one-liner to load and print triage summary."""
     ets = load_triage_system(error_log_path)
     ets.print_summary()
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

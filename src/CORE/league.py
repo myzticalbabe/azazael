@@ -7,6 +7,7 @@ from A's view. Ratings persist to JSON. Stdlib-only.
 import json
 import itertools
 from typing import List
+import itertools as _it
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -95,7 +96,6 @@ class League:
         1.0 = total order (safe for Elo-as-reward). Near 0.5 = soup:
         Elo deltas are noise, fall back to hand rewards.
         """
-        import itertools as _it
         players = list(players)
         if len(players) < 3:
             return 1.0

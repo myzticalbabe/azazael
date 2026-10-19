@@ -24,6 +24,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1721,7 +1722,6 @@ def get_pre_action_gate() -> PreActionGate:
 
 def self_test() -> bool:
     """Run a quick self-test of the PreActionGate."""
-    import tempfile
     from CORE.sentinel_enforcer import _GATED_CALL
     # Authorize all disk writes for the duration of this self-test.
     # sys.addaudithook blocks unauthorized tempfile writes otherwise.
@@ -1734,7 +1734,6 @@ def self_test() -> bool:
 
 def _self_test_impl() -> bool:
     """Internal implementation — called from self_test() under gate authorization."""
-    import tempfile
 
     print("=" * 60)
     print("  PRE-ACTION GATE SELF-TEST")

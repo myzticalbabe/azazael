@@ -92,6 +92,8 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, List
+import json
+import subprocess
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -360,7 +362,6 @@ def bounded_subprocess_output(argv, timeout_s: float = 10.0) -> Dict[str, Any]:
     permit = _carried_permit()  # read HERE, on the caller's thread
 
     def _run() -> None:
-        import subprocess
         import tempfile
         with permit():
             try:
@@ -426,7 +427,6 @@ def _child_probe(op: str, path: str, timeout_s: float) -> Any:
     exe = getattr(sys, "executable", "") or ""
     if not exe or getattr(sys, "frozen", False):
         return _UNANSWERED  # no interpreter to delegate to (frozen/Nuitka build)
-    import json
     import tempfile
     fd, outp = tempfile.mkstemp(prefix="fsprobe_", suffix=".json")
     os.close(fd)
