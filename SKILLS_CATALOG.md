@@ -1280,6 +1280,7 @@
 | 1242 | `azazael-bin-tshark` | network | Callable skill for tshark — CLI packet analyzer (Wireshark terminal edition) |
 | 1243 | `azazael-bin-vllm` | ai | Callable skill for vllm — High-throughput LLM serving engine (PagedAttention) |
 | 1244 | `azazael-bin-wpscan` | web | Callable skill for wpscan — WordPress vulnerability scanner |
+| 1245 | `azazael-bake-harvest` | process | Precondition-gated error/near-miss harvest into bake-lane JSONL for multi-step lanes carrying the ERROR CAPTURE clause |
 
 ---
 
