@@ -95,6 +95,7 @@ except ImportError as exc:
 
 
 from CORE.paths import get_project_root
+import argparse
 
 
 _ROOT = get_project_root()
@@ -577,7 +578,6 @@ History: {status.get("history_count", 0)} samples"""
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="SYSTEMZ_ML - ML Anomaly Detection")
     parser.add_argument("--version", action="version", version="1.0.0")

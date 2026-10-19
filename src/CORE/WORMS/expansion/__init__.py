@@ -48,6 +48,7 @@ from .spine import (SpineMapperWorm, HomeostatWorm, RedQueenWorm,
                     SpineCycleWorm, SpineGossipWorm, MorphogenesisWorm,
                     ConsolidationWorm, MeshArchitectWorm)
 from typing import List
+from collections import defaultdict
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -117,7 +118,6 @@ def get_all_expansion_worms():
 
 def main():
     """Print expansion summary."""
-    from collections import defaultdict
     cats = defaultdict(list)
     for name in __all__:
         cls = globals().get(name)

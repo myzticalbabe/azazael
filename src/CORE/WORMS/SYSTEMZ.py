@@ -24,6 +24,7 @@ import json
 from datetime import datetime
 from typing import Any, List
 from dataclasses import dataclass, field
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -174,7 +175,6 @@ class SystemZ:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="SYSTEMZ - System Information Worm")
     parser.add_argument("--status", action="store_true", help="Full status")

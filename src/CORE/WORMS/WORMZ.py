@@ -51,6 +51,7 @@ except ImportError:                               # never break the host
 #: tree. CORE.paths owns that resolution (AZAZAEL_ROOT first, never raises), so the
 #: decision is made once instead of re-derived per module.
 from CORE.paths import get_project_root_safe as _get_project_root_safe
+import argparse
 
 # REMOVED 2026-10-10: five `try: pass / <NAME>_AVAILABLE = True / except ImportError`
 # blocks (SYSTEMZ, PROCESSZ, DISKZ, CLOCKZ, NETWORXZ). In each, the import
@@ -713,7 +714,6 @@ def run_with_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="WORMZ - BIBL Crawler")
     parser.add_argument("--all", action="store_true", help="Crawl all folders")

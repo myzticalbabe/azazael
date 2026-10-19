@@ -118,6 +118,7 @@ class WORMZ_MLConfig:
 
 
 from CORE.paths import get_project_root
+import argparse
 
 
 _ROOT = get_project_root()
@@ -562,7 +563,6 @@ class WORMZ_ML:
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="WORMZ_ML - ML-Enhanced BIBL Crawler")
     parser.add_argument("--version", action="version", version="1.0.0")
