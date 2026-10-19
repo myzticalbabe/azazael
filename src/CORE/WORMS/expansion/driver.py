@@ -19,6 +19,7 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any, List
+import os as _os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -218,7 +219,6 @@ class GemmaDriverWorm:
 
     def _log_call(self, prompt: str, reply: str) -> None:
         """Every driver call becomes future training data (mistake mining)."""
-        import os as _os
         try:
             parsed_ok = False
             try:

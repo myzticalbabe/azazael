@@ -10,6 +10,7 @@ import threading
 from datetime import datetime
 from typing import Any, List
 from collections import defaultdict
+import math as _math
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -331,7 +332,6 @@ class RewardShaperMeshWorm:
                     size_kb: float = 100.0) -> dict[str, Any]:
         """Offline reward P(prefer | rtt, fail_rate, size) from task5 model.
         Falls back to the rtt/fail heuristic when the model file is missing."""
-        import math as _math
         m = self._load_reward_model() or {}
         x = [min(2.0, rtt_ms / 2000.0), max(0.0, min(1.0, fail_rate)),
              min(1.0, size_kb / 5000.0)]
