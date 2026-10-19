@@ -78,6 +78,7 @@ def _bus():
 
 
 from dataclasses import dataclass, field
+from urllib.parse import urlparse
 
 
 
@@ -128,7 +129,6 @@ class BerksMonitorWorm:
         self._lock = threading.Lock()
 
     def _check_one(self, url: str) -> dict[str, Any]:
-        from urllib.parse import urlparse
         host = urlparse(url).hostname or ''
         rec: dict[str, Any] = {"url": url, "host": host,
                                "at": datetime.now(timezone.utc).isoformat()}

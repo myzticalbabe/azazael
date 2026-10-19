@@ -27,6 +27,7 @@ import json
 import math
 import random
 from typing import Dict, Iterable, List, Optional
+import copy
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -410,7 +411,6 @@ class LinUCBAllocator:
         self.arms = list(arms)
         self.dim = dim
         self.alpha = alpha
-        import copy
         self._A = {a: [[1.0 if i == j else 0.0 for j in range(dim)]
                        for i in range(dim)] for a in self.arms}
         self._b = {a: [0.0] * dim for a in self.arms}
@@ -480,7 +480,6 @@ class MCTSPlanner:
         self._Q = {}
 
     def _uct(self, seq):
-        import math
         n_p = sum(self._N.get(seq + (a,), 0) for a in self.arms) or 1
         best, best_v = None, -1e18
         for a in self.arms:

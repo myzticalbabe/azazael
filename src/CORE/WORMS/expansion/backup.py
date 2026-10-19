@@ -13,6 +13,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List
+import sysconfig
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -44,7 +45,6 @@ except ImportError as exc:
     ThreadSafeDict = dict
     ThreadSafeList = list
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:
