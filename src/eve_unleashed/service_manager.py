@@ -14,9 +14,15 @@ except ImportError:
     def note_failure(where, exc=None):
         pass
 
-import win32event
-import win32service
-import win32serviceutil
+try:
+    import win32event
+    import win32service
+    import win32serviceutil
+    _WIN32_SERVICE_AVAILABLE = True
+except ImportError as exc:
+    note_failure("service_manager:win32service", exc)
+    win32event = win32service = win32serviceutil = None
+    _WIN32_SERVICE_AVAILABLE = False
 
 
 #: Fallback chain (Phase 1: model hot-swapping). First live model wins;
@@ -163,29 +169,30 @@ class LlamaServerManager:
         return times
 
 
-class EveLlamaService(win32serviceutil.ServiceFramework):
-    _svc_name_ = "EveUnleashedLlamaServer"
-    _svc_display_name_ = "Eve Unleashed - llama-server"
-    _svc_description_ = "Auto-starting llama-server supervised by Eve Unleashed Phase 1."
+if _WIN32_SERVICE_AVAILABLE:
+    class EveLlamaService(win32serviceutil.ServiceFramework):
+        _svc_name_ = "EveUnleashedLlamaServer"
+        _svc_display_name_ = "Eve Unleashed - llama-server"
+        _svc_description_ = "Auto-starting llama-server supervised by Eve Unleashed Phase 1."
 
-    def __init__(self, args):
-        super().__init__(args)
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
-        exe, model, port = _resolve_paths()
-        self.manager = LlamaServerManager(exe, model, port)
+        def __init__(self, args):
+            super().__init__(args)
+            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+            exe, model, port = _resolve_paths()
+            self.manager = LlamaServerManager(exe, model, port)
 
-    def SvcStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
-        self.manager.stop()
+        def SvcStop(self):
+            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+            win32event.SetEvent(self.hWaitStop)
+            self.manager.stop()
 
-    def SvcDoRun(self):
-        self.manager.start()
-        win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)
+        def SvcDoRun(self):
+            self.manager.start()
+            win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) >= 2 and sys.argv[1].lower() in {"install", "start", "stop", "remove"}:
+    if _WIN32_SERVICE_AVAILABLE and len(sys.argv) >= 2 and sys.argv[1].lower() in {"install", "start", "stop", "remove"}:
         win32serviceutil.HandleCommandLine(EveLlamaService)
     else:
         # daemon mode (non-service) for dev/testing

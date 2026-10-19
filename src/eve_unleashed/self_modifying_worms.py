@@ -184,20 +184,24 @@ class GeneticAlgorithm:
 
     def best(self) -> Optional[WormDNA]:
         with self._lock:
-            if not self.population:
-                return None
-            scored = [(d, self.fitness.get(d.worm_id).score()
-                       if d.worm_id in self.fitness else 0.3)
-                      for d in self.population]
-            return max(scored, key=lambda x: x[1])[0]
+            return self._best_unlocked()
+
+    def _best_unlocked(self) -> Optional[WormDNA]:
+        if not self.population:
+            return None
+        scored = [(d, self.fitness.get(d.worm_id).score()
+                   if d.worm_id in self.fitness else 0.3)
+                  for d in self.population]
+        return max(scored, key=lambda x: x[1])[0]
 
     def snapshot(self) -> Dict[str, Any]:
         with self._lock:
+            best = self._best_unlocked()
             return {
                 "generation": self.generation,
                 "population_size": len(self.population),
                 "elite_keep": self.elite_keep,
-                "best_fitness": (self.best().worm_id if self.best() else None),
+                "best_fitness": (best.worm_id if best else None),
                 "genomes": [d.to_dict() for d in self.population],
             }
 
