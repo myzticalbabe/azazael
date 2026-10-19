@@ -270,6 +270,50 @@ class GRPOTrainer:
                 std_r = gstd  # REINFORCE++ unbiased global norm
         return [(r - mean_r) / std_r for r in rewards]
 
+    def compute_mgpo_advantages(self, rewards: list[float],
+                                subgroups: list[list[int]] | None = None,
+                                coarse_weight: float = 0.5) -> list[float]:
+        """Multi-granularity group-relative advantages (EP155, MGPO).
+
+        Whole-group normalisation washes out sub-group signal: a strong
+        member of a weak sub-group reads average. MGPO computes the same
+        group-norm at two granularities — coarse (whole group) and fine
+        (each index-sublist in `subgroups`) — and blends them:
+        adv = coarse_weight * coarse + (1 - coarse_weight) * fine.
+        Members in no sub-group (or empty `subgroups`) keep the coarse
+        value. Zero-variance levels fall back to 0.0 for their members
+        instead of dropping the group — the caller, not this function,
+        decides resampling. Pure function: no store, no policy write.
+        """
+        if not rewards:
+            return []
+        coarse = self.compute_advantages(list(rewards))
+        if not coarse:
+            coarse = [0.0] * len(rewards)
+        if not subgroups:
+            return coarse
+        fine = [0.0] * len(rewards)
+        for sub in subgroups:
+            idx = [i for i in (sub or []) if 0 <= i < len(rewards)]
+            if len(idx) < 2:
+                for i in idx:
+                    fine[i] = coarse[i]
+                continue
+            sub_rewards = [rewards[i] for i in idx]
+            sub_adv = self.compute_advantages(sub_rewards)
+            if not sub_adv:
+                sub_adv = [0.0] * len(idx)
+            for i, a in zip(idx, sub_adv):
+                fine[i] = a
+        covered = {i for sub in subgroups for i in (sub or [])
+                   if 0 <= i < len(rewards)}
+        for i in range(len(rewards)):
+            if i not in covered:
+                fine[i] = coarse[i]
+        cw = min(1.0, max(0.0, float(coarse_weight)))
+        return [cw * c + (1.0 - cw) * f
+                for c, f in zip(coarse, fine)]
+
     def update_policy(self, group: list[str], rewards: list[float],
                       context_key: str = "default"):
         """Update the policy using GRPO.
