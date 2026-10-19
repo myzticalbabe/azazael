@@ -73,7 +73,7 @@ def test_a_lane_file_with_one_corrupt_line_contributes_zero_rows(tmp_path):
     lane = tmp_path / "corrupt.jsonl"
     lane.write_text(json.dumps(VALID_ROW) + "\n" + "{ this is not json\n", encoding="utf-8")
 
-    merged, dropped, accepted, _base = merge_bake_lane.merge([lane])
+    merged, dropped, accepted, _base = merge_bake_lane.merge_lanes([lane])
 
     assert ("BAD_JSON") in {reason for _where, reason, _detail in dropped}
     assert accepted == 0
@@ -85,7 +85,7 @@ def test_an_unreadable_lane_path_is_reported_rather_than_raising(tmp_path):
     gate runs in a batch where one absent lane must not abort the others."""
     missing = tmp_path / "does-not-exist.jsonl"
 
-    merged, dropped, accepted, _base = merge_bake_lane.merge([missing])
+    merged, dropped, accepted, _base = merge_bake_lane.merge_lanes([missing])
 
     assert "UNREADABLE" in {reason for _where, reason, _detail in dropped}
     assert accepted == 0
@@ -114,7 +114,7 @@ def test_every_row_level_violation_is_dropped_with_its_own_reason(tmp_path):
     ]
     lane = _write_lane(tmp_path, rows, name="violations.jsonl")
 
-    merged, dropped, accepted, _base = merge_bake_lane.merge([lane])
+    merged, dropped, accepted, _base = merge_bake_lane.merge_lanes([lane])
     reasons = {reason for _where, reason, _detail in dropped}
 
     assert accepted == 1, "exactly one row here is admissible"

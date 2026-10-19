@@ -443,14 +443,29 @@ def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS,
         deleted = cursor.rowcount
         conn.commit()
         # Also delete orphaned sessions
-        conn.execute(
-            "DELETE FROM sessions WHERE session_id NOT IN "
-            "(SELECT DISTINCT session_id FROM memories)"
-        )
-        conn.commit()
-        return {"events_deleted": deleted, "cutoff": cutoff}
+        try:
+            conn.execute(
+                "DELETE FROM sessions WHERE session_id NOT IN "
+                "(SELECT DISTINCT session_id FROM memories)"
+            )
+            conn.commit()
+        except Exception as sess_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_event_ttl:sessions", sess_exc)
+        return {"events_deleted": deleted, "cutoff": cutoff,
+                "enforced": True}
+    except Exception as e:  # noqa: BLE001 — fail-open with citation
+        _note_failure("data_retention:enforce_event_ttl", e)
+        try:
+            conn.rollback()
+        except Exception as rb_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_event_ttl:rollback", rb_exc)
+        return {"events_deleted": 0, "cutoff": cutoff,
+                "enforced": False, "error": str(e)[:200]}
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception as close_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_event_ttl:close", close_exc)
 
 
 def enforce_type_caps(caps: dict = None,
@@ -476,12 +491,25 @@ def enforce_type_caps(caps: dict = None,
             )
             deleted[event_type] = cur.rowcount
         conn.commit()
-        return {"deleted": deleted, "total": sum(deleted.values())}
+        return {"deleted": deleted, "total": sum(deleted.values()),
+                "enforced": True}
+    except Exception as e:  # noqa: BLE001 — fail-open with citation
+        _note_failure("data_retention:enforce_type_caps", e)
+        try:
+            conn.rollback()
+        except Exception as rb_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_type_caps:rollback", rb_exc)
+        return {"deleted": deleted, "total": sum(deleted.values()),
+                "enforced": False, "error": str(e)[:200]}
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception as close_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_type_caps:close", close_exc)
 
 
-def enforce_span_ttl(ttl_days: int = SPAN_TTL_DAYS) -> dict:
+def enforce_span_ttl(ttl_days: int = SPAN_TTL_DAYS,
+                     db_path: str | None = None) -> dict:
     """Delete OTel spans older than ttl_days. Returns count deleted.
 
     `otel_spans` is not a `memories` event_type, so the type-cap mechanism
@@ -502,28 +530,56 @@ def enforce_span_ttl(ttl_days: int = SPAN_TTL_DAYS) -> dict:
         )
         deleted = cursor.rowcount
         conn.commit()
-        return {"spans_deleted": deleted, "ttl_days": ttl_days}
+        return {"spans_deleted": deleted, "ttl_days": ttl_days,
+                "enforced": True}
+    except Exception as e:  # noqa: BLE001 — fail-open with citation
+        _note_failure("data_retention:enforce_span_ttl", e)
+        try:
+            conn.rollback()
+        except Exception as rb_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_span_ttl:rollback", rb_exc)
+        return {"spans_deleted": 0, "ttl_days": ttl_days,
+                "enforced": False, "error": str(e)[:200]}
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception as close_exc:  # noqa: BLE001
+            _note_failure("data_retention:enforce_span_ttl:close", close_exc)
 
 
 def rotate_old_sessions(max_age_hours: int = SESSION_ROTATION_HOURS) -> int:
     """Auto-close sessions older than max_age_hours. Returns count closed."""
-    from CORE.direct_memory import DirectMemory
-    return DirectMemory.close_stale_sessions(max_age_hours=max_age_hours)
+    try:
+        from CORE.direct_memory import DirectMemory
+        return DirectMemory.close_stale_sessions(max_age_hours=max_age_hours)
+    except Exception as e:  # noqa: BLE001 — fail-open with citation
+        _note_failure("data_retention:rotate_old_sessions", e)
+        return 0
 
 
 def check_db_size_quota(quota_mb: int = DB_SIZE_QUOTA_MB) -> dict:
     """Check DB size against quota. Returns warning if exceeded."""
-    from CORE.doctor import get_db_size
-    size = get_db_size()
-    total_mb = size.get("total_mb", 0)
-    return {
-        "size_mb": total_mb,
-        "quota_mb": quota_mb,
-        "exceeded": total_mb > quota_mb,
-        "pct": round(total_mb / quota_mb * 100, 1) if quota_mb > 0 else 0,
-    }
+    try:
+        from CORE.doctor import get_db_size
+        size = get_db_size()
+        total_mb = size.get("total_mb", 0)
+        return {
+            "size_mb": total_mb,
+            "quota_mb": quota_mb,
+            "exceeded": total_mb > quota_mb,
+            "pct": round(total_mb / quota_mb * 100, 1) if quota_mb > 0 else 0,
+            "enforced": True,
+        }
+    except Exception as e:  # noqa: BLE001 — fail-open with citation
+        _note_failure("data_retention:check_db_size_quota", e)
+        return {
+            "size_mb": 0,
+            "quota_mb": quota_mb,
+            "exceeded": False,
+            "pct": 0,
+            "enforced": False,
+            "error": str(e)[:200],
+        }
 
 
 def archive_old_audit_files(max_age_days: int = AUDIT_ARCHIVE_DAYS) -> list:
@@ -581,8 +637,14 @@ def vacuum_if_needed(db_path: str | None = None) -> dict:
             out["files"][str(target)] = {
                 "vacuumed": False,
                 "free_pct": round(freelist / max(page_count, 1) * 100, 1) if page_count > 0 else 0}
+        except Exception as exc:  # noqa: BLE001 — fail-open with citation
+            _note_failure("data_retention:vacuum", exc)
+            out["files"][str(target)] = {"error": str(exc)[:200]}
         finally:
-            conn.close()
+            try:
+                conn.close()
+            except Exception as close_exc:  # noqa: BLE001
+                _note_failure("data_retention:vacuum:close", close_exc)
     return out
 
 
@@ -606,8 +668,14 @@ def wal_checkpoint(db_path: str | None = None) -> dict:
                                          "after_bytes": after,
                                          "freed_bytes": before - after}
             out["freed_bytes"] += before - after
+        except Exception as exc:  # noqa: BLE001 — fail-open with citation
+            _note_failure("data_retention:wal_checkpoint", exc)
+            out["files"][str(target)] = {"error": str(exc)[:200]}
         finally:
-            conn.close()
+            try:
+                conn.close()
+            except Exception as close_exc:  # noqa: BLE001
+                _note_failure("data_retention:wal_checkpoint:close", close_exc)
     return out
 
 
