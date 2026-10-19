@@ -1112,6 +1112,27 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 ---
 
+## RULE 0Z-M: DEFECT-CLASS CAPTURE — EVERY FIXED ERROR CLASS BECOMES GATE COVERAGE (CRITICAL — Oct 19, 2026)
+
+**"AREN'T WE SUPPOSED TO BE AUTO-ADDING ANTI-PATTERNS TO THE GATE AS WE DISCOVER THEM, ALSO MISGUIDED HEURISTICS SO WE NEVER REPEAT TWICE?" — User directive, Oct 19, 2026**
+
+**TRIGGER:** Any sweep or fix session that encounters an error class (a real defect shape) or a misguided detection heuristic (a check that fires on working code).
+
+**ACTION (all three, same session — a fix without capture is incomplete):**
+1. **Gate rule:** every REAL defect class fixed gets a scanner rule in `src/CORE/compliance/scanner.py` (severity + fix suggestion + explanation with the incident reference), proven by a positive control (fires) and negative controls (silent on legitimate code), then `anti_pattern_gate.py --baseline` re-records. First capture 2026-10-19: `bare_except` + `open_no_context`, both zero-baseline.
+2. **Measure before adding:** a candidate rule is measured against `src/` FIRST. If it fires on working code it is REJECTED as misguided (precedent: `print` rejected at 7,328 hits, 2026-10-03; broad `unguarded_thirdparty_import` rejected at 41 hits, 2026-10-19) — never added, never re-proposed.
+3. **Heuristic ledger:** every rejected heuristic AND every falsified verification judgment is appended to `state/heuristic_ledger.jsonl` (schema: date, heuristic, verdict, evidence, rule) so no session repeats it twice.
+
+**Enforcement:**
+- Fixing an error class without adding (or explicitly rejecting-with-ledger-entry) gate coverage = INCOMPLETE WORK
+- Adding an unmeasured rule, or re-proposing a ledger-rejected heuristic = CRITICAL process violation
+- A full-suite-only failure cleared by an isolated pass = violation of RULE 0Z-K (shape-pins are not proof); reproduce under concurrency first
+- Checked by session-end review: fixes listed without matching gate/ledger entries fail the review
+
+**Related:** RULE 0Z-K (live proof; isolation does not clear load failures), RULE 0Z-G (capture is code, not documentation padding), `state/heuristic_ledger.jsonl`, `tools/anti_pattern_gate.py --baseline`
+
+---
+
 ## 🔴 SECTION 3: AGENT CLASSIFICATION & SPAWN REFERENCE
 
 ### Complete Agent Inventory (11 Agents: 10 Spawnable + 1 Auto-Managed)
