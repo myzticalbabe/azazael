@@ -5,7 +5,6 @@ automatic startup via the Windows Startup folder. NO ADMIN REQUIRED.
 
 Creates a .bat launcher shortcut in:
     %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\
-
 This ensures the daemon auto-starts whenever the user logs into Windows,
 completely independent of any Codebuff session. The LLM cannot disable,
 uninstall, or override this installation.

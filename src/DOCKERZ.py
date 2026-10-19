@@ -86,6 +86,7 @@ except ImportError as exc:
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+import argparse
 
 
 # Portability: use env vars with local fallbacks
@@ -587,7 +588,6 @@ CMD ["python", "Azazael/Azazael_INTEGRATION.py"]
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="DOCKERZ - Container Management")
     parser.add_argument("--version", action="version", version="1.0.0")

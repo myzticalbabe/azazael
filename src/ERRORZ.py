@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -677,7 +678,6 @@ def run_with_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="ERRORZ - Code Error Crawler")
     parser.add_argument("--scan", action="store_true", help="Run full error scan")
