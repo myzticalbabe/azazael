@@ -470,8 +470,8 @@ class AssistantLogProtocol:
         for path in known:
             if os.path.exists(path):
                 result = subprocess.run(
-                    [path, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
-                )
+                    [path, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                timeout=1800)
                 info.append(
                     {
                         "path": path,
@@ -498,7 +498,7 @@ class AssistantLogProtocol:
             'tasklist /FO CSV /FI "IMAGENAME eq python.exe"',
             capture_output=True,
             text=True, encoding="utf-8", errors="replace",
-        )
+        timeout=1800)
         return [l for l in result.stdout.split("\n") if "python" in l.lower()]
 
     def log_python_scan(self, installations: list[dict]):

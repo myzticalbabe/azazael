@@ -35,7 +35,7 @@ except ImportError:
     print("Installing rich...")
     import subprocess
 
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "rich", "-q"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "rich", "-q"], timeout=1800)
     from rich.console import Console
 
 console = Console()

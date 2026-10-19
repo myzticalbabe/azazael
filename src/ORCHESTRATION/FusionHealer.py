@@ -138,8 +138,8 @@ class FusionHealer:
             if p.exists():
                 try:
                     result = subprocess.run(
-                        [str(p), "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
-                    )
+                        [str(p), "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                    timeout=1800)
                     version = result.stdout.strip() or result.stderr.strip()
                     self.log(f"  {py}: {version}", "INFO")
                     self.healed.append(("python", py, version))
