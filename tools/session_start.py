@@ -173,6 +173,63 @@ def mcp_guard() -> str:
     return "exit=%s" % r.returncode
 
 
+def supervisor_status() -> str:
+    """Unified verdict at session open (advisory here; enforcement is downstream).
+
+    Runs the supervisor on the pinned 3.15t interpreter (it needs FastMCP).
+    Emits the trailing VERDICT line plus the per-leg lines, returns a short
+    status for the summary. Never returns None; never raises.
+    """
+    py315t = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+    script = HERE / "supervisor_mcp.py"
+    if not py315t.exists() or not script.exists():
+        _emit("supervisor: unavailable (interpreter or script missing)")
+        return "unavailable"
+    try:
+        r = subprocess.run(
+            [str(py315t), str(script), "--verdict"],
+            timeout=120, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(HERE.parent))
+    except Exception as exc:  # noqa: BLE001 -- report, do not lose the session
+        _emit("supervisor: unrunnable (%s)" % type(exc).__name__)
+        return "unrunnable"
+    out = (r.stdout or "").strip()
+    if not out:
+        _emit("supervisor: empty response (rc=%s)" % r.returncode)
+        return "empty"
+    for line in out.splitlines()[-9:]:
+        _emit(line)
+    verdict = [l for l in out.splitlines() if l.startswith("VERDICT:")]
+    return verdict[-1].split(":", 1)[1].strip().split(" - ")[0] if verdict else "unparsed"
+
+
+def supervisor_load() -> str:
+    """Report whether the supervisor will drive THIS session (restart guard).
+
+    Config-without-load is the recurring failure: the entry sits in mcp.json
+    while the client never restarted, so no supervisor tool exists in this
+    session. Runs verify_supervisor_load.py and emits its lines; returns the
+    worst state. Never returns None; never raises.
+    """
+    guard = HERE / "verify_supervisor_load.py"
+    if not guard.exists():
+        _emit("supervisor load: guard missing")
+        return "guard-missing"
+    try:
+        r = subprocess.run(
+            [sys.executable, str(guard)],
+            timeout=180, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(HERE.parent))
+    except Exception as exc:  # noqa: BLE001 -- report, do not lose the session
+        _emit("supervisor load: unrunnable (%s)" % type(exc).__name__)
+        return "unrunnable"
+    for line in (r.stdout or "").strip().splitlines():
+        _emit(line)
+    return "exit=%s" % r.returncode
+
+
 def main(argv=None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     strict = "--strict" in args
@@ -192,11 +249,17 @@ def main(argv=None) -> int:
     _emit("=== ENGRAM MCP (restart guard) ===")
     guard_status = mcp_guard()
     _emit("")
+    _emit("=== SUPERVISOR (unified verdict) ===")
+    sup_status = supervisor_status()
+    _emit("")
+    _emit("=== SUPERVISOR LOAD (post-restart drive) ===")
+    load_status = supervisor_load()
+    _emit("")
 
     # The whole point of the summary line: a reader can tell "delivered
     # everything" from "delivered nothing" without parsing the payload.
-    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s"
-          % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status))
+    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s"
+          % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status, sup_status, load_status))
 
     absent = [name for name, chars in (("PMB", pmb_chars), ("engram", eng_chars))
               if chars == 0]
