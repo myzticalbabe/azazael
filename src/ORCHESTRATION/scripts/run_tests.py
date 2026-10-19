@@ -55,7 +55,7 @@ def test_module_import(path: str) -> dict:
         cmd = [
             sys.executable,
             "-c",
-            f'import sys; sys.path.insert(0, "{Path(path).parent}"); exec(open("{path}").read())',
+            f'import sys; sys.path.insert(0, "{Path(path).parent}"); exec(open("{path}", encoding="utf-8").read())',
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace")
         result["passed"] = proc.returncode == 0

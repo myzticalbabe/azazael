@@ -251,7 +251,7 @@ class ModuleTester:
             import_cmd = [
                 sys.executable,
                 "-c",
-                f"import sys; sys.path.insert(0, '{Path(path).parent}'); exec(open('{path}').read())",
+                f"import sys; sys.path.insert(0, '{Path(path).parent}'); exec(open('{path}', encoding='utf-8').read())",
             ]
 
             proc = subprocess.run(

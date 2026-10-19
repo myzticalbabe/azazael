@@ -525,10 +525,10 @@ EXAMPLES:
                 path = self.ROOT / file_path
 
             if path.suffix == ".py":
-                subprocess.run([sys.executable, str(path)])
+                subprocess.run([sys.executable, str(path)], timeout=1800)
             elif path.suffix == ".bat":
                 # Run .bat files through cmd.exe explicitly
-                subprocess.run(["cmd", "/c", str(path)])
+                subprocess.run(["cmd", "/c", str(path)], timeout=1800)
             elif path.is_file():
                 self.output.error(f"Cannot run: {path.suffix} files")
             else:
@@ -595,16 +595,16 @@ EXAMPLES:
                     [
                         sys.executable,
                         str(self.ROOT / "scripts" / "comprehensive_analysis.py"),
-                    ]
-                )
+                    ],
+                timeout=1800)
                 progress.update(task, advance=100)
         else:
             subprocess.run(
                 [
                     sys.executable,
                     str(self.ROOT / "scripts" / "comprehensive_analysis.py"),
-                ]
-            )
+                ],
+            timeout=1800)
 
     def cmd_test(self, args: list[str]):
         """Test a file."""
@@ -613,20 +613,20 @@ EXAMPLES:
             path = Path(args[0])
             if path.suffix == ".py":
                 subprocess.run(
-                    [sys.executable, "-m", "pytest", str(self.ROOT / args[0])]
-                )
+                    [sys.executable, "-m", "pytest", str(self.ROOT / args[0])],
+                timeout=1800)
         else:
             self.output.info("Running full test suite...")
             subprocess.run(
-                [sys.executable, str(self.ROOT / "scripts" / "run_tests.py")]
-            )
+                [sys.executable, str(self.ROOT / "scripts" / "run_tests.py")],
+            timeout=1800)
 
     def cmd_validate(self, args: list[str]):
         """Run validation."""
         self.output.info("Running validation suite...")
         subprocess.run(
-            [sys.executable, str(self.ROOT / "scripts" / "validate_docs.py")]
-        )
+            [sys.executable, str(self.ROOT / "scripts" / "validate_docs.py")],
+        timeout=1800)
 
     def cmd_fix(self, args: list[str]):
         """Fix file issues."""
@@ -653,13 +653,13 @@ EXAMPLES:
         """Run harness."""
         cmd = [sys.executable, str(self.ROOT / "ml_platforms" / "harness.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_launcher(self, args: list[str]):
         """Run launcher."""
         cmd = [sys.executable, str(self.ROOT / "ml_platforms" / "launcher.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_alias(self, args: list[str]):
         """Add a command alias."""
@@ -696,14 +696,14 @@ EXAMPLES:
         self.output.info("Launching HORUS...")
         cmd = [sys.executable, str(self.ROOT / "HORUS.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_hydra(self, args: list[str]):
         """Run HYDRA adaptive ML cluster."""
         self.output.info("Launching HYDRA...")
         cmd = [sys.executable, str(self.ROOT / "HYDRA.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_metrics(self, args: list[str]):
         """Show metrics dashboard."""
@@ -722,42 +722,42 @@ EXAMPLES:
         self.output.info("Launching TARBABY binary builder...")
         cmd = [sys.executable, str(self.ROOT / "TARBABY.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_cluster(self, args: list[str]):
         """Run full cluster test with popup monitoring."""
         self.output.info("Starting cluster test with popup...")
         cmd = [sys.executable, str(self.ROOT / "HYDRA.py"), "--popup"]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_poindexter(self, args: list[str]):
         """Run POINDEXTER mathematical analysis."""
         self.output.info("Launching POINDEXTER...")
         cmd = [sys.executable, str(Path.home() / "Desktop" / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "UTILITIES" / "POINDEXTER" / "POINDEXTER.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_wormz(self, args: list[str]):
         """Run WORMZ BIBL crawler."""
         self.output.info("Launching WORMZ BIBL crawler...")
         cmd = [sys.executable, str(Path(__file__).resolve().parent.parent.parent / "CORE" / "WORMS" / "WORMZ_POPUP.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_metaworms(self, args: list[str]):
         """Run METAWORMS management system."""
         self.output.info("Launching METAWORMS...")
         cmd = [sys.executable, str(Path(__file__).resolve().parent.parent.parent / "META" / "METAWORMS_ENRICHED.py")]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_errorz(self, args: list[str]):
         """Run ERRORZ code error crawler."""
         self.output.info("Launching ERRORZ...")
         cmd = [sys.executable, str(Path(__file__).resolve().parent.parent.parent / "ERRORZ.py"), "--scan"]
         cmd.extend(args)
-        subprocess.run(cmd)
+        subprocess.run(cmd, timeout=1800)
 
     def cmd_status(self, args: list[str]):
         """Show status."""
