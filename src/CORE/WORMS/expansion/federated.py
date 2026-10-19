@@ -259,12 +259,15 @@ class NASMeshSearcherWorm:
 
 
 @register_worm(category="federated", priority=6, cooldown_seconds=60.0,
-    description="6-provider inference reward during training; DLQ on fail")
+    description="Provider-tier inference reward during training (real chain incl. local model tier); DLQ on fail")
 class RewardShaperMeshWorm:
     """Multi-provider reward shaper."""
 
     VERSION = "1.0.0"
-    PROVIDERS = ("groq", "openrouter", "nim", "lmstudio", "llamaserver", "ollama")
+    PROVIDERS = ("groq", "openrouter", "nim", "lmstudio", "llamaserver",
+                 "llama_mythos", "llama_mythos_v2", "llama_qwopus",
+                 "llama_ornith", "accelerator_sidecar", "edge0", "openvino",
+                 "huggingface_direct", "llama_cpp_direct", "ollama")
 
     PROVIDER = "RewardShaperMeshWorm"
     _STATE_ATTRS = ("_scores", "_dlq")
