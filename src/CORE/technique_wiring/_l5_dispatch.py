@@ -35,6 +35,7 @@ from typing import Any, Dict, List
 
 from CORE.dispatch_plan import plan_dag, rehearse_dispatch, simulate_vs_spawn
 from CORE.technique_runtime import register
+from CORE.WORMS.expansion.policy_optimization import depo_filter, espo_tripwire
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -219,18 +220,27 @@ def _ep464() -> Dict[str, Any]:
 
 
 def _ep259() -> Dict[str, Any]:
-    """Online per-step regret tripwire -> absorbing failure state (ESPO)."""
-    budget, regret, state = 0.0, 0.0, "running"
-    for observed in (0.1, 0.15, 0.2, 0.9):
-        budget += 1.0
-        regret += max(0.0, observed - 0.25)
-        if regret > 0.5:
-            state = "absorbing-failure"
-            break
-    return {"accepted": state == "absorbing-failure", "engaged": True,
-            "regret": round(regret, 3), "state": state,
-            "note": "tripwire is self-contained; force_trip wiring is EP383's",
-            "where": "CORE.WORMS.expansion.policy_optimization:depo_filter"}
+    """Online per-step regret tripwire -> absorbing failure state (ESPO).
+
+    Drives the live hosts: the observed stream feeds the `espo_tripwire`
+    accumulator, and each step's difficulty rides `depo_filter`'s frontier
+    band — the tripwire measures, the filter keeps the frontier, and the
+    force_trip decision stays EP383's.
+    """
+    stream = (0.1, 0.15, 0.2, 0.9)
+    trip = espo_tripwire(stream)
+    frontier = depo_filter({"step-%d" % i: v
+                            for i, v in enumerate(stream)})
+    calm = espo_tripwire((0.1, 0.15, 0.2))
+    return {"accepted": trip["state"] == "absorbing-failure"
+                         and calm["state"] == "running"
+                         and len(frontier) > 0, "engaged": True,
+            "regret": trip["regret"], "state": trip["state"],
+            "budget": trip["budget"], "frontier_kept": frontier,
+            "calm_state": calm["state"],
+            "note": "tripwire measures; force_trip decision is EP383's",
+            "where": "CORE.WORMS.expansion.policy_optimization:"
+                     "espo_tripwire+depo_filter"}
 
 
 # -- EP248 / EP438: cost models and cohort batching -------------------------------

@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from math import exp, isfinite, log, sqrt
 from statistics import fmean, pstdev
-from typing import Iterable, Mapping, Sequence, List
+from typing import Dict, Iterable, Mapping, Sequence, List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -255,6 +255,29 @@ def depo_filter(
     if budget is not None:
         kept = kept[:max(0, int(budget))]
     return kept
+
+
+def espo_tripwire(observed: Sequence[float], *, baseline: float = 0.25,
+                  threshold: float = 0.5) -> Dict[str, object]:
+    """Online per-step regret tripwire -> absorbing failure state (ESPO).
+
+    Pure accumulator: each observation above `baseline` adds regret; the
+    first step pushing cumulative regret past `threshold` flips the state
+    to absorbing-failure and stops the scan. Returns {"budget" (steps
+    consumed), "regret", "state"}. The trip decision this feeds
+    (force_trip) is EP383's; this contract only measures.
+    """
+    base = float(baseline)
+    limit = float(threshold)
+    budget, regret, state = 0.0, 0.0, "running"
+    for value in observed or []:
+        budget += 1.0
+        excess = float(value) - base
+        regret += excess if excess > 0.0 else 0.0
+        if regret > limit:
+            state = "absorbing-failure"
+            break
+    return {"budget": budget, "regret": round(regret, 6), "state": state}
 
 
 def pareto_front(points: Mapping[str, Sequence[float]]) -> dict:
