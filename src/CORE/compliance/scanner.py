@@ -206,9 +206,16 @@ _PATTERN_SHELL_TRUE = re.compile(r'\bshell\s*=\s*True\b')
 # positive) rather than reading whole call expressions.
 _PATTERN_SUBPROCESS = re.compile(
     r'\bsubprocess\.(run|Popen|call|check_call|check_output)\s*\(')
+# Popen() itself never blocks -- only .wait()/.communicate() do, and the
+# Popen CONSTRUCTOR takes no timeout= (passing one raises TypeError). So a
+# Popen whose handle never waits in this file is fire-and-forget, not a hang.
+# Refined 2026-10-19: Popen sites are flagged only when the handle is waited on.
 # open( on one line with no encoding= and no binary mode. Same single-line
 # trade-off as subprocess: it may miss a multiline call, never invents one.
 _PATTERN_OPEN = re.compile(r'(?<![\w.])open\s*\(')
+# Binary mode: "rb"/"wb"/"ab"/"xb" (+t/b combos) or mode="...b...".
+_PATTERN_BINARY_MODE = re.compile(
+    r'["\'][rwxa]*b[+t]*["\']|mode\s*=\s*["\'][^"\']*b')
 # sqlite3.connect( and requests.get|post|...(: a writer waiting on a lock
 # or a network read with no timeout= hangs forever. Call text is measured
 # across lines via _call_text (same as 5c/5d), never same-line-only.
@@ -462,12 +469,35 @@ class ASTAntiPatternScanner:
         # string BODY is not a call -- it is a detector, a rule's own fix
         # template, or a test sample. The call is measured across lines so a
         # multiline call with its timeout on a later line is not a false hit.
+        # Popen refinement: collect handles that are waited on (.wait() /
+        # .communicate()); a Popen never waited on is fire-and-forget.
+        _waited: set[str] = set()
+        _waited_timed: set[str] = set()
+        try:
+            _ptree = ast.parse(source)
+            for _node in ast.walk(_ptree):
+                if isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and _node.func.attr in ("wait", "communicate") \
+                        and isinstance(_node.func.value, ast.Name):
+                    _waited.add(_node.func.value.id)
+                    if any(k.arg == "timeout" for k in _node.keywords):
+                        _waited_timed.add(_node.func.value.id)
+        except SyntaxError:
+            _waited = set()
+            _waited_timed = set()
         for i, line in enumerate(lines, 1):
             m = _PATTERN_SUBPROCESS.search(line)
             if not m:
                 continue
             if "timeout" in _call_text(lines, i - 1, m.start()):
                 continue
+            if m.group(1) == "Popen":
+                # Fire-and-forget unless the assigned handle is waited on
+                # without its own timeout.
+                _assign = re.match(r'\s*(\w+)\s*=', line)
+                if not _assign or _assign.group(1) not in _waited \
+                        or _assign.group(1) in _waited_timed:
+                    continue
             if _in_documentation(i, m.start(), doc_spans):
                 continue
             if _in_string_body(i, m.start(), string_spans):
@@ -480,8 +510,11 @@ class ASTAntiPatternScanner:
             if not m:
                 continue
             call = _call_text(lines, i - 1, m.start())
-            # Binary mode needs no encoding; a text open() does.
-            if "encoding" in call or "'b'" in call or '"b"' in call:
+            # Binary mode needs no encoding; a text open() does. The mode
+            # string is "rb"/"wb" (not a bare "b"), or mode="...b..." --
+            # fixed 2026-10-19: the old "'b'" substring test missed "rb"
+            # and flagged 52 correct binary opens as text-mode findings.
+            if "encoding" in call or _PATTERN_BINARY_MODE.search(call):
                 continue
             if _in_documentation(i, m.start(), doc_spans):
                 continue
@@ -572,8 +605,24 @@ class ASTAntiPatternScanner:
             # `with` (escalation_sft / test_rule_0zf, fixed 2026-10-19).
             # `open(...).read()` one-liners are NOT flagged: the handle is
             # temporary and refcounting closes it at once.
+            # Two principled exemptions (measured 2026-10-19 against 6 live
+            # sites, all adjudicated intentional):
+            # (a) function-free ancestry (module level, even inside a
+            # try:/if: guard): the handle's lifetime IS the process by
+            # construction (process-life log/lock handles; the OS reclaims
+            # on death). (b) ownership transfer: the handle is
+            # passed as stdin=/stdout=/stderr= to a child process, which
+            # owns its ends; a parent close is optional, not a leak.
+            # (c) OS-lock idiom: a handle fed to msvcrt.locking() /
+            # fcntl.flock()/lockf() MUST stay open -- closing it releases
+            # the lock, so an unclosed lock handle is the correct shape.
             with_lines = set()
             closed_names = set()
+            child_owned = set()
+            _parent = {}
+            for _pnode in ast.walk(tree):
+                for _ch in ast.iter_child_nodes(_pnode):
+                    _parent[_ch] = _pnode
             for _node in ast.walk(tree):
                 if isinstance(_node, ast.With):
                     for _sub in ast.walk(_node):
@@ -583,13 +632,40 @@ class ASTAntiPatternScanner:
                 elif isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
                         and _node.func.attr == "close" and isinstance(_node.func.value, ast.Name):
                     closed_names.add(_node.func.value.id)
+                elif isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and _node.func.attr in ("Popen", "run", "call", "check_call",
+                                               "check_output", "run_process"):
+                    for _kw in _node.keywords:
+                        if _kw.arg in ("stdin", "stdout", "stderr") \
+                                and isinstance(_kw.value, ast.Name):
+                            child_owned.add(_kw.value.id)
+                elif isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and _node.func.attr in ("locking", "flock", "lockf"):
+                    for _a in list(_node.args) + [_kw.value for _kw in _node.keywords]:
+                        _h = _a.func.value.id if isinstance(_a, ast.Call) \
+                            and isinstance(_a.func, ast.Attribute) \
+                            and _a.func.attr == "fileno" \
+                            and isinstance(_a.func.value, ast.Name) else \
+                            (_a.id if isinstance(_a, ast.Name) else None)
+                        if _h:
+                            child_owned.add(_h)
+            def _process_lived(_assign):
+                _p = _parent.get(_assign)
+                while _p is not None and not isinstance(_p, ast.Module):
+                    if isinstance(_p, (ast.FunctionDef, ast.AsyncFunctionDef,
+                                      ast.ClassDef, ast.Lambda)):
+                        return False
+                    _p = _parent.get(_p)
+                return _p is not None
             for _node in ast.walk(tree):
                 if isinstance(_node, ast.Assign) and isinstance(_node.value, ast.Call) \
                         and isinstance(_node.value.func, ast.Name) \
                         and _node.value.func.id == "open":
                     for _target in _node.targets:
                         if isinstance(_target, ast.Name) and _target.id not in closed_names \
-                                and _node.lineno not in with_lines:
+                                and _target.id not in child_owned \
+                                and _node.lineno not in with_lines \
+                                and not _process_lived(_node):
                             findings.append((_node.lineno, "open_no_context",
                                              "open() handle '" + _target.id + "' never closed"))
         except SyntaxError as exc:
