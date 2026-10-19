@@ -60,7 +60,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -102,7 +102,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -143,7 +143,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -187,7 +187,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -231,7 +231,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -272,7 +272,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -308,7 +308,7 @@ class AzazaelEducationalVideo:
             str(output),
         ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         if result.returncode != 0:
             print(f"  ERROR: {result.stderr}")
         elif output.exists():
@@ -412,7 +412,7 @@ def main():
     str(final_output),
     ]
 
-    subprocess.run(cmd, capture_output=True)
+    subprocess.run(cmd, capture_output=True, timeout=1800)
 
     if final_output.exists():
         print(f"Final video: {final_output}")
