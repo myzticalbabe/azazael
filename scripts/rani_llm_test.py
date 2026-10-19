@@ -27,6 +27,7 @@ import sys
 import time
 import urllib.request
 from pathlib import Path
+import subprocess as _sp
 
 RANI_ENGINE = Path(r"C:\Users\clint\Desktop\EveUnleashed_Selector\agents\adversarial\engine.py")
 OUT = Path.home() / "RANI_LLM_evidence.json"
@@ -106,7 +107,6 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
     # (pure-stdlib, 3.4ms parses). Try direct import first (works when
     # GOSP_PARSER_PATH points at a Windows-readable copy), then fall
     # back to the `wsl` subprocess bridge. GOSP_WSL_DISTRO overrides.)
-    import subprocess as _sp
     candidates = [os.environ.get("GOSP_PARSER_PATH") or "",
                   "/root/gossamer-oxford-parser"]
     for _base in candidates:

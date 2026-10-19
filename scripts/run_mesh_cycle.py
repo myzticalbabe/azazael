@@ -30,6 +30,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime
+import time as _t
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
@@ -121,7 +122,6 @@ def _sample_telemetry():
     """Cycle-level efficiency sample. Runs ONCE per cycle (never per worm:
     per-eval hooks would 1000x the cost). State file, not DB: zero lock
     contention on the hot store. Budget: single-digit milliseconds."""
-    import time as _t
     t0 = _t.perf_counter()
     s = {}
     try:
