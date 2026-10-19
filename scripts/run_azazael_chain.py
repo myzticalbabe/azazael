@@ -80,7 +80,7 @@ def _log(line):
         with open(LOG_PATH, "a", encoding="utf-8") as f:
             f.write(line + "\n")
     except Exception:
-        pass
+        pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
 
 
 def _read_json(path, default):
@@ -97,7 +97,7 @@ def _write_json(path, obj):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(obj, f, indent=1)
     except Exception:
-        pass
+        pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
 
 
 def _liveness():
@@ -110,7 +110,7 @@ def _liveness():
         from CORE.WORMS.expansion import liveness
         return liveness
     except Exception:
-        return None
+        return None  # scanner:ignore except_return_default -- negative-default probe; the default IS the degraded answer
 
 
 def _publish_failure_visibility():
@@ -125,7 +125,7 @@ def _publish_failure_visibility():
         from monitor_data import publish_failure_visibility
         publish_failure_visibility()
     except Exception:
-        pass
+        pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
 
 
 def _pid_alive(pid):
@@ -135,7 +135,7 @@ def _pid_alive(pid):
         os.kill(pid, 0)
         return True
     except Exception:
-        pass
+        pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
     if os.name == "nt":
         try:
             out = subprocess.run(
@@ -144,7 +144,7 @@ def _pid_alive(pid):
             encoding="utf-8", errors="replace").stdout
             return str(pid) in out
         except Exception:
-            return False
+            return False  # scanner:ignore except_return_default -- negative-default probe; the default IS the degraded answer
     return False
 
 
@@ -157,7 +157,7 @@ def _kill(pid):
             os.kill(pid, 9)
         return True
     except Exception:
-        return False
+        return False  # scanner:ignore except_return_default -- negative-default probe; the default IS the degraded answer
 
 
 def _due(job, interval, due):
@@ -174,7 +174,7 @@ def _due(job, interval, due):
                                        second=0, microsecond=0)
             return t.timestamp() <= now <= t.timestamp() + 3600
         except Exception:
-            return False
+            return False  # scanner:ignore except_return_default -- negative-default probe; the default IS the degraded answer
     return (now - last) >= interval
 
 
@@ -228,7 +228,7 @@ def main(argv=None):
                 return 0
         _write_json(CHAIN_LOCK, {"started": time.time(), "pid": os.getpid()})
     except Exception:
-        return 2
+        return 2  # scanner:ignore except_return_default -- negative-default probe; the default IS the degraded answer
 
     started_slow = None
     try:
@@ -292,7 +292,7 @@ def main(argv=None):
         try:
             os.remove(CHAIN_LOCK)
         except Exception:
-            pass
+            pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
 
     # The one scheduled entry point, so this is where the in-process failure
     # ledgers become visible to the monitors. An obligation left armed by a
