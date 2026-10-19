@@ -2,7 +2,10 @@
 NER Visualization — Color-highlighted entities using Stanza
 """
 
-import stanza
+try:
+    import stanza
+except ImportError as _dep_exc:
+    raise SystemExit("visualize_ner.py needs stanza (pip install stanza; downloads models on first use): " + str(_dep_exc)) from _dep_exc
 
 TEXT = "Apple CEO Tim Cook announced that the new iPhone 16 will launch \
 in San Francisco on September 12, 2025. Microsoft acquired Activision \

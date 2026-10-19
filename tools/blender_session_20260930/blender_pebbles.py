@@ -35,8 +35,11 @@ black spots are procedural, the bone is real geometry, the hat is real
 geometry. The bar is ACCURACY OF LIKENESS, and a likeness is judged against
 the subject, not against a general standard.
 """
-import bpy, sys, time, os, math
-from mathutils import Vector
+try:
+    import bpy, sys, time, os, math
+    from mathutils import Vector
+except ImportError as _dep_exc:
+    raise SystemExit("blender_pebbles.py runs inside Blender (needs bpy+mathutils from the Blender Python): " + str(_dep_exc)) from _dep_exc
 
 OUTDIR = os.path.dirname(__file__)
 RES_X, RES_Y = 1024, 1360
