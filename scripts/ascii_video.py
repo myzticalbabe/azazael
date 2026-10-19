@@ -114,7 +114,7 @@ def encode_mp4(seconds, out_path, fps=FPS, show_progress=True):
         if show_progress and f % 60 == 0:
             print(f"  frame {f}/{n}", flush=True)
     proc.stdin.close()
-    proc.wait()
+    proc.wait(timeout=1800)
     if proc.returncode != 0:
         raise RuntimeError("ffmpeg encode failed")
     return out_path, digest.hexdigest()
