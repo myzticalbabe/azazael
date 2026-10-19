@@ -193,7 +193,7 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
         rng=rng)
     info = float(info_stats.get('avg_reward', 0.0))
     alert = float(alert_stats.get('avg_reward', 0.0))
-    return (info + alert, info, alert)
+    return (_qd_weighted_total(info, alert), info, alert)
 
 
 def fitness_skill(genes, idx, info_pool=None, alert_pool=None):
@@ -1551,6 +1551,17 @@ QD_SOFT_ARCHIVE = _flag('AZAZAEL_QD_SOFT_ARCHIVE')
 QD_SOFT_ARCHIVE_ALPHA = _env_float('AZAZAEL_QD_SOFT_ALPHA', 0.3)
 # Q3: VQ-Elites-lite cell-remap measurement (adopt only if coverage > 9/16)
 QD_VQ_ELITES = _flag('AZAZAEL_QD_VQ_ELITES')
+# Q4: alert-weighted selection pressure (j=3 probe). The (*,3) alert column
+# stayed empty across 4 live cycles: alert z maxes at +0.82 against the +1.0
+# bin edge, so selection never produces high-alert outliers. Weight > 1.0
+# steers total toward alert-heavy genomes; 1.0 (default) is exactly info+alert.
+QD_ALERT_WEIGHT = _env_float('AZAZAEL_QD_ALERT_WEIGHT', 1.0)
+
+
+def _qd_weighted_total(info, alert, weight=None):
+    """Selection total with alert pressure. Pure; weight=None reads the flag."""
+    w = QD_ALERT_WEIGHT if weight is None else float(weight)
+    return float(info) + w * float(alert)
 # --- Engran #849 QD-ESCAPE: bounded non-operator novelty trials -------------
 QD_ARCHIVE_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
