@@ -47,6 +47,7 @@ from CORE.skill_library import (
     spine_eval,
 )
 from CORE.technique_runtime import note_failure, register
+from CORE.WORMS.expansion.learning_grpo import GRPOTrainer
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -166,15 +167,19 @@ def _ep155() -> Dict[str, Any]:
     distilled = distill_trajectory_to_protocol(
         {"actions": _PLAN, "outcome": "plan rendered",
          "evidence": _GROUNDING}, "worm-edit")
+    mgpo = GRPOTrainer(load_policy=False).compute_mgpo_advantages(
+        [1.0, 0.9, 0.0, -0.1], subgroups=[[0, 1], [2, 3]])
     return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories+"
                                    "load_ledger+validate_candidate+"
-                                   "distill_trajectory_to_protocol",
+                                   "distill_trajectory_to_protocol+"
+                                   "GRPOTrainer.compute_mgpo_advantages",
             "trajectories": len(trajs), "note": note, "ledger_rows": len(ledger),
             "validator_accepts_synthetic": bool(ok), "validator_reason": str(reason),
             "distilled_steps": distilled["n_steps"],
             "distilled_valid": bool(distilled["protocol"].get("valid")),
-            "delta": "protocol join live (shared EP401 wire); MGPO split "
-                     "reported-not-optimized"}
+            "mgpo_advantages": [round(a, 4) for a in mgpo],
+            "delta": "protocol join live (shared EP401 wire); MGPO "
+                     "multi-granularity objective live"}
 
 
 # --- EP162: agent skill governance / four-gate trust path ------------------------
