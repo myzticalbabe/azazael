@@ -82,6 +82,7 @@ def _git_sha():
 from CORE.WORMS.expansion.evolution import EvolutionEngine
 from CORE.WORMS.expansion.learning import RLTrainLoop
 from CORE.WORMS.expansion.scheduling import EVAL_EPISODES
+import shutil
 
 
 # G-3: shared tuning/deployment horizon (was a hardcoded 80 here vs 50 in
@@ -432,7 +433,6 @@ def _migrate_legacy_promotions():
     (.prev/.prev2) and makes the untracked state/ location authoritative so a
     repo operation cannot revert production genes.
     """
-    import shutil
     for _suffix in ('', '.prev.json', '.prev2.json', '.canary.json',
                     '.canary-failed.json'):
         _dst = PROMOTE_JSON + _suffix
@@ -3583,4 +3583,4 @@ if __name__ == '__main__':
             log('FATAL\n%s' % traceback.format_exc()[-3000:])
         except Exception:
             pass  # scanner:ignore silent_except_pass -- best-effort fallback; degraded path already handled
-        sys.exit(1)
+        sys.exit(1)
