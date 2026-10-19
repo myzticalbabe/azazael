@@ -196,7 +196,27 @@ def test_check_fails_on_a_wired_row_with_no_link_record(tmp_path, monkeypatch,
     monkeypatch.setattr(audit, "LEDGER", ledger)
     monkeypatch.setattr(audit, "_py_files", lambda: [defined])
     assert audit.main(["--check"]) == 1
-    assert "no link evidence" in capsys.readouterr().out
+    assert "neither a link nor a gap" in capsys.readouterr().out
+
+
+def test_check_fails_when_a_row_has_neither_link_nor_gap(tmp_path, monkeypatch,
+                                                         capsys):
+    """The probe shape that slipped through: no defining module, no record.
+
+    A row keyed to a class that exists nowhere classified as NONE and passed
+    `--check`, because the check only inspected rows a link had been FOUND
+    for. The gate's stated contract is "evidence or a named gap"; this pins
+    it to that, for every wired row.
+    """
+    defined = _write(tmp_path, "registered.py", REGISTERED)
+    ledger = Path(tmp_path) / "ledger.json"
+    ledger.write_text(json.dumps(_table("t:AbsentWorm.execute")), encoding="utf-8")
+    monkeypatch.setattr(audit, "LEDGER", ledger)
+    monkeypatch.setattr(audit, "_py_files", lambda: [defined])
+    assert audit.main(["--check"]) == 1
+    out = capsys.readouterr().out
+    assert "neither a link nor a gap" in out, out
+    assert "t:AbsentWorm.execute" in out, out
 
 
 def test_check_passes_after_apply(tmp_path, monkeypatch, capsys):
