@@ -127,7 +127,7 @@ def main() -> int:
         dbs = list((Path.home() / ".pmb" / "workspaces").glob("*/events.sqlite"))
         if not dbs:
             return False, "no events.sqlite"
-        c = sqlite3.connect(str(dbs[0]))
+        c = sqlite3.connect(str(dbs[0]), timeout=30)
         cols = {r[1] for r in c.execute("PRAGMA table_info(agent_actions)").fetchall()}
         stamped = c.execute(
             "SELECT COUNT(*) FROM agent_actions WHERE surface_ids IS NOT NULL "
@@ -141,7 +141,7 @@ def main() -> int:
         dbs = list(db.glob("*/events.sqlite"))
         if not dbs:
             return False, "no events.sqlite found"
-        c = sqlite3.connect(str(dbs[0]))
+        c = sqlite3.connect(str(dbs[0]), timeout=30)
         tabs = {r[0] for r in c.execute(
             "SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
         n = c.execute("SELECT COUNT(*) FROM agent_actions").fetchone()[0] \

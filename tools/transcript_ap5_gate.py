@@ -342,7 +342,7 @@ def scan_store(
     report = Report(db=db)
     uri = "file:%s?mode=ro" % db.replace("\\", "/")
     try:
-        con = sqlite3.connect(uri, uri=True)
+        con = sqlite3.connect(uri, uri=True, timeout=30)
     except sqlite3.Error as exc:
         report.schema_ok = False
         report.note = "cannot open store: %s" % exc
