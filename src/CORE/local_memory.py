@@ -1808,7 +1808,7 @@ class LocalMemoryStore:
             raise RuntimeError(f"Backup failed: {e}") from e
 
         # Verify the backup is readable
-        verify_conn = sqlite3.connect(str(target))
+        verify_conn = sqlite3.connect(str(target), timeout=30)
         try:
             row_count = verify_conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
             verify_conn.execute("SELECT COUNT(*) FROM sessions").fetchone()
@@ -2801,7 +2801,7 @@ existing
         self.stop_auto_vacuum()
         self.stop_auto_backup()
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=30)
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             conn.close()
         except Exception as exc:

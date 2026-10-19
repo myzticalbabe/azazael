@@ -73,7 +73,7 @@ def query_patterns(text: str, top_k: int = 5,
     db = Path(db_path) if db_path else _db_path()
     if not db.exists():
         return []
-    conn = sqlite3.connect(str(db))
+    conn = sqlite3.connect(str(db), timeout=30)
     try:
         rows = conn.execute(
             "SELECT 'knowledge' AS tbl, id, pattern_type, confidence, metadata, embedding "
@@ -112,7 +112,7 @@ def pattern_stats(db_path: Optional[str] = None) -> Dict[str, Any]:
     db = Path(db_path) if db_path else _db_path()
     if not db.exists():
         return {"error": "no db"}
-    conn = sqlite3.connect(str(db))
+    conn = sqlite3.connect(str(db), timeout=30)
     try:
         k = conn.execute("SELECT COUNT(*) FROM knowledge_patterns").fetchone()[0]
         ke = conn.execute("SELECT COUNT(*) FROM knowledge_patterns WHERE embedding != '[]'").fetchone()[0]

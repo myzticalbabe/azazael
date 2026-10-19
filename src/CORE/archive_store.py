@@ -37,7 +37,7 @@ def query_all(sql: str, params: tuple = (),
         raise ValueError("archive_store only runs SELECT queries")
     out: Dict[str, Any] = {"hot": [], "archives": {}}
     if HOT_DB.exists():
-        conn = sqlite3.connect(str(HOT_DB))
+        conn = sqlite3.connect(str(HOT_DB), timeout=30)
         try:
             out["hot"] = conn.execute(sql, params).fetchall()
         finally:
@@ -45,7 +45,7 @@ def query_all(sql: str, params: tuple = (),
     for arch in list_archives(archive_dir):
         month = arch.stem.replace("memory_", "")
         try:
-            conn = sqlite3.connect(str(arch))
+            conn = sqlite3.connect(str(arch), timeout=30)
             try:
                 out["archives"][month] = conn.execute(sql, params).fetchall()
             finally:
@@ -60,7 +60,7 @@ def archive_summary(archive_dir: (Path | None) = None) -> List[Dict[str, Any]]:
     """Row counts per archive from the hot manifest (no file opens)."""
     if not HOT_DB.exists():
         return []
-    conn = sqlite3.connect(str(HOT_DB))
+    conn = sqlite3.connect(str(HOT_DB), timeout=30)
     try:
         rows = conn.execute(
             "SELECT month, db_path, memories_moved, sessions_moved, moved_at "

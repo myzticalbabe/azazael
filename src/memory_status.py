@@ -88,7 +88,7 @@ class MemoryStatus:
 
         try:
             import sqlite3
-            with sqlite3.connect(str(graph_db)) as conn:
+            with sqlite3.connect(str(graph_db), timeout=30) as conn:
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
 
