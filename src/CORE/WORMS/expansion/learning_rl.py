@@ -976,11 +976,20 @@ class RLTrainLoop:
             "best_score": tune_result.get("best_score"),
         }
 
-    def train_episode(self, env, agent, max_steps: int = 1000) -> Dict[str, Any]:
-        """Run a single training episode (backward-compatible mock training)."""
+    def train_episode(self, env, agent, max_steps: int = 1000,
+                        learning_rate: float = 0.1,
+                        discount_factor: float = 0.9) -> Dict[str, Any]:
+        """Run a single training episode (backward-compatible mock training).
+
+        Re-engineered in place (Oct-19): each mock step now applies the same
+        Q-learning update as train_from_memory, so mock episodes grow the
+        shared Q-table (visible via get_training_stats/recommend) instead of
+        only appending dead stats. Signature stays backward-compatible.
+        """
         state = getattr(env, "reset", lambda: 0)()
         total_reward = 0.0
         steps = 0
+        q_updates = 0
         for _ in range(max_steps):
             action = getattr(agent, "act", lambda s: 0)(state)
             try:
@@ -988,12 +997,24 @@ class RLTrainLoop:
             except Exception as exc:  # noqa: BLE001 — broken env stops episode
                 note_failure("learning_rl:L897", exc)
                 break
+            reward = float(reward)
+            state_key = "mock:%s" % (repr(state),)
+            try:
+                action_idx = int(action)
+            except (TypeError, ValueError):
+                action_idx = 0
+            old_q = self._q_table[state_key].get(action_idx, 0.0)
+            next_max_q = max(self._q_table[state_key].values(), default=0.0)
+            self._q_table[state_key][action_idx] = old_q + learning_rate * (
+                reward + discount_factor * next_max_q - old_q)
+            q_updates += 1
             total_reward += reward
             state = next_state
             steps += 1
             if done:
                 break
-        episode = {"steps": steps, "total_reward": total_reward, "timestamp": time.time()}
+        episode = {"steps": steps, "total_reward": total_reward, "timestamp": time.time(),
+                   "q_updates": q_updates}
         with self._lock:
             self._episodes.append(episode)
         return episode
