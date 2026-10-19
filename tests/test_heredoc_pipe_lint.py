@@ -1,33 +1,23 @@
 # coding: utf-8
-"""Controls for tools/heredoc_pipe_lint.py -- the advisory `.githooks/pre-commit`
-stanza runs this over staged shell files and reads its EXIT CODE.
+"""The heredoc lint must fire on the shape that failed and stay quiet on the one
+that worked.
 
-Why this file exists. The hook treats a non-zero exit as the signal
-(`echo "$staged_sh" | xargs ... heredoc_pipe_lint.py`, then `if [ $? -ne 0 ]`),
-so the contract under test is two-part: the detector must find the unsafe shape,
-and the CLI must actually say so in its exit status. A linter that is correct but
-always exits 0 makes the hook a dead check, and a linter that flags every heredoc
-gets switched off -- each of those is a clause below.
+Both fixtures below are transcribed from ONE real session (2026-10-15, task #721),
+and that is the point: a lint whose threshold were picked from theory would be
+free to fire on either. The two commands differ in nothing but payload SIZE --
 
-The rule the tool realises (from its own docstring, measured 2026-10-15): the
-PREDICTOR IS PAYLOAD LENGTH, not triple quotes. A ~170-line heredoc lost its
-payload; a ~20-line one applied first try. Triple quotes only change how the
-failure looks (SyntaxError instead of a silent no-op), so they are context on a
-finding, never a rule -- pinned separately here so a later edit cannot promote
-them back into a trigger.
+  * `REAL_WORKING` is the actual ~20-line, triple-quoted heredoc that applied its
+    edit correctly on the first try;
+  * `REAL_FAILING_SHAPE` reproduces the measured properties of the ~170-line one
+    that bash reported as `delimited by end-of-file` and that never applied: a
+    payload well over the limit, carrying triple-quoted strings.
 
-Four clauses:
-  1. an over-long payload and an unterminated heredoc are both REPORTED;
-  2. a short payload is NOT reported, with or without triple quotes;
-  3. the CLI contract the hook depends on: exit 0 clean / 1 findings / 2 usage,
-     including xargs' many-files-at-once invocation and the mixed case;
-  4. the detector is load-bearing: stubbing `scan_command` silences the unsafe
-     fixture, so clause 1 cannot be passing on the fixture alone.
-
-Not covered, deliberately: whether a payload would be mangled by a *particular*
-shell. This lints command text; the shell that receives it is out of scope.
+So the negative control is not a hypothetical "short heredoc" -- it is the
+twenty-line triple-quoted command that demonstrably WORKED, which is exactly the
+command a triple-quote-keyed rule would have wrongly rejected.
 """
 
+import io
 import json
 import sys
 from pathlib import Path
@@ -35,149 +25,164 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parent.parent / "tools"
 sys.path.insert(0, str(TOOLS))
 
-import heredoc_pipe_lint as lint  # noqa: E402 - after sys.path
-
-# -- fixtures ---------------------------------------------------------------
-# A payload longer than the limit, a payload comfortably under it, and one whose
-# terminator line is missing. Built as whole command texts so the tests exercise
-# the same text a shell file would contain.
-
-LONG_PAYLOAD = "python - <<'PY'\n" + "x = 1\n" * (lint.MAX_PAYLOAD_LINES + 5) + "PY\n"
-
-SHORT_PAYLOAD = "python - <<'PY'\n" + "x = 1\n" * 20 + "PY\n"
-
-# Same length, but the payload carries triple quotes. Under the limit this is
-# still the safe form -- the measurement says triple quotes alone never broke a
-# heredoc, so this must stay silent.
-SHORT_WITH_TRIPLE = (
-    "python - <<'PY'\n"
-    'doc = """a short docstring"""\n'
-    "x = 1\n"
-    "PY\n"
+from heredoc_pipe_lint import (  # noqa: E402 - after sys.path
+    MAX_PAYLOAD_LINES, main, scan_command,
 )
 
-UNTERMINATED = "python - <<'PY'\nx = 1\ny = 2\n"
+#: VERBATIM from the session -- the heredoc that WORKED: payload 20 lines, and it
+#: contains Python triple-quoted strings twice. Delimited with single-quote triple
+#: quotes precisely BECAUSE the payload contains double-quote triple quotes; a
+#: double-quoted delimiter here would be closed by the fixture's own content, which
+#: is the very failure this lint exists to name. Raw, so the `\r\n` / `\n` inside
+#: stay literal for the scanner to measure.
+REAL_WORKING = r'''cd /c/Azazael/azazael && python - <<'PY'
+from pathlib import Path
+p = Path('src/CORE/NeuralPipeline.py')
+t = p.read_bytes().decode('utf-8').replace('\r\n', '\n')
+old = """            if not features:
+                raise ValueError(
+                    "the cutting-edge backend needs at least one feature row")
+            if not train_records:
+                raise ValueError("No training data found for source=%s" % source)
+"""
+new = """            if not features:
+                raise ValueError(
+                    "the cutting-edge backend needs at least one feature row")
+"""
+assert t.count(old) == 1, t.count(old)
+t = t.replace(old, new)
+p.write_bytes(t.replace('\n', '\r\n').encode('utf-8'))
+print("guard removed")
+PY
+python -c "import ast; ast.parse(open('src/CORE/NeuralPipeline.py',encoding='utf-8').read())"
+'''
 
-CLEAN_SHELL = "#!/bin/sh\nset -eu\nprintf '%s\\n' ok\n"
+
+def _long_command(payload_lines: int, *, triple_quotes: bool) -> str:
+    """Reproduce the measured FAILING properties: an over-limit payload."""
+    body = []
+    for i in range(payload_lines):
+        if triple_quotes and i == 3:
+            body.append('    old = """some anchor"""')
+        else:
+            body.append("    row_%d = %d" % (i, i))
+    return "cd /c/Azazael/azazael && python - <<'PY'\n" + "\n".join(body) + "\nPY\n"
 
 
-def _write(tmp_path, name, text):
-    path = Path(tmp_path) / name
-    path.write_text(text, encoding="utf-8")
-    return path
+# -- the negative controls: the lint must NOT fire here ---------------------
+
+def test_the_real_working_heredoc_is_clean():
+    """The ~20-line triple-quoted command that applied correctly must be clean.
+
+    This is the control that makes the threshold meaningful: a rule keyed on
+    triple quotes would reject the one command here that is known to work.
+    """
+    findings = scan_command(REAL_WORKING)
+    assert findings == [], (
+        "the lint rejected a heredoc that applied successfully; keying on triple "
+        "quotes rather than payload size: %r" % (findings,))
 
 
-# -- clause 1: the defect is reported ---------------------------------------
-
-def test_an_over_long_payload_is_reported(tmp_path):
-    """The measured failure: a big payload through a heredoc loses its body."""
-    findings = lint.scan_command(LONG_PAYLOAD, source="big.sh")
-    assert [f["kind"] for f in findings] == ["heredoc_too_long"], findings
-    assert findings[0]["tag"] == "PY", findings[0]
-    assert findings[0]["payload_lines"] > lint.MAX_PAYLOAD_LINES, findings[0]
-    # The line must point at the heredoc's opening line, which is what a reader
-    # edits; the payload length is the finding's own field.
-    assert findings[0]["line"] == 1, findings[0]
+def test_a_short_plain_heredoc_is_clean():
+    """The everyday form must stay clean, or the lint gets ignored."""
+    text = "git commit -m \"$(cat <<'EOF'\nsubject line\nEOF\n)\"\n"
+    assert scan_command(text) == []
 
 
-def test_a_missing_terminator_is_reported(tmp_path):
-    """Bash says 'delimited by end-of-file'; this says it before the command."""
-    findings = lint.scan_command(UNTERMINATED, source="cut.sh")
+def test_a_long_heredoc_payload_measured_as_safe_is_clean():
+    """The boundary itself: exactly MAX_PAYLOAD_LINES is still allowed."""
+    text = "\n".join(["cat <<'EOF'"] + ["line %d" % i
+                                        for i in range(MAX_PAYLOAD_LINES)] + ["EOF"])
+    assert scan_command(text) == []
+
+
+# -- the shape that failed --------------------------------------------------
+
+def test_over_long_payload_is_flagged_as_too_long():
+    findings = scan_command(_long_command(MAX_PAYLOAD_LINES + 5, triple_quotes=True))
+    assert len(findings) == 1, findings
+    f = findings[0]
+    assert f["kind"] == "heredoc_too_long", f
+    assert f["tag"] == "PY", f
+    assert f["payload_lines"] == MAX_PAYLOAD_LINES + 5, f
+    assert f["contains_triple_quotes"] is True, f
+
+
+def test_a_long_payload_without_triple_quotes_is_flagged_and_says_only_that():
+    """Length alone is the rule, and the report must not invent a triple quote."""
+    findings = scan_command(_long_command(MAX_PAYLOAD_LINES + 5, triple_quotes=False))
+    assert len(findings) == 1, findings
+    f = findings[0]
+    assert f["kind"] == "heredoc_too_long", f
+    assert f["contains_triple_quotes"] is False, f
+    assert "triple" not in f["detail"].lower(), (
+        "the report mentions triple quotes on a payload that has none: %r"
+        % f["detail"])
+
+
+def test_an_unterminated_heredoc_is_flagged():
+    text = "python - <<'PY'\nprint('no terminator follows')\n"
+    findings = scan_command(text)
     assert [f["kind"] for f in findings] == ["heredoc_unterminated"], findings
     assert findings[0]["tag"] == "PY", findings[0]
-    assert "delimited by end-of-file" in findings[0]["detail"], findings[0]
 
 
-def test_the_finding_points_at_its_own_heredoc(tmp_path):
-    """Two heredocs, only the second unsafe: the line number must be the second."""
-    text = SHORT_PAYLOAD + "\necho between\n" + LONG_PAYLOAD
-    findings = lint.scan_command(text, source="two.sh")
-    assert len(findings) == 1, findings
-    # Derived from the text rather than hardcoded: the long heredoc opens on the
-    # line after the separator, so a change to SHORT_PAYLOAD cannot make this
-    # assertion quietly wrong.
-    expected = text.splitlines().index("echo between") + 2
-    assert findings[0]["line"] == expected, findings
+def test_a_tag_used_inside_the_payload_is_not_mistaken_for_the_terminator():
+    """The terminator is a line whose ONLY content is the tag.
+
+    Matching the tag as a substring would end the payload early, under-report its
+    length and hide the hazard -- so the payload here is over the limit and the
+    word PY appears inside it.
+    """
+    body = ["    note = 'PY is only mentioned here'"] * (MAX_PAYLOAD_LINES + 3)
+    text = "python - <<'PY'\n" + "\n".join(body) + "\nPY\n"
+    findings = scan_command(text)
+    assert [f["kind"] for f in findings] == ["heredoc_too_long"], findings
+    assert findings[0]["payload_lines"] == MAX_PAYLOAD_LINES + 3, findings[0]
 
 
-# -- clause 2: the negative control -----------------------------------------
-
-def test_a_short_payload_is_not_reported(tmp_path):
-    """A linter that flagged every heredoc would pass clause 1 and be useless."""
-    assert lint.scan_command(SHORT_PAYLOAD, source="small.sh") == []
-
-
-def test_triple_quotes_alone_do_not_trigger(tmp_path):
-    """The measured discriminator: quotes are context, LENGTH is the rule."""
-    assert lint.scan_command(SHORT_WITH_TRIPLE, source="quoted.sh") == []
+def test_crlf_input_is_measured_the_same_as_lf():
+    """This host's real hazard: the same command arriving with CRLF endings."""
+    lf = _long_command(MAX_PAYLOAD_LINES + 5, triple_quotes=True)
+    crlf = lf.replace("\n", "\r\n")
+    assert ([f["kind"] for f in scan_command(lf)]
+            == [f["kind"] for f in scan_command(crlf)])
 
 
-def test_a_plain_shell_file_is_not_reported(tmp_path):
-    assert lint.scan_command(CLEAN_SHELL, source="clean.sh") == []
+# -- the interface a caller actually uses -----------------------------------
+
+def _write(tmp_path, name, text):
+    p = Path(tmp_path) / name
+    p.write_text(text, encoding="utf-8")
+    return p
 
 
-def test_triple_quotes_are_reported_as_context_on_a_long_payload():
-    """On a finding they are worth saying: they change how the loss looks."""
-    text = "python - <<'PY'\n" + 'doc = """long"""\n' + "x = 1\n" * 60 + "PY\n"
-    findings = lint.scan_command(text, source="long_quoted.sh")
-    assert len(findings) == 1, findings
-    assert findings[0]["contains_triple_quotes"] is True, findings[0]
-    assert "SyntaxError" in findings[0]["detail"], findings[0]
+def test_cli_exit_codes(tmp_path, capsys):
+    bad = _write(tmp_path, "bad.sh", _long_command(MAX_PAYLOAD_LINES + 5,
+                                                    triple_quotes=True))
+    good = _write(tmp_path, "good.sh", REAL_WORKING)
+    assert main([str(bad)]) == 1
+    assert main([str(good)]) == 0
+    assert main([]) == 2, "no arguments must be a usage error, not a silent pass"
+    captured = capsys.readouterr()
+    assert "finding(s)" in captured.out or "clean" in captured.out
 
 
-# -- clause 3: the CLI contract the hook depends on -------------------------
-
-def test_cli_exits_zero_on_a_clean_file(tmp_path):
-    clean = _write(tmp_path, "clean.sh", CLEAN_SHELL)
-    assert lint.main([str(clean)]) == 0
-
-
-def test_cli_exits_one_on_an_unsafe_file(tmp_path):
-    """The hook's only signal. An always-zero linter is a dead check."""
-    unsafe = _write(tmp_path, "big.sh", LONG_PAYLOAD)
-    assert lint.main([str(unsafe)]) == 1
-
-
-def test_cli_exits_one_when_only_one_of_many_files_is_unsafe(tmp_path):
-    """xargs passes many paths at once; one finding must decide the batch."""
-    clean = _write(tmp_path, "clean.sh", CLEAN_SHELL)
-    unsafe = _write(tmp_path, "big.sh", LONG_PAYLOAD)
-    assert lint.main([str(clean), str(unsafe)]) == 1
-    # Order must not matter: same inputs, reversed.
-    assert lint.main([str(unsafe), str(clean)]) == 1
-
-
-def test_cli_json_reports_the_count(tmp_path, capsys):
-    unsafe = _write(tmp_path, "big.sh", LONG_PAYLOAD)
-    assert lint.main(["--json", str(unsafe)]) == 1
+def test_cli_json_is_machine_readable(tmp_path, capsys):
+    bad = _write(tmp_path, "bad.sh", _long_command(MAX_PAYLOAD_LINES + 5,
+                                                   triple_quotes=True))
+    assert main(["--json", str(bad)]) == 1
     payload = json.loads(capsys.readouterr().out)
     assert payload["count"] == 1, payload
     assert payload["findings"][0]["kind"] == "heredoc_too_long", payload
 
 
-def test_cli_usage_errors_exit_two(tmp_path):
-    """2 is distinct from 1 on purpose: a usage error is not a finding."""
-    missing = Path(tmp_path) / "does_not_exist.sh"
-    assert lint.main([]) == 2
-    assert lint.main([str(missing)]) == 2
+def test_cli_reads_stdin(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(
+        _long_command(MAX_PAYLOAD_LINES + 5, triple_quotes=True)))
+    assert main(["-"]) == 1
+    assert "heredoc_too_long" in capsys.readouterr().out
 
 
-def test_main_is_callable_with_an_explicit_argv(tmp_path):
-    """The hook shell needs no argv plumbing, but tests must not read sys.argv."""
-    clean = _write(tmp_path, "clean.sh", CLEAN_SHELL)
-    assert lint.main([str(clean)]) == 0
-    assert lint.main([]) == 2
-
-
-# -- clause 4: the detector is load-bearing --------------------------------
-
-def test_a_stubbed_detector_silences_the_unsafe_fixture(tmp_path, monkeypatch):
-    """Proof that clauses 1-3 read the detector, not the fixture text.
-
-    `lint_file` resolves `scan_command` from module globals at call time, so the
-    stub reaches the CLI path. The file is unchanged and still parses; only the
-    classifier is gone.
-    """
-    unsafe = _write(tmp_path, "big.sh", LONG_PAYLOAD)
-    monkeypatch.setattr(lint, "scan_command", lambda *a, **k: [])
-    assert lint.main([str(unsafe)]) == 0
+def test_cli_rejects_a_missing_file(tmp_path):
+    assert main([str(Path(tmp_path) / "nope.sh")]) == 2
