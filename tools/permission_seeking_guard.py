@@ -11,6 +11,12 @@ them. Compliance reduced to recall, and recall failed. See
 tools/permission_seeking_guard.py tests for the negative controls that keep
 this validator from becoming its own false-green instrument.
 
+Single rulebook, many sources: this module is the ONLY place AP-5 patterns
+live. tools/transcript_ap5_gate.py applies `scan()` to EVERY registered
+transcript source (its SOURCE_REGISTRY rows) through its shared
+`_findings_for`; per-source work is packaged there, detection semantics
+change only here, so no source can silently fork the rulebook.
+
 Usage:
     python tools/permission_seeking_guard.py --file draft.md
     type draft.md | python tools/permission_seeking_guard.py
