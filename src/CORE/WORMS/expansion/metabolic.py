@@ -23,6 +23,7 @@ import os
 import threading
 from datetime import datetime
 from typing import Any, List
+import time as _t
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -275,7 +276,6 @@ class QuotaEnforcerWorm:
         self._lock = threading.Lock()
 
     def allow(self, scope: str = "groq") -> dict[str, Any]:
-        import time as _t
         now = _t.time()
         with self._lock:
             bucket = self._hits.setdefault(scope, [])

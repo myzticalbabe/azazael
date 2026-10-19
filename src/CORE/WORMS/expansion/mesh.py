@@ -15,6 +15,9 @@ import threading
 import platform
 from datetime import datetime
 from typing import Any, List
+import time as _time
+import os as _os
+import sysconfig
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -94,7 +97,6 @@ except ImportError as exc:
     _FREETHREAD = False
     ThreadSafeDict = dict
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:
@@ -159,7 +161,6 @@ def _env_id() -> str:
     """
     if _CANONICAL_ENV:
         return _canonical_env_id()
-    import os
     if os.name == 'nt':
         return "windows"
     ver = _read_text('/proc/version').lower()
@@ -182,7 +183,6 @@ def describe_env() -> dict:
         out = _canonical_describe_env()
         out["ft"] = is_free_threaded()
         return out
-    import os
     return {"env": _env_id(), "virt": "unknown", "cpu": os.cpu_count() or 0,
             "mem_gb": 0.0, "ft": is_free_threaded(), "bare_likely": False}
 
@@ -353,7 +353,6 @@ class MeshRouterWorm:
         has typed every result since the 2026-09-27 audit, and send() was
         ignoring the types and poisoning routes with -1s for dead peers).
         """
-        import time as _time
         scored = self.route(dst_env, payload)
         t0 = _time.time()
         try:
@@ -527,7 +526,6 @@ class PartitionHealerWorm:
         hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def detect(self) -> dict[str, Any]:
-        import os
         import subprocess
         import tempfile
         issues = []
@@ -664,7 +662,6 @@ class EnvBeaconWorm:
         hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def beacon(self) -> dict[str, Any]:
-        import os as _os
         cap = {
             "env": _env_id(),
             "ft": is_free_threaded(),
