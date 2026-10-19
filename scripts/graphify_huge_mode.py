@@ -1,3 +1,4 @@
+import math
 def _write_huge_html(
     G: nx.Graph,
     communities: dict[int, list[str]],
@@ -18,7 +19,6 @@ def _write_huge_html(
         sequential <script> tags, so no single parse is gigantic;
       * render with physics disabled at the precomputed positions.
     """
-    import math
     import random
     import re as _re
 

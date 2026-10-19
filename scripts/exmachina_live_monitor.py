@@ -27,6 +27,8 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timezone
+import re
+import shutil as _sh
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -129,7 +131,6 @@ def _disp_w(ch):
 
 def _vis_len(s):
     """Visible width in COLUMNS, ignoring ANSI color codes."""
-    import re
     global _ANSI_RE
     if _ANSI_RE is None:
         _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
@@ -145,7 +146,6 @@ def _fit(s, width):
     Colors are stripped on truncation (simpler than re-closing codes, and
     truncated lines are rare edge cases on narrow windows).
     """
-    import re
     global _ANSI_RE
     if _ANSI_RE is None:
         _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
@@ -1301,7 +1301,6 @@ def _paint_in_place(frame_lines):
     frame. Never emits a trailing newline past the bottom row, so the console
     never scrolls -- everything stays on one screen and updates in place.
     """
-    import shutil as _sh
     size = _sh.get_terminal_size((100, 30))
     # FULL window height: render() already leaves the last column free, so a
     # line cannot wrap and the last row is safe to use. Reserving it just made
@@ -1334,7 +1333,6 @@ def _paint_in_place(frame_lines):
 
 def _strip_ansi(text):
     """Drop SGR sequences so the log stays greppable."""
-    import re
     global _ANSI_RE
     if _ANSI_RE is None:
         _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")

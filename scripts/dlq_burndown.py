@@ -18,6 +18,7 @@ import json
 import math
 from pathlib import Path
 from collections import defaultdict
+import argparse
 
 _script_dir = Path(__file__).resolve().parent
 _src_dir = _script_dir.parent / "src"
@@ -199,7 +200,6 @@ def show(hours: int, color: bool, as_json: bool):
 # ── Main ─────────────────────────────────────────────────────────
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(
         description="DLQ Burndown — terminal burndown chart of DLQ failures",
     )

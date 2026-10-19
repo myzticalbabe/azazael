@@ -59,6 +59,7 @@ def _ensure_gil():
 _ensure_gil()
 sys.path.insert(0, HERE)
 from bcc_network_sna import analyze, export_csv  # noqa: E402
+import shutil
 
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 SRC = os.path.join(ROOT, "src")
@@ -208,7 +209,6 @@ def live_counts() -> dict:
     out = {}
     if not mem:
         return out
-    import shutil
     import sqlite3
     import tempfile
     import time
