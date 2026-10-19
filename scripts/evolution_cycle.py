@@ -1158,7 +1158,7 @@ MORPH_HISTORY = os.path.join(os.path.dirname(PROMOTE_JSON),
 # genome can be PRUNED and COMPILED into a model rather than only searched.
 #
 # Unlike the Oracle, this needs no GIL interpreter: it is pure Python, so it
-# runs identically under python3.14t and python314. It is refreshed every cycle
+# runs identically under 3.15t and the 3.15 GIL sidecar. It is refreshed every cycle
 # because it costs O(rows) and reuses the same history feed the oracle uses.
 #
 # Advisory and fail-open by construction: a genome refresh must never be able to
@@ -1302,9 +1302,9 @@ def _morph_cycle_index():
             return sum(1 for line in fh if line.strip())
     except Exception:
         return 0
-# Training needs torch. The production runner executes every cycle under
-# python3.14t.exe, where torch CANNOT load (abi cp314 vs cp314t), so training
-# runs in the GIL interpreter as a subprocess and only JSON crosses back.
+# Training needs torch. The production runner executes every cycle under the
+# free-threaded 3.15t build (py315t), where the torch wheel cannot load, so
+# training runs in the 3.15 GIL sidecar as a subprocess and only JSON crosses back.
 PY_GIL = os.environ.get(
     'AZAZAEL_PY_GIL',
     r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe')
@@ -3485,7 +3485,7 @@ def main(crossover_operator=None, mutation_operator=None,
                 log('morph record failed: %s' % str(e)[:120])
         # Tensor genome (the deliverable): refresh the self-describing artifact
         # from the same history the oracle feed reads. Pure Python, so it runs
-        # under python3.14t as well as the GIL interpreter. Advisory: a failure
+        # under 3.15t as well as the 3.15 GIL sidecar. Advisory: a failure
         # here must never abort a promotion cycle, so it is swallowed and logged.
         _tensor_genome_refresh()
         if promoted and best:

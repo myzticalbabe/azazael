@@ -42,8 +42,25 @@ class PythonInstallation:
 class PythonManager:
     VERSION = "1.0.0"
 
+    #: Production interpreter. 3.14t was retired and archived 2026-10-19; the
+    #: 3.14m venv below is the only sanctioned 3.14 runtime.
+    PRODUCTION_VENV = "C:/Azazael/.venvs/py315t/Scripts/python.exe"
+
     # All known Python installations
     INSTALLATIONS = {
+        "C:/Azazael/.venvs/py315t/Scripts/python.exe": {
+            "ver": "3.15.0rc3",
+            "cat": "AZAEAZEL",
+            "azazael": True,
+        },
+        "C:/Azazael/.venvs/py315/Scripts/python.exe": {
+            "ver": "3.15.0rc3",
+            "cat": "AZAEAZEL",
+        },
+        "C:/Azazael/.venvs/py314m/Scripts/python.exe": {
+            "ver": "3.14.5",
+            "cat": "AZAEAZEL",
+        },
         "C:/Python314/python.exe": {"ver": "3.14.3", "cat": "SYSTEM"},
         "C:/Program Files/Python311/python.exe": {"ver": "3.11.9", "cat": "SYSTEM"},
         "C:/ProgramData/chocolatey/bin/python3.14.exe": {
@@ -146,12 +163,19 @@ class PythonManager:
 
     def get_azazael_venv(self) -> (PythonInstallation | None):
         """Get the primary Azazael venv."""
+        # The production venv wins outright. Without this the loop below would
+        # return the first legacy azazael-flagged entry (a 3.11 desktop venv)
+        # as "the" Azazael interpreter.
+        if self.PRODUCTION_VENV in self.installations:
+            return self.installations[self.PRODUCTION_VENV]
         # Dynamic resolution: prefer env var, then search known venv paths
         azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", ""))
         if azazael_root:
-            azazael_path = str(Path(azazael_root) / ".venv" / "Scripts" / "python.exe")
-            if azazael_path in self.installations:
-                return self.installations.get(azazael_path)
+            for rel in ((".venvs", "py315t", "Scripts", "python.exe"),
+                        (".venv", "Scripts", "python.exe")):
+                azazael_path = str(Path(azazael_root).joinpath(*rel))
+                if azazael_path in self.installations:
+                    return self.installations.get(azazael_path)
         # Fallback: search installations for azazael-flagged entries
         for inst in self.installations.values():
             if inst.is_azazael_venv:

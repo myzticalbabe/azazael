@@ -58,12 +58,19 @@ else
     done
 fi
 
-# Last resort measured on this box: the install the resolver itself prefers.
+# Last resort: the project's own roles, primary first (3.14t is retired).
+# The Python314 install is deliberately absent from this ladder: it is a base
+# interpreter kept on disk, not a launch choice.
 if [ -z "$PY" ] || [ ! -x "$PY" ]; then
-    PY="$HOME/AppData/Local/Programs/Python/Python314/python.exe"
+    for cand in \
+        "C:/Azazael/.venvs/py315t/Scripts/python.exe" \
+        "C:/Azazael/.venvs/py315/Scripts/python.exe" \
+        "C:/Azazael/.venvs/py314m/Scripts/python.exe"; do
+        [ -x "$cand" ] && { PY="$cand"; break; }
+    done
     [ -x "$PY" ] || {
         echo "graphify_bin.sh: no usable graphify interpreter found" >&2
-        echo "  tried: resolver candidates, then $PY" >&2
+        echo "  tried: resolver candidates, then the 3.15t/3.15-gil/3.14m roles" >&2
         echo "  set GRAPHIFY_PY=<python with graphify installed>" >&2
         exit 127
     }

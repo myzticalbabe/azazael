@@ -15,9 +15,10 @@ over.
 | **py315t (production)** | `C:\Azazael\.venvs\py315t\Scripts\python.exe` | 3.15.0rc3, free-threaded, `gil_enabled=False` | **the only production target** |
 | system 3.15t | `...\Programs\Python\Python315\python3.15t.exe` | 3.15.0rc3 | fallback rung in launcher ladders |
 | system 3.15 GIL | `...\Python315\python.exe` | 3.15 | venv base; not a run target |
-| Python 3.14 | `...\Python314\python.exe` | 3.14.7 | **legacy** — still hosts `codegraph` MCP entry and the PMB venv |
+| Python 3.14 | `...\Python314\python.exe` | 3.14.7 | **legacy base install** — exists, but is not a run target; `codegraph` still names it (open, §7) |
+| **py314m (fallback)** | `C:\Azazael\.venvs\py314m\Scripts\python.exe` | 3.14.5 GIL | the **only sanctioned 3.14** runtime, for a package with no 3.15 build |
 | py315 / build315t venvs | `C:\Azazael\.venvs\{py315,build315t}` | 3.15 | build/env support, not run targets |
-| `.pmb-venv`, `venv-314t`, `venv-313-tools`, `venv-interpreter` | outside repo | mixed | **outside this audit** — PMB ships its own venv |
+| `.pmb-venv`, `venv-314t`, `venv-313-tools`, `venv-interpreter` | outside repo | mixed | **outside this audit** — `venv-314t` is RETIRED (2026-10-19, archived); PMB ships its own venv |
 
 ## 2. Consumer map — who chooses which interpreter (all verified)
 

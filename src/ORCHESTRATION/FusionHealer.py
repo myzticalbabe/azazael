@@ -116,7 +116,7 @@ class FusionHealer:
         self.log("Checking system paths...", "INFO")
         paths_to_check = [
             r"C:\Users\clint\Desktop\Azazael_UNIFIED",
-            r"C:\Python314",
+            r"C:\Azazael\.venvs\py315t",
             r"C:\Program Files\Python311",
         ]
         for p in paths_to_check:
@@ -127,8 +127,10 @@ class FusionHealer:
 
     def _validate_python_installations(self):
         self.log("Validating Python installations...", "INFO")
+        # Production 3.15t leads; 3.14t was retired 2026-10-19.
         pythons = [
-            r"C:\Python314\python.exe",
+            r"C:\Azazael\.venvs\py315t\Scripts\python.exe",
+            r"C:\Azazael\.venvs\py314m\Scripts\python.exe",
             r"C:\Program Files\Python311\python.exe",
         ]
         for py in pythons:

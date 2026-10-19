@@ -122,7 +122,7 @@ The **RANI (Recursive Adversarial Native Intelligence) VL Framework** is a multi
 
 ### Desktop Standalone Apps
 1. **Vault Enhancements** — Visual diff, keyboard shortcuts, settings panel
-2. **Nuitka 3.14t** — Verify Nuitka compatibility with 3.14 free-threading
+2. **Nuitka 3.15t** — Verify Nuitka compatibility with 3.15 free-threading
 3. **Cross-Platform** — Linux/macOS builds for core EXEs
 4. **Unified Launcher** — Single entry point for all Desktop apps
 5. **Auto-Updater** — Built-in update mechanism for standalone EXEs

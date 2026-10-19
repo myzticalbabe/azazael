@@ -1,5 +1,10 @@
 # Torch cp314t Build Troubleshooting Guide
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). This guide
+> is a record of the cp314t build era; do not read it as a current build target.
+
 > Build target: torch 2.10.0 for Python 3.14t cp314t ABI
 > Environment: WSL2 Ubuntu 26.04, g++ 15.2.0
 

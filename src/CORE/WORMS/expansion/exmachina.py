@@ -9,8 +9,9 @@ pool by +2.91..+3.39 on all 50 cycles and SPRT promoted 50/50, while the fresh
 holdout admitted 0 of 4. The optimiser was working perfectly and the system had
 no organ capable of noticing it was being gamed by its own fitness function.
 
-Every module here is stdlib-only, because the production runner executes cycles
-under `python3.14t.exe` where torch and numpy cannot load. A technique that
+Every module here is stdlib-only, because this tier must run unchanged in both
+interpreters the project uses — the free-threaded 3.15t production runner and the
+3.15 GIL sidecar — where a C-extension may or may not load. A technique that
 needs a C-extension cannot live in this tier.
 
 Implemented now (all ten run today, on real artifacts):

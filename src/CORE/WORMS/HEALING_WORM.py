@@ -30,11 +30,14 @@ def _find_python():
     """Find a real Python interpreter on the system."""
     if not _is_nuitka():
         return sys.executable
-    # In Nuitka context, try to find a real Python
-    # Python 3.14t is the primary Python. Python 3.13 is not used.
+    # In Nuitka context, try to find a real Python.
+    # Production is the free-threaded 3.15t venv. The 3.14t venv was retired
+    # and archived 2026-10-19; the 3.14m venv is the only sanctioned 3.14
+    # runtime, for a package that genuinely has no 3.15 build.
     candidates = [
-        Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python.exe",
-        Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python3.14t.exe",
+        Path("C:/Azazael/.venvs/py315t/Scripts/python.exe"),
+        Path("C:/Azazael/.venvs/py315/Scripts/python.exe"),
+        Path("C:/Azazael/.venvs/py314m/Scripts/python.exe"),
     ]
     for p in candidates:
         if Path(p).exists():

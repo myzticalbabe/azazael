@@ -1,5 +1,9 @@
 # C++ Extension Loading vs g++ Native Extension Loading
-## Comprehensive Qualitative Efficiency Analysis for Python 3.14t Free-Threaded Ecosystem
+## Comprehensive Qualitative Efficiency Analysis for Python 3.14t Free-Threaded Ecosystem (historical)
+
+> **3.14 RETIRED 2026-10-19** — the ABI reasoning below is about `cp314t`; it
+> remains valid for understanding wheel tags but describes a retired runtime.
+> Production is the 3.15t venv (`C:\Azazael\.venvs\py315t`).
 
 > **Date:** 2026-05-28 | **Author:** AZAZAEL Engineering  
 > **Python:** 3.14.5 free-threading (cp314t ABI)  

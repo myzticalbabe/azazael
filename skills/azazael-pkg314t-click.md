@@ -1,44 +1,10 @@
 ---
 name: azazael-pkg314t-click
-description: Callable skill for Python package click 8.4.2 — Composable command line interface toolkit
+description: "Callable skill for Python package click 8.4.2 — Composable command line interface toolkit (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# click 8.4.2
-
-> Composable command line interface toolkit
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `click` |
-| Version | `8.4.2` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `click`
-
-Invocation pattern:
-
-```python
-import click
-print("click loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import click; print('click OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-click/SKILL.md

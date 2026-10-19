@@ -10,9 +10,9 @@ the archive had simply collapsed into a single blob with the illusion of spread.
 
 Loom measures the SHAPE of the archive rather than its count. The intended tool
 is persistent homology over the descriptor point cloud; when a TDA dependency is
-unavailable (it is, on this machine — and numpy itself cannot import under the
-free-threaded interpreter that runs the pipeline) Loom falls back to the cheap
-spectral proxy the plan specifies:
+unavailable (no TDA package is installed on this machine) Loom falls back to the
+cheap spectral proxy the plan specifies. numpy itself imports under the 3.15t
+production runner (verified 2026-10-19) and the proxy needs only stdlib:
 
     intrinsic dimension  = participation ratio of covariance eigenvalues
                            ID = (sum L)^2 / sum L^2
@@ -55,9 +55,9 @@ __all__ = [
     "NoveltyDrive",
 ]
 
-try:  # GIL interpreter only; the free-threaded build cannot load cp314 wheels.
+try:  # Optional: numpy ships a 3.15 build, but a stripped host may lack it.
     import numpy as _np  # type: ignore
-except Exception as exc:  # pragma: no cover - expected under python3.14t
+except Exception as exc:  # pragma: no cover - stdlib-only fallback below
     note_failure("loom:L51", exc)
     _np = None
 

@@ -1,4 +1,9 @@
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Entries
+> below are a dated error record; their paths describe the 3.14t era.
+
 ## Error #48 — pytest 9.0.3 Segfaults on Python 3.14.5t Free-Threading
 **Timestamp:** 2026-06-01 (updated)
 **Severity:** 🔴 Critical

@@ -1,5 +1,10 @@
 # AZAZAEL — Codebase Audit & Production Wiring TODO
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Audit rows
+> below describe the state on their date.
+
 > **Created:** May 29, 2026 — Consolidated from Phase 12-14 sessions
 > **Updated:** Sep 13, 2026 (Neural Mesh Gap Audit + G1-G12 Fixes) — BCC corpus qualifiers (37 bannered docs + 3 .md/skill files), FINAL_STATUS_REPORT inventory reconciled (TOTAL 64), G: archive gap filled (40 html), filing-source dating probe, mirror check closed. Prior: June 19, 2026 (v11) — Audit fix marathon.
 > **Replaces:** TODO_FULL_PRODUCTION_WIRING.md, PHASE_6_TODO.md (incorporated)

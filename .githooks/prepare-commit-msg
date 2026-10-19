@@ -78,9 +78,21 @@ if [ ! -f "$MSG_FILE" ]; then
     exit 0
 fi
 
+# Pinned interpreter, same ladder as .githooks/pre-commit: a bare `python` on
+# this box resolved to 3.13.14 from WindowsApps. 3.14t is retired (2026-10-19).
+PY="C:/Azazael/.venvs/py315t/Scripts/python.exe"
+if [ ! -x "$PY" ]; then
+    for cand in "C:/Azazael/.venvs/py315/Scripts/python.exe" \
+                "C:/Azazael/.venvs/py314m/Scripts/python.exe" \
+                "$(command -v python3.15t 2>/dev/null)" \
+                "$(command -v python3 2>/dev/null)"; do
+        [ -n "$cand" ] && [ -x "$cand" ] && { PY="$cand"; break; }
+    done
+fi
+
 # Capture first, then print: `cmd | tail` would make $? tail's status, not the
 # guard's, and a gate reading the wrong exit code is worse than no gate at all.
-CLAIM_OUT=$(python "$SCRIPT_DIR/tools/claim_guard.py" --commit-msg "$MSG_FILE" 2>&1)
+CLAIM_OUT=$("$PY" "$SCRIPT_DIR/tools/claim_guard.py" --commit-msg "$MSG_FILE" 2>&1)
 CLAIM_EXIT=$?
 echo "$CLAIM_OUT" | tail -12
 

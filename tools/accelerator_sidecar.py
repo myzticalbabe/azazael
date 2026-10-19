@@ -12,7 +12,8 @@ BACKEND PRIORITY (measured on this host, 2026-10-10):
      the Intel Arc 140T (8GB) via Vulkan; no NVIDIA driver present.
   2. llama.cpp CPU     — bin/llama-b10964-cpu/llama-server.exe (always works).
   (OpenVINO GenAI and OpenVINO NPU slots are present for when
-  openvino-genai is installed into py314; currently absent, reported honestly.)
+  openvino-genai is installed into py314m, the sole sanctioned 3.14 runtime;
+  currently absent, reported honestly.)
 
 Wiring contract (How the meta-evolution loop consumes it):
   * /health        -> {"device": "<vulkan|cpu>", "backend": …, "model": …}
@@ -25,7 +26,8 @@ than re-implementing inference: it still counts as failover because if the
 preferred backend fails its health check or dies, the sidecar respawns/rewires
 to the next backend and /health flips to the new device.
 
-Stdlib-only server (http.server + urllib) so it runs on py3.14t and 3.15t.
+Stdlib-only server (http.server + urllib) so it runs on both 3.15 interpreters:
+the free-threaded production runner and the GIL sidecar.
 """
 
 from __future__ import annotations

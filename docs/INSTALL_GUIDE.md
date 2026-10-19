@@ -155,11 +155,14 @@ sudo apt install --reinstall intel-opencl-icd
 sudo reboot
 ```
 
-### Python 3.14 Not Found
+### Python 3.15 Not Found
 ```bash
-# Check installation
-which python3.14
-python3.14 --version
+# Production interpreter (3.14t retired 2026-10-19)
+ls -l /c/Azazael/.venvs/py315t/Scripts/python.exe
+/c/Azazael/.venvs/py315t/Scripts/python.exe -VV
+
+# Only sanctioned 3.14 runtime, for a package with no 3.15 build:
+ls -l /c/Azazael/.venvs/py314m/Scripts/python.exe
 ```
 
 ---

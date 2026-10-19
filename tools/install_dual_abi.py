@@ -1,14 +1,20 @@
 #!/usr/bin/env python
-"""Hybrid Python stack manager: make the 3.14t and 3.14 interpreters BOTH work.
+"""Hybrid Python stack manager: make the 3.15t and 3.15 interpreters BOTH work.
 
 The situation
 -------------
 On this machine the free-threaded interpreter and the GIL interpreter share a
 single ``site-packages`` directory::
 
-    .../Programs/Python/Python314/python.exe       -> looks for .cp314-win_amd64.pyd
-    .../Programs/Python/Python314/python3.14t.exe  -> looks for .cp314t-win_amd64.pyd
-    both resolve to: .../Python314/Lib/site-packages
+    .../Programs/Python/Python315/python.exe       -> looks for .cp315-win_amd64.pyd
+    .../Programs/Python/Python315/python3.15t.exe  -> looks for .cp315t-win_amd64.pyd
+    both resolve to: .../Python315/Lib/site-packages
+
+Note: 3.14t is RETIRED (2026-10-19). Production is the free-threaded
+``C:/Azazael/.venvs/py315t`` venv and the GIL sidecar is
+``C:/Azazael/.venvs/py315`` — separate directories, so this tool's overlay only
+applies where two interpreters genuinely SHARE one site-packages (the base
+install pair above); pass both interpreters explicitly for any other layout.
 
 Each interpreter only recognises its own ABI suffix (check with
 ``python -c "import _imp; print(_imp.extension_suffixes())"``). pip, however,
@@ -21,7 +27,7 @@ The hybrid
 The suffixes are distinct, so the two builds **coexist** in one directory and
 each interpreter picks its own. For any package whose both-ABI wheels are the
 same version, "all packages work" means: install the free-threaded build (the
-project's mandated runtime) and overlay the GIL build's compiled files next to
+project's production runtime) and overlay the GIL build's compiled files next to
 it. Neither interpreter is sacrificed.
 
 Tiers
@@ -67,12 +73,12 @@ def _default_interpreters(explicit_ft: str | None,
     """Return (ft_python, gil_python), guessing siblings when not given."""
     here = Path(sys.executable)
     ft, gil = explicit_ft, explicit_gil
-    if here.name.lower() == "python3.14t.exe":
+    if here.name.lower() == "python3.15t.exe":
         ft = ft or str(here)
         gil = gil or str(here.with_name("python.exe"))
     else:
         gil = gil or str(here)
-        ft = ft or str(here.with_name("python3.14t.exe"))
+        ft = ft or str(here.with_name("python3.15t.exe"))
     return ft, gil
 
 
@@ -97,7 +103,7 @@ def _pip_download(spec: str, abi: str, dest: Path, python: str,
     dest.mkdir(parents=True, exist_ok=True)
     cmd = [python, "-m", "pip", "download", spec, "--no-deps",
            "--only-binary", ":all:",
-           "--platform", "win_amd64", "--python-version", "3.14",
+           "--platform", "win_amd64", "--python-version", "3.15",
            "--implementation", "cp", "--abi", abi, "-d", str(dest)]
     if allow_pre:
         cmd.append("--pre")
@@ -128,12 +134,13 @@ def _is_pure(wheel: Path) -> bool:
 
 
 # A binary is ABI-specific only when its *filename* carries an ABI tag:
-#   _core.cp314t-win_amd64.pyd, _core.cp314-win_amd64.pyd, _rust.abi3.pyd
+#   _core.cp315t-win_amd64.pyd, _core.cp315-win_amd64.pyd, _rust.abi3.pyd
 # A plain ``libarrow.dll`` / ``libopenblas64_*.dll`` is a *build* artifact with
-# no ABI tag: the cp314 and cp314t wheels each contain their own, and copying
+# no ABI tag: the cp315 and cp315t wheels each contain their own, and copying
 # one over the other corrupts the build it lands on. That mistake made pandas
-# and pyarrow crash under 3.14t with both ABI sets nominally present, because
-# the free-threaded .pyd was left talking to a GIL-linked support DLL.
+# and pyarrow crash under the free-threaded build with both ABI sets nominally
+# present, because the free-threaded .pyd was left talking to a GIL-linked
+# support DLL (measured on 3.14t before its retirement).
 ABI_TAG_RE = re.compile(r"\.(cp3\d{2}t?|abi3)", re.IGNORECASE)
 
 
@@ -170,8 +177,8 @@ def _overlay_conflict(primary: Path, other: Path) -> list[str]:
     """Untagged binaries that differ between two builds of the same version.
 
     A tagged ``.pyd`` is loaded against the *untagged* DLLs sitting beside it
-    (``libarrow.dll``, ``.libs/*.dll``). Those have no ABI tag, so the cp314
-    and cp314t wheels each ship their own and the two cannot share a
+    (``libarrow.dll``, ``.libs/*.dll``). Those have no ABI tag, so the cp315
+    and cp315t wheels each ship their own and the two cannot share a
     directory: whichever lands second leaves the other build's extension
     linked against a mismatched runtime, which shows up as a bare segfault.
 
@@ -221,9 +228,9 @@ def _remove_tagged(pkg_dir: Path, tag: str) -> int:
     removed = 0
     if not pkg_dir.exists():
         return 0
-    # Match the tag exactly: ``"cp314" in "x.cp314t-win_amd64.pyd"`` is also
+    # Match the tag exactly: ``"cp315" in "x.cp315t-win_amd64.pyd"`` is also
     # true, so a substring test would delete the free-threaded build it is
-    # meant to protect. The ABI tag always appears as ``.cp314-`` / ``.cp314t-``.
+    # meant to protect. The ABI tag always appears as ``.cp315-`` / ``.cp315t-``.
     needle = f".{tag}-"
     for p in pkg_dir.rglob("*"):
         if (p.is_file() and p.suffix in BINARY_SUFFIXES
@@ -237,15 +244,15 @@ def _remove_tagged(pkg_dir: Path, tag: str) -> int:
 
 
 def _abi_counts(pkg_dir: Path) -> dict[str, int]:
-    counts = {"cp314t": 0, "cp314": 0, "other": 0}
+    counts = {"cp315t": 0, "cp315": 0, "other": 0}
     if not pkg_dir.exists():
         return counts
     for p in pkg_dir.rglob("*"):
         if p.suffix in BINARY_SUFFIXES and p.is_file():
-            if "cp314t" in p.name:
-                counts["cp314t"] += 1
-            elif "cp314" in p.name:
-                counts["cp314"] += 1
+            if "cp315t" in p.name:
+                counts["cp315t"] += 1
+            elif "cp315" in p.name:
+                counts["cp315"] += 1
             else:
                 counts["other"] += 1
     return counts
@@ -418,15 +425,15 @@ def main() -> int:
 
         if args.check:
             counts = _abi_counts(pkg_dir)
-            print(f"   cp314t={counts['cp314t']}  cp314={counts['cp314']}  "
+            print(f"            cp315t={counts['cp315t']}  cp315={counts['cp315']}  "
                   f"other={counts['other']}")
             continue
 
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)
-            ft_wheel = _pip_download(spec, "cp314t", tmp / "ft", args.python,
+            ft_wheel = _pip_download(spec, "cp315t", tmp / "ft", args.python,
                                      args.pre)
-            gil_wheel = _pip_download(spec, "cp314", tmp / "gil", args.python,
+            gil_wheel = _pip_download(spec, "cp315", tmp / "gil", args.python,
                                       args.pre)
 
             if ft_wheel is None and gil_wheel is None:
@@ -437,7 +444,7 @@ def main() -> int:
             # Prefer a common version so the overlay is safe.
             if ft_wheel and gil_wheel and _wheel_version(ft_wheel) != _wheel_version(gil_wheel):
                 pinned = _wheel_version(ft_wheel)
-                retry = _pip_download(f"{name}=={pinned}", "cp314",
+                retry = _pip_download(f"{name}=={pinned}", "cp315",
                                       tmp / "gil2", args.python, args.pre)
                 if retry:
                     gil_wheel = retry
@@ -447,8 +454,9 @@ def main() -> int:
             # A pure-Python wheel is ABI-independent, so it serves BOTH
             # interpreters and beats any overlay. This matters for packages
             # whose compiled extension is actually FT-hostile: protobuf's
-            # abi3 `google._upb._message` segfaults under 3.14t, while the
-            # pure wheel is correct everywhere (just slower).
+            # abi3 `google._upb._message` segfaulted under the free-threaded
+            # 3.14t build (measured), while the pure wheel is correct
+            # everywhere (just slower).
             if ft_wheel is not None and _is_pure(ft_wheel):
                 tier, primary, gil_wheel = "pure", ft_wheel, None
             elif gil_wheel is not None and _is_pure(gil_wheel) and ft_wheel is None:
@@ -464,12 +472,12 @@ def main() -> int:
             def _installer_for(wheel: Path) -> str:
                 """Pick the interpreter whose ABI the wheel actually carries.
 
-                A cp314 wheel is rejected outright by a free-threaded pip
+                A cp315 wheel is rejected outright by a free-threaded pip
                 ("not a supported wheel on this platform"), which is how a
                 GIL-only package ended up uninstalled rather than simply
                 GIL-limited.
                 """
-                return args.python if "cp314t" in wheel.name else gil_py
+                return args.python if "cp315t" in wheel.name else gil_py
 
             proc, why = _pip_install(_installer_for(primary), primary)
             if proc is None or proc.returncode != 0:
@@ -498,11 +506,11 @@ def main() -> int:
                         print(f"   SKIP overlay: {len(conflicts)} untagged "
                               f"binary(ies) differ between the two builds, so "
                               f"they cannot share one directory. Keeping the "
-                              f"free-threaded build (the mandated runtime); "
+                              f"free-threaded build (the production runtime); "
                               f"the GIL interpreter cannot load this package.")
                         for c in conflicts[:3]:
                             print(f"      conflicts: {c}")
-                        other_tag = "cp314" if "cp314t" in primary.name else "cp314t"
+                        other_tag = "cp315" if "cp315t" in primary.name else "cp315t"
                         stray = _remove_tagged(_pkg_dir(site, name), other_tag)
                         if stray:
                             print(f"   rolled back {stray} stray "
@@ -516,11 +524,11 @@ def main() -> int:
                       f"interpreter cannot load it")
 
         counts = _abi_counts(pkg_dir)
-        summary.append((name, tier, f"{counts['cp314t']}/{counts['cp314']}",
-                        counts["cp314t"], counts["cp314"]))
+        summary.append((name, tier, f"{counts['cp315t']}/{counts['cp315']}",
+                        counts["cp315t"], counts["cp315"]))
 
     if not args.check and summary:
-        print("\nsummary (tier, cp314t/cp314 binaries now present)")
+        print("\nsummary (tier, cp315t/cp315 binaries now present)")
         for name, tier, ratio, _ft, _gil in summary:
             print(f"  {name:<22} {tier:<10} {ratio}")
 

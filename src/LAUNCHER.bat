@@ -2,7 +2,7 @@
 AZAZAEL TOOLKIT - LAUNCHER v1.0
 ================================================================================
 All-in-one launcher for Azazael ecosystem
-Python: 3.14.3 | Platform: win32
+Python: 3.15t (C:\Azazael\.venvs\py315t) | Platform: win32
 ================================================================================
 
 OPTIONS:
@@ -26,5 +26,5 @@ INSTALLED FRAMEWORKS (22):
   OTHER: cryptography, grpc, yaml, toml, nltk
 
 TO RUN: double-click this .bat file or run:
-  python C:\Users\clint\Desktop\AZAZAEL_TOOLKIT\azazael_toolkit.py
+  C:\Azazael\.venvs\py315t\Scripts\python.exe C:\Users\clint\Desktop\AZAZAEL_TOOLKIT\azazael_toolkit.py
 ================================================================================

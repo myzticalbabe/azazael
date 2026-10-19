@@ -28,7 +28,7 @@ except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
 
-# ── Python 3.14t Free-Threading Awareness ────────────────────────────
+# ── Python 3.15t Free-Threading Awareness ────────────────────────────
 try:
     from azazael_core.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True

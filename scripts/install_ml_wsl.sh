@@ -1,10 +1,10 @@
 #!/bin/bash
-# ML packages for Python 3.14t on Ubuntu 26.04
+# ML packages for Python 3.15t on Ubuntu 26.04 (3.14t retired 2026-10-19)
 # Run: wsl -d Ubuntu-26.04 -u root bash /mnt/c/Users/clint/azazael/scripts/install_ml_wsl.sh
 
-PY=/usr/local/python314t/bin/python3.14t
+PY=/usr/local/python315t/bin/python3.15t
 
-echo '=== Installing ML packages for 3.14t ==='
+echo '=== Installing ML packages for 3.15t ==='
 
 $PY -m pip install torch --index-url https://download.pytorch.org/whl/cpu 2>&1 | tail -5
 echo 'torch done'

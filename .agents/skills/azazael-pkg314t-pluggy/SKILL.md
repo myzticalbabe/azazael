@@ -1,44 +1,10 @@
 ---
 name: azazael-pkg314t-pluggy
-description: Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python
+description: "Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# pluggy 1.6.0
-
-> plugin and hook calling mechanisms for python
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `pluggy` |
-| Version | `1.6.0` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `pluggy`
-
-Invocation pattern:
-
-```python
-import pluggy
-print("pluggy loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import pluggy; print('pluggy OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-pluggy/SKILL.md

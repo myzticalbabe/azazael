@@ -1,5 +1,10 @@
 ﻿# DISCLOSURE_WHITEPAPER_TODO.md â€” Full-Legal-Disclosure Capability Catalog
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). The
+> inventory below describes the state on its creation date.
+>
 > **Purpose:** Complete capability inventory of the entire Azazael ecosystem for final HTML/MP4 whitepaper.
 > **Created:** July 6, 2026
 > **Updated:** July 6, 2026 -- All 14 sections (A-N) expanded with detailed technical content, live-verified stats, and syntactically validated code examples. DirectMemory: 79,210 sessions, 646,928 events, 1,117.86 MB. Worm registry: 99 discovered, 18 categories, 1.12s cold discovery. All 17 Python code blocks syntax-verified with UTF-8 encoding fix.

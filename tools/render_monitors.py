@@ -645,7 +645,7 @@ def render_exmachina(exm: dict) -> str:
     for name, thesis, technique, color in organs:
         organ_rows += f'<div class="metric-row"><span class="metric-name" style="color:{color}">{name}</span><span class="metric-stats">{technique}</span></div>'
     cards.append(_card(i, "card-theme-metrics", "All 10 Organs",
-        f'<div class="sub" style="margin-bottom:8px">stdlib-only &middot; no C extensions &middot; python3.14t compatible</div>'
+        f'<div class="sub" style="margin-bottom:8px">stdlib-only &middot; no C extensions &middot; python3.15 compatible</div>'
         f'{organ_rows}'))
     i += 1
 

@@ -64,6 +64,35 @@ in non-azazael sessions.
 
 > *Applies to: All Codebuff / Azazael development sessions*
 
+## INTERPRETER POLICY — 3.14t RETIRED (2026-10-19)
+
+This supersedes every "3.14t only" statement elsewhere in this file. Those lines
+were true when written; they are records of the pre-retirement state, not a
+current instruction.
+
+| Role | Interpreter | Notes |
+|---|---|---|
+| **Production** | `C:\Azazael\.venvs\py315t\Scripts\python.exe` | 3.15.0rc3 free-threaded, `gil_enabled=False` |
+| GIL sidecar | `C:\Azazael\.venvs\py315` | same 3.15.0rc3 build, GIL on — for suite comparison |
+| **Only sanctioned 3.14** | `C:\Azazael\.venvs\py314m\Scripts\python.exe` | 3.14.5 GIL — only for a package with no 3.15 build |
+| RETIRED | `C:\Users\clint\venv-314t` (3.14.6t), `python3.14t` | archived; never a launch target |
+
+Rules:
+
+1. A launcher, gate, hook, installer or CI job uses py315t. It may fall back to
+the GIL sidecar, then to py314m **for a named package that has no 3.15 build** —
+never silently, and never to `venv-314t`.
+2. `python` on PATH is not production. Pin the path or use
+`CORE/python_env.py` (`primary_python()`, `gil_python()`, `fallback_314_python()`,
+`roles()`).
+3. A **census** may name an installed 3.14 interpreter (it exists). A **choice**
+may not select one. `tools/repoint_315t.py` encodes that distinction with a
+per-rule expected hit count; extend it rather than doing free-form replacements.
+4. The CPython 3.14 install itself is not deleted — the 3.14m venv is built from
+a 3.14 base. "Retired" means withdrawn as a runtime choice, not uninstalled.
+
+---
+
 ---
 
 ## 🛑🛑🛑 PERMANENT PRE-ACTION GATE — ALWAYS ACTIVE — CANNOT BE DISABLED. Checks whose agent is UNAVAILABLE per the pre-check resolve to N/A, not HALT. 🛑🛑🛑

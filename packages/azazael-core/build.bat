@@ -1,14 +1,17 @@
 @echo off
 REM Build azazael-core.exe with Nuitka
-REM Requires: Python 3.13 (NOT 3.14 — Nuitka 4.1.2 is incompatible with Python 3.14 C API changes)
+REM Requires: Python 3.15t — C:\Azazael\.venvs\py315t (production interpreter)
 REM           pyyaml (only runtime dependency)
-REM           nuitka installed in the Python 3.13 environment
+REM           nuitka installed in that 3.15t venv
+REM NOTE: Nuitka is NOT currently installed in py315t, so this --standalone
+REM       build is SUSPENDED (see CODEBASE_AUDIT_TODO.md). 3.13 is not a
+REM       supported build interpreter here; 3.14t is retired (2026-10-19).
 
-set PYTHON_EXE=C:\Users\clint\AppData\Local\Programs\Python\Python313\python.exe
+set PYTHON_EXE=C:\Azazael\.venvs\py315t\Scripts\python.exe
 
 echo ========================================
 echo   Building azazael-core.exe (Nuitka)
-echo   Python: Python 3.13
+echo   Python: 3.15t (py315t)
 echo ========================================
 echo.
 

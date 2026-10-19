@@ -4,9 +4,11 @@
 Runs all smoke tests via subprocess and direct imports.
 
 Why not just use pytest?
-  pytest 9.0.3 segfaults on Python 3.14t (free-threading) in some environments
-  (cygwin bash, certain CI runners). See ERROR_LOG.md Error #48.
-  This script uses plain Python assertions + subprocess to avoid the issue entirely.
+  pytest 9.0.3 segfaulted on the then-current 3.14t (free-threading) interpreter
+  in some environments (cygwin bash, certain CI runners). See ERROR_LOG.md
+  Error #48. That interpreter was retired on 2026-10-19 and this package now runs
+  on 3.15t; the plain-assertions + subprocess path is kept because it is how this
+  package suite has always run, not because a 3.15t segfault was measured.
   Python 3.13 is not used on this system.
 """
 import subprocess

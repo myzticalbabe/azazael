@@ -1,4 +1,9 @@
-# AZAZAEL 3.14t — Multi-Platform Deployment TODO
+# AZAZAEL — Multi-Platform Deployment TODO (3.14t-era title; production is 3.15t)
+
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Deployment
+> commands below describe the 2026-06 state.
 
 **Created:** June 4, 2026 | **Version:** 1.0.0
 **Scope:** Windows 11 · WSL2 Ubuntu 26.04 · Bare Metal Ubuntu 26.04 · Kali Linux

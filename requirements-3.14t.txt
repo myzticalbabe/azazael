@@ -1,8 +1,10 @@
-# Azazael Unified Lockfile — Python 3.14t (Free-Threading)
+# Azazael Unified Lockfile — Python 3.14t (Free-Threading) — RETIRED
 # Generated: June 19, 2026 — from Kali canonical environment (pip freeze)
 #
-# Python 3.13 is NEVER used. 3.14t is the exclusive Python version.
-# See PRODUCTION_TODO.md and PATH_FORWARD.md for the 3.14t-only mandate.
+# RETIRED 2026-10-19 — pins for the retired 3.14t venv
+# (C:\Users\clint\venv-314t). Not installed by any current path.
+# The sanctioned 3.14 runtime is .venvs/py314m; production is .venvs/py315t.
+# The historical 3.14t-only mandate is superseded; see SYSTEM_INSTRUCTIONS.md.
 
 # === Core Runtime Dependencies ===
 # System monitoring (all worms)

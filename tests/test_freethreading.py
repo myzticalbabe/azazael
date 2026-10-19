@@ -325,7 +325,7 @@ class TestDeviceParallelConfig:
 
 
 def _run_standalone():
-    """Run all tests standalone (for 3.14t where pytest segfaults)."""
+    """Run all tests standalone (for an environment where pytest is unusable)."""
     passed = 0
     failed = 0
     errors = []

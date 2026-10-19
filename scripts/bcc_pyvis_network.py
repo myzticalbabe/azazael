@@ -6,7 +6,8 @@ Rebuilds the people-entity graph with the SAME loaders as bcc_network_sna.py
 emits a browser-interactive HTML graph: hover, drag, community-colored,
 diamond = board sphere, star = BCC, sized by degree.
 
-Run:  venv-314t/Scripts/python.exe azazael/scripts/bcc_pyvis_network.py
+Run:  C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bcc_pyvis_network.py
+      (deps belong in py315t; .venvs/py314m is the sanctioned 3.14 fallback)
       [--cosmos-dir Desktop/AZAZAEL_COSMOS_VIEWER_bcc/cosmos]
       [--person-edges azazael/scripts/bcc_person_edges.json]
 Out:  BCC_TWO_SPHERE_NETWORK.html

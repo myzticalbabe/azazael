@@ -6,7 +6,7 @@ existing RL task is degenerate because reward and state share their only input
 avoid repeating that, so the property is asserted, not assumed.
 
 Run:
-    /c/Users/clint/venv-314t/Scripts/python.exe -m pytest tests/test_spawn_credit.py -q
+    /c/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_spawn_credit.py -q
 """
 
 import json

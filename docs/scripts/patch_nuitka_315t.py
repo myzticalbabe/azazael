@@ -52,7 +52,7 @@ def backup_file(filepath: Path) -> Path:
     """Backup a file before patching."""
     global BACKUP_DIR
     if BACKUP_DIR is None:
-        BACKUP_DIR = filepath.parent / f"nuitka_314t_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        BACKUP_DIR = filepath.parent / f"nuitka_315t_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         BACKUP_DIR.mkdir(exist_ok=True)
     
     backup_path = BACKUP_DIR / filepath.name
@@ -62,7 +62,7 @@ def backup_file(filepath: Path) -> Path:
 
 
 def patch_allocator_h(nuitka_path: Path, apply: bool = True):
-    """Patch allocator.h for 3.14t PyObject allocation."""
+    """Patch allocator.h for 3.15t PyObject allocation."""
     candidates = [
         nuitka_path / "build" / "include" / "nuitka" / "allocator.h",
         nuitka_path / "static_src" / "allocator.h",
@@ -85,7 +85,7 @@ def patch_allocator_h(nuitka_path: Path, apply: bool = True):
             marker = "#include <Python.h>"
             if marker in content:
                 patch = """
-/* === AZAZAEL 3.14t Patch: Free-threading allocator === */
+/* === AZAZAEL 3.15t Patch: Free-threading allocator === */
 #if PY_VERSION_HEX >= 0x030e0000
 #define NUITKA_FREE_THREADED 1
 #define PyObject_HEAD_INIT_NUITKA PyObject_HEAD_INIT(&PyType_Type)
@@ -109,7 +109,7 @@ def patch_allocator_h(nuitka_path: Path, apply: bool = True):
 
 
 def patch_scons_build(nuitka_path: Path, apply: bool = True):
-    """Patch SconsPythonBuild.py for 3.14t detection."""
+    """Patch SconsPythonBuild.py for 3.15t detection."""
     target = nuitka_path / "build" / "SconsPythonBuild.py"
     if not target.exists():
         print("  [??] SconsPythonBuild.py not found")
@@ -121,7 +121,7 @@ def patch_scons_build(nuitka_path: Path, apply: bool = True):
     if apply:
         if "Py_GIL_DISABLED" not in content:
             detect_patch = """
-    # === AZAZAEL 3.14t Patch: Detect free-threading ===
+    # === AZAZAEL 3.15t Patch: Detect free-threading ===
     if python_version >= (3, 14):
         from sysconfig import get_config_var
         if get_config_var('Py_GIL_DISABLED'):
@@ -188,7 +188,7 @@ def patch_code_templates(nuitka_path: Path, apply: bool = True):
 
 def verify_patches(nuitka_path: Path):
     """Verify that patches are applied correctly."""
-    print("\n  Verifying Nuitka 3.14t patches...")
+    print("\n  Verifying Nuitka 3.15t patches...")
     
     # Check allocator.h
     for alloc_path in [
@@ -235,7 +235,7 @@ def verify_patches(nuitka_path: Path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Apply/verify Nuitka 3.14t free-threading patches"
+        description="Apply/verify Nuitka 3.15t free-threading patches"
     )
     parser.add_argument("--apply", action="store_true", help="Apply patches")
     parser.add_argument("--verify", action="store_true", help="Verify patch status")
@@ -285,8 +285,8 @@ def main():
         
         if patched_count > 0:
             print(f"Backups saved to: {BACKUP_DIR}")
-            print("\nNuitka is now patched for Python 3.14t free-threading.")
-            print("Run: python3.14t -m nuitka --standalone ...")
+            print("\nNuitka is now patched for Python 3.15t free-threading.")
+            print("Run: python3.15t -m nuitka --standalone ...")
     else:
         print(f"\nRolled back all patches.")
 

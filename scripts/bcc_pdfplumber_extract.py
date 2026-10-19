@@ -8,7 +8,8 @@ are not yet obtained — this harness is the extraction path for when they arriv
 It runs over the PDFs that DO exist, characterizing the pattern: tables, pages,
 and extracted rows per document.
 
-Run:  venv-314t/Scripts/python.exe azazael/scripts/bcc_pdfplumber_extract.py
+Run:  C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bcc_pdfplumber_extract.py
+      (deps belong in py315t; .venvs/py314m is the sanctioned 3.14 fallback)
 Out:  BCC_PDFPLUMBER_EXTRACT.html + bcc_pdfplumber_extract.json
 """
 import glob

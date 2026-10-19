@@ -15,11 +15,14 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 _CODEX_STUDIO = Path(__file__).resolve().parents[3] / 'src' / 'CODEX' / 'CODEX_Studio.py'
-_PYTHON_314T = Path(__file__).resolve().parents[3] / '.venv-3.14t' / 'Scripts' / 'python.exe'
+#: Production interpreter (3.15t). The former '.venv-3.14t' target never existed
+#: in this tree, and 3.14t was retired 2026-10-19, so there is no version
+#: fallback: a missing production venv means run under this interpreter.
+_PRODUCTION_PYTHON = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
 
 def _get_python():
-    if _PYTHON_314T.exists():
-        return str(_PYTHON_314T)
+    if _PRODUCTION_PYTHON.exists():
+        return str(_PRODUCTION_PYTHON)
     return sys.executable
 
 @register_arm(arm_id="codex",name="CODEX Video Engine",version="3.1.0",description="HTML-to-MP4 video generation with ffmpeg encoding, PIL frame rendering, and psychoanalysis video pipeline",category="quartet",priority=8,dependencies=["azazael","pams"])

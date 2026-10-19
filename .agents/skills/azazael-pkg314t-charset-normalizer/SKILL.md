@@ -1,43 +1,10 @@
 ---
 name: azazael-pkg314t-charset-normalizer
-description: Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet.
+description: "Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet. (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# charset-normalizer 3.5.0
-
-> The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet.
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `charset-normalizer` |
-| Version | `3.5.0` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — CLI entry points
-
-The package installs the following console commands (run with `python3.14t -m` or directly):
-
-- `normalizer`
-
-Invocation pattern:
-
-```bash
-normalizer --help
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -m pip show charset-normalizer
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-charset-normalizer/SKILL.md

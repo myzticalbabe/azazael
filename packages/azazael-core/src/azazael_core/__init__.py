@@ -9,7 +9,7 @@ standalone installation and usage as `azazael-core`.
 Key modules:
   - paths       — Dynamic path resolution (get_project_root, get_desktop_dir, etc.)
   - worm_registry — @register_worm, WORM_REGISTRY, discover_worms()
-  - freethreading — Python 3.14t free-threading awareness
+  - freethreading — Python 3.15t free-threading awareness
   - config      — Config class for centralized configuration
 
 The 50 expansion worms (from CORE/WORMS/expansion/) are bundled at

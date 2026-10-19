@@ -1,7 +1,7 @@
 # Forked from src/CORE/freethreading.py on 2026-05-29 for azazael-core standalone package.
 # Sync changes from canonical source when updating.
 """
-freethreading.py — Centralized free-threading utilities for Python 3.14t.
+freethreading.py — Centralized free-threading utilities for Python 3.15t.
 
 Provides thread-safe data structures, device-aware parallelism helpers,
 OpenVINO async inference wrappers, and performance benchmarking tools.
@@ -592,7 +592,7 @@ class ConcurrentTaskRunner:
     """Run multiple tasks across devices concurrently using free-threading.
 
     Manages a pool of per-device inference runners that can execute
-    truly in parallel under Python 3.14t.
+    truly in parallel under Python 3.15t.
 
     Usage:
         runner = ConcurrentTaskRunner()

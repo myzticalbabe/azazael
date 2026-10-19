@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
 sync_all.py - Bidirectional sync across all Azazael environments.
 
@@ -11,11 +11,11 @@ Environments:
   6. Kali WSL2    : E:/Kali/azazael                 (Kali Linux security distro)
 
 Usage:
-    python3.14t sync_all.py --status          Show sync status
-    python3.14t sync_all.py --sync-all        Sync all environments
-    python3.14t sync_all.py --sync-to wsl2    Sync Windows to WSL2
-    python3.14t sync_all.py --sync-to kali    Sync WSL2 to Kali
-    python3.14t sync_all.py --verify          Verify integrity across all
+    python3.15t sync_all.py --status          Show sync status
+    python3.15t sync_all.py --sync-all        Sync all environments
+    python3.15t sync_all.py --sync-to wsl2    Sync Windows to WSL2
+    python3.15t sync_all.py --sync-to kali    Sync WSL2 to Kali
+    python3.15t sync_all.py --verify          Verify integrity across all
 
 Created: June 4, 2026 - Environment realignment session
 """

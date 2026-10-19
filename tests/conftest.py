@@ -1,11 +1,12 @@
 # coding: utf-8
-"""Global test configuration — Python 3.14t free-threading environment constraints.
+"""Global test configuration — Python 3.15t free-threading environment constraints.
 
 Loads BEFORE any test module imports. Sets thread-limiting env vars to prevent
 C-extension race conditions (OpenBLAS MemoryError, chardet import crashes, etc.)
-that occur under Python 3.14 free-threading builds.
+that occur under free-threading builds.
 
-See: Error #156, Lesson #82, azazael-fix-python-314t skill.
+See: Error #156, Lesson #82. 3.14t was RETIRED on 2026-10-19: production is the
+3.15t venv, and the old azazael-fix-python-314t skill is archived.
 """
 
 import os
@@ -31,7 +32,7 @@ except Exception:
     pass
 
 # ── Constrain C-extension thread pools ──────────────────────────
-# Python 3.14t free-threading removes the GIL, exposing thread-unsafe
+# Free-threading (3.15t, as 3.14t before it) removes the GIL, exposing thread-unsafe
 # C-libraries that aggressively pre-allocate memory based on CPU count.
 # Force single-threaded mode to prevent allocation failures and deadlocks.
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
@@ -520,7 +521,7 @@ def run_standalone_script():
     return _run
 
 
-# ── Detect Python 3.14t free-threading ─────────────────────────
+# ── Detect free-threading (3.15t production build) ──────────────────
 try:
     _IS_FREE_THREADED = not sys._is_gil_enabled()
 except Exception:
@@ -528,7 +529,12 @@ except Exception:
 
 
 def is_314t() -> bool:
-    """Return True if running under Python 3.14 free-threading build."""
+    """Return True if running under a free-threading build.
+
+    Name kept for its existing callers; the check was always version-agnostic
+    (``sys._is_gil_enabled()``), so it is correct on 3.15t. Prefer
+    ``is_free_threaded`` in new code.
+    """
     return _IS_FREE_THREADED
 
 

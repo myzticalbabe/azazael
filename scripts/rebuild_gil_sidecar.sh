@@ -2,10 +2,14 @@
 # ---------------------------------------------------------------------------
 # Rebuild the Azazael GIL sidecar from scratch.      created 2026-09-30
 # ---------------------------------------------------------------------------
-# The Ubuntu pillar's primary interpreter is CPython 3.14 free-threaded
-# (cpython-314t), which only accepts cp314t wheels. Frameworks with no
+# The Ubuntu pillar's primary interpreter is CPython 3.15 free-threaded
+# (cpython-315t), which only accepts cp315t wheels. Frameworks with no
 # free-threaded wheel (tensorflow, tf2onnx, orjson, langchain, chromadb, polars,
 # ray, spacy) run in this same-version GIL sidecar instead.
+#
+# 3.14t was RETIRED 2026-10-19 (see azazael/src/CORE/python_env.py); the
+# sidecar is the SAME 3.15 build as the primary with the GIL on, so a suite
+# comparison isolates threading rather than version drift.
 #
 # This script is idempotent and re-runnable. Nothing here compiles Python: the
 # interpreter comes prebuilt from astral-sh/python-build-standalone, so a
@@ -13,17 +17,18 @@
 #
 # Usage:
 #   bash scripts/rebuild_gil_sidecar.sh                 # rebuild if missing
-#   GIL_VERSION=3.14.8 bash scripts/rebuild_gil_sidecar.sh   # different patch
+#   GIL_VERSION=3.15.0 bash scripts/rebuild_gil_sidecar.sh   # different patch
 #
-# Verified 2026-09-30 against cpython-3.14.7+20260929.
+# Verified 2026-09-30 against cpython-3.14.7+20260929; retargeted to the
+# 3.15.0rc3 production build on 2026-10-19.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
-GIL_VERSION="${GIL_VERSION:-3.14.7}"
-GIL_PREFIX="${GIL_PREFIX:-/usr/local/python3147-gil}"
-VENV="${VENV:-/root/venv-314-gil}"
-PREBUILT_SP="${PREBUILT_SP:-/usr/local/lib/python3.14/site-packages}"
-ENTRYPOINT="${ENTRYPOINT:-/usr/local/bin/python3.14-gil}"
+GIL_VERSION="${GIL_VERSION:-3.15.0rc3}"
+GIL_PREFIX="${GIL_PREFIX:-/usr/local/python315-gil}"
+VENV="${VENV:-/root/venv-315-gil}"
+PREBUILT_SP="${PREBUILT_SP:-/usr/local/lib/python3.15/site-packages}"
+ENTRYPOINT="${ENTRYPOINT:-/usr/local/bin/python3.15-gil}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 note() { printf '\033[36m[gil-sidecar]\033[0m %s\n' "$*"; }
@@ -34,7 +39,7 @@ warn() { printf '\033[33m[gil-sidecar] WARN:\033[0m %s\n' "$*"; }
 unset PYTHON_GIL
 
 # ── 1. resolve the prebuilt interpreter ────────────────────────────────────
-if [ -x "$GIL_PREFIX/bin/python3.14" ]; then
+if [ -x "$GIL_PREFIX/bin/python3.15" ]; then
     note "interpreter already present: $GIL_PREFIX"
 else
     note "resolving python-build-standalone release for $GIL_VERSION"
@@ -49,9 +54,9 @@ else
     curl -fsSL -o "$TMP/cpython.tar.gz" "$URL"
     tar -xzf "$TMP/cpython.tar.gz" -C "$GIL_PREFIX" --strip-components=1
     rm -rf "$TMP"
-    note "installed $("$GIL_PREFIX/bin/python3.14" -VV | head -1)"
+    note "installed $("$GIL_PREFIX/bin/python3.15" -VV | head -1)"
 fi
-"$GIL_PREFIX/bin/python3.14" -c \
+"$GIL_PREFIX/bin/python3.15" -c \
     'import sysconfig; assert not sysconfig.get_config_var("Py_GIL_DISABLED"), "not a GIL build"' \
     || { warn "prefix is not a GIL build"; exit 1; }
 
@@ -60,7 +65,7 @@ if [ -x "$VENV/bin/python" ]; then
     note "venv already present: $VENV"
 else
     note "creating venv $VENV"
-    "$GIL_PREFIX/bin/python3.14" -m venv "$VENV"
+    "$GIL_PREFIX/bin/python3.15" -m venv "$VENV"
 fi
 
 # Wrapper that clears the fatal PYTHON_GIL flag, for interactive use.
@@ -74,7 +79,7 @@ chmod +x "$VENV/bin/py"
 # ── 3. reuse the prebuilt ML stack (holds the local tensorflow build) ──────
 if [ -d "$PREBUILT_SP" ]; then
     note "wiring prebuilt site-packages: $PREBUILT_SP"
-    printf '%s\n' "$PREBUILT_SP" > "$VENV/lib/python3.14/site-packages/zzz_prebuilt_gil.pth"
+    printf '%s\n' "$PREBUILT_SP" > "$VENV/lib/python3.15/site-packages/zzz_prebuilt_gil.pth"
 else
     warn "$PREBUILT_SP absent: tensorflow/torch/keras/jax will not be importable"
 fi

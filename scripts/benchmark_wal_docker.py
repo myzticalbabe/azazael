@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
 benchmark_wal_docker.py - SQLite WAL Throughput Benchmark (CD5 Split Config)
 

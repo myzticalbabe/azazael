@@ -1,5 +1,10 @@
 # AZAZAEL -- Python 3.14t Free-Threading Compliance Audit
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Findings
+> below describe the codebase on the audit date.
+
 > **Audited:** June 3, 2026
 > **Scope:** All Python files under `azazael/src/` and `azazael/tests/`
 > **Standard:** Python 3.14t (free-threading, no-GIL) -- all operations must be thread-safe without relying on GIL serialization

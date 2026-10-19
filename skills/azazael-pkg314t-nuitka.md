@@ -1,63 +1,10 @@
 ---
 name: azazael-pkg314t-nuitka
-description: Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython compatibility
+description: "Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython compatibility (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# Nuitka 4.1.2
-
-> Python compiler with full language support and CPython compatibility
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `Nuitka` |
-| Version | `4.1.2` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — CLI entry points
-
-The package installs the following console commands (run with `python3.14t -m` or directly):
-
-- `nuitka`
-- `nuitka-run`
-
-Invocation pattern:
-
-```bash
-nuitka --help
-```
-
-Alternates:
-
-```bash
-nuitka-run --help
-```
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `Nuitka`
-
-Invocation pattern:
-
-```python
-import Nuitka
-print("Nuitka loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import Nuitka; print('Nuitka OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-nuitka/SKILL.md

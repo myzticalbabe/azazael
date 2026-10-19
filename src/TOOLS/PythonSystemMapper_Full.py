@@ -316,9 +316,17 @@ class FullSystemPythonMapper:
             self.data["relationships"]["dependency_graph"][path] = {
                 "category": cat,
                 "version": ver,
-                "in_path": any(p in path for p in ["Python311", "Python314"]),
+                # py315t is the production venv; py314m is the only sanctioned
+                # 3.14 runtime. Python311/Python314 remain census entries.
+                "in_path": any(
+                    p in path
+                    for p in ["py315t", "py314m", "Python311", "Python314"]
+                ),
                 "accessibility": "easy"
-                if any(p in path for p in ["Python311", "Python314", "Anaconda3"])
+                if any(
+                    p in path
+                    for p in ["py315t", "py314m", "Python311", "Python314", "Anaconda3"]
+                )
                 else "requires_app",
             }
             self.data["relationships"]["version_distribution"][ver].append(path)

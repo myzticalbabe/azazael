@@ -1,8 +1,8 @@
 """
 bcc_record_linkage.py — RapidFuzz record linkage across the BCC people records.
 
-splink is not installable on the cp314t stack (needs duckdb+igraph sdists), so
-this uses RapidFuzz (already installed) for fuzzy person-name linkage across:
+splink is not installable on this stack (needs duckdb+igraph sdists), so this
+uses RapidFuzz for fuzzy person-name linkage across:
   * bcc_network_sna_results_v3.json person labels (network persons)
   * PEOPLE_DOSSIER.html name mentions
   * PEOPLE_SEARCH_ALT.html / INVESTIGATION_GAPS person cites (optional)
@@ -11,7 +11,8 @@ Outputs:
   BCC_RECORD_LINKAGE.html  — interactive dedupe report
   bcc_record_linkage.json  — machine-readable clusters
 
-Run:  venv-314t/Scripts/python.exe azazael/scripts/bcc_record_linkage.py
+Run:  C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bcc_record_linkage.py
+      (deps belong in py315t; .venvs/py314m is the sanctioned 3.14 fallback)
 """
 import html
 import json
@@ -192,7 +193,7 @@ likely refer to the same person. Cluster size &gt; 1 means the same individual
 appears under variant names — candidate consolidation targets for the dossiers.
 Singletons (no cross-source match) are the least-documented people: review for
 profile gaps. <i>Note: splink (the production-grade linker) is not installable on
-the cp314t stack — duckdb/igraph ship source-only; RapidFuzz is the fallback.</i>
+the free-threaded stack — duckdb/igraph ship source-only; RapidFuzz is the fallback.</i>
 </div>
 <table><thead><tr><th>Cluster</th><th>n</th><th>Records</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table>

@@ -5,7 +5,7 @@ Unit tests for CORE/paths/targets.py target-list builders:
 
 Covers the canonical-name derivation, the shared _cache memoization + copy
 semantics, and the trim/error filtering behavior. cwd-independent and safe
-to run under Python 3.14t (stdlib + the paths package only).
+to run under Python 3.15t (stdlib + the paths package only).
 """
 import os
 import sys

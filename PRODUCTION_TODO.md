@@ -1,5 +1,9 @@
 # PRODUCTION_TODO — Azazael Ecosystem Production Roadmap
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`). This roadmap is
+> already superseded (see the note below); its 3.14t rules are historical.
+
 > **SUPERSEDED as of Sep 2, 2026 — see `CODEBASE_AUDIT_TODO.md` (primary living production plan, Phase 23+, Session 28 refresh).** Keep in place for reference only; do not add new items here.
 
 > *Generated: May 28, 2026 — Last updated: July 2, 2026 — **AOA Architecture Disclosure Rebuild session***

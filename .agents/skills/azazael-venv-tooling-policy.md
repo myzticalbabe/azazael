@@ -1,11 +1,11 @@
 ---
 name: azazael-venv-tooling-policy
-description: Dual-venv tooling policy for the Azazael ecosystem — Python 3.14t
-  stays the default production stack, while `venv-313-tools/` is the deliberate,
-  documented fallback for tools with no cp314t wheel. Lists the verified
-  wheel-gap tools, their versions, install target, and the smoke-test pattern
-  that proved each one. Proven 2026-09-05; consult before installing any new
-  native package on a 3.14t venv.
+description: Dual-venv tooling policy for the Azazael ecosystem — Python 3.15t
+  stays the default production stack, `venv-313-tools/` is the deliberate,
+  documented fallback for tools with no cp315 wheel, and `.venvs/py314m` is the
+  ONLY sanctioned 3.14 runtime (3.14t/venv-314t retired 2026-10-19). Lists the
+  verified wheel-gap tools, their versions, install target, and the smoke-test
+  pattern that proved each one. Consult before installing any new native package.
 metadata:
   category: process
 ---
@@ -21,7 +21,8 @@ tornado 6.5.5 on cp314t). This policy prevents wasted hours and documents the
 working fallback.
 
 ## The policy
-1. **3.14t stays the default production stack.** Never abandon it for a tool.
+1. **3.15t stays the default production stack** (`C:/Azazael/.venvs/py315t`).
+   Never abandon it for a tool. The 3.14t venv was RETIRED 2026-10-19.
 2. **Use 3.13 only when necessary** — i.e., a tool the task genuinely needs has
    no cp314t wheel. Install it into the dedicated fallback venv:
    `C:/Users/clint/venv-313-tools/` (created from Python 3.13.13,
@@ -45,7 +46,7 @@ working fallback.
 | chromadb | 1.5.9 | venv-313-tools | persistent collection add/query (segfaults on cp314t) |
 | pyarrow / scipy | latest | venv-313-tools | kuzu result reads / networkx pagerank |
 | graphiti-core | 0.30.1 | both | 3.13: full engine + kuzu backend; 3.14t: needs tornado 6.5.8 |
-| torch / timesfm | 2.14 / 3.0.1 | venv-314t | TimesFM anomaly pilot (3.14t-native, do NOT move) |
+| torch / timesfm | 2.14 / 3.0.1 | **py314m (on demand)** | Historical: ran in the retired `venv-314t`. Install into `.venvs/py314m` if needed; not present there yet. |
 
 ## API gotchas learned (write these down, they cost an hour each)
 - **kuzu 0.11.3 python**: `execute()` params are **dicts** with `$name`
@@ -66,8 +67,8 @@ working fallback.
   client; use a NoopEmbedder stub for persistence validation. The bundled kuzu
   driver is deprecated upstream (graphiti recommends Neo4j/FalkorDB).
 
-## When to prefer 3.14t anyway
+## When to prefer the 3.14 fallback anyway
 Pure-Python work (sklearn TF-IDF, RapidFuzz, pyvis, graphiti in-memory model,
-pandas) and the torch/timesfm stack run best on 3.14t. Only hand off the
-specific native tool to venv-313-tools; keep the orchestration script on the
-3.14t side when possible.
+pandas) belongs on 3.15t. Only hand off a package that genuinely has no 3.15
+build to `.venvs/py314m` (3.14.5 GIL) — the one sanctioned 3.14 runtime — and
+keep the orchestration script on the 3.15t side.

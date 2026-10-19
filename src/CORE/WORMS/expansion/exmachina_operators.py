@@ -15,8 +15,9 @@ This module holds the organs that PRODUCE and ROUTE it:
   OPUS     Kolmogorov-Arnold (spline-edge) backbone
   LIMEN    active-learning evidence queue
 
-Stdlib only, like the rest of the tier, because the production runner
-executes under `python3.14t.exe` where torch and numpy cannot load.
+Stdlib only, like the rest of the tier, because these organs must run unchanged
+in both interpreters — the free-threaded 3.15t runner and the 3.15 GIL sidecar —
+where a C-extension may or may not load.
 
 What each one honestly is:
 

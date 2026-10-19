@@ -1,44 +1,10 @@
 ---
 name: azazael-pkg314t-sniffio
-description: Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under
+description: "Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# sniffio 1.3.1
-
-> Sniff out which async library your code is running under
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `sniffio` |
-| Version | `1.3.1` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `sniffio`
-
-Invocation pattern:
-
-```python
-import sniffio
-print("sniffio loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import sniffio; print('sniffio OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-sniffio/SKILL.md

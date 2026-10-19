@@ -55,7 +55,10 @@ CORRECT = os.path.join(ROOT, "src", "CORE", "worm_registry.py")
 # Doubled separators: this is how paths are actually stored in records.
 CORRECT_ESCAPED = CORRECT.replace("\\", "\\\\")
 DECOY = r"C:\Users\clint\azazael-dev\src\worm_registry.py"
-OPS_OUT = r"C:\Users\clint\venv-314t\_ops\lbl\report.txt"
+# Any out-of-repo path works: the scoring must recognise a report path that is
+# not the task's own target. It deliberately no longer lives inside the retired
+# 3.14t venv, so archiving that venv cannot change this test's meaning.
+OPS_OUT = str(Path.home() / "azazael-ops" / "lbl" / "report.txt")
 
 
 def _tail(text: str, n: int = 8) -> list[dict]:

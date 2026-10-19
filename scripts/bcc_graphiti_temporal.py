@@ -3,8 +3,8 @@ bcc_graphiti_temporal.py — graphiti-core temporal knowledge graph prototype.
 
 Models the BCC board-reorg / officer-history facts using graphiti_core's actual
 data model (EntityNode + EntityEdge with valid_at / invalid_at / reference_time /
-expired_at) constructed in-memory — proving the temporal model runs on the cp314t
-stack without a graph-store backend.
+expired_at) constructed in-memory — proving the temporal model runs on the
+free-threaded 3.15t stack without a graph-store backend.
 
 graphiti (Zep, 2025-26) is a temporal knowledge-graph framework: relationships
 carry valid-time intervals, so "who chaired BCC on 2024-01-01?" answers
@@ -12,7 +12,8 @@ mechanically instead of by re-reading prose. The full engine path (LLM extractor
 + Neo4j/FalkorDB backend + embedder) is documented but not required to validate
 the model.
 
-Run:  venv-314t/Scripts/python.exe azazael/scripts/bcc_graphiti_temporal.py
+Run:  C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bcc_graphiti_temporal.py
+      (deps belong in py315t; .venvs/py314m is the sanctioned 3.14 fallback)
 Out:  BCC_TEMPORAL_KG.html  +  bcc_graphiti_temporal.json
 """
 import json

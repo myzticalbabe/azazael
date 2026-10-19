@@ -51,6 +51,26 @@ LEGACY_CATEGORIES = {
     "azazael-wsl-canonical": "Infrastructure",
 }
 
+# 3.14t retirement (2026-10-19): the `azazael-pkg314t-*` skills were generated
+# from the retired 3.14t venv's pip list. Their bodies are archived to
+# archive/retired-314t-skills-2026-10-19/ and the live entries are stubs kept
+# only so the catalog numbering stays a stable key. A regeneration must emit
+# that marker again, or it silently erases the retirement on the next run.
+RETIRED_314T_PREFIX = "azazael-pkg314t-"
+RETIRED_314T_NAMES = frozenset(
+    {"azazael-fix-python-314t", "azazael_314t_master", "azazael_314t_optimum"}
+)
+RETIREMENT_MARKER = (
+    "RETIRED 2026-10-19 (3.14t venv archived; "
+    "see archive/retired-314t-skills-2026-10-19/) — "
+)
+
+
+def is_retired(name: str) -> bool:
+    """True for a skill retired with the 3.14t venv."""
+    return name.startswith(RETIRED_314T_PREFIX) or name in RETIRED_314T_NAMES
+
+
 def make_header(n_core: int, n_kali: int, n_314t: int, n_bin: int) -> str:
     import datetime
     total = n_core + n_kali + n_314t + n_bin
@@ -59,7 +79,7 @@ def make_header(n_core: int, n_kali: int, n_314t: int, n_bin: int) -> str:
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: {today} — regenerated from canonical `skills/*.md` ({total:,} skills: core + Kali + 3.14t package + binary-tool)
+> Last Updated: {today} — regenerated from canonical `skills/*.md` ({total:,} skills: core + Kali + retired-3.14t package + binary-tool)
 > Purpose: Single source of truth for all available Azazael skills
 > Source of truth: `skills/` (canonical flat .md) mirrored to `.agents/skills/<name>/SKILL.md`. Table rows below are generated, never hand-edited.
 
@@ -72,7 +92,7 @@ def make_header(n_core: int, n_kali: int, n_314t: int, n_bin: int) -> str:
 | Total canonical skills | {total:,} |
 | Core skills (non-package) | {n_core} |
 | Package skills (Kali 3.13 env, `azazael-pkg-*`) | {n_kali} |
-| Package skills (Azazael 3.14t env, `azazael-pkg314t-*`) | {n_314t} |
+| Package skills (**RETIRED 2026-10-19**: 3.14t env archived, bodies archived, stubs retained for stable keys, `azazael-pkg314t-*`) | {n_314t} |
 | Binary-tool skills (`azazael-bin-*`) | {n_bin} |
 
 ---"""
@@ -137,7 +157,10 @@ def short(desc: str, limit: int = 110) -> str:
 def build_table(skills: list, start_num: int) -> tuple:
     lines = ["| # | Skill | Category | Description |", "|---|-------|----------|-------------|"]
     for i, s in enumerate(skills, start=start_num):
-        lines.append(f"| {i} | `{s['name']}` | {s['category']} | {short(s['description'])} |")
+        desc = short(s["description"])
+        if is_retired(s["name"]):
+            desc = RETIREMENT_MARKER + desc
+        lines.append(f"| {i} | `{s['name']}` | {s['category']} | {desc} |")
     return lines, start_num + len(skills)
 
 
@@ -191,7 +214,10 @@ def main() -> None:
     tbl, n = build_table(pkgs_kali, n)
     lines.extend(tbl)
     lines.append("")
-    lines.append(f"## Skill Quick Reference — 3.14t Package Skills ({n}-{n + len(pkgs_314t) - 1})")
+    lines.append(
+        "## Skill Quick Reference — 3.14t Package Skills — RETIRED 2026-10-19 "
+        f"(archived; numbering retained as stable keys) ({n}-{n + len(pkgs_314t) - 1})"
+    )
     tbl, n = build_table(pkgs_314t, n)
     lines.extend(tbl)
     lines.append("")
@@ -210,7 +236,8 @@ def main() -> None:
     with open(CATALOG, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
-    print(f"Wrote {len(skills)} skills to catalog (core {len(core)}, kali {len(pkgs_kali)}, 3.14t {len(pkgs_314t)}, bin {len(bins)})")
+    print(f"Wrote {len(skills)} skills to catalog (core {len(core)}, kali {len(pkgs_kali)}, "
+          f"3.14t-retired {len(pkgs_314t)}, bin {len(bins)})")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,10 @@ $lnk = $ws.CreateShortcut("$env:USERPROFILE\Desktop\Eve_Unleashed.lnk")
 $lnk.TargetPath = 'G:\AZAZAEL_Standalone\Eve_Unleashed_314t.exe'
 $lnk.Arguments = ''
 $lnk.WorkingDirectory = 'G:\AZAZAEL_Standalone'
-$lnk.Description = 'Eve Unleashed 3.14t (standalone, G:)'
+# NOTE: the target is a BUILT ARTIFACT whose filename records the interpreter it
+# was frozen with; 3.14t itself is retired (2026-10-19) and this is not a launch
+# choice. Re-freeze it on 3.15t before promoting it as the current build.
+$lnk.Description = 'Eve Unleashed (standalone build, G:)'
 $lnk.Save()
 Write-Output "Eve_Unleashed.lnk -> $($lnk.TargetPath)"
 

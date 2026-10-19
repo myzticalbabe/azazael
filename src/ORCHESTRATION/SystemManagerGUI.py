@@ -500,8 +500,11 @@ class SystemManagerGUI:
     def _find_python_installations(self) -> list[dict]:
         installations = []
 
+        # Production 3.15t leads; 3.14t was retired 2026-10-19, so the only
+        # 3.14 entry is the sanctioned 3.14m venv.
         known_paths = [
-            (r"C:\Python314\python.exe", "standalone", "3.14.3"),
+            (r"C:\Azazael\.venvs\py315t\Scripts\python.exe", "venv", "3.15.0rc3"),
+            (r"C:\Azazael\.venvs\py314m\Scripts\python.exe", "venv", "3.14.5"),
             (r"C:\Program Files\Python311\python.exe", "standalone", "3.11.9"),
             (r"C:\Users\clint\anaconda3\python.exe", "conda", "3.13.9"),
             (r"C:\Users\clint\.local\bin\python3.11.exe", "standalone", "3.11.14"),

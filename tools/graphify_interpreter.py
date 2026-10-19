@@ -58,14 +58,21 @@ def graphify_python_candidates() -> list[Path]:
     env = os.environ.get("GRAPHIFY_PY")
     if env:
         out.append(Path(env))
+    # production first: the 3.15t runner, then its same-version GIL sidecar
+    out += [
+        Path("C:/Azazael/.venvs/py315t/Scripts/python.exe"),
+        Path("C:/Azazael/.venvs/py315/Scripts/python.exe"),
+    ]
     # uv tool installs, Windows and POSIX layouts
     out += [
         home / "AppData/Roaming/uv/tools/graphifyy/Scripts/python.exe",
         home / ".local/share/uv/tools/graphifyy/Scripts/python.exe",
         home / ".local/share/uv/tools/graphifyy/bin/python",
     ]
-    out.append(LEGACY_GRAPHIFY_PY)
     out.append(Path(sys.executable))
+    # 3.14 is RETIRED (2026-10-19): kept last so a capable historical install
+    # still resolves rather than being lost, never as a production choice.
+    out.append(LEGACY_GRAPHIFY_PY)
     return out
 
 

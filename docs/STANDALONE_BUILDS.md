@@ -1,6 +1,7 @@
-# STANDALONE BUILDS — .exe Packaging for Python 3.14t Worms
+# STANDALONE BUILDS — .exe Packaging (Python 3.15t; 3.14t retired)
 
-**Created:** June 4, 2026 | **Build Tool:** Nuitka 4.1.2 (3.14t free-threading)
+**Created:** June 4, 2026 | **Build Tool:** Nuitka 4.1.2 (3.15t free-threading)
+**Interpreter (2026-10-19):** `C:\Azazael\.venvs\py315t\Scripts\python.exe`. Commands below use that pinned path because bare `python` is not production.
 **Updated:** June 4, 2026 — Concurrent build + environment alignment
 
 ---
@@ -11,32 +12,32 @@
 
 ```bash
 # Build ALL targets on BOTH platforms simultaneously:
-python3.14t scripts/build_all_concurrent.py --all
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --all
 
 # Build specific tier:
-python3.14t scripts/build_all_concurrent.py --tier neural
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --tier neural
 
 # Build single target on specific platform:
-python3.14t scripts/build_all_concurrent.py --target metacognition --platform windows
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --target metacognition --platform windows
 
 # Verify Nuitka patches before building:
-python3.14t scripts/build_all_concurrent.py --verify
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --verify
 
 # List registered targets:
-python3.14t scripts/build_all_concurrent.py --list
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --list
 ```
 
 ### Environment Sync (pre-build requirement)
 
 ```bash
 # Sync Windows 11 → WSL2 before building:
-python3.14t scripts/sync_all.py --sync-to wsl2
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --sync-to wsl2
 
 # Full sync all environments:
-python3.14t scripts/sync_all.py --sync-all
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --sync-all
 
 # Check sync status:
-python3.14t scripts/sync_all.py --status
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --status
 ```
 
 ### Nuitka Configuration
@@ -46,12 +47,12 @@ python3.14t scripts/sync_all.py --status
 | Windows 11 | 3.14.6t | 4.1.2 | Verified |
 | WSL2 Ubuntu-26.04 | 3.14.6t | 4.1.2 | Verified |
 
-**Patch script:** `docs/scripts/patch_nuitka_314t.py` — run `--verify` before any build.
+**Patch script:** `docs/scripts/patch_nuitka_315t.py` — run `--verify` before any build.
 
 ### Build Strategy
 
 ```
-Python 3.14t Source → patch_nuitka_314t.py --verify → Nuitka --standalone → .exe
+Python 3.14t Source → patch_nuitka_315t.py --verify → Nuitka --standalone → .exe
                                                    ├─ Windows 11 (native)
                                                    └─ WSL2 (Linux ELF)
 ```
@@ -156,7 +157,7 @@ Key flags:
 
 ### Example: MetaCognitionWorm
 ```bash
-python3.14t -m nuitka \
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" -m nuitka \
     --standalone \
     --output-dir=build/standalone \
     --output-filename=azazael-metacognition.exe \
@@ -167,7 +168,7 @@ python3.14t -m nuitka \
 
 ### Example: EvolutionEngine
 ```bash
-python3.14t -m nuitka \
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" -m nuitka \
     --standalone \
     --output-dir=build/standalone \
     --output-filename=azazael-evolution.exe \
@@ -179,10 +180,10 @@ python3.14t -m nuitka \
 ### Batch Build (all 39)
 ```bash
 # Concurrent build across Windows + WSL2:
-python3.14t scripts/build_all_concurrent.py --all
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --all
 
 # Legacy single-platform build:
-python3.14t scripts/build_all_standalone.py --targets all --output build/standalone/
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_standalone.py --targets all --output build/standalone/
 ```
 
 ---
@@ -202,7 +203,7 @@ See `docs/ENVIRONMENT_ALIGNMENT.md` for full sync procedures.
 
 ## Known Limitations
 
-1. **Nuitka 3.14t patch required** — Run `docs/scripts/patch_nuitka_314t.py --verify` before building.
+1. **Nuitka 3.14t patch required** — Run `docs/scripts/patch_nuitka_315t.py --verify` before building.
 2. **Tkinter dependency** — GUI worms require `--enable-plugin=tk-inter`.
 3. **SQLite bundling** — Worms using LocalMemoryStore need `sqlite3.dll` bundled.
 4. **GPU dependencies** — ML worms (SYSTEMZ_ML, WORMZ_ML) may need CUDA DLLs.

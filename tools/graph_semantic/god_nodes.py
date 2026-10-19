@@ -30,7 +30,17 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, r"C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\site-packages")
+# The dependencies (networkx, graphify) must come from an interpreter that HAS
+# them. Production is the 3.15t venv; the 3.14 install is a retired-era last
+# resort and is only used when the production venv lacks the pair. Inserting a
+# 3.14 site-packages into a 3.15 process would hand it cp314 binaries, so the
+# directories are checked before either is added.
+_PRODUCTION_SP = Path("C:/Azazael/.venvs/py315t/Lib/site-packages")
+_LEGACY_SP = Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "Lib" / "site-packages"
+for _sp in (_PRODUCTION_SP, _LEGACY_SP):
+    if (_sp / "networkx").is_dir() and (_sp / "graphify").is_dir():
+        sys.path.insert(0, str(_sp))
+        break
 
 import networkx as nx  # noqa: E402  (after the sys.path bootstrap above)
 from graphify.analyze import _is_concept_node, _is_file_node, _is_json_key_node  # noqa: E402

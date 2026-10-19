@@ -1,7 +1,7 @@
 """
 bcc_semantic_index.py — TF-IDF semantic cross-connection index over the BCC corpus.
 
-chromadb/sentence-transformers segfault on the cp314t stack, so this uses sklearn
+chromadb/sentence-transformers segfault on the free-threaded stack, so this uses sklearn
 TF-IDF + cosine similarity (works, zero native deps). TF-IDF is well-suited to this
 corpus because the "implied connections" are proper-noun/topic co-occurrences that
 exact grep misses when the surrounding words differ.
@@ -10,7 +10,8 @@ Outputs:
   BCC_SEMANTIC_INDEX.html        — interactive report of implied cross-connections
   bcc_semantic_index.json        — machine-readable pairs
 
-Run:  venv-314t/Scripts/python.exe azazael/scripts/bcc_semantic_index.py [corpus-dir]
+Run:  C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bcc_semantic_index.py [corpus-dir]
+      (deps belong in py315t; .venvs/py314m is the sanctioned 3.14 fallback)
 """
 import argparse
 import glob

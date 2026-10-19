@@ -1,4 +1,10 @@
 # AZAZAEL — Full Project Audit Report
+
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Statements
+> below describe the state on the date of this record.
+
 > **Date:** September 7, 2026 (session `codebuff_20260907_233715_13888`)
 > **Methodology:** 3-Pass Architecture Review (azazael-architecture-review skill)
 > **Scope:** Desktop (40 dirs) + azazael core (src/, tests, registry) + G: Drive + recording/tooling health
