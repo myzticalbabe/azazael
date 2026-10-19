@@ -24,6 +24,7 @@ import sched
 from datetime import datetime
 from typing import Any, Callable, List
 from dataclasses import dataclass
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -201,7 +202,6 @@ class CLOCKZ:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="CLOCKZ - Time Management Worm")
     parser.add_argument("--time", action="store_true", help="Get current time")

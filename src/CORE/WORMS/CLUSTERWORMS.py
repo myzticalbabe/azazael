@@ -38,6 +38,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any, Callable, Set
 from dataclasses import dataclass, field
 from collections import defaultdict
+import argparse
+import time as _t
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -119,7 +121,6 @@ class _WatchdogThread:
         self._timeouts: list = []
 
     def track(self, future, name: str, timeout: float) -> None:
-        import time as _t
         with self._lock:
             self._futures[future] = (str(name), _t.monotonic() + float(timeout))
 
@@ -144,7 +145,6 @@ class _WatchdogThread:
         return out
 
     def _poll(self) -> None:
-        import time as _t
         while self._running:
             try:
                 now = _t.monotonic()
@@ -1824,7 +1824,6 @@ def run_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="CLUSTERWORMS v2 — Coordinated Worm Collectives"

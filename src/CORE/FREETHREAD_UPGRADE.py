@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Tuple
 from concurrent.futures import ThreadPoolExecutor, Future, as_completed
 from datetime import datetime
+import sysconfig
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -44,7 +45,6 @@ try:
 except ImportError:
     # Fallback for standalone usage
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:

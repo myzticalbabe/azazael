@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from CORE.WORMS.BINARY_ANALYSIS import BinaryAnalysis
 from typing import List
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -41,7 +42,6 @@ except ImportError:                               # never break the host
 
 
 def main():
-    import json
     import argparse
     parser = argparse.ArgumentParser(description="BINARY_ANALYSIS — Binary Analysis & RE Worm")
     sub = parser.add_subparsers(dest="command", help="Analysis command")
