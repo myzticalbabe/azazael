@@ -437,7 +437,8 @@ class Qwen35ForCausalLM(nn.Module):
 
             # Top-k filtering
             if top_k > 0:
-                top_k_vals, _ = torch.topk(next_logits, top_k, dim=-1)
+                k = min(top_k, next_logits.size(-1))
+                top_k_vals, _ = torch.topk(next_logits, k, dim=-1)
                 min_top_k = top_k_vals[:, -1].unsqueeze(-1)
                 next_logits[next_logits < min_top_k] = float("-inf")
 

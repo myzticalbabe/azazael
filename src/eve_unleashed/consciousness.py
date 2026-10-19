@@ -66,6 +66,19 @@ class SelfModel:
         c.last_seen = time.time()
         self.last_updated = time.time()
 
+    def get_unhealthy(self, threshold: float = 0.7) -> List[str]:
+        """Return component names with health below threshold."""
+        return [n for n, c in self.components.items() if c.health < threshold]
+
+    def propose_mesh_action(self, action: str, nature: str = "monitor") -> Optional[Dict[str, Any]]:
+        """Propose a mesh-driving action based on self-model state."""
+        unhealthy = self.get_unhealthy()
+        if unhealthy:
+            return {"action": "orchestrate", "nature": nature, "reason": f"unhealthy components: {unhealthy}", "confidence": 0.85}
+        if self.total_worms == 0:
+            return {"action": "discover_worms", "nature": nature, "reason": "no worms discovered", "confidence": 0.9}
+        return {"action": action, "nature": nature, "reason": "routine", "confidence": 0.7}
+
     def snapshot(self) -> Dict[str, Any]:
         return {
             "version": self.version,
@@ -83,7 +96,7 @@ class IntrospectionLoop:
     results written back to PAMS as insight."""
 
     def __init__(self, self_model: SelfModel, bridge=None, distill=None,
-                 recorder=None, interval_s: float = 300.0):
+                 recorder=None, interval_s: float = 300.0, act_fn=None):
         self.self_model = self_model
         self._bridge = bridge
         self._distill = distill
@@ -93,6 +106,8 @@ class IntrospectionLoop:
         self._thread = None
         self.insights: List[Dict[str, Any]] = []
         self._lock = __import__("threading").Lock()
+        self._act_fn = act_fn
+        self._stop_event = __import__("threading").Event()
 
     # -- subsystem access (fail-open) -------------------------------------
 
@@ -134,6 +149,7 @@ class IntrospectionLoop:
     def start(self) -> None:
         if self._running:
             return
+        self._stop_event.clear()
         self._running = True
         self._thread = __import__("threading").Thread(target=self._run_loop,
                                                       daemon=True,
@@ -142,17 +158,17 @@ class IntrospectionLoop:
 
     def stop(self) -> None:
         self._running = False
+        self._stop_event.set()
         if self._thread is not None:
-            self._thread.join(timeout=2.0)
+            self._thread.join(timeout=15.0)
 
     def _run_loop(self) -> None:
-        import time as _t
         while self._running:
             try:
                 self.run_once()
             except Exception as exc:  # never kill the loop
                 note_failure("consciousness:loop", exc)
-            _t.sleep(self.interval_s)
+            self._stop_event.wait(timeout=self.interval_s)
 
     def run_once(self) -> Dict[str, Any]:
         """One introspection cycle: analyze self-model, distill, record."""
@@ -187,6 +203,27 @@ class IntrospectionLoop:
         with self._lock:
             self.insights.append(insight)
             self.self_model.introspection_count += 1
+
+        # Act on architecture: if unhealthy components found, propose mesh orchestration
+        unhealthy = self.self_model.get_unhealthy() if hasattr(self.self_model, 'get_unhealthy') else []
+        if unhealthy and self._recorder is not None:
+            try:
+                self._recorder.record_event(
+                    event_type="consciousness_action",
+                    data={"action": "orchestrate", "reason": f"unhealthy: {unhealthy}", "cycle": self.self_model.introspection_count},
+                    source="consciousness", severity="warning",
+                )
+            except Exception as exc:
+                note_failure("consciousness:action_record", exc)
+
+        # Execute proposed mesh action via act_fn if available
+        if self._act_fn is not None:
+            try:
+                proposed = self.self_model.propose_mesh_action("run_metacluster", "monitor")
+                if proposed is not None:
+                    self._act_fn(proposed)
+            except Exception as exc:
+                note_failure("consciousness:act_fn", exc)
 
         self._record(insight)
         return insight
