@@ -76,6 +76,17 @@ BACKENDS = (
         "binary": BIN_DIR / "llama-b10964-cuda" / "llama-server.exe",
     },
     {
+        # Intel OpenVINO GenAI on the Arc 140T / AI Boost NPU. On this box
+        # there is no NVIDIA CUDA, so this is the CUDA-equivalent slot: it
+        # spawns openvino_worker.py (system Python, where openvino lives) instead
+        # of a native binary. Only activates when OPENVINO_MODEL_DIR points at a
+        # real model directory; otherwise it is skipped honestly.
+        "name": "openvino_genai",
+        "device": "intel-gpu",
+        "binary": Path(os.environ.get("SYSTEM_PYTHON", r"C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe")),
+        "launch": None,  # filled in bind() when a model dir is available
+    },
+    {
         "name": "llama_cpp_cpu",
         "device": "cpu",
         "binary": BIN_DIR / "llama-b10964-cpu" / "llama-server.exe",
@@ -171,30 +182,47 @@ class BackendManager:
                 return False
             # 2) Spawn backends in priority order.
             for spec in BACKENDS:
-                if not spec["binary"].is_file():
-                    continue
-                bport = 18181
-                try:
-                    # Popen spawns a DAEMON, not a batch step: a timeout= here
-                    # would kill our own backend. The bounded wait IS the
-                    # deadline below (90s warm-up -> next backend in the
-                    # chain), and main() terminates the process on exit.
-                    self._proc = subprocess.Popen(  # scanner:ignore subprocess_no_timeout — daemon spawn; bounded by the 90s warm-up deadline + terminate() in main()
-                        [str(spec["binary"]), "-m", str(model),
-                         "--host", "127.0.0.1", "--port", str(bport),
-                         "-c", "4096", "-b", "4096"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                        creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
-                except OSError as exc:
-                    note_failure(f"accelerator_sidecar:spawn:{spec['name']}", exc)
-                    continue
+                if spec["name"] == "openvino_genai":
+                    model_dir = os.environ.get("OPENVINO_MODEL_DIR", "").strip()
+                    if not model_dir or not Path(model_dir).is_dir():
+                        continue
+                    if not spec["binary"].is_file():
+                        continue
+                    worker = Path(__file__).resolve().parent / "openvino_worker.py"
+                    if not worker.is_file():
+                        continue
+                    bport = 18181
+                    try:
+                        self._proc = subprocess.Popen(  # scanner:ignore subprocess_no_timeout — daemon spawn
+                            [str(spec["binary"]), str(worker),
+                             "--model-dir", model_dir, "--device", "GPU",
+                             "--host", "127.0.0.1", "--port", str(bport)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
+                    except OSError as exc:
+                        note_failure(f"accelerator_sidecar:spawn:{spec['name']}", exc)
+                        continue
+                else:
+                    if not spec["binary"].is_file():
+                        continue
+                    bport = 18181
+                    try:
+                        self._proc = subprocess.Popen(  # scanner:ignore subprocess_no_timeout — daemon spawn
+                            [str(spec["binary"]), "-m", str(model),
+                             "--host", "127.0.0.1", "--port", str(bport),
+                             "-c", "4096", "-b", "4096"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
+                    except OSError as exc:
+                        note_failure(f"accelerator_sidecar:spawn:{spec['name']}", exc)
+                        continue
                 deadline = time.time() + 90.0
                 while time.time() < deadline:
                     if self._probe(bport):
                         self.backend_port = bport
                         self.backend_name = spec["name"]
                         self.device = spec["device"]
-                        self.model_path = str(model)
+                        self.model_path = model_dir if spec["name"] == "openvino_genai" else str(model)
                         return True
                     if self._proc.poll() is not None:
                         break  # died during warm-up; try the next backend

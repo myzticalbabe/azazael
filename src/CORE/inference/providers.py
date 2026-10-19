@@ -331,6 +331,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
             "moondream": "Moondream (vision-language, local)",
             "nomic-embed-text": "Nomic Embed Text (embeddings, local)",
             "eve-unleashed": "Eve Unleashed (local)",
+            "olmoe-1b-7b": "OLMoE 1B-7B (Ollama, sam860/olmoe-1b-7b-0924, local MoE)",
         },
     },
     "mistral": {
@@ -617,6 +618,24 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         "local": True,
         "free_models": {
             "local-model": "Whatever the local llama-server has loaded",
+        },
+    },
+"edge0": {
+        "name": "Edge0 Intel (local, :8091 Spark / :8089-92)",
+        "description": "edge0-intel project on this box — Intel Arc 140T via Level Zero/torch.xpu (MoE streaming backend) plus llama.cpp SYCL servers on 8089-8092. OpenAI-compatible. Spark fast bench on 8091. Start via edge0-intel scripts. Requires EDGE0_BACKEND=intel.",
+        "base_url": "http://localhost:8091/v1",
+        "base_url_env": "EDGE0_BASE_URL",
+        "default_model": "spark",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "EDGE0_API_KEY",
+        "signup_url": "https://github.com/Edge0-AI/Edge0",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "spark": "Spark fast bench (edge0-intel, port 8091)",
+            "gemma-4-e4b-it": "Gemma 4 E4B (edge0-intel, port 8090)",
+            "ling-abl-s05": "Ling abliterated (edge0-intel, port 8089)",
         },
     },
     "accelerator_sidecar": {
@@ -3313,7 +3332,8 @@ def list_providers() -> List[Dict[str, Any]]:
 # existing cloud ordering is untouched.
 _LOCAL_PROVIDER_NAMES = (
     "llamaserver", "llama_mythos", "llama_mythos_v2", "llama_qwopus",
-    "llama_ornith", "lmstudio", "accelerator_sidecar",
+    "llama_ornith", "lmstudio", "accelerator_sidecar", "edge0",
+    "openvino", "huggingface_direct", "llama_cpp_direct",
 )
 
 # Runtime module each in-process provider needs. A name absent from this map is

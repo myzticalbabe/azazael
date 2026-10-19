@@ -2838,7 +2838,7 @@ class SpineCycleWorm:
         path* rather than a credential. Treating any of those as a missing
         credential would take a working endpoint out of the failover chain —
         the exact failure this stage is supposed to prevent. A CHAIN entry
-        with no registry entry (e.g. `llamaserver`) is omitted entirely: no
+        with no registry entry (e.g. `opencode`) is omitted entirely: no
         evidence is not evidence of absence.
         """
         import os

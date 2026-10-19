@@ -355,7 +355,10 @@ def test_next_provider_skips_a_provider_whose_breaker_is_open():
     assert fo.next_provider()["provider"] == "llamaserver"
     for _ in range(fo.FAILURE_THRESHOLD):
         fo.mark_down("llamaserver", error="unreachable")
-    assert fo.next_provider()["provider"] == "lmstudio"
+    # The local model tier fronts the tail (mythos/v2/qwopus/ornith inserted
+    # between llamaserver and lmstudio), so the next hand-off is the first
+    # local entry, not lmstudio.
+    assert fo.next_provider()["provider"] == "llama_mythos"
 
 
 def test_servemesh_stage_reports_sweep_and_reprobe(monkeypatch):

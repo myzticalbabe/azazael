@@ -282,7 +282,7 @@ class InferenceLoadBalancerWorm:
 
 
 @register_worm(category="servemesh", priority=8, cooldown_seconds=15.0,
-    description="12-provider chain (RULE 0D) as mesh-aware worm, not just client lib")
+    description="Provider failover chain (RULE 0D) with the local model tier up front; mesh-aware, not just client lib")
 class ProviderFailoverMeshWorm:
     """Mesh-aware provider failover chain with half-open auto-recovery.
 
@@ -306,9 +306,11 @@ class ProviderFailoverMeshWorm:
     """
 
     VERSION = "1.1.0"
-    CHAIN = ("llamaserver", "lmstudio", "nim", "groq", "openrouter",
-             "ollama", "vllm", "sglang", "openwebui", "jan",
-             "kilo", "opencode")
+    CHAIN = ("llamaserver", "llama_mythos", "llama_mythos_v2", "llama_qwopus",
+             "llama_ornith", "accelerator_sidecar", "edge0", "openvino",
+             "huggingface_direct", "llama_cpp_direct", "lmstudio", "nim",
+             "groq", "openrouter", "ollama", "vllm", "sglang", "openwebui",
+             "jan", "kilo", "opencode")
     # CHAIN uses short names; the RULE 0D registry uses its own ids.
     PROVIDER_ALIASES = {"nim": "nvidia_nim"}
 
