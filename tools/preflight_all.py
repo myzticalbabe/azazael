@@ -191,17 +191,75 @@ GATES: Tuple[Gate, ...] = (
     ),
     Gate(
         name="testing-paradigm-rule1",
-        argv=("tools/paradigm_gate.py", "--check"),
-        interpreter="python",
+        # The hook runs tools/test_paradigm_gate.py (check 7b). This row named
+        # tools/paradigm_gate.py, a different script, so the registry described
+        # a gate nobody runs while the real one was invisible to parity.
+        argv=("tools/test_paradigm_gate.py",),
+        interpreter="python3",
         env=(),
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="new src/ functions vs staged test files carrying a Hypothesis property",
+        reads="NEW staged src/ modules vs tests/ (G1); Hypothesis coverage advisory (G2)",
         control_test="tests/test_paradigm_gate.py",
         control=None,
         uncontrolled_because=None,
+        requires=(),  # reads the git index
+    ),
+    Gate(
+        name="testing-paradigm-advisory",
+        argv=("tools/paradigm_gate.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        # Check 7: exit code is printed, not enforced, unless
+        # PARADIGM_GATE_STRICT=1. A presence heuristic must not block commits
+        # until it has been measured, so it is registered as non-blocking.
+        blocking=False,
+        slow=False,
+        reads="new src/ functions vs staged test files carrying a Hypothesis property",
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "advisory in the hook by design (exit code printed, enforced only "
+            "under PARADIGM_GATE_STRICT=1); a non-zero exit is not a defect signal"
+        ),
         requires=(),
+    ),
+    Gate(
+        name="supervisor-verdict",
+        argv=("tools/supervisor_mcp.py", "--verdict"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="engram doctor + conflict count, PMB daemon liveness, PAMS liveness probes",
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "no dedicated control artifact: the leg behaviour is asserted by the "
+            "pre-commit wiring test (tests/test_preflight_gate_wiring.py) and the "
+            "verdict is re-derived live on every commit; a recorded baseline "
+            "would pin a memory-state answer that changes between runs"
+        ),
+        requires=(),  # external daemons, not repo paths
+    ),
+    Gate(
+        name="transcript-ap5",
+        argv=("tools/transcript_ap5_gate.py", "--limit", "500"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        # Advisory IN THE HOOK (`|| true`): the gate reads assistant text AFTER
+        # emission, so it can make a violation visible but cannot prevent it.
+        blocking=False,
+        slow=False,
+        reads="assistant output parts in opencode.db / the Claude transcripts",
+        control_test="tests/test_ap5_gate_stores.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=(),  # transcript stores, not repo paths
     ),
     Gate(
         name="pmb-outcome-observer",
@@ -278,7 +336,26 @@ GATES: Tuple[Gate, ...] = (
 
 
 def resolve_interpreter(name: str) -> Optional[str]:
-    """Resolve an interpreter NAME to an executable path, or None if absent."""
+    """Resolve an interpreter NAME to an executable path, or None if absent.
+
+    ``python3`` and ``py315t`` mean the PINNED production interpreter that
+    `.githooks/pre-commit` already uses ($PYTHON3). Resolving the bare name was
+    measured wrong on this host: ``python3`` is WindowsApps 3.13.14, which
+    cannot import ``mcp``, so the supervisor gate failed in 0.16s with an
+    ImportError while the same command passed under 3.15t. A name is not an
+    interpreter; prefer the venv the hook pins, and fall back to PATH only when
+    that venv is absent on this host.
+    """
+    if name in ("python3", "py315t"):
+        for candidate in (
+            REPO.parent / ".venvs" / "py315t" / "Scripts" / "python.exe",
+            REPO.parent / ".venvs" / "py315t" / "bin" / "python",
+            REPO / ".venvs" / "py315t" / "Scripts" / "python.exe",
+            REPO / ".venvs" / "py315t" / "bin" / "python",
+        ):
+            if candidate.exists():
+                return str(candidate)
+        return shutil.which(name)
     if name == "pmb-venv":
         override = os.environ.get("PMB_VENV_PYTHON")
         if override and Path(override).exists():
@@ -324,19 +401,29 @@ def probe_interpreter(path: str) -> Tuple[bool, str]:
 # --------------------------------------------------------------------------- #
 
 
+#: A line that executes a Python interpreter. Case-insensitive because the hook
+#: uses the pinned `$PYTHON3` everywhere: a literal lower-case "python" test is
+#: how `scripts/commit_gate.py` came to be reported as registered-but-not-run
+#: while the hook runs it on line 44.
+_RUNS_PYTHON_RE = re.compile(r"(?i)(?:\bpython3?\b|PMB_PY)")
+
+
 def hook_gate_scripts(hook_text: str) -> List[str]:
     """Re-derive the gate scripts the hook RUNS (not the ones it mentions).
 
     Comment lines are skipped on purpose: the hook's own header mentions
     `tools/install_git_hooks.py` in prose, and counting a mention as a gate would
-    make this control fail on a correct tree.
+    make this control fail on a correct tree. ``echo`` lines are skipped for the
+    same reason one step removed from prose: the supervisor stanza prints
+    ``then: python tools/supervisor_doctor.py --fix``, and a remediation hint is
+    not an execution. Counting it reported the doctor as ran-but-unregistered.
     """
     found: List[str] = []
     for raw in hook_text.splitlines():
         line = raw.strip()
-        if not line or line.startswith("#"):
+        if not line or line.startswith("#") or line.startswith("echo "):
             continue
-        if "python" not in line and "PMB_PY" not in line:
+        if not _RUNS_PYTHON_RE.search(line):
             continue
         for match in _SCRIPT_RE.findall(line):
             if match not in found:
@@ -349,6 +436,9 @@ def hook_parity(gates: Sequence[Gate], hook_text: Optional[str]) -> Tuple[bool, 
     if hook_text is None:
         return False, "MISSING_EVIDENCE: %s not readable -- cannot verify the registry" % HOOK
     ran = set(hook_gate_scripts(hook_text))
+    # The runner cannot register itself: --check would then execute --check on
+    # itself, one level deeper per commit. It is the backstop, not a gate.
+    ran.discard("tools/preflight_all.py")
     registered = {g.argv[0] for g in gates if g.inside_hook}
     only_hook = sorted(ran - registered)
     only_registry = sorted(registered - ran)
