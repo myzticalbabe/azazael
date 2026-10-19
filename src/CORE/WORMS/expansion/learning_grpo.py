@@ -315,16 +315,25 @@ class GRPOTrainer:
                 for c, f in zip(coarse, fine)]
 
     def update_policy(self, group: list[str], rewards: list[float],
-                      context_key: str = "default"):
+                      context_key: str = "default",
+                      record_replay: bool = True):
         """Update the policy using GRPO.
 
         Applies policy gradient with group-normalized advantages:
         policy[worm] += lr * advantage * (1 - beta * kl_penalty)
 
+        Every live update also self-ingests its (context, group, rewards)
+        as a replay trajectory (in-memory buffer, capped), so the offline
+        replay path always has material from real runs — the loop accounts
+        for the EP350 integration instead of leaving it callerless.
+        replay_offline_step passes record_replay=False: its steps already
+        come from the buffer, and re-buffering them would churn it.
+
         Args:
             group: list of worm names.
             rewards: list of rewards (same order as group).
             context_key: Key for the policy context (e.g., task_type).
+            record_replay: buffer this update as a replay trajectory.
         """
         # EP351: the dense checkpoint-pair implicit reward is fused at the one
         # point rewards enter the policy update. Weight 0.0 (default) => no-op.
@@ -396,6 +405,13 @@ class GRPOTrainer:
             self._history.append(entry)
             if len(self._history) > 500:
                 self._history = self._history[-500:]
+
+        if record_replay:
+            self.ingest_replay_trajectory(
+                {"steps": [{"context_key": context_key, "worm": w,
+                             "reward": float(r)}
+                            for w, r in zip(group, rewards)]},
+                source="update_policy:%s" % context_key)
 
         # Persist to LocalMemoryStore
         try:
@@ -472,7 +488,7 @@ class GRPOTrainer:
             results[ctx] = self.update_policy(
                 [s["worm"] for s in steps],
                 [float(s.get("reward", 0.0)) for s in steps],
-                context_key=ctx)
+                context_key=ctx, record_replay=False)
         return {"updated": True, "contexts": results,
                 "n_steps": sum(len(s) for s in by_ctx.values())}
 
