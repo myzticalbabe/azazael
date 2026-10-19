@@ -12,6 +12,8 @@
 #   2. staged NEW anti-pattern  (tools/staged_scanner_gate.py, per-file vs HEAD)
 #   3. canon drift check         (tools/canon_drift_check.py --check)
 #   4. repo-wide anti-pattern ratchet (tools/anti_pattern_gate.py --check)
+#   9. unified gate registry     (tools/preflight_all.py --check, blocking;
+#       runs after the hand-written gates, see its stanza below)
 #
 # Why check 3 exists even though check 2 already scans: check 2 is PER-FILE
 # (staged vs HEAD), so it catches an anti-pattern being ADDED but cannot see
@@ -185,6 +187,46 @@ if [ -f "$SCRIPT_DIR/tools/test_paradigm_gate.py" ]; then
     fi
 fi
 
+# ─── Check 8 (blocking): unified supervisor verdict ───
+# The supervisor MCP merges the Engram gate with PMB liveness and honest PAMS
+# probes. A commit on NO-GO would record a tree the memories say is broken,
+# so this refuses -- but ONLY on a parsed NO-GO (positive evidence). GO and
+# CLARIFY pass; an unrunnable/unparseable oracle passes loud (a gate that
+# blocks when it cannot measure is a denial-of-service on every commit).
+# Deliberate override, declared not silent: ALLOW_SUPERVISOR_NOGO=1.
+# Remediation pointer, not just refusal: tools/supervisor_doctor.py --fix.
+if [ "${ALLOW_SUPERVISOR_NOGO:-}" = "1" ]; then
+    echo "[Supervisor] NO-GO override declared via ALLOW_SUPERVISOR_NOGO=1."
+    echo ""
+fi
+if [ "${ALLOW_SUPERVISOR_NOGO:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/supervisor_mcp.py" ]; then
+    echo "[Supervisor] Checking unified verdict..."
+    if [ -x "$PYTHON3" ]; then
+        SUP_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/supervisor_mcp.py" --verdict 2>&1)
+        SUP_EXIT=$?
+        echo "$SUP_OUT" | tail -10
+        SUP_VERDICT=$(echo "$SUP_OUT" | grep "^VERDICT:" | tail -1)
+        case "$SUP_VERDICT" in
+            *NO-GO*)
+                echo ""
+                echo "[Supervisor] BLOCKED: memories report NO-GO (see above)."
+                echo "[Supervisor] Remediate: judge pending pairs, record outcomes,"
+                echo "[Supervisor]   then: python tools/supervisor_doctor.py --fix"
+                echo "[Supervisor] Override (declared): ALLOW_SUPERVISOR_NOGO=1."
+                exit 1
+                ;;
+            *)
+                if [ -z "$SUP_VERDICT" ]; then
+                    echo "[Supervisor] verdict unparseable (exit=$SUP_EXIT) -- passing loud."
+                fi
+                ;;
+        esac
+    else
+        echo "[Supervisor] 3.15t python not found -- passing loud (gate unrunnable)"
+    fi
+    echo ""
+fi
+
 # ─── Check 7 (advisory): testing-paradigm rule 1 (Engram #784) ───
 # A new src/ function needs a staged Hypothesis property test. Advisory by
 # default: a presence heuristic must not block commits until it is measured.
@@ -197,6 +239,49 @@ if [ -f "$SCRIPT_DIR/tools/paradigm_gate.py" ]; then
     if [ $PARADIGM_EXIT -ne 0 ]; then
         echo "[Paradigm] BLOCKED (strict mode). Stage a Hypothesis property test."
         exit 1
+    fi
+fi
+
+# ─── Check 9 (blocking): unified gate registry (tools/preflight_all.py) ───
+# The gate set above is hand-listed: a gate is enforced only if somebody
+# remembers to add a stanza to this file. tools/preflight_all.py holds the
+# registry (gate, artifact, control test) in one tracked runner, so the commit
+# path can ask the registry instead of a copy of it. It runs LAST among the
+# blocking checks because it re-runs several of them; it is the backstop for
+# whatever the hand-written list does not name.
+# MEASURED? NO. The per-commit latency of `--check` has NOT been measured by
+# the author of this stanza. Its placement is not a claim that it is cheap, and
+# that measurement is owed before this scope is tightened further.
+# --include-slow is deliberately NOT passed: commit latency stays at default.
+# Declared override, never silent: ALLOW_PREFLIGHT=1.
+if [ "${ALLOW_PREFLIGHT:-}" = "1" ]; then
+    echo "[Preflight] gate registry skipped: ALLOW_PREFLIGHT=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_PREFLIGHT:-}" != "1" ]; then
+    if [ -f "$SCRIPT_DIR/tools/preflight_all.py" ]; then
+        if [ -x "$PYTHON3" ]; then
+            echo "[Preflight] Checking unified gate registry..."
+            # Status captured immediately. The gate's own output is NOT piped
+            # through head/tail before $? is read: that pipeline rc trap has
+            # produced a false pass in this repo three times.
+            PREFLIGHT_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --check 2>&1)
+            PREFLIGHT_EXIT=$?
+            echo "$PREFLIGHT_OUT"
+            if [ $PREFLIGHT_EXIT -ne 0 ]; then
+                echo ""
+                echo "[Preflight] BLOCKED: gate registry reported failures (see above)."
+                echo "[Preflight] Override (declared): ALLOW_PREFLIGHT=1."
+                exit 1
+            fi
+            echo ""
+        else
+            echo "[Preflight] 3.15t python not found -- passing loud (gate unrunnable)"
+            echo ""
+        fi
+    else
+        echo "[Preflight] tools/preflight_all.py absent -- passing loud (registry unrunnable)"
+        echo ""
     fi
 fi
 
