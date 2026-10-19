@@ -243,12 +243,18 @@ def main(argv: "list[str] | None" = None) -> int:
         LEDGER.write_text(json.dumps(table, indent=1) + "\n", encoding="utf-8")
         print("applied: %d declaration record(s) updated" % touched)
     if check:
+        # ANY wired row, not just the ones a link was found for: a row with no
+        # link and no gap is exactly the unannotated claim this gate exists to
+        # catch, and the first version of this check let one through (a probe
+        # row whose defining module does not exist passed at exit 0).
         unrecorded = [row for row in rows
-                      if row["verdict"] in ("REGISTRY", "MODULE")
-                      and not (table["declared"][row["id"]].get("link_evidence"))]
+                      if not (table["declared"][row["id"]].get("link_evidence")
+                              or table["declared"][row["id"]].get("link_gap"))]
         if unrecorded:
-            print("FAIL: %d wired row(s) carry no link evidence -- re-run --apply"
-                  % len(unrecorded))
+            print("FAIL: %d wired row(s) record neither a link nor a gap -- "
+                  "re-run --apply" % len(unrecorded))
+            for row in unrecorded[:10]:
+                print("  %s  (%s)" % (row["id"], row["detail"]))
             return 1
         print("OK: every wired row carries its link evidence or a named gap")
     return 0
