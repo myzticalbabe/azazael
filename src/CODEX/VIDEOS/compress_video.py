@@ -25,6 +25,7 @@ import argparse
 import subprocess
 from pathlib import Path
 from typing import List
+from pathlib import Path as _P
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -166,7 +167,6 @@ def encode_gif(input_path, output_path, fps=15, width=960):
     Missing functionality added 2026-10-01 (no gif path existed).
     Caps at 15fps / 960px wide; longer inputs should stay mp4.
     """
-    from pathlib import Path as _P
     output_path = _P(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     out_file = output_path.with_suffix(".gif")
