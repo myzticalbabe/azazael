@@ -56,7 +56,7 @@ class FindingsDB:
     def _init_db(self):
         """Create tables if they don't exist."""
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("""
@@ -121,7 +121,7 @@ class FindingsDB:
             datetime.now(timezone.utc).isoformat(timespec="seconds"))
 
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 conn.execute(
                     """INSERT INTO scans
@@ -178,7 +178,7 @@ class FindingsDB:
         ).isoformat()
 
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute(
@@ -215,7 +215,7 @@ class FindingsDB:
         ).isoformat()
 
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 # Get scan IDs in date range
                 cursor = conn.execute(
@@ -304,7 +304,7 @@ class FindingsDB:
         ).isoformat()
 
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 conn.row_factory = sqlite3.Row
 
@@ -384,7 +384,7 @@ class FindingsDB:
     def get_summary(self) -> dict[str, Any]:
         """Get a quick summary of the database state."""
         with self._lock:
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, timeout=30)
             try:
                 cursor = conn.execute("SELECT COUNT(*) FROM scans")
                 total_scans = cursor.fetchone()[0]

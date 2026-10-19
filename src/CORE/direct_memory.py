@@ -2776,7 +2776,7 @@ def _cmd_purge_test_fixtures(apply_change: bool, as_json: bool) -> int:
         print(f"error: database not found: {DB_PATH}", file=sys.stderr)
         return 2
     mode = "rw" if apply_change else "ro"
-    conn = sqlite3.connect(f"file:{DB_PATH}?mode={mode}", uri=True)
+    conn = sqlite3.connect(f"file:{DB_PATH}?mode={mode}", uri=True, timeout=30)
     try:
         rows = conn.execute(
             "SELECT id, session_id, event_type, timestamp FROM memories "
