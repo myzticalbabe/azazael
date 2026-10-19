@@ -15,7 +15,10 @@ import re
 import time
 from pathlib import Path
 
-import chromadb
+try:
+    import chromadb
+except ImportError as _dep_exc:
+    raise SystemExit("bcc_chroma_index.py needs chromadb (3.13 tooling venv per docstring): " + str(_dep_exc)) from _dep_exc
 
 HOME = Path.home()
 CORPUS_DIR = HOME

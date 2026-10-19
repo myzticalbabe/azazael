@@ -18,7 +18,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bcc_graphiti_temporal import facts  # noqa: E402
 
-import kuzu  # noqa: E402
+try:
+    import kuzu  # noqa: E402
+except ImportError as _dep_exc:
+    raise SystemExit("bcc_kuzu_temporal_persist.py needs kuzu (3.13 tooling venv per docstring): " + str(_dep_exc)) from _dep_exc
 
 DB_PATH = Path(os.path.expanduser("~")) / "bcc_temporal_kg.db"
 OUT = Path(os.path.expanduser("~")) / "BCC_KUZU_TEMPORAL_evidence.json"

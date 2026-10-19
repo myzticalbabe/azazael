@@ -19,8 +19,11 @@ Out:  BCC_TEMPORAL_KG.html  +  bcc_graphiti_temporal.json
 import json
 from datetime import datetime, timezone
 
-from graphiti_core.edges import EntityEdge
-from graphiti_core.nodes import EntityNode
+try:
+    from graphiti_core.edges import EntityEdge
+    from graphiti_core.nodes import EntityNode
+except ImportError as _dep_exc:
+    raise SystemExit("bcc_graphiti_temporal.py needs graphiti-core (pip install graphiti-core into py315t): " + str(_dep_exc)) from _dep_exc
 
 
 def facts():
