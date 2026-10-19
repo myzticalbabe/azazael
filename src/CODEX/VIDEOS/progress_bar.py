@@ -181,7 +181,7 @@ def ffmpeg_with_progress(cmd: list[str], duration: float = 0,
 
         # Final join & collect
         collector.join(timeout=2)
-        returncode = proc.wait()
+        returncode = proc.wait(timeout=1800)
 
         # Clear progress line
         sys.stdout.write("\r" + " " * last_line_len + "\r")
