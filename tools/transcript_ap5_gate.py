@@ -94,7 +94,7 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from permission_seeking_guard import scan as scan_text  # noqa: E402
+from permission_seeking_guard import scan_all as scan_text  # noqa: E402
 
 try:
     from CORE.failure_ledger import note_failure
@@ -225,6 +225,11 @@ class StoreResult:
     skipped_reasoning: int = 0
     sessions: list = field(default_factory=list)
     findings: list = field(default_factory=list)
+    #: Plan announcements (`let me X`). Reported, never counted: they name the
+    #: assistant's own in-progress action and offer the operator no choice, so
+    #: they are not AP-5 violations. Kept as a field so the class cannot be
+    #: dropped without the count changing.
+    announcements: list = field(default_factory=list)
 
 
 @dataclass
@@ -233,6 +238,7 @@ class Report:
     scanned_parts: int = 0
     scanned_sessions: set = field(default_factory=set)
     findings: list = field(default_factory=list)
+    announcements: list = field(default_factory=list)
     schema_ok: bool = True
     note: str = ""
     source: str = "opencode"
@@ -294,26 +300,38 @@ def _findings_for(
     message_id: str,
     part_id: str,
     source: str,
-) -> list:
-    """Scan one prose blob with the shared rulebook and build Findings."""
-    out = []
-    for f in scan_text(text):
-        lines = text.splitlines()
-        lo = max(0, f.line - 1)
-        context = lines[lo] if lo < len(lines) else ""
-        out.append(
-            Finding(
-                session_id=session_id or "?",
-                message_id=message_id or "?",
-                part_id=part_id or "?",
-                rule=f.name,
-                line=f.line,
-                match=f.match,
-                excerpt=_excerpt(context),
-                source=source,
+) -> tuple:
+    """Scan one prose blob; return (violations, announcements) as Findings.
+
+    The two classes come back separately and the exit code below reads only
+    the first: `let me X` is a plan announcement, not a request for permission
+    (permission_seeking_guard's docstring records the measurement), so counting
+    it as a violation is exactly the false positive that made this gate's own
+    transcript look non-compliant.
+    """
+    violations, announcements = scan_text(text)
+    lines = text.splitlines()
+
+    def _build(items: list, rule_prefix: str = "") -> list:
+        built = []
+        for f in items:
+            lo = max(0, f.line - 1)
+            context = lines[lo] if lo < len(lines) else ""
+            built.append(
+                Finding(
+                    session_id=session_id or "?",
+                    message_id=message_id or "?",
+                    part_id=part_id or "?",
+                    rule=rule_prefix + f.name,
+                    line=f.line,
+                    match=f.match,
+                    excerpt=_excerpt(context),
+                    source=source,
+                )
             )
-        )
-    return out
+        return built
+
+    return _build(violations), _build(announcements, "announcement:")
 
 
 def scan_store(
@@ -357,9 +375,11 @@ def scan_store(
                 continue
             report.scanned_parts += 1
             report.scanned_sessions.add(sess_id or "?")
-            report.findings.extend(
-                _findings_for(text, sess_id, msg_id, part_id, "opencode")
+            violations, announcements = _findings_for(
+                text, sess_id, msg_id, part_id, "opencode"
             )
+            report.findings.extend(violations)
+            report.announcements.extend(announcements)
         return report
     finally:
         con.close()
@@ -493,10 +513,11 @@ def scan_manicode_store(
                 if result.scanned_parts >= limit:
                     break
                 result.scanned_parts += 1
-                result.findings.extend(
-                    _findings_for(text, session_id, message_id, part_id,
-                                  "manicode")
+                violations, announcements = _findings_for(
+                    text, session_id, message_id, part_id, "manicode"
                 )
+                result.findings.extend(violations)
+                result.announcements.extend(announcements)
 
     if result.scanned_parts:
         result.status = SCANNED
@@ -538,6 +559,7 @@ def _opencode_result(db: str, report: Report) -> StoreResult:
     result.scanned_parts = report.scanned_parts
     result.sessions = sorted(report.scanned_sessions)
     result.findings = list(report.findings)
+    result.announcements = list(report.announcements)
     if report.scanned_parts:
         result.status = SCANNED
     else:
@@ -664,6 +686,7 @@ def _merge(results: list) -> Report:
         merged.scanned_parts += result.scanned_parts
         merged.scanned_sessions.update(result.sessions)
         merged.findings.extend(result.findings)
+        merged.announcements.extend(result.announcements)
         if result.status == UNREADABLE:
             merged.schema_ok = False
             merged.note = (merged.note + "; " if merged.note else "") + (
@@ -766,6 +789,10 @@ def main(argv: list[str] | None = None) -> int:
                     "scanned_parts": report.scanned_parts,
                     "scanned_sessions": sorted(report.scanned_sessions),
                     "findings": [asdict(f) for f in report.findings],
+                    # Reported, never counted: the exit code below reads
+                    # `findings` only, so an announcement cannot fail a run.
+                    "announcements": [asdict(f) for f in report.announcements],
+                    "announcement_count": len(report.announcements),
                     "stores": [
                         {
                             "source": r.source,
@@ -776,6 +803,7 @@ def main(argv: list[str] | None = None) -> int:
                             "skipped_reasoning": r.skipped_reasoning,
                             "sessions": r.sessions,
                             "findings": len(r.findings),
+                            "announcements": len(r.announcements),
                             "scanned": r.status == SCANNED,
                         }
                         for r in results
@@ -793,6 +821,13 @@ def main(argv: list[str] | None = None) -> int:
         _print_store_line(result)
     for name, reason in skipped:
         print("  deferred  %s: %s" % (name, reason))
+    if report.announcements:
+        print("  announcements: %d (plan announcements -- NOT violations; "
+              "they offer the operator no decision)"
+              % len(report.announcements))
+        for f in report.announcements[:5]:
+            print("      [%s] %s line=%d %r"
+                  % (f.rule, f.source, f.line, f.match))
 
     if not scannable:
         print("")
