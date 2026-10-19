@@ -44,6 +44,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List
 from dataclasses import dataclass
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -841,7 +842,6 @@ class ReverseTools:
 # ── CLI Entry Point ──────────────────────────────────────────────────────────
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(description="REVERSE_TOOLS — RE Tool Manager")
     sub = parser.add_subparsers(dest="command", help="Command")

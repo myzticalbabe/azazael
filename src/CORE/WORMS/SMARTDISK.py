@@ -99,6 +99,7 @@ except ImportError as exc:
 
 
 from CORE.paths import get_project_root
+import argparse
 
 
 _ROOT = get_project_root()
@@ -676,7 +677,6 @@ Recommendations: {len(health.recommendations)}"""
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="SMARTDISK - Disk Health Monitoring")
     parser.add_argument("--version", action="version", version="1.0.0")

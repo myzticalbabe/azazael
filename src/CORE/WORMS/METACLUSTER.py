@@ -59,6 +59,7 @@ except ImportError:                               # runtime absent: stay importa
 #: into a tree nobody reads. CORE.paths owns that resolution (AZAZAEL_ROOT first,
 #: never raises), so the decision is made once instead of re-derived per module.
 from CORE.paths import get_project_root_safe as _get_project_root_safe
+import argparse
 
 
 def _note_failure(where: str, exc: BaseException | None = None) -> None:
@@ -1201,7 +1202,6 @@ def _record_event(event_type: str, data: Dict[str, Any]):
 
 def main():
     """CLI entry point."""
-    import argparse
     
     parser = argparse.ArgumentParser(
         description="METACLUSTER — MetaCluster Orchestrator"

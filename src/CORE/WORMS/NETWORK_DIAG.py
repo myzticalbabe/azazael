@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Any, List
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1216,7 +1217,6 @@ class NetworkDiag:
 
 def main():
     """CLI entry point for NetworkDiag worm."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="NETWORK_DIAG — Advanced Network Diagnostics Worm",

@@ -24,6 +24,7 @@ import json
 from datetime import datetime
 from typing import Any, List
 from dataclasses import dataclass
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -213,7 +214,6 @@ class PROCESSZ:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="PROCESSZ - Process Management Worm")
     parser.add_argument("--list", action="store_true", help="list processes")
