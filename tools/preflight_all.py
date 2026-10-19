@@ -190,6 +190,20 @@ GATES: Tuple[Gate, ...] = (
         requires=("NEURAL_MESH_WIRE_OR_CUT.json",),
     ),
     Gate(
+        name="wire-evidence",
+        argv=("tools/wire_evidence_audit.py", "--check"),
+        interpreter="python",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="each `wired` row of NEURAL_MESH_WIRE_OR_CUT.json vs the AST of src/scripts/tools",
+        control_test="tests/test_wire_evidence_audit.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("NEURAL_MESH_WIRE_OR_CUT.json",),
+    ),
+    Gate(
         name="testing-paradigm-rule1",
         # The hook runs tools/test_paradigm_gate.py (check 7b). This row named
         # tools/paradigm_gate.py, a different script, so the registry described

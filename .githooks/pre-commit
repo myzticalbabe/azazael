@@ -179,6 +179,31 @@ else
 fi
 echo ""
 
+# ─── Check 6: wire evidence on every `wired` declaration ───
+# The mesh check above compares the ledger's KEY SET. It passed 2026-10-19
+# while 136 of 137 `wired` rows carried `module-linked: no` in their own
+# evidence: the status claimed a caller, and nothing in the pipeline asked for
+# one. tools/wire_evidence_audit.py --check fails when a wired row carries
+# neither `link_evidence` nor a named `link_gap`, so a new wired claim has to
+# say where its support is. Regenerate the annotation with --apply.
+echo "[Wire] Checking that wired declarations carry their link evidence..."
+if [ -f "$SCRIPT_DIR/tools/wire_evidence_audit.py" ]; then
+    # Same capture-then-print discipline as the mesh check: `| tail` would
+    # replace the gate's exit status with tail's.
+    WIRE_OUT=$(PYTHONPATH="src:${PYTHONPATH:-}" "$PY" "$SCRIPT_DIR/tools/wire_evidence_audit.py" --check 2>&1)
+    WIRE_EXIT=$?
+    echo "$WIRE_OUT" | tail -12
+    if [ $WIRE_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Wire] A wired declaration has no recorded link. Annotate:"
+        echo "[Wire]   python tools/wire_evidence_audit.py --apply"
+        exit 1
+    fi
+else
+    echo "[Wire] check not found -- passing loud (check unrunnable)"
+fi
+echo ""
+
 # ─── Check 7b (blocking): testing-paradigm G1 (Engram #890 item 4) ───
 # Every NEW staged src/ module must be named by at least one tests/ file.
 # Narrow by design (Added-only, name-presence only) so it cannot

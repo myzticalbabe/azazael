@@ -190,7 +190,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:114 @register_worm on LatencyCompensatorWorm",
+   "link_kind": "registry"
   },
   "axon:LatencyCompensatorWorm.compensate": {
    "decider": "dead_candidate",
@@ -219,7 +221,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:114 @register_worm on LatencyCompensatorWorm",
+   "link_kind": "registry"
   },
   "axon:MyelinSheathWorm.__init__": {
    "module": "axon",
@@ -238,7 +242,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:33 @register_worm on MyelinSheathWorm",
+   "link_kind": "registry"
   },
   "axon:MyelinSheathWorm.boost_for": {
    "decider": "dead_candidate",
@@ -267,7 +273,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:33 @register_worm on MyelinSheathWorm",
+   "link_kind": "registry"
   },
   "axon:MyelinSheathWorm.myelinate": {
    "decider": "dead_candidate",
@@ -296,7 +304,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:59 @register_worm on SaltatoryRouterWorm",
+   "link_kind": "registry"
   },
   "axon:SaltatoryRouterWorm.execute": {
    "module": "axon",
@@ -315,7 +325,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:59 @register_worm on SaltatoryRouterWorm",
+   "link_kind": "registry"
   },
   "axon:SaltatoryRouterWorm.send": {
    "module": "axon",
@@ -352,7 +364,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:88 @register_worm on SpikeEncoderWorm",
+   "link_kind": "registry"
   },
   "axon:SpikeEncoderWorm.encode": {
    "module": "axon",
@@ -389,7 +403,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/axon.py:88 @register_worm on SpikeEncoderWorm",
+   "link_kind": "registry"
   },
   "backup:CheckpointWorm.__init__": {
    "module": "backup",
@@ -408,7 +424,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:208 @register_worm on CheckpointWorm",
+   "link_kind": "registry"
   },
   "backup:CheckpointWorm.get_summary": {
    "module": "backup",
@@ -427,7 +445,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:208 @register_worm on CheckpointWorm",
+   "link_kind": "registry"
   },
   "backup:CheckpointWorm.restore_checkpoint": {
    "decider": "dead_candidate",
@@ -456,7 +476,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:166 @register_worm on ColdArchivist",
+   "link_kind": "registry"
   },
   "backup:ColdArchivist.get_summary": {
    "module": "backup",
@@ -475,7 +497,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:166 @register_worm on ColdArchivist",
+   "link_kind": "registry"
   },
   "backup:IncrementalBackupWorm.get_summary": {
    "module": "backup",
@@ -494,7 +518,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:95 @register_worm on IncrementalBackupWorm",
+   "link_kind": "registry"
   },
   "backup:RecoveryTester.get_summary": {
    "module": "backup",
@@ -513,7 +539,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:129 @register_worm on RecoveryTester",
+   "link_kind": "registry"
   },
   "backup:StateSnapshotter.get_summary": {
    "module": "backup",
@@ -532,7 +560,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/backup.py:57 @register_worm on StateSnapshotter",
+   "link_kind": "registry"
   },
   "berks:BerksMonitorWorm.execute": {
    "module": "berks",
@@ -551,7 +581,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/berks.py:119 @register_worm on BerksMonitorWorm",
+   "link_kind": "registry"
   },
   "berks:BerksMonitorWorm.start_monitor": {
    "module": "berks",
@@ -585,7 +617,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/chaos.py:41 @register_worm on ChaosWorm",
+   "link_kind": "registry"
   },
   "chaos:ChaosWorm.execute": {
    "module": "chaos",
@@ -604,7 +638,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/chaos.py:41 @register_worm on ChaosWorm",
+   "link_kind": "registry"
   },
   "chorus:FailureDigest.from_analysis": {
    "decider": "declared_in_data",
@@ -687,7 +723,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:166 @register_worm on IPCBridge",
+   "link_kind": "registry"
   },
   "communication:IPCBridge.create_channel": {
    "decider": "dead_candidate",
@@ -716,7 +754,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:166 @register_worm on IPCBridge",
+   "link_kind": "registry"
   },
   "communication:IPCBridge.receive": {
    "decider": "dead_candidate",
@@ -763,7 +803,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:55 @register_worm on MessageBroker",
+   "link_kind": "registry"
   },
   "communication:MessageBroker.replay": {
    "module": "communication",
@@ -782,7 +824,9 @@
     "scripts/technique_heartbeat.py:281",
     "scripts/technique_heartbeat.py:286",
     "scripts/technique_heartbeat.py:292"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:55 @register_worm on MessageBroker",
+   "link_kind": "registry"
   },
   "communication:MessageBroker.subscribe": {
    "module": "communication",
@@ -821,7 +865,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:207 @register_worm on ProtocolNegotiator",
+   "link_kind": "registry"
   },
   "communication:ProtocolNegotiator.deserialize": {
    "evidence": [
@@ -851,7 +897,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:207 @register_worm on ProtocolNegotiator",
+   "link_kind": "registry"
   },
   "communication:ProtocolNegotiator.negotiate": {
    "evidence": [
@@ -906,7 +954,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:90 @register_worm on RPCEndpoint",
+   "link_kind": "registry"
   },
   "communication:RPCEndpoint.handle_request": {
    "module": "communication",
@@ -963,7 +1013,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:124 @register_worm on WebhookRelay",
+   "link_kind": "registry"
   },
   "communication:WebhookRelay.deliver": {
    "evidence": [
@@ -995,7 +1047,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/communication.py:124 @register_worm on WebhookRelay",
+   "link_kind": "registry"
   },
   "communication:WebhookRelay.register_webhook": {
    "evidence": [
@@ -1101,7 +1155,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:124 @register_worm on DreamCriticWorm",
+   "link_kind": "registry"
   },
   "consolidation:EngramIndexerWorm.execute": {
    "module": "consolidation",
@@ -1120,7 +1176,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:94 @register_worm on EngramIndexerWorm",
+   "link_kind": "registry"
   },
   "consolidation:EngramIndexerWorm.lookup": {
    "decider": "declared_in_data",
@@ -1156,7 +1214,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:37 @register_worm on SharpWaveReplayWorm",
+   "link_kind": "registry"
   },
   "consolidation:SharpWaveReplayWorm.execute": {
    "module": "consolidation",
@@ -1175,7 +1235,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:37 @register_worm on SharpWaveReplayWorm",
+   "link_kind": "registry"
   },
   "consolidation:SharpWaveReplayWorm.push": {
    "module": "consolidation",
@@ -1229,7 +1291,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:70 @register_worm on SleepConsolidatorWorm",
+   "link_kind": "registry"
   },
   "consolidation:SleepConsolidatorWorm.execute": {
    "module": "consolidation",
@@ -1248,7 +1312,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/consolidation.py:70 @register_worm on SleepConsolidatorWorm",
+   "link_kind": "registry"
   },
   "consolidation:SleepConsolidatorWorm.sleep_cycle": {
    "decider": "dead_candidate",
@@ -1277,7 +1343,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:115 @register_worm on ComposeValidator",
+   "link_kind": "registry"
   },
   "container:ComposeValidator.get_summary": {
    "module": "container",
@@ -1296,7 +1364,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:115 @register_worm on ComposeValidator",
+   "link_kind": "registry"
   },
   "container:ComposeValidator.validate": {
    "module": "container",
@@ -1335,7 +1405,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:54 @register_worm on ContainerOrch",
+   "link_kind": "registry"
   },
   "container:ContainerOrch.get_summary": {
    "module": "container",
@@ -1354,7 +1426,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:54 @register_worm on ContainerOrch",
+   "link_kind": "registry"
   },
   "container:ContainerOrch.launch": {
    "module": "container",
@@ -1428,7 +1502,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:174 @register_worm on ImageAuditor",
+   "link_kind": "registry"
   },
   "container:ImageAuditor.audit_image": {
    "evidence": [
@@ -1458,7 +1534,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:174 @register_worm on ImageAuditor",
+   "link_kind": "registry"
   },
   "container:RegistryPoller.__init__": {
    "module": "container",
@@ -1477,7 +1555,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:206 @register_worm on RegistryPoller",
+   "link_kind": "registry"
   },
   "container:RegistryPoller.check_latest": {
    "evidence": [
@@ -1508,7 +1588,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:206 @register_worm on RegistryPoller",
+   "link_kind": "registry"
   },
   "container:ResourceQuotaWatch.__init__": {
    "module": "container",
@@ -1527,7 +1609,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:233 @register_worm on ResourceQuotaWatch",
+   "link_kind": "registry"
   },
   "container:ResourceQuotaWatch.check_usage": {
    "evidence": [
@@ -1558,7 +1642,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/container.py:233 @register_worm on ResourceQuotaWatch",
+   "link_kind": "registry"
   },
   "container:ResourceQuotaWatch.set_quota": {
    "decider": "dead_candidate",
@@ -1623,7 +1709,9 @@
     "named by state/wire_or_cut_slice_0_43.json:764"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/dashboard.py:275 calls DatabaseMonitorWorm",
+   "link_kind": "module"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "decider": "declared_in_data",
@@ -1643,7 +1731,9 @@
    "resolved_by": "src/CORE/WORMS/expansion/scheduling.py:1154",
    "disposition": "CONFIRM",
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'create_backup' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: yes"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'create_backup' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: yes",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/dashboard.py:275 calls DatabaseMonitorWorm",
+   "link_kind": "module"
   },
   "dendrite:AttentionGateWorm.__init__": {
    "module": "dendrite",
@@ -1662,7 +1752,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:63 @register_worm on AttentionGateWorm",
+   "link_kind": "registry"
   },
   "dendrite:AttentionGateWorm.execute": {
    "module": "dendrite",
@@ -1681,7 +1773,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:63 @register_worm on AttentionGateWorm",
+   "link_kind": "registry"
   },
   "dendrite:AttentionGateWorm.gate": {
    "module": "dendrite",
@@ -1730,7 +1824,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:93 @register_worm on ContextConcatWorm",
+   "link_kind": "registry"
   },
   "dendrite:ContextConcatWorm.execute": {
    "module": "dendrite",
@@ -1749,7 +1845,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:93 @register_worm on ContextConcatWorm",
+   "link_kind": "registry"
   },
   "dendrite:ContextConcatWorm.merge": {
    "module": "dendrite",
@@ -1790,7 +1888,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:33 @register_worm on DendriteAggregatorWorm",
+   "link_kind": "registry"
   },
   "dendrite:DendriteAggregatorWorm.execute": {
    "module": "dendrite",
@@ -1809,7 +1909,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:33 @register_worm on DendriteAggregatorWorm",
+   "link_kind": "registry"
   },
   "dendrite:DendriteAggregatorWorm.integrate": {
    "evidence": [
@@ -1849,7 +1951,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:123 @register_worm on SensoryFuseWorm",
+   "link_kind": "registry"
   },
   "dendrite:SensoryFuseWorm.execute": {
    "module": "dendrite",
@@ -1868,7 +1972,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/dendrite.py:123 @register_worm on SensoryFuseWorm",
+   "link_kind": "registry"
   },
   "dendrite:SensoryFuseWorm.fuse": {
    "module": "dendrite",
@@ -1916,7 +2022,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/driver.py:71 @register_worm on GemmaDriverWorm",
+   "link_kind": "registry"
   },
   "driver:GemmaDriverWorm.judge_dream": {
    "decider": "dead_candidate",
@@ -1955,7 +2063,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/engram.py:562 @register_worm on CoherenceValidatorWorm",
+   "link_kind": "registry"
   },
   "engram:CoherenceValidatorWorm.check": {
    "module": "engram",
@@ -1994,7 +2104,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/engram.py:562 @register_worm on CoherenceValidatorWorm",
+   "link_kind": "registry"
   },
   "engram:DreamConsolidatorWorm.execute": {
    "module": "engram",
@@ -2013,7 +2125,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/engram.py:629 @register_worm on DreamConsolidatorWorm",
+   "link_kind": "registry"
   },
   "engram:RecallRouterWorm.execute": {
    "module": "engram",
@@ -2032,7 +2146,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/engram.py:373 @register_worm on RecallRouterWorm",
+   "link_kind": "registry"
   },
   "engram:VectorShardWorm.execute": {
    "module": "engram",
@@ -2051,7 +2167,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/engram.py:289 @register_worm on VectorShardWorm",
+   "link_kind": "registry"
   },
   "engram:_VectorIndex.has": {
    "module": "engram",
@@ -2103,7 +2221,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:171 @register_worm on BarePassthroughWorm",
+   "link_kind": "registry"
   },
   "envmesh:EnvBeaconV2Worm.__init__": {
    "module": "envmesh",
@@ -2122,7 +2242,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:274 @register_worm on EnvBeaconV2Worm",
+   "link_kind": "registry"
   },
   "envmesh:EnvBeaconV2Worm.execute": {
    "module": "envmesh",
@@ -2141,7 +2263,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:274 @register_worm on EnvBeaconV2Worm",
+   "link_kind": "registry"
   },
   "envmesh:GDriveLoomWorm.execute": {
    "module": "envmesh",
@@ -2160,7 +2284,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:253 @register_worm on GDriveLoomWorm",
+   "link_kind": "registry"
   },
   "envmesh:WinBridgeWorm.__init__": {
    "module": "envmesh",
@@ -2179,7 +2305,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:91 @register_worm on WinBridgeWorm",
+   "link_kind": "registry"
   },
   "envmesh:WinBridgeWorm.execute": {
    "module": "envmesh",
@@ -2198,7 +2326,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:91 @register_worm on WinBridgeWorm",
+   "link_kind": "registry"
   },
   "envmesh:WslKaliWorm.execute": {
    "module": "envmesh",
@@ -2217,7 +2347,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:141 @register_worm on WslKaliWorm",
+   "link_kind": "registry"
   },
   "envmesh:WslUbuntuWorm.execute": {
    "module": "envmesh",
@@ -2236,7 +2368,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/envmesh.py:123 @register_worm on WslUbuntuWorm",
+   "link_kind": "registry"
   },
   "error_recovery:ErrorRecoveryOrchestrator.__init__": {
    "module": "error_recovery",
@@ -2255,7 +2389,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/error_recovery.py:67 @register_worm on ErrorRecoveryOrchestrator",
+   "link_kind": "registry"
   },
   "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
    "decider": "declared_in_data",
@@ -2590,7 +2726,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/glia.py:35 @register_worm on AstrocyteWorm",
+   "link_kind": "registry"
   },
   "glia:AstrocyteWorm.sweep": {
    "module": "glia",
@@ -2628,7 +2766,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/glia.py:172 @register_worm on EpendymalWorm",
+   "link_kind": "registry"
   },
   "glia:MicrogliaWorm.check_path": {
    "decider": "dead_candidate",
@@ -2657,7 +2797,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/glia.py:105 @register_worm on MicrogliaWorm",
+   "link_kind": "registry"
   },
   "glia:OligodendrocyteWorm.execute": {
    "module": "glia",
@@ -2676,7 +2818,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/glia.py:81 @register_worm on OligodendrocyteWorm",
+   "link_kind": "registry"
   },
   "immune:SelfHealWorm.__init__": {
    "module": "immune",
@@ -2695,7 +2839,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/immune.py:566 @register_worm on SelfHealWorm",
+   "link_kind": "registry"
   },
   "immune:SelfHealWorm.heal": {
    "module": "immune",
@@ -2734,7 +2880,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_ab.py:53 @register_worm on ABTestRunner",
+   "link_kind": "registry"
   },
   "learning_features:FeatureEngineer.extract_worm_features": {
    "module": "learning_features",
@@ -2753,7 +2901,9 @@
    "evidence": [
     "src/CORE/workflow.py:198",
     "src/CORE/worm_registry.py:1214"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_features.py:450 @register_worm on FeatureEngineer",
+   "link_kind": "registry"
   },
   "learning_features:FeatureEngineer.get_summary": {
    "module": "learning_features",
@@ -2772,7 +2922,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_features.py:450 @register_worm on FeatureEngineer",
+   "link_kind": "registry"
   },
   "learning_features:FeatureEngineer.impute_missing": {
    "evidence": [
@@ -2828,7 +2980,9 @@
     "tests/test_learning_worms.py:740"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'extract_features_and_labels' in 1 file(s) [src/CORE/NeuralPipeline.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'extract_features_and_labels' in 1 file(s) [src/CORE/NeuralPipeline.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/NeuralPipeline.py:233 calls SchemaAwareFeatureExtractor",
+   "link_kind": "module"
   },
   "learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report": {
    "decider": "test_is_the_wire",
@@ -2881,7 +3035,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_ab.py:53 @register_worm on ABTestRunner",
+   "link_kind": "registry"
   },
   "learning_grpo:GRPOTrainer.get_summary": {
    "module": "learning_grpo",
@@ -3048,7 +3204,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_pipeline.py:56 @register_worm on DataPipelineWorm",
+   "link_kind": "registry"
   },
   "learning_pipeline:DataPipelineWorm.load_to_memory": {
    "decider": "test_is_the_wire",
@@ -3095,7 +3253,9 @@
    "resolved_by": "src/CORE/WORMS/expansion/scheduling.py:795",
    "disposition": "CONFIRM",
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'schedule_dynamic_refresh' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'schedule_dynamic_refresh' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_pipeline.py:56 @register_worm on DataPipelineWorm",
+   "link_kind": "registry"
   },
   "learning_pipeline:DataPipelineWorm.search_memory": {
    "decider": "test_is_the_wire",
@@ -3122,7 +3282,9 @@
     "also defined by: _FixedDataPipe"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'split_memories' in 2 file(s) [src/CORE/NeuralPipeline.py, src/CORE/WORMS/expansion/learning_rl.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'split_memories' in 2 file(s) [src/CORE/NeuralPipeline.py, src/CORE/WORMS/expansion/learning_rl.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_pipeline.py:56 @register_worm on DataPipelineWorm",
+   "link_kind": "registry"
   },
   "learning_pipeline:DataPipelineWorm.temporal_cross_validation": {
    "module": "learning_pipeline",
@@ -3138,7 +3300,9 @@
     "tests/test_learning_worms.py:429"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'temporal_cross_validation' in 1 file(s) [src/CORE/WORMS/expansion/learning_rl.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'temporal_cross_validation' in 1 file(s) [src/CORE/WORMS/expansion/learning_rl.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_pipeline.py:56 @register_worm on DataPipelineWorm",
+   "link_kind": "registry"
   },
   "learning_pipeline:DataPipelineWorm.transform": {
    "module": "learning_pipeline",
@@ -3178,7 +3342,9 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'load_q_table_from_store' in 3 file(s) [scripts/run_training_orchestrator.py, src/CORE/WORMS/expansion/scheduling.py, tools/trace_intake_798.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/learning_rl.py:1032"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_rl.py:191 @register_worm on RLTrainLoop",
+   "link_kind": "registry"
   },
   "learning_rl:RLTrainLoop.train_episode": {
    "evidence": [
@@ -3211,7 +3377,9 @@
    "resolved_by": "src/CORE/WORMS/expansion/scheduling.py:837",
    "disposition": "CONFIRM",
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'tune_and_train' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'tune_and_train' in 1 file(s) [src/CORE/WORMS/expansion/scheduling.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_rl.py:191 @register_worm on RLTrainLoop",
+   "link_kind": "registry"
   },
   "learning_rl:RLTrainLoop.tune_history": {
    "decider": "test_is_the_wire",
@@ -3249,7 +3417,9 @@
     "tests/test_versioner_write_on_change.py:64"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_latest_version' in 2 file(s) [src/CORE/WORMS/expansion/scheduling.py, src/CORE/sb3_agent.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_latest_version' in 2 file(s) [src/CORE/WORMS/expansion/scheduling.py, src/CORE/sb3_agent.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_versioner.py:53 @register_worm on ModelVersioner",
+   "link_kind": "registry"
   },
   "learning_versioner:ModelVersioner.get_summary": {
    "module": "learning_versioner",
@@ -3268,7 +3438,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/learning_versioner.py:53 @register_worm on ModelVersioner",
+   "link_kind": "registry"
   },
   "learning_versioner:ModelVersioner.rollback": {
    "module": "learning_versioner",
@@ -3393,7 +3565,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/meta_cognition.py:152 @register_worm on MetaCognitionWorm",
+   "link_kind": "registry"
   },
   "meta_cognition:MetaCognitionWorm.recent_dialectics": {
    "module": "meta_cognition",
@@ -3460,7 +3634,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:55 @register_worm on CodeMigrator",
+   "link_kind": "registry"
   },
   "migration:CodeMigrator.detect_python2_patterns": {
    "evidence": [
@@ -3490,7 +3666,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:55 @register_worm on CodeMigrator",
+   "link_kind": "registry"
   },
   "migration:CodeMigrator.run_2to3": {
    "decider": "dead_candidate",
@@ -3519,7 +3697,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:98 @register_worm on DepUpgrader",
+   "link_kind": "registry"
   },
   "migration:DepUpgrader.check_outdated": {
    "evidence": [
@@ -3550,7 +3730,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:98 @register_worm on DepUpgrader",
+   "link_kind": "registry"
   },
   "migration:DepUpgrader.parse_requirements": {
    "evidence": [
@@ -3580,7 +3762,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:172 @register_worm on ImportPathFixWorm",
+   "link_kind": "registry"
   },
   "migration:ImportPathFixWorm.add_mapping": {
    "evidence": [
@@ -3626,7 +3810,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:172 @register_worm on ImportPathFixWorm",
+   "link_kind": "registry"
   },
   "migration:LegacyShimGen.__init__": {
    "module": "migration",
@@ -3645,7 +3831,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:208 @register_worm on LegacyShimGen",
+   "link_kind": "registry"
   },
   "migration:LegacyShimGen.generate_shim": {
    "evidence": [
@@ -3675,7 +3863,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:208 @register_worm on LegacyShimGen",
+   "link_kind": "registry"
   },
   "migration:LegacyShimGen.write_shim": {
    "decider": "dead_candidate",
@@ -3704,7 +3894,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:141 @register_worm on SchemaVersioner",
+   "link_kind": "registry"
   },
   "migration:SchemaVersioner.detect_breaking_changes": {
    "evidence": [
@@ -3734,7 +3926,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/migration.py:141 @register_worm on SchemaVersioner",
+   "link_kind": "registry"
   },
   "migration:SchemaVersioner.register_schema": {
    "evidence": [
@@ -3898,7 +4092,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:210 @register_worm on CPUFlameProfiler",
+   "link_kind": "registry"
   },
   "profiling:CPUFlameProfiler.get_summary": {
    "module": "profiling",
@@ -3917,7 +4113,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:210 @register_worm on CPUFlameProfiler",
+   "link_kind": "registry"
   },
   "profiling:CPUFlameProfiler.sample": {
    "module": "profiling",
@@ -3966,7 +4164,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:54 @register_worm on CodeProfiler",
+   "link_kind": "registry"
   },
   "profiling:CodeProfiler.detect_hotspots": {
    "decider": "dead_candidate",
@@ -3995,7 +4195,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:54 @register_worm on CodeProfiler",
+   "link_kind": "registry"
   },
   "profiling:CodeProfiler.profile_function": {
    "decider": "dead_candidate",
@@ -4024,7 +4226,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:180 @register_worm on GILContentionProbe",
+   "link_kind": "registry"
   },
   "profiling:GILContentionProbe.measure_contention": {
    "evidence": [
@@ -4054,7 +4258,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:151 @register_worm on IOBottleneckFinder",
+   "link_kind": "registry"
   },
   "profiling:IOBottleneckFinder.detect_bottleneck": {
    "evidence": [
@@ -4084,7 +4290,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/profiling.py:110 @register_worm on MemoryLeakDetector",
+   "link_kind": "registry"
   },
   "profiling:MemoryLeakDetector.compare_snapshots": {
    "evidence": [
@@ -4146,7 +4354,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/race_detector.py:92 @register_worm on RaceConditionDetector",
+   "link_kind": "registry"
   },
   "race_detector:RaceConditionDetector.execute": {
    "module": "race_detector",
@@ -4165,7 +4375,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/race_detector.py:92 @register_worm on RaceConditionDetector",
+   "link_kind": "registry"
   },
   "race_detector:RaceConditionDetector.instrument_worm": {
    "decider": "dynamic_call",
@@ -4250,7 +4462,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:136 @register_worm on CertMonitor",
+   "link_kind": "registry"
   },
   "security:CertMonitor.check_cert": {
    "decider": "dead_candidate",
@@ -4289,7 +4503,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:136 @register_worm on CertMonitor",
+   "link_kind": "registry"
   },
   "security:FirewallAudit.__init__": {
    "module": "security",
@@ -4308,7 +4524,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:194 @register_worm on FirewallAudit",
+   "link_kind": "registry"
   },
   "security:FirewallAudit.find_overly_permissive": {
    "evidence": [
@@ -4338,7 +4556,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:194 @register_worm on FirewallAudit",
+   "link_kind": "registry"
   },
   "security:PermissionScanner.__init__": {
    "module": "security",
@@ -4357,7 +4577,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:241 @register_worm on PermissionScanner",
+   "link_kind": "registry"
   },
   "security:PermissionScanner.get_summary": {
    "module": "security",
@@ -4376,7 +4598,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:241 @register_worm on PermissionScanner",
+   "link_kind": "registry"
   },
   "security:PermissionScanner.scan_directory": {
    "module": "security",
@@ -4414,7 +4638,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:102 @register_worm on PortAuditor",
+   "link_kind": "registry"
   },
   "security:PortAuditor.audit_exposure": {
    "evidence": [
@@ -4444,7 +4670,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/security.py:54 @register_worm on VulnScanner",
+   "link_kind": "registry"
   },
   "security:VulnScanner.check_package": {
    "module": "security",
@@ -4495,7 +4723,9 @@
     "also defined by: FormalVerifier, MathematicalCertaintySystem, PurePythonVerifier"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 19 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: no"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 19 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: no",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm",
+   "link_kind": "registry"
   },
   "session_state:SessionStateManager.__init__": {
    "module": "session_state",
@@ -4514,7 +4744,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/session_state.py:92 @register_worm on SessionStateManager",
+   "link_kind": "registry"
   },
   "session_state:SessionStateManager.execute": {
    "module": "session_state",
@@ -4573,7 +4805,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/session_state.py:92 @register_worm on SessionStateManager",
+   "link_kind": "registry"
   },
   "session_state:SessionStateManager.import_snapshots": {
    "decider": "dead_candidate",
@@ -4935,7 +5169,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/synapse.py:577 @register_worm on ActivationRouterWorm",
+   "link_kind": "registry"
   },
   "synapse:MoEDispatcherWorm.dispatch_cascade": {
    "decider": "dynamic_call",
@@ -4993,7 +5229,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/telemetry.py:210 @register_worm on AlertEscalator",
+   "link_kind": "registry"
   },
   "telemetry:AlertEscalator.check_threshold": {
    "evidence": [
@@ -5033,7 +5271,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/telemetry.py:174 @register_worm on EventRouter",
+   "link_kind": "registry"
   },
   "telemetry:EventRouter.get_recent_events": {
    "decider": "dead_candidate",
@@ -5082,7 +5322,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/telemetry.py:132 @register_worm on LogStreamer",
+   "link_kind": "registry"
   },
   "telemetry:LogStreamer.read_new_lines": {
    "evidence": [
@@ -5123,7 +5365,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/telemetry.py:95 @register_worm on MetricAggregator",
+   "link_kind": "registry"
   },
   "telemetry:MetricAggregator.get_snapshot": {
    "evidence": [
@@ -5182,7 +5426,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/telemetry.py:55 @register_worm on SpanTracer",
+   "link_kind": "registry"
   },
   "telemetry:SpanTracer.end_span": {
    "decider": "dead_candidate",
@@ -5273,7 +5519,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/thalamus.py:62 @register_worm on SensoryRelayWorm",
+   "link_kind": "registry"
   },
   "thalamus:SensoryRelayWorm.relay": {
    "decider": "declared_in_data",
@@ -5305,7 +5553,9 @@
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
     "scripts/_evo_graph_build.py:70"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/threatmon.py:153 @register_worm on ThreatIntelMonitorWorm",
+   "link_kind": "registry"
   },
   "threatmon:ThreatIntelMonitorWorm.start_monitor": {
    "module": "threatmon",
@@ -5339,7 +5589,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:55 @register_worm on DashboardGen",
+   "link_kind": "registry"
   },
   "visualization:DashboardGen.add_panel": {
    "decider": "dead_candidate",
@@ -5368,7 +5620,9 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
     "src/CORE/WORMS/expansion/learning_features.py:439"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:55 @register_worm on DashboardGen",
+   "link_kind": "registry"
   },
   "visualization:DashboardGen.render_html": {
    "module": "visualization",
@@ -5405,7 +5659,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:94 @register_worm on GraphRenderer",
+   "link_kind": "registry"
   },
   "visualization:GraphRenderer.add_edge": {
    "module": "visualization",
@@ -5456,7 +5712,9 @@
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'render_svg' in 1 file(s) [scripts/render_graph_svg.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1193"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:94 @register_worm on GraphRenderer",
+   "link_kind": "registry"
   },
   "visualization:HeatmapBuilder.__init__": {
    "module": "visualization",
@@ -5475,7 +5733,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:178 @register_worm on HeatmapBuilder",
+   "link_kind": "registry"
   },
   "visualization:HeatmapBuilder.get_busiest_hours": {
    "evidence": [],
@@ -5523,7 +5783,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:138 @register_worm on ReportCompiler",
+   "link_kind": "registry"
   },
   "visualization:ReportCompiler.add_section": {
    "evidence": [
@@ -5566,7 +5828,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/visualization.py:213 @register_worm on TimelineViz",
+   "link_kind": "registry"
   },
   "visualization:TimelineViz.add_span": {
    "evidence": [
@@ -5607,7 +5871,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/xenomorph.py:157 @register_worm on ChestbursterWorm",
+   "link_kind": "registry"
   },
   "xenomorph:ChestbursterWorm.burst": {
    "decider": "dead_candidate",
@@ -5636,7 +5902,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/xenomorph.py:182 @register_worm on DroneWorm",
+   "link_kind": "registry"
   },
   "xenomorph:DroneWorm.carry": {
    "decider": "dead_candidate",
@@ -5665,7 +5933,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/xenomorph.py:132 @register_worm on FacehuggerWorm",
+   "link_kind": "registry"
   },
   "xenomorph:FacehuggerWorm.plan": {
    "module": "xenomorph",
@@ -5704,7 +5974,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/xenomorph.py:97 @register_worm on OvomorphWorm",
+   "link_kind": "registry"
   },
   "xenomorph:OvomorphWorm.hatch": {
    "decider": "dead_candidate",
@@ -5743,7 +6015,9 @@
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
     "scripts/ecosystem_graph.py:146"
-   ]
+   ],
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/xenomorph.py:416 @register_worm on ResinWorm",
+   "link_kind": "registry"
   },
   "xenomorph:ResinWorm.secrete": {
    "decider": "dead_candidate",
