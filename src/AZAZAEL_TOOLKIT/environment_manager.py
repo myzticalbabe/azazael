@@ -30,8 +30,8 @@ class EnvironmentManager:
         if not self.venv_python.exists():
             print("[1/4] Creating virtual environment...")
             subprocess.run(
-                [sys.executable, "-m", "venv", str(self.venv_path)], check=True
-            )
+                [sys.executable, "-m", "venv", str(self.venv_path)], check=True,
+            timeout=1800)
             print(f"   [OK] Created: {self.venv_path}")
             return True
         print("[1/4] Virtual environment exists")
@@ -51,8 +51,8 @@ class EnvironmentManager:
 
         for dep in deps:
             result = subprocess.run(
-                [str(pip), "install", "--quiet", dep], capture_output=True
-            )
+                [str(pip), "install", "--quiet", dep], capture_output=True,
+            timeout=1800)
             status = "[OK]" if result.returncode == 0 else "[--]"
             print(f"   {status} {dep}")
 

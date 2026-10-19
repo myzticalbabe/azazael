@@ -96,7 +96,7 @@ def run_metaworms_popup():
                         )
                     progress["value"] = ((current_worm + 1) / len(worms)) * 100
 
-        process.wait()
+        process.wait(timeout=1800)
 
         log("")
         log("=" * 60)
