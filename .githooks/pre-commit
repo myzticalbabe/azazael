@@ -199,6 +199,19 @@ if [ -f "$SCRIPT_DIR/tools/test_paradigm_gate.py" ]; then
     fi
 fi
 
+# ─── Check: heredoc-pipe lint (advisory, shell files) ───
+if [ -f "$SCRIPT_DIR/tools/heredoc_pipe_lint.py" ]; then
+    staged_sh=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '\.(sh|bash)$' || true)
+    if [ -n "$staged_sh" ]; then
+        if [ -x "$PYTHON3" ]; then
+            echo "$staged_sh" | xargs "$PYTHON3" "$SCRIPT_DIR/tools/heredoc_pipe_lint.py" >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo "[HeredocLint] advisory: unsafe heredoc detected in staged shell file(s)"
+            fi
+        fi
+    fi
+fi
+
 # ─── Check 8 (blocking): unified supervisor verdict ───
 # The supervisor MCP merges the Engram gate with PMB liveness and honest PAMS
 # probes. A commit on NO-GO would record a tree the memories say is broken,

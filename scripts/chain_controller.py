@@ -38,7 +38,14 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
     # stale while the page auto-reloads every 60s. Renders are display output
     # (not mutations), so this job stays out of MUTATING_JOBS and runs even in
     # observation-only mode. Fail-open per renderer inside the wrapper.
-    "render": (300, 240, "py", "tools/render_all_monitors.py", ()),
+    # Cadence re-point (T-4, 2026-10-19): the render job's inputs move on the
+    # `evolution` (600 s) and `terence` (1800 s) cadences, so at 300 s the
+    # walls were rendered five times per terence refresh and four of those
+    # five pages drew identical input. Slowed to the slowest input cadence so
+    # a render cannot fire before its inputs have refreshed. The timeout
+    # stays a per-run budget, not a cadence; tests/test_chain_controller.py
+    # pins the cadence as a derivation over this table.
+    "render": (1800, 240, "py", "tools/render_all_monitors.py", ()),
     # TERENCE re-engineered (operator request 2026-09-30): 4 oracles over
     # MEASURED state, replacing a source-pattern sweep that reported 8,009
     # "fixes" on a tree with 0 compile failures in 1,668 files -- and whose

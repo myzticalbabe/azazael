@@ -85,13 +85,62 @@ def run_batch(idx: int, batch: list[str], timeout: int = 900) -> dict:
     return rec
 
 
-def summarise() -> int:
+def _journal_records() -> list[dict]:
+    """Every parseable journal record, oldest first.
+
+    A batch killed mid-write leaves a truncated final line. `done_batches()`
+    always skipped one; `failure_table()` and `summarise()` did not, so
+    `--report` raised JSONDecodeError on exactly the run that had been
+    interrupted -- the report was least available when it was most needed.
+    One malformed line is skipped and counted, never fatal and never silent.
+    """
+    if not JOURNAL.exists():
+        return []
+    out: list[dict] = []
+    malformed = 0
+    for line in JOURNAL.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not line.strip():
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            malformed += 1
+            continue
+    if malformed:
+        print(f"[suite_baseline] skipped {malformed} malformed journal line(s)")
+    return out
+
+
+def failure_table(path: str | None = None) -> list[dict]:
+    """Machine-readable failure table: one row per failed batch."""
+    recs = _journal_records()
+    latest: dict[int, dict] = {}
+    for r in recs:
+        latest[int(r["batch"])] = r
+    bad = [r for r in latest.values() if r.get("returncode") != 0]
+    rows = []
+    for r in sorted(bad, key=lambda x: int(x["batch"])):
+        rows.append({
+            "batch": r["batch"],
+            "returncode": r["returncode"],
+            "timed_out": r.get("timed_out", False),
+            "n_files": r["n_files"],
+            "seconds": r.get("seconds", 0),
+            "files": r.get("files", []),
+            "tail": r.get("tail", []),
+        })
+    if path:
+        out = Path(path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+    return rows
+
+
+def summarise(failure_table_path: str | None = None) -> int:
     if not JOURNAL.exists():
         print("no journal yet")
         return 1
-    recs = [json.loads(x) for x in
-            JOURNAL.read_text(encoding="utf-8", errors="replace").splitlines()
-            if x.strip()]
+    recs = _journal_records()
     latest: dict[int, dict] = {}
     for r in recs:
         latest[int(r["batch"])] = r
@@ -101,6 +150,9 @@ def summarise() -> int:
     print(f"batches ok        : {len(latest) - len(bad)}")
     print(f"batches FAILED    : {len(bad)}")
     print(f"wall seconds      : {total_s:.0f}")
+    if failure_table_path:
+        failure_table(failure_table_path)
+        print(f"failure table     : {failure_table_path}")
     for r in sorted(bad, key=lambda x: int(x["batch"])):
         print(f"\n--- batch {r['batch']} rc={r['returncode']} "
               f"({r['n_files']} files) ---")
@@ -115,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch-size", type=int, default=20)
     ap.add_argument("--timeout", type=int, default=900,
                     help="per-batch seconds; a exceeded batch is rc=124")
+    ap.add_argument("--failure-table", type=str, default=None,
+                    help="write a machine-readable JSON failure table to this path")
     args = ap.parse_args(argv)
 
     files = test_files()
@@ -122,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
         print("no test files found")
         return 2
     if args.report:
-        return summarise()
+        return summarise(args.failure_table)
 
     todo = chunks(files, args.batch_size)
     already = done_batches()
@@ -137,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[{mark}] batch {idx + 1}/{len(todo)} "
               f"{rec['n_files']} files in {rec['seconds']}s "
               f"rc={rec['returncode']}", flush=True)
-    return summarise()
+    return summarise(args.failure_table)
 
 
 if __name__ == "__main__":
