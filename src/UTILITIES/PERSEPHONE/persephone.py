@@ -361,7 +361,7 @@ class Persephone:
             )
 
             if not dry_run:
-                subprocess.run(cmd, check=True)
+                subprocess.run(cmd, check=True, timeout=1800)
                 results["files_synced"] = "multiple"
 
         except subprocess.CalledProcessError as e:
@@ -390,8 +390,8 @@ class Persephone:
 
         try:
             result = subprocess.run(
-                ["wsl", "bash", "-c", full_command], capture_output=True, text=True, encoding="utf-8", errors="replace"
-            )
+                ["wsl", "bash", "-c", full_command], capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=1800)
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
             note_failure("persephone:L384", e)

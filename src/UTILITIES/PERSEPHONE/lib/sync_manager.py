@@ -171,7 +171,7 @@ class SyncManager:
                 result.success = True
                 result.warnings.append("Dry run - no files transferred")
             else:
-                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
                 if result_obj.returncode in [0, 24]:
                     result.success = True
                     result.files_synced = -1  # Multiple
@@ -211,7 +211,7 @@ class SyncManager:
             Path(target).mkdir(parents=True, exist_ok=True)
             cmd = self._robocopy_command(source, target, mirror)
             try:
-                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
                 result.success = result_obj.returncode in [0, 1]
                 result.files_synced = -1
             except Exception as e:
@@ -241,7 +241,7 @@ class SyncManager:
                 result.success = True
                 result.warnings.append("Dry run - no files transferred via ADB")
             else:
-                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+                result_obj = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
                 if result_obj.returncode == 0:
                     result.success = True
                     result.files_synced = -1

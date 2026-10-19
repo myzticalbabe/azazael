@@ -132,7 +132,7 @@ def run_python(script_path, args=None):
 
     cmd = [sys.executable, str(full_path)] + (args or [])
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         ok = result.returncode == 0
         return ok, "Success" if ok else f"Exit {result.returncode}: {result.stderr[:200].strip()}"
     except Exception as e:
