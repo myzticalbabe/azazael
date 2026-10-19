@@ -25,6 +25,7 @@ from __future__ import annotations
 import importlib
 from typing import Any, Callable, Dict, List
 
+from CORE.cd2_verifier import SMTVerifier
 from CORE.technique_runtime import register
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -581,14 +582,35 @@ def _ep169() -> Dict[str, Any]:
 
 
 def _ep183() -> Dict[str, Any]:
-    base = _claim(
-        "neurosymbolic localisation: the LOCALISATION half SHIPS in this repo "
-        "(`localize_violations` <- `SMTVerifier.judge_result`, every REJECT); the "
-        "Datalog-over-program-facts half is ABSENT, and SMT-over-compliance is "
-        "NOT its host -- ruling 2026-10-15 (#740): the old symbol was a different "
-        "mechanism, which is what made BUILD-IN-HOST exclude nothing",
-        "CORE.cd2_verifier", "localize_violations")
-    return base
+    """Neurosymbolic localisation: drive verify -> judge both directions.
+
+    The LOCALISATION half ships (`localize_violations` <- `judge_result` on
+    every REJECT); the Datalog-over-program-facts half is ABSENT by ruling
+    2026-10-15 (#740). auto_record=False: the adapter must not churn the
+    DirectMemory audit trail it only demonstrates.
+    """
+    verifier = SMTVerifier(auto_record=False)
+    sat = {"name": "ep183-sat", "required_fields": {"n": "int"},
+           "numeric_bounds": {"n": (0, 10)}, "values": {"n": 4},
+           "logical_exprs": []}
+    accept = verifier.judge_result(verifier.verify_constraints(sat), sat)
+    unsat = {"name": "ep183-unsat", "required_fields": {"n": "int"},
+             "numeric_bounds": {"n": (0, 10)}, "values": {"n": 40},
+             "logical_exprs": []}
+    reject = verifier.judge_result(verifier.verify_constraints(unsat), unsat)
+    loc = reject.get("localization") or {}
+    return {"accepted": accept.get("verdict") == "ACCEPT"
+                         and "localization" not in accept
+                         and reject.get("verdict") == "REJECT"
+                         and (loc.get("smallest") or {}).get("located", False),
+            "engaged": True,
+            "accept_verdict": accept.get("verdict"),
+            "reject_verdict": reject.get("verdict"),
+            "smallest": loc.get("smallest"),
+            "solver": verifier._solver_type,
+            "residual": "localisation half live; Datalog half ABSENT (#740)",
+            "where": "CORE.cd2_verifier:SMTVerifier.verify_constraints+"
+                     "judge_result+localize_violations"}
 
 
 def _ep278() -> Dict[str, Any]:
