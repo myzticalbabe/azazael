@@ -39,6 +39,7 @@ from __future__ import annotations
 import json
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+import os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -560,7 +561,6 @@ class TensorGenome:
             return cls.from_dict(json.load(fh))
 
     def save_json(self, path: str) -> None:
-        import os
         d = os.path.dirname(os.path.abspath(path))
         if d:
             os.makedirs(d, exist_ok=True)

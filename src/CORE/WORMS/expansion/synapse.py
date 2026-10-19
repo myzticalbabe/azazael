@@ -36,6 +36,7 @@ import math
 from datetime import datetime
 from typing import Any, List
 from collections import defaultdict
+import random as _rng
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -387,7 +388,6 @@ class SSMSequenceWorm:
         self._params_updated = 0
         self._err_ema: float | None = None
         # Learnable input-dependent projections (small random init, then fitted)
-        import random as _rng
         _r = _rng.Random(42)
         self._W_b: list[list[float]] = [[_r.gauss(0, 0.1), _r.gauss(0, 0.1)]
                                        for _ in range(self._dim)]
