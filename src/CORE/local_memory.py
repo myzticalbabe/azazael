@@ -37,6 +37,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Any, Callable, Dict, List, Optional
 from CORE.uuid7 import uuid7
+import re
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
 #: unrecorded swallow is indistinguishable from success, so every handler in
@@ -1969,7 +1970,6 @@ class LocalMemoryStore:
         truncates — so 200 repetitions of the same failing probe land in
         one cluster while genuinely different errors stay apart.
         """
-        import re
         data = memory.get("data", {})
         if isinstance(data, dict):
             msg = str(data.get("error") or data.get("message")

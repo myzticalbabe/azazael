@@ -28,6 +28,8 @@ import time
 import uuid
 import zlib
 from typing import List
+import os
+from pathlib import Path
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -69,7 +71,6 @@ def env_host(env: str) -> str:
     envs and malformed tables fall back to loopback; the port map is
     unchanged and auth still governs non-loopback binds.
     """
-    import os
     raw = os.environ.get("AZAZAEL_MESH_HOSTS")
     if raw:
         try:
@@ -83,7 +84,6 @@ def env_host(env: str) -> str:
 
 
 def _spill_path():
-    from pathlib import Path
     import os
     override = os.environ.get("AZAZAEL_MESH_INBOX")
     if override:

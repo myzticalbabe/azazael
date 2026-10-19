@@ -47,6 +47,7 @@ import gzip
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List
+import shutil as _shutil
 
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -712,7 +713,6 @@ def newest_backup() -> dict:
 def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
     """Gunzip newest backup to temp + integrity_check, at most monthly."""
     import gzip as _gzip
-    import shutil as _shutil
     import tempfile as _tempfile
     import time as _time
     state = _backup_dir() / "last_drill.json"
@@ -766,7 +766,6 @@ def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
     """Online backup of one SQLite file: backup API, integrity-checked
     copy, gzip, prune, G: mirror, CRC + monthly full drill. Fail-open."""
     import gzip as _gzip
-    import shutil as _shutil
     raw = _backup_dir() / ("%s.%s.db" % (stem, stamp))
     try:
         sconn = sqlite3.connect(src, timeout=30)
