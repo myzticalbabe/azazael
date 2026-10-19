@@ -144,6 +144,16 @@ def _print_summary(payload: object) -> None:
 
 
 def main() -> int:
+    # Wide-char payloads (goal titles with section signs, arrows, etc.) kill
+    # print() on cp1252 consoles: UnicodeEncodeError -> rc=1 with empty
+    # stdout, which reads as an unreadable daemon. Replace, never die; UTF-8
+    # because every consumer here (supervisor, 3.15 subprocess defaults)
+    # decodes as UTF-8. The supervisor leg already worked around this with
+    # PYTHONIOENCODING (its "#706 class" comment); this fixes it at source.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception as exc:
+        _ = exc  # pythonw has no stdout to fix; keep the default codec
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
 
