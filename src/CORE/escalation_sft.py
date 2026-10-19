@@ -21,7 +21,8 @@ except ImportError:                               # never break the host
 def consume(ledger_path: str, out_path: str = "") -> dict:
     pairs, skipped = [], 0
     try:
-        lines = open(ledger_path, encoding="utf-8").read().splitlines()
+        with open(ledger_path, encoding="utf-8") as _ledger_f:
+            lines = _ledger_f.read().splitlines()
     except Exception as exc:
         note_failure("escalation_sft:L15", exc)
         return {"pairs": 0, "skipped": 0, "error": "ledger-unreadable"}
