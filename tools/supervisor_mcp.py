@@ -12,6 +12,7 @@ unified verdict. This server puts an MCP face on the existing oracle logic:
   lessons         engram search scoped to durable knowledge (bugfix/decision/pattern)
   record_outcome  write-through: engram `save` + JSONL outbox row for PMB pickup
   triage_plan     open items with a suggested evidence check each, for resolution
+  refusal_log     idempotent refusal-ledger append (ER-01: one event, one row)
 
 Run under the free-threaded interpreter (py315t, which has `mcp`):
   C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp.py
@@ -21,6 +22,7 @@ import json
 import os
 import socket
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -32,6 +34,17 @@ from mcp.server.fastmcp import FastMCP  # noqa: E402
 
 OUTBOX = HERE.parent / "state" / "supervisor_outbox.jsonl"
 REFUSALS = HERE.parent / "state" / "supervisor_refusals.jsonl"
+#: ER-01 event-identity granularity: everything refused inside one bucket
+#: with the same verdict payload is ONE event (a client retry loop and a
+#: parallel tool batch both collapse), a payload that changes is a new event.
+REFUSAL_BUCKET_S = 60
+#: Bounded dedupe cost: only the ledger's last N bytes are tail-checked on
+#: each write. The whole ledger is never re-scanned as it grows.
+REFUSAL_TAIL_BYTES = 65536
+#: Serializes tail-check + append inside one process (MCP tool calls arrive
+#: concurrently on threads). A true cross-process race can still duplicate;
+#: see append_refusal's docstring.
+_REFUSAL_LOCK = threading.RLock()
 PMB_HOST, PMB_PORT = "127.0.0.1", 8765
 _OPEN_DATES: dict[str, str] = {}
 
@@ -52,6 +65,136 @@ def _item_age_days(date_str):
         return (datetime.date.today() - d).days
     except ValueError:
         return -1
+
+
+def _utc_now_iso():
+    """UTC timestamp in the plugin ledger's exact shape (..T19:31:38.543Z)."""
+    now = time.time()
+    return "%s.%03dZ" % (time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(now)),
+                         int(now * 1000) % 1000)
+
+
+def _refusal_event_id(client, tool, detail, ts_iso, session=""):
+    """Stable identity for ONE refusal event (sha1[:16]) -- ER-01.
+
+    Identity = client | tool | verdict payload (detail) | nearest 60s
+    timestamp bucket [| session when a caller has one]. Deliberate
+    consequences: a refused event retried by the client, re-fired by the
+    hook, or refused again across a parallel tool batch maps to the SAME
+    id (one event, one row); the verdict payload CHANGING ("conflicts:
+    33" -> "conflicts: 6") is a new event on its own merit. ts values the
+    bucket parser cannot read all share a constant bucket, so dedupe then
+    degrades to exact content identity rather than failing the write.
+    """
+    import datetime
+    import hashlib
+    bucket = "ts-unparseable"
+    try:
+        parsed = datetime.datetime.fromisoformat(
+            str(ts_iso or "").replace("Z", "+00:00"))
+        bucket = str(int(parsed.timestamp()) // REFUSAL_BUCKET_S)
+    except (ValueError, OverflowError, OSError) as exc:
+        # An unparseable ts must still dedupe coherently: the constant
+        # bucket keeps the event id content-stable, and embedding the
+        # failure class names exactly which decode died (the record the
+        # rule wants; two statements, no silent_except_pass to suppress).
+        bucket = "ts-unparseable"
+        bucket += ":%s" % type(exc).__name__
+    key = "|".join(str(x) for x in
+                   (client, tool, detail, bucket, session) if str(x))
+    return hashlib.sha1(key.encode("utf-8", errors="replace")).hexdigest()[:16]
+
+
+def _tail_refusal_ids(path):
+    """{eid: occurrences} for TODAY's rows inside a bounded ledger tail.
+
+    The refusal ledger only ever appends, so a whole-file scan on every
+    write would grow with it; the idempotence decision only needs the
+    recent past (a repeat of one event can only be referenced by a bucket
+    that is, by construction, near now). Reads at most the final
+    REFUSAL_TAIL_BYTES, drops a possibly-truncated leading fragment so
+    parsing starts at a real line boundary, and reconstructs each row's id
+    (stored eid when present, else from the row's own fields) for rows
+    whose ts is TODAY. Bounded work: O(tail bytes), never O(ledger size).
+    """
+    import datetime
+    path = Path(path)
+    try:
+        size = path.stat().st_size
+        with open(path, "rb") as fh:  # scanner:ignore open_no_encoding (binary tail read: encoding= is invalid on rb, and the ratchet's bounded-tail contract requires seek+partial read instead of read_bytes on a growing ledger)
+            fh.seek(max(0, size - REFUSAL_TAIL_BYTES))
+            raw = fh.read()
+    except OSError:
+        return {}
+    text = raw.decode("utf-8", errors="replace")
+    if size > REFUSAL_TAIL_BYTES:
+        nl = text.find("\n")
+        if nl < 0:
+            return {}
+        text = text[nl + 1:]
+    today = datetime.date.today().isoformat()
+    ids: dict[str, int] = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if not str((row or {}).get("ts", "")).startswith(today):
+            continue
+        eid = str((row or {}).get("eid", "")) or _refusal_event_id(
+            (row or {}).get("client", "opencode"), (row or {}).get("tool", "?"),
+            (row or {}).get("detail", ""), (row or {}).get("ts", ""))
+        ids[eid] = ids.get(eid, 0) + 1
+    return ids
+
+
+def append_refusal(tool, detail, client="opencode", session="",
+                   path=None, ts_iso=None):
+    """THE single write point for the refusal ledger (ER-01: one event, one row).
+
+    Every refusal-ledge append must route here. It computes the event id
+    (see _refusal_event_id) and skips writing when that id already exists
+    in TODAY's ledger tail, so a client retry, a parallel tool batch, or a
+    re-fired hook lands as ONE row instead of N. Verdict semantics one
+    level up are untouched: GO/CLARIFY/NO-GO logic, legs and labels are not
+    consulted or changed -- this is a bookkeeping layer only, and the
+    existing ledger file is never rewritten or trimmed.
+
+    Best effort by design (the ledger must never break a gate): returns a
+    status line (`refusal: wrote eid=...` / `refusal: duplicate skipped
+    eid=... (one event, one row)` / `refusal: WRITE FAILED (...)`) instead
+    of raising. In-process concurrency is serialized by _REFUSAL_LOCK; a
+    genuine cross-process race can still duplicate (both writers pass the
+    tail check) -- history then keeps both rows rather than losing one.
+    ts_iso is an injection point for the coordinator-only self-test; it is
+    never guessed in production calls.
+    """
+    target = Path(path) if path else REFUSALS
+    ts = ts_iso or _utc_now_iso()
+    eid = _refusal_event_id(client, tool, detail, ts, session)
+    note = ""
+    with _REFUSAL_LOCK:
+        try:
+            known = _tail_refusal_ids(target)
+            if eid in known:
+                return ("refusal: duplicate skipped eid=%s tool=%s "
+                        "(one event, one row)" % (eid, tool))
+        except Exception as exc:  # dedupe is advisory; the row must still land
+            note = "; dedupe check unavailable (%s: %s)" % (
+                type(exc).__name__, str(exc)[:120])
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps({"ts": ts, "client": client, "tool": tool,
+                                     "detail": str(detail)[:400], "eid": eid},
+                                    ensure_ascii=False) + "\n")
+            return "refusal: wrote eid=%s tool=%s%s" % (eid, tool, note)
+        except OSError as exc:
+            return "refusal: WRITE FAILED (%s: %s)" % (type(exc).__name__, exc)
+
 
 server = FastMCP("supervisor")
 
@@ -548,6 +691,7 @@ def refusal_summary() -> str:
     tools = Counter()
     last = ""
     n = 0
+    event_ids: dict[str, int] = {}
     for line in REFUSALS.read_text(encoding="utf-8", errors="replace").splitlines():
         line = line.strip()
         if not line:
@@ -559,10 +703,41 @@ def refusal_summary() -> str:
         n += 1
         tools[str(r.get("tool", "?"))] += 1
         last = str(r.get("ts", ""))
+        eid = str(r.get("eid", "")) or _refusal_event_id(
+            r.get("client", "opencode"), r.get("tool", "?"),
+            r.get("detail", ""), r.get("ts", ""))
+        event_ids[eid] = event_ids.get(eid, 0) + 1
     if not n:
         return "refusals: ledger present but empty"
     top = ", ".join("%s x%d" % kv for kv in tools.most_common(5))
-    return "refusals: %d total (last %s); top: %s" % (n, last or "?", top)
+    return ("refusals: %d total (last %s); top: %s\n"
+            "refusals bookkeeping: %d event ids across %d rows "
+            "(ER-01 one event, one row: %d row(s) are same-identity repeats; "
+            "ids stored since the chokepoint, reconstructed for legacy rows)"
+            % (n, last or "?", top, len(event_ids), n, n - len(event_ids)))
+
+
+@server.tool()
+def refusal_log(tool: str, detail: str, client: str = "opencode",
+                session: str = "") -> str:
+    """Idempotently record one refusal event in the refusal ledger (ER-01).
+
+    One event, one row: every caller (MCP tool call, plugin adopter, CLI)
+    routes through append_refusal, which derives a single event identity
+    from client + tool + verdict payload + 60s timestamp bucket and skips
+    the append when the same id is already in the ledger tail TODAY. Safe
+    to call on EVERY refused tool call: repeats collapse instead of
+    accumulating. Verdict semantics are not touched anywhere in this
+    path. Never raises; the returned status line names what happened.
+
+    Consumer note: the opencode plugin currently appends the same row
+    itself per refused call (engram.ts tool.execute.before, REFUSAL_LEDGER
+    appendFileSync); adopting this tool -- or the matching
+    `--log-refusal TOOL DETAIL [CLIENT]` CLI face -- is the one-line
+    change that makes the write single-point rather than adding a second
+    writer here.
+    """
+    return append_refusal(tool, detail, client=client, session=session[:80])
 
 
 TOOL_TEMPLATE = '''#!/usr/bin/env python
@@ -840,11 +1015,101 @@ def pretriage_conflicts(limit: str = "10") -> str:
     return "\n".join(out)[:6000]
 
 
+def _selftest_refusal_dedupe() -> int:
+    """Coordinator-only dry-run proving one-event-one-row (ER-01).
+
+    Never touches the real ledger: writes the SAME synthetic event twice --
+    preferentially via a +30s ts INSIDE the same 60s bucket (bucket-level,
+    not exact-ms, identity), falling back to an exact-ts repeat when the
+    host clock's shape puts that peer across a bucket boundary -- plus one
+    payload-changed call, all into a scratch ledger, then checks the row
+    counts. The one-liner for the coordinator (never run by the file
+    editor that wrote it):
+
+        C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp.py --selftest-refusal-dedupe
+
+    Expected output: PASS lines for (a) first write lands, (b) same-event
+    repeat skipped, (c) exactly 1 row after 2 same-event calls, (d) the
+    payload-changed event lands, (e) exactly 2 rows total; scratch ledger
+    deleted afterwards either way. Non-zero exit on any failed assertion.
+    """
+    import datetime
+    scratch = HERE.parent / "state" / "supervisor_refusals_selftest.jsonl"
+    day = datetime.date.today().isoformat()
+
+    def _ts(sec):
+        hh = (sec // 3600) % 24
+        rem = sec % 3600
+        return "%sT%02d:%02d:%02d" % (day, hh, rem // 60, rem % 60)
+
+    d1 = "selftest: conflicts: 99 unresolved (judgment_status=pending)"
+    d2 = "selftest: conflicts: 98 unresolved (payload changed -> new event)"
+    # Same-bucket peer preferred (+30s, then +90s -- both inside one bucket
+    # for any 60s-aligned or fractional-offset tz); exact-ts repeat last, so
+    # the dedupe proof never depends on the host's clock shape.
+    id1 = _refusal_event_id("selftest", "selftest-shell", d1, _ts(15))
+    t1 = _ts(15)
+    t2 = t1
+    mode = "exact-ts"
+    for cand_sec, cand_mode in ((45, "same-bucket(+30s)"),
+                                (105, "same-bucket(+90s)"),
+                                (15, "exact-ts")):
+        if _refusal_event_id("selftest", "selftest-shell", d1, _ts(cand_sec)) == id1:
+            t2 = _ts(cand_sec)
+            mode = cand_mode
+            break
+    r1 = append_refusal("selftest-shell", d1, client="selftest",
+                        path=scratch, ts_iso=t1)
+    r2 = append_refusal("selftest-shell", d1, client="selftest",
+                        path=scratch, ts_iso=t2)
+    rows2 = _selftest_count_rows(scratch)
+    r3 = append_refusal("selftest-shell", d2, client="selftest",
+                        path=scratch, ts_iso=t2)
+    rows3 = _selftest_count_rows(scratch)
+    checks = [
+        ("first event lands", r1.startswith("refusal: wrote"), r1),
+        ("same-event repeat skipped (%s)" % mode,
+         r2.startswith("refusal: duplicate skipped"), r2),
+        ("1 row after 2 same-event calls", rows2 == 1, "rows=%d" % rows2),
+        ("payload change -> new event", r3.startswith("refusal: wrote"), r3),
+        ("2 rows after payload change", rows3 == 2, "rows=%d" % rows3),
+    ]
+    ok = True
+    for name, passed, observed in checks:
+        print("selftest dedupe: %-32s %s (%s)"
+              % (name, "PASS" if passed else "FAIL", observed[:150]))
+        ok = ok and passed
+    print("selftest dedupe: %s" % ("PASS" if ok else "FAIL"))
+    try:
+        scratch.unlink()
+    except OSError:
+        print("selftest dedupe: scratch %s left in place (unlink refused)"
+              % scratch.name)
+    return 0 if ok else 1
+
+
+def _selftest_count_rows(path):
+    """Rows in a scratch ledger; -1 marks unreadable (a FAIL signal)."""
+    try:
+        return sum(1 for l in Path(path)
+                   .read_text(encoding="utf-8", errors="replace")
+                   .splitlines() if l.strip())
+    except OSError:
+        return -1
+
+
 def main(argv=None) -> int:
     """--verdict prints the verdict text for hook/gate consumers (no MCP round-trip).
 
     Always exits 0: an unreachable oracle is fail-open (GO), and the text
     carries the verdict. Gate callers parse the trailing VERDICT line.
+
+    --log-refusal TOOL DETAIL [CLIENT] appends one refusal event through
+    the ER-01 chokepoint (idempotent; always exits 0, the status line
+    carries the outcome -- bookkeeping must never fail a gate caller).
+
+    --selftest-refusal-dedupe runs the coordinator-only dry-run described
+    in _selftest_refusal_dedupe and exits 0 on PASS / 1 on any FAIL.
     """
     args = list(sys.argv[1:] if argv is None else argv)
     if "--verdict" in args:
@@ -854,6 +1119,16 @@ def main(argv=None) -> int:
             print("VERDICT: GO - supervisor unavailable (%s: %s)"
                   % (type(exc).__name__, exc))
         return 0
+    if "--log-refusal" in args:
+        rest = [a for a in args if a != "--log-refusal"]
+        tool = rest[0] if len(rest) > 0 else ""
+        detail = " ".join(rest[1:-1]) if len(rest) > 2 else (
+            rest[1] if len(rest) == 2 else "")
+        client = rest[-1] if len(rest) > 2 else "opencode"
+        print(append_refusal(tool, detail, client=client))
+        return 0
+    if "--selftest-refusal-dedupe" in args:
+        return _selftest_refusal_dedupe()
     server.run()
     return 0
 
