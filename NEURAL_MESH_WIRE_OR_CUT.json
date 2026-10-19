@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-18T15:41:51.023089",
+ "generated_at": "2026-10-19T02:01:56.839513",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -214,7 +214,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -262,7 +262,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -310,7 +310,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -366,7 +366,7 @@
     "also defined by: HDC"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'encode' in 126 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'encode' in 130 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
    "evidence": [
     "scripts/reencode_large_videos.py:202"
    ],
@@ -384,7 +384,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -546,7 +546,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -599,7 +599,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1096,7 +1096,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1115,7 +1115,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1135,7 +1135,9 @@
    "reason": "ACCEPT-GAP: night_shift builds+indexes the EngramIndex but never calls lookup(); missing production consumer of the indexed store.",
    "seg": "def lookup(self, key: str) -> dict[str, Any]:\n        with self._lock:\n            hit = self._index.get(key)\n            return {\"success\": True, \"key\": key, \"hit\": hit is not None,\n                    \"entry\": hit}",
    "status": "accepted_gap",
-   "disposition": "ACCEPT-GAP"
+   "disposition": "ACCEPT-GAP",
+   "carried": true,
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'lookup' in 1 file(s) [tools/encoding_audit.py]; module-linked: no"
   },
   "consolidation:SharpWaveReplayWorm.__init__": {
    "module": "consolidation",
@@ -1168,7 +1170,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1241,7 +1243,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1674,7 +1676,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1742,7 +1744,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1802,7 +1804,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1861,7 +1863,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1909,7 +1911,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1967,7 +1969,7 @@
     "also defined by: DriftAlert, HEALTHZ, StepMonitor"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 52 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 53 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: no",
    "evidence": [
     "scripts/_emoji_mood_probe.py:17",
     "src/CORE/WORMS/CLUSTERWORMS.py:533",
@@ -1987,7 +1989,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2006,7 +2008,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2025,7 +2027,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2044,7 +2046,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2096,7 +2098,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2134,7 +2136,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2153,7 +2155,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2191,7 +2193,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2210,7 +2212,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2229,7 +2231,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2295,7 +2297,7 @@
     "named by src/CODEX/ENVIRONMENT_INFO.json:39"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reason' in 57 file(s) [scripts/audit_loop_liveness.py, scripts/budget_policy.py, scripts/build_runtime_baseline.py, scripts/check_runtime_baseline.py, scripts/env_drift_alarm.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reason' in 58 file(s) [scripts/audit_loop_liveness.py, scripts/budget_policy.py, scripts/build_runtime_baseline.py, scripts/check_runtime_baseline.py, scripts/env_drift_alarm.py]; module-linked: no",
    "evidence": [
     "scripts/budget_policy.py:186",
     "scripts/chain_controller.py:649",
@@ -2452,7 +2454,7 @@
   "exmachina:_mad": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 974,
+   "line": 975,
    "module": "exmachina",
    "qualname": "_mad",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2462,7 +2464,7 @@
   "exmachina:_tpm": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1372,
+   "line": 1373,
    "module": "exmachina",
    "qualname": "_tpm",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2473,7 +2475,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina.py:114"
    ],
-   "line": 464,
+   "line": 465,
    "module": "exmachina",
    "qualname": "collect_state",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:105), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2484,7 +2486,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina.py:72"
    ],
-   "line": 371,
+   "line": 372,
    "module": "exmachina",
    "qualname": "conformal_interval",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:63), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2495,7 +2497,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina.py:98"
    ],
-   "line": 1182,
+   "line": 1183,
    "module": "exmachina",
    "qualname": "matrix_inverse",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:89), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2506,7 +2508,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina.py:70"
    ],
-   "line": 325,
+   "line": 326,
    "module": "exmachina",
    "qualname": "novelty_ncd",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:61), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2517,7 +2519,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina.py:97"
    ],
-   "line": 1178,
+   "line": 1179,
    "module": "exmachina",
    "qualname": "solve_linear",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:88), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2543,7 +2545,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina_operators.py:101"
    ],
-   "line": 1022,
+   "line": 1023,
    "module": "exmachina_operators",
    "qualname": "operator_report",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:91), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2554,7 +2556,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/exmachina_operators.py:99"
    ],
-   "line": 973,
+   "line": 974,
    "module": "exmachina_operators",
    "qualname": "rank_candidates",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:89), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2564,7 +2566,7 @@
   "federated:RewardShaperMeshWorm.local_score": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 327,
+   "line": 330,
    "module": "federated",
    "qualname": "RewardShaperMeshWorm.local_score",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2583,7 +2585,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2621,7 +2623,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2650,7 +2652,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2669,7 +2671,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2956,7 +2958,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3280,7 +3282,7 @@
     "also defined by: MeshArchitectWorm, UnifiedInstaller"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'rollback' in 5 file(s) [src/CORE/direct_memory.py, src/CORE/local_memory.py, src/CORE/sentinel_enforcer.py, src/session_memory.py, tools/terence_invariants.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'rollback' in 6 file(s) [src/CORE/data_retention.py, src/CORE/direct_memory.py, src/CORE/local_memory.py, src/CORE/sentinel_enforcer.py, src/session_memory.py]; module-linked: no",
    "evidence": [
     "scripts/evolution_cycle.py:3155",
     "src/CORE/WORMS/expansion/learning_versioner.py:201",
@@ -3386,7 +3388,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3831,7 +3833,7 @@
   "oracle:FitnessOracle.acquisition": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 264,
+   "line": 265,
    "module": "oracle",
    "qualname": "FitnessOracle.acquisition",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -3844,7 +3846,7 @@
     "named by state/adoption_census.json:4389",
     "named by state/adoption_census.json:4403"
    ],
-   "line": 270,
+   "line": 271,
    "module": "oracle",
    "qualname": "FitnessOracle.era_robust_probability",
    "reason": "retired: no calls anywhere in the tree; definition exists but zero references; deleting removes dead code.",
@@ -3855,7 +3857,7 @@
   "oracle:FitnessOracle.overlapping_holdout_uncertainty": {
    "module": "oracle",
    "qualname": "FitnessOracle.overlapping_holdout_uncertainty",
-   "line": 575,
+   "line": 576,
    "seg": "def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],\n                                        y: Sequence[float],\n                                        n_holds: int = 5, holdout_frac: float = 0.3,\n                                        seed: int = 0) -> dict:\n        \"\"\"Overlapping holdout uncertainty for tiny-pool designs.\n\n        Draws n_holds random holdout subsets (each holdout_frac of rows), fits\n        a fresh ensemble on the complement, predicts on the holdout, and returns\n        the variance of holdout predictions plus per-holdout errors. Overlap\n        between holdouts (controlled by seed + random draw) gives more stable\n        estimates than k-fold when the pool is tiny.\n        \"\"\"\n        n = len(X)\n        if n < 4 or n_holds < 2:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"pool too small\"}\n        rng = random.Random(seed)\n        hold_size = max(1, int(n * holdout_frac))\n        hold_size = min(hold_size, n - 1)\n        errors = []\n        for h in range(n_holds):\n            idx = list(range(n))\n            rng.shuffle(idx)\n            hold_idx = set(idx[:hold_size])\n            train_rows = [X[i] for i in range(n) if i not in hold_idx]\n            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]\n            hold_rows = [X[i] for i in range(n) if i in hold_idx]\n            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]\n            if not train_rows or not hold_rows:\n                continue\n            # Fit a fresh ensemble on the train complement\n            try:\n                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,\n                                       self.n_models, self.seed + h)\n                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),\n                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))\n                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)\n                for j, hi in enumerate(sorted(hold_idx)):\n                    errors.append(abs(mean[j] - hold_y[j]))\n            except Exception:\n                continue\n        if not errors:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"all holds failed\"}\n        m = sum(errors) / len(errors)\n        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)\n        return {\"holds\": errors, \"holdout_var\": round(var, 6),\n                \"mean_abs_error\": round(m, 6), \"n_holds\": len(errors),\n                \"note\": \"overlapping holdout protocol (U2)\"}",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: reached only by 3 test calls (tests/test_kilo_arxiv_qd.py); no production caller; missing production consumer.",
@@ -3929,7 +3931,7 @@
     "also defined by: CPPNGenome, ExperienceReplay, ExperienceReplayBuffer"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'sample' in 16 file(s) [scripts/render_graph_svg.py, scripts/verify_proteus.py, src/CODEX/CORE/emoji_maker.py, src/CORE/WORMS/expansion/chorus.py, src/CORE/WORMS/expansion/cutting_edge_model.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'sample' in 17 file(s) [scripts/render_graph_svg.py, scripts/verify_proteus.py, src/CODEX/CORE/emoji_maker.py, src/CORE/WORMS/expansion/chorus.py, src/CORE/WORMS/expansion/cutting_edge_model.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/engram.py:621",
     "src/CORE/WORMS/expansion/profiling.py:245",
@@ -4158,7 +4160,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4526,7 +4528,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4546,7 +4548,7 @@
     "also defined by: AzazaelOptimizer, BaseArm, BaseWormMixin"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_status' in 41 file(s) [scripts/sync_g_drive.py, src/AOA/aoa_monitor.py, src/CODEX/CORE/AUTO_DOWNLOADER.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/CODEX_TOOLS.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_status' in 42 file(s) [scripts/sync_g_drive.py, src/AOA/aoa_monitor.py, src/AOA/arms/eve_arm.py, src/CODEX/CORE/AUTO_DOWNLOADER.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "scripts/false_zero_audit.py:37",
     "src/AOA/aoa_monitor.py:250",
@@ -4646,7 +4648,7 @@
     "also defined by: ModelVersioner, UnifiedInstaller"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'rollback' in 5 file(s) [src/CORE/direct_memory.py, src/CORE/local_memory.py, src/CORE/sentinel_enforcer.py, src/session_memory.py, tools/terence_invariants.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'rollback' in 6 file(s) [src/CORE/data_retention.py, src/CORE/direct_memory.py, src/CORE/local_memory.py, src/CORE/sentinel_enforcer.py, src/session_memory.py]; module-linked: no",
    "evidence": [
     "scripts/evolution_cycle.py:3155",
     "src/CORE/WORMS/expansion/learning_versioner.py:201",
@@ -5298,7 +5300,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 105 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -5753,16 +5755,5 @@
    "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        import os\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
    "status": "retired"
   }
- },
- "triage_counts": {
-  "test_reached_only": 0,
-  "no_reference_anywhere": 0
- },
- "decider_counts": {
-  "protocol_or_override": 0,
-  "declared_in_data": 0,
-  "dynamic_call": 0,
-  "test_is_the_wire": 0,
-  "dead_candidate": 0
  }
 }

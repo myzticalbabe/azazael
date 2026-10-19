@@ -39,6 +39,26 @@ class TestChainController(unittest.TestCase):
         self.assertIn("spine", controller.MUTATING_JOBS)
         self.assertNotIn("mesh", controller.MUTATING_JOBS)
 
+    def test_render_cadence_covers_slowest_input(self):
+        """T-4 (2026-10-19): a render fires after its slowest input refreshes.
+
+        The `render` job draws wallboards from state written on the
+        `evolution` (600 s) and `terence` (1800 s) cadences. At 300 s it
+        produced five pages per terence refresh, four drawing identical
+        input. The cadence is pinned as a DERIVATION over this table, not a
+        constant, so slowing an input cadence later without following it here
+        fails this test instead of silently re-introducing the online loop
+        (from the TODO_315T_BUILD T-4 disposition, EXECUTABLE #6).
+        """
+        inputs = {"evolution", "terence"}
+        for name in inputs:
+            self.assertIn(name, controller.JOBS)
+        slowest_input = max(controller.JOBS[name][0] for name in inputs)
+        self.assertEqual(controller.JOBS["render"][0], slowest_input)
+        # A cadence change must not silently absorb the per-run timeout: the
+        # timeout is a per-run budget and stays 240 s.
+        self.assertEqual(controller.JOBS["render"][1], 240)
+
     def test_status_is_read_only(self):
         state, result, detail = controller._own_task_state()
         self.assertIn(state, {"ok", "disabled", "unknown"})

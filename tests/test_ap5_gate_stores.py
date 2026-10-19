@@ -117,6 +117,52 @@ def test_reasoning_blocks_are_counted_not_scanned(tmp_path):
     assert result.findings == []
 
 
+# ─── request vs announcement: one control test per class ────────────────
+
+
+def test_request_class_is_a_finding(tmp_path):
+    """An offer of the assistant's next action stays a violation.
+
+    Control for the request class: if the discrimination ever folds
+    requests into the announcement class, this fails.
+    """
+    _write_session(
+        tmp_path,
+        "2026-10-19T03-17-04.170Z",
+        [_ai("m2", _text("Say the word and I'll mint it as one record."))],
+    )
+    result = _scan(tmp_path)
+
+    assert result.status == gate.SCANNED
+    assert [f.rule for f in result.findings] == ["say_the_word"]
+    assert result.announcements == []
+
+
+def test_announcement_class_is_reported_not_counted(tmp_path, capsys):
+    """`Let me X` names the assistant's own action: emitted, never counted.
+
+    Control for the false-positive class: it must neither return as a
+    violation (exit 1) nor silently vanish -- the store still emits it and
+    the run still exits 0.
+    """
+    _write_session(
+        tmp_path,
+        "2026-10-19T03-17-04.170Z",
+        [_ai("m2", _text("Let me run the checker now."))],
+    )
+    result = _scan(tmp_path)
+    code = gate.main(["--source", "manicode", "--manicode-root", str(tmp_path)])
+    out = capsys.readouterr().out
+
+    assert result.findings == []
+    assert len(result.announcements) == 1
+    assert result.announcements[0].rule == "announcement:let_me_action"
+    assert code == 0
+    assert "AP-5: clean" in out
+    assert "announcements: 1" in out
+    assert "1 finding(s)" not in out
+
+
 def test_quoted_anti_pattern_is_not_a_finding(tmp_path):
     """The rulebook is reused, not forked: quoting the pattern stays clean."""
     _write_session(

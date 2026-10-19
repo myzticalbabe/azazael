@@ -17,14 +17,28 @@ The test asserts the two things that matter and that a "returns False" claim alo
 would not: **no artifact is emitted**, and the failure says why.
 """
 
+import importlib.util
 import logging
 import sys
 import tempfile
+
+import pytest
 from pathlib import Path
 
 # Repo convention: tests insert src/ themselves (tests/conftest.py does not).
 SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SRC))
+
+
+def _onnxscript_available() -> bool:
+    """True when the ONNX exporter's dependency is installed.
+
+    A `find_spec` probe, not an import: the tests below pin the REFUSAL path,
+    which only exists while the dependency is absent. Written this way so the
+    probe cannot swallow an ImportError -- absence is the precondition, not an
+    error to catch.
+    """
+    return importlib.util.find_spec("onnxscript") is not None
 
 
 def _converter():
@@ -47,6 +61,10 @@ def _metadata(model_path: str):
     )
 
 
+@pytest.mark.skipif(
+    _onnxscript_available(),
+    reason="onnxscript installed; refusal path not exercised",
+)
 def test_fallback_refuses_and_writes_no_artifact():
     """It must not return success, and must not leave a .onnx file behind."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -66,6 +84,10 @@ def test_fallback_refuses_and_writes_no_artifact():
             % [str(p) for p in produced])
 
 
+@pytest.mark.skipif(
+    _onnxscript_available(),
+    reason="onnxscript installed; refusal path not exercised",
+)
 def test_the_failure_names_the_model_and_the_reason():
     """A failure a caller cannot act on is only half a fix."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -81,6 +103,10 @@ def test_the_failure_names_the_model_and_the_reason():
             "the reason must say what is missing; got %r" % (info,))
 
 
+@pytest.mark.skipif(
+    _onnxscript_available(),
+    reason="onnxscript installed; refusal path not exercised",
+)
 def test_convert_does_not_report_a_successful_onnx_for_this_model():
     """End to end: with no ONNX exporter installed, convert() must not lie."""
     with tempfile.TemporaryDirectory() as tmp:
