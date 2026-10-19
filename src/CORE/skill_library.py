@@ -73,12 +73,22 @@ PROTOCOL_REQUIRED = ("task_type", "reasoning_plan", "grounding_facts")
 
 
 def protocol_artifact(task_type: str, plan: List[str],
-                      grounding: List[str]) -> Dict[str, Any]:
+                      grounding: List[str],
+                      applicability: Any = None,
+                      termination: Any = None,
+                      interface: Any = None) -> Dict[str, Any]:
     """Build a style-normalized JSON skill protocol (MAPD steal).
 
     Returns {"task_type", "reasoning_plan", "grounding_facts", "valid",
     "gaps"} — valid iff task_type non-empty, plan has >=1 step, and at
     least one grounding fact. Gaps name what's missing (repair targets).
+
+    SoK 4-tuple (EP135): applicability (when the skill fires), termination
+    (done criteria), and interface (reusable signature) ride OPTIONAL kwargs
+    so positional callers (merge_sops, distill paths) are unaffected. When
+    supplied they are echoed back and counted in "sok_tuple"; when absent a
+    non-blocking "sok-tuple-incomplete" gap is recorded WITHOUT changing
+    validity — admission stays execution-proof-gated, never schema-gated.
     """
     gaps: List[str] = []
     task = str(task_type or "").strip()
@@ -90,8 +100,17 @@ def protocol_artifact(task_type: str, plan: List[str],
         gaps.append("reasoning_plan empty")
     if not facts:
         gaps.append("grounding_facts empty")
-    return {"task_type": task, "reasoning_plan": steps,
-            "grounding_facts": facts, "valid": not gaps, "gaps": gaps}
+    out: Dict[str, Any] = {"task_type": task, "reasoning_plan": steps,
+                            "grounding_facts": facts, "valid": not gaps,
+                            "gaps": gaps}
+    sok = {"applicability": applicability, "termination": termination,
+           "interface": interface}
+    given = {k: v for k, v in sok.items() if v is not None}
+    out["sok_tuple"] = given
+    # Informational only, kept OUT of "gaps": gaps stays validity-pure so
+    # positional constructors (merge_sops) never newly fail from this field.
+    out["sok_complete"] = len(given) == 3
+    return out
 
 
 # -- SkillGLoW + CASS: commit gate ----------------------------------------------
