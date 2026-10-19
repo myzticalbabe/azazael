@@ -87,6 +87,11 @@ FINDING_SEVERITIES = {
     # Read-only (mode=ro) and :memory: connects cannot contend, excluded.
     "sqlite_no_timeout": "warning",   # ~30 read-write sites, all fixed same session
     "requests_no_timeout": "warning", # 6 sites (hydra_client), all fixed same session
+    # ── Added 2026-10-19 (RULE 0Z-M, third capture): unbounded Popen waits.
+    # Popen() never blocks, but .wait()/.communicate() without timeout do --
+    # the ascii_video.py ffmpeg hang was a bare proc.wait(), not the spawn.
+    # Receiver-tracked (threading.Event waits excluded by construction).
+    "unbounded_wait": "warning",      # 0 -- kill-then-reap exempt, rest fixed
     "syntax_error": "error",
     "read_error": "error",
 }
@@ -110,6 +115,7 @@ FIX_SUGGESTIONS = {
     "open_no_context": "Use with open(...) as f: so the handle always closes",
     "sqlite_no_timeout": "Pass timeout=<seconds> (30 for production paths)",
     "requests_no_timeout": "Pass timeout=<seconds> (30 for client calls)",
+    "unbounded_wait": "Pass timeout=<seconds> to .wait()/.communicate() (Popen.wait takes timeout positionally too)",
 }
 
 # Explanations for each finding category (used by --explain)
@@ -129,6 +135,7 @@ FINDING_EXPLANATIONS = {
     "open_no_context": "`handle = open(...)` outside a `with`, with no later `handle.close()`, leaks the descriptor on every path that raises between open and close. `open(...).read()` one-liners are deliberately NOT flagged: the handle is temporary and refcounting closes it at once.",
     "sqlite_no_timeout": "A read-write sqlite3.connect() without timeout= waits on a writer lock forever (default is 5s only when timeout is passed; without it a contended COMMIT blocks indefinitely). Read-only mode=ro and :memory: connects cannot contend and are excluded.",
     "requests_no_timeout": "A requests call without timeout= blocks forever on a dead peer. Same hang class as subprocess_no_timeout.",
+    "unbounded_wait": "Popen() itself never blocks -- only .wait()/.communicate() do, and the constructor takes no timeout=. A bare proc.wait() on a live child hangs forever (the ascii_video.py ffmpeg stall). Kill-then-reap (.kill()/.terminate() then .wait()) is exempt: reaping a dead process cannot block.",
 }
 
 
@@ -668,6 +675,51 @@ class ASTAntiPatternScanner:
                                 and not _process_lived(_node):
                             findings.append((_node.lineno, "open_no_context",
                                              "open() handle '" + _target.id + "' never closed"))
+            # 6e. unbounded Popen waits (RULE 0Z-M third capture, 2026-10-19).
+            # The spawn never blocks; .wait()/.communicate() without timeout
+            # do. Receiver-tracked: only names assigned from a Popen call in
+            # this file, so threading.Event.wait(timeout-var) and similar are
+            # excluded by construction. wait() takes timeout positionally
+            # (any positional arg bounds it); communicate(input, timeout)
+            # takes input first, so it needs the keyword or 2+ positionals.
+            # Kill-then-reap is exempt: after .kill()/.terminate(), .wait()
+            # only reaps a dead process (nativestack.py:95 shape).
+            _popen_names = set()
+            _reaped = set()
+            for _node in ast.walk(tree):
+                if isinstance(_node, ast.Assign):
+                    _v = _node.value
+                    if isinstance(_v, ast.Call) and isinstance(_v.func, ast.Attribute) \
+                            and _v.func.attr == "Popen":
+                        for _target in _node.targets:
+                            if isinstance(_target, ast.Name):
+                                _popen_names.add(_target.id)
+                    elif isinstance(_v, ast.Call) and isinstance(_v.func, ast.Name) \
+                            and _v.func.id == "Popen":
+                        for _target in _node.targets:
+                            if isinstance(_target, ast.Name):
+                                _popen_names.add(_target.id)
+                elif isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and _node.func.attr in ("kill", "terminate") \
+                        and isinstance(_node.func.value, ast.Name):
+                    _reaped.add(_node.func.value.id)
+            for _node in ast.walk(tree):
+                if isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and isinstance(_node.func.value, ast.Name) \
+                        and _node.func.value.id in _popen_names \
+                        and _node.func.value.id not in _reaped:
+                    if _node.func.attr == "wait":
+                        _bounded = any(_kw.arg == "timeout" for _kw in _node.keywords) \
+                            or len(_node.args) >= 1
+                    elif _node.func.attr == "communicate":
+                        _bounded = any(_kw.arg == "timeout" for _kw in _node.keywords) \
+                            or len(_node.args) >= 2
+                    else:
+                        continue
+                    if not _bounded:
+                        findings.append((_node.lineno, "unbounded_wait",
+                                         "unbounded ." + _node.func.attr + "() on Popen handle '"
+                                         + _node.func.value.id + "'"))
         except SyntaxError as exc:
             note_failure("scanner:L494", exc)
             findings.append((0, "syntax_error", "Cannot parse source — syntax error"))
