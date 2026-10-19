@@ -35,6 +35,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator, List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -629,7 +630,6 @@ def get_status() -> dict[str, Any]:
 
 def self_test() -> bool:
     """Run a self-test to verify the enforcer is working."""
-    import tempfile
 
     print("Sentinel Enforcer Self-Test")
     print("=" * 40)

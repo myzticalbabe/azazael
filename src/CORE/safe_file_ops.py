@@ -46,6 +46,7 @@ import logging
 from pathlib import Path
 from typing import Callable, List
 from datetime import datetime
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -544,7 +545,6 @@ def safe_copytree_chunked(
     Returns:
         dict with "success" (bool) and "detail".
     """
-    import json
 
     src_p, dst_p = Path(src), Path(dst)
     if checkpoint_file is None:
