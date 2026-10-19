@@ -48,7 +48,7 @@ class AzazaelCLI:
                 self.log("Bootstrap initialized", "OK")
                 return True
             else:
-                self.log(f"Bootstrap failed: {result.stderr.decode()}", "ERROR")
+                self.log(f"Bootstrap failed: {result.stderr.decode('utf-8', errors='replace')}", "ERROR")
                 return False
         except Exception as e:
             self.log(f"Bootstrap error: {e}", "ERROR")
@@ -123,7 +123,7 @@ class AzazaelCLI:
                 timeout=60,
                 cwd=str(self.root),
             )
-            print(result.stdout.decode() if result.stdout else result.stderr.decode())
+            print(result.stdout.decode('utf-8', errors='replace') if result.stdout else result.stderr.decode('utf-8', errors='replace'))
             return result.returncode == 0
         except Exception as e:
             self.log(f"Python Manager error: {e}", "ERROR")

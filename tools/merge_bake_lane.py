@@ -26,7 +26,7 @@ OUT_REPORT = ROOT / "state" / "bake_merge_report.txt"
 REQUIRED = ("source", "item_id", "title", "body", "kind")
 
 #: Absolute paths of the lane file(s) under validation. Populated by
-#: merge() before base_rows() runs so input rows are never mistaken for
+#: merge_lanes() before base_rows() runs so input rows are never mistaken for
 #: already-baked base rows. Module-global (not a parameter) because
 #: base_rows(report) arity is load-bearing (see its docstring).
 _EXCLUDE_FILES = set()  # lane file NAMES (see below: Path equality is
@@ -59,7 +59,7 @@ def base_rows(report=None):
     non-empty title, and exclusions are appended to `report` (never dropped
     quietly) so the next drift is loud instead of invisible. Returns
     (rows, report) is deliberately NOT the contract -- `report` is mutated in
-    place so the 4-tuple `merge()` already returns keeps its arity.
+    place so the 4-tuple `merge_lanes()` already returns keeps its arity.
     """
     rows = []
     files = [ROOT / "state" / "bake_corpus.jsonl"]
@@ -89,7 +89,7 @@ def base_rows(report=None):
     return rows
 
 
-def merge(lanes):
+def merge_lanes(lanes):
     dropped = []
     _EXCLUDE_FILES.clear()
     for _lane in lanes:
@@ -154,7 +154,7 @@ def main():
 
     lanes = args.lane or [str(ROOT / "state" / "bake_deepseek_712.jsonl")]
 
-    merged, dropped, accepted, base_n = merge(lanes)
+    merged, dropped, accepted, base_n = merge_lanes(lanes)
     print("BASE=%d ACCEPTED=%d MERGED=%d DROPPED=%d" % (base_n, accepted, len(merged), len(dropped)))
     why = {}
     for _, _, w in dropped:
