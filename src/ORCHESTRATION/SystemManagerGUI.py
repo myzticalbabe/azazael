@@ -558,7 +558,7 @@ class SystemManagerGUI:
         return installations
 
     def _get_processes(self) -> list[dict]:
-        result = subprocess.run("tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run("tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         processes = []
         for line in result.stdout.split("\n"):
             if line.strip():
@@ -578,7 +578,7 @@ class SystemManagerGUI:
         }
 
     def _get_network_info(self) -> dict:
-        result = subprocess.run("ipconfig /all", capture_output=True, text=True, encoding="utf-8", errors="replace")
+        result = subprocess.run("ipconfig /all", capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         return {"ipconfig": result.stdout[:3000]}
 
     def _optimize_system(self) -> dict:

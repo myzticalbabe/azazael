@@ -565,15 +565,15 @@ class SystemManager:
     def kill_python_processes(self) -> dict:
         """Kill all Python processes."""
         out, _, _ = subprocess.run(
-            "tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace"
-        )
+            "tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=1800)
         killed = []
         for line in out.split("\n"):
             if "python.exe" in line.lower():
                 parts = line.split(",")
                 if len(parts) >= 2:
                     pid = parts[1].strip('"')
-                    subprocess.run(f"taskkill /PID {pid} /F", capture_output=True)
+                    subprocess.run(f"taskkill /PID {pid} /F", capture_output=True, timeout=1800)
                     killed.append(pid)
         return {"killed": killed, "count": len(killed)}
 
