@@ -204,3 +204,21 @@ def test_cli_clean_tree_exits_zero(tmp_path, monkeypatch, capsys):
                          "--check", "--write-side"])
     assert main() == 0
     assert "MISSING encoding= on WRITES" not in capsys.readouterr().out
+
+
+# -- the default scope is part of the contract -----------------------------
+
+def test_default_scope_includes_the_trees_that_carry_the_defect():
+    """A default that skips `src/` certifies the wrong tree (#999).
+
+    Measured 2026-10-19: the default was `("tools", "scripts")`, so a bare
+    `--check` passed while 1,100+ `src/` and `tests/` modules were never
+    parsed. A clean exit naming two helper trees is read as evidence about the
+    repo, which is worse than no check. Pinning the membership here means a
+    later edit cannot silently narrow the default again -- the failure would
+    be a red test, not a green audit.
+    """
+    for tree in ("src", "tests", "packages"):
+        assert tree in encoding_audit.DEFAULT_DIRS, (
+            "%r was dropped from DEFAULT_DIRS: %r"
+            % (tree, encoding_audit.DEFAULT_DIRS))

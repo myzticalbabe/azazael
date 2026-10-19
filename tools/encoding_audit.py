@@ -100,7 +100,11 @@ _LOG = logging.getLogger("encoding_audit")
 ROOT = Path(__file__).resolve().parents[1]
 
 #: Scan roots when `--dir` is not given, repo-relative.
-DEFAULT_DIRS = ("tools", "scripts")
+#: `src/` and `tests/` are in the default deliberately (#999): a default that
+#: skipped them certified two helper trees while 1,100+ production and test
+#: modules went unexamined -- a clean `--check` that names the wrong tree is
+#: worse than no check, because it is read as evidence.
+DEFAULT_DIRS = ("src", "tools", "scripts", "tests", "packages")
 
 #: subprocess entry points that accept the same text-mode kwargs.
 ENTRY_POINTS = ("run", "Popen", "check_output", "check_call", "call")

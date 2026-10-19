@@ -628,8 +628,17 @@ def oracle_gate_timing():
     import ast  # noqa: F401  (imported for the walk above)
     faults = []
     referrers = []
+    # `SENTINEL` is a FILE (`src/SCRIPTS/sentinel_gate.py`, :275), so testing it
+    # with `os.path.isdir` was False on every run and the scan below never
+    # executed: `referrers` stayed empty and the fault was appended
+    # UNCONDITIONALLY. Measured 2026-10-19 -- the critical "no file invokes the
+    # gate" finding could not be falsified by any tree, so the oracle was
+    # reporting its own dead branch as a finding, and the negative control
+    # (which tests `_invokes_gate` directly) passed while the oracle stayed
+    # broken. tests/test_terence_gate_timing.py pins the difference: a fixture
+    # WITH a real caller must be silent.
     try:
-        if os.path.isdir(SENTINEL):
+        if os.path.isfile(SENTINEL):
             for root in (os.path.join(AZ, "scripts"), os.path.join(AZ, "src")):
                 if not os.path.isdir(root):
                     continue
@@ -1137,6 +1146,15 @@ def _control_no_false_gate():
       import   -- `import sentinel_gate`
       attribute-- `obj.SentinelValidator()`
       docstring-- names the gate in a docstring and must NOT count
+
+    SCOPE OF THIS CONTROL (and what it does NOT validate). It proves the
+    REFERENCE TEST can see an invocation; it says nothing about whether
+    `oracle_gate_timing` wires that test to a reachable branch. It did not: the
+    oracle's existence guard used `os.path.isdir` on a file path, so the scan
+    was unreachable and the fault unconditional, while this control passed.
+    The oracle-level fixtures -- with and without a caller in the tree, plus a
+    stub control that removes the predicate -- live in
+    tests/test_terence_gate_timing.py and are the ones that validate the ORACLE.
     """
     import contextlib
     import tempfile

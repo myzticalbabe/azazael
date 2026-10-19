@@ -18,7 +18,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
-from permission_seeking_guard import scan, strip_quoted  # noqa: E402
+from permission_seeking_guard import (  # noqa: E402
+    scan,
+    scan_announcements,
+    strip_quoted,
+)
 
 # --- POSITIVE CONTROLS: actually emitted this session, must fire -------------
 
@@ -27,7 +31,6 @@ MUST_FIRE = [
     "Say the word and I'll mint A, B, and C as separate records.",
     "Say the word and I'll mint #988.",
     "Give the word and I will land it.",
-    "Let me fix the predicate before we proceed.",
     "Shall I apply the merge now?",
     "Want me to run the sweep?",
     "Would you like me to mint the three tasks?",
@@ -38,6 +41,20 @@ MUST_FIRE = [
     # likely than a deliberate sample, and AP-5 is CRITICAL per instance, so
     # ambiguity resolves toward flagging.
     "```text\nSay the word and I'll fix it\n",
+]
+
+# --- ANNOUNCEMENTS: detected, reported, NOT violations ----------------------
+#
+# `let me X` states the assistant's own next action; it offers the operator no
+# decision, so it is not a request for permission. It was in MUST_FIRE until
+# 2026-10-19, which is why three of five findings in a real transcript were
+# false positives (AGENTS.md, ENFORCEMENT SURFACES). It stays in the suite as
+# its own class, with its own assertion, so the detection cannot be deleted
+# quietly -- only reclassified.
+
+MUST_ANNOUNCE = [
+    "Let me fix the predicate before we proceed.",
+    "Let me run the tests now.",
 ]
 
 # --- NEGATIVE CONTROLS: must NOT fire ---------------------------------------
@@ -79,7 +96,11 @@ EDGE = [
     # Quote-stripping must NOT shift line numbers. The quoted violation on
     # line 2 is correctly ignored; the bare one on line 3 must be reported
     # AS LINE 3, which is the property that matters.
-    ('Intro line\n"Let me fix x"\nLet me fix y\n', 1, "let_me_action", 3),
+    # Reclassified 2026-10-19: the bare announcement is not a violation, so
+    # the violation count for this text is 0. The line-number property the
+    # entry existed to protect is asserted instead against the announcement
+    # class below, where the same quoted/bare pair still has to report line 3.
+    ('Intro line\n"Let me fix x"\nLet me fix y\n', 0, None, None),
     # Empty and whitespace input must not crash or fabricate findings.
     ("", 0, None, None),
     ("   \n\n\t\n", 0, None, None),
@@ -99,6 +120,17 @@ def _run() -> int:
             names = ", ".join(f"{h.name}@{h.line}" for h in hits)
             failures.append(f"FALSE POSITIVE ({names}): {text!r}")
 
+    for text in MUST_ANNOUNCE:
+        hits = scan_announcements(text)
+        if not hits:
+            failures.append(f"ANNOUNCEMENT NOT DETECTED: {text!r}")
+        elif scan(text):
+            failures.append(f"ANNOUNCEMENT COUNTED AS VIOLATION: {text!r}")
+
+    # The property the reclassified EDGE entry used to carry: quote-stripping
+    # must not shift line numbers, so the bare announcement on line 3 still
+    # reports AS LINE 3.
+
     for text, want_count, want_name, want_line in EDGE:
         hits = scan(text)
         if len(hits) != want_count:
@@ -115,13 +147,21 @@ def _run() -> int:
                 f"EDGE line: expected {want_line} got {hits[0].line} for {text!r}"
             )
 
+    edge_announcements = scan_announcements('Intro line\n"Let me fix x"\nLet me fix y\n')
+    if [h.line for h in edge_announcements] != [3]:
+        failures.append(
+            "EDGE announcement line: expected [3] got %r"
+            % [h.line for h in edge_announcements]
+        )
+
     # Quote stripping must preserve line numbering exactly.
     quoted = 'a\n"Let me fix"\nb\n'
     stripped = strip_quoted(quoted)
     if len(stripped.splitlines()) != 3:
         failures.append("strip_quoted changed line count")
 
-    total = len(MUST_FIRE) + len(MUST_NOT_FIRE) + len(EDGE)
+    total = (len(MUST_FIRE) + len(MUST_NOT_FIRE) + len(MUST_ANNOUNCE)
+             + len(EDGE))
     if failures:
         print(f"FAIL {len(failures)}/{total}", file=sys.stderr)
         for f in failures:
@@ -130,7 +170,8 @@ def _run() -> int:
 
     print(
         f"PASS {total}/{total} "
-        f"(fires={len(MUST_FIRE)} clean={len(MUST_NOT_FIRE)} edge={len(EDGE)})"
+        f"(fires={len(MUST_FIRE)} clean={len(MUST_NOT_FIRE)} "
+        f"announce={len(MUST_ANNOUNCE)} edge={len(EDGE)})"
     )
     return 0
 

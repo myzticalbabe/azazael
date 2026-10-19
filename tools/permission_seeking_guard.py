@@ -17,6 +17,30 @@ transcript source (its SOURCE_REGISTRY rows) through its shared
 `_findings_for`; per-source work is packaged there, detection semantics
 change only here, so no source can silently fork the rulebook.
 
+ANNOUNCEMENT vs REQUEST -- the discrimination this rulebook now makes
+---------------------------------------------------------------------
+AP-5 forbids framing an already-MANDATED action as OPTIONAL. Two sentence
+shapes were being conflated:
+
+  * a REQUEST offers to do the work at the operator's discretion --
+    "Want me to X?", "Say the word and I'll X", "Shall I X?". The decision
+    is handed to the operator, which is the violation.
+  * an ANNOUNCEMENT names the assistant's own in-progress action --
+    "Let me X", "I'll now X". No decision is offered; the action is already
+    being taken. Nothing is made optional.
+
+Measured, not assumed: running the gate over its own author's transcript
+returned 5 findings of which 3 were true (`Want me to`, `Say the word`) and
+the `let me` family were the false-positive class (AGENTS.md, ENFORCEMENT
+SURFACES). A CRITICAL-per-instance rule that fires on announcements trains
+the reader to ignore it, so this module keeps the two lists separate:
+
+  REQUEST_PATTERNS      violations -- `scan()` returns these
+  ANNOUNCEMENT_PATTERNS reported, never counted -- `scan_announcements()`
+
+Both are still detected. The announcement class is visible so it cannot be
+silently re-filed as a violation, and it cannot silently disappear either.
+
 Usage:
     python tools/permission_seeking_guard.py --file draft.md
     type draft.md | python tools/permission_seeking_guard.py
@@ -34,14 +58,11 @@ from dataclasses import dataclass
 # CRITICAL-per-instance rule, so a false positive costs real work and trains
 # the reader to ignore the gate. Prefer missing a phrase over flagging a
 # genuine operator question.
-PATTERNS: list[tuple[str, str]] = [
-    (
-        "let_me_action",
-        r"\bLet me (?=(?:fix|add|run|mint|apply|land|record|commit|edit|"
-        r"write|spawn|call|check|verify|do|perform|execute|create|update|"
-        r"start|begin|write|save|merge|split|delete|remove|install|"
-        r"generate|build|deploy|test|scan|grep|search|inspect|read)\b)",
-    ),
+#
+# REQUEST_PATTERNS are the violations: each hands the decision back to the
+# operator ("Want me to X?", "Say the word and I'll X", "Shall I X?") for an
+# action canon already mandates.
+REQUEST_PATTERNS: list[tuple[str, str]] = [
     (
         "say_the_word",
         r"\b(?:Say the word|Give the word|At your word|On your (?:word|go|"
@@ -66,6 +87,26 @@ PATTERNS: list[tuple[str, str]] = [
         r"Happy to\b[^.]{0,60}\b(?:should I|want me|shall I)\b)",
     ),
 ]
+
+# ANNOUNCEMENT_PATTERNS are NOT violations: they name the assistant's own
+# in-progress action and offer the operator no decision. They are still
+# detected -- `scan_announcements()` returns them and the transcript gate
+# prints them -- because a class that is merely deleted can be re-added by a
+# later edit without anyone noticing. The `let me` family belongs here; see
+# the module docstring for the measurement that produced this split.
+ANNOUNCEMENT_PATTERNS: list[tuple[str, str]] = [
+    (
+        "let_me_action",
+        r"\bLet me (?=(?:fix|add|run|mint|apply|land|record|commit|edit|"
+        r"write|spawn|call|check|verify|do|perform|execute|create|update|"
+        r"start|begin|write|save|merge|split|delete|remove|install|"
+        r"generate|build|deploy|test|scan|grep|search|inspect|read)\b)",
+    ),
+]
+
+#: Every pattern, for callers that only need the full name list (e.g. `--allow`
+#: validation and the report of what the rulebook covers).
+PATTERNS: list[tuple[str, str]] = REQUEST_PATTERNS + ANNOUNCEMENT_PATTERNS
 
 # Quoted spans are excluded. AP-5's canonical counter-example appears verbatim
 # in quotation marks AND fenced code blocks across CODEX generators, skills and
@@ -108,11 +149,10 @@ def strip_quoted(text: str) -> str:
     return _QUOTE_RE.sub(lambda m: _blank(m.group(0)), text)
 
 
-def scan(text: str) -> list[Finding]:
-    """Return permission-seeking findings. Quoted spans are ignored."""
+def _match(patterns: list[tuple[str, str]], cleaned: str) -> list[Finding]:
+    """Run one pattern list over already-cleaned text, in line order."""
     findings: list[Finding] = []
-    cleaned = strip_quoted(text)
-    for name, pattern in PATTERNS:
+    for name, pattern in patterns:
         for m in re.finditer(pattern, cleaned, re.IGNORECASE):
             findings.append(
                 Finding(
@@ -123,6 +163,33 @@ def scan(text: str) -> list[Finding]:
             )
     findings.sort(key=lambda f: (f.line, f.name))
     return findings
+
+
+def scan(text: str) -> list[Finding]:
+    """Return permission-seeking VIOLATIONS. Quoted spans are ignored.
+
+    Announcements (`let me X`) are deliberately not returned: they are
+    reported by `scan_announcements()`. Use `scan_all()` when both classes
+    are needed in one pass, so a caller cannot get half the picture by
+    accident.
+    """
+    return _match(REQUEST_PATTERNS, strip_quoted(text))
+
+
+def scan_announcements(text: str) -> list[Finding]:
+    """Return plan ANNOUNCEMENTS (`let me X`) -- reported, never violations."""
+    return _match(ANNOUNCEMENT_PATTERNS, strip_quoted(text))
+
+
+def scan_all(text: str) -> tuple[list[Finding], list[Finding]]:
+    """Return (violations, announcements) from ONE quote-stripping pass.
+
+    The single pass matters: `strip_quoted` is what keeps line numbers honest,
+    and running it twice on the same text would be two chances to drift.
+    """
+    cleaned = strip_quoted(text)
+    return (_match(REQUEST_PATTERNS, cleaned),
+            _match(ANNOUNCEMENT_PATTERNS, cleaned))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -150,7 +217,22 @@ def main(argv: list[str] | None = None) -> int:
         text = sys.stdin.read()
 
     allowed = {n.strip() for n in args.allow.split(";") if n.strip()}
-    findings = [f for f in scan(text) if f.name not in allowed]
+    violations, announcements = scan_all(text)
+    findings = [f for f in violations if f.name not in allowed]
+    announcements = [f for f in announcements if f.name not in allowed]
+
+    # Announcements are printed on every run, clean or not: a class that is
+    # suppressed silently is indistinguishable from a class that stopped being
+    # detected, which is how the false-positive reading survived this long.
+    if announcements:
+        print(
+            f"AP-5: {len(announcements)} plan announcement(s) reported, "
+            "not counted as violations",
+            file=sys.stderr,
+        )
+        for f in announcements:
+            print(f"  line {f.line}: [{f.name}] {f.match!r} (announcement)",
+                  file=sys.stderr)
 
     if not findings:
         print("AP-5: clean")
