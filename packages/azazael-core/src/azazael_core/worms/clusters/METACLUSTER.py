@@ -31,7 +31,7 @@ Features:
 - PAMS memory recording: every spawn, execute, route, insight stored
 - Mermaid graph generation: full cluster-of-clusters visualization
 - Thread-safe: all state modifications use RLock
-- Free-threading aware: auto-detects Python 3.14t for true parallelism
+- Free-threading aware: auto-detects Python 3.15t for true parallelism
 
 Usage:
     >>> from CORE.WORMS.METACLUSTER import MetaCluster

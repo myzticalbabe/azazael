@@ -28,7 +28,7 @@ So the tests below are in two groups, and the second is the one that matters:
    invariant: four producers, one schema.
 
 Run:
-    /c/Users/clint/venv-314t/Scripts/python.exe -m pytest tests/test_worm_telemetry.py -q
+    /c/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_worm_telemetry.py -q
 """
 
 import sys

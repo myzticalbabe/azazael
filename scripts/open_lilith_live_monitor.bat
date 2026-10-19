@@ -11,8 +11,9 @@ rem Fixed size so the full wallboard fits ONE screen for snapshots
 mode con: cols=110 lines=30
 cd /d "%~dp0.."
 
-rem Prefer the free-threaded interpreter (project mandate; the scientific stack
-rem publishes cp314t-only wheels). Fall back to GIL, then to `python`.
+rem Prefer the free-threaded interpreter (project mandate since 3.14t was
+rem retired 2026-10-19; the scientific stack publishes cp315t-only wheels).
+rem Fall back to the system 3.15t install, then to `python3.15t`.
 set PY=C:\Azazael\.venvs\py315t\Scripts\python.exe
 if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe
 if not exist "%PY%" set PY=python3.15t

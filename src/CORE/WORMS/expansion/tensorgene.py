@@ -534,9 +534,10 @@ class TensorGenome:
             # that has not happened. `prune()` performs the removal.
             "below_floor": self.prune_floor_names(),
             "trained": False,
-            "note": ("Shape declaration only. Training requires the GIL "
-                     "interpreter (torch cannot load under python3.14t) and an "
-                     "XGBoost-free CPU budget; see TENSOR_GENOME_PLAN.md."),
+            "note": ("Shape declaration only. Training requires a torch-capable "
+                     "interpreter (the 3.15t runner carries torch; the 3.15 GIL "
+                     "sidecar is the fallback) and an XGBoost-free CPU budget; "
+                     "see TENSOR_GENOME_PLAN.md."),
             "genes": kept,
         }
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Azazael Test Runner -- runs all standalone-compatible test files on Python 3.14t.
+Azazael Test Runner -- runs all standalone-compatible test files on Python 3.15t.
+
+3.14 RETIREMENT (2026-10-19): the 3.14t interpreter is archived; the runner's
+"standalone" file set and per-file budgets below were measured on it and are
+retained as a starting point. Re-measure before tightening a timeout.
 
 Usage:
     python run_tests.py                          # run all tests
@@ -9,7 +13,7 @@ Usage:
     python run_tests.py test_agent.py            # run specific file
     python run_tests.py --skip-slow              # skip slow tests (test_metacluster_unit)
 
-On Python 3.14t free-threading:
+On Python 3.15t free-threading:
     - 8 test files run standalone (200+ tests, < 6 min total)
     - 1 test file (test_metacluster_unit.py) is very slow (~12-15 min)
       Because: discover_all() imports 76 worm modules (38s), orchestrate_nature() runs
@@ -60,7 +64,7 @@ STANDALONE_OK = [
     "test_web_dashboard.py",               # 20+ tests (5s, web dashboard, HTML export, notifier, CLI export)
 ]
 
-# Files that need more time on 3.14t (still pass, just slow)
+# Files that need more time on 3.15t (still pass, just slow)
 STANDALONE_SLOW = [
     "test_metacluster_unit.py",         # 20+ tests (~800-900s, full MetaCluster orchestration)
     "test_server_integration.py",       # 21 tests (~10s, health + Prometheus live TCP servers)
@@ -221,7 +225,7 @@ OBSERVABILITY_GROUP = [
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Azazael Test Runner -- run standalone tests on Python 3.14t",
+        description="Azazael Test Runner -- run standalone tests on Python 3.15t",
     )
     parser.add_argument("files", nargs="*", help="Specific test files to run")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed output")

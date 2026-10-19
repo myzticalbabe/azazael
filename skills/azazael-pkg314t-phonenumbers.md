@@ -1,44 +1,10 @@
 ---
 name: azazael-pkg314t-phonenumbers
-description: Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsing, formatting, storing and validating international phone numbers.
+description: "Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsing, formatting, storing and validating international phone numbers. (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# phonenumbers 9.0.36
-
-> Python version of Google's common library for parsing, formatting, storing and validating international phone numbers.
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `phonenumbers` |
-| Version | `9.0.36` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `phonenumbers`
-
-Invocation pattern:
-
-```python
-import phonenumbers
-print("phonenumbers loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import phonenumbers; print('phonenumbers OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-phonenumbers/SKILL.md

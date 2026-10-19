@@ -7,7 +7,7 @@
 - **INSTALLED** — present on this system (binaries, CLIs, or cloned source)
 - **STAGED** — callable skill generated, tool install pending
 - **MISSING** — not installed
-- Skill prefixes: `azazael-pkg-*` (Kali 3.13 packages), `azazael-pkg314t-*` (3.14t packages), `azazael-bin-*` (binary tools)
+- Skill prefixes: `azazael-pkg-*` (Kali 3.13 packages), `azazael-pkg314t-*` (3.14t packages — RETIRED 2026-10-19, archived), `azazael-bin-*` (binary tools)
 
 ---
 

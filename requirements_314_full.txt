@@ -1,3 +1,6 @@
+# RETIRED 2026-10-19 — pins for the retired 3.14t venv (C:\Users\clint\venv-314t).
+# Not installed by any current path. The sanctioned 3.14 runtime is .venvs/py314m;
+# production is .venvs/py315t. Pin lines below are kept verbatim as provenance.
 absl-py==2.4.0
 accelerate==1.13.0
 alembic==1.18.4

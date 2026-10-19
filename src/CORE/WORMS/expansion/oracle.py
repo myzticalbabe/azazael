@@ -120,9 +120,10 @@ class FitnessOracle:
         self._sd = None
         self._fitted = False
         # Weights as plain nested lists, loaded from JSON. This is the ONLY
-        # representation the free-threaded interpreter can use, because the
-        # production runner executes every cycle under python3.14t.exe where
-        # torch cannot load at all. See export_json/load_json.
+        # representation that always works: the production runner is the
+        # 3.15t venv, which does carry torch, but a cycle must also run on a
+        # host (or sidecar) where the torch wheel cannot load. JSON weights
+        # remove that dependency. See export_json/load_json.
         self._json_models = []
         self.meta = {}
 
@@ -365,7 +366,7 @@ class FitnessOracle:
 
     @classmethod
     def load_json(cls, path: str) -> "FitnessOracle":
-        """Load a JSON model. Requires no torch - safe under python3.14t."""
+        """Load a JSON model. Requires no torch - safe on any 3.15 interpreter."""
         with open(path, "r", encoding="utf-8") as fh:
             d = json.load(fh)
         cfg = d.get("config", {})

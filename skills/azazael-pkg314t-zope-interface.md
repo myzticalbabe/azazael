@@ -1,35 +1,10 @@
 ---
 name: azazael-pkg314t-zope-interface
-description: Callable skill for Python package zope.interface 8.5 — Interfaces for Python
+description: "Callable skill for Python package zope.interface 8.5 — Interfaces for Python (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# zope.interface 8.5
-
-> Interfaces for Python
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `zope.interface` |
-| Version | `8.5` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## Notes
-
-No console entry points or detectable top-level modules; treat as a library dependency.
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -m pip show zope.interface
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-zope-interface/SKILL.md

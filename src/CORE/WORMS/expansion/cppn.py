@@ -17,10 +17,10 @@ Why this matters for this codebase: `EvolutionEngine` already supports mixed
 gene types, but every encoding is direct. With a CPPN the 4-gene ceiling
 disappears by construction rather than by adding slots.
 
-Runtime note: torch is optional here. The pure-Python path exists because the
-free-threaded interpreter (python3.14t.exe) cannot load torch (GIL-only wheel),
-so a CPPN that required torch would be unusable in the pipeline it is meant to
-serve.
+Runtime note: torch is optional here. The pure-Python path exists so a CPPN stays
+usable wherever torch will not load — the 3.15t runner carries torch (verified
+2026-10-19), but the GIL sidecar and any host without that wheel do not, and a
+CPPN that required torch would be unusable in the pipeline it is meant to serve.
 """
 
 from __future__ import annotations

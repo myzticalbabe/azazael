@@ -6,7 +6,7 @@ rem They were hand-authored (2026-06-30 and 2026-08-27) and read by two
 rem monitors, so by 2026-09-14 every descriptive claim in them was wrong:
 rem 8 arms where the registry had 9, module line counts drifted, `aoa_cli.py`
 rem recorded at a path it had since moved out of, Python 3.14.6 where the
-rem machine runs 3.14.7. The panels were accurately reporting stale files.
+rem machine then ran 3.14.7. The panels were accurately reporting stale files.
 rem
 rem Register once (no admin needed for a per-user task):
 rem   schtasks /Create /F /SC HOURLY /MO 6 /TN "AOA Data Refresh" ^
@@ -22,9 +22,9 @@ rem live registry, baselines are never rewritten (only stamped with the date
 rem they were taken), and recorded milestone history is preserved verbatim.
 cd /d "%~dp0.."
 
-rem The 3.14t build is the project's dominant target and the hybrid site-packages
-rem serves both ABIs, so this runs on the free-threaded interpreter. Fall back to
-rem the GIL build if 3.14t is absent, then to whatever `python` resolves to.
+rem 3.15t is the project's only production target (3.14t retired 2026-10-19), so
+rem this runs on the free-threaded interpreter. Fall back to the system 3.15t
+rem install if the venv is absent, then to `python3.15t`.
 set PY=C:\Azazael\.venvs\py315t\Scripts\python.exe
 if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe
 if not exist "%PY%" set PY=python3.15t

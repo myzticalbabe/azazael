@@ -1,17 +1,22 @@
-# 3.14t TimesFM Setup (venv-314t)
+# TimesFM Setup (3.15t production)
 
-Free-threaded production environment for the **TimesFM 3 second-opinion anomaly layer**
-on the BCC financial series. Both the pilot script and this setup were built on
-**Python 3.14.7 free-threading (3.14t)** by directive — the free-threaded `torch`
-build (`cp314t`) is the first one in use in this ecosystem.
+> **3.14 RETIRED 2026-10-19** — this stack was originally built on Python 3.14.7
+> free-threading (`venv-314t`). That venv is retired and archived; production is
+> now the free-threaded 3.15t venv (`C:/Azazael/.venvs/py315t`). The recipe below
+> targets 3.15t. `.venvs/py314m` is the only sanctioned 3.14 runtime, for a
+> package that has no 3.15 build. Results already recorded from the 3.14t run are
+> kept below and labelled as such — they were not re-measured on 3.15.
+
+Free-threaded setup for the **TimesFM 3 second-opinion anomaly layer** on the BCC
+financial series.
 
 ## Environment
 
 | Item | Value |
 |---|---|
-| Interpreter | `venv-314t/Scripts/python.exe` (Python 3.14.7, `_is_gil_enabled() == False`) |
-| Location | `/c/Users/clint/venv-314t` |
-| torch | `2.14.0+cpu` — **cp314t free-threaded wheel** (124 MB) |
+| Interpreter | `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `_is_gil_enabled() == False`) |
+| Location | `C:/Azazael/.venvs/py315t` |
+| torch | install the free-threaded wheel for 3.15t (`cp315t`); the 3.14t run used `2.14.0+cpu` |
 | timesfm | `3.0.1` (ships `timesfm3` / `TimesFM3Forecaster`) |
 | Model weights | `google/timesfm-3.0-pytorch` (~200 M params, one-time HuggingFace download ~166 s) |
 | Supporting | `numpy 2.4.6`, `pandas 3.0.3`, `scipy 1.18.0`, `statsmodels 0.15.0` |
@@ -19,36 +24,38 @@ build (`cp314t`) is the first one in use in this ecosystem.
 ## Install (reproducible)
 
 ```bash
-# 1. Create the free-threaded venv (one-time; already exists on this machine)
-py -3.14t -m venv venv-314t
+# 1. Use the production free-threaded venv (already exists on this machine)
+#    C:/Azazael/.venvs/py315t   (3.15.0rc3, GIL off)
 
-# 2. Install torch — use the cp314t free-threaded wheel (NOT the GIL build)
-venv-314t/Scripts/python.exe -m pip install torch
+# 2. Install torch — use the free-threaded wheel (NOT the GIL build)
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m pip install torch
 
 # 3. Install TimesFM 3
-venv-314t/Scripts/python.exe -m pip install timesfm
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m pip install timesfm
 
 # 4. Verify free-threading + imports
-venv-314t/Scripts/python.exe -c "import sys, torch; print(sys._is_gil_enabled(), torch.__version__)"
-venv-314t/Scripts/python.exe -c "from timesfm3 import TimesFM3Forecaster; print('timesfm OK')"
+C:/Azazael/.venvs/py315t/Scripts/python.exe -c "import sys, torch; print(sys._is_gil_enabled(), torch.__version__)"
+C:/Azazael/.venvs/py315t/Scripts/python.exe -c "from timesfm3 import TimesFM3Forecaster; print('timesfm OK')"
 ```
 
-> **Note:** free-threaded wheels are shipped as `cp314t`/`cp313t`+abi3 — Pip resolves
-> them automatically on a 3.14t interpreter. Do **not** install the standard GIL
-> torch build into this venv; it will import but loses free-threading benefits.
+> **Note:** free-threaded wheels are shipped with a `t` ABI tag — Pip resolves them
+> automatically on a 3.15t interpreter. Do **not** install the standard GIL torch
+> build into this venv; it will import but loses free-threading benefits. If a
+> package has no 3.15 wheel at all, install it into `.venvs/py314m` (GIL, 3.14.5),
+> which is the sanctioned fallback — never rebuild a 3.14t venv.
 
 ## Usage
 
 ```bash
 # Default: all three metrics (revenue, expenses, officer_comp)
-venv-314t/Scripts/python.exe azazael/scripts/timesfm_pilot_314t.py
+C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/timesfm_pilot_314t.py
 
 # Single metric with explicit series path
-venv-314t/Scripts/python.exe azazael/scripts/timesfm_pilot_314t.py --metrics revenue --series bcc_990_series.json
+C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/timesfm_pilot_314t.py --metrics revenue --series bcc_990_series.json
 ```
 
 First run downloads `google/timesfm-3.0-pytorch` (~166 s); afterwards ~5 s load
-+ ~0.1 s per forecast on 8 threads.
++ ~0.1 s per forecast on 8 threads *(timing measured on the retired 3.14t venv)*.
 
 ## Output contract
 

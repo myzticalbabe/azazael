@@ -1,56 +1,10 @@
 ---
 name: azazael-pkg314t-httpx
-description: Callable skill for Python package httpx 0.28.1 — The next generation HTTP client.
+description: "Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# httpx 0.28.1
-
-> The next generation HTTP client.
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `httpx` |
-| Version | `0.28.1` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — CLI entry points
-
-The package installs the following console commands (run with `python3.14t -m` or directly):
-
-- `httpx`
-
-Invocation pattern:
-
-```bash
-httpx --help
-```
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `httpx`
-
-Invocation pattern:
-
-```python
-import httpx
-print("httpx loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import httpx; print('httpx OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-httpx/SKILL.md

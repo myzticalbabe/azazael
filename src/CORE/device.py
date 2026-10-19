@@ -4,12 +4,16 @@ CORE DEVICE — accelerator abstraction for the evolution stack.
 
 Preference order: Intel XPU (torch 2.14.0+xpu) > CUDA > CPU.
 
-IMPORTANT (measured 2026-09-12 on LAPTOP-8U5MSH3G):
-torch is installed as `2.14.0+xpu`, a GIL-only wheel (tag cp314-cp314). Under
-the free-threaded interpreter (python3.14t.exe) that extension CANNOT load, so
-`import torch` fails there — and so does numpy. Therefore this module must never
-hard-fail on import: every torch-dependent path degrades to "unavailable" and
-CPU/numpy callers keep working.
+IMPORTANT (measured 2026-09-12 on LAPTOP-8U5MSH3G, re-checked 2026-10-19):
+torch is a GIL-ABI wheel, so its extension cannot load under a free-threaded
+interpreter whose ABI differs from the wheel's tag. The 2026-09-12 measurement
+was taken on the now-RETIRED 3.14t interpreter (python3.14t.exe), where `import
+torch` failed; the 3.15t production venv (C:/Azazael/.venvs/py315t) carries a
+torch build that imports there. The guarantee this module keeps is therefore
+unchanged and not tied to a version: never hard-fail on import — every
+torch-dependent path degrades to "unavailable" and CPU/numpy callers keep
+working, because a device probe can fault at C level even when the import
+succeeds.
 
 The two interpreters also do not share live objects. Anything crossing between
 them goes through durable artefacts, never through an imported module handle.
@@ -56,7 +60,7 @@ def _load_torch():
     try:
         import torch  # noqa: PLC0415
         _TORCH = torch
-    except Exception as exc:  # ImportError on 3.14t, OSError on a broken install
+    except Exception as exc:  # ImportError on an ABI mismatch, OSError on a broken install
         note_failure("device:L50", exc)
         _TORCH_ERR = "%s: %s" % (type(exc).__name__, exc)
         _TORCH = None

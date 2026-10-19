@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Subprocess-based test timeout utility for 3.14t free-threading safety.
+"""Subprocess-based test timeout utility for 3.15t free-threading safety.
 
 The subprocess is killed by OS-level timeout, cleanly releasing ALL locks
 (no daemon-thread lock-leak cascade — root cause of Error #37's full-suite hang).

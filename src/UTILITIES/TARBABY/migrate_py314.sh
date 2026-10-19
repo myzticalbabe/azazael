@@ -3,6 +3,12 @@
 # TARBABY Migration Script
 #===============================================================================
 # Migrates Python modules for cross-version compatibility
+#
+# RETIRED 2026-10-19: 3.14t is no longer a project runtime. Production is the
+# 3.15t venv (C:/Azazael/.venvs/py315t); the only sanctioned 3.14 runtime is
+# the GIL venv C:/Azazael/.venvs/py314m. This migration helper is kept for the
+# deliberate case of moving modules onto that fallback, not as a default step.
+#
 # Usage: ./migrate_py314.sh [source_path] [target_version]
 
 set -e

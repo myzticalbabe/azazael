@@ -1,5 +1,11 @@
 # Architecture Decision Records
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). An ADR is a
+> decision record: the ones naming a 3.14t venv describe the decision on their
+> date. Do not revert a 3.15t choice to match an older ADR.
+
 **Version:** 1.0.0  
 **Date:** 2026-02-11
 

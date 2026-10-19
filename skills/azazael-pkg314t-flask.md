@@ -1,56 +1,10 @@
 ---
 name: azazael-pkg314t-flask
-description: Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications.
+description: "Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# Flask 3.1.3
-
-> A simple framework for building complex web applications.
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `Flask` |
-| Version | `3.1.3` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## EXECUTE — CLI entry points
-
-The package installs the following console commands (run with `python3.14t -m` or directly):
-
-- `flask`
-
-Invocation pattern:
-
-```bash
-flask --help
-```
-
-## EXECUTE — Python API
-
-Importable top-level module(s):
-
-- `Flask`
-
-Invocation pattern:
-
-```python
-import Flask
-print("Flask loaded OK")
-```
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -c "import Flask; print('Flask OK')"
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-flask/SKILL.md

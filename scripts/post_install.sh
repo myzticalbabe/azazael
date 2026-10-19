@@ -33,37 +33,38 @@ apt install --reinstall -y python3-apt 2>/dev/null || true
 log "Updating system..."
 apt update && apt upgrade -y
 
-# ===== 2. INSTALL PYTHON 3.14t (FREE-THREADING) =====
-log "Installing Python 3.14t free-threading build..."
-# NOTE: Python 3.13 (system default) is NOT used. Install 3.14t free-threading.
-# Download from python.org and install to /usr/local/python314t/
-# Or build from source with --disable-gil
+# ===== 2. INSTALL PYTHON 3.15t (FREE-THREADING) =====
+log "Installing Python 3.15t free-threading build..."
+# NOTE: Python 3.13 (system default) is NOT used. 3.14t was RETIRED 2026-10-19
+# (see azazael/src/CORE/python_env.py); production is the 3.15t free-threading
+# build, matching the Windows pillar. Install to /usr/local/python315t/.
+PY315_VER="3.15.0rc3"
 
-# Prerequisites for building 3.14t from source:
+# Prerequisites for building 3.15t from source:
 apt install -y wget build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev \
     libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev \
     libgdbm-dev libnss3-dev libdb5.3-dev uuid-dev || warn "libdb5.3-dev not available — Python build skips Berkeley DB (harmless)"
 
-# Download and build Python 3.14t from source with --disable-gil
+# Download and build Python 3.15t from source with --disable-gil
 cd /tmp
-wget https://www.python.org/ftp/python/3.14.5/Python-3.14.5.tar.xz
-# Optionally verify checksum: wget -qO- https://www.python.org/ftp/python/3.14.5/Python-3.14.5.tar.xz.asc | gpg --verify
-tar xf Python-3.14.5.tar.xz
-cd Python-3.14.5
-./configure --prefix=/usr/local/python314t --disable-gil --enable-optimizations --with-ensurepip=install
+wget "https://www.python.org/ftp/python/${PY315_VER}/Python-${PY315_VER}.tar.xz"
+# Optionally verify checksum: wget -qO- "https://www.python.org/ftp/python/${PY315_VER}/Python-${PY315_VER}.tar.xz.asc" | gpg --verify
+tar xf "Python-${PY315_VER}.tar.xz"
+cd "Python-${PY315_VER}"
+./configure --prefix=/usr/local/python315t --disable-gil --enable-optimizations --with-ensurepip=install
 make -j$(nproc)
 make install
 
-# Add to PATH for all users
-ln -sf /usr/local/python314t/bin/python3.14t /usr/local/bin/python3.14t
-ln -sf /usr/local/python314t/bin/python3.14t /usr/local/bin/python3
+# Add to PATH for all users (3.14t symlinks are deliberately not recreated)
+ln -sf /usr/local/python315t/bin/python3.15t /usr/local/bin/python3.15t
+ln -sf /usr/local/python315t/bin/python3.15t /usr/local/bin/python3
 
-# Upgrade pip for 3.14t
-/usr/local/python314t/bin/python3.14t -m pip install --upgrade pip setuptools wheel
+# Upgrade pip for 3.15t
+/usr/local/python315t/bin/python3.15t -m pip install --upgrade pip setuptools wheel
 
 # Verify free-threading
-/usr/local/python314t/bin/python3.14t -c "
+/usr/local/python315t/bin/python3.15t -c "
 import sys
 print(f'Python {sys.version}')
 ft = hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
@@ -109,17 +110,17 @@ else
     warn "Install manually from https://dgpu-docs.intel.com when 26.04 support is added."
 fi
 
-# ===== 5. CREATE 3.14t VENV =====
-log "Creating Python 3.14t venv..."
+# ===== 5. CREATE 3.15t VENV =====
+log "Creating Python 3.15t venv..."
 cd /home/$(logname)
-/usr/local/python314t/bin/python3.14t -m venv azazael_314t
-source azazael_314t/bin/activate
+/usr/local/python315t/bin/python3.15t -m venv azazael_315t
+source azazael_315t/bin/activate
 
 # ===== 6. UPGRADE PIP =====
 log "Upgrading pip..."
 pip install --upgrade pip setuptools wheel
 
-# ===== 7. INSTALL CORE ML PACKAGES (3.14t compatible) =====
+# ===== 7. INSTALL CORE ML PACKAGES (3.15t compatible) =====
 log "Installing PyTorch (CPU)..."
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 
@@ -132,29 +133,30 @@ pip install openvino
 log "Installing NumPy..."
 pip install numpy
 
-# Pure-Python packages — should work on 3.14t without C extension issues:
+# Pure-Python packages — should work on 3.15t without C extension issues:
 log "Installing Jupyter and utilities..."
 pip install jupyterlab ipython fastapi uvicorn matplotlib
 
-# NOTE: scipy, scikit-learn, pandas do NOT have cp314t wheels
-# ONNX/ONNX Runtime segfaults on 3.14t (C extension incompatibility)
-# These may work if built from source in WSL with g++:
-# pip install scipy scikit-learn pandas --no-binary :all:
-# pip install onnx --no-binary :all:
+# NOTE: a package with only a cp314t wheel cannot load in a 3.15 process.
+# If no cp315t wheel exists, install it into the sanctioned 3.14 GIL venv
+# (Windows: C:/Azazael/.venvs/py314m, documented in python_env.py) instead of
+# pinning this pillar back to 3.14.
 
-# ===== 8. INSTALL FROM LOCAL cp314t WHEELS =====
-log "Installing additional packages from cp314t wheels..."
-if [ -d "/mnt/g/AZAZAEL/cp314t_wheels" ]; then
-    pip install /mnt/g/AZAZAEL/cp314t_wheels/*.whl --no-deps 2>/dev/null || true
+# ===== 8. OPTIONAL: LOCAL cp315t WHEELS =====
+log "Looking for local cp315t wheels..."
+if [ -d "/mnt/g/AZAZAEL/cp315t_wheels" ]; then
+    pip install /mnt/g/AZAZAEL/cp315t_wheels/*.whl --no-deps 2>/dev/null || true
+else
+    log "No /mnt/g/AZAZAEL/cp315t_wheels — skipping (cp314t wheels are not loadable here)"
 fi
 
 # ===== 9. VERIFY INSTALLATION =====
 log "Verifying installations..."
-PYTHON=/usr/local/python314t/bin/python3.14t
+PYTHON=/usr/local/python315t/bin/python3.15t
 $PYTHON -c "
 import sys
 ft = hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
-print(f'Python 3.14t free-threading: {ft}')
+print(f'Python 3.15t free-threading: {ft}')
 import torch
 import transformers
 import nltk
@@ -178,8 +180,8 @@ usermod -aG render $(logname)
 log "Creating startup script..."
 cat > /home/$(logname)/azazael_start.sh << 'EOF'
 #!/bin/bash
-source ~/azazael_314t/bin/activate
-echo "Azazael 3.14t venv activated"
+source ~/azazael_315t/bin/activate
+echo "Azazael 3.15t venv activated"
 cd ~/projects/azazael
 EOF
 chmod +x /home/$(logname)/azazael_start.sh
@@ -196,8 +198,8 @@ echo "========================================"
 echo ""
 echo "Next steps:"
 echo "1. Reboot: sudo reboot"
-echo "2. Activate venv: source ~/azazael_314t/bin/activate"
-echo "3. Test: /usr/local/python314t/bin/python3.14t -c 'import torch; print(torch.__version__)'"
+echo "2. Activate venv: source ~/azazael_315t/bin/activate"
+echo "3. Test: /usr/local/python315t/bin/python3.15t -c 'import torch; print(torch.__version__)'"
 echo ""
 echo "Project directory: ~/projects/azazael/"
 echo ""

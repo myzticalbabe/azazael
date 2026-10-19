@@ -98,8 +98,10 @@ class EnvironmentalVariableInspector:
             "HOMEPATH": "User home directory",
             "USERPROFILE": "User profile directory",
         }
+        # Production Scripts dir. The 3.14 install dir was listed here while
+        # 3.14t was the production interpreter; it retired 2026-10-19.
         self.important_paths = [
-            str(Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314"),
+            "C:/Azazael/.venvs/py315t/Scripts",
         ]
 
     def check_required_vars(self) -> list[dict]:
@@ -132,10 +134,15 @@ class EnvironmentalVariableInspector:
 
     def validate_python_installation(self) -> list[dict]:
         issues = []
+        # Production first: 3.15t is the runtime, then its same-version GIL
+        # sidecar, then the ONE sanctioned 3.14 fallback. The 3.14t venv
+        # (C:/Users/clint/venv-314t) was retired and archived 2026-10-19 and
+        # is deliberately absent here: a retired interpreter must not be
+        # validated as if it were a live option.
         python_paths = [
-            str(Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python.exe"),
-            str(Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python.exe"),
-            str(Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python3.14t.exe"),
+            "C:/Azazael/.venvs/py315t/Scripts/python.exe",
+            "C:/Azazael/.venvs/py315/Scripts/python.exe",
+            "C:/Azazael/.venvs/py314m/Scripts/python.exe",
         ]
         for pypath in python_paths:
             if os.path.exists(pypath):
@@ -276,13 +283,18 @@ class PowerShellInspector:
                             self.path_validator.validate_windows_path(path)
                         )
 
-            python314 = Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314"
-            if str(python314) in content:
-                if not os.path.exists(
-                    str(python314)
-                ):
+            # 3.14t retired 2026-10-19. A file that still names the retired
+            # venv (or its python3.14t.exe) as a runtime is stale; report it
+            # whether or not the archive still sits on disk, because the
+            # reference itself is what must not survive.
+            retired = (
+                Path.home() / "venv-314t",
+                Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "python3.14t.exe",
+            )
+            for cand in retired:
+                if str(cand) in content:
                     result.issues.append(
-                        {"type": "REFERENCED_MISSING_PYTHON", "severity": "MEDIUM"}
+                        {"type": "REFERENCED_RETIRED_PYTHON", "path": str(cand), "severity": "LOW"}
                     )
 
         except Exception as e:

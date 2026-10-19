@@ -26,7 +26,7 @@ except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
 
-# ── Python 3.14t Free-Threading Awareness ────────────────────────────
+# ── Python 3.15t Free-Threading Awareness ────────────────────────────
 try:
     from azazael_core.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
@@ -150,7 +150,7 @@ class IOBottleneckFinder:
 @register_worm(category="profiling", priority=7, cooldown_seconds=30.0,
     description="GIL contention probe — free-threading diagnostics, lock contention analysis")
 class GILContentionProbe:
-    """Probes GIL contention levels for Python 3.14t migration readiness."""
+    """Probes GIL contention levels for Python 3.15t migration readiness."""
 
     VERSION = "1.0.0"
 

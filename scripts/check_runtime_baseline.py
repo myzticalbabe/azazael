@@ -18,7 +18,7 @@ Usage:
     python azazael/scripts/check_runtime_baseline.py
     python azazael/scripts/check_runtime_baseline.py --json report.json
     python azazael/scripts/check_runtime_baseline.py --from-captures
-    python azazael/scripts/check_runtime_baseline.py --envs win-314t,kali
+    python azazael/scripts/check_runtime_baseline.py --envs win-main,kali
 """
 from __future__ import annotations
 
@@ -37,17 +37,27 @@ CAPTURES = REPO / "reports" / "env_inventory"
 # How each environment is reached. `capture` names the file used by
 # --from-captures (matching build_runtime_baseline.py's SOURCES).
 ENV_SPECS: dict[str, dict] = {
+    # 3.14 RETIREMENT (2026-10-19): C:\Users\clint\venv-314t is archived and is
+    # no longer an environment. win-main is production (3.15t); win-315 is the
+    # same build with the GIL on; win-314m is the ONE sanctioned 3.14 runtime,
+    # for a dependency that has no 3.15 build.
     "win-main": {
         "kind": "windows",
-        "python": r"C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe",
-        "capture": "win_main_py.txt",
+        "python": r"C:\Azazael\.venvs\py315t\Scripts\python.exe",
+        "capture": "win_venv-315t.txt",
+        "free_threaded": True,
+    },
+    "win-315": {
+        "kind": "windows",
+        "python": r"C:\Azazael\.venvs\py315\Scripts\python.exe",
+        "capture": "win_venv-315.txt",
         "free_threaded": False,
     },
-    "win-314t": {
+    "win-314m": {
         "kind": "windows",
-        "python": r"C:\Users\clint\venv-314t\Scripts\python.exe",
-        "capture": "win_venv-314t.txt",
-        "free_threaded": True,
+        "python": r"C:\Azazael\.venvs\py314m\Scripts\python.exe",
+        "capture": "win_venv-314m.txt",
+        "free_threaded": False,
     },
     "win-313tools": {
         "kind": "windows",

@@ -1,5 +1,10 @@
 # AZAZAEL MEMORIES — Persistent Cross-Session Knowledge
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Session
+> entries below describe the state on their date.
+
 > *This file is canonical memory. Future assistants MUST read this before doing any work.*
 > *Last updated: September 14, 2026 — Session: neural-mesh training program (226 worms/35 cats, LoRA adapters, eBPF baselines, threat triage, live monitors, doc recensus; see session entry below). Prior: August 8, 2026 — startup complete, anti-pattern scan, os_system fix.*
 

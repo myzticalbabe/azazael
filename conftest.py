@@ -109,7 +109,7 @@ def pytest_unconfigure(config):
 #
 # This must NOT make a test run fail, so it is entirely best-effort. The
 # observer needs the `pmb` package, which lives in the `.pmb-venv` interpreter,
-# not in the free-threaded `python3.14t` running these tests -- hence the
+# not in the free-threaded 3.15t interpreter running these tests -- hence the
 # subprocess. Disable with AZAZAEL_PMB_OBSERVE=0.
 _PMB_VENV_PYTHON_CANDIDATES = (
     os.environ.get("PMB_VENV_PYTHON"),

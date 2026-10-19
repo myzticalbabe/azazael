@@ -6,7 +6,7 @@ rem They were hand-authored (2026-06-30 and 2026-08-27) and read by two
 rem monitors, so by 2026-09-14 every descriptive claim in them was wrong:
 rem 8 arms where the registry had 9, module line counts drifted, `aoa_cli.py`
 rem recorded at a path it had since moved out of, Python 3.14.6 where the
-rem machine runs 3.14.7. The panels were accurately reporting stale files.
+rem machine then ran 3.14.7. The panels were accurately reporting stale files.
 rem
 rem Register once (no admin needed for a per-user task):
 rem   schtasks /Create /F /SC HOURLY /MO 6 /TN "AOA Data Refresh" ^

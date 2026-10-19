@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 # coding: utf-8
 """origin_freshness_check.py -- fail closed when the LIVE tree lags its origin.
 
@@ -23,9 +23,9 @@ Exit codes:
     2  could not determine (no repo / no upstream / fetch failed)
 
 Usage:
-    python3.14t scripts/origin_freshness_check.py
-    python3.14t scripts/origin_freshness_check.py --no-fetch   # offline check
-    python3.14t scripts/origin_freshness_check.py --json
+    python3.15t scripts/origin_freshness_check.py
+    python3.15t scripts/origin_freshness_check.py --no-fetch   # offline check
+    python3.15t scripts/origin_freshness_check.py --json
 """
 from __future__ import annotations
 

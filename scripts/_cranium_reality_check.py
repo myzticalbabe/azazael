@@ -7,8 +7,9 @@ honest question: is it wired correctly but simply unreachable, or is it broken
 and therefore silent either way? Only running it against the store's actual
 rows answers that.
 
-Run under BOTH interpreters — the production runner is python3.14t.exe, where
-numpy/torch cannot load, so the organ must be stdlib-only to be usable at all.
+Run under BOTH interpreters — the production runner is the free-threaded 3.15t
+venv and the comparison interpreter is its 3.15 GIL sidecar, so the organ must
+be stdlib-only to behave identically under both.
 """
 import collections
 import json

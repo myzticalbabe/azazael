@@ -2,8 +2,12 @@
 #===============================================================================
 # Python 3.13 Uninstallation Script (REVERSED: now removes 3.13, preserves 3.14t)
 #===============================================================================
-# Python 3.14t is the ONLY Python used. Python 3.13 is obsolete.
-# Removes Python 3.13, backs up modules, keeps Python 3.14t intact.
+# RETIRED 2026-10-19: Python 3.14t is no longer the project runtime. Production
+# is the free-threaded 3.15t venv (C:/Azazael/.venvs/py315t) and the only
+# sanctioned 3.14 runtime is the GIL venv C:/Azazael/.venvs/py314m. This script
+# is kept because it is the deliberate, reversible 3.13 cleanup path; it must
+# still PRESERVE whichever 3.14 base install the 3.14m venv is built from.
+# Removes Python 3.13, backs up modules, keeps the 3.14 base install intact.
 #
 # Usage: ./uninstall_py314.sh [--dry-run]
 #===============================================================================
@@ -54,11 +58,12 @@ ${YELLOW}Options:${NC}
     --help, -h      Show this help message
 
 ${YELLOW}Description:${NC}
-    Python 3.14t is the ONLY Python for ALL workloads (per 3.14t-only mandate).
+    3.14 remains a SUPPORTED FALLBACK (GIL venv .venvs/py314m) for a package
+    with no 3.15 build; production workloads run on the 3.15t venv.
     Python 3.13 is NOT used.
     This script safely removes Python 3.13 while:
     - Preserving all 3.13 modules to TARBABY/backups (just in case)
-    - Keeping Python 3.14t intact
+    - Keeping the Python 3.14 base install intact (needed by .venvs/py314m)
     - Maintaining ecosystem compatibility
     - Logging all operations
 

@@ -12,12 +12,11 @@ Implements the Bai & Perron (1998, 2003) sequential breakpoint procedure:
      N=15 the Bai-Perron asymptotic tables are not defensible. p-values =
      simulation rejection rates.
 
-Runs on the 3.14t free-threaded venv (numpy only — no statsmodels dependency;
-statsmodels 0.15.0 does not ship a structural_break/BaiPerron module, and its
-compiled extensions do not load under 3.14t free-threading anyway).
+Runs on the 3.15t production venv (numpy only — no statsmodels dependency;
+statsmodels 0.15.0 does not ship a structural_break/BaiPerron module anyway).
 
-Usage (3.14t venv):
-    venv-314t/Scripts/python.exe azazael/scripts/bai_perron_breakpoints.py [--series bcc_990_series.json]
+Usage (3.15t venv):
+    C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bai_perron_breakpoints.py [--series bcc_990_series.json]
 """
 import argparse
 import json

@@ -2,6 +2,7 @@
 
 **Created:** June 4, 2026 — Environment realignment session
 **Status:** Active — keep updated after every session
+**Interpreter (2026-10-19):** production is `C:\Azazael\.venvs\py315t\Scripts\python.exe` (3.15.0rc3 free-threaded). 3.14t is retired; the GIL sidecar is `C:\Azazael\.venvs\py315`, and `C:\Azazael\.venvs\py314m` is the only sanctioned 3.14 runtime. The `python3.14t` commands below were repointed rather than left as a broken instruction.
 
 ---
 
@@ -37,13 +38,13 @@ Windows 11 (primary dev)
 
 ```bash
 # After every session:
-python3.14t scripts/sync_all.py --sync-all
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --sync-all
 
 # Check status:
-python3.14t scripts/sync_all.py --status
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --status
 
 # Verify integrity:
-python3.14t scripts/sync_all.py --verify
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --verify
 ```
 
 ---
@@ -52,16 +53,16 @@ python3.14t scripts/sync_all.py --verify
 
 ```bash
 # Build all targets on both Windows + WSL2:
-python3.14t scripts/build_all_concurrent.py --all
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --all
 
 # Build specific tier:
-python3.14t scripts/build_all_concurrent.py --tier neural
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --tier neural
 
 # Build single target on specific platform:
-python3.14t scripts/build_all_concurrent.py --target metacognition --platform windows
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --target metacognition --platform windows
 
 # Verify Nuitka patches before building:
-python3.14t scripts/build_all_concurrent.py --verify
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/build_all_concurrent.py --verify
 ```
 
 ---
@@ -91,7 +92,7 @@ python3.14t scripts/build_all_concurrent.py --verify
 | Windows 11 | 3.14.6t | 4.1.2 | Working |
 | WSL2 | 3.14.6t | 4.1.2 | Working (reinstalled June 4) |
 
-**Patch script:** `docs/scripts/patch_nuitka_314t.py`
+**Patch script:** `docs/scripts/patch_nuitka_315t.py`
 Run `--verify` before any build. Apply `--apply` if Nuitka is reinstalled.
 
 ---
@@ -101,7 +102,7 @@ Run `--verify` before any build. Apply `--apply` if Nuitka is reinstalled.
 Run after every session:
 ```bash
 # Check expansion/ file parity
-python3.14t scripts/sync_all.py --verify
+"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --verify
 
 # Quick manual check
 diff <(ls src/CORE/WORMS/expansion/) <(wsl ls /root/azazael/src/CORE/WORMS/expansion/)
@@ -115,11 +116,11 @@ diff <(ls src/CORE/WORMS/expansion/) <(wsl ls /root/azazael/src/CORE/WORMS/expan
 
 | Issue | Fix |
 |-------|-----|
-| WSL2 out of sync | `python3.14t scripts/sync_all.py --sync-to wsl2` |
+| WSL2 out of sync | `"C:/Azazael/.venvs/py315t/Scripts/python.exe" scripts/sync_all.py --sync-to wsl2` |
 | Nuitka not found in WSL | `pip install nuitka` in WSL Python 3.14t |
 | Nuitka editable install broken | `pip uninstall nuitka -y && pip install nuitka` |
 | G: drive not accessible | Check mount: `ls /g/` |
-| Patch script missing | Created: `docs/scripts/patch_nuitka_314t.py` |
+| Patch script missing | Created: `docs/scripts/patch_nuitka_315t.py` |
 
 ---
 
@@ -137,4 +138,4 @@ After every coding session:
 - `STANDALONE_BUILDS.md` — Full .exe build target registry
 - `LESSONS_TASK_D_NUITKA_BUILD.md` — Nuitka build failure analysis
 - `LESSONS_TASK_E_LOCKING_AUDIT.md` — 17-file locking audit gaps
-- `docs/scripts/patch_nuitka_314t.py` — Nuitka 3.14t patch manager
+- `docs/scripts/patch_nuitka_315t.py` — Nuitka 3.14t patch manager

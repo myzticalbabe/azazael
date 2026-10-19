@@ -1,5 +1,10 @@
 # WSL Ubuntu Module Diagnostic & Install
 
+> **3.14 RETIRED 2026-10-19 (Windows production).** Windows production is
+> `C:\Azazael\.venvs\py315t`; the only sanctioned 3.14 runtime is
+> `C:\Azazael\.venvs\py314m`. The WSL paths below are a record of the
+> 2026-09 state and are not the Windows runtime.
+>
 > **Python 3.14t path in WSL:** `/usr/local/python314t/bin/python3.14t`
 > **Python 3.13 is NOT used in WSL.** All WSL workloads use 3.14t free-threading.
 

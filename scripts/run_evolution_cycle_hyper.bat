@@ -15,13 +15,9 @@ rem
 rem Every flag is set for THIS PROCESS ONLY, so the scheduled task and any
 rem manual GIL-side run stay reproducible from the batch file alone.
 rem
-rem The 3.14t (free-threaded) build SHARES Python314\Lib\site-packages with the
-rem GIL build. cp314t wheels (numpy/scipy/sklearn) installed there would break
-rem the GIL python.exe everything else runs on, so they live in an isolated
-rem dir and are exposed ONLY to this process via PYTHONPATH.
-rem
-rem PYTHONPATH is prepended (not replaced) so the project's own src/ resolution
-rem and stdlib still work exactly as before.
+rem 3.14t was RETIRED 2026-10-19. This launcher now executes the 3.15t
+rem production venv directly; the old cp314t-only PYTHONPATH injection was
+rem removed, because injecting a cp314t site dir into a 3.15 process breaks it.
 set AZAZAEL_PROTEUS_ORACLE=1
 set AZAZAEL_PROTEUS_TRAIN=1
 set AZAZAEL_PROTEUS_CRANIUM=1

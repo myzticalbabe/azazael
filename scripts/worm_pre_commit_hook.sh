@@ -12,7 +12,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SRC_DIR="$REPO_ROOT/src"
-PYTHON="$(which python3.14t 2>/dev/null || which python3 2>/dev/null || which python 2>/dev/null)"
+PYTHON="$( [ -x /c/Azazael/.venvs/py315t/Scripts/python.exe ] && echo /c/Azazael/.venvs/py315t/Scripts/python.exe || which python3.15t 2>/dev/null || which python3 2>/dev/null || which python 2>/dev/null)"
 
 echo "=== Azazael Pre-Commit Hook ==="
 echo ""

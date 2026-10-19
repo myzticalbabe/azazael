@@ -1,5 +1,7 @@
 # PATH FORWARD — Roadmap: Pure Python & Desktop Standalone
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project; production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m`. Statements below describe the state on the date of this record — in particular, "Python 3.14t already installed as default `python`" is no longer true.
+
 > *Generated: June 2, 2026*
 > *Phase: Post-Codebase-Audit Planning*
 > *Horizon: Q3-Q4 2026*

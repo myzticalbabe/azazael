@@ -83,9 +83,10 @@ class PythonCrawler(SystemCrawler):
                         found[line] = {"path": line, "version": ver, "source": cmd}
                         self.installations.append(found[line])
 
-        # Known paths
+        # Known paths. Production 3.15t leads; 3.14t was retired 2026-10-19.
         known_paths = [
-            r"C:\Python314\python.exe",
+            r"C:\Azazael\.venvs\py315t\Scripts\python.exe",
+            r"C:\Azazael\.venvs\py314m\Scripts\python.exe",
             r"C:\Program Files\Python311\python.exe",
             r"C:\Users\clint\anaconda3\python.exe",
             r"C:\Users\clint\.local\bin\python3.11.exe",

@@ -27,7 +27,7 @@ def test_import_lightweight_worms():
 
 
 def test_import_heavy_worms():
-    """Heavier WORMS may fail on 3.14t due to C extensions — skip expected failures."""
+    """Heavier WORMS may fail on a free-threading build due to C extensions — skip expected failures."""
     heavy = [
         "PROCESSZ", "SMARTDISK", "ERRORZ", "TRIMZ", "METRICZ"
     ]
@@ -38,14 +38,14 @@ def test_import_heavy_worms():
         except Exception as e:
             err = str(e).lower()
             if "c extension" in err or "pandas" in err:
-                pytest.skip(f"{mod}: 3.14t C extension issue ({e})")
+                pytest.skip(f"{mod}: free-threading C extension issue ({e})")
             failures.append(f"{mod}: {e}")
     if failures:
         pytest.fail("\n".join(failures))
 
 
 def test_freethreading_detection():
-    """3.14t free-threading detection should work without error."""
+    """Free-threading detection should work without error."""
     try:
         result = not sys._is_gil_enabled()
         assert isinstance(result, bool)

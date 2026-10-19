@@ -1,3 +1,8 @@
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Every
+> interpreter reference below is a 2026-09 record, not current guidance.
+>
 > ## SUPERSEDED — read `NEURAL_MESH_FORENSIC_2026-09-29.md` first
 >
 > This document is a **dated record of what was believed on its date**. Its

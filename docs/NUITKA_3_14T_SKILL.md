@@ -1,9 +1,14 @@
-# Nuitka 3.14t Rebuild Skill — Complete Guide
+# Nuitka 3.14t Rebuild Skill — Complete Guide (RETIRED)
 
+> **3.14 RETIRED 2026-10-19** — this guide describes the 3.14t build era. The
+> live patcher is `docs/scripts/patch_nuitka_315t.py` and the production
+> interpreter is `C:\Azazael\.venvs\py315t`. Keep this file for provenance;
+> do not follow its 3.14t paths.
+>
 > **Skill Name:** `nuitka-314t-rebuild`
 > **Version:** 1.0.0
 > **Last Updated:** June 2, 2026
-> **Status:** ✅ Active — 5 C-level patches required
+> **Status:** 🗄️ RETIRED (was Active — 5 C-level patches required)
 
 ---
 

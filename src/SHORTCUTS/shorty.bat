@@ -6,8 +6,11 @@ set "Azazael_ROOT=%~dp0.."
 set "SHORTY_PATH=%~dp0"
 set "PYTHON_PATH=python"
 
-if exist "%USERPROFILE%\AppData\Local\Programs\Python\Python314\python.exe" set "PYTHON_PATH=%USERPROFILE%\AppData\Local\Programs\Python\Python314\python.exe"
-if exist "%USERPROFILE%\AppData\Local\Programs\AI Playground\python.exe" set "PYTHON_PATH=%USERPROFILE%\AppData\Local\Programs\AI Playground\python.exe"
+if exist "C:\Azazael\.venvs\py315t\Scripts\python.exe" set "PYTHON_PATH=C:\Azazael\.venvs\py315t\Scripts\python.exe"
+if not exist "C:\Azazael\.venvs\py315t\Scripts\python.exe" if exist "C:\Azazael\.venvs\py315\Scripts\python.exe" set "PYTHON_PATH=C:\Azazael\.venvs\py315\Scripts\python.exe"
+if not exist "C:\Azazael\.venvs\py315t\Scripts\python.exe" if not exist "C:\Azazael\.venvs\py315\Scripts\python.exe" if exist "C:\Azazael\.venvs\py314m\Scripts\python.exe" set "PYTHON_PATH=C:\Azazael\.venvs\py314m\Scripts\python.exe"
+REM AI Playground is a last resort only: it must not override a real Azazael venv.
+if not exist "C:\Azazael\.venvs\py315t\Scripts\python.exe" if not exist "C:\Azazael\.venvs\py315\Scripts\python.exe" if not exist "C:\Azazael\.venvs\py314m\Scripts\python.exe" if exist "%USERPROFILE%\AppData\Local\Programs\AI Playground\python.exe" set "PYTHON_PATH=%USERPROFILE%\AppData\Local\Programs\AI Playground\python.exe"
 
 echo ========================================
 echo          Azazael SHORTY SHORTCUTS

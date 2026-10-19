@@ -68,7 +68,9 @@ DISK_WARN_GB = {"C:": 80.0, "G:": 40.0, "D:": 20.0}
 DIST_TOLERANCE = 15
 
 # Free-threaded runtime + its adaptation stack (the I1 regression guard).
-ADAPT_PYTHON = r"C:\Users\clint\venv-314t\Scripts\python.exe"
+# 3.14t was retired 2026-10-19; the adaptation stack now imports on the 3.15t
+# production venv. The retired venv-314t path would only prove the archive works.
+ADAPT_PYTHON = r"C:\Azazael\.venvs\py315t\Scripts\python.exe"
 ADAPT_MODULES = ["torch", "transformers", "gymnasium", "stable_baselines3",
                  "peft", "trl", "datasets", "accelerate"]
 
@@ -115,7 +117,7 @@ def run(cmd: list[str], timeout: int = 900) -> tuple[int, str]:
 def signal_baseline(no_wsl: bool) -> dict:
     cmd = [sys.executable, str(SCRIPTS / "check_runtime_baseline.py"), "--quiet"]
     if no_wsl:
-        cmd += ["--envs", "win-main,win-314t,win-313tools,win-interp"]
+        cmd += ["--envs", "win-main,win-315,win-314m,win-313tools,win-interp"]
     rc, out = run(cmd)
     verdict_re = re.search(r"VERDICT:\s*(.+)", out)
     detail = verdict_re.group(1).strip() if verdict_re else out.strip()[:200]
@@ -266,7 +268,7 @@ def signal_adaptation() -> dict:
                 "detail": "target runtime has the GIL re-enabled - free-threading lost"}
     if missing_list:
         return {"name": "adaptation-stack", "status": "fail",
-                "detail": f"cannot import on 3.14t: {', '.join(missing_list)}"}
+                "detail": f"cannot import on 3.15t: {', '.join(missing_list)}"}
     return {"name": "adaptation-stack", "status": "ok",
             "detail": f"{len(ADAPT_MODULES)}/{len(ADAPT_MODULES)} import free-threaded"}
 

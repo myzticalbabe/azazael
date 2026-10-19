@@ -1,5 +1,10 @@
 # AZAZAEL — Master Capability TODO (Consolidated from DISCLOSURE_WHITEPAPER_TODO.md)
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Capability
+> rows below describe the state on their date.
+
 > **Created:** July 9, 2026 — Synthesized from all 14 sections (A-N) of DISCLOSURE_WHITEPAPER_TODO.md
 > **Scope:** Complete production action plan incorporating all disclosed capabilities
 > **Priority:** P0 = Critical/Must-do, P1 = High, P2 = Medium, P3 = Nice-to-have

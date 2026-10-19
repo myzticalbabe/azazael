@@ -1,8 +1,8 @@
 # AZAZAEL — Self-Replicating AI Worm Ecosystem
 
-**Version:** 1.0.0 | **Python:** ≥3.14t (free-threaded) | **Platform:** Windows 64-bit | **Status:** Beta
+**Version:** 1.0.0 | **Python:** 3.15t (free-threaded, `C:\Azazael\.venvs\py315t`) — 3.14t retired 2026-10-19 | **Platform:** Windows 64-bit | **Status:** Beta
 
-Azazael is an autonomous system administration framework built on a **worm ecosystem** — self-contained, self-registering modules that discover, monitor, analyze, and heal computing environments. Designed exclusively for Python 3.14t free-threading, Azazael achieves true parallel execution across CPU, GPU, and NPU devices without the Global Interpreter Lock.
+Azazael is an autonomous system administration framework built on a **worm ecosystem** — self-contained, self-registering modules that discover, monitor, analyze, and heal computing environments. Built for free-threaded Python — 3.15t in production, with a same-version GIL sidecar for comparison — Azazael achieves true parallel execution across CPU, GPU, and NPU devices without the Global Interpreter Lock. (3.14t was retired on 2026-10-19; see `SYSTEM_INSTRUCTIONS.md` → INTERPRETER POLICY.)
 
 ---
 

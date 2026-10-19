@@ -1,35 +1,10 @@
 ---
 name: azazael-pkg314t-patchelf
-description: Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPATH of ELF executables.
+description: "Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPATH of ELF executables. (RETIRED - 3.14t venv archived)"
 metadata:
   category: packages
   project: azazael
   priority: low
 ---
 
-# patchelf 0.17.2.4
-
-> A small utility to modify the dynamic linker and RPATH of ELF executables.
-
-## Identity
-
-| Field | Value |
-|-------|-------|
-| Distribution | `patchelf` |
-| Version | `0.17.2.4` |
-| Interpreter | Python 3.14.6 free-threading (`/usr/local/bin/python3.14t`) |
-
-## Notes
-
-No console entry points or detectable top-level modules; treat as a library dependency.
-
-## Verify
-
-```bash
-/usr/local/bin/python3.14t -m pip show patchelf
-```
-
-## Related
-
-- Environment: Azazael Python 3.14.6 (3.14t) environment packages
-- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory
+> RETIRED 2026-10-19 - generated from the retired 3.14t venv (C:/Users/clint/venv-314t). Kept as provenance, not callable. Production is the 3.15t venv; the only sanctioned 3.14 runtime is .venvs/py314m. Full body: archive/retired-314t-skills-2026-10-19/azazael-pkg314t-patchelf/SKILL.md

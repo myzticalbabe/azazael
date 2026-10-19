@@ -5,7 +5,7 @@ else is arithmetic; that one is the difference between a self-improving system
 and a system that can quietly rewire the check on its own improvements.
 
 Run:
-    /c/Users/clint/venv-314t/Scripts/python.exe -m pytest tests/test_wiring_genome.py -q
+    /c/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_wiring_genome.py -q
 """
 
 import json

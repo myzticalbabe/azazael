@@ -2,11 +2,11 @@
 """Parity check: pure-Python oracle JSON forward pass vs the torch path.
 
 The free-threaded pipeline can only use `predict_pure`. If the two disagree,
-every gate decision made under `python3.14t` is wrong -- so this compares them
+every gate decision made under `python3.15t` is wrong -- so this compares them
 on identical inputs and fails loudly on any material difference.
 
-Run under the GIL interpreter (torch required for the reference path):
-    python scripts/verify_oracle_parity.py
+Run under the 3.15 GIL sidecar (torch loads there but not under free-threading):
+    C:/Azazael/.venvs/py315/Scripts/python.exe scripts/verify_oracle_parity.py
 """
 import os
 import random

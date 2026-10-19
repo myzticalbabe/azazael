@@ -71,7 +71,7 @@ def render(pkg: dict, prefix: str, interp: str, interp_label: str, env_label: st
     if eps:
         lines.append("## EXECUTE — CLI entry points")
         lines.append("")
-        lines.append("The package installs the following console commands (run with `python3.14t -m` or directly):")
+        lines.append("The package installs the following console commands (run with `python3.15 -m` or directly):")
         lines.append("")
         for ep in eps[:8]:
             lines.append(f"- `{ep}`")

@@ -1,5 +1,10 @@
 # Neural Mesh Forensic — 2026-09-29
 
+> **3.14 RETIRED 2026-10-19** — this forensic ran on `venv-314t`. Production is
+> now the 3.15t venv (`C:\Azazael\.venvs\py315t`); the only sanctioned 3.14
+> runtime is `C:\Azazael\.venvs\py314m`. Measurements below remain valid as a
+> record of that date, not as a description of the current runtime.
+
 **Status: CURRENT. This document supersedes every `NEURAL_MESH_*` audit listed
 under "Supersedes" below.** Those documents remain on disk as dated records of
 what was believed on their date. Their numbers are NOT current, and reading one

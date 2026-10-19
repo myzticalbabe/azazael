@@ -402,14 +402,24 @@ def probe_interpreter(path: str) -> Tuple[bool, str]:
 
 
 #: A line that executes a Python interpreter. Case-insensitive because the hook
-#: uses the pinned `$PYTHON3` everywhere: a literal lower-case "python" test is
-#: how `scripts/commit_gate.py` came to be reported as registered-but-not-run
-#: while the hook runs it on line 44.
-_RUNS_PYTHON_RE = re.compile(r"(?i)(?:\bpython3?\b|PMB_PY)")
+#: uses a pinned interpreter variable everywhere: a literal lower-case "python"
+#: test is how `scripts/commit_gate.py` came to be reported as
+#: registered-but-not-run while the hook runs it on line 44.
+#:
+#: `$PY` is matched as well as `$PYTHON3`: the hook aliases `PY="$PYTHON3"` and
+#: invokes every gate as `"$PY" tools/...`, so a detector that only knew the old
+#: name reported all six gates as not-run and failed a correct tree. `$PYTHONPATH`
+#: must NOT match, hence the trailing word boundary on the unbraced form.
+_RUNS_PYTHON_RE = re.compile(
+    r"(?i)(?:\bpython3?\b|PMB_PY|\$\{(?:PY|PYTHON3?)\}|\$(?:PY|PYTHON3?)\b)"
+)
 
 
 def hook_gate_scripts(hook_text: str) -> List[str]:
     """Re-derive the gate scripts the hook RUNS (not the ones it mentions).
+
+    A gate is counted only when the SAME line both names an interpreter and
+    names a scripts path, so a variable assignment cannot credit a gate.
 
     Comment lines are skipped on purpose: the hook's own header mentions
     `tools/install_git_hooks.py` in prose, and counting a mention as a gate would

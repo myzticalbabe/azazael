@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
 build_all_concurrent.py - Concurrent Nuitka builds across Windows 11 + WSL2.
 
@@ -6,13 +6,13 @@ Builds all 39 standalone .exe targets in parallel on both platforms.
 Uses Nuitka 4.1.2 (verified on Windows 11 and WSL2).
 
 Usage:
-    python3.14t build_all_concurrent.py --all          Build all 39 targets
-    python3.14t build_all_concurrent.py --tier neural  Build neural tier only
-    python3.14t build_all_concurrent.py --target metacognition
-    python3.14t build_all_concurrent.py --platform windows
-    python3.14t build_all_concurrent.py --verify       Verify Nuitka patches
-    python3.14t build_all_concurrent.py --list         List targets
-    python3.14t build_all_concurrent.py --deploy       Deploy to Desktop
+    python3.15t build_all_concurrent.py --all          Build all 39 targets
+    python3.15t build_all_concurrent.py --tier neural  Build neural tier only
+    python3.15t build_all_concurrent.py --target metacognition
+    python3.15t build_all_concurrent.py --platform windows
+    python3.15t build_all_concurrent.py --verify       Verify Nuitka patches
+    python3.15t build_all_concurrent.py --list         List targets
+    python3.15t build_all_concurrent.py --deploy       Deploy to Desktop
 
 Created: June 4, 2026 - Environment realignment session
 """
@@ -208,7 +208,7 @@ def build_target_wsl(name: str, target: Dict, out_dir: Path) -> Dict:
 
     # Build command with absolute paths (no cd needed)
     cmd_parts = [
-        "python3.14t", "-m", "nuitka",
+        "python3.15t", "-m", "nuitka",
         "--standalone", "--assume-yes-for-downloads",
         "--output-dir", out_wsl,
         "--output-filename", target["output"],

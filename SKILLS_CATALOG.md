@@ -2,7 +2,8 @@
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: 2026-10-10 — regenerated from canonical `skills/*.md` (1,244 skills: core + Kali + 3.14t package + binary-tool)
+> Last Updated: 2026-10-19 — 3.14t RETIRED: the 74 `azazael-pkg314t-*` package skills and 3 legacy 3.14t core skills are archived (`archive/retired-314t-skills-2026-10-19/`); production is 3.15t and `.venvs/py314m` is the only sanctioned 3.14 runtime.
+> Previously: 2026-10-10 — regenerated from canonical `skills/*.md` (1,244 skills: core + Kali + 3.14t package + binary-tool)
 > Purpose: Single source of truth for all available Azazael skills
 > Source of truth: `skills/` (canonical flat .md) mirrored to `.agents/skills/<name>/SKILL.md`. Table rows below are generated, never hand-edited.
 
@@ -15,7 +16,7 @@
 | Total canonical skills | 1,244 |
 | Core skills (non-package) | 156 |
 | Package skills (Kali 3.13 env, `azazael-pkg-*`) | 968 |
-| Package skills (Azazael 3.14t env, `azazael-pkg314t-*`) | 74 |
+| Package skills (Azazael 3.14t env, `azazael-pkg314t-*`) — **RETIRED 2026-10-19**, bodies archived, stubs retained for stable keys | 74 |
 | Binary-tool skills (`azazael-bin-*`) | 46 |
 
 ---
@@ -24,8 +25,8 @@
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
 | 1 | `archify` | ? | Create polished, validated architecture, workflow, sequence, data-flow, and lifecycle/state diagrams as exp... |
-| 2 | `azazael-curative` | Architecture | CurativePool 3.14t — CAIN psychological framework, free-threaded agent governance, 3-pool concurrent evalua... |
-| 3 | `azazael-packaging` | Deployment | Python packaging insight — Nuitka builds on Python 3.14t free-threading. Strategy for standalone .exe build... |
+| 2 | `azazael-curative` | Architecture | CurativePool 3.15t — CAIN psychological framework, free-threaded agent governance, 3-pool concurrent evalua... |
+| 3 | `azazael-packaging` | Deployment | Python packaging insight — Nuitka builds on Python 3.15t free-threading. Strategy for standalone .exe build... |
 | 4 | `azazael-standalone` | Deployment | AZAZAEL Standalone Suite — PLANNED, NOT BUILT. Zero .exe files exist; the Nuitka build fails on a transform... |
 | 5 | `azazael-standalone-audit` | Deployment | Desktop Standalone Suite audit — EXE inventory, BAT validation, build system health, naming conventions, er... |
 | 6 | `azazael-sync-kali` | Infrastructure | Kali WSL2 sync integration — cross-distro sync via E: drive bridge, run_wsl_kali(), batch copy patterns, ge... |
@@ -56,7 +57,7 @@
 | 31 | `azazael-inference` | architecture | Azazael multi-provider AI inference — 11 free LLM providers, OpenAI-compatible API, NimClient, InferenceBus... |
 | 32 | `azazael-inference-integration` | architecture | Azazael inference integration — 10-point strategy, P0-P2 implementations (MetaCluster LLM insights, adaptiv... |
 | 33 | `azazael-inference-worms` | architecture | Azazael inference worms — InferenceWorm (provider-agnostic) and NimInferenceWorm (multi-provider). Load whe... |
-| 34 | `azazael-parallel` | architecture | Azazael 3.14t parallel execution — FreeThreadPool, work-stealing, batch collection, GIL-free optimization. ... |
+| 34 | `azazael-parallel` | architecture | Azazael 3.15t parallel execution — FreeThreadPool, work-stealing, batch collection, GIL-free optimization. ... |
 | 35 | `azazael-paths` | architecture | Azazael path resolution — centralized dynamic paths via CORE/paths.py, get_project_root, get_g_drive, cachi... |
 | 36 | `azazael-registry` | architecture | Azazael worm registry — @register_worm decorator, WORM_REGISTRY dict, discover_worms(), category management... |
 | 37 | `azazael-separation` | architecture | Azazael project separation — extraction playbooks, dependency analysis, sub-project inventory, standalone p... |
@@ -80,8 +81,8 @@
 | 55 | `azazael-conventions` | conventions | Azazael Python coding conventions — patterns, style rules, import style, error handling patterns, threading... |
 | 56 | `azazael-git` | conventions | Azazael git conventions — commit messages, branching strategy, pre-commit checks, CI-ready workflow. Load b... |
 | 57 | `azazael-mermaid` | conventions | Azazael Mermaid graph generation — diagram patterns (graph TD, sequenceDiagram), ASCII safety rules, graph ... |
-| 58 | `azazael-threading` | conventions | Azazael threading patterns — Python 3.14t free-threading design, threading.Lock, threading.Event, ThreadPoo... |
-| 59 | `azazael-platform-deploy` | deploy | Cross-platform AZAZAEL 3.14t deployment — Windows 11, WSL2 Ubuntu, bare metal, Kali Linux setup and sync. |
+| 58 | `azazael-threading` | conventions | Azazael threading patterns — Python 3.15t free-threading design, threading.Lock, threading.Event, ThreadPoo... |
+| 59 | `azazael-platform-deploy` | deploy | Cross-platform AZAZAEL 3.15t deployment — Windows 11, WSL2 Ubuntu, bare metal, Kali Linux setup and sync. |
 | 60 | `azazael-devtools-audit` | devtools | Chrome DevTools Lighthouse — performance, accessibility, SEO, best practices auditing. Load when running co... |
 | 61 | `azazael-devtools-console` | devtools | Chrome DevTools Console panel — JavaScript error detection, console.log inspection, runtime evaluation. Loa... |
 | 62 | `azazael-devtools-coverage` | devtools | Chrome DevTools Coverage panel — unused CSS/JS detection, dead code elimination, payload optimization. Load... |
@@ -96,27 +97,27 @@
 | 71 | `azazael-inference-analysis` | domain | Multi-API inference subsystem — providers, unified retry client, secrets handling, GUI inference tab. |
 | 72 | `azazael-inference-providers` | domain | 16+ free inference APIs behind a unified OpenAI-compatible provider pattern with worm-based dispatch. |
 | 73 | `azazael-worm-analysis` | domain | Worm analysis patterns — CLUSTERWORMS dynamic resolution, dead letter queue, work-stealing, circuit breaker... |
-| 74 | `azazael-gil-sidecar` | environment | Azazael free-threaded vs GIL Python environment — why CPython 3.14t rejects cp314 wheels, how the same-vers... |
+| 74 | `azazael-gil-sidecar` | environment | Azazael free-threaded vs GIL Python environment — why a free-threaded CPython rejects the same-version GIL wheels, how the same-vers... |
 | 75 | `azazael-wsl-canonical` | environment | WSL canonical environment reference — the Linux mirror at /root/azazael/ and its differences from Windows p... |
-| 76 | `azazael_314t_master` | environment | Master reference for Python 3.14t free-threading setup — paths, package status, compiler strategy, video ge... |
-| 77 | `azazael_314t_optimum` | environment | Optimum free-threaded agent configuration for Python 3.14t — inference backends, model selection, import st... |
+| 76 | `azazael_314t_master` | environment (RETIRED) | RETIRED 2026-10-19 (3.14t retired; see archive/retired-314t-skills-2026-10-19/) — Master reference for Python 3.14t free-threading setup — paths, package status, compiler strategy, video ge... |
+| 77 | `azazael_314t_optimum` | environment (RETIRED) | RETIRED 2026-10-19 (3.14t retired; see archive/retired-314t-skills-2026-10-19/) — Optimum free-threaded agent configuration for Python 3.14t — inference backends, model selection, import st... |
 | 78 | `azazael_insights_2026-05-28` | environment | Discoveries from 3.14t migration — ABI incompatibility, g++ vs MSVC, ffmpeg workarounds, Go/Node safety, WS... |
 | 79 | `azazael-error-index` | fixes | Master index mapping error symptoms to dedicated fix skill files. Load this first when troubleshooting. |
 | 80 | `azazael-fix-data-recording` | fixes | Quick-reference fixes for database and session recording errors — SQLite WAL mode, PAMS fallback, and memor... |
 | 81 | `azazael-fix-file-operations` | fixes | Quick-reference fixes for file system and data safety errors — shutil data loss, robocopy timeouts, and cro... |
 | 82 | `azazael-fix-gitbash-paths` | fixes | Quick-reference fixes for Git Bash/MSYS2 environment errors — path translation, PowerShell escaping, and sh... |
 | 83 | `azazael-fix-protocol-compliance` | fixes | Quick-reference fixes for protocol and compliance errors — process violations, SOP enforcement, and rule ma... |
-| 84 | `azazael-fix-python-314t` | fixes | Quick-reference fixes for Python 3.14t free-threading errors — segfaults, wheel issues, Nuitka patches, and... |
+| 84 | `azazael-fix-python-314t` | fixes (RETIRED) | RETIRED 2026-10-19 (3.14t retired; see archive/retired-314t-skills-2026-10-19/) — Quick-reference fixes for Python 3.14t free-threading errors — segfaults, wheel issues, Nuitka patches, and... |
 | 85 | `azazael-algorithmic-respawn` | governance | Mandate governing code modification algorithms — requires Gemini pre-analysis, per-file validation, and dyn... |
 | 86 | `azazael-deep-analysis` | guardrail | Mandates the DEEP API Analysis Standard — all analysis tasks use multiple free inference APIs with cross-re... |
 | 87 | `azazael-no-permission-language` | guardrail | No permission-seeking language for mandated actions — CRITICAL process violation per instance. |
 | 88 | `azazael-secrets-manager` | infrastructure | Unified secrets manager for all Azazael API keys — audit, .env management, provider registry, consolidation |
 | 89 | `azazael-sync-wsl` | infrastructure | WSL-aware sync_all.py — bidirectional sync (WSL→Windows, WSL→G:), get_env_status + verify_integrity from WS... |
-| 90 | `azazael-timesfm-314t` | investigation | TimesFM 3 second-opinion anomaly layer + Bai-Perron breakpoint dating on 3.14t free-threaded venv — 990-ser... |
+| 90 | `azazael-timesfm-314t` | investigation | TimesFM 3 second-opinion anomaly layer + Bai-Perron breakpoint dating — RETAINED, retargeted 2026-10-19 to `.venvs/py314m` (3.14m, sanctioned fallback for its 3.14-only deps) and `py315t` (production) — 990-ser... |
 | 91 | `azazael-pams-memory` | memory | Persistent AI memory system — LocalMemoryStore (SQLite), PamsRecorder with local fallback, MemoryBus pub/su... |
 | 92 | `azazael-mesh-resilience-primitives` | neural-mesh | The four mesh resilience primitives built from the 2026-09-16 per-function |
-| 93 | `azazael-exe-build` | packaging | Nuitka .exe building procedures — Python 3.14t required, patched Nuitka, common gotchas, build.bat patterns... |
-| 94 | `azazael-work-stealing` | parallel | WorkStealingPool and WorkStealingQueue — dynamic load balancing across threads for Python 3.14t free-thread... |
+| 93 | `azazael-exe-build` | packaging | Nuitka .exe building procedures — Python 3.15t required, patched Nuitka, common gotchas, build.bat patterns... |
+| 94 | `azazael-work-stealing` | parallel | WorkStealingPool and WorkStealingQueue — dynamic load balancing across threads for Python 3.15t free-thread... |
 | 95 | `azazael-optimization-session` | performance | Lazy import optimization patterns — module splitting, PAMS HTTP cache, fast-path registry discovery. Patter... |
 | 96 | `azazael-deploy` | planning | Azazael deployment — Docker, CLI packaging, scheduled runs, G:/ archive, production readiness. Load for dep... |
 | 97 | `azazael-desktop-projects` | planning | Complete Desktop project inventory and operability audit — 14 projects, 3 operational, 5 partial, 6 deprecated |
@@ -168,12 +169,12 @@
 | 143 | `azazael-verifiable-truth` | system | Verifiable Truth Mandate (RULE 0T/0T-A/0T-B) — 15-layer VLP verification stack, audit trail format, Ed25519... |
 | 144 | `azazael-nsga2-testing` | testing | Unit tests for the NSGA-II evolutionary optimization engine (9 classes, 16 tests). |
 | 145 | `azazael-testing` | testing | Azazael testing conventions — syntax check, integration test, worm config trace, code review. Load when val... |
-| 146 | `azazael-autoflake` | tooling | Free-threaded autoflake wrapper for Python 3.14t — batch unused import detection, removal, and reporting. C... |
+| 146 | `azazael-autoflake` | tooling | Free-threaded autoflake wrapper for Python 3.15t — batch unused import detection, removal, and reporting. C... |
 | 147 | `azazael-chrome-url-download` | tools | Capture the active Chrome tab URL (UI Automation, no DevTools needed) or the clipboard URL, then download i... |
 | 148 | `azazael-youtube-digest` | tools | Fetch YouTube transcripts and turn videos into structured digests (TL;DR, key theses, timestamped timeline,... |
 | 149 | `azazael-stale-artifact-self-audit` | verification | Two defect classes that made this architecture report success while wrong — confidently-incomplete artifact... |
 | 150 | `azazael-eleven-followups` | workflow | RULE 0Z-B — Mandates exactly 11 followup suggestions at the end of EVERY assistant response. Permanent, nev... |
-| 151 | `azazael-environment` | workflow | Azazael environment setup — Python 3.10+/3.14t requirements, dependency installation, project path configur... |
+| 151 | `azazael-environment` | workflow | Azazael environment setup — Python 3.15t requirements, dependency installation, project path configur... |
 | 152 | `azazael-operating-protocols` | workflow | Operating protocols for Codebuff/AI agents working on Azazael — 11 followups mandate, max parallel agent ex... |
 | 153 | `azazael-parallel-execution` | workflow | RULE 0Z-F — Parallel Agent Execution Mandate. Maximum concurrency, batch all independent work into single s... |
 | 154 | `azazael-parallel-execution-quickref` | workflow | Quick-reference cheat sheet for RULE 0Z-F Parallel Agent Execution — anti-pattern table, agent spawn patter... |
@@ -1152,83 +1153,83 @@
 | 1123 | `azazael-pkg-zstandard` | packages | Callable skill for Python package zstandard 0.25.0 — Zstandard bindings for Python |
 | 1124 | `azazael-pkg-zstd` | packages | Callable skill for Python package zstd 1.5.7.3 — ZSTD Bindings for Python |
 
-## Skill Quick Reference — 3.14t Package Skills (1125-1198)
+## Skill Quick Reference — 3.14t Package Skills (1125-1198) — RETIRED 2026-10-19 (archived; numbering retained as stable keys)
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
-| 1125 | `azazael-pkg314t-anyio` | packages | Callable skill for Python package anyio 4.14.2 — High-level concurrency and networking framework on top of ... |
-| 1126 | `azazael-pkg314t-ast-serialize` | packages | Callable skill for Python package ast_serialize 0.5.0 — Python bindings for mypy AST serialization |
-| 1127 | `azazael-pkg314t-attrs` | packages | Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
-| 1128 | `azazael-pkg314t-autoflake` | packages | Callable skill for Python package autoflake 2.3.3 — Removes unused imports and unused variables |
-| 1129 | `azazael-pkg314t-azazael-core` | packages | Callable skill for Python package azazael-core 3.1.0 — AZAZAEL Core — Path resolution, worm registry, free-... |
-| 1130 | `azazael-pkg314t-beautifulsoup4` | packages | Callable skill for Python package beautifulsoup4 4.15.0 — Screen-scraping library |
-| 1131 | `azazael-pkg314t-blinker` | packages | Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
-| 1132 | `azazael-pkg314t-bs4` | packages | Callable skill for Python package bs4 0.0.2 — Dummy package for Beautiful Soup (beautifulsoup4) |
-| 1133 | `azazael-pkg314t-certifi` | packages | Callable skill for Python package certifi 2026.7.22 — Python package for providing Mozilla's CA Bundle. |
-| 1134 | `azazael-pkg314t-charset-normalizer` | packages | Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Ope... |
-| 1135 | `azazael-pkg314t-click` | packages | Callable skill for Python package click 8.4.2 — Composable command line interface toolkit |
-| 1136 | `azazael-pkg314t-colorama` | packages | Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
-| 1137 | `azazael-pkg314t-dnspython` | packages | Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
-| 1138 | `azazael-pkg314t-flask` | packages | Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
-| 1139 | `azazael-pkg314t-gevent` | packages | Callable skill for Python package gevent 26.8.0 — Coroutine-based network library |
-| 1140 | `azazael-pkg314t-greenlet` | packages | Callable skill for Python package greenlet 3.5.5 — Lightweight in-process concurrent programming |
-| 1141 | `azazael-pkg314t-h11` | packages | Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
-| 1142 | `azazael-pkg314t-holehe` | packages | Callable skill for Python package holehe 1.61 — holehe allows you to check if the mail is used on different... |
-| 1143 | `azazael-pkg314t-httpcore` | packages | Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
-| 1144 | `azazael-pkg314t-httpx` | packages | Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
-| 1145 | `azazael-pkg314t-hypothesis` | packages | Callable skill for Python package hypothesis 6.155.6 — The property-based testing library for Python |
-| 1146 | `azazael-pkg314t-idna` | packages | Callable skill for Python package idna 3.18 — Internationalized Domain Names in Applications (IDNA) |
-| 1147 | `azazael-pkg314t-iniconfig` | packages | Callable skill for Python package iniconfig 2.3.0 — brain-dead simple config-ini parsing |
-| 1148 | `azazael-pkg314t-itsdangerous` | packages | Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
-| 1149 | `azazael-pkg314t-jinja2` | packages | Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
-| 1150 | `azazael-pkg314t-joblib` | packages | Callable skill for Python package joblib 1.5.3 — Lightweight pipelining with Python functions |
-| 1151 | `azazael-pkg314t-librt` | packages | Callable skill for Python package librt 0.11.0 — Mypyc runtime library |
-| 1152 | `azazael-pkg314t-markupsafe` | packages | Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
-| 1153 | `azazael-pkg314t-mypy` | packages | Callable skill for Python package mypy 2.1.0 — Optional static typing for Python |
-| 1154 | `azazael-pkg314t-mypy-extensions` | packages | Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
-| 1155 | `azazael-pkg314t-narwhals` | packages | Callable skill for Python package narwhals 2.24.0 — Extremely lightweight compatibility layer between dataf... |
-| 1156 | `azazael-pkg314t-nuitka` | packages | Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython com... |
-| 1157 | `azazael-pkg314t-numpy` | packages | Callable skill for Python package numpy 2.4.6 — Fundamental package for array computing in Python |
-| 1158 | `azazael-pkg314t-outcome` | packages | Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
-| 1159 | `azazael-pkg314t-packaging` | packages | Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
-| 1160 | `azazael-pkg314t-patchelf` | packages | Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPAT... |
-| 1161 | `azazael-pkg314t-patchelf-wrapper` | packages | Callable skill for Python package patchelf-wrapper 1.2.0 — A wrapper for patchelf |
-| 1162 | `azazael-pkg314t-pathspec` | packages | Callable skill for Python package pathspec 1.1.1 — Utility library for gitignore style pattern matching of ... |
-| 1163 | `azazael-pkg314t-phonenumbers` | packages | Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsi... |
-| 1164 | `azazael-pkg314t-pip` | packages | Callable skill for Python package pip 26.1.2 — The PyPA recommended tool for installing Python packages. |
-| 1165 | `azazael-pkg314t-pluggy` | packages | Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
-| 1166 | `azazael-pkg314t-progress` | packages | Callable skill for Python package progress 1.6.1 — Easy to use progress bars |
-| 1167 | `azazael-pkg314t-psutil` | packages | Callable skill for Python package psutil 7.2.2 — Cross-platform lib for process and system monitoring. |
-| 1168 | `azazael-pkg314t-pyflakes` | packages | Callable skill for Python package pyflakes 3.4.0 — passive checker of Python programs |
-| 1169 | `azazael-pkg314t-pygments` | packages | Callable skill for Python package Pygments 2.20.0 — Pygments is a syntax highlighting package written in Py... |
-| 1170 | `azazael-pkg314t-pysocks` | packages | Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
-| 1171 | `azazael-pkg314t-pytest` | packages | Callable skill for Python package pytest 9.1.0 — pytest: simple powerful testing with Python |
-| 1172 | `azazael-pkg314t-python-dotenv` | packages | Callable skill for Python package python-dotenv 1.2.2 — Read key-value pairs from a .env file and set them ... |
-| 1173 | `azazael-pkg314t-pytz` | packages | Callable skill for Python package pytz 2026.3.post1 — World timezone definitions, modern and historical |
-| 1174 | `azazael-pkg314t-pyyaml` | packages | Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
-| 1175 | `azazael-pkg314t-requests` | packages | Callable skill for Python package requests 2.34.2 — Python HTTP for Humans. |
-| 1176 | `azazael-pkg314t-scikit-learn` | packages | Callable skill for Python package scikit-learn 1.9.0 — A set of python modules for machine learning and dat... |
-| 1177 | `azazael-pkg314t-scipy` | packages | Callable skill for Python package scipy 1.18.0 — Fundamental algorithms for scientific computing in Python |
-| 1178 | `azazael-pkg314t-six` | packages | Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
-| 1179 | `azazael-pkg314t-sniffio` | packages | Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
-| 1180 | `azazael-pkg314t-socksio` | packages | Callable skill for Python package socksio 1.0.0 — Sans-I/O implementation of SOCKS4, SOCKS4A, and SOCKS5. |
-| 1181 | `azazael-pkg314t-sortedcontainers` | packages | Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
-| 1182 | `azazael-pkg314t-soupsieve` | packages | Callable skill for Python package soupsieve 2.9.2 — A modern CSS selector implementation for Beautiful Soup. |
-| 1183 | `azazael-pkg314t-tabulate` | packages | Callable skill for Python package tabulate 0.10.0 — Pretty-print tabular data |
-| 1184 | `azazael-pkg314t-termcolor` | packages | Callable skill for Python package termcolor 3.3.0 — ANSI color formatting for output in terminal |
-| 1185 | `azazael-pkg314t-threadpoolctl` | packages | Callable skill for Python package threadpoolctl 3.6.0 — threadpoolctl |
-| 1186 | `azazael-pkg314t-toml` | packages | Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
-| 1187 | `azazael-pkg314t-torbot` | packages | Callable skill for Python package torbot 4.3.0 — TorBot is an OSINT tool for the dark web. |
-| 1188 | `azazael-pkg314t-tqdm` | packages | Callable skill for Python package tqdm 4.70.0 — Fast, Extensible Progress Meter |
-| 1189 | `azazael-pkg314t-treelib` | packages | Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
-| 1190 | `azazael-pkg314t-trio` | packages | Callable skill for Python package trio 0.34.0 — A friendly Python library for async concurrency and I/O |
-| 1191 | `azazael-pkg314t-typing-extensions` | packages | Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
-| 1192 | `azazael-pkg314t-unipath` | packages | Callable skill for Python package Unipath 1.1 — Object-oriented alternative to os/os.path/shutil |
-| 1193 | `azazael-pkg314t-urllib3` | packages | Callable skill for Python package urllib3 2.7.0 — HTTP library with thread-safe connection pooling, file po... |
-| 1194 | `azazael-pkg314t-validators` | packages | Callable skill for Python package validators 0.35.0 — Python Data Validation for Humans™ |
-| 1195 | `azazael-pkg314t-werkzeug` | packages | Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
-| 1196 | `azazael-pkg314t-yt-dlp` | packages | Callable skill for Python package yt-dlp 2026.7.4 — A feature-rich command-line audio/video downloader |
-| 1197 | `azazael-pkg314t-zope-event` | packages | Callable skill for Python package zope.event 6.2 — Very basic event publishing system |
-| 1198 | `azazael-pkg314t-zope-interface` | packages | Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
+| 1125 | `azazael-pkg314t-anyio` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package anyio 4.14.2 — High-level concurrency and networking framework on top of ... |
+| 1126 | `azazael-pkg314t-ast-serialize` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package ast_serialize 0.5.0 — Python bindings for mypy AST serialization |
+| 1127 | `azazael-pkg314t-attrs` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
+| 1128 | `azazael-pkg314t-autoflake` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package autoflake 2.3.3 — Removes unused imports and unused variables |
+| 1129 | `azazael-pkg314t-azazael-core` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package azazael-core 3.1.0 — AZAZAEL Core — Path resolution, worm registry, free-... |
+| 1130 | `azazael-pkg314t-beautifulsoup4` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package beautifulsoup4 4.15.0 — Screen-scraping library |
+| 1131 | `azazael-pkg314t-blinker` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
+| 1132 | `azazael-pkg314t-bs4` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package bs4 0.0.2 — Dummy package for Beautiful Soup (beautifulsoup4) |
+| 1133 | `azazael-pkg314t-certifi` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package certifi 2026.7.22 — Python package for providing Mozilla's CA Bundle. |
+| 1134 | `azazael-pkg314t-charset-normalizer` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Ope... |
+| 1135 | `azazael-pkg314t-click` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package click 8.4.2 — Composable command line interface toolkit |
+| 1136 | `azazael-pkg314t-colorama` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
+| 1137 | `azazael-pkg314t-dnspython` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
+| 1138 | `azazael-pkg314t-flask` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
+| 1139 | `azazael-pkg314t-gevent` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package gevent 26.8.0 — Coroutine-based network library |
+| 1140 | `azazael-pkg314t-greenlet` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package greenlet 3.5.5 — Lightweight in-process concurrent programming |
+| 1141 | `azazael-pkg314t-h11` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
+| 1142 | `azazael-pkg314t-holehe` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package holehe 1.61 — holehe allows you to check if the mail is used on different... |
+| 1143 | `azazael-pkg314t-httpcore` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
+| 1144 | `azazael-pkg314t-httpx` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
+| 1145 | `azazael-pkg314t-hypothesis` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package hypothesis 6.155.6 — The property-based testing library for Python |
+| 1146 | `azazael-pkg314t-idna` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package idna 3.18 — Internationalized Domain Names in Applications (IDNA) |
+| 1147 | `azazael-pkg314t-iniconfig` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package iniconfig 2.3.0 — brain-dead simple config-ini parsing |
+| 1148 | `azazael-pkg314t-itsdangerous` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
+| 1149 | `azazael-pkg314t-jinja2` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
+| 1150 | `azazael-pkg314t-joblib` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package joblib 1.5.3 — Lightweight pipelining with Python functions |
+| 1151 | `azazael-pkg314t-librt` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package librt 0.11.0 — Mypyc runtime library |
+| 1152 | `azazael-pkg314t-markupsafe` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
+| 1153 | `azazael-pkg314t-mypy` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package mypy 2.1.0 — Optional static typing for Python |
+| 1154 | `azazael-pkg314t-mypy-extensions` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
+| 1155 | `azazael-pkg314t-narwhals` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package narwhals 2.24.0 — Extremely lightweight compatibility layer between dataf... |
+| 1156 | `azazael-pkg314t-nuitka` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython com... |
+| 1157 | `azazael-pkg314t-numpy` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package numpy 2.4.6 — Fundamental package for array computing in Python |
+| 1158 | `azazael-pkg314t-outcome` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
+| 1159 | `azazael-pkg314t-packaging` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
+| 1160 | `azazael-pkg314t-patchelf` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPAT... |
+| 1161 | `azazael-pkg314t-patchelf-wrapper` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package patchelf-wrapper 1.2.0 — A wrapper for patchelf |
+| 1162 | `azazael-pkg314t-pathspec` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pathspec 1.1.1 — Utility library for gitignore style pattern matching of ... |
+| 1163 | `azazael-pkg314t-phonenumbers` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsi... |
+| 1164 | `azazael-pkg314t-pip` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pip 26.1.2 — The PyPA recommended tool for installing Python packages. |
+| 1165 | `azazael-pkg314t-pluggy` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
+| 1166 | `azazael-pkg314t-progress` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package progress 1.6.1 — Easy to use progress bars |
+| 1167 | `azazael-pkg314t-psutil` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package psutil 7.2.2 — Cross-platform lib for process and system monitoring. |
+| 1168 | `azazael-pkg314t-pyflakes` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pyflakes 3.4.0 — passive checker of Python programs |
+| 1169 | `azazael-pkg314t-pygments` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Pygments 2.20.0 — Pygments is a syntax highlighting package written in Py... |
+| 1170 | `azazael-pkg314t-pysocks` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
+| 1171 | `azazael-pkg314t-pytest` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pytest 9.1.0 — pytest: simple powerful testing with Python |
+| 1172 | `azazael-pkg314t-python-dotenv` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package python-dotenv 1.2.2 — Read key-value pairs from a .env file and set them ... |
+| 1173 | `azazael-pkg314t-pytz` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package pytz 2026.3.post1 — World timezone definitions, modern and historical |
+| 1174 | `azazael-pkg314t-pyyaml` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
+| 1175 | `azazael-pkg314t-requests` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package requests 2.34.2 — Python HTTP for Humans. |
+| 1176 | `azazael-pkg314t-scikit-learn` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package scikit-learn 1.9.0 — A set of python modules for machine learning and dat... |
+| 1177 | `azazael-pkg314t-scipy` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package scipy 1.18.0 — Fundamental algorithms for scientific computing in Python |
+| 1178 | `azazael-pkg314t-six` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
+| 1179 | `azazael-pkg314t-sniffio` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
+| 1180 | `azazael-pkg314t-socksio` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package socksio 1.0.0 — Sans-I/O implementation of SOCKS4, SOCKS4A, and SOCKS5. |
+| 1181 | `azazael-pkg314t-sortedcontainers` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
+| 1182 | `azazael-pkg314t-soupsieve` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package soupsieve 2.9.2 — A modern CSS selector implementation for Beautiful Soup. |
+| 1183 | `azazael-pkg314t-tabulate` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package tabulate 0.10.0 — Pretty-print tabular data |
+| 1184 | `azazael-pkg314t-termcolor` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package termcolor 3.3.0 — ANSI color formatting for output in terminal |
+| 1185 | `azazael-pkg314t-threadpoolctl` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package threadpoolctl 3.6.0 — threadpoolctl |
+| 1186 | `azazael-pkg314t-toml` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
+| 1187 | `azazael-pkg314t-torbot` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package torbot 4.3.0 — TorBot is an OSINT tool for the dark web. |
+| 1188 | `azazael-pkg314t-tqdm` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package tqdm 4.70.0 — Fast, Extensible Progress Meter |
+| 1189 | `azazael-pkg314t-treelib` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
+| 1190 | `azazael-pkg314t-trio` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package trio 0.34.0 — A friendly Python library for async concurrency and I/O |
+| 1191 | `azazael-pkg314t-typing-extensions` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
+| 1192 | `azazael-pkg314t-unipath` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Unipath 1.1 — Object-oriented alternative to os/os.path/shutil |
+| 1193 | `azazael-pkg314t-urllib3` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package urllib3 2.7.0 — HTTP library with thread-safe connection pooling, file po... |
+| 1194 | `azazael-pkg314t-validators` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package validators 0.35.0 — Python Data Validation for Humans™ |
+| 1195 | `azazael-pkg314t-werkzeug` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
+| 1196 | `azazael-pkg314t-yt-dlp` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package yt-dlp 2026.7.4 — A feature-rich command-line audio/video downloader |
+| 1197 | `azazael-pkg314t-zope-event` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package zope.event 6.2 — Very basic event publishing system |
+| 1198 | `azazael-pkg314t-zope-interface` | packages | RETIRED 2026-10-19 (3.14t venv archived; see archive/retired-314t-skills-2026-10-19/) — Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
 
 ## Skill Quick Reference — Binary Tool Skills (1199-1244)
 | # | Skill | Category | Description |
@@ -1287,7 +1288,7 @@
 | Skill | Path | Purpose | Priority |
 |-------|------|---------|----------|
 | `azazael-pkg-*` (968) | `skills/azazael-pkg-*.md` | Callable skills for Kali Python 3.13.12 system packages — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
-| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | Callable skills for the Azazael Python 3.14.6 (3.14t) environment — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
+| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | **RETIRED 2026-10-19** — bodies archived to `archive/retired-314t-skills-2026-10-19/`; these were callable skills for the Azazael Python 3.14.6 (3.14t) environment, generated from `importlib.metadata`. 3.14t is retired: production is 3.15t and `.venvs/py314m` is the only sanctioned 3.14 runtime. | Archived |
 | `azazael-bin-*` (46) | `skills/azazael-bin-*.md` | Callable skills for binary/CLI tools (Kali binaries + OSINT + AI/ML) — canonical invocations with live version/status. Generated from `skills_staging/binary_manifest.py` + `generate_bin_skills.py`. | Merged |
 
 ---
@@ -1296,7 +1297,7 @@
 | Skill | Path | Purpose | Priority |
 |-------|------|---------|----------|
 | `azazael-pkg-*` (968) | `skills/azazael-pkg-*.md` | Callable skills for Kali Python 3.13.12 system packages — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
-| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | Callable skills for the Azazael Python 3.14.6 (3.14t) environment — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
+| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | **RETIRED 2026-10-19** — bodies archived to `archive/retired-314t-skills-2026-10-19/`; these were callable skills for the Azazael Python 3.14.6 (3.14t) environment, generated from `importlib.metadata`. 3.14t is retired: production is 3.15t and `.venvs/py314m` is the only sanctioned 3.14 runtime. | Archived |
 | `azazael-bin-*` (46) | `skills/azazael-bin-*.md` | Callable skills for binary/CLI tools (Kali binaries + OSINT + AI/ML) — canonical invocations with live version/status. Generated from `skills_staging/binary_manifest.py` + `generate_bin_skills.py`. | Merged |
 
 ---
@@ -1351,7 +1352,7 @@
 | Skill | Path | Purpose | Priority |
 |-------|------|---------|----------|
 | `azazael-pkg-*` (968) | `skills/azazael-pkg-*.md` | Callable skills for Kali Python 3.13.12 system packages — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
-| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | Callable skills for the Azazael Python 3.14.6 (3.14t) environment — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |
+| `azazael-pkg314t-*` (74) | `skills/azazael-pkg314t-*.md` | **RETIRED 2026-10-19** — bodies archived to `archive/retired-314t-skills-2026-10-19/`; these were callable skills for the Azazael Python 3.14.6 (3.14t) environment, generated from `importlib.metadata`. 3.14t is retired: production is 3.15t and `.venvs/py314m` is the only sanctioned 3.14 runtime. | Archived |
 | `azazael-bin-*` (46) | `skills/azazael-bin-*.md` | Callable skills for binary/CLI tools (Kali binaries + OSINT + AI/ML) — canonical invocations with live version/status. Generated from `skills_staging/binary_manifest.py` + `generate_bin_skills.py`. | Merged |
 
 ---

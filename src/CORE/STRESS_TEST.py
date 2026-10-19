@@ -349,9 +349,18 @@ class AzazaelStressTest:
         print(f"Root: {self.root}")
         print()
 
-        # Python installations
+        # Python installations: production 3.15t, its sanctioned 3.14
+        # fallback, then the unrelated 3.11 install. The old entry named
+        # "C:/Python314/python.exe", a path that does not exist on this host.
         self.results.append(
-            self.test_python_installation("C:/Python314/python.exe", "3.14.3")
+            self.test_python_installation(
+                "C:/Azazael/.venvs/py315t/Scripts/python.exe", "3.15.0rc3"
+            )
+        )
+        self.results.append(
+            self.test_python_installation(
+                "C:/Azazael/.venvs/py314m/Scripts/python.exe", "3.14.5"
+            )
         )
         self.results.append(
             self.test_python_installation(

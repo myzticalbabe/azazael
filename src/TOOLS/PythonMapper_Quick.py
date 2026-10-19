@@ -78,6 +78,12 @@ class QuickMapper:
         # Known paths
         print("[2/6] Checking known paths...")
         known_paths = [
+            # Production first, then the sanctioned 3.14 fallback venv. The
+            # Python314 install below is INVENTORY only: the interpreter exists
+            # as a base install, but 3.14t was retired and is never a launch
+            # target (see CORE/python_env.py).
+            r"C:\Azazael\.venvs\py315t\Scripts\python.exe",
+            r"C:\Azazael\.venvs\py314m\Scripts\python.exe",
             r"C:\Python314\python.exe",
             r"C:\Program Files\Python311\python.exe",
             r"C:\Users\clint\anaconda3\python.exe",

@@ -41,9 +41,14 @@ REPO = Path(__file__).resolve().parents[1]
 CAPTURES = REPO / "reports" / "env_inventory"
 OUT = REPO / "config" / "runtime_baseline.toml"
 
+# 3.14 RETIREMENT (2026-10-19): win-314t is archived. win-main is now the
+# 3.15t production venv; win-315 is the same build with the GIL on; win-314m
+# is the one sanctioned 3.14 fallback. Captures are produced by the environment
+# inventory under reports/env_inventory/.
 SOURCES: dict[str, str] = {
-    "win-main": "win_main_py.txt",
-    "win-314t": "win_venv-314t.txt",
+    "win-main": "win_venv-315t.txt",
+    "win-315": "win_venv-315.txt",
+    "win-314m": "win_venv-314m.txt",
     "win-313tools": "win_venv-313-tools.txt",
     "win-interp": "win_venv-interpreter.txt",
     "ubuntu": "ubuntu_pip.txt",
@@ -53,11 +58,12 @@ SOURCES: dict[str, str] = {
 # Roles decide *which* packages an environment is required to carry.
 ROLES: dict[str, list[str]] = {
     "dev": ["win-main"],
-    "free-threaded": ["win-314t"],
-    "graph": ["win-313tools", "win-314t"],
+    "free-threaded": ["win-main"],
+    "graph": ["win-313tools", "win-main"],
     "interpreter": ["win-interp"],
     "ml-accelerator": ["ubuntu"],
     "security": ["kali"],
+    "legacy-314": ["win-314m"],
 }
 
 # Packages whose version must agree across every environment: they cross a
@@ -77,7 +83,7 @@ LOCK_RE = re.compile(r"^([A-Za-z0-9_.+-]+)==(.+)$")
 
 # Packages where the modal (most-common) version would mean a *downgrade* that is
 # not worth taking.  The reconciliation report flagged filelock 4.0.0 -> 3.32.5
-# as a major-version regression on the target runtime; rather than drag win-314t
+# as a major-version regression on the target runtime; rather than drag the production pillar
 # backwards, pin 4.x and move the other pillars up.  One extra move, no
 # major-version regression.
 OVERRIDES: dict[str, str] = {

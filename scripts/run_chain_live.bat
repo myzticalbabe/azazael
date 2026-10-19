@@ -7,8 +7,9 @@ REM a process death left only "Last Result 0xC000013A". This wrapper tees the
 REM output into logs\chain_controller.live.log so the death has a trace.
 REM
 REM The interpreter path is deliberately hardcoded: it must match the account's
-REM pinned CPython 3.14 install (same literal the task action always used;
-REM PATH lookups are the Error #226 class). Repo paths come from %~dp0.
+REM pinned production interpreter, now the 3.15t venv (3.14t retired 2026-10-19;
+REM same literal the task action uses, since PATH lookups are the Error #226
+REM class). Repo paths come from %~dp0.
 setlocal
 REM PROTEUS_MORPH ON (2026-09-26): forward Phase-E extra genes to the trainer
 REM so the search grows past the 4-gene ceiling. Revert to 0 to restore the

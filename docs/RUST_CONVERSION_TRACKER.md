@@ -64,7 +64,7 @@
 | Pipeline | Status | Last Run | Notes |
 |----------|--------|----------|-------|
 | azazael-ci (build.yml) | 🟡 Existing | Unknown | `.github/workflows/build.yml` on G: drive |
-| azazael-ci (test-3.14t.yml) | 🟡 Existing | Unknown | `.github/workflows/test-3.14t.yml` on G: drive |
+| azazael-ci (test-3.15t.yml) | 🟡 Existing | Unknown | `.github/workflows/test-3.15t.yml` (renamed from test-3.14t.yml) |
 | gosp-ci (gosp-ci.yml) | 🔴 Created, never run | — | `.github/workflows/gosp-ci.yml` on G: drive |
 | G: drive health check | 🔴 Created, never run | — | `.github/workflows/ci-status.yml` on G: drive |
 | G: drive availability | 🟢 OK | June 4, 2026 | 477G total / 364G free, read/write verified |

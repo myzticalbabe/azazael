@@ -1,5 +1,16 @@
 # 🌐 MASTER ENVIRONMENT INVENTORY — Azazael Ecosystem
 
+> **3.14t RETIRED 2026-10-19 — read this before quoting any number below.**
+> This inventory is a **capture of 2026-09-20**, before Python 3.15 existed on
+> this host. Production is now `C:\Azazael\.venvs\py315t` (3.15.0rc3,
+> free-threaded); the GIL sidecar is `C:\Azazael\.venvs\py315`; the retired
+> 3.14t venv `C:\Users\clint\venv-314t` is archived; the only sanctioned 3.14
+> runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Every row below therefore
+> describes an environment that no longer serves production, and a package count
+> measured in a 3.14 venv is **not** evidence that the package imports on 3.15t.
+> Re-run `scripts/build_runtime_baseline.py` for current numbers rather than
+> reading these as capabilities.
+
 **Generated:** 2026-09-20 (live probe, not derived from prose)
 **Method:** direct interrogation of every reachable environment. Raw captures in
 `azazael/reports/env_inventory/` (`*_raw.txt`, `*_pip.txt`, `*_apt.txt`,

@@ -1,21 +1,28 @@
 """noxfile.py — Multi-Python test sessions for Azazael.
 
+3.14 RETIREMENT (2026-10-19): the 3.14t free-threaded venv is archived and is
+no longer a session target. Production is the free-threaded 3.15 build; the
+GIL 3.15 build is the same version with the GIL on, so a session pair isolates
+threading rather than version drift. The only sanctioned 3.14 runtime is the
+3.14m GIL venv, and it is not a test target — it exists for a dependency that
+has no 3.15 build.
+
 Usage:
-    nox                          # Run default sessions (tests-314, tests-314t)
-    nox -s tests-314             # Standard Python 3.14 only
-    nox -s tests-314t            # Free-threaded Python 3.14t only
-    nox -s quick-314             # Quick smoke test under standard 3.14
-    nox -s quick-314t            # Quick smoke test under free-threaded 3.14t
+    nox                          # Run default sessions (tests-315, tests-315t)
+    nox -s tests-315             # Standard Python 3.15 only
+    nox -s tests-315t            # Free-threaded Python 3.15t only
+    nox -s quick-315             # Quick smoke test under standard 3.15
+    nox -s quick-315t            # Quick smoke test under free-threaded 3.15t
     nox --list                   # List available sessions
 
 Requires:
-    python3.14  — Standard CPython 3.14 (on PATH)
-    python3.14t — Free-threaded CPython 3.14t (on PATH)
+    python3.15  — Standard CPython 3.15 (on PATH)
+    python3.15t — Free-threaded CPython 3.15t (on PATH)
 """
 
 import nox
 
-nox.options.sessions = ["tests-314", "tests-314t"]
+nox.options.sessions = ["tests-315", "tests-315t"]
 nox.options.reuse_existing_virtualenvs = True
 
 
@@ -56,32 +63,32 @@ def _run_quick_tests(session: nox.Session) -> None:
         )
 
 
-@nox.session(python="3.14", name="tests-314")
-def tests_314(session: nox.Session) -> None:
-    """Full test suite under standard Python 3.14 (non-free-threaded)."""
+@nox.session(python="3.15", name="tests-315")
+def tests_315(session: nox.Session) -> None:
+    """Full test suite under standard Python 3.15 (non-free-threaded)."""
     _run_tests(session)
 
 
-@nox.session(python="3.14t", name="tests-314t")
-def tests_314t(session: nox.Session) -> None:
-    """Full test suite under free-threaded Python 3.14t.
+@nox.session(python="3.15t", name="tests-315t")
+def tests_315t(session: nox.Session) -> None:
+    """Full test suite under free-threaded Python 3.15t.
 
-    Note: This is the PRIMARY test target — Azazael is designed for
-    the GIL-disabled 3.14t build. Standard 3.14 will also work but
-    with degraded parallel performance (CLUSTERWORMS, CONCURRENCY).
+    Note: This is the PRIMARY test target — Azazael runs on the GIL-disabled
+    3.15t build. Standard 3.15 will also work but with degraded parallel
+    performance (CLUSTERWORMS, CONCURRENCY).
     """
     _run_tests(session)
 
 
-@nox.session(python="3.14", name="quick-314")
-def quick_314(session: nox.Session) -> None:
-    """Quick smoke test (predefined files, ``--quick`` mode) under standard 3.14."""
+@nox.session(python="3.15", name="quick-315")
+def quick_315(session: nox.Session) -> None:
+    """Quick smoke test (predefined files, ``--quick`` mode) under standard 3.15."""
     _run_quick_tests(session)
 
 
-@nox.session(python="3.14t", name="quick-314t")
-def quick_314t(session: nox.Session) -> None:
-    """Quick smoke test (predefined files, ``--quick`` mode) under free-threaded 3.14t."""
+@nox.session(python="3.15t", name="quick-315t")
+def quick_315t(session: nox.Session) -> None:
+    """Quick smoke test (predefined files, ``--quick`` mode) under free-threaded 3.15t."""
     _run_quick_tests(session)
 
 
@@ -90,7 +97,7 @@ def quick_314t(session: nox.Session) -> None:
 # ═══════════════════════════════════════════════════════════════════
 
 
-@nox.session(python="3.14t", name="lint")
+@nox.session(python="3.15t", name="lint")
 def lint(session: nox.Session) -> None:
     """Run ruff linter on the src/ directory."""
     session.install("ruff")
@@ -100,7 +107,7 @@ def lint(session: nox.Session) -> None:
     )
 
 
-@nox.session(python="3.14t", name="format-check")
+@nox.session(python="3.15t", name="format-check")
 def format_check(session: nox.Session) -> None:
     """Check formatting with ruff (no changes made)."""
     session.install("ruff")
@@ -110,7 +117,7 @@ def format_check(session: nox.Session) -> None:
     )
 
 
-@nox.session(python="3.14t", name="typecheck")
+@nox.session(python="3.15t", name="typecheck")
 def typecheck(session: nox.Session) -> None:
     """Run mypy type checker on the src/ directory.
 
@@ -124,7 +131,7 @@ def typecheck(session: nox.Session) -> None:
     )
 
 
-@nox.session(python="3.14t", name="lint-all")
+@nox.session(python="3.15t", name="lint-all")
 def lint_all(session: nox.Session) -> None:
     """Run all linters and typecheck in sequence (lint, format-check, typecheck)."""
     lint(session)

@@ -31,7 +31,7 @@ WHAT THESE TESTS DEFEND
    pen is self-describing.
 
 Run:
-    /c/Users/clint/venv-314t/Scripts/python.exe -m pytest tests/test_morphogenesis_opportunity.py -q
+    /c/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_morphogenesis_opportunity.py -q
 """
 
 import sys

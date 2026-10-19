@@ -102,12 +102,15 @@ def _ensure_openvino_path():
     global _OV_DLL_COOKIES
     ov_paths = []
 
-    # Python site-packages (3.14t only)
-    for py_ver in ("Python314",):
-        sp = os.path.join(
+    # Production venv first, then the legacy install (inventory: it still
+    # exists as the base interpreter for the sanctioned 3.14m fallback venv).
+    for sp in (
+        "C:/Azazael/.venvs/py315t/Lib/site-packages",
+        os.path.join(
             os.environ.get("LOCALAPPDATA", ""),
-            "Programs", "Python", py_ver, "Lib", "site-packages"
-        )
+            "Programs", "Python", "Python314", "Lib", "site-packages",
+        ),
+    ):
         ov_libs = os.path.join(sp, "openvino", "libs")
         if os.path.isdir(ov_libs):
             ov_paths.append(ov_libs)

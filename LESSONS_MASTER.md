@@ -1,5 +1,11 @@
 # LESSONS_MASTER.md — Canonical Record of Hard-Won Insights
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Statements
+> below describe the state on the date of each lesson. The threading lessons
+> themselves (locks, import safety, wheel tags) still apply — the version does not.
+
 > **Canonical record of hard-won insights.** Every entry here cost real time and debugging.
 > Read this before making encoding, recording, or batch-render changes.
 

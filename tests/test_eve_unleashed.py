@@ -222,8 +222,9 @@ def test_utils_postprocess_torch():
     from eve_unleashed.utils import postprocess_output
     pytest.importorskip(
         "torch",
-        reason="torch in site-packages is the cp314 (GIL) wheel; python3.14t "
-               "loads only cp314t, so the C-extension cannot import here",
+        reason="torch in site-packages is a GIL-ABI wheel; a free-threaded "
+               "interpreter loads only `t`-suffixed extensions, so the "
+               "C-extension cannot import here",
     )
     import torch
     t = torch.tensor([[1.0, 2.0, 3.0]])

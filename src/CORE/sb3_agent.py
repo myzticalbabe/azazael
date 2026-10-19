@@ -195,17 +195,24 @@ def _needs_gil_enforcement() -> bool:
 def _find_gil_python() -> (str | None):
     """Locate a standard (GIL-enabled) Python interpreter.
 
-    Prefers AZAZAEL_GIL_PYTHON env var, then the sibling standard build
-    (python3.14t.exe implies python.exe next to it), then py -V:3.14.
-    Returns None if no GIL interpreter can be found.
+    Prefers AZAZAEL_GIL_PYTHON env var, then the same-version GIL sidecar
+    (3.15t production pairs with the 3.15 GIL venv, so a suite comparison
+    isolates threading rather than version drift), then the sibling standard
+    build, then py -V:3.15. Returns None if no GIL interpreter is found.
     """
     # 1. Explicit override
     cand = os.environ.get("AZAZAEL_GIL_PYTHON")
     if cand and os.path.isfile(cand):
         return cand
 
-    # 2. Sibling standard build next to the free-threaded exe
-    #    (.../python3.14t.exe -> .../python.exe)
+    # 2. Same-version GIL sidecar. 3.14t was retired 2026-10-19; the 3.15
+    #    GIL venv is the sidecar that actually matches production.
+    sidecar = Path("C:/Azazael/.venvs/py315/Scripts/python.exe")
+    if sidecar.is_file():
+        return str(sidecar)
+
+    # 3. Sibling standard build next to the free-threaded exe
+    #    (.../python3.15t.exe -> .../python.exe)
     try:
         sib = Path(sys.executable).with_name("python.exe")
         if sib.is_file() and sib.resolve() != Path(sys.executable).resolve():
@@ -213,10 +220,10 @@ def _find_gil_python() -> (str | None):
     except Exception as exc:
         note_failure("sb3_agent:L193", exc)
 
-    # 3. py launcher discovery (best-effort, non-fatal)
+    # 4. py launcher discovery (best-effort, non-fatal)
     try:
         proc = subprocess.run(
-            ["py", "-V:3.14", "-c",
+            ["py", "-V:3.15", "-c",
              "import sys; print(sys.executable)"],
             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
         )

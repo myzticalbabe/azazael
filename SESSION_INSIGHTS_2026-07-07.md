@@ -1,5 +1,10 @@
 # SESSION_INSIGHTS — July 7, 2026
 
+> **3.14 RETIRED 2026-10-19** — 3.14t is no longer a runtime in this project;
+> production is the 3.15t venv (`C:\Azazael\.venvs\py315t`), and the only
+> sanctioned 3.14 runtime is `C:\Azazael\.venvs\py314m` (3.14.5 GIL). Session
+> entries below describe the state on their date.
+
 > **Session ID:** `codebuff_20260707_103024`
 > **DirectMemory:** 12 events recorded
 > **Duration:** ~3 hours

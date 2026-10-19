@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
 Azazael HTML Audit Script — validates HTML files for common issues.
 
@@ -10,8 +10,8 @@ Checks:
   5. Balanced script/style tags
 
 Usage:
-  python3.14t scripts/audit_html.py [file1.html file2.html ...]
-  python3.14t scripts/audit_html.py --all    (audits all project HTML files)
+  python3.15t scripts/audit_html.py [file1.html file2.html ...]
+  python3.15t scripts/audit_html.py --all    (audits all project HTML files)
 
 Exit codes:
   0 = all files pass

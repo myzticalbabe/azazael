@@ -6,8 +6,8 @@ WHY THIS EXISTS / WHY A SEPARATE SCRIPT
 ----------------------------------------
 state/tensor_genome.spec.json has declared `trained:false` since the genome
 landed: shape without weights. This script is TENSOR_GENOME_PLAN.md step 1 —
-the GIL-side trainer (torch 2.14+XPU on the GIL 3.14 interpreter; torch
-cannot load under python3.14t, same split as train_fitness_oracle.py).
+the GIL-side trainer (torch 2.14+XPU on the 3.15 GIL sidecar; torch does not
+load under the free-threaded 3.15t build, same split as train_fitness_oracle.py).
 
 WHAT IT TRAINS
 --------------
@@ -31,7 +31,7 @@ Exit codes: 0 trained | 3 not enough history (not an error) | 2 failure.
 Usage:
     python scripts/train_tensor_model.py
     python scripts/train_tensor_model.py --force --epochs 300
-    (Run with the GIL interpreter: torch is unavailable under 3.14t.)
+    (Run with the GIL sidecar: torch is unavailable under the free-threaded 3.15t build.)
 """
 import argparse
 import json
@@ -124,7 +124,7 @@ def main():
         import torch.nn as nn
     except Exception as exc:
         log("FAILED: torch unavailable in this interpreter (%s)" % str(exc)[:120])
-        log("Run with the GIL python (torch cannot load under 3.14t).")
+        log("Run with the 3.15 GIL sidecar (torch does not load under 3.15t).")
         return 2
 
     try:

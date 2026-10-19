@@ -1,9 +1,9 @@
 # coding: utf-8
 """Dual-interpreter smoke check for the PROTEUS organs.
 
-Run under BOTH interpreters:
-    python        _proteus_smoke.py     (GIL: torch+xpu, numpy present)
-    python3.14t   _proteus_smoke.py     (free-threaded: no cp314 C-extensions)
+Run under BOTH interpreters (production 3.15t + its 3.15 GIL sidecar):
+    C:/Azazael/.venvs/py315/Scripts/python.exe   _proteus_smoke.py   (GIL: torch+xpu)
+    C:/Azazael/.venvs/py315t/Scripts/python.exe  _proteus_smoke.py   (free-threaded)
 
 Exits non-zero on any failure so it can gate CI.
 """
@@ -17,10 +17,10 @@ for p in (_ROOT, os.path.join(_ROOT, "src")):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-# Only `_is_gil_enabled()` is authoritative. Matching "t" against
+# Only `_is_gil_enabled()` is authoritative. Matching a "t" against
 # `sys.version` gives a FALSE POSITIVE on the GIL build, because the build path
-# in the version string contains a "t" (e.g. .../Python314). A wrong answer here
-# would let a broken free-threaded path report as green.
+# or executable name can contain a letter that looks like a threading marker.
+# A wrong answer here would let a broken free-threaded path report as green.
 free_threaded = (not sys._is_gil_enabled()) if hasattr(sys, "_is_gil_enabled") else False
 print("interpreter : %s" % sys.version.split()[0])
 print("free-thread : %s" % free_threaded)

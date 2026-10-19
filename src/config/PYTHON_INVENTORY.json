@@ -1,5 +1,6 @@
 {
   "timestamp": "2026-02-13",
+  "superseded_note": "Dated snapshot of 2026-02-13, kept for provenance. Production is C:/Azazael/.venvs/py315t/Scripts/python.exe (3.15t). Python 3.14t was retired and archived 2026-10-19; C:/Azazael/.venvs/py314m is the only sanctioned 3.14 runtime.",
   "total": 18,
   "by_category": {
     "SYSTEM": [

@@ -458,8 +458,12 @@ class AssistantLogProtocol:
 
     def _get_python_info(self) -> list[dict]:
         info = []
+        # Production 3.15t leads. 3.14t was retired 2026-10-19; the 3.14m
+        # venv is the only sanctioned 3.14 runtime.
         known = [
-            r"C:\Python314\python.exe",
+            r"C:\Azazael\.venvs\py315t\Scripts\python.exe",
+            r"C:\Azazael\.venvs\py315\Scripts\python.exe",
+            r"C:\Azazael\.venvs\py314m\Scripts\python.exe",
             r"C:\Program Files\Python311\python.exe",
             r"C:\Users\clint\anaconda3\python.exe",
         ]
