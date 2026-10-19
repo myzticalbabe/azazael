@@ -5,6 +5,7 @@ Circuit Breaker Pattern for AZAZAEL Production Worms
 Implements open/half-open/closed states with:
   - Exponential backoff retry
   - Dead letter queue for failed executions
+  - Time-windowed error-rate tripping (Step 4, CODEBASE_AUDIT_TODO.md P1-12)
   - Cancellation tokens for timeout handling
   - Health scoring per worm
 """
@@ -72,6 +73,16 @@ class CircuitConfig:
     retry_max_delay: float = 60.0
     retry_backoff: float = 2.0
     dead_letter_max: int = 1000
+    #: Step 4 (CODEBASE_AUDIT_TODO.md P1-12) - time-windowed error-rate trip.
+    #: The cumulative `failure_threshold` counts failures regardless of age, so
+    #: a slowly-failing dependency trips it only after a long run of failures; a
+    #: "90% in 10s" rule catches the dependency that is failing *now*. Enabled
+    #: by default because that is the production intent, and `min_samples` keeps
+    #: one early failure from reading as a 100% rate.
+    error_rate_enabled: bool = True
+    error_rate_threshold: float = 0.9
+    error_rate_window: float = 10.0
+    error_rate_min_samples: int = 10
 
 
 #: EP129 phase taxonomy (Agent Failure Taxonomy, 2502.05915). A failure is a
@@ -117,6 +128,11 @@ class CircuitBreaker:
         self.last_success_time = 0.0
         self.half_open_requests = 0
         self.dead_letters: deque = deque(maxlen=self.config.dead_letter_max)
+        #: Sliding window of (timestamp, ok) samples for the error-rate trip.
+        #: Pruned by age on every record and every read, so it never holds more
+        #: than `error_rate_window` seconds of traffic. Guarded by `_lock`, the
+        #: same lock as the counters it is judged against.
+        self._events: deque = deque()
         # Operator-trip provenance. `test_circuit_breaker_integration.py` has
         # called `force_trip()` since the file was written, but the method was
         # never implemented, so the documented operator channel did not exist.
@@ -227,6 +243,43 @@ class CircuitBreaker:
         with self._lock:
             return bool(self.tripped_by_operator)
 
+    def _prune_events_locked(self, now: float) -> None:
+        """Drop samples older than the window. Caller holds `_lock`."""
+        cutoff = now - max(0.0, float(self.config.error_rate_window))
+        while self._events and self._events[0][0] < cutoff:
+            self._events.popleft()
+
+    def _windowed_failure_rate_locked(self, now: float) -> "float | None":
+        """Failure rate inside the window, or None below `min_samples`.
+
+        None is a real answer, not a zero: fewer than `error_rate_min_samples`
+        events is not evidence of a healthy dependency, and returning 0.0 would
+        make "no data yet" indistinguishable from "no failures".
+        """
+        self._prune_events_locked(now)
+        total = len(self._events)
+        if total < max(0, int(self.config.error_rate_min_samples)):
+            return None
+        failures = sum(1 for _ts, _ok in self._events if not _ok)
+        return failures / total
+
+    def _rate_trip_locked(self, now: float) -> bool:
+        """True when the windowed rate alone should trip OPEN. Caller holds `_lock`."""
+        if not self.config.error_rate_enabled:
+            return False
+        rate = self._windowed_failure_rate_locked(now)
+        return rate is not None and rate >= float(self.config.error_rate_threshold)
+
+    def windowed_failure_rate(self) -> "float | None":
+        """Failure rate over `error_rate_window`, or None below `min_samples`.
+
+        Thread-safe. This is the read half of the rate trip, exposed so a caller
+        or a monitor can see the number the breaker tripped on instead of
+        inferring it from the state transition.
+        """
+        with self._lock:
+            return self._windowed_failure_rate_locked(time.time())
+
     def supervise_drift(self, explorer: List[Dict[str, Any]],
                         validator: List[Dict[str, Any]],
                         reason: str = "safety-drift",
@@ -295,6 +348,10 @@ class CircuitBreaker:
             self.state = CircuitState.CLOSED
             self.failure_count = 0
             self.half_open_requests = 0
+            # The window is count-and-time state, like failure_count: a reset
+            # that kept it would leave the rate rule tripping on history the
+            # operator already cleared.
+            self._events.clear()
             self.trip_reason = ""
             self.tripped_at = 0.0
             self.tripped_by_operator = False
@@ -326,23 +383,42 @@ class CircuitBreaker:
         try:
             result = func(*args, **kwargs)
             with self._lock:
+                now = time.time()
                 self.success_count += 1
-                self.last_success_time = time.time()
+                self.last_success_time = now
+                self._events.append((now, True))
+                self._prune_events_locked(now)
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
+                    # A successful probe is evidence the dependency recovered,
+                    # so the pre-trip window is stale evidence. Keeping it would
+                    # re-trip the rate rule on the very next failure and make
+                    # recovery impossible.
+                    self._events.clear()
                     log.info(f"CircuitBreaker({self.name}): HALF_OPEN -> CLOSED")
             return result
         except Exception as e:
             tripped = False
             with self._lock:
+                now = time.time()
                 self.failure_count += 1
-                self.last_failure_time = time.time()
+                self.last_failure_time = now
+                self._events.append((now, False))
+                self._prune_events_locked(now)
                 if (self.state == CircuitState.CLOSED and
                         self.failure_count >= self.config.failure_threshold):
                     self.state = CircuitState.OPEN
                     tripped = True
                     log.warning(f"CircuitBreaker({self.name}): CLOSED -> OPEN ({self.failure_count} failures)")
+                elif (self.state == CircuitState.CLOSED and
+                        self._rate_trip_locked(now)):
+                    self.state = CircuitState.OPEN
+                    tripped = True
+                    log.warning(
+                        f"CircuitBreaker({self.name}): CLOSED -> OPEN "
+                        f"({self._windowed_failure_rate_locked(now):.2%} error rate "
+                        f"over {self.config.error_rate_window:g}s)")
                 elif self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.OPEN
                     tripped = True
@@ -407,6 +483,7 @@ class CircuitBreaker:
             # re-acquire the non-reentrant _lock and self-deadlock.
             total = self.failure_count + self.success_count
             health = 1.0 if total == 0 else self.success_count / total
+            rate = self._windowed_failure_rate_locked(time.time())
             return {
                 "name": self.name,
                 "state": self.state.value,
@@ -420,6 +497,8 @@ class CircuitBreaker:
                 "tripped_at": self.tripped_at,
                 "held": self.tripped_by_operator,
                 "drift_trips": list(self.drift_trips),
+                "windowed_failure_rate": (
+                    None if rate is None else round(rate, 4)),
             }
 
 

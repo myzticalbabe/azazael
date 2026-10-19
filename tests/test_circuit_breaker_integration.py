@@ -120,19 +120,15 @@ def test_recovery_timeout_failure_reopens():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Time-Windowed Error-Rate Tripping (Step 4 — Planned Feature)
+# Time-Windowed Error-Rate Tripping (Step 4 — implemented 2026-10-19)
 # ═══════════════════════════════════════════════════════════════════════
 # The error_rate_* fields on CircuitConfig and the windowed_failure_rate()
-# method on CircuitBreaker are planned enhancements not yet implemented.
-# These tests will be enabled when the feature is added.
-# See: CODEBASE_AUDIT_TODO.md P1-12 Step 4
-
-import pytest
-
-rate_trip_skip = pytest.mark.skip(reason="error_rate features not yet implemented in CircuitBreaker")
+# method on CircuitBreaker implement the Step 4 time-windowed trip: once
+# error_rate_min_samples events sit inside error_rate_window, a failure rate
+# at or above error_rate_threshold trips the breaker OPEN.
+# See: CODEBASE_AUDIT_TODO.md P1-12 Step 4. The tests below are live.
 
 
-@rate_trip_skip
 def test_rate_trip_enabled():
     """Rate tripping is enabled by default."""
     cfg = CircuitConfig()
@@ -142,7 +138,6 @@ def test_rate_trip_enabled():
     assert cfg.error_rate_min_samples == 10
 
 
-@rate_trip_skip
 def test_rate_trip_disabled():
     """When error_rate_enabled=False, rate never trips."""
     cfg = CircuitConfig(
@@ -162,7 +157,6 @@ def test_rate_trip_disabled():
     assert cb.failure_count == 10
 
 
-@rate_trip_skip
 def test_rate_trip_below_min_samples():
     """Rate doesn't trip when fewer than min_samples total events."""
     cfg = CircuitConfig(
@@ -183,7 +177,6 @@ def test_rate_trip_below_min_samples():
     assert rate is None, "should return None when below min_samples"
 
 
-@rate_trip_skip
 def test_rate_trip_triggers_when_threshold_exceeded():
     """Rate trips OPEN when failure rate exceeds threshold with enough samples."""
     cfg = CircuitConfig(
@@ -213,7 +206,6 @@ def test_rate_trip_triggers_when_threshold_exceeded():
     assert rate is not None and rate >= 0.5
 
 
-@rate_trip_skip
 def test_windowed_failure_rate_sliding():
     """Old failures fall out of the sliding window."""
     cfg = CircuitConfig(

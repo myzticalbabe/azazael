@@ -225,7 +225,7 @@ class InferenceEngine:
         if framework == "torch":
             import torch
 
-            tensor = prepare_input_tensor(inputs)
+            tensor = torch.from_numpy(prepare_input_tensor(inputs))
             with torch.no_grad():
                 output = model(tensor)
             predictions = postprocess_output(output, "torch")
