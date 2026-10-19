@@ -34,6 +34,7 @@ from typing import Any, List
 from dataclasses import dataclass, field
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -937,7 +938,6 @@ def run_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="OS CONGRUENCY - Windows System Integration"

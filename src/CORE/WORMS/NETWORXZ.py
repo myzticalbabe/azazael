@@ -24,6 +24,8 @@ import json
 import socket
 from typing import Any, List
 from dataclasses import dataclass
+import argparse
+import subprocess
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -136,7 +138,6 @@ class NETWORXZ:
 
     def ping(self, host: str, count: int = 1, timeout: int = 2) -> dict[str, Any]:
         """Ping a host."""
-        import subprocess
 
         try:
             result = subprocess.run(
@@ -188,7 +189,6 @@ class NETWORXZ:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="NETWORXZ - Network Management Worm")
     parser.add_argument("--interfaces", action="store_true", help="list interfaces")
