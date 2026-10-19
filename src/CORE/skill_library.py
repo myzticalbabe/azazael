@@ -44,6 +44,7 @@ from itertools import permutations
 from typing import Any, Dict, List, Optional
 
 from CORE import audit_trail as _at
+from CORE import technique_runtime as _rt
 from CORE.local_memory import get_memory_store
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
@@ -183,6 +184,56 @@ def family_index(skills: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {"families": families, "unassigned": unassigned,
             "n_families": len(families),
             "n_skills": sum(len(v) for v in families.values()) + len(unassigned)}
+
+
+# -- Agentic Reasoning Survey: layer-by-layer spine scaffold (EP150) --------------
+SPINE_LAYERS = ("L2", "L3", "L4", "L5", "L6")
+
+
+def spine_eval(layers: Any = None, run: bool = False) -> Dict[str, Any]:
+    """Evaluate the L2->L6 reasoning spine layer by layer (EP150).
+
+    The spine exists as separate wired modules (one technique_wiring slice
+    per layer); nothing tied them together per layer. This is that scaffold:
+    it groups the technique_runtime registry by layer and, with run=True,
+    partitions one run_all() pass into per-layer engaged/errored tallies.
+
+    Returns {"layers": {L: {"n_wired", "eps"}}, "coverage",
+    "missing_layers", ["engaged", "errored", "per_layer"] with run=True}.
+    Fail-open: registry import failure returns {"ok": False, ...}.
+    """
+    want = tuple(layers) if layers else SPINE_LAYERS
+    if _rt is None:
+        return {"ok": False, "layers": {}, "coverage": 0.0,
+                "missing_layers": list(want),
+                "error": "technique_runtime unavailable"}
+    reg = _rt.status(record=False)
+    per_layer: Dict[str, Dict[str, Any]] = {layer: {"n_wired": 0, "eps": []}
+                                            for layer in want}
+    for row in reg.get("wirings", []):
+        layer = str(row.get("layer", "")).upper()
+        if layer in per_layer:
+            per_layer[layer]["n_wired"] += 1
+            per_layer[layer]["eps"].append(row.get("ep", "?"))
+    missing = [layer for layer, info in per_layer.items()
+               if not info["n_wired"]]
+    out: Dict[str, Any] = {"ok": True, "layers": per_layer,
+                            "coverage": (len(want) - len(missing)) / len(want),
+                            "missing_layers": missing}
+    if run:
+        results = _rt.run_all(record=False).get("results", {})
+        ep_layer = {row.get("ep"): str(row.get("layer", "")).upper()
+                    for row in reg.get("wirings", [])}
+        tallies: Dict[str, Dict[str, int]] = {
+            layer: {"engaged": 0, "errored": 0} for layer in want}
+        for ep, entry in results.items():
+            layer = ep_layer.get(ep, "")
+            if layer in tallies:
+                tallies[layer]["engaged" if entry.get("ok") else "errored"] += 1
+        out["per_layer"] = tallies
+        out["engaged"] = sum(t["engaged"] for t in tallies.values())
+        out["errored"] = sum(t["errored"] for t in tallies.values())
+    return out
 
 
 # -- EvoSOP: the two missing lifecycle operators (EP354) --------------------------
