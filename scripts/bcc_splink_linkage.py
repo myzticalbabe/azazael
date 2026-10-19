@@ -19,9 +19,12 @@ import json
 import re
 
 import pandas as pd
-from splink.backends.duckdb import DuckDBAPI
-from splink import Linker
-from splink.comparison_library import NameComparison, ForenameSurnameComparison
+try:
+    from splink.backends.duckdb import DuckDBAPI
+    from splink import Linker
+    from splink.comparison_library import NameComparison, ForenameSurnameComparison
+except ImportError as _dep_exc:
+    raise SystemExit("bcc_splink_linkage.py needs splink+duckdb (3.13 tools venv per docstring): " + str(_dep_exc)) from _dep_exc
 
 ROLE_WORDS = ("CEO", "CFO", "Director", "Treasurer", "Chair", "Chairperson",
               "Advisor", "Esq", "President", "former", "ex-", "Board", "(as of",

@@ -17,7 +17,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, "/root/gossamer-oxford-parser")
-from semantical_main import GossamerOxfordParser  # noqa: E402
+try:
+    from semantical_main import GossamerOxfordParser  # noqa: E402
+except ImportError as _dep_exc:
+    raise SystemExit("gosp_parity_check.py needs the gossamer-oxford-parser checkout (WSL2 path /root/gossamer-oxford-parser per docstring): " + str(_dep_exc)) from _dep_exc
 
 def _find_gosp_exe() -> str:
     """Resolve the Rust gosp.exe (2026-09-09 fix: it lives in

@@ -18,7 +18,10 @@ import time
 from pathlib import Path
 
 import networkx as nx
-import rustworkx as rx
+try:
+    import rustworkx as rx
+except ImportError as _dep_exc:
+    raise SystemExit("bench_rustworkx_vs_networkx.py needs rustworkx (3.13 tooling venv per docstring): " + str(_dep_exc)) from _dep_exc
 
 OUT = Path.home() / "RUSTWORKX_BENCH_evidence.json"
 
