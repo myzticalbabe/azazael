@@ -33,6 +33,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from CORE.WORMS.expansion.allocation import rehearse_then_decide
 from CORE.technique_runtime import register
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -270,10 +271,25 @@ def _ep110() -> Dict[str, Any]:
     rehearsal half of this decision has a real host; what is missing is the
     comparison against an actual spawn.
     """
-    sim_cost, spawn_cost = 0.05, 1.20
-    return {"accepted": sim_cost < spawn_cost, "engaged": True,
-            "decision": "simulate" if sim_cost < spawn_cost else "spawn",
-            "where": "CORE.WORMS.expansion.allocation:MCTSPlanner"}
+    proxy = {("discover",): 0.5, ("discover", "execute"): 0.7,
+             ("execute",): 0.4, ("report",): 0.2}
+    verify = {("discover", "execute"): 0.9, ("discover", "report"): 0.6,
+              ("discover",): 0.3}
+    # Caller-measured spawn latency (seconds); no spawn path is instrumented
+    # yet, so the scale stays a parameter — the rehearsal side is measured.
+    out = rehearse_then_decide(
+        arms=["discover", "execute", "report"],
+        pre_score=lambda seq: proxy.get(tuple(seq), 0.35),
+        post_eval=lambda seq: verify.get(tuple(seq), 0.1),
+        iters=12, spawn_cost=1.20)
+    return {"accepted": out["visits"] > 0, "engaged": True,
+            "decision": out["decision"],
+            "rehearsal_seconds": round(float(out["rehearsal_seconds"]), 6),
+            "margin": round(float(out["margin"]), 6),
+            "best_seq": out["best_seq"],
+            "residual": "spawn-cost scale is caller-supplied; instrument a "
+                        "real spawn path before calling it measured",
+            "where": "CORE.WORMS.expansion.allocation:rehearse_then_decide"}
 
 
 def _ep271() -> Dict[str, Any]:

@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import time
 from typing import Dict, Iterable, List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -512,3 +513,27 @@ class MCTSPlanner:
                 best, best_v = seq, v
         return {"best_seq": list(best), "value": best_v,
                 "visits": dict(self._N)}
+
+
+def rehearse_then_decide(arms, pre_score, post_eval, iters: int,
+                         spawn_cost: float) -> Dict[str, object]:
+    """Simulate-vs-spawn (EP110): rehearse in-process, then decide.
+
+    Runs a live MCTSPlanner rehearsal, times it with perf_counter, and
+    compares the MEASURED rehearsal cost against the caller-supplied
+    spawn cost (a measured spawn latency in the same unit — seconds).
+    spawn_cost is a parameter precisely because no spawn path is
+    instrumented yet; passing it in keeps the decision rule honest
+    instead of hardcoding both sides. Pure apart from wall-clock timing.
+    """
+    planner = MCTSPlanner(arms=list(arms), depth=2)
+    t0 = time.perf_counter()
+    plan = planner.plan(pre_score=pre_score, post_eval=post_eval,
+                        iters=int(iters))
+    rehearsal_seconds = time.perf_counter() - t0
+    spawn = float(spawn_cost)
+    decision = "simulate" if rehearsal_seconds <= spawn else "spawn"
+    return {"best_seq": plan["best_seq"], "value": plan["value"],
+            "visits": len(plan["visits"]),
+            "rehearsal_seconds": rehearsal_seconds, "spawn_cost": spawn,
+            "decision": decision, "margin": spawn - rehearsal_seconds}
