@@ -252,7 +252,7 @@ def create_structure():
         path.mkdir(parents=True, exist_ok=True)
         init_file = path / "__init__.py"
         if not init_file.exists():
-            init_file.write_text(f"# {name}\n")
+            init_file.write_text(f"# {name}\n", encoding="utf-8")
 
 
 def get_module(name: str) -> (ModuleSpec | None):

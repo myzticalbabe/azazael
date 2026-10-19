@@ -42,7 +42,7 @@ import msvcrt
 import os
 import tempfile
 try:
-    _lock_fh = open(os.path.join(tempfile.gettempdir(), 'metacog_cycle.lock'), 'w')
+    _lock_fh = open(os.path.join(tempfile.gettempdir(), 'metacog_cycle.lock'), 'w', encoding="utf-8")
     msvcrt.locking(_lock_fh.fileno(), msvcrt.LK_NBLCK, 1)
 except (OSError, IOError):
     print('SKIP overlap: previous metacog cycle still running', flush=True)

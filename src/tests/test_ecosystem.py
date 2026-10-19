@@ -160,7 +160,7 @@ class TestMetaWormSpawner(unittest.TestCase):
         mws.start(auto_spawn=True)
         fp = mws.export_memory_json()
         self.assertTrue(os.path.exists(fp))
-        with open(fp) as f:
+        with open(fp, encoding="utf-8") as f:
             data = json.load(f)
         self.assertIn("worms", data)
         self.assertIn("fleet_status", data)

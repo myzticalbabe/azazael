@@ -57,7 +57,7 @@ class EveConfig:
         if not config_path.exists():
             raise FileNotFoundError(f"Config not found: {path}")
 
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             data = json.load(f)
 
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
@@ -68,7 +68,7 @@ class EveConfig:
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
         data = {k: getattr(self, k) for k in self.__dataclass_fields__}
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     @classmethod

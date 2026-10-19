@@ -238,7 +238,7 @@ class TarbabyEnhanced:
         conflicts: list[BinaryConflict] = []
 
         try:
-            content = file_path.read_text()
+            content = file_path.read_text(encoding="utf-8")
             data = json.loads(content)
 
             if isinstance(data, dict):
@@ -294,7 +294,7 @@ class TarbabyEnhanced:
         try:
             import yaml
 
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 yaml.safe_load(f)
 
         except yaml.YAMLError as e:
@@ -359,7 +359,7 @@ class TarbabyEnhanced:
         """Analyze Python file for potential binary conflicts."""
         conflicts: list[BinaryConflict] = []
 
-        content = file_path.read_text()
+        content = file_path.read_text(encoding="utf-8")
 
         pattern_matching = re.findall(r"\bmatch\b", content)
         if len(pattern_matching) > 5:
@@ -536,11 +536,11 @@ class TarbabyEnhanced:
         source = Path(conflict.source_file)
 
         try:
-            data = json.loads(source.read_text())
+            data = json.loads(source.read_text(encoding="utf-8"))
             data["version"] = data.get("version", "1.0.0")
 
             self._create_backup(source)
-            source.write_text(json.dumps(data, indent=2))
+            source.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
             return ConflictResolution(
                 conflict=conflict,
@@ -564,11 +564,11 @@ class TarbabyEnhanced:
         source = Path(conflict.source_file)
 
         try:
-            data = json.loads(source.read_text())
+            data = json.loads(source.read_text(encoding="utf-8"))
             data["_schema"] = data.get("_schema", "1.0.0")
 
             self._create_backup(source)
-            source.write_text(json.dumps(data, indent=2))
+            source.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
             return ConflictResolution(
                 conflict=conflict,
@@ -623,7 +623,7 @@ class TarbabyEnhanced:
         source = Path(conflict.source_file)
 
         try:
-            content = source.read_text()
+            content = source.read_text(encoding="utf-8")
             original = content
 
             content = re.sub(
@@ -634,7 +634,7 @@ class TarbabyEnhanced:
 
             if content != original:
                 self._create_backup(source)
-                source.write_text(content)
+                source.write_text(content, encoding="utf-8")
 
                 return ConflictResolution(
                     conflict=conflict,
@@ -684,11 +684,11 @@ class TarbabyEnhanced:
 
         try:
             if source.suffix == ".json":
-                data = json.loads(source.read_text())
+                data = json.loads(source.read_text(encoding="utf-8"))
             elif source.suffix in [".yaml", ".yml"]:
                 import yaml
 
-                data = yaml.safe_load(source.read_text())
+                data = yaml.safe_load(source.read_text(encoding="utf-8"))
             elif source.suffix in [".pkl", ".pickle"]:
                 with open(source, "rb") as f:
                     data = pickle.load(f)
@@ -698,9 +698,9 @@ class TarbabyEnhanced:
             if target_format == "yaml":
                 import yaml
 
-                dest.write_text(yaml.dump(data))
+                dest.write_text(yaml.dump(data), encoding="utf-8")
             elif target_format == "json":
-                dest.write_text(json.dumps(data, indent=2))
+                dest.write_text(json.dumps(data, indent=2), encoding="utf-8")
             elif target_format == "pickle":
                 with open(dest, "wb") as f:
                     pickle.dump(data, f)
@@ -731,12 +731,12 @@ class TarbabyEnhanced:
 
         for py_file in source.rglob("*.py"):
             try:
-                content = py_file.read_text()
+                content = py_file.read_text(encoding="utf-8")
                 original = content
 
                 if content != original:
                     self._create_backup(py_file)
-                    py_file.write_text(content)
+                    py_file.write_text(content, encoding="utf-8")
                     files_migrated += 1
 
             except Exception as e:
@@ -782,7 +782,7 @@ class TarbabyEnhanced:
             ],
         }
 
-        Path(output_path).write_text(json.dumps(output, indent=2))
+        Path(output_path).write_text(json.dumps(output, indent=2), encoding="utf-8")
         print(f"Report exported to: {output_path}")
 
 

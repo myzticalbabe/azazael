@@ -133,7 +133,7 @@ def main():
             report += f"- Status: {d['status']}\n"
             report += f"- Error: {d['error']}\n\n"
 
-            Path("SYNTAX_FIX_REPORT.md").write_text(report)
+            Path("SYNTAX_FIX_REPORT.md").write_text(report, encoding="utf-8")
             print("\nReport saved: SYNTAX_FIX_REPORT.md")
     else:
         print("\nNo syntax errors found!")

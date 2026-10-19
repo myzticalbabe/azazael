@@ -163,7 +163,7 @@ class TestDataPipelineWorm(unittest.TestCase):
         try:
             self.pipeline.load([{"test": "data"}], tmp_path)
             self.assertTrue(os.path.exists(tmp_path))
-            with open(tmp_path) as f:
+            with open(tmp_path, encoding="utf-8") as f:
                 data = json.load(f)
             self.assertEqual(data[0]["test"], "data")
         finally:

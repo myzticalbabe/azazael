@@ -821,7 +821,7 @@ adb -s 127.0.0.1:5555 shell
 
     for name, content in shortcuts:
         path = shortcuts_dir / name
-        path.write_text(content)
+        path.write_text(content, encoding="utf-8")
         logger.info(f"Created shortcut: {path}")
 
 

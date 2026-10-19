@@ -823,7 +823,7 @@ class METAWORMS:
 
         # Save summary to file
         summary_file = Path(MetaWormConfig.OUTPUT_PATH) / "enriched_summary.json"
-        with open(summary_file, "w") as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "timestamp": self.start_time.isoformat(),
@@ -854,7 +854,7 @@ class METAWORMS:
             output_file = (
                 Path(MetaWormConfig.OUTPUT_PATH) / f"{name.lower()}_enriched.json"
             )
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(
                     {
                         "name": result.name,
@@ -920,7 +920,7 @@ class METAWORMS:
 """
 
         report_file = Path(MetaWormConfig.REPORTS_PATH) / "metaworms_report.html"
-        with open(report_file, "w") as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             f.write(html)
 
         print(f"{Colors.CYAN}HTML Report:{Colors.ENDC} {report_file}")

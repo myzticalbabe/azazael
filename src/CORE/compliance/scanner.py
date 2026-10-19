@@ -960,7 +960,7 @@ def run_cli():
     if args.scannerignore:
         ignore_path = Path(args.scannerignore)
         if ignore_path.exists():
-            for line in ignore_path.read_text().splitlines():
+            for line in ignore_path.read_text(encoding="utf-8").splitlines():
                 line = line.strip()
                 if line and not line.startswith("#"):
                     _scannerignore_patterns.add(line)

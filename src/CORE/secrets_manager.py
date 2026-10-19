@@ -204,7 +204,7 @@ class SecretsManager:
         env_vars_from_file: dict[str, str] = {}
         if self._env_path.exists():
             try:
-                for line in self._env_path.read_text(errors="replace").splitlines():
+                for line in self._env_path.read_text(encoding="utf-8", errors="replace").splitlines():
                     line = line.strip()
                     if not line or line.startswith("#") or "=" not in line:
                         continue
@@ -221,7 +221,7 @@ class SecretsManager:
         if self._config_dir.exists():
             for cf in self._config_dir.glob("*_config.json"):
                 try:
-                    data = json.loads(cf.read_text())
+                    data = json.loads(cf.read_text(encoding="utf-8"))
                     api_key = data.get("api_key", "").strip()
                     if api_key:
                         stem = cf.stem.replace("_config", "")
@@ -319,7 +319,7 @@ class SecretsManager:
         try:
             env = ""
             if self._env_path.exists():
-                env = self._env_path.read_text(errors="replace").rstrip()
+                env = self._env_path.read_text(encoding="utf-8", errors="replace").rstrip()
 
             # Check if env_var is already defined (exact match at line start, not in comments)
             found = False
@@ -341,7 +341,7 @@ class SecretsManager:
             # Atomic write: temp file first, then rename
             new_content = "\n".join(new_lines).strip() + "\n"
             tmp_path = self._env_path.with_name(".env.tmp")
-            tmp_path.write_text(new_content)
+            tmp_path.write_text(new_content, encoding="utf-8")
             tmp_path.replace(self._env_path)
             self._refresh()
             return True

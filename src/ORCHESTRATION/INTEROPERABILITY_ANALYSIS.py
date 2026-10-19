@@ -560,7 +560,7 @@ def main():
     from typing import List
 
     output_path = str(get_desktop_dir() / "HORUS" / "results" / "interoperability_analysis.json")
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
     # print(f"Report saved to: {output_path}")
 

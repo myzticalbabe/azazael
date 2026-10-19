@@ -299,7 +299,7 @@ class MorphingWorm:
             },
             "stats": self.stats,
         }
-        with open(self.root / filename, "w") as f:
+        with open(self.root / filename, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2)
         print(f"[+] State saved to {filename}")
 

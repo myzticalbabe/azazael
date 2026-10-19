@@ -606,7 +606,7 @@ class HYDRACluster:
             "last_updated": datetime.now().isoformat(),
         }
 
-        with open(self.state_path / "cluster_state.json", "w") as f:
+        with open(self.state_path / "cluster_state.json", "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2)
 
     def load_state(self):
@@ -615,7 +615,7 @@ class HYDRACluster:
         if not state_file.exists():
             return
 
-        with open(state_file) as f:
+        with open(state_file, encoding="utf-8") as f:
             state = json.load(f)
 
         self.nodes = {}

@@ -50,7 +50,7 @@ except ImportError as exc:
 
 def _read(path: str) -> str:
     try:
-        with open(path, "r", errors="replace") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
     except Exception as exc:
         note_failure("envmesh:L40", exc)

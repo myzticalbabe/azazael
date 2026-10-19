@@ -203,7 +203,7 @@ class ThermalThrottleWorm:
     def sample_c(self) -> float | None:
         for p in self.SYSFS_PATHS:
             try:
-                with open(p) as f:
+                with open(p, encoding="utf-8") as f:
                     raw = int(f.read().strip())
                     return raw / 1000.0 if raw > 1000 else float(raw)
             except Exception as exc:

@@ -65,7 +65,7 @@ def improve_bat_file(bat_path: Path) -> dict:
     result = {"path": str(bat_path), "improved": False, "changes": []}
 
     try:
-        content = bat_path.read_text()
+        content = bat_path.read_text(encoding="utf-8")
 
         # Extract name
         name = bat_path.stem
@@ -99,7 +99,7 @@ def improve_bat_file(bat_path: Path) -> dict:
             return result
 
         # Write improved version
-        bat_path.write_text(improved)
+        bat_path.write_text(improved, encoding="utf-8")
         result["improved"] = True
         result["changes"].append("Added setlocal and error handling")
         result["changes"].append("Added logging to logs directory")
@@ -161,7 +161,7 @@ def main():
                     report += f"- {change}\n"
             report += "\n"
 
-            Path("BAT_IMPROVEMENTS_REPORT.md").write_text(report)
+            Path("BAT_IMPROVEMENTS_REPORT.md").write_text(report, encoding="utf-8")
             print("\nReport: BAT_IMPROVEMENTS_REPORT.md")
 
 

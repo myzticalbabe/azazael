@@ -202,7 +202,7 @@ class DiagnosticWorm:
 
             for wf in worm_files:
                 if wf.exists():
-                    content = wf.read_text()
+                    content = wf.read_text(encoding="utf-8")
                     for match in re.finditer(r"^import\s+(\w+)", content, re.MULTILINE):
                         G.add_edge(wf.name, match.group(1) + ".py")
 
@@ -276,7 +276,7 @@ class DiagnosticWorm:
             "fixes_applied": self.fixes_applied,
         }
 
-        with open(report_path, "w") as f:
+        with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"\nReport saved: {report_path}")

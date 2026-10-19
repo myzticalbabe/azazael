@@ -385,7 +385,7 @@ def cmd_workflow_start(args):
 
 
 
-    with open(args.file) as f:
+    with open(args.file, encoding="utf-8") as f:
 
         wf_data = json.load(f)
 

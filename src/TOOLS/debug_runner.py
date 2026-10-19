@@ -244,7 +244,7 @@ print(f"ffmpeg: {{'found' if shutil.which('ffmpeg') else 'not found'}}")
 
         for html_file in html_files:
             try:
-                content = html_file.read_text(errors='replace')
+                content = html_file.read_text(encoding='utf-8', errors='replace')
                 checks = {
                     '<!DOCTYPE html>': content.count('<!DOCTYPE html>'),
                     '</html>': content.count('</html>'),
@@ -357,7 +357,7 @@ print(f"ffmpeg: {{'found' if shutil.which('ffmpeg') else 'not found'}}")
         }
 
         report_path = self.session_dir / "report.json"
-        report_path.write_text(json.dumps(report, indent=2))
+        report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
         # Also write human-readable summary
         summary_path = self.session_dir / "summary.txt"
@@ -376,7 +376,7 @@ print(f"ffmpeg: {{'found' if shutil.which('ffmpeg') else 'not found'}}")
             lines.append(f"  {status} {r.component:<25} {r.duration_ms:6.0f}ms  {r.message}")
             if r.error:
                 lines.append(f"       Error: {r.error[:200]}")
-        summary_path.write_text("\n".join(lines))
+        summary_path.write_text("\n".join(lines), encoding="utf-8")
 
         return report_path
 

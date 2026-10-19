@@ -180,7 +180,7 @@ class QuickMapper:
 
         # Save
         output_path = Path(__file__).parent / "python_system_quickmap.json"
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=2)
         print(f"\n[+] Saved to: {output_path}")
         print("=" * 50)

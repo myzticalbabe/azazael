@@ -517,7 +517,7 @@ class SystemManager:
             "results": results,
             "health": self.get_health_summary(),
         }
-        with open(self.report_file, "w") as f:
+        with open(self.report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, default=str)
 
     def cleanup_python_installers(self) -> dict:

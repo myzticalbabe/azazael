@@ -143,7 +143,7 @@ _MESH_ENVS = tuple(VALID_ENVS) + ("g_archive", "standalone")
 
 def _read_text(path: str) -> str:
     try:
-        with open(path, 'r', errors='replace') as f:
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
             return f.read()
     except Exception as exc:
         note_failure("mesh:L129", exc)

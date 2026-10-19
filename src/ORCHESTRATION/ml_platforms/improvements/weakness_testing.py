@@ -1192,7 +1192,7 @@ def run_comprehensive_test():
 
     # Save results
     results_file = DATA_DIR / "weakness_test_results.json"
-    with open(results_file, "w") as f:
+    with open(results_file, "w", encoding="utf-8") as f:
         json.dump(
             {
                 "summary": summary,

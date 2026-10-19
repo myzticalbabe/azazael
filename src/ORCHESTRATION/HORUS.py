@@ -908,7 +908,7 @@ def export_ecosystem_info(filepath: (str | None) = None) -> str:
         },
     }
 
-    Path(filepath).write_text(json.dumps(ecosystem_data, indent=2, ensure_ascii=False))
+    Path(filepath).write_text(json.dumps(ecosystem_data, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Ecosystem info exported to: {filepath}")
     return filepath
 
@@ -1286,7 +1286,7 @@ class HORUSLiveMonitor:
         }
         export_path = self.base_path / "HORUS" / "output" / "monitor_status.json"
         export_path.parent.mkdir(parents=True, exist_ok=True)
-        export_path.write_text(json.dumps(status_data, indent=2))
+        export_path.write_text(json.dumps(status_data, indent=2), encoding="utf-8")
         self.log(f"Status exported to {export_path}", "EXPORT", "#a855f7")
 
     def update_time(self):

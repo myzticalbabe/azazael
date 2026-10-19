@@ -194,7 +194,7 @@ class RustRunner:
         binary_path = RUST_BUILD_DIR / f"azazael_{code_hash}"
 
         # Write source
-        source_path.write_text(code)
+        source_path.write_text(code, encoding="utf-8")
 
         # Compile
         compile_result = self._compile(source_path, binary_path)

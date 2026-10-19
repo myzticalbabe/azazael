@@ -78,7 +78,7 @@ class TestCheckpoint:
         assert not mock_checkpoint_file.exists()
         save_checkpoint({"key": "val"})
         assert mock_checkpoint_file.exists()
-        content = json.loads(mock_checkpoint_file.read_text())
+        content = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert content == {"key": "val"}
 
     def test_save_checkpoint_with_nonexistent_parent(self, tmp_dir):
@@ -92,7 +92,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_corrupted(self, mock_checkpoint_file):
         """Loading a corrupted checkpoint should return empty dict."""
-        mock_checkpoint_file.write_text("{invalid json")
+        mock_checkpoint_file.write_text("{invalid json", encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -138,7 +138,7 @@ class TestCheckpoint:
         from sync_g_drive import mark_chunk_complete
 
         mark_chunk_complete("src/dir1", {"rc": 0})
-        cp = json.loads(mock_checkpoint_file.read_text())
+        cp = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert "src/dir1" in cp
         assert cp["src/dir1"]["rc"] == 0
         assert "completed_at" in cp["src/dir1"]
@@ -149,7 +149,7 @@ class TestCheckpoint:
 
         mark_chunk_complete("src/dir1", {"rc": 0})
         mark_chunk_complete("src/dir2", {"rc": 1})
-        cp = json.loads(mock_checkpoint_file.read_text())
+        cp = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert "src/dir1" in cp
         assert "src/dir2" in cp
 
@@ -179,7 +179,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_list_returns_empty(self, mock_checkpoint_file):
         """load_checkpoint should return {} for JSON array (non-dict)."""
-        mock_checkpoint_file.write_text(json.dumps([1, 2, 3]))
+        mock_checkpoint_file.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -187,7 +187,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_string_returns_empty(self, mock_checkpoint_file):
         """load_checkpoint should return {} for JSON string (non-dict)."""
-        mock_checkpoint_file.write_text(json.dumps("just a string"))
+        mock_checkpoint_file.write_text(json.dumps("just a string"), encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -195,7 +195,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_number_returns_empty(self, mock_checkpoint_file):
         """load_checkpoint should return {} for JSON number (non-dict)."""
-        mock_checkpoint_file.write_text(json.dumps(42))
+        mock_checkpoint_file.write_text(json.dumps(42), encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -203,7 +203,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_null_returns_empty(self, mock_checkpoint_file):
         """load_checkpoint should return {} for JSON null (non-dict)."""
-        mock_checkpoint_file.write_text(json.dumps(None))
+        mock_checkpoint_file.write_text(json.dumps(None), encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -211,7 +211,7 @@ class TestCheckpoint:
 
     def test_load_checkpoint_boolean_returns_empty(self, mock_checkpoint_file):
         """load_checkpoint should return {} for JSON bool (non-dict)."""
-        mock_checkpoint_file.write_text("true")
+        mock_checkpoint_file.write_text("true", encoding="utf-8")
         from sync_g_drive import load_checkpoint
 
         cp = load_checkpoint()
@@ -222,7 +222,7 @@ class TestCheckpoint:
     def test_mark_chunk_complete_with_list_checkpoint(self, mock_checkpoint_file):
         """mark_chunk_complete should handle when checkpoint contains a list (non-dict)."""
         # Write a list to the checkpoint (simulating corruption from a previous bug)
-        mock_checkpoint_file.write_text(json.dumps(["bad", "data"]))
+        mock_checkpoint_file.write_text(json.dumps(["bad", "data"]), encoding="utf-8")
 
         from sync_g_drive import mark_chunk_complete, is_chunk_complete
 
@@ -231,7 +231,7 @@ class TestCheckpoint:
         mark_chunk_complete("src/dir1", {"rc": 0})
 
         # After mark, the file should contain the proper dict, not the old list
-        cp = json.loads(mock_checkpoint_file.read_text())
+        cp = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert isinstance(cp, dict)
         assert "src/dir1" in cp
         assert cp["src/dir1"]["rc"] == 0
@@ -241,29 +241,29 @@ class TestCheckpoint:
 
     def test_mark_chunk_complete_with_string_checkpoint(self, mock_checkpoint_file):
         """mark_chunk_complete should handle when checkpoint contains a string."""
-        mock_checkpoint_file.write_text(json.dumps("corrupted"))
+        mock_checkpoint_file.write_text(json.dumps("corrupted"), encoding="utf-8")
 
         from sync_g_drive import mark_chunk_complete, is_chunk_complete
 
         mark_chunk_complete("src/dir1", {"rc": 0})
-        cp = json.loads(mock_checkpoint_file.read_text())
+        cp = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert isinstance(cp, dict)
         assert "src/dir1" in cp
         assert is_chunk_complete("src/dir1") is True
 
     def test_save_checkpoint_overwrites_list(self, mock_checkpoint_file):
         """save_checkpoint should save a proper dict even if file previously held a list."""
-        mock_checkpoint_file.write_text(json.dumps([1, 2, 3]))
+        mock_checkpoint_file.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
 
         from sync_g_drive import save_checkpoint
 
         save_checkpoint({"proper": "dict"})
-        cp = json.loads(mock_checkpoint_file.read_text())
+        cp = json.loads(mock_checkpoint_file.read_text(encoding="utf-8"))
         assert cp == {"proper": "dict"}
 
     def test_is_chunk_complete_with_list_checkpoint(self, mock_checkpoint_file):
         """is_chunk_complete should return False when checkpoint contains a list."""
-        mock_checkpoint_file.write_text(json.dumps(["src/dir1"]))
+        mock_checkpoint_file.write_text(json.dumps(["src/dir1"]), encoding="utf-8")
 
         from sync_g_drive import is_chunk_complete
 
@@ -395,7 +395,7 @@ class TestSyncLargeDirectoryChunked:
         (src / ".hidden").mkdir()
         (src / "__pycache__").mkdir()
         (src / "visible").mkdir()
-        (src / "visible" / "f.txt").write_text("hello")
+        (src / "visible" / "f.txt").write_text("hello", encoding="utf-8")
 
         from sync_g_drive import sync_large_directory_chunked
 
@@ -419,10 +419,10 @@ class TestSyncLargeDirectoryChunked:
         """
         src = tmp_dir / "src2"
         src.mkdir()
-        (src / "readme.txt").write_text("root file")  # File at root
+        (src / "readme.txt").write_text("root file", encoding="utf-8")  # File at root
         sub = src / "subdir"
         sub.mkdir()
-        (sub / "data.txt").write_text("nested")
+        (sub / "data.txt").write_text("nested", encoding="utf-8")
 
         from sync_g_drive import sync_large_directory_chunked
 
@@ -448,9 +448,9 @@ class TestSyncLargeDirectoryChunked:
         src = tmp_dir / "src3"
         src.mkdir()
         (src / "done_dir").mkdir()
-        (src / "done_dir" / "f.txt").write_text("done")
+        (src / "done_dir" / "f.txt").write_text("done", encoding="utf-8")
         (src / "pending_dir").mkdir()
-        (src / "pending_dir" / "g.txt").write_text("pending")
+        (src / "pending_dir" / "g.txt").write_text("pending", encoding="utf-8")
 
         from sync_g_drive import sync_large_directory_chunked
 
@@ -478,7 +478,7 @@ class TestSyncLargeDirectoryChunked:
         src = tmp_dir / "src4"
         src.mkdir()
         (src / "adir").mkdir()
-        (src / "adir" / "f.txt").write_text("a")
+        (src / "adir" / "f.txt").write_text("a", encoding="utf-8")
 
         from sync_g_drive import sync_large_directory_chunked
 
@@ -697,14 +697,14 @@ class TestVerifySync:
         for rel_path in self.MARKER_FILES:
             file = root / rel_path
             file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_text(content)
+            file.write_text(content, encoding="utf-8")
 
     def _create_g_files(self, root: Path, rel_paths, content: str = "# g"):
         """Create specific marker files on G: drive."""
         for rel_path in rel_paths:
             file = root / rel_path
             file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_text(content)
+            file.write_text(content, encoding="utf-8")
 
     def test_verify_sync_all_missing(self, tmp_dir):
         """verify_sync should report MISSING for all files when G: drive is empty."""
@@ -787,11 +787,11 @@ class TestVerifySync:
         stale_path = "src/CORE/local_memory.py"
         stale_g = g_root / stale_path
         stale_g.parent.mkdir(parents=True, exist_ok=True)
-        stale_g.write_text("# old G content")
+        stale_g.write_text("# old G content", encoding="utf-8")
         os.utime(stale_g, (old_ts, old_ts))  # G: has old timestamp
         # Source has newer timestamp → STALE (src.mtime > dst.mtime)
         new_ts = 2000000000.0
-        (src_root / stale_path).write_text("# NEWER source content")
+        (src_root / stale_path).write_text("# NEWER source content", encoding="utf-8")
         os.utime(src_root / stale_path, (new_ts, new_ts))
 
         with patch("sync_g_drive.SOURCE_ROOT", src_root):
@@ -817,7 +817,7 @@ class TestVerifySync:
         # Create only G: files for some paths but NOT corresponding source files
         g_file = g_root / "src/CORE/direct_memory.py"
         g_file.parent.mkdir(parents=True, exist_ok=True)
-        g_file.write_text("# G content only")
+        g_file.write_text("# G content only", encoding="utf-8")
         # Don't create the source file at src_root / "src/CORE/direct_memory.py"
 
         with patch("sync_g_drive.SOURCE_ROOT", src_root):

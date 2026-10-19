@@ -46,14 +46,14 @@ def update_log(message: str):
     """Append to update_log.txt"""
     log_file = DOCS_DIR / "update_log.txt"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(log_file, "a") as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"{timestamp} - {message}\n")
 
 def verification_log(message: str):
     """Append to verification_log.txt"""
     log_file = DOCS_DIR / "verification_log.txt"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(log_file, "a") as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"{timestamp} - {message}\n")
 
 def sync_backup():
@@ -81,7 +81,7 @@ def add_package(whl_file: str):
     
     # Step 3: APPEND to python_modules.txt
     modules_file = DOCS_DIR / "python_modules.txt"
-    with open(modules_file, "a") as f:
+    with open(modules_file, "a", encoding="utf-8") as f:
         f.write(f"{package_name}\n")
     
     # Step 4: APPEND to python_modules.html (manual)

@@ -583,7 +583,7 @@ def test_dlq_corrupt_file_recovery():
 
     try:
         # Write corrupt content
-        tmp_path.write_text("{ this is not valid JSON !!! }")
+        tmp_path.write_text("{ this is not valid JSON !!! }", encoding="utf-8")
 
         # Should not crash
         dlq = DeadLetterQueue(storage_path=tmp_path)

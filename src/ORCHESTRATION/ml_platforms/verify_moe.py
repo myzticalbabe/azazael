@@ -230,7 +230,7 @@ class DeepLearningQAnalyzer:
             },
         }
 
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2)
 
         logger.info(f"Analysis exported to {filepath}")
@@ -326,7 +326,7 @@ class FrameworkCompatibilityMatrix:
 
     def export_matrix(self, filepath: str):
         """Export compatibility matrix."""
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.matrix, f, indent=2)
 
 
@@ -480,7 +480,7 @@ def verify_system():
         matrix = FrameworkCompatibilityMatrix()
         matrix.export_matrix(str(output_dir / f"compatibility_matrix_{timestamp}.json"))
 
-        with open(str(output_dir / f"verification_report_{timestamp}.json"), "w") as f:
+        with open(str(output_dir / f"verification_report_{timestamp}.json"), "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         print(f"    [OK] Results saved to {output_dir}")

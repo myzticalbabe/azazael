@@ -413,7 +413,7 @@ class SYSTEMZ_ML:
         """Persist history to file."""
         history_file = Path(self.config.HISTORY_FILE)
         history_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(history_file, "w") as f:
+        with open(history_file, "w", encoding="utf-8") as f:
             json.dump(
                 [
                     {
@@ -434,7 +434,7 @@ class SYSTEMZ_ML:
         history_file = Path(self.config.HISTORY_FILE)
         if history_file.exists():
             try:
-                with open(history_file) as f:
+                with open(history_file, encoding="utf-8") as f:
                     data = json.load(f)
                     self.history = [
                         SystemSnapshot(

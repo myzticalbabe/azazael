@@ -561,7 +561,7 @@ class TARBABYCompiler:
     def save_results(self, results: dict[str, Any]):
         """Save test results to JSON."""
         output_file = Path(self.config.base_output) / "test_results.json"
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
         self.monitor.log(f"Results saved: {output_file}")
 

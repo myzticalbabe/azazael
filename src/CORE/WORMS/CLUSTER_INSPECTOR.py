@@ -511,7 +511,7 @@ class ClusterInspector:
             report = self.generate_report(file_results, env_results)
 
             report_file = self.root / "CLUSTER_INSPECTION_REPORT.json"
-            with open(report_file, "w") as f:
+            with open(report_file, "w", encoding="utf-8") as f:
                 json.dump(report, f, indent=2)
             print(f"Report saved: {report_file}")
 

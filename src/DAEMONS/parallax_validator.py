@@ -126,7 +126,7 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
         return False, f"No token found at {token_path}"
     
     try:
-        data = json.loads(token_path.read_text())
+        data = json.loads(token_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
         note_failure("parallax_validator:L120", e)
         return False, f"Token unreadable: {e}"

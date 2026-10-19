@@ -43,7 +43,7 @@ class DualPanePopup:
     def load_scenes(self):
         """Load scene data."""
         try:
-            with open("frame_sequence.json", "r") as f:
+            with open("frame_sequence.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as exc:
             note_failure("create_dual_pane_popup:L38", exc)

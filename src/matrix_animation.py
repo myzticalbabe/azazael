@@ -231,7 +231,7 @@ if __name__ == "__main__":
         ppm_content = generate_frame(frame)
 
         frame_file = f"{OUTPUT_DIR}/frame_{frame:04d}.ppm"
-        with open(frame_file, "w") as f:
+        with open(frame_file, "w", encoding="utf-8") as f:
             f.write(ppm_content)
 
         if frame % 100 == 0:

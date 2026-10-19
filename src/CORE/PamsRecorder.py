@@ -168,7 +168,7 @@ class PamsRecorder:
         """Load existing fallback records."""
         if os.path.exists(self.fallback_path):
             try:
-                with open(self.fallback_path, "r") as f:
+                with open(self.fallback_path, "r", encoding="utf-8") as f:
                     return json.load(f)[-1000:]  # Keep last 1000
             except Exception as exc:
                 note_failure("PamsRecorder:L124", exc)
@@ -177,7 +177,7 @@ class PamsRecorder:
     def _save_fallback(self):
         """Save fallback records to disk."""
         try:
-            with open(self.fallback_path, "w") as f:
+            with open(self.fallback_path, "w", encoding="utf-8") as f:
                 json.dump(self._fallback_buffer, f, indent=2, default=str)
         except Exception as exc:
             note_failure("PamsRecorder:L133", exc)

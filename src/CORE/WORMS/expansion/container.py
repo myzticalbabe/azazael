@@ -135,7 +135,7 @@ class ComposeValidator:
         issues = []
         try:
             import yaml
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
             if "services" not in data:
                 issues.append({"msg": "Missing 'services' key"})

@@ -437,12 +437,12 @@ class FrameworkState:
             "gamma": self.gamma,
             "epsilon": self.epsilon,
         }
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(save_data, f, indent=2)
 
     def load(self, path: str):
         """Load Q-table and training state."""
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         self.q_table = {tuple(k.split("|")): v for k, v in data["q_table"].items()}
         self.reward_history = data.get("reward_history", [])
@@ -545,7 +545,7 @@ class ExtendedQLearningTable:
     def save(self, path: str):
         """Save training state."""
         save_data = {"q_table": self.q_table, "reward_history": self.reward_history}
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(save_data, f)
 
     def load(self, path: str):
@@ -869,12 +869,12 @@ class DocumentationQLearning:
             "gamma": self.gamma,
             "epsilon": self.epsilon,
         }
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def load(self, path: str):
         """Load training state."""
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         self.q_table = {}
         for k, v in data["q_table"].items():

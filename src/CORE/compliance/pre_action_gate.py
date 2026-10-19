@@ -1838,14 +1838,14 @@ def _self_test_impl() -> bool:
 
     backup = gate.take_snapshot(tmp)
     # Corrupt the file
-    Path(tmp).write_text("x = 1\n    : bad\n")
+    Path(tmp).write_text("x = 1\n    : bad\n", encoding="utf-8")
     ok, msg = gate.validate_after_edit(tmp, backup)
     if ok:
         print("  FAIL: Should have detected syntax error")
         passed_all = False
     else:
         # Check revert
-        restored = Path(tmp).read_text()
+        restored = Path(tmp).read_text(encoding="utf-8")
         if restored == "x = 1\n":
             print("  PASS: Syntax error detected and reverted")
         else:
@@ -1866,13 +1866,13 @@ def _self_test_impl() -> bool:
 
     backup = gate.take_snapshot(tmp)
     # Simulate destructive merge: 'return 1' and 'self.x = 2' joined on one line
-    Path(tmp).write_text("class Foo:\n    def bar(self):\n        return 1        self.x = 2\n")
+    Path(tmp).write_text("class Foo:\n    def bar(self):\n        return 1        self.x = 2\n", encoding="utf-8")
     ok, msg = gate.validate_after_edit(tmp, backup)
     if ok:
         print("  FAIL: Should have detected merged statements")
         passed_all = False
     else:
-        restored = Path(tmp).read_text()
+        restored = Path(tmp).read_text(encoding="utf-8")
         expected = "class Foo:\n    def bar(self):\n        return 1\n        self.x = 2\n"
         if restored == expected:
             print("  PASS: Merged statements detected and reverted")
@@ -1909,7 +1909,7 @@ def _self_test_impl() -> bool:
             print(f"  PASS: Blocked: {msg[:60]}...")
 
         # Verify file was NOT touched
-        if Path(tmp).read_text() == "x = 1\n":
+        if Path(tmp).read_text(encoding="utf-8") == "x = 1\n":
             pass  # Good â€” file untouched
         else:
             print("  FAIL: File was modified despite rejection")
@@ -2005,7 +2005,8 @@ def _self_test_impl() -> bool:
                 "\n"
                 "class Bar:\n"
                 "    def foo(self):\n"
-                "        return 1\n"
+                "        return 1\n",
+                encoding="utf-8",
             )
             hits2 = _HER._scan_for_patterns(dup_tmp)
             heur03_hits2 = [h for h in hits2 if h["pattern_id"] == "HEUR-03"]
@@ -2095,7 +2096,8 @@ def _self_test_impl() -> bool:
                 "def process():\n"
                 "    a = 1\n"
                 "    b = 2\n"
-                "    c = 3\n"
+                "    c = 3\n",
+                encoding="utf-8",
             )
             hits2 = _HER2._scan_for_patterns(jump_tmp)
             heur09_hits2 = [h for h in hits2 if h["pattern_id"] == "HEUR-09"]
@@ -2155,7 +2157,8 @@ def _self_test_impl() -> bool:
                 "    pass\n"
                 "\n"
                 "def other():\n"
-                "    pass\n"
+                "    pass\n",
+                encoding="utf-8",
             )
             hits2 = _HER3._scan_for_patterns(dang_tmp)
             heur10_hits2 = [h for h in hits2 if h["pattern_id"] == "HEUR-10"]

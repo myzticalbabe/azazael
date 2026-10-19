@@ -374,7 +374,7 @@ class TestBackup:
         tmp_dir = tempfile.mkdtemp()
         try:
             blocker = Path(tmp_dir) / "backup_blocker"
-            blocker.write_text("not a directory")
+            blocker.write_text("not a directory", encoding="utf-8")
             with pytest.raises(RuntimeError):
                 self.store.backup(str(blocker / "nested" / "backup.db"))
         finally:

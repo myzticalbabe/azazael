@@ -42,7 +42,7 @@ class BackendBandit:
         spaces and a Beta posterior cannot tell them apart (unit fusion).
         """
         try:
-            lines = BENCH.read_text().splitlines()
+            lines = BENCH.read_text(encoding="utf-8").splitlines()
         except Exception as exc:
             note_failure("backend_bandit:L31", exc)
             return

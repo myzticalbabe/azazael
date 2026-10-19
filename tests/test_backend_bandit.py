@@ -18,10 +18,10 @@ from CORE import backend_bandit as bb
 def _make_bandit(tmp_path, bench_content=None):
     if bench_content is None:
         bench = tmp_path / "bench_results.jsonl"
-        bench.write_text("")
+        bench.write_text("", encoding="utf-8")
     else:
         bench = tmp_path / "bench_results.jsonl"
-        bench.write_text(bench_content)
+        bench.write_text(bench_content, encoding="utf-8")
     bb.BENCH = bench
     return bb.BackendBandit(seed=1.0)
 

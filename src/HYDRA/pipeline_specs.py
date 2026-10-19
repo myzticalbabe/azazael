@@ -164,7 +164,7 @@ class PIPELINES:
     @classmethod
     def save_to_json(cls, filepath: str):
         """Save pipeline specs to JSON file."""
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(cls.to_dict(), f, indent=2)
 
 

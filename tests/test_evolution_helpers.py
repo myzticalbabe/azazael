@@ -53,28 +53,28 @@ class TestTerenceVerify:
 
     def test_good_fix_applies(self, tmp_path):
         p = tmp_path / "a.py"
-        p.write_text("try:\n    x = 1\nexcept:\n    pass\n")
+        p.write_text("try:\n    x = 1\nexcept:\n    pass\n", encoding="utf-8")
         t, fix = self._fix(p, 3, "except:", "except Exception:")
         ok, reason = t._apply_verified(fix)
         assert ok, reason
-        assert "except Exception:" in p.read_text()
+        assert "except Exception:" in p.read_text(encoding="utf-8")
 
     def test_breaking_fix_rolls_back(self, tmp_path):
         p = tmp_path / "a.py"
         before = "x = 1\n"
-        p.write_text(before)
+        p.write_text(before, encoding="utf-8")
         t, fix = self._fix(p, 1, "x = 1", "x = (1")
         ok, reason = t._apply_verified(fix)
         assert not ok
-        assert p.read_text() == before
+        assert p.read_text(encoding="utf-8") == before
 
     def test_stale_line_rejected(self, tmp_path):
         p = tmp_path / "a.py"
-        p.write_text("y = 2\n")
+        p.write_text("y = 2\n", encoding="utf-8")
         t, fix = self._fix(p, 1, "x = 1", "x = 2")
         ok, reason = t._apply_verified(fix)
         assert not ok and "drifted" in reason
-        assert p.read_text() == "y = 2\n"
+        assert p.read_text(encoding="utf-8") == "y = 2\n"
 
     def test_non_utf8_skipped_intact(self, tmp_path):
         p = tmp_path / "a.py"
@@ -91,14 +91,14 @@ class TestTerenceVerify:
             pytest.skip("msvcrt file locking is Windows-only")
         import msvcrt
         p = tmp_path / "a.py"
-        p.write_text("x = 1\n")
-        lfh = open(str(p) + ".terence.lock", "w")  # scanner:ignore
+        p.write_text("x = 1\n", encoding="utf-8")
+        lfh = open(str(p) + ".terence.lock", "w", encoding="utf-8")  # scanner:ignore
         msvcrt.locking(lfh.fileno(), msvcrt.LK_NBLCK, 1)
         try:
             t, fix = self._fix(p, 1, "x = 1", "x = 2")
             ok, reason = t._apply_verified(fix)
             assert not ok and "locked" in reason
-            assert p.read_text() == "x = 1\n"
+            assert p.read_text(encoding="utf-8") == "x = 1\n"
         finally:
             lfh.close()
             try:

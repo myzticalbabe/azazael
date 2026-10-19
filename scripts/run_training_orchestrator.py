@@ -1056,7 +1056,7 @@ def _run_impl():
     import tempfile
     try:
         _lock_fh = open(os.path.join(tempfile.gettempdir(),
-                                     'training_orchestrator.lock'), 'w')
+                                     'training_orchestrator.lock'), 'w', encoding='utf-8')
         msvcrt.locking(_lock_fh.fileno(), msvcrt.LK_NBLCK, 1)
     except (OSError, IOError):
         # Overlap is an honest skip, not a success: the chain carves out

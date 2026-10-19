@@ -184,7 +184,7 @@ class CompleteModuleAnalyzer:
         module = self.modules[path]
 
         try:
-            content = Path(path).read_text(errors="replace")
+            content = Path(path).read_text(encoding="utf-8", errors="replace")
             lines = content.split("\n")
             module.line_count = len(lines)
 
@@ -276,7 +276,7 @@ class ModuleTester:
         start = time.time()
         try:
             # Try basic syntax check first
-            compile(Path(path).read_text(), path, "exec")
+            compile(Path(path).read_text(encoding="utf-8"), path, "exec")
             result["passed"] = True
         except SyntaxError as e:
             note_failure("complete_module_analysis:L269", e)

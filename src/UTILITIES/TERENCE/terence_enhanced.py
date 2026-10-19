@@ -247,7 +247,7 @@ class TerenceEnhanced:
         conflicts = []
 
         try:
-            content = file_path.read_text(errors="ignore")
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
             lines = content.split("\n")
 
             for line_num, line in enumerate(lines, 1):
@@ -317,10 +317,12 @@ class TerenceEnhanced:
                 for line_num in incompatability.lines_affected:
                     if apply_fixes:
                         try:
-                            lines = Path(file_path).read_text().split("\n")
+                            lines = Path(file_path).read_text(
+                                encoding="utf-8"
+                            ).split("\n")
                             if line_num <= len(lines):
                                 lines[line_num - 1] = resolution
-                                Path(file_path).write_text("\n".join(lines))
+                                Path(file_path).write_text("\n".join(lines), encoding="utf-8")
                                 files_modified.add(file_path)
                                 resolutions_applied += 1
                         except Exception as e:

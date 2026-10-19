@@ -610,12 +610,12 @@ class PerformanceMonitor:
         """Save a snapshot to a JSON file."""
         path = Path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "w") as f:  # scanner:ignore
+        with open(path, "w", encoding="utf-8") as f:  # scanner:ignore
             json.dump(snapshot, f, indent=2)
 
     def load_snapshot(self, filepath: str) -> dict[str, Any]:
         """Load a snapshot from a JSON file."""
-        with open(filepath) as f:  # scanner:ignore
+        with open(filepath, encoding="utf-8") as f:  # scanner:ignore
             return json.load(f)
 
     # ── Helpers ─────────────────────────────────────────────────

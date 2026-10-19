@@ -1736,11 +1736,11 @@ def _control_no_false_relocation():
         # enforcement; route the fixture writes through the authorized path
         # rather than weaken the hook for a test.
         with _permit():
-            with open(os.path.join(root, "src", "live.py"), "w") as fh:
+            with open(os.path.join(root, "src", "live.py"), "w", encoding="utf-8") as fh:
                 fh.write("ROOT = %r\n" % "/root/.kali_staging/vermillion_lightfury")
             if _scan_old_path(root, old, set()):
                 return False, "false positive: current path reported as stale"
-            with open(os.path.join(root, "src", "stale.py"), "w") as fh:
+            with open(os.path.join(root, "src", "stale.py"), "w", encoding="utf-8") as fh:
                 fh.write("ROOT = %r\n" % old)
         if not _scan_old_path(root, old, set()):
             return False, "missed a stale reference to the old path"

@@ -409,7 +409,7 @@ class AssistantLogProtocol:
 
     def _read_json(self, path: Path) -> dict:
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as exc:
             note_failure("ADLP_SystemTools:L403", exc)
@@ -423,7 +423,7 @@ class AssistantLogProtocol:
         pass
 
         with self._lock:
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, default=str)
 
     def log(

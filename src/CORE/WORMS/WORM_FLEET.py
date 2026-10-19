@@ -185,7 +185,7 @@ class WormFleet:
 
         # Save report
         report_file = self.root / "WORM_FLEET_REPORT.json"
-        with open(report_file, "w") as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(all_results, f, indent=2)
         print(f"\nReport saved: {report_file}")
 

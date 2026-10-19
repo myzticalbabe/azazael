@@ -103,7 +103,7 @@ def main():
 
     # Save JSON
     out_path = Path(__file__).resolve().parent / "profile_results.json"
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)
     print(f"\n  Results saved to {out_path}")
 

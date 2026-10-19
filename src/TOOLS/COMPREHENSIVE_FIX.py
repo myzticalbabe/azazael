@@ -35,7 +35,7 @@ class ComprehensiveFix:
         timestamp = datetime.now().strftime("%H:%M:%S")
         line = f"{symbol} {timestamp} {msg}\n"
         print(line, end="")
-        with open(self.log_file, 'a') as f:
+        with open(self.log_file, 'a', encoding="utf-8") as f:
             f.write(line)
     
     def detect_platform(self):
@@ -52,7 +52,7 @@ class ComprehensiveFix:
         
         # Check for WSL
         if os.path.exists("/proc/version"):
-            with open("/proc/version") as f:
+            with open("/proc/version", encoding="utf-8") as f:
                 content = f.read()
                 if "microsoft" in content.lower() or "wsl" in content.lower():
                     platform_info["is_wsl"] = True
@@ -218,7 +218,7 @@ class ComprehensiveFix:
                 continue
                 
             try:
-                content = py_file.read_text()
+                content = py_file.read_text(encoding="utf-8")
                 
                 # Check for common GUI mistakes
                 if "import tkinter" in content or "from tkinter" in content:

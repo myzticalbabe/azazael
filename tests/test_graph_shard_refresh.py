@@ -11,10 +11,10 @@ import graph_shard_refresh as gsr
 
 def test_discovers_code_dirs_only(tmp_path):
     (tmp_path / "a").mkdir()
-    (tmp_path / "a" / "x.py").write_text("x = 1\n")
+    (tmp_path / "a" / "x.py").write_text("x = 1\n", encoding="utf-8")
     (tmp_path / "empty").mkdir()
     (tmp_path / ".hidden").mkdir()
-    (tmp_path / ".hidden" / "y.py").write_text("y = 1\n")
+    (tmp_path / ".hidden" / "y.py").write_text("y = 1\n", encoding="utf-8")
     names = [p.name for p in gsr.discover_shards(tmp_path)]
     assert names == ["a"]
 

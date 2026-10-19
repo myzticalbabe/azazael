@@ -33,7 +33,7 @@ def main():
                 "source": os.path.basename(v.get("source_file") or ""),
                 "description": (v.get("description") or "")[:160]}
             for k, v in sorted(WORM_REGISTRY.items())}
-    json.dump(dump, open(os.path.join(ROOT, "worm_config_trace.json"), "w"), indent=1)
+    json.dump(dump, open(os.path.join(ROOT, "worm_config_trace.json"), "w", encoding="utf-8"), indent=1)
     L = ["# WORM CONFIG TRACE — Per-Worm Configuration Audit", "",
          f"> *Regenerated: {now} — Auto-extracted from live WORM_REGISTRY*",
          f"> *Total: {len(dump)} worms across {len(cats)} categories*", "", "---", "",

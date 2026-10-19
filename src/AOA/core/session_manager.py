@@ -162,7 +162,7 @@ class SessionManager:
             return None
         self._storage_dir.mkdir(parents=True, exist_ok=True)
         filepath = self._storage_dir / (session_id + ".json")
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(session.to_dict(), f, indent=2, default=str)
         return filepath
 
@@ -170,7 +170,7 @@ class SessionManager:
         filepath = self._storage_dir / (session_id + ".json")
         if not filepath.exists():
             return None
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         session = SessionState(
             session_id=data["session_id"],

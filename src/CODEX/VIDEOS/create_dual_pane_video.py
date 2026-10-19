@@ -672,7 +672,7 @@ def generate_frame_sequence():
         Path(__file__).resolve().parent / "frame_sequence.json"
     )
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(frames, f, indent=2)
 
     print(f"Frame sequence saved to: {output_path}")

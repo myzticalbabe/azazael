@@ -28,7 +28,7 @@ def test_mandate_exists():
         % ", ".join(str(c) for c in _MANDATE_CANDIDATES)
     )
 
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "TEST_FAILURE_MANDATE" in content, "Mandate must be explicitly defined"

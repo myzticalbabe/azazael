@@ -2501,7 +2501,7 @@ def _single_instance():
     """
     lock = os.path.join(tempfile.gettempdir(), "azazael_live_monitor.lock")
     try:
-        with open(lock) as f:
+        with open(lock, encoding="utf-8") as f:
             old = int((f.read() or "0").strip() or 0)
         if old and _pid_alive(old):
             print(f"Another live monitor is already running (PID {old}) - not starting a second one.",
@@ -2510,7 +2510,7 @@ def _single_instance():
     except (OSError, ValueError):
         pass
     try:
-        with open(lock, "w") as f:
+        with open(lock, "w", encoding="utf-8") as f:
             f.write(str(os.getpid()))
     except OSError:
         pass

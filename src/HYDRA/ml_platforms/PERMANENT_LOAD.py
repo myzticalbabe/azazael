@@ -51,7 +51,7 @@ if ML_PATH not in sys.path:
     if __name__ == "__main__":
         try:
             site_path = os.path.join(os.path.expanduser("~"), "sitecustomize.py")
-            with open(site_path, "a") as f:
+            with open(site_path, "a", encoding="utf-8") as f:
                 f.write(f"\nimport sys\nsys.path.insert(0, r'{ML_PATH}')\n")
             print("[OK] Persisted to user sitecustomize.py")
         except Exception as exc:

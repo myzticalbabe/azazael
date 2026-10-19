@@ -355,7 +355,7 @@ def self_test() -> int:
             print("  FAIL: New file write should pass")
             passed_all = False
         else:
-            written = Path(tmp_path).read_text()
+            written = Path(tmp_path).read_text(encoding="utf-8")
             if written == content:
                 print("  PASS: New file written and validated")
             else:
@@ -397,12 +397,13 @@ def self_test() -> int:
             revert_path = f.name
         cleanup.append(Path(revert_path))
 
-        original_content = Path(revert_path).read_text()
+        original_content = Path(revert_path).read_text(encoding="utf-8")
         backup_path = pipeline.gate.take_snapshot(revert_path)
 
         # Corrupt: insert bad indentation
         Path(revert_path).write_text(
-            original_content + "\n    : bad syntax\n"
+            original_content + "\n    : bad syntax\n",
+            encoding="utf-8",
         )
 
         # Post-validate should detect and auto-revert
@@ -413,7 +414,7 @@ def self_test() -> int:
             print("  FAIL: Should have detected syntax error")
             passed_all = False
         else:
-            restored = Path(revert_path).read_text()
+            restored = Path(revert_path).read_text(encoding="utf-8")
             if restored == original_content:
                 print("  PASS: Auto-revert restored original content")
             else:

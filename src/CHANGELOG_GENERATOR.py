@@ -47,7 +47,7 @@ class ChangelogGenerator:
         """Read version information."""
         version_file = Path(self.VERSION_FILE)
         if version_file.exists():
-            content = version_file.read_text()
+            content = version_file.read_text(encoding="utf-8")
             # Simple parsing for VERSION dict
             version_info = {
                 "major": 2,

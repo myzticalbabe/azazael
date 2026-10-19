@@ -57,7 +57,7 @@ def acquire_single_flight(path=None):
     """
     target = Path(path) if path else LOCK_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
-    fh = open(target, "a+")
+    fh = open(target, "a+", encoding="utf-8")
     try:
         if os.name == "nt":
             import msvcrt

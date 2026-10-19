@@ -38,13 +38,13 @@ def _pid_alive(pid):
 
 def acquire_lock():
     try:
-        with open(LOCK_FILE) as f:
+        with open(LOCK_FILE, encoding="utf-8") as f:
             old = int(f.read().strip() or '0')
         if old and _pid_alive(old):
             return False
     except (OSError, ValueError):
         pass
-    with open(LOCK_FILE, 'w') as f:
+    with open(LOCK_FILE, 'w', encoding="utf-8") as f:
         f.write(str(os.getpid()))
     return True
 
@@ -58,14 +58,14 @@ def release_lock():
 
 def fail_count(delta=None):
     try:
-        with open(FAIL_FILE) as f:
+        with open(FAIL_FILE, encoding="utf-8") as f:
             n = int(f.read().strip() or '0')
     except (OSError, ValueError):
         n = 0
     if delta is None:
         return n
     n = max(0, n + delta)
-    with open(FAIL_FILE, 'w') as f:
+    with open(FAIL_FILE, 'w', encoding="utf-8") as f:
         f.write(str(n))
     return n
 

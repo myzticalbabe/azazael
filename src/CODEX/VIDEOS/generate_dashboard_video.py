@@ -1009,7 +1009,7 @@ def browser_visual_mode(html_path, output_path, fps, duration, width, height,
         os.path.dirname(output_path) or os.path.expanduser("~"),
         "_dashboard_capture_script.py"
     )
-    with open(capture_script_path, "w") as f:
+    with open(capture_script_path, "w", encoding="utf-8") as f:
         f.write(capture_script)
 
     print("  [CODEX] Running visual capture script...")

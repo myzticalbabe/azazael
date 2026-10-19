@@ -163,7 +163,7 @@ def main():
     # Generate root INDEX.md
     root_index = DOCS_DIR / "INDEX.md"
     root_content = generate_root_index()
-    root_index.write_text(root_content)
+    root_index.write_text(root_content, encoding="utf-8")
     print(f"Generated: {root_index}")
 
     # Generate INDEX.md for each subdirectory
@@ -171,7 +171,7 @@ def main():
         if subdir.is_dir():
             index_path = subdir / "INDEX.md"
             content = generate_index(subdir)
-            index_path.write_text(content)
+            index_path.write_text(content, encoding="utf-8")
             print(f"Generated: {index_path}")
 
             print("\nDone!")

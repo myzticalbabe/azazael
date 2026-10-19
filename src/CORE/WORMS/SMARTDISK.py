@@ -569,14 +569,14 @@ class SMARTDISK:
     def _save_history(self):
         """Persist history."""
         self.history_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.history_file, "w") as f:
+        with open(self.history_file, "w", encoding="utf-8") as f:
             json.dump(self.disk_history, f, indent=2)
 
     def _load_history(self):
         """Load persisted history."""
         if self.history_file.exists():
             try:
-                with open(self.history_file) as f:
+                with open(self.history_file, encoding="utf-8") as f:
                     self.disk_history = json.load(f)
             except Exception as exc:
                 note_failure("SMARTDISK:L567", exc)

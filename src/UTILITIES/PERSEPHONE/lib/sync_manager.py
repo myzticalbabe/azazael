@@ -353,7 +353,7 @@ class SyncManager:
 
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(log_path, "a") as f:
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(result.to_dict(), indent=2) + "\n")
 
     def get_sync_history(self, limit: int = 10) -> list[SyncResult]:
@@ -364,7 +364,7 @@ class SyncManager:
             return []
 
         results = []
-        with open(log_path, "r") as f:
+        with open(log_path, "r", encoding="utf-8") as f:
             for line in f.readlines()[-limit:]:
                 data = json.loads(line)
                 results.append(SyncResult(**data))

@@ -218,7 +218,7 @@ def self_test() -> int:
             print(f"  FAIL: Exit code {result}")
             passed_all = False
         else:
-            content = Path(test_path).read_text()
+            content = Path(test_path).read_text(encoding="utf-8")
             if "        return 2" in content:
                 print("  PASS: Valid base64 replacement applied")
             else:
@@ -239,7 +239,7 @@ def self_test() -> int:
             print(f"  FAIL: Should have DENIED, got exit {result}")
             passed_all = False
         else:
-            content = Path(test_path).read_text()
+            content = Path(test_path).read_text(encoding="utf-8")
             if "    def bar(self):" in content:
                 print("  PASS: 0-indent correctly denied")
             else:

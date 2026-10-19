@@ -117,7 +117,7 @@ except ImportError as exc:
         if self.config_file.exists():
             import json
 
-            with open(self.config_file) as f:
+            with open(self.config_file, encoding="utf-8") as f:
                 user_config = json.load(f)
                 paths.update(user_config)
 
@@ -128,7 +128,7 @@ except ImportError as exc:
         self.config_dir.mkdir(parents=True, exist_ok=True)
         import json
 
-        with open(self.config_file, "w") as f:
+        with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(self.paths, f, indent=2)
 
     def get_path(self, name: str, platform: (str | None) = None) -> str:

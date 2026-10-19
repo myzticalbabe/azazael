@@ -365,7 +365,7 @@ class PythonSystemMapper:
     def save_report(self, filename="python_system_report.json"):
         """Save report to JSON file."""
         filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.findings, f, indent=2)
         print(f"\n[*] Report saved to: {filepath}")
         return filepath

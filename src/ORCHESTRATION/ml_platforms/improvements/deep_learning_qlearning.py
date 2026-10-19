@@ -179,11 +179,11 @@ class DLQTable:
             "alpha": self.alpha,
             "gamma": self.gamma,
         }
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def load(self, path: str):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         self.q_table = np.array(data["q_table"])
         self.target_table = np.array(data.get("target_table", data["q_table"]))

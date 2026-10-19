@@ -62,7 +62,7 @@ class TestTokenVerification(unittest.TestCase):
         
         self.token_path = _get_token_path("test_verify.py")
         self.token_path.parent.mkdir(parents=True, exist_ok=True)
-        self.token_path.write_text(json.dumps(token_data))
+        self.token_path.write_text(json.dumps(token_data), encoding="utf-8")
 
     def tearDown(self):
         """Clean up test tokens."""
@@ -90,7 +90,7 @@ class TestTokenVerification(unittest.TestCase):
         token_data["signature"] = f"blake2b:{sig}:{salt}"
         
         token_path = gtd() / "fresh_test.py.token"
-        token_path.write_text(json.dumps(token_data))
+        token_path.write_text(json.dumps(token_data), encoding="utf-8")
         
         valid, reason = verify_token("fresh_test.py", max_age_seconds=60)
         self.assertTrue(valid, f"Token should be valid, got: {reason}")
@@ -126,7 +126,7 @@ class TestTokenVerification(unittest.TestCase):
         sig = hashlib.blake2b(
             (payload + salt).encode("utf-8"), digest_size=32).hexdigest()
         token_data["signature"] = f"blake2b:{sig}:{salt}"
-        (gtd() / "wrong_target.py.token").write_text(json.dumps(token_data))
+        (gtd() / "wrong_target.py.token").write_text(json.dumps(token_data), encoding="utf-8")
 
         valid, reason = verify_token("wrong_target.py")
         self.assertFalse(valid)
@@ -153,7 +153,7 @@ class TestTokenVerification(unittest.TestCase):
         token_data["signature"] = f"blake2b:{sig}:{salt}"
         
         token_path = gtd() / "old_token.py.token"
-        token_path.write_text(json.dumps(token_data))
+        token_path.write_text(json.dumps(token_data), encoding="utf-8")
         
         valid, reason = verify_token("old_token.py", max_age_seconds=5)
         self.assertFalse(valid)

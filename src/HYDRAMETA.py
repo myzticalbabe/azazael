@@ -332,7 +332,7 @@ class PersistenceManager:
         """Load persistent state."""
         try:
             if self.state_file.exists():
-                return json.loads(self.state_file.read_text())
+                return json.loads(self.state_file.read_text(encoding="utf-8"))
         except Exception as exc:
             note_failure("HYDRAMETA:L326", exc)
         return {
@@ -349,7 +349,7 @@ class PersistenceManager:
         """Load trial history."""
         try:
             if self.trials_file.exists():
-                return json.loads(self.trials_file.read_text())
+                return json.loads(self.trials_file.read_text(encoding="utf-8"))
         except Exception as exc:
             note_failure("HYDRAMETA:L343", exc)
         return []
@@ -360,7 +360,7 @@ class PersistenceManager:
         try:
             with self._lock:
                 self.state_file.parent.mkdir(parents=True, exist_ok=True)
-                self.state_file.write_text(json.dumps(state, indent=2))
+                self.state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
                 self.state = state
         except Exception as e:
             print(f"[HYDRAMETA] State save error: {e}")
@@ -370,7 +370,7 @@ class PersistenceManager:
         try:
             with self._lock:
                 self.trials_file.parent.mkdir(parents=True, exist_ok=True)
-                self.trials_file.write_text(json.dumps(trials, indent=2))
+                self.trials_file.write_text(json.dumps(trials, indent=2), encoding="utf-8")
                 self.trials = trials
         except Exception as e:
             print(f"[HYDRAMETA] Trials save error: {e}")

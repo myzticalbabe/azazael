@@ -120,7 +120,7 @@ class HORUSLiveMonitor:
     def export_status(self, filepath: str = None) -> str:
         if filepath is None:
             filepath = str(self.base_path / "HORUS" / "output" / "monitor_status.json")
-        Path(filepath).write_text(json.dumps(self.get_status(), indent=2))
+        Path(filepath).write_text(json.dumps(self.get_status(), indent=2), encoding="utf-8")
         return filepath
 
 

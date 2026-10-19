@@ -68,7 +68,7 @@ class TotalFusion:
 
     def log(self, msg: str, level: str = "INFO"):
         entry = {"ts": datetime.datetime.now().isoformat(), "level": level, "msg": msg}
-        with open(self.fusion_log, "a") as f:
+        with open(self.fusion_log, "a", encoding="utf-8") as f:
             json.dump(entry, f)
             f.write("\n")
         print(f"[{level}] {msg}")
@@ -308,7 +308,7 @@ class TotalFusion:
         }
 
         report_file = LOG_DIR / "fusion_complete_report.json"
-        with open(report_file, "w") as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         CORE.log_entry(
