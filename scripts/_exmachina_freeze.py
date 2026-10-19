@@ -143,7 +143,7 @@ def freeze(dest: str = None, root: str = None, store: str = None,
             table_ddl, index_ddl, cols = _memories_ddl(src)
             if os.path.exists(dst_store):
                 os.remove(dst_store)
-            dst = sqlite3.connect(dst_store)
+            dst = sqlite3.connect(dst_store, timeout=30)
             try:
                 dst.execute(table_ddl)
                 for ddl in index_ddl:

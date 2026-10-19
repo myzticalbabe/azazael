@@ -170,7 +170,7 @@ def live_edges(db_path: str) -> dict:
                 break
             except sqlite3.OperationalError:
                 try:
-                    con = sqlite3.connect(db_path)
+                    con = sqlite3.connect(db_path, timeout=30)
                     break
                 except sqlite3.OperationalError:
                     import time

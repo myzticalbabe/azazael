@@ -127,7 +127,7 @@ def hourly_counts(db_path: str, hours: int) -> dict:
             break
         except Exception:
             try:
-                con = sqlite3.connect(db_path)
+                con = sqlite3.connect(db_path, timeout=30)
                 con.execute("SELECT 1 FROM memories LIMIT 1").fetchone()
                 break
             except Exception:

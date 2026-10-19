@@ -226,7 +226,7 @@ def live_counts() -> dict:
                 pass
             con = None
             try:
-                con = sqlite3.connect(db)
+                con = sqlite3.connect(db, timeout=30)
                 con.execute("SELECT COUNT(*) FROM memories").fetchone()
                 break
             except Exception:

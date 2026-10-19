@@ -63,7 +63,7 @@ def main():
     if not (args.dry_run or args.execute):
         args.dry_run = True
 
-    hot = sqlite3.connect(str(HOT_DB))
+    hot = sqlite3.connect(str(HOT_DB), timeout=30)
     months = _months_to_roll(hot, args.days)
     print(f"hot={HOT_DB} months eligible: {months or 'NONE'}")
     if not months:
@@ -92,7 +92,7 @@ def main():
                 continue
             clone = tmpdir / f"clone_{m}.db"
             hot.execute(f"VACUUM INTO '{clone.as_posix()}'")
-            ac = sqlite3.connect(str(clone))
+            ac = sqlite3.connect(str(clone), timeout=30)
             # Carve: keep ONLY this month in the clone
             ac.execute("DELETE FROM memories WHERE substr(timestamp, 1, 7) != ?", (m,))
             ac.execute("""DELETE FROM sessions WHERE session_id NOT IN

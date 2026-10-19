@@ -84,7 +84,7 @@ def _next_track_version(event_type: str) -> str:
         store = get_memory_store()
         db = getattr(store, "db_path", None)
         if db:
-            conn = sqlite3.connect(str(db))
+            conn = sqlite3.connect(str(db), timeout=30)
             try:
                 n = conn.execute(
                     "SELECT COUNT(*) FROM memories WHERE event_type = ?",
