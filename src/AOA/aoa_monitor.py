@@ -21,6 +21,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import List
+import re
+import shutil
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -67,7 +69,6 @@ def _rainbow(text, width, step=3, pulse=True):
     No-color mode returns plain truncated text. Frame math truncates first
     (visible chars), then colorizes, so lines never wrap.
     """
-    import re
     import math
     plain = re.sub("\x1b\\[[0-9;]*m", "", text)[:max(0, width)]
     if not _COLOR[0]:
@@ -113,7 +114,6 @@ def _enable_vt():
 
 
 def _fit(s, width):
-    import re
     plain = re.sub("\x1b\\[[0-9;]*m", "", s)
     if len(plain) <= width:
         return s
@@ -755,7 +755,6 @@ def main():
         note_failure("aoa_monitor:L726", exc)
 
     _enable_vt()
-    import shutil
     _size = shutil.get_terminal_size((100, 40))
     width = max(80, min(_size.columns, 200))
     height = max(20, _size.lines)

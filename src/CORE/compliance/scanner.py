@@ -43,6 +43,10 @@ from pathlib import Path
 
 import fnmatch
 from typing import List
+import argparse
+import time
+import urllib.request
+import subprocess
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -914,7 +918,6 @@ def reset_scanner():
 
 def run_cli():
     """Run scanner from the command line with --report support."""
-    import argparse
 
     # Fix UnicodeEncodeError on Windows console
     if hasattr(sys.stdout, 'reconfigure'):
@@ -1892,7 +1895,6 @@ def _run_daemon_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None),
         file_pattern: Glob pattern for files to scan (default: *.py)
         log_file: Optional path to write daemon log output
     """
-    import time
 
     log_fh = None
     if log_file:
@@ -1990,7 +1992,6 @@ def _send_webhook(url: str, total_files: int, total_findings: int, files_with_fi
 
     Only supports http:// and https:// URLs. Rejects other schemes.
     """
-    import urllib.request
     # Validate URL scheme
     if not url.startswith("http://") and not url.startswith("https://"):
         print("  [WEBHOOK] Invalid URL scheme: must be http:// or https://")
@@ -2020,7 +2021,6 @@ def _show_notification(total_files: int, total_findings: int, files_with_finding
 
     Uses base64-encoded PowerShell to avoid shell injection from findings.
     """
-    import subprocess
     import base64
     msg = f"{total_files} files scanned, {total_findings} findings in {files_with_findings} files"
     try:

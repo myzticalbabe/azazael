@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+import sysconfig
 
 # -- Failure ledger ---------------------------------------------------
 #: Swallows recorded when the failure ledger is unavailable (it is a
@@ -45,7 +46,6 @@ except ImportError as exc:
     note_failure("scheduling:L30", exc)
     _FREETHREAD = False
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:
