@@ -20,6 +20,7 @@ Usage:
 import json
 import os
 import time
+import hashlib
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
@@ -128,7 +129,6 @@ def human_signal():
     last = items[-1]
     prod = _read_json(os.path.join(_ROOT, "state", "evolved_rl_params.json")) or {}
     cur = json.dumps((prod.get("genes") or {}), sort_keys=True)
-    import hashlib
     cur_h = hashlib.sha256(cur.encode()).hexdigest()[:12]
     if (last.get("genes_hash") or "") != cur_h:
         return {"value": 1.0, "veto": False, "source": "promo_feedback",

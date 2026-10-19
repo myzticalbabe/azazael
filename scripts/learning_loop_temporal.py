@@ -23,6 +23,8 @@ import os
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+import os as _os
+import shutil
 
 try:
     import networkx as nx
@@ -35,7 +37,6 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
 def _ensure_gil():
     """Free-threaded 3.14t builds have a flaky sqlite3; re-exec with GIL on."""
-    import os as _os
     import sysconfig as _sc
     if (_sc.get_config_var("Py_GIL_DISABLED")
             and _os.environ.get("AZAZAEL_GIL_ENFORCED") != "1"):
@@ -115,7 +116,6 @@ def build_static():
 
 def hourly_counts(db_path: str, hours: int) -> dict:
     """hour -> {etype: n} over the window."""
-    import shutil
     import sqlite3
     import tempfile
     import time

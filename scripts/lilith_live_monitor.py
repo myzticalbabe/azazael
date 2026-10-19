@@ -29,6 +29,7 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timezone
+import re
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
@@ -75,7 +76,6 @@ MESH_NATURES = ("mesh", "synapse", "consensus", "engram", "federated",
 
 def _fit(s, width):
     """Truncate to window width; never wrap, never scroll."""
-    import re
     plain = re.sub("\x1b\\[[0-9;]*m", "", s)
     if len(plain) <= width:
         return s

@@ -38,6 +38,8 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from CORE import meta_evolution as me  # noqa: E402
+import subprocess
+import hashlib
 
 STATE_DIR = Path(os.environ.get("AZAZAEL_META_EVOLUTION_DIR", ROOT / "state" / "meta_evolution"))
 REPORT_PATH = STATE_DIR / "current.json"
@@ -81,7 +83,6 @@ def _load_json(path: Path, default: Any) -> Any:
 
 
 def _run(cmd: Sequence[str], timeout: int) -> dict[str, Any]:
-    import subprocess
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
                               text=True, timeout=timeout, encoding="utf-8", errors="replace")
@@ -775,7 +776,6 @@ def _log_proposal_outcome(candidate: me.Candidate, report: dict,
 
 
 def _bytes_sha256(payload: bytes) -> str:
-    import hashlib
     return hashlib.sha256(payload).hexdigest()
 
 

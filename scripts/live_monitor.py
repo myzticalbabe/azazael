@@ -36,6 +36,8 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timezone, timedelta
+import re
+import shutil as _sh
 
 DB = os.environ.get("AZAZAEL_MEMORY_DIR", r"C:\Users\clint\.azazael")
 if not DB.endswith(".db"):
@@ -67,7 +69,6 @@ def _rainbow(text, width, step=3):
     Truncates to width FIRST (visible chars), then colorizes, so the
     frame math stays exact and lines never wrap.
     """
-    import re
     plain = re.sub("\x1b\\[[0-9;]*m", "", text)[:max(0, width)]
     frame = _FRAME_NO[0]
     out = []
@@ -1559,7 +1560,6 @@ def _disp_w(ch):
 
 def _vis_len(s):
     """Visible width in COLUMNS, ignoring ANSI color codes."""
-    import re
     global _ANSI_RE
     if _ANSI_RE is None:
         _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
@@ -1575,7 +1575,6 @@ def _fit(s, width):
     Colors are stripped on truncation (simpler than re-closing codes, and
     truncated lines are rare edge cases on narrow windows).
     """
-    import re
     global _ANSI_RE
     if _ANSI_RE is None:
         _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
@@ -2452,7 +2451,6 @@ def _paint_in_place(frame_lines):
     frame. Never emits a trailing newline past the bottom row, so the console
     never scrolls -- everything stays on one screen and updates in place.
     """
-    import shutil as _sh
     size = _sh.get_terminal_size((100, 30))
     # Use the FULL window height: the width margin in render() already makes a
     # wrapped line impossible, which was the original reason to keep the last

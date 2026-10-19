@@ -32,6 +32,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from collections import Counter
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "state" / "neural_loop_monitor.jsonl"
@@ -173,7 +174,6 @@ def report() -> int:
     if not rows:
         print("monitor ledger is empty")
         return 1
-    from collections import Counter
     verdicts = Counter(r.get("verdict") for r in rows)
     print("cycles recorded: %d   (%s .. %s)" % (len(rows), rows[0]["at"], rows[-1]["at"]))
     print("verdicts:", dict(verdicts))
