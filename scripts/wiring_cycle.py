@@ -80,6 +80,7 @@ _AZAZAEL_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "src"))
 
 from CORE.WORMS.expansion import wiring_genome as wg  # noqa: E402
+import hashlib
 
 try:  # the outer loop may calibrate these; its absence is never fatal
     from CORE.WORMS.expansion import hyperopt as _hyp  # noqa: E402
@@ -417,7 +418,6 @@ def credit_snapshot(credit):
     fp = "%s|%d|%d" % (
         ",".join("%s:%d" % (w, counts[w]) for w in sorted(counts)),
         credit.n_outcome_rows, credit.n_choice_rows)
-    import hashlib
     return rewards, "cs-" + hashlib.sha256(fp.encode("utf-8")).hexdigest()[:16], counts
 
 

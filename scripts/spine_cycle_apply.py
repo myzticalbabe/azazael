@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 # WARNING+ live, so a refusal still reaches stderr and the chain's per-job log.
 # The logger list lives in CORE/log_hygiene.py, shared by the whole family.
 from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
+import subprocess as _sp
 
 quiet_noisy_loggers()
 
@@ -97,7 +98,6 @@ def log(msg: str) -> None:
 def _measure(env: str) -> tuple:
     """REAL latency probe per env (no fabricated outcomes)."""
     import socket as _s
-    import subprocess as _sp
     import time as _t
     t0 = _t.perf_counter()
     try:

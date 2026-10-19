@@ -23,6 +23,7 @@ import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
+import re
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "src"))
@@ -101,7 +102,6 @@ def _tap(days: int) -> tuple[dict[str, int], dict[str, str]]:
 
 def _reference_index() -> dict[str, int]:
     """Rough inbound-reference counts per worm name across code (not logs)."""
-    import re
     idx: dict[str, int] = defaultdict(int)
     roots = [HERE.parent / "src", HERE, HERE.parent / "tools"]
     files = []

@@ -240,7 +240,6 @@ def _oracle_run():
             assert "torch" in str(exc).lower(), exc
             return "torch absent -> clear RuntimeError (expected)"
         raise AssertionError("fitted without torch")
-    import random as _r
     r = _r.Random(0)
     o = FitnessOracle(n_gene=6)
     # feature_count = genes + era descriptor; build X to that width
@@ -257,6 +256,7 @@ check("ensemble fit/predict", _oracle_run)
 # -- cppn --------------------------------------------------------------
 from CORE.WORMS.expansion.cppn import CPPNGenome
 
+import random as _r
 print("\n[cppn]")
 
 

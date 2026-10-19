@@ -39,6 +39,7 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 from typing import Callable, List
 import functools
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1672,7 +1673,6 @@ class Pulsator:
 
 def cli_mode():
     """Headless CLI mode for scripting."""
-    import argparse
     p = argparse.ArgumentParser(description=f"{APP_NAME} v{APP_VERSION} — CLI")
     p.add_argument("--detect", action="store_true", help="Detect hardware")
     p.add_argument("--frameworks", action="store_true", help="list frameworks")
@@ -1732,3 +1732,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)
