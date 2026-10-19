@@ -25,7 +25,7 @@ result = messagebox.askokcancel(
 )
 
 if result:
-    subprocess.run(f'explorer /select,"{video_path}"')
+    subprocess.run(f'explorer /select,"{video_path}"')  # scanner:ignore -- interactive GUI launch waits on the user; a timeout would break UX
 else:
     vlc = r"C:/Program Files/VideoLAN/VLC/vlc.exe"
-    subprocess.run([vlc, video_path])
+    subprocess.run([vlc, video_path])  # scanner:ignore -- interactive GUI launch waits on the user; a timeout would break UX
