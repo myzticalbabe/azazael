@@ -32,6 +32,7 @@ write.
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -42,6 +43,7 @@ from CORE.skill_library import (
     family_index, mine_action_sequences, protocol_artifact,
     record_experience, render_plan_to_prompt, replicator_step,
     route_hierarchy, scan_witness_canonical, shapley_marginal,
+    spine_eval,
 )
 from CORE.technique_runtime import note_failure, register
 
@@ -125,6 +127,23 @@ def _ep135() -> Dict[str, Any]:
             "delta": "applicability/policy/termination/interface + 7-stage "
                      "lifecycle + 4-tier trust (must stay OPTIONAL: merge_sops "
                      "constructs through protocol_artifact)"}
+
+
+# --- EP150: agentic reasoning survey / layer-by-layer spine scaffold --------------
+def _ep150() -> Dict[str, Any]:
+    """The L2->L6 spine existed as separate wired slices with no per-layer tie.
+
+    Review verdict PARTIAL. Invoked: `spine_eval` (the scaffold), structure-only
+    by default — set SPINE_RUN=1 env to also engage every adapter.
+    """
+    report = spine_eval(run=bool(os.environ.get("SPINE_RUN")))
+    return {"ok": bool(report.get("ok")),
+            "invoked": "CORE.skill_library:spine_eval",
+            "coverage": report.get("coverage"),
+            "missing_layers": list(report.get("missing_layers") or []),
+            "layers": {layer: info["n_wired"]
+                       for layer, info in (report.get("layers") or {}).items()},
+            "delta": "scaffold live; per-layer metric thresholds deferred"}
 
 
 # --- EP155: agentic proposing / corpus -> skill acquisition ----------------------
@@ -541,6 +560,7 @@ def _ep474() -> Dict[str, Any]:
 _L2 = [
     ("EP34", "Chain-of-Thought prompting", "CORE.skill_library:protocol_artifact", _ep34),
     ("EP135", "SoK agentic skills", "CORE.skill_library:PROTOCOL_REQUIRED", _ep135),
+    ("EP150", "Agentic reasoning survey", "CORE.skill_library:spine_eval", _ep150),
     ("EP155", "Agentic proposing skill synthesis", "scripts/meta_reflect:gather_trajectories", _ep155),
     ("EP162", "Agent skills survey + governance", "CORE.skill_library:commit_gate", _ep162),
     ("EP180", "Autogenesis protocol AGP/AGS", "CORE.skill_library:commit_gate", _ep180),
