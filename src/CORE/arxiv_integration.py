@@ -21,6 +21,7 @@ import urllib.request
 import json
 import time
 import ssl
+import re
 
 try:
     from CORE.failure_ledger import note_failure
@@ -88,7 +89,6 @@ class ArxivIntegration:
 
     def _parse_arxiv_atom(self, xml_content: str) -> dict:
         """Parse arXiv API Atom XML into a dict of entries."""
-        import re
 
         entries: List[Dict[str, Any]] = []
         # Split by <entry> tags
@@ -214,7 +214,6 @@ class ArxivIntegration:
         Very naive: lowercases, removes stop words, keeps alphanumeric tokens.
         Subclasses may override for domain-specific keyword extraction.
         """
-        import re
 
         stop_words = {
             "the", "and", "or", "but", "is", "are", "was", "were", "be", "been",

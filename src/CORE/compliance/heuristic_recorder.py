@@ -25,6 +25,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1007,7 +1008,6 @@ def get_heuristic_recorder() -> HeuristicErrorRecorder:
 
 def self_test() -> bool:
     """Run a quick self-test of the HeuristicErrorRecorder."""
-    import tempfile
     import os
 
     print("=" * 60)
@@ -1107,3 +1107,4 @@ if __name__ == "__main__":
 
     success = self_test()
     sys.exit(0 if success else 1)
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

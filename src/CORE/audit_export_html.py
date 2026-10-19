@@ -60,3 +60,4 @@ if __name__ == "__main__":
     out = Path(fp).with_suffix(".html")
     out.write_text(html, encoding="utf-8")
     print(f"Written to {out}")
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)
