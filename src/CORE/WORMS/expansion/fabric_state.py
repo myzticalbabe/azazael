@@ -43,6 +43,7 @@ mesh's ability to run.
 """
 
 from typing import Any, Iterable, Optional, List
+import os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -105,7 +106,6 @@ def fabric_state_enabled() -> bool:
     The escape hatch exists for test suites that assert on a worm's *empty*
     initial state: set the variable before import to disable both directions.
     """
-    import os
     return not os.environ.get("AZAZAEL_NO_FABRIC_STATE")
 
 

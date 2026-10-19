@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
 from dataclasses import dataclass, replace
+import sysconfig
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -65,7 +66,6 @@ except ImportError as exc:
     note_failure("db_monitor:L53", exc)
     _FREETHREAD = False
     def is_free_threaded() -> bool:
-        import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception as exc:
