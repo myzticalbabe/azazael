@@ -24,6 +24,7 @@ Usage:
 import subprocess
 import json
 import os
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, List
@@ -37,6 +38,41 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Write text atomically: temp file in the same dir + os.replace.
+
+    Concurrent generators share fixed output paths (COMPOSE_TEMPLATE /
+    DOCKERFILE_TEMPLATE); a direct open(path, 'w') lets a reader observe a
+    torn half-write. os.replace is atomic, so a reader always sees the old
+    or the new file, never a mixture -- but on Windows a concurrent READER
+    holding the destination open makes replace raise PermissionError
+    (measured 2026-10-19: 3 parallel generators, 1 WinError 5). Hence the
+    retry loop: transient lock, back off, try again.
+    """
+    path = Path(path)
+    if path.parent and str(path.parent):
+        os.makedirs(path.parent, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent) if str(path.parent) else ".",
+                                prefix=path.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        for attempt in range(20):
+            try:
+                os.replace(tmp, path)
+                break
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError as _cleanup_exc:
+            note_failure("DOCKERZ:_atomic_write_text", _cleanup_exc)
+        raise
+
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
@@ -377,8 +413,7 @@ CMD ["python", "Azazael/Azazael_INTEGRATION.py"]
 """
 
         path = Path(self.config.DOCKERFILE_TEMPLATE)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(dockerfile_content)
+        _atomic_write_text(path, dockerfile_content)
 
         return str(path)
 
@@ -429,8 +464,7 @@ CMD ["python", "Azazael/Azazael_INTEGRATION.py"]
             compose += "\n"
 
         path = Path(self.config.COMPOSE_TEMPLATE)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(compose)
+        _atomic_write_text(path, compose)
 
         return str(path)
 
