@@ -22,6 +22,7 @@ from tkinter import ttk, filedialog, messagebox
 from html.parser import HTMLParser
 from datetime import datetime
 from typing import List
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1229,7 +1230,6 @@ class CODEXStudio:
 # ─── CLI Mode ───
 def cli_mode():
     """Command-line interface for scripting/automation."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="CODEX Studio — HTML to Video Generator (CLI Mode)",
@@ -1396,3 +1396,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

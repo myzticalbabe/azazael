@@ -208,3 +208,4 @@ def create_popup():
 
 if __name__ == "__main__":
     create_popup()
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

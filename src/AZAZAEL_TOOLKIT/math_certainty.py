@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from collections import Counter
 from typing import List
+import sys
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -335,7 +336,6 @@ class BinaryComparator:
 
 
 def main():
-    import sys
 
     print("=" * 70)
     print("MATHEMATICAL CERTAINTY CALCULATOR - Binary Comparison")

@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import time
 from typing import List
+import sys
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -267,7 +268,6 @@ HORUS INTEGRATION
             self.root.destroy()
         except Exception as exc:
             note_failure("POPUP_RICH:L258", exc)
-        import sys
 
         sys.exit(0)
 
