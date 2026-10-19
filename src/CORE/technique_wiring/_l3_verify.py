@@ -242,12 +242,21 @@ def _ep446() -> Dict[str, Any]:
         "every registered L3 adapter completed without raising",
         "run_all() reports engaged/errored per EP",
         "technique_runtime")
-    cap = at.graph_capsule({"l3": "verified-negative"}, at.get_head_hash() or "")
+    # EP446 EXTEND, absorbed: capsules used to stop at signable units
+    # ("chaining them deferred (no capsule consumer)"). The producer→consumer
+    # loop now runs here: head-bound capsule → signature-linked capsule →
+    # verify_capsule_chain, which is the exact rule the units imply.
+    at_head = at.get_head_hash() or ""
+    cap1 = at.graph_capsule({"l3": "verified-negative"}, at_head)
+    cap2 = at.graph_capsule({"l3": "capsule-chain"}, cap1["signature"])
+    chain = at.verify_capsule_chain([cap1, cap2])
     return {"verified_negative_cited": bool(cite),
             "citation_tail": cite[-32:] if cite else "",
-            "capsule_sealed": bool(cap.get("sealed")),
-            "residual": "capsules live as signable units; chaining them "
-                        "deferred (no capsule consumer)"}
+            "capsule_sealed": bool(cap1.get("sealed")),
+            "capsule_carried": bool(chain.get("carried")),
+            "capsule_chained": bool(chain.get("chain_ok")),
+            "residual": "appending capsules as audit entries stays deferred "
+                        "(capsules ride in-payload)"}
 
 
 def _ep157() -> Dict[str, Any]:
@@ -442,11 +451,30 @@ def _ep453() -> Dict[str, Any]:
 
 
 def _ep461() -> Dict[str, Any]:
-    """Asymmetric verify: compressed-view coverage gates the accept."""
+    """Asymmetric verify: the compressed view is BUILT, then fused to an accept."""
     vg = _vg()
+    full = vg.asymmetric_accept(
+        draft_claims=["a", "b", "c", "d"],
+        verifier_claims=["a", "b", "c", "d"],
+        confidences=[0.9, 0.2, 0.8, 0.1],
+        verifier_budget=2)
+    partial = vg.asymmetric_accept(
+        draft_claims=["a", "b", "c", "d"],
+        verifier_claims=["a", "b"],
+        verifier_budget=2)
+    tamper = vg.asymmetric_accept(
+        draft_claims=["a", "b", "c", "d"],
+        verifier_claims=["a", "b", "c", "d"],
+        verifier_budget=2)
     ok = vg.divergence_gate(["a", "b", "c"], ["a", "b", "c"])
     dropped = vg.divergence_gate(["a", "b", "c", "d"], ["a", "b"])
-    return {"divergence_clean": ok["divergence"], "accepted_clean": ok["accepted"],
+    return {"view": full["verifier_view"],        # confidences select [a, c]
+            "accepts_full": full["accepted"],
+            "accepts_partial": partial["accepted"],
+            "partial_targets": partial["dropped_claims"],
+            "tamper_unseen": tamper["unseen_verified"],
+            "divergence_clean": ok["divergence"],
+            "accepted_clean": ok["accepted"],
             "divergence_dirty": dropped["divergence"],
             "accepts_dirty": dropped["accepted"],
             "repair_targets": dropped["dropped_claims"]}
@@ -611,7 +639,7 @@ def _register_all() -> None:
         ("EP301", "VeriGraph evidence chain + claim-level support",
          "CORE.audit_trail:get_merkle_proof", _ep301),
         ("EP446", "ATP telemetry capsules + verified negatives",
-         "CORE.audit_trail:audit_verified_negative", _ep446),
+         "CORE.audit_trail:verify_capsule_chain", _ep446),
         ("EP157", "AgentHeLLM vehicle threat taxonomy",
          "CORE.audit_trail:audit_anomaly_scan", _ep157),
         ("EP383", "Safety drift + livelock detection -> forced termination",
@@ -636,8 +664,8 @@ def _register_all() -> None:
          "CORE.verification_gate:confirmed_revise", _ep452),
         ("EP453", "PolicyGuide workflow graph + step remediation",
          "CORE.verification_gate:verify_workflow_step", _ep453),
-        ("EP461", "AsymSpec asymmetric verify (divergence gate)",
-         "CORE.verification_gate:divergence_gate", _ep461),
+        ("EP461", "AsymSpec asymmetric verify (compressed view + fusion)",
+         "CORE.verification_gate:asymmetric_accept", _ep461),
         ("EP417", "S-RCT simulated-trial vetting + pre-period calibration",
          "CORE.verification_gate:preperiod_calibrate", _ep417),
         ("EP349", "LLM-as-a-Verifier continuous verification",

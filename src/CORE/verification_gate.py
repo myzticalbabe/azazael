@@ -198,6 +198,68 @@ def divergence_gate(draft_claims: List[str], verified_claims: List[str],
             "dropped_claims": dropped}
 
 
+# -- AsymSpec: asymmetric accept (EP461, accept half) -------------------------
+def asymmetric_accept(draft_claims: List[str],
+                      verifier_claims: Optional[List[str]] = None,
+                      confidences: Optional[List[float]] = None,
+                      verifier_budget: int = 2,
+                      max_divergence: float = 0.1) -> Dict[str, Any]:
+    """Full-context draft steers a COMPRESSED verifier; fuse into an accept.
+
+    `divergence_gate` grades two caller-supplied views; it never BUILDS the
+    asymmetry the technique is named for. This is the accept half:
+
+    1. BUILD — the verifier's view is the budgeted top slice of the FULL
+       draft (ordered by `confidences`, index-aligned to the draft, then
+       first-seen tie-break). "Sized to the verifier's compressed view,
+       never the drafter's" — the asymmetry named in this module's
+       docstring, produced here instead of assumed.
+    2. VERIFY — the verifier may only cover what its view showed it:
+       ``divergence_gate(verifier_view, verifier_claims)`` is the compressed
+       gate; a claim confirmed without being shown is a tamper signal,
+       reported as ``unseen_verified``.
+    3. FUSE — accept iff the compressed gate passes AND the full-coverage
+       gate passes AND nothing unseen was verified.
+
+    Empty draft fails open (nothing drafted, nothing to verify), matching
+    divergence_gate's empty-draft rule. Stdlib-only and LLM-free.
+    """
+    draft = [str(c) for c in (draft_claims or [])]
+    n = len(draft)
+    try:
+        budget = max(0, int(verifier_budget))
+    except (TypeError, ValueError) as exc:
+        _note_failure("verification_gate:asymspec-budget", exc)
+        budget = 0
+    order = list(range(n))
+    if confidences is not None and len(confidences) == n:
+        parsed: List[float] = []
+        for v in confidences:
+            try:
+                parsed.append(float(v))
+            except (TypeError, ValueError) as exc:
+                _note_failure("verification_gate:asymspec-conf", exc)
+                parsed.append(0.0)
+        order.sort(key=lambda i: (-parsed[i], i))
+    verifier_view = [draft[i] for i in order[:budget]]
+    seen = set(verifier_view)
+    verified_list = [str(c) for c in (verifier_claims or [])]
+    unseen = [c for c in verified_list if c not in seen]
+
+    compressed = divergence_gate(verifier_view, verified_list, max_divergence)
+    full = divergence_gate(draft, verified_list, max_divergence)
+    accepted = bool(compressed["accepted"] and full["accepted"] and not unseen)
+    return {"verifier_view": verifier_view,
+            "n_draft": n, "n_verifier_view": len(verifier_view),
+            "unseen_verified": unseen,
+            "compressed": {"divergence": compressed["divergence"],
+                           "accepted": bool(compressed["accepted"])},
+            "full": {"divergence": full["divergence"],
+                     "accepted": bool(full["accepted"])},
+            "dropped_claims": full["dropped_claims"],
+            "accepted": accepted}
+
+
 # -- CONFIRMED: cost-bounded revise loop -------------------------------------
 def confirmed_revise(initial: Any,
                      critique_fn: Callable[[Any], Optional[str]],
@@ -388,7 +450,8 @@ def verify_before_accept(subject: str,
                          completed: Optional[List[str]] = None,
                          record: bool = True,
                          confidence_pairs: Optional[Any] = None,
-                         tdd_tracks: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                         tdd_tracks: Optional[Dict[str, Any]] = None,
+                         verifier_budget: Optional[int] = None) -> Dict[str, Any]:
     """One acceptance gate with detectors + remediation (P1 slices 1+2).
 
     Runs the margin check, the divergence gate, the confidence-divergence
@@ -428,15 +491,42 @@ def verify_before_accept(subject: str,
                 f"({_tree['n_fragile']} fragile node(s) to re-verify)")
 
     if draft_claims is not None or verified_claims is not None:
-        d = divergence_gate(draft_claims or [], verified_claims or [])
-        if d["accepted"]:
-            reasons.append(f"divergence-ok({d['divergence']:.2f})")
+        if verifier_budget is not None:
+            # EP461 (AsymSpec) accept half, absorbed: the compressed verifier
+            # view is BUILT here from the supplied draft and the accept fuses
+            # compressed coverage + full coverage + no unseen verification.
+            # Opt-in: verifier_budget=None keeps the plain divergence gate
+            # above byte-for-byte.
+            a = asymmetric_accept(draft_claims or [], verified_claims or [],
+                                  verifier_budget=verifier_budget)
+            if a["accepted"]:
+                reasons.append(f"asym-ok(view={a['n_verifier_view']}/"
+                               f"{a['n_draft']},"
+                               f"div={a['full']['divergence']:.2f})")
+            else:
+                accepted = False
+                reasons.append(f"asym-blocked(view={a['n_verifier_view']}/"
+                               f"{a['n_draft']},"
+                               f"div={a['full']['divergence']:.2f})")
+                targets: List[str] = list(a["dropped_claims"])
+                rem = ("run the compressed verifier over: "
+                       f"{', '.join(a['verifier_view']) or 'empty draft'}")
+                if a["unseen_verified"]:
+                    rem += (f"; verifier confirmed unviewed claims "
+                            f"{', '.join(a['unseen_verified'])}")
+                if targets:
+                    rem += f"; reconcile dropped claims: {', '.join(targets)}"
+                remediations.append(rem)
         else:
-            accepted = False
-            reasons.append(f"divergence-high({d['divergence']:.2f})")
-            remediations.append(
-                "reconcile dropped claims: "
-                f"{', '.join(d['dropped_claims'])}")
+            d = divergence_gate(draft_claims or [], verified_claims or [])
+            if d["accepted"]:
+                reasons.append(f"divergence-ok({d['divergence']:.2f})")
+            else:
+                accepted = False
+                reasons.append(f"divergence-high({d['divergence']:.2f})")
+                remediations.append(
+                    "reconcile dropped claims: "
+                    f"{', '.join(d['dropped_claims'])}")
 
     if confidence_pairs is not None:
         if isinstance(confidence_pairs, dict):
