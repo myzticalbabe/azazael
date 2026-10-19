@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
+import time
 
 
 class ReplanTrigger(Enum):
@@ -157,7 +158,6 @@ class LazyReplanner:
 
     def _check_interval(self) -> bool:
         """Check if enough time has elapsed since last interval check."""
-        import time
         now = time.time()
         if self._last_interval_check == 0.0:
             self._last_interval_check = now
