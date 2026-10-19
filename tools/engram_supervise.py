@@ -40,12 +40,19 @@ ENGRAM_BIN = os.environ.get("ENGRAM_BIN") or shutil.which("engram") or str(
 )
 
 
-def run(args, stdin_data=None):
-    """Run engram, returning stdout. Never raises."""
+def run(args, stdin_data=None, timeout=60):
+    """Run engram, returning stdout. Never raises.
+
+    `timeout` bounds the engram.exe child. Default 60 keeps the existing
+    behavior for every other consumer; the supervisor's verdict legs pass
+    a value at-or-below their own wall-clock budget, because subprocess.run
+    kills the child ON ITS OWN timeout and nothing else does -- an
+    unbounded child outlives an aborted leg as a ghost process.
+    """
     try:
         r = subprocess.run(
             [ENGRAM_BIN] + args, input=stdin_data,
-            timeout=60, capture_output=True, text=True,
+            timeout=timeout, capture_output=True, text=True,
             encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         return r.stdout or ""
@@ -68,8 +75,8 @@ def strip_banner(text):
     return "\n".join(out).strip()
 
 
-def check_doctor():
-    text = strip_banner(run(["doctor"]))
+def check_doctor(timeout=60):
+    text = strip_banner(run(["doctor"], timeout=timeout))
     if text.startswith("__ERR__"):
         return "unknown", ["doctor unreachable: " + text]
     head = text.splitlines()[0] if text else ""
@@ -166,7 +173,7 @@ def verdict_from_conflicts_stats(text):
     return "GO", [f"conflicts: 0 unresolved (judged={judged})"]
 
 
-def check_conflicts():
+def check_conflicts(timeout=60):
     """Fetch engram's REAL `conflicts stats` and hand it to the pure parser.
 
     There is NO `Total:` line in `stats` - `conflicts list` prints Total,
@@ -174,15 +181,17 @@ def check_conflicts():
     fabricated `total` key fails open: it reports GO on a store full of
     unresolved contradictions. Verified against the Go source.
     """
-    text = strip_banner(run(["conflicts", "stats", "--project", PROJECT]))
+    text = strip_banner(run(["conflicts", "stats", "--project", PROJECT],
+                            timeout=timeout))
     if text.startswith("__ERR__"):
         return "unknown", ["conflicts unreachable: " + text]
     return verdict_from_conflicts_stats(text)
 
 
-def check_hook():
+def check_hook(timeout=60):
     payload = json.dumps({"session_id": "supervisor", "cwd": str(HERE.parent)})
-    text = run(["hook", "codex-user-prompt-submit"], stdin_data=payload)
+    text = run(["hook", "codex-user-prompt-submit"], stdin_data=payload,
+               timeout=timeout)
     msg = ""
     parse_error = ""
     try:
