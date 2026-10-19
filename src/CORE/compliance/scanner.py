@@ -74,6 +74,19 @@ FINDING_SEVERITIES = {
     "except_return_default": "warning",  # 692 -- a metric that reads success on error
     "subprocess_no_timeout": "warning",  # 244 -- hangs (documented in pytest.ini)
     "open_no_encoding": "warning",    # 228 -- cp1252 mojibake (documented in pmb)
+    # ── Added 2026-10-19 after the graph/error sweep fixed the last live
+    # sites (create_reference_video.py:563 bare except; escalation_sft + 
+    # test_rule_0zf bare opens). Both recorded at ZERO baseline: any new
+    # site fails the ratchet. RULE: auto-add gate coverage for every defect
+    # class fixed in a sweep (MANDATES.md RULE 0Z-M).
+    "bare_except": "warning",         # 0 -- `except:` catches everything
+    "open_no_context": "warning",     # 0 -- handle assigned, never closed
+    # ── Added 2026-10-19 (RULE 0Z-M, second capture): the hang family.
+    # sqlite read-write connects and requests calls with no timeout= block
+    # forever on a lock or a dead peer (CD5 used timeout=5; the rest did not).
+    # Read-only (mode=ro) and :memory: connects cannot contend, excluded.
+    "sqlite_no_timeout": "warning",   # ~30 read-write sites, all fixed same session
+    "requests_no_timeout": "warning", # 6 sites (hydra_client), all fixed same session
     "syntax_error": "error",
     "read_error": "error",
 }
@@ -93,6 +106,10 @@ FIX_SUGGESTIONS = {
     "except_return_default": "Re-raise or return an explicit failure, not a success-shaped default",
     "subprocess_no_timeout": "Pass timeout=<seconds>",
     "open_no_encoding": "Pass encoding='utf-8' (or open in binary mode)",
+    "bare_except": "Name the exception (e.g. except OSError); bare except: also catches KeyboardInterrupt/SystemExit",
+    "open_no_context": "Use with open(...) as f: so the handle always closes",
+    "sqlite_no_timeout": "Pass timeout=<seconds> (30 for production paths)",
+    "requests_no_timeout": "Pass timeout=<seconds> (30 for client calls)",
 }
 
 # Explanations for each finding category (used by --explain)
@@ -108,6 +125,10 @@ FINDING_EXPLANATIONS = {
     "except_return_default": "`except: return <default>` turns an error into a normal-looking success value, so every caller reads a well-formed result and the fault is invisible.",
     "subprocess_no_timeout": "A subprocess without a timeout can hang forever; the suite already documents files that hung past a 90s budget.",
     "open_no_encoding": "open() without encoding= uses the platform default (cp1252 on Windows), which mojibakes non-ASCII and crashes on characters it cannot decode.",
+    "bare_except": "`except:` with no exception type catches everything including KeyboardInterrupt and SystemExit, and hides the failure's identity. The multi-statement font fallback in create_reference_video.py:563 survived silent_except_pass (which needs a single-statement body) -- this rule closes that hole.",
+    "open_no_context": "`handle = open(...)` outside a `with`, with no later `handle.close()`, leaks the descriptor on every path that raises between open and close. `open(...).read()` one-liners are deliberately NOT flagged: the handle is temporary and refcounting closes it at once.",
+    "sqlite_no_timeout": "A read-write sqlite3.connect() without timeout= waits on a writer lock forever (default is 5s only when timeout is passed; without it a contended COMMIT blocks indefinitely). Read-only mode=ro and :memory: connects cannot contend and are excluded.",
+    "requests_no_timeout": "A requests call without timeout= blocks forever on a dead peer. Same hang class as subprocess_no_timeout.",
 }
 
 
@@ -188,6 +209,12 @@ _PATTERN_SUBPROCESS = re.compile(
 # open( on one line with no encoding= and no binary mode. Same single-line
 # trade-off as subprocess: it may miss a multiline call, never invents one.
 _PATTERN_OPEN = re.compile(r'(?<![\w.])open\s*\(')
+# sqlite3.connect( and requests.get|post|...(: a writer waiting on a lock
+# or a network read with no timeout= hangs forever. Call text is measured
+# across lines via _call_text (same as 5c/5d), never same-line-only.
+_PATTERN_SQLITE = re.compile(r'\bsqlite3\s*\.\s*connect\s*\(')
+_PATTERN_REQUESTS = re.compile(
+    r'\brequests\s*\.\s*(get|post|put|delete|patch|head)\s*\(')
 
 # Per-line opt-out, in the spirit of `# noqa`. Some lines *have* to contain a
 # pattern as data: this scanner's own test suite passes sample sources into
@@ -462,6 +489,37 @@ class ASTAntiPatternScanner:
                 continue
             findings.append((i, "open_no_encoding", line.strip()[:80]))
 
+        # 5e. sqlite3.connect() with no timeout= (read-write only). A writer
+        # waiting on a lock blocks forever; mode=ro and :memory: cannot
+        # contend and are excluded. Call measured across lines (5c/5d style).
+        for i, line in enumerate(lines, 1):
+            m = _PATTERN_SQLITE.search(line)
+            if not m:
+                continue
+            call = _call_text(lines, i - 1, m.start())
+            if "timeout" in call or "mode=ro" in call or ":memory:" in call:
+                continue
+            if _in_documentation(i, m.start(), doc_spans):
+                continue
+            if _in_string_body(i, m.start(), string_spans):
+                continue
+            findings.append((i, "sqlite_no_timeout", line.strip()[:80]))
+
+        # 5f. requests.get/post/... with no timeout=. Same hang class as 5c:
+        # a dead peer blocks the caller forever.
+        for i, line in enumerate(lines, 1):
+            m = _PATTERN_REQUESTS.search(line)
+            if not m:
+                continue
+            call = _call_text(lines, i - 1, m.start())
+            if "timeout" in call:
+                continue
+            if _in_documentation(i, m.start(), doc_spans):
+                continue
+            if _in_string_body(i, m.start(), string_spans):
+                continue
+            findings.append((i, "requests_no_timeout", line.strip()[:80]))
+
         # 6/7b. AST-based rules, in ONE parse: imports inside function bodies
         # and except blocks that swallow the failure (6b).
         try:
@@ -478,6 +536,14 @@ class ASTAntiPatternScanner:
                                     break
                             break  # Only report first import per function
                 elif isinstance(node, ast.ExceptHandler):
+                    # 6c. `except:` with no exception type catches EVERYTHING
+                    # (KeyboardInterrupt, SystemExit, the lot) -- regardless
+                    # of body length. silent_except_pass below only fires on
+                    # single-statement bodies, so this closes the multi-line
+                    # hole (create_reference_video.py:563, fixed 2026-10-19).
+                    if node.type is None:
+                        findings.append((node.lineno, "bare_except",
+                                         "except:"))
                     # 6b. A single-statement body of `pass` discards the error; a
                     # single `return` turns it into a success-shaped default.
                     # Both make a failure indistinguishable from success -- the
@@ -502,6 +568,30 @@ class ASTAntiPatternScanner:
                         if value is None or isinstance(value, ast.Constant):
                             findings.append((stmt.lineno, "except_return_default",
                                              "except: return"))
+            # 6d. open() handle assigned to a name, never closed, outside any
+            # `with` (escalation_sft / test_rule_0zf, fixed 2026-10-19).
+            # `open(...).read()` one-liners are NOT flagged: the handle is
+            # temporary and refcounting closes it at once.
+            with_lines = set()
+            closed_names = set()
+            for _node in ast.walk(tree):
+                if isinstance(_node, ast.With):
+                    for _sub in ast.walk(_node):
+                        _ln = getattr(_sub, "lineno", None)
+                        if _ln is not None:
+                            with_lines.add(_ln)
+                elif isinstance(_node, ast.Call) and isinstance(_node.func, ast.Attribute) \
+                        and _node.func.attr == "close" and isinstance(_node.func.value, ast.Name):
+                    closed_names.add(_node.func.value.id)
+            for _node in ast.walk(tree):
+                if isinstance(_node, ast.Assign) and isinstance(_node.value, ast.Call) \
+                        and isinstance(_node.value.func, ast.Name) \
+                        and _node.value.func.id == "open":
+                    for _target in _node.targets:
+                        if isinstance(_target, ast.Name) and _target.id not in closed_names \
+                                and _node.lineno not in with_lines:
+                            findings.append((_node.lineno, "open_no_context",
+                                             "open() handle '" + _target.id + "' never closed"))
         except SyntaxError as exc:
             note_failure("scanner:L494", exc)
             findings.append((0, "syntax_error", "Cannot parse source — syntax error"))
