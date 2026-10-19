@@ -1545,7 +1545,12 @@ def _env_float(name, default):
 
 # Q1: Dominated Novelty Search admission rule (drop-in grid replacement)
 QD_DOMINATED_NOVELTY = _flag('AZAZAEL_QD_DOMINATED_NOVELTY')
-QD_NOVELTY_THRESHOLD = _env_float('AZAZAEL_QD_NOVELTY_THRESHOLD', 0.15)
+# 0.25 (Oct-19): measured min elite-pair NN distance on the live archive is
+# 0.2441 across 12 elites, so 0.15 admitted everything on novelty and Q1 never
+# discriminated. 0.25 sits just above the closest elite pair: a candidate must
+# be at least that novel to win on novelty alone, else fitness decides.
+# Override preserved via AZAZAEL_QD_NOVELTY_THRESHOLD.
+QD_NOVELTY_THRESHOLD = _env_float('AZAZAEL_QD_NOVELTY_THRESHOLD', 0.25)
 # Q2: CMA-MAE soft archive with learning-rate alpha
 QD_SOFT_ARCHIVE = _flag('AZAZAEL_QD_SOFT_ARCHIVE')
 QD_SOFT_ARCHIVE_ALPHA = _env_float('AZAZAEL_QD_SOFT_ALPHA', 0.3)

@@ -542,10 +542,43 @@ def _ep382() -> Dict[str, Any]:
 # -- 6. Rows with no host: rule extracted, absence re-tested -----------------
 
 def _ep106() -> Dict[str, Any]:
-    return _claim(
-        "dual-paradigm governance: keep the symbolic verifier for policy and the "
-        "neural path for judgement; the symbolic HALF is the auditable one",
-        "CORE.cd2_verifier", "SMTVerifier")
+    """Dual-paradigm governance: the symbolic HALF is the auditable one.
+
+    Drives the full Worker-Verifier-Judge pipeline both directions and pins
+    the auditable property: every verdict carries a non-empty rationale
+    string plus a confidence level, and a REJECT additionally names the
+    smallest implicated region — fields a replay can re-check without the
+    model. The neural-judgement half has no host here (residual).
+    auto_record=False: the adapter must not churn the DirectMemory audit
+    trail it only demonstrates.
+    """
+    verifier = SMTVerifier(auto_record=False)
+    sat = {"name": "ep106-sat", "required_fields": {"n": "int"},
+           "numeric_bounds": {"n": (0, 10)}, "values": {"n": 4},
+           "logical_exprs": []}
+    unsat = {"name": "ep106-unsat", "required_fields": {"n": "int"},
+             "numeric_bounds": {"n": (0, 10)}, "values": {"n": 40},
+             "logical_exprs": []}
+    a = verifier.worker_verifier_judge(sat, "ep106-sat")
+    r = verifier.worker_verifier_judge(unsat, "ep106-unsat")
+    ja = a.get("judge", {})
+    jr = r.get("judge", {})
+    auditable = (
+        isinstance(ja.get("rationale"), str) and ja.get("rationale") != ""
+        and ja.get("confidence") in ("high", "medium", "low")
+        and isinstance(jr.get("rationale"), str) and jr.get("rationale") != ""
+        and jr.get("confidence") in ("high", "medium", "low"))
+    return {"accepted": ja.get("verdict") == "ACCEPT"
+                         and jr.get("verdict") == "REJECT" and auditable,
+            "engaged": True,
+            "accept_verdict": ja.get("verdict"),
+            "reject_verdict": jr.get("verdict"),
+            "accept_rationale": ja.get("rationale", "")[:120],
+            "reject_rationale": jr.get("rationale", "")[:120],
+            "solver": a.get("pipeline", {}).get("solver_type"),
+            "residual": "symbolic half auditable and live; neural-judgement "
+                        "half has no host here",
+            "where": "CORE.cd2_verifier:SMTVerifier.worker_verifier_judge"}
 
 
 def _ep141() -> Dict[str, Any]:
