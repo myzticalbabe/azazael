@@ -11,7 +11,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path.home() / "Desktop/azazael-project-e"))
 sys.path.insert(0, str(Path.home() / "Desktop"))
 
-import streamlit as st
+try:
+    import streamlit as st
+except ImportError as _dep_exc:
+    raise SystemExit("streamlit_dashboard.py needs streamlit (pip install streamlit; run via 'streamlit run'): " + str(_dep_exc)) from _dep_exc
 import pandas as pd
 import psutil
 
