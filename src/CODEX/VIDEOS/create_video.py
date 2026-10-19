@@ -214,7 +214,7 @@ Featuring advanced ML orchestration through HYDRA and HYDRAMETA."""
             "-c:v", "libx264", "-pix_fmt", "yuv420p",
             "-prese", "medium", "-crf", "20", "-", str(duration),
             output_path,
-        ], capture_output=True)
+        ], capture_output=True, timeout=1800)
 
     print(f"Video saved to: {output_path}")
     print(f"Total frames: {len(frames)}")
