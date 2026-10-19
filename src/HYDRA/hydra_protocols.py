@@ -26,6 +26,8 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
+import argparse
+import time
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -144,7 +146,6 @@ class HydraProtocols:
         - Wrong python.exe being used
         - .venv not properly activated
         """
-        import time
 
         start = time.time()
 
@@ -206,7 +207,6 @@ class HydraProtocols:
 
         Ensures .venv has all packages installed for HYDRA.
         """
-        import time
 
         start = time.time()
 
@@ -269,7 +269,6 @@ class HydraProtocols:
         'C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION'
         need to be corrected to actual structure.
         """
-        import time
 
         start = time.time()
 
@@ -326,7 +325,6 @@ class HydraProtocols:
 
         Concrete issue: Azazael (3 A's) -> Azazael (2 A's)
         """
-        import time
 
         start = time.time()
 
@@ -383,7 +381,6 @@ class HydraProtocols:
         Concrete issue: Imports failing due to path problems.
         Auto-adds correct paths to sys.path.
         """
-        import time
 
         start = time.time()
 
@@ -463,7 +460,6 @@ class HydraProtocols:
 
         Concrete issue: Crawlers need to update Azazael_ENV.bat
         """
-        import time
 
         start = time.time()
 
@@ -596,7 +592,6 @@ class HydraProtocols:
 
 def main():
     """HYDRA Protocols CLI."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="HYDRA Cluster Auto-Protocols")
     parser.add_argument(

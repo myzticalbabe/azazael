@@ -29,6 +29,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List
 from dataclasses import dataclass, field
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -972,7 +973,6 @@ def run_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="HYDRAMETA - Hydratic Meta-Worms with HYDRA ML"
