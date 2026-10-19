@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-19T18:27:15+00:00",
+  "recorded_at": "2026-10-19T19:33:31+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
@@ -7,12 +7,9 @@
   "category_counts": {
     "hardcoded_win_path": 14,
     "import_inside_function": 1101,
-    "open_no_encoding": 54,
-    "shell_true": 1,
-    "subprocess_no_timeout": 95,
     "unicode_emoji": 1260
   },
-  "total_findings": 2525,
+  "total_findings": 2375,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 7
@@ -57,12 +54,6 @@
     "AZAZAEL_TOOLKIT\\REAL_FRAMEWORK_TEST.py": {
       "import_inside_function": 1
     },
-    "AZAZAEL_TOOLKIT\\azazael_toolkit.py": {
-      "subprocess_no_timeout": 2
-    },
-    "AZAZAEL_TOOLKIT\\environment_manager.py": {
-      "subprocess_no_timeout": 2
-    },
     "AZAZAEL_TOOLKIT\\math_certainty.py": {
       "import_inside_function": 1
     },
@@ -100,12 +91,6 @@
       "hardcoded_win_path": 7,
       "unicode_emoji": 10
     },
-    "CODEX\\SESSION_TEMPLATE\\generators\\batch_generator.py": {
-      "subprocess_no_timeout": 1
-    },
-    "CODEX\\SESSION_TEMPLATE\\generators\\batch_recorder.py": {
-      "subprocess_no_timeout": 1
-    },
     "CODEX\\SESSION_TEMPLATE\\generators\\generate_failure_report.py": {
       "unicode_emoji": 4
     },
@@ -132,71 +117,43 @@
       "import_inside_function": 4
     },
     "CODEX\\VIDEOS\\compress_video.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 6
-    },
-    "CODEX\\VIDEOS\\create_azazael_educational_video.py": {
-      "subprocess_no_timeout": 8
-    },
-    "CODEX\\VIDEOS\\create_scrolling_video.py": {
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "CODEX\\VIDEOS\\create_video.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "CODEX\\VIDEOS\\generate_dashboard_video.py": {
       "import_inside_function": 1
     },
-    "CODEX\\VIDEOS\\generate_matrix_video.py": {
-      "subprocess_no_timeout": 4
-    },
-    "CODEX\\VIDEOS\\generate_video.py": {
-      "subprocess_no_timeout": 1
-    },
     "CODEX\\VIDEOS\\make_video.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "CODEX\\VIDEOS\\make_video_docs.py": {
       "import_inside_function": 1,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 50
     },
     "CODEX\\VIDEOS\\make_video_quad.py": {
       "import_inside_function": 1,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 66
     },
     "CODEX\\VIDEOS\\make_video_v2.py": {
       "import_inside_function": 2,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 133
     },
     "CODEX\\VIDEOS\\make_video_v3.py": {
       "import_inside_function": 1,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 74
     },
     "CODEX\\VIDEOS\\make_video_vibrant.py": {
       "import_inside_function": 1,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 56
     },
     "CODEX\\VIDEOS\\make_video_zip.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "CODEX\\VIDEOS\\make_video_zipper.py": {
       "import_inside_function": 1,
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 62
-    },
-    "CODEX\\VIDEOS\\progress_bar.py": {
-      "subprocess_no_timeout": 1
-    },
-    "CODEX\\VIDEOS\\video_popup.py": {
-      "subprocess_no_timeout": 2
     },
     "CODEX\\build_bcc_cain_alternate.py": {
       "unicode_emoji": 157
@@ -225,9 +182,6 @@
     "CORE\\Agent.py": {
       "import_inside_function": 1
     },
-    "CORE\\ERROR_SCAN_WORM.py": {
-      "open_no_encoding": 3
-    },
     "CORE\\FREETHREAD_UPGRADE.py": {
       "import_inside_function": 2
     },
@@ -246,12 +200,8 @@
     "CORE\\WORMS\\BINARY_ANALYSIS_CLI.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\BINARY_ANALYSIS_PARSE.py": {
-      "open_no_encoding": 5
-    },
     "CORE\\WORMS\\BINARY_ANALYSIS_TOOLS.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 4
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\BINARY_ANALYSIS_TYPES.py": {
       "import_inside_function": 1
@@ -277,29 +227,17 @@
     "CORE\\WORMS\\DISKZ.py": {
       "import_inside_function": 5
     },
-    "CORE\\WORMS\\ERROR_SCAN_WORM.py": {
-      "open_no_encoding": 3
-    },
     "CORE\\WORMS\\INFERENCE_SUBSCRIBER.py": {
       "import_inside_function": 2
     },
     "CORE\\WORMS\\METACLUSTER.py": {
       "import_inside_function": 9
     },
-    "CORE\\WORMS\\MORPHING_WORM.py": {
-      "open_no_encoding": 3
-    },
-    "CORE\\WORMS\\MORPHING_WORM_V2.py": {
-      "open_no_encoding": 2
-    },
     "CORE\\WORMS\\NETWORK_DIAG.py": {
       "import_inside_function": 6
     },
     "CORE\\WORMS\\NETWORXZ.py": {
       "import_inside_function": 5
-    },
-    "CORE\\WORMS\\OMNI_WORM_V2.py": {
-      "open_no_encoding": 2
     },
     "CORE\\WORMS\\OS_CONGRUENCY.py": {
       "import_inside_function": 11
@@ -311,28 +249,19 @@
       "import_inside_function": 4
     },
     "CORE\\WORMS\\SMARTDISK.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 2
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\SYSTEMZ.py": {
       "import_inside_function": 7
     },
     "CORE\\WORMS\\SYSTEMZ_ML.py": {
-      "import_inside_function": 5,
-      "open_no_encoding": 2
+      "import_inside_function": 5
     },
     "CORE\\WORMS\\WORMZ.py": {
       "import_inside_function": 2
     },
     "CORE\\WORMS\\WORMZ_ML.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 2
-    },
-    "CORE\\WORMS\\WORMZ_POPUP.py": {
-      "subprocess_no_timeout": 1
-    },
-    "CORE\\WORMS\\WORM_FLEET.py": {
-      "open_no_encoding": 1
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\WORM_SELECTOR.py": {
       "import_inside_function": 3
@@ -523,9 +452,6 @@
     "CORE\\WORMS\\worm_telemetry.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORM_FLEET.py": {
-      "open_no_encoding": 1
-    },
     "CORE\\active_learn.py": {
       "import_inside_function": 2
     },
@@ -548,8 +474,7 @@
       "import_inside_function": 1
     },
     "CORE\\backup.py": {
-      "import_inside_function": 1,
-      "open_no_encoding": 1
+      "import_inside_function": 1
     },
     "CORE\\cascade.py": {
       "import_inside_function": 1
@@ -607,8 +532,7 @@
       "import_inside_function": 14
     },
     "CORE\\data_retention.py": {
-      "import_inside_function": 13,
-      "open_no_encoding": 2
+      "import_inside_function": 13
     },
     "CORE\\device.py": {
       "import_inside_function": 2
@@ -644,12 +568,10 @@
       "import_inside_function": 4
     },
     "CORE\\fs_probe.py": {
-      "import_inside_function": 3,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 3
     },
     "CORE\\gguf_census.py": {
-      "import_inside_function": 1,
-      "open_no_encoding": 1
+      "import_inside_function": 1
     },
     "CORE\\graph_artifacts.py": {
       "import_inside_function": 1
@@ -718,8 +640,7 @@
       "import_inside_function": 1
     },
     "CORE\\safe_file_ops.py": {
-      "import_inside_function": 1,
-      "open_no_encoding": 1
+      "import_inside_function": 1
     },
     "CORE\\sb3_agent.py": {
       "import_inside_function": 4
@@ -785,8 +706,7 @@
       "import_inside_function": 7
     },
     "CORE\\worm_registry_cache.py": {
-      "import_inside_function": 5,
-      "open_no_encoding": 4
+      "import_inside_function": 5
     },
     "CORE\\xref_auto_link.py": {
       "import_inside_function": 1
@@ -797,9 +717,6 @@
     "CORE\\xref_webhook.py": {
       "unicode_emoji": 1
     },
-    "DAEMONS\\install_parallax_startup.py": {
-      "subprocess_no_timeout": 1
-    },
     "DAEMONS\\parallax_validator.py": {
       "import_inside_function": 3
     },
@@ -808,9 +725,6 @@
     },
     "ERRORZ.py": {
       "import_inside_function": 2
-    },
-    "FILE_MANIFEST_GENERATOR.py": {
-      "open_no_encoding": 1
     },
     "HEALTHZ.py": {
       "import_inside_function": 7
@@ -831,8 +745,7 @@
       "import_inside_function": 1
     },
     "HYDRA\\ml_platforms\\config.py": {
-      "import_inside_function": 1,
-      "open_no_encoding": 1
+      "import_inside_function": 1
     },
     "HYDRA\\ml_platforms\\harness.py": {
       "import_inside_function": 5
@@ -844,14 +757,10 @@
       "import_inside_function": 1
     },
     "INTERPRETERS\\__init__.py": {
-      "import_inside_function": 6,
-      "shell_true": 1
+      "import_inside_function": 6
     },
     "METAWORMS_ENRICHED.py": {
       "import_inside_function": 1
-    },
-    "METAWORMS_POPUP.py": {
-      "subprocess_no_timeout": 1
     },
     "META\\DOCKERZ.py": {
       "import_inside_function": 1
@@ -875,8 +784,7 @@
       "import_inside_function": 2
     },
     "META\\HYDRAMETA_UV.py": {
-      "import_inside_function": 3,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 3
     },
     "META\\HYDRA_CONTAINER.py": {
       "import_inside_function": 1
@@ -889,9 +797,6 @@
     },
     "META\\METAWORMS_ENRICHED.py": {
       "import_inside_function": 1
-    },
-    "META\\METAWORMS_POPUP.py": {
-      "subprocess_no_timeout": 1
     },
     "META\\METRICZ.py": {
       "import_inside_function": 1
@@ -906,8 +811,7 @@
       "import_inside_function": 1
     },
     "META\\UVZ.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "METRICZ.py": {
       "import_inside_function": 1
@@ -932,15 +836,10 @@
       "import_inside_function": 5
     },
     "ORCHESTRATION\\AssistantLogProtocol.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 2
+      "import_inside_function": 1
     },
     "ORCHESTRATION\\AssistantLogProtocol_Enhanced.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 2
-    },
-    "ORCHESTRATION\\FusionHealer.py": {
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "ORCHESTRATION\\HORUS.py": {
       "import_inside_function": 3
@@ -952,7 +851,6 @@
       "import_inside_function": 2
     },
     "ORCHESTRATION\\HYDRA_ANALYZER.py": {
-      "subprocess_no_timeout": 1,
       "unicode_emoji": 25
     },
     "ORCHESTRATION\\HYDRA_ANALYZER_V2.py": {
@@ -964,15 +862,6 @@
     "ORCHESTRATION\\SelfImprovingGUI.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\SystemManager.py": {
-      "subprocess_no_timeout": 2
-    },
-    "ORCHESTRATION\\SystemManagerGUI.py": {
-      "subprocess_no_timeout": 2
-    },
-    "ORCHESTRATION\\TARBABY.py": {
-      "open_no_encoding": 1
-    },
     "ORCHESTRATION\\TEST\\ECOSYSTEM_TEST.py": {
       "import_inside_function": 9
     },
@@ -982,12 +871,8 @@
     "ORCHESTRATION\\ml_platforms\\__init__.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\auto_install.py": {
-      "subprocess_no_timeout": 1
-    },
     "ORCHESTRATION\\ml_platforms\\config.py": {
-      "import_inside_function": 1,
-      "open_no_encoding": 1
+      "import_inside_function": 1
     },
     "ORCHESTRATION\\ml_platforms\\framework_activator.py": {
       "import_inside_function": 3
@@ -1019,15 +904,8 @@
     "ORCHESTRATION\\ml_platforms\\improvements\\weakness_testing.py": {
       "import_inside_function": 4
     },
-    "ORCHESTRATION\\ml_platforms\\install_improvements.py": {
-      "subprocess_no_timeout": 1
-    },
-    "ORCHESTRATION\\ml_platforms\\install_light.py": {
-      "subprocess_no_timeout": 1
-    },
     "ORCHESTRATION\\ml_platforms\\install_manager.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "ORCHESTRATION\\ml_platforms\\installation_debug.py": {
       "import_inside_function": 2
@@ -1045,31 +923,19 @@
       "import_inside_function": 2
     },
     "ORCHESTRATION\\ml_platforms\\universal_converter.py": {
-      "import_inside_function": 10,
-      "open_no_encoding": 3
+      "import_inside_function": 10
     },
     "ORCHESTRATION\\scripts\\azazael_cli.py": {
-      "import_inside_function": 2,
-      "subprocess_no_timeout": 17
+      "import_inside_function": 2
     },
     "ORCHESTRATION\\scripts\\azazael_wsa.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 1
-    },
-    "ORCHESTRATION\\scripts\\comprehensive_analysis.py": {
-      "open_no_encoding": 1
-    },
-    "ORCHESTRATION\\scripts\\run_tests.py": {
-      "open_no_encoding": 1
+      "import_inside_function": 2
     },
     "ORCHESTRATION\\scripts\\test_enhancements.py": {
       "import_inside_function": 9
     },
     "ORCHESTRATION\\scripts\\validate_docs.py": {
       "import_inside_function": 3
-    },
-    "ORCHESTRATION\\scripts\\web_dashboard.py": {
-      "subprocess_no_timeout": 8
     },
     "REAL_FRAMEWORK_TEST.py": {
       "import_inside_function": 1
@@ -1084,8 +950,7 @@
       "import_inside_function": 1
     },
     "SCRIPTS\\gated_edit.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "SCRIPTS\\generate_telemetry.py": {
       "import_inside_function": 1
@@ -1103,8 +968,7 @@
       "import_inside_function": 1
     },
     "SCRIPTS\\sync_canonical_docs.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 1
+      "import_inside_function": 2
     },
     "SCRIPTS\\test_auto_sync.py": {
       "import_inside_function": 1
@@ -1119,39 +983,25 @@
       "import_inside_function": 1
     },
     "UTILITIES\\KLINK\\klink.py": {
-      "import_inside_function": 5,
-      "subprocess_no_timeout": 1
-    },
-    "UTILITIES\\PERSEPHONE\\lib\\sync_manager.py": {
-      "subprocess_no_timeout": 3
+      "import_inside_function": 5
     },
     "UTILITIES\\PERSEPHONE\\persephone.py": {
-      "import_inside_function": 3,
-      "subprocess_no_timeout": 2
+      "import_inside_function": 3
     },
     "UTILITIES\\TARBABY\\TARBABY.py": {
       "import_inside_function": 3
     },
     "UTILITIES\\TARBABY\\tarbaby_enhanced.py": {
-      "import_inside_function": 2,
-      "open_no_encoding": 3
+      "import_inside_function": 2
     },
     "UTILITIES\\TERENCE\\TERENCE.py": {
-      "import_inside_function": 4,
-      "open_no_encoding": 1
+      "import_inside_function": 4
     },
     "UVZ.py": {
-      "import_inside_function": 1,
-      "subprocess_no_timeout": 1
+      "import_inside_function": 1
     },
     "azazael_pygame.py": {
       "import_inside_function": 1
-    },
-    "azazael_toolkit.py": {
-      "subprocess_no_timeout": 1
-    },
-    "chain_of_action.py": {
-      "subprocess_no_timeout": 1
     },
     "eve_unleashed\\cli.py": {
       "import_inside_function": 7
@@ -1194,9 +1044,6 @@
     },
     "eve_unleashed\\terence_v2.py": {
       "import_inside_function": 3
-    },
-    "matrix_animation.py": {
-      "subprocess_no_timeout": 1
     },
     "memory_status.py": {
       "import_inside_function": 7
