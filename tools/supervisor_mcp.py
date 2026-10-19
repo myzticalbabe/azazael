@@ -144,6 +144,8 @@ def verdict() -> str:
     BUDGET = 30.0
     deadline = t0 + BUDGET
     legs = {}
+    timed_out = []
+    leg_errors = {}
     ex = ThreadPoolExecutor(max_workers=6)
     try:
         legs["doctor"] = ex.submit(sup.check_doctor, LEG_LIMIT_S)
@@ -160,8 +162,18 @@ def verdict() -> str:
             except FutureTimeout:
                 # None here IS the failure value: _bounded returns an Optional
                 # result and the verdict renderer prints "unknown (timed out)"
-                # for it -- it is not a success-shaped default.
-                return None  # scanner:ignore except_return_default
+                # for it -- it is not a success-shaped default. Recording the
+                # name first keeps the legs= late: list truthful (two statements
+                # in the body, so no except_return_default to suppress).
+                timed_out.append(name)
+                return None
+            except Exception as exc:
+                # A leg that RAISES must also never truncate the tool call:
+                # result() re-raises the leg's exception, which would kill the
+                # whole verdict() -- the exact failure class this budget exists
+                # to kill. Contained loud (LEG FAILED), same Optional contract.
+                leg_errors[name] = "%s: %s" % (type(exc).__name__, str(exc)[:120])
+                return None
 
         doctor_v = _bounded("doctor")
         conflicts_v = _bounded("conflicts")
@@ -177,6 +189,9 @@ def verdict() -> str:
     dt = time.time() - t0
 
     def _late(name):
+        if name in leg_errors:
+            return ("%s: LEG FAILED (%s) - reported loud, never silent"
+                    % (name, leg_errors[name]))
         return ("%s: LEG TIMEOUT after %.0fs budget - reported loud, never silent"
                 % (name, BUDGET))
 
@@ -207,7 +222,9 @@ def verdict() -> str:
         lines.append("  " + line)
     lines.append("  " + live_line)
     lines.append("  " + goals_line)
-    lines.append("  legs=%.1fs (parallel)" % dt)
+    late_txt = ",".join(timed_out) or "-"
+    fail_txt = ("; failed: %s" % ",".join(sorted(leg_errors))) if leg_errors else ""
+    lines.append("  legs=%.1fs (parallel; late: %s%s)" % (dt, late_txt, fail_txt))
     if "NO-GO" in verdicts:
         lines.append("VERDICT: NO-GO - resolve the items above before proceeding")
     elif "CLARIFY" in verdicts or "unknown" in verdicts:
