@@ -71,6 +71,9 @@ except ImportError as exc:
 
 
 import uuid as _uuid
+import hashlib as _hl
+import math as _math
+import math as _m
 
 
 
@@ -262,7 +265,6 @@ class EvolutionEngine:
     @staticmethod
     def gene_hash(genes: dict) -> str:
         """Stable cross-cycle fitness key (gene values rounded, sorted)."""
-        import hashlib as _hl
         parts = []
         for k in sorted(genes):
             v = genes[k]
@@ -698,7 +700,6 @@ class EvolutionEngine:
         clamping keeps every step in bounds and discrete genes resample like
         the sibling operators. alpha in (0, 2]; smaller alpha, heavier tail.
         """
-        import math as _math
         beta = min(1.99, max(0.3, float(self.levy_alpha)))
         try:
             sigma = (_math.gamma(1.0 + beta)
@@ -1601,7 +1602,6 @@ class SepCMAES:
             "discount": (0.9, 0.999),
             "clip_range": (0.05, 0.4),
         }
-        import math as _m
         self._lock = threading.Lock()
         self.names = list(gene_bounds)
         self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
@@ -1657,7 +1657,6 @@ class SepCMAES:
 
     def tell(self, fitnesses: list[float]) -> dict[str, Any]:
         """Update distribution from fitnesses aligned with last ask() (higher = better)."""
-        import math as _m
         with self._lock:
             pop = list(self._pop)
         if len(fitnesses) != len(pop):

@@ -12,6 +12,7 @@ import hashlib
 from datetime import datetime
 from typing import Any, List
 from collections import Counter
+import os as _os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -200,7 +201,6 @@ class LeaderElectorWorm:
         Default resolution order: AZAZAEL_PLACEMENT_JSON env var, then
         repo-relative state/placement.json, then the legacy G: mount path.
         """
-        import os as _os
         if path is None:
             env_path = _os.environ.get("AZAZAEL_PLACEMENT_JSON", "")
             if env_path:
