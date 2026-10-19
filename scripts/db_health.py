@@ -153,7 +153,6 @@ def cmd_quick(args):
 def cmd_stats(args):
     """Statistics only."""
     from CORE.local_memory import get_memory_store
-    import json
     store = get_memory_store()
     print(json.dumps(store.get_stats(), indent=2, default=str))
 
@@ -161,7 +160,6 @@ def cmd_stats(args):
 def cmd_performance(args):
     """Performance metrics only."""
     from CORE.local_memory import get_memory_store
-    import json
     store = get_memory_store()
     print(json.dumps(store.get_performance_stats(), indent=2, default=str))
 

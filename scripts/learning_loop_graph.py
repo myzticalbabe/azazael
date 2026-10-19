@@ -59,6 +59,7 @@ def _ensure_gil():
 _ensure_gil()
 sys.path.insert(0, HERE)
 from bcc_network_sna import analyze, export_csv  # noqa: E402
+import csv
 
 # --------------------------------------------------------------------------
 # Static inventory: the learning-loop domain as of 2026-09-07
@@ -156,7 +157,6 @@ STRAT_ID_BY_NAME = {name: sid for sid, name, _ in STRATEGIES}
 def live_edges(db_path: str) -> dict:
     """Read-only DB enrichment: event counts + steering/adaptation weights."""
     import sqlite3
-    import os
     import shutil
     import tempfile
     out = {"counts": {}, "edges": []}
@@ -375,7 +375,6 @@ def write_mermaid(G, nodes, outdir: str) -> None:
 
 def write_graphml(G, nodes, results, outdir: str) -> str:
     """GraphML with centrality/community/k-core attrs (mirrors bcc launcher)."""
-    import csv
     int_ = results["_internal"]
     comm_of = int_["comm_of"]
     core = nx.core_number(G)

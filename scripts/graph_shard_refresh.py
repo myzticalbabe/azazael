@@ -21,10 +21,10 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+import os as _os
 
 
 def _run(cmd, cwd, timeout=3600):
-    import os as _os
     # Graphify prints → and emoji; Windows consoles default to cp1252 and
     # the merge step CRASHES on its own success message without this
     # (measured 2026-09-27). UTF-8 for graphify children, always.

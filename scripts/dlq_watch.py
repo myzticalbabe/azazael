@@ -16,6 +16,7 @@ import os
 import time
 from pathlib import Path
 from collections import defaultdict, deque
+import argparse
 
 # Ensure src/ is in path
 _script_dir = Path(__file__).resolve().parent
@@ -160,7 +161,6 @@ def show(dlq, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
 # ── Main Loop ────────────────────────────────────────────────────
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="DLQ Watch — Dead Letter Queue Monitor",
