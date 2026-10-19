@@ -128,7 +128,7 @@ would itself be the RULE 0B-D error.
 | 6 | heuristic_recorder.py | ORPHANED | library-only, no trigger |
 | 7 | enforce_pre_action_gate.py | ORPHANED | zero callers |
 | 8 | prepare_guard.py | ORPHANED | comment-mentions only |
-| 9 | CORE/python_env.py | DANGLING | file exists nowhere |
+| 9 | CORE/python_env.py | FIXED (Oct-19) | src/CORE/python_env.py added in 2e72bec5; imports clean as CORE.python_env on 3.15t |
 | 10 | .codebuff/rules.md | DANGLING | directory absent |
 | 11 | azazael/src/* + azazael/src/SCRIPTS/* prefixes | DANGLING | files live under src/ |
 | 12 (added, AP-ZB-1) | resolve canon path before citing | - | path must resolve at HEAD |
