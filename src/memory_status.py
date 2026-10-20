@@ -220,7 +220,7 @@ class MemoryStatus:
 
             # Verify singleton can be created
             try:
-                from AzazaelDynamicLogger import DynamicLogger
+                from UTILITIES.Loggers import DynamicLogger
                 logger = DynamicLogger()
                 status.details["singleton"] = "active"
             except Exception as exc:
