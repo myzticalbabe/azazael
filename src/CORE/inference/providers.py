@@ -774,7 +774,7 @@ class OpenAIProvider:
         self._total_requests: int = 0
         self._total_tokens: int = 0
         self._last_error: Optional[str] = None
-        self._openai_client: Optional[OpenAI] = None
+        self._openai_client: Any = None
 
         if config is not None:
             self.config = config
@@ -802,7 +802,7 @@ class OpenAIProvider:
         own budget, and padding it would break any caller that sized the cap
         deliberately (e.g. a bounded probe).
         """
-        info = PROVIDER_REGISTRY.get(self.provider_name) or {}
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name) or {}
         return int(self.config.max_tokens) + int(
             info.get("reasoning_overhead", 0) or 0)
 
@@ -852,7 +852,7 @@ class OpenAIProvider:
             provider=name,
             api_key=api_key,
             base_url=base_url,
-            model=os.environ.get(f"{name.upper()}_MODEL", info["default_model"]),
+            model=os.environ.get(f"{name.upper()}_MODEL", str(info["default_model"])),
             rate_limit_rpm=info.get("rate_limit_rpm", 30),
             key_prefix=info.get("key_prefix", ""),
             signup_url=info.get("signup_url", ""),
@@ -903,7 +903,7 @@ class OpenAIProvider:
 
     # -- Client factory ----------------------------------------------
 
-    def _get_client(self) -> "OpenAI":
+    def _get_client(self) -> Any:
         """Get or lazily create the cached OpenAI client."""
         if OpenAI is None:
             raise RuntimeError(
@@ -911,7 +911,7 @@ class OpenAIProvider:
                 "(pydantic_core has no 3.14t build); use a stdlib HTTP "
                 "client or plain CPython for live OpenAI-SDK calls")
         if self._openai_client is None:
-            kwargs = dict(
+            kwargs: Dict[str, Any] = dict(
                 base_url=self.config.base_url,
                 api_key=self.config.api_key,
                 timeout=self.config.timeout_seconds,
@@ -1020,7 +1020,7 @@ class OpenAIProvider:
             elapsed_ms = int((time.time() - start) * 1000)
             choice = response.choices[0]
 
-            result = {
+            result: Dict[str, Any] = {
                 "content": choice.message.content or "",
                 "model": response.model,
                 "usage": {
@@ -1129,7 +1129,7 @@ class OpenAIProvider:
         return out.strip()
 
     @staticmethod
-    def _parse_structured(text: str) -> Tuple[Any, str]:
+    def _parse_structured(text: str) -> tuple[Any, str]:
         """Parse a schema-bound payload. Returns (object|None, path).
 
         Paths: `direct` (clean json.loads), `extracted` (outermost {...}
@@ -1380,7 +1380,7 @@ class OpenAIProvider:
 
     def self_test(self, verbose: bool = True) -> Dict[str, Any]:
         """Run self-test (no API call, no credit consumption)."""
-        results = {
+        results: Dict[str, Any] = {
             "provider": self.provider_name,
             "config_valid": False,
             "key_format_ok": False,
@@ -1433,7 +1433,7 @@ class OpenAIProvider:
                 print(f"    - {issue}")
 
         if not results["key_format_ok"]:
-            info = PROVIDER_REGISTRY.get(self.provider_name, {})
+            info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
             if info.get("signup_url"):
                 print(f"\n  Get a free API key: {info['signup_url']}")
                 print(f"  Then: export {info.get('env_var', 'API_KEY')}=your-key")
@@ -1532,7 +1532,7 @@ class NativeAPIProvider(ABC):
         self.framework_config = self._get_framework_config()
     
     def _load_config(self):
-        info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
         api_key = os.environ.get(info.get('env_var', ''), '')
         if not api_key:
             api_key = _read_config_key(self.provider_name)
@@ -1547,7 +1547,7 @@ class NativeAPIProvider(ABC):
             base_url=info.get('base_url', ''),
             model=os.environ.get(
                 f'{self.provider_name.upper()}_MODEL',
-                info.get('default_model', '')
+                str(info.get('default_model', ''))
             ),
             rate_limit_rpm=info.get('rate_limit_rpm', 9999),
             key_prefix=info.get('key_prefix', ''),
@@ -1587,7 +1587,7 @@ class NativeAPIProvider(ABC):
                 headers['X-API-Key'] = self.config.api_key
         return headers
     
-    def _get_endpoint(self, model: str = None) -> str:
+    def _get_endpoint(self, model: Optional[str] = None) -> str:
         """Get the full API endpoint URL. Substitutes {model} placeholder and appends auth key if query_param auth."""
         endpoint = self.framework_config.endpoint
         if model is None:
@@ -1965,7 +1965,7 @@ class MistralFIMNativeProvider(NativeAPIProvider):
         if choices:
             delta = choices[0].get('delta', {})
             return delta.get('content', '')
-        return 
+        return ""
     
     def _parse_response(self, data: dict) -> dict:
         choices = data.get('choices', [])
@@ -2071,15 +2071,15 @@ class LlamaCppDirectProvider:
         self.provider_name = provider
         self.config = self._load_config()
     def _load_config(self):
-        info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
         return ProviderConfig(provider=self.provider_name, api_key="",
             base_url=info.get("base_url", ""),
-            model=os.environ.get("LLAMA_CPP_MODEL", info.get("default_model", "llama3.2-1b")),
+            model=os.environ.get("LLAMA_CPP_MODEL", str(info.get("default_model", "llama3.2-1b"))),
             rate_limit_rpm=9999, key_prefix="",
             signup_url=info.get("signup_url", ""), requires_auth=False, max_tokens=512)
     def has_valid_key(self) -> bool:
         return True
-    def _get_model_path(self, model_name: str = None) -> str:
+    def _get_model_path(self, model_name: Optional[str] = None) -> str:
         name = model_name or self.config.model
         env_path = os.environ.get("LLAMA_CPP_MODEL_PATH", "")
         if env_path:
@@ -2158,16 +2158,16 @@ class HuggingFaceDirectProvider:
         self._total_requests = 0
         self._total_tokens = 0
         self._last_error = None
-        self._model = None
-        self._tokenizer = None
+        self._model: Any = None
+        self._tokenizer: Any = None
         self._loaded_model_name = None
         self.provider_name = provider
         self.config = self._load_config()
     def _load_config(self):
-        info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
         return ProviderConfig(provider=self.provider_name, api_key="",
             base_url=info.get("base_url", ""),
-            model=os.environ.get("HF_DIRECT_MODEL", info.get("default_model", "meta-llama/Llama-3.2-1B")),
+            model=os.environ.get("HF_DIRECT_MODEL", str(info.get("default_model", "meta-llama/Llama-3.2-1B"))),
             rate_limit_rpm=9999, key_prefix="",
             signup_url=info.get("signup_url", ""), requires_auth=False, max_tokens=512)
     def has_valid_key(self) -> bool:
@@ -2263,7 +2263,7 @@ class OpenVINOProvider:
     _BACKEND_PROBE = {}
 
     @classmethod
-    def _probe_backend(cls, module_name: str, import_stmt: str = None):
+    def _probe_backend(cls, module_name: str, import_stmt: Optional[str] = None):
         """Test if a module can be imported without crashing.
 
         Uses a subprocess to safely check because some C extensions
@@ -2359,12 +2359,12 @@ class OpenVINOProvider:
         self._probe_backend("optimum.intel", "from optimum.intel import OVModelForCausalLM")
 
     def _load_config(self):
-        info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
         return ProviderConfig(
             provider=self.provider_name,
             api_key="",
             base_url="",
-            model=os.environ.get("OPENVINO_MODEL", info.get("default_model", "auto")),
+            model=os.environ.get("OPENVINO_MODEL", str(info.get("default_model", "auto"))),
             rate_limit_rpm=9999, key_prefix="",
             signup_url=info.get("signup_url", "https://docs.openvino.ai/"),
             requires_auth=False,
@@ -2415,7 +2415,7 @@ class OpenVINOProvider:
 
     def get_device_info(self) -> Dict[str, Any]:
         """Get detailed info about available OpenVINO devices."""
-        info = {
+        info: Dict[str, Any] = {
             "available": False,
             "devices": [],
             "openvino_safe": False,
@@ -2603,7 +2603,7 @@ class OpenVINOProvider:
                     if self._llm_pipeline is not None:
                         del self._llm_pipeline
                         self._llm_pipeline = None
-                    config = {"PERFORMANCE_HINT": "LATENCY"}
+                    config: Dict[str, Any] = {"PERFORMANCE_HINT": "LATENCY"}
                     self._llm_pipeline = openvino_genai.LLMPipeline(
                         model_id, device=device, **config
                     )
@@ -2671,15 +2671,15 @@ class OpenVINOProvider:
         # Map device string to HuggingFace device_map
         hf_device = "cpu" if device == "CPU" else device.lower()
 
-        model_kwargs = {
+        model_kwargs: Dict[str, Any] = {
             "export": True,  # Auto-convert to OpenVINO IR
             "device_map": hf_device,
         }
 
-        self._model = OVModelForCausalLM.from_pretrained(
+        self._model: Any = OVModelForCausalLM.from_pretrained(
             model_id, **model_kwargs
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(model_id)
+        self._tokenizer: Any = AutoTokenizer.from_pretrained(model_id)
 
         # Build messages
         messages = []
@@ -2749,7 +2749,7 @@ class OpenVINOProvider:
             if self._llm_pipeline is None or model_id != self._loaded_model_id:
                 with self._lock:
                     if self._llm_pipeline is None or model_id != self._loaded_model_id:
-                        config = {"PERFORMANCE_HINT": "LATENCY"}
+                        config: Dict[str, Any] = {"PERFORMANCE_HINT": "LATENCY"}
                         self._llm_pipeline = openvino_genai.LLMPipeline(
                             model_id, device=device, **config
                         )
@@ -2785,7 +2785,7 @@ class OpenVINOProvider:
         Does NOT load or run any model (no inference).
         ALL imports go through subprocess probes to avoid segfaults on Python 3.14t.
         """
-        results = {
+        results: Dict[str, Any] = {
             "provider": self.provider_name,
             "openvino_import": False,
             "openvino_safe": False,
@@ -2956,12 +2956,12 @@ class OllamaNativeProvider:
         self.config = self._load_config()
 
     def _load_config(self):
-        info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        info: Dict[str, Any] = PROVIDER_REGISTRY.get(self.provider_name, {})
         return ProviderConfig(
             provider=self.provider_name,
             api_key="",
             base_url=info.get("base_url", "http://localhost:11434/api/generate"),
-            model=os.environ.get("OLLAMA_NATIVE_MODEL", info.get("default_model", "llama3.2:1b")),
+            model=os.environ.get("OLLAMA_NATIVE_MODEL", str(info.get("default_model", "llama3.2:1b"))),
             rate_limit_rpm=9999, key_prefix="",
             signup_url=info.get("signup_url", "https://ollama.com"),
             requires_auth=False,
@@ -3030,7 +3030,7 @@ class OllamaNativeProvider:
 
 # --- Provider Factory -----------------------------------------------
 
-_provider_cache: Dict[str, OpenAIProvider] = {}
+_provider_cache: Dict[str, Any] = {}
 _cache_lock = threading.Lock()
 
 

@@ -658,7 +658,14 @@ def cmd_eve(args):
 
     sub = args[0].lower()
 
-    from eve_unleashed.decision_engine import DecisionStatus, AutonomyLevel  # noqa: WPS433
+    # Type-only narrowing: _get_engine() also returns falsy sentinels
+    # (None before first try, False after a failed import); the `not engine`
+    # gate above already handled both, so this isinstance never changes flow.
+    from eve_unleashed.decision_engine import (
+        AutonomousDecisionEngine, DecisionStatus, AutonomyLevel,  # noqa: WPS433
+    )
+    if not isinstance(engine, AutonomousDecisionEngine):
+        return
 
     if sub == "status":
         s = engine.stats()

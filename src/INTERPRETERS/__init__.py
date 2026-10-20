@@ -10,7 +10,6 @@ Supported: Python, Rust (1.95+), Go (1.26+), Bash, JavaScript (Node).
 
 Usage:
     from INTERPRETERS import run_code
-import argparse
     result = run_code("rust", 'fn main() { println!("Hello"); }')
 
 OpenMono Integration:
@@ -20,10 +19,12 @@ OpenMono Integration:
         See: openmono_1click_commands.html on Desktop for CLI reference.
 """
 
+import argparse
 import os
+import sys
 # from typing import List  # removed — all names have native equivalents
 from dataclasses import dataclass
-from typing import List
+from typing import Callable, List
 import io
 import subprocess
 
@@ -49,7 +50,7 @@ class RunResult:
     binary_path: str = ""
 
 
-def run_python(code: str, args: list[str] = None) -> RunResult:
+def run_python(code: str, args: list[str] | None = None) -> RunResult:
     """Run Python code via exec."""
     import time
     from contextlib import redirect_stdout, redirect_stderr
@@ -79,12 +80,12 @@ def run_python(code: str, args: list[str] = None) -> RunResult:
     )
 
 
-def run_rust(code: str, args: list[str] = None) -> RunResult:
+def run_rust(code: str, args: list[str] | None = None) -> RunResult:
     """Run Rust code via rust_runner."""
     from INTERPRETERS.rust_runner import RustRunner
 
     runner = RustRunner()
-    result = runner.run_code(code, args)
+    result = runner.run_code(code, args or [])
     return RunResult(
         language="rust",
         success=result.success,
@@ -96,12 +97,12 @@ def run_rust(code: str, args: list[str] = None) -> RunResult:
     )
 
 
-def run_go(code: str, args: list[str] = None) -> RunResult:
+def run_go(code: str, args: list[str] | None = None) -> RunResult:
     """Run Go code via go_runner."""
     from INTERPRETERS.go_runner import GoRunner
 
     runner = GoRunner()
-    result = runner.run_code(code, args)
+    result = runner.run_code(code, args or [])
     return RunResult(
         language="go",
         success=result.success,
@@ -188,7 +189,7 @@ def run_javascript(code: str) -> RunResult:
 
 # --- Unified Dispatcher -----------------------------------------------------
 
-LANGUAGE_RUNNERS = {
+LANGUAGE_RUNNERS: dict[str, Callable[..., RunResult]] = {
     "python": run_python,
     "py": run_python,
     "rust": run_rust,
@@ -204,7 +205,7 @@ LANGUAGE_RUNNERS = {
 }
 
 
-def run_code(language: str, code: str, args: list[str] = None) -> RunResult:
+def run_code(language: str, code: str, args: list[str] | None = None) -> RunResult:
     """Dispatch code execution to the appropriate language runner."""
     runner = LANGUAGE_RUNNERS.get(language.lower())
     if not runner:
@@ -240,13 +241,12 @@ def main():
 
     code = args.code
     if code == "-":
-        import sys
         code = sys.stdin.read()
 
-        result = run_code(args.language, code, args.args)
+    result = run_code(args.language, code, args.args)
 
-        if result.success:
-            print(result.stdout, end="")
+    if result.success:
+        print(result.stdout, end="")
     else:
         print(f"[{result.language}] Error:", file=sys.stderr)
         print(result.stderr, end="", file=sys.stderr)

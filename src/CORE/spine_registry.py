@@ -30,7 +30,7 @@ import os
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Literal, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -200,7 +200,7 @@ class _LedgerBarrier:
             lock.acquire()
         return self
 
-    def __exit__(self, *exc: Any) -> bool:
+    def __exit__(self, *exc: Any) -> Literal[False]:
         for lock in reversed(self._stripes):
             lock.release()
         return False
@@ -2043,7 +2043,13 @@ def q_confidence(nature: str, worm: str) -> Dict[str, Any]:
         n = _evidence_unlocked(key)
         var = float(_Q_VARIANCE.get(key, 0.0))
         dreamed = int(_Q_DREAM_COUNTS.get(key, 0))
-    sigma = var ** 0.5
+    # typeshed declares float ** float as Any; annotating sigma keeps the
+    # downstream round() calls typed (cleared the L2049 round-arg finding),
+    # leaving only the stub-level Any on the RHS itself. Suppressed, not
+    # "fixed", on purpose: replacing pow with math.sqrt would change the
+    # exception type for negative variance values (ValueError vs TypeError
+    # downstream round()).
+    sigma: float = var ** 0.5  # pyright: ignore[reportAny]
     return {"key": key, "q": round(q, 6), "evidence": n,
             "dream_evidence": dreamed, "variance": round(var, 6),
             "sigma": round(sigma, 6),
@@ -3612,8 +3618,14 @@ def _valid_anomaly_model(model: Any) -> bool:
     if not isinstance(model, dict):
         return False
     try:
-        n = int(model.get("input_dim"))
-        h = int(model.get("hidden_dim"))
+        # .get() on an isinstance-narrowed dict[Unknown, Unknown] returns
+        # "Unknown | None"; basedpyright flags the unknown RHS even under an
+        # explicit annotation. The union below intentionally admits str/None so
+        # the int() call can hit the guarded except below.
+        raw_dim: float | str | None = model.get("input_dim")  # pyright: ignore[reportUnknownVariableType]
+        raw_hidden: float | str | None = model.get("hidden_dim")  # pyright: ignore[reportUnknownVariableType]
+        n = int(raw_dim or 0)
+        h = int(raw_hidden or 0)
     except (TypeError, ValueError) as exc:
         note_failure("spine_registry:L3525", exc)
         return False
