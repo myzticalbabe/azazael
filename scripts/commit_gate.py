@@ -91,10 +91,18 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     carries no hidden dirt (everything in it is new by definition), while
     a 400-line modification to a tracked file is exactly the sweep this
     gate exists to catch. Creates still count toward the file tally.
+
+    Generated artifacts (is_generated) are exempt from BOTH tallies: the
+    advisory `review` command already reports them separately, so the
+    blocking path must not demand a bulk declaration for bytes no human
+    wrote. Generated files cannot rescue an otherwise-blocked changeset --
+    the source rows are judged exactly as if the generated rows were
+    absent.
     """
     created = created or set()
     problems = []
     tracked = [r for r in rows if r[2] and not r[2].startswith("(")]
+    tracked = [r for r in tracked if not is_generated(r[2])]
     if len(tracked) > max_files:
         problems.append(
             "%d staged files exceed the bulk limit (%d). Stage a focused "
@@ -129,6 +137,10 @@ def cmd_hook() -> int:
         return 0
     if not rows:
         return 0
+    gen_count = len([r for r in rows if r[2] and is_generated(r[2])])
+    if gen_count:
+        print("commit-gate: %d generated file(s) staged -- exempt from bulk "
+              "caps (review: python scripts/commit_gate.py review)" % gen_count)
     problems = evaluate(rows, max_lines, max_files, created)
     if not problems:
         return 0

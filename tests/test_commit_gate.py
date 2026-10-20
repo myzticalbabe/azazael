@@ -53,3 +53,29 @@ def test_generated_classification():
     assert cg.is_generated("dashboard/monitor_x.html")
     assert not cg.is_generated("scripts/chain_controller.py")
     assert not cg.is_generated("src/CORE/local_memory.py")
+
+
+def test_generated_exempt_from_both_tallies():
+    # Graph rebuild + render artifacts: huge, but no human wrote a line.
+    rows = [(900, 0, "graphify-out/graph.json"),
+            (5000, 10, "output/render/frames.log")]
+    assert cg.evaluate(rows, 150, 8) == []
+
+
+def test_generated_cannot_rescue_blocked_changeset():
+    # Negative control: exempting generated rows must not weaken the cap
+    # on source rows -- 9 source files stay blocked next to 40 generated.
+    rows = [(1, 1, "src/f%d.py" % i) for i in range(9)]
+    rows += [(400, 0, "graphify-out/g%d.json" % i) for i in range(40)]
+    problems = cg.evaluate(rows, 150, 8)
+    assert any("9 staged files" in p for p in problems)
+
+
+def test_generated_line_flood_still_blocked_for_tracked_source():
+    # A tracked source file over the line cap is judged alone, even when
+    # generated rows dominate the changeset numerically.
+    rows = [(200, 60, "src/CORE/local_memory.py"),
+            (3000, 0, "graphify-out/graph.html")]
+    problems = cg.evaluate(rows, 150, 8)
+    assert len(problems) == 1
+    assert "local_memory.py" in problems[0]
