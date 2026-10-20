@@ -57,6 +57,7 @@ Usage:
 
 from typing import Any, List
 import numpy as np
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -226,7 +227,6 @@ class MLflowLogger:
         if not self.run:
             self.start_run()
 
-        import json
         import tempfile
         import os
 

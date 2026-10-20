@@ -54,6 +54,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 from typing import List
+import re
+import random
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -187,7 +189,6 @@ class MLFrameworkQA:
 
     def _extract_keywords(self, content: str) -> list[str]:
         """Extract meaningful keywords from documentation."""
-        import re
 
         # Extract code blocks
         code_pattern = r"```[\s\S]*?```"
@@ -354,7 +355,6 @@ class MLFrameworkQA:
 
     def _extract_question_keywords(self, question: str) -> list[str]:
         """Extract key terms from question."""
-        import re
 
         # Common ML terms
         ml_terms = [
@@ -441,7 +441,6 @@ class MLFrameworkQA:
 
     def select_framework(self, state: QState) -> tuple[Framework, float]:
         """Select best framework using epsilon-greedy strategy."""
-        import random
 
         epsilon = 0.1  # Exploration rate
 

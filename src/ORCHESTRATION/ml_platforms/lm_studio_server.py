@@ -56,6 +56,7 @@ from improvements.tensor_utils import to_tensor, from_tensor
 from improvements.vectorize_utils import vmap, jit, grad
 import numpy as np
 from typing import List
+import traceback
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -199,7 +200,6 @@ def distributed_train():
 @app.route("/api/execute", methods=["POST"])
 def execute_code():
     """Execute Python code safely (sandboxed)."""
-    import traceback
 
     data = request.json
     code = data.get("code", "")

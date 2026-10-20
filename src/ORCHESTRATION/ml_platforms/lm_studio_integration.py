@@ -16,6 +16,7 @@ Usage:
 
 import sys
 from typing import List
+import time
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -114,7 +115,6 @@ def tensor_info(tensor):
 
 def benchmark(func, *args, **kwargs):
     """Benchmark a function execution."""
-    import time
 
     start = time.time()
     result = func(*args, **kwargs)
