@@ -37,6 +37,7 @@ os.environ["AZAZAEL_MEMORY_DIR"] = _SCRATCH_DIR
 from CORE.local_memory import get_memory_store  # noqa: E402
 from CORE.WORMS.expansion.learning_rl import RLTrainLoop, _compute_reward  # noqa: E402
 from typing import List
+import inspect
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -190,7 +191,6 @@ class TestPromotionPath(unittest.TestCase):
     def test_paths_agree(self):
         import scripts.evolution_cycle as evc
         from CORE.WORMS.expansion import scheduling
-        import inspect
 
         write_path = Path(evc.PROMOTE_JSON).resolve()
         # Extract the read path from apply_evolved_overrides source

@@ -38,6 +38,7 @@ from datetime import datetime
 from typing import Any, List
 from dataclasses import dataclass
 from contextlib import contextmanager
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -1704,7 +1705,6 @@ def load_memory_context() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Session Memory — Cross-Session Learning Database"

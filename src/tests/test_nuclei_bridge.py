@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from CORE.WORMS.expansion.nuclei import NucleiBridge
 from typing import List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -82,14 +83,12 @@ class TestScanParsing(unittest.TestCase):
 
 class TestFeedState(unittest.TestCase):
     def test_status_missing_file(self):
-        import tempfile
 
         worm = NucleiBridge(state_path=Path(tempfile.mkdtemp()) / "state.json")
         self.assertEqual(worm.templates_status(), {})
 
     @patch("CORE.WORMS.expansion.nuclei.subprocess.run")
     def test_update_templates_records_state(self, mock_run):
-        import tempfile
 
         mock_run.side_effect = [_Proc(0, ""), _Proc(0, "3.4.0\n")]
         path = Path(tempfile.mkdtemp()) / "state.json"

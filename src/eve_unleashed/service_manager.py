@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 from pathlib import Path
+import urllib.request
 
 try:
     from CORE.failure_ledger import note_failure
@@ -72,7 +73,6 @@ class LlamaServerManager:
         return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # scanner:ignore
 
     def _healthy(self):
-        import urllib.request
         try:
             with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/health", timeout=3) as r:
                 return r.status == 200

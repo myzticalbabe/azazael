@@ -29,6 +29,7 @@ from CORE.worm_registry import (
     reset_registry,
 )
 from typing import List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -371,7 +372,6 @@ class TestDiscovery(unittest.TestCase):
 
     def test_discover_empty_dir(self):
         """discover_worms on empty directory should return 0."""
-        import tempfile
         with tempfile.TemporaryDirectory() as tmpdir:
             count = discover_worms(worms_dir=tmpdir)
             self.assertEqual(count, 0)
