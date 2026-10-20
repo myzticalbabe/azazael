@@ -15,6 +15,7 @@ import pytest
 
 from CORE.local_memory import LocalMemoryStore
 from CORE.failure_ledger import failure_notes, reset_notes
+pytestmark = pytest.mark.xdist_group("serial")
 
 class TestQueryRealErrors:
     """Verify query_real_errors filters test artifacts."""

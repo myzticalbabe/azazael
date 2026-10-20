@@ -42,6 +42,7 @@ import subprocess
 from pathlib import Path, PureWindowsPath
 
 import pytest
+pytestmark = pytest.mark.xdist_group("serial")
 def _probe_bash(exe: str | None) -> str | None:
     """Return exe iff it actually executes a script (rc=0 AND output).
 

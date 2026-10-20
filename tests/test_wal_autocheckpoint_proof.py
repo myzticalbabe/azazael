@@ -10,6 +10,7 @@ import sqlite3
 import pytest
 
 from CORE.local_memory import DB_PATH, LocalMemoryStore
+pytestmark = pytest.mark.xdist_group("serial")
 
 
 def _tmp_store(tmp_path):

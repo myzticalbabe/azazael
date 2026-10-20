@@ -177,22 +177,12 @@ def _root_pytest_addopts() -> list:
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(str(ROOT / "pytest.ini"), encoding="utf-8")
         raw = parser.get("pytest", "addopts", fallback="").split()
-        # The sandbox has no xdist-friendly layout and its pytest runs
-        # serially; strip -n/--numprocesses so workers are not spawned
-        # (they would fail to find the interpreter under load).
-        out = []
-        skip_next = False
-        for tok in raw:
-            if skip_next:
-                skip_next = False
-                continue
-            if tok in ("-n", "--numprocesses"):
-                skip_next = True
-                continue
-            if tok.startswith("-n") and len(tok) > 2:
-                continue
-            out.append(tok)
-        return out
+        # Kept whole, including -n auto: production runs parallel xdist and
+        # the sandbox gate must exercise the same configuration. Measured
+        # 2026-10-20 on 3.15t: xdist workers spawn fine from a bare temp cwd
+        # (10 passed in 4s); the old "workers would fail to find the
+        # interpreter" strip was an unmeasured claim that forced serial gates.
+        return raw
     except Exception:
         return []
 
