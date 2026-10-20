@@ -52,7 +52,10 @@ from enum import Enum
 from datetime import datetime
 import traceback
 import argparse
-from typing import List
+from typing import Any, TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    import numpy as np  # annotation-only; numpy stays lazily imported at runtime
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -64,6 +67,11 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 logger = logging.getLogger(__name__)
+
+#: Third element of a converter's result tuple: a details mapping on success,
+#: or the error strings produced when a conversion fails (see
+#: UniversalConverter.convert below, which destructures both shapes).
+ConversionDetails = dict[str, Any] | list[str]
 
 
 class LogLevel(Enum):
@@ -119,7 +127,7 @@ class ConversionResult:
 class ConversionLogger:
     """Comprehensive logging for model conversion."""
 
-    def __init__(self, log_dir: str, log_level: str = "DEBUG"):
+    def __init__(self, log_dir: "str | Path", log_level: str = "DEBUG"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -152,7 +160,13 @@ class ConversionLogger:
         self.logger.addHandler(console_handler)
         self.logger.setLevel(numeric_level)
 
-    def log_step(self, step: str, status: str, details: dict = None, error: str = None):
+    def log_step(
+        self,
+        step: str,
+        status: str,
+        details: dict[str, Any] | None = None,
+        error: str | None = None,
+    ):
         """Log a conversion step."""
         conversion_step = ConversionStep(
             step=step,
@@ -427,7 +441,7 @@ class PyTorchConverter:
 
     def convert(
         self, model_path: str, output_dir: str, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Convert GGUF to PyTorch SafeTensors."""
         self.logger.info(f"Converting to PyTorch: {model_path}")
 
@@ -464,6 +478,8 @@ class PyTorchConverter:
 
                 if tensor_names:
                     from safetensors.torch import save_file
+
+                    import torch  # lazily, alongside save_file (same optional dep)
 
                     state_dict = {}
 
@@ -596,12 +612,14 @@ class PyTorchConverter:
 
         return config
 
-    def _direct_gguf_to_numpy(self, model_path: str) -> dict[str, np.ndarray]:
+    def _direct_gguf_to_numpy(self, model_path: str) -> "dict[str, np.ndarray]":
         """Direct GGUF to NumPy conversion (fallback)."""
         self.logger.info("Attempting direct GGUF to NumPy conversion")
 
         try:
             import struct
+
+            import numpy as np
 
             weights = {}
 
@@ -629,8 +647,14 @@ class PyTorchConverter:
                         3: np.int16,
                         4: np.int8,
                         5: np.uint8,
-                        16: np.float8_e4m3fn,
-                        17: np.float8_e5m2,
+                        # numpy 2.5.3 in the production venv has no float8
+                        # scalar dtypes (verified); these entries raise
+                        # AttributeError when the dict is built, and the
+                        # function's `except Exception` turns it into {} —
+                        # the long-standing behavior. Suppressed at the
+                        # stub level only; runtime behavior identical.
+                        16: np.float8_e4m3fn,  # pyright: ignore[reportAttributeAccessIssue]
+                        17: np.float8_e5m2,  # pyright: ignore[reportAttributeAccessIssue]
                     }
                     dtype = dtype_map.get(dtype_enum, np.float32)
 
@@ -653,6 +677,8 @@ class PyTorchConverter:
 
     def _save_numpy_weights(self, weights: dict, output_dir: Path):
         """Save NumPy weights to disk."""
+        import numpy as np
+
         for name, tensor in weights.items():
             safe_name = name.replace("/", "_").replace(" ", "_")
             np.save(output_dir / f"{safe_name}.npy", tensor)
@@ -667,7 +693,7 @@ class ONNXConverter:
 
     def convert(
         self, model_path: str, output_dir: str, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Convert model to ONNX."""
         self.logger.info(f"Converting to ONNX: {model_path}")
 
@@ -704,7 +730,7 @@ class ONNXConverter:
 
     def _basic_onnx_export(
         self, model_path: str, output_dir: str, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Basic ONNX export for supported models."""
         self.logger.info("Attempting basic ONNX export")
 
@@ -733,9 +759,11 @@ class ONNXConverter:
             dummy_input = torch.randint(0, metadata.vocab_size or 32000, (1, 8))
 
             onnx_path = output_path / "model.onnx"
+            # torch.onnx.export accepts a single example tensor or a tuple of
+            # them; wrapping is the stub-declared form and runtime-equivalent.
             torch.onnx.export(
                 model,
-                dummy_input,
+                (dummy_input,),
                 str(onnx_path),
                 input_names=["input_ids"],
                 output_names=["logits"],
@@ -774,7 +802,7 @@ class TensorFlowConverter:
 
     def convert(
         self, model_path: str, output_dir: str, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Convert GGUF to TensorFlow."""
         self.logger.info(f"Converting to TensorFlow: {model_path}")
 
@@ -801,7 +829,11 @@ class TensorFlowConverter:
                     weights_dict[name] = tf_tensor
 
                 self.logger.info("Saving TensorFlow model...")
-                keras_model.save(str(output_path), save_format="tf")
+                # Keras 3's bundled stubs dropped `save_format` from
+                # Model.save, but TF2's Model.save still accepts it at
+                # runtime; suppression covers only that stub/runtime
+                # divergence, not a real diagnostic.
+                keras_model.save(str(output_path), save_format="tf")  # pyright: ignore[reportCallIssue]
 
                 return (
                     True,
@@ -851,7 +883,7 @@ class TensorFlowConverter:
 
     def _create_placeholder_model(
         self, output_path: Path, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Create placeholder model for manual population."""
         config = {
             "model_type": metadata.architecture or "llama",
@@ -882,7 +914,7 @@ class JAXConverter:
 
     def convert(
         self, model_path: str, output_dir: str, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Convert GGUF to JAX/Flax."""
         self.logger.info(f"Converting to JAX: {model_path}")
 
@@ -953,7 +985,7 @@ class JAXConverter:
 
     def _create_jax_placeholder(
         self, output_path: Path, metadata: ModelMetadata
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, ConversionDetails]:
         """Create JAX placeholder config."""
         config = {
             "model_type": metadata.architecture or "llama",
@@ -994,7 +1026,7 @@ class UniversalConverter:
         self,
         model_path: str,
         framework: str,
-        output_dir: str = None,
+        output_dir: str | None = None,
         debug: bool = False,
     ) -> ConversionResult:
         """Convert model to specified framework."""
@@ -1048,14 +1080,19 @@ class UniversalConverter:
             )
 
             if success:
-                self.logger.log_step("CONVERSION", "SUCCESS", details)
+                self.logger.log_step(
+                    "CONVERSION",
+                    "SUCCESS",
+                    details if isinstance(details, dict) else {},
+                )
             else:
+                error_details = [] if isinstance(details, dict) else details
                 self.logger.log_step(
                     "CONVERSION",
                     "FAILED",
-                    error=details[0] if details else "Unknown error",
+                    error=error_details[0] if error_details else "Unknown error",
                 )
-                errors.extend(details)
+                errors.extend(error_details)
 
         except Exception as e:
             note_failure("universal_converter:L999", e)
