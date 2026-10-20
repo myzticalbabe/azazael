@@ -23,6 +23,7 @@ from datetime import datetime
 # from typing import List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 from typing import List
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -154,7 +155,6 @@ class OPTIMIZ:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="OPTIMIZ - Optimization Meta-Worm")
     parser.add_argument("--analyze", action="store_true", help="Full analysis")

@@ -55,6 +55,7 @@ except ImportError as exc:
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+import argparse
 
 
 # Portability: use env vars with local fallbacks
@@ -635,7 +636,6 @@ Components: {summary["components_monitored"]}"""
 
 def main():
     """CLI entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="METRICZ - Execution Telemetry")
     parser.add_argument("--version", action="version", version="1.0.0")
