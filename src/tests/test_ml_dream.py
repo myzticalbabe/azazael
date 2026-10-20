@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from ML.trace_consolidator import consolidate, dream, render_markdown, summarize_snapshot
 from typing import List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -38,7 +39,6 @@ def _tool(tool: str, status: str = "completed") -> dict:
 
 class TestSummarize(unittest.TestCase):
     def test_counts(self):
-        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_snapshot(
@@ -57,7 +57,6 @@ class TestSummarize(unittest.TestCase):
             self.assertEqual(sig.tools["bash"], 2)
 
     def test_bad_lines_skipped(self):
-        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "s9.jsonl"
@@ -71,7 +70,6 @@ class TestSummarize(unittest.TestCase):
 
 class TestConsolidate(unittest.TestCase):
     def test_failure_split_and_render(self):
-        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             snap = Path(tmp) / "snaps"
@@ -93,7 +91,6 @@ class TestConsolidate(unittest.TestCase):
             self.assertIn("problem dimension: scope", md)
 
     def test_dream_writes_file(self):
-        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             snap = Path(tmp) / "snaps"

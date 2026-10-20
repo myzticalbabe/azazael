@@ -39,6 +39,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import List
+from pathlib import Path
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -77,7 +79,6 @@ class Qwen35SSMConfig:
 
     @classmethod
     def from_json(cls, path: str) -> "Qwen35SSMConfig":
-        import json
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         ssm = data.get("ssm_config", {})
@@ -461,7 +462,6 @@ def create_qwen35_model(config_path: (str | None) = None) -> Qwen35ForCausalLM:
     Returns:
         Initialized (untrained) Qwen35ForCausalLM model
     """
-    from pathlib import Path
 
     if config_path is None:
         config_path = str(
