@@ -32,6 +32,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+import re
+import re as _re
 
 HERE = Path(__file__).resolve().parent
 PROJECT = os.environ.get("ENGRAM_PROJECT", "azazael")
@@ -220,7 +222,6 @@ def _plan_tasks(text):
     unrecognized (never an empty list - an empty list means "no tasks",
     which is a claim, not a fallback).
     """
-    import re
     tasks = []
     cur = None
     seen_header = False
@@ -261,7 +262,6 @@ def _superseded_task_ids(text):
     other tasks) cannot close tasks it merely mentions. Returns None
     when the output is unrecognized.
     """
-    import re as _re
     ids = set()
     relation = status = ""
     endpoints = []

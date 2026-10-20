@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import argparse
 
 @dataclass
 class FreebuffResult:
@@ -136,7 +137,6 @@ def generate_coding_tasks(n: int) -> List[str]:
 
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description="Freebuff Parallel Throughput Benchmark")
     parser.add_argument("--tasks", type=int, default=20, help="Number of tasks to run")
     parser.add_argument("--parallel", type=int, default=20, help="Max parallel agents")

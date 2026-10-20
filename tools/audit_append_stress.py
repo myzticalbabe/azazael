@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+import time
 
 UNIFIED = r"C:/Users/clint/llama-server/unified"
 
@@ -39,7 +40,6 @@ def _worker(mode: str, directory: str, records: int, pad: int) -> None:
     os.environ["AZAZAEL_AUDIT_DIR"] = directory
     sys.path.insert(0, UNIFIED)
     import threading
-    import time
 
     import pmb_daemon_launcher as pmb
     path = Path(directory) / pmb.AUDIT_FILENAME
