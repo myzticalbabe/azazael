@@ -50,8 +50,9 @@ try:
 except ImportError as exc:
     note_failure("evolution:L37", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def _null_register_worm(*args: Any, **kw: Any) -> Any:
         return lambda cls: cls
+    register_worm = _null_register_worm
 
 try:
     from CORE.WORMS.expansion.fencing import fence_for
@@ -59,7 +60,7 @@ try:
 except ImportError as exc:
     note_failure("evolution:L45", exc)
     _FENCING_OK = False
-    def fence_for(name):  # type: ignore[misc]
+    def _null_fence_for(name: str) -> Any:
         """Fallback fence that never rejects, for a partially-imported tree."""
         class _NoFence:
             def claim(self):
@@ -68,6 +69,7 @@ except ImportError as exc:
             def commit(self, token, apply):
                 return True, apply()
         return _NoFence()
+    fence_for = _null_fence_for
 
 
 import uuid as _uuid
@@ -201,7 +203,7 @@ class EvolutionEngine:
         # -- v2.0 mixed-type genome specs (audit item 3) --
         # {name: ("float"|"int"|"bool"|"choice", lo, hi, choices)}
         # Empty = legacy float-only inferred from bounds tuples.
-        self._gene_specs: dict[str, tuple] = {}
+        self._gene_specs: dict[str, dict[str, Any]] = {}
 
         # -- Adaptive mutation rate --
         self.base_mutation_rate = mutation_rate
@@ -214,7 +216,7 @@ class EvolutionEngine:
         self._population: list[Genome] = []
         self._generation = 0
         self._gene_bounds: dict[str, tuple[float, float]] = {}
-        self._generation_history: list[dict] = []
+        self._generation_history: list[dict[str, Any]] = []
         self._best_genome: (Genome | None) = None
         self._fitness_cache: dict[str, float] = {}
         self._fitness_hash_cache: dict[str, float] = {}  # v2.0: gene-hash -> fitness (cross-cycle reuse)
@@ -561,8 +563,8 @@ class EvolutionEngine:
         child = {}
         eta = max(1.0, float(self.eta_c))
         for key in list(genes1) + [k for k in genes2 if k not in genes1]:
-            v1 = genes1.get(key, genes2.get(key))
-            v2 = genes2.get(key, v1)
+            v1: Any = genes1.get(key, genes2.get(key))
+            v2: Any = genes2.get(key, v1)
             spec = self._gene_specs.get(key)
             is_discrete = (
                 (spec is not None and spec.get("type") in ("bool", "choice"))
@@ -682,7 +684,8 @@ class EvolutionEngine:
         last_improved = -1
         for i, row in enumerate(hist):
             try:
-                v = float((row or {}).get("best_fitness"))
+                cell: Any = (row or {}).get("best_fitness")
+                v = float(cell)
             except (TypeError, ValueError) as exc:
                 note_failure("evolution:L673", exc)
                 continue
@@ -908,7 +911,7 @@ class EvolutionEngine:
             dict with checkpoint metadata
         """
         with self._lock:
-            checkpoint = {
+            checkpoint: dict[str, Any] = {
                 "version": self.VERSION,
                 "label": label or f"gen_{self._generation}",
                 "generation": self._generation,
@@ -1840,7 +1843,8 @@ class TPESurrogate:
         n_good = max(2, int(len(ranked) * self.gamma))
         good = [self._norm(g) for g, _f in ranked[:n_good]]
         bad = [self._norm(g) for g, _f in ranked[n_good:]] or good
-        best, best_s = None, None
+        best: Any = None
+        best_s: float | None = None
         for _ in range(self.candidates):
             if random.random() < 0.8 and good:
                 base = random.choice(good)

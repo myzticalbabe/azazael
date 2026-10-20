@@ -238,7 +238,9 @@ def detect_gaming(rows: Iterable[Any], window: int = 40,
         try:
             m = data.get("margin")
             if m is None:
-                m = float(data.get("best_total")) - float(data.get("baseline"))
+                bt: Any = data.get("best_total")
+                bl: Any = data.get("baseline")
+                m = float(bt) - float(bl)
             if m is not None and math.isfinite(float(m)):
                 margins.append(float(m))
         except (TypeError, ValueError) as exc:
@@ -719,12 +721,14 @@ def row_data(row: Any) -> Optional[dict]:
     return d if isinstance(d, dict) else None
 
 
-def _margin_of(d: dict) -> Optional[float]:
+def _margin_of(d: dict[str, Any]) -> Optional[float]:
     """The margin, derived from the objective when it is not stored."""
     try:
         m = d.get("margin")
         if m is None:
-            m = float(d.get("best_total")) - float(d.get("baseline"))
+            bt: Any = d.get("best_total")
+            bl: Any = d.get("baseline")
+            m = float(bt) - float(bl)
         m = float(m)
     except (TypeError, ValueError) as exc:
         note_failure("exmachina:L708", exc)
@@ -1017,8 +1021,8 @@ def invariance_report(rows: Iterable[Any], feature_keys: Sequence[str],
     for key in feature_keys:
         slopes: List[float] = []
         for _era, rows_e in usable.items():
-            xs = [d.get(key) for d in rows_e]
-            ys = [d.get(target) for d in rows_e]
+            xs: List[Any] = [d.get(key) for d in rows_e]
+            ys: List[Any] = [d.get(target) for d in rows_e]
             s = theil_sen(xs, ys)
             if s is not None and math.isfinite(s):
                 slopes.append(s)
@@ -1147,7 +1151,8 @@ def adf(resid: Iterable[float], lags: int = 1) -> Dict[str, Any]:
     if n < 12 + 2 * lags:
         return {"n": n, "tstat": None, "crit_5pct": None, "stationary": None,
                 "note": "need >=%d points" % (12 + 2 * lags)}
-    y, X = [], []
+    y: List[float] = []
+    X: List[List[float]] = []
     for t in range(lags + 1, n):
         row = [r[t - 1], 1.0]
         for i in range(1, lags + 1):
@@ -1160,7 +1165,7 @@ def adf(resid: Iterable[float], lags: int = 1) -> Dict[str, Any]:
     k = len(beta)
     dof = max(1, len(y) - k)
     s2 = sum(e * e for e in resid2) / dof
-    xtx = [[sum(X[i][rr] * X[i][cc] for i in range(len(X))) for cc in range(k)] for rr in range(k)]
+    xtx = [[float(sum(X[i][rr] * X[i][cc] for i in range(len(X)))) for cc in range(k)] for rr in range(k)]
     inv = _invert(xtx)
     if inv is None:
         return {"n": n, "tstat": None, "crit_5pct": _eg_crit(n), "stationary": None}
@@ -1736,7 +1741,7 @@ def _ab_delta_of(row: Any) -> Optional[float]:
 
 def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
                 genome: Optional[dict] = None,
-                mutation: Optional[dict] = None,
+                mutation: Optional[Dict[str, Any]] = None,
                 min_trials: int = 6) -> Dict[str, Any]:
     """Did the genome grow, or was it given away? Never raises.
 
@@ -1745,7 +1750,7 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     the trial arm cannot have differed from the baseline), discounted by how
     strong the evidence is that those trials nevertheless all "won".
     """
-    trials: List[Tuple[Any, Any, float, int]] = []
+    trials: List[Tuple[Any, Any, float, int, dict[str, Any]]] = []
     try:
         source = list(morph_rows or [])
     except TypeError as exc:          # a non-iterable is absent data, not a crash
@@ -1908,14 +1913,15 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     # one finding look like two.
     load = None
     if isinstance(genome, dict):
-        gs = [g for g in (genome.get("genes") or []) if isinstance(g, dict)]
+        gs: List[Dict[str, Any]] = [g for g in (genome.get("genes") or []) if isinstance(g, dict)]
         floor = genome.get("usefulness_floor")
         floor = float(floor) if isinstance(floor, (int, float)) else None
         us: List[float] = []
         below: List[str] = []
         for g in gs:
             try:
-                u = abs(float(g.get("usefulness")))
+                uv: Any = g.get("usefulness")
+                u = abs(float(uv))
             except (TypeError, ValueError) as exc:
                 note_failure("exmachina:L1880", exc)
                 continue
@@ -1934,7 +1940,9 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     tests = None
     if isinstance(mutation, dict):
         try:
-            n_m, k_m = int(mutation.get("mutants")), int(mutation.get("killed"))
+            mutants_raw: Any = mutation.get("mutants")
+            killed_raw: Any = mutation.get("killed")
+            n_m, k_m = int(mutants_raw), int(killed_raw)
         except (TypeError, ValueError) as exc:
             note_failure("exmachina:L1898", exc)
             n_m = k_m = None
@@ -2117,14 +2125,19 @@ class MoodTracker:
     def update(self, signals: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         self.frames += 1
         sev = severity_vector(signals)
-        raw = sev.get("raw")
+        raw: Any = sev.get("raw")
         if raw is None:
             target = 1
             smoothed = self.ema if self.ema is not None else None
         else:
-            self.ema = raw if self.ema is None else (self.alpha * raw + (1.0 - self.alpha) * self.ema)
-            smoothed = self.ema
-            target = _band_from_score(smoothed)
+            if self.ema is None:
+                self.ema = raw
+                smoothed = raw
+            else:
+                self.ema = self.alpha * raw + (1.0 - self.alpha) * self.ema
+                smoothed = self.ema
+            band_input: Any = smoothed
+            target = _band_from_score(band_input)
             if sev.get("escalated"):
                 target = max(target, 3)
         prev = self.band
@@ -2243,7 +2256,8 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
         m = _margin_of(d)
         if m is not None:
             margins.append(m)
-        h = d.get("holdout") if isinstance(d.get("holdout"), dict) else {}
+        hold_raw = d.get("holdout")
+        h: Dict[str, Any] = hold_raw if isinstance(hold_raw, dict) else {}
         att = bool(h) and not h.get("cooldown")
         ok = bool(h.get("passed")) if att else False
         if h.get("cooldown"):
