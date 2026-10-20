@@ -45,13 +45,13 @@ if _azazael_src not in sys.path:
 
 try:
     from CORE.freethreading import (
-        is_free_threaded, FreeThreadPool, ThreadSafeDict,
+        is_free_threaded, FreeThreadPool, ThreadSafeDict,  # pyright: ignore[reportAssignmentType]
         ThreadSafeList, ThreadSafeCounter,
     )
     HAS_FREETHREADING = True
 except ImportError as exc:
     note_failure("AgentPool:L43", exc)
-    HAS_FREETHREADING = False
+    HAS_FREETHREADING = False  # pyright: ignore[reportConstantRedefinition]
     ThreadSafeDict = dict
     ThreadSafeList = list
     ThreadSafeCounter = type('ThreadSafeCounter', (), {
@@ -65,20 +65,25 @@ except ImportError as exc:
         def __init__(self, max_workers=0, thread_name_prefix='ft-pool'):
             self.max_workers = max_workers or (os.cpu_count() or 8)
             self.thread_name_prefix = thread_name_prefix
+            self._executor: Optional[ThreadPoolExecutor] = None
         def __enter__(self): 
             self._executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix=self.thread_name_prefix)
             return self
         def __exit__(self, *a): 
             if self._executor: self._executor.shutdown(wait=True)
-        def submit(self, fn, *a, **kw): return self._executor.submit(fn, *a, **kw)
-        def map(self, fn, *it, **kw): return self._executor.map(fn, *it, **kw)
+        def submit(self, fn, *a, **kw):
+            assert self._executor is not None
+            return self._executor.submit(fn, *a, **kw)
+        def map(self, fn, *it, **kw):
+            assert self._executor is not None
+            return self._executor.map(fn, *it, **kw)
 
 try:
-    from CORE.PamsRecorder import PamsRecorder, get_recorder
+    from CORE.PamsRecorder import PamsRecorder, get_recorder  # pyright: ignore[reportAssignmentType]
     HAS_PAMS = True
 except ImportError as exc:
     note_failure("AgentPool:L69", exc)
-    HAS_PAMS = False
+    HAS_PAMS = False  # pyright: ignore[reportConstantRedefinition]
     def PamsRecorder():
         return type('FakeRecorder', (), {
             'record_event': lambda *a, **kw: False, 'get_stats': lambda: {},
@@ -142,7 +147,7 @@ class PoolStats:
             return (self.tasks_completed / elapsed) if elapsed > 0 else 0
         return 0.0
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             'tasks_submitted': self.tasks_submitted,
             'tasks_completed': self.tasks_completed,
@@ -203,7 +208,7 @@ class AgentPool:
         self._history_lock = threading.Lock()
 
         # -- PAMS recorder -------------------------------------------------
-        self._pams = None
+        self._pams: Any = None
         if self.record_to_pams and HAS_PAMS:
             try:
                 self._pams = get_recorder()
@@ -272,7 +277,7 @@ class AgentPool:
 
     # -- Public API ------------------------------------------------------------
 
-    def submit(self, fn: Callable, *args, **kwargs) -> Future:
+    def submit(self, fn: Callable[..., Any], *args, **kwargs) -> Future[Any]:
         """
         Submit a callable for ASYNCHRONOUS execution with PAMS logging.
 
@@ -336,7 +341,7 @@ class AgentPool:
         executor = self._ensure_executor()
         return executor.submit(_wrapped)
 
-    def map(self, fn: Callable, *iterables, timeout: float = None,
+    def map(self, fn: Callable[..., Any], *iterables, timeout: Optional[float] = None,
             chunksize: int = 1) -> List[Any]:
         """
         Map a function over iterables in parallel, with PAMS logging.
@@ -355,7 +360,7 @@ class AgentPool:
 
         items = list(iterables[0])
         total = len(items)
-        results = [None] * total
+        results: List[Any] = [None] * total
         errors = []
         _errors_lock = threading.Lock()
 
@@ -424,8 +429,8 @@ class AgentPool:
         return results
 
     def benchmark(self, workload_fn: Callable[[], Any],
-                  worker_levels: List[int] = None,
-                  iterations_per_level: int = 500) -> Dict[int, dict]:
+                  worker_levels: Optional[List[int]] = None,
+                  iterations_per_level: int = 500) -> Dict[int, Dict[str, Any]]:
         """
         Benchmark throughput at multiple concurrency levels.
 
@@ -497,7 +502,7 @@ class AgentPool:
 
         return results
 
-    def benchmark_print(self, results: Dict[int, dict]) -> None:
+    def benchmark_print(self, results: Dict[int, Dict[str, Any]]) -> None:
         """Print a formatted benchmark table."""
         sep = '=' * 65
         sub = '-' * 45
@@ -518,7 +523,7 @@ class AgentPool:
 
     # -- Stats -----------------------------------------------------------------
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics as a dict."""
         with self._stats_lock:
             stats = self._stats.to_dict()
