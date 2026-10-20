@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from PSYCHE import affect as A
 from PSYCHE import identify as I
 from PSYCHE.traits import default_theta_path
+import math
 
 PMB_DB = (Path.home() / ".pmb" / "workspaces" / "04a151a73354"
           / "events.sqlite")
@@ -154,7 +155,6 @@ def _fit_on_pairs(sits: list, pads: list) -> dict:
     theta = {d: 3.0 for d in I.DOMAINS}
     # Direct descent on the pairs (same objective shape as fit_traits).
     best = dict(theta)
-    import math
 
     def mse(th):
         err = 0.0

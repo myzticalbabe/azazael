@@ -21,6 +21,7 @@ import shutil
 import sqlite3
 import sys
 from pathlib import Path
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 LIVE_DB = Path.home() / ".local" / "share" / "kilo" / "kilo.db"
@@ -127,7 +128,6 @@ def harvest(live_db=LIVE_DB, prefix="kilo", live=False):
 
 
 def main():
-    import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--db", default=str(LIVE_DB))

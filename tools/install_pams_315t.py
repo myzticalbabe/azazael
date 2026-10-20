@@ -48,6 +48,7 @@ import ast
 import shutil
 import sys
 from pathlib import Path
+import json
 
 DEFAULT_SOURCE = Path(
     r"C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages")
@@ -159,7 +160,6 @@ def install(source: Path, target: Path, dry_run: bool = False) -> int:
 def verify(target: Path) -> int:
     """Import through the target interpreter and report the exact failure."""
     import importlib.util as util
-    import json
 
     python = target.parent.parent / "Scripts" / "python.exe"
     print(f"interpreter: {python}")

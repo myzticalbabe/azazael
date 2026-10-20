@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pmb_client  # noqa: E402
+import sys as _sys
 
 RESULTS: list[tuple[str, bool, str]] = []
 
@@ -102,7 +103,6 @@ def main() -> int:
         """The adherence pass runs AND reports its four counters. On an
         mcp-only host there is no `followcheck` MCP tool, so drive the engine
         API directly (the same call the Stop hook would make)."""
-        import sys as _sys
         from pathlib import Path as _P
         _sys.path.insert(0, str(_P(__file__).resolve().parent))
         from pmb.core.engine import Engine
