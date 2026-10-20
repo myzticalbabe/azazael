@@ -58,7 +58,7 @@ def preflight(tools):
             if r.returncode == 0:
                 runnable.append(t)
         except Exception:
-            pass  # scanner:ignore
+            print("gust_lite: best-effort probe failed", file=sys.stderr)
     return runnable
 
 

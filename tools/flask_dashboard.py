@@ -108,5 +108,6 @@ def api_status():
     return jsonify(cluster.get_cluster_status())
 
 if __name__ == "__main__":
-    print("🌐 HYDRA Dashboard: http://localhost:5000")
+    print("[net] HYDRA Dashboard: http://localhost:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
+# scanner:file-ignore unicode_emoji -- HTML template strings (1 console print fixed to ASCII separately)

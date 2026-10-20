@@ -376,7 +376,7 @@ def _stream_command(cmd: Sequence[str], timeout: int,
                     fh.write(trailer)
                     fh.flush()
             except OSError:
-                pass
+                print("aggregate_suite_gate: trailer write failed", file=sys.stderr)
         return (124 if stall_reason.startswith("TIMEOUT") else 126), output
     return (proc.returncode or 0), output
 

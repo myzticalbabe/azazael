@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from pathlib import Path
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_JSONL = ROOT / "state" / "bake_harvest_2026-10-15.jsonl"
@@ -113,7 +114,6 @@ def harvest_sweep(path, corpus_titles):
 
 
 def main():
-    import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--export", default="C:/Users/clint/AppData/Local/Temp/opencode/engram-azazael.json")

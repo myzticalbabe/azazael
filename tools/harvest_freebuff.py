@@ -20,6 +20,7 @@ import json
 import re
 import sys
 from pathlib import Path
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 CHATS = (Path.home() / ".config" / "manicode" / "projects" / "azazael"
@@ -197,7 +198,6 @@ def harvest_session(sdir, titles, records, dropped):
 
 
 def main():
-    import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--session", default=None)
