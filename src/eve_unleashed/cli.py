@@ -24,6 +24,7 @@ import json
 import sys
 from pathlib import Path
 from typing import List
+import time
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -109,7 +110,6 @@ def cmd_stats(args) -> int:
 def cmd_list_models(args) -> int:
     """list available frameworks and scan for model files."""
     from .core import ModelLoader
-    from pathlib import Path
 
     # Frameworks
     fws = ModelLoader.detect_frameworks()
@@ -199,7 +199,6 @@ def cmd_registry(args) -> int:
 def cmd_config(args) -> int:
     """Backup or restore eve configuration."""
     from .config import EveConfig
-    from pathlib import Path
 
     if args.config_action == "backup":
         cfg = EveConfig()
@@ -237,7 +236,6 @@ def cmd_config(args) -> int:
 
 def cmd_benchmark(args) -> int:
     """Benchmark inference across CPU and available GPU backends."""
-    import time
     from .engine import InferenceEngine
     from .core import ModelLoader
 

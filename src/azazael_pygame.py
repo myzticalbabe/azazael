@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Any, List
 from enum import Enum
 import time
+import random as rand
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -137,7 +138,6 @@ class EnrichmentDisplay:
     def add_tag(
         self, text: str, color: tuple[int, int, int], x: float, target_y: float
     ):
-        import random as rand
 
         self.tags.append(
             Tag(

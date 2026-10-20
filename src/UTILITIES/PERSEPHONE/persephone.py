@@ -30,6 +30,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 from typing import List
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -126,7 +127,6 @@ except ImportError as exc:
     def save(self):
         """Save configuration."""
         self.config_dir.mkdir(parents=True, exist_ok=True)
-        import json
 
         with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(self.paths, f, indent=2)

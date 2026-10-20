@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
+import os
 
 try:
     from CORE.failure_ledger import note_failure
@@ -117,7 +118,6 @@ def get_router() -> ModelRouter:
 
 
 def _discover_available(router: ModelRouter) -> None:
-    import os
     from pathlib import Path
     base = Path(os.environ.get("AZAZAEL_ROOT", r"C:\Azazael\azazael")) / "models"
     models: List[str] = []
