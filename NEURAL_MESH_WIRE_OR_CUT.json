@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-19T02:01:56.839513",
+ "generated_at": "2026-10-20T19:08:56.009393",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -101,7 +101,7 @@
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 346,
+   "line": 347,
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -111,7 +111,7 @@
   "allocation:ThompsonAllocator.ingest_outcome": {
    "module": "allocation",
    "qualname": "ThompsonAllocator.ingest_outcome",
-   "line": 279,
+   "line": 280,
    "seg": "def ingest_outcome(self, arm: str, outcome: str) -> \"Tuple[bool, float]\":\n        \"\"\"EP253/EP187: reward-ingest path for callers that speak outcome names.\n\n        Routes the outcome through `reward_for_outcome` (so an unknown string\n        still fails closed) and records it via `update`. Returns the\n        (success, weight) actually applied, so a caller can log what the arm\n        was credited with instead of assuming it.\n        \"\"\"\n        ok, w = reward_for_outcome(outcome)\n        self.update(arm, success=ok, weight=w)\n        return ok, w",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=declared_in_data, triage=test_reached_only.",
@@ -145,12 +145,12 @@
   "allocation:joint_action_space": {
    "module": "allocation",
    "qualname": "joint_action_space",
-   "line": 357,
+   "line": 358,
    "seg": "def joint_action_space(*allocators, name: str = \"joint\") -> Dict[str, object]:\n    \"\"\"EP223: compose several allocators into ONE discrete action space.\n\n    Each action is prefixed `\"<name>:<arm>\"` so it can be dispatched back to\n    the allocator that owns it (`owners` maps action -> the index of the\n    allocator passed in), which is what a single joint policy over\n    `cluster_route` / `cascade` / this module needs. Priors are renormalised\n    across the union so they stay a distribution. Read-only: `action_space()`\n    does not mutate.\n\n    Two allocators may name the same arm. That is not a collision to drop: the\n    first owner keeps the bare `\"<name>:<arm>\"` and a later owner's duplicate\n    is qualified `\"<name>:<index>:<arm>\"`, so every arm of every allocator\n    stays in the set and stays dispatchable through `owners`. Skipping the\n    duplicate would silently delete that arm's prior and any contribution\n    credited to it - a dropped arm is indistinguishable from one that never\n    earned anything, which is exactly the blindness this set exists to end.\n    \"\"\"\n    actions: List[str] = []\n    priors: Dict[str, float] = {}\n    owners: Dict[str, int] = {}\n    for idx, alloc in enumerate(allocators):\n        space = alloc.action_space()\n        for arm in space[\"actions\"]:\n            key = \"%s:%s\" % (name, arm)\n            if key in priors:\n                key = \"%s:%d:%s\" % (name, idx, arm)\n            suffix = 2\n            while key in priors:\n                key = \"%s:%d:%s#%d\" % (name, idx, arm, suffix)\n                suffix += 1\n            actions.append(key)\n            priors[key] = float(space[\"priors\"].get(arm, 0.0))\n            owners[key] = idx\n    total = sum(priors.values()) or 1.0\n    return {\n        \"kind\": \"discrete\",\n        \"source\": name,\n        \"actions\": actions,\n        \"n_actions\": len(actions),\n        \"priors\": {k: v / total for k, v in priors.items()},\n        \"owners\": owners,\n    }",
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/allocation.py:40), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/expansion/allocation.py:41"
+    "src/CORE/WORMS/expansion/allocation.py:42"
    ]
   },
   "arena:Arena.save": {
@@ -216,7 +216,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -268,7 +268,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -320,7 +320,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -398,7 +398,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -576,7 +576,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -633,7 +633,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1064,9 +1064,9 @@
   },
   "config:ConfigLinter.lint_json": {
    "evidence": [
-    "src/CORE/WORMS/expansion/config.py:96"
+    "src/CORE/WORMS/expansion/config.py:97"
    ],
-   "line": 64,
+   "line": 65,
    "module": "config",
    "qualname": "ConfigLinter.lint_json",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/config.py:82), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1076,7 +1076,7 @@
   "config:ConfigLinter.lint_yaml": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 80,
+   "line": 81,
    "module": "config",
    "qualname": "ConfigLinter.lint_yaml",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -1087,7 +1087,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1211"
    ],
-   "line": 143,
+   "line": 144,
    "module": "config",
    "qualname": "DotfileSync.get_checksums",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:992, src/CORE/worm_registry.py:1153), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1098,7 +1098,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1181"
    ],
-   "line": 107,
+   "line": 108,
    "module": "config",
    "qualname": "EnvValidator.scan_env_files",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:991, src/CORE/worm_registry.py:1123), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1131,7 +1131,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1190"
    ],
-   "line": 158,
+   "line": 159,
    "module": "config",
    "qualname": "SecretRotator.rotate_secret",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1132), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1150,7 +1150,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1171,7 +1171,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1230,7 +1230,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1307,7 +1307,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1768,7 +1768,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1840,7 +1840,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1904,7 +1904,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1967,7 +1967,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2017,7 +2017,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2029,7 +2029,7 @@
   "driver:GemmaDriverWorm.judge_dream": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 194,
+   "line": 195,
    "module": "driver",
    "qualname": "GemmaDriverWorm.judge_dream",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2039,7 +2039,7 @@
   "driver:GemmaDriverWorm.propose_goal": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 111,
+   "line": 112,
    "module": "driver",
    "qualname": "GemmaDriverWorm.propose_goal",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2079,7 +2079,7 @@
     "also defined by: DriftAlert, HEALTHZ, StepMonitor"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 53 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 54 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: no",
    "evidence": [
     "scripts/_emoji_mood_probe.py:17",
     "src/CORE/WORMS/CLUSTERWORMS.py:533",
@@ -2099,7 +2099,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2120,7 +2120,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2141,7 +2141,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2162,7 +2162,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2216,7 +2216,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2258,7 +2258,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2279,7 +2279,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2321,7 +2321,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2342,7 +2342,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2363,7 +2363,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2455,7 +2455,7 @@
   "evolution:EvolutionEngine.get_generation_history": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1357,
+   "line": 1361,
    "module": "evolution",
    "qualname": "EvolutionEngine.get_generation_history",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2486,7 +2486,7 @@
   "evolution:EvolutionEngine.set_gene_specs": {
    "module": "evolution",
    "qualname": "EvolutionEngine.set_gene_specs",
-   "line": 225,
+   "line": 230,
    "seg": "def set_gene_specs(self, specs: dict[str, dict]) -> None:\n        \"\"\"Define mixed-type genes. Example:\n        {\"interval\": {\"type\": \"float\", \"lo\": 0.1, \"hi\": 5.0},\n         \"parallel\": {\"type\": \"bool\"},\n         \"priority\": {\"type\": \"choice\", \"choices\": [\"low\",\"normal\",\"high\"]},\n         \"workers\":  {\"type\": \"int\", \"lo\": 1, \"hi\": 8}}\n        \"\"\"\n        with self._lock:\n            self._gene_specs = dict(specs or {})\n            # Mirror continuous bounds for legacy paths\n            for name, spec in self._gene_specs.items():\n                t = spec.get(\"type\", \"float\")\n                if t in (\"float\", \"int\"):\n                    self._gene_bounds[name] = (spec[\"lo\"], spec[\"hi\"])",
    "status": "retired",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2526,7 +2526,7 @@
   "evolution:GeneticOptimizer.optimize_multi": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1529,
+   "line": 1533,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2535,9 +2535,9 @@
   },
   "evolution:hypervolume_2d": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:114"
+    "src/CORE/WORMS/expansion/evolution.py:119"
    ],
-   "line": 1877,
+   "line": 1880,
    "module": "evolution",
    "qualname": "hypervolume_2d",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2546,9 +2546,9 @@
   },
   "evolution:moead_weights": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:115"
+    "src/CORE/WORMS/expansion/evolution.py:120"
    ],
-   "line": 1889,
+   "line": 1892,
    "module": "evolution",
    "qualname": "moead_weights",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2557,9 +2557,9 @@
   },
   "evolution:tchebycheff": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:116"
+    "src/CORE/WORMS/expansion/evolution.py:121"
    ],
-   "line": 1911,
+   "line": 1914,
    "module": "evolution",
    "qualname": "tchebycheff",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2590,7 +2590,7 @@
   "exmachina:_mad": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 975,
+   "line": 979,
    "module": "exmachina",
    "qualname": "_mad",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2600,7 +2600,7 @@
   "exmachina:_tpm": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1373,
+   "line": 1378,
    "module": "exmachina",
    "qualname": "_tpm",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -2609,9 +2609,9 @@
   },
   "exmachina:collect_state": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:114"
+    "src/CORE/WORMS/expansion/exmachina.py:115"
    ],
-   "line": 465,
+   "line": 467,
    "module": "exmachina",
    "qualname": "collect_state",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:105), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2620,9 +2620,9 @@
   },
   "exmachina:conformal_interval": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:72"
+    "src/CORE/WORMS/expansion/exmachina.py:73"
    ],
-   "line": 372,
+   "line": 374,
    "module": "exmachina",
    "qualname": "conformal_interval",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:63), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2631,9 +2631,9 @@
   },
   "exmachina:matrix_inverse": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:98"
+    "src/CORE/WORMS/expansion/exmachina.py:99"
    ],
-   "line": 1183,
+   "line": 1188,
    "module": "exmachina",
    "qualname": "matrix_inverse",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:89), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2642,9 +2642,9 @@
   },
   "exmachina:novelty_ncd": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:70"
+    "src/CORE/WORMS/expansion/exmachina.py:71"
    ],
-   "line": 326,
+   "line": 328,
    "module": "exmachina",
    "qualname": "novelty_ncd",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:61), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2653,9 +2653,9 @@
   },
   "exmachina:solve_linear": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:97"
+    "src/CORE/WORMS/expansion/exmachina.py:98"
    ],
-   "line": 1179,
+   "line": 1184,
    "module": "exmachina",
    "qualname": "solve_linear",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:88), so a static caller cannot exist; wire it explicitly or delete it",
@@ -2679,7 +2679,7 @@
   },
   "exmachina_operators:operator_report": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina_operators.py:101"
+    "src/CORE/WORMS/expansion/exmachina_operators.py:102"
    ],
    "line": 1023,
    "module": "exmachina_operators",
@@ -2690,7 +2690,7 @@
   },
   "exmachina_operators:rank_candidates": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina_operators.py:99"
+    "src/CORE/WORMS/expansion/exmachina_operators.py:100"
    ],
    "line": 974,
    "module": "exmachina_operators",
@@ -2702,11 +2702,11 @@
   "federated:RewardShaperMeshWorm.local_score": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 330,
+   "line": 331,
    "module": "federated",
    "qualname": "RewardShaperMeshWorm.local_score",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def local_score(self, rtt_ms: float = 50.0, fail_rate: float = 0.0,\n                    size_kb: float = 100.0) -> dict[str, Any]:\n        \"\"\"Offline reward P(prefer | rtt, fail_rate, size) from task5 model.\n        Falls back to the rtt/fail heuristic when the model file is missing.\"\"\"\n        import math as _math\n        m = self._load_reward_model() or {}\n        x = [min(2.0, rtt_ms / 2000.0), max(0.0, min(1.0, fail_rate)),\n             min(1.0, size_kb / 5000.0)]\n        if m.get(\"coef\"):\n            z = sum(c * v for c, v in zip(m[\"coef\"], x)) + (m.get(\"intercept\") or [0.0])[0]\n            p = 1.0 / (1.0 + _math.exp(-z))\n            src = \"reward_model.json\"\n        else:\n            p = 1.0 if (rtt_ms < 300 and fail_rate < 0.3) else 0.0\n            src = \"heuristic\"\n        return {\"success\": True, \"reward\": round(p, 4), \"src\": src,\n                \"features\": {\"rtt_ms\": rtt_ms, \"fail_rate\": fail_rate, \"size_kb\": size_kb}}",
+   "seg": "def local_score(self, rtt_ms: float = 50.0, fail_rate: float = 0.0,\n                    size_kb: float = 100.0) -> dict[str, Any]:\n        \"\"\"Offline reward P(prefer | rtt, fail_rate, size) from task5 model.\n        Falls back to the rtt/fail heuristic when the model file is missing.\"\"\"\n        m = self._load_reward_model() or {}\n        x = [min(2.0, rtt_ms / 2000.0), max(0.0, min(1.0, fail_rate)),\n             min(1.0, size_kb / 5000.0)]\n        if m.get(\"coef\"):\n            z = sum(c * v for c, v in zip(m[\"coef\"], x)) + (m.get(\"intercept\") or [0.0])[0]\n            p = 1.0 / (1.0 + _math.exp(-z))\n            src = \"reward_model.json\"\n        else:\n            p = 1.0 if (rtt_ms < 300 and fail_rate < 0.3) else 0.0\n            src = \"heuristic\"\n        return {\"success\": True, \"reward\": round(p, 4), \"src\": src,\n                \"features\": {\"rtt_ms\": rtt_ms, \"fail_rate\": fail_rate, \"size_kb\": size_kb}}",
    "status": "retired"
   },
   "glia:AstrocyteWorm.execute": {
@@ -2721,7 +2721,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2761,7 +2761,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2773,11 +2773,11 @@
   "glia:MicrogliaWorm.check_path": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 129,
+   "line": 130,
    "module": "glia",
    "qualname": "MicrogliaWorm.check_path",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def check_path(self, path: str) -> dict[str, Any]:\n        \"\"\"3-sigma file-size anomaly check against task3 density model.\"\"\"\n        import os as _os\n        try:\n            size = _os.stat(path).st_size\n        except OSError as exc:\n            note_failure(\"glia:L118\", exc)\n            return {\"success\": False, \"path\": path, \"error\": str(exc)[:800]}\n        model = self._load_density()\n        # match by topdir name fragment, else global fallback\n        entry = None\n        for k, v in model.items():\n            if k in path.replace(\"\\\\\", \"/\"):\n                entry = v\n                break\n        if entry is None and model:\n            ns = [v for v in model.values() if v.get(\"n\", 0) >= 100] or list(model.values())\n            mu = sum(v[\"mean\"] for v in ns) / len(ns)\n            sd = max(1.0, sum(v[\"std\"] for v in ns) / len(ns))\n            entry = {\"mean\": mu, \"std\": sd, \"n\": sum(v[\"n\"] for v in ns)}\n        if entry is None:\n            return {\"success\": True, \"path\": path, \"anomaly\": False, \"src\": \"no-model\"}\n        z = abs(size - entry[\"mean\"]) / max(1.0, entry[\"std\"])\n        return {\"success\": True, \"path\": path, \"size\": size,\n                \"z\": round(z, 2), \"anomaly\": z > 3.0, \"src\": \"size_density.json\"}",
+   "seg": "def check_path(self, path: str) -> dict[str, Any]:\n        \"\"\"3-sigma file-size anomaly check against task3 density model.\"\"\"\n        try:\n            size = _os.stat(path).st_size\n        except OSError as exc:\n            note_failure(\"glia:L118\", exc)\n            return {\"success\": False, \"path\": path, \"error\": str(exc)[:800]}\n        model = self._load_density()\n        # match by topdir name fragment, else global fallback\n        entry = None\n        for k, v in model.items():\n            if k in path.replace(\"\\\\\", \"/\"):\n                entry = v\n                break\n        if entry is None and model:\n            ns = [v for v in model.values() if v.get(\"n\", 0) >= 100] or list(model.values())\n            mu = sum(v[\"mean\"] for v in ns) / len(ns)\n            sd = max(1.0, sum(v[\"std\"] for v in ns) / len(ns))\n            entry = {\"mean\": mu, \"std\": sd, \"n\": sum(v[\"n\"] for v in ns)}\n        if entry is None:\n            return {\"success\": True, \"path\": path, \"anomaly\": False, \"src\": \"no-model\"}\n        z = abs(size - entry[\"mean\"]) / max(1.0, entry[\"std\"])\n        return {\"success\": True, \"path\": path, \"size\": size,\n                \"z\": round(z, 2), \"anomaly\": z > 3.0, \"src\": \"size_density.json\"}",
    "status": "retired"
   },
   "glia:MicrogliaWorm.execute": {
@@ -2792,7 +2792,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2813,7 +2813,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3072,13 +3072,15 @@
     "tests/test_grpo_sota_rows.py:55",
     "tests/test_grpo_sota_rows.py:71"
    ],
-   "disposition": "ACCEPT-GAP"
+   "disposition": "ACCEPT-GAP",
+   "carried": true,
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'ingest_replay_trajectory' in 1 file(s) [src/CORE/WORMS/expansion/learning_grpo.py]; module-linked: no"
   },
   "learning_grpo:GRPOTrainer.replay_offline_step": {
    "module": "learning_grpo",
    "qualname": "GRPOTrainer.replay_offline_step",
-   "line": 411,
-   "seg": "def replay_offline_step(self, prefix: dict | None = None) -> dict:\n        \"\"\"Update the policy from a replayed prefix - no environment runs.\n\n        Steps are grouped by context_key and each group goes through the\n        ordinary update_policy, so the offline path reuses the live one\n        rather than forking a second trainer whose gradient nothing compares.\n        \"\"\"\n        if prefix is None:\n            buffered = self.replay_batch(1)\n            prefix = buffered[0] if buffered else None\n        if not prefix:\n            return {\"updated\": False, \"reason\": \"no buffered prefix\"}\n        by_ctx: dict[str, list[dict]] = {}\n        for step in prefix.get(\"steps\", []) or []:\n            by_ctx.setdefault(step.get(\"context_key\", \"default\"), []).append(step)\n        results = {}\n        for ctx, steps in by_ctx.items():\n            results[ctx] = self.update_policy(\n                [s[\"worm\"] for s in steps],\n                [float(s.get(\"reward\", 0.0)) for s in steps],\n                context_key=ctx)\n        return {\"updated\": True, \"contexts\": results,\n                \"n_steps\": sum(len(s) for s in by_ctx.values())}",
+   "line": 472,
+   "seg": "def replay_offline_step(self, prefix: dict | None = None) -> dict:\n        \"\"\"Update the policy from a replayed prefix - no environment runs.\n\n        Steps are grouped by context_key and each group goes through the\n        ordinary update_policy, so the offline path reuses the live one\n        rather than forking a second trainer whose gradient nothing compares.\n        \"\"\"\n        if prefix is None:\n            buffered = self.replay_batch(1)\n            prefix = buffered[0] if buffered else None\n        if not prefix:\n            return {\"updated\": False, \"reason\": \"no buffered prefix\"}\n        by_ctx: dict[str, list[dict]] = {}\n        for step in prefix.get(\"steps\", []) or []:\n            by_ctx.setdefault(step.get(\"context_key\", \"default\"), []).append(step)\n        results = {}\n        for ctx, steps in by_ctx.items():\n            results[ctx] = self.update_policy(\n                [s[\"worm\"] for s in steps],\n                [float(s.get(\"reward\", 0.0)) for s in steps],\n                context_key=ctx, record_replay=False)\n        return {\"updated\": True, \"contexts\": results,\n                \"n_steps\": sum(len(s) for s in by_ctx.values())}",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
    "decider": "test_is_the_wire",
@@ -3114,7 +3116,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3355,7 +3357,7 @@
    "module": "learning_rl",
    "qualname": "RLTrainLoop.train_episode",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def train_episode(self, env, agent, max_steps: int = 1000) -> Dict[str, Any]:\n        \"\"\"Run a single training episode (backward-compatible mock training).\"\"\"\n        state = getattr(env, \"reset\", lambda: 0)()\n        total_reward = 0.0\n        steps = 0\n        for _ in range(max_steps):\n            action = getattr(agent, \"act\", lambda s: 0)(state)\n            try:\n                next_state, reward, done, *_ = getattr(env, \"step\", lambda a: (0, 0, True, {}))(action)\n            except Exception as exc:  # noqa: BLE001 \u2014 broken env stops episode\n                note_failure(\"learning_rl:L897\", exc)\n                break\n            total_reward += reward\n            state = next_state\n            steps += 1\n            if done:\n                break\n        episode = {\"steps\": steps, \"total_reward\": total_reward, \"timestamp\": time.time()}\n        with self._lock:\n            self._episodes.append(episode)\n        return episode",
+   "seg": "def train_episode(self, env, agent, max_steps: int = 1000,\n                        learning_rate: float = 0.1,\n                        discount_factor: float = 0.9) -> Dict[str, Any]:\n        \"\"\"Run a single training episode (backward-compatible mock training).\n\n        Re-engineered in place (Oct-19): each mock step now applies the same\n        Q-learning update as train_from_memory, so mock episodes grow the\n        shared Q-table (visible via get_training_stats/recommend) instead of\n        only appending dead stats. Signature stays backward-compatible.\n        \"\"\"\n        state = getattr(env, \"reset\", lambda: 0)()\n        total_reward = 0.0\n        steps = 0\n        q_updates = 0\n        for _ in range(max_steps):\n            action = getattr(agent, \"act\", lambda s: 0)(state)\n            try:\n                next_state, reward, done, *_ = getattr(env, \"step\", lambda a: (0, 0, True, {}))(action)\n            except Exception as exc:  # noqa: BLE001 \u2014 broken env stops episode\n                note_failure(\"learning_rl:L897\", exc)\n                break\n            reward = float(reward)\n            state_key = \"mock:%s\" % (repr(state),)\n            try:\n                action_idx = int(action)\n            except (TypeError, ValueError):\n                action_idx = 0\n            old_q = self._q_table[state_key].get(action_idx, 0.0)\n            next_max_q = max(self._q_table[state_key].values(), default=0.0)\n            self._q_table[state_key][action_idx] = old_q + learning_rate * (\n                reward + discount_factor * next_max_q - old_q)\n            q_updates += 1\n            total_reward += reward\n            state = next_state\n            steps += 1\n            if done:\n                break\n        episode = {\"steps\": steps, \"total_reward\": total_reward, \"timestamp\": time.time(),\n                   \"q_updates\": q_updates}\n        with self._lock:\n            self._episodes.append(episode)\n        return episode",
    "status": "dispatched"
   },
   "learning_rl:RLTrainLoop.tune_and_train": {
@@ -3387,7 +3389,7 @@
     "tests/test_learning_worms.py:382",
     "tests/test_learning_worms.py:395"
    ],
-   "line": 1058,
+   "line": 1079,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_history",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -3560,7 +3562,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3577,7 +3579,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/meta_cognition.py:928), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/expansion/meta_cognition.py:928"
+    "src/CORE/WORMS/expansion/meta_cognition.py:940"
    ]
   },
   "meta_cognition:internalize": {
@@ -4202,11 +4204,11 @@
   "profiling:CodeProfiler.profile_function": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 63,
+   "line": 64,
    "module": "profiling",
    "qualname": "CodeProfiler.profile_function",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def profile_function(self, func: Callable, *args, **kwargs) -> dict[str, Any]:\n        \"\"\"Profile a single function call and return stats.\"\"\"\n        import cProfile\n        import pstats\n        import io\n        pr = cProfile.Profile()\n        pr.enable()\n        result = func(*args, **kwargs)\n        pr.disable()\n        s = io.StringIO()\n        ps = pstats.Stats(pr, stream=s).sort_stats(\"cumulative\")\n        ps.print_stats(20)\n        profile_data = {\"function\": func.__name__, \"output\": s.getvalue(), \"result\": str(result)[:200]}\n        with self._lock:\n            self._profiles[func.__name__] = profile_data\n        return profile_data",
+   "seg": "def profile_function(self, func: Callable, *args, **kwargs) -> dict[str, Any]:\n        \"\"\"Profile a single function call and return stats.\"\"\"\n        import cProfile\n        import pstats\n        pr = cProfile.Profile()\n        pr.enable()\n        result = func(*args, **kwargs)\n        pr.disable()\n        s = io.StringIO()\n        ps = pstats.Stats(pr, stream=s).sort_stats(\"cumulative\")\n        ps.print_stats(20)\n        profile_data = {\"function\": func.__name__, \"output\": s.getvalue(), \"result\": str(result)[:200]}\n        with self._lock:\n            self._profiles[func.__name__] = profile_data\n        return profile_data",
    "status": "retired"
   },
   "profiling:GILContentionProbe.__init__": {
@@ -4370,7 +4372,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4760,7 +4762,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4895,7 +4897,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3868,
+   "line": 3865,
    "module": "spine",
    "qualname": "MorphogenesisWorm.retrieve_staged",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -4921,7 +4923,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 4031,
+   "line": 4028,
    "module": "spine",
    "qualname": "measure_skill_lift",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -4932,7 +4934,7 @@
   "spine_registry:_iso_or": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 3696,
+   "line": 3708,
    "module": "spine_registry",
    "qualname": "_iso_or",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4944,7 +4946,7 @@
    "decider_evidence": [
     "tests/test_brainstem_playing_field.py:230"
    ],
-   "line": 2272,
+   "line": 2278,
    "module": "spine_registry",
    "qualname": "audit_state",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -4957,7 +4959,7 @@
    "decider_evidence": [
     "tests/test_spine_brainstem_persistence.py:563"
    ],
-   "line": 2236,
+   "line": 2242,
    "module": "spine_registry",
    "qualname": "counter_floor_report",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -4972,7 +4974,7 @@
     "tests/test_spine_mesh.py:1105",
     "tests/test_spine_mesh.py:1147"
    ],
-   "line": 3567,
+   "line": 3573,
    "module": "spine_registry",
    "qualname": "get_gossip_trust_state",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -4985,7 +4987,7 @@
    "decider_evidence": [
     "tests/test_spine_mesh.py:299"
    ],
-   "line": 3226,
+   "line": 3232,
    "module": "spine_registry",
    "qualname": "get_module_health",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5011,7 +5013,7 @@
     "tests/test_brainstem_playing_field.py:131",
     "tests/test_brainstem_playing_field.py:157"
    ],
-   "line": 2078,
+   "line": 2084,
    "module": "spine_registry",
    "qualname": "get_q_evidence",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5036,7 +5038,7 @@
     "tests/test_spine_mesh.py:125",
     "tests/test_spine_mesh.py:140"
    ],
-   "line": 3021,
+   "line": 3027,
    "module": "spine_registry",
    "qualname": "homeostat_reset",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5051,7 +5053,7 @@
     "tests/test_spine_tombstone_enforcement.py:84",
     "tests/test_spine_tombstone_enforcement.py:91"
    ],
-   "line": 2328,
+   "line": 2334,
    "module": "spine_registry",
    "qualname": "purge_fixtures",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5081,7 +5083,7 @@
    "module": "spine_registry",
    "qualname": "q_confidence",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def q_confidence(nature: str, worm: str) -> Dict[str, Any]:\n    \"\"\"Everything the brainstem knows about one key's measurement quality.\n\n    Reports the estimate AND its uncertainty, because a selector that can only\n    see the estimate cannot tell \"reliable\" from \"lucky\", which is precisely\n    how a clipped table came to look like a ranking.\n    \"\"\"\n    _ensure_loaded()\n    key = f\"{nature}:{worm}\"\n    with _HOMEOSTAT_LOCK:\n        q = float(_Q_WEIGHTS.get(key, 0.0))\n        n = _evidence_unlocked(key)\n        var = float(_Q_VARIANCE.get(key, 0.0))\n        dreamed = int(_Q_DREAM_COUNTS.get(key, 0))\n    sigma = var ** 0.5\n    return {\"key\": key, \"q\": round(q, 6), \"evidence\": n,\n            \"dream_evidence\": dreamed, \"variance\": round(var, 6),\n            \"sigma\": round(sigma, 6),\n            \"q_effective\": round(q_effective_from(q, n), 6),\n            \"selection_score\": round(selection_score_from(q, n, var), 6),\n            \"half_width\": round(sigma / ((n + 1) ** 0.5), 6)}",
+   "seg": "def q_confidence(nature: str, worm: str) -> Dict[str, Any]:\n    \"\"\"Everything the brainstem knows about one key's measurement quality.\n\n    Reports the estimate AND its uncertainty, because a selector that can only\n    see the estimate cannot tell \"reliable\" from \"lucky\", which is precisely\n    how a clipped table came to look like a ranking.\n    \"\"\"\n    _ensure_loaded()\n    key = f\"{nature}:{worm}\"\n    with _HOMEOSTAT_LOCK:\n        q = float(_Q_WEIGHTS.get(key, 0.0))\n        n = _evidence_unlocked(key)\n        var = float(_Q_VARIANCE.get(key, 0.0))\n        dreamed = int(_Q_DREAM_COUNTS.get(key, 0))\n    # typeshed declares float ** float as Any; annotating sigma keeps the\n    # downstream round() calls typed (cleared the L2049 round-arg finding),\n    # leaving only the stub-level Any on the RHS itself. Suppressed, not\n    # \"fixed\", on purpose: replacing pow with math.sqrt would change the\n    # exception type for negative variance values (ValueError vs TypeError\n    # downstream round()).\n    sigma: float = var ** 0.5  # pyright: ignore[reportAny]\n    return {\"key\": key, \"q\": round(q, 6), \"evidence\": n,\n            \"dream_evidence\": dreamed, \"variance\": round(var, 6),\n            \"sigma\": round(sigma, 6),\n            \"q_effective\": round(q_effective_from(q, n), 6),\n            \"selection_score\": round(selection_score_from(q, n, var), 6),\n            \"half_width\": round(sigma / ((n + 1) ** 0.5), 6)}",
    "status": "retired"
   },
   "spine_registry:reset_counters": {
@@ -5091,7 +5093,7 @@
     "tests/test_spine_brainstem_persistence.py:526",
     "tests/test_spine_brainstem_persistence.py:544"
    ],
-   "line": 2184,
+   "line": 2190,
    "module": "spine_registry",
    "qualname": "reset_counters",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5104,7 +5106,7 @@
    "decider_evidence": [
     "tests/test_spine_mesh.py:708"
    ],
-   "line": 3053,
+   "line": 3059,
    "module": "spine_registry",
    "qualname": "revert_policy",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5115,7 +5117,7 @@
   "spine_registry:route_last_at": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 2590,
+   "line": 2596,
    "module": "spine_registry",
    "qualname": "route_last_at",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -5129,7 +5131,7 @@
     "tests/test_brainstem_playing_field.py:331",
     "tests/test_brainstem_playing_field.py:342"
    ],
-   "line": 2623,
+   "line": 2629,
    "module": "spine_registry",
    "qualname": "route_weight_range",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5144,7 +5146,7 @@
     "tests/test_colour_queens.py:51",
     "tests/test_federated_robustness.py:37"
    ],
-   "line": 3096,
+   "line": 3102,
    "module": "spine_registry",
    "qualname": "spine_reset",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -5178,7 +5180,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/synapse.py"
    ],
-   "line": 271,
+   "line": 272,
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.dispatch_cascade",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -5191,7 +5193,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/synapse.py"
    ],
-   "line": 266,
+   "line": 267,
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.top_expert",
    "reason": "retired: no calls anywhere in the tree; definition exists but zero references; deleting removes dead code.",
@@ -5478,9 +5480,9 @@
   },
   "tensorgene:dedupe_observations": {
    "evidence": [
-    "src/CORE/WORMS/expansion/tensorgene.py:57"
+    "src/CORE/WORMS/expansion/tensorgene.py:58"
    ],
-   "line": 225,
+   "line": 226,
    "module": "tensorgene",
    "qualname": "dedupe_observations",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it",
@@ -5548,7 +5550,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 106 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -5878,7 +5880,7 @@
   "xenomorph:ChestbursterWorm.burst": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 167,
+   "line": 168,
    "module": "xenomorph",
    "qualname": "ChestbursterWorm.burst",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -5909,7 +5911,7 @@
   "xenomorph:DroneWorm.carry": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 191,
+   "line": 192,
    "module": "xenomorph",
    "qualname": "DroneWorm.carry",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -5981,7 +5983,7 @@
   "xenomorph:OvomorphWorm.hatch": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 115,
+   "line": 116,
    "module": "xenomorph",
    "qualname": "OvomorphWorm.hatch",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -5991,7 +5993,7 @@
   "xenomorph:OvomorphWorm.lay": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 107,
+   "line": 108,
    "module": "xenomorph",
    "qualname": "OvomorphWorm.lay",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -6026,8 +6028,19 @@
    "module": "xenomorph",
    "qualname": "ResinWorm.secrete",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        import os\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
+   "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
    "status": "retired"
   }
+ },
+ "triage_counts": {
+  "test_reached_only": 0,
+  "no_reference_anywhere": 0
+ },
+ "decider_counts": {
+  "protocol_or_override": 0,
+  "declared_in_data": 0,
+  "dynamic_call": 0,
+  "test_is_the_wire": 0,
+  "dead_candidate": 0
  }
 }

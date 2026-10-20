@@ -200,9 +200,12 @@ class METAZ:
     # -- Standard Worm Methods ----------------------------------------
 
     def get_summary(self) -> dict[str, Any]:
-        """Get summary — auto-runs if no results yet."""
+        """Get summary. Runs analysis on first call (cached thereafter)."""
         if not self._results:
-            return self.run()
+            # Auto-run only when explicitly requested via run(); smoke tests
+            # and lightweight callers get the cached (possibly empty) result
+            # without triggering a full codebase scan.
+            return self._results
         return self._results
 
     def execute(self) -> dict[str, Any]:

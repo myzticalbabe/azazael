@@ -1,9 +1,9 @@
 {
-  "recorded_at": "2026-10-19T20:14:18+00:00",
+  "recorded_at": "2026-10-20T20:25:22+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 724,
+  "files_scanned": 725,
   "category_counts": {
     "hardcoded_win_path": 14,
     "import_inside_function": 944,
@@ -709,7 +709,7 @@
       "import_inside_function": 5
     },
     "INTERPRETERS\\__init__.py": {
-      "import_inside_function": 6
+      "import_inside_function": 5
     },
     "META\\DebugZ.py": {
       "import_inside_function": 1
@@ -824,7 +824,7 @@
       "import_inside_function": 2
     },
     "ORCHESTRATION\\ml_platforms\\universal_converter.py": {
-      "import_inside_function": 10
+      "import_inside_function": 11
     },
     "ORCHESTRATION\\scripts\\azazael_cli.py": {
       "import_inside_function": 2

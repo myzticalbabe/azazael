@@ -911,7 +911,8 @@ def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
             # single-file controls pass under xdist on 3.15t (~2.6s vs 0.3s
             # serial); the startup cost is the price of a faithful control.
             result = run_control(
-                [interpreter_path, "-m", "pytest", gate.control_test, "-q"],
+                [interpreter_path, "-m", "pytest", gate.control_test, "-q",
+                 "-p", "no:xdist", "-o", "addopts="],
                 env=("PYTHONPATH=src",),
             )
             seconds = time.monotonic() - started
