@@ -9,7 +9,6 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
 import clean_windows as cw
-pytestmark = pytest.mark.xdist_group("serial")
 
 def _seed(root, files):
     for rel, age_days, size in files:
