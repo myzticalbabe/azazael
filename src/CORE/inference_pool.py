@@ -302,7 +302,9 @@ class InferencePool:
         text = text.strip()
         # Try parsing
         try:
-            return json.loads(text)
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                return parsed
         except json.JSONDecodeError as exc:
             note_failure("inference_pool:L293", exc)
         # Try finding JSON object in text
@@ -310,7 +312,9 @@ class InferencePool:
         end = text.rfind("}")
         if start >= 0 and end > start:
             try:
-                return json.loads(text[start:end+1])
+                parsed = json.loads(text[start:end+1])
+                if isinstance(parsed, dict):
+                    return parsed
             except json.JSONDecodeError as exc:
                 note_failure("inference_pool:L301", exc)
         return {"_raw": response}

@@ -16,7 +16,6 @@ import pytest
 from CORE.local_memory import LocalMemoryStore
 from CORE.failure_ledger import failure_notes, reset_notes
 
-
 class TestQueryRealErrors:
     """Verify query_real_errors filters test artifacts."""
 

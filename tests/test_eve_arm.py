@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "AOA"))
 
 import pytest
 
-
 @pytest.fixture(scope="module")
 def arm():
     from AOA.arms.eve_arm import EveArm

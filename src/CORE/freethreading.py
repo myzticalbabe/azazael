@@ -572,10 +572,12 @@ class WorkStealingPool:
         self._results = []
         self._total_submitted = 0
         self._total_completed = 0
+        self._counter_cond = threading.Condition(self._counter_lock)
         self._steals_succeeded = 0
         self._steals_failed = 0
         self._groups = {}
         self._group_done = {}
+        self._group_events = {}
         self._group_seq = 0
 
         for i in range(self.num_workers):
@@ -673,14 +675,25 @@ class WorkStealingPool:
             if group_id not in self._groups:
                 raise KeyError(f"unknown group_id {group_id!r}")
             total = len(self._groups[group_id])
-        deadline = time.time() + timeout if timeout is not None else float('inf')
-        while time.time() < deadline:
+        # Fast path: already complete (e.g. empty group).
+        with self._group_lock:
+            if self._group_done.get(group_id, 0) >= total:
+                return True
+        deadline = (time.monotonic() + timeout) if timeout is not None else float('inf')
+        # Poll instead of blocking on an OS primitive: under free-threaded,
+        # CPU-bound worker load the OS may not schedule a blocked waiter, so a
+        # condition/event wait can fail to return on timeout (python/cpython#...).
+        # Monotonic clock guarantees the deadline is honoured even if individual
+        # sleep() calls are delayed.
+        while True:
             with self._group_lock:
                 done = self._group_done.get(group_id, 0)
-            if done >= total:
-                return True
-            time.sleep(0.01)
-        return False
+                if done >= total:
+                    return True
+            now = time.monotonic()
+            if now >= deadline:
+                return False
+            time.sleep(0.05)
 
     def group_results(self, group_id: str) -> Dict[str, Any]:
         """Aggregate one group's branches, ordered by branch index.
@@ -739,13 +752,16 @@ class WorkStealingPool:
 
     def wait_all(self, timeout: Optional[float] = None) -> bool:
         """Wait until all submitted tasks are completed."""
-        deadline = time.time() + timeout if timeout is not None else float('inf')
-        while time.time() < deadline:
+        deadline = (time.monotonic() + timeout) if timeout is not None else float('inf')
+        while True:
             with self._counter_lock:
                 if self._total_completed >= self._total_submitted:
                     return True
-            time.sleep(0.01)
-        return False
+                now = time.monotonic()
+                if now >= deadline:
+                    return False
+                remaining = deadline - now
+                self._counter_cond.wait(timeout=min(remaining, 0.05))
 
     # -- Stats ---------------------------------------------------
 
@@ -853,6 +869,7 @@ class WorkStealingPool:
 
         with self._counter_lock:
             self._total_completed += 1
+            self._counter_cond.notify_all()
 
         if group_id is not None:
             # Bumped under its own lock so a grouped unit's progress is readable

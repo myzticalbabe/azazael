@@ -1,3 +1,4 @@
+import pytest
 # coding: utf-8
 """Cleaner tests: sandbox dirs only, never the live tree."""
 
@@ -8,7 +9,6 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
 import clean_windows as cw
-
 
 def _seed(root, files):
     for rel, age_days, size in files:

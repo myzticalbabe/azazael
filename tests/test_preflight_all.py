@@ -37,6 +37,11 @@ HOOK_SCRIPTS = {
     "tools/mesh_function_preflight.py",
     "tools/paradigm_gate.py",
     "tools/pmb_session_observe.py",
+    "tools/transcript_ap5_gate.py",
+    "tools/test_paradigm_gate.py",
+    "tools/supervisor_mcp.py",
+    "tools/preflight_all.py",
+    "tools/wire_evidence_audit.py",
 }
 
 
@@ -60,7 +65,7 @@ class TestHookParity:
     def test_registry_and_hook_agree(self):
         ok, message = pf.hook_parity(pf.GATES, pf.read_hook())
         assert ok, message
-        assert "8 gates" in message
+        assert "12 gates" in message
 
     def test_an_unreadable_hook_is_missing_evidence_not_a_pass(self):
         ok, message = pf.hook_parity(pf.GATES, None)
@@ -93,10 +98,10 @@ class TestRegistryIntegrity:
         if gate.inside_hook:
             assert (pf.REPO / gate.argv[0]).is_file()
 
-    def test_exactly_one_hook_gate_is_non_blocking(self):
-        """The hook's own contract: only the PMB observer ignores its exit code."""
-        non_blocking = [g.name for g in pf.GATES if g.inside_hook and not g.blocking]
-        assert non_blocking == ["pmb-outcome-observer"]
+    def test_hook_non_blocking_gates_are_exactly_the_advisory_ones(self):
+        """The hook's own contract: only advisory/side-effect gates ignore their exit code."""
+        non_blocking = sorted(g.name for g in pf.GATES if g.inside_hook and not g.blocking)
+        assert non_blocking == ["pmb-outcome-observer", "testing-paradigm-advisory", "transcript-ap5"]
 
     def test_names_are_unique(self):
         names = [g.name for g in pf.GATES]

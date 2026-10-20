@@ -119,7 +119,7 @@ class AssistantLogProtocol:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as exc:
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError, OSError) as exc:
             note_failure("AssistantLogProtocol:L112", exc)
             return {
                 "version": self.VERSION,
@@ -128,8 +128,11 @@ class AssistantLogProtocol:
             }
 
     def _write_json(self, path: Path, data: Any):
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, default=str)
+        except (PermissionError, OSError) as exc:
+            note_failure("AssistantLogProtocol:L131", exc)
 
     def log(
         self,

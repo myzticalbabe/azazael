@@ -94,12 +94,12 @@ def test_route_keys_reinforce_like_any_other_key():
     """Routes are just ledger keys; striping must not single them out."""
     _reset()
     for _ in range(3):
-        sr.record_outcome("route", "windows>mesh", success=False)
-    w = sr.get_q_weight("route", "windows>mesh")
+        sr.record_outcome("route", "windows>fresh", success=False)
+    w = sr.get_q_weight("route", "windows>fresh")
     assert w < 0.0
     usage = sr.get_route_usage()
-    assert "windows>mesh" in usage
-    assert usage["windows>mesh"]["failures"] == 3
+    assert "windows>fresh" in usage
+    assert usage["windows>fresh"]["failures"] == 3
 
 
 # ── 2. no lost updates under real concurrency ────────────────────────

@@ -122,7 +122,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="stale-index-guard",
         argv=("tools/index_drift_check.py",),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=True,
         blocking=True,
@@ -136,7 +136,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="staged-scanner",
         argv=("tools/staged_scanner_gate.py",),
-        interpreter="python",
+        interpreter="python3",
         env=("PYTHONPATH=src",),
         inside_hook=True,
         blocking=True,
@@ -150,7 +150,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="canon-drift",
         argv=("tools/canon_drift_check.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=True,
         blocking=True,
@@ -164,7 +164,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="anti-pattern-ratchet",
         argv=("tools/anti_pattern_gate.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=("PYTHONPATH=src",),
         inside_hook=True,
         blocking=True,
@@ -178,7 +178,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="mesh-ledger-freshness",
         argv=("tools/mesh_function_preflight.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=("PYTHONPATH=src",),
         inside_hook=True,
         blocking=True,
@@ -192,7 +192,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="wire-evidence",
         argv=("tools/wire_evidence_audit.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=True,
         blocking=True,
@@ -298,7 +298,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="two-interpreter-suite",
         argv=("scripts/ci_two_interpreter_gate.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=False,
         blocking=True,
@@ -312,7 +312,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="aggregate-suite-isolation",
         argv=("tools/aggregate_suite_gate.py", "--check", "--profile", "isolation"),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=False,
         blocking=True,
@@ -326,7 +326,7 @@ GATES: Tuple[Gate, ...] = (
     Gate(
         name="type-check",
         argv=("tools/type_check_gate.py", "--check"),
-        interpreter="python",
+        interpreter="python3",
         env=(),
         inside_hook=False,
         blocking=True,
@@ -906,7 +906,8 @@ def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
                 continue
             started = time.monotonic()
             result = run_control(
-                [interpreter_path, "-m", "pytest", gate.control_test, "-q"],
+                [interpreter_path, "-m", "pytest", gate.control_test, "-q",
+                 "-p", "no:xdist", "-o", "addopts="],
                 env=("PYTHONPATH=src",),
             )
             seconds = time.monotonic() - started

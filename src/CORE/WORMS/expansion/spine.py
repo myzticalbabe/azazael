@@ -3388,6 +3388,7 @@ class SpineCycleWorm:
             return res
         archive = str((made.get("snapshot") or {}).get("path") or "")
         res["snapshot_ok"] = True
+        res["success"] = True
         # Invariant, not decoration: if create_snapshot reports success while
         # its own index is empty, the class' two halves disagree and that is
         # worth surfacing rather than hiding behind the disk listing.

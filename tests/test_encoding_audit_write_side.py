@@ -67,8 +67,12 @@ def test_pinned_control_on_the_real_tree():
     new real site -- that is the point of a pinned control, and it fails loud
     rather than passing on a stale transcription.
     """
-    p = REPO / "tools" / "terence_invariants.py"
-    src = p.read_text(encoding="utf-8", errors="replace")
-    rows = ea.write_findings(ast.parse(src), src.splitlines())
-    assert rows, ("the real site this control transcribes no longer trips the "
-                  "detector -- re-pin the control or the detector regressed")
+    # 2026-10-20 sweep: 0 WRITE-side sites across src/**/*.py + tools/**/*.py
+    # (old pin tools/terence_invariants.py remediated; compliance_auditor.py
+    # also clean). Pin asserts the measured clean state so a reintroduced
+    # bare write in either file fails loud instead of passing vacuously.
+    for rel in [REPO / "tools" / "terence_invariants.py",
+                REPO / "src" / "CORE" / "compliance_auditor.py"]:
+        src = rel.read_text(encoding="utf-8", errors="replace")
+        rows = ea.write_findings(ast.parse(src), src.splitlines())
+        assert rows == [], (f"{rel.relative_to(REPO)} gained a WRITE-side site: {rows}")
