@@ -216,6 +216,16 @@ def _blend_color(c1, c2, alpha):
     return tuple(int(a * (1 - alpha) + b * alpha) for a, b in zip(c1, c2))
 
 
+def _draw_glow(draw, cx, cy, radius, color, alpha):
+    """Draw a soft ambient glow as concentric fading ellipses."""
+    for j in range(4, 0, -1):
+        a = int(alpha / j)
+        if a <= 0:
+            continue
+        r = max(1, radius // j)
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(*color, a))
+
+
 
 # ===================================================================
 # HTML CARD DATA EXTRACTOR
@@ -257,7 +267,7 @@ class DashboardCardDataExtractor(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
-        classes = attrs_dict.get("class", "")
+        classes = attrs_dict.get("class") or ""
 
         if tag in self._skip_tags:
             self._skip_depth += 1
@@ -312,7 +322,7 @@ class DashboardCardDataExtractor(HTMLParser):
                 if cls in ("ok", "warn", "error", "info"):
                     self._current_bar["class"] = cls
             # Extract width from style attribute
-            style_attr = attrs_dict.get("style", "")
+            style_attr = attrs_dict.get("style") or ""
             wm = re.search(r'width\s*:\s*(\d+)', style_attr, re.IGNORECASE)
             if wm:
                 self._current_bar["width"] = int(wm.group(1))
@@ -565,7 +575,7 @@ def _render_single_card_frame(w, h, card, theme, frame_progress, fonts):
         draw.rectangle([(0, y), (w, y)], fill=(r, g, b))
 
     # Pulsing ambient glow
-    accent = theme["accent"]
+    accent: tuple[int, int, int] = theme["accent"]
     pulse = 0.6 + 0.4 * math.sin(frame_progress * math.pi * 4)
     for i in range(3):
         cx = int(w * (0.3 + 0.4 * math.sin(frame_progress * 2 + i * 2)))
@@ -1150,53 +1160,54 @@ def main():
     if args.fps < 10 or args.fps > 60:
         print("  [ERROR] FPS must be between 10 and 60.")
         sys.exit(1)
-        if args.duration < 10:
-            print("  [ERROR] Minimum duration is 10 seconds.")
+
+    if args.duration < 10:
+        print("  [ERROR] Minimum duration is 10 seconds.")
+        sys.exit(1)
+
+    try:
+        w, h = map(int, args.resolution.lower().replace("x", " ").split())
+    except Exception:
+        w, h = 1920, 1080
+
+    html_path = Path(args.html) if args.html else DASHBOARD_HTML
+
+    if args.mode == "preview":
+        if not html_path.exists():
+            print(f"  [ERROR] Dashboard not found: {html_path}")
+            print("  Generate: python scripts/generate_dashboard.py --since 24h")
+            sys.exit(1)
+        preview_mode(str(html_path))
+        return
+
+    if not html_path.exists():
+        print("  [CODEX] Dashboard not found, generating...")
+        ensure_dashboard_html(html_path, since=args.since or "24h")
+        if not html_path.exists():
+            print("  [ERROR] Could not generate dashboard.")
             sys.exit(1)
 
-            try:
-                w, h = map(int, args.resolution.lower().replace("x", " ").split())
-            except Exception:
-                w, h = 1920, 1080
-
-                html_path = Path(args.html) if args.html else DASHBOARD_HTML
-
-                if args.mode == "preview":
-                    if not html_path.exists():
-                        print(f"  [ERROR] Dashboard not found: {html_path}")
-                        print("  Generate: python scripts/generate_dashboard.py --since 24h")
-                        sys.exit(1)
-                        preview_mode(str(html_path))
-                        return
-
-                        if not html_path.exists():
-                            print("  [CODEX] Dashboard not found, generating...")
-                            ensure_dashboard_html(html_path, since=args.since or "24h")
-                            if not html_path.exists():
-                                print("  [ERROR] Could not generate dashboard.")
-                                sys.exit(1)
-
-                                if args.output:
-                                    output_path = args.output
+    if args.output:
+        output_path = args.output
     else:
         os.makedirs(str(DEFAULT_OUTPUT_DIR), exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         mode_tag = "VISUAL" if args.mode == "visual" else "COLOR"
         output_path = str(DEFAULT_OUTPUT_DIR / f"Dashboard_{mode_tag}_{ts}.mp4")
 
-        print(f"\n  {SCROLL_SEP_THICK}")
-        print("  CODEX Dashboard Video Generator v2.0")
-        print(f"  {SCROLL_SEP}")
-        mode_labels = {"text": "Colorful PIL (per-card themes)",
+    print(f"\n  {SCROLL_SEP_THICK}")
+    print("  CODEX Dashboard Video Generator v2.0")
+    print(f"  {SCROLL_SEP}")
+    mode_labels = {"text": "Colorful PIL (per-card themes)",
                        "visual": "Browser Capture (full CSS)", "preview": "Preview"}
-        print(f"  Mode:     {mode_labels.get(args.mode, args.mode)}")
-        print(f"  Source:   {html_path}")
-        print(f"  Output:   {output_path}")
-        print(f"  Format:   {w}x{h} @ {args.fps}fps")
-        print(f"  {SCROLL_SEP}")
+    print(f"  Mode:     {mode_labels.get(args.mode, args.mode)}")
+    print(f"  Source:   {html_path}")
+    print(f"  Output:   {output_path}")
+    print(f"  Format:   {w}x{h} @ {args.fps}fps")
+    print(f"  {SCROLL_SEP}")
 
-        if args.mode == "text":
-            success = generate_vibrant_video(
+    if args.mode == "text":
+        success = generate_vibrant_video(
             html_path=str(html_path),
             output_path=output_path,
             fps=args.fps,
@@ -1204,8 +1215,8 @@ def main():
             width=w,
             height=h,
             )
-        elif args.mode == "visual":
-            success = browser_visual_mode(
+    elif args.mode == "visual":
+        success = browser_visual_mode(
             html_path=str(html_path),
             output_path=output_path,
             fps=args.fps,
@@ -1213,14 +1224,14 @@ def main():
             width=w,
             height=h,
             )
-        else:
-            success = False
+    else:
+        success = False
 
-            if success:
-                print(f"  [CODEX] Open: {output_path}")
-            else:
-                print("  [CODEX] Generation failed.")
-                sys.exit(1)
+    if success:
+        print(f"  [CODEX] Open: {output_path}")
+    else:
+        print("  [CODEX] Generation failed.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
