@@ -36,6 +36,7 @@ import sys
 import traceback
 from pathlib import Path
 from typing import List
+import tempfile
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -319,7 +320,6 @@ def main():
 
 def self_test() -> int:
     """End-to-end test of the gated write_file pipeline."""
-    import tempfile
 
     print("=" * 60)
     print("  GATE WRITE FILE SELF-TEST")
