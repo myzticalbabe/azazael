@@ -242,7 +242,7 @@ def main(argv=None):
                 print(json.dumps(manifest[-1], ensure_ascii=False))
                 continue
             except Exception:
-                pass  # scanner:ignore
+                print("youtube_transcript: cache write failed", file=sys.stderr)
         status, payload = fetch(vid, a.lang, a.retries)
         if status == "ok":
             cache.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
