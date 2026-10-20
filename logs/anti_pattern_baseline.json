@@ -1,18 +1,18 @@
 {
-  "recorded_at": "2026-10-19T19:44:39+00:00",
+  "recorded_at": "2026-10-19T20:14:18+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
   "files_scanned": 724,
   "category_counts": {
     "hardcoded_win_path": 14,
-    "import_inside_function": 1101,
+    "import_inside_function": 944,
     "unicode_emoji": 1260
   },
-  "total_findings": 2375,
+  "total_findings": 2218,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
-      "import_inside_function": 7
+      "import_inside_function": 6
     },
     "AOA\\arms\\azazael_arm.py": {
       "import_inside_function": 2
@@ -48,7 +48,7 @@
       "import_inside_function": 3
     },
     "AZAZAEL_Inference_Studio.py": {
-      "import_inside_function": 2,
+      "import_inside_function": 1,
       "unicode_emoji": 70
     },
     "AZAZAEL_TOOLKIT\\REAL_FRAMEWORK_TEST.py": {
@@ -61,7 +61,7 @@
       "import_inside_function": 3
     },
     "CODEX\\CODEX_Studio.py": {
-      "import_inside_function": 2,
+      "import_inside_function": 1,
       "unicode_emoji": 2
     },
     "CODEX\\CORE\\emoji_maker.py": {
@@ -83,9 +83,6 @@
       "hardcoded_win_path": 2,
       "import_inside_function": 1,
       "unicode_emoji": 20
-    },
-    "CODEX\\POPUPS\\POPUP_RICH.py": {
-      "import_inside_function": 1
     },
     "CODEX\\POPUPS\\POPUP_WORKING.py": {
       "hardcoded_win_path": 7,
@@ -116,9 +113,6 @@
     "CODEX\\TESTING\\UNIT\\test_wormz.py": {
       "import_inside_function": 4
     },
-    "CODEX\\VIDEOS\\compress_video.py": {
-      "import_inside_function": 1
-    },
     "CODEX\\VIDEOS\\create_video.py": {
       "import_inside_function": 1
     },
@@ -137,7 +131,7 @@
       "unicode_emoji": 66
     },
     "CODEX\\VIDEOS\\make_video_v2.py": {
-      "import_inside_function": 2,
+      "import_inside_function": 1,
       "unicode_emoji": 133
     },
     "CODEX\\VIDEOS\\make_video_v3.py": {
@@ -183,7 +177,7 @@
       "import_inside_function": 1
     },
     "CORE\\FREETHREAD_UPGRADE.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\FreeThreadedAgent.py": {
       "import_inside_function": 1
@@ -210,13 +204,13 @@
       "import_inside_function": 1
     },
     "CORE\\WORMS\\CLOCKZ.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\CLUSTERWORMS.py": {
-      "import_inside_function": 8
+      "import_inside_function": 5
     },
     "CORE\\WORMS\\CONCURRENCY.py": {
-      "import_inside_function": 4
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\DEPENDZ.py": {
       "import_inside_function": 1
@@ -225,7 +219,7 @@
       "import_inside_function": 1
     },
     "CORE\\WORMS\\DISKZ.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\INFERENCE_SUBSCRIBER.py": {
       "import_inside_function": 2
@@ -234,34 +228,34 @@
       "import_inside_function": 9
     },
     "CORE\\WORMS\\NETWORK_DIAG.py": {
-      "import_inside_function": 6
+      "import_inside_function": 5
     },
     "CORE\\WORMS\\NETWORXZ.py": {
-      "import_inside_function": 5
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\OS_CONGRUENCY.py": {
-      "import_inside_function": 11
+      "import_inside_function": 10
     },
     "CORE\\WORMS\\PROCESSZ.py": {
-      "import_inside_function": 7
+      "import_inside_function": 6
     },
     "CORE\\WORMS\\REVERSE_TOOLS.py": {
-      "import_inside_function": 4
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\SMARTDISK.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\SYSTEMZ.py": {
-      "import_inside_function": 7
+      "import_inside_function": 6
     },
     "CORE\\WORMS\\SYSTEMZ_ML.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\WORMZ.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\WORMZ_ML.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\WORM_SELECTOR.py": {
       "import_inside_function": 3
@@ -270,15 +264,6 @@
       "import_inside_function": 1
     },
     "CORE\\WORMS\\dead_letter_queue.py": {
-      "import_inside_function": 1
-    },
-    "CORE\\WORMS\\expansion\\__init__.py": {
-      "import_inside_function": 1
-    },
-    "CORE\\WORMS\\expansion\\allocation.py": {
-      "import_inside_function": 2
-    },
-    "CORE\\WORMS\\expansion\\backup.py": {
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\berks.py": {
@@ -294,22 +279,22 @@
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\communication.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\config.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\consensus.py": {
       "import_inside_function": 4
     },
     "CORE\\WORMS\\expansion\\container.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\cppn.py": {
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\db_monitor.py": {
-      "import_inside_function": 4
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\expansion\\delegation.py": {
       "import_inside_function": 5
@@ -318,16 +303,16 @@
       "import_inside_function": 10
     },
     "CORE\\WORMS\\expansion\\driver.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\engram.py": {
       "import_inside_function": 4
     },
     "CORE\\WORMS\\expansion\\envmesh.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\evolution.py": {
-      "import_inside_function": 8
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\expansion\\evolution_audit.py": {
       "import_inside_function": 1
@@ -336,58 +321,46 @@
       "import_inside_function": 3
     },
     "CORE\\WORMS\\expansion\\fabric_state.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\federated.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\glia.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\hyperopt.py": {
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\immune.py": {
-      "import_inside_function": 9
+      "import_inside_function": 6
     },
     "CORE\\WORMS\\expansion\\jev_advisor.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\lazy_replan.py": {
-      "import_inside_function": 1
-    },
-    "CORE\\WORMS\\expansion\\learning.py": {
-      "import_inside_function": 1
-    },
-    "CORE\\WORMS\\expansion\\learning_ab.py": {
-      "import_inside_function": 1
-    },
     "CORE\\WORMS\\expansion\\learning_features.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\learning_grpo.py": {
       "import_inside_function": 10
     },
     "CORE\\WORMS\\expansion\\learning_pipeline.py": {
-      "import_inside_function": 4
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\expansion\\learning_rl.py": {
-      "import_inside_function": 8
+      "import_inside_function": 7
     },
     "CORE\\WORMS\\expansion\\learning_versioner.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\liveness.py": {
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\mesh.py": {
-      "import_inside_function": 12
+      "import_inside_function": 9
     },
     "CORE\\WORMS\\expansion\\metabolic.py": {
-      "import_inside_function": 4
-    },
-    "CORE\\WORMS\\expansion\\migration.py": {
-      "import_inside_function": 1
+      "import_inside_function": 3
     },
     "CORE\\WORMS\\expansion\\nerve.py": {
       "import_inside_function": 1
@@ -398,29 +371,26 @@
     "CORE\\WORMS\\expansion\\oracle.py": {
       "import_inside_function": 6
     },
-    "CORE\\WORMS\\expansion\\plasticity.py": {
-      "import_inside_function": 1
-    },
     "CORE\\WORMS\\expansion\\profiling.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\expansion\\proteus_hooks.py": {
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\queens.py": {
-      "import_inside_function": 13
+      "import_inside_function": 12
     },
     "CORE\\WORMS\\expansion\\reflexion.py": {
       "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\scheduling.py": {
-      "import_inside_function": 21
+      "import_inside_function": 20
     },
     "CORE\\WORMS\\expansion\\security.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\servemesh.py": {
-      "import_inside_function": 4
+      "import_inside_function": 2
     },
     "CORE\\WORMS\\expansion\\session_state.py": {
       "import_inside_function": 2
@@ -429,37 +399,34 @@
       "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\spine.py": {
-      "import_inside_function": 27
+      "import_inside_function": 23
     },
     "CORE\\WORMS\\expansion\\synapse.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\expansion\\telemetry.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\tensorgene.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\WORMS\\expansion\\threatmon.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\visualization.py": {
-      "import_inside_function": 1
-    },
     "CORE\\WORMS\\expansion\\xenomorph.py": {
-      "import_inside_function": 6
+      "import_inside_function": 4
     },
     "CORE\\WORMS\\worm_telemetry.py": {
       "import_inside_function": 1
     },
     "CORE\\active_learn.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\agent_registry.py": {
       "import_inside_function": 3
     },
     "CORE\\arxiv_integration.py": {
-      "import_inside_function": 7
+      "import_inside_function": 5
     },
     "CORE\\audit_export_html.py": {
       "unicode_emoji": 1
@@ -483,7 +450,7 @@
       "import_inside_function": 3
     },
     "CORE\\cd3_exporter.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "CORE\\cd4_pipeline.py": {
       "import_inside_function": 1
@@ -495,13 +462,13 @@
       "import_inside_function": 1
     },
     "CORE\\cli_crossref.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\cli_memory.py": {
       "import_inside_function": 1
     },
     "CORE\\cluster_route.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\codebuff_tracker.py": {
       "import_inside_function": 1
@@ -523,7 +490,7 @@
       "import_inside_function": 6
     },
     "CORE\\compliance\\scanner.py": {
-      "import_inside_function": 8
+      "import_inside_function": 7
     },
     "CORE\\config.py": {
       "import_inside_function": 1
@@ -606,17 +573,14 @@
     "CORE\\latent_refine.py": {
       "import_inside_function": 1
     },
-    "CORE\\league.py": {
-      "import_inside_function": 1
-    },
     "CORE\\local_memory.py": {
-      "import_inside_function": 13
+      "import_inside_function": 12
     },
     "CORE\\logging_config.py": {
       "import_inside_function": 1
     },
     "CORE\\mesh_transport.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\metrics.py": {
       "import_inside_function": 1
@@ -639,14 +603,11 @@
     "CORE\\rubric_evolution.py": {
       "import_inside_function": 1
     },
-    "CORE\\safe_file_ops.py": {
-      "import_inside_function": 1
-    },
     "CORE\\sb3_agent.py": {
       "import_inside_function": 4
     },
     "CORE\\sentinel_enforcer.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "CORE\\skill_library.py": {
       "import_inside_function": 2
@@ -682,7 +643,7 @@
       "import_inside_function": 6
     },
     "CORE\\technique_wiring\\_l5_dispatch.py": {
-      "import_inside_function": 14
+      "import_inside_function": 13
     },
     "CORE\\technique_wiring\\_l7_interface.py": {
       "import_inside_function": 10
@@ -706,7 +667,7 @@
       "import_inside_function": 7
     },
     "CORE\\worm_registry_cache.py": {
-      "import_inside_function": 5
+      "import_inside_function": 2
     },
     "CORE\\xref_auto_link.py": {
       "import_inside_function": 1
@@ -720,28 +681,22 @@
     "DAEMONS\\parallax_validator.py": {
       "import_inside_function": 3
     },
-    "DOCKERZ.py": {
+    "ERRORZ.py": {
       "import_inside_function": 1
     },
-    "ERRORZ.py": {
-      "import_inside_function": 2
-    },
     "HEALTHZ.py": {
-      "import_inside_function": 7
+      "import_inside_function": 6
     },
     "HYDRAMETA.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "HYDRAMETA_UV.py": {
-      "import_inside_function": 4
+      "import_inside_function": 2
     },
     "HYDRA\\hydra_launcher.py": {
       "import_inside_function": 8
     },
     "HYDRA\\hydra_protocols.py": {
-      "import_inside_function": 8
-    },
-    "HYDRA\\ml_platforms\\PERMANENT_LOAD.py": {
       "import_inside_function": 1
     },
     "HYDRA\\ml_platforms\\config.py": {
@@ -753,17 +708,8 @@
     "HYDRA\\ml_test.py": {
       "import_inside_function": 5
     },
-    "HYDRA_CONTAINER.py": {
-      "import_inside_function": 1
-    },
     "INTERPRETERS\\__init__.py": {
       "import_inside_function": 6
-    },
-    "METAWORMS_ENRICHED.py": {
-      "import_inside_function": 1
-    },
-    "META\\DOCKERZ.py": {
-      "import_inside_function": 1
     },
     "META\\DebugZ.py": {
       "import_inside_function": 1
@@ -772,48 +718,21 @@
       "import_inside_function": 3
     },
     "META\\ERRORZ.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "META\\FleetZ.py": {
       "import_inside_function": 3
     },
-    "META\\HEALTHZ.py": {
+    "META\\HYDRAMETA.py": {
       "import_inside_function": 1
     },
-    "META\\HYDRAMETA.py": {
-      "import_inside_function": 2
-    },
     "META\\HYDRAMETA_UV.py": {
-      "import_inside_function": 3
-    },
-    "META\\HYDRA_CONTAINER.py": {
       "import_inside_function": 1
     },
     "META\\InferenceBridge.py": {
       "import_inside_function": 2
     },
-    "META\\METAWORMS.py": {
-      "import_inside_function": 1
-    },
-    "META\\METAWORMS_ENRICHED.py": {
-      "import_inside_function": 1
-    },
-    "META\\METRICZ.py": {
-      "import_inside_function": 1
-    },
-    "META\\OPTIMIZ.py": {
-      "import_inside_function": 1
-    },
     "META\\TELEMETRYZ.py": {
-      "import_inside_function": 2
-    },
-    "META\\TRIMZ.py": {
-      "import_inside_function": 1
-    },
-    "META\\UVZ.py": {
-      "import_inside_function": 1
-    },
-    "METRICZ.py": {
       "import_inside_function": 1
     },
     "MISSING_TOOLS.py": {
@@ -833,13 +752,7 @@
       "import_inside_function": 3
     },
     "OPTIMIZ.py": {
-      "import_inside_function": 5
-    },
-    "ORCHESTRATION\\AssistantLogProtocol.py": {
-      "import_inside_function": 1
-    },
-    "ORCHESTRATION\\AssistantLogProtocol_Enhanced.py": {
-      "import_inside_function": 1
+      "import_inside_function": 4
     },
     "ORCHESTRATION\\HORUS.py": {
       "import_inside_function": 3
@@ -865,17 +778,11 @@
     "ORCHESTRATION\\TEST\\ECOSYSTEM_TEST.py": {
       "import_inside_function": 9
     },
-    "ORCHESTRATION\\hydra_bridge.py": {
-      "import_inside_function": 1
-    },
     "ORCHESTRATION\\ml_platforms\\__init__.py": {
       "import_inside_function": 2
     },
     "ORCHESTRATION\\ml_platforms\\config.py": {
       "import_inside_function": 1
-    },
-    "ORCHESTRATION\\ml_platforms\\framework_activator.py": {
-      "import_inside_function": 3
     },
     "ORCHESTRATION\\ml_platforms\\harness.py": {
       "import_inside_function": 5
@@ -910,12 +817,6 @@
     "ORCHESTRATION\\ml_platforms\\installation_debug.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\lm_studio_integration.py": {
-      "import_inside_function": 1
-    },
-    "ORCHESTRATION\\ml_platforms\\lm_studio_server.py": {
-      "import_inside_function": 1
-    },
     "ORCHESTRATION\\ml_platforms\\run_qanalysis_full.py": {
       "import_inside_function": 1
     },
@@ -932,24 +833,12 @@
       "import_inside_function": 2
     },
     "ORCHESTRATION\\scripts\\test_enhancements.py": {
-      "import_inside_function": 9
+      "import_inside_function": 8
     },
     "ORCHESTRATION\\scripts\\validate_docs.py": {
-      "import_inside_function": 3
+      "import_inside_function": 1
     },
     "REAL_FRAMEWORK_TEST.py": {
-      "import_inside_function": 1
-    },
-    "SCRIPTS\\environ_updater.py": {
-      "import_inside_function": 1
-    },
-    "SCRIPTS\\gate_str_replace.py": {
-      "import_inside_function": 1
-    },
-    "SCRIPTS\\gate_write_file.py": {
-      "import_inside_function": 1
-    },
-    "SCRIPTS\\gated_edit.py": {
       "import_inside_function": 1
     },
     "SCRIPTS\\generate_telemetry.py": {
@@ -967,26 +856,17 @@
     "SCRIPTS\\session_start.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\sync_canonical_docs.py": {
-      "import_inside_function": 2
-    },
-    "SCRIPTS\\test_auto_sync.py": {
-      "import_inside_function": 1
-    },
     "SCRIPTS\\test_generate_telemetry.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "TELEMETRYZ.py": {
-      "import_inside_function": 2
-    },
-    "TRIMZ.py": {
       "import_inside_function": 1
     },
     "UTILITIES\\KLINK\\klink.py": {
       "import_inside_function": 5
     },
     "UTILITIES\\PERSEPHONE\\persephone.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "UTILITIES\\TARBABY\\TARBABY.py": {
       "import_inside_function": 3
@@ -996,12 +876,6 @@
     },
     "UTILITIES\\TERENCE\\TERENCE.py": {
       "import_inside_function": 4
-    },
-    "UVZ.py": {
-      "import_inside_function": 1
-    },
-    "azazael_pygame.py": {
-      "import_inside_function": 1
     },
     "eve_unleashed\\cli.py": {
       "import_inside_function": 7
@@ -1021,9 +895,6 @@
     "eve_unleashed\\model_router.py": {
       "import_inside_function": 1
     },
-    "eve_unleashed\\models\\qwen35_ssm.py": {
-      "import_inside_function": 2
-    },
     "eve_unleashed\\nl_interface.py": {
       "import_inside_function": 2
     },
@@ -1037,7 +908,7 @@
       "import_inside_function": 4
     },
     "eve_unleashed\\service_manager.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "eve_unleashed\\streaming.py": {
       "import_inside_function": 2
@@ -1048,11 +919,8 @@
     "memory_status.py": {
       "import_inside_function": 7
     },
-    "persistent_memory.py": {
-      "import_inside_function": 1
-    },
     "session_memory.py": {
-      "import_inside_function": 3
+      "import_inside_function": 2
     },
     "tests\\test_ecosystem.py": {
       "import_inside_function": 32
@@ -1063,16 +931,7 @@
     "tests\\test_learning_loop.py": {
       "import_inside_function": 4
     },
-    "tests\\test_ml_dream.py": {
-      "import_inside_function": 4
-    },
     "tests\\test_ml_estimators.py": {
-      "import_inside_function": 1
-    },
-    "tests\\test_nuclei_bridge.py": {
-      "import_inside_function": 2
-    },
-    "tests\\test_worm_registry.py": {
       "import_inside_function": 1
     }
   }
