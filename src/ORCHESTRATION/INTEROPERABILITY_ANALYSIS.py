@@ -19,6 +19,7 @@ from datetime import datetime
 # from typing import Dict, List, Set, Tuple  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List
 
 
 @dataclass
@@ -557,7 +558,6 @@ def main():
         note_failure("INTEROPERABILITY_ANALYSIS:L547", exc)
         sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_desktop_dir
-    from typing import List
 
     output_path = str(get_desktop_dir() / "HORUS" / "results" / "interoperability_analysis.json")
     with open(output_path, "w", encoding="utf-8") as f:

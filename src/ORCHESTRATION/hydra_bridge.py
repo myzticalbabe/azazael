@@ -71,6 +71,7 @@ sys.path.insert(0, _UTIL_DIR) if _UTIL_DIR not in sys.path else None
 
 # Import core components
 from ORCHESTRATION.HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
+import argparse
 
 # PAMS recording
 try:
@@ -314,7 +315,6 @@ What went well? What can be improved? Respond concisely (2-3 sentences)."""
 
 def main():
     """Run HydraBridge as standalone."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="HYDRA Pipeline Bridge")
     parser.add_argument("--run", action="store_true", help="Run full 6-stage pipeline")

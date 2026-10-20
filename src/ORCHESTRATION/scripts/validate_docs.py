@@ -57,6 +57,8 @@ from datetime import datetime, timedelta
 import tempfile
 import os
 from typing import List
+import argparse
+import inspect
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -430,7 +432,6 @@ class APIDocGenerator:
 
     def _generate_doc_content(self, module, module_path: Path) -> str:
         """Generate markdown documentation from module."""
-        import inspect
 
         lines = [
             "---",
@@ -733,7 +734,6 @@ class ContributorsSection:
 
 def main():
     """Main entry point with all validation options."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Documentation validation and management"

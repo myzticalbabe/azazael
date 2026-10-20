@@ -18,6 +18,8 @@ Usage:
 import sys
 from pathlib import Path
 from typing import List
+from dataclasses import dataclass
+import json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -146,7 +148,6 @@ class TestTransitionProperties:
     @settings(max_examples=50)
     def test_transition_creation(self, state, action, reward, priority):
         """Transitions should store data correctly."""
-        from dataclasses import dataclass
         import time
 
         @dataclass
@@ -245,7 +246,6 @@ class TestFuzzing:
 
     def test_json_fuzz(self):
         """JSON parsing should handle invalid input."""
-        import json
 
         test_jsons = [
             "",
