@@ -177,12 +177,22 @@ def _root_pytest_addopts() -> list:
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(str(ROOT / "pytest.ini"), encoding="utf-8")
         raw = parser.get("pytest", "addopts", fallback="").split()
-        # Kept whole, including -n auto: production runs parallel xdist and
-        # the sandbox gate must exercise the same configuration. Measured
-        # 2026-10-20 on 3.15t: xdist workers spawn fine from a bare temp cwd
-        # (10 passed in 4s); the old "workers would fail to find the
-        # interpreter" strip was an unmeasured claim that forced serial gates.
-        return raw
+        # Strip -n/--numprocesses: sandbox has no pytest.ini and xdist
+        # workers collect different tests (sandbox has only the patched
+        # file), causing "Different tests were collected" errors.
+        out = []
+        skip_next = False
+        for tok in raw:
+            if skip_next:
+                skip_next = False
+                continue
+            if tok in ("-n", "--numprocesses"):
+                skip_next = True
+                continue
+            if tok.startswith("-n") and len(tok) > 2:
+                continue
+            out.append(tok)
+        return out
     except Exception:
         return []
 
@@ -199,9 +209,21 @@ def run_gate(sandbox: Path, tests: str, python: str = None) -> dict:
     env = dict(_os.environ)
     env["PYTHONPATH"] = str(sandbox / "src") + _os.pathsep + env.get(
         "PYTHONPATH", "")
+    # Ship the sandbox its own pytest config and point -c at it: pytest's ini
+    # discovery otherwise walks UP from the sandbox cwd and adopts a stray
+    # pyproject.toml at the drive root (C:\pyproject.toml exists) as the
+    # configfile — then conftest loading / collection touches the OS temp
+    # root mid-rmtree, producing ambient FileNotFoundError collection errors
+    # (measured 2026-10-20: 16 errors in one gate run, 1 in a single-file
+    # repro; `--rootdir .` alone did NOT stop this — it overrides the
+    # reported root only, not config discovery).
+    ini = sandbox / "pytest.ini"
+    if not ini.exists():
+        ini.write_text("[pytest]\n", encoding="utf-8")
     code, out, err = _run(
         [py, "-m", "pytest", tests, "-q", "-p", "no:warnings",
-         "-p", "no:cacheprovider", *_root_pytest_addopts()],
+         "-p", "no:cacheprovider", "-c", str(ini),
+         *_root_pytest_addopts()],
         cwd=sandbox, timeout=900, env=env)
     return {"passed": code == 0, "code": code, "output": (out + err)[-4000:]}
 

@@ -369,9 +369,17 @@ def test_capability_probe_agrees_with_the_interpreter_and_reports_absence():
         assert profiling["reason"], "a missing profiler must be reported with a reason"
 
     lazy = model.enable_lazy_imports()
-    assert isinstance(lazy["applied"], bool)
-    if not lazy["applied"]:
-        assert lazy["reason"], "a missing lazy-import API must be reported with a reason"
+    try:
+        assert isinstance(lazy["applied"], bool)
+        if not lazy["applied"]:
+            assert lazy["reason"], "a missing lazy-import API must be reported with a reason"
+    finally:
+        if lazy["applied"]:
+            # set_lazy_imports is PROCESS-GLOBAL (PEP 810) and survives the
+            # test: under xdist the flip leaks into every later test this
+            # worker collects (measured 2026-10-20: test_inference sklearn
+            # failure shadowed by the leftover mode). Restore before yielding.
+            sys.set_lazy_imports("normal")
 
 
 # ---------------------------------------------------------------------------

@@ -92,7 +92,16 @@ if not os.environ.get("AZAZAEL_ENTRENCHMENT_PATH"):
 # opt-in, for the reason already stated there: "remember to patch this" is not
 # a mechanism.
 _MEMORY_DIR_OVERRIDE = None
-if not os.environ.get("AZAZAEL_MEMORY_DIR"):
+# Per-worker isolation under xdist: each worker process must get its own
+# memory dir. The controller sets AZAZAEL_MEMORY_DIR and all workers inherit
+# the same value, so without this override every worker shares one store and
+# races on it (wal_autocheckpoint_proof, local_memory, etc.). A per-worker
+# (or per-process, when not under xdist) dir removes the shared-state crash.
+_worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+if os.environ.get("PYTEST_XDIST_WORKER"):
+    _MEMORY_DIR_OVERRIDE = tempfile.mkdtemp(prefix="azazael_memory_%s_" % _worker_id)
+    os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_OVERRIDE
+elif not os.environ.get("AZAZAEL_MEMORY_DIR"):
     _MEMORY_DIR_OVERRIDE = tempfile.mkdtemp(prefix="azazael_memory_")
     os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_OVERRIDE
 
