@@ -122,7 +122,12 @@ except ImportError as _pag_e:
 
 # Try to import sentinel_enforcer for OS-level file locking (v3)
 try:
-    from CORE.sentinel_enforcer import lock_file, unlock_file
+    # NOTE: lock_file/unlock_file do NOT exist in CORE.sentinel_enforcer, so
+    # this import always raises ImportError and v3 chmod locking stays
+    # dormant (stub defs below). Rewiring to real symbols would ACTIVATE
+    # file unlocking/re-locking mid-gate -- a gate semantics change, which
+    # these type fixes must not make. Suppressed, not "fixed".
+    from CORE.sentinel_enforcer import lock_file, unlock_file  # pyright: ignore[reportAttributeAccessIssue]
     _LOCKING_AVAILABLE = True
 except ImportError as exc:
     note_failure("sentinel_gate:L113", exc)
@@ -159,6 +164,11 @@ def _get_compliance_orchestrator():
     """
     global _COMPLIANCE_ORCHESTRATOR
     if _COMPLIANCE_ORCHESTRATOR is None and _COMPLIANCE_AVAILABLE:
+        # Function-level guard: _COMPLIANCE_AVAILABLE implies the import above
+        # defined both symbols, so this fail-loud branch is unreachable at
+        # runtime; it exists so pyright sees the locals as non-Optional.
+        if ComplianceOrchestrator is None or ComplianceState is None:
+            raise RuntimeError("compliance import inconsistent: _COMPLIANCE_AVAILABLE=True but ComplianceOrchestrator/ComplianceState are None")
         _COMPLIANCE_ORCHESTRATOR = ComplianceOrchestrator()
         # Transition to GATE_ASSERT state (same as Step 4.5)
         _COMPLIANCE_ORCHESTRATOR.state_machine.transition_to(ComplianceState.GATE_ASSERT)
@@ -641,6 +651,11 @@ def validate_rule_0x(data, audit_filepath=None):
     if not _COMPLIANCE_AVAILABLE:
         return False, "DENIED — ComplianceOrchestrator not available: %s. FAILSAFE ACTIVATED." % _COMPLIANCE_IMPORT_ERROR
 
+    if ComplianceState is None or StateMachineError is None or _ox_component_passed is None:
+        # Unreachable when _COMPLIANCE_AVAILABLE (import above defined these);
+        # pyright needs the guard to clear OptionalCall/GeneralTypeIssues.
+        return False, "DENIED — compliance symbols not importable. FAILSAFE ACTIVATED."
+
     try:
         co = _get_compliance_orchestrator()
         if co is None:
@@ -712,6 +727,11 @@ def validate_rule_0y(data, audit_filepath=None):
     """
     if not _COMPLIANCE_AVAILABLE:
         return True, "N/A — ComplianceOrchestrator not available: %s" % _COMPLIANCE_IMPORT_ERROR
+
+    if _oy_component_passed is None:
+        # Unreachable when _COMPLIANCE_AVAILABLE; pyright needs the guard
+        # to clear the OptionalCall on the component checker below.
+        return True, "N/A — compliance component checker not importable"
 
     try:
         co = _get_compliance_orchestrator()
@@ -912,6 +932,13 @@ class SentinelValidator:
                                 "message": "N/A - DirectMemory not available"})
             return True
 
+        if DirectMemory is None:
+            # Mirrors the guard above; unreachable when _MEMORY_AVAILABLE,
+            # needed so pyright resolves the DirectMemory() call below.
+            self.results.append({"key": "CROSS-REF", "passed": True,
+                                "message": "N/A - DirectMemory not available"})
+            return True
+
         try:
             dm = DirectMemory()
             events = dm.list_events(500)
@@ -1100,7 +1127,7 @@ def main():
     args = parser.parse_args()
 
     # RULE 0Z-F telemetry: record parallel vs sequential spawn
-    if _PAG_AVAILABLE:
+    if _PAG_AVAILABLE and get_pre_action_gate is not None:
         try:
             gate = get_pre_action_gate()
             if args.check:
@@ -1173,7 +1200,7 @@ def pre_validate_str_replace_mode(filepath: str) -> int:
         printf "    def bar(self):\\n        pass\\n---\\ndef bar(self):\\n    pass\\n" | \\
             python sentinel_gate.py --pre-validate-str-replace file.py
     """
-    if not _PAG_AVAILABLE:
+    if not _PAG_AVAILABLE or get_pre_action_gate is None:
         print("ERROR: PreActionGate not available: %s" % _PAG_IMPORT_ERROR,
               file=sys.stderr)
         return 1
@@ -1197,7 +1224,7 @@ def pre_validate_str_replace_mode(filepath: str) -> int:
     if not ok:
         print("DENIED: %s" % msg)
         # Record attempt with HeuristicErrorRecorder
-        if _HER_AVAILABLE:
+        if _HER_AVAILABLE and get_heuristic_recorder is not None:
             rec = get_heuristic_recorder()
             rec.record_attempt(
                 "str_replace", filepath, old_str, new_str, "HALT")
@@ -1212,7 +1239,7 @@ def pre_validate_str_replace_mode(filepath: str) -> int:
         print("UNLOCKED: file is now writable (644) — you may now use str_replace")
 
     # Record attempt with HeuristicErrorRecorder
-    if _HER_AVAILABLE:
+    if _HER_AVAILABLE and get_heuristic_recorder is not None:
         rec = get_heuristic_recorder()
         aid = rec.record_attempt(
             "str_replace", filepath, old_str, new_str, "PROCEED")
@@ -1227,7 +1254,7 @@ def pre_validate_write_file_mode(filepath: str, content_file: str) -> int:
     Usage:
         python sentinel_gate.py --pre-validate-write-file file.py content.txt
     """
-    if not _PAG_AVAILABLE:
+    if not _PAG_AVAILABLE or get_pre_action_gate is None:
         print("ERROR: PreActionGate not available: %s" % _PAG_IMPORT_ERROR,
               file=sys.stderr)
         return 1
@@ -1253,7 +1280,7 @@ def pre_validate_write_file_mode(filepath: str, content_file: str) -> int:
         print("UNLOCKED: file is now writable (644) — you may now use write_file")
 
     # Record attempt with HeuristicErrorRecorder
-    if _HER_AVAILABLE:
+    if _HER_AVAILABLE and get_heuristic_recorder is not None:
         rec = get_heuristic_recorder()
         aid = rec.record_write_file_attempt(filepath, content, "PROCEED")
         print("ATTEMPT_ID: %s" % aid)
@@ -1271,7 +1298,7 @@ def post_validate_mode(filepath: str, backup_path: str = "") -> int:
         python sentinel_gate.py --post-validate file.py
         python sentinel_gate.py --post-validate file.py file.py.pre_gate_backup
     """
-    if not _PAG_AVAILABLE:
+    if not _PAG_AVAILABLE or get_pre_action_gate is None:
         print("ERROR: PreActionGate not available: %s" % _PAG_IMPORT_ERROR,
               file=sys.stderr)
         return 1
@@ -1286,7 +1313,7 @@ def post_validate_mode(filepath: str, backup_path: str = "") -> int:
             lock_file(filepath)
             print("LOCKED: file is now read-only (444)")
         # Record outcome with HeuristicErrorRecorder
-        if _HER_AVAILABLE:
+        if _HER_AVAILABLE and get_heuristic_recorder is not None:
             rec = get_heuristic_recorder()
             rec.record_outcome("", filepath, success=True)
         return 0
@@ -1296,7 +1323,7 @@ def post_validate_mode(filepath: str, backup_path: str = "") -> int:
         if _LOCKING_AVAILABLE:
             lock_file(filepath)
         # Record outcome with HeuristicErrorRecorder
-        if _HER_AVAILABLE:
+        if _HER_AVAILABLE and get_heuristic_recorder is not None:
             rec = get_heuristic_recorder()
             rec.record_outcome("", filepath, success=False, error_msg=msg)
         return 1
