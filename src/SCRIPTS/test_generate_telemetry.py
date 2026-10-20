@@ -7,6 +7,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 from typing import List
+import shutil
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -29,7 +30,6 @@ class TestGenerateTelemetry(unittest.TestCase):
         self.addCleanup(lambda: self._cleanup(self.temp_dir))
 
     def _cleanup(self, path: Path):
-        import shutil
         shutil.rmtree(path, ignore_errors=True)
 
     def test_generate_output_format(self):

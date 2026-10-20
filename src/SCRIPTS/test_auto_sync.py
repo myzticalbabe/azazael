@@ -29,6 +29,7 @@ from auto_sync import (
     _last_hashes,
 )
 from typing import List
+import shutil
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -47,7 +48,6 @@ class TestAutoSync(unittest.TestCase):
         self.addCleanup(lambda: self._cleanup_temp(self.temp_dir))
 
     def _cleanup_temp(self, path: Path):
-        import shutil
         shutil.rmtree(path, ignore_errors=True)
 
     def test_compute_hashes_empty_dir(self):

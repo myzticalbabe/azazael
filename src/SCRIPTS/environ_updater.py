@@ -23,6 +23,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from typing import List
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -397,7 +398,6 @@ class AzazaelEnvironment:
 
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser(description="Azazael Environment - ML Imbued")
     parser.add_argument(

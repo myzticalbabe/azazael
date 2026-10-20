@@ -28,6 +28,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
+import subprocess
+import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -119,7 +121,6 @@ def _wsl_distro_running(name: str) -> bool | None:
         False if distro is Stopped or not found
         None if wsl.exe is unavailable (not a WSL environment)
     """
-    import subprocess
     try:
         result = subprocess.run(
             ["wsl.exe", "--list", "--verbose"],
@@ -265,7 +266,6 @@ def print_drift_report(master_hashes: dict[str, str]):
 
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(
         description="Canonical Document Sync — RULE 0Z-J enforcement"
     )
