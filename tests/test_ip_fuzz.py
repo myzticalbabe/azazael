@@ -1,3 +1,4 @@
+import pytest
 """Fuzz tests for InferencePool — random model names, timeouts, max_tokens combos."""
 
 import sys

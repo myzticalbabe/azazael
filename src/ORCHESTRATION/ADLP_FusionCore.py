@@ -69,8 +69,11 @@ class FusionCore:
         self._reg("knowledge", TIER.KNOWLEDGE, "1.0", ["learn", "recall"])
 
     def _write(self, p, d):
-        with open(p, "w", encoding="utf-8") as f:
-            json.dump(d, f, indent=2, default=str)
+        try:
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump(d, f, indent=2, default=str)
+        except (PermissionError, OSError) as exc:
+            note_failure("ADLP_FusionCore:L72", exc)
 
     def _read(self, p):
         try:
@@ -82,6 +85,8 @@ class FusionCore:
 
     def _reg(self, n, t, v, f):
         d = self._read(self.mfile)
+        if "m" not in d:
+            d["m"] = {}
         d["m"][n] = {
             "n": n,
             "": t.value,
@@ -129,6 +134,8 @@ class FusionCore:
 
     def learn(self, key, val, src="system"):
         d = self._read(self.kfile)
+        if "k" not in d:
+            d["k"] = {}
         d["k"][key] = {"v": val, "s": src, "ts": datetime.datetime.now().isoformat()}
         self._write(self.kfile, d)
         self._l(TIER.KNOWLEDGE.value, "INFO", "knowledge", "learn", f"Learn {key}")

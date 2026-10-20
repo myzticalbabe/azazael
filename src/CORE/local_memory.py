@@ -278,9 +278,11 @@ class LocalMemoryStore:
         self._vacuum_running = False
         self._vacuum_interval: float = 86400.0  # 24 hours
         self._vacuum_thread: Optional[threading.Thread] = None
+        self._vacuum_stop_event = threading.Event()
         self._backup_running = False
         self._backup_thread: Optional[threading.Thread] = None
         self._backup_interval: float = 86400.0  # 24 hours (default)
+        self._backup_stop_event = threading.Event()
         self._last_backup_path: Optional[str] = None
         self._size_warning_issued = False
         self._max_size_mb = 400  # Default threshold (warn at 80% of 500 MB quota)
@@ -2661,6 +2663,7 @@ existing
                 return  # Already running
             self._vacuum_interval = interval_hours * 3600
             self._vacuum_running = True
+            self._vacuum_stop_event.clear()
         self._vacuum_thread = threading.Thread(
             target=self._vacuum_loop, daemon=True,
             name="azazael-db-vacuum",
@@ -2671,6 +2674,7 @@ existing
         """Stop the background vacuum thread."""
         with self._maintenance_lock:
             self._vacuum_running = False
+        self._vacuum_stop_event.set()
         if self._vacuum_thread is not None and self._vacuum_thread.is_alive():
             self._vacuum_thread.join(timeout=10)
 
@@ -2681,7 +2685,7 @@ existing
                 running = self._vacuum_running
             if not running:
                 break
-            time.sleep(self._vacuum_interval)
+            self._vacuum_stop_event.wait(timeout=self._vacuum_interval)
             with self._maintenance_lock:
                 if not self._vacuum_running:
                     break
@@ -2727,6 +2731,7 @@ existing
             else:
                 self._backup_target_dir = str(Path(self.db_path).parent / "backups")
             self._backup_running = True
+            self._backup_stop_event.clear()
         self._backup_thread = threading.Thread(
             target=self._backup_loop, daemon=True,
             name="azazael-db-backup",
@@ -2737,7 +2742,8 @@ existing
         """Stop the background backup thread."""
         with self._maintenance_lock:
             self._backup_running = False
-        if self._backup_thread and self._backup_thread.is_alive():
+        self._backup_stop_event.set()
+        if self._backup_thread is not None and self._backup_thread.is_alive():
             self._backup_thread.join(timeout=10)
 
     def _backup_loop(self):
@@ -2747,7 +2753,7 @@ existing
                 running = self._backup_running
             if not running:
                 break
-            time.sleep(self._backup_interval)
+            self._backup_stop_event.wait(timeout=self._backup_interval)
             with self._maintenance_lock:
                 if not self._backup_running:
                     break

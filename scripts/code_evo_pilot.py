@@ -176,7 +176,23 @@ def _root_pytest_addopts() -> list:
         import configparser
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(str(ROOT / "pytest.ini"), encoding="utf-8")
-        return parser.get("pytest", "addopts", fallback="").split()
+        raw = parser.get("pytest", "addopts", fallback="").split()
+        # The sandbox has no xdist-friendly layout and its pytest runs
+        # serially; strip -n/--numprocesses so workers are not spawned
+        # (they would fail to find the interpreter under load).
+        out = []
+        skip_next = False
+        for tok in raw:
+            if skip_next:
+                skip_next = False
+                continue
+            if tok in ("-n", "--numprocesses"):
+                skip_next = True
+                continue
+            if tok.startswith("-n") and len(tok) > 2:
+                continue
+            out.append(tok)
+        return out
     except Exception:
         return []
 

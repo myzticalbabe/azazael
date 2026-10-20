@@ -25,7 +25,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import pytest
 from CORE.worm_registry import discover_worms, WORM_REGISTRY, reset_registry
 
-
 def _discover():
     """Ensure WORM_REGISTRY is populated. Return (items, registry size).
 

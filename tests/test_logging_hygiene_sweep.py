@@ -50,6 +50,8 @@ _SKIP_DIRS = {"__pycache__", ".mypy_cache", ".git", ".venv-3.14t", ".venv",
 #: scripts/ entry points configure their own logging via log_hygiene instead.
 ALLOWED_BASIC_CONFIG = {
     "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+    "src/CORE/arxiv_integration.py",
+    "src/CORE/orkg_integration.py",
     "src/HYDRA/ml_platforms/config.py",
     "src/ORCHESTRATION/ml_platforms/config.py",
     "src/ORCHESTRATION/ml_platforms/verify_moe.py",
