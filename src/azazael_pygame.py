@@ -38,8 +38,11 @@ except ImportError as exc:                               # optional GUI dependen
     note_failure("azazael_pygame:pygame-import", exc)
     pygame = None
 
-#: Read by the init call below and by the `__main__` entry point. A flag nothing
-#: reads is itself the defect this sweep removes, so both sites consume it.
+#: Retained as a module contract attribute: tests/test_pygame_shim.py asserts
+#: its identity against the shim, and importers may read it. The two in-module
+#: gates (the module init below and the `__main__` entry point) now test
+#: `pygame is not None` directly, so pyright narrows the optional module
+#: instead of reading this bool.
 _PYGAME_AVAILABLE = pygame is not None
 
 
@@ -212,7 +215,7 @@ class EnrichmentDisplay:
                 sys["connection_alpha"] = 255
 
 
-if _PYGAME_AVAILABLE:
+if pygame is not None:
     pygame.init()                                # absent: skip, do not AttributeError
 
 WIDTH, HEIGHT = 1200, 800
@@ -246,6 +249,8 @@ SYSTEMS = [
 
 class AzazaelVisualizer:
     def __init__(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Azazael ECOSYSTEM - Immersive Visualizer")
         self.clock = pygame.time.Clock()
@@ -335,6 +340,8 @@ class AzazaelVisualizer:
         )
 
     def update(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         mx, my = pygame.mouse.get_pos()
 
         # Update particles
@@ -375,9 +382,10 @@ class AzazaelVisualizer:
             sys["y"] += (target_y - sys["y"]) * 0.05
 
     def draw_badges(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         for badge in self.enrichment_display.badges:
             size = 20 * badge.scale
-            (*badge.color, int(badge.opacity * 100))
 
             glow_surf = pygame.Surface((int(size * 4), int(size * 4)), pygame.SRCALPHA)
             pygame.draw.circle(
@@ -400,6 +408,8 @@ class AzazaelVisualizer:
             self.screen.blit(text, text_rect)
 
     def draw_tags(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         for tag in self.enrichment_display.tags:
             tag_surface = self.font_small.render(tag.text, True, tag.color)
             w, h = tag_surface.get_size()
@@ -423,6 +433,8 @@ class AzazaelVisualizer:
             self.screen.blit(rotated, rect)
 
     def draw_timeline(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         y_base = HEIGHT - 80
         pygame.draw.line(
             self.screen, COLORS["purple"], (100, y_base), (WIDTH - 100, y_base), 2
@@ -476,18 +488,18 @@ class AzazaelVisualizer:
         self.screen.blit(info, (20, HEIGHT - 60))
 
     def draw(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         self.screen.fill(COLORS["bg"])
 
         # Draw connections
         center = (WIDTH // 2, HEIGHT // 2)
         for i, sys in enumerate(self.systems):
             # Line to center
-            (*sys["color"], int(50 + sys["pulse"] * 100))
             pygame.draw.line(self.screen, sys["color"], (sys["x"], sys["y"]), center, 1)
 
             # Draw connections between adjacent systems
             next_sys = self.systems[(i + 1) % len(self.systems)]
-            (*sys["color"], 30)
             pygame.draw.line(
                 self.screen,
                 sys["color"],
@@ -579,6 +591,8 @@ class AzazaelVisualizer:
         pygame.display.flip()
 
     def handle_events(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -589,6 +603,8 @@ class AzazaelVisualizer:
                     pygame.display.toggle_fullscreen()
 
     def run(self):
+        if pygame is None:
+            raise RuntimeError("pygame is required: python -m pip install pygame")
         dt = 1.0 / FPS
         while self.running:
             self.handle_events()
@@ -601,7 +617,7 @@ class AzazaelVisualizer:
 
 
 if __name__ == "__main__":
-    if not _PYGAME_AVAILABLE:
+    if pygame is None:
         print("azazael_pygame: the 'pygame' package is required and is not installed.")
         print("Install it with:  python -m pip install pygame")
         sys.exit(2)
