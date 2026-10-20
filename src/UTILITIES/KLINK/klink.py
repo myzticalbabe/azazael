@@ -25,6 +25,7 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import List
+import urllib.request
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -507,7 +508,6 @@ def cmd_pams():
     print("  PAMS — Persistent AI Memory Server")
     print("=" * 60)
     
-    import urllib.request
     import json
     
     # Health check

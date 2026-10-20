@@ -54,6 +54,7 @@ except ImportError as exc:
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+import argparse
 
 
 try:
@@ -971,7 +972,6 @@ def run_popup():
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="TRIMZ - BIBL Conjunctive Content Trimmer"

@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from collections import defaultdict
 import argparse
 from typing import List
+import json as _json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -639,7 +640,6 @@ class TERENCE:
         except Exception as exc:
             note_failure("TERENCE:L625", exc)
             return {}
-        import json as _json
         import re as _re
         stats: dict = {}
         for r in rows:
