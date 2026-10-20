@@ -95,6 +95,7 @@ def _single_worker():
 
 
 import queue as _queue
+pytestmark = pytest.mark.xdist_group("serial")
 _WORK_QUEUE: "_queue.Queue" = _queue.Queue()
 _WORKER_THREAD = threading.Thread(target=_single_worker, daemon=True,
                                   name="worm-smoke-worker")

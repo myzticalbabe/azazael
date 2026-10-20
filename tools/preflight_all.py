@@ -905,9 +905,13 @@ def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
                                 % (gate.name, gate.interpreter))
                 continue
             started = time.monotonic()
+            # Controls inherit the production addopts (blocklist + -n auto):
+            # a control run serially while production runs parallel does not
+            # demonstrate the production configuration. Measured 2026-10-20:
+            # single-file controls pass under xdist on 3.15t (~2.6s vs 0.3s
+            # serial); the startup cost is the price of a faithful control.
             result = run_control(
-                [interpreter_path, "-m", "pytest", gate.control_test, "-q",
-                 "-p", "no:xdist", "-o", "addopts="],
+                [interpreter_path, "-m", "pytest", gate.control_test, "-q"],
                 env=("PYTHONPATH=src",),
             )
             seconds = time.monotonic() - started
