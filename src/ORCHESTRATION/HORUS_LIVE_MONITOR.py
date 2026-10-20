@@ -78,11 +78,12 @@ class HORUSLiveMonitor:
         if name not in self.components:
             return f"Unknown component: {name}"
 
-        info = self.COMPONENTS[name]
+        info = self.components[name]
+        comp_spec = self.COMPONENTS[name]
         info.status = "running"
 
         try:
-            cmd = [sys.executable, str(self.base_path / info["cmd"][0])] + info["cmd"][
+            cmd = [sys.executable, str(self.base_path / comp_spec["cmd"][0])] + comp_spec["cmd"][
                 1:
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
@@ -117,7 +118,7 @@ class HORUSLiveMonitor:
             },
         }
 
-    def export_status(self, filepath: str = None) -> str:
+    def export_status(self, filepath: str | None = None) -> str:
         if filepath is None:
             filepath = str(self.base_path / "HORUS" / "output" / "monitor_status.json")
         Path(filepath).write_text(json.dumps(self.get_status(), indent=2), encoding="utf-8")
@@ -129,6 +130,7 @@ def launch_monitor():
     try:
         from tkinter import Tk
         from tkinter import scrolledtext
+        import tkinter as tk
 
         root = Tk()
         root.title("HORUS LIVE MONITOR")
