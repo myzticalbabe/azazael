@@ -70,7 +70,7 @@ import threading
 import zlib
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, cast, Dict, List, Optional, Sequence, Tuple
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -81,11 +81,11 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType]
     _REGISTRY = True
 except ImportError as exc:                               # registry optional at import time
     note_failure("cutting_edge_model:L93", exc)
-    _REGISTRY = False
+    _REGISTRY = False  # pyright: ignore[reportConstantRedefinition]
 
     def register_worm(**kw):                      # noqa: ANN003 - shim
         return lambda cls: cls
@@ -496,7 +496,7 @@ class SparseMoE:
         #: ``train_parallel`` are the model's OUTPUT rows, which is a different
         #: distribution from what the gate sees inside the stack. Regulating the
         #: wrong signal is how a "balancing" step measures as making routing worse.
-        self.last_inputs: List[List[float]] = []
+        self.last_inputs: List[Sequence[float]] = []
 
     # -- routing ----------------------------------------------------------
     def set_route_mode(self, mode: str) -> None:
@@ -807,7 +807,7 @@ class SparseMoE:
                     hi = s
         return (hi - lo) if (lo is not None and hi is not None) else 0.0
 
-    def route(self, tokens: Sequence[Sequence[float]]) -> Tuple[List[List[int]], List[List[float]], List[float]]:
+    def route(self, tokens: Sequence[Sequence[float]]) -> Tuple[List[List[int]], List[List[float]], List[List[float]]]:
         """Return (top-k indices, renormalised weights, full mean probs) per token.
 
         Mode-aware (Engram #813): ``switch`` is the shipped router and its
@@ -844,6 +844,9 @@ class SparseMoE:
             return [], 0.0, dict(self.last_stats)
 
         chosen, weights, prob_rows = self.route(tokens)
+        # Defined up front so the lpr-only branch below never reads an unbound
+        # variable when this batch routed under a different mode.
+        routed_rows: List[List[Tuple[int, List[float]]]] = []
         # R2 BIP (Engram #813): a BATCH-level solver replaces per-token
         # selection in bip mode; the per-token route() output is thrown
         # away by the solver, so no mode smells the other's work.
@@ -910,7 +913,7 @@ class SparseMoE:
                 + sum(e.param_count() for e in self.experts))
 
     @staticmethod
-    def _coerce_rows(tokens: Sequence[Sequence[float]]) -> List[List[float]]:
+    def _coerce_rows(tokens: Sequence[Any]) -> List[List[float]]:
         """Coerce a batch into float rows; a scalar row becomes one feature."""
         rows: List[List[float]] = []
         for row in (tokens or []):
@@ -1833,7 +1836,7 @@ class CuttingEdgeModel:
                     if mask is None:
                         h, ops = ffn.forward(h)
                     else:
-                        h, ops = ffn.forward(h, mask=mask)
+                        h, ops = cast(NullsFFNBlock, ffn).forward(h, mask=mask)
                     ffn_index += 1
                 ops_total["linear"] += int(ops.get("linear", 0))
                 ops_total["quadratic"] += int(ops.get("quadratic", 0))
@@ -1878,7 +1881,7 @@ class CuttingEdgeModel:
         Baseline first, then each single-component removal, so a caller can run
         the sweep without re-deriving which combinations are interesting.
         """
-        matrix = [{"name": "full", "switches": self.config.ablation_switches(),
+        matrix: List[Dict[str, Any]] = [{"name": "full", "switches": self.config.ablation_switches(),
                    "config_fingerprint": self.config_fingerprint()}]
         for component in self.active_components():
             variant = self.config.variant(**{_USE_FLAG[component]: False})
@@ -2064,7 +2067,7 @@ class CuttingEdgeModel:
                 if mask is None:
                     h, _ops = self.ffns[ffn_index].forward(h)
                 else:
-                    h, _ops = self.ffns[ffn_index].forward(h, mask=mask)
+                    h, _ops = cast(NullsFFNBlock, self.ffns[ffn_index]).forward(h, mask=mask)
                 ffn_index += 1
         return h
 
@@ -2212,8 +2215,12 @@ class CuttingEdgeModel:
         if not blocks:
             return {"skipped": True,
                     "reason": "no FFN block in this config (use_ffn=False): nothing to train"}
-        block = self.ffns[-1]
+        block = blocks[-1]  # same object: use_nulls ⇒ every ffns entry is a NullsFFNBlock
         mask = self._nulls_forward_mask(source_id, None, ())
+        if mask is None:
+            raise RuntimeError(
+                "memorize(): _nulls_forward_mask returned None "
+                "despite use_nulls being on (invariant violated)")
         inputs = self._run_until_last_ffn(self._as_rows(rows), mask)
         target_rows = self._as_rows(targets)
         if len(target_rows) != len(inputs):
@@ -2803,11 +2810,12 @@ class CuttingEdgeModel:
 
     def enable_lazy_imports(self) -> Dict[str, Any]:
         """Apply ``sys.set_lazy_imports`` when the runtime has it (PEP 810)."""
-        if not hasattr(sys, "set_lazy_imports"):
+        setter = getattr(sys, "set_lazy_imports", None)
+        if not callable(setter):
             return {"applied": False, "reason": "sys.set_lazy_imports absent on %s"
                                                 % sys.version.split()[0]}
         try:
-            sys.set_lazy_imports("all")               # type: ignore[attr-defined]
+            setter("all")                             # PEP 810 lazy imports, when present
             return {"applied": True, "mode": "all"}
         except Exception as exc:
             note_failure("cutting_edge_model:lazy-imports", exc)
