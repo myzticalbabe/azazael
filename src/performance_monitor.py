@@ -185,6 +185,9 @@ class PerformanceMonitor:
         if not HAS_PSUTIL:
             return snap
 
+        if psutil is None:  # unreachable: HAS_PSUTIL mirrors this flag above
+            raise RuntimeError("psutil is not installed")
+
         try:
             snap.cpu_percent = psutil.cpu_percent(interval=0.1)
             snap.cpu_count = psutil.cpu_count() or 1
@@ -252,6 +255,9 @@ class PerformanceMonitor:
         """Capture resource usage for all watched processes."""
         if not HAS_PSUTIL:
             return []
+
+        if psutil is None:  # unreachable: HAS_PSUTIL mirrors this flag above
+            raise RuntimeError("psutil is not installed")
 
         want_files = (self.INCLUDE_OPEN_FILES
                       if include_open_files is None else include_open_files)
@@ -392,6 +398,8 @@ class PerformanceMonitor:
 
         def _work() -> None:
             try:
+                if _requests is None:  # unreachable: HAS_REQUESTS gates every probe
+                    raise RuntimeError("requests is not installed")
                 start = time.perf_counter()
                 resp = _requests.get(url, timeout=(
                     self.SERVICE_CONNECT_TIMEOUT_S,
@@ -416,6 +424,8 @@ class PerformanceMonitor:
             return ServiceHealth(name=name, url=url, reachable=False,
                                  error=box["error"])
         resp = box.get("resp")
+        if resp is None:  # unreachable: _work stores "error" unless it stored resp
+            raise RuntimeError("service probe recorded no response object")
         version = ""
         try:
             body = resp.json()
