@@ -238,6 +238,65 @@ class POINDEXTER:
             return report
 
 
+def get_default_systems() -> list[dict]:
+    """Seed systems for the built-in Azazael analysis.
+
+    Single source shared by main() and the registered worm, so the two can
+    never drift apart. Transcribed from the original inline add_system calls.
+    """
+    return [
+        {
+            "name": "HYDRA",
+            "inputs": ["python_files", "config", "ml_modules"],
+            "outputs": ["stage_results", "metrics", "cluster_status"],
+            "interfaces": ["sequential_protocol", "priority_scheduling"],
+            "protocols": ["discovery", "analysis", "optimization", "validation", "deployment", "feedback"],
+        },
+        {
+            "name": "HORUS",
+            "inputs": ["ml_results", "metrics", "stage_outputs"],
+            "outputs": ["html_reports", "json_exports", "popup_display"],
+            "interfaces": ["visualization_api", "popup_monitor"],
+            "protocols": ["html_generation", "json_serialization"],
+        },
+        {
+            "name": "TARBABY",
+            "inputs": ["python_scripts", "build_config"],
+            "outputs": ["executables", "archives", "checksums"],
+            "interfaces": ["pyinstaller_wrapper", "zip_protocol"],
+            "protocols": ["exe_compilation", "zip_packaging", "checksum_verification"],
+        },
+        {
+            "name": "PERSEPHONE",
+            "inputs": ["paths", "environment_vars"],
+            "outputs": ["translated_paths", "sync_logs"],
+            "interfaces": ["path_translation", "robocopy_wrapper", "rsync_wrapper"],
+            "protocols": ["windows_wsl_bridge", "adb_sync"],
+        },
+        {
+            "name": "BIBL",
+            "inputs": ["module_docs", "api_references"],
+            "outputs": ["html_index", "markdown_pages"],
+            "interfaces": ["markdown_parser", "link_resolver"],
+            "protocols": ["auto_documentation", "lexicon_generation"],
+        },
+        {
+            "name": "MetricsTracker",
+            "inputs": ["run_logs", "stage_timings"],
+            "outputs": ["quality_reports", "performance_benchmarks"],
+            "interfaces": ["statistical_analysis", "benchmarking_api"],
+            "protocols": ["quantitative_analysis", "performance_tracking"],
+        },
+        {
+            "name": "Azazael",
+            "inputs": ["user_commands", "config_files"],
+            "outputs": ["cli_output", "status_updates", "commands"],
+            "interfaces": ["command_parser", "module_loader"],
+            "protocols": ["unified_cli", "orchestration"],
+        },
+    ]
+
+
 def main():
     """Run POINDEXTER analysis."""
     print("=" * 70)
@@ -247,68 +306,14 @@ def main():
 
     poindexter = POINDEXTER()
 
-    poindexter.add_system(
-    "HYDRA",
-    inputs=["python_files", "config", "ml_modules"],
-    outputs=["stage_results", "metrics", "cluster_status"],
-    interfaces=["sequential_protocol", "priority_scheduling"],
-    protocols=[
-            "discovery",
-            "analysis",
-            "optimization",
-            "validation",
-            "deployment",
-            "feedback",
-    ],
-    )
-
-    poindexter.add_system(
-    "HORUS",
-    inputs=["ml_results", "metrics", "stage_outputs"],
-    outputs=["html_reports", "json_exports", "popup_display"],
-    interfaces=["visualization_api", "popup_monitor"],
-    protocols=["html_generation", "json_serialization"],
-    )
-
-    poindexter.add_system(
-    "TARBABY",
-    inputs=["python_scripts", "build_config"],
-    outputs=["executables", "archives", "checksums"],
-    interfaces=["pyinstaller_wrapper", "zip_protocol"],
-    protocols=["exe_compilation", "zip_packaging", "checksum_verification"],
-    )
-
-    poindexter.add_system(
-    "PERSEPHONE",
-    inputs=["paths", "environment_vars"],
-    outputs=["translated_paths", "sync_logs"],
-    interfaces=["path_translation", "robocopy_wrapper", "rsync_wrapper"],
-    protocols=["windows_wsl_bridge", "adb_sync"],
-    )
-
-    poindexter.add_system(
-    "BIBL",
-    inputs=["module_docs", "api_references"],
-    outputs=["html_index", "markdown_pages"],
-    interfaces=["markdown_parser", "link_resolver"],
-    protocols=["auto_documentation", "lexicon_generation"],
-    )
-
-    poindexter.add_system(
-    "MetricsTracker",
-    inputs=["run_logs", "stage_timings"],
-    outputs=["quality_reports", "performance_benchmarks"],
-    interfaces=["statistical_analysis", "benchmarking_api"],
-    protocols=["quantitative_analysis", "performance_tracking"],
-    )
-
-    poindexter.add_system(
-    "Azazael",
-    inputs=["user_commands", "config_files"],
-    outputs=["cli_output", "status_updates", "commands"],
-    interfaces=["command_parser", "module_loader"],
-    protocols=["unified_cli", "orchestration"],
-    )
+    for spec in get_default_systems():
+        poindexter.add_system(
+            spec["name"],
+            inputs=spec["inputs"],
+            outputs=spec["outputs"],
+            interfaces=spec["interfaces"],
+            protocols=spec["protocols"],
+        )
 
     report = poindexter.analyze()
 
