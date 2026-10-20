@@ -17,6 +17,7 @@ from pathlib import Path
 from enum import Enum
 from typing import Any, List
 from dataclasses import dataclass, field, asdict
+import shutil
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -292,7 +293,6 @@ class AssistantLogProtocol:
         return info
 
     def _get_disk_info(self) -> dict:
-        import shutil
 
         d = shutil.disk_usage("/")
         return {"total_gb": d.total // (1024**3), "free_gb": d.free // (1024**3)}

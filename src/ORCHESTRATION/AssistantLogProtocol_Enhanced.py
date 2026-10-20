@@ -22,6 +22,7 @@ from typing import Any, List
 from dataclasses import dataclass, field, asdict
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
+import shutil
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -484,7 +485,6 @@ class AssistantLogProtocol:
         return info
 
     def _get_disk_info(self) -> dict:
-        import shutil
 
         d = shutil.disk_usage("/")
         return {

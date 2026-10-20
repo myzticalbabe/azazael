@@ -353,7 +353,6 @@ class HYDRACluster:
         """Run HYDRA with real-time popup monitoring using queue-based thread safety."""
         import tkinter as tk
         from tkinter import ttk, scrolledtext
-        from datetime import datetime
 
         popup = tk.Tk()
         popup.title("HYDRA Cluster - 10 Minute Test")
