@@ -56,6 +56,11 @@ import sqlite3
 import subprocess
 import sys
 import time
+import re
+import re as _re
+import tempfile
+import shutil
+import collections
 
 AZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
@@ -491,7 +496,6 @@ def oracle_unfailable_validators():
 
 
 def _rule_headers():
-    import re
     with open(MANDATES, encoding="utf-8") as fh:
         text = fh.read()
     out = []
@@ -609,8 +613,7 @@ def _invokes_gate(path, needles=None):
             hits.append("attribute")
         elif isinstance(node, ast.Call):
             for arg in list(node.args) + [k.value for k in node.keywords]:
-                if isinstance(arg, ast.Constant) and isinstance(arg.value, str) \
-                        and has(arg.value):
+                if isinstance(arg, ast.Constant) and isinstance(arg.value, str) and has(arg.value):
                     hits.append("call-arg")
     return bool(hits), ",".join(sorted(set(hits)))
 
@@ -685,7 +688,6 @@ def _validator_rule_ids():
     tested hours earlier. An oracle that cannot see the thing it was built to
     measure is worse than no oracle: it looks busy and reports a total.
     """
-    import re
     try:
         with open(SENTINEL, encoding="utf-8") as fh:
             src = fh.read()
@@ -793,8 +795,7 @@ def oracle_silent_crashes():
 
     jobs = data.get("jobs") if isinstance(data.get("jobs"), dict) else data
     if not isinstance(jobs, dict) or not jobs:
-        return None, "due file has no recognisable job map (keys: %s)" % \
-            list(data.keys())[:6]
+        return None, "due file has no recognisable job map (keys: %s)" % list(data.keys())[:6]
     records = {k: v for k, v in jobs.items()
                if isinstance(v, dict) and any(
                    f in v for f in ("returncode", "rc", "ok", "last", "last_run"))}
@@ -842,7 +843,6 @@ def oracle_silent_crashes():
 def _corpus_text():
     """All Python and shell text in the tree, for reference counting. Read once
     because this is the hot path for two oracles."""
-    import re as _re
     blobs = []
     for root in ("src", "scripts", "tools", "tests"):
         base = os.path.join(AZ, root)
@@ -1057,7 +1057,6 @@ NEGATIVE_CONTROLS = {
 def _load_chain_skip_rc():
     """The by-design skip table, read from source. A negative control that does
     not consult the thing it is testing is not a control."""
-    import re
     try:
         with open(os.path.join(AZ, "scripts", "chain_controller.py"),
                   encoding="utf-8") as fh:
@@ -1157,7 +1156,6 @@ def _control_no_false_gate():
     tests/test_terence_gate_timing.py and are the ones that validate the ORACLE.
     """
     import contextlib
-    import tempfile
     try:
         sys.path.insert(0, os.path.join(AZ, "src"))
         from CORE.sentinel_enforcer import permit_here as _ph
@@ -1607,7 +1605,6 @@ def oracle_environment_contract():
 def _control_no_false_environment_contract():
     """A tree matching its role must stay silent; a tree with a forbidden path
     must fire. Runs the pure detectors on synthetic fixtures, not the live tree."""
-    import shutil
     import tempfile
     clean = tempfile.mkdtemp(prefix="terence_env_clean_")
     dirty = tempfile.mkdtemp(prefix="terence_env_dirty_")
@@ -1741,7 +1738,6 @@ def oracle_stale_relocation_paths():
 def _control_no_false_relocation():
     """A file referencing the CURRENT path must stay silent; one referencing the
     OLD path must fire; an allow-listed file must be exempt."""
-    import shutil
     import tempfile
     root = tempfile.mkdtemp(prefix="terence_reloc_")
     try:
@@ -1936,7 +1932,7 @@ def _record_attempt(fault_id, klass, remedy_id, verified, detail):
             with open(ATTEMPTS, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec) + "\n")
     except Exception:
-        pass
+        print("terence_invariants: attempts write failed", file=sys.stderr)
     return rec
 
 
@@ -2011,7 +2007,7 @@ def _restore(path, blob):
             with open(path, "wb") as fh:
                 fh.write(blob)
     except Exception:
-        pass
+        print("terence_invariants: blob write failed", file=sys.stderr)
 
 
 def _remedy_rerun(fault):
@@ -2102,7 +2098,6 @@ def _remedy_align_verdict(fault):
         src = blob.decode("utf-8")
     except Exception:
         return False, None, "undecodable source"
-    import re as _re
     sig = _re.compile(r"([\"']ok[\"']\s*:\s*)bool\(result\.get\([\"']ok[\"']\)\)")
     n = len(sig.findall(src))
     if n == 0:
@@ -2375,7 +2370,6 @@ def _print_environments():
     recorded before 2026-09-30 carry no tag and are labelled as such rather than
     guessed at.
     """
-    import collections
     import re
     try:
         con = sqlite3.connect(ERROR_DB, timeout=20)

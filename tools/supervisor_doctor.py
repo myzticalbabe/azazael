@@ -19,6 +19,7 @@ stale plan items -- is reported OPEN with a command, never touched.
 import subprocess
 import sys
 from pathlib import Path
+import os
 
 HERE = Path(__file__).resolve().parent
 PY315T = r"C:/Azazael/.venvs/py315t/Scripts/python.exe"
@@ -76,7 +77,6 @@ def main(argv=None) -> int:
 
     print("== pams conversation capture ==")
     import sqlite3
-    import os
     try:
         c = sqlite3.connect("file:%s/ai_memories.db?mode=ro"
                             % os.path.expanduser("~/.pams/memory_data"), uri=True)

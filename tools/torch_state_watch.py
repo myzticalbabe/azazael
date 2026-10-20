@@ -90,7 +90,7 @@ class _Watch:
             with open(path, "a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
         except Exception:
-            pass
+            print("torch_state_watch: write failed", file=sys.stderr)
 
 
 _STATE = _Watch()
@@ -150,4 +150,4 @@ def pytest_sessionfinish(session: Any, exitstatus: int) -> None:
                 )
             )
     except Exception:
-        pass
+        print("torch_state_watch: summary write failed", file=sys.stderr)

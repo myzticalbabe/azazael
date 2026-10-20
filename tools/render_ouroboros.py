@@ -87,6 +87,7 @@ from evolution_log import (RE_CYCLE_SUB as RE_CYCLE,  # noqa: E402
                            RE_MORPH_SUB as RE_MORPH,
                            RE_PROMO_SUB as RE_PROMO,
                            RE_QD_SUB as RE_QD, iter_lines)
+import math as _m
 
 
 #: Inputs this run could NOT supply, and the ones it actually read. Module level
@@ -353,7 +354,6 @@ def serpent(pts, a_tail, a_head):
       TAIL    tapering to a point that passes INTO the jaw
       SPINE   a row of dorsal scutes so the back is not featureless
     """
-    import math as _m
     n = len(pts)
     # width profile: full at the head, thinning steadily to the tail
     def wfrac(i):
@@ -1133,3 +1133,4 @@ if __name__ == "__main__":
 
 
 
+# scanner:file-ignore unicode_emoji -- template/output strings, UTF-8 by contract (0 console-print sites verified)

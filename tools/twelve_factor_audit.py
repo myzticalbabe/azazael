@@ -39,6 +39,7 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
+import hashlib
 
 #: Directory names never worth scanning for these probes.
 #:
@@ -177,7 +178,6 @@ def _mirrored_tree_report(root: Path) -> Tuple[List[str], List[str]]:
 
     Returns (identical, diverged) filename lists.
     """
-    import hashlib
 
     left, right = root / "scripts", root / "src/SCRIPTS"
     if not (left.is_dir() and right.is_dir()):
