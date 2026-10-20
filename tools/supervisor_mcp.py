@@ -31,6 +31,9 @@ sys.path.insert(0, str(HERE))
 
 import engram_supervise as sup  # noqa: E402
 from mcp.server.fastmcp import FastMCP  # noqa: E402
+import datetime
+import subprocess
+import urllib.request
 
 OUTBOX = HERE.parent / "state" / "supervisor_outbox.jsonl"
 REFUSALS = HERE.parent / "state" / "supervisor_refusals.jsonl"
@@ -59,7 +62,6 @@ LEG_LIMIT_S = 20.0
 
 def _item_age_days(date_str):
     """Days since yyyy-mm-dd, or -1 when unknown."""
-    import datetime
     try:
         d = datetime.date.fromisoformat((date_str or "").strip())
         return (datetime.date.today() - d).days
@@ -86,7 +88,6 @@ def _refusal_event_id(client, tool, detail, ts_iso, session=""):
     bucket parser cannot read all share a constant bucket, so dedupe then
     degrades to exact content identity rather than failing the write.
     """
-    import datetime
     import hashlib
     bucket = "ts-unparseable"
     try:
@@ -117,7 +118,6 @@ def _tail_refusal_ids(path):
     (stored eid when present, else from the row's own fields) for rows
     whose ts is TODAY. Bounded work: O(tail bytes), never O(ledger size).
     """
-    import datetime
     path = Path(path)
     try:
         size = path.stat().st_size
@@ -211,7 +211,6 @@ def _pams_honest() -> tuple:
     An unreadable DB file is fail-open with a named cause -- absence of
     evidence is never a verdict.
     """
-    import os
     import sqlite3
     base = os.path.expanduser("~/.pams/memory_data")
     lines = []
@@ -279,7 +278,6 @@ def verdict() -> str:
        process must be RESTARTED to load this fix (stdio servers spawn at
        client start; a saved file does not reach the running process).
     """
-    import time
     from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
     t0 = time.time()
     #: Hard budget for the whole verdict. The client caps an MCP call near
@@ -464,7 +462,6 @@ def _run_cli_bounded(cmd, timeout=LEG_LIMIT_S, cwd=None, env=None):
     Returns (stdout, stderr, returncode); on timeout stdout is None and
     stderr names the kill -- callers print unreadable-loud, never silent.
     """
-    import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,  # scanner:ignore subprocess_no_timeout -- Popen takes no timeout kwarg; the bound is communicate(timeout=<LEG>) below plus the taskkill /T tree-kill in its handler
                          text=True, encoding="utf-8", errors="replace",
                          cwd=cwd, env=env)
@@ -523,7 +520,6 @@ def _pmb_http_call(name, arguments, timeout_s=15.0):
     design (daemon.write_daemon_token), so auth is not session-dependent.
     Raises on any failure; the caller decides the fallback.
     """
-    import urllib.request
 
     home = Path(os.path.expanduser("~/.pmb"))
     url = _pmb_endpoint()
@@ -684,7 +680,6 @@ def _pmb_goal_pressure() -> str:
 @server.tool()
 def refusal_summary() -> str:
     """Counts from the refusal ledger. Missing ledger = zero refusals, said aloud."""
-    import json
     from collections import Counter
     if not REFUSALS.exists():
         return "refusals: none recorded (ledger absent -- no NO-GO has fired yet)"
@@ -779,7 +774,6 @@ def mint_tool(name: str, purpose: str, body: str) -> str:
     silent. Wiring (MCP registration, hooks) is a separate explicit step.
     """
     import ast
-    import datetime
     import re
     import subprocess
     if not re.fullmatch(r"[a-z][a-z0-9_]{2,40}", name or ""):
@@ -951,7 +945,6 @@ def code_bridge(path_or_symbol: str) -> str:
     Joins code to memory through path-token search; degrades to basename
     search when the codegraph file is absent. Says which it used.
     """
-    import os
     base = os.path.basename(path_or_symbol.rstrip("/\\"))
     stem = os.path.splitext(base)[0]
     q = "%s %s" % (path_or_symbol[:80], stem)
@@ -1033,7 +1026,6 @@ def _selftest_refusal_dedupe() -> int:
     payload-changed event lands, (e) exactly 2 rows total; scratch ledger
     deleted afterwards either way. Non-zero exit on any failed assertion.
     """
-    import datetime
     scratch = HERE.parent / "state" / "supervisor_refusals_selftest.jsonl"
     day = datetime.date.today().isoformat()
 

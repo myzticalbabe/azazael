@@ -59,6 +59,7 @@ from monitor_data import (  # noqa: E402
     source_line,
 )
 from monitor_theme import accent as theme_accent, nature_color, semantic  # noqa: E402
+import argparse
 
 #: Seconds between automatic reloads. A monitor left open on a second screen
 #: has to stay current, otherwise it is a screenshot with a timestamp on it
@@ -861,7 +862,6 @@ def _wrap(title: str, subtitle: str, accent: str, glow: str,
 # ── Main ─────────────────────────────────────────────────────────
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--azazael", action="store_true")
     parser.add_argument("--exmachina", action="store_true")
