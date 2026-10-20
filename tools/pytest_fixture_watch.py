@@ -57,7 +57,7 @@ def _write(line: str) -> None:
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(line + "\n")
     except Exception:
-        pass
+        print("pytest_fixture_watch: write failed", file=sys.stderr)
 
 
 def _resolve(root: Any, path: str) -> Any:

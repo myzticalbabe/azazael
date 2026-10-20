@@ -67,6 +67,7 @@ from monitor_theme import (  # noqa: E402
     AMBER, BLUE, CYAN, GREEN, MAGENTA, PURPLE, RED, TEAL, YELLOW,
     UNMAPPED_NATURE, accent as theme_accent, nature_color, semantic,
 )
+import argparse
 
 ML_ACCENT, ML_GLOW = theme_accent("ml")
 RL_ACCENT, RL_GLOW = theme_accent("rl")
@@ -523,7 +524,6 @@ def render_rl() -> str:
 # ── Main ─────────────────────────────────────────────────────────
 
 def main() -> None:
-    import argparse
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--ml", action="store_true")

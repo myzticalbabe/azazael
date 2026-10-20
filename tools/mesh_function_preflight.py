@@ -1280,7 +1280,7 @@ def data_index(names: set[str]) -> dict[str, list[str]]:
             if p.is_file() and p.suffix.lower() in DATA_EXTS:
                 files.append(p)
     except OSError:
-        pass
+        print("mesh_function_preflight: data scan failed", file=sys.stderr)
     for base in DATA_SCOPES:
         root = REPO / base
         if not root.exists():

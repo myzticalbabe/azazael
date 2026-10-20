@@ -12,6 +12,7 @@ import re
 import sys
 import urllib.request
 from pathlib import Path
+from collections import Counter
 
 HERE = Path(__file__).resolve().parent.parent
 DEFAULTS = [HERE / "requirements-3.15t.txt", HERE / "requirements_315_full.txt"]
@@ -78,7 +79,6 @@ def main():
             print(f"{name:28s} {version or '(latest)':14s} -> {rows[-1]['verdict']}")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"packages": rows}, indent=1), encoding="utf-8")
-    from collections import Counter
     print(Counter(r["verdict"] for r in rows))
     print("wrote", OUT)
 
