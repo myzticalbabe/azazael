@@ -8,7 +8,6 @@ import string
 sys.path.insert(0, "src")
 
 from CORE.inference_pool import _ollama_infer, _max_concurrent_for_model
-pytestmark = pytest.mark.xdist_group("serial")
 
 
 def test_random_model_names():

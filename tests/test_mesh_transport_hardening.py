@@ -31,7 +31,6 @@ from hypothesis import given, settings, strategies as st
 from CORE import mesh_transport as mt
 from CORE import spine_registry as sr
 from CORE.WORMS.expansion.mesh import MeshRouterWorm
-pytestmark = pytest.mark.xdist_group("serial")
 
 @pytest.fixture(autouse=True)
 def isolated_spine_state(tmp_path, monkeypatch):

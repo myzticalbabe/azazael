@@ -7,7 +7,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "AOA"))
 
 import pytest
-pytestmark = pytest.mark.xdist_group("serial")
 
 @pytest.fixture(scope="module")
 def arm():

@@ -6,11 +6,13 @@ machinery demonstrably fires. Both are measured on an isolated tmp DB.
 """
 import os
 import sqlite3
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 import pytest
 
 from CORE.local_memory import DB_PATH, LocalMemoryStore
-pytestmark = pytest.mark.xdist_group("serial")
 
 
 def _tmp_store(tmp_path):
@@ -60,10 +62,32 @@ def test_checkpoint_fires_on_tmp_store(tmp_path):
 
 
 def test_live_db_untouched_by_proof(tmp_path):
+    # Contract: the proof's writes land ONLY in its tmp store, never live.
+    # Proven with a per-run unique marker, not with live file size/mtime:
+    # under parallel xdist other suites legitimately write the live store
+    # concurrently, so a global-quiescence assert is inherently racy (failed
+    # 2026-10-20 with +20KB from a concurrent writer). Concurrent writers
+    # never carry our uuid, so the marker's absence from live is exact.
     if not os.path.exists(DB_PATH):
         pytest.skip("no live store on this machine")
-    before = (os.path.getsize(DB_PATH), os.path.getmtime(DB_PATH))
+    import uuid
+    marker = "no_touch_probe_%s" % uuid.uuid4().hex
     store = _tmp_store(tmp_path)
-    assert store.record_event("proof", "no_touch_probe") > 0
-    assert (os.path.getsize(DB_PATH),
-            os.path.getmtime(DB_PATH)) == before
+    assert str(store.db_path) != str(DB_PATH)
+    assert store.record_event("proof", marker) > 0
+    tmp_conn = sqlite3.connect(str(tmp_path / "proof.db"), timeout=30)
+    try:
+        tmp_hits = tmp_conn.execute(
+            "SELECT COUNT(*) FROM memories WHERE event_type = ?",
+            (marker,)).fetchone()[0]
+        assert int(tmp_hits) == 1
+    finally:
+        tmp_conn.close()
+    live_conn = sqlite3.connect(str(DB_PATH), timeout=30)
+    try:
+        live_hits = live_conn.execute(
+            "SELECT COUNT(*) FROM memories WHERE event_type = ?",
+            (marker,)).fetchone()[0]
+        assert int(live_hits) == 0, "proof leaked into the live store"
+    finally:
+        live_conn.close()
