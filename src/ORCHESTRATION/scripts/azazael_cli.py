@@ -716,10 +716,11 @@ EXAMPLES:
         """Show metrics dashboard."""
         self.output.info("Loading metrics...")
         try:
-            from ml_platforms.improvements.metrics_tracker import MetricsTracker
+            from ml_platforms.improvements.metrics_tracker import (
+                generate_quality_report,
+            )
 
-            tracker = MetricsTracker()
-            report = tracker.generate_quality_report()
+            report = generate_quality_report()
             print(json.dumps(report, indent=2))
         except Exception as e:
             self.output.error(f"Metrics error: {e}")
