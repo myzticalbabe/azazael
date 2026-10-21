@@ -11,17 +11,17 @@ server:
 
 free_threading:
   enabled: true
-  python_path: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python3.15t.exe"
-  build_python: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python.exe"
+  python_path: "C:/Azazael/.venvs/py315t/Scripts/python.exe"
+  build_python: "C:/Azazael/.venvs/py315/Scripts/python.exe"
   note: "Python 3.15t production (rc3). Numeric stack has cp315/cp315t wheels (numpy/scipy/sklearn/pandas/psutil/pytest proven)."
 
 paths:
-  azazael_root: "C:/Users/clint/azazael"
+  azazael_root: "C:/Azazael/azazael"
   src_dir: "src"
   data_dir: "data"
   logs_dir: "logs"
   standalone_dir: "G:/AZAZAEL_Standalone"
-  wsl2_root: "/home/clint/projects/azazael"
+  wsl2_root: "/root/azazael"
 
 services:
   orchestrator:

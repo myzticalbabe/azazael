@@ -5,36 +5,36 @@
 ECOSYSTEM:
   name: "Azazael Unified"
   version: "7.1.0"
-  root: "C:/Users/clint/azazael"
-  src_dir: "C:/Users/clint/azazael/src"
-  python: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python.exe"
-  python_free_threaded: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python3.15t.exe"
+  root: "C:/Azazael/azazael"
+  src_dir: "C:/Azazael/azazael/src"
+  python: "C:/Azazael/.venvs/py315/Scripts/python.exe"
+  python_free_threaded: "C:/Azazael/.venvs/py315t/Scripts/python.exe"
   archive_drive: "G:/archived_files"
 
 PATHS:
-  AZAAZEL_ROOT: "C:/Users/clint/azazael"
-  CORE: "C:/Users/clint/azazael/src/CORE"
-  WORMS: "C:/Users/clint/azazael/src/CORE/WORMS"
-  META: "C:/Users/clint/azazael/src/META"
-  HYDRA: "C:/Users/clint/azazael/src/HYDRA"
-  HYDRA_ML: "C:/Users/clint/azazael/src/HYDRA/ml_platforms"
-  ORCHESTRATION: "C:/Users/clint/azazael/src/ORCHESTRATION"
-  OUTPUT: "C:/Users/clint/azazael/output"
-  UTILITIES: "C:/Users/clint/azazael/src/UTILITIES"
-  TERENCE: "C:/Users/clint/azazael/src/UTILITIES/TERENCE"
-  PERSEPHONE: "C:/Users/clint/azazael/src/UTILITIES/PERSEPHONE"
-  POINDEXTER: "C:/Users/clint/azazael/src/UTILITIES/POINDEXTER"
-  TARBABY: "C:/Users/clint/azazael/src/UTILITIES/TARBABY"
-  KLINK: "C:/Users/clint/azazael/src/UTILITIES/KLINK"
-  BIBL: "C:/Users/clint/azazael/src/ORCHESTRATION/BIBL"
-  SHORTCUTS: "C:/Users/clint/azazael/src/SHORTCUTS"
-  CODEX: "C:/Users/clint/azazael/src/CODEX"
-  SCRIPTS: "C:/Users/clint/azazael/scripts"
-  CLI: "C:/Users/clint/azazael/src/CLI"
-  CONFIG: "C:/Users/clint/azazael/config"
-  DATA: "C:/Users/clint/azazael/data"
-  LOGS: "C:/Users/clint/azazael/logs"
-  DOCS: "C:/Users/clint/azazael/docs"
+  AZAAZEL_ROOT: "C:/Azazael/azazael"
+  CORE: "C:/Azazael/azazael/src/CORE"
+  WORMS: "C:/Azazael/azazael/src/CORE/WORMS"
+  META: "C:/Azazael/azazael/src/META"
+  HYDRA: "C:/Azazael/azazael/src/HYDRA"
+  HYDRA_ML: "C:/Azazael/azazael/src/HYDRA/ml_platforms"
+  ORCHESTRATION: "C:/Azazael/azazael/src/ORCHESTRATION"
+  OUTPUT: "C:/Azazael/azazael/output"
+  UTILITIES: "C:/Azazael/azazael/src/UTILITIES"
+  TERENCE: "C:/Azazael/azazael/src/UTILITIES/TERENCE"
+  PERSEPHONE: "C:/Azazael/azazael/src/UTILITIES/PERSEPHONE"
+  POINDEXTER: "C:/Azazael/azazael/src/UTILITIES/POINDEXTER"
+  TARBABY: "C:/Azazael/azazael/src/UTILITIES/TARBABY"
+  KLINK: "C:/Azazael/azazael/src/UTILITIES/KLINK"
+  BIBL: "C:/Azazael/azazael/src/ORCHESTRATION/BIBL"
+  SHORTCUTS: "C:/Azazael/azazael/src/SHORTCUTS"
+  CODEX: "C:/Azazael/azazael/src/CODEX"
+  SCRIPTS: "C:/Azazael/azazael/scripts"
+  CLI: "C:/Azazael/azazael/src/CLI"
+  CONFIG: "C:/Azazael/azazael/config"
+  DATA: "C:/Azazael/azazael/data"
+  LOGS: "C:/Azazael/azazael/logs"
+  DOCS: "C:/Azazael/azazael/docs"
 
 # PAMS Memory Server
 PAMS:
@@ -60,14 +60,14 @@ LLAMA:
     - "InternVL3-8B"
 
 WINDOWS_PATHS:
-  AZAAZEL: "C:/Users/clint/azazael/src/ORCHESTRATION"
+  AZAAZEL: "C:/Azazael/azazael/src/ORCHESTRATION"
 
 WSL_PATHS:
   AZAAZEL: "/mnt/c/Users/clint/azazael"
   CORE: "/mnt/c/Users/clint/azazael/src/CORE"
 
 PERSEPHONE:
-  WINDOWS: "C:/Users/clint/azazael/src/UTILITIES/PERSEPHONE"
+  WINDOWS: "C:/Azazael/azazael/src/UTILITIES/PERSEPHONE"
   WSL: "/mnt/c/Users/clint/azazael/src/UTILITIES/PERSEPHONE"
 
 ENVIRONMENT:

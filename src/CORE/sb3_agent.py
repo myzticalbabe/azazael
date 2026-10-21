@@ -224,6 +224,13 @@ def _find_gil_python() -> (str | None):
     if sidecar.is_file():
         return str(sidecar)
 
+    # 2b. WSL pillar: the sanctioned GIL entry points unset PYTHON_GIL
+    #     themselves, so the child survives an exported PYTHON_GIL=0.
+    for wsl_gil in ("/usr/local/bin/python3.14-gil",
+                    "/root/venv-314-gil/bin/py"):
+        if os.path.isfile(wsl_gil):
+            return wsl_gil
+
     # 3. Sibling standard build next to the free-threaded exe
     #    (.../python3.15t.exe -> .../python.exe)
     try:
@@ -276,6 +283,10 @@ def _run_training_in_gil_subprocess(
         model_name or "",
     ]
     env = dict(os.environ)
+    # A GIL build aborts when PYTHON_GIL=0 is exported (see
+    # CORE/python_env.probe); the wrapper entry points above already
+    # unset it, but never trust the ambient env for a GIL child.
+    env.pop("PYTHON_GIL", None)
     env["AZAZAEL_GIL_ENFORCED"] = "1"  # guard against re-exec loops
     env["AZAZAEL_SRC"] = _azazael_src  # bootstrap sys.path for CORE import
     env["PYTHONIOENCODING"] = "utf-8"

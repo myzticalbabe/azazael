@@ -1,13 +1,13 @@
 #!/bin/bash
 #===============================================================================
-# Python 3.13 Uninstallation Script (REVERSED: now removes 3.13, preserves 3.14t)
+# Python 3.13 Uninstallation Script (REVERSED: now removes 3.13, preserves the 3.14 base)
 #===============================================================================
-# RETIRED 2026-10-19: Python 3.14t is no longer the project runtime. Production
+# RETIRED 2026-10-19: free-threaded 3.14t is no longer the project runtime. Production
 # is the free-threaded 3.15t venv (C:/Azazael/.venvs/py315t) and the only
 # sanctioned 3.14 runtime is the GIL venv C:/Azazael/.venvs/py314m. This script
 # is kept because it is the deliberate, reversible 3.13 cleanup path; it must
-# still PRESERVE whichever 3.14 base install the 3.14m venv is built from.
-# Removes Python 3.13, backs up modules, keeps the 3.14 base install intact.
+# still PRESERVE whichever 3.14 base install the 3.14m venv / GIL sidecar is built from.
+# Removes Python 3.13, backs up modules, keeps the 3.14 base installs intact.
 #
 # Usage: ./uninstall_py314.sh [--dry-run]
 #===============================================================================
@@ -94,6 +94,7 @@ find_python_installations() {
         "/c/Program Files (x86)/Python314"
         "/c/Users/clint/AppData/Local/Programs/Python/Python314"
         "/usr/local/python314t"
+        "/usr/local/python3147-gil"
     )
     
     # Find Python 3.13
@@ -151,7 +152,7 @@ create_backup_metadata() {
     "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "source_version": "3.13 (removed)",
     "backup_file": "$backup_file",
-    "active_python": ["3.14t"],
+    "active_python": ["3.15t"],
     "status": "complete"
 }
 EOF
@@ -229,7 +230,7 @@ generate_report() {
 {
     "remove_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
     "removed_version": "3.13",
-    "active_version": "3.14t",
+    "active_version": "3.15t",
     "backup_location": "$BACKUP_DIR",
     "modules_preserved": true,
     "python314t_intact": $([ -n "$PYTHON314_PATH" ] && echo "true" || echo "false"),
@@ -257,7 +258,7 @@ main() {
     
     echo ""
     log "=============================================="
-    log "Python 3.13 Removal (3.14t-only mandate)"
+    log "Python 3.13 Removal (3.15t mandate)"
     log "=============================================="
     echo ""
     
@@ -284,7 +285,7 @@ main() {
     log "Backup location: $BACKUP_DIR"
     log "Logs: $TARBABY_BASE/logs/"
     echo ""
-    log_success "Python 3.13 removed. Python 3.14t is the active Python."
+    log_success "Python 3.13 removed. Python 3.15t is the active Python."
     echo ""
 }
 
