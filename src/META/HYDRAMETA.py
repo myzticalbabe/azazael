@@ -26,7 +26,7 @@ import time
 import random
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import dataclass, field
 import tkinter as tk
 from tkinter import ttk, scrolledtext
@@ -136,7 +136,7 @@ class HYDRAOptimizer:
         self.best_score: float = 0.0
         self.trial_history: list[TrialResult] = []
 
-    def _generate_params(self, seed: int = None) -> dict[str, Any]:
+    def _generate_params(self, seed: Optional[int] = None) -> dict[str, Any]:
         """Generate random parameters."""
         random.seed(seed)
         return {
@@ -161,7 +161,7 @@ class HYDRAOptimizer:
             score += 3
         return max(0, min(100, score))
 
-    def initialize_population(self, size: int = None):
+    def initialize_population(self, size: Optional[int] = None):
         """Initialize population for optimization."""
         size = size or self.config.POPULATION_SIZE
         self.population = []
@@ -456,7 +456,7 @@ class HYDRAMETA:
         }
 
     def run_optimized(
-        self, strategy: str = "ml_optimized", count: int = 5, params: dict = None
+        self, strategy: str = "ml_optimized", count: int = 5, params: Optional[dict] = None
     ) -> dict:
         """Run worms with optimized parameters."""
         self.running = True
@@ -488,7 +488,7 @@ class HYDRAMETA:
             "success_rate": success_count / len(results) if results else 0,
         }
 
-    def run_trials(self, num_trials: int = None) -> list[TrialResult]:
+    def run_trials(self, num_trials: Optional[int] = None) -> list[TrialResult]:
         """Run optimization trials."""
         num_trials = num_trials or self.config.NUM_TRIALS
         self.optimizer.initialize_population()
