@@ -76,7 +76,7 @@ class AblationComponent:
         name: str,
         description: str,
         enable_fn: Callable[[Any, bool], None],
-        affects: List[str] = None,
+        affects: Optional[List[str]] = None,
     ):
         """
         Args:
@@ -351,10 +351,10 @@ class AblationStudy:
     def run_full_ablation(
         self,
         source: str,
-        components_to_ablate: List[str] = None,
+        components_to_ablate: Optional[List[str]] = None,
         event_type: Optional[str] = None,
-        baseline_config: Dict[str, Any] = None,
-        train_kwargs: Dict[str, Any] = None,
+        baseline_config: Optional[Dict[str, Any]] = None,
+        train_kwargs: Optional[Dict[str, Any]] = None,
         mode: str = "single",
         repeats: int = 3,
     ) -> Dict[str, Any]:
@@ -501,7 +501,7 @@ class AblationStudy:
             )
             self._summaries.append(summary)
     
-    def save_results(self, filename: str = None) -> str:
+    def save_results(self, filename: Optional[str] = None) -> str:
         """Save results to JSON file."""
         if filename is None:
             filename = f"ablation_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -595,7 +595,7 @@ class AblationStudy:
 # Convenience function for quick ablation runs
 def quick_ablation(
     source: str = "SystemZ",
-    components: List[str] = None,
+    components: Optional[List[str]] = None,
     mode: str = "single",
     repeats: int = 3,
 ) -> Dict[str, Any]:
