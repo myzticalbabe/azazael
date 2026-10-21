@@ -11,7 +11,7 @@ If this file passes and the video is still wrong, this file is the defect.
 """
 import os, re, json, sys, datetime
 
-AZ = r"C:\Users\clint\azazael"
+AZ = r"C:\Azazael\azazael"
 DOC = os.path.join(AZ, "dashboard", "CAIN_20260930.html")
 TPL = os.path.join(AZ, "src", "CODEX", "SESSION_TEMPLATE", "templates", "output_cain.html")
 

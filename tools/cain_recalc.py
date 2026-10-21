@@ -7,7 +7,7 @@ what is actually there rather than by what I remember writing.
 """
 import re, collections, json
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h))
 
@@ -74,7 +74,7 @@ for pat, label in ((r"[Ll]egal" + TAG + r"\$0\.00", "legal"),
     print("  %-9s %s (%d)" % (label, "CLEAN" if n == 0 else "** PRESENT **", n))
 
 json.dump({k: round(v, 4) for k, v in AUTH.items()},
-          open(r"C:\Users\clint\azazael\dashboard\cain_financials.json", "w", encoding="utf-8"),  # scanner:ignore
+          open(r"C:\Azazael\azazael\dashboard\cain_financials.json", "w", encoding="utf-8"),  # scanner:ignore
           indent=1)
 print()
 print("written: dashboard/cain_financials.json")
