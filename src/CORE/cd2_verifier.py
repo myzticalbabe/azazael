@@ -658,22 +658,31 @@ class SMTVerifier:
             field = expr.get("field", "")
             operator = expr.get("operator", "eq")
             expected = expr.get("expected", None)
-            var = Int(field) if isinstance(expected, (int, float)) else Bool(field)
             val = values.get(field)
-            if val is not None:
-                z3_val = int(val) if isinstance(expected, (int, float)) else bool(val)
-                if operator == "eq":
-                    solver.add(var == z3_val)
-                elif operator == "ne":
-                    solver.add(var != z3_val)
-                elif operator == "gt":
-                    solver.add(var > z3_val)
-                elif operator == "gte":
-                    solver.add(var >= z3_val)
-                elif operator == "lt":
-                    solver.add(var < z3_val)
-                elif operator == "lte":
-                    solver.add(var <= z3_val)
+            if isinstance(expected, (int, float)):
+                var = Int(field)
+                if val is not None:
+                    z3_val = int(val)
+                    if operator == "eq":
+                        solver.add(var == z3_val)
+                    elif operator == "ne":
+                        solver.add(var != z3_val)
+                    elif operator == "gt":
+                        solver.add(var > z3_val)
+                    elif operator == "gte":
+                        solver.add(var >= z3_val)
+                    elif operator == "lt":
+                        solver.add(var < z3_val)
+                    elif operator == "lte":
+                        solver.add(var <= z3_val)
+            else:
+                var = Bool(field)
+                if val is not None:
+                    z3_val = bool(val)
+                    if operator == "eq":
+                        solver.add(var == z3_val)
+                    elif operator == "ne":
+                        solver.add(var != z3_val)
 
         result = serialize_solver_result(
             solver, constraints.get("name", "z3_verify"))
