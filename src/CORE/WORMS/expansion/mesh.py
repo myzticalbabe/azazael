@@ -14,7 +14,7 @@ import os
 import threading
 import platform
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Iterable, List
 import time as _time
 import os as _os
 import sysconfig
@@ -86,7 +86,9 @@ try:
 except ImportError as exc:
     note_failure("mesh:L68", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5,
+                      cooldown_seconds: float = 30.0, description: str = "",
+                      tags: (set[str] | None) = None) -> Any:
         return lambda cls: cls
 
 try:
@@ -112,10 +114,10 @@ try:
     )
 except ImportError as exc:  # pragma: no cover - defensive, keeps mesh importable alone
     note_failure("mesh:L93", exc)
-    def hydrate(instance, provider, attrs):
+    def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
         return 0
 
-    def publish(instance, provider, attrs):
+    def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         return False
 
     def cap_list(seq, limit):
@@ -255,7 +257,7 @@ class MeshRouterWorm:
             key = self._route_key(self._env, dst_env)
             w = self._routes.get(key, {"weight": 1.0})
         base_w = float(w.get("weight", 1.0))
-        learned: Dict[str, Any] = {"q": 0.0, "evidence": 0,
+        learned: dict[str, Any] = {"q": 0.0, "evidence": 0,
                                    "q_effective": 0.0,
                                    "effective_weight": base_w}
         try:
@@ -275,7 +277,7 @@ class MeshRouterWorm:
             "payload_keys": list(payload)[:10],
         }
 
-    def invalidate_route(self, dst_env: str, reason: str = "") -> Dict[str, Any]:
+    def invalidate_route(self, dst_env: str, reason: str = "") -> dict[str, Any]:
         """Discount the learned penalty on one route, because its cause is fixed.
 
         A deprioritised route is never re-chosen, so it never produces the

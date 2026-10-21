@@ -57,7 +57,9 @@ try:
 except ImportError as exc:
     note_failure("meta_cognition:L44", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5,
+                      cooldown_seconds: float = 30.0, description: str = "",
+                      tags: (set[str] | None) = None) -> Any:
         return lambda cls: cls
 
 #: EP191's acceptance half lives in the verification layer
@@ -569,7 +571,7 @@ class MetaCognitionWorm:
                     f"Keep {current_strategy}: no scores yet (cold start)"
                 )
             else:
-                best_strategy = max(scores, key=scores.get)
+                best_strategy = max(scores, key=lambda s: scores[s])
                 best_score = scores[best_strategy]
             if best_strategy != current_strategy and best_score > current_score * 1.15:
                 should_adapt = True
@@ -891,7 +893,7 @@ class MetaCognitionWorm:
         for wt, strategies in self._strategy_scores.items():
             if not strategies:
                 continue
-            best = max(strategies, key=strategies.get)
+            best = max(strategies, key=lambda s: strategies[s])
             strategy_summary[wt] = {
                 "best_strategy": best,
                 "best_score": round(strategies[best], 4),
