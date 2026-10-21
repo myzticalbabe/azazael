@@ -57,7 +57,7 @@ LOCK_STALE_S = 300
 BUDGET_CEILING_S = 60.0
 
 # U3: orchestration infrastructure must not be driven by a generic sweep
-# (was NatureCluster._NO_EXECUTE). Matched by worm NAME so a rename is a
+# (was ClusterWORMZ._NO_EXECUTE). Matched by worm NAME so a rename is a
 # loud miss, not a silent execution. Module-level so tests can pin it.
 _NO_EXECUTE = frozenset({
     "ClusterWORMZ", "MetaCluster", "WormFleet",

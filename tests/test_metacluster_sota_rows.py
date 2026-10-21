@@ -216,7 +216,7 @@ def _spy_calls(mc, calls, **kwargs):
     hiding it: the edge asserted here happens before dispatch, so a raise
     cannot mask a missing call, and the error is surfaced in the assertion."""
     try:
-        mc.orchestrate(natures=[], **kwargs)
+        mc.orchestrate(categories=[], **kwargs)
     except Exception as exc:  # noqa: BLE001 - reported by the caller's assert
         calls.append(("dispatch-error", repr(exc)))
 

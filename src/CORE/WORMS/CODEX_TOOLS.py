@@ -4,7 +4,7 @@ CODEX_TOOLS — Worm Wrappers for Orphan CODEX/CORE Standalone Tools
 ====================================================================
 Wraps 4 previously standalone CODEX/CORE tools as registered worms,
 making them discoverable and executable through the ClusterWORMZ /
-MetaCluster / NatureClusters execution pipeline.
+MetaCluster / ClusterWORMZs execution pipeline.
 
 Tools wrapped:
   1. CainAnalyzerWorm    — CAIN psychoanalysis framework (analysis)

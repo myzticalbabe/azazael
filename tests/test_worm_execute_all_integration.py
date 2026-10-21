@@ -55,7 +55,7 @@ SAFE_EXECUTE_WORMS = [
     "PortAuditor",         # security / port audit
     "ConfigLinter",        # config / lint of empty config dir
     "ClusterWORMZ",         # orchestration / cluster status report (D1/U3:
-                           # NatureClusterManager removed; ClusterWORMZ
+                           # ClusterManager removed; ClusterWORMZ
                            # subsumed category grouping)
 ]
 

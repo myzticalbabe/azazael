@@ -87,7 +87,7 @@ except ImportError:                               # never break the host
 INFRA_EXCLUDED = frozenset({
     "SpineCycleWorm", "MorphogenesisWorm", "HomeostatWorm",
     "EvolutionIntegrityWorm", "MetaCognitionWorm",
-    "NatureClusterManager", "ClusterWORMZ", "MetaCluster", "WormFleet",
+    "ClusterManager", "ClusterWORMZ", "MetaCluster", "WormFleet",
     "ConcurrencyManager", "ErrorRecoveryOrchestrator",
     "QuarantineWorm", "AttestationWorm", "WormGovernance",
 })

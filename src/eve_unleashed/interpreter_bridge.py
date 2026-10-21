@@ -413,7 +413,7 @@ class EveInterpreterBridge:
             "You are Eve, the autonomous driver of the Azazael architecture/mesh. "
             "You have access to these mesh-driving capabilities:\n"
             "- discover_worms: Discover all registered worms\n"
-            "- run_cluster: Execute a NatureCluster by category (monitor, analysis, security, etc.)\n"
+            "- run_cluster: Execute a ClusterWORMZ by category (monitor, analysis, security, etc.)\n"
             "- run_metacluster: Run full MetaCluster orchestration across all natures\n"
             "- drive_mesh: Drive the mesh via autonomous decision-making\n"
             "- orchestrate: Full mesh orchestration with self-model update\n"

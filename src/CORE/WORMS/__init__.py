@@ -11,7 +11,7 @@
 # cluster modules up front. 2026-10-01: 175 files execute this
 # file via `from CORE.WORMS.<submodule> import ...` while needing none of
 # these names.
-# U3: NatureClusterManager was removed with the taxonomy (D1);
+# U3: ClusterManager was removed with the taxonomy (D1);
 # execution moved to ClusterWORMZ-by-category, DLQ to DeadLetterQueue.
 __all__ = [
     "ClusterWORMZ",
@@ -24,9 +24,9 @@ def __getattr__(name: str):
         from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 
         return ClusterWORMZ
-    if name == "NatureClusterManager":
+    if name == "ClusterManager":
         raise ImportError(
-            "NatureClusterManager was removed with the nature taxonomy (U3/D1). "
+            "ClusterManager was removed with the nature taxonomy (U3/D1). "
             "Execute by category: ClusterWORMZ.build_from_registry(worms); "
             "dead letters: DeadLetterQueue.")
     if name == "MetaCluster":

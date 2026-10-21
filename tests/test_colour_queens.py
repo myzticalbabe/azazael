@@ -281,7 +281,7 @@ def test_black_force_channel_is_audited_and_effective(twin_registry):
     assert WORM_REGISTRY[rec["worm"]]["lifecycle_state"] == "retired"
 
     # …and the retirement is ENFORCED, not merely recorded.
-    # U3: enforcement moved from NatureCluster.execute to ClusterWORMZ.
+    # U3: enforcement moved from ClusterWORMZ.execute to ClusterWORMZ.
     from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
     cluster = ClusterWORMZ.build_from_registry([rec["worm"]])
     res = cluster.execute_all(worm_names=[rec["worm"]])

@@ -176,12 +176,12 @@ def test_fingerprint_moved_detects_a_change_only_in_the_norm():
 # The real adapters (read-only)
 # ---------------------------------------------------------------------------
 
-def test_nature_of_reads_category_from_a_registry_dict():
+def test_category_of_reads_category_from_a_registry_dict():
     """The exact defect: entries are dicts whose field is `category`."""
-    assert nl._nature_of({"category": "expansion", "module": "x"}) == "expansion"
-    assert nl._nature_of({"nature": "fallback-shape"}) == "fallback-shape"
-    assert nl._nature_of(None) is None
-    assert nl._nature_of({}) is None
+    assert nl._category_of({"category": "expansion", "module": "x"}) == "expansion"
+    assert nl._category_of({"nature": "fallback-shape"}) == "fallback-shape"
+    assert nl._category_of(None) is None
+    assert nl._category_of({}) is None
 
 
 def test_real_load_fingerprints_the_live_weights():
@@ -195,13 +195,13 @@ def test_real_load_fingerprints_the_live_weights():
     assert len(sr.get_q_weights()) == ctx.state_before.get("edges")
 
 
-def test_real_credit_resolves_natures_and_drops_the_unknown():
+def test_real_credit_resolves_categories_and_drops_the_unknown():
     """The rewards are injected; the REGISTRY is real.
 
     Injecting the reward vector is deliberate: `perceive` reads the live memory
     store, and the repo's root conftest redirects that store to a temp dir, so
     a test that asserted on live counts would pass for the wrong reason (an
-    empty store resolves 0 and 0 natures consistently). This test is about the
+    empty store resolves 0 and 0 categories consistently). This test is about the
     resolution rule, so it supplies the input and lets the real registry answer.
     """
     ctx = nl.LoopContext()
@@ -214,16 +214,16 @@ def test_real_credit_resolves_natures_and_drops_the_unknown():
     assert "DefinitelyNotAWorm" in ev["unresolved_sample"]
     assert ev["resolved"] + ev["unresolved"] == len(ctx.rewards)
     assert ev["nonzero"] == ev["resolved"]
-    for name, nature in ctx.natures.items():
-        assert nature, name
+    for name, category in ctx.categories.items():
+        assert category, name
 
 
-def test_a_reward_without_a_nature_is_dropped_not_guessed():
+def test_a_reward_without_a_category_is_dropped_not_guessed():
     """Writing a real reward onto an invented edge is worse than not writing."""
     ctx = nl.LoopContext()
     ctx.rewards = {"DefinitelyNotAWorm": 0.9}
     res = nl._stage_credit(ctx)
-    assert ctx.natures == {}
+    assert ctx.categories == {}
     assert res.evidence["resolved"] == 0
     assert res.evidence["unresolved"] == 1
 
@@ -234,8 +234,8 @@ def test_real_route_orders_the_resolved_organs_by_their_weights():
     nl._stage_credit(ctx)
     res = nl._stage_route(ctx)
     assert res.ok is True
-    assert len(ctx.order) == len(ctx.natures)
-    assert sorted(ctx.order) == sorted(ctx.natures)
+    assert len(ctx.order) == len(ctx.categories)
+    assert sorted(ctx.order) == sorted(ctx.categories)
     assert res.evidence["ordered"] == len(ctx.order)
 
 
@@ -256,9 +256,9 @@ def test_plasticity_writes_the_advantage_not_the_absolute_reward(monkeypatch):
     """Absolute levels homogenise the table; the SIGN has to carry the signal."""
     calls = _capture_writes(monkeypatch)
     ctx = nl.LoopContext(apply=True)
-    ctx.natures = {"Good": "x", "Bad": "x", "Mean": "x"}
+    ctx.categories = {"Good": "x", "Bad": "x", "Mean": "x"}
     ctx.rewards = {"Good": 0.9, "Bad": 0.5, "Mean": 0.7}
-    ctx.evidence = {k: 10 for k in ctx.natures}
+    ctx.evidence = {k: 10 for k in ctx.categories}
     res = nl._stage_plasticity(ctx)
     assert res.changed is True
     deltas = {a[1]: k["delta"] for a, k in calls}
@@ -273,7 +273,7 @@ def test_plasticity_refuses_an_organ_without_individual_evidence(monkeypatch):
     """A reward on one observation is a prior; it must not overwrite a weight."""
     calls = _capture_writes(monkeypatch)
     ctx = nl.LoopContext(apply=True)
-    ctx.natures = {"Seen": "x", "Scarce": "x"}
+    ctx.categories = {"Seen": "x", "Scarce": "x"}
     ctx.rewards = {"Seen": 0.9, "Scarce": 0.1}
     ctx.evidence = {"Seen": 10, "Scarce": 1}
     res = nl._stage_plasticity(ctx)
@@ -286,9 +286,9 @@ def test_plasticity_reports_the_signal_spread(monkeypatch):
     """A near-constant reward must be visible, not silently written."""
     _capture_writes(monkeypatch)
     ctx = nl.LoopContext(apply=True)
-    ctx.natures = {"A": "x", "B": "x"}
+    ctx.categories = {"A": "x", "B": "x"}
     ctx.rewards = {"A": 0.9500001, "B": 0.95}
-    ctx.evidence = {k: 10 for k in ctx.natures}
+    ctx.evidence = {k: 10 for k in ctx.categories}
     res = nl._stage_plasticity(ctx)
     assert res.evidence["spread"] < 1e-5
     assert res.changed is False, "a flat signal must not count as learning"
@@ -297,7 +297,7 @@ def test_plasticity_reports_the_signal_spread(monkeypatch):
 def test_plasticity_is_blocked_and_writes_nothing_in_a_dry_run(monkeypatch):
     calls = _capture_writes(monkeypatch)
     ctx = nl.LoopContext(apply=False)
-    ctx.natures = {"A": "x"}
+    ctx.categories = {"A": "x"}
     ctx.rewards = {"A": 0.9}
     ctx.evidence = {"A": 10}
     res = nl._stage_plasticity(ctx)
@@ -316,7 +316,7 @@ def test_verify_fails_when_the_learning_is_not_durable(monkeypatch):
     monkeypatch.setattr(nl, "_disk_weights", lambda: {"a:x": 0.1})
     ctx = nl.LoopContext(apply=True)
     ctx.state_before = nl.state_fingerprint({"a:x": 0.1})
-    nl._stage_plasticity(ctx)          # (no-op: no natures resolved -> blocked)
+    nl._stage_plasticity(ctx)          # (no-op: no categories resolved -> blocked)
     ctx.results.append(nl.StageResult("plasticity", True, changed=True))
     res = nl._stage_verify(ctx)
     assert res.ok is False

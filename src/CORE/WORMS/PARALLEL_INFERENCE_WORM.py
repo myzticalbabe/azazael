@@ -825,9 +825,9 @@ class ParallelInferenceWorm:
         }
 
     def get_status(self) -> dict[str, Any]:
-        """Status entry point for the NatureCluster generic dispatcher.
+        """Status entry point for the ClusterWORMZ generic dispatcher.
 
-        NatureCluster._run_worm_method prefers get_status() over execute().
+        ClusterWORMZ._run_worm_method prefers get_status() over execute().
         Without this method, the dispatcher fell through to execute() with no
         prompt, producing a tight 'No prompt' error loop (and memory spam).
 

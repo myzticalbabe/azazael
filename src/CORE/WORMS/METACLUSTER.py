@@ -4,7 +4,7 @@ METACLUSTER — MetaCluster Orchestrator (Cluster-of-Clusters)
 
 Meta-level orchestrator that manages registry categories as a unified fleet.
 U3/D1: the nature taxonomy is gone. A MetaCluster coordinates CATEGORIES —
-flat registry dispatch, no cross-nature routing, no feeds_into topology.
+flat registry dispatch, no cross-category routing, no feeds_into topology.
 
 Architecture:
     MetaCluster (top-level orchestrator)
@@ -18,7 +18,7 @@ Architecture:
     └── PAMS recording of every action
 
 Public surface is unchanged (orchestrate/discover_all/get_status/mermaid/
-hooks/history); the `natures` parameters now take category names. Result and
+hooks/history); the `categories` parameters now take category names. Result and
 state field names keep their keys so chain/state readers do not break.
 
 Usage:
@@ -70,7 +70,7 @@ def _note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
 
 # ── Flat registry dispatch (U3/D1) ─────────────────────────────────
-# No NatureClusterManager, no CrossNatureRoutingEngine: both were deleted
+# No ClusterManager, no CrossNatureRoutingEngine: both were deleted
 # with the taxonomy. Categories come straight from the worm registry.
 try:
     from CORE.worm_registry import (
@@ -201,14 +201,14 @@ class MetaClusterResult:
     started_at: str = ""
     completed_at: str = ""
     duration_ms: float = 0.0
-    natures_executed: int = 0
+    categories_executed: int = 0
     total_worms_ok: int = 0
     total_worms_fail: int = 0
-    nature_results: Dict[str, Any] = field(default_factory=dict)
+    category_results: Dict[str, Any] = field(default_factory=dict)
     routed_data: Dict[str, Any] = field(default_factory=dict)
     insights: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
-    cross_nature_paths_used: List[str] = field(default_factory=list)
+    cross_category_paths_used: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
 
 
@@ -218,10 +218,10 @@ class MetaClusterState:
     run_id: str = ""
     started_at: str = ""
     phase: str = "idle"  # idle, discovering, executing, routing, analyzing, complete
-    active_natures: Set[str] = field(default_factory=set)
-    completed_natures: Set[str] = field(default_factory=set)
-    failed_natures: Set[str] = field(default_factory=set)
-    worm_results: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # {nature: {worm: result}}
+    active_categories: Set[str] = field(default_factory=set)
+    completed_categories: Set[str] = field(default_factory=set)
+    failed_categories: Set[str] = field(default_factory=set)
+    worm_results: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # {category: {worm: result}}
     routed_messages: List[Dict] = field(default_factory=list)
     events: List[Dict] = field(default_factory=list)
     metrics: Dict[str, float] = field(default_factory=dict)
@@ -250,13 +250,13 @@ class MetaCluster:
         mc.discover_all()
         
         # Run a single category end-to-end
-        result = mc.orchestrate_nature("security")
+        result = mc.orchestrate_category("security")
         
         # Run multiple categories
-        result = mc.orchestrate(natures=["security", "defense", "monitor"])
+        result = mc.orchestrate(categories=["security", "defense", "monitor"])
         
         # Run with auto-prioritization
-        result = mc.orchestrate_adaptive(max_natures=5)
+        result = mc.orchestrate_adaptive(max_categories=5)
         
         # Visualize
         print(mc.to_mermaid())
@@ -275,8 +275,8 @@ class MetaCluster:
         self._atom_worms: Dict[str, List[str]] = {}
         self._lock = threading.RLock()
         self._hooks: Dict[str, List[Callable]] = {
-            "pre_nature": [],
-            "post_nature": [],
+            "pre_category": [],
+            "post_category": [],
             "on_insight": [],
             "on_error": [],
         }
@@ -294,16 +294,16 @@ class MetaCluster:
         self.categories = {c: sorted(get_worms_by_category(c))
                            for c in counts}
         _record_event("metacluster_discovery", {
-            "natures": len(counts),
+            "categories": len(counts),
             "total_worms": sum(counts.values()),
-            "per_nature": counts,
+            "per_category": counts,
         })
         return counts
     
     # ── Hooks ──────────────────────────────────────────────────────
     
     def on(self, hook_name: str, callback: Callable):
-        """Register a hook callback. Supports: pre_nature, post_nature, on_insight, on_error."""
+        """Register a hook callback. Supports: pre_category, post_category, on_insight, on_error."""
         if hook_name in self._hooks:
             self._hooks[hook_name].append(callback)
 
@@ -331,7 +331,7 @@ class MetaCluster:
         `order` is the caller's requested order, already filtered to known,
         non-circular categories. Returns (ordered_names, level_of, note).
 
-        The plan is REAL, not decorative. U3/D1 deleted the nature taxonomy
+        The plan is REAL, not decorative. U3/D1 deleted the old taxonomy
         and with it every declared dependency edge, so the edges are derived
         from the data instead: two categories that share a worm are dependent
         (re-running the same worm is exactly the duplication Helium's
@@ -412,7 +412,7 @@ class MetaCluster:
             plan = plan_dag(tasks)
             # Rehearse-before-execute: dry-run the plan AND its assignment and
             # predict failures before anything is dispatched. Roles/pools come
-            # from data that exists -- U3/D1 deleted the nature taxonomy, so
+            # from data that exists -- U3/D1 deleted the old taxonomy, so
             # there is no per-category role left to read; every category in
             # this run honestly belongs to the one pool this method orchestrates.
             # Inventing a role per category would be fabricated input, and the
@@ -584,19 +584,19 @@ class MetaCluster:
         if isinstance(plan_out, dict):
             plan_out.update(fields)
 
-    def orchestrate(self, natures: Optional[List[str]] = None,
-                    parallel: bool = False, max_natures: int = 0, *,
+    def orchestrate(self, categories: Optional[List[str]] = None,
+                    parallel: bool = False, max_categories: int = 0, *,
                     granularity: Optional[Any] = None,
                     capability_split: Optional[Callable] = None,
                     plan_out: Optional[Dict[str, Any]] = None) -> MetaClusterResult:
         """
-        Orchestrate a set of registry categories end-to-end (U3: `natures`
+        Orchestrate a set of registry categories end-to-end (U3: `categories`
         takes category names; kept for caller compatibility).
         
         Args:
-            natures: Specific categories to execute (None = auto-discover all)
+            categories: Specific categories to execute (None = auto-discover all)
             parallel: Execute categories in parallel where possible
-            max_natures: Limit to top-N categories by priority weight
+            max_categories: Limit to top-N categories by priority weight
             granularity: Optional complexity policy for the within-level order.
             capability_split: Optional `(category, worms) -> {label: worms}`
                 that splits a category into atoms at its capability boundaries.
@@ -622,34 +622,34 @@ class MetaCluster:
             self.discover_all()
         
         # Determine categories to execute
-        if natures is None:
-            natures = sorted(self.categories.keys())
+        if categories is None:
+            categories = sorted(self.categories.keys())
         
-        if max_natures > 0:
-            ranked = self._rank_categories(natures)
-            # `max_natures` must cap what can actually RUN. A circular
+        if max_categories > 0:
+            ranked = self._rank_categories(categories)
+            # `max_categories` must cap what can actually RUN. A circular
             # category (the orchestration infrastructure itself) is dropped by
             # the filter below, so letting it consume the budget made a
             # request for one category execute ZERO -- and the run still
-            # reported `complete`. Same guarantee as the old nature filter.
+            # reported `complete`. Same guarantee as the old filter.
             eligible = [n for n in ranked if not self._is_circular_category(n)]
             # If EVERY requested category is circular, keep the old selection
             # so the filter below still reports and marks them: an empty
             # request must stay visible as a no-op, never silently replaced.
-            natures = (eligible or ranked)[:max_natures]
+            categories = (eligible or ranked)[:max_categories]
         
         # Requested order is execution order (no routing topology to sort by).
-        execution_order = [n for n in natures if n in self.categories]
+        execution_order = [n for n in categories if n in self.categories]
         
         # ── Drop circular categories ──────────────────────────────
         # A category holding the orchestration infrastructure would re-enter
         # this method or deadlock. Mark its worms spawned to keep
         # "never spawned" alerts honest.
-        circular_natures = [n for n in execution_order if self._is_circular_category(n)]
-        if circular_natures:
-            execution_order = [n for n in execution_order if n not in circular_natures]
-            for nature in circular_natures:
-                for worm_name in (self.categories.get(nature) or []):
+        circular_categories = [n for n in execution_order if self._is_circular_category(n)]
+        if circular_categories:
+            execution_order = [n for n in execution_order if n not in circular_categories]
+            for category in circular_categories:
+                for worm_name in (self.categories.get(category) or []):
                     try:
                         mark_spawned(worm_name)
                     except Exception as exc:  # noqa: BLE001 — bookkeeping is best-effort
@@ -672,7 +672,7 @@ class MetaCluster:
                 capability_split=capability_split, plan_out=plan_out)
 
         self.state.phase = "executing"
-        self.state.active_natures = set(execution_order)
+        self.state.active_categories = set(execution_order)
         
         # Phase 2: Execute categories in order
         cfg = _get_config()
@@ -680,7 +680,7 @@ class MetaCluster:
         cfg.clusters.max_parallel_worms if cfg else 8
         cfg.clusters.max_retries if cfg else 3
         
-        nature_results: Dict[str, Any] = {}
+        category_results: Dict[str, Any] = {}
         routed_data: Dict[str, Any] = {}
         total_ok = 0
         total_fail = 0
@@ -689,14 +689,14 @@ class MetaCluster:
         # A run that executes nothing must SAY so. Everything below is a loop
         # over `execution_order`, so an empty order produced a result object with
         # phase "complete", zero errors and zero categories -- indistinguishable
-        # from a clean full pass. `active_natures` is already empty here; this
+        # from a clean full pass. `active_categories` is already empty here; this
         # makes it countable by a caller that only reads `errors`.
         if not execution_order:
             errors.append(
                 "no category was eligible to execute: the requested set collapsed "
                 "to nothing after the orchestration-infrastructure filter "
-                "(circular=%s)" % (sorted(circular_natures) or "none"))
-        cross_nature_paths = []
+                "(circular=%s)" % (sorted(circular_categories) or "none"))
+        cross_category_paths = []
         
         log = _get_log()
         _get_breakers()
@@ -706,7 +706,7 @@ class MetaCluster:
         # read-modify-write on an int. Held only around the accumulator writes.
         _acc_lock = threading.Lock()
 
-        def _execute_nature(nature: str) -> None:
+        def _execute_category(category: str) -> None:
             """Execute one category end-to-end.
 
             Extracted from the sequential loop verbatim so a level's independent
@@ -720,10 +720,10 @@ class MetaCluster:
             state = self.state
             if state is None:  # defensive: refused rather than crashing later
                 raise RuntimeError("orchestrate: state not initialised")
-            state.phase = f"executing_{nature}"
+            state.phase = f"executing_{category}"
             
             # Pre-hook
-            self._run_hooks("pre_nature", nature=nature, state=self.state)
+            self._run_hooks("pre_category", category=category, state=self.state)
             
             # Execute the category cluster with config-driven timeout
             try:
@@ -731,10 +731,10 @@ class MetaCluster:
                 # atom IS the unit -- so the cluster is built from the group,
                 # not from the whole category. Every name that was not split
                 # falls back to its category unchanged.
-                atom_worms = self._atom_worms.get(nature)
+                atom_worms = self._atom_worms.get(category)
                 cluster = ClusterWORMZ.build_from_registry(
                     sorted(atom_worms if atom_worms is not None
-                           else (self.categories.get(nature) or [])))
+                           else (self.categories.get(category) or [])))
                 cluster.set_parallel(parallel)
                 cluster.execute_all()
                 agg = cluster.aggregate_results()
@@ -744,7 +744,7 @@ class MetaCluster:
                         if isinstance(v, dict) and not v.get("success")
                         and (v or {}).get("error")]
                 with _acc_lock:
-                    nature_results[nature] = {
+                    category_results[category] = {
                         "success_count": agg.success_count,
                         "failure_count": agg.failure_count,
                         "duration_ms": agg.duration_ms,
@@ -757,25 +757,25 @@ class MetaCluster:
                         errors.extend(errs)
                 
                 with state.lock:
-                    state.completed_natures.add(nature)
-                    state.worm_results[nature] = results
+                    state.completed_categories.add(category)
+                    state.worm_results[category] = results
                 
                 if log:
-                    log.info("nature_executed", {
-                        "nature": nature,
+                    log.info("category_executed", {
+                        "category": category,
                         "ok": agg.success_count,
                         "fail": agg.failure_count,
                         "duration_ms": agg.duration_ms,
                     })
             except Exception as e:
                 with state.lock:
-                    state.failed_natures.add(nature)
-                err_msg = f"Nature '{nature}' failed: {str(e)}"
+                    state.failed_categories.add(category)
+                err_msg = f"Category '{category}' failed: {str(e)}"
                 with _acc_lock:
                     errors.append(err_msg)
-                self._run_hooks("on_error", nature=nature, error=str(e), state=self.state)
+                self._run_hooks("on_error", category=category, error=str(e), state=self.state)
                 if log:
-                    log.error("nature_failed", {"nature": nature, "error": str(e)})
+                    log.error("category_failed", {"category": category, "error": str(e)})
 
                 # EP113 Reflexion: a failed category leaves a REUSABLE lesson,
                 # not only an error string in a log. Before this call
@@ -783,7 +783,7 @@ class MetaCluster:
                 # was complete and nothing ever wrote to it.
                 #
                 # Deliberately last in the handler and fully fail-open: the
-                # bookkeeping above (failed_natures, errors, hooks, log) has
+                # bookkeeping above (failed_categories, errors, hooks, log) has
                 # already happened, so a reflection can neither change control
                 # flow nor lose a failure record. `what_next` is derived from the
                 # nature and the phase so the lesson is actionable rather than
@@ -791,19 +791,19 @@ class MetaCluster:
                 try:
                     from CORE.technique_runtime import reflect_on_failure
                     reflect_on_failure(
-                        question=f"nature:{nature}",
+                        question=f"category:{category}",
                         what_failed=err_msg[:300],
                         what_next=(
-                            f"re-run nature '{nature}' alone to isolate the "
+                            f"re-run category '{category}' alone to isolate the "
                             f"fault; it failed during phase "
                             f"'{state.phase}'. Check its category's worm "
                             f"dependencies before re-running the full set."),
-                        decision_id=f"metacluster:{nature}")
+                        decision_id=f"metacluster:{category}")
                 except Exception as exc:              # noqa: BLE001 — reflection best-effort
                     _note_failure("metacluster:reflect", exc)
             
             # Post-hook
-            self._run_hooks("post_nature", nature=nature, result=nature_results.get(nature), state=self.state)
+            self._run_hooks("post_category", category=category, result=category_results.get(category), state=self.state)
 
         # ── Execute in plan order, fanning out each independent level ──
         # `level_of` comes from the plan; empty means no plan was built, which
@@ -818,9 +818,9 @@ class MetaCluster:
                 for i in range(0, len(group), budget):
                     batch = group[i:i + budget]
                     if len(batch) == 1:
-                        _execute_nature(batch[0])
+                        _execute_category(batch[0])
                         continue
-                    threads = [threading.Thread(target=_execute_nature,
+                    threads = [threading.Thread(target=_execute_category,
                                                 args=(n,), daemon=True)
                                for n in batch]
                     for t in threads:
@@ -828,13 +828,13 @@ class MetaCluster:
                     for t in threads:
                         t.join()
         else:
-            for nature in execution_order:
-                _execute_nature(nature)
+            for category in execution_order:
+                _execute_category(category)
         
         # Phase 4: Generate insights
         self.state.phase = "analyzing"
-        insights = self._generate_insights(nature_results, self.state)
-        recommendations = self._generate_recommendations(nature_results, self.state)
+        insights = self._generate_insights(category_results, self.state)
+        recommendations = self._generate_recommendations(category_results, self.state)
         
         for insight in insights:
             self._run_hooks("on_insight", insight=insight, state=self.state)
@@ -850,7 +850,7 @@ class MetaCluster:
             metrics_collector.record("metacluster.orchestrate.duration_ms", result_duration_ms)
             metrics_collector.record("metacluster.orchestrate.worms_ok", total_ok)
             metrics_collector.record("metacluster.orchestrate.worms_fail", total_fail)
-            metrics_collector.record("metacluster.orchestrate.natures", len(nature_results))
+            metrics_collector.record("metacluster.orchestrate.categories", len(category_results))
         except Exception as exc:
             note_failure("METACLUSTER:L617", exc)
         
@@ -860,14 +860,14 @@ class MetaCluster:
             started_at=self.state.started_at,
             completed_at=datetime.now().isoformat(),
             duration_ms=result_duration_ms,
-            natures_executed=len(nature_results),
+            categories_executed=len(category_results),
             total_worms_ok=total_ok,
             total_worms_fail=total_fail,
-            nature_results=nature_results,
+            category_results=category_results,
             routed_data=routed_data,
             insights=insights,
             recommendations=recommendations,
-            cross_nature_paths_used=cross_nature_paths,
+            cross_category_paths_used=cross_category_paths,
             errors=errors,
         )
         
@@ -878,7 +878,7 @@ class MetaCluster:
         
         _record_event("metacluster_orchestrated", {
             "orchestration_id": orchestration_id,
-            "natures": len(nature_results),
+            "categories": len(category_results),
             "ok": total_ok, "fail": total_fail,
             "duration_ms": result.duration_ms,
             "insights": len(insights),
@@ -888,7 +888,7 @@ class MetaCluster:
         return result
 
     def _rank_categories(self, categories: List[str]) -> List[str]:
-        """Priority-weight ranking over registry categories (was _score_natures)."""
+        """Priority-weight ranking over registry categories (was _score_categories)."""
         weights: Dict[str, float] = {}
         for category in categories:
             try:
@@ -899,17 +899,6 @@ class MetaCluster:
             weights[category] = sum(
                 float((info or {}).get("priority", 0)) for info in worms.values())
         return sorted(categories, key=lambda c: weights.get(c, 0.0), reverse=True)
-
-    def _is_circular_nature(self, nature: str, feeds: Optional[Dict[str, List[str]]] = None) -> bool:
-        """Report whether executing ``nature`` would be circular.
-
-        Two senses (kept — tests pin both): with `feeds`, reachability over
-        that graph (DFS cycle detection); without, the orchestration-safety
-        check against the flat registry. U3 kept the name so callers work.
-        """
-        if feeds is not None:
-            return self._reaches_cycle(nature, feeds)
-        return self._is_circular_category(nature)
 
     @staticmethod
     def _reaches_cycle(nature: str, feeds: Dict[str, List[str]]) -> bool:
@@ -931,14 +920,18 @@ class MetaCluster:
                 stack.append((downstream, False))
         return False
 
-    def _is_circular_category(self, category: str) -> bool:
+    def _is_circular_category(self, category: str, feeds: Optional[Dict[str, List[str]]] = None) -> bool:
         """True when the category holds the orchestration classes themselves.
 
         Executing those recurses or deadlocks. Matched by module path rather
         than identity so METACLUSTER does not import the orchestrators back,
         which would close an import cycle. (Was _contains_orchestration_
         infrastructure over NCM clusters; now over the flat registry.)
+
+        With `feeds`, reachability over that graph (DFS cycle detection).
         """
+        if feeds is not None:
+            return self._reaches_cycle(category, feeds)
         try:
             worms = get_worms_by_category(category)
         except Exception as exc:
@@ -958,36 +951,36 @@ class MetaCluster:
         return "orchestration" in str(category).lower() and any(
             n in str(worms) for n in ("MetaCluster", "ClusterWORMZ"))
 
-    def orchestrate_nature(self, nature: str, parallel: bool = False) -> Optional[MetaClusterResult]:
+    def orchestrate_category(self, category: str, parallel: bool = False) -> Optional[MetaClusterResult]:
         """Orchestrate a single Nature (convenience method)."""
-        return self.orchestrate(natures=[nature], parallel=parallel)
+        return self.orchestrate(categories=[category], parallel=parallel)
 
-    def orchestrate_adaptive(self, max_natures: int = 5,
+    def orchestrate_adaptive(self, max_categories: int = 5,
                              parallel: bool = False) -> MetaClusterResult:
         """
         Adaptive orchestration: automatically select and prioritize Natures
         based on system state, recent execution history, and diversity engine.
         """
-        return self.orchestrate(max_natures=max_natures, parallel=parallel)
+        return self.orchestrate(max_categories=max_categories, parallel=parallel)
 
-    def orchestrate_full_pipeline(self, start_nature: str,
+    def orchestrate_full_pipeline(self, start_category: str,
                                   parallel: bool = False) -> MetaClusterResult:
         """
         Execute one category end-to-end (U3: was follow-the-routing-graph
         from a start Nature; no graph remains, so this runs the single
-        requested category like orchestrate_nature).
+        requested category like orchestrate (legacy name)).
         """
-        return self.orchestrate(natures=[start_nature], parallel=parallel)
+        return self.orchestrate(categories=[start_category], parallel=parallel)
     
     # ── Insights & Recommendations ─────────────────────────────────
     
-    def _generate_insights(self, nature_results: Dict[str, Any],
+    def _generate_insights(self, category_results: Dict[str, Any],
                            state: MetaClusterState) -> List[str]:
         """Generate human-readable insights from execution results."""
         insights = []
         
-        total_ok = sum(r.get("success_count", 0) for r in nature_results.values())
-        total_fail = sum(r.get("failure_count", 0) for r in nature_results.values())
+        total_ok = sum(r.get("success_count", 0) for r in category_results.values())
+        total_fail = sum(r.get("failure_count", 0) for r in category_results.values())
         total_worms = total_ok + total_fail
         success_rate = (total_ok / max(total_worms, 1)) * 100
         
@@ -995,36 +988,36 @@ class MetaCluster:
             insights.append(f"Overall success rate: {success_rate:.0f}% ({total_ok}/{total_worms} worms)")
         
         # Per-category insights
-        for nature, result in sorted(nature_results.items()):
+        for category, result in sorted(category_results.items()):
             n_ok = result.get("success_count", 0)
             n_fail = result.get("failure_count", 0)
             n_total = n_ok + n_fail
             
             if n_fail > 0:
-                insights.append(f"⚠️ {nature}: {n_fail}/{n_total} worms failed")
+                insights.append(f"⚠️ {category}: {n_fail}/{n_total} worms failed")
             elif n_total > 0:
-                insights.append(f"OK {nature}: all {n_total} worms succeeded")
+                insights.append(f"OK {category}: all {n_total} worms succeeded")
         
         return insights
 
-    def _generate_recommendations(self, nature_results: Dict[str, Any],
+    def _generate_recommendations(self, category_results: Dict[str, Any],
                                   state: MetaClusterState) -> List[str]:
         """Generate actionable recommendations from results."""
         recommendations = []
         
         # Failed categories
-        for nature, result in nature_results.items():
+        for category, result in category_results.items():
             if result.get("failure_count", 0) > 0:
-                recommendations.append(f"Investigate failures in '{nature}' category cluster")
+                recommendations.append(f"Investigate failures in '{category}' category cluster")
         
         # Unused categories
         try:
-            all_natures = set(get_all_categories())
+            all_categories = set(get_all_categories())
         except Exception as exc:
             note_failure("METACLUSTER:L784", exc)
-            all_natures = set()
-        executed = set(nature_results.keys())
-        unused = all_natures - executed
+            all_categories = set()
+        executed = set(category_results.keys())
+        unused = all_categories - executed
         if unused:
             recommendations.append(f"Consider running unused categories: {', '.join(sorted(unused)[:5])}")
         
@@ -1044,7 +1037,7 @@ class MetaCluster:
             "categories": len(categories),
             "ncm": {"categories": len(categories)},
             "routing_paths": 0,
-            "cross_nature_routes": 0,
+            "cross_category_routes": 0,
             "orchestration_history": len(self._history),
             "last_orchestration": self._history[-1].orchestration_id if self._history else None,
             "free_threaded": is_free_threaded(),
@@ -1095,15 +1088,15 @@ class MetaCluster:
         lines.append("")
         
         # Nodes for each category
-        for nature, n_result in result.nature_results.items():
+        for category, n_result in result.category_results.items():
             ok = n_result.get("success_count", 0)
             fail = n_result.get("failure_count", 0)
             status = "ok" if fail == 0 else "fail"
             color = "#00ff88" if status == "ok" else "#ff4444"
             
             duration = n_result.get('duration_ms', 0)
-            lines.append(f'    {nature}["{nature}<br/>{ok}OK {fail}FAIL ({duration:.0f}ms)"]')
-            lines.append(f"    style {nature} fill:#16213e,stroke:{color},color:{color}")
+            lines.append(f'    {category}["{category}<br/>{ok}OK {fail}FAIL ({duration:.0f}ms)"]')
+            lines.append(f"    style {category} fill:#16213e,stroke:{color},color:{color}")
         
         return "\n".join(lines)
 
@@ -1155,7 +1148,7 @@ class MetaCluster:
             "orchestration_history": [
                 {
                     "id": r.orchestration_id,
-                    "natures": r.natures_executed,
+                    "categories": r.categories_executed,
                     "ok": r.total_worms_ok,
                     "fail": r.total_worms_fail,
                     "duration_ms": r.duration_ms,
@@ -1173,9 +1166,9 @@ class MetaCluster:
         return filepath
 
     def __repr__(self):
-        natures = len(self.categories)
+        n_categories = len(self.categories)
         history = len(self._history)
-        return f"MetaCluster(v{self.VERSION}, {natures} categories, flat, {history} runs)"
+        return f"MetaCluster(v{self.VERSION}, {n_categories} categories, flat, {history} runs)"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1226,22 +1219,22 @@ def main():
         print(f"Discovered {len(counts)} Natures, {sum(counts.values())} worms")
     
     elif args.orchestrate is not None:
-        natures = args.orchestrate if args.orchestrate else None
-        result = mc.orchestrate(natures=natures, parallel=args.parallel)
-        print(f"Orchestrated {result.natures_executed} Natures: {result.total_worms_ok}OK/{result.total_worms_fail}FAIL ({result.duration_ms:.0f}ms)")
+        categories_arg = args.orchestrate if args.orchestrate else None
+        result = mc.orchestrate(categories=categories_arg, parallel=args.parallel)
+        print(f"Orchestrated {result.categories_executed} Categories: {result.total_worms_ok}OK/{result.total_worms_fail}FAIL ({result.duration_ms:.0f}ms)")
         for insight in result.insights:
             print(f"  {insight}")
         for rec in result.recommendations:
             print(f"  {rec}")
     
     elif args.adaptive > 0:
-        result = mc.orchestrate_adaptive(max_natures=args.adaptive, parallel=args.parallel)
-        print(f"Adaptive: {result.natures_executed} Natures, {result.total_worms_ok}OK/{result.total_worms_fail}FAIL ({result.duration_ms:.0f}ms)")
+        result = mc.orchestrate_adaptive(max_categories=args.adaptive, parallel=args.parallel)
+        print(f"Adaptive: {result.categories_executed} Categories, {result.total_worms_ok}OK/{result.total_worms_fail}FAIL ({result.duration_ms:.0f}ms)")
     
     elif args.pipeline:
         result = mc.orchestrate_full_pipeline(args.pipeline, parallel=args.parallel)
-        print(f"Pipeline [{args.pipeline}]: {result.natures_executed} Natures, {result.total_worms_ok}OK/{result.total_worms_fail}FAIL")
-        for path in result.cross_nature_paths_used:
+        print(f"Pipeline [{args.pipeline}]: {result.categories_executed} Categories, {result.total_worms_ok}OK/{result.total_worms_fail}FAIL")
+        for path in result.cross_category_paths_used:
             print(f"  {path}")
     
     elif args.mermaid:

@@ -233,8 +233,8 @@ LEGACY_EVENT_TYPES: Dict[str, Optional[str]] = {
     "training_complete": None,
     "model_registered": None,
     "nature_cluster_discovery": None,
-    "cross_nature_route": None,
-    "nature_cluster_executed": None,
+    "cross_category_route": None,
+    "category_cluster_executed": None,
     "cluster_execution_started": None,
     "cluster_execution_completed": None,
 }

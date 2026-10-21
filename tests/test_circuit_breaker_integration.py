@@ -392,10 +392,10 @@ def test_concurrent_execute():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CLUSTERWORMS timeout integration (U3: was NATURE_CLUSTERS)
+# CLUSTERWORMS timeout integration (U3: was CLUSTERWORMS)
 # ═══════════════════════════════════════════════════════════════════════
 
-def test_nature_cluster_parallel_timeout(monkeypatch):
+def test_category_cluster_parallel_timeout(monkeypatch):
     """ClusterWORMZ parallel execution honours a short per-worm timeout.
 
     U3 port: same intent (fast stub worms, timeout guard, all succeed),
@@ -468,7 +468,7 @@ if __name__ == "__main__":
         ("registry_stats", test_registry_all_stats),
         ("registry_cancel_reset", test_registry_cancel_all_and_reset),
         ("concurrent", test_concurrent_execute),
-        ("ncm_parallel_timeout", test_nature_cluster_parallel_timeout),
+        ("ncm_parallel_timeout", test_category_cluster_parallel_timeout),
     ]
 
     passed = 0

@@ -7,7 +7,7 @@ P1-11 Cluster Integration Tests — Production Readiness Validation
 Covers the three highest-value gaps in cluster integration test coverage:
 1. Full 89-worm orchestration validation (smoke test on all registered worms)
 2. PAMS mock testing (verify PamsRecorder calls happen during cluster execution)
-3. _is_circular_nature() edge cases (from T18/T19 sessions)
+3. _is_circular_category() edge cases (from T18/T19 sessions)
 
 Existing coverage: 195 tests across 6 files. This adds ~20 more targeting
 production-critical paths not covered by the existing suite.
@@ -153,63 +153,63 @@ def test_clusterworms_get_status():
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Section 2: _is_circular_nature() Edge Cases
+# Section 2: _is_circular_category() Edge Cases
 # ═══════════════════════════════════════════════════════════════════
 
-def test_is_circular_nature_self_reference():
+def test_is_circular_category_self_reference():
     """A nature that feeds into itself should be detected as circular."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
-    assert hasattr(mc, '_is_circular_nature'), (
-        "_is_circular_nature method missing — regressed from T18/T19"
+    assert hasattr(mc, '_is_circular_category'), (
+        "_is_circular_category method missing — regressed from T18/T19"
     )
-    assert mc._is_circular_nature("self_ref", {"self_ref": ["self_ref"]})
+    assert mc._is_circular_category("self_ref", {"self_ref": ["self_ref"]})
 
 
-def test_is_circular_nature_two_node_cycle():
+def test_is_circular_category_two_node_cycle():
     """A -> B -> A should be detected as circular."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
 
-    assert hasattr(mc, '_is_circular_nature'), "_is_circular_nature method missing"
+    assert hasattr(mc, '_is_circular_category'), "_is_circular_category method missing"
     feeds = {"A": ["B"], "B": ["A"]}
-    assert mc._is_circular_nature("A", feeds)
-    assert mc._is_circular_nature("B", feeds)
+    assert mc._is_circular_category("A", feeds)
+    assert mc._is_circular_category("B", feeds)
 
 
-def test_is_circular_nature_no_cycle():
+def test_is_circular_category_no_cycle():
     """A -> B -> C with no back-edges should NOT be circular."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
 
-    assert hasattr(mc, '_is_circular_nature'), "_is_circular_nature method missing"
+    assert hasattr(mc, '_is_circular_category'), "_is_circular_category method missing"
     feeds = {"A": ["B"], "B": ["C"], "C": []}
-    assert not mc._is_circular_nature("A", feeds)
-    assert not mc._is_circular_nature("B", feeds)
-    assert not mc._is_circular_nature("C", feeds)
+    assert not mc._is_circular_category("A", feeds)
+    assert not mc._is_circular_category("B", feeds)
+    assert not mc._is_circular_category("C", feeds)
 
 
-def test_is_circular_nature_disconnected():
+def test_is_circular_category_disconnected():
     """A nature with no connections should never be circular."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
 
-    assert hasattr(mc, '_is_circular_nature'), "_is_circular_nature method missing"
+    assert hasattr(mc, '_is_circular_category'), "_is_circular_category method missing"
     feeds: dict[str, list[str]] = {}
-    assert not mc._is_circular_nature("orphan", feeds)
+    assert not mc._is_circular_category("orphan", feeds)
 
 
-def test_is_circular_nature_deep_cycle():
+def test_is_circular_category_deep_cycle():
     """A -> B -> C -> D -> B (6-node chain with a cycle at the end)."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
 
-    assert hasattr(mc, '_is_circular_nature'), "_is_circular_nature method missing"
+    assert hasattr(mc, '_is_circular_category'), "_is_circular_category method missing"
     feeds = {
         "A": ["B"],
         "B": ["C"],
@@ -218,16 +218,16 @@ def test_is_circular_nature_deep_cycle():
         "E": ["B"],  # back edge creates cycle
     }
     # A-B-C-D-E-B is a cycle, so A is part of it
-    assert mc._is_circular_nature("A", feeds)
+    assert mc._is_circular_category("A", feeds)
 
 
-def test_is_circular_nature_large_dag():
+def test_is_circular_category_large_dag():
     """A 10-node DAG with no cycles should have zero circular natures."""
     from CORE.WORMS.METACLUSTER import MetaCluster
 
     mc = MetaCluster()
 
-    assert hasattr(mc, '_is_circular_nature'), "_is_circular_nature method missing"
+    assert hasattr(mc, '_is_circular_category'), "_is_circular_category method missing"
     feeds = {
         "N0": ["N1", "N2"],
         "N1": ["N3", "N4"],
@@ -241,7 +241,7 @@ def test_is_circular_nature_large_dag():
         "N9": [],
     }
     for nature in feeds:
-        assert not mc._is_circular_nature(nature, feeds), (
+        assert not mc._is_circular_category(nature, feeds), (
             f"Nature {nature} falsely detected as circular"
         )
 
@@ -435,7 +435,7 @@ def test_metacluster_orchestrate_no_circularity_error():
     # Orchestrate all natures — should not crash on circular detection
     result = mc.orchestrate(parallel=True)
     assert result is not None
-    assert result.natures_executed >= 1
+    assert result.categories_executed >= 1
     assert result.total_worms_ok + result.total_worms_fail > 0
 
 
@@ -448,7 +448,7 @@ def test_metacluster_to_mermaid_after_orchestration():
     discover_worms()
     mc = MetaCluster()
     mc.discover_all()
-    mc.orchestrate(max_natures=3)
+    mc.orchestrate(max_categories=3)
 
     graph = mc.to_mermaid()
     assert "graph" in graph
@@ -473,7 +473,7 @@ def main():
     print()
     print("  Sections:")
     print("    1. 89-Worm Full Orchestration Validation")
-    print("    2. _is_circular_nature() Edge Cases")
+    print("    2. _is_circular_category() Edge Cases")
     print("    3. PAMS Mock Testing")
     print("    4. Watchdog Tests")
     print("    5. Cross-Nature Integration Smoke Tests")
@@ -490,12 +490,12 @@ def main():
         ("get_status reports all expected keys", test_clusterworms_get_status),
 
         # Section 2: Circular nature edge cases
-        ("is_circular: self-reference", test_is_circular_nature_self_reference),
-        ("is_circular: two-node cycle", test_is_circular_nature_two_node_cycle),
-        ("is_circular: no cycle (DAG)", test_is_circular_nature_no_cycle),
-        ("is_circular: disconnected/orphan", test_is_circular_nature_disconnected),
-        ("is_circular: deep cycle (6-node)", test_is_circular_nature_deep_cycle),
-        ("is_circular: 10-node DAG all pass", test_is_circular_nature_large_dag),
+        ("is_circular: self-reference", test_is_circular_category_self_reference),
+        ("is_circular: two-node cycle", test_is_circular_category_two_node_cycle),
+        ("is_circular: no cycle (DAG)", test_is_circular_category_no_cycle),
+        ("is_circular: disconnected/orphan", test_is_circular_category_disconnected),
+        ("is_circular: deep cycle (6-node)", test_is_circular_category_deep_cycle),
+        ("is_circular: 10-node DAG all pass", test_is_circular_category_large_dag),
 
         # Section 3: PAMS mocking
         ("PAMS record_event called during execute_all", test_pams_record_event_called_on_execute_all),

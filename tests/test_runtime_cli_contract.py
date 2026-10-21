@@ -78,7 +78,7 @@ def test_cluster_list_lists_predefined_clusters(capsys):
     assert "system" in out and "security" in out
 
 
-def test_cluster_natures_lists_nature_categories(capsys):
+def test_cluster_categories_lists_registry_categories(capsys):
     from CORE import azazael_ctl
     rc = azazael_ctl.cmd_cluster(["natures"])
     out = capsys.readouterr().out

@@ -217,7 +217,7 @@ def test_build_cluster_for_each_nature():
     failures = []
     for nature in ALL_CATEGORIES:
         try:
-            cluster = ClusterWORMZ.build_from_nature(nature)
+            cluster = ClusterWORMZ.build_from_category(nature)
             assert cluster is not None, f"{nature}: cluster is None"
             assert len(cluster.configs) > 0, f"{nature}: no configs"
         except Exception as e:

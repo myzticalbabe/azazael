@@ -95,7 +95,7 @@ DATA_SHAPES = {
         },
         "numeric_keys": ["results", "success"],
     },
-    "cross_nature_route": {
+    "cross_category_route": {
         "type": "routing",
         "fields": {
             "from": "categorical",
@@ -107,7 +107,7 @@ DATA_SHAPES = {
     "metacluster_orchestrated": {
         "type": "orchestration",
         "fields": {
-            "natures": "numeric",
+            "categories": "numeric",
             "ok": "numeric",
             "fail": "numeric",
             "duration_ms": "numeric",
@@ -118,7 +118,7 @@ DATA_SHAPES = {
     "metacluster_discovery": {
         "type": "discovery",
         "fields": {
-            "natures": "numeric",
+            "categories": "numeric",
             "total_worms": "numeric",
             "per_nature": "dict",
         },
@@ -135,7 +135,7 @@ DATA_SHAPES = {
         },
         "numeric_keys": ["version_count"],
     },
-    "nature_cluster_executed": {
+    "category_cluster_executed": {
         "type": "execution",
         "fields": {
             "nature": "categorical",

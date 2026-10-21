@@ -462,7 +462,7 @@ def test_returned_dict_is_out_of_scope():
 
 
 def test_cross_function_dict_is_separate_scopes():
-    """`worm_result` crosses four methods in NATURE_CLUSTERS.py. The census
+    """`worm_result` crosses four methods in CLUSTERWORMS.py. The census
     is per (function, dict) precisely so that boundary is visible rather
     than silently pooled."""
     src = ('def a():\n    r = {}\n    r["k"] = 1\n    return r\n\n'
@@ -559,8 +559,8 @@ def test_dict_key_end_to_end_clean_file_exits_zero(tmp_path):
 
 def test_dict_key_scope_excludes_duplicates_outside_the_scoped_trees(tmp_path):
     """This repo carries tracked, unlinked duplicates of its own modules at
-    the repo root. A report naming "NATURE_CLUSTERS.py:706" when the reader
-    has src/CORE/WORMS/NATURE_CLUSTERS.py open points at the wrong file."""
+    the repo root. A report naming "CLUSTERWORMS.py:706" when the reader
+    has src/CORE/WORMS/CLUSTERWORMS.py open points at the wrong file."""
     r = _dkc_run(tmp_path, {"m.py": 'def f():\n'
                                       '    r = {}\n'
                                       '    r["a"] = 1\n'

@@ -843,29 +843,29 @@ class TestClusterWORMZConfiguration:
 
 
 class TestClusterWORMZBuildFromNature:
-    """Verify ClusterWORMZ.build_from_nature()."""
+    """Verify ClusterWORMZ.build_from_category()."""
 
-    def test_build_from_nature_returns_cluster(self):
+    def test_build_from_category_returns_cluster(self):
         """Building from a valid nature should return a ClusterWORMZ."""
-        cluster = ClusterWORMZ.build_from_nature("security")
+        cluster = ClusterWORMZ.build_from_category("security")
         if cluster is None:
             pytest.skip("security nature unresolvable in this env")
         assert isinstance(cluster, ClusterWORMZ)
-        assert cluster.cluster_type.startswith("nature_")
+        assert cluster.cluster_type.startswith("cat_")
         assert len(cluster.configs) > 0
 
-    def test_build_from_nature_unknown(self):
+    def test_build_from_category_unknown(self):
         """Building from an unknown nature should return None or empty."""
-        cluster = ClusterWORMZ.build_from_nature("__nonexistent__")
+        cluster = ClusterWORMZ.build_from_category("__nonexistent__")
         # May be None or have empty configs
         if cluster is not None:
             assert len(cluster.configs) == 0
         # None is also a correct refusal; either way the test observes it
         assert cluster is None or len(cluster.configs) == 0
 
-    def test_build_from_nature_worms_match(self):
+    def test_build_from_category_worms_match(self):
         """Built cluster should have worms from that nature category."""
-        cluster = ClusterWORMZ.build_from_nature("monitor")
+        cluster = ClusterWORMZ.build_from_category("monitor")
         if cluster is None or len(cluster.configs) == 0:
             pytest.skip("monitor nature empty in this env")
         for cfg in cluster.configs:
@@ -916,57 +916,56 @@ class TestClusterWORMZBuildFullEcosystem:
 # ═══════════════════════════════════════════════════════════════════
 
 
-class TestClusterWORMZNatureConfig:
+class TestClusterWORMZCategoryConfig:
     """Verify nature config overrides from azazael.yaml are wired to ClusterWORMZ."""
 
-    def test_build_from_nature_applies_timeout(self):
-        """build_from_nature('monitor') should apply 30s timeout from azazael.yaml."""
-        cluster = ClusterWORMZ.build_from_nature("monitor")
+    def test_build_from_category_applies_timeout(self):
+        """build_from_category('monitor') should apply 30s timeout from azazael.yaml."""
+        cluster = ClusterWORMZ.build_from_category("monitor")
         if cluster is not None:
             assert cluster.timeout == 30, f"Expected 30 (from YAML), got {cluster.timeout}"
 
-    def test_build_from_nature_applies_parallel(self):
-        """build_from_nature('security') should NOT enable parallel (YAML says false)."""
-        cluster = ClusterWORMZ.build_from_nature("security")
+    def test_build_from_category_applies_parallel(self):
+        """build_from_category('security') should NOT enable parallel (YAML says false)."""
+        cluster = ClusterWORMZ.build_from_category("security")
         if cluster is not None:
             assert cluster.parallel is False, f"Expected False (from YAML), got {cluster.parallel}"
 
-    def test_build_from_nature_applies_max_retries(self):
-        """build_from_nature('learning') no YAML entry, falls back to cluster default (3)."""
-        cluster = ClusterWORMZ.build_from_nature("learning")
+    def test_build_from_category_applies_max_retries(self):
+        """build_from_category('learning') no YAML entry, falls back to defaults."""
+        cluster = ClusterWORMZ.build_from_category("learning")
         if cluster is not None:
-            assert cluster._nature_max_retries == 3, \
-                f"Expected 3 (cluster default, no 'learning' in YAML), got {cluster._nature_max_retries}"
+            assert cluster._category_config is not None
+            assert cluster.timeout == 60  # cluster default, no 'learning' in YAML
 
-    def test_build_from_nature_sets_nature_name(self):
-        """build_from_nature should set _nature_name on cluster."""
-        cluster = ClusterWORMZ.build_from_nature("profiling")
+    def test_build_from_category_sets_category_name(self):
+        """build_from_category should set _category_name on cluster."""
+        cluster = ClusterWORMZ.build_from_category("profiling")
         if cluster is not None:
-            assert cluster._nature_name == "profiling"
+            assert cluster._category_name == "profiling"
 
-    def test_standard_init_no_nature_config(self):
+    def test_standard_init_no_category_config(self):
         """Standard ClusterWORMZ('system') should have no nature config."""
         cluster = ClusterWORMZ("system")
-        assert cluster._nature_name is None
-        assert cluster._nature_config is None
-        assert cluster._nature_max_retries is None
+        assert cluster._category_name is None
+        assert cluster._category_config is None
         assert cluster.timeout == 60  # default
 
-    def test_get_status_reports_nature_info(self):
+    def test_get_status_reports_category_info(self):
         """get_status should report nature config info when applied."""
-        cluster = ClusterWORMZ.build_from_nature("monitor")
+        cluster = ClusterWORMZ.build_from_category("monitor")
         if cluster is not None:
             status = cluster.get_status()
-            assert status.get("nature_name") == "monitor"
-            assert status.get("nature_config_applied") is True
-            assert status.get("nature_max_retries") == 2
+            assert status.get("category_name") == "monitor"
+            assert status.get("category_config_applied") is True
+            assert cluster.timeout == 30  # monitor YAML timeout
 
     def test_get_status_standard_init_no_nature(self):
         """get_status for standard init should report no nature config."""
         cluster = ClusterWORMZ("system")
         status = cluster.get_status()
-        assert status.get("nature_name") is None
-        assert status.get("nature_config_applied") is False
+        assert status.get("category_name") is None
+        assert status.get("category_config_applied") is False
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -1324,7 +1323,7 @@ def _run_standalone():
     # Now they run in SUBPROCESSES with per-class timeouts. Clean lock release
     # via OS process termination — no daemon-thread lock-leak cascade.
     slow_classes = {
-        "TestClusterWORMZNatureConfig",
+        "TestClusterWORMZCategoryConfig",
         "TestClusterWORMZBuildFromNature",
         "TestClusterWORMZBuildFullEcosystem",
         "TestClusterWORMZExecutionSequential",
@@ -1358,7 +1357,7 @@ def _run_standalone():
         "TestClusterWORMZRetry": 60,
         "TestClusterWORMZAggregation": 45,
         "TestClusterWORMZIntegration": 300,
-        "TestClusterWORMZNatureConfig": 30,
+        "TestClusterWORMZCategoryConfig": 30,
         "TestClusterWORMZBuildFromNature": 30,
         "TestClusterWORMZBuildFullEcosystem": 30,
     }

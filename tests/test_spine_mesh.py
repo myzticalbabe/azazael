@@ -355,7 +355,7 @@ def test_q_weights_clamped_and_reset():
 def test_q_weighted_execution_ordering():
     """Q-weights order execution before priority (LEAP A wiring).
 
-    U3: worm names come from the flat registry (was NatureCluster("mesh")).
+    U3: worm names come from the flat registry (was ClusterWORMZ("mesh")).
     The ordering rule under test is unchanged.
     """
     import math
@@ -861,7 +861,7 @@ def test_consolidation_refuses_when_not_idle():
 def test_wired_synapse_worms_have_explicit_consumers():
     """G1: the synapse layer must be DRIVEN, not merely constructed.
 
-    Note the trap this test is designed around: `NatureCluster.execute()` does
+    Note the trap this test is designed around: `ClusterWORMZ.execute()` does
     `get_worms_by_category(...)` -> `_get_or_create_instance()` -> `cls()`, so
     every registered worm is constructed by the generic fleet sweep and a
     static "never constructed anywhere" scan is meaningless. What G1 was

@@ -184,7 +184,7 @@ class NimInferenceWorm:
     def get_status(self) -> dict[str, Any]:
         """Side-effect free status probe (safe for cluster dispatch).
 
-        Returned by NatureCluster dispatcher instead of falling through to
+        Returned by ClusterWORMZ dispatcher instead of falling through to
         an argument-less execute() call, which would error on an empty prompt.
         Avoids lazy client creation so probing never triggers network.
         """

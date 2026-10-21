@@ -54,7 +54,7 @@ except ImportError as exc:
 
 __all__ = [
     "AzazaelConfig", "PathsConfig", "PamsConfig", "MemoryBusConfig",
-    "CircuitBreakerConfig", "ClustersConfig", "NatureConfig",
+    "CircuitBreakerConfig", "ClustersConfig", "CategoryConfig",
     "FreeThreadingConfig", "LoggingConfig", "MetricsConfig",
     "ObservabilityConfig", "SecurityConfig", "MemoryStoreConfig",
     "BackupConfig", "BuildConfig",
@@ -205,7 +205,7 @@ class ClustersConfig:
 
 
 @dataclass
-class NatureConfig:
+class CategoryConfig:
     """Per-nature execution configuration override section."""
     enabled: bool = True
     timeout: (int | None) = None  # None = use cluster default
@@ -214,7 +214,7 @@ class NatureConfig:
     feeds_into: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "NatureConfig":
+    def from_dict(cls, d: dict) -> "CategoryConfig":
         return cls(
             enabled=d.get("enabled", True),
             timeout=d.get("timeout"),
@@ -371,7 +371,7 @@ class AzazaelConfig:
     memory_bus: MemoryBusConfig = field(default_factory=MemoryBusConfig)
     circuit_breaker: CircuitBreakerConfig = field(default_factory=CircuitBreakerConfig)
     clusters: ClustersConfig = field(default_factory=ClustersConfig)
-    natures: dict[str, NatureConfig] = field(default_factory=dict)
+    categories: dict[str, CategoryConfig] = field(default_factory=dict)
     free_threading: FreeThreadingConfig = field(default_factory=FreeThreadingConfig)
     observability: ObservabilityConfig = field(default_factory=ObservabilityConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
@@ -381,12 +381,13 @@ class AzazaelConfig:
 
     @classmethod
     def from_dict(cls, d: dict) -> "AzazaelConfig":
-        natures_raw = d.get("natures", {})
-        natures = {}
-        if isinstance(natures_raw, dict):
-            for nature_name, nature_cfg in natures_raw.items():
-                if isinstance(nature_cfg, dict):
-                    natures[nature_name] = NatureConfig.from_dict(nature_cfg)
+        # 'categories' is canonical; 'natures' read as legacy fallback (rip-out, Oct 2026).
+        categories_raw = d.get("categories", d.get("natures", {}))
+        categories = {}
+        if isinstance(categories_raw, dict):
+            for category_name, category_cfg in categories_raw.items():
+                if isinstance(category_cfg, dict):
+                    categories[category_name] = CategoryConfig.from_dict(category_cfg)
         return cls(
             version=d.get("version", "1.0.0"),
             paths=PathsConfig.from_dict(d.get("paths", {})),
@@ -394,7 +395,7 @@ class AzazaelConfig:
             memory_bus=MemoryBusConfig.from_dict(d.get("memory_bus", {})),
             circuit_breaker=CircuitBreakerConfig.from_dict(d.get("circuit_breaker", {})),
             clusters=ClustersConfig.from_dict(d.get("clusters", {})),
-            natures=natures,
+            categories=categories,
             free_threading=FreeThreadingConfig.from_dict(d.get("free_threading", {})),
             observability=ObservabilityConfig.from_dict(d.get("observability", {})),
             security=SecurityConfig.from_dict(d.get("security", {})),
@@ -403,9 +404,9 @@ class AzazaelConfig:
             build=BuildConfig.from_dict(d.get("build", {})),
         )
 
-    def get_nature_config(self, nature_name: str) -> NatureConfig:
-        """Get config for a specific nature, returning defaults if not overridden."""
-        return self.natures.get(nature_name, NatureConfig())
+    def get_category_config(self, category_name: str) -> CategoryConfig:
+        """Get config for a specific category, returning defaults if not overridden."""
+        return self.categories.get(category_name, CategoryConfig())
 
     def validate(self) -> list[str]:
         """Validate configuration and return list of warnings."""

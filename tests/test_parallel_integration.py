@@ -277,9 +277,9 @@ class TestClusterParallelRealWorms:
         assert "NETWORXZ" in names
         assert "SYSTEMZ" in names
 
-    def test_nature_built_cluster_parallel(self):
+    def test_category_built_cluster_parallel(self):
         """Cluster built from nature should execute worms in parallel."""
-        cluster = ClusterWORMZ.build_from_nature("orchestration")
+        cluster = ClusterWORMZ.build_from_category("orchestration")
         if cluster is not None and len(cluster.configs) > 0:
             cluster.set_parallel(True)
             cluster.set_timeout(30)

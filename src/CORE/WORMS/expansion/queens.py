@@ -441,7 +441,7 @@ class BlackQueenWorm:
 
     Applying a retirement sets ``lifecycle_state='retired'`` on the registry
     entry (``worm_governance.LifecycleManager`` understands that state) and
-    ``NatureCluster.execute``/``RedQueenWorm`` both honour it, so the retirement
+    ``ClusterWORMZ.execute``/``RedQueenWorm`` both honour it, so the retirement
     actually removes the worm from the pipeline instead of decorating a table.
     """
 
@@ -901,7 +901,7 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
                 note_failure("queens:rainbow-red", exc)
         red_ok: Any = (1.0 - failed / probed) if probed else None
         _finish("red", "pressure-probe:%d-natures" % len(natures),
-                {"ok": True, "natures": len(natures), "probed": probed,
+                {"ok": True, "categories": len(natures), "probed": probed,
                  "failed": failed, "ok_rate": red_ok},
                 red_ok, "rate_01")
     except Exception as exc:

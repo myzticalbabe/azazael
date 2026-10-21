@@ -966,7 +966,7 @@ def _render_metacluster_card(report: dict[str, Any]) -> str:
     natures = mc.get("natures", 0)
     worms = mc.get("total_worms", 0)
     routes = mc.get("routing_paths", 0)
-    cross = mc.get("cross_nature_routes", 0)
+    cross = mc.get("cross_category_routes", 0)
     orch = mc.get("orchestration_history", 0)
 
     # Dynamic color intensity based on cluster size

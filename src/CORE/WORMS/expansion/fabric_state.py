@@ -6,8 +6,8 @@ Audit 2026-09-15 (finding #7): ``save_spine_state()`` persisted the spine's
 gossip trust, anomaly model) but nothing persisted the fabric natures'
 *operational* state — routing tables, elected leader + term, quorum tallies,
 federated client submissions, model shard catalogue, endpoint loads. All of it
-lived in per-instance dicts cached in ``NatureCluster.instances``, so it was
-lost on every new ``NatureClusterManager()`` (i.e. every separate CLI/script
+lived in per-instance dicts cached in ``ClusterWORMZ.instances``, so it was
+lost on every new ``ClusterManager()`` (i.e. every separate CLI/script
 process) and on restart. The mesh remembered how it felt and forgot what it
 knew.
 

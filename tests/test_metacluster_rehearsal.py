@@ -113,7 +113,7 @@ def test_orchestrate_reaches_the_planner():
     # pass can never be mistaken for a reachable edge.
     dispatch_error = None
     try:
-        mc.orchestrate(natures=[])
+        mc.orchestrate(categories=[])
     except Exception as exc:  # noqa: BLE001 - see above; reported in the assertion
         dispatch_error = exc
 

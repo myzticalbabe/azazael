@@ -22,24 +22,24 @@ class TestMetaClusterDiscovery(unittest.TestCase):
         mc = MetaCluster()
         self.assertIsNotNone(mc)
         self.assertEqual(mc.VERSION, "2.0.0")
-        self.assertIn("pre_nature", mc._hooks)
-        self.assertIn("post_nature", mc._hooks)
+        self.assertIn("pre_category", mc._hooks)
+        self.assertIn("post_category", mc._hooks)
 
     def test_discover_all(self):
-        """Discover all should return nature counts dict."""
+        """Discover all should return category counts dict."""
         from CORE.WORMS.METACLUSTER import MetaCluster
         mc = MetaCluster()
         counts = mc.discover_all()
         self.assertIsInstance(counts, dict)
 
     def test_discover_all_returns_counts(self):
-        """Discovery should return per-nature worm counts."""
+        """Discovery should return per-category worm counts."""
         from CORE.WORMS.METACLUSTER import MetaCluster
         mc = MetaCluster()
         counts = mc.discover_all()
         if counts:
-            for nature, count in counts.items():
-                self.assertGreater(count, 0, f"Nature '{nature}' has 0 worms")
+            for category, count in counts.items():
+                self.assertGreater(count, 0, f"Category '{category}' has 0 worms")
 
 
 class TestMetaClusterHooks(unittest.TestCase):
@@ -52,10 +52,10 @@ class TestMetaClusterHooks(unittest.TestCase):
     def test_register_hook(self):
         """Registering a hook should add it."""
         calls = []
-        self.mc.on("pre_nature", lambda **kw: calls.append(kw))
-        self.mc._run_hooks("pre_nature", nature="test")
+        self.mc.on("pre_category", lambda **kw: calls.append(kw))
+        self.mc._run_hooks("pre_category", category="test")
         self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0]["nature"], "test")
+        self.assertEqual(calls[0]["category"], "test")
 
     def test_register_invalid_hook(self):
         """Registering an invalid hook name should be ignored."""
@@ -94,34 +94,34 @@ class TestMetaClusterOrchestration(unittest.TestCase):
         self.assertIn("version", status)
         self.assertIn("ncm", status)
         self.assertIn("routing_paths", status)
-        self.assertIn("cross_nature_routes", status)
+        self.assertIn("cross_category_routes", status)
         self.assertIn("free_threaded", status)
 
-    def test_orchestrate_nature(self):
-        """Orchestrate a single nature should succeed (may route through downstream natures)."""
+    def test_orchestrate_category(self):
+        """Orchestrate a single category should succeed (may route through downstream categories)."""
         if not self.mc.categories:
-            self.skipTest("No natures discovered")
-        nature = list(self.mc.categories.keys())[0]
-        result = self.mc.orchestrate_nature(nature)
+            self.skipTest("No categories discovered")
+        category = list(self.mc.categories.keys())[0]
+        result = self.mc.orchestrate_category(category)
         self.assertIsNotNone(result)
-        self.assertGreaterEqual(result.natures_executed, 1, "At least 1 nature should execute")
+        self.assertGreaterEqual(result.categories_executed, 1, "At least 1 category should execute")
         self.assertIn("orchestration_id", result.__dict__)
 
     def test_orchestrate_returns_meta_result(self):
         """Orchestrate should return MetaClusterResult."""
         if not self.mc.categories:
-            self.skipTest("No natures discovered")
-        result = self.mc.orchestrate(natures=list(self.mc.categories.keys())[:1])
+            self.skipTest("No categories discovered")
+        result = self.mc.orchestrate(categories=list(self.mc.categories.keys())[:1])
         self.assertTrue(hasattr(result, "orchestration_id"))
-        self.assertTrue(hasattr(result, "natures_executed"))
+        self.assertTrue(hasattr(result, "categories_executed"))
         self.assertTrue(hasattr(result, "total_worms_ok"))
         self.assertTrue(hasattr(result, "insights"))
 
     def test_orchestrate_records_duration(self):
         """Orchestrate duration should be positive."""
         if not self.mc.categories:
-            self.skipTest("No natures discovered")
-        result = self.mc.orchestrate(natures=list(self.mc.categories.keys())[:1])
+            self.skipTest("No categories discovered")
+        result = self.mc.orchestrate(categories=list(self.mc.categories.keys())[:1])
         self.assertGreater(result.duration_ms, 0)
 
     def test_get_last_result(self):
@@ -131,9 +131,9 @@ class TestMetaClusterOrchestration(unittest.TestCase):
     def test_orchestrate_updates_last_result(self):
         """After orchestration, last result should be set."""
         if not self.mc.categories:
-            self.skipTest("No natures discovered")
-        nature = list(self.mc.categories.keys())[0]
-        self.mc.orchestrate_nature(nature)
+            self.skipTest("No categories discovered")
+        category = list(self.mc.categories.keys())[0]
+        self.mc.orchestrate_category(category)
         self.assertIsNotNone(self.mc.get_last_result())
 
     def test_export_state(self):

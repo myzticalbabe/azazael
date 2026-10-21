@@ -13,7 +13,7 @@ wrote a row at all, and the paths that did had each grown their own payload.
 
     ClusterWORMZ._execute_one    emitted
     ClusterWORMZ.execute_worm    did NOT
-    NATURE_CLUSTERS.execute      did NOT  (fixed earlier this session)
+    CLUSTERWORMS.execute      did NOT  (fixed earlier this session)
     CONCURRENCY.WormExecutor     did NOT  (an entire second executor family)
 
 So the tests below are in two groups, and the second is the one that matters:

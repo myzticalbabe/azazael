@@ -241,6 +241,6 @@ def test_otel_exporter_configures_with_default_batch_size():
 
 
 # U3: test_nature_cluster_emits_spans deleted with the layer. Its behavior
-# (OTel parent+child spans per cluster run) lived in NatureCluster.execute;
+# (OTel parent+child spans per cluster run) lived in ClusterWORMZ.execute;
 # ClusterWORMZ emits no spans. If span-per-run observability returns, it
 # belongs in ClusterWORMZ with a test here — not resurrected from NCM.

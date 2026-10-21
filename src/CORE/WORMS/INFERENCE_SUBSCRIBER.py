@@ -92,7 +92,7 @@ class InferenceSubscriberWorm:
             self._bus = MemoryBus()
             # Use prefix wildcard (>) to catch multi-segment topics
             self._bus.subscribe("cluster.>", self._on_cluster_event)
-            self._bus.subscribe("nature.>", self._on_nature_event)
+            self._bus.subscribe("category.>", self._on_category_event)
             self._bus.subscribe("inference.>", self._on_inference_event)
         except ImportError as exc:
             note_failure("INFERENCE_SUBSCRIBER:L88", exc)
@@ -101,7 +101,7 @@ class InferenceSubscriberWorm:
         """Stop listening and clean up subscriptions."""
         self._running = False
         if self._bus:
-            for pattern in ("cluster.>", "nature.>", "inference.>"):
+            for pattern in ("cluster.>", "category.>", "inference.>"):
                 try:
                     self._bus.unsubscribe(pattern)
                 except Exception as exc:
@@ -113,7 +113,7 @@ class InferenceSubscriberWorm:
         """Handle cluster.* events from MemoryBus."""
         self._buffer_event("cluster", message)
 
-    def _on_nature_event(self, message):
+    def _on_category_event(self, message):
         """Handle nature.* events from MemoryBus."""
         self._buffer_event("nature", message)
 

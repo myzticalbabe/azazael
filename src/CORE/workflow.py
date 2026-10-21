@@ -756,7 +756,7 @@ class WorkflowEngine:
             if action == "execute_worm":
                 result = self._run_execute_worm(action_params)
             elif action == "execute_nature":
-                result = self._run_execute_nature(action_params)
+                result = self._run_execute_category(action_params)
             elif action == "run_pipeline":
                 result = self._run_pipeline(action_params, step_results)
             elif action == "react_drive":
@@ -816,16 +816,16 @@ class WorkflowEngine:
         except ImportError:
             raise ValueError("Worm registry not available")
 
-    def _run_execute_nature(self, params: dict) -> Any:
-        """Execute a Nature cluster."""
-        nature = params.get("nature")
+    def _run_execute_category(self, params: dict) -> Any:
+        """Execute a registry category cluster."""
+        nature = params.get("category", params.get("nature"))
         parallel = params.get("parallel", False)
 
         try:
             from CORE.WORMS.METACLUSTER import MetaCluster
             mc = MetaCluster()
             mc.discover_all()
-            result = mc.orchestrate_nature(nature, parallel=parallel)
+            result = mc.orchestrate_category(nature, parallel=parallel)
             if result:
                 return {
                     "success_count": result.total_worms_ok,
@@ -834,7 +834,7 @@ class WorkflowEngine:
                 }
             return {"success_count": 0, "failure_count": 0}
         except Exception as e:
-            raise ValueError(f"Failed to execute nature '{nature}': {e}")
+            raise ValueError(f"Failed to execute category '{nature}': {e}")
 
     def _run_pipeline(self, params: dict, step_results: dict[str, Any]) -> Any:
         """Run a data pipeline step."""

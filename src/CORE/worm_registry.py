@@ -1477,7 +1477,7 @@ class SpawnDiversityEngine:
     ) -> Tuple[List[str], Optional[str]]:
         """THE DISPATCH DECISION: order a Nature's worms for execution.
 
-        Until 2026-09-21 this engine was instantiated by `NatureClusterManager`
+        Until 2026-09-21 this engine was instantiated by `ClusterManager`
         and never called. It wrote 608 `spawn_selected` rows describing choices
         that nothing executed, while the executions that DID happen were
         recorded by a different component that never logged a choice. Measured
@@ -2002,7 +2002,7 @@ def _hosts_worms(mod_name: str, mod: Any, targets: Set[str]) -> bool:
     (`wg0 is wg1 -> False`, 2026-09-22), which silently disarmed every
     `monkeypatch`/`mock.patch` that named a helper — 8 gate tests failed in-suite
     while passing alone, and `test_nature_metacluster_unit`'s 13 failures came
-    from `mock.patch("CORE.WORMS.NATURE_CLUSTERS.get_worms_by_category")`
+    from `mock.patch("CORE.WORMS.CLUSTERWORMS.get_worms_by_category")`
     patching the re-imported module while the classes under test read the old
     one.
     """
@@ -2063,11 +2063,11 @@ def _purge_worm_modules(worm_modules: Optional[Set[str]] = None) -> None:
         for mod_name in list(sys.modules):
             if mod_name in bare and not mod_name.startswith("CORE."):
                 # File-loaded modules whose __file__ lives OUTSIDE the WORMS
-                # dir were not loaded by flat discovery (e.g. the NATURE_CLUSTERS
+                # dir were not loaded by flat discovery (e.g. the CLUSTERWORMS
                 # shim execs the repo-root file under its bare name). Purging
                 # them orphans the entry: nothing re-execs the file, so the
                 # dir()-fallback cannot rebuild it and the fleet shrinks by
-                # exactly that worm on every cold rebuild (measured: NatureCluster
+                # exactly that worm on every cold rebuild (measured: ClusterWORMZ
                 # lost on 2nd purge+discover). Spare them like helpers.
                 try:
                     _mf = getattr(sys.modules.get(mod_name), "__file__", None)
@@ -2124,7 +2124,7 @@ def reset_registry(purge_modules: bool = True):
     # a reset means "rebuild from source". Without this, the next
     # discover_worms() serves the on-disk snapshot while a LATER purge in
     # the same process rebuilds live — the two fleets differ by whatever
-    # the cache predates (measured: NatureCluster lost between purges).
+    # the cache predates (measured: ClusterWORMZ lost between purges).
     try:
         from CORE.worm_registry_cache import invalidate_cache
         invalidate_cache()

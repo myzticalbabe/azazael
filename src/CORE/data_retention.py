@@ -110,8 +110,8 @@ TYPE_CAPS = {
     # Rolling-window state/telemetry writes (see measurement above).
     "state_saved": 50,
     "nature_cluster_discovery": 2000,
-    "nature_cluster_executed": 3000,
-    "cross_nature_route": 2000,
+    "category_cluster_executed": 3000,
+    "cross_category_route": 2000,
     "dream_generated": 1000,
     "strategy_adaptation": 1000,
     "introspection_report": 500,

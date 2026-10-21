@@ -15,7 +15,7 @@ row at all, and the ones that did had each grown their own payload:
 
     ClusterWORMZ._execute_one      emitted, own payload
     ClusterWORMZ.execute_worm      did NOT       (fixed 2026-09-21)
-    NatureCluster._record_outcome  emitted, own payload   (4th schema)
+    ClusterWORMZ._record_outcome  emitted, own payload   (4th schema)
     CONCURRENCY.WormExecutor       did NOT  (an entire second executor family)
 
 A schema with four producers is four schemas, and two of them were silent. So

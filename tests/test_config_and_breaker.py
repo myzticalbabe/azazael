@@ -27,7 +27,7 @@ from CORE.config import (
     PamsConfig,
     CircuitBreakerConfig,
     ClustersConfig,
-    NatureConfig,
+    CategoryConfig,
     ObservabilityConfig,
     LoggingConfig,
     MetricsConfig,
@@ -350,16 +350,16 @@ class TestFindConfigFile:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# NatureConfig Tests
+# CategoryConfig Tests
 # ═══════════════════════════════════════════════════════════════════
 
 
-class TestNatureConfig:
-    """Verify NatureConfig section."""
+class TestCategoryConfig:
+    """Verify CategoryConfig section."""
 
     def test_defaults(self):
-        """Default NatureConfig should have safe defaults."""
-        cfg = NatureConfig()
+        """Default CategoryConfig should have safe defaults."""
+        cfg = CategoryConfig()
         assert cfg.enabled is True
         assert cfg.timeout is None
         assert cfg.max_retries is None
@@ -368,7 +368,7 @@ class TestNatureConfig:
 
     def test_from_dict_full(self):
         """Full dict should override all fields."""
-        cfg = NatureConfig.from_dict({
+        cfg = CategoryConfig.from_dict({
             "enabled": False,
             "timeout": 120,
             "max_retries": 2,
@@ -383,7 +383,7 @@ class TestNatureConfig:
 
     def test_from_dict_partial(self):
         """Partial dict should leave unspecified fields as None/default."""
-        cfg = NatureConfig.from_dict({"timeout": 90})
+        cfg = CategoryConfig.from_dict({"timeout": 90})
         assert cfg.timeout == 90
         assert cfg.max_retries is None
         assert cfg.parallel is None
@@ -391,7 +391,7 @@ class TestNatureConfig:
 
     def test_merge_with_cluster_timeout(self):
         """merge_with_cluster should use nature timeout when set."""
-        nature = NatureConfig(timeout=45)
+        nature = CategoryConfig(timeout=45)
         cluster = ClustersConfig(default_timeout=60, max_retries=3)
         merged = nature.merge_with_cluster(cluster)
         assert merged["timeout"] == 45  # nature overrides cluster
@@ -400,7 +400,7 @@ class TestNatureConfig:
 
     def test_merge_with_cluster_fallback(self):
         """merge_with_cluster should use cluster defaults when nature has None."""
-        nature = NatureConfig()  # all None
+        nature = CategoryConfig()  # all None
         cluster = ClustersConfig(default_timeout=60, max_retries=3)
         merged = nature.merge_with_cluster(cluster)
         assert merged["timeout"] == 60
@@ -409,7 +409,7 @@ class TestNatureConfig:
 
     def test_merge_with_cluster_parallel(self):
         """merge_with_cluster should use nature parallel when set."""
-        nature = NatureConfig(parallel=True)
+        nature = CategoryConfig(parallel=True)
         cluster = ClustersConfig()
         merged = nature.merge_with_cluster(cluster)
         assert merged["parallel"] is True
@@ -417,7 +417,7 @@ class TestNatureConfig:
     def test_merge_with_cluster_falsy_timeout(self):
         """merge_with_cluster should treat falsy timeout (0/None) as cluster default."""
         for falsy_value in (0, None):
-            nature = NatureConfig(timeout=falsy_value)
+            nature = CategoryConfig(timeout=falsy_value)
             cluster = ClustersConfig(default_timeout=60)
             merged = nature.merge_with_cluster(cluster)
             assert merged["timeout"] == 60, \
@@ -427,16 +427,16 @@ class TestNatureConfig:
 class TestAzazaelConfigNatures:
     """Verify AzazaelConfig nature integration."""
 
-    def test_get_nature_config_default(self):
-        """get_nature_config for unknown nature returns defaults."""
+    def test_get_category_config_default(self):
+        """get_category_config for unknown nature returns defaults."""
         cfg = AzazaelConfig()
-        nature = cfg.get_nature_config("nonexistent")
-        assert isinstance(nature, NatureConfig)
+        nature = cfg.get_category_config("nonexistent")
+        assert isinstance(nature, CategoryConfig)
         assert nature.timeout is None
         assert nature.max_retries is None
 
-    def test_get_nature_config_from_yaml(self):
-        """get_nature_config reads the per-nature block from azazael.yaml.
+    def test_get_category_config_from_yaml(self):
+        """get_category_config reads the per-nature block from azazael.yaml.
 
         These values were previously asserted as 45 / 3 / None / 'defense',
         which is the **security** block, not **monitor**. When the yaml was
@@ -446,31 +446,31 @@ class TestAzazaelConfigNatures:
         """
         reset_config()
         cfg = get_config()
-        monitor = cfg.get_nature_config("monitor")
+        monitor = cfg.get_category_config("monitor")
         assert monitor.timeout == 30
         assert monitor.max_retries == 2
         assert monitor.parallel is True
         assert monitor.feeds_into == ["orchestration"]
 
-        security = cfg.get_nature_config("security")
+        security = cfg.get_category_config("security")
         assert security.timeout == 45
         assert security.max_retries == 3
         assert security.parallel is False
         assert security.feeds_into == ["defense"]
 
         # A nature with no yaml block falls back to the dataclass defaults.
-        unknown = cfg.get_nature_config("not_in_yaml")
+        unknown = cfg.get_category_config("not_in_yaml")
         assert unknown.timeout is None
         assert unknown.parallel is None
 
     def test_natures_from_dict(self):
         """AzazaelConfig.from_dict should parse natures."""
         cfg = AzazaelConfig.from_dict({
-            "natures": {
+            "categories": {
                 "test": {"timeout": 99, "parallel": False},
             },
         })
-        test_nature = cfg.get_nature_config("test")
+        test_nature = cfg.get_category_config("test")
         assert test_nature.timeout == 99
         assert test_nature.parallel is False
 
@@ -509,7 +509,7 @@ class TestCircuitBreakerIntegration:
         assert len(stats) > 0
 
 
-# U3: the NATURE_CLUSTERS breaker/discovery tail (TestNatureClusterBreaker-
+# U3: the CLUSTERWORMS breaker/discovery tail (TestClusterWORMZBreaker-
 # Integration, TestNatureDiscoveryEdgeCases) is deleted with the layer. Its
 # live behaviors are already covered above against ClusterWORMZ, and unknown-
 # category handling is asserted in test_worm_registry integration tests.

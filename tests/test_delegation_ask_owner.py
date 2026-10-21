@@ -150,8 +150,8 @@ def test_on_question_without_bus_is_none():
     assert on_question(lambda _m: None, bus=False) is None
 
 
-def test_nature_boundary_normalises_instead_of_crashing():
-    """U3: was NatureCluster._run_worm_method; now _execute_worm_class.
+def test_category_boundary_normalises_instead_of_crashing():
+    """U3: was ClusterWORMZ._run_worm_method; now _execute_worm_class.
 
     Same contract (clarification normalises, decision_id preserved, plain
     errors stay errors), flat outcome shape.

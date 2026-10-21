@@ -58,7 +58,7 @@ _TARGET_FILES = [
     "src/CORE/FREETHREAD_UPGRADE.py",
     "src/CORE/cd2_verifier.py",
     "src/CORE/threading_utils.py",
-    "src/CORE/WORMS/NATURE_CLUSTERS.py",
+    "src/CORE/WORMS/CLUSTERWORMS.py",
     "src/CORE/WORMS/METACLUSTER.py",
     "src/CORE/NeuralPipeline.py",
 ]
