@@ -32,8 +32,8 @@ except ImportError:                               # never break the host
 # reachability are NOT (see the fixups in __init__).
 try:
     from CORE.WORMS.expansion.fabric_state import (
-        hydrate as fabric_hydrate,
-        publish as fabric_publish,
+        hydrate as fabric_hydrate,  # pyright: ignore[reportAssignmentType]
+        publish as fabric_publish,  # pyright: ignore[reportAssignmentType],
         cap_list as fabric_cap_list,
         cap_map as fabric_cap_map,
     )
@@ -52,7 +52,7 @@ except ImportError as exc:  # pragma: no cover - defensive
         return d
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("servemesh:L40", exc)
     def register_worm(**kw):
@@ -142,7 +142,7 @@ class InferenceLoadBalancerWorm:
         if breaker_registry is None:
             return None
         try:
-            cfg = CircuitConfig(failure_threshold=self.FAILURE_THRESHOLD,
+            cfg = CircuitConfig(failure_threshold=self.FAILURE_THRESHOLD,  # pyright: ignore[reportOptionalCall]
                                recovery_timeout=self.RECOVERY_BASE_S,
                                half_open_max_requests=1)
             return breaker_registry.get(f"servemesh:lb:{name}", cfg)
@@ -342,7 +342,7 @@ class ProviderFailoverMeshWorm:
         if breaker_registry is None:
             return None
         try:
-            cfg = CircuitConfig(failure_threshold=self.FAILURE_THRESHOLD,
+            cfg = CircuitConfig(failure_threshold=self.FAILURE_THRESHOLD,  # pyright: ignore[reportOptionalCall]
                                recovery_timeout=self.RECOVERY_BASE_S,
                                half_open_max_requests=1)
             return breaker_registry.get(f"servemesh:provider:{provider}", cfg)
@@ -523,7 +523,7 @@ class ProviderFailoverMeshWorm:
             req = urllib.request.Request(url, method="GET")
             with urllib.request.urlopen(req, timeout=timeout or cls.PROBE_TIMEOUT_S):
                 return True
-        except urllib.error.HTTPError as exc:
+        except urllib.error.HTTPError as exc:  # pyright: ignore[reportAttributeAccessIssue]
             note_failure("servemesh:L499", exc)
             return True
         except Exception as exc:
