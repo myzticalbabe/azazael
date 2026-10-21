@@ -15,34 +15,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /azazael
 
 # Base requirements (free-threaded-safe subset)
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY requirements-3.15t.txt .
+RUN pip3 install --no-cache-dir -r requirements-3.15t.txt
 
-# GIL-sidecar requirements (added 2026-09-30).
-# The official python:3.14-slim image is the standard GIL build, so these
+# GIL-sidecar requirements (added 2026-09-30, repointed 2026-10-21).
+# The official python:3.15-slim image is the standard GIL build, so these
 # frameworks install normally here. On the WSL pillar the interpreter is the
-# free-threaded 3.14.7 build, which accepts only cp314t wheels, so the same
-# packages live in the GIL sidecar venv (/root/venv-314-gil) instead.
+# free-threaded 3.15.0rc3 build (/opt/python315t), which accepts only
+# cp315t wheels, so the same packages live in the GIL sidecar venv
+# (/root/venv-314-gil, launched via /usr/local/bin/python3.14-gil) instead.
 # See CORE/python_env.py and /root/PYTHON_CONSOLIDATION_2026-09-30.md.
 COPY requirements-gil.txt .
 RUN pip3 install --no-cache-dir -r requirements-gil.txt \
     || echo "WARN: some GIL-sidecar packages unavailable on this platform"
 
 # TensorFlow (added 2026-09-30): there is NO tensorflow wheel on PyPI for
-# Python 3.14 on ANY ABI -- verified: tensorflow, tensorflow-cpu and tf-nightly
+# Python 3.15 on ANY ABI -- tensorflow, tensorflow-cpu and tf-nightly
 # all resolve to "no matching distribution". The WSL pillar runs a local
-# 2.22.0-dev build recovered from /usr/local/lib/python3.14/site-packages.
+# 2.22.0-dev build recovered from /usr/local/lib/python3.14/site-packages
+# (usable only from the GIL sidecar, never the free-threaded primary).
 # Supply wheels via the build context to enable TensorFlow in the container;
 # otherwise this step is skipped cleanly and the image still builds.
 ARG TENSORFLOW_WHEELS=/wheels/tensorflow
 RUN if ls ${TENSORFLOW_WHEELS}/*.whl >/dev/null 2>&1; then \
         pip3 install --no-cache-dir ${TENSORFLOW_WHEELS}/*.whl; \
     else \
-        echo "NOTE: no TensorFlow wheel in ${TENSORFLOW_WHEELS} -- Python 3.14 has no PyPI tensorflow."; \
+        echo "NOTE: no TensorFlow wheel in ${TENSORFLOW_WHEELS} -- Python 3.15 has no PyPI tensorflow."; \
     fi
 
-# Copy project files
-COPY azazael-project-e/ .
+# Copy project files (build context is the repo root; azazael-project-e/
+# was a stale duplicate tree and no longer exists).
+COPY . .
 
 # Set Keras backend. torch is present on every pillar; pass
 # --build-arg KERAS_BACKEND=tensorflow when the TensorFlow wheels above

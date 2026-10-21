@@ -97,5 +97,7 @@ archived, false `CROSS_NATURE_ROUTER` present-tense comments corrected,
 WSL/ARCHITECTURE/PROTEUS/skills docs lifted 3.14t→3.15t, torch verified on
 the Windows 3.15t venv (2.16.0 CPU) with 3.14m GIL sidecar as fallback.
 WSL-side ML differs: TF 2.22.0-dev20260530 (local build, CPU-only) lives on
-`/usr/local/bin/python3.14-gil`, torch 2.14.0+cpu on 3.14t, and 3.15t has
-neither — see `docs/ENVIRONMENT_ALIGNMENT.md` (WSL ML runtimes).
+`/usr/local/bin/python3.14-gil`, torch 2.14.0+cpu on 3.14t, and 3.15t now has
+stock torch 2.14.1+XPU (official wheel, XPU backend built-in since 2.7 —
+IPEX is EOL, never build it) with the Arc iGPU live — see
+`docs/ENVIRONMENT_ALIGNMENT.md` (WSL ML runtimes).

@@ -143,6 +143,11 @@ class EnvironmentalVariableInspector:
             "C:/Azazael/.venvs/py315t/Scripts/python.exe",
             "C:/Azazael/.venvs/py315/Scripts/python.exe",
             "C:/Azazael/.venvs/py314m/Scripts/python.exe",
+            # WSL pillar roles (same doctrine, Linux paths).
+            "/root/py315t/bin/python3",
+            "/opt/python315t/bin/python3.15",
+            "/usr/local/bin/python3.15t",
+            "/usr/local/bin/python3.14-gil",
         ]
         for pypath in python_paths:
             if os.path.exists(pypath):
