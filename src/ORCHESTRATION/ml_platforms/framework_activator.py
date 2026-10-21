@@ -80,6 +80,7 @@ class QuestionType(Enum):
     COMPARISON = "comparison"
     INSTALLATION = "installation"
     GENERAL = "general"
+    CONVERT = "convert"
 
 
 class Framework(Enum):
@@ -343,14 +344,14 @@ class MLFrameworkQA:
             Framework.CV2: ["opencv", "cv2", "imread", "imwrite"],
         }
 
-        scores = {}
+        scores: dict[Framework, int] = {}
         for fw, indicators in framework_indicators.items():
             score = sum(1 for ind in indicators if ind in question_lower)
             if score > 0:
                 scores[fw] = score
 
         if scores:
-            return max(scores, key=scores.get)
+            return max(scores, key=lambda k: scores[k])
         return Framework.UNKNOWN
 
     def _extract_question_keywords(self, question: str) -> list[str]:

@@ -62,7 +62,7 @@ class MLTask:
     result: Any
     started: str
     completed: str = ""
-    metrics: dict = None
+    metrics: dict | None = None
 
 
 class MLOrchestrator:
@@ -230,13 +230,13 @@ class MLOrchestrator:
 
     def classify(self, data: dict, categories: list[str]) -> dict:
         self.log(f"Classifying into {len(categories)} categories", "INFO")
-        scores = {}
+        scores: dict[str, float] = {}
 
         for cat in categories:
             score = hash(f"{cat}{data}") % 100
             scores[cat] = score / 100.0
 
-        top_cat = max(scores, key=scores.get)
+        top_cat = max(scores, key=lambda k: scores[k])
         return {
             "classification": top_cat,
             "scores": scores,

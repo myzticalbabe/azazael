@@ -64,7 +64,7 @@ class HashChain:
         )
         return hashlib.sha256(genesis_data.encode()).hexdigest()
 
-    def add_link(self, data: Any, metadata: dict = None) -> str:
+    def add_link(self, data: Any, metadata: dict | None = None) -> str:
         with self._lock:
             prev_hash = self.chain[-1]["hash"] if self.chain else self.genesis_hash
             timestamp = datetime.datetime.now().isoformat()
@@ -207,7 +207,7 @@ class MathematicalCertaintySystem:
         return hashlib.sha256(serialized.encode()).hexdigest()
 
     def prove(
-        self, proof_type: ProofType, target_id: str, data: Any, metadata: dict = None
+        self, proof_type: ProofType, target_id: str, data: Any, metadata: dict | None = None
     ) -> dict:
         timestamp = datetime.datetime.now().isoformat()
         hash_chain = self.hash_chains["operations"]
@@ -376,7 +376,7 @@ class MathematicalCertaintySystem:
 MCPS = MathematicalCertaintySystem()
 
 
-def prove(proof_type: str, target_id: str, data: Any, metadata: dict = None):
+def prove(proof_type: str, target_id: str, data: Any, metadata: dict | None = None):
     return MCPS.prove(ProofType(proof_type), target_id, data, metadata)
 
 
