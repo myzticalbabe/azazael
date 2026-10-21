@@ -11,7 +11,7 @@ worse failure than leaving a table out of date. So the table is restored WITH
 its own verdict: the template's attribution was unsupported, and here is why.
 """
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 ROWS = [

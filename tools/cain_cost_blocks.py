@@ -5,7 +5,7 @@ which produced nonsense like a $98 externalised cost replaced by the time total.
 These tables describe a different session. The whole block is replaced.
 """
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 SPAN, DEST_H, RATE = 10.74, 3.0, 95.0
