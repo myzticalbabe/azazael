@@ -285,7 +285,7 @@ def _walk_symbols(nodes: dict[str, Node], stats: dict, rel: str,
             existing = nodes.get(key)
             if existing is None:
                 bases: list[str] = []
-                if kind == "class":
+                if kind == "class" and isinstance(node, ast.ClassDef):
                     for b in node.bases:
                         try:
                             bases.append(_clean(ast.unparse(b), 80))
@@ -296,14 +296,14 @@ def _walk_symbols(nodes: dict[str, Node], stats: dict, rel: str,
                     kind=kind, graph="code",
                     bases=bases,
                     owner=(class_stack[-1] if class_stack else ""),
-                    locations=[Location(rel, node.lineno)],
+                    locations=[Location(rel, getattr(node, "lineno", 0))],
                     signature=_signature(node),
                     docstring=ast.get_docstring(node) or "",
                     checksum=_digest(seg),
                 )
                 stats["symbols"] += 1
             else:
-                existing.locations.append(Location(rel, node.lineno))
+                existing.locations.append(Location(rel, getattr(node, "lineno", 0)))
                 # A name in several files is a different thing; checksum the
                 # concatenation so any one change moves it.
                 existing.checksum = _digest(existing.checksum + _digest(seg))
@@ -853,7 +853,7 @@ def cmd_merge(args) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(prog="bibl_map",
-                                description=__doc__.split("\n")[1])
+                                description=(__doc__ or "").split("\n")[1])
     p.add_argument("--root", default=str(_default_root()))
     p.add_argument("--out", default=str(Path(__file__).resolve().parent))
     sub = p.add_subparsers(dest="cmd")
