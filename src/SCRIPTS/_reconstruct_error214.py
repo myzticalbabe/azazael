@@ -19,7 +19,7 @@ The 5 destructive patterns from Error #214:
 
 import sys
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -65,20 +65,21 @@ _TARGET_FILES = [
 
 
 # Singleton gate instance — reused across all tests
-_gate: (PreActionGate | None) = None
+_gate: Any = None  # PreActionGate or its None fallback; Any keeps both assignable
 
 
-def _get_gate() -> PreActionGate:
+def _get_gate() -> Any:
     """Get or create the gate instance."""
     global _gate
     if _gate is None:
         if not _GATE_AVAILABLE:
             raise RuntimeError("PreActionGate not available")
+        assert PreActionGate is not None  # narrows the import-fallback None
         _gate = PreActionGate()
     return _gate
 
 
-def _gate_dryrun(filepath: str, old_str: str, new_str: str) -> Dict:
+def _gate_dryrun(filepath: str, old_str: str, new_str: str) -> dict:
     """Run PreActionGate.validate_str_replace() directly (no subprocess).
 
     Returns a dict mimicking subprocess.CompletedProcess with:
@@ -194,9 +195,9 @@ def find_delete_target(lines: list[str]) -> (tuple[str, str] | None):
     return None
 
 
-def run_reconstruction() -> dict[str, list[Dict]]:
+def run_reconstruction() -> dict[str, list[dict]]:
     """Run all 5 destructive patterns against all 11 files. Returns per-file results."""
-    results: dict[str, list[Dict]] = {}
+    results: dict[str, list[dict]] = {}
 
     for rel_path in _TARGET_FILES:
         full_path = _PROJECT_ROOT / rel_path

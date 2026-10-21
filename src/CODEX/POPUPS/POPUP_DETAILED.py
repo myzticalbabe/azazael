@@ -1,9 +1,9 @@
 """
-from pathlib import Path
 Azazael Ecosystem - Clean Informative Popup
 Detailed information with smooth, subtle animations
 """
 
+from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
 from typing import List
