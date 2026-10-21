@@ -1,6 +1,8 @@
 """Support Arms - Adapters for infrastructure sub-systems."""
 from pathlib import Path
-from typing import Dict, List
+import subprocess
+import sys
+from typing import Any, Dict, List
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -39,7 +41,7 @@ class PamsArm(BaseArm):
                 events = self._dm.list_events(limit) if hasattr(self, '_dm') and self._dm else []
                 return {"status": "ok", "data": {"memories": events, "count": len(events)}}
             if capability == "get_status":
-                return {"status": "ok", "data": {"initialized": self._initialized, "total_events": self._dm.count() if hasattr(self, "_dm") else 0}}
+                return {"status": "ok", "data": {"initialized": self._initialized, "total_events": self._dm.count() if hasattr(self, "_dm") and self._dm else 0}}
             return {"status": "error", "error": "Unknown: " + capability}
         except Exception as e:
             note_failure("support_arms:L35", e)
@@ -66,8 +68,8 @@ class PerformanceMonitorArm(BaseArm):
         try:
             if capability == "get_metrics":
                 ps = self._psutil if hasattr(self, '_psutil') and self._psutil else None; cpu = ps.cpu_percent(interval=0.1) if ps else 0
-                mem = ps.virtual_memory() if ps else type('obj', (object,), {'percent': 0, 'total': 0, 'available': 0})()
-                disk = ps.disk_usage('/') if ps else type('obj', (object,), {'percent': 0, 'total': 0, 'free': 0})()
+                mem: Any = ps.virtual_memory() if ps else type('obj', (object,), {'percent': 0, 'total': 0, 'available': 0})()
+                disk: Any = ps.disk_usage('/') if ps else type('obj', (object,), {'percent': 0, 'total': 0, 'free': 0})()
                 return {
                     "status": "ok",
                     "data": {
@@ -129,7 +131,7 @@ class LlamaServerArm(BaseArm):
                 run_py = self._llama_dir / "run.py"
                 if not run_py.exists():
                     return {"status": "ok", "data": {"initialized": self._initialized, "server_found": False}}
-                result = self._subprocess.run(
+                result = subprocess.run(
                     [self._python, str(run_py), "status"],
                     capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
                 )
@@ -138,7 +140,7 @@ class LlamaServerArm(BaseArm):
                     "data": {"initialized": self._initialized, "server_found": True, "server_status": result.stdout[:200]}
                 }
             return {"status": "error", "error": "Unknown: " + capability}
-        except self._subprocess.TimeoutExpired as exc:
+        except subprocess.TimeoutExpired as exc:
             note_failure("support_arms:L130", exc)
             return {"status": "error", "error": "LlamaServer operation timed out"}
         except Exception as e:

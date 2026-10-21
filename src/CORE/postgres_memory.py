@@ -65,9 +65,9 @@ except ImportError as exc:
 VERSION = "1.0.0"
 # -- Try to import psycopg2 ------------------------------------------
 try:
-    import psycopg2
-    import psycopg2.extras
-    import psycopg2.pool
+    import psycopg2  # pyright: ignore[reportMissingModuleSource] -- optional dep, guarded by _HAS_PSYCOPG2
+    import psycopg2.extras  # pyright: ignore[reportMissingModuleSource]
+    import psycopg2.pool  # pyright: ignore[reportMissingModuleSource]
     _HAS_PSYCOPG2 = True
 except ImportError as exc:
     note_failure("postgres_memory:L62", exc)
@@ -132,7 +132,7 @@ class PostgresMemoryStore:
                 "Install with: pip install psycopg2-binary"
             )
         self.dsn = dsn or _get_dsn()
-        self._pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
+        self._pool: Any = None  # psycopg2.pool.ThreadedConnectionPool when installed; Any because psycopg2 is None on the ImportError path
         self._lock = threading.Lock()
         self._session_id = datetime.now().strftime("session_%Y%m%d_%H%M%S")
         self._init_pool()
@@ -143,7 +143,7 @@ class PostgresMemoryStore:
         """Initialize the connection pool."""
         with self._lock:
             if self._pool is None:
-                self._pool = psycopg2.pool.ThreadedConnectionPool(
+                self._pool = psycopg2.pool.ThreadedConnectionPool(  # pyright: ignore[reportOptionalMemberAccess]
                     minconn=1, maxconn=10, dsn=self.dsn
                 )
 
@@ -210,7 +210,7 @@ class PostgresMemoryStore:
         """List recent sessions with event counts."""
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(
                     "SELECT session_id, started_at, ended_at, source, event_count, metadata "
                     "FROM sessions ORDER BY started_at DESC LIMIT %s", (limit,)
@@ -224,7 +224,7 @@ class PostgresMemoryStore:
         """Get session info with all memories."""
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute("SELECT * FROM sessions WHERE session_id = %s", (session_id,))
                 session = cur.fetchone()
                 if not session:
@@ -337,7 +337,7 @@ class PostgresMemoryStore:
 
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(sql, params)
                 rows = cur.fetchall()
         finally:
@@ -399,7 +399,7 @@ class PostgresMemoryStore:
 
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(sql, params)
                 rows = cur.fetchall()
         except Exception as exc:
@@ -419,7 +419,7 @@ class PostgresMemoryStore:
                     "ORDER BY id DESC LIMIT %s"
                 )
                 params = [like_param, like_param, limit]
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(sql, params)
                 rows = cur.fetchall()
         finally:
@@ -445,7 +445,7 @@ class PostgresMemoryStore:
         """Get memory store statistics."""
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute("SELECT COUNT(*) as n FROM memories")
                 total = cur.fetchone()["n"]
 
@@ -506,7 +506,7 @@ class PostgresMemoryStore:
 
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute("SELECT * FROM memories ORDER BY id ASC")
                 rows = cur.fetchall()
         finally:
@@ -629,7 +629,7 @@ class PostgresMemoryStore:
 
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 # 1. Check database is accessible
                 cur.execute("SELECT current_database(), version()")
                 db_info = cur.fetchone()
@@ -814,7 +814,7 @@ class PostgresMemoryStore:
         """Get daily error/warning/critical counts (additive 'criticals', 2026-10-17)."""
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(
                     "SELECT date(timestamp) as day, severity, COUNT(*) as cnt "
                     "FROM memories WHERE severity IN ('error', 'warning', 'critical') "
@@ -844,7 +844,7 @@ class PostgresMemoryStore:
         """Get daily event count growth for trend analysis."""
         conn = self._get_conn()
         try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # pyright: ignore[reportOptionalMemberAccess]
                 cur.execute(
                     "SELECT date(timestamp) as day, COUNT(*) as cnt "
                     "FROM memories WHERE timestamp > NOW() - INTERVAL '%s days' "
