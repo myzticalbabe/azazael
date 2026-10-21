@@ -22,13 +22,13 @@ RUN useradd -m -s /bin/bash azazael
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY azazael/requirements-3.15t.txt requirements-3.15t.txt
+RUN pip install --no-cache-dir -r requirements-3.15t.txt
 
 # Copy application (build from project root: docker build -f azazael/Dockerfile .)
 COPY --chown=azazael:azazael azazael/src ./azazael/src
 COPY --chown=azazael:azazael azazael/azazael.yaml ./
-COPY --chown=azazael:azazael azazael/requirements.txt ./
+COPY --chown=azazael:azazael azazael/requirements-3.15t.txt ./
 
 # Create data directories
 RUN mkdir -p /app/data /app/output /archive && \

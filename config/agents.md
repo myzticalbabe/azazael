@@ -76,3 +76,26 @@ Windows-only `graphify_refresh_all.sh` atlas is NOT refreshed from here
 (WSL cannot exec the Windows venv interpreters; interop launches fail).
 Same 9P rule applies to `ecosystem_graph.py`: refresh win-primary's graph
 from Git Bash with py315t, not from WSL python3 over /mnt/c.
+
+## Census triage (known-accepted residuals, 2026-10-21)
+Exit 1 from `audit_stale_refs.py` is a census signal, not a gate failure.
+Classes reviewed and accepted as INVENTORY (do not "fix" by rewriting):
+- Frozen records: dated forensic/audit/lesson reports (`FORENSIC_*`,
+  `NEURAL_MESH_*_AUDIT_*`, dated `LESSONS_*`, `var/dead/`), result tables
+  (`EX_MACHINA` verify table, `ROADMAP` test blocks,
+  `MASTER_ENVIRONMENT_INVENTORY` census tables). Rewriting falsifies history.
+- Tombstone self-mentions: `azazael-pkg314t-*` skill tombstones,
+  `RETIRED_*`/`LEGACY_*` census constants, `DETECTOR_FILES`, `>` quotes.
+- Intentional cross-tree refs: `CROSS_TREE_FILES` (sync/parity/atlas/inventory
+  span both live trees by design).
+- Live declaration lines naming current paths (e.g. the interpreter header in
+  `docs/ENVIRONMENT_ALIGNMENT.md`): reviewed, correct, accepted.
+Repaired 2026-10-21 (not residual): cross-tree script roots repointed
+to `C:/Azazael/azazael`, Dockerfile templates + root Dockerfile to
+`requirements-3.15t.txt` + `python:3.15-slim`, dead `azazael-project-e` tools
+archived, false `CROSS_NATURE_ROUTER` present-tense comments corrected,
+WSL/ARCHITECTURE/PROTEUS/skills docs lifted 3.14t→3.15t, torch verified on
+the Windows 3.15t venv (2.16.0 CPU) with 3.14m GIL sidecar as fallback.
+WSL-side ML differs: TF 2.22.0-dev20260530 (local build, CPU-only) lives on
+`/usr/local/bin/python3.14-gil`, torch 2.14.0+cpu on 3.14t, and 3.15t has
+neither — see `docs/ENVIRONMENT_ALIGNMENT.md` (WSL ML runtimes).

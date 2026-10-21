@@ -346,7 +346,7 @@ def main() -> int:
         import subprocess as _sp
         # refresh the C: mirror WSL can read (WSL cannot see G:)
         for src, dst in (("G:/source-of-truth/azazael_models/bcc_baseline.json",
-                          "C:/Users/clint/azazael/output/bcc_baseline.json"),):
+                          "C:/Azazael/azazael/output/bcc_baseline.json"),):
             try:
                 shutil.copyfile(src, dst)
             except OSError:
@@ -354,7 +354,7 @@ def main() -> int:
         for distro, env in (("Ubuntu-26.04", "wsl2-ubuntu"),
                              ("kali-linux", "wsl2-kali")):
             r = _sp.run(["wsl", "-d", distro, "--", "python3",
-                         "/mnt/c/Users/clint/azazael/scripts/bcc_oneshot.py"],
+                         "/mnt/c/Azazael/azazael/scripts/bcc_oneshot.py"],
                         capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
             try:
                 ebpf = _json.loads((r.stdout or "").strip().splitlines()[-1])
@@ -379,7 +379,8 @@ def main() -> int:
                     log(f"ebpf: record failed ({str(exc)[:60]})")
                 log(f"ebpf: {env} comms={(ebpf.get('comms'))} alerts={n_alerts}")
                 try:
-                    with open("C:/Users/clint/azazael/output/ebpf_rates.jsonl",
+                    with open("C:/Azazael/azazael/output/ebpf_rates.jsonl",
+
                               "a", encoding="utf-8") as _f:
                         _f.write(_json.dumps({"env": env, "alerts": n_alerts,
                                               "comms": ebpf.get("comms")}) + "\n")

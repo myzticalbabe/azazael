@@ -6,7 +6,7 @@ problem. Provides cryptographic hash verification, cross-pillar sync, and drift
 reporting for ALL 8 canonical documents across 4 Quartet pillars.
 
 Architecture:
-  W11 (C:/Users/clint/azazael/) is the SOLE authoritative source (master).
+  W11 (C:/Azazael/azazael/) is the SOLE authoritative source (master).
   KALI, UBUNTU, and G: are sync targets.
   Every sync computes SHA-256 hashes and compares before overwriting.
 
@@ -56,7 +56,7 @@ CANONICAL_DOCS: list[str] = [
 ]
 
 # Master pillar (sole authoritative source)
-MASTER_ROOT = Path("C:/Users/clint/azazael")
+MASTER_ROOT = Path("C:/Azazael/azazael")
 
 # Sync target pillars
 # WSL UNC paths (//wsl$/DistroName/...) work on Windows when WSL distro is Running.

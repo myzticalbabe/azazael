@@ -328,7 +328,8 @@ def cmd_atlas(args: list[str]):
     """Inventory explicitly supplied project roots and export provenance atlas."""
     from CORE.project_atlas import scan_projects
     roots = {
-        "azazael": Path("C:/Users/clint/azazael"),
+        "azazael": Path("C:/Azazael/azazael"),
+        "azazael_secondary": Path("C:/Users/clint/azazael"),
         # Relocated 2026-09-30: vermillion_lightfury is Kali-native and
         # deprecated on Windows (SYNC.md), so it no longer sits in the
         # Windows pillar. Staged here until the Kali pillar absorbs it.
@@ -339,7 +340,6 @@ def cmd_atlas(args: list[str]):
         "g_source_truth_azazael": Path("G:/source-of-truth/azazael"),
         "gosp": Path("G:/source-of-truth/GOSP"),
         "pams": Path("G:/source-of-truth/PAMS"),
-        "kali_e_rootfs": Path("E:/Kali_build/rootfs"),
     }
     output = Path("azazael/output/project_atlas")
     if "--output" in args:

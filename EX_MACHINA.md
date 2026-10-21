@@ -194,7 +194,7 @@ up under `state/task_backups/`. Cadence unchanged (`PT5M`).
 ### 8.2 Proof it runs
 
 A 24-cycle batch through the production runner (`run_evolution_n.py`, which spawns every
-cycle under `python3.14t.exe`):
+cycle under `python3.14t.exe`) — runner retired 2026-10-11, see `archive/retired-trainers-2026-10-11/`:
 
 ```
 circulation: arm=            24 / 24 cycles

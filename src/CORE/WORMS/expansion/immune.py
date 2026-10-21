@@ -79,9 +79,9 @@ class ImmuneSentinelWorm:
             return cls._EBPF_BASELINE
         import os as _os
         for p in ("G:/source-of-truth/azazael_models/bcc_baseline.json",
-                  "C:/Users/clint/azazael/output/bcc_baseline.json",
+                  "C:/Azazael/azazael/output/bcc_baseline.json",
                   "/mnt/g/source-of-truth/azazael_models/bcc_baseline.json",
-                  "/mnt/c/Users/clint/azazael/output/bcc_baseline.json"):
+                  "/mnt/c/Azazael/azazael/output/bcc_baseline.json"):
             try:
                 if _os.path.exists(p):
                     cls._EBPF_BASELINE = _json.load(open(p, encoding="utf-8"))
