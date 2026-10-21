@@ -287,11 +287,14 @@ class LocalMemoryStore:
         self._size_warning_issued = False
         self._max_size_mb = 400  # Default threshold (warn at 80% of 500 MB quota)
         # Instance-level performance counters (was class-level — moved for 3.14t safety)
-        self._query_count: int = 0
-        self._slow_query_count: int = 0
-        self._total_query_time_ms: float = 0.0
-        self._max_query_time_ms: float = 0.0
-        self._slow_query_threshold_ms: float = 500.0
+        # NOTE: these names keep ONE declared type — the class-level declarations
+        # above. Re-annotating them here obscured those declarations
+        # (reportRedeclaration) with a second declaration of the same name.
+        self._query_count = 0
+        self._slow_query_count = 0
+        self._total_query_time_ms = 0.0
+        self._max_query_time_ms = 0.0
+        self._slow_query_threshold_ms = 500.0
         # P0 fix (June 11 2026): Dedicated lock for _QueryTimer stat updates.
         # _QueryTimer.__exit__() previously assumed the caller held self._lock,
         # but query_memories() and search_memories() do NOT acquire self._lock.
@@ -762,7 +765,11 @@ class LocalMemoryStore:
                     except sqlite3.OperationalError as exc:
                         last_exc = exc
                         try:
-                            conn.rollback()
+                            # conn is None only when _get_conn() itself raised
+                            # this OperationalError before its result was
+                            # assigned — no handle exists to roll back then.
+                            if conn is not None:
+                                conn.rollback()
                         except Exception as exc:
                             _note_failure("local_memory:L646", exc)
                         if attempt < 3:
@@ -1299,7 +1306,8 @@ class LocalMemoryStore:
         negatives: List[Dict[str, str]] = []
         for ev in events:
             if ev.get("event_type") == "verified_negative":
-                d = ev.get("data") if isinstance(ev.get("data"), dict) else {}
+                raw = ev.get("data")
+                d = raw if isinstance(raw, dict) else {}
                 negatives.append({
                     "subject": str(d.get("subject", "")),
                     "claim": str(d.get("claim", "")),
@@ -2089,7 +2097,7 @@ existing
         tokens = [w for w in str(goal).split() if len(w) > 3][:subgoal_limit]
         if not tokens:
             tokens = [str(goal).strip()]
-        hits: Dict[str, List[Dict]] = {}
+        hits: Dict[str, int] = {}
         merged: Dict[int, Dict] = {}
         for sg in tokens:
             rows = self.search_memories(sg, limit=per_subgoal) or []
