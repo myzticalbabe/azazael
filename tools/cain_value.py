@@ -27,7 +27,7 @@ INFLATION, measured not guessed
 """
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 
 
 def _read_dashboard(path=DOC):

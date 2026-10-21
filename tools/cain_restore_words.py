@@ -11,8 +11,8 @@ acted. Removing my own name from a finding about my own action would falsify it.
 """
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-TPL = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
+TPL = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
 
 h = open(DOC, encoding="utf-8").read()
 t = open(TPL, encoding="utf-8").read()
