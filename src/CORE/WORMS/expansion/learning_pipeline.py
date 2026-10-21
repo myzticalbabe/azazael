@@ -21,7 +21,7 @@ except ImportError:                               # never break the host
 
 # -- Worm Registry Import ---------------------------------------------
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType]
     _REGISTRY = True
 except ImportError as exc:
     note_failure("learning_pipeline:L17", exc)
@@ -94,7 +94,7 @@ class DataPipelineWorm:
     def __init__(self):
         self._cache: Dict[str, Any] = ThreadSafeDict() if ThreadSafeDict != dict else {}
         self._lock = threading.Lock()
-        self._store = None  # Lazy LocalMemoryStore
+        self._store: Any = None  # Lazy LocalMemoryStore (Any: tri-state None/store/False; narrows at use)
         self._execution_count = 0
         self._operations: List[Dict] = []
 
