@@ -2,7 +2,7 @@
 """Absorbed NCM DLQ API on DeadLetterQueue (U3 surgery 2026-10-01).
 
 get_dead_letter_summary / retry_all_failed_worms moved here from
-NatureClusterManager with the dimension flattened (cluster_id category
+ClusterManager with the dimension flattened (cluster_id category
 instead of nature). Contract: same keys, windowed, never raises.
 """
 import os

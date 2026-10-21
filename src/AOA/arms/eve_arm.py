@@ -170,7 +170,7 @@ class EveArm(BaseArm):
                     return {"status": "error", "error": "Mesh not available"}
                 nature = payload.get("nature", "monitor")
                 from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
-                cluster = ClusterWORMZ.build_from_nature(nature)
+                cluster = ClusterWORMZ.build_from_category(nature)
                 results = cluster.execute_all()
                 return {"status": "ok", "data": {"nature": nature, "results_count": len(results), "results": results}}
 
@@ -181,7 +181,7 @@ class EveArm(BaseArm):
                 mc = MetaCluster()
                 mc.discover_all()
                 result = mc.orchestrate()
-                return {"status": "ok", "data": {"natures_executed": result.natures_executed, "total_worms_ok": result.total_worms_ok, "total_worms_fail": result.total_worms_fail}}
+                return {"status": "ok", "data": {"categories_executed": result.categories_executed, "total_worms_ok": result.total_worms_ok, "total_worms_fail": result.total_worms_fail}}
 
             elif capability == "drive_mesh":
                 # Eve drives the mesh: propose action via decision engine, then execute
@@ -238,7 +238,7 @@ class EveArm(BaseArm):
                 if self._consciousness_available and self._self_model is not None:
                     self._self_model.total_worms = len(WORM_REGISTRY)
                     self._self_model.update_health("mesh", 1.0 if result.total_worms_fail == 0 else 0.5, "healthy" if result.total_worms_fail == 0 else "degraded")
-                return {"status": "ok", "data": {"natures_executed": result.natures_executed, "total_worms_ok": result.total_worms_ok, "total_worms_fail": result.total_worms_fail, "total_worms": len(WORM_REGISTRY)}}
+                return {"status": "ok", "data": {"categories_executed": result.categories_executed, "total_worms_ok": result.total_worms_ok, "total_worms_fail": result.total_worms_fail, "total_worms": len(WORM_REGISTRY)}}
 
             elif capability == "spawn_worm":
                 worm_type = payload.get("worm_type", "monitor")
@@ -246,7 +246,7 @@ class EveArm(BaseArm):
                     return {"status": "error", "error": "Mesh not available"}
                 try:
                     from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
-                    cluster = ClusterWORMZ.build_from_nature(worm_type)
+                    cluster = ClusterWORMZ.build_from_category(worm_type)
                     results = cluster.execute_all()
                     return {"status": "ok", "data": {"worm_type": worm_type, "results_count": len(results), "results": results}}
                 except Exception as exc:
@@ -315,7 +315,7 @@ class EveArm(BaseArm):
             ArmCapability("run_benchmark","Benchmark AI models",category="benchmark"),
             ArmCapability("run_inference","Run local model inference",category="inference"),
             ArmCapability("discover_worms","Discover all registered worms",category="registry"),
-            ArmCapability("run_cluster","Execute a NatureCluster by category",category="execution"),
+            ArmCapability("run_cluster","Execute a ClusterWORMZ by category",category="execution"),
             ArmCapability("run_metacluster","Run full MetaCluster orchestration",category="execution"),
             ArmCapability("drive_mesh","Drive the mesh via autonomous decision-making",category="mesh"),
             ArmCapability("orchestrate","Full mesh orchestration with self-model update",category="mesh"),

@@ -496,13 +496,13 @@ def test_miner_pairs_an_error_with_its_earliest_same_source_success():
         return {"timestamp": ts, "severity": sev, "source": source, "data": data}
 
     scenarios = [
-        _rec("2026-09-21T10:00:00", "error", "NatureCluster.monitor",
+        _rec("2026-09-21T10:00:00", "error", "ClusterWORMZ.monitor",
              {"error": "timeout after 13s", "worm": "DatabaseMonitorWorm",
               "nature": "monitor"}),
         # An UNRELATED record sits between the error and its successor, so the
         # pair is NOT adjacent. The old code required exactly this adjacency.
-        _rec("2026-09-21T10:00:05", "info", "NatureCluster.analysis", {"ok": 1}),
-        _rec("2026-09-21T10:00:09", "info", "NatureCluster.monitor",
+        _rec("2026-09-21T10:00:05", "info", "ClusterWORMZ.analysis", {"ok": 1}),
+        _rec("2026-09-21T10:00:09", "info", "ClusterWORMZ.monitor",
              {"action": "retry_with_backoff"}),
     ]
     pats = DreamingModule()._mine_error_recovery_patterns(scenarios)
@@ -520,7 +520,7 @@ def test_a_suggestion_from_mined_evidence_carries_the_organ():
     MEASURED over the live store: 256 of 400 records carry both fields, and all
     256 name an edge that already exists in Q (230 distinct real organs, 0
     fabricated). Keying a Q edge on `source` would invent organisms like
-    "NatureCluster.monitor" and "pattern_memory".
+    "ClusterWORMZ.monitor" and "pattern_memory".
     """
     from CORE.WORMS.expansion.dreaming import DreamingModule
 
@@ -528,10 +528,10 @@ def test_a_suggestion_from_mined_evidence_carries_the_organ():
         return {"timestamp": ts, "severity": sev, "source": source, "data": data}
 
     scenarios = [
-        _rec("2026-09-21T10:00:00", "error", "NatureCluster.monitor",
+        _rec("2026-09-21T10:00:00", "error", "ClusterWORMZ.monitor",
              {"error": "timeout after 13s", "worm": "DatabaseMonitorWorm",
               "nature": "monitor"}),
-        _rec("2026-09-21T10:00:09", "info", "NatureCluster.monitor",
+        _rec("2026-09-21T10:00:09", "info", "ClusterWORMZ.monitor",
              {"action": "retry_with_backoff"}),
     ]
     dm = DreamingModule()
@@ -540,7 +540,7 @@ def test_a_suggestion_from_mined_evidence_carries_the_organ():
     assert mined, "no organ-bearing suggestion was produced"
     assert mined[0]["worm"] == "DatabaseMonitorWorm"
     assert mined[0]["nature"] == "monitor"
-    assert mined[0]["source"] == "NatureCluster.monitor"
+    assert mined[0]["source"] == "ClusterWORMZ.monitor"
 
 
 def _dreamer(suggestions):
@@ -558,7 +558,7 @@ def _dreamer(suggestions):
     return _Dreamer()
 
 
-def test_replay_keys_the_organs_real_nature_not_a_phantom(monkeypatch):
+def test_replay_keys_the_organs_real_category_not_a_phantom(monkeypatch):
     """The replay used to pass the literal `"dream"` as the nature, writing
     `dream:<worm>`. `dream` is NOT a nature in the live table (measured: 38 real
     natures across 472 edges, no `dream:` key), so routing would never read what

@@ -145,11 +145,11 @@ class TestClusterWORMZ(unittest.TestCase):
         self.assertIn("free_threaded", status)
         self.assertEqual(status["version"], "2.2.0")
 
-    def test_build_from_nature(self):
-        cluster = ClusterWORMZ.build_from_nature("orchestration")
+    def test_build_from_category(self):
+        cluster = ClusterWORMZ.build_from_category("orchestration")
         if cluster is not None:
             self.assertGreater(len(cluster.configs), 0)
-            self.assertIn("nature_orchestration", cluster.cluster_type)
+            self.assertIn("cat_orchestration", cluster.cluster_type)
 
     def test_build_from_registry(self):
         cluster = ClusterWORMZ.build_from_registry(["VulnScanner", "PortAuditor"])

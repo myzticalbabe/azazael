@@ -14,7 +14,7 @@ Features:
 - PAMS memory recording of every cluster action
 - MemoryBus publishing for inter-agent communication
 - Mermaid graph generation for cluster visualization
-- Nature-based cluster auto-building from registry categories
+- Category-based cluster auto-building from registry categories
 
 Usage:
     >>> from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
@@ -24,8 +24,8 @@ Usage:
     >>> results = cluster.execute_all()
     >>> aggregated = cluster.aggregate_results()
 
-    # Dynamic Nature-based clusters:
-    >>> cluster = ClusterWORMZ.build_from_nature("security")
+    # Dynamic category-based clusters:
+    >>> cluster = ClusterWORMZ.build_from_category("security")
     >>> print(cluster.to_mermaid())
 """
 
@@ -632,7 +632,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
     results to dicts automatically. Falls back to scanning ALL
     public parameterless methods if no standard method works.
 
-    Ask-owner boundary (U3, was NatureCluster._run_worm_method): a raised
+    Ask-owner boundary (U3, was ClusterWORMZ._run_worm_method): a raised
     clarification (duck-typed: question + decision_id) normalises to a
     needs_input outcome instead of a crash, preserving the decision_id
     for the rendezvous. Matched by shape, not import, so this module
@@ -803,7 +803,7 @@ class WormExecutor:
         
         Args:
             timeout: Override timeout in seconds.
-            max_retries: Override max retries for breaker backoff (e.g. from nature config).
+            max_retries: Override max retries for breaker backoff (e.g. from category config).
             cancellation_token: Optional CancellationToken for cooperative cancellation.
         """
         if cancellation_token and hasattr(cancellation_token, 'raise_if_cancelled'):
@@ -832,7 +832,7 @@ class WormExecutor:
         if not breaker:
             return self._execute_direct(timeout)
         
-        # Resolve max_retries: explicit override > nature config > cluster config > default
+        # Resolve max_retries: explicit override > cluster config > default
         if max_retries is not None:
             _max_retries = max_retries
         elif _cfg:
@@ -975,7 +975,7 @@ class ClusterWORMZ:
     - PAMS memory recording of every cluster action
     - MemoryBus publishing for inter-agent communication
     - Mermaid graph generation for cluster visualization
-    - Nature-based cluster auto-building from registry categories
+    - Category-based cluster auto-building from registry categories
     """
 
     VERSION = "2.2.0"
@@ -989,17 +989,16 @@ class ClusterWORMZ:
         self.timeout = 60
         self._execution_count: int = 0
         self._cancel_event: Optional[threading.Event] = None
-        # Per-nature config overrides (populated by build_from_nature)
-        self._nature_name: Optional[str] = None
-        self._nature_config: Any = None
-        self._nature_max_retries: Optional[int] = None
+        # Per-category config overrides (populated by build_from_category)
+        self._category_name: Optional[str] = None
+        self._category_config: Any = None
         # Cancellation token (3.14t-safe cooperative cancellation)
         self.cancellation_token = CancellationToken() if CancellationToken is not None else threading.Event()
         # Partial-failure bar for overall_status (2026-09-28): a run where
         # at least this share succeeded still counts as success.
         self._partial_failure_threshold = 1.0
         # U3: retirement/quarantine enforcement moved here from
-        # NatureCluster.execute. Skips from the last run; read by
+        # ClusterWORMZ.execute. Skips from the last run; read by
         # aggregate_results. A skip is recorded, never silent.
         self._last_skips: Dict[str, List[str]] = {"retired": [],
                                                   "quarantined": []}
@@ -1029,68 +1028,56 @@ class ClusterWORMZ:
     # ── Dynamic Cluster Building ──────────────────────────────────
 
     @classmethod
-    def build_from_nature(cls, nature: str) -> Optional["ClusterWORMZ"]:
+    def build_from_category(cls, category: str) -> Optional["ClusterWORMZ"]:
         """
-        Build a cluster dynamically from a Nature (category) in the worm registry.
+        Build a cluster dynamically from a category in the worm registry.
         """
         if not _REGISTRY_OK:
             return None
-        
+
         discover_worms()
-        cat_worms = get_worms_by_category(nature)
-        
+        cat_worms = get_worms_by_category(category)
+
         if not cat_worms:
-            warnings.warn(f"No worms found in Nature category '{nature}'. Available: {sorted(get_all_categories())}")
+            warnings.warn(
+                f"No worms found in category '{category}'. "
+                f"Available: {sorted(get_all_categories())}"
+            )
             return None
-        
-        cluster = cls(f"nature_{nature}")
-        # Clear auto-loaded configs and rebuild from registry
+
+        cluster = cls(f"cat_{category}")
+        cluster._category_name = category
+        try:
+            from CORE.config import get_config as _get_config
+            _cfg = _get_config()
+            cluster._category_config = _cfg.get_category_config(category)
+            if cluster._category_config.timeout:
+                cluster.timeout = cluster._category_config.timeout
+            if cluster._category_config.parallel is not None:
+                cluster.parallel = cluster._category_config.parallel
+        except Exception:
+            cluster._category_config = None
         cluster.configs = []
         for worm_name in sorted(cat_worms.keys()):
             cluster.add_worm(worm_name, worm_name)
-        
-        cluster._record("cluster_built_from_nature", {
-            "nature": nature, "worm_count": len(cat_worms),
+
+        cluster._record("cluster_built_from_category", {
+            "category": category, "worm_count": len(cat_worms),
             "worms": sorted(cat_worms.keys()),
         })
-        
-        # Apply per-nature config overrides from azazael.yaml
-        try:
-            get_cfg = _get_config
-            if get_cfg is None:
-                from CORE.config import get_config as get_cfg
-            cfg = get_cfg()
-            nature_cfg = cfg.get_nature_config(nature)
-            cluster._nature_name = nature
-            cluster._nature_config = nature_cfg
-            merged = nature_cfg.merge_with_cluster(cfg.clusters)
-            cluster.timeout = merged["timeout"]
-            cluster.parallel = merged["parallel"]
-            cluster._nature_max_retries = merged["max_retries"]
-            cluster._record("nature_config_applied", {
-                "nature": nature,
-                "timeout": cluster.timeout,
-                "parallel": cluster.parallel,
-                "max_retries": cluster._nature_max_retries,
-                "feeds_into": nature_cfg.feeds_into,
-            })
-        except ImportError:
-            warnings.warn(f"PyYAML not installed — per-nature config for '{nature}' skipped. Install: pip install pyyaml")
-        except Exception as e:  # noqa: BLE001 — config failure degrades to cluster defaults
-            warnings.warn(f"Failed to apply per-nature config for '{nature}': {e} — using cluster defaults")
-        
+
         mem_bus = _get_mem_bus()
         if mem_bus:
             try:
                 mem_bus.publish(
-                    "cluster.nature.built",
-                    {"nature": nature, "worm_count": len(cat_worms)},
+                    "cluster.category.built",
+                    {"category": category, "worm_count": len(cat_worms)},
                     source="ClusterWORMZ",
                 )
             except Exception as exc:  # noqa: BLE001 — bus publish best-effort
-                _note_failure("clusterworms:bus-publish-nature", exc)
+                _note_failure("clusterworms:bus-publish-category", exc)
                 pass
-        
+
         return cluster
 
     @classmethod
@@ -1162,7 +1149,7 @@ class ClusterWORMZ:
 
         `worm_names` optionally restricts to a subset (unknown names are
         ignored — ran, nothing invented, nothing lost). Retirement and
-        quarantine are ENFORCED here (U3, was NatureCluster.execute): a
+        quarantine are ENFORCED here (U3, was ClusterWORMZ.execute): a
         retired or quarantined worm is skipped and recorded, never run.
         """
         self._cancel_event = threading.Event()
@@ -1200,7 +1187,7 @@ class ClusterWORMZ:
         if worm_names is not None:
             wanted = set(worm_names)
             enabled_configs = [c for c in enabled_configs if c.name in wanted]
-        # U3 enforcement (was NatureCluster.execute): retirement and
+        # U3 enforcement (was ClusterWORMZ.execute): retirement and
         # quarantine gate the run, visibly. Skips land in _last_skips and
         # surface on the aggregate — a held-out worm must read as held out.
         enabled_configs = [c for c in enabled_configs
@@ -1347,9 +1334,9 @@ class ClusterWORMZ:
         executor = WormExecutor(config.name, config, self.state, self.cancellation_token)
         result = executor.execute(
             timeout=self.timeout,
-            max_retries=getattr(self, '_nature_max_retries', None),
+            max_retries=None,
         )
-        
+
         if not _get_breaker_registry():
             delay = 0.1
             for attempt in range(max(0, config.retry - 1)):
@@ -1364,7 +1351,7 @@ class ClusterWORMZ:
                 delay = min(delay * 2.0, 60.0)
                 result = executor.execute(
                     timeout=self.timeout,
-                    max_retries=getattr(self, '_nature_max_retries', None),
+                    max_retries=None,
                 )
 
         _record_cluster_worm_telemetry(config.name, result, cluster=self,
@@ -1474,9 +1461,8 @@ class ClusterWORMZ:
             "bus_ok": mem_bus is not None,
             "breaker_ok": breaker_reg is not None,
             "partial_failure_threshold": self._partial_failure_threshold,
-            "nature_name": self._nature_name,
-            "nature_max_retries": self._nature_max_retries,
-            "nature_config_applied": self._nature_config is not None,
+            "category_name": self._category_name,
+            "category_config_applied": self._category_config is not None,
             **breaker_stats,
         }
 
@@ -1761,7 +1747,7 @@ def run_popup():
     def show_clusters():
         text_area.delete("1.0", "end")
         log("=" * 60, "CLUSTER")
-        log("Available Clusters + Dynamic Natures", "CLUSTER")
+        log("Available Clusters + Dynamic Categories", "CLUSTER")
         log("=" * 60, "CLUSTER")
         for name, info in CLUSTER_REGISTRY.items():
             log(f"\n{name.upper()}:", "INFO")
@@ -1769,7 +1755,7 @@ def run_popup():
             log(f"  Worms: {', '.join(info['worms'])}", "INFO")
         
         if _REGISTRY_OK:
-            log(f"\n── Dynamic Nature Clusters ──", "CLUSTER")
+            log(f"\n── Dynamic Category Clusters ──", "CLUSTER")
             discover_worms()
             for cat in sorted(get_all_categories()):
                 cat_worms = get_worms_by_category(cat)
@@ -1837,8 +1823,8 @@ def main():
     parser.add_argument("--popup", action="store_true", help="Show popup window")
     parser.add_argument("--mermaid", action="store_true", help="Generate Mermaid graph")
     parser.add_argument("--mermaid-flow", action="store_true", help="Execution flow Mermaid")
-    parser.add_argument("--build-nature", type=str, help="Build cluster from Nature category")
-    parser.add_argument("--discover", action="store_true", help="Discover and list all Nature categories")
+    parser.add_argument("--build-category", type=str, help="Build cluster from registry category")
+    parser.add_argument("--discover", action="store_true", help="Discover and list all registry categories")
 
     args = parser.parse_args()
 
@@ -1849,7 +1835,7 @@ def main():
         if _REGISTRY_OK:
             discover_worms(progress_callback=_discover_progress)
             print(file=sys.stderr)  # close progress line
-            print("Nature Categories Available for Cluster Building:")
+            print("Categories Available for Cluster Building:")
             print()
             for cat in sorted(get_all_categories()):
                 cat_worms = get_worms_by_category(cat)
@@ -1862,10 +1848,10 @@ def main():
         else:
             print("Worm registry not available")
     
-    elif args.build_nature:
-        cluster = ClusterWORMZ.build_from_nature(args.build_nature)
+    elif args.build_category:
+        cluster = ClusterWORMZ.build_from_category(args.build_category)
         if cluster:
-            print(f"Built cluster from [{args.build_nature}] Nature: {len(cluster.configs)} worms")
+            print(f"Built cluster from [{args.build_category}] category: {len(cluster.configs)} worms")
             for c in cluster.configs:
                 print(f"  - {c.name}")
             cluster.set_parallel(args.parallel)
@@ -1877,7 +1863,7 @@ def main():
             if args.mermaid:
                 print("\n" + cluster.to_mermaid())
         else:
-            print(f"No worms found for Nature '{args.build_nature}'")
+            print(f"No worms found for category '{args.build_category}'")
     
     elif args.mermaid:
         cluster = ClusterWORMZ(args.type or "system")
@@ -1892,7 +1878,7 @@ def main():
         if _REGISTRY_OK:
             discover_worms(progress_callback=_discover_progress)
             print(file=sys.stderr)  # close progress line
-            print(f"\nDynamic Nature Categories: {len(get_all_categories())}")
+            print(f"\nDynamic Categories: {len(get_all_categories())}")
             for cat in sorted(get_all_categories()):
                 cat_worms = get_worms_by_category(cat)
                 print(f"  [{cat}]: {len(cat_worms)} worms")
@@ -1917,7 +1903,7 @@ def main():
         print("  python CLUSTERWORMS.py --type system --execute")
         print("  python CLUSTERWORMS.py --list")
         print("  python CLUSTERWORMS.py --type bibl --parallel --execute")
-        print("  python CLUSTERWORMS.py --build-nature security --execute")
+        print("  python CLUSTERWORMS.py --build-category security --execute")
         print("  python CLUSTERWORMS.py --discover")
         print("  python CLUSTERWORMS.py --mermaid")
         print("  python CLUSTERWORMS.py --popup")

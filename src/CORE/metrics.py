@@ -346,7 +346,7 @@ def start_metrics_server(port: int = 9090, host: str = "127.0.0.1",
 # LEGACY API — backward-compatible layer
 #
 # The metrics module was refactored to MetricsRegistry (Prometheus-style).
-# Many consumers (health_server, dashboard, notifier, workflow, NATURE_CLUSTERS,
+# Many consumers (health_server, dashboard, notifier, workflow, CLUSTERWORMS,
 # worm_health) still import the original in-memory collector / health check /
 # drift alert API. These classes restore that contract so those modules keep
 # working without edits.
@@ -519,7 +519,7 @@ health_check = HealthCheck()
 drift_alert = DriftAlert()
 
 
-# ── Legacy worm execution metrics (NATURE_CLUSTERS / worm_health) ───────
+# ── Legacy worm execution metrics (CLUSTERWORMS / worm_health) ───────
 
 
 class _WormMetrics:
@@ -562,7 +562,7 @@ _worm_metrics = _WormMetrics()
 
 def record_worm_execution(name: str, success: bool, duration_ms: float,
                           error: (str | None) = None):
-    """Record a single worm execution (legacy API used by NATURE_CLUSTERS)."""
+    """Record a single worm execution (legacy API used by CLUSTERWORMS)."""
     _worm_metrics.record(name, success, duration_ms)
 
 

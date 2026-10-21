@@ -216,7 +216,7 @@ def test_the_cycle_reports_an_unused_route_instead_of_settling_it(monkeypatch):
     cyc._pending_route = {"dst": "never-used-nature", "ms": 0.0}
     # A catastrophically unhealthy nature, which is exactly what phase 2 picks
     # and what the old code turned into a route failure.
-    monkeypatch.setattr(cyc, "_nature_rates",
+    monkeypatch.setattr(cyc, "_category_rates",
                         lambda: {"never-used-nature": 0.0})
 
     before = dict(sr.get_q_update_counts())
@@ -231,7 +231,7 @@ def test_the_cycle_reports_an_unused_route_instead_of_settling_it(monkeypatch):
             f"the cycle wrote a route verdict it did not observe: {key}")
 
 
-def test_a_nature_health_rate_is_not_a_route_verdict(monkeypatch):
+def test_a_category_health_rate_is_not_a_route_verdict(monkeypatch):
     """The specific conflation the forensic found.
 
     Phase 2 proposes to the least-healthy nature; phase 1 then declared the
@@ -240,8 +240,8 @@ def test_a_nature_health_rate_is_not_a_route_verdict(monkeypatch):
     no amount of good behaviour could clear, because nothing was ever measured.
     """
     cyc = _cycle()
-    cyc._pending_route = {"dst": "sick-nature", "ms": 0.0}
-    monkeypatch.setattr(cyc, "_nature_rates", lambda: {"sick-nature": 0.0})
+    cyc._pending_route = {"dst": "sick-category", "ms": 0.0}
+    monkeypatch.setattr(cyc, "_category_rates", lambda: {"sick-category": 0.0})
     monkeypatch.setattr(cyc, "_route_observation", lambda dst: None)
 
     out = cyc._mesh_route_feedback()

@@ -1,305 +1,383 @@
 graph TD
-    n0350["src_CORE_worm_registry.py"]
+    n0553["src_CORE_failure_ledger.py"]
     classDef area_0 fill:#111,stroke:#3fb950,color:#3fb950
-    n0327["src_CORE_paths.py"]
-    n0308["src_CORE_freethreading.py"]
-    n0303["src_CORE_direct_memory.py"]
-    n0292["src_CORE_compliance_pre_action_gate.py"]
-    n0323["src_CORE_local_memory.py"]
-    n0271["src_CORE_audit_trail.py"]
-    n0246["src_CORE_WORMS_expansion_learning.py (879)"]
-    n0318["src_CORE_inference_providers.py"]
-    n0212["src_CORE_WORMS_METACLUSTER.py"]
-    n0290["src_CORE_compliance_orchestrator.py"]
-    n0187["src_CORE_PamsRecorder.py"]
-    n0216["src_CORE_WORMS_NATURE_CLUSTERS.py"]
-    n0182["src_CORE_MemoryBus.py"]
-    n0273["src_CORE_azazael_ctl.py"]
-    n0301["src_CORE_dashboard.py"]
-    n0258["src_CORE_WORMS_expansion_scheduling.py"]
-    n0289["src_CORE_compliance_heuristic_recorder.py"]
-    n0300["src_CORE_config.py"]
-    n0505["src_SCRIPTS_sentinel_gate.py"]
+    n0646["src_CORE_worm_registry.py"]
+    n0583["src_CORE_local_memory.py"]
+    n0596["src_CORE_paths___init__.py"]
+    n0493["src_CORE___init__.py"]
+    n0541["src_CORE_direct_memory.py"]
+    n0555["src_CORE_freethreading.py"]
+    n0477["src_CORE_WORMS_expansion_spine.py"]
+    n0504["src_CORE_audit_trail.py"]
+    n0340["src_CORE_PamsRecorder.py"]
+    n0443["src_CORE_WORMS_expansion_learning.py"]
+    n0573["src_CORE_inference_providers.py"]
+    n0623["src_CORE_technique_runtime.py"]
+    n0369["src_CORE_WORMS_METACLUSTER.py"]
+    n0354["src_CORE_WORMS_CLUSTERWORMS.py"]
+    n0400["src_CORE_WORMS_expansion___init__.py"]
+    n0470["src_CORE_WORMS_expansion_scheduling.py"]
+    n0506["src_CORE_azazael_ctl.py"]
+    n0529["src_CORE_compliance_pre_action_gate.py"]
+    n0448["src_CORE_WORMS_expansion_learning_rl.py"]
+    n0452["src_CORE_WORMS_expansion_mesh.py"]
+    n0336["src_CORE_MemoryBus.py"]
+    n0088["scripts_evolution_cycle.py"]
     classDef area_1 fill:#111,stroke:#58a6ff,color:#58a6ff
-    n0600["src_tests_test_learning_loop.py"]
+    n0162["scripts_run_training_orchestrator.py"]
+    n0338["src_CORE_NeuralPipeline.py"]
+    n0446["src_CORE_WORMS_expansion_learning_grpo.py"]
+    n0527["src_CORE_compliance_orchestrator.py"]
+    n0538["src_CORE_dashboard.py"]
+    n0174["scripts_technique_heartbeat.py"]
+    n0422["src_CORE_WORMS_expansion_dreaming.py"]
+    n0453["src_CORE_WORMS_expansion_meta_cognition.py"]
+    n0514["src_CORE_circuit_breaker.py"]
+    n0908["src_tests_test_learning_loop.py"]
     classDef area_2 fill:#111,stroke:#8b949e,color:#8b949e
-    n0199["src_CORE_WORMS_CLUSTERWORMS.py"]
-    n0339["src_CORE_sb3_agent.py"]
-    n0345["src_CORE_uuid7.py"]
-    n0588["src_scripts_sentinel_gate.py"]
+    n0191["scripts_verify_proteus.py"]
+    n0418["src_CORE_WORMS_expansion_db_monitor.py"]
+    n0549["src_CORE_env_id.py"]
+    n0428["src_CORE_WORMS_expansion_evolution.py"]
+    n0464["src_CORE_WORMS_expansion_queens.py"]
+    n0476["src_CORE_WORMS_expansion_spawn_credit.py"]
+    n0537["src_CORE_config.py"]
+    n0625["src_CORE_technique_wiring__b01_05.py"]
+    n0638["src_CORE_uuid7.py"]
+    n0643["src_CORE_workflow.py"]
+    n0824["src_SCRIPTS_sentinel_gate.py"]
     classDef area_3 fill:#111,stroke:#58a6ff,color:#58a6ff
-    n0177["src_CORE_Agent.py"]
-    n0184["src_CORE_NeuralPipeline.py"]
-    n0243["src_CORE_WORMS_expansion_dreaming.py (779)"]
-    n0249["src_CORE_WORMS_expansion_learning_grpo.py"]
-    n0254["src_CORE_WORMS_expansion_meta_cognition.py (135)"]
-    n0265["src_CORE___init__.py"]
-    n0279["src_CORE_circuit_breaker.py"]
-    n0309["src_CORE_health_server.py"]
-    n0072["scripts_scenario_a_full_pipeline.py"]
-    n0223["src_CORE_WORMS_PARALLEL_INFERENCE_WORM.py"]
-    n0242["src_CORE_WORMS_expansion_db_monitor.py"]
-    n0248["src_CORE_WORMS_expansion_learning_features.py"]
-    n0250["src_CORE_WORMS_expansion_learning_pipeline.py"]
-    n0252["src_CORE_WORMS_expansion_learning_rl.py"]
-    n0348["src_CORE_workflow.py"]
-    n0561["src_eve_unleashed_engine.py"]
-    classDef area_4 fill:#111,stroke:#f0883e,color:#f0883e
-    n0074["scripts_scenario_c_distillation_pipeline.py"]
-    n0075["scripts_scenario_d_nas_pipeline.py"]
-    n0100["src_AzazaelDynamicLogger.py"]
-    classDef area_5 fill:#111,stroke:#76e3ea,color:#76e3ea
-    n0190["src_CORE_WORMS_BINARY_ANALYSIS.py"]
-    n0203["src_CORE_WORMS_CROSS_NATURE_ROUTER.py"]
-    n0211["src_CORE_WORMS_INFERENCE_WORM.py"]
-    n0235["src_CORE_WORMS___init__.py"]
-    n0253["src_CORE_WORMS_expansion_learning_versioner.py"]
-    n0304["src_CORE_doctor.py"]
-    n0317["src_CORE_inference_parallel.py"]
-    n0325["src_CORE_metrics.py"]
-    n0341["src_CORE_sentinel_enforcer.py"]
-    n0347["src_CORE_web_dashboard.py"]
-    n0569["src_memory_status.py"]
-    classDef area_6 fill:#111,stroke:#ff7b72,color:#ff7b72
-    n0015["scripts_bcc_network_sna.py"]
-    n0083["scripts_update_header_and_render.py"]
-    n0194["src_CORE_WORMS_BINARY_ANALYSIS_TYPES.py"]
-    n0219["src_CORE_WORMS_NIM_INFERENCE.py"]
-    n0247["src_CORE_WORMS_expansion_learning_ab.py"]
-    class n0350 area_0
-    class n0327 area_0
-    class n0308 area_0
-    class n0303 area_0
-    class n0292 area_0
-    class n0323 area_0
-    class n0271 area_0
-    class n0246 area_0
-    class n0318 area_0
-    class n0212 area_0
-    class n0290 area_0
-    class n0187 area_0
-    class n0216 area_0
-    class n0182 area_0
-    class n0273 area_0
-    class n0301 area_0
-    class n0258 area_0
-    class n0289 area_0
-    class n0300 area_0
-    class n0505 area_1
-    class n0600 area_2
-    class n0199 area_0
-    class n0339 area_0
-    class n0345 area_0
-    class n0588 area_3
-    class n0177 area_0
-    class n0184 area_0
-    class n0243 area_0
-    class n0249 area_0
-    class n0254 area_0
-    class n0265 area_0
-    class n0279 area_0
-    class n0309 area_0
-    class n0072 area_3
-    class n0223 area_0
-    class n0242 area_0
-    class n0248 area_0
-    class n0250 area_0
-    class n0252 area_0
-    class n0348 area_0
-    class n0561 area_4
-    class n0074 area_3
-    class n0075 area_3
-    class n0100 area_5
-    class n0190 area_0
-    class n0203 area_0
-    class n0211 area_0
-    class n0235 area_0
-    class n0253 area_0
-    class n0304 area_0
-    class n0317 area_0
-    class n0325 area_0
-    class n0341 area_0
-    class n0347 area_0
-    class n0569 area_6
-    class n0015 area_3
-    class n0083 area_3
-    class n0194 area_0
-    class n0219 area_0
-    class n0247 area_0
-    n0072 --> n0246
-    n0072 --> n0249
-    n0072 --> n0350
-    n0072 --> n0318
-    n0074 --> n0246
-    n0074 --> n0339
-    n0074 --> n0350
-    n0075 --> n0249
-    n0075 --> n0318
-    n0075 --> n0339
-    n0075 --> n0246
-    n0083 --> n0350
-    n0083 --> n0303
-    n0083 --> n0300
-    n0083 --> n0290
-    n0100 --> n0569
-    n0177 --> n0345
-    n0177 --> n0308
-    n0177 --> n0187
-    n0177 --> n0182
-    n0177 --> n0254
-    n0177 --> n0339
-    n0182 --> n0345
-    n0182 --> n0308
-    n0182 --> n0199
-    n0182 --> n0203
-    n0182 --> n0212
-    n0184 --> n0246
-    n0184 --> n0339
-    n0184 --> n0249
-    n0184 --> n0318
-    n0184 --> n0323
-    n0184 --> n0308
-    n0187 --> n0345
-    n0187 --> n0323
-    n0187 --> n0194
-    n0187 --> n0199
-    n0187 --> n0203
-    n0187 --> n0212
-    n0187 --> n0216
-    n0187 --> n0350
-    n0190 --> n0194
-    n0190 --> n0350
-    n0199 --> n0350
-    n0199 --> n0308
-    n0199 --> n0279
-    n0199 --> n0300
-    n0199 --> n0235
-    n0203 --> n0216
-    n0203 --> n0211
-    n0203 --> n0212
-    n0211 --> n0350
-    n0211 --> n0318
-    n0212 --> n0216
-    n0212 --> n0350
-    n0212 --> n0308
-    n0212 --> n0325
-    n0212 --> n0300
-    n0212 --> n0279
-    n0212 --> n0235
-    n0212 --> n0301
-    n0212 --> n0309
-    n0212 --> n0348
-    n0216 --> n0350
-    n0216 --> n0308
-    n0216 --> n0300
-    n0216 --> n0279
-    n0216 --> n0235
-    n0219 --> n0350
-    n0219 --> n0318
-    n0223 --> n0350
-    n0223 --> n0317
-    n0223 --> n0303
-    n0223 --> n0318
-    n0223 --> n0308
-    n0242 --> n0350
-    n0242 --> n0308
-    n0242 --> n0323
-    n0242 --> n0258
-    n0242 --> n0301
-    n0243 --> n0323
-    n0243 --> n0350
-    n0243 --> n0265
-    n0243 --> n0254
-    n0243 --> n0600
-    n0246 --> n0252
-    n0246 --> n0253
-    n0246 --> n0250
-    n0246 --> n0248
-    n0246 --> n0247
-    n0246 --> n0350
-    n0246 --> n0308
-    n0246 --> n0249
-    n0246 --> n0258
-    n0246 --> n0339
-    n0246 --> n0348
-    n0246 --> n0600
-    n0247 --> n0350
-    n0247 --> n0308
-    n0247 --> n0600
-    n0248 --> n0350
-    n0248 --> n0308
-    n0248 --> n0250
-    n0248 --> n0252
-    n0248 --> n0600
-    n0249 --> n0350
-    n0249 --> n0323
-    n0250 --> n0350
-    n0250 --> n0308
-    n0250 --> n0323
-    n0250 --> n0600
-    n0252 --> n0350
-    n0252 --> n0308
-    n0252 --> n0323
-    n0252 --> n0600
-    n0253 --> n0350
-    n0253 --> n0308
-    n0253 --> n0323
-    n0253 --> n0600
-    n0254 --> n0323
-    n0254 --> n0350
-    n0254 --> n0600
-    n0258 --> n0350
-    n0258 --> n0308
-    n0258 --> n0323
-    n0258 --> n0339
-    n0258 --> n0301
-    n0265 --> n0303
-    n0265 --> n0308
-    n0265 --> n0271
-    n0271 --> n0345
-    n0271 --> n0273
-    n0271 --> n0304
-    n0271 --> n0505
-    n0271 --> n0588
-    n0273 --> n0303
-    n0273 --> n0308
-    n0273 --> n0304
-    n0279 --> n0300
-    n0279 --> n0301
-    n0279 --> n0309
-    n0289 --> n0303
-    n0289 --> n0292
-    n0289 --> n0505
-    n0289 --> n0588
-    n0290 --> n0341
-    n0290 --> n0292
-    n0290 --> n0505
-    n0290 --> n0588
-    n0292 --> n0303
-    n0292 --> n0341
-    n0292 --> n0505
-    n0292 --> n0588
-    n0300 --> n0301
-    n0300 --> n0323
-    n0300 --> n0348
-    n0301 --> n0325
-    n0301 --> n0323
-    n0301 --> n0348
-    n0301 --> n0347
-    n0301 --> n0309
-    n0303 --> n0304
-    n0303 --> n0325
-    n0303 --> n0505
-    n0303 --> n0588
-    n0308 --> n0317
-    n0309 --> n0325
-    n0309 --> n0323
-    n0309 --> n0347
-    n0317 --> n0318
-    n0323 --> n0345
-    n0323 --> n0348
-    n0323 --> n0600
-    n0341 --> n0505
-    n0341 --> n0588
-    n0345 --> n0350
-    n0348 --> n0350
+    n0330["src_CORE_Agent.py"]
+    n0413["src_CORE_WORMS_expansion_consensus.py"]
+    n0417["src_CORE_WORMS_expansion_cutting_edge_model.py"]
+    n0449["src_CORE_WORMS_expansion_learning_versioner.py"]
+    n0463["src_CORE_WORMS_expansion_proteus_hooks.py"]
+    n0539["src_CORE_data_retention.py"]
+    n0543["src_CORE_doctor.py"]
+    n0562["src_CORE_health_server.py"]
+    n0584["src_CORE_log_hygiene.py"]
+    n0631["src_CORE_technique_wiring__l5_dispatch.py"]
+    n0633["src_CORE_technique_wiring__l7_interface.py"]
+    n0639["src_CORE_verification_gate.py"]
+    n0686["src_META_InferenceBridge.py"]
+    classDef area_4 fill:#111,stroke:#e3b341,color:#e3b341
+    n0885["src_eve_unleashed_engine.py"]
+    classDef area_5 fill:#111,stroke:#f0883e,color:#f0883e
+    n0178["scripts_trace_adaptation.py"]
+    n0202["src_AOA_arms_eve_arm.py"]
+    classDef area_6 fill:#111,stroke:#f778ba,color:#f778ba
+    class n0553 area_0
+    class n0646 area_0
+    class n0583 area_0
+    class n0596 area_0
+    class n0493 area_0
+    class n0541 area_0
+    class n0555 area_0
+    class n0477 area_0
+    class n0504 area_0
+    class n0340 area_0
+    class n0443 area_0
+    class n0573 area_0
+    class n0623 area_0
+    class n0369 area_0
+    class n0354 area_0
+    class n0400 area_0
+    class n0470 area_0
+    class n0506 area_0
+    class n0529 area_0
+    class n0448 area_0
+    class n0452 area_0
+    class n0336 area_0
+    class n0088 area_1
+    class n0162 area_1
+    class n0338 area_0
+    class n0446 area_0
+    class n0527 area_0
+    class n0538 area_0
+    class n0174 area_1
+    class n0422 area_0
+    class n0453 area_0
+    class n0514 area_0
+    class n0908 area_2
+    class n0191 area_1
+    class n0418 area_0
+    class n0549 area_0
+    class n0428 area_0
+    class n0464 area_0
+    class n0476 area_0
+    class n0537 area_0
+    class n0625 area_0
+    class n0638 area_0
+    class n0643 area_0
+    class n0824 area_3
+    class n0330 area_0
+    class n0413 area_0
+    class n0417 area_0
+    class n0449 area_0
+    class n0463 area_0
+    class n0539 area_0
+    class n0543 area_0
+    class n0562 area_0
+    class n0584 area_0
+    class n0631 area_0
+    class n0633 area_0
+    class n0639 area_0
+    class n0686 area_4
+    class n0885 area_5
+    class n0178 area_1
+    class n0202 area_6
+    n0088 --> n0428
+    n0088 --> n0443
+    n0088 --> n0470
+    n0088 --> n0583
+    n0088 --> n0463
+    n0088 --> n0541
+    n0162 --> n0446
+    n0162 --> n0583
+    n0162 --> n0443
+    n0162 --> n0541
+    n0162 --> n0470
+    n0162 --> n0422
+    n0162 --> n0428
+    n0162 --> n0338
+    n0162 --> n0354
+    n0162 --> n0646
+    n0174 --> n0553
+    n0174 --> n0623
+    n0174 --> n0583
+    n0174 --> n0446
+    n0174 --> n0464
+    n0174 --> n0338
+    n0174 --> n0354
+    n0178 --> n0470
+    n0178 --> n0400
+    n0178 --> n0448
+    n0178 --> n0443
+    n0178 --> n0583
+    n0178 --> n0449
+    n0202 --> n0553
+    n0202 --> n0646
+    n0202 --> n0354
+    n0202 --> n0369
+    n0330 --> n0638
+    n0330 --> n0553
+    n0330 --> n0555
+    n0330 --> n0340
+    n0330 --> n0336
+    n0330 --> n0453
+    n0336 --> n0638
+    n0336 --> n0553
+    n0336 --> n0555
+    n0336 --> n0541
+    n0336 --> n0354
+    n0336 --> n0369
+    n0338 --> n0443
+    n0338 --> n0446
+    n0338 --> n0573
+    n0338 --> n0583
+    n0338 --> n0504
+    n0338 --> n0555
+    n0338 --> n0417
+    n0338 --> n0553
+    n0340 --> n0638
+    n0340 --> n0553
+    n0340 --> n0596
+    n0340 --> n0583
+    n0340 --> n0354
+    n0340 --> n0369
+    n0340 --> n0646
+    n0354 --> n0553
+    n0354 --> n0646
+    n0354 --> n0555
+    n0354 --> n0514
+    n0354 --> n0537
+    n0354 --> n0493
+    n0354 --> n0369
+    n0369 --> n0596
+    n0369 --> n0553
+    n0369 --> n0646
+    n0369 --> n0555
+    n0369 --> n0537
+    n0369 --> n0514
+    n0369 --> n0623
+    n0369 --> n0538
+    n0369 --> n0562
+    n0369 --> n0643
+    n0400 --> n0553
+    n0400 --> n0477
+    n0400 --> n0623
+    n0400 --> n0625
+    n0400 --> n0646
+    n0413 --> n0553
+    n0413 --> n0646
+    n0413 --> n0493
+    n0413 --> n0477
+    n0413 --> n0633
+    n0417 --> n0553
+    n0417 --> n0646
+    n0417 --> n0448
+    n0418 --> n0553
+    n0418 --> n0646
+    n0418 --> n0555
+    n0418 --> n0583
+    n0418 --> n0448
+    n0418 --> n0470
+    n0418 --> n0538
+    n0422 --> n0553
+    n0422 --> n0583
+    n0422 --> n0646
+    n0422 --> n0453
+    n0422 --> n0477
+    n0422 --> n0908
+    n0428 --> n0553
+    n0428 --> n0583
+    n0428 --> n0646
+    n0428 --> n0477
+    n0443 --> n0448
+    n0443 --> n0449
+    n0443 --> n0553
+    n0443 --> n0646
+    n0443 --> n0555
+    n0443 --> n0446
+    n0443 --> n0470
+    n0443 --> n0643
+    n0443 --> n0908
+    n0446 --> n0553
+    n0446 --> n0646
+    n0446 --> n0583
+    n0446 --> n0453
+    n0446 --> n0908
+    n0448 --> n0553
+    n0448 --> n0646
+    n0448 --> n0555
+    n0448 --> n0583
+    n0448 --> n0908
+    n0449 --> n0553
+    n0449 --> n0646
+    n0449 --> n0555
+    n0449 --> n0583
+    n0449 --> n0908
+    n0452 --> n0553
+    n0452 --> n0549
+    n0452 --> n0646
+    n0452 --> n0555
+    n0452 --> n0493
+    n0452 --> n0477
+    n0453 --> n0553
+    n0453 --> n0583
+    n0453 --> n0646
+    n0453 --> n0639
+    n0453 --> n0908
+    n0463 --> n0553
+    n0464 --> n0553
+    n0464 --> n0646
+    n0464 --> n0493
+    n0464 --> n0549
+    n0464 --> n0623
+    n0464 --> n0583
+    n0464 --> n0477
+    n0470 --> n0553
+    n0470 --> n0646
+    n0470 --> n0555
+    n0470 --> n0583
+    n0470 --> n0538
+    n0476 --> n0553
+    n0476 --> n0583
+    n0476 --> n0477
+    n0476 --> n0646
+    n0477 --> n0553
+    n0477 --> n0646
+    n0477 --> n0493
+    n0477 --> n0549
+    n0477 --> n0573
+    n0477 --> n0623
+    n0493 --> n0541
+    n0493 --> n0555
+    n0493 --> n0504
+    n0493 --> n0553
+    n0493 --> n0538
+    n0493 --> n0583
+    n0493 --> n0596
+    n0493 --> n0623
+    n0493 --> n0625
+    n0493 --> n0633
+    n0493 --> n0639
+    n0493 --> n0646
+    n0504 --> n0638
+    n0504 --> n0553
+    n0504 --> n0506
+    n0504 --> n0539
+    n0504 --> n0541
+    n0504 --> n0543
+    n0504 --> n0824
+    n0506 --> n0553
+    n0506 --> n0541
+    n0506 --> n0555
+    n0506 --> n0646
+    n0506 --> n0543
+    n0506 --> n0539
+    n0514 --> n0553
+    n0514 --> n0639
+    n0514 --> n0623
+    n0514 --> n0537
+    n0514 --> n0538
+    n0514 --> n0562
+    n0527 --> n0553
+    n0527 --> n0529
+    n0527 --> n0824
+    n0529 --> n0553
+    n0529 --> n0541
+    n0529 --> n0639
+    n0529 --> n0824
+    n0537 --> n0553
+    n0537 --> n0538
+    n0537 --> n0583
+    n0537 --> n0643
+    n0538 --> n0553
+    n0538 --> n0583
+    n0538 --> n0643
+    n0538 --> n0562
+    n0539 --> n0553
+    n0539 --> n0541
+    n0539 --> n0543
+    n0539 --> n0583
+    n0541 --> n0553
+    n0541 --> n0583
+    n0541 --> n0543
+    n0541 --> n0824
+    n0543 --> n0553
+    n0543 --> n0646
+    n0549 --> n0553
+    n0553 --> n0555
+    n0553 --> n0562
+    n0553 --> n0573
+    n0553 --> n0583
+    n0553 --> n0584
+    n0553 --> n0596
+    n0553 --> n0623
+    n0553 --> n0625
+    n0553 --> n0631
+    n0553 --> n0633
+    n0553 --> n0638
+    n0553 --> n0639
+    n0553 --> n0643
+    n0553 --> n0646
+    n0553 --> n0686
+    n0553 --> n0824
+    n0553 --> n0885
+    n0553 --> n0908
+    n0562 --> n0583
+    n0583 --> n0638
+    n0583 --> n0639
+    n0583 --> n0623
+    n0583 --> n0625
+    n0583 --> n0643
+    n0583 --> n0686
+    n0583 --> n0908
+    n0623 --> n0625
+    n0623 --> n0631
+    n0623 --> n0633
+    n0625 --> n0639
+    n0638 --> n0646
+    n0643 --> n0646
+    n0646 --> n0686

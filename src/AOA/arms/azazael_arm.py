@@ -33,7 +33,7 @@ class AzazaelArm(BaseArm):
             elif capability=="run_cluster":
                 nature=payload.get("nature","monitor")
                 from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
-                cluster=ClusterWORMZ.build_from_nature(nature)
+                cluster=ClusterWORMZ.build_from_category(nature)
                 results=cluster.execute_all()
                 return {"status":"ok","data":{"nature":nature,"results_count":len(results),"results":results}}
             elif capability=="run_metacluster":
@@ -41,7 +41,7 @@ class AzazaelArm(BaseArm):
                 mc=MetaCluster()
                 mc.discover_all()
                 result=mc.orchestrate()
-                return {"status":"ok","data":{"natures_executed":result.natures_executed,"total_worms_ok":result.total_worms_ok,"total_worms_fail":result.total_worms_fail}}
+                return {"status":"ok","data":{"categories_executed":result.categories_executed,"total_worms_ok":result.total_worms_ok,"total_worms_fail":result.total_worms_fail}}
             elif capability=="get_status":
                 from CORE.worm_registry import WORM_REGISTRY
                 return {"status":"ok","data":{"total_worms":len(WORM_REGISTRY),"initialized":self._initialized}}
@@ -50,7 +50,7 @@ class AzazaelArm(BaseArm):
             note_failure("azazael_arm:L40", e)
             return {"status":"error","error":str(e)}
     def get_capabilities(self)->List[ArmCapability]:
-        return [ArmCapability("discover_worms","Discover all 77 registered worms",category="registry"),ArmCapability("run_cluster","Execute a NatureCluster by category",category="execution"),ArmCapability("run_metacluster","Run full MetaCluster orchestration",category="execution"),ArmCapability("get_status","Get Azazael status",category="monitoring")]
+        return [ArmCapability("discover_worms","Discover all 77 registered worms",category="registry"),ArmCapability("run_cluster","Execute a ClusterWORMZ by category",category="execution"),ArmCapability("run_metacluster","Run full MetaCluster orchestration",category="execution"),ArmCapability("get_status","Get Azazael status",category="monitoring")]
     def shutdown(self)->bool:
         self._initialized=False
         return True

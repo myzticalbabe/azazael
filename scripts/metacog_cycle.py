@@ -8,7 +8,7 @@ human-approved (no config writes here).
 Evidence sources (all real, live event types with actual producers):
   - db_health_snapshot (DatabaseMonitorWorm, ~every 15 min)  -> 'database'
   - cluster_execution_completed (ClusterWORMZ.system)         -> cluster_type
-  - nature_cluster_executed   (NatureClusters)                -> nature
+  - nature_cluster_executed   (ClusterWORMZs)                -> nature
 Feeding the health monitor is what gives the evidence channel a signal on
 cadence even when no cluster batch is running.
 """

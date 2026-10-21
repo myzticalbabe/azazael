@@ -180,7 +180,7 @@ class LoopContext:
     rewards: Dict[str, float] = field(default_factory=dict)
     #: observations per organ -- the evidence behind `rewards[organ]`
     evidence: Dict[str, int] = field(default_factory=dict)
-    natures: Dict[str, str] = field(default_factory=dict)
+    categories: Dict[str, str] = field(default_factory=dict)
     order: List[str] = field(default_factory=list)
     executed: List[Dict[str, Any]] = field(default_factory=list)
     results: List[StageResult] = field(default_factory=list)
@@ -349,7 +349,7 @@ def _stage_perceive(ctx: LoopContext) -> StageResult:
     )
 
 
-def _nature_of(entry: Any) -> Optional[str]:
+def _category_of(entry: Any) -> Optional[str]:
     """An organ's nature, from whichever shape the registry entry has.
 
     `WORM_REGISTRY` values are plain DICTS whose field is `category`, not objects
@@ -380,18 +380,18 @@ def _stage_credit(ctx: LoopContext) -> StageResult:
         note_failure("neural_loop:L355", exc)
     unresolved, nonzero = [], 0
     for name, val in ctx.rewards.items():
-        nature = _nature_of(WORM_REGISTRY.get(name))
-        if not nature:
+        category = _category_of(WORM_REGISTRY.get(name))
+        if not category:
             unresolved.append(name)
             continue
-        ctx.natures[name] = nature
+        ctx.categories[name] = category
         if abs(float(val or 0.0)) > EPSILON:
             nonzero += 1
     ctx.note("credit: %d resolved, %d unresolved, %d nonzero"
-             % (len(ctx.natures), len(unresolved), nonzero))
+             % (len(ctx.categories), len(unresolved), nonzero))
     return StageResult(
         "credit", True, changed=False,
-        evidence={"resolved": len(ctx.natures), "unresolved": len(unresolved),
+        evidence={"resolved": len(ctx.categories), "unresolved": len(unresolved),
                   "nonzero": nonzero, "unresolved_sample": unresolved[:5]},
     )
 
@@ -431,7 +431,7 @@ def _stage_plasticity(ctx: LoopContext) -> StageResult:
     # Population baseline over the SAME organs the write will touch, so the
     # advantage is relative to a comparable population rather than to the fleet
     # as a whole (which includes organs this stage will skip).
-    scored = [(n, float(ctx.rewards.get(n) or 0.0)) for n in ctx.natures]
+    scored = [(n, float(ctx.rewards.get(n) or 0.0)) for n in ctx.categories]
     if not scored:
         return StageResult("plasticity", True, changed=False,
                            blocked="no resolved organs to score")
@@ -451,9 +451,9 @@ def _stage_plasticity(ctx: LoopContext) -> StageResult:
         if abs(step) <= MOVE_TOLERANCE:
             flat += 1
             continue
-        nature = ctx.natures[name]
+        category = ctx.categories[name]
         try:
-            sr.record_outcome(nature, name, success=advantage > 0.0,
+            sr.record_outcome(category, name, success=advantage > 0.0,
                               duration_ms=0.0, delta=step)
             updates += 1
             wrote += 1
@@ -479,13 +479,13 @@ def _stage_route(ctx: LoopContext) -> StageResult:
     cycle that learns is the cycle that acts on it.
     """
     from CORE import spine_registry as sr
-    natures: Dict[str, List[str]] = {}
-    for name, nature in ctx.natures.items():
-        natures.setdefault(nature, []).append(name)
+    categories: Dict[str, List[str]] = {}
+    for name, category in ctx.categories.items():
+        categories.setdefault(category, []).append(name)
     order: List[str] = []
-    for nature, names in sorted(natures.items()):
+    for category, names in sorted(categories.items()):
         try:
-            order.extend(sr.q_order(nature, names))
+            order.extend(sr.q_order(category, names))
         except Exception as exc:
             note_failure("neural_loop:L464", exc)
             order.extend(sorted(names))
@@ -505,7 +505,7 @@ def _stage_route(ctx: LoopContext) -> StageResult:
         try:
             mode = ctx.mode_decider({
                 "order": list(order),
-                "natures": dict(natures),
+                "categories": dict(categories),
                 "turn": ctx.turns,
             })
         except Exception as exc:
@@ -567,7 +567,7 @@ def _stage_act(ctx: LoopContext) -> StageResult:
 def _stage_grade(ctx: LoopContext) -> StageResult:
     """Confirm grading happened, by re-reading the tap.
 
-    Grading itself is done by the executor (NatureCluster records an outcome per
+    Grading itself is done by the executor (ClusterWORMZ records an outcome per
     organ as it runs), so this stage's honest job is NOT to grade again -- it is
     to CHECK that grading occurred. The check is independent of the executor's
     own summary: it re-reads the outcome tap and compares its row count to the

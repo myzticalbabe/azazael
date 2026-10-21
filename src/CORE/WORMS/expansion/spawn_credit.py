@@ -12,7 +12,7 @@ The architecture already records BOTH halves of a decision it never learns from:
 Both streams exist in LocalMemoryStore today. Neither is consumed by any
 learner: the only readers are dashboard scripts (``lilith_live_monitor.py``),
 and the decider itself (``SpawnDiversityEngine``) is instantiated once at
-``NATURE_CLUSTERS.py`` and never called - ``pick_next_spawn`` has no live
+``CLUSTERWORMS.py`` and never called - ``pick_next_spawn`` has no live
 caller outside the archived Libra copy.
 
 So the self-improvement loop is open at exactly one place: **the join**. The

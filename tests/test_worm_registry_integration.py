@@ -9,7 +9,7 @@ paths the runtime uses:
   * worm_registry.discover_worms()      -> imports real modules into WORM_REGISTRY
   * WORM_REGISTRY / get_all_categories / get_worms_by_category
   * CLUSTERWORMS._resolve_worm_dynamic  -> Strategy 1 (real registry) execution
-  * NatureClusterManager.discover_all_natures() -> real category grouping
+  * ClusterManager.discover_all_natures() -> real category grouping
 
 Only safe, deterministic worms are executed (profiling / read-only get_summary).
 Run standalone (python tests/test_worm_registry_integration.py) or under pytest.
@@ -51,7 +51,7 @@ from CORE.WORMS.CLUSTERWORMS import _resolve_worm_dynamic
 def _ensure_discovered() -> int:
     """Idempotently populate the REAL registry (cache-backed after first run).
 
-    Import side-effects of CLUSTERWORMS / NATURE_CLUSTERS leave a tiny partial
+    Import side-effects of CLUSTERWORMS / CLUSTERWORMS leave a tiny partial
     registry (a few worms, _discovery_done=False). Guarding on *emptiness* was
     unreliable across runners, so we force a deterministic full discovery when
     the registry hasn't been fully built yet (len < 20 -> cache-backed load).
@@ -177,14 +177,14 @@ class TestWormDynamicResolutionEndToEnd:
 # ═══════════════════════════════════════════════════════════════════
 
 
-class TestNatureClustersRealRegistry:
+class TestClusterWORMZsRealRegistry:
     """Verify the flat registry groups real worms by category end-to-end.
 
-    U3: was NatureClusterManager.discover_all_natures; the grouping now comes
+    U3: was ClusterManager.discover_all_natures; the grouping now comes
     straight from get_all_categories/get_worms_by_category.
     """
 
-    def test_nature_grouping_from_real_registry(self):
+    def test_category_grouping_from_real_registry(self):
         """Registry categories should group the bulk of real worms."""
         _ensure_discovered()
         from CORE.worm_registry import get_all_categories, get_worms_by_category
@@ -197,7 +197,7 @@ class TestNatureClustersRealRegistry:
         for nature in counts:
             assert nature in cats, f"{nature} is not a real registry category"
 
-    def test_nature_total_within_registry_bounds(self):
+    def test_category_total_within_registry_bounds(self):
         """Category grouping should account for at most the real registered worms."""
         _ensure_discovered()
         from CORE.worm_registry import get_all_categories, get_worms_by_category

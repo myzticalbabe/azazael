@@ -207,10 +207,10 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
         mc = MetaCluster()
         mc_state = mc.get_status()
         report["metacluster"] = {
-            "natures": mc_state.get("ncm", {}).get("natures", 0),
+            "categories": mc_state.get("ncm", {}).get("natures", 0),
             "total_worms": mc_state.get("ncm", {}).get("total_worms", 0),
             "routing_paths": mc_state.get("routing_paths", 0),
-            "cross_nature_routes": mc_state.get("cross_nature_routes", 0),
+            "cross_category_routes": mc_state.get("cross_category_routes", 0),
             "orchestration_history": mc_state.get("orchestration_history", 0),
         }
     except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
@@ -361,7 +361,7 @@ def _mesh_report() -> dict[str, Any]:
                 "fail": cycle.get("fail"),
                 "duration_s": cycle.get("duration_s"),
                 "complete": cycle.get("complete"),
-                "natures": len(cycle.get("natures") or {}),
+                "categories": len(cycle.get("natures") or {}),
                 "worst": sorted(
                     ((n, (r or {}).get("ms")) for n, r in (cycle.get("natures") or {}).items()),
                     key=lambda kv: -(kv[1] or 0))[:5],
@@ -803,7 +803,7 @@ def render_meta():
     print(f"  Natures: {ncm.get('natures', '?')}")
     print(f"  Total worms: {ncm.get('total_worms', '?')}")
     print(f"  Routing paths: {status.get('routing_paths', '?')}")
-    print(f"  Cross-Nature routes: {status.get('cross_nature_routes', '?')}")
+    print(f"  Cross-Nature routes: {status.get('cross_category_routes', '?')}")
     print(f"  Orchestration history: {status.get('orchestration_history', '?')} runs")
     print(f"  Free-threaded: {status.get('free_threaded', '?')}")
     last = status.get("last_orchestration")

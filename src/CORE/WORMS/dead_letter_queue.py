@@ -419,7 +419,7 @@ class DeadLetterQueue:
 
 
     def get_dead_letter_summary(self, lookback_seconds: float = 3600) -> dict[str, Any]:
-        """Windowed failure summary. Absorbed from NatureClusterManager (U3).
+        """Windowed failure summary. Absorbed from ClusterManager (U3).
 
         Same contract (total_failed, per_worm, recent_errors), flat dimension:
         breakdown is by `cluster_id` (registry category) instead of nature —
@@ -477,7 +477,7 @@ class DeadLetterQueue:
     def retry_all_failed_worms(self, max_retries: int = 2,
                                execute_fn=None,
                                category: str | None = None) -> dict[str, Any]:
-        """Retry every retryable letter. Absorbed from NatureClusterManager (U3).
+        """Retry every retryable letter. Absorbed from ClusterManager (U3).
 
         Without `execute_fn` nothing can execute: reports eligibility per
         category instead of raising — a reporter must never become an

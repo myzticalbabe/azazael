@@ -388,7 +388,7 @@ class DedupAnalyzer:
     # retiring 35 worms -- including `EvolutionEngine`, `DreamingModule` and
     # `GeneticOptimizer` -- whose "twins" were unrelated security, profiling and
     # migration worms. A retirement sets `lifecycle_state='retired'`, which
-    # `NatureCluster` honours, so the mistake would have removed the learning
+    # `ClusterWORMZ` honours, so the mistake would have removed the learning
     # subsystem from the pipeline.
     UNIVERSAL_METHODS = frozenset({
         "execute", "get_summary", "get_status", "scan",
@@ -614,7 +614,7 @@ class DedupAnalyzer:
         retiring 35 worms -- including `EvolutionEngine`, `DreamingModule` and
         `GeneticOptimizer` -- in favour of unrelated security and profiling
         worms, and a retirement sets `lifecycle_state='retired'`, which
-        `NatureCluster` honours.
+        `ClusterWORMZ` honours.
 
         An instrument that judges must first be shown to work on cases whose
         answer is already known. Three controls, each pinning one rule:

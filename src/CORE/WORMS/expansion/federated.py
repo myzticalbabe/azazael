@@ -201,7 +201,7 @@ class FederatedAggregatorWorm:
         consumes every pending submission and bumps the round counter. Once
         the Red Queen started probing the `federated` nature, a *probe* would
         have silently cleared real client state, and `execute()` is the method
-        the probe path and `NatureCluster` both reach for. Aggregation is now
+        the probe path and `ClusterWORMZ` both reach for. Aggregation is now
         reachable only through `aggregate()`, which the fabric stage calls
         deliberately.
         """

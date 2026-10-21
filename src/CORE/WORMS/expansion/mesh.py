@@ -105,7 +105,7 @@ except ImportError as exc:
 
 # Fabric operational state (audit 2026-09-15, finding #7): hydrate in
 # __init__, publish on mutation, so routing/partition/beacon state survives a
-# new NatureClusterManager or a restart instead of living only in memory.
+# new ClusterManager or a restart instead of living only in memory.
 try:
     from CORE.WORMS.expansion.fabric_state import (
         hydrate, publish, cap_list, cap_map,

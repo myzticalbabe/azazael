@@ -11,7 +11,7 @@ Closes three architectural gaps found in the 2026-09-13 mesh audit:
 
 2. HomeostatWorm    (synapse)  — SynapseWeightWorm Q-updates and
    cooldowns were never driven by execution results (audit G4). The
-   homeostat consumes the outcome ledger written by NatureCluster.execute()
+   homeostat consumes the outcome ledger written by ClusterWORMZ.execute()
    (via CORE.spine_registry.record_outcome) and proposes cooldown /
    priority adjustments + Q-reinforcement for failing/healthy worms.
 
@@ -743,7 +743,7 @@ class RedQueenWorm:
             if info.get("category") != nature:
                 continue
             # BlackQueenWorm's retirements are ENFORCED here (and in
-            # NatureCluster.execute), not merely recorded: a retired worm that
+            # ClusterWORMZ.execute), not merely recorded: a retired worm that
             # the queen keeps probing is the same decorative-gate mistake the
             # quarantine store was fixed out of on 2026-09-16.
             if info.get("lifecycle_state") == "retired":
@@ -1538,8 +1538,8 @@ class MeshArchitectWorm:
         """
         return set()
 
-    def _nature_rates(self) -> dict[str, float]:
-        """Per-nature success rate from the brainstem (empty if unavailable)."""
+    def _category_rates(self) -> dict[str, float]:
+        """Per-category success rate from the brainstem (empty if unavailable)."""
         if _spine is None:
             return {}
         try:
@@ -1549,30 +1549,30 @@ class MeshArchitectWorm:
             return {}
         agg: dict[str, list[float]] = {}
         for key, rec in homeo.items():
-            nature = str(key).split(":", 1)[0]
+            category = str(key).split(":", 1)[0]
             s = float(rec.get("successes") or 0)
             f = float(rec.get("failures") or 0)
-            agg.setdefault(nature, [0.0, 0.0])
-            agg[nature][0] += s
-            agg[nature][1] += f
+            agg.setdefault(category, [0.0, 0.0])
+            agg[category][0] += s
+            agg[category][1] += f
         rates: dict[str, float] = {}
-        for nature, (s, f) in agg.items():
+        for category, (s, f) in agg.items():
             total = s + f
             if total > 0:
-                rates[nature] = s / total
+                rates[category] = s / total
         return rates
 
     # ── propose (read-only) ──────────────────────────────────────
 
     def propose(self) -> dict[str, Any]:
-        """Rank topology edits from observed edges + live nature health.
+        """Rank topology edits from observed edges + live category health.
 
         Read-only by contract: this is what the cycle calls every tick, so it
         must be safe to call on a busy fleet.
         """
         observed = self._observed_edges()
         declared = self._declared_edges()
-        rates = self._nature_rates()
+        rates = self._category_rates()
         proposals: list[dict] = []
 
         for edge, weight in observed.items():
@@ -2404,7 +2404,7 @@ class SpineCycleWorm:
                 out["settled"] = {"dst": dst, "source": "route_ledger",
                                   "successes": succ, "evidence": total}
             # The previous implementation settled this from
-            # `_nature_success_rate(dst)` -- the health of the WORMS on the far
+            # `_category_success_rate(dst)` -- the health of the WORMS on the far
             # side -- and wrote that number as the route's verdict. Because
             # phase 2 always proposes to the LEAST-healthy nature and never
             # probes it, that manufactured a standing -1 for a route that had
@@ -2426,7 +2426,7 @@ class SpineCycleWorm:
 
         # Phase 2 — propose the next route to the least-healthy live nature.
         try:
-            rates = self._nature_rates()
+            rates = self._category_rates()
             if rates:
                 dst = min(rates, key=lambda n: rates[n])
                 # `add_route()` had no caller anywhere either, so `_routes` was
@@ -2492,26 +2492,26 @@ class SpineCycleWorm:
             note_failure("spine:L2383", exc)
             return []
 
-        natures: dict[str, list[float]] = {}
+        categories: dict[str, list[float]] = {}
         for key, rec in (homeo or {}).items():
-            nature = str(key).split(":", 1)[0]
+            category = str(key).split(":", 1)[0]
             s = float(rec.get("successes") or 0)
             f = float(rec.get("failures") or 0)
             last = float(rec.get("last_ms") or 0.0)
-            natures.setdefault(nature, [0.0, 0.0, 0.0])
-            natures[nature][0] += s
-            natures[nature][1] += f
-            natures[nature][2] = max(natures[nature][2], last)
+            categories.setdefault(category, [0.0, 0.0, 0.0])
+            categories[category][0] += s
+            categories[category][1] += f
+            categories[category][2] = max(categories[category][2], last)
 
-        tot_s = sum(v[0] for v in natures.values())
-        tot_f = sum(v[1] for v in natures.values())
+        tot_s = sum(v[0] for v in categories.values())
+        tot_f = sum(v[1] for v in categories.values())
         tot = tot_s + tot_f
         success_rate = (tot_s / tot) if tot else 1.0
         fail_rate = (tot_f / tot) if tot else 0.0
 
         # log1p scaling keeps a 5 ms and a 500 ms observation on a comparable
         # footing without a hand-tuned divisor.
-        max_ms = max((v[2] for v in natures.values()), default=0.0)
+        max_ms = max((v[2] for v in categories.values()), default=0.0)
         lat = min(1.0, math.log1p(max_ms) / math.log1p(5000.0)) if max_ms else 0.0
 
         q_vals = [abs(float(v)) for v in (q_weights or {}).values()]
@@ -2530,7 +2530,7 @@ class SpineCycleWorm:
             round(lat, 4),
             min(1.0, len(scars) / 10.0),
             round(q_vol, 4),
-            min(1.0, len(natures) / 16.0),
+            min(1.0, len(categories) / 16.0),
             min(1.0, tot / 500.0),
             round(route_health, 4),
         ]
@@ -2672,8 +2672,8 @@ class SpineCycleWorm:
                 out["apply_error"] = str(exc)[:_ERR_CAP]
         return out
 
-    def _nature_rates(self) -> dict[str, float]:
-        """Per-nature success rate from the brainstem (empty if unavailable)."""
+    def _category_rates(self) -> dict[str, float]:
+        """Per-category success rate from the brainstem (empty if unavailable)."""
         if _spine is None:
             return {}
         try:
@@ -2683,20 +2683,20 @@ class SpineCycleWorm:
             return {}
         rates: dict[str, float] = {}
         for key, rec in (homeo or {}).items():
-            nature = str(key).split(":", 1)[0]
+            category = str(key).split(":", 1)[0]
             s = float(rec.get("successes") or 0)
             f = float(rec.get("failures") or 0)
             if s + f <= 0:
                 continue
-            prev = rates.get(nature)
+            prev = rates.get(category)
             rate = s / (s + f)
-            # Aggregate natures by their worst worm so the proposal targets
+            # Aggregate categories by their worst worm so the proposal targets
             # the weakest link rather than an average that hides it.
-            rates[nature] = rate if prev is None else min(prev, rate)
+            rates[category] = rate if prev is None else min(prev, rate)
         return rates
 
-    def _nature_success_rate(self, nature: str) -> float | None:
-        return self._nature_rates().get(nature)
+    def _category_success_rate(self, category: str) -> float | None:
+        return self._category_rates().get(category)
 
     def _route_observation(self, dst_env: str) -> tuple[int, int] | None:
         """(successes, total) the route ledger holds for this route, or None.
@@ -2778,7 +2778,7 @@ class SpineCycleWorm:
     # ── FABRIC STAGE — drive the organs that had no caller (finding #6) ──
     #
     # The consensus / federated / servemesh natures registered 8 worms whose
-    # real APIs had no caller anywhere in the tree: `NatureCluster` only ever
+    # real APIs had no caller anywhere in the tree: `ClusterWORMZ` only ever
     # reached `execute()`, which returns a summary, so those natures were
     # structurally present and functionally inert. Each sub-stage below feeds
     # the organ from a REAL source (the RULE 0D provider registry, the env
@@ -3150,19 +3150,19 @@ class SpineCycleWorm:
             res["reward_scored"] = scored
             res["reward_weights"] = w.get("weights")
             res["reward_dlq_depth"] = w.get("dlq_depth")
-        # 3. Align the real per-env Q vectors: one slot per nature, so every
+        # 3. Align the real per-env Q vectors: one slot per category, so every
         #    vector has the same length (a ragged vector is what made
         #    aggregate() fragile — finding #11).
         per_env: dict = {}
-        natures: set = set()
+        categories: set = set()
         for key, rec in nodes.items():
             env = str((rec or {}).get("env") or "")
-            nature = str(key).split(":", 1)[0]
-            if not env or not nature:
+            category = str(key).split(":", 1)[0]
+            if not env or not category:
                 continue
-            per_env.setdefault(env, {})[nature] = float(q.get(key, 0.0))
-            natures.add(nature)
-        cols = sorted(natures)
+            per_env.setdefault(env, {})[category] = float(q.get(key, 0.0))
+            categories.add(category)
+        cols = sorted(categories)
         # 4. NAS proposals + evaluation from those vectors (the searcher's
         #    propose()/evaluate_batch() had no caller at all).
         if NASMeshSearcherWorm is not None and per_env:
@@ -3170,7 +3170,7 @@ class SpineCycleWorm:
             for env, vec in per_env.items():
                 vals = [vec.get(n, 0.0) for n in cols]
                 avg = sum(vals) / max(1, len(vals))
-                searcher.propose(env, {"natures": len(cols),
+                searcher.propose(env, {"categories": len(cols),
                                        "mean_q": round(avg, 4)},
                                  reward=round(avg, 4))
             res["nas_proposals"] = len(per_env)
@@ -3203,7 +3203,7 @@ class SpineCycleWorm:
         architecture could report on itself but never vary itself.
 
         Input is measured rather than synthetic. The search space is one gene per
-        nature the spine has actually recorded Q for, and the objective is the
+        category the spine has actually recorded Q for, and the objective is the
         expected quality of a priority vector against that recorded Q:
         sum(gene[n] * q[n]) / sum(q). The population is seeded with the measured
         vector, so generation 0 IS the current state and any improvement reported
@@ -3228,25 +3228,25 @@ class SpineCycleWorm:
             except Exception as exc:
                 note_failure("spine:L3091", exc)
                 q_raw = {}
-        q_by_nature: dict[str, float] = {}
+        q_by_category: dict[str, float] = {}
         for key, val in q_raw.items():
-            nature = str(key).split(":", 1)[0]
+            category = str(key).split(":", 1)[0]
             try:
-                q_by_nature[nature] = q_by_nature.get(nature, 0.0) + float(val)
+                q_by_category[category] = q_by_category.get(category, 0.0) + float(val)
             except (TypeError, ValueError) as exc:
                 note_failure("spine:L3098", exc)
                 continue
-        if not q_by_nature:
+        if not q_by_category:
             # No measured signal means no honest objective. Reporting that is
             # better than optimizing against a number nothing produced.
             return {"success": False, "reason": "no_measured_q"}
 
 
-        genes = sorted(q_by_nature)
-        total_q = sum(q_by_nature.values()) or 1.0
+        genes = sorted(q_by_category)
+        total_q = sum(q_by_category.values()) or 1.0
         bounds = {g: (0.0, 1.0) for g in genes}
-        seed = {g: max(0.0, min(1.0, q_by_nature[g] / total_q)) for g in genes}
-        q_norm = math.sqrt(sum(v * v for v in q_by_nature.values())) or 1.0
+        seed = {g: max(0.0, min(1.0, q_by_category[g] / total_q)) for g in genes}
+        q_norm = math.sqrt(sum(v * v for v in q_by_category.values())) or 1.0
 
         # SCALE-INVARIANT objective. The first revision divided the weighted sum
         # by total_q, which made the optimum "set every gene to 1.0": the engine
@@ -3260,7 +3260,7 @@ class SpineCycleWorm:
         # uniform scaling gains nothing.
         def _cosine_from(values: list[float]) -> float:
             xnorm = math.sqrt(sum(v * v for v in values)) or 1.0
-            dot = sum(values[i] * q_by_nature[genes[i]] for i in range(len(genes)))
+            dot = sum(values[i] * q_by_category[genes[i]] for i in range(len(genes)))
             return dot / (xnorm * q_norm)
 
         def _fitness(genome: Any) -> float:
@@ -4138,7 +4138,7 @@ class ConsolidationWorm:
         # at all.
         #
         # The cause was a JOIN, not a dead channel. A suggestion's `source` is
-        # the EMITTER (`NatureCluster.xenomorph`, `DreamingModule`, and for the
+        # the EMITTER (`ClusterWORMZ.xenomorph`, `DreamingModule`, and for the
         # distilled-knowledge type literally `pattern_memory`) -- never an organ,
         # so keying on it would invent one. The organ lives in the evidence
         # record's `data`, where the fleet writes it. Measured over the live

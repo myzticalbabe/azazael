@@ -8,7 +8,7 @@ Two shared organs, one module, no heavy imports:
    and any consumer (dashboard, CLI, Red Queen) can read. Keyed by
    "env:worm" so multi-env gossip can merge without collisions.
 
-2. HOMEOSTAT — the cross-process feedback ledger. NatureCluster.execute()
+2. HOMEOSTAT — the cross-process feedback ledger. ClusterWORMZ.execute()
    records every worm outcome here (record_outcome()); HomeostatWorm consumes
    it and proposes cooldown/priority adjustments. This closes the loop that
    previously ended at "results returned to caller and dropped".
@@ -212,7 +212,7 @@ _HOMEOSTAT_LOCK = _LedgerBarrier(_HOMEOSTAT_STRIPES + _Q_STRIPES)
 # ── Q-WEIGHT BRAINSTEM ─────────────────────────────────────────────
 # Shared, process-wide reinforcement table keyed "nature:worm". Every
 # record_outcome() auto-reinforces here (the fast signal), and
-# NatureCluster.execute() reads it to order execution: healthy worms
+# ClusterWORMZ.execute() reads it to order execution: healthy worms
 # run earlier, failing ones later. Distinct from SynapseWeightWorm's
 # private table, which is the batch-learned routing substrate; this is
 # the always-on brainstem reflex.
@@ -704,8 +704,8 @@ def quarantine_count() -> int:
 # NOTHING persisted the fabric natures' *operational* state — routing
 # tables, elected leader + term, quorum tallies, federated clients, model
 # shard catalogue, endpoint loads. All of it lived in per-instance dicts,
-# cached in NatureCluster.instances, so it was lost on every new
-# NatureClusterManager() and on restart. The mesh remembered how to feel
+# cached in ClusterWORMZ.instances, so it was lost on every new
+# ClusterManager() and on restart. The mesh remembered how to feel
 # and forgot what it knew.
 #
 # The fabric worms live in CORE.WORMS.expansion.*, which this module must
@@ -1403,7 +1403,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                    reward: Optional[float] = None,
                    delta: Optional[float] = None,
                    censored: bool = False) -> None:
-    """Record one worm execution outcome. Called from NatureCluster.execute().
+    """Record one worm execution outcome. Called from ClusterWORMZ.execute().
 
     Thread-safe, never raises (feedback must not break execution).
 

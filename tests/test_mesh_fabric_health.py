@@ -181,7 +181,7 @@ def test_red_queen_probes_the_fabric_natures():
     assert {"mesh", "synapse", "immune"} <= covered
 
 
-def test_execute_reports_per_nature_coverage():
+def test_execute_reports_per_category_coverage():
     from CORE.WORMS.expansion.spine import RedQueenWorm
     result = RedQueenWorm().execute(limit=1)["result"]
     if result["stood_down"]:

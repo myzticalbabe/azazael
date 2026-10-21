@@ -56,7 +56,7 @@ def fake_spine(monkeypatch):
 
 def _ctx(**kw):
     ctx = neural_loop.LoopContext()
-    ctx.natures = {"a": "analysis", "b": "analysis", "c": "build"}
+    ctx.categories = {"a": "analysis", "b": "analysis", "c": "build"}
     for key, value in kw.items():
         setattr(ctx, key, value)
     return ctx

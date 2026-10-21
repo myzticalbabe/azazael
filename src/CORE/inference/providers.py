@@ -3451,7 +3451,7 @@ def get_best_provider(skip_unhealthy: bool = True) -> "OpenAIProvider":
     taxing the bulk one. Measured: a 9B on CPU does 8.3 t/s (16.35 with MTP)
     against a hosted endpoint that is roughly 60x faster, and the mesh's own
     event log shows the scale this serves (`nature_cluster_discovery` 43,507,
-    `nature_cluster_executed` 22,255, `training_complete` 20,095).
+    `category_cluster_executed` 22,255, `training_complete` 20,095).
 
     Set "first" when you deliberately want local: offline operation, privacy
     (prompts never leave the machine), or when hosted keys are gone. A local

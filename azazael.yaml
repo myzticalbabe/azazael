@@ -48,8 +48,8 @@ clusters:
   # for overall cluster execution to be considered "successful" (0.0 = all, 1.0 = any)
   partial_failure_threshold: 0.0
 
-# ── Per-Nature Overrides ─────────────────────────────────────────────────────
-natures:
+# ── Per-Category Overrides (renamed from natures, Oct 2026) ──────────────────────
+categories:
   monitor:
     enabled: true
     timeout: 30

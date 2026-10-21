@@ -123,7 +123,7 @@ def _requires_args(cls) -> bool:
     """True when cls() cannot be called with zero arguments.
 
     Covers undecorated helpers swept in by the dir()-fallback (e.g.
-    NatureCluster(nature)): a registry-hygiene question, counted as
+    ClusterWORMZ(nature)): a registry-hygiene question, counted as
     skipped rather than failed, in both test loops below.
     """
     try:

@@ -149,7 +149,7 @@ graph LR
     <h2>ClusterWORMZ Execution</h2>
     <div class="mermaid">
 graph TD
-    CW[ClusterWORMZ v2.0.0] --> NAT[build_from_nature]
+    CW[ClusterWORMZ v2.0.0] --> NAT[build_from_category]
     NAT --> REG[WORM_REGISTRY]
     REG --> EXEC[execute_all]
     EXEC --> PAMS[PamsRecorder]

@@ -3,7 +3,7 @@
 Two things are under test, and both were missing from the architecture:
 
 1. `SpawnDiversityEngine.decide_execution_order` — the real dispatch decision.
-    Before 2026-09-21 the engine was instantiated by `NatureClusterManager` and
+    Before 2026-09-21 the engine was instantiated by `ClusterManager` and
     never called (`_diversity.` had ZERO call sites), so its 608 recorded
     `spawn_selected` rows described choices nothing ever executed. (U3: the
     manager is gone; the engine lives on in worm_registry/WORM_SELECTOR and

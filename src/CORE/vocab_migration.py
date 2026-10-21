@@ -80,7 +80,7 @@ def cmd_scan():
         mark = ""
         if t["event_type"] in ("cluster_created", "training_complete",
                                 "model_registered", "nature_cluster_discovery",
-                                "cross_nature_route", "nature_cluster_executed",
+                                "cross_category_route", "category_cluster_executed",
                                 "cluster_execution_started", "cluster_execution_completed"):
             mark = " (legacy Worm types — not in CD2 vocab)"
         print(f"  {t['event_type']:35s}  x{t['count']:6d}{mark}")

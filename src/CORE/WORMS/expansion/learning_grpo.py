@@ -199,8 +199,8 @@ class GRPOTrainer:
         # event_type="worm_execution" — a legacy event NO producer records, so
         # every worm scored a flat 0.0 and the GRPO policy update was a no-op
         # (fix, 2026-09-08). Real signal streams, in preference order:
-        #   1. cluster_execution_completed / nature_cluster_executed
-        #      (modern cluster events, recorded by NATURE_CLUSTERS/CLUSTERWORMS)
+        #   1. cluster_execution_completed / category_cluster_executed
+        #      (modern cluster events, recorded by CLUSTERWORMS/CLUSTERWORMS)
         #   2. any recent events from that worm source (fallback), minus
         #      self-recorded training bookkeeping
         # Reward = success_rate (success = severity != error). Duration is
@@ -209,7 +209,7 @@ class GRPOTrainer:
         try:
             from CORE.local_memory import LocalMemoryStore
             store = LocalMemoryStore()
-            event_prefs = ("cluster_execution_completed", "nature_cluster_executed")
+            event_prefs = ("cluster_execution_completed", "category_cluster_executed")
             for worm_name in group:
                 records = []
                 for et in event_prefs:

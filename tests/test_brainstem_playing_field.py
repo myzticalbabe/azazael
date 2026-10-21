@@ -175,7 +175,7 @@ class TestInvalidation(_LedgerCase):
 # ── G3: provenance ──────────────────────────────────────────────────────
 
 class TestProvenance(_LedgerCase):
-    def test_fixture_detection_is_declared_and_nature_scoped(self):
+    def test_fixture_detection_is_declared_and_category_scoped(self):
         self.assertTrue(sr._is_fixture_key("mesh:BadWorm"))
         self.assertTrue(sr._is_fixture_key("mesh:W0"))
         self.assertTrue(sr._is_fixture_key("learning:W1"))

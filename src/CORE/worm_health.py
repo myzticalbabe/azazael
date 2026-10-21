@@ -82,7 +82,7 @@ class WormHealthScorer:
     def record(self, name: str, success: bool, duration_ms: float):
         """Record a worm execution for health trend tracking.
 
-        Called from NATURE_CLUSTERS after each worm execution
+        Called from CLUSTERWORMS after each worm execution
         (alongside existing record_worm_execution for WormMetrics).
 
         Args:
