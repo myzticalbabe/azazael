@@ -39,7 +39,7 @@ import os
 import time
 import threading
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor, as_completed  # TimeoutError is a builtin — no import needed
@@ -420,14 +420,14 @@ class ConditionalRouter:
 
         elif op_str == ">":
             try:
-                return float(value) > float(right)
+                return float(value) > float(right)  # pyright: ignore[reportArgumentType]
             except (ValueError, TypeError) as exc:
                 note_failure("workflow:L371", exc)
                 return False
 
         elif op_str == "<":
             try:
-                return float(value) < float(right)
+                return float(value) < float(right)  # pyright: ignore[reportArgumentType]
             except (ValueError, TypeError) as exc:
                 note_failure("workflow:L377", exc)
                 return False
@@ -686,8 +686,8 @@ class WorkflowEngine:
     # -- Template Instantiation --------------------------------------
 
     def create_from_template(self, template_name: str,
-                             params: dict[str, Any] = None,
-                             name_override: str = None) -> (Workflow | None):
+                             params: Optional[dict[str, Any]] = None,
+                             name_override: Optional[str] = None) -> (Workflow | None):
         """Create a workflow from a named template with parameter overrides."""
         template = self._templates.get(template_name)
         if not template:
@@ -798,7 +798,7 @@ class WorkflowEngine:
             from CORE.worm_registry import WORM_REGISTRY, discover_worms
             discover_worms()
 
-            worm_info = WORM_REGISTRY.get(worm_name)
+            worm_info = WORM_REGISTRY.get(worm_name)  # pyright: ignore[reportArgumentType]
             if not worm_info:
                 raise ValueError(f"Worm '{worm_name}' not found in registry")
 
