@@ -13,7 +13,10 @@ import sys
 import threading
 # from typing import Dict, List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
-from typing import List
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from CORE.PamsRecorder import PamsRecorder
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -34,7 +37,7 @@ _pams = None
 _pams_lock = threading.Lock()
 
 
-def _get_pams():
+def _get_pams() -> "PamsRecorder | None":
     """Lazy PAMS recorder — double-checked locking for Python 3.14t."""
     global _pams
     if _pams is None:
@@ -46,7 +49,9 @@ def _get_pams():
                 except ImportError as exc:
                     note_failure("BINARY_ANALYSIS_TYPES:L36", exc)
                     _pams = False  # Sentinel: don't retry
-    return _pams if _pams else None
+    if _pams is None or isinstance(_pams, bool):
+        return None
+    return _pams
 
 
 # -- Data Classes ----------------------------------------------------

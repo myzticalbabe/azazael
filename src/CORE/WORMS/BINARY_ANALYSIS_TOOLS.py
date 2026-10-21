@@ -90,7 +90,7 @@ def disassemble_binary(
     return result
 
 
-def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
+def _objdump_windows(path: Path, section: str | None, max_ins: int) -> dict[str, Any]:
     result = {"path": str(path), "section": section or "all", "instructions": [], "sections_found": []}
     try:
         args = ["dumpbin", "/DISASM", str(path)]
@@ -148,7 +148,7 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
     return result
 
 
-def _objdump_linux(path: Path, section: str, max_ins: int) -> dict[str, Any]:
+def _objdump_linux(path: Path, section: str | None, max_ins: int) -> dict[str, Any]:
     result = {"path": str(path), "section": section or "all", "instructions": [], "sections_found": []}
     try:
         args = ["objdump", "-d"]
