@@ -45,7 +45,8 @@ class WormDNA:
     parent_ids: List[str] = field(default_factory=list)
 
     def mutate(self, rng: Optional[random.Random] = None) -> "WormDNA":
-        rng = rng or random
+        if rng is None:
+            rng = random.Random()
         d = asdict(self)
         d["worm_id"] = str(uuid.uuid4())
         d["generation"] = self.generation + 1
@@ -69,7 +70,8 @@ class WormDNA:
 
     @staticmethod
     def crossover(a: "WormDNA", b: "WormDNA", rng: Optional[random.Random] = None) -> "WormDNA":
-        rng = rng or random
+        if rng is None:
+            rng = random.Random()
         child = asdict(a)
         child["worm_id"] = str(uuid.uuid4())
         child["generation"] = max(a.generation, b.generation) + 1
@@ -152,7 +154,7 @@ class GeneticAlgorithm:
             fit = dict(self.fitness)
 
         # Score each genome; missing fitness = baseline 0.3.
-        scored = [(d, fit.get(d.worm_id).score() if d.worm_id in fit else 0.3)
+        scored = [(d, f.score() if (f := fit.get(d.worm_id)) is not None else 0.3)
                   for d in pop]
         scored.sort(key=lambda x: x[1], reverse=True)
 
@@ -189,8 +191,8 @@ class GeneticAlgorithm:
     def _best_unlocked(self) -> Optional[WormDNA]:
         if not self.population:
             return None
-        scored = [(d, self.fitness.get(d.worm_id).score()
-                   if d.worm_id in self.fitness else 0.3)
+        scored = [(d, f.score() if (f := self.fitness.get(d.worm_id)) is not None
+                   else 0.3)
                   for d in self.population]
         return max(scored, key=lambda x: x[1])[0]
 
