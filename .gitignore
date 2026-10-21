@@ -274,6 +274,7 @@ state/*
 # merged store and merge report stay regenerable scratch. Added 2026-10-21
 # with the negation pattern documented above.
 !state/bake_harvest_glm_20261021.jsonl
+!state/bake_harvest_glm_2026-10-21.jsonl
 # Still ignored on purpose: every other state/ file, and every SUBDIRECTORY of
 # state/ (`state/*` re-excludes them as directories, and a file inside an ignored
 # directory cannot be re-included). No rule here may be relaxed to `!state/**`.
