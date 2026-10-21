@@ -9,7 +9,7 @@ the record here actually shows. The two are kept separate deliberately, because
 collapsing them is what produced the original $0.00.
 """
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 ROWS = [

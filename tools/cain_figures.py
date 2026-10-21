@@ -8,7 +8,7 @@ is erasing a rule from a page.
 """
 import os, re, html as H
 
-AZ = r"C:\Users\clint\azazael"
+AZ = r"C:\Azazael\azazael"
 DOC = os.path.join(AZ, "dashboard", "CAIN_20260930.html")
 E = lambda s: H.escape(str(s), quote=False)
 

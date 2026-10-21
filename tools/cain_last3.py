@@ -1,6 +1,6 @@
 """The last three: one stale total, two income-bracket labels."""
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 # $5.26 is a prior session's TOTAL ESTIMATED for a single incident
