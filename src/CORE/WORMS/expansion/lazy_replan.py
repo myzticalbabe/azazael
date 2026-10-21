@@ -66,6 +66,7 @@ class LazyReplanner:
     config: ReplanConfig = field(default_factory=ReplanConfig)
     plan_state: PlanState = field(default_factory=PlanState)
     _prior_state: Optional[str] = None
+    _utility_history: Optional[List[float]] = None
     _replan_count: int = 0
     _last_interval_check: float = 0.0
 
@@ -212,4 +213,10 @@ class LazyReplanner:
                     if first_diff is None:
                         first_diff = i
                     last_diff = i
+
+        # Write the padded step list into the plan and return the updated
+        # state (declaration says -> PlanState; the body previously ended
+        # mid-function and returned None on every path).
+        self.plan_state.steps = new_steps
+        return self.plan_state
    
