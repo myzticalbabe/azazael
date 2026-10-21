@@ -6,8 +6,8 @@ what is left cannot depend on my memory of what to check.
 """
 import re, os
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-TPL = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
+TPL = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
 h = open(DOC, encoding="utf-8").read()
 t = open(TPL, encoding="utf-8").read()
 strip = lambda s: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s)).strip()

@@ -14,8 +14,8 @@ checks encoded the state at the moment I wrote them and I never revised them, so
 they started failing on correct content.
 """
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-GATE = r"C:\Users\clint\azazael\tools\cain_render_gate.py"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
+GATE = r"C:\Azazael\azazael\tools\cain_render_gate.py"
 
 # --- 1. the stray figures, in their own markup ---
 h = open(DOC, encoding="utf-8").read()

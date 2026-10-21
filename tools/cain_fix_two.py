@@ -5,7 +5,7 @@ thing that is wrong, so fix the document.
 """
 import os, re, html as H
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 E = lambda s: H.escape(str(s), quote=False)
 
 h = open(DOC, encoding="utf-8").read()
