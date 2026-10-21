@@ -3428,6 +3428,15 @@ def main(crossover_operator=None, mutation_operator=None,
                 'adaptive_ok': bool(_adaptive_ok),
                 'margin_now': margin_now,
                 'canary': canary_report if canary_report else None,
+                # Fail-open aggregate (task #1059): wired trigger surface. True
+                # unless a critical tail gate is explicitly False; missing/errored
+                # gates default to allow, so a broken gate never blocks a
+                # healthy promotion.
+                'tail_gate_ok': bool(
+                    (not _morph_blocks_promotion)
+                    and bool((oracle_gate or {}).get('ok', True))
+                    and bool(_integrity is False or not LOOP_INTEGRITY_VETO)
+                    and bool(_adaptive_ok)),
             },
             # Promotion-input instrument (#965 follow-up): the full
             # conjunction at the promotion `if` (beats/beats_anchor/
