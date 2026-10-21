@@ -19,6 +19,8 @@
         "**/.inference_cache"
     ],
     "pythonVersion": "3.14",
+    "venvPath": "../.venvs",
+    "venv": "py315t",
     "typeCheckingMode": "basic",
     "reportMissingImports": false,
     "reportMissingTypeStubs": false,

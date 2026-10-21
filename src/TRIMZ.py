@@ -29,7 +29,7 @@ import time
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import dataclass, field
 from collections import defaultdict
 
@@ -49,8 +49,12 @@ try:
 except ImportError as exc:
     note_failure("TRIMZ:L40", exc)
     _REGISTRY = False
-    def register_worm(**kw):
-        return lambda cls: cls
+    def register_worm(category: str = "utility", priority: int = 5,
+                      cooldown_seconds: float = 30.0, description: str = "",
+                      tags: Optional[set] = None):
+        def _identity(cls):
+            return cls
+        return _identity
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext
@@ -170,7 +174,7 @@ class TrimzConfig:
 class BIBLIntegrator:
     """Integrates TRIMZ with BIBL lexicon."""
 
-    def __init__(self, bibl_path: str = None):
+    def __init__(self, bibl_path: Optional[str] = None):
         self.bibl_path = Path(bibl_path or TrimzConfig.BIBL_PATH)
         self.entries: dict[str, BiblEntryRef] = {}
         self.term_locations: dict[str, list[dict]] = defaultdict(list)
@@ -522,7 +526,7 @@ class TRIMZ:
         return self.results
 
     def trim_all(
-        self, dry_run: bool = None, show_progress: bool = True
+        self, dry_run: Optional[bool] = None, show_progress: bool = True
     ) -> list[TrimResult]:
         """Trim all scannable files."""
         if dry_run is None:
@@ -584,7 +588,7 @@ class TRIMZ:
         return trimmed_results
 
     def sync_bibl(
-        self, dry_run: bool = None, show_progress: bool = True
+        self, dry_run: Optional[bool] = None, show_progress: bool = True
     ) -> list[TrimResult]:
         """Sync files with BIBL lexicon."""
         if dry_run is None:
