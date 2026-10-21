@@ -46,7 +46,7 @@ import numpy as np
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     # Annotation-only aliases: the runtime bindings of these names are
@@ -749,10 +749,12 @@ class SB3Agent(FreeThreadedAgent):
         eval_std_reward = None
         try:
             from stable_baselines3.common.evaluation import evaluate_policy
+            # evaluate_policy is an optional-dep stub here (sb3 is not installed):
+            # cast through Any so the Unknown stub types flow into float()/round().
             _er_mean, _er_std = evaluate_policy(
-                self._model, env, n_eval_episodes=10, deterministic=True)
-            eval_mean_reward = round(float(_er_mean), 4)
-            eval_std_reward = round(float(_er_std), 4)
+                cast(Any, self._model), env, n_eval_episodes=10, deterministic=True)
+            eval_mean_reward = round(float(cast(Any, _er_mean)), 4)
+            eval_std_reward = round(float(cast(Any, _er_std)), 4)
         except Exception as exc:
             note_failure("sb3_agent:L690", exc)
 

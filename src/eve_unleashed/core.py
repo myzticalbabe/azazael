@@ -119,32 +119,42 @@ except ImportError as exc:
     HAS_PIL = False
     Image = None  # type: ignore
 
-# Re-export shared data models (single source of truth across all projects)
+# Shared data models (single source of truth across all projects): the
+# dataclasses below are the unconditional fallback truth; when shared.models
+# is importable the try-import overwrites them with the canonical definitions.
+# Definition-before-import order is load-bearing: the checker resolves
+# downstream `from .core import ...` against the first (class) binding, so a
+# missing shared.models no longer hides the fallback (verified via probe).
+# Runtime semantics are unchanged in every environment: shared-absent keeps
+# the fallback, shared-present overwrites with the canonical classes.
+from dataclasses import dataclass, field
+
+
+@dataclass
+class InferenceResult:
+    model_name: str = ""
+    framework: str = ""
+    input_shape: tuple = ()
+    output_shape: tuple = ()
+    latency_ms: float = 0.0
+    predictions: list[Any] = field(default_factory=list)
+    probabilities: (list[float] | None) = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class BatchResult:
+    results: list[Any] = field(default_factory=list)
+    total_time_ms: float = 0.0
+    avg_latency_ms: float = 0.0
+    throughput_per_sec: float = 0.0
+
+
 try:
     from shared.models import InferenceResult, BatchResult
 except ImportError as exc:
-    # Fallback: define locally if shared module not available
-    # Fallback: define locally if shared module not available
+    # Fallback: local dataclasses above stand (shared module not available)
     note_failure("core:L112", exc)
-    from dataclasses import dataclass, field
-
-    @dataclass
-    class InferenceResult:
-        model_name: str = ""
-        framework: str = ""
-        input_shape: tuple = ()
-        output_shape: tuple = ()
-        latency_ms: float = 0.0
-        predictions: list[Any] = field(default_factory=list)
-        probabilities: (list[float] | None) = None
-        metadata: dict[str, Any] = field(default_factory=dict)
-
-    @dataclass
-    class BatchResult:
-        results: list[Any] = field(default_factory=list)
-        total_time_ms: float = 0.0
-        avg_latency_ms: float = 0.0
-        throughput_per_sec: float = 0.0
 
 # Ensure shared is importable from the library
 try:

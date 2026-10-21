@@ -46,6 +46,8 @@ Usage:
 """
 
 # from typing import Union, Optional  # removed — all names have native equivalents
+import importlib
+
 import numpy as np
 from typing import Any, List, Union, cast
 
@@ -66,8 +68,12 @@ except ImportError as exc:
     note_failure("tensor_utils:L55", exc)
     HAS_TORCH = False
 
+#: tensorflow is an optional dependency (absent from the 3.15t venv), so it is
+#: loaded by name: a static `import tensorflow` can never resolve here while
+#: importlib keeps the HAS_TF probe honest at runtime. Outcome is unchanged.
+tf: Any = None
 try:
-    import tensorflow as tf
+    tf = importlib.import_module("tensorflow")
 
     HAS_TF = True
 except ImportError as exc:
@@ -194,7 +200,7 @@ class TensorConverter:
                 return jnp.array(arr)
             elif HAS_TORCH and isinstance(arr, torch.Tensor):
                 return jnp.array(cast("torch.Tensor", arr).cpu().numpy())
-            elif isinstance(arr, tf.Tensor):
+            elif HAS_TF and isinstance(arr, tf.Tensor):
                 return jnp.array(arr.numpy())
             elif isinstance(arr, jnp.ndarray):
                 return arr
@@ -206,7 +212,7 @@ class TensorConverter:
     @staticmethod
     def from_tensor(
         arr: ArrayType, framework: str = "numpy"
-    ) -> np.ndarray | list:
+    ) -> ArrayType | list:
         """
         Convert tensor to specified format (default: numpy).
 
@@ -233,7 +239,10 @@ class TensorConverter:
             if HAS_TORCH and isinstance(arr, torch.Tensor):
                 return arr.cpu().numpy()
             if HAS_TF and isinstance(arr, tf.Tensor):
-                return arr.numpy()
+                # isinstance against the Any-typed tf binding does not narrow,
+                # so bind explicitly: this branch only runs when tf is real.
+                tf_arr = cast("Any", arr)
+                return tf_arr.numpy()
             if HAS_JAX and hasattr(arr, "device"):
                 return np.array(arr)
             return np.array(arr)
@@ -246,9 +255,13 @@ class TensorConverter:
         if HAS_TORCH and isinstance(arr, torch.Tensor):
             return str(arr.device)
         if HAS_TF and isinstance(arr, tf.Tensor):
-            return "GPU" if len(arr.device) > 0 else "CPU"
+            tf_device = getattr(arr, "device", "")
+            return "GPU" if len(tf_device) > 0 else "CPU"
         if HAS_JAX and hasattr(arr, "device"):
-            return str(arr.device())
+            # device is a property on some backends and a method on others;
+            # getattr keeps both shapes statically open.
+            dev = getattr(arr, "device")
+            return str(dev() if callable(dev) else dev)
         return "unknown"
 
     @staticmethod
@@ -274,7 +287,7 @@ def to_tensor(arr: TensorLike, framework: str = "pytorch") -> ArrayType:
     return TensorConverter.to_tensor(arr, framework)
 
 
-def from_tensor(arr: ArrayType, framework: str = "numpy") -> np.ndarray | list:
+def from_tensor(arr: ArrayType, framework: str = "numpy") -> ArrayType | list:
     """Shorthand for TensorConverter.from_tensor()."""
     return TensorConverter.from_tensor(arr, framework)
 
