@@ -29,7 +29,7 @@ except ImportError:                               # never break the host
 
 # Optional networkx for graph analysis
 try:
-    import networkx as nx
+    import networkx as nx  # pyright: ignore[reportMissingModuleSource]
     HAS_NETWORKX = True
 except ImportError as exc:
     note_failure("governance:L25", exc)
@@ -508,7 +508,7 @@ class BehavioralGraphAnalyzer:
         self._graph = None
 
         if HAS_NETWORKX:
-            self._graph = nx.DiGraph()
+            self._graph = nx.DiGraph()  # pyright: ignore[reportOptionalMemberAccess]
 
     def record_action(self, action_type: str, details: (dict | None) = None,
                       agent: str = "system"):
@@ -592,7 +592,7 @@ class BehavioralGraphAnalyzer:
             # 4. NetworkX cycle detection
             if self._graph is not None and HAS_NETWORKX:
                 try:
-                    cycles = list(nx.simple_cycles(self._graph))
+                    cycles = list(nx.simple_cycles(self._graph))  # pyright: ignore[reportOptionalMemberAccess]
                     if cycles:
                         for cycle in cycles:
                             anomalies.append({
@@ -600,7 +600,7 @@ class BehavioralGraphAnalyzer:
                                 "severity": "medium",
                                 "description": f"Detected action cycle: {' -> '.join(cycle)}",
                             })
-                except (nx.NetworkXNoCycle, nx.NetworkXError) as exc:
+                except (nx.NetworkXNoCycle, nx.NetworkXError) as exc:  # pyright: ignore[reportOptionalMemberAccess]
                     note_failure("governance:L449", exc)
 
         return anomalies
@@ -622,7 +622,7 @@ class BehavioralGraphAnalyzer:
         with self._lock:
             self._actions.clear()
             if HAS_NETWORKX:
-                self._graph = nx.DiGraph()
+                self._graph = nx.DiGraph()  # pyright: ignore[reportOptionalMemberAccess]
 
     def __repr__(self) -> str:
         return f"BehavioralGraphAnalyzer(actions={len(self._actions)})"
