@@ -26,12 +26,12 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-sys.path.insert(0, r"C:\Users\clint\azazael\src")
+sys.path.insert(0, r"C:\Azazael\azazael\src")
 
 GB = 2 ** 30
 MODELS = r"C:\Users\clint\AppData\Local\Programs\AI Playground\resources\models\ComfyUI"
-TEMPLATE = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
-OUT = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+TEMPLATE = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+OUT = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 
 # ══ MEASURED ═════════════════════════════════════════════════════════════
 def _sz(*rel):
