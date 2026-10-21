@@ -24,7 +24,7 @@ except ImportError:                               # never break the host
 
 # -- Worm Registry Import ---------------------------------------------
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     note_failure("learning_rl:L19", exc)
@@ -286,7 +286,7 @@ class RLTrainLoop:
         version = f"v{stats.get('episodes', 0)}"
 
         try:
-            result = versioner.register_model(
+            result = versioner.register_model(  # pyright: ignore[reportAttributeAccessIssue]
                 name=name, version=version,
                 metrics=_metrics, metadata=_metadata,
             )
@@ -484,7 +484,7 @@ class RLTrainLoop:
 
         # Auto-split if requested (overrides explicit test_data)
         if use_data_split:
-            split_result = pipeline.split_memories(
+            split_result = pipeline.split_memories(  # pyright: ignore[reportAttributeAccessIssue]
                 source=source, event_type=event_type,
                 test_ratio=test_ratio, val_ratio=val_ratio,
                 by_session=by_session,
@@ -500,7 +500,7 @@ class RLTrainLoop:
             if records is not None:
                 split_stats = {"frozen_pool": len(records)}
             else:
-                records = pipeline.extract_from_memory(
+                records = pipeline.extract_from_memory(  # pyright: ignore[reportAttributeAccessIssue]
                     source=source, event_type=event_type, limit=n_episodes * 10,
                     exclude_sources=exclude_sources,
                 )
@@ -572,7 +572,7 @@ class RLTrainLoop:
                 if state_key not in self._q_table or R.random() < eps_eff:
                     action = R.randint(0, 3)
                 else:
-                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)
+                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)  # pyright: ignore[reportArgumentType, reportCallIssue]
 
                 # Compute reward -- depends on the chosen action so the
                 # policy gradient is real (see _compute_reward docstring)
@@ -623,7 +623,7 @@ class RLTrainLoop:
 
                 # Greedy action (no exploration)
                 if state_key in self._q_table:
-                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)
+                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)  # pyright: ignore[reportArgumentType, reportCallIssue]
                 else:
                     action = 0
                     test_unknown_states += 1
@@ -813,7 +813,7 @@ class RLTrainLoop:
             eps_values = [0.05, 0.1, 0.2]
 
         # Get CV folds from pipeline
-        cv_result = pipeline.temporal_cross_validation(
+        cv_result = pipeline.temporal_cross_validation(  # pyright: ignore[reportAttributeAccessIssue]
             source=source, event_type=event_type,
             n_folds=n_folds,
         )
