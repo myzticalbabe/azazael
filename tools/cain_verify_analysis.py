@@ -1,7 +1,7 @@
 """Verify the claim reads as one argument, and clear the last two items."""
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 # the last template survivor, inside the DSM-5 table I rewrote
