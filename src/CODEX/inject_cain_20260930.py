@@ -16,7 +16,7 @@ because refusal is indistinguishable from hiding.
 """
 import os, sys, json, datetime, re
 
-sys.path.insert(0, r"C:\Users\clint\azazael\src")
+sys.path.insert(0, r"C:\Azazael\azazael\src")
 from CORE.WORMS.CAIN_DATA import SEVEN_SINS
 from typing import List
 
@@ -29,8 +29,8 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-TEMPLATE = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
-OUT = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+TEMPLATE = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+OUT = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 MODELS = r"C:\Users\clint\AppData\Local\Programs\AI Playground\resources\models\ComfyUI"
 GB = 2 ** 30
 DATE = "2026-09-30"

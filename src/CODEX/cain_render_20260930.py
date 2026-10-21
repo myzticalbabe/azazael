@@ -18,7 +18,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-AZ = r"C:\Users\clint\azazael"
+AZ = r"C:\Azazael\azazael"
 DOC = os.path.join(AZ, "dashboard", "CAIN_20260930.html")
 OUTMP4 = os.path.join(AZ, "dashboard", "CAIN_20260930.mp4")
 TPL = os.path.join(AZ, "src", "CODEX", "SESSION_TEMPLATE", "templates", "output_cain.html")

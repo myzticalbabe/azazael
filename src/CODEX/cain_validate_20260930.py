@@ -16,7 +16,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-P = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+P = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 VOID = {"area","base","br","col","embed","hr","img","input","link","meta",
         "param","source","track","wbr"}
 
@@ -105,7 +105,7 @@ print("STATIC VALIDATION")
 print("=" * 72)
 for k, v in report.items():
     print("  %-28s %s" % (k, v))
-json.dump(report, open(r"C:\Users\clint\azazael\dashboard\CAIN_validate.json", "w",
+json.dump(report, open(r"C:\Azazael\azazael\dashboard\CAIN_validate.json", "w",
           encoding="utf-8"),
           indent=1, default=str)
 
