@@ -8,9 +8,9 @@
   "dispatched": 60,
   "accepted_gap": 107,
   "rejected": 5,
-  "pending": 1
+  "pending": 0
  },
- "total": 371,
+ "total": 370,
  "declared": {
   "NeuralPipeline:NeuralPipeline.ablate_cutting_edge": {
    "module": "NeuralPipeline",
@@ -4910,29 +4910,15 @@
    "qualname": "SpineCycleWorm._category_success_rate",
    "line": 2698,
    "seg": "def _category_success_rate(self, nature: str) -> float | None:\n        return self._category_rates().get(nature)",
-   "status": "pending",
-   "reason": "",
+   "status": "retired",
+   "reason": "dead helper: superseded by SpineCycleWorm._category_rates() (callers use _category_rates() directly); no production or test reference; retiring per mesh wire-or-cut",
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
-   "decider": "dynamic_call",
-   "decider_evidence": [
-    "src/CORE/WORMS/expansion/spine.py"
-   ]
-  },
-  "spine:SpineCycleWorm._nature_success_rate": {
-   "decider": "dynamic_call",
+   "decider": "dead_candidate",
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 2698,
-   "module": "spine",
-   "qualname": "SpineCycleWorm._nature_success_rate",
-   "reason": "retired: no calls anywhere in the tree; definition exists but zero references; deleting removes dead code.",
-   "seg": "def _nature_success_rate(self, nature: str) -> float | None:\n        return self._nature_rates().get(nature)",
-   "status": "retired",
-   "disposition": "RETIRE",
-   "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'retired' carried; bare token '_nature_success_rate' in 0 file(s); module-linked: no"
+   "disposition": "RETIRE"
   },
   "spine:measure_skill_lift": {
    "decider": "dynamic_call",

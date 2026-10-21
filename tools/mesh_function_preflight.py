@@ -99,6 +99,11 @@ EXTRA_MODULES = [
 
 DEFAULT_EXCLUDES = ("__pycache__", ".venv", "venv", "generated")
 
+#: Probe-owned artifacts: the probe must never read its own report as a wire.
+PROBE_ARTIFACTS = frozenset(("neural_mesh_integration_map.json",
+                              "neural_mesh_wire_or_cut.json",
+                              "neural_mesh_entrenchment.json"))
+
 # ---------------------------------------------------------------------------
 # Pre-flight battery
 # ---------------------------------------------------------------------------
@@ -1317,6 +1322,9 @@ def data_index(names: set[str]) -> dict[str, list[str]]:
     excluded: list[str] = []
     for rel, here in sorted(per_file.items()):
         base = rel.replace("\\", "/").rsplit("/", 1)[-1].lower()
+        if base in PROBE_ARTIFACTS:
+            excluded.append("%s (probe's own artifact)" % rel)
+            continue
         if base not in read_by_code and rel.lower() not in read_by_code:
             excluded.append("%s (not loaded by any production code)" % rel)
             continue
