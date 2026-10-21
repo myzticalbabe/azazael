@@ -60,7 +60,7 @@ def _note_failure(where: str, exc: BaseException | None = None) -> None:
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     _note_failure("worm_registry_import:L46", exc)
@@ -76,7 +76,7 @@ try:
     _pams: Any = get_recorder()
 except ImportError as exc:
     _note_failure("pams_import:L57", exc)
-    _pams: Any = None
+    _pams = None
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")
 
@@ -943,7 +943,7 @@ class NetworkDiag:
                 # Monitor process resources via psutil (lazy import; proc.pid provides the child PID)
                 try:
                     import psutil as _psutil
-                    child = _psutil.Process(proc.pid)
+                    child = _psutil.Process(proc.pid)  # pyright: ignore[reportAttributeAccessIssue]
                     try:
                         with child.oneshot():
                             result["syscalls"].append({
@@ -1015,7 +1015,7 @@ class NetworkDiag:
             try:
                 for f in proc.open_files():
                     entry = OpenFileEntry(
-                        path=f.path or f.fd,
+                        path=str(f.path) if f.path else str(f.fd),
                         fd=f.fd,
                         mode=f.mode if hasattr(f, "mode") else "",
                         file_type="file",
@@ -1116,7 +1116,7 @@ class NetworkDiag:
                 # Enumerate loaded modules via psutil (lazy import)
                 try:
                     import psutil as _psutil
-                    child = _psutil.Process(proc.pid)
+                    child = _psutil.Process(proc.pid)  # pyright: ignore[reportAttributeAccessIssue]
                     try:
                         for mmap in child.memory_maps():
                             if mmap.path and (mmap.path.endswith(".dll") or mmap.path.endswith(".so")):
@@ -1161,7 +1161,7 @@ class NetworkDiag:
 
     def run_full_diagnostics(self, target: str) -> dict[str, Any]:
         """Run all network diagnostics against a target and return comprehensive report."""
-        report = {
+        report: dict[str, Any] = {
             "target": target,
             "timestamp": datetime.now().isoformat(),
             "version": self.VERSION,

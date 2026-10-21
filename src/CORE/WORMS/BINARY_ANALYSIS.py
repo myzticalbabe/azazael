@@ -56,7 +56,7 @@ except ImportError:                               # never break the host
 
 # -- Worm Registry -----------------------------------------------------
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     note_failure("BINARY_ANALYSIS:L52", exc)
@@ -87,7 +87,7 @@ class BinaryAnalysis:
         pams = _get_pams()
         if pams:
             try:
-                pams.record_event(
+                 pams.record_event(  # pyright: ignore[reportAttributeAccessIssue]
                     event_type=f"binanalysis.{event_type}",
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
@@ -236,7 +236,7 @@ class BinaryAnalysis:
         """Run a full binary analysis: headers, symbols, strings, entropy, hexdump."""
         from CORE.WORMS.BINARY_ANALYSIS_PARSE import is_pe_file, is_elf_file
 
-        report = {
+        report: dict[str, Any] = {
             "path": path,
             "timestamp": datetime.now().isoformat(),
             "version": self.VERSION,

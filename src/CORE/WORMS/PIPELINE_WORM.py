@@ -21,7 +21,7 @@ import pickle
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable, Generic, TypeVar, Union
+from typing import Dict, List, Optional, Any, Callable, Generic, TypeVar, Union, Coroutine
 from datetime import datetime
 from enum import Enum
 import threading
@@ -35,7 +35,7 @@ except ImportError:
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     note_failure("PIPELINE_WORM:registry", exc)
@@ -63,9 +63,9 @@ class StageStatus(Enum):
 class StageConfig(Generic[T, U]):
     """Configuration for a pipeline stage."""
     name: str
-    fn: Callable[[T], Union[U, asyncio.coroutines.Coroutine[Any, Any, U]]]
-    input_type: type = Any
-    output_type: type = Any
+    fn: Callable[[T], Union[U, Coroutine[Any, Any, U]]]
+    input_type: Any = Any
+    output_type: Any = Any
     timeout_seconds: float = 60.0
     token_budget: int = 10000
     retries: int = 0
@@ -291,7 +291,8 @@ class PipelineWorm:
     
     def _save_checkpoint(self, run_id: str, stage_index: int, output: Any):
         """Save stage checkpoint."""
-        
+        if not self.config.checkpoint_dir:
+            return
         os.makedirs(self.config.checkpoint_dir, exist_ok=True)
         checkpoint_path = os.path.join(
             self.config.checkpoint_dir, f"{run_id}_stage{stage_index}.pkl"
@@ -319,7 +320,7 @@ class PipelineWorm:
             return None
         
         latest = max(checkpoints, key=lambda f: os.path.getmtime(
-            os.path.join(self.config.checkpoint_dir, f)))
+            os.path.join(self.config.checkpoint_dir, f)))  # pyright: ignore[reportArgumentType, reportCallIssue]
         
         with open(os.path.join(self.config.checkpoint_dir, latest), 'rb') as f:  # scanner:ignore - binary read; encoding= is illegal in 'rb' mode
             return pickle.load(f)

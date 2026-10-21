@@ -24,7 +24,7 @@ Usage:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import dataclass
 import argparse
 
@@ -38,7 +38,7 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
 except ImportError as exc:
     note_failure("DISKZ:L32", exc)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
@@ -118,6 +118,8 @@ class DISKZ:
         """Get disk I/O statistics."""
         import psutil
         io = psutil.disk_io_counters()
+        if io is None:
+            return {}
         return {
             "read_mb": round(io.read_bytes / (1024**2), 2),
             "write_mb": round(io.write_bytes / (1024**2), 2),
@@ -131,8 +133,12 @@ class DISKZ:
         """Get per-disk I/O counters."""
         import psutil
         counters = psutil.disk_io_counters(perdisk=perdisk)
+        if not counters:
+            return {}
         result = {}
-        for disk, io in counters.items():
+        for disk, io in counters.items():  # pyright: ignore[reportAttributeAccessIssue]
+            if io is None:
+                continue
             result[disk] = {
                 "read_mb": round(io.read_bytes / (1024**2), 2),
                 "write_mb": round(io.write_bytes / (1024**2), 2),
@@ -193,7 +199,7 @@ class DISKZ:
         }
 
     def find_large_files(
-        self, min_size_mb: int = 100, paths: list[str] = None, limit: int = 50
+        self, min_size_mb: int = 100, paths: Optional[list[str]] = None, limit: int = 50
     ) -> list[dict[str, Any]]:
         """Find large files across paths."""
         if paths is None:
