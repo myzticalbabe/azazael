@@ -27,8 +27,10 @@ try:
 except ImportError as exc:
     note_failure("learning_versioner:L17", exc)
     _REGISTRY = False
-def register_worm(**kw):
-        return lambda cls: cls
+def register_worm(category: str = "utility", priority: int = 5,
+                    cooldown_seconds: float = 30.0, description: str = "",
+                    tags: (set[str] | None) = None) -> Any:
+    return lambda cls: cls
 
 
 # -- Python 3.14t Free-Threading Awareness ----------------------------
@@ -99,7 +101,7 @@ class ModelVersioner:
             },
         }
 
-    def _get_store(self):
+    def _get_store(self) -> Any:
         """Lazy LocalMemoryStore connection — double-checked locking for 3.14t."""
         if self._store is None:
             with self._lock:
@@ -231,10 +233,12 @@ class ModelVersioner:
         seen = set()
         unique = []
         for v in versions:
-            v_str = str(v.get("version", ""))
-            if v_str not in seen:
-                seen.add(v_str)
-                unique.append(v)
+                    v_str = str(v.get("version", ""))
+                    if v_str not in seen:
+                        seen.add(v_str)
+                        unique.append(v)
+
+        return unique
 
 
 def pareto_retain(candidates, metrics_key="metrics"):
