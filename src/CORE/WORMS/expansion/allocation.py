@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 import math
 import random
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 import copy
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

@@ -29,7 +29,13 @@ try:
 except ImportError as exc:
     note_failure("communication:L19", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(
+        category: str = "utility",
+        priority: int = 5,
+        cooldown_seconds: float = 30.0,
+        description: str = "",
+        tags=None,
+    ):
         return lambda cls: cls
 
 # -- Python 3.14t Free-Threading Awareness ----------------------------
@@ -157,6 +163,10 @@ class WebhookRelay:
                     return {"success": False, "error": str(e), "attempts": attempt + 1}
                 time.sleep(2 ** attempt)
 
+        # Unreachable when max_retries >= 1 (every attempt returns); covers the
+        # max_retries <= 0 degenerate case so all paths return a dict.
+        return {"success": False, "error": "no delivery attempts made", "attempts": 0}
+
     def get_summary(self):
         return {"status":"ok","worm":"WebhookRelay"}
 
@@ -234,7 +244,10 @@ class ProtocolNegotiator:
     def serialize(self, data: Any, protocol: str) -> bytes:
         if protocol == "msgpack":
             import msgpack
-            return msgpack.dumps(data)
+            packed = msgpack.dumps(data)
+            if packed is None:
+                raise TypeError("msgpack.dumps returned None")
+            return packed
         return json.dumps(data).encode()
 
     def deserialize(self, data: bytes, protocol: str) -> Any:
