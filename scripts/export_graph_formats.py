@@ -13,8 +13,8 @@ try:
 except ImportError:
     pass
 
-graph_path = sys.argv[1] if len(sys.argv) > 1 else "/mnt/c/Users/clint/azazael/graphify-out/graph.json"
-out_dir = sys.argv[2] if len(sys.argv) > 2 else "/mnt/c/Users/clint/azazael/graphify-out"
+graph_path = sys.argv[1] if len(sys.argv) > 1 else "/mnt/c/Azazael/azazael/graphify-out/graph.json"
+out_dir = sys.argv[2] if len(sys.argv) > 2 else "/mnt/c/Azazael/azazael/graphify-out"
 
 print(f"Loading graph from {graph_path} ...")
 with open(graph_path, encoding="utf-8") as f:

@@ -10,7 +10,7 @@ GOSP supplies every response via Montague-grammar/lambda-calculus semantic parsi
 disturb background RL training.
 
 Usage (run inside WSL2 Ubuntu, python 3.14):
-    python3 /mnt/c/Users/clint/azazael/scripts/gosp_rani_integration.py
+    python3 /mnt/c/Azazael/azazael/scripts/gosp_rani_integration.py
 """
 import sys
 import json
