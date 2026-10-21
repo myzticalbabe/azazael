@@ -21,7 +21,7 @@ from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
 
-DROP = "C:/Users/clint/azazael/output/gossip"
+DROP = "C:/Azazael/azazael/output/gossip"
 DISTROS = {"wsl2-ubuntu": "Ubuntu-26.04", "wsl2-kali": "kali-linux"}
 
 

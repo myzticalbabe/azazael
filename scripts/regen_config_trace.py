@@ -19,7 +19,7 @@ from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 quiet_noisy_loggers()
 from CORE.worm_registry import discover_worms, WORM_REGISTRY
 
-ROOT = "C:/Users/clint/azazael"
+ROOT = str(Path(__file__).resolve().parents[1])  # own tree, never the origin clone
 
 
 def main():

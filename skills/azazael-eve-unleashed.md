@@ -114,3 +114,13 @@ C:/Users/clint/Desktop/EveUnleashed_Selector/eve_unleashed_app.py
 # 3.14t venv (venv-314t) RETIRED 2026-10-19 — do not build against it.
 C:/Azazael/.venvs/py315t/Scripts/python.exe -m nuitka --standalone --onefile \
 - System info bar: hostname, OS, uptime, process/thread count, interpreter status (3.15t production)
+## Build Command — STALE 2026-10-21, do not run as-is
+The block below names `~/venv-314t` (ARCHIVED 2026-10-19), a `~/Desktop/`
+working dir that no longer exists, and a 314t-tagged output. Standalone
+releases live at `G:/AZAZAEL_Standalone/`. Before rebuilding: verify which
+venv on this box currently carries Nuitka (`<py> -m nuitka --version` —
+none was present in `C:/Azazael/.venvs/` on 2026-10-21) and the app source
+path, then adapt. Flags that remain valid when a builder is confirmed:
+<builder-python> -m nuitka --standalone --onefile \
+--output-filename=Eve_Unleashed_315t.exe \
+<verified-app-path>/eve_unleashed_app.py

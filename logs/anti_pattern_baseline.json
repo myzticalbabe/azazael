@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-21T00:16:31+00:00",
+  "recorded_at": "2026-10-21T16:04:39+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
@@ -11,680 +11,680 @@
   },
   "total_findings": 2220,
   "file_counts": {
-    "AOA\\aoa_monitor.py": {
+    "AOA/aoa_monitor.py": {
       "import_inside_function": 6
     },
-    "AOA\\arms\\azazael_arm.py": {
+    "AOA/arms/azazael_arm.py": {
       "import_inside_function": 2
     },
-    "AOA\\arms\\eve_arm.py": {
+    "AOA/arms/eve_arm.py": {
       "import_inside_function": 1
     },
-    "AOA\\arms\\kali_arm.py": {
+    "AOA/arms/kali_arm.py": {
       "import_inside_function": 2
     },
-    "AOA\\arms\\libra_arm.py": {
+    "AOA/arms/libra_arm.py": {
       "import_inside_function": 1
     },
-    "AOA\\arms\\support_arms.py": {
+    "AOA/arms/support_arms.py": {
       "import_inside_function": 3
     },
-    "AOA\\build_final.py": {
+    "AOA/build_final.py": {
       "unicode_emoji": 3
     },
-    "AOA\\cli\\aoa_cli.py": {
+    "AOA/cli/aoa_cli.py": {
       "import_inside_function": 5
     },
-    "AOA\\core\\router.py": {
+    "AOA/core/router.py": {
       "import_inside_function": 2
     },
-    "AOA\\refresh_aoa_data.py": {
+    "AOA/refresh_aoa_data.py": {
       "import_inside_function": 3
     },
-    "AOA\\refresh_oa_data.py": {
+    "AOA/refresh_oa_data.py": {
       "import_inside_function": 3
     },
-    "AOA\\test_arm_exports.py": {
+    "AOA/test_arm_exports.py": {
       "import_inside_function": 3
     },
     "AZAZAEL_Inference_Studio.py": {
       "import_inside_function": 1,
       "unicode_emoji": 70
     },
-    "AZAZAEL_TOOLKIT\\REAL_FRAMEWORK_TEST.py": {
+    "AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py": {
       "import_inside_function": 1
     },
-    "AZAZAEL_TOOLKIT\\math_certainty.py": {
+    "AZAZAEL_TOOLKIT/math_certainty.py": {
       "import_inside_function": 1
     },
     "AzazaelDynamicLogger.py": {
       "import_inside_function": 3
     },
-    "CODEX\\CODEX_Studio.py": {
+    "CODEX/CODEX_Studio.py": {
       "import_inside_function": 1,
       "unicode_emoji": 2
     },
-    "CODEX\\CORE\\emoji_maker.py": {
+    "CODEX/CORE/emoji_maker.py": {
       "import_inside_function": 1,
       "unicode_emoji": 44
     },
-    "CODEX\\POPUPS\\POPUP_ALL_11.py": {
+    "CODEX/POPUPS/POPUP_ALL_11.py": {
       "unicode_emoji": 10
     },
-    "CODEX\\POPUPS\\POPUP_CLICKABLE.py": {
+    "CODEX/POPUPS/POPUP_CLICKABLE.py": {
       "hardcoded_win_path": 1,
       "unicode_emoji": 10
     },
-    "CODEX\\POPUPS\\POPUP_DETAILED.py": {
+    "CODEX/POPUPS/POPUP_DETAILED.py": {
       "hardcoded_win_path": 1,
       "unicode_emoji": 10
     },
-    "CODEX\\POPUPS\\POPUP_IMMERSIVE.py": {
+    "CODEX/POPUPS/POPUP_IMMERSIVE.py": {
       "hardcoded_win_path": 2,
       "import_inside_function": 1,
       "unicode_emoji": 20
     },
-    "CODEX\\POPUPS\\POPUP_WORKING.py": {
+    "CODEX/POPUPS/POPUP_WORKING.py": {
       "hardcoded_win_path": 7,
       "unicode_emoji": 10
     },
-    "CODEX\\SESSION_TEMPLATE\\generators\\generate_failure_report.py": {
+    "CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py": {
       "unicode_emoji": 4
     },
-    "CODEX\\SESSION_TEMPLATE\\generators\\generate_session_report.py": {
+    "CODEX/SESSION_TEMPLATE/generators/generate_session_report.py": {
       "unicode_emoji": 20
     },
-    "CODEX\\SESSION_TEMPLATE\\generators\\unified_generator.py": {
+    "CODEX/SESSION_TEMPLATE/generators/unified_generator.py": {
       "import_inside_function": 1,
       "unicode_emoji": 352
     },
-    "CODEX\\TESTING\\INTEGRATION\\test_ecosystem_integration.py": {
+    "CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py": {
       "import_inside_function": 3
     },
-    "CODEX\\TESTING\\PERFORMANCE\\test_performance.py": {
+    "CODEX/TESTING/PERFORMANCE/test_performance.py": {
       "import_inside_function": 3
     },
-    "CODEX\\TESTING\\UNIT\\test_hydra.py": {
+    "CODEX/TESTING/UNIT/test_hydra.py": {
       "import_inside_function": 5
     },
-    "CODEX\\TESTING\\UNIT\\test_metaworms.py": {
+    "CODEX/TESTING/UNIT/test_metaworms.py": {
       "import_inside_function": 4
     },
-    "CODEX\\TESTING\\UNIT\\test_wormz.py": {
+    "CODEX/TESTING/UNIT/test_wormz.py": {
       "import_inside_function": 4
     },
-    "CODEX\\VIDEOS\\create_video.py": {
+    "CODEX/VIDEOS/create_video.py": {
       "import_inside_function": 1
     },
-    "CODEX\\VIDEOS\\generate_dashboard_video.py": {
+    "CODEX/VIDEOS/generate_dashboard_video.py": {
       "import_inside_function": 1
     },
-    "CODEX\\VIDEOS\\make_video.py": {
+    "CODEX/VIDEOS/make_video.py": {
       "import_inside_function": 1
     },
-    "CODEX\\VIDEOS\\make_video_docs.py": {
+    "CODEX/VIDEOS/make_video_docs.py": {
       "import_inside_function": 1,
       "unicode_emoji": 50
     },
-    "CODEX\\VIDEOS\\make_video_quad.py": {
+    "CODEX/VIDEOS/make_video_quad.py": {
       "import_inside_function": 1,
       "unicode_emoji": 66
     },
-    "CODEX\\VIDEOS\\make_video_v2.py": {
+    "CODEX/VIDEOS/make_video_v2.py": {
       "import_inside_function": 1,
       "unicode_emoji": 133
     },
-    "CODEX\\VIDEOS\\make_video_v3.py": {
+    "CODEX/VIDEOS/make_video_v3.py": {
       "import_inside_function": 1,
       "unicode_emoji": 74
     },
-    "CODEX\\VIDEOS\\make_video_vibrant.py": {
+    "CODEX/VIDEOS/make_video_vibrant.py": {
       "import_inside_function": 1,
       "unicode_emoji": 56
     },
-    "CODEX\\VIDEOS\\make_video_zip.py": {
+    "CODEX/VIDEOS/make_video_zip.py": {
       "import_inside_function": 1
     },
-    "CODEX\\VIDEOS\\make_video_zipper.py": {
+    "CODEX/VIDEOS/make_video_zipper.py": {
       "import_inside_function": 1,
       "unicode_emoji": 62
     },
-    "CODEX\\build_bcc_cain_alternate.py": {
+    "CODEX/build_bcc_cain_alternate.py": {
       "unicode_emoji": 157
     },
-    "CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py": {
+    "CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py": {
       "import_inside_function": 1
     },
-    "CODEX\\comprehensive\\GENERATE_ALL_11.py": {
+    "CODEX/comprehensive/GENERATE_ALL_11.py": {
       "hardcoded_win_path": 1,
       "import_inside_function": 1,
       "unicode_emoji": 10
     },
-    "CODEX\\comprehensive\\GENERATE_HTML.py": {
+    "CODEX/comprehensive/GENERATE_HTML.py": {
       "hardcoded_win_path": 1,
       "import_inside_function": 1,
       "unicode_emoji": 9
     },
-    "CODEX\\comprehensive\\GENERATE_RICH_HTML.py": {
+    "CODEX/comprehensive/GENERATE_RICH_HTML.py": {
       "hardcoded_win_path": 1,
       "import_inside_function": 1,
       "unicode_emoji": 10
     },
-    "CODEX\\inject_session_cain.py": {
+    "CODEX/inject_session_cain.py": {
       "unicode_emoji": 41
     },
-    "CORE\\Agent.py": {
+    "CORE/Agent.py": {
       "import_inside_function": 1
     },
-    "CORE\\FREETHREAD_UPGRADE.py": {
+    "CORE/FREETHREAD_UPGRADE.py": {
       "import_inside_function": 1
     },
-    "CORE\\FreeThreadedAgent.py": {
+    "CORE/FreeThreadedAgent.py": {
       "import_inside_function": 1
     },
-    "CORE\\MemoryBus.py": {
+    "CORE/MemoryBus.py": {
       "import_inside_function": 3
     },
-    "CORE\\PYTHON_MANAGER.py": {
+    "CORE/PYTHON_MANAGER.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\BINARY_ANALYSIS.py": {
+    "CORE/WORMS/BINARY_ANALYSIS.py": {
       "import_inside_function": 12
     },
-    "CORE\\WORMS\\BINARY_ANALYSIS_CLI.py": {
+    "CORE/WORMS/BINARY_ANALYSIS_CLI.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\BINARY_ANALYSIS_TOOLS.py": {
+    "CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\BINARY_ANALYSIS_TYPES.py": {
+    "CORE/WORMS/BINARY_ANALYSIS_TYPES.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\CLAWBOT.py": {
+    "CORE/WORMS/CLAWBOT.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\CLOCKZ.py": {
+    "CORE/WORMS/CLOCKZ.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\CLUSTERWORMS.py": {
+    "CORE/WORMS/CLUSTERWORMS.py": {
       "import_inside_function": 5
     },
-    "CORE\\WORMS\\CONCURRENCY.py": {
+    "CORE/WORMS/CONCURRENCY.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\DEPENDZ.py": {
+    "CORE/WORMS/DEPENDZ.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\DIAGNOSTIC_WORM.py": {
+    "CORE/WORMS/DIAGNOSTIC_WORM.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\DISKZ.py": {
+    "CORE/WORMS/DISKZ.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\INFERENCE_SUBSCRIBER.py": {
+    "CORE/WORMS/INFERENCE_SUBSCRIBER.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\METACLUSTER.py": {
+    "CORE/WORMS/METACLUSTER.py": {
       "import_inside_function": 9
     },
-    "CORE\\WORMS\\NETWORK_DIAG.py": {
+    "CORE/WORMS/NETWORK_DIAG.py": {
       "import_inside_function": 5
     },
-    "CORE\\WORMS\\NETWORXZ.py": {
+    "CORE/WORMS/NETWORXZ.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\OS_CONGRUENCY.py": {
+    "CORE/WORMS/OS_CONGRUENCY.py": {
       "import_inside_function": 10
     },
-    "CORE\\WORMS\\PROCESSZ.py": {
+    "CORE/WORMS/PROCESSZ.py": {
       "import_inside_function": 6
     },
-    "CORE\\WORMS\\REVERSE_TOOLS.py": {
+    "CORE/WORMS/REVERSE_TOOLS.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\SMARTDISK.py": {
+    "CORE/WORMS/SMARTDISK.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\SYSTEMZ.py": {
+    "CORE/WORMS/SYSTEMZ.py": {
       "import_inside_function": 6
     },
-    "CORE\\WORMS\\SYSTEMZ_ML.py": {
+    "CORE/WORMS/SYSTEMZ_ML.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\WORMZ.py": {
+    "CORE/WORMS/WORMZ.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\WORMZ_ML.py": {
+    "CORE/WORMS/WORMZ_ML.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\WORM_SELECTOR.py": {
+    "CORE/WORMS/WORM_SELECTOR.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\__init__.py": {
+    "CORE/WORMS/__init__.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\dead_letter_queue.py": {
+    "CORE/WORMS/dead_letter_queue.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\berks.py": {
+    "CORE/WORMS/expansion/berks.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\chaos.py": {
+    "CORE/WORMS/expansion/chaos.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\chorus.py": {
+    "CORE/WORMS/expansion/chorus.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\code_audit.py": {
+    "CORE/WORMS/expansion/code_audit.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\communication.py": {
+    "CORE/WORMS/expansion/communication.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\config.py": {
+    "CORE/WORMS/expansion/config.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\consensus.py": {
+    "CORE/WORMS/expansion/consensus.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\expansion\\container.py": {
+    "CORE/WORMS/expansion/container.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\cppn.py": {
+    "CORE/WORMS/expansion/cppn.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\db_monitor.py": {
+    "CORE/WORMS/expansion/db_monitor.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\delegation.py": {
+    "CORE/WORMS/expansion/delegation.py": {
       "import_inside_function": 5
     },
-    "CORE\\WORMS\\expansion\\dreaming.py": {
+    "CORE/WORMS/expansion/dreaming.py": {
       "import_inside_function": 10
     },
-    "CORE\\WORMS\\expansion\\driver.py": {
+    "CORE/WORMS/expansion/driver.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\engram.py": {
+    "CORE/WORMS/expansion/engram.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\expansion\\envmesh.py": {
+    "CORE/WORMS/expansion/envmesh.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\evolution.py": {
+    "CORE/WORMS/expansion/evolution.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\expansion\\evolution_audit.py": {
+    "CORE/WORMS/expansion/evolution_audit.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\exmachina.py": {
+    "CORE/WORMS/expansion/exmachina.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\fabric_state.py": {
+    "CORE/WORMS/expansion/fabric_state.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\federated.py": {
+    "CORE/WORMS/expansion/federated.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\glia.py": {
+    "CORE/WORMS/expansion/glia.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\hyperopt.py": {
+    "CORE/WORMS/expansion/hyperopt.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\immune.py": {
+    "CORE/WORMS/expansion/immune.py": {
       "import_inside_function": 6
     },
-    "CORE\\WORMS\\expansion\\jev_advisor.py": {
+    "CORE/WORMS/expansion/jev_advisor.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\learning_features.py": {
+    "CORE/WORMS/expansion/learning_features.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\learning_grpo.py": {
+    "CORE/WORMS/expansion/learning_grpo.py": {
       "import_inside_function": 10
     },
-    "CORE\\WORMS\\expansion\\learning_pipeline.py": {
+    "CORE/WORMS/expansion/learning_pipeline.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\learning_rl.py": {
+    "CORE/WORMS/expansion/learning_rl.py": {
       "import_inside_function": 7
     },
-    "CORE\\WORMS\\expansion\\learning_versioner.py": {
+    "CORE/WORMS/expansion/learning_versioner.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\liveness.py": {
+    "CORE/WORMS/expansion/liveness.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\mesh.py": {
+    "CORE/WORMS/expansion/mesh.py": {
       "import_inside_function": 9
     },
-    "CORE\\WORMS\\expansion\\metabolic.py": {
+    "CORE/WORMS/expansion/metabolic.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\nerve.py": {
+    "CORE/WORMS/expansion/nerve.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\nuclei.py": {
+    "CORE/WORMS/expansion/nuclei.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\oracle.py": {
+    "CORE/WORMS/expansion/oracle.py": {
       "import_inside_function": 6
     },
-    "CORE\\WORMS\\expansion\\profiling.py": {
+    "CORE/WORMS/expansion/profiling.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\expansion\\proteus_hooks.py": {
+    "CORE/WORMS/expansion/proteus_hooks.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\queens.py": {
+    "CORE/WORMS/expansion/queens.py": {
       "import_inside_function": 12
     },
-    "CORE\\WORMS\\expansion\\reflexion.py": {
+    "CORE/WORMS/expansion/reflexion.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\scheduling.py": {
+    "CORE/WORMS/expansion/scheduling.py": {
       "import_inside_function": 20
     },
-    "CORE\\WORMS\\expansion\\security.py": {
+    "CORE/WORMS/expansion/security.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\servemesh.py": {
+    "CORE/WORMS/expansion/servemesh.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\session_state.py": {
+    "CORE/WORMS/expansion/session_state.py": {
       "import_inside_function": 2
     },
-    "CORE\\WORMS\\expansion\\spawn_credit.py": {
+    "CORE/WORMS/expansion/spawn_credit.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\spine.py": {
+    "CORE/WORMS/expansion/spine.py": {
       "import_inside_function": 23
     },
-    "CORE\\WORMS\\expansion\\synapse.py": {
+    "CORE/WORMS/expansion/synapse.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\expansion\\telemetry.py": {
+    "CORE/WORMS/expansion/telemetry.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\tensorgene.py": {
+    "CORE/WORMS/expansion/tensorgene.py": {
       "import_inside_function": 1
     },
-    "CORE\\WORMS\\expansion\\threatmon.py": {
+    "CORE/WORMS/expansion/threatmon.py": {
       "import_inside_function": 3
     },
-    "CORE\\WORMS\\expansion\\xenomorph.py": {
+    "CORE/WORMS/expansion/xenomorph.py": {
       "import_inside_function": 4
     },
-    "CORE\\WORMS\\worm_telemetry.py": {
+    "CORE/WORMS/worm_telemetry.py": {
       "import_inside_function": 1
     },
-    "CORE\\active_learn.py": {
+    "CORE/active_learn.py": {
       "import_inside_function": 1
     },
-    "CORE\\agent_registry.py": {
+    "CORE/agent_registry.py": {
       "import_inside_function": 3
     },
-    "CORE\\arxiv_integration.py": {
+    "CORE/arxiv_integration.py": {
       "import_inside_function": 5
     },
-    "CORE\\audit_export_html.py": {
+    "CORE/audit_export_html.py": {
       "unicode_emoji": 1
     },
-    "CORE\\audit_trail.py": {
+    "CORE/audit_trail.py": {
       "import_inside_function": 1
     },
-    "CORE\\azazael_ctl.py": {
+    "CORE/azazael_ctl.py": {
       "import_inside_function": 12
     },
-    "CORE\\azazael_logging.py": {
+    "CORE/azazael_logging.py": {
       "import_inside_function": 1
     },
-    "CORE\\backend_bandit.py": {
+    "CORE/backend_bandit.py": {
       "import_inside_function": 1
     },
-    "CORE\\backup.py": {
+    "CORE/backup.py": {
       "import_inside_function": 1
     },
-    "CORE\\cascade.py": {
+    "CORE/cascade.py": {
       "import_inside_function": 1
     },
-    "CORE\\cd2_verifier.py": {
+    "CORE/cd2_verifier.py": {
       "import_inside_function": 3
     },
-    "CORE\\cd3_exporter.py": {
+    "CORE/cd3_exporter.py": {
       "import_inside_function": 1
     },
-    "CORE\\cd4_pipeline.py": {
+    "CORE/cd4_pipeline.py": {
       "import_inside_function": 1
     },
-    "CORE\\circuit_breaker.py": {
+    "CORE/circuit_breaker.py": {
       "import_inside_function": 2
     },
-    "CORE\\cli_audit.py": {
+    "CORE/cli_audit.py": {
       "import_inside_function": 1
     },
-    "CORE\\cli_crossref.py": {
+    "CORE/cli_crossref.py": {
       "import_inside_function": 2
     },
-    "CORE\\cli_memory.py": {
+    "CORE/cli_memory.py": {
       "import_inside_function": 1
     },
-    "CORE\\cluster_route.py": {
+    "CORE/cluster_route.py": {
       "import_inside_function": 2
     },
-    "CORE\\codebuff_tracker.py": {
+    "CORE/codebuff_tracker.py": {
       "import_inside_function": 1
     },
-    "CORE\\compliance\\dashboard_api.py": {
+    "CORE/compliance/dashboard_api.py": {
       "import_inside_function": 1
     },
-    "CORE\\compliance\\governance.py": {
+    "CORE/compliance/governance.py": {
       "import_inside_function": 2
     },
-    "CORE\\compliance\\heuristic_recorder.py": {
+    "CORE/compliance/heuristic_recorder.py": {
       "import_inside_function": 1,
       "unicode_emoji": 1
     },
-    "CORE\\compliance\\orchestrator.py": {
+    "CORE/compliance/orchestrator.py": {
       "import_inside_function": 2
     },
-    "CORE\\compliance\\pre_action_gate.py": {
+    "CORE/compliance/pre_action_gate.py": {
       "import_inside_function": 6
     },
-    "CORE\\compliance\\scanner.py": {
+    "CORE/compliance/scanner.py": {
       "import_inside_function": 7
     },
-    "CORE\\config.py": {
+    "CORE/config.py": {
       "import_inside_function": 1
     },
-    "CORE\\dashboard.py": {
+    "CORE/dashboard.py": {
       "import_inside_function": 14
     },
-    "CORE\\data_retention.py": {
+    "CORE/data_retention.py": {
       "import_inside_function": 13
     },
-    "CORE\\device.py": {
+    "CORE/device.py": {
       "import_inside_function": 2
     },
-    "CORE\\direct_memory.py": {
+    "CORE/direct_memory.py": {
       "import_inside_function": 5
     },
-    "CORE\\dispatch_plan.py": {
+    "CORE/dispatch_plan.py": {
       "import_inside_function": 2
     },
-    "CORE\\doctor.py": {
+    "CORE/doctor.py": {
       "import_inside_function": 7
     },
-    "CORE\\dream_arena.py": {
+    "CORE/dream_arena.py": {
       "import_inside_function": 1
     },
-    "CORE\\dream_policy_bridge.py": {
+    "CORE/dream_policy_bridge.py": {
       "import_inside_function": 2
     },
-    "CORE\\embedding_backend.py": {
+    "CORE/embedding_backend.py": {
       "import_inside_function": 2
     },
-    "CORE\\env_id.py": {
+    "CORE/env_id.py": {
       "import_inside_function": 2
     },
-    "CORE\\error_triage.py": {
+    "CORE/error_triage.py": {
       "unicode_emoji": 3
     },
-    "CORE\\forecast_baselines.py": {
+    "CORE/forecast_baselines.py": {
       "import_inside_function": 1
     },
-    "CORE\\freethreading.py": {
+    "CORE/freethreading.py": {
       "import_inside_function": 4
     },
-    "CORE\\fs_probe.py": {
+    "CORE/fs_probe.py": {
       "import_inside_function": 3
     },
-    "CORE\\gguf_census.py": {
+    "CORE/gguf_census.py": {
       "import_inside_function": 1
     },
-    "CORE\\graph_artifacts.py": {
+    "CORE/graph_artifacts.py": {
       "import_inside_function": 1
     },
-    "CORE\\graph_learn.py": {
+    "CORE/graph_learn.py": {
       "import_inside_function": 1
     },
-    "CORE\\health_server.py": {
+    "CORE/health_server.py": {
       "import_inside_function": 2
     },
-    "CORE\\hlc.py": {
+    "CORE/hlc.py": {
       "import_inside_function": 2
     },
-    "CORE\\inference\\bus_utils.py": {
+    "CORE/inference/bus_utils.py": {
       "import_inside_function": 1
     },
-    "CORE\\inference\\nim_client.py": {
+    "CORE/inference/nim_client.py": {
       "import_inside_function": 1
     },
-    "CORE\\inference\\providers.py": {
+    "CORE/inference/providers.py": {
       "import_inside_function": 18
     },
-    "CORE\\inference_pool.py": {
+    "CORE/inference_pool.py": {
       "import_inside_function": 1
     },
-    "CORE\\l1_wiring_audit.py": {
+    "CORE/l1_wiring_audit.py": {
       "import_inside_function": 5
     },
-    "CORE\\latent_align.py": {
+    "CORE/latent_align.py": {
       "import_inside_function": 2
     },
-    "CORE\\latent_refine.py": {
+    "CORE/latent_refine.py": {
       "import_inside_function": 1
     },
-    "CORE\\local_memory.py": {
+    "CORE/local_memory.py": {
       "import_inside_function": 12
     },
-    "CORE\\logging.py": {
+    "CORE/logging.py": {
       "import_inside_function": 1
     },
-    "CORE\\logging_config.py": {
+    "CORE/logging_config.py": {
       "import_inside_function": 1
     },
-    "CORE\\mesh_transport.py": {
+    "CORE/mesh_transport.py": {
       "import_inside_function": 2
     },
-    "CORE\\metrics.py": {
+    "CORE/metrics.py": {
       "import_inside_function": 1
     },
-    "CORE\\neural_loop.py": {
+    "CORE/neural_loop.py": {
       "import_inside_function": 16
     },
-    "CORE\\notifier.py": {
+    "CORE/notifier.py": {
       "import_inside_function": 5
     },
-    "CORE\\orkg_integration.py": {
+    "CORE/orkg_integration.py": {
       "import_inside_function": 4
     },
-    "CORE\\robust.py": {
+    "CORE/robust.py": {
       "import_inside_function": 2
     },
-    "CORE\\rollback.py": {
+    "CORE/rollback.py": {
       "import_inside_function": 1
     },
-    "CORE\\rubric_evolution.py": {
+    "CORE/rubric_evolution.py": {
       "import_inside_function": 1
     },
-    "CORE\\sb3_agent.py": {
+    "CORE/sb3_agent.py": {
       "import_inside_function": 4
     },
-    "CORE\\sentinel_enforcer.py": {
+    "CORE/sentinel_enforcer.py": {
       "import_inside_function": 2
     },
-    "CORE\\skill_library.py": {
+    "CORE/skill_library.py": {
       "import_inside_function": 2
     },
-    "CORE\\spine_registry.py": {
+    "CORE/spine_registry.py": {
       "import_inside_function": 15
     },
-    "CORE\\startup_warm.py": {
+    "CORE/startup_warm.py": {
       "import_inside_function": 7
     },
-    "CORE\\structured_action.py": {
+    "CORE/structured_action.py": {
       "import_inside_function": 3
     },
-    "CORE\\technique_runtime.py": {
+    "CORE/technique_runtime.py": {
       "import_inside_function": 4
     },
-    "CORE\\technique_wiring\\_b01_05.py": {
+    "CORE/technique_wiring/_b01_05.py": {
       "import_inside_function": 8
     },
-    "CORE\\technique_wiring\\_l0_model.py": {
+    "CORE/technique_wiring/_l0_model.py": {
       "import_inside_function": 7
     },
-    "CORE\\technique_wiring\\_l1_memory.py": {
+    "CORE/technique_wiring/_l1_memory.py": {
       "import_inside_function": 4
     },
-    "CORE\\technique_wiring\\_l2_skills.py": {
+    "CORE/technique_wiring/_l2_skills.py": {
       "import_inside_function": 9
     },
-    "CORE\\technique_wiring\\_l3_verify.py": {
+    "CORE/technique_wiring/_l3_verify.py": {
       "import_inside_function": 5
     },
-    "CORE\\technique_wiring\\_l4_exec.py": {
+    "CORE/technique_wiring/_l4_exec.py": {
       "import_inside_function": 6
     },
-    "CORE\\technique_wiring\\_l5_dispatch.py": {
+    "CORE/technique_wiring/_l5_dispatch.py": {
       "import_inside_function": 13
     },
-    "CORE\\technique_wiring\\_l7_interface.py": {
+    "CORE/technique_wiring/_l7_interface.py": {
       "import_inside_function": 10
     },
-    "CORE\\verification_gate.py": {
+    "CORE/verification_gate.py": {
       "import_inside_function": 2
     },
-    "CORE\\web_dashboard.py": {
+    "CORE/web_dashboard.py": {
       "import_inside_function": 4
     },
-    "CORE\\workflow.py": {
+    "CORE/workflow.py": {
       "import_inside_function": 5
     },
-    "CORE\\worm_governance.py": {
+    "CORE/worm_governance.py": {
       "import_inside_function": 3
     },
-    "CORE\\worm_health.py": {
+    "CORE/worm_health.py": {
       "import_inside_function": 3
     },
-    "CORE\\worm_registry.py": {
+    "CORE/worm_registry.py": {
       "import_inside_function": 7
     },
-    "CORE\\worm_registry_cache.py": {
+    "CORE/worm_registry_cache.py": {
       "import_inside_function": 2
     },
-    "CORE\\xref_auto_link.py": {
+    "CORE/xref_auto_link.py": {
       "import_inside_function": 1
     },
-    "CORE\\xref_dashboard.py": {
+    "CORE/xref_dashboard.py": {
       "unicode_emoji": 1
     },
-    "CORE\\xref_webhook.py": {
+    "CORE/xref_webhook.py": {
       "unicode_emoji": 1
     },
-    "DAEMONS\\parallax_validator.py": {
+    "DAEMONS/parallax_validator.py": {
       "import_inside_function": 3
     },
     "ERRORZ.py": {
@@ -693,233 +693,233 @@
     "HEALTHZ.py": {
       "import_inside_function": 6
     },
+    "HYDRA/hydra_launcher.py": {
+      "import_inside_function": 8
+    },
+    "HYDRA/hydra_protocols.py": {
+      "import_inside_function": 1
+    },
+    "HYDRA/ml_platforms/config.py": {
+      "import_inside_function": 1
+    },
+    "HYDRA/ml_platforms/harness.py": {
+      "import_inside_function": 5
+    },
+    "HYDRA/ml_test.py": {
+      "import_inside_function": 5
+    },
     "HYDRAMETA.py": {
       "import_inside_function": 2
     },
     "HYDRAMETA_UV.py": {
       "import_inside_function": 2
     },
-    "HYDRA\\hydra_launcher.py": {
-      "import_inside_function": 8
-    },
-    "HYDRA\\hydra_protocols.py": {
-      "import_inside_function": 1
-    },
-    "HYDRA\\ml_platforms\\config.py": {
-      "import_inside_function": 1
-    },
-    "HYDRA\\ml_platforms\\harness.py": {
+    "INTERPRETERS/__init__.py": {
       "import_inside_function": 5
     },
-    "HYDRA\\ml_test.py": {
-      "import_inside_function": 5
-    },
-    "INTERPRETERS\\__init__.py": {
-      "import_inside_function": 5
-    },
-    "META\\DebugZ.py": {
+    "META/DebugZ.py": {
       "import_inside_function": 1
     },
-    "META\\DistillZ.py": {
+    "META/DistillZ.py": {
       "import_inside_function": 3
     },
-    "META\\ERRORZ.py": {
+    "META/ERRORZ.py": {
       "import_inside_function": 1
     },
-    "META\\FleetZ.py": {
+    "META/FleetZ.py": {
       "import_inside_function": 3
     },
-    "META\\HYDRAMETA.py": {
+    "META/HYDRAMETA.py": {
       "import_inside_function": 1
     },
-    "META\\HYDRAMETA_UV.py": {
+    "META/HYDRAMETA_UV.py": {
       "import_inside_function": 1
     },
-    "META\\InferenceBridge.py": {
+    "META/InferenceBridge.py": {
       "import_inside_function": 2
     },
-    "META\\TELEMETRYZ.py": {
+    "META/TELEMETRYZ.py": {
       "import_inside_function": 1
     },
     "MISSING_TOOLS.py": {
       "import_inside_function": 1,
       "unicode_emoji": 2
     },
-    "ML\\estimators.py": {
+    "ML/estimators.py": {
       "import_inside_function": 8
     },
-    "ML\\gosp.py": {
+    "ML/gosp.py": {
       "import_inside_function": 1
     },
-    "ML\\nsga_tuner.py": {
+    "ML/nsga_tuner.py": {
       "import_inside_function": 1
     },
-    "ML\\torch_bridge.py": {
+    "ML/torch_bridge.py": {
       "import_inside_function": 3
     },
     "OPTIMIZ.py": {
       "import_inside_function": 4
     },
-    "ORCHESTRATION\\HORUS.py": {
+    "ORCHESTRATION/HORUS.py": {
       "import_inside_function": 3
     },
-    "ORCHESTRATION\\HORUS_LIVE_MONITOR.py": {
+    "ORCHESTRATION/HORUS_LIVE_MONITOR.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\HYDRA.py": {
+    "ORCHESTRATION/HYDRA.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\HYDRA_ANALYZER.py": {
+    "ORCHESTRATION/HYDRA_ANALYZER.py": {
       "unicode_emoji": 25
     },
-    "ORCHESTRATION\\HYDRA_ANALYZER_V2.py": {
+    "ORCHESTRATION/HYDRA_ANALYZER_V2.py": {
       "unicode_emoji": 3
     },
-    "ORCHESTRATION\\INTEROPERABILITY_ANALYSIS.py": {
+    "ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\SelfImprovingGUI.py": {
+    "ORCHESTRATION/SelfImprovingGUI.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\TEST\\ECOSYSTEM_TEST.py": {
+    "ORCHESTRATION/TEST/ECOSYSTEM_TEST.py": {
       "import_inside_function": 9
     },
-    "ORCHESTRATION\\ml_platforms\\__init__.py": {
+    "ORCHESTRATION/ml_platforms/__init__.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\config.py": {
+    "ORCHESTRATION/ml_platforms/config.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\harness.py": {
+    "ORCHESTRATION/ml_platforms/harness.py": {
       "import_inside_function": 5
     },
-    "ORCHESTRATION\\ml_platforms\\health_monitor.py": {
+    "ORCHESTRATION/ml_platforms/health_monitor.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\metrics_tracker.py": {
+    "ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\mlflow_integration.py": {
+    "ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\onnx_integration.py": {
+    "ORCHESTRATION/ml_platforms/improvements/onnx_integration.py": {
       "import_inside_function": 3
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\qlearning_table.py": {
+    "ORCHESTRATION/ml_platforms/improvements/qlearning_table.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\strategic_intelligence.py": {
+    "ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\tensor_utils.py": {
+    "ORCHESTRATION/ml_platforms/improvements/tensor_utils.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\improvements\\weakness_testing.py": {
+    "ORCHESTRATION/ml_platforms/improvements/weakness_testing.py": {
       "import_inside_function": 4
     },
-    "ORCHESTRATION\\ml_platforms\\install_manager.py": {
+    "ORCHESTRATION/ml_platforms/install_manager.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\installation_debug.py": {
+    "ORCHESTRATION/ml_platforms/installation_debug.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\run_qanalysis_full.py": {
+    "ORCHESTRATION/ml_platforms/run_qanalysis_full.py": {
       "import_inside_function": 1
     },
-    "ORCHESTRATION\\ml_platforms\\run_qanalysis_multi.py": {
+    "ORCHESTRATION/ml_platforms/run_qanalysis_multi.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\ml_platforms\\universal_converter.py": {
+    "ORCHESTRATION/ml_platforms/universal_converter.py": {
       "import_inside_function": 11
     },
-    "ORCHESTRATION\\scripts\\azazael_cli.py": {
+    "ORCHESTRATION/scripts/azazael_cli.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\scripts\\azazael_wsa.py": {
+    "ORCHESTRATION/scripts/azazael_wsa.py": {
       "import_inside_function": 2
     },
-    "ORCHESTRATION\\scripts\\test_enhancements.py": {
+    "ORCHESTRATION/scripts/test_enhancements.py": {
       "import_inside_function": 8
     },
-    "ORCHESTRATION\\scripts\\validate_docs.py": {
+    "ORCHESTRATION/scripts/validate_docs.py": {
       "import_inside_function": 1
     },
     "REAL_FRAMEWORK_TEST.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\generate_telemetry.py": {
+    "SCRIPTS/generate_telemetry.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\request_auth.py": {
+    "SCRIPTS/request_auth.py": {
       "import_inside_function": 2
     },
-    "SCRIPTS\\run_test_generate_telemetry.py": {
+    "SCRIPTS/run_test_generate_telemetry.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\sentinel_gate.py": {
+    "SCRIPTS/sentinel_gate.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\session_start.py": {
+    "SCRIPTS/session_start.py": {
       "import_inside_function": 1
     },
-    "SCRIPTS\\test_generate_telemetry.py": {
+    "SCRIPTS/test_generate_telemetry.py": {
       "import_inside_function": 4
     },
     "TELEMETRYZ.py": {
       "import_inside_function": 1
     },
-    "UTILITIES\\KLINK\\klink.py": {
+    "UTILITIES/KLINK/klink.py": {
       "import_inside_function": 5
     },
-    "UTILITIES\\PERSEPHONE\\persephone.py": {
+    "UTILITIES/PERSEPHONE/persephone.py": {
       "import_inside_function": 2
     },
-    "UTILITIES\\TARBABY\\TARBABY.py": {
+    "UTILITIES/TARBABY/TARBABY.py": {
       "import_inside_function": 3
     },
-    "UTILITIES\\TARBABY\\tarbaby_enhanced.py": {
+    "UTILITIES/TARBABY/tarbaby_enhanced.py": {
       "import_inside_function": 2
     },
-    "UTILITIES\\TERENCE\\TERENCE.py": {
+    "UTILITIES/TERENCE/TERENCE.py": {
       "import_inside_function": 4
     },
-    "eve_unleashed\\cli.py": {
+    "eve_unleashed/cli.py": {
       "import_inside_function": 7
     },
-    "eve_unleashed\\consciousness.py": {
+    "eve_unleashed/consciousness.py": {
       "import_inside_function": 5
     },
-    "eve_unleashed\\core.py": {
+    "eve_unleashed/core.py": {
       "import_inside_function": 6
     },
-    "eve_unleashed\\decision_engine.py": {
+    "eve_unleashed/decision_engine.py": {
       "import_inside_function": 1
     },
-    "eve_unleashed\\engine.py": {
+    "eve_unleashed/engine.py": {
       "import_inside_function": 7
     },
-    "eve_unleashed\\model_router.py": {
+    "eve_unleashed/model_router.py": {
       "import_inside_function": 1
     },
-    "eve_unleashed\\nl_interface.py": {
+    "eve_unleashed/nl_interface.py": {
       "import_inside_function": 2
     },
-    "eve_unleashed\\pams_evolution.py": {
+    "eve_unleashed/pams_evolution.py": {
       "import_inside_function": 2
     },
-    "eve_unleashed\\predictive_worms.py": {
+    "eve_unleashed/predictive_worms.py": {
       "import_inside_function": 2
     },
-    "eve_unleashed\\self_modifying_worms.py": {
+    "eve_unleashed/self_modifying_worms.py": {
       "import_inside_function": 4
     },
-    "eve_unleashed\\service_manager.py": {
+    "eve_unleashed/service_manager.py": {
       "import_inside_function": 1
     },
-    "eve_unleashed\\streaming.py": {
+    "eve_unleashed/streaming.py": {
       "import_inside_function": 2
     },
-    "eve_unleashed\\terence_v2.py": {
+    "eve_unleashed/terence_v2.py": {
       "import_inside_function": 3
     },
     "memory_status.py": {
@@ -928,16 +928,16 @@
     "session_memory.py": {
       "import_inside_function": 2
     },
-    "tests\\test_ecosystem.py": {
+    "tests/test_ecosystem.py": {
       "import_inside_function": 32
     },
-    "tests\\test_evolution_accuracy.py": {
+    "tests/test_evolution_accuracy.py": {
       "import_inside_function": 5
     },
-    "tests\\test_learning_loop.py": {
+    "tests/test_learning_loop.py": {
       "import_inside_function": 4
     },
-    "tests\\test_ml_estimators.py": {
+    "tests/test_ml_estimators.py": {
       "import_inside_function": 1
     }
   }

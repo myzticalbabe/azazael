@@ -277,12 +277,13 @@ one.
 ```bash
 python -m pytest tests/test_proteus_organs.py tests/test_proteus_hooks.py -q
 python scripts/verify_proteus.py
-"/c/Users/clint/AppData/Local/Programs/Python/Python314/python3.14t.exe" scripts/verify_proteus.py
+C:/Azazael/.venvs/py315t/Scripts/python.exe scripts/verify_proteus.py
 
 # Phase C
 AZAZAEL_PROTEUS_ORACLE=1 python scripts/evolution_cycle.py
 
-# Phase D (one variable at a time)
+# Phase D (one variable at a time) — NOTE: run_evolution_n.py retired 2026-10-11
+# (see archive/retired-trainers-2026-10-11/); Phase D steps need a live runner
 AZAZAEL_PROTEUS_CRANIUM=1 python scripts/run_evolution_n.py --runs 10
 AZAZAEL_PROTEUS_CIRCULATION=1 python scripts/run_evolution_n.py --runs 10
 
@@ -292,5 +293,5 @@ python scripts/_morph_polymorphy_probe.py
 
 # Cranium on real history, both interpreters
 python scripts/_cranium_reality_check.py
-"/c/Users/clint/AppData/Local/Programs/Python/Python314/python3.14t.exe" scripts/_cranium_reality_check.py
+C:/Azazael/.venvs/py315t/Scripts/python.exe scripts/_cranium_reality_check.py
 ```

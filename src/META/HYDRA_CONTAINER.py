@@ -71,7 +71,7 @@ class ClusterContainerConfig:
 
     cluster_name: str
     worms: list[str]
-    base_image: str = "python:3.14t-slim"
+    base_image: str = "python:3.15-slim"
     memory_limit: str = "512m"
     cpu_limit: str = "0.5"
     network_mode: str = "none"
@@ -169,8 +169,8 @@ class HYDRA_CONTAINER:
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-3.15t.txt .
+RUN pip install --no-cache-dir -r requirements-3.15t.txt
 
 COPY WORMZ/ ./WORMZ/
 COPY METAWORMS/ ./METAWORMS/

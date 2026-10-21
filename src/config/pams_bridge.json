@@ -17,7 +17,7 @@
   },
   "project_mappings": {
     "azazael": {
-      "root": "C:/Users/clint/azazael",
+      "root": "C:/Azazael/azazael",
       "memory_types": ["worm_executions", "morph_events", "debug_diagnostics", "bibl_updates"],
       "recording": {
         "conversations_db": true,

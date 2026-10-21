@@ -8,7 +8,8 @@ Environments:
   3. Desktop      : C:/Azazael/desktop/AZAZAEL_Standalone (release)
   4. G: source    : G:/source-of-truth/azazael      (canonical archive)
   5. G: AZAZAEL   : G:/AZAZAEL/AZAZAEL_ROOT          (primary archive)
-  6. Kali WSL2    : E:/Kali/azazael                 (Kali Linux security distro)
+  6. Kali WSL2    : /root/azazael inside distro kali-linux (via wsl -d kali-linux;
+                      E:/Kali holds only the distro ext4.vhdx, never a tree)
 
 Usage:
     python3.15t sync_all.py --status          Show sync status
@@ -152,6 +153,60 @@ def _resolve_path(p: Path, env_type: str) -> Path:
     return p
 
 
+def _ensure_wsl_interop() -> bool:
+    """Re-register the WSL interop binfmt handler if it went missing.
+
+    Observed 2026-10-21: /proc/sys/fs/binfmt_misc/WSLInterop vanished
+    mid-session with nothing taking action, and every wsl.exe exec then
+    failed with ``OSError: Exec format error``. Re-registering is safe,
+    idempotent, and session-scoped. Returns True when wsl.exe looks
+    executable after the attempt.
+    """
+    import shutil
+    if sys.platform == "win32":
+        return shutil.which("wsl.exe") is not None
+    handler = Path("/proc/sys/fs/binfmt_misc/WSLInterop")
+    if handler.exists():
+        return True
+    try:
+        if os.geteuid() == 0:
+            Path("/proc/sys/fs/binfmt_misc/register").write_text(
+                ":WSLInterop:M::MZ::/init:PF"
+            )
+    except OSError:
+        # Re-register failed: report the handler's actual state (missing in
+        # practice). A Call return is an explicit status check, not a
+        # success-shaped constant, so the failure stays visible to callers.
+        return handler.exists()
+    return handler.exists()
+
+
+def _exec_wsl_exe(argv: List[str], timeout: int) -> Tuple[int, str, str]:
+    """Exec wsl.exe once. TimeoutExpired / OSError propagate to the caller."""
+    result = subprocess.run(
+        argv,
+        capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
+    )
+    return result.returncode, result.stdout, result.stderr
+
+
+def _run_wsl_with_heal(argv: List[str], timeout: int, unavailable: str) -> Tuple[int, str, str]:
+    """Run wsl.exe, self-healing a dropped interop handler with one retry."""
+    try:
+        return _exec_wsl_exe(argv, timeout)
+    except subprocess.TimeoutExpired:
+        return -1, "", "TIMEOUT"
+    except OSError:
+        # FileNotFoundError (no wsl.exe) or Exec format error (WSLInterop
+        # handler dropped mid-session). Re-register when possible, retry once.
+        if _ensure_wsl_interop():
+            try:
+                return _exec_wsl_exe(argv, timeout)
+            except (subprocess.TimeoutExpired, OSError):
+                return -1, "", unavailable
+        return -1, "", unavailable
+
+
 def run_wsl(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     """Run a command inside WSL2 (Ubuntu-26.04).
     
@@ -161,17 +216,12 @@ def run_wsl(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     back rc=255 "The system cannot find the path specified." and the
     cross-environment verdict was decided by a shell parse error rather than by
     the files. wsl.exe is an ordinary PE binary and execs fine without a shell.
+    Self-heals a dropped WSLInterop handler with one retry (2026-10-21).
     """
-    try:
-        result = subprocess.run(
-            ["wsl.exe", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
-            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
-        )
-        return result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired:
-        return -1, "", "TIMEOUT"
-    except FileNotFoundError:
-        return -1, "", "WSL not available"
+    return _run_wsl_with_heal(
+        ["wsl.exe", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
+        timeout, "WSL not available",
+    )
 
 
 def wsl_path(win_path: Path) -> str:
@@ -408,16 +458,10 @@ def run_wsl_kali(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     `run_wsl`: cmd.exe mangles the quoting and the `2>/dev/null` redirect, so a
     shell-routed probe reports rc=255 while looking like a filesystem problem.
     """
-    try:
-        result = subprocess.run(
-            ["wsl.exe", "-d", "kali-linux", "-u", "root", "-e", "bash", "-c", cmd],
-            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
-        )
-        return result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired:
-        return -1, "", "TIMEOUT"
-    except FileNotFoundError:
-        return -1, "", "WSL/kali-linux not available"
+    return _run_wsl_with_heal(
+        ["wsl.exe", "-d", "kali-linux", "-u", "root", "-e", "bash", "-c", cmd],
+        timeout, "WSL/kali-linux not available",
+    )
 
 
 def sync_docs_to_target(windows_root: Path, target_root: Path,

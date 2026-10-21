@@ -67,7 +67,7 @@ def test_resolve_bare_worms_module():
     """Bare module name + CORE/WORMS source file → CORE.WORMS.<name>."""
     info = {
         "module": "CLUSTERWORMS",
-        "source_file": "C:/Users/clint/azazael/src/CORE/WORMS/CLUSTERWORMS.py",
+        "source_file": "C:/Azazael/azazael/src/CORE/WORMS/CLUSTERWORMS.py",
     }
     assert _resolve_worm_import_module(info) == "CORE.WORMS.CLUSTERWORMS"
 
@@ -76,7 +76,7 @@ def test_resolve_bare_core_module():
     """Bare module name + CORE/ source file → CORE.<name>."""
     info = {
         "module": "SOMEWORM",
-        "source_file": "C:/Users/clint/azazael/src/CORE/SOMEWORM.py",
+        "source_file": "C:/Azazael/azazael/src/CORE/SOMEWORM.py",
     }
     assert _resolve_worm_import_module(info) == "CORE.SOMEWORM"
 
@@ -93,7 +93,7 @@ def test_resolve_empty_info():
 
 def test_resolve_bare_with_source_stem():
     """Bare module with only a source file infers the module name from the stem."""
-    info = {"module": "", "source_file": "C:/Users/clint/azazael/src/CORE/WORMS/HEALTHZ.py"}
+    info = {"module": "", "source_file": "C:/Azazael/azazael/src/CORE/WORMS/HEALTHZ.py"}
     assert _resolve_worm_import_module(info) == "CORE.WORMS.HEALTHZ"
 
 

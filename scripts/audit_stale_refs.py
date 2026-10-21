@@ -53,8 +53,31 @@ SKIP_DIRS = {
     "nuitka_build_backup", "state", ".nox", ".debug",
     # Generated / frozen outputs — never executed, so they cannot misdirect
     # operations; they are INVENTORY of a past state by construction.
-    ".graphify-live", "var", "logs", "temp",
+    ".graphify-live", "var", "logs", "temp", ".hypothesis",
 }
+
+#: Files whose JOB is naming the retired thing (detectors, migrators,
+#: uninstallers). An ERROR here would flag the cure as the disease; their
+#: matches demote to INFO with the reason recorded.
+DETECTOR_FILES = {
+    "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+    "src/UTILITIES/TARBABY/uninstall_py314.sh",
+    "tools/repoint_315t.py",
+}
+
+#: Files whose JOB spans both live trees (sync/parity/atlas/inventory).
+#: C:/Users/clint/azazael is a live second tree, not a dead hub, for these
+#: tools — their old-hub-fwd matches are intentional cross-tree operation.
+CROSS_TREE_FILES = {
+    "scripts/sync_all.py",
+    "scripts/check_tree_parity.py",
+    "scripts/graphify_refresh_all.sh",
+    "src/CORE/azazael_ctl.py",
+}
+
+#: Constants kept so a census can name the retired thing
+#: (e.g. RETIRED_314T, LEGACY_GRAPHIFY_PY). Naming, not choosing.
+CENSUS_CONSTANT_RX = re.compile(r"^\s*(RETIRED|LEGACY|DEPRECATED)_[A-Z_0-9]+\s*=")
 SKIP_SUFFIXES = (".bak", ".pyc", ".whl", ".exe", ".mp4", ".png")
 SKIP_NAMES = {"repoint_315t.json", "stale_refs.json", "AUTO_DOWNLOADER.log",
               "ERROR_LOG.md", "audit_stale_refs.py"}
@@ -63,8 +86,13 @@ SKIP_NAMES = {"repoint_315t.json", "stale_refs.json", "AUTO_DOWNLOADER.log",
 #: instruction — except when the line itself reads like a command. Only
 #: command-like doc lines keep ERROR; the rest drop to INFO/INVENTORY so
 #: agents are not sent to rewrite the historical record.
+# `python` only counts when it is INVOKED (name + arguments). A bare prose
+# mention ("LIVE PROOF (cycle 116, ..., python3.14t):") is evidence, not an
+# instruction. `.exe` still fires on its own: a `python3.14t.exe` token is
+# executable-shaped wherever it appears, so evidence quotes of it stay loud
+# until a human downgrades the line.
 DOC_COMMAND_RX = re.compile(
-    r"RUN\b|COPY\b|python|pip\s|uv\s|pytest|nox|\.exe\b|\.bat\b|\.sh\b"
+    r"RUN\b|COPY\b|python[0-9.]*(?:\.exe)?\s+\S|pip\s|uv\s|pytest|nox|\.exe\b|\.bat\b|\.sh\b"
     r"|/usr/|/opt/|C:[/\\]|/root/|/mnt/|``\x60|\$\s|^\s*\$")
 DOC_SUFFIXES = {".md", ".txt"}
 
@@ -168,10 +196,26 @@ def audit_text(rel: str, suffix: str, text: str) -> list[dict]:
             if suffix == ".py" and severity == "ERROR":
                 if line_text.strip().startswith("#"):
                     severity, kind = "INFO", "INVENTORY"
+            # A `>` blockquote cites a record (e.g. RETIRED tombstones that
+            # must name the retired path to say it is retired). Citations are
+            # not instructions.
+            if severity == "ERROR":
+                if line_text.strip().startswith(">"):
+                    severity, kind = "INFO", "INVENTORY"
             # JSON is data, not execution. A stale name in data is worth a
             # human verifying the consumer (WARN), not a failing ERROR.
             if suffix == ".json" and severity == "ERROR":
                 severity = "WARN"
+            # Detector/migrator files name the retired thing as their job.
+            if rel in DETECTOR_FILES and severity == "ERROR":
+                severity, kind = "INFO", "INVENTORY"
+            # Cross-tree tools name the live second tree on purpose.
+            if rel in CROSS_TREE_FILES and rule.id == "old-hub-fwd" \
+                    and severity == "ERROR":
+                severity, kind = "INFO", "INVENTORY"
+            # Census constants (RETIRED_*/LEGACY_*) name; they do not choose.
+            if severity == "ERROR" and CENSUS_CONSTANT_RX.search(line_text):
+                severity, kind = "INFO", "INVENTORY"
             hits.append({"rule": rule.id, "severity": severity,
                          "kind": kind, "file": rel, "line": lineno,
                          "match": m.group(0)[:80], "canonical": rule.canonical,

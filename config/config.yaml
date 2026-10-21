@@ -22,7 +22,7 @@ services:
     native_port: 12780
 
 paths:
-  azazael_root: "C:/Users/clint/azazael"
+  azazael_root: "C:/Azazael/azazael"
   src_dir: "src/ORCHESTRATION"
   data_dir: "data"
   logs_dir: "logs"

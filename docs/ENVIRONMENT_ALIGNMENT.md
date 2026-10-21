@@ -97,6 +97,26 @@ Run `--verify` before any build. Apply `--apply` if Nuitka is reinstalled.
 
 ---
 
+## WSL ML runtimes (measured 2026-10-21, Ubuntu side)
+
+TensorFlow was built locally for the GIL 3.14 only. No TF or torch
+wheels exist for 3.15t in WSL — ML work that needs them stays on 3.14.
+
+| Interpreter | GIL | tensorflow | torch |
+|-------------|:---:|------------|-------|
+| `/usr/local/bin/python3.14-gil` (3.14.7) | enabled | 2.22.0-dev20260530, CPU-only (no CUDA drivers in WSL) | 2.12.0+cpu |
+| `/usr/local/bin/python3.14t` (3.14.7) | disabled (FT) | — | 2.14.0+cpu |
+| `/usr/local/bin/python3.15t` (3.15.0rc3) | disabled (FT) | — | — |
+| `/usr/bin/python3.14` (distro, GIL-only build) | n/a — **crashes at startup** (see below) | — | — |
+
+Gotcha: `PYTHON_GIL=0` is exported in this WSL shell. Any GIL-only
+(non-free-threaded-build) interpreter aborts at preinitialization with
+`config_read_gil: Disabling the GIL is not supported by this build`.
+Unset it (`unset PYTHON_GIL`) before launching `/usr/bin/python3.14`
+or any other GIL-only binary.
+
+---
+
 ## Integrity Checks
 
 Run after every session:

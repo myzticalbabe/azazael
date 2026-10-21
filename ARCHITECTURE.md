@@ -132,13 +132,13 @@ azazael-ctl                    # Unified CLI
 ## Testing
 
 ```bash
-# Run all tests
-cd azazael && python3.14t -m pytest tests/ -v
+# Run all tests (3.15t production venv)
+cd azazael && C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/ -v
 
 # Run specific test file
-python3.14t -m pytest tests/test_session_mappings.py -v
-python3.14t -m pytest tests/test_inference_pool.py -v
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_session_mappings.py -v
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_inference_pool.py -v
 
 # Run with live Ollama (requires running server)
-python3.14t -m CORE.inference_pool
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m CORE.inference_pool
 ```
