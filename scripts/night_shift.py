@@ -67,14 +67,14 @@ def main():
     for n in range(1, ROUNDS + 1):
         t0 = time.perf_counter()
         rep = {"round": n}
-        ok, _ = run([sys.executable, "C:/Users/clint/azazael/scripts/gossip_round.py"], 280)
+        ok, _ = run([sys.executable, "C:/Azazael/azazael/scripts/gossip_round.py"], 280)
         rep["gossip"] = ok
         ok, _ = run(["wsl", "-d", "Ubuntu-26.04", "--", "python3",
-                     "/mnt/c/Users/clint/azazael/scripts/bcc_oneshot.py"], 150)
+                     "/mnt/c/Azazael/azazael/scripts/bcc_oneshot.py"], 150)
         rep["ebpf_ubuntu"] = ok
         if n % 3 == 0 and ram_ok():
             ok, _ = run(["wsl", "-d", "kali-linux", "--", "python3",
-                         "/mnt/c/Users/clint/azazael/scripts/bcc_oneshot.py"], 150)
+                         "/mnt/c/Azazael/azazael/scripts/bcc_oneshot.py"], 150)
             rep["ebpf_kali"] = ok
         # curiosity probe via hourly script is scheduler-owned; here: direct measure
         try:
@@ -88,7 +88,7 @@ def main():
         except Exception:
             rep["probe"] = False
         if n % 2 == 0 and ram_ok():
-            ok, out = run([sys.executable, "C:/Users/clint/azazael/scripts/evolve_loop.py"], 500)
+            ok, out = run([sys.executable, "C:/Azazael/azazael/scripts/evolve_loop.py"], 500)
             rep["evo"] = ok
         if n % 3 == 0:
             try:
