@@ -92,14 +92,15 @@ class CainAnalyzerWorm:
 
     def execute(self) -> dict[str, Any]:
         """Run CAIN psychoanalysis and return structured results."""
-        if not self._analyzer_ok:
+        analyze = self._analyze
+        if analyze is None:
             return {
                 "success": False,
                 "error": "CAIN_ANALYZER module not importable",
                 "worm": "CainAnalyzerWorm",
             }
         try:
-            result = self._analyze()
+            result = analyze()
             return {
                 "success": True,
                 "worm": "CainAnalyzerWorm",
@@ -156,14 +157,15 @@ class AutoDownloaderWorm:
 
     def execute(self) -> dict[str, Any]:
         """Detect missing ML frameworks and report status."""
-        if not self._downloader_ok:
+        downloader_cls = self._AutoDownloader
+        if downloader_cls is None:
             return {
                 "success": False,
                 "error": "AUTO_DOWNLOADER module not importable",
                 "worm": "AutoDownloaderWorm",
             }
         try:
-            dl = self._AutoDownloader()
+            dl = downloader_cls()
             status = dl.get_status()
             missing = dl.detect_missing()
             return {
@@ -223,14 +225,15 @@ class EmojiMakerWorm:
 
     def execute(self) -> dict[str, Any]:
         """Export emoji library and generate mood palette samples."""
-        if not self._emoji_ok:
+        emoji_cls = self._EmojiMaker
+        if emoji_cls is None:
             return {
                 "success": False,
                 "error": "emoji_maker module not importable",
                 "worm": "EmojiMakerWorm",
             }
         try:
-            maker = self._EmojiMaker()
+            maker = emoji_cls()
             library = maker.export_library()
             return {
                 "success": True,

@@ -29,7 +29,13 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("KALIWORMS:L20", exc)
-    def register_worm(**kw):
+    def register_worm(
+        category: str = "utility",
+        priority: int = 5,
+        cooldown_seconds: float = 30.0,
+        description: str = "",
+        tags=None,
+    ):
         return lambda cls: cls
 
 
@@ -57,7 +63,7 @@ _VERSION_FLAGS = (("--version",), ("-V",), ("version",), ("-h",), ("--help",))
 class _KaliToolWorm:
     """Base: probe the tool until one flag works. Subclasses set BIN/PROBES."""
     BIN = ""
-    PROBES = None
+    PROBES: tuple[tuple[str, ...], ...] | None = None
     TIMEOUT = _PROBE_TIMEOUT
 
     def scan(self):
@@ -145,4 +151,4 @@ del _name, _bin, _cat, _desc, _probes
 
 if __name__ == "__main__":
     import json
-    print(json.dumps(NmapWorm().scan(), indent=2)[:400])
+    print(json.dumps(globals()["NmapWorm"].scan(), indent=2)[:400])

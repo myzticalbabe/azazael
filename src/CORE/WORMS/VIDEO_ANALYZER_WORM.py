@@ -17,8 +17,7 @@ See LESSONS_MASTER.md #64-65 for full reverse engineering results.
 
 Usage:
     from CORE.WORMS.VIDEO_ANALYZER_WORM import VideoAnalyzerWorm
-import argparse
-    
+
     # Single video analysis
     result = VideoAnalyzerWorm.analyze_video("path/to/video.mp4")
     
@@ -30,6 +29,7 @@ import argparse
     result = worm.execute()
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -70,7 +70,13 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("VIDEO_ANALYZER_WORM:L62", exc)
-    def register_worm(**kwargs):
+    def register_worm(
+        category: str = "utility",
+        priority: int = 5,
+        cooldown_seconds: float = 30.0,
+        description: str = "",
+        tags=None,
+    ):
         def decorator(cls):
             return cls
         return decorator

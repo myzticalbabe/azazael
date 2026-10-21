@@ -32,7 +32,13 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("berks:register-worm-import", exc)
-    def register_worm(**kw):
+    def register_worm(
+        category: str = "utility",
+        priority: int = 5,
+        cooldown_seconds: float = 30.0,
+        description: str = "",
+        tags=None,
+    ):
         return lambda cls: cls
 
 # -- PAMS + MemoryBus (lazy, double-checked locking for 3.14t) -------------
@@ -146,7 +152,7 @@ class BerksMonitorWorm:
             with socket.create_connection((host, 443), timeout=self._timeout) as s:
                 with ctx.wrap_socket(s, server_hostname=host) as ts:
                     der = ts.getpeercert()
-            exp = der.get("notAfter", "") if isinstance(der, dict) else ""
+            exp = str(der.get("notAfter", "")) if isinstance(der, dict) else ""
             rec["tls_not_after"] = exp
             try:
                 import calendar
@@ -195,8 +201,8 @@ class BerksMonitorWorm:
         """PAMS audit trail (best-effort; never breaks monitoring)."""
         try:
             p = _pams()
-            if p is not None and hasattr(p, "record"):
-                p.record(event_type, data)
+            if p is not None and hasattr(p, "record_event"):
+                p.record_event(event_type, data)
         except Exception as exc:
             note_failure("berks:pams-record", exc)
 
