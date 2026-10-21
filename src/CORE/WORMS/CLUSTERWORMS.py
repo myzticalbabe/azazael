@@ -83,8 +83,8 @@ _dm_lock = threading.RLock()
 #: degrades to "no channel" rather than breaking every cluster run.
 try:
     from CORE.WORMS.expansion.delegation import (
-        NeedsClarification as _NeedsClarification,
-        ClarificationTimeout as _ClarificationTimeout,
+        NeedsClarification as _NeedsClarification,  # pyright: ignore[reportAssignmentType] -- except-path defines a structurally distinct local Exception subclass behind the same name; selected by import success
+        ClarificationTimeout as _ClarificationTimeout,  # pyright: ignore[reportAssignmentType] -- same shape as _NeedsClarification above
     )
 except Exception as exc:  # noqa: BLE001 -- optional channel
     _note_failure("clusterworms:delegation-import", exc)
@@ -178,8 +178,8 @@ class _WatchdogThread:
 # ── Worm Registry ─────────────────────────────────────────────────
 try:
     from CORE.worm_registry import (
-        register_worm, WORM_REGISTRY, get_worms_by_category,
-        get_all_categories, discover_worms, mark_spawned,
+        register_worm, WORM_REGISTRY, get_worms_by_category,  # pyright: ignore[reportAssignmentType] -- except-path fabricates a decorator fallback with an unrelated signature; selected by import success
+        get_all_categories, discover_worms, mark_spawned,  # pyright: ignore[reportAssignmentType] -- fallback mark_spawned uses param name and return type differing from the real one; selected by import success
     )
     _REGISTRY_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
@@ -231,7 +231,7 @@ def _get_pams():
         with _pams_lock:
             if _pams is None:
                 try:
-                    _pams = _get_recorder()
+                    _pams = _get_recorder()  # pyright: ignore[reportOptionalCall] -- reachable only when _PAMS_OK proved the import succeeded; the None fallback limb never reaches here
                 except Exception as exc:  # noqa: BLE001 — optional recorder; fall back to None
                     _note_failure("clusterworms:pams-construct", exc)
                     _pams = False
@@ -246,7 +246,7 @@ def _get_mem_bus():
         with _mem_bus_lock:
             if _mem_bus is None:
                 try:
-                    _mem_bus = _MemoryBusCls()
+                    _mem_bus = _MemoryBusCls()  # pyright: ignore[reportOptionalCall] -- reachable only when _MEMBUS_OK proved the import succeeded; None limb unreachable
                 except Exception as exc:  # noqa: BLE001 — optional bus; fall back to None
                     _note_failure("clusterworms:bus-construct", exc)
                     _mem_bus = False
@@ -255,7 +255,7 @@ def _get_mem_bus():
 
 # ── Free-Threading ────────────────────────────────────────────────
 try:
-    from CORE.freethreading import is_free_threaded, FreeThreadPool, CancellationToken, TaskCancelledError
+    from CORE.freethreading import is_free_threaded, FreeThreadPool, CancellationToken, TaskCancelledError  # pyright: ignore[reportAssignmentType] -- optional import; except-path binds None / a local Exception subclass behind the same names; selected by import success
     from concurrent.futures import as_completed
     _FREETHREAD_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
@@ -303,7 +303,7 @@ def _get_breaker_registry():
         with _breaker_lock:
             if _breaker_registry is None:
                 try:
-                    _cfg = _get_config()
+                    _cfg = _get_config()  # pyright: ignore[reportOptionalCall] -- reachable only when the breaker import succeeded (registry cls non-None); None limb unreachable
                     _breaker_registry = _BreakerRegistryCls()
                 except Exception as exc:  # noqa: BLE001 — optional breaker; fall back to None
                     _note_failure("clusterworms:breaker-construct", exc)
@@ -623,7 +623,7 @@ def _clarification_outcome(exc: BaseException, method_name: str) -> Optional[Dic
     }
 
 
-def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
+def _execute_worm_class(name: str, cls: Callable[..., Any]) -> Dict[str, Any]:
     """
     Instantiate a worm class and call its primary method.
 
@@ -1211,10 +1211,11 @@ class ClusterWORMZ:
             # Worm workloads are dominated by disk/network I/O (file scans, HTTP calls,
             # module imports), not CPU. adaptive_workers(io_bound=True) provides up
             # to cpu_count * 4 workers (capped at 32) for better throughput.
-            max_workers = FreeThreadPool.adaptive_workers(len(enabled_configs), io_bound=True)
+            pool_cls: Any = FreeThreadPool  # optional import; None keeps the original first-use AttributeError failure mode
+            max_workers = pool_cls.adaptive_workers(len(enabled_configs), io_bound=True)
             timed_out_worms: List[str] = []
             
-            with FreeThreadPool(max_workers=max_workers) as pool:
+            with pool_cls(max_workers=max_workers) as pool:
                 # Batch-submit all worm tasks with named labels
                 tasks = [(self._execute_single_worm, (config,), {"_label": config.name})
                          for config in enabled_configs]
@@ -1229,7 +1230,7 @@ class ClusterWORMZ:
                             mark_spawned(name)
                         except TimeoutError as exc:       # noqa: BLE001 - was silent
                             _note_failure("clusterworms:pool-worm-timeout", exc)
-                            self.cancellation_token.cancel()
+                            getattr(self.cancellation_token, "cancel")()
                             if self._cancel_event:
                                 self._cancel_event.set()
                             future.cancel()
@@ -1253,7 +1254,7 @@ class ClusterWORMZ:
                             })
                 except TimeoutError as exc:               # noqa: BLE001 - was silent
                     _note_failure("clusterworms:pool-batch-timeout", exc)
-                    self.cancellation_token.cancel()
+                    getattr(self.cancellation_token, "cancel")()
                     if self._cancel_event:
                         self._cancel_event.set()
                     # as_completed timed out — cancel and record stragglers
@@ -1342,7 +1343,7 @@ class ClusterWORMZ:
             for attempt in range(max(0, config.retry - 1)):
                 if result.get("success"):
                     break
-                if hasattr(self.cancellation_token, 'is_cancelled') and self.cancellation_token.is_cancelled:
+                if getattr(self.cancellation_token, 'is_cancelled', False):
                     break
                 if self._cancel_event and self._cancel_event.wait(delay):
                     break
