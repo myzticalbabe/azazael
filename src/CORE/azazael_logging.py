@@ -33,9 +33,10 @@ import sys
 import os
 import json
 import threading
+from types import ModuleType
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 from dataclasses import dataclass, field
 
 #: Shadowing guard: when src/CORE is on sys.path, a bare ``import logging``
@@ -43,7 +44,10 @@ from dataclasses import dataclass, field
 import importlib.util
 import sysconfig
 
-def _import_stdlib_logging():
+if TYPE_CHECKING:  # static view only; annotations below are quoted strings
+    from logging import LogRecord as _StdLogRecord
+
+def _import_stdlib_logging() -> ModuleType:
     # find_spec respects sys.path, so when src/CORE is on sys.path it returns
     # CORE/logging.py -> infinite recursion (verified Oct 20 2026). Load from
     # the stdlib dir explicitly, bypassing sys.path shadowing.
@@ -52,6 +56,11 @@ def _import_stdlib_logging():
         for cand in (f"{stdlib}/logging/__init__.py", f"{stdlib}/logging.py"):
             if os.path.exists(cand):
                 spec = importlib.util.spec_from_file_location("_stdlib_logging", cand)
+                if spec is None or spec.loader is None:
+                    # stdlib layout changed or spec unresolvable: fall through
+                    # to the sys.path fallback below instead of passing None
+                    # into module_from_spec (which would TypeError at runtime).
+                    break
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 return mod
@@ -139,7 +148,7 @@ class LogEntry:
 class JsonFormatter(logging.Formatter):
     """Format log records as JSON lines."""
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: "_StdLogRecord") -> str:
         entry = {
             "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
             "level": record.levelname,
@@ -266,7 +275,7 @@ if __name__ == "__main__":
     log.info("logger_test", {"status": "ok", "version": "1.0.0"})
     log.warning("deprecation_notice", {"module": "old_thing", "migrate_to": "new_thing"})
     try:
-        1 / 0
+        _ = 1 / 0
     except ZeroDivisionError:
         log.error("division_by_zero", {"operation": "1/0"})
     print("\nJSON logging test complete. Check stderr for output.", flush=True)
