@@ -209,16 +209,16 @@ class QLearningAnalyzer:
         if _HybridRewardComputer is None:
             return float(outcome_reward)
         if self._hybrid_computer is None:
-            self._hybrid_computer = _HybridRewardComputer(_HybridRewardConfig(
-                source_weights={_RewardSource.ENVIRONMENT: 0.5,
-                                _RewardSource.USER_FEEDBACK: 0.2,
-                                _RewardSource.TOOL_OUTPUT: 0.2,
-                                _RewardSource.PREDICTIVE: 0.1}))
-        self._hybrid_computer.update(_RewardSource.ENVIRONMENT, float(outcome_reward))
+            self._hybrid_computer = _HybridRewardComputer(_HybridRewardConfig(  # pyright: ignore[reportOptionalCall]
+                source_weights={_RewardSource.ENVIRONMENT: 0.5,  # pyright: ignore[reportOptionalMemberAccess]
+                                _RewardSource.USER_FEEDBACK: 0.2,  # pyright: ignore[reportOptionalMemberAccess]
+                                _RewardSource.TOOL_OUTPUT: 0.2,  # pyright: ignore[reportOptionalMemberAccess]
+                                _RewardSource.PREDICTIVE: 0.1}))  # pyright: ignore[reportOptionalMemberAccess]
+        self._hybrid_computer.update(_RewardSource.ENVIRONMENT, float(outcome_reward))  # pyright: ignore[reportOptionalMemberAccess]
         if user_feedback is not None:
-            self._hybrid_computer.update(_RewardSource.USER_FEEDBACK, float(user_feedback))
+            self._hybrid_computer.update(_RewardSource.USER_FEEDBACK, float(user_feedback))  # pyright: ignore[reportOptionalMemberAccess]
         if tool_outcome is not None:
-            self._hybrid_computer.update(_RewardSource.TOOL_OUTPUT, float(tool_outcome))
+            self._hybrid_computer.update(_RewardSource.TOOL_OUTPUT, float(tool_outcome))  # pyright: ignore[reportOptionalMemberAccess]
         return self._hybrid_computer.compute_hybrid()
 
     def choose_action(self, state, use_epsilon_greedy=True):
