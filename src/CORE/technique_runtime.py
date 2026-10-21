@@ -556,7 +556,8 @@ def _read_pressure_summary(limit: int = 100) -> Dict[str, Any]:
     for r in rows:
         if not isinstance(r, dict):
             continue
-        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        raw_data: Any = r.get("data")
+        data: dict = raw_data if isinstance(raw_data, dict) else {}
         if data.get("signal"):
             signals.append(str(data["signal"]))
         rate = data.get("abstention_rate")
@@ -597,7 +598,8 @@ def fleet_link_health(limit: int = 100) -> Dict[str, Any]:
         if isinstance(r.get("data"), dict) and r["data"].get("ok") is True)
     by_hook: Dict[str, Dict[str, int]] = {}
     for r in rows:
-        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        raw_data: Any = r.get("data")
+        data: dict = raw_data if isinstance(raw_data, dict) else {}
         hook = str((r.get("event_type") or "").replace("hook:", "")
                    or data.get("hook", "unknown"))
         cell = by_hook.setdefault(hook, {"n": 0, "ok": 0})

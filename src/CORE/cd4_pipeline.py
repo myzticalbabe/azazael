@@ -124,6 +124,14 @@ def __getattr__(name: str) -> Any:
     )
 
 
+#: Virtual names served lazily by __getattr__ above (PEP 562): declared here
+#: so __all__ and static checkers see the contract. The VALUES always come
+#: from the probe, never from a module global -- nothing may bind them here
+#: without paying the import-time subprocess cost the laziness exists to avoid.
+NUITKA_AVAILABLE: bool
+NUITKA_VERSION: str
+
+
 # ====================================================================
 # Constants
 # ====================================================================
@@ -865,8 +873,9 @@ def _find_project_root() -> str:
 
 if __name__ == "__main__":
     print("CD4 CI Pipeline v1.0 -- Self-test")
-    print(f"  Nuitka available: {NUITKA_AVAILABLE}")
-    print(f"  Nuitka version: {NUITKA_VERSION or 'N/A'}")
+    _nuitka_info = _detect_nuitka()
+    print(f"  Nuitka available: {_nuitka_info['available']}")
+    print(f"  Nuitka version: {_nuitka_info['version'] or 'N/A'}")
     print(f"  Project root: {_find_project_root()}")
     print()
 
@@ -925,4 +934,4 @@ if __name__ == "__main__":
 
     # Summary
     print("\n  All 6/6 self-tests PASSED")
-    print(f"  Nuitka: {'AVAILABLE' if NUITKA_AVAILABLE else 'NOT INSTALLED (dry-run mode active)'}")
+    print(f"  Nuitka: {'AVAILABLE' if _nuitka_info['available'] else 'NOT INSTALLED (dry-run mode active)'}")

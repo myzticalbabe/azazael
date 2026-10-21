@@ -110,10 +110,10 @@ def main():
         print_help()
         return
 
-        command = args[0].lower()
+    command = args[0].lower()
 
-        if command == "paths":
-            cmd_paths()
+    if command == "paths":
+        cmd_paths()
     elif command == "sync":
         dry_run = "--dry-run" in args or "-n" in args
         cmd_sync(dry_run)
