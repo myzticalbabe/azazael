@@ -46,7 +46,7 @@ if _azazael_src not in sys.path:
 
 try:
     from CORE.freethreading import (
-        is_free_threaded, FreeThreadPool, ThreadSafeDict,
+        is_free_threaded, FreeThreadPool, ThreadSafeDict,  # pyright: ignore[reportAssignmentType] -- except-path supplies a function shim for FreeThreadPool while try binds the real class; selected by import success, not substitutability
         ThreadSafeList, ThreadSafeCounter,
     )
     HAS_FREETHREADING = True
@@ -94,7 +94,7 @@ except ImportError:
         return _FTP(*a, **kw)
 
 try:
-    from CORE.PamsRecorder import PamsRecorder, get_recorder
+    from CORE.PamsRecorder import PamsRecorder, get_recorder  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines structurally distinct fallback class/function behind the same names (the existing no-redef shims); selected by import success
     HAS_PAMS = True
 except ImportError as exc:
     note_failure("Agent:L90", exc)
@@ -126,7 +126,7 @@ except ImportError as exc:
 
 # -- AgentRegistry for agent discovery -------------------------------
 try:
-    from CORE.agent_registry import register_agent, AGENT_REGISTRY, AgentHealthReporter
+    from CORE.agent_registry import register_agent, AGENT_REGISTRY, AgentHealthReporter  # pyright: ignore[reportAssignmentType] -- optional import: except-path fabricates a decorator fallback with an unrelated signature; selected by import success
     HAS_AGENT_REGISTRY = True
 except ImportError as exc:
     note_failure("Agent:L120", exc)
@@ -236,7 +236,7 @@ class FreeThreadedAgent:
         self._sub_lock = threading.Lock()
 
         # -- MemoryBus for inter-agent messaging (lazy init — created on first use) --
-        self._bus: Optional[MemoryBus] = None
+        self._bus: Any = None  # annotation is Any: MemoryBus is a class or a None-valued variable across the import fallback branches
         self._bus_subscriptions: List[str] = []  # Track subscribed topics
         self._bus_init_lock = threading.Lock()
 
@@ -247,7 +247,7 @@ class FreeThreadedAgent:
                 reporter = getattr(self.__class__, '_health_reporter', None)
                 if reporter is None:
                     reporter = AgentHealthReporter()
-                    self.__class__._health_reporter = reporter
+                    setattr(self.__class__, '_health_reporter', reporter)
                 reporter.register_instance(self)
                 self._health_reporter = reporter
             except Exception as exc:  # noqa: BLE001 — optional registry; init must not fail
@@ -565,7 +565,7 @@ class FreeThreadedAgent:
 
     # -- MemoryBus Integration (lazy init) ---------------------------------
 
-    def _ensure_bus(self) -> Optional['MemoryBus']:
+    def _ensure_bus(self) -> Any:
         """Lazy-initialize the MemoryBus on first use.
         Uses a short PAMS timeout to keep agent creation fast."""
         if self._bus is not None:
@@ -590,7 +590,7 @@ class FreeThreadedAgent:
                 self._bus = None
         return self._bus
 
-    def _handle_bus_command(self, msg: 'BusMessage') -> None:
+    def _handle_bus_command(self, msg: Any) -> None:
         """Handle an incoming MemoryBus command message.
 
         Default implementation: looks for 'action' and 'payload' keys.
@@ -644,7 +644,7 @@ class FreeThreadedAgent:
         if self._bus is None:
             self._ensure_bus()
 
-    def send_message(self, target_agent_id: str, action: str, payload: dict = None) -> bool:
+    def send_message(self, target_agent_id: str, action: str, payload: Optional[dict] = None) -> bool:
         """
         Send a command message to another agent via MemoryBus.
 
@@ -672,7 +672,7 @@ class FreeThreadedAgent:
             note_failure("Agent:L654", exc)
             return False
 
-    def broadcast_message(self, action: str, payload: dict = None) -> bool:
+    def broadcast_message(self, action: str, payload: Optional[dict] = None) -> bool:
         """
         Broadcast a command to all agents.
 
@@ -699,7 +699,7 @@ class FreeThreadedAgent:
             note_failure("Agent:L680", exc)
             return False
 
-    def poll_messages(self, topic: str = None) -> List[Any]:
+    def poll_messages(self, topic: Optional[str] = None) -> List[Any]:
         """
         Poll for incoming messages on a specific topic.
 
