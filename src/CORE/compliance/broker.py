@@ -514,10 +514,11 @@ def enforce_gate(action_name: str = ""):
                 )
 
             # --- Check 2b: Basher command gating (RULE 0Z-C) ---
+            command = str(args[0]) if args else str(kwargs.get("command", ""))
             if _GATE_BASH_AVAILABLE and actual_action == "basher" and args:
                 global _gate_bash_instance
                 if _gate_bash_instance is None:
-                    _gate_bash_instance = GateBash()
+                    _gate_bash_instance = GateBash()  # pyright: ignore[reportOptionalCall]
                 gb = _gate_bash_instance
                 verdict = gb.classify(command)
                 if verdict["destructive"]:
@@ -551,9 +552,9 @@ def enforce_gate(action_name: str = ""):
 
         if HAS_WRAPT and isinstance(wrapped, wrapt.ObjectProxy):
             @wrapt.decorator
-            def wrapper_func(wrapped, instance, args, kwargs):
+            def wrapper_func(wrapped, instance, args, kwargs):  # pyright: ignore[reportRedeclaration]
                 return gate_wrapper(wrapped, *args, **kwargs)
-            result = wrapper_func(wrapped)
+            result = wrapper_func(wrapped)  # pyright: ignore[reportCallIssue]
             _decorated_tools[actual_action] = wrapped
             return result
         elif wrapped is not None:
