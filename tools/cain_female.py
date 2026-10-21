@@ -21,7 +21,7 @@ Closest fit is LILITH, but as refusal of a CORRECTION rather than refusal of a
 boundary, and saying so is the honest entry rather than the flattering one.
 """
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 # ---- 1. the four female archetypes: same markup, my words ----

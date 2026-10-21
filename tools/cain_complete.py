@@ -7,7 +7,7 @@ says so rather than inventing a finding.
 """
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 U = lambda items: "<ul>" + "".join("<li>%s</li>" % i for i in items) + "</ul>"

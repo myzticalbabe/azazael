@@ -11,7 +11,7 @@ from inside, and that asymmetry is itself one of the things worth recording.
 """
 import os, re, html as H
 
-AZ = r"C:\Users\clint\azazael"
+AZ = r"C:\Azazael\azazael"
 DOC = os.path.join(AZ, "dashboard", "CAIN_20260930.html")
 E = lambda s: H.escape(str(s), quote=False)
 
