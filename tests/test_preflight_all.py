@@ -17,6 +17,7 @@ Two layers again:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -451,7 +452,11 @@ class TestBlind:
 def _control_artifact(tmp_path, body):
     d = tmp_path / "tests"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "test_ctl_fixture.py").write_text(body, encoding="utf-8")
+    p = d / "test_ctl_fixture.py"
+    with p.open("w", encoding="utf-8") as f:
+        f.write(body)
+        f.flush()
+        os.fsync(f.fileno())
     return "tests/test_ctl_fixture.py"
 
 
