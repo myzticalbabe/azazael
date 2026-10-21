@@ -10,9 +10,9 @@ Usage:
     >>> response = client.generate("Explain quantum computing")
 """
 
-import requests
+import requests  # pyright: ignore[reportMissingModuleSource]
 import json
-from typing import Generator, List
+from typing import Generator, List, Optional
 from dataclasses import dataclass
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -46,7 +46,7 @@ class ChatMessage:
 class LMStudioClient:
     """Client for LM Studio local inference."""
 
-    def __init__(self, base_url: str = "http://localhost:1234", api_key: str = None):
+    def __init__(self, base_url: str = "http://localhost:1234", api_key: Optional[str] = None):
         """Initialize client.
 
         Args:
@@ -74,7 +74,7 @@ class LMStudioClient:
     def chat_complete(
         self,
         messages: list[ChatMessage],
-        model: str = None,
+        model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         stream: bool = False,
@@ -117,7 +117,7 @@ class LMStudioClient:
     def complete(
         self,
         prompt: str,
-        model: str = None,
+        model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         stream: bool = False,
@@ -160,7 +160,7 @@ class LMStudioClient:
     def stream_chat(
         self,
         messages: list[ChatMessage],
-        model: str = None,
+        model: Optional[str] = None,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
         """Stream chat response.
@@ -203,7 +203,7 @@ class LMStudioClient:
             note_failure("lm_studio_client:L190", e)
             yield f"Error: {e}"
 
-    def embeddings(self, input_text: str, model: str = None) -> dict:
+    def embeddings(self, input_text: str, model: Optional[str] = None) -> dict:
         """Get text embeddings.
 
         Args:
@@ -258,7 +258,7 @@ class OllamaClient:
         prompt: str,
         model: str,
         stream: bool = False,
-        options: dict = None,
+        options: Optional[dict] = None,
     ) -> dict:
         """Generate response.
 
