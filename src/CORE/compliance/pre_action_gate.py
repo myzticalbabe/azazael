@@ -193,8 +193,12 @@ class PreActionGate:
 
     def __init__(self):
         self._lock = threading.Lock()
-        self.telemetry = ComplianceTelemetry() if _TELEMETRY_AVAILABLE else None
-        self.memory = DirectMemory() if _MEMORY_AVAILABLE else None
+        self.telemetry = (ComplianceTelemetry()
+                          if (_TELEMETRY_AVAILABLE and ComplianceTelemetry is not None)
+                          else None)
+        self.memory = (DirectMemory()
+                       if (_MEMORY_AVAILABLE and DirectMemory is not None)
+                       else None)
         self.orchestrator = None  # Lazy-init on first _check_rule_0x_0y call
         # RULE 0Z-F telemetry — load persisted cumulative counters so
         # generate_telemetry.py in a fresh process sees real values.
@@ -250,7 +254,7 @@ class PreActionGate:
         """Record to DirectMemory for session audit trail."""
         if self.memory:
             try:
-                self.memory.record_event(event_type, details)
+                self.memory.record(event_type, data=details)
             except Exception as exc:
                 note_failure("pre_action_gate:L207", exc)
 
@@ -1017,7 +1021,12 @@ class PreActionGate:
         # Lazy-init orchestrator on first call (avoids module-load import bug)
         if self.orchestrator is None:
             if _lazy_import_orchestrator():
-                self.orchestrator = ComplianceOrchestrator()
+                # Narrow the possibly-None module symbol through a local:
+                # the lazy importer sets it on success, but the checker
+                # cannot see through the flag call.
+                orchestrator_cls = ComplianceOrchestrator
+                if orchestrator_cls is not None:
+                    self.orchestrator = orchestrator_cls()
             if self.orchestrator is None:
                 return False, (
                     "RULE 0X/0Y DENIED: ComplianceOrchestrator unavailable — "

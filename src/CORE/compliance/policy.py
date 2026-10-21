@@ -229,7 +229,10 @@ class PolicyEngine:
         An unexecutable action names its repair instead of failing at click
         time, and every validated action declares its effect row (EP382).
         """
-        if semantic_action is None:
+        # All three symbols come from the same optional import: when it
+        # fails they are ALL None, so one guard covers all three call sites
+        # below (semantic_action, observe, effect_row).
+        if semantic_action is None or observe is None or effect_row is None:
             return None
         attributes = attributes or {}
         app = str(attributes.get("app", "") or "").strip()
@@ -603,11 +606,13 @@ def enforce_gate(action: str = "", role: str = "developer", **conditions):
             return func(*args, **kwargs)
 
         if HAS_WRAPT and isinstance(wrapped, wrapt.ObjectProxy):
-            # wrapt-based decoration (signature-preserving)
-            @wrapt.decorator
-            def wrapper_func(wrapped, instance, args, kwargs):
-                return gate_wrapper(wrapped, *args, **kwargs)
-            return wrapper_func(wrapped)
+            # wrapt-based decoration (signature-preserving). The adapter is
+            # untyped (wrapt ships no py.typed), so it is Any: binding with
+            # just (wrapped) returns the signature-preserving proxy, while
+            # passing all four would INVOKE instead of bind.
+            wrapt_adapter = wrapt.decorator(
+                lambda w, i, a, k: gate_wrapper(w, *a, **k))
+            return wrapt_adapter(wrapped)
         elif wrapped is not None:
             # Direct function decoration
             @functools.wraps(wrapped)

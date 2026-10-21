@@ -123,7 +123,10 @@ def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
             if not genes:
                 continue
             try:
-                fv = float(data.get(fitness_key))
+                fitness_raw = data.get(fitness_key)
+                if fitness_raw is None:
+                    raise TypeError(f"missing {fitness_key}")
+                fv = float(fitness_raw)
             except (TypeError, ValueError) as exc:
                 note_failure("tensorgene:L116", exc)
                 continue
@@ -272,7 +275,10 @@ def correlate(history: Sequence[dict], gene: str,
             missing_gene += 1
             continue
         try:
-            fv = float(data.get(fitness_key))
+            fitness_raw = data.get(fitness_key)
+            if fitness_raw is None:
+                raise TypeError(f"missing {fitness_key}")
+            fv = float(fitness_raw)
         except (TypeError, ValueError) as exc:
             note_failure("tensorgene:L261", exc)
             continue

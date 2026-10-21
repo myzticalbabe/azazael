@@ -44,7 +44,7 @@ import threading
 import time
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any, Callable, List, Optional, TYPE_CHECKING
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -55,12 +55,15 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-try:
+if TYPE_CHECKING:
     from http.server import HTTPServer, BaseHTTPRequestHandler
-except ImportError as exc:
-    note_failure("metrics:L51", exc)
-    HTTPServer = None
-    BaseHTTPRequestHandler = object
+else:
+    try:
+        from http.server import HTTPServer, BaseHTTPRequestHandler
+    except ImportError as exc:
+        note_failure("metrics:L51", exc)
+        HTTPServer = None
+        BaseHTTPRequestHandler = object
 
 
 class MetricsRegistry:
@@ -269,7 +272,7 @@ def get_registry() -> MetricsRegistry:
 class MetricsHandler(BaseHTTPRequestHandler):
     """HTTP request handler for /metrics and /health endpoints."""
 
-    registry: MetricsRegistry = None  # type: ignore
+    registry: Optional[MetricsRegistry] = None
 
     def do_GET(self):
         if self.path == "/metrics":
@@ -287,6 +290,12 @@ class MetricsHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Not found")
 
     def _serve_metrics(self):
+        if self.registry is None:
+            self.send_response(503)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"Metrics registry not configured")
+            return
         data = self.registry.to_openmetrics()
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; version=0.0.4")
@@ -437,10 +446,10 @@ class HealthCheck:
     """Registry of health check callables (legacy API)."""
 
     def __init__(self):
-        self._checks: dict[str, callable] = {}
+        self._checks: dict[str, Callable[..., Any]] = {}
         self._lock = threading.Lock()
 
-    def register(self, name: str, fn: callable):
+    def register(self, name: str, fn: Callable[..., Any]):
         """Register a health check callable returning a component-like object."""
         with self._lock:
             self._checks[name] = fn
