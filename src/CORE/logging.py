@@ -11,12 +11,62 @@ importing it in tests cannot reconfigure production logging).
 """
 import io
 import json
-import logging
 import os
 import sys
 import threading
 from datetime import datetime, timezone
 from typing import List
+
+#: Shadowing guard (2026-09-11 audit defect): when src/CORE is on sys.path,
+#: a bare ``import logging`` resolves to THIS file, breaking stdlib consumers
+#: like ``concurrent.futures``. Force the stdlib module via importlib so the
+#: name ``logging`` always means the standard library.
+import importlib.util
+import sysconfig
+
+def _import_stdlib_logging():
+    """Return the stdlib ``logging`` module, never this file."""
+    # find_spec respects sys.path, so when src/CORE is on sys.path it returns
+    # THIS file -> infinite recursion (verified Oct 20 2026). Load from the
+    # stdlib dir explicitly, bypassing sys.path shadowing.
+    try:
+        stdlib = sysconfig.get_path("stdlib")
+        for cand in (f"{stdlib}/logging/__init__.py", f"{stdlib}/logging.py"):
+            if os.path.exists(cand):
+                spec = importlib.util.spec_from_file_location("_stdlib_logging", cand)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                return mod
+    except Exception as exc:
+        print("CORE/logging: stdlib load failed (%s); using fallback" % exc, file=sys.stderr)
+    import logging as _fallback  # sys.path already safe here
+    return _fallback
+
+_stdlib_logging = _import_stdlib_logging()
+# When this file was reached via bare `import logging` (src/CORE on sys.path),
+# the import system will bind sys.modules['logging'] to THIS module after exec,
+# so handing sys.modules back to stdlib gets overwritten. Instead hydrate this
+# module with the stdlib API so stdlib consumers (concurrent.futures etc.) get
+# getLogger/Logger/etc. alongside our facade (get_logger/StructuredLogger).
+if __name__ == "logging":
+    for _k in dir(_stdlib_logging):
+        if _k not in globals():
+            try:
+                globals()[_k] = getattr(_stdlib_logging, _k)
+            except Exception as exc:
+                print("CORE/logging: hydrate %s failed (%s)" % (_k, exc), file=sys.stderr)
+    logging = sys.modules[__name__]  # this module now carries stdlib API
+else:
+    logging = _stdlib_logging
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).

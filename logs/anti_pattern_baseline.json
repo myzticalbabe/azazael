@@ -1,15 +1,15 @@
 {
-  "recorded_at": "2026-10-20T20:25:22+00:00",
+  "recorded_at": "2026-10-21T00:16:31+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
   "files_scanned": 725,
   "category_counts": {
     "hardcoded_win_path": 14,
-    "import_inside_function": 944,
+    "import_inside_function": 946,
     "unicode_emoji": 1260
   },
-  "total_findings": 2218,
+  "total_findings": 2220,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -437,6 +437,9 @@
     "CORE\\azazael_ctl.py": {
       "import_inside_function": 12
     },
+    "CORE\\azazael_logging.py": {
+      "import_inside_function": 1
+    },
     "CORE\\backend_bandit.py": {
       "import_inside_function": 1
     },
@@ -575,6 +578,9 @@
     },
     "CORE\\local_memory.py": {
       "import_inside_function": 12
+    },
+    "CORE\\logging.py": {
+      "import_inside_function": 1
     },
     "CORE\\logging_config.py": {
       "import_inside_function": 1
