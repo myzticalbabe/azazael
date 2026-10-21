@@ -10,7 +10,7 @@ import time
 import threading
 import hashlib
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Iterable, List
 from collections import Counter
 import os as _os
 
@@ -31,10 +31,10 @@ try:
     )
 except ImportError as exc:  # pragma: no cover - defensive
     note_failure("consensus:L22", exc)
-    def hydrate(instance, provider, attrs):
+    def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
         return 0
 
-    def publish(instance, provider, attrs):
+    def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         return False
 
     def cap_list(seq, limit):
@@ -47,7 +47,9 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("consensus:L37", exc)
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 9,
+                      cooldown_seconds: float = 30.0, description: str = "",
+                      tags: (set[str] | None) = None) -> Any:
         return lambda cls: cls
 
 
@@ -194,7 +196,7 @@ class LeaderElectorWorm:
             return {"leader": self._leader, "term": self._term,
                     "nodes": list(self._nodes.keys())}
 
-    def apply_placement(self, path: str = None) -> dict[str, Any]:
+    def apply_placement(self, path: (str | None) = None) -> dict[str, Any]:
         """Seed nominations from task7 placement.json; remaps bare->wsl2-ubuntu
         when BarePassthroughWorm reports no bare kernel (3-env mesh).
 
@@ -212,14 +214,13 @@ class LeaderElectorWorm:
                 path = candidate if _os.path.exists(candidate) else \
                     "G:/source-of-truth/azazael_models/placement.json"
         import json as _json
-        import os as _os
         try:
             from CORE.fs_probe import bounded_read_text
         except Exception as exc:  # pragma: no cover - probe helper optional
             note_failure("consensus:L205", exc)
-            def bounded_read_text(p, timeout_s=5.0, label="fs-read"):  # type: ignore
+            def bounded_read_text(path: str, timeout_s: float = 5.0, label: str = "fs-read") -> (str | None):  # type: ignore
                 try:
-                    return open(p, encoding="utf-8").read()
+                    return open(path, encoding="utf-8").read()
                 except Exception as exc:
                     note_failure("consensus:L209", exc)
                     return None  # scanner:ignore
