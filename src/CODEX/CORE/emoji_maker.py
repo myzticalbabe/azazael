@@ -361,16 +361,25 @@ class EmojiMaker:
     def emotion_blend(self, emotion1: Emotion, emotion2: Emotion,
                       blend: float = 0.5, intensity: float = 0.5) -> list[EmojiDef]:
         """Blend between two emotions at a given ratio."""
-        set1 = set(self.by_emotion.get(emotion1, []))
-        set2 = set(self.by_emotion.get(emotion2, []))
+        # EmojiDef is a mutable, non-frozen dataclass (unhashable), so the
+        # difference must be deduped by identity, not via set() membership.
+        primary_list = self.by_emotion.get(
+            emotion1 if blend <= 0.5 else emotion2, [])
+        secondary_list = self.by_emotion.get(
+            emotion2 if blend <= 0.5 else emotion1, [])
         # Weight toward emotion1 if blend < 0.5, emotion2 otherwise
-        primary = set1 if blend <= 0.5 else set2
-        secondary = set2 if blend <= 0.5 else set1
         weight = abs(blend - 0.5) * 2
 
-        results = list(primary)[:max(1, int(5 * (1 - weight)))]
-        results += list(secondary - set(results))[:max(1, int(5 * weight))]
-        return [e for e in results if e.intensity_range[0] <= intensity <= e.intensity_range[1]]
+        results = list(primary_list)[:max(1, int(5 * (1 - weight)))]
+        seen = {id(e) for e in results}
+        extra: list[EmojiDef] = []
+        for emoji in secondary_list:
+            if id(emoji) not in seen:
+                seen.add(id(emoji))
+                extra.append(emoji)
+        results += extra[:max(1, int(5 * weight))]
+        return [e for e in results
+                if e.intensity_range[0] <= intensity <= e.intensity_range[1]]
 
     def intensity_scale(self, emoji: EmojiDef, intensity: float) -> dict:
         """Generate CSS scale values based on intensity (0.0-1.0)."""
@@ -530,34 +539,34 @@ def main():
         print(_json.dumps(maker.export_library(), indent=2))
         return
 
-        if args.css:
-            print(maker.generate_css())
+    if args.css:
+        print(maker.generate_css())
+        return
+
+    if args.reaction:
+        emoji = maker.reaction_emoji(args.reaction, args.intensity)
+        print(f"  Reaction: {args.reaction} -> {emoji.char} {emoji.name}")
+        return
+
+    if args.blend and len(args.blend) == 2:
+        try:
+            e1 = Emotion(args.blend[0])
+            e2 = Emotion(args.blend[1])
+        except ValueError:
+            print("  Invalid emotion. Options:", [e.value for e in Emotion])
             return
+        blended = maker.emotion_blend(e1, e2, 0.5, args.intensity)
+        print(f"  Blend: {e1.value} ↔ {e2.value}")
+        for e in blended[:args.count]:
+            print(f"    {e.char} {e.name} ({e.primary_emotion.value})")
+        return
 
-            if args.reaction:
-                emoji = maker.reaction_emoji(args.reaction, args.intensity)
-                print(f"  Reaction: {args.reaction} -> {emoji.char} {emoji.name}")
-                return
+    mood = Mood(args.mood) if args.mood else None
+    emotion = Emotion(args.emotion) if args.emotion else None
 
-                if args.blend and len(args.blend) == 2:
-                    try:
-                        e1 = Emotion(args.blend[0])
-                        e2 = Emotion(args.blend[1])
-                    except ValueError:
-                        print("  Invalid emotion. Options:", [e.value for e in Emotion])
-                        return
-                        blended = maker.emotion_blend(e1, e2, 0.5, args.intensity)
-                        print(f"  Blend: {e1.value} ↔ {e2.value}")
-                        for e in blended[:args.count]:
-                            print(f"    {e.char} {e.name} ({e.primary_emotion.value})")
-                            return
-
-                            mood = Mood(args.mood) if args.mood else None
-                            emotion = Emotion(args.emotion) if args.emotion else None
-
-                            if mood:
-                                palette = maker.mood_palette(mood, args.count)
-                                print(f"  Mood: {mood.value} ({len(palette)} emojis)")
+    if mood:
+        palette = maker.mood_palette(mood, args.count)
+        print(f"  Mood: {mood.value} ({len(palette)} emojis)")
     elif emotion:
         palette = maker.get_by_emotion(emotion, args.intensity)[:args.count]
         print(f"  Emotion: {emotion.value} @ intensity {args.intensity}")
@@ -565,9 +574,9 @@ def main():
         palette = maker.mood_palette(Mood.POSITIVE, args.count)
         print(f"  Default Positive Mood ({len(palette)} emojis)")
 
-        for e in palette:
-            print(f"    {e.char}  {e.name:<20} {e.primary_emotion.value:<12} "
-                      f"[{e.intensity_range[0]:.1f}-{e.intensity_range[1]:.1f}]  {e.animation}")
+    for e in palette:
+        print(f"    {e.char}  {e.name:<20} {e.primary_emotion.value:<12} "
+              f"[{e.intensity_range[0]:.1f}-{e.intensity_range[1]:.1f}]  {e.animation}")
 
 
 if __name__ == "__main__":

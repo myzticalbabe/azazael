@@ -211,9 +211,15 @@ class GateBash:
     """
 
     def __init__(self):
-        self.pre_action_gate = get_pre_action_gate() if _PAG_AVAILABLE else None
-        self.orchestrator = ComplianceOrchestrator() if _ORCHESTRATOR_AVAILABLE else None
-        self.memory = DirectMemory() if _MEMORY_AVAILABLE else None
+        self.pre_action_gate = None
+        self.orchestrator = None
+        self.memory = None
+        if _PAG_AVAILABLE and get_pre_action_gate is not None:
+            self.pre_action_gate = get_pre_action_gate()
+        if _ORCHESTRATOR_AVAILABLE and ComplianceOrchestrator is not None:
+            self.orchestrator = ComplianceOrchestrator()
+        if _MEMORY_AVAILABLE and DirectMemory is not None:
+            self.memory = DirectMemory()
 
     def classify(self, command: str) -> Dict:
         """Classify a shell command as destructive or non-destructive.
@@ -276,7 +282,7 @@ class GateBash:
         # Record the attempt
         if self.memory:
             try:
-                self.memory.record_event("gate_bash_attempt", {
+                self.memory.record("gate_bash_attempt", {
                     "command": command[:500],
                     "category": verdict["category"],
                     "severity": verdict["severity"],

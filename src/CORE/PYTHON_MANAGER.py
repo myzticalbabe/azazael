@@ -135,8 +135,21 @@ class PythonManager:
         self._discover_installations()
 
     def _parse_version(self, ver: str) -> tuple:
-        parts = ver.split(".")
-        return tuple(int(p) for p in parts[:3])
+        """Version string -> (major, minor, patch) ints, tolerating suffixes.
+
+        `int("0rc3")` raised under the naive split, which made PythonManager()
+        impossible to instantiate against the 3.15.0rc3 production entry.
+        """
+        parts = []
+        for chunk in ver.split(".")[:3]:
+            digits = ""
+            for ch in chunk:
+                if ch.isdigit():
+                    digits += ch
+                else:
+                    break
+            parts.append(int(digits or 0))
+        return tuple(parts)
 
     def _discover_installations(self):
         """Scan for all Python installations."""
@@ -182,7 +195,7 @@ class PythonManager:
                 return inst
         return None
 
-    def get_by_version(self, major: int, minor: int = None) -> list[PythonInstallation]:
+    def get_by_version(self, major: int, minor: int | None = None) -> list[PythonInstallation]:
         """Get all installations matching version."""
         results = []
         for inst in self.installations.values():
@@ -247,13 +260,13 @@ class PythonManager:
 
     def save_inventory(self, filename: str = "PYTHON_INVENTORY.json"):
         """Save inventory to JSON."""
+        default = self.get_default()
+        azazael = self.get_azazael_venv()
         inventory = {
             "timestamp": "2026-02-13",
             "total": len(self.installations),
-            "default": self.get_default().path if self.get_default() else None,
-            "azazael_venv": self.get_azazael_venv().path
-            if self.get_azazael_venv()
-            else None,
+            "default": default.path if default else None,
+            "azazael_venv": azazael.path if azazael else None,
             "installations": [
                 {
                     "path": inst.path,
