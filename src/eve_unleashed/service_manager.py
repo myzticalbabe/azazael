@@ -16,9 +16,9 @@ except ImportError:
         pass
 
 try:
-    import win32event
-    import win32service
-    import win32serviceutil
+    import win32event  # pyright: ignore[reportMissingModuleSource]
+    import win32service  # pyright: ignore[reportMissingModuleSource]
+    import win32serviceutil  # pyright: ignore[reportMissingModuleSource]
     _WIN32_SERVICE_AVAILABLE = True
 except ImportError as exc:
     note_failure("service_manager:win32service", exc)
@@ -170,30 +170,30 @@ class LlamaServerManager:
 
 
 if _WIN32_SERVICE_AVAILABLE:
-    class EveLlamaService(win32serviceutil.ServiceFramework):
+    class EveLlamaService(win32serviceutil.ServiceFramework):  # pyright: ignore[reportOptionalMemberAccess]
         _svc_name_ = "EveUnleashedLlamaServer"
         _svc_display_name_ = "Eve Unleashed - llama-server"
         _svc_description_ = "Auto-starting llama-server supervised by Eve Unleashed Phase 1."
 
         def __init__(self, args):
             super().__init__(args)
-            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)  # pyright: ignore[reportOptionalMemberAccess]
             exe, model, port = _resolve_paths()
             self.manager = LlamaServerManager(exe, model, port)
 
         def SvcStop(self):
-            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-            win32event.SetEvent(self.hWaitStop)
+            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)  # pyright: ignore[reportOptionalMemberAccess]
+            win32event.SetEvent(self.hWaitStop)  # pyright: ignore[reportOptionalMemberAccess]
             self.manager.stop()
 
         def SvcDoRun(self):
             self.manager.start()
-            win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)
+            win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)  # pyright: ignore[reportOptionalMemberAccess]
 
 
 if __name__ == "__main__":
     if _WIN32_SERVICE_AVAILABLE and len(sys.argv) >= 2 and sys.argv[1].lower() in {"install", "start", "stop", "remove"}:
-        win32serviceutil.HandleCommandLine(EveLlamaService)
+        win32serviceutil.HandleCommandLine(EveLlamaService)  # pyright: ignore[reportOptionalMemberAccess]
     else:
         # daemon mode (non-service) for dev/testing
         exe, model, port = _resolve_paths()
