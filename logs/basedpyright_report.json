@@ -1,19 +1,19 @@
 {
-  "recorded_at": "2026-10-21T18:49:03+00:00",
+  "recorded_at": "2026-10-21T18:53:00+00:00",
   "checker": "basedpyright",
   "summary": {
     "filesAnalyzed": 713,
-    "errorCount": 299,
+    "errorCount": 295,
     "warningCount": 106,
     "informationCount": 0
   },
   "severity_counts": {
-    "error": 299,
+    "error": 295,
     "warning": 106,
     "information": 0
   },
   "top_rules": {
-    "reportArgumentType": 110,
+    "reportArgumentType": 106,
     "reportAssignmentType": 81,
     "reportAttributeAccessIssue": 40,
     "reportOptionalMemberAccess": 33,
@@ -283,10 +283,6 @@
     "src/HYDRAMETA_UV.py:reportOptionalMemberAccess:spec.loader.exec_module(module)#2",
     "src/HYDRA_CONTAINER.py:reportArgumentType:ignore=shutil.ignore_patterns(\"__pycache__\", \".git\", \"node_modules\"),",
     "src/META/DistillZ.py:reportOptionalMemberAccess:g = (self._get_store().get_stats() or {}) if self._store else {}",
-    "src/META/HYDRAMETA.py:reportArgumentType:def _generate_params(self, seed: int = None) -> dict[str, Any]:",
-    "src/META/HYDRAMETA.py:reportArgumentType:def initialize_population(self, size: int = None):",
-    "src/META/HYDRAMETA.py:reportArgumentType:def run_trials(self, num_trials: int = None) -> list[TrialResult]:",
-    "src/META/HYDRAMETA.py:reportArgumentType:self, strategy: str = \"ml_optimized\", count: int = 5, params: dict = None",
     "src/META/HYDRAMETA_UV.py:reportArgumentType:module = importlib.util.module_from_spec(spec)",
     "src/META/HYDRAMETA_UV.py:reportAssignmentType:success, uv_output, uv_duration = self._install_worm_deps(",
     "src/META/HYDRAMETA_UV.py:reportOptionalMemberAccess:spec.loader.exec_module(module)",
