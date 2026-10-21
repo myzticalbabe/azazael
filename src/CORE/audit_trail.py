@@ -91,7 +91,7 @@ except ImportError as exc:
 AUDIT_DIR = Path(".audit")
 ANCHORS_FILE = AUDIT_DIR / "anchors.jsonl"
 CHECKPOINT_INTERVAL = 100
-_session_filepath: Path = None
+_session_filepath: (Path | None) = None
 _session_started: bool = False
 _write_lock = threading.RLock()  # RLock (reentrant) for nested calls
 _line_counter = 0
@@ -102,7 +102,7 @@ _session_uuid: str = ""  # Set at init, used for anchoring
 SIGNING_KEY_DIR = Path.home() / ".azazael"
 SIGNING_KEY_PATH = SIGNING_KEY_DIR / "audit_signing_key"
 PUBLIC_KEY_PATH = SIGNING_KEY_DIR / "audit_signing_key.pub"
-_signing_key: bytes = None  # Raw Ed25519 private key bytes (lazy-loaded)
+_signing_key: (bytes | None) = None  # Raw Ed25519 private key bytes (lazy-loaded)
 
 
 def _compute_hash(entry: dict, prev_hash: str) -> str:
@@ -135,7 +135,7 @@ def _get_signing_key() -> bytes:
     Returns empty bytes if cryptography is not installed.
     """
     global _signing_key
-    if not _CRYPTO_AVAILABLE:
+    if not _CRYPTO_AVAILABLE or ed25519 is None:
         return b""
     if _signing_key is not None:
         return _signing_key
@@ -159,7 +159,9 @@ def _get_signing_key() -> bytes:
             note_failure("audit_trail:L147", exc)
         _signing_key = priv_bytes
 
-    return _signing_key
+    key = _signing_key
+    assert key is not None  # both load/generate paths above assign real bytes
+    return key
 
 
 def _sign_payload(canonical_json: str) -> str:
@@ -167,7 +169,7 @@ def _sign_payload(canonical_json: str) -> str:
 
     Returns empty string if cryptography is not installed.
     """
-    if not _CRYPTO_AVAILABLE:
+    if not _CRYPTO_AVAILABLE or ed25519 is None:
         return ""
     key_bytes = _get_signing_key()
     if not key_bytes:
@@ -187,7 +189,7 @@ def verify_signature(data: dict) -> bool:
         True if signature is valid or if signing is not available (graceful).
         False if signature is present but invalid.
     """
-    if not _CRYPTO_AVAILABLE:
+    if not _CRYPTO_AVAILABLE or ed25519 is None:
         return True  # Graceful: can't verify without cryptography
 
     sig_b64 = data.get("signature", "")
@@ -364,7 +366,7 @@ class _authorized_write:
 def _append_raw(data: dict):
     """Internal: append without returning citation. MUST be called under _write_lock."""
     global _line_counter
-    assert _write_lock._is_owned(), "_append_raw MUST be called under _write_lock"
+    assert getattr(_write_lock, "_is_owned")(), "_append_raw MUST be called under _write_lock"
     line = _json_dumps(data) + "\n"
     with _authorized_write(_session_filepath) as f:
         f.write(line)
@@ -639,7 +641,7 @@ def audit_gate_passed(checks_passed: int, checks_failed: int) -> str:
     })
 
 
-def audit_sentinel_run(result: str, errors: list = None) -> str:
+def audit_sentinel_run(result: str, errors: (list | None) = None) -> str:
     _ensure_session()
     return _append_line({
         "ts": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -650,7 +652,7 @@ def audit_sentinel_run(result: str, errors: list = None) -> str:
 
 
 def audit_retrieval(query_context: str, n_checked: int, n_quarantined: int,
-                    quarantined_ids: list = None, reasons: list = None) -> str:
+                    quarantined_ids: (list | None) = None, reasons: (list | None) = None) -> str:
     """Record a MAFIA retrieval audit — what recall returned and what was held back.
 
     P0 slice 2 of the SOTA integration blueprint (MAFIA defensive): every
@@ -669,8 +671,8 @@ def audit_retrieval(query_context: str, n_checked: int, n_quarantined: int,
     })
 
 
-def audit_verification_gate(subject: str, accepted: bool, reasons: list = None,
-                            remediations: list = None) -> str:
+def audit_verification_gate(subject: str, accepted: bool, reasons: (list | None) = None,
+                            remediations: (list | None) = None) -> str:
     """Record a unified verification-gate verdict (P1, L3 gate).
 
     Every accept/remediate decision at a layer transition leaves a ledger
@@ -1277,7 +1279,7 @@ def verify_chain_skip_corrupt(filepath: str) -> tuple:
     return len(corrupt_lines) == 0, corrupt_lines, error_details
 
 
-def get_head_hash(filepath: str = None) -> str:
+def get_head_hash(filepath: (str | None) = None) -> str:
     """Get the final (head) hash of the audit chain. Thread-safe."""
     fp = Path(filepath) if filepath else _session_filepath
     if not fp or not fp.exists():
@@ -1585,7 +1587,7 @@ def get_session_filepath() -> str:
     return str(_session_filepath)
 
 
-def read_audit_lines(filepath: str = None) -> list:
+def read_audit_lines(filepath: (str | None) = None) -> list:
     """Read all audit lines from a session file. Returns list of (line_num, data) tuples."""
     fp = Path(filepath) if filepath else _session_filepath
     if not fp or not fp.exists():
@@ -1679,7 +1681,7 @@ def audit_code_review(subject: str, issues_found: int = 0,
 
 
 def audit_tooling_verify(tools_found: int, tools_missing: int,
-                         details: dict = None) -> str:
+                         details: (dict | None) = None) -> str:
     """Record a tooling verification event.
 
     Args:
@@ -1701,7 +1703,7 @@ def audit_tooling_verify(tools_found: int, tools_missing: int,
 
 
 def audit_error_occurrence(error_id: int, title: str, file_path: str,
-                           details: dict = None) -> str:
+                           details: (dict | None) = None) -> str:
     """Record an error occurrence for cross-reference in ERROR_LOG.md.
 
     Args:
@@ -1734,7 +1736,9 @@ if __name__ == "__main__":
 
     print("\n1. Session collision prevention (UUID suffix)...")
     print(f"  Session file: {_session_filepath}")
-    assert len(_session_filepath.stem.split("_")) == 4, "Missing UUID suffix (expected 4 parts)"
+    _sp = _session_filepath
+    assert _sp is not None  # _init_session() above must have initialized it
+    assert len(_sp.stem.split("_")) == 4, "Missing UUID suffix (expected 4 parts)"
     print(f"  UUID suffix: {_session_uuid}")
 
     print("\n2. Recording entries...")
