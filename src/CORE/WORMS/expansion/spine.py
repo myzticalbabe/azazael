@@ -32,7 +32,7 @@ import os
 import time
 import threading
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 # Diagnostic text cap. This was 100 characters at 30 sites in this module (90
 # repo-wide), which turned 400-character tracebacks into 100 and cut off the
@@ -90,8 +90,8 @@ def _loud(message: str) -> None:
 
 
 try:
-    from CORE.worm_registry import (register_worm, WORM_REGISTRY,
-                                    is_protected_worm, PROTECTED_NATURES,
+    from CORE.worm_registry import (register_worm, WORM_REGISTRY,  # pyright: ignore[reportAssignmentType]
+                                    is_protected_worm, PROTECTED_NATURES,  # pyright: ignore[reportAssignmentType]
                                     VALID_CATEGORIES as _VALID_CATS)
 except ImportError as exc:  # pragma: no cover — registry optional
     note_failure("spine:L80", exc)
@@ -560,7 +560,7 @@ class HomeostatWorm:
                 })
 
         if apply:
-            for p in proposals:
+            for p in (proposals or []):
                 entry = WORM_REGISTRY.get(p["worm"])
                 if entry is not None:
                     old_cd = float(entry.get("cooldown_seconds", 30.0))
@@ -714,7 +714,7 @@ class RedQueenWorm:
             return {"role": "error", "reason": str(exc)[:80], "env": _local_env()}
 
     def _probe_candidates(self, nature: str,
-                          limit: int) -> tuple[list, list, list, list]:
+                          limit: int) -> tuple[list, list, list, list, list]:
         """Eligible members of `nature`: least-recently-probed first.
 
         G16: the probe set is defined by nature, but *protection* is not.
@@ -1627,7 +1627,7 @@ class MeshArchitectWorm:
             proposals = self.propose().get("proposals") or []
         applied: list[dict] = []
         with self._lock:
-            for p in proposals:
+            for p in (proposals or []):
                 edge = str(p.get("edge") or "")
                 if not edge:
                     continue
@@ -2817,7 +2817,7 @@ class SpineCycleWorm:
     @classmethod
     def _provider_alias(cls, name: str) -> str:
         try:
-            return str(ProviderFailoverMeshWorm.PROVIDER_ALIASES.get(name, name))
+            return str(ProviderFailoverMeshWorm.PROVIDER_ALIASES.get(name, name))  # pyright: ignore[reportOptionalMemberAccess]
         except Exception as exc:  # pragma: no cover - defensive
             note_failure("spine:L2702", exc)
             return str(cls._PROVIDER_ALIAS_FALLBACK.get(name, name))
@@ -2881,7 +2881,7 @@ class SpineCycleWorm:
         """
         from pathlib import Path
         try:
-            from CORE.fs_probe import bounded_first_dir
+            from CORE.fs_probe import bounded_first_dir  # pyright: ignore[reportAssignmentType]
         except Exception as exc:  # pragma: no cover - probe helper optional
             note_failure("spine:L2765", exc)
             def bounded_first_dir(cands, timeout_s=2.5):  # type: ignore
@@ -3716,7 +3716,7 @@ class MorphogenesisWorm:
 import time
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType]
 except ImportError:  # pragma: no cover
     def register_worm(**kw):
         return lambda cls: cls
