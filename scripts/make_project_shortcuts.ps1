@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Continue'
 $ws = New-Object -ComObject WScript.Shell
 $py = 'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
-$iconDir = 'C:\Users\clint\azazael\scripts\icons'
+$iconDir = 'C:\Azazael\azazael\scripts\icons'
 $groupDir = 'C:\Users\clint\Desktop\Project Launchers'
 
 $projects = @(
@@ -11,7 +11,7 @@ $projects = @(
   @{ name = 'PerformanceMonitor';    script = 'C:\Users\clint\Desktop\PerformanceMonitor\run.py';      workdir = 'C:\Users\clint\Desktop\PerformanceMonitor' },
   @{ name = 'Ultimate_Agent_Selector'; script = 'C:\Users\clint\Desktop\Ultimate_Agent_Selector\run.py'; workdir = 'C:\Users\clint\Desktop\Ultimate_Agent_Selector' },
   @{ name = 'WSL_CrossExplorer';     script = 'C:\Users\clint\Desktop\WSL_CrossExplorer\run.py';       workdir = 'C:\Users\clint\Desktop\WSL_CrossExplorer' },
-  @{ name = 'Azazael_MetaCluster';   script = 'C:\Users\clint\azazael\METACLUSTER.py';                 workdir = 'C:\Users\clint\azazael' },
+  @{ name = 'Azazael_MetaCluster';   script = 'C:\Azazael\azazael\METACLUSTER.py';                 workdir = 'C:\Azazael\azazael' },
   @{ name = 'Tigger_CLI';            script = 'C:\Users\clint\tigger\cli.py';                          workdir = 'C:\Users\clint\tigger' },
   @{ name = 'G_EveUnleashed';        script = 'G:\AZAZAEL\EveUnleashed\run.py';                       workdir = 'G:\AZAZAEL\EveUnleashed' },
   @{ name = 'AOA_Selector';          script = 'C:\Users\clint\Desktop\AOA\cli\aoa_cli.py';            workdir = 'C:\Users\clint\Desktop\AOA' }

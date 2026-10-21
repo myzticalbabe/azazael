@@ -46,7 +46,7 @@ if defined WANT_ADMIN echo  Mode: ADMINISTRATOR
 if defined WANT_NOOPEN echo  Mode: silent (no window at the end)
 echo.
 
-"C:\Program Files\Git\bin\bash.exe" --login -c "bash /c/Users/clint/azazael/scripts/graphify_refresh_all.sh"
+"C:\Program Files\Git\bin\bash.exe" --login -c "bash /c/Azazael/azazael/scripts/graphify_refresh_all.sh"
 
 if not defined WANT_NOOPEN (
   echo.
