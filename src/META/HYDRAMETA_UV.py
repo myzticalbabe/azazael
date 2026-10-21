@@ -208,12 +208,12 @@ class HYDRAMETA_UV:
 
     def _install_worm_deps(
         self, venv_path: str, packages: list[str]
-    ) -> tuple[int, int]:
+    ) -> tuple[bool, str, int]:
         """Install dependencies in trial venv."""
         args = ["--python", f"{venv_path}/Scripts/python.exe", "pip", "install"]
         args.extend(packages)
         success, output, duration = self._run_uv_command(args)
-        return success, duration
+        return success, output, duration
 
     def _execute_worm(
         self, venv_path: str, worm_name: str, timeout: float
@@ -236,6 +236,9 @@ class HYDRAMETA_UV:
         start = time.time()
         try:
             spec = importlib.util.spec_from_file_location(worm_name, path)
+            if spec is None or spec.loader is None:
+                duration = (time.time() - start) * 1000
+                return False, duration, {"error": f"no import spec for {path}"}
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 

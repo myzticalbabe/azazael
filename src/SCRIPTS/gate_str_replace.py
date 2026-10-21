@@ -92,8 +92,12 @@ class GateStrReplace:
     """
 
     def __init__(self):
-        self.gate = get_pre_action_gate() if _PAG_AVAILABLE else None
-        self.recorder = get_heuristic_recorder() if _HER_AVAILABLE else None
+        self.gate = (get_pre_action_gate()
+                     if (_PAG_AVAILABLE and get_pre_action_gate is not None)
+                     else None)
+        self.recorder = (get_heuristic_recorder()
+                         if (_HER_AVAILABLE and get_heuristic_recorder is not None)
+                         else None)
 
     def resolve_path(self, filepath: str) -> Path:
         """Resolve a filepath relative to project root or as absolute."""
@@ -390,6 +394,9 @@ def self_test() -> int:
         cleanup.append(Path(temp_path))
 
         pipeline = GateStrReplace()
+        if pipeline.gate is None:
+            print("  SKIP: PreActionGate unavailable — self-test requires the gate")
+            return 1
 
         # Use --bypass-compliance for self-test instead of fragile
         # state-machine transitions. The orchestrator is temporarily

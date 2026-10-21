@@ -90,8 +90,11 @@ def clamp(x: float, lo: float = -1.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, float(x)))
 
 
-def pad_normalize(pad: tuple[float, float, float]) -> tuple[float, float, float]:
-    p, a, d = (clamp(v) for v in pad)
+def pad_normalize(pad: tuple[float, ...]) -> tuple[float, float, float]:
+    vals = tuple(clamp(v) for v in pad)
+    if len(vals) != 3:
+        raise ValueError(f"PAD state needs 3 components, got {len(vals)}")
+    p, a, d = vals
     return (round(p, 4), round(a, 4), round(d, 4))
 
 
