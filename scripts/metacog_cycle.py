@@ -26,7 +26,7 @@ def _fatal_hook(_t, _v, _tb):
     try:
         import traceback as _tbmod
         import time as _timemod
-        with open(r'C:\Users\clint\azazael\logs\metacog_cycle.log',
+        with open(r'C:\Azazael\azazael\logs\metacog_cycle.log',
                   'a', encoding='utf-8') as _f:
             _f.write('%s FATAL\n%s\n' % (
                 _timemod.strftime('%Y-%m-%dT%H:%M:%S'),
@@ -235,8 +235,8 @@ print(f'fed={fed} worm={adapted_worm} adapted={bool(adapted and adapted.get("sho
 
 import os
 import time
-os.makedirs(r'C:\Users\clint\azazael\logs', exist_ok=True)
-with open(r'C:\Users\clint\azazael\logs\metacog_cycle.log', 'a', encoding='utf-8') as f:
+os.makedirs(r'C:\Azazael\azazael\logs', exist_ok=True)
+with open(r'C:\Azazael\azazael\logs\metacog_cycle.log', 'a', encoding='utf-8') as f:
     f.write('%s fed=%d worm=%s adapted=%s rec=%s\n' % (
         time.strftime('%Y-%m-%dT%H:%M:%S'), fed, adapted_worm,
         bool(adapted and adapted.get('should_adapt')),

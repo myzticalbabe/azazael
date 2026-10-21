@@ -10,7 +10,7 @@ rem machine then ran 3.14.7. The panels were accurately reporting stale files.
 rem
 rem Register once (no admin needed for a per-user task):
 rem   schtasks /Create /F /SC HOURLY /MO 6 /TN "AOA Data Refresh" ^
-rem     /TR "C:\Users\clint\azazael\scripts\refresh_oa_data.bat"
+rem     /TR "C:\Azazael\azazael\scripts\refresh_oa_data.bat"
 rem Inspect / remove:
 rem   schtasks /Query /TN "AOA Data Refresh" /V /FO LIST
 rem   schtasks /Delete /F /TN "AOA Data Refresh"
