@@ -32,7 +32,7 @@ from pathlib import Path
 APP = Path(r"C:\Users\clint\AppData\Local\Programs\AI Playground\resources\ComfyUI")
 VENV_PY = APP / ".venv" / "Scripts" / "python.exe"
 WORKFLOW = Path(__file__).with_name("flux_probe_api.json")
-OUT = Path(r"C:\Users\clint\azazael\renders\comfyui")
+OUT = Path(r"C:\Azazael\azazael\renders\comfyui")
 PORT = 8188
 HOST = "127.0.0.1"
 
@@ -211,7 +211,7 @@ def main():
         print("output dir:", OUT)
         # Auto-deliver: copy fresh outputs to flux archive + Desktop
         delivered = 0
-        for dest in (Path(r"C:\Users\clint\azazael\renders\flux"),
+        for dest in (Path(r"C:\Azazael\azazael\renders\flux"),
                      Path.home() / "Desktop"):
             dest.mkdir(parents=True, exist_ok=True)
             for png in OUT.glob("*.png"):

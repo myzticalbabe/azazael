@@ -9,7 +9,7 @@ Nothing else in the document is touched by this script.
 """
 import re, collections
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 # template label -> my label. The mark in front of each is already mine.
