@@ -14,8 +14,9 @@ import json
 import os
 import sys
 import threading
+from types import ModuleType
 from datetime import datetime, timezone
-from typing import List
+from typing import List, TYPE_CHECKING
 
 #: Shadowing guard (2026-09-11 audit defect): when src/CORE is on sys.path,
 #: a bare ``import logging`` resolves to THIS file, breaking stdlib consumers
@@ -24,7 +25,10 @@ from typing import List
 import importlib.util
 import sysconfig
 
-def _import_stdlib_logging():
+if TYPE_CHECKING:  # static view only; annotations below are quoted strings
+    from logging import LogRecord as _StdLogRecord
+
+def _import_stdlib_logging() -> ModuleType:
     """Return the stdlib ``logging`` module, never this file."""
     # find_spec respects sys.path, so when src/CORE is on sys.path it returns
     # THIS file -> infinite recursion (verified Oct 20 2026). Load from the
@@ -34,6 +38,11 @@ def _import_stdlib_logging():
         for cand in (f"{stdlib}/logging/__init__.py", f"{stdlib}/logging.py"):
             if os.path.exists(cand):
                 spec = importlib.util.spec_from_file_location("_stdlib_logging", cand)
+                if spec is None or spec.loader is None:
+                    # stdlib layout changed or spec unresolvable: fall through
+                    # to the sys.path fallback below instead of passing None
+                    # into module_from_spec (which would TypeError at runtime).
+                    break
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 return mod
@@ -94,7 +103,7 @@ _cache_lock = threading.Lock()
 class _StructuredJsonFormatter(logging.Formatter):
     """JSON schema pinned by tests/test_logging.py."""
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: "_StdLogRecord") -> str:
         entry = {
             "timestamp": datetime.fromtimestamp(
                 record.created, tz=timezone.utc).isoformat(),
