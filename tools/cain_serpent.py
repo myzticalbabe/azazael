@@ -5,7 +5,7 @@ Incremental substitution was leaving fragments, so the serpent -- the template's
 replaced by one section built from the pinned figures.
 """
 import re
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 SPAN, DEST_H, RATE = 10.74, 3.0, 95.0

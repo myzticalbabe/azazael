@@ -10,7 +10,7 @@ Sin and Manifestation are the record and are untouched. Only the advocacy goes.
 """
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 # remove the virtue claims and the excuses; leave a bare statement or nothing

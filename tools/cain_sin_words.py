@@ -1,5 +1,5 @@
 import re
-p = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+p = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(p, encoding="utf-8").read()
 
 # Each sin card's TEXT, replaced. The marks were already mine; the prose was not.

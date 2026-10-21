@@ -5,7 +5,7 @@ which SECTION each stale figure lives in, so the containing block can be
 replaced wholesale instead of patched.
 """
 import re, collections
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h))
 
