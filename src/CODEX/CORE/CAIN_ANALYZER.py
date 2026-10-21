@@ -16,7 +16,7 @@ import sys
 import datetime
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -86,7 +86,7 @@ except ImportError as exc:
 
 # --- Analysis Functions --------------------------------------------
 
-def run_complete_analysis(session_data: dict[str, Any] = None) -> dict[str, Any]:
+def run_complete_analysis(session_data: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """Run the complete CAIN psychoanalysis framework.
 
     Uses CAIN_WORM if available, otherwise builds from CAIN_DATA.
@@ -175,7 +175,7 @@ def format_text_report(data: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_html_report(data: dict[str, Any], output_path: str = None) -> str:
+def generate_html_report(data: dict[str, Any], output_path: Optional[str] = None) -> str:
     """Generate an HTML report of the CAIN analysis."""
     now = datetime.datetime.now()
 
@@ -311,30 +311,30 @@ def main():
         print_help()
         return
 
-        data_path = args[0]
-        output_format = args[1] if len(args) > 1 else "text"
+    data_path = args[0]
+    output_format = args[1] if len(args) > 1 else "text"
 
-        session_data = None
-        if os.path.exists(data_path):
-            try:
-                session_data = json.loads(Path(data_path).read_text(encoding="utf-8"))
-            except Exception as e:
-                print(f"Warning: Could not load session data: {e}")
+    session_data = None
+    if os.path.exists(data_path):
+        try:
+            session_data = json.loads(Path(data_path).read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"Warning: Could not load session data: {e}")
     else:
         print(f"Warning: File not found: {data_path}")
 
-        result = run_complete_analysis(session_data)
+    result = run_complete_analysis(session_data)
 
-        if output_format == "html":
-            html_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            f"CAIN_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
-            )
-            generate_html_report(result, html_path)
-        elif output_format == "json":
-            print(json.dumps(result, indent=2, default=str))
-        else:
-            print(format_text_report(result))
+    if output_format == "html":
+        html_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        f"CAIN_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
+        )
+        generate_html_report(result, html_path)
+    elif output_format == "json":
+        print(json.dumps(result, indent=2, default=str))
+    else:
+        print(format_text_report(result))
 
 
 if __name__ == "__main__":
