@@ -331,6 +331,9 @@ class HYDRAMETA_UV:
         def _target():
             try:
                 spec = importlib.util.spec_from_file_location(worm_name, path)
+                if spec is None or spec.loader is None:
+                    box["result"] = {"error": f"no import spec for {path}"}
+                    return
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 if hasattr(module, f"run_{worm_name.lower()}"):

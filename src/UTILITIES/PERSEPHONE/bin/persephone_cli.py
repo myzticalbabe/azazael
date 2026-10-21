@@ -64,13 +64,16 @@ def cmd_paths():
 def cmd_sync(dry_run: bool = True):
     """Sync Azazael to PERSEPHONE."""
     sm = SyncManager()
-    result = sm.sync_azazael_to_persephone(dry_run)
-    print(f"Source: {result.source}")
-    print(f"Target: {result.target}")
-    print(f"Status: {'Would sync' if result.success else 'Failed'}")
-    if result.errors:
-        for error in result.errors:
-            print(f"Error: {error}")
+    # Returns one SyncResult per direction (dict), like sync_manager.main;
+    # treating it as a single result crashed with AttributeError.
+    results = sm.sync_azazael_to_persephone(dry_run)
+    for name, result in results.items():
+        print(f"[{name}] Source: {result.source}")
+        print(f"[{name}] Target: {result.target}")
+        print(f"[{name}] Status: {'Would sync' if result.success else 'Failed'}")
+        if result.errors:
+            for error in result.errors:
+                print(f"[{name}] Error: {error}")
 
 
 def cmd_env():

@@ -165,9 +165,13 @@ def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
                     "reason": f"only {len(Xd)} distinct rows (< {min_rows})"}
         from sklearn.ensemble import RandomForestRegressor
         from boruta import BorutaPy
+        #: BorutaPy takes n_estimators='auto' (auto-tuned forest size; its
+        #: own docs say "int or string" and its example uses 'auto'), but
+        #: the checker infers int from the library's default of 1000.
+        boruta_estimators: Any = "auto"
         est = RandomForestRegressor(n_estimators=100, max_depth=5,
                                     random_state=random_state, n_jobs=1)
-        selector = BorutaPy(est, n_estimators="auto", max_iter=max_iter,
+        selector = BorutaPy(est, n_estimators=boruta_estimators, max_iter=max_iter,
                             random_state=random_state, verbose=0)
         selector.fit(np.array(Xd), np.array(yd))
         verdict = {}
