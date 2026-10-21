@@ -80,10 +80,10 @@ __version__ = "2.0.0"
 # Dynamic path via CORE.paths
 try:
     from CORE.paths import get_src_dir
-    __path__ = str(get_src_dir() / "ORCHESTRATION" / "ml_platforms")
+    __path__ = str(get_src_dir() / "ORCHESTRATION" / "ml_platforms")  # type: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("harness:L74", exc)
-    __path__ = str(Path(__file__).resolve().parent)
+    __path__ = str(Path(__file__).resolve().parent)  # type: ignore[reportAssignmentType]
 
 
 def get_version():
@@ -183,7 +183,7 @@ def cmd_monitor(args):
     try:
         from health_monitor import PlatformHealthMonitor
 
-        monitor = PlatformHealthMonitor()
+        monitor = PlatformHealthMonitor()  # type: ignore[reportCallIssue]
 
         if args.verbose:
             results = monitor.run_health_check()
@@ -227,7 +227,7 @@ def cmd_status(args):
             note_failure("harness:L215", exc)
             frameworks[name] = "not installed"
 
-    status["frameworks"] = frameworks
+    status["frameworks"] = frameworks  # type: ignore[reportArgumentType]
 
     if args.json:
         print(json.dumps(status, indent=2))

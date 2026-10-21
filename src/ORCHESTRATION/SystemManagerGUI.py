@@ -18,7 +18,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 import shutil
-from typing import List
+from typing import Any, List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -49,7 +49,7 @@ class ADLPClient:
         self._lock = threading.Lock()
 
     def log(
-        self, category: str, level: str, source: str, message: str, data: dict = None
+        self, category: str, level: str, source: str, message: str, data: dict | None = None
     ):
         entry = {
             "id": str(datetime.datetime.now().timestamp()).replace(".", "")[:12],
@@ -63,7 +63,7 @@ class ADLPClient:
         }
         with self._lock:
             try:
-                log_data = {"entries": []}
+                log_data: dict[str, Any] = {"entries": []}
                 if self.log_file.exists():
                     with open(self.log_file, "r", encoding="utf-8") as f:
                         log_data = json.load(f)
@@ -76,10 +76,10 @@ class ADLPClient:
             except Exception as e:
                 print(f"ADLP log error: {e}")
 
-    def log_gui_action(self, action: str, details: dict = None):
+    def log_gui_action(self, action: str, details: dict | None = None):
         self.log("assistant", "INFO", "SystemManagerGUI", action, details)
 
-    def log_scan_result(self, scan_type: str, result_count: int, data: dict = None):
+    def log_scan_result(self, scan_type: str, result_count: int, data: dict | None = None):
         self.log(
             "system",
             "INFO",

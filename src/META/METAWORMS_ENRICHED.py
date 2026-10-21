@@ -784,10 +784,23 @@ class METAWORMS:
 
         return self.results
 
+    def run(self, name: str) -> WormResult:
+        """Run a single meta worm by name."""
+        worm_class = self.WORMS.get(name, self.EXTENDED_WORMS.get(name))
+        if worm_class is None:
+            raise ValueError(f"Unknown meta worm: {name}")
+        worm = worm_class()
+        result = worm.run()
+        self.results[name] = result
+        return result
+
     def _print_summary(self):
         """Print execution summary."""
+        start_time = self.start_time
+        if start_time is None:
+            return
         end_time = datetime.now()
-        duration = (end_time - self.start_time).total_seconds()
+        duration = (end_time - start_time).total_seconds()
 
         RichOutput.print_section("Execution Summary")
 
@@ -827,7 +840,7 @@ class METAWORMS:
         with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(
                 {
-                    "timestamp": self.start_time.isoformat(),
+                    "timestamp": start_time.isoformat(),
                     "duration_seconds": duration,
                     "results": {
                         name: {

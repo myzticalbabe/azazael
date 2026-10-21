@@ -17,10 +17,11 @@ from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
 import random
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ORCHESTRATION'))
 
-from ADLP_FusionCore import CORE, TIER, log_entry, learn
+from ADLP_FusionCore import CORE, TIER, log_entry, learn, fuse
 from ADLP_MLOrchestrator import ML_ORCH, predict, analyze, cluster
 from typing import List
 
@@ -403,7 +404,7 @@ class SelfImprovingGUI:
         def improvement_loop():
             while True:
                 try:
-                    threading.sleep(30)
+                    time.sleep(30)
                     if random.random() < 0.3:
                         self._self_improve()
                 except Exception as exc:
@@ -706,7 +707,7 @@ def create_shortcut():
     desktop = Path.home() / "Desktop"
     shortcut_path = desktop / "Self-Improving GUI.lnk"
 
-    import win32com.client
+    import win32com.client  # type: ignore
 
     shell = win32com.client.Dispatch("WScript.Shell")
     shortcut = shell.CreateShortCut(str(shortcut_path))

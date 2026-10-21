@@ -78,6 +78,7 @@ except ImportError as exc:
 
 
 class MLflowLogger:
+    _active_logger: "MLflowLogger | None" = None
     """
     Universal MLflow logger that works with any ML framework.
 
@@ -124,6 +125,7 @@ class MLflowLogger:
 
         mlflow.set_experiment(experiment_name)
         self.run = None
+        MLflowLogger._active_logger = self
 
     def start_run(self, run_name: (str | None) = None) -> "MLflowLogger":
         """Start an MLflow run."""
@@ -298,7 +300,7 @@ if __name__ == "__main__":
 
     print("=== MLflow Integration Demo ===")
 
-    logger = MLflowLogger(experiment="demo_experiment")
+    logger = MLflowLogger(experiment_name="demo_experiment")
     logger.start_run(run_name="test_run")
 
     logger.log_params(
