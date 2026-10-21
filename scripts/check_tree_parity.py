@@ -7,7 +7,11 @@ derived (hub = whichever tree runs the script), so there is no literal left
 to repoint. What was missing is drift VISIBILITY: A once reported 0/0
 up-to-date while 6 commits behind, because nothing compared the trees.
 
-This check compares HEAD hashes (via merge-base when history is shared),
+RETIRED 2026-10-21 (single-tree era): the second tree was archived, so
+there is nothing to compare against. main() exits 0 with a notice;
+the original comparator is preserved below for history.
+
+This check compared HEAD hashes (via merge-base when history is shared),
 commit dates, and worktree dirt counts. Exit 1 on ANY divergence, with the
 exact state printed — run it at session start before trusting either tree.
 
@@ -21,7 +25,7 @@ import sys
 from pathlib import Path
 
 A = Path("C:/Azazael/azazael")
-B = Path("C:/Users/clint/azazael")
+B = Path("G:/azazael.archived-20261021")  # RETIRED 2026-10-21: frozen archive, not a live tree
 
 
 def git(tree: Path, *args: str) -> str:
@@ -34,6 +38,12 @@ def git(tree: Path, *args: str) -> str:
 
 
 def main() -> int:
+    print("check_tree_parity RETIRED 2026-10-21: single tree; "
+          "old tree archived to G:/azazael.archived-20261021")
+    return 0
+
+
+def _retired_compare() -> int:
     problems: list[str] = []
     try:
         ha = git(A, "rev-parse", "HEAD")

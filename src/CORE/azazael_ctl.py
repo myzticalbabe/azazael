@@ -329,7 +329,7 @@ def cmd_atlas(args: list[str]):
     from CORE.project_atlas import scan_projects
     roots = {
         "azazael": Path("C:/Azazael/azazael"),
-        "azazael_secondary": Path("C:/Users/clint/azazael"),
+        "azazael_archive": Path("G:/azazael.archived-20261021"),  # archived 2026-10-21; was azazael_secondary
         # Relocated 2026-09-30: vermillion_lightfury is Kali-native and
         # deprecated on Windows (SYNC.md), so it no longer sits in the
         # Windows pillar. Staged here until the Kali pillar absorbs it.

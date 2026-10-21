@@ -8,11 +8,37 @@ and the exact record command. The agent executes the pass; this script
 makes it one step instead of a remembered discipline.
 Exit 0 always.
 """
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+
+
+def _pams_record(content: str, role: str, session_id: str,
+                 user_id: str, model_id: str) -> None:
+    """Phase-3 memory-unity feeder (#380): record one session message into
+    PAMS conversations.db via the same ConversationDatabase class the MCP
+    server uses (schema-consistent, no server restart). Advisory: prints the
+    store result, never raises — session end must exit 0."""
+    try:
+        import asyncio as _asyncio
+        import os as _os
+        from persistent_ai_memory.ai_memory_core import (
+            ConversationDatabase as _ConversationDatabase,
+        )
+        data_dir = _os.environ.get("AI_MEMORY_DATA_DIR") or str(
+            Path.home() / ".pams" / "memory_data")
+        db_path = str(Path(data_dir) / "conversations.db")
+        db = _ConversationDatabase(db_path=db_path)
+        res = _asyncio.run(db.store_message(
+            content=content, role=role, session_id=session_id or None,
+            user_id=user_id, model_id=model_id, source="session_end"))
+        print(f"   pams conversations record: {res.get('status')}"
+              f" ({res.get('message_id') or res.get('error')})")
+    except Exception as exc:
+        print(f"   pams conversations record SKIPPED ({exc})")
 
 
 def _zerom_review(root: Path) -> None:
@@ -51,8 +77,23 @@ def _zerom_review(root: Path) -> None:
         print(f"   worktree scan failed ({exc})")
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--record", default="",
+                    help="Session summary text to store in PAMS conversations")
+    ap.add_argument("--record-role", default="assistant")
+    ap.add_argument("--session-id", default="")
+    ap.add_argument("--user-id", default="")
+    ap.add_argument("--model-id", default="")
+    args = ap.parse_args(argv)
     print("=== SESSION END: improve pass ===")
+    if args.record:
+        if not (args.user_id and args.model_id):
+            print("   pams conversations record SKIPPED: --user-id and"
+                  " --model-id are required (server refuses defaults)")
+        else:
+            _pams_record(args.record, args.record_role, args.session_id,
+                         args.user_id, args.model_id)
     print("1. Evidence: state/converge_315.json, PMB outbox, session tool outputs.")
     print("2. Write [IMP-N] items (Observation file:line, Suggestion, Grounded).")
     print("3. Fix trivial now; file the rest as a PMB goal.")
