@@ -25,7 +25,7 @@ import os
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, List
+from typing import TYPE_CHECKING, Any, Literal, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 import threading
@@ -597,7 +597,9 @@ def run_with_popup(
 ) -> HORUSPopupWindow:
     """Run HORUS with real-time popup window."""
     popup = HORUSPopupWindow(title)
-    popup.create_window(width, height)
+    popup.width = width
+    popup.height = height
+    popup.create_window()
     popup.log("HORUS Popup Mode Activated")
     popup.log("Starting ML Analysis...")
     return popup
@@ -718,7 +720,7 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
 def config_output(
     format: Literal["html", "json", "console"] = "html",
     destination: Literal["popup", "file", "browser", "all"] = "all",
-    base_path: str = None,
+    base_path: Optional[str] = None,
     auto_open_browser: bool = True,
 ) -> OutputConfig:
     """Configure HORUS output parameters.
@@ -952,7 +954,7 @@ class MonitoredComponent:
     name: str
     command: str
     args: list[str] = field(default_factory=list)
-    status: str = "idle"
+    status: MonitorComponentStatus = MonitorComponentStatus.IDLE
     last_output: str = ""
     last_update: (datetime | None) = None
     color: str = "#00ff88"
@@ -961,7 +963,7 @@ class MonitoredComponent:
 class HORUSLiveMonitor:
     """Integrated Live Monitor for HORUS output management."""
 
-    def __init__(self, title: str = "HORUS LIVE MONITOR", base_path: str = None):
+    def __init__(self, title: str = "HORUS LIVE MONITOR", base_path: Optional[str] = None):
         if not _TKINTER_AVAILABLE:
             raise ImportError("tkinter not available")
 
@@ -1217,7 +1219,7 @@ class HORUSLiveMonitor:
 
         def _run_in_background():
             try:
-                cmd = [sys.executable] + comp.args
+                cmd = [_sys.executable] + comp.args
                 result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
                 output = result.stdout + result.stderr
                 status = (

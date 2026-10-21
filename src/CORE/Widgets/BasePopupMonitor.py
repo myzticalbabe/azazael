@@ -32,7 +32,8 @@ Usage:
 """
 
 import tkinter as tk
-import tkinter.scrolledtext  # Required for tk.scrolledtext.ScrolledText
+from tkinter import scrolledtext as tk_scrolledtext  # typeshed: tk.scrolledtext attr unresolved
+from tkinter import ttk as tk_ttk  # typeshed: tk.ttk attr unresolved; use tk_ttk.* directly
 import queue
 import threading
 import time
@@ -95,7 +96,7 @@ class BasePopupMonitor:
         # UI elements (populated by create_window)
         self.root: (tk.Tk | None) = None
         self.text_area: (tk.Text | None) = None
-        self.progress_bar: (tk.ttk.Progressbar | None) = None
+        self.progress_bar: (tk_ttk.Progressbar | None) = None
         self.status_label: (tk.Label | None) = None
         self.time_label: (tk.Label | None) = None
         self.start_time: (datetime | None) = None
@@ -144,14 +145,14 @@ class BasePopupMonitor:
         )
         self.status_label.pack()
 
-        self.progress_bar = tk.ttk.Progressbar(
+        self.progress_bar = tk_ttk.Progressbar(
             self.root,
             mode="determinate",
             length=self.width - 50,
         )
         self.progress_bar.pack(pady=10, padx=25)
 
-        style = tk.ttk.Style()
+        style = tk_ttk.Style()
         style.theme_use("clam")
         style.configure(
             "TProgressbar",
@@ -164,7 +165,7 @@ class BasePopupMonitor:
         text_frame = tk.Frame(self.root, bg="#1a1a2e", padx=10, pady=10)
         text_frame.pack(fill="both", expand=True)
 
-        self.text_area = tk.scrolledtext.ScrolledText(
+        self.text_area = tk_scrolledtext.ScrolledText(
             text_frame,
             wrap="word",
             font=("Consolas", 10),
@@ -239,7 +240,8 @@ class BasePopupMonitor:
                     delay = 5000  # default 5s
                     if isinstance(msg.payload, dict):
                         delay = msg.payload.get("delay", delay)
-                    self.root.after(delay, self._close_internal)
+                    if self.root is not None:
+                        self.root.after(delay, self._close_internal)
                     continue
 
                 self.handle_message(msg)
