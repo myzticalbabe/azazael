@@ -43,7 +43,7 @@ try:
     from CORE.native_guard import import_ok as _import_ok
 except Exception as exc:  # pragma: no cover - CORE not on path
     note_failure("onnx_integration:L35", exc)
-    def _import_ok(_name):
+    def _import_ok(name: str, timeout: float = 60) -> bool:
         return False
 
 if _import_ok("onnx"):
@@ -147,7 +147,7 @@ def _detect_openvino():
         return
     _OV_DETECTED = True
 
-    if not ort_available:
+    if ort is None:
         return
 
     _ensure_openvino_path()
@@ -263,10 +263,15 @@ class OpenVINOInference:
         if device is None:
             device = self.get_default_device(prefer_gpu=True)
 
-        model = self._core.read_model(model_path)
+        core = self._core
+        if core is None:
+            raise ImportError(
+                "OpenVINO not installed. Run: pip install openvino"
+            )
+        model = core.read_model(model_path)
         if config:
-            return self._core.compile_model(model, device, config)
-        return self._core.compile_model(model, device)
+            return core.compile_model(model, device, config)
+        return core.compile_model(model, device)
 
     @staticmethod
     def infer(compiled_model, inputs: dict) -> dict:
@@ -492,6 +497,10 @@ class ONNXExporter:
             raise ImportError(
                 "ONNX Runtime not installed. Run: pip install onnxruntime"
             )
+        if ort is None:  # narrows the optional import; equivalent to the flag above
+            raise ImportError(
+                "ONNX Runtime not installed. Run: pip install onnxruntime"
+            )
 
         _detect_openvino()  # lazy init
 
@@ -614,8 +623,8 @@ def get_openvino_info() -> dict:
         "devices": dict(_OV_DEVICES),
         "native_available": _HAS_OV_NATIVE and bool(_OV_NATIVE_DEVICES),
         "native_devices": dict(_OV_NATIVE_DEVICES),
-        "ort_version": ort.__version__ if ort_available else None,
-        "providers": ort.get_available_providers() if ort_available else [],
+        "ort_version": ort.__version__ if ort is not None else None,
+        "providers": ort.get_available_providers() if ort is not None else [],
     }
     return info
 

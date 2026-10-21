@@ -17,7 +17,7 @@ import math
 import time
 import random
 import threading
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 import json as _json
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -31,7 +31,7 @@ except ImportError:                               # never break the host
 
 # -- Worm Registry Import ---------------------------------------------
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     note_failure("learning_grpo:L25", exc)
@@ -180,7 +180,7 @@ class GRPOTrainer:
         return candidates[:group_size]
 
     def compute_group_rewards(self, group: list[str], task_context: dict,
-                              evaluator: Callable = None) -> list[float]:
+                               evaluator: Optional[Callable] = None) -> list[float]:
         """Compute rewards for each candidate in the group.
 
         Args:
@@ -588,7 +588,7 @@ class GRPOTrainer:
             policy = self._policy.get(context_key, {})
         if not policy:
             return None
-        best = max(policy, key=policy.get)
+        best = max(policy, key=policy.get)  # pyright: ignore[reportArgumentType, reportCallIssue] -- max over dict keys with float values; policy.get returns float | None but policy is non-empty here
         # Evolution joint: blend metacognition confidence into selection.
         # Unknown worms score neutral (0.5x2 = unchanged order). Any failure
         # keeps GRPO order. See MetaCognitionWorm.get_confidence.
@@ -598,7 +598,7 @@ class GRPOTrainer:
 
             def _blended(w):
                 try:
-                    conf = mc.get_confidence(w)
+                    conf = mc.get_confidence(w)  # pyright: ignore[reportAttributeAccessIssue] -- MetaCognitionWorm instance; get_confidence exists at runtime
                 except Exception as exc:
                     note_failure("learning_grpo:L329", exc)
                     conf = 0.5
@@ -611,7 +611,7 @@ class GRPOTrainer:
             note_failure("learning_grpo:L336", exc)
         return best
 
-    def get_policy(self, context_key: str = None) -> dict[str, Any]:
+    def get_policy(self, context_key: Optional[str] = None) -> dict[str, Any]:
         """Get the current policy.
 
         Args:
@@ -1011,7 +1011,7 @@ class ABTestRunner:
                     exp[variant]["conversions"] += 1
 
     def record_preference(self, experiment: str, chosen: str, rejected: str,
-                          context: dict = None, chosen_reward: float = 0.0,
+                           context: Optional[dict] = None, chosen_reward: float = 0.0,
                           rejected_reward: float = 0.0) -> dict[str, Any]:
         """Record a DPO-style pairwise preference.
 
@@ -1189,7 +1189,7 @@ def order_by_difficulty(items: list, difficulty, reverse: bool = False) -> dict:
     def _score(it):
         nm = it.get("name", "?") if isinstance(it, dict) else str(it)
         try:
-            val = float(difficulty(nm) if callable(difficulty)
+            val = float(difficulty(nm) if callable(difficulty)  # pyright: ignore[reportArgumentType]
                         else difficulty.get(nm, 0.5))
         except (TypeError, ValueError, AttributeError) as exc:
             note_failure("expansion/learning_grpo:803", exc)

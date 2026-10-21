@@ -47,7 +47,7 @@ Usage:
 
 # from typing import Union, Optional  # removed — all names have native equivalents
 import numpy as np
-from typing import List, Union
+from typing import Any, List, Union, cast
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -152,7 +152,7 @@ class TensorConverter:
         if framework == "numpy":
             if not isinstance(arr, np.ndarray):
                 if HAS_TORCH and isinstance(arr, torch.Tensor):
-                    arr = arr.cpu().numpy()
+                    arr = cast("torch.Tensor", arr).cpu().numpy()
                 elif HAS_TF and isinstance(arr, tf.Tensor):
                     arr = arr.numpy()
                 elif HAS_JAX and hasattr(arr, "device"):
@@ -178,8 +178,8 @@ class TensorConverter:
                 raise ImportError("TensorFlow not installed")
             if isinstance(arr, np.ndarray):
                 return tf.constant(arr)
-            elif isinstance(arr, torch.Tensor):
-                return tf.constant(arr.cpu().numpy())
+            elif HAS_TORCH and isinstance(arr, torch.Tensor):
+                return tf.constant(cast("torch.Tensor", arr).cpu().numpy())
             elif isinstance(arr, tf.Tensor):
                 return arr
             elif HAS_JAX and hasattr(arr, "device"):
@@ -192,8 +192,8 @@ class TensorConverter:
                 raise ImportError("JAX not installed")
             if isinstance(arr, np.ndarray):
                 return jnp.array(arr)
-            elif isinstance(arr, torch.Tensor):
-                return jnp.array(arr.cpu().numpy())
+            elif HAS_TORCH and isinstance(arr, torch.Tensor):
+                return jnp.array(cast("torch.Tensor", arr).cpu().numpy())
             elif isinstance(arr, tf.Tensor):
                 return jnp.array(arr.numpy())
             elif isinstance(arr, jnp.ndarray):
@@ -218,7 +218,14 @@ class TensorConverter:
             Array in specified format
         """
         if framework == "list":
-            return TensorConverter.from_tensor(arr, framework="numpy").tolist()
+            # from_tensor(framework="numpy") always yields ndarray (every numpy
+            # branch returns ndarray/.numpy()/np.array); the declared union
+            # keeps the list member for the list-framework path. cast asserts
+            # the runtime fact the stub-blind checker cannot narrow: numpy
+            # ships no type info here and isinstance against np.ndarray (an
+            # Unknown member) does not narrow.
+            np_arr = TensorConverter.from_tensor(arr, framework="numpy")
+            return cast("np.ndarray", np_arr).tolist()
 
         if framework == "numpy":
             if isinstance(arr, np.ndarray):
@@ -294,9 +301,9 @@ if __name__ == "__main__":
         print(f"TensorFlow: {tf_tensor.shape} ({tf_tensor.dtype})")
 
     if HAS_JAX:
-        jx = to_tensor(arr, "jax")
+        jx = cast(Any, to_tensor(arr, "jax"))
         print(f"JAX: {jx.shape} ({jx.dtype})")
 
-    back = from_tensor(to_tensor(arr, "pytorch"), "numpy")
+    back = cast(Any, from_tensor(to_tensor(arr, "pytorch"), "numpy"))
     print(f"Round-trip: {back.shape} ({back.dtype})")
     print(f"Data preserved: {np.allclose(arr, back)}")
