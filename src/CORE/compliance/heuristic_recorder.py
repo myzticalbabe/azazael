@@ -373,8 +373,12 @@ class HeuristicErrorRecorder:
         self._attempts: dict[str, dict[str, Any]] = {}
         self._init_files()
         self._patterns = self._load_patterns()
-        self.telemetry = ComplianceTelemetry() if _TELEMETRY_AVAILABLE else None
-        self.memory = DirectMemory() if _MEMORY_AVAILABLE else None
+        self.telemetry = (ComplianceTelemetry()
+                          if (_TELEMETRY_AVAILABLE and ComplianceTelemetry is not None)
+                          else None)
+        self.memory = (DirectMemory()
+                       if (_MEMORY_AVAILABLE and DirectMemory is not None)
+                       else None)
 
     def _init_files(self):
         """Ensure audit files and directories exist.
@@ -476,8 +480,8 @@ class HeuristicErrorRecorder:
         # Write to DirectMemory
         if self.memory:
             try:
-                self.memory.record_event(
-                    "heuristic_edit_attempt", record
+                self.memory.record(
+                    "heuristic_edit_attempt", data=record
                 )
             except Exception as exc:
                 note_failure("heuristic_recorder:L470", exc)
@@ -549,8 +553,8 @@ class HeuristicErrorRecorder:
         if self.memory:
             try:
                 severity = "error" if is_error else "info"
-                self.memory.record_event(
-                    "heuristic_edit_outcome", outcome,
+                self.memory.record(
+                    "heuristic_edit_outcome", data=outcome,
                     severity=severity
                 )
             except Exception as exc:

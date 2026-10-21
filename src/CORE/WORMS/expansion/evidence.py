@@ -278,7 +278,11 @@ def evidence_from_rows(rows: Any, margin_key: str = "margin",
         margin = data.get(margin_key)
         if margin is None:
             try:
-                margin = float(data.get("best_total")) - float(data.get("baseline"))
+                best_total = data.get("best_total")
+                baseline = data.get("baseline")
+                if best_total is None or baseline is None:
+                    raise TypeError("missing best_total/baseline for margin")
+                margin = float(best_total) - float(baseline)
             except (TypeError, ValueError) as exc:
                 note_failure("evidence:L271", exc)
                 continue
