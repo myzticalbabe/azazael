@@ -48,7 +48,7 @@ from pathlib import Path
 from datetime import datetime
 # from typing import Dict, List, Tuple  # removed — all names have native equivalents
 import logging
-from typing import List
+from typing import Any, List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -63,18 +63,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MoEVerification")
 
 try:
-    sys.path.insert(0, Path.home() / "Desktop" / "Azazael" / "ml_platforms")
-    from config import get_registry
+    sys.path.insert(0, str(Path.home() / "Desktop" / "Azazael" / "ml_platforms"))
+    import config as _moe_config
+    import improvements.qlearning_table as _moe_qlearning
     from improvements.qlearning_table import (
-        AdaptiveExpertLearner,
         TaskType,
         FrameworkState,
         benchmark_framework,
     )
     from diagnostics import check_platform_status
 
+    # get_registry / AdaptiveExpertLearner exist only in the Desktop-tree
+    # ml_platforms (see docs/qlearning/verify_moe_API); the in-repo copy
+    # predates them. getattr keeps the probe honest: absent names raise
+    # AttributeError here and flip IMPORT_SUCCESS False — the same outcome
+    # the old from-imports produced via ImportError.
+    get_registry = getattr(_moe_config, "get_registry")
+    AdaptiveExpertLearner = getattr(_moe_qlearning, "AdaptiveExpertLearner")
+
     IMPORT_SUCCESS = True
-except ImportError as e:
+except (ImportError, AttributeError) as e:
     logger.warning(f"Import error: {e}")
     IMPORT_SUCCESS = False
 
@@ -109,7 +117,7 @@ class DeepLearningQAnalyzer:
         """Analyze a specific framework for a task type."""
         start_time = time.time()
 
-        score = benchmark_framework(framework, task_type)
+        score = benchmark_framework(framework, TaskType(task_type))
 
         analysis = {
             "framework": framework,
@@ -337,7 +345,7 @@ def verify_system():
     print("=" * 80)
     print()
 
-    report = {
+    report: dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),
         "system": "Mixture-of-Experts ML Platform",
         "version": "2.0",
@@ -430,7 +438,10 @@ def verify_system():
             best = matrix.get_best_for_task(task)
             print(f"      {task}: {best[0][0]} ({best[0][1]:.2f})")
 
-        report["framework_analysis"]["compatibility_matrix"] = comp_matrix
+        # Bind the nested section explicitly: report[...] is Any, and a nested
+        # subscript-assign through Any does not carry the section's type.
+        fw_analysis: dict[str, Any] = report["framework_analysis"]
+        fw_analysis["compatibility_matrix"] = comp_matrix
 
     except Exception as e:
         print(f"    [!!] Error: {e}")
@@ -507,7 +518,7 @@ def run_deep_learning_q_analysis():
     for task in [TaskType.COMPUTER_VISION, TaskType.NLP, TaskType.TABULAR]:
         print(f"\n  Task: {task.value}")
         for framework in analyzer.expert_names[:3]:
-            score = benchmark_framework(framework, task.value)
+            score = benchmark_framework(framework, task)
             print(f"    {framework}: {score:.4f}")
 
     print("\n[Phase 2] Q-Learning Updates...")

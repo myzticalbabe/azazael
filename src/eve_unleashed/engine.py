@@ -12,10 +12,11 @@ Async mode uses a thread pool for non-blocking batch processing.
 
 import asyncio
 import concurrent.futures
+import functools
 import os
 import time
 from pathlib import Path
-from typing import Any, AsyncGenerator, List
+from typing import Any, AsyncGenerator, List, cast
 
 import numpy as np
 
@@ -294,7 +295,18 @@ class InferenceEngine:
                     "PIL/Pillow required for VL inference. Install: pip install Pillow"
                 )
             import torch
-            from transformers import AutoProcessor, AutoModelForVision2Seq
+            import transformers
+            from transformers import AutoProcessor
+
+            # AutoModelForVision2Seq was removed from transformers 5.x (the
+            # installed 5.19.0 raises ImportError on a static from-import), so
+            # resolve it dynamically for a clear error instead of a dead import.
+            AutoModelForVision2Seq = getattr(transformers, "AutoModelForVision2Seq", None)
+            if AutoModelForVision2Seq is None:
+                raise ImportError(
+                    "VL inference requires transformers.AutoModelForVision2Seq, "
+                    f"absent from installed transformers {transformers.__version__}"
+                )
 
             if isinstance(inputs, dict):
                 image_path = inputs.get("image", "")
@@ -463,7 +475,7 @@ class InferenceEngine:
         """
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
-            self._executor, self.infer, handle, inputs, batch
+            self._executor, functools.partial(cast(Any, self.infer), handle, inputs), batch
         )
 
     async def infer_stream(
@@ -497,7 +509,7 @@ class InferenceEngine:
                 # No tokenizer available — fall back to single-infer + stream_native
                 loop = asyncio.get_running_loop()
                 result = await loop.run_in_executor(
-                    self._executor, self.infer, handle, inputs
+                    self._executor, functools.partial(cast(Any, self.infer), handle, inputs)
                 )
                 async for token in stream_native(result):
                     yield token
@@ -508,14 +520,14 @@ class InferenceEngine:
             # Non-streaming frameworks — run and yield full result
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
-                self._executor, self.infer, handle, inputs
+                self._executor, functools.partial(cast(Any, self.infer), handle, inputs)
             )
             async for token in stream_native(result):
                 yield token
         elif framework == "vl":
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
-                self._executor, self.infer, handle, inputs
+                self._executor, functools.partial(cast(Any, self.infer), handle, inputs)
             )
             async for token in stream_native(result):
                 yield token
@@ -545,7 +557,9 @@ class InferenceEngine:
 
     def batch_infer(self, handle: str, inputs_list: list) -> BatchResult:
         """Run batched inference (public API for backward compatibility)."""
-        return self.infer(handle, inputs_list, batch=True)
+        # batch=True with a list input always takes infer()'s _batch_infer
+        # path, whose result is BatchResult; cast asserts that proven fact.
+        return cast(BatchResult, self.infer(handle, inputs_list, batch=True))
 
     def shutdown(self):
         """Clean up resources — call before discarding the engine."""
