@@ -20,7 +20,7 @@ from pathlib import Path
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 import argparse
-from typing import List
+from typing import List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -103,7 +103,7 @@ class GoRunner:
             current = current.parent
         return None
 
-    def run_file(self, file_path: str, args: list[str] = None) -> GoResult:
+    def run_file(self, file_path: str, args: Optional[list[str]] = None) -> GoResult:
         """Run a .go file using 'go run'."""
         if not self.has_go:
             return GoResult(
@@ -157,7 +157,7 @@ class GoRunner:
                 errors=[{"type": "exception", "message": str(e)}],
             )
 
-    def run_code(self, code: str, args: list[str] = None) -> GoResult:
+    def run_code(self, code: str, args: Optional[list[str]] = None) -> GoResult:
         """Run Go source code from a string (writes to temp file)."""
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
         source_path = GO_BUILD_DIR / f"azazael_{code_hash}.go"
@@ -293,7 +293,7 @@ class GoRunner:
             note_failure("go_runner:L263", e)
             return GoResult(success=False, stderr=str(e))
 
-    def mod_init(self, module_name: str, directory: str = None) -> GoResult:
+    def mod_init(self, module_name: str, directory: Optional[str] = None) -> GoResult:
         """Initialize a new Go module with 'go mod init'."""
         if not self.has_go:
             return GoResult(success=False, stderr="go not found.")
@@ -316,7 +316,7 @@ class GoRunner:
             note_failure("go_runner:L285", e)
             return GoResult(success=False, stderr=str(e))
 
-    def cross_compile(self, file_path: str, targets: list[tuple[str, str]] = None
+    def cross_compile(self, file_path: str, targets: Optional[list[tuple[str, str]]] = None
                       ) -> dict[str, GoResult]:
         """Build for multiple OS/arch targets."""
         if targets is None:

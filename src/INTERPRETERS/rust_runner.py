@@ -20,7 +20,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 import argparse
-from typing import List
+from typing import List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -162,7 +162,7 @@ class RustRunner:
                     errors.append({"level": "error", "message": line})
         return errors
 
-    def _run_binary(self, binary_path: Path, args: list[str] = None) -> RustResult:
+    def _run_binary(self, binary_path: Path, args: Optional[list[str]] = None) -> RustResult:
         """Execute a compiled Rust binary."""
         cmd = [str(binary_path)] + (args or [])
         try:
@@ -186,7 +186,7 @@ class RustRunner:
                 errors=[{"type": "timeout", "message": "Runtime exceeded 30 seconds"}],
             )
 
-    def run_code(self, code: str, args: list[str] = None) -> RustResult:
+    def run_code(self, code: str, args: Optional[list[str]] = None) -> RustResult:
         """Compile and run Rust source code from a string."""
         # Hash the code to create a unique filename
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
@@ -204,7 +204,7 @@ class RustRunner:
         # Run
         return self._run_binary(binary_path, args)
 
-    def run_file(self, file_path: str, args: list[str] = None) -> RustResult:
+    def run_file(self, file_path: str, args: Optional[list[str]] = None) -> RustResult:
         """Compile and run a .rs file."""
         source = Path(file_path)
         if not source.exists():
@@ -294,7 +294,7 @@ class RustRunner:
             note_failure("rust_runner:L263", e)
             return RustResult(success=False, stderr=str(e))
 
-    def new_project(self, name: str, directory: str = None) -> RustResult:
+    def new_project(self, name: str, directory: Optional[str] = None) -> RustResult:
         """Create a new Cargo project."""
         if not self.has_cargo:
             return RustResult(success=False, stderr="cargo not found.")

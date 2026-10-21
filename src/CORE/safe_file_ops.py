@@ -44,7 +44,7 @@ import tempfile
 import hashlib
 import logging
 from pathlib import Path
-from typing import Callable, List
+from typing import Any, Callable, List
 from datetime import datetime
 import json
 
@@ -84,7 +84,9 @@ def verify_tree_integrity(
     sample_hashes: bool = False,
     hash_max_files: int = 20,
     progress_callback: (Callable[[int, int, str], None] | None) = None,
-) -> dict[str, object]:
+    # NOTE: dict[str, Any], not dict[str, object]: every reader applies
+    # len()/.get() to the values, and object poisons all four call sites.
+) -> dict[str, Any]:
     """Compare source and destination trees.
 
     Checks:

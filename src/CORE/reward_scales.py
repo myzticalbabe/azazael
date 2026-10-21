@@ -114,7 +114,8 @@ def _load_persisted_baseline(scale_id: str, store: Any = None) -> Optional[Dict[
     for r in rows if isinstance(rows, list) else []:
         if not isinstance(r, dict):
             continue
-        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        raw_data: Any = r.get("data")
+        data: dict = raw_data if isinstance(raw_data, dict) else {}
         if str(data.get("scale_id", "")) != str(scale_id):
             continue
         rid = r.get("id", 0)
@@ -231,7 +232,8 @@ def scale_distributions(store: Any, limit: int = 5000) -> Dict[str, Any]:
         total = rows_read
     buckets: Dict[str, list] = {}
     for r in rows:
-        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        raw_data: Any = r.get("data")
+        data: dict = raw_data if isinstance(raw_data, dict) else {}
         if data.get("ok") is not True:
             continue
         v = data.get("value")
@@ -288,7 +290,8 @@ def calibration_snapshot(store: Any, limit: int = 5000) -> Dict[str, Any]:
     for r in rows if isinstance(rows, list) else []:
         if not isinstance(r, dict):
             continue
-        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        raw_data: Any = r.get("data")
+        data: dict = raw_data if isinstance(raw_data, dict) else {}
         if data.get("ok") is not True:
             continue
         v = data.get("value")

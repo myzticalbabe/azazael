@@ -377,8 +377,8 @@ class WorkloadAwareCachePolicy:
             self._cache[key] = (value, score, time.time(), 1)
             self._maybe_evict()
     
-    def update_score(self, key: str, recompute_cost: float = None,
-                     dag_deps: int = None, invoke_freq: float = None) -> None:
+    def update_score(self, key: str, recompute_cost: Optional[float] = None,
+                     dag_deps: Optional[int] = None, invoke_freq: Optional[float] = None) -> None:
         """Update workload score for existing entry."""
         with self._lock:
             if key in self._cache:
@@ -423,7 +423,7 @@ class BWoSWorkStealingPool:
     Maintains same API but adds block-stealing, session affinity, workload-aware caching.
     """
     
-    def __init__(self, max_workers: int = None, block_size: int = 16):
+    def __init__(self, max_workers: Optional[int] = None, block_size: int = 16):
         self.max_workers = max_workers or min(32, (os.cpu_count() or 4) + 4)
         self.block_size = block_size
         
