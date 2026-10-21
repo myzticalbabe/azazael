@@ -7,7 +7,7 @@ setlocal
 set AZAZAEL_MEMORY_DIR=C:\Users\clint\.azazael
 set PYW=C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe
 set DESKTOP=C:\Users\clint\Desktop\azazael_graphs
-cd /d C:\Users\clint\azazael
+cd /d C:\Azazael\azazael
 
 if "%1"=="learning_loop" goto learning_loop
 if "%1"=="ecosystem" goto ecosystem

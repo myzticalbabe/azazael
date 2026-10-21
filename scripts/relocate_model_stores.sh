@@ -35,7 +35,7 @@ OLLAMA_DST="/d/ollama-models"
 LMSTUDIO_DST="/g/lmstudio-models"
 
 SETTINGS="/c/Users/clint/.lmstudio/settings.json"
-LOG_DIR="/c/Users/clint/azazael/logs"
+LOG_DIR="/c/Azazael/azazael/logs"
 LOG="$LOG_DIR/model_relocation_$(date +%Y%m%d_%H%M%S).log"
 
 MODE="${1:---plan}"
