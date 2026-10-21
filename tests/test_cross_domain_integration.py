@@ -32,7 +32,7 @@ from contextlib import contextmanager
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from CORE.cd2_verifier import SMTVerifier, serialize_solver_result
-from CORE.cd4_pipeline import NuitkaBuildPipeline, load_build_manifest, validate_build_manifest
+from CORE.cd3_exporter import SQLiteSpanExporter, OTEL_SPANS_SCHEMA, configure_otel_tracing
 from CORE.cd4_pipeline import NuitkaBuildPipeline, load_build_manifest, validate_build_manifest
 
 # ====================================================================

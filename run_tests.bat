@@ -5,6 +5,7 @@ REM ============================================================
 setlocal enabledelayedexpansion
 
 set PYTHONPATH=%CD%\src;%CD%\packages\azazael-core\src;%PYTHONPATH%
+set PYTHONFAULTHANDLER=1
 
 echo ========================================
 echo  AZAZAEL TEST RUNNER
@@ -42,7 +43,7 @@ set TEST_NAME=%~1
 set TEST_FILE=%~2
 
 echo [RUNNING] %TEST_NAME% (%TEST_FILE%)
-python -m pytest %TEST_FILE% -v --tb=short -x 2>&1
+python -X faulthandler -m pytest %TEST_FILE% -v --tb=short -x --faulthandler 2>&1
 if %ERRORLEVEL% equ 0 (
     echo [PASS] %TEST_NAME%
     set /a TESTS_PASSED+=1

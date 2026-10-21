@@ -25,6 +25,7 @@ On Python 3.15t free-threading:
 
 import os
 import sys
+import json
 import re
 import time
 import subprocess
@@ -127,30 +128,90 @@ def _parse_test_output(output):
     return passed, failed
 
 
+def _persist_run_record(record):
+    """Persist a per-file run record to state/test_run_history.jsonl (#1488b)."""
+    try:
+        state_dir = os.path.join(PROJECT_ROOT, "state")
+        os.makedirs(state_dir, exist_ok=True)
+        path = os.path.join(state_dir, "test_run_history.jsonl")
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+    except Exception as e:
+        msg = f"run record persist failed: {e}"
+        print(msg, file=sys.stderr)
+
+
 def run_test_file(filename, timeout=60):
-    """Run a single test file and return results."""
+    """Run a single test file and return results.
+
+    Silent-death instrumentation (#1488b): faulthandler enabled (env + -X
+    flag) so a crashing interpreter leaves a Python traceback instead of
+    vanishing; on hang, nativestack.live_dump captures a native minidump of
+    the still-live process before it is killed (faulthandler is Windows-
+    blind for native C stacks); per-file status/duration/returncode persisted
+    to state/test_run_history.jsonl so silent deaths stay visible.
+    """
     filepath = os.path.join(TESTS_DIR, filename)
     if not os.path.exists(filepath):
         return {"file": filename, "status": "NOT_FOUND", "output": ""}
 
     start = time.time()
+    dump_path = None
     try:
-        result = subprocess.run(
-            [sys.executable, filepath],
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=timeout,
-            cwd=PROJECT_ROOT,
+        env = dict(os.environ)
+        env["PYTHONFAULTHANDLER"] = "1"
+        proc = subprocess.Popen(
+            [sys.executable, "-X", "faulthandler", filepath],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, encoding="utf-8", errors="replace",
+            cwd=PROJECT_ROOT, env=env,
         )
+        try:
+            out, _ = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            stamp = time.strftime("%Y%m%d_%H%M%S")
+            dump_dir = os.path.join(PROJECT_ROOT, "state", "crashdumps")
+            os.makedirs(dump_dir, exist_ok=True)
+            dest = os.path.join(dump_dir, "hang_{}_{}.dmp".format(stamp, proc.pid))
+            try:
+                sys.path.insert(0, os.path.join(PROJECT_ROOT, "tools"))
+                import nativestack
+                nativestack.live_dump(proc.pid, dest, preset="mini")
+                dump_path = dest
+            except Exception as e:
+                print("  [nativestack] live_dump failed: {}".format(e))
+            proc.kill()
+            try:
+                out, _ = proc.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                out = ""
+            status_timeout = True
+        else:
+            status_timeout = False
         elapsed = round(time.time() - start, 2)
-        output = result.stdout + result.stderr
+        output = out if out is not None else ""
         passed, failed = _parse_test_output(output)
 
-        if result.returncode == 0:
+        if status_timeout:
+            status = "TIMEOUT"
+        elif proc.returncode == 0:
             status = "PASS"
-        elif result.returncode in (-11, 139, -1073741819, 3221225477):
+        elif proc.returncode in (-11, 139, -1073741819, 3221225477):
             status = "SEGFAULT"
         else:
             status = "FAIL"
+
+        record = {
+            "file": filename, "status": status, "passed": passed,
+            "failed": failed, "duration": elapsed,
+            "returncode": proc.returncode, "dump": dump_path,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "faulthandler": True,
+        }
+        _persist_run_record(record)
+
+        if dump_path:
+            print("  [nativestack] dump written: {}".format(dump_path))
 
         return {
             "file": filename,
@@ -160,14 +221,22 @@ def run_test_file(filename, timeout=60):
             "duration": elapsed,
             "output": output,
         }
-    except subprocess.TimeoutExpired:
+    except Exception as e:
+        elapsed = round(time.time() - start, 2)
+        record = {
+            "file": filename, "status": "ERROR", "passed": 0,
+            "failed": 0, "duration": elapsed, "returncode": None,
+            "dump": None, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "faulthandler": True, "error": str(e),
+        }
+        _persist_run_record(record)
         return {
             "file": filename,
-            "status": "TIMEOUT",
+            "status": "ERROR",
             "passed": 0,
             "failed": 0,
-            "duration": timeout,
-            "output": "Timed out after {}s".format(timeout),
+            "duration": elapsed,
+            "output": str(e),
         }
 
 
