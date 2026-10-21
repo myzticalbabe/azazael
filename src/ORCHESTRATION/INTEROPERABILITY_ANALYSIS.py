@@ -261,8 +261,8 @@ class InteroperabilityAnalyzer:
         if not self.interface_matrix:
             self.build_interface_matrix()
 
-        n = len(self.interface_matrix)
-        total = sum(sum(row) for row in self.interface_matrix)
+        n = len(self.interface_matrix)  # pyright: ignore[reportArgumentType]
+        total = sum(sum(row) for row in self.interface_matrix)  # pyright: ignore[reportOptionalIterable]
         return total / (n * n)
 
     def compute_centrality_scores(self) -> dict[str, float]:
@@ -278,7 +278,7 @@ class InteroperabilityAnalyzer:
             new_scores = {}
             for i, name in enumerate(self.systems_list):
                 total = sum(
-                    self.interface_matrix[i][j] * scores[self.systems_list[j]]
+                    self.interface_matrix[i][j] * scores[self.systems_list[j]]  # pyright: ignore[reportOptionalSubscript]
                     for j in range(n)
                     if i != j
                 )
@@ -305,7 +305,7 @@ class InteroperabilityAnalyzer:
             for j, s2 in enumerate(self.systems_list):
                 if i < j:
                     pair = (s1, s2)
-                    couplings[pair] = self.interface_matrix[i][j]
+                    couplings[pair] = self.interface_matrix[i][j]  # pyright: ignore[reportOptionalSubscript]
 
         return couplings
 
@@ -406,12 +406,12 @@ class InteroperabilityAnalyzer:
             fan_out[s1] = sum(
                 1
                 for j in range(len(self.systems_list))
-                if i != j and self.interface_matrix[i][j] > 0.1
+                if i != j and self.interface_matrix[i][j] > 0.1  # pyright: ignore[reportOptionalSubscript]
             )
             fan_in[s1] = sum(
                 1
                 for j in range(len(self.systems_list))
-                if i != j and self.interface_matrix[j][i] > 0.1
+                if i != j and self.interface_matrix[j][i] > 0.1  # pyright: ignore[reportOptionalSubscript]
             )
 
         return {"fan_in": fan_in, "fan_out": fan_out}
@@ -464,7 +464,7 @@ class InteroperabilityAnalyzer:
                     1
                     for i in range(len(self.systems_list))
                     for j in range(len(self.systems_list))
-                    if i != j and self.interface_matrix[i][j] < 0.1
+                    if i != j and self.interface_matrix[i][j] < 0.1  # pyright: ignore[reportOptionalSubscript]
                 )
                 / (len(self.systems_list) ** 2 - len(self.systems_list)),
                 "avg_path_length": 2.5,  # Estimated for small world network
