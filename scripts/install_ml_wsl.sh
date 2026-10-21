@@ -1,8 +1,10 @@
 #!/bin/bash
 # ML packages for Python 3.15t on Ubuntu 26.04 (3.14t retired 2026-10-19)
-# Run: wsl -d Ubuntu-26.04 -u root bash /mnt/c/Users/clint/azazael/scripts/install_ml_wsl.sh
+# Run: wsl -d Ubuntu-26.04 -u root bash /mnt/c/Azazael/azazael/scripts/install_ml_wsl.sh
 
-PY=/usr/local/python315t/bin/python3.15t
+# Live 3.15t on the WSL pillar: /opt/python315t (binary is python3.15;
+# /usr/local/bin/python3.15t is a symlink to it for shebang compatibility).
+PY=/opt/python315t/bin/python3.15
 
 echo '=== Installing ML packages for 3.15t ==='
 

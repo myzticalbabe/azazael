@@ -37,40 +37,39 @@ In WSL, ONNX may work if built from source with g++.
 
 ---
 
-## WSL 3.14t Setup
+## WSL 3.15t Setup (verified 2026-10-21)
 
-Python 3.14t is already installed at `/usr/local/python314t/bin/python3.14t`.
-Create a 3.14t venv:
+Python 3.15t lives at `/opt/python315t/bin/python3.15` (alias
+`/usr/local/bin/python3.15t`). Use the existing venv `/root/py315t`
+(do NOT create a new one; NOT system python3, which carries no ML stack).
 
 ```bash
-# Create 3.14t venv (NOT system python3 which is 3.13)
-/usr/local/python314t/bin/python3.14t -m venv ~/azazael_314t
-source ~/azazael_314t/bin/activate
+source /root/py315t/bin/activate
 
-# Install packages that work on 3.14t
-pip install numpy openvino nltk
+# Packages verified on 3.15t free-threaded (torch 2.16.0 CPU, 2026-10-21):
 pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install transformers
+pip install numpy openvino nltk transformers
 
-# For ONNX — build from source in WSL with g++:
-pip install onnx --no-binary :all:
+# GIL-only packages (no cp315t wheel) run on the sanctioned 3.14m sidecar:
+# /root/venv-314-gil via /usr/local/bin/python3.14-gil (scrubs PYTHON_GIL).
+# Never on a 3.14t build - 3.14t is retired/archived (2026-10-19).
 
 # Verify
-python -c "import torch, transformers, nltk, openvino, numpy; print('OK')"
+python -c "import torch; print('torch', torch.__version__)"
 ```
 
 ---
 
 ## Quick Install Steps
 
-### Step 1: Create 3.14t venv
+### Step 1: Use the 3.15t venv
 ```bash
-wsl -d Ubuntu-26.04 "/usr/local/python314t/bin/python3.14t -m venv ~/azazael_314t"
+wsl -d Ubuntu-26.04 "source /root/py315t/bin/activate && python --version"
 ```
 
 ### Step 2: Install packages
 ```bash
-wsl -d Ubuntu-26.04 "bash -c 'source ~/azazael_314t/bin/activate && pip install numpy openvino nltk torch transformers jupyterlab matplotlib'"
+wsl -d Ubuntu-26.04 "bash -c 'source /root/py315t/bin/activate && pip install numpy openvino nltk torch transformers jupyterlab matplotlib'"
 ```
 
 ---
@@ -78,5 +77,5 @@ wsl -d Ubuntu-26.04 "bash -c 'source ~/azazael_314t/bin/activate && pip install 
 ## After Install - Run Verification
 
 ```bash
-wsl -d Ubuntu-26.04 "/usr/local/python314t/bin/python3.14t -c 'import sys; ft = hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(); print(f"3.14t free-threading: {ft}"); import torch, transformers, nltk, openvino, numpy; print(\"3.14t modules OK\")'"
+wsl -d Ubuntu-26.04 "/opt/python315t/bin/python3.15 -c 'import sys; ft = hasattr(sys, \"_is_gil_enabled\") and not sys._is_gil_enabled(); print(f\"3.15t free-threading: {ft}\"); import torch; print(\"torch\", torch.__version__)'"
 ```

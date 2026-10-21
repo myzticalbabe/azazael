@@ -35,9 +35,12 @@ apt update && apt upgrade -y
 
 # ===== 2. INSTALL PYTHON 3.15t (FREE-THREADING) =====
 log "Installing Python 3.15t free-threading build..."
+if [ -x /opt/python315t/bin/python3.15 ]; then
+  log "Python 3.15t already present at /opt/python315t -- skipping source build."
+else
 # NOTE: Python 3.13 (system default) is NOT used. 3.14t was RETIRED 2026-10-19
 # (see azazael/src/CORE/python_env.py); production is the 3.15t free-threading
-# build, matching the Windows pillar. Install to /usr/local/python315t/.
+# build, matching the Windows pillar. Install to /opt/python315t/.
 PY315_VER="3.15.0rc3"
 
 # Prerequisites for building 3.15t from source:
@@ -52,19 +55,22 @@ wget "https://www.python.org/ftp/python/${PY315_VER}/Python-${PY315_VER}.tar.xz"
 # Optionally verify checksum: wget -qO- "https://www.python.org/ftp/python/${PY315_VER}/Python-${PY315_VER}.tar.xz.asc" | gpg --verify
 tar xf "Python-${PY315_VER}.tar.xz"
 cd "Python-${PY315_VER}"
-./configure --prefix=/usr/local/python315t --disable-gil --enable-optimizations --with-ensurepip=install
+./configure --prefix=/opt/python315t --disable-gil --enable-optimizations --with-ensurepip=install
 make -j$(nproc)
 make install
+fi
 
 # Add to PATH for all users (3.14t symlinks are deliberately not recreated)
-ln -sf /usr/local/python315t/bin/python3.15t /usr/local/bin/python3.15t
-ln -sf /usr/local/python315t/bin/python3.15t /usr/local/bin/python3
+ln -sf /opt/python315t/bin/python3.15 /usr/local/bin/python3.15t
+ln -sf /opt/python315t/bin/python3.15 /usr/local/bin/python3.15
+# NOTE: /usr/local/bin/python3 is deliberately untouched -- the OS
+# and existing venvs resolve python3 already; only versioned names here.
 
 # Upgrade pip for 3.15t
-/usr/local/python315t/bin/python3.15t -m pip install --upgrade pip setuptools wheel
+/opt/python315t/bin/python3.15 -m pip install --upgrade pip setuptools wheel
 
 # Verify free-threading
-/usr/local/python315t/bin/python3.15t -c "
+/opt/python315t/bin/python3.15 -c "
 import sys
 print(f'Python {sys.version}')
 ft = hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
@@ -113,7 +119,7 @@ fi
 # ===== 5. CREATE 3.15t VENV =====
 log "Creating Python 3.15t venv..."
 cd /home/$(logname)
-/usr/local/python315t/bin/python3.15t -m venv azazael_315t
+/opt/python315t/bin/python3.15 -m venv azazael_315t
 source azazael_315t/bin/activate
 
 # ===== 6. UPGRADE PIP =====
@@ -152,7 +158,7 @@ fi
 
 # ===== 9. VERIFY INSTALLATION =====
 log "Verifying installations..."
-PYTHON=/usr/local/python315t/bin/python3.15t
+PYTHON=/opt/python315t/bin/python3.15
 $PYTHON -c "
 import sys
 ft = hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
@@ -199,7 +205,7 @@ echo ""
 echo "Next steps:"
 echo "1. Reboot: sudo reboot"
 echo "2. Activate venv: source ~/azazael_315t/bin/activate"
-echo "3. Test: /usr/local/python315t/bin/python3.15t -c 'import torch; print(torch.__version__)'"
+echo "3. Test: /opt/python315t/bin/python3.15 -c 'import torch; print(torch.__version__)'"
 echo ""
 echo "Project directory: ~/projects/azazael/"
 echo ""

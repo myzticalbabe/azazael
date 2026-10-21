@@ -22,8 +22,18 @@ SCRIPTS = ROOT / "scripts"
 LOG = ROOT / "logs" / "chain20.log"
 
 # Interpreter paths stay pinned: they are machine-level, not repo-relative.
-PY = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
-PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe'
+# Production is the 3.15t venv (py315t) and its same-version GIL sidecar
+# (py315); the AppData installs are fallbacks for a box without the venvs.
+# 3.14t was retired 2026-10-19 and must not reappear here.
+def _pick(first, *fallbacks):
+    for cand in (first, *fallbacks):
+        if os.path.isfile(cand):
+            return cand
+    return first
+PY = _pick(r'C:\Azazael\.venvs\py315\Scripts\python.exe',
+          r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe')
+PY_FT = _pick(r'C:\Azazael\.venvs\py315t\Scripts\python.exe',
+             r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe')
 ROUNDS = 20
 STEP_TIMEOUT = 900
 #: rc recorded when a step does not return. The log line's `rc=` field is read

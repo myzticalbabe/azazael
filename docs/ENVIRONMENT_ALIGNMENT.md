@@ -106,8 +106,10 @@ wheels exist for 3.15t in WSL — ML work that needs them stays on 3.14.
 |-------------|:---:|------------|-------|
 | `/usr/local/bin/python3.14-gil` (3.14.7) | enabled | 2.22.0-dev20260530, CPU-only (no CUDA drivers in WSL) | 2.12.0+cpu |
 | `/usr/local/bin/python3.14t` (3.14.7) | disabled (FT) | — | 2.14.0+cpu |
-| `/usr/local/bin/python3.15t` (3.15.0rc3) | disabled (FT) | — | — |
+| `/usr/local/bin/python3.15t` (3.15.0rc3) | disabled (FT) | — (needs source build; PyPI has zero cp315 TF wheels) | torch 2.14.1+XPU (stock wheel, XPU backend built-in; IPEX is EOL — do NOT build IPEX) |
 | `/usr/bin/python3.14` (distro, GIL-only build) | n/a — **crashes at startup** (see below) | — | — |
+
+GPU path (2026-10-21, verified): NEO 26.05 OpenCL + `libze-intel-gpu1` 26.35 + `intel-igc-core-2` 2.41.5 (GitHub debs) + oneAPI 2026.1 runtime + `intel-pti` (via torch xpu deps) + `ld.so.conf.d/intel-oneapi.conf`. `torch.xpu` sees Intel Graphics [0x7d51]; 2048mm x10: 0.24s XPU vs 0.44s CPU. `sycl-ls` needs `source /opt/intel/oneapi/setvars.sh` first. Sysman warning (`Can't initialize Level Zero Sysman`) is harmless (no power telemetry in WSL).
 
 Gotcha: `PYTHON_GIL=0` is exported in this WSL shell. Any GIL-only
 (non-free-threaded-build) interpreter aborts at preinitialization with
