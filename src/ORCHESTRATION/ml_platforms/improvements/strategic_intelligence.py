@@ -60,7 +60,7 @@ class AzazaelIntelligence:
     def __init__(self):
         self.data_dir = DATA_DIR
         self.workflow_history: list[WorkflowEvent] = []
-        self.framework_scores: dict[str, dict[str, float]] = {}
+        self.framework_scores: dict[str, Any] = {}
         self.load_history()
 
     def load_history(self):
@@ -193,8 +193,8 @@ class AzazaelIntelligence:
         recent = self.workflow_history[-100:]
 
         # Task distribution
-        task_counts = {}
-        framework_usage = {}
+        task_counts: dict[str, int] = {}
+        framework_usage: dict[str, int] = {}
         success_rate = 0
         total = len(recent)
 
@@ -214,8 +214,10 @@ class AzazaelIntelligence:
             "task_distribution": task_counts,
             "framework_usage": framework_usage,
             "success_rate": success_rate,
-            "most_used_framework": max(framework_usage, key=framework_usage.get),
-            "most_common_task": max(task_counts, key=task_counts.get),
+            "most_used_framework": max(
+                framework_usage, key=lambda x: framework_usage[x]
+            ),
+            "most_common_task": max(task_counts, key=lambda x: task_counts[x]),
         }
 
     def predict_optimal_resources(self, task_type: str) -> dict[str, Any]:
@@ -299,7 +301,7 @@ class PerformanceProfiler:
     """
 
     def __init__(self):
-        self.metrics_history: list[dict[str, float]] = []
+        self.metrics_history: list[dict[str, Any]] = []
         self.benchmarks: dict[str, float] = {}
 
     def record_metrics(
@@ -322,7 +324,7 @@ class PerformanceProfiler:
             }
         )
 
-    def get_benchmark(self, task_type: str, framework: str) -> dict[str, float]:
+    def get_benchmark(self, task_type: str, framework: str) -> dict[str, Any]:
         """Get benchmark for task/framework combination."""
         key = f"{task_type}:{framework}"
 
