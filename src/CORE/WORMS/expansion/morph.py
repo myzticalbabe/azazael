@@ -187,7 +187,7 @@ class GeneSpec:
 
     @classmethod
     def from_dict(cls, d: dict) -> "GeneSpec":
-        return cls(d.get("name"), d.get("kind", "float"), d.get("lo", 0.0),
+        return cls(d.get("name"), d.get("kind", "float"), d.get("lo", 0.0),  # pyright: ignore[reportArgumentType]
                    d.get("hi", 1.0), d.get("choices"), d.get("kwargs"),
                    d.get("points", 3))
 
@@ -420,10 +420,10 @@ def prune_zero_variance(genomes: Sequence[Genome], min_spread: float = 1e-4
         for s, v in zip(g.specs, g.values):
             seen[s.name] = seen.get(s.name, 0) + 1
             try:
-                num = float(v[0]) if isinstance(v, (list, tuple)) and v else float(v)
+                num = float(v[0]) if isinstance(v, (list, tuple)) and v else float(v)  # pyright: ignore[reportArgumentType]
             except (TypeError, ValueError) as exc:
                 note_failure("morph:L411", exc)
-                num = float(bool(v))
+                num = float(bool(v))  # pyright: ignore[reportArgumentType]
             buckets.setdefault(s.name, []).append(num)
 
     prune, keep = [], []
@@ -451,8 +451,8 @@ def dimension_report(rows: Iterable[dict]) -> dict:
         if not isinstance(r, dict) or "dimension" not in r:
             continue
         try:
-            d = int(r.get("dimension"))
-            f = float(r.get("fitness"))
+            d = int(r.get("dimension") or 0)
+            f = float(r.get("fitness") or 0.0)
         except (TypeError, ValueError) as exc:
             note_failure("morph:L442", exc)
             continue
