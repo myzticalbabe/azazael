@@ -77,6 +77,10 @@ class LogEntry:
     def to_searchable(self) -> str:
         return f"{self.timestamp} {self.category} {self.source} {self.message} {' '.join(self.tags)}"
 
+    def get(self, key: str, default: Any = None) -> Any:
+        """dict-style read access (lets index code treat entries uniformly)."""
+        return getattr(self, key, default)
+
 
 @dataclass
 class ConversationContext:

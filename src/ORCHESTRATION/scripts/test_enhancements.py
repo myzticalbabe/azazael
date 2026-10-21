@@ -238,7 +238,7 @@ class TestFuzzing:
 
         for path_str in test_paths:
             try:
-                p = pathlib.Path(path_str)
+                p = Path(path_str)
                 parts = p.parts
                 assert isinstance(parts, tuple)
             except Exception as exc:
@@ -311,19 +311,22 @@ def run_property_tests():
     q_table_tests = TestQTableProperties()
 
     try:
-        q_table_tests.test_q_table_initialization()
+        # @given supplies (num_states, num_actions) at runtime; the checker cannot see it.
+        q_table_tests.test_q_table_initialization()  # type: ignore[reportCallIssue]
         print("   [OK] Initialization test passed")
     except Exception as e:
         print(f"   [X] Initialization test failed: {e}")
 
     try:
-        q_table_tests.test_q_learning_update()
+        # @given supplies (num_states, num_actions, alpha, gamma) at runtime.
+        q_table_tests.test_q_learning_update()  # type: ignore[reportCallIssue]
         print("   [OK] Update test passed")
     except Exception as e:
         print(f"   [X] Update test failed: {e}")
 
     try:
-        q_table_tests.test_epsilon_greedy_policy()
+        # @given supplies (states, epsilon) at runtime.
+        q_table_tests.test_epsilon_greedy_policy()  # type: ignore[reportCallIssue]
         print("   [OK] Epsilon-greedy test passed")
     except Exception as e:
         print(f"   [X] Epsilon-greedy test failed: {e}")
@@ -332,13 +335,15 @@ def run_property_tests():
     trans_tests = TestTransitionProperties()
 
     try:
-        trans_tests.test_transition_creation()
+        # @given supplies (state, action, reward, priority) at runtime.
+        trans_tests.test_transition_creation()  # type: ignore[reportCallIssue]
         print("   [OK] Transition creation test passed")
     except Exception as e:
         print(f"   [X] Transition creation test failed: {e}")
 
     try:
-        trans_tests.test_priority_normalization()
+        # @given supplies (priorities,) at runtime.
+        trans_tests.test_priority_normalization()  # type: ignore[reportCallIssue]
         print("   [OK] Priority normalization test passed")
     except Exception as e:
         print(f"   [X] Priority normalization test failed: {e}")
