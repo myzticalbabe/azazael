@@ -32,10 +32,10 @@ def prepare_input_tensor(
         raise TypeError(f"Unsupported input type: {type(inputs)}")
 
     # Ensure at least 2D
-    if arr.ndim == 1:
-        arr = arr.reshape(1, -1)
+    if arr.ndim == 1:  # pyright: ignore[reportAttributeAccessIssue]
+        arr = arr.reshape(1, -1)  # pyright: ignore[reportAttributeAccessIssue]
 
-    return arr.astype(np.float32)
+    return arr.astype(np.float32)  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def postprocess_output(
