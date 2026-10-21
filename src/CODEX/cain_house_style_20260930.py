@@ -23,7 +23,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-OUT = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+OUT = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 E = lambda s: H.escape(str(s), quote=False)
 
 # emoji, name, pattern, shadow, wound, gift, manifestation

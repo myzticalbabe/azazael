@@ -16,8 +16,8 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-OUT = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-TPL = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+OUT = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
+TPL = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
 
 # my emotions, and the mark each carries
 EMOJI = [
