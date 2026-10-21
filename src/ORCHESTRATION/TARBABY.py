@@ -37,7 +37,7 @@ import argparse
 
 # MAXIMAL: BasePopupMonitor shared base class
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from CORE.Widgets.BasePopupMonitor import BasePopupMonitor
+from CORE.Widgets.BasePopupMonitor import BasePopupMonitor, QueueMessage
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -156,12 +156,13 @@ class PopupMonitor(BasePopupMonitor):
         )
         self.status_label.pack()
 
-        self.progress_bar = ttk.Progressbar(
+        progress_bar = ttk.Progressbar(
             self.root,
             mode="determinate",
             length=750,
         )
-        self.progress_bar.pack(pady=10, padx=25)
+        self.progress_bar = progress_bar
+        progress_bar.pack(pady=10, padx=25)
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -335,6 +336,10 @@ class TARBABYCompiler:
     ) -> bool:
         """Compile using PyInstaller."""
         source = Path(task.source)
+        if task.output is None:
+            raise TypeError(
+                f"TARBABY._compile_with_pyinstaller: task {task.source!r} has no output path"
+            )
         output_dir = Path(task.output).parent
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -397,6 +402,10 @@ class TARBABYCompiler:
         source = Path(task.source)
 
         try:
+            if task.output is None:
+                raise TypeError(
+                    f"TARBABY._create_zip_archive: task {task.source!r} has no output path"
+                )
             with zipfile.ZipFile(task.output, "w", zipfile.ZIP_DEFLATED) as zf:
                 if source.is_file():
                     zf.write(source, arcname=source.name)
@@ -451,12 +460,21 @@ class TARBABYCompiler:
         task.end_time = datetime.now()
 
         with self._state_lock:
-            if success and Path(task.output).exists():
-                task.status = BuildStatus.COMPLETE
-                task.progress = 100
-                task.checksum = self._calculate_checksum(task.output)
-                task.artifact_path = task.output
-                self.completed.append(task)
+            if success:
+                task_output = task.output
+                if task_output is None:
+                    raise TypeError(
+                        f"TARBABY.execute_task: task {task.source!r} has no output path"
+                    )
+                if Path(task_output).exists():
+                    task.status = BuildStatus.COMPLETE
+                    task.progress = 100
+                    task.checksum = self._calculate_checksum(task_output)
+                    task.artifact_path = task_output
+                    self.completed.append(task)
+                else:
+                    task.status = BuildStatus.FAILED
+                    self.failed.append(task)
             else:
                 task.status = BuildStatus.FAILED
                 self.failed.append(task)
@@ -563,7 +581,8 @@ class TARBABYCompiler:
         output_file = Path(self.config.base_output) / "test_results.json"
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
-        self.monitor.log(f"Results saved: {output_file}")
+        if self.monitor:
+            self.monitor.log(f"Results saved: {output_file}")
 
     def monitor_loop(self):
         """Run tkinter mainloop on current thread (must be main thread on Windows)."""
