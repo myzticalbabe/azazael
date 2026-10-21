@@ -26,7 +26,7 @@ import random
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass, replace
 import sysconfig
 
@@ -55,8 +55,12 @@ try:
 except ImportError as exc:
     note_failure("db_monitor:L44", exc)
     _REGISTRY = False
-    def register_worm(**kw):
-        return lambda cls: cls
+    def register_worm(category: str = "utility", priority: int = 5,
+                      cooldown_seconds: float = 30.0, description: str = "",
+                      tags: Optional[Set[str]] = None):
+        def _identity(cls):
+            return cls
+        return _identity
 
 # -- Python 3.14t Free-Threading Awareness ----------------------------
 try:
@@ -216,7 +220,7 @@ class DatabaseMonitorWorm:
             note_failure("db_monitor:L198", e)
             return {"passed": False, "ok": False, "errors": [str(e)]}
 
-    def create_backup(self, target_dir: str = None) -> str:
+    def create_backup(self, target_dir: Optional[str] = None) -> str:
         """Create a database backup.
 
         Args:
@@ -254,7 +258,7 @@ class DatabaseMonitorWorm:
             self._record_backup_event(target_path, False, str(e))
             return ""
 
-    def _record_backup_event(self, path: str, success: bool, error: str = None):
+    def _record_backup_event(self, path: str, success: bool, error: Optional[str] = None):
         """Record a backup event to memory."""
         store = self._get_store()
         if not store:
@@ -297,9 +301,15 @@ class DatabaseMonitorWorm:
             # (2026-09-08 fix): the sampled lists are fetch-capped, so
             # thresholds must use the exact totals. Self-source excluded
             # so alerts can't breed alerts.
-            real = store.query_real_errors(
-                days=7, limit=500,
-                exclude_sources=self._SELF_EXCLUDE_SOURCES)
+            # Dual-backend signatures: LocalMemoryStore.query_real_errors
+            # accepts exclude_sources; PostgresMemoryStore.query_real_errors
+            # does not (it has no per-source filter yet). Build the kwargs
+            # dynamically so the postgres path degrades to unfiltered instead
+            # of raising TypeError, and the local path keeps self-exclusion.
+            query_kwargs: Dict[str, Any] = {"days": 7, "limit": 500}
+            if self._get_store_backend() != "postgres":
+                query_kwargs["exclude_sources"] = self._SELF_EXCLUDE_SOURCES
+            real = store.query_real_errors(**query_kwargs)
             error_count = real.get("total_errors_exact", real.get("total_errors", 0))
             warning_count = real.get("total_warnings_exact", real.get("total_warnings", 0))
             # Additive 2026-10-17: criticals were invisible to health; .get keeps

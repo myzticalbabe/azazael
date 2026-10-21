@@ -75,7 +75,7 @@ class BaseArm(ABC):
         ...
 
     @abstractmethod
-    def execute(self, capability: str, payload: dict = None) -> dict:
+    def execute(self, capability: str, payload: Optional[dict] = None) -> dict:
         """Execute a named capability with optional payload.
         
         Returns: {"status": "ok"|"error", "data": ..., "arm_id": str}
@@ -231,7 +231,7 @@ def register_arm(
     description: str = "",
     category: str = "quartet",
     priority: int = 5,
-    dependencies: List[str] = None,
+    dependencies: Optional[List[str]] = None,
 ):
     """Decorator to register an Arm class in the ARM_REGISTRY.
     
@@ -284,7 +284,7 @@ class ArmRegistry:
         """Get an Arm by ID."""
         return self._arms.get(arm_id)
 
-    def list_arms(self, category: str = None) -> List[dict]:
+    def list_arms(self, category: Optional[str] = None) -> List[dict]:
         """List all registered Arms with metadata."""
         result = []
         for arm_id, arm in self._arms.items():
@@ -314,7 +314,7 @@ class ArmRegistry:
                 cats.add(arm.metadata.category)
         return sorted(cats)
 
-    def initialize_all(self, category: str = None) -> Dict[str, bool]:
+    def initialize_all(self, category: Optional[str] = None) -> Dict[str, bool]:
         """Initialize all Arms (optionally filtered by category).
         
         Returns: {arm_id: success}

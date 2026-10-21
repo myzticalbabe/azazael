@@ -85,8 +85,11 @@ except ImportError as exc:
     def discover_worms(worms_dir: Optional[str] = None, progress_callback: Optional[Callable] = None) -> int: return 0
     def get_all_categories() -> Set[str]: return set()
     def get_worms_by_category(category: str) -> Dict[str, Dict]: return {}
-    def mark_spawned(name: str) -> Any: pass
-    def register_worm(category: str = "", priority: int = 0, cooldown_seconds: float = 0, description: str = "", tags: Optional[set[str]] = None, **kwargs: Any) -> Callable[..., Any]: return lambda f: f
+    def mark_spawned(worm_type: str) -> None: return None
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags: Optional[Set[str]] = None):
+        def _identity(cls):
+            return cls
+        return _identity
 # ── PAMS Memory Recording (lazy, thread-safe) ─────────────────
 _pams: Any = None
 _pams_lock = threading.Lock()
@@ -376,7 +379,7 @@ class MetaCluster:
             return names, {}, "plan-fallback:%s" % type(exc).__name__
         try:
             idx = {n: i for i, n in enumerate(names)}
-            worms = {n: set(self.categories.get(n) or []) for n in names}
+            worms: Dict[str, Set[str]] = {n: set(self.categories.get(n) or []) for n in names}
             # EP374 (TopoAgent): adaptive atomic fission. A category is ONE
             # dispatch unit for the whole run, so two of its worm groups that
             # share nothing still execute one after the other. The capability
@@ -562,8 +565,9 @@ class MetaCluster:
         for n in names:
             try:
                 if callable(granularity):
-                    weights[n] = float(
-                        granularity(n, sorted(worms.get(n) or ())))
+                    raw_weight: Any = granularity(
+                        n, sorted(worms.get(n) or ()))
+                    weights[n] = float(raw_weight)
                 else:
                     weights[n] = float(granularity.get(n, 0.0))
             except Exception as exc:        # noqa: BLE001 — policy is advisory

@@ -110,9 +110,9 @@ class EveArm(BaseArm):
 
             elif capability == "run_benchmark":
                 try:
-                    import urllib.request, json as _j, time
+                    import time
                     with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5) as r:
-                        data = _j.loads(r.read())
+                        data = json.loads(r.read())
                     models = [m["name"] for m in data.get("models", []) if "embed" not in m["name"].lower() and "nomic" not in m["name"].lower()]
                     results = []
                     for m in models[:5]:
@@ -120,11 +120,11 @@ class EveArm(BaseArm):
                         try:
                             req = urllib.request.Request(
                                 "http://localhost:11434/api/generate",
-                                data=_j.dumps({"model": m, "prompt": "Hello", "stream": False, "options": {"num_predict": 30}}).encode(),
+                                data=json.dumps({"model": m, "prompt": "Hello", "stream": False, "options": {"num_predict": 30}}).encode(),
                                 headers={"Content-Type": "application/json"},
                             )
                             with urllib.request.urlopen(req, timeout=30) as r:
-                                resp = _j.loads(r.read())
+                                resp = json.loads(r.read())
                             dt = time.time() - t0
                             results.append({"model": m, "latency_s": round(dt, 3), "response_len": len(resp.get("response", ""))})
                         except Exception as e:
@@ -138,20 +138,19 @@ class EveArm(BaseArm):
             elif capability == "run_inference":
                 prompt = payload.get("prompt", "")
                 try:
-                    import urllib.request, json as _j
                     with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5) as r:
-                        data = _j.loads(r.read())
+                        data = json.loads(r.read())
                     models = [m["name"] for m in data.get("models", []) if "embed" not in m["name"].lower() and "nomic" not in m["name"].lower()]
                     model = "eve-v2u:latest" if "eve-v2u:latest" in models else (models[0] if models else None)
                     if model is None:
                         return {"status": "error", "error": "No chat models available in Ollama"}
                     req = urllib.request.Request(
                         "http://localhost:11434/api/generate",
-                        data=_j.dumps({"model": model, "prompt": prompt, "stream": False, "options": {"num_predict": 256}}).encode(),
+                        data=json.dumps({"model": model, "prompt": prompt, "stream": False, "options": {"num_predict": 256}}).encode(),
                         headers={"Content-Type": "application/json"},
                     )
                     with urllib.request.urlopen(req, timeout=120) as r:
-                        resp = _j.loads(r.read())
+                        resp = json.loads(r.read())
                     return {"status": "ok", "data": {"prompt_length": len(prompt), "model": model, "response": resp.get("response", ""), "tokens": resp.get("eval_count", 0)}}
                 except Exception as exc:
                     note_failure("eve_arm:run_inference", exc)
@@ -288,12 +287,13 @@ class EveArm(BaseArm):
                 return {"status": "ok", "data": {"proposed": proposed, "execution": result}}
 
             elif capability == "introspect":
-                if not self._consciousness_available or getattr(self, "_introspection", None) is None:
+                introspection = getattr(self, "_introspection", None)
+                if not self._consciousness_available or introspection is None:
                     return {"status": "error", "error": "Introspection not available"}
-                insight = self._introspection.run_once()
+                insight = introspection.run_once()
                 return {"status": "ok", "data": {
                     "cycle": insight.get("cycle"),
-                    "unhealthy": self._self_model.get_unhealthy(),
+                    "unhealthy": self._self_model.get_unhealthy() if self._self_model is not None else None,
                 }}
 
             elif capability == "get_status":

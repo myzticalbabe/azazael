@@ -21,7 +21,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from html.parser import HTMLParser
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 import argparse
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -146,7 +146,7 @@ class HTMLSceneExtractor(HTMLParser):
         self._in_scene = False
         self._skip_tags = {"script", "style", "head", "meta", "link", "title"}
         self._skip_depth = 0
-        self.raw_html = None  # Set by caller before get_scenes()
+        self.raw_html: Optional[str] = None  # Set by caller before get_scenes()
 
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
@@ -159,7 +159,7 @@ class HTMLSceneExtractor(HTMLParser):
             return
 
         # Check if this tag starts a scene
-        classes = attrs_dict.get("class", "").split()
+        classes = (attrs_dict.get("class") or "").split()
         data_scene = attrs_dict.get("data-scene", "")
         data_title = attrs_dict.get("data-title", "")
 
@@ -940,6 +940,9 @@ class CODEXStudio:
     # ─── FFmpeg Version ───
     def _get_ffmpeg_version(self):
         try:
+            if not self.ffmpeg_path:
+                self.log("FFmpeg executable not found; skipping version query", "warning")
+                return
             result = subprocess.run(
                 [self.ffmpeg_path, "-version"],
                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
