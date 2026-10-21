@@ -199,8 +199,8 @@ def _spine():
 
 
 class CrossArmRouter:
-    def __init__(self, registry: ArmRegistry = None, bus: EventBus = None,
-                 policy: RoutingPolicy = None):
+    def __init__(self, registry: Optional[ArmRegistry] = None, bus: Optional[EventBus] = None,
+                 policy: Optional[RoutingPolicy] = None):
         self.registry = registry or ArmRegistry()
         self.bus = bus or get_event_bus()
         self.policy = policy or RoutingPolicy()
@@ -454,8 +454,8 @@ class CrossArmRouter:
 
     # ── routing ────────────────────────────────────────────────────────
 
-    def route_task(self, arm_id: str = None, capability: str = None,
-                   payload: dict = None, policy: Optional[RoutingPolicy] = None) -> dict:
+    def route_task(self, arm_id: Optional[str] = None, capability: Optional[str] = None,
+                   payload: Optional[dict] = None, policy: Optional[RoutingPolicy] = None) -> dict:
         """Route a capability to an Arm.
 
         ``arm_id`` may be None (or omitted) to route elastically by
@@ -633,7 +633,7 @@ class CrossArmRouter:
         with self._stats_lock:
             stats = dict(self._stats)
         stats["routing_log_size"] = len(self._routing_log)
-        stats["contract"] = get_contract_report().snapshot()
+        stats["contract"] = get_contract_report().snapshot()  # pyright: ignore[reportArgumentType]
         stats["candidate_capabilities"] = len(self.capability_index())
         return stats
 
