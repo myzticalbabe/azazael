@@ -65,9 +65,10 @@ DETECTOR_FILES = {
     "tools/repoint_315t.py",
 }
 
-#: Files whose JOB spans both live trees (sync/parity/atlas/inventory).
-#: C:/Users/clint/azazael is a live second tree, not a dead hub, for these
-#: tools — their old-hub-fwd matches are intentional cross-tree operation.
+#: Files whose JOB spanned both trees (sync/parity/atlas/inventory).
+#: C:/Users/clint/azazael WAS a live second tree; archived 2026-10-21 to
+#: G:/azazael.archived-20261021. old-hub-fwd matches here are now
+#: expected-absent; the rule stays to catch future strays.
 CROSS_TREE_FILES = {
     "scripts/sync_all.py",
     "scripts/check_tree_parity.py",

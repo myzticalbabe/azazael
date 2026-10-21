@@ -295,16 +295,16 @@ def sync_wsl_to_windows(dry_run: bool = False) -> Dict[str, Any]:
     """Sync WSL2 -> Windows 11 (code + docs + skills + scripts).
     
     Source: WSL2 native filesystem at /root/azazael/...
-    Destination: Windows files via /mnt/c/Users/clint/azazael/...
+    Destination: Windows files via /mnt/c/Azazael/azazael/...
     Runs from WSL2 directly — no wsl.exe needed.
     """
     wsl_root = Path("/root/azazael")
-    windows_root = Path("/mnt/c/Users/clint/azazael")
+    windows_root = Path("/mnt/c/Azazael/azazael")
     
     if not wsl_root.exists():
         return {"synced": [], "errors": ["WSL root /root/azazael not found"], "count": 0, "target": "windows"}
     if not windows_root.exists():
-        return {"synced": [], "errors": ["Windows root /mnt/c/Users/clint/azazael not found"], "count": 0, "target": "windows"}
+        return {"synced": [], "errors": ["Windows root /mnt/c/Azazael/azazael not found"], "count": 0, "target": "windows"}
     
     all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
     synced = []

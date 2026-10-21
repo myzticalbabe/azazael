@@ -104,9 +104,10 @@ export GRAPHIFY_MAX_GRAPH_BYTES="${GRAPHIFY_MAX_GRAPH_BYTES:-10GB}"
 export GRAPHIFY_MAX_WORKERS="${GRAPHIFY_MAX_WORKERS:-16}"
 
 # repo name -> "update <source>" or "extract <source>" + atlas subfolder
-# NOTE (2026-10-10): azazael points at the production tree C:/Azazael/azazael
-# (git repo, MCP graph source). C:/Users/clint/azazael is a stale mirror that
-# previously received the refresh — same wrong-tree class as the old chain
+# NOTE (2026-10-10, closed 2026-10-21): azazael points at the production
+# tree C:/Azazael/azazael (git repo, MCP graph source). The old second
+# tree C:/Users/clint/azazael was archived 2026-10-21 to
+# G:/azazael.archived-20261021 — same wrong-tree class as the old chain
 # task (see T-1/T-2 notes in TODO_315T_BUILD.md).
 REPOS_UPDATE=(
   "azazael|C:/Azazael/azazael"
@@ -253,7 +254,7 @@ sync_out() { # <repo> <graphify-out dir> -> copies artifacts up into atlas
 
 refresh_update() { # <repo> <source>
   local repo="$1" source="$2" dst="$ATLAS/$repo"
-  # source is a Windows path (e.g. C:/Users/clint/azazael); outdir for bash
+  # source is a Windows path (e.g. C:/Azazael/azazael); outdir for bash
   # file ops (cp, [ -f ]) must be a WSL2 path — convert via cygpath -u.
   local outdir
   outdir="$(cygpath -u "$source/graphify-out" 2>/dev/null || echo "$source/graphify-out")"
