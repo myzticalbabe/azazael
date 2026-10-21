@@ -19,36 +19,44 @@ Provides:
 import logging
 import threading
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 
-try:
+if TYPE_CHECKING:
     from CORE.freethreading import FreeThreadPool, is_free_threaded
-except ImportError:
-    import os
-    from concurrent.futures import ThreadPoolExecutor
-    def is_free_threaded() -> bool:
-        return hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
-    class FreeThreadPool:
-        """Fallback FreeThreadPool for Python 3.12 (wraps ThreadPoolExecutor)."""
-        def __init__(self, max_workers=0, thread_name_prefix="ft-agent"):
-            self.max_workers = max_workers or (os.cpu_count() or 8)
-            self.thread_name_prefix = thread_name_prefix
-            self._executor = None
-        def __enter__(self):
-            self._executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix=self.thread_name_prefix)
-            return self
-        def __exit__(self, *a):
-            if self._executor:
-                self._executor.shutdown(wait=True)
+else:
+    try:
+        from CORE.freethreading import FreeThreadPool, is_free_threaded
+    except ImportError:
+        import os
+        import sys
+        from concurrent.futures import ThreadPoolExecutor
+        def is_free_threaded() -> bool:
+            return hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
+        class FreeThreadPool:
+            """Fallback FreeThreadPool for Python 3.12 (wraps ThreadPoolExecutor)."""
+            def __init__(self, max_workers=0, thread_name_prefix="ft-agent"):
+                self.max_workers = max_workers or (os.cpu_count() or 8)
+                self.thread_name_prefix = thread_name_prefix
                 self._executor = None
-        def submit(self, fn, *a, **kw):
-            if self._executor is None:
-                raise RuntimeError("FreeThreadPool not entered")
-            return self._executor.submit(fn, *a, **kw)
-        def map(self, fn, *it, **kw):
-            if self._executor is None:
-                raise RuntimeError("FreeThreadPool not entered")
-            return self._executor.map(fn, *it, **kw)
+            def __enter__(self):
+                self._executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix=self.thread_name_prefix)
+                return self
+            def __exit__(self, *a):
+                if self._executor:
+                    self._executor.shutdown(wait=True)
+                    self._executor = None
+            def shutdown(self, wait=True):
+                if self._executor:
+                    self._executor.shutdown(wait=wait)
+                    self._executor = None
+            def submit(self, fn, *a, **kw):
+                if self._executor is None:
+                    raise RuntimeError("FreeThreadPool not entered")
+                return self._executor.submit(fn, *a, **kw)
+            def map(self, fn, *it, **kw):
+                if self._executor is None:
+                    raise RuntimeError("FreeThreadPool not entered")
+                return self._executor.map(fn, *it, **kw)
 from CORE.MemoryBus import MemoryBus
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

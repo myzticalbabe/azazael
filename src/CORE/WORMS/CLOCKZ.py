@@ -22,7 +22,7 @@ import time
 import json
 import sched
 from datetime import datetime
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 from dataclasses import dataclass
 import argparse
 
@@ -111,8 +111,8 @@ class CLOCKZ:
         self,
         callback: Callable,
         interval: int,
-        args: tuple = None,
-        kwargs: dict = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict] = None,
     ) -> str:
         """Schedule a recurring task."""
         self._task_counter += 1
@@ -146,8 +146,8 @@ class CLOCKZ:
         self,
         callback: Callable,
         delay: int,
-        args: tuple = None,
-        kwargs: dict = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict] = None,
     ) -> str:
         """Schedule a one-time task."""
         self._task_counter += 1

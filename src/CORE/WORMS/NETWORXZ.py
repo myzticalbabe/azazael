@@ -43,6 +43,20 @@ except ImportError as exc:
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
+def _format_socket_address(addr: Any) -> str:
+    """Format a psutil connection address for the connections table.
+
+    INET sockets carry an (ip, port) tuple; UNIX sockets a path string; an
+    empty value means the kernel reported nothing. Same hasattr/str/empty
+    ladder previously inlined at both call sites.
+    """
+    if not addr:
+        return ""
+    if hasattr(addr, "ip"):
+        return f"{addr.ip}:{addr.port}"
+    return str(addr)
+
+
 @dataclass
 class NetworkInterface:
     """Network interface information."""
@@ -107,14 +121,8 @@ class NETWORXZ:
                     "type": conn.type.name
                     if hasattr(conn.type, "name")
                     else str(conn.type),
-                    "local_addr": f"{conn.laddr.ip}:{conn.laddr.port}"
-                    if hasattr(conn.laddr, 'ip')
-                    else str(conn.laddr) if conn.laddr
-                    else "",
-                    "remote_addr": f"{conn.raddr.ip}:{conn.raddr.port}"
-                    if hasattr(conn.raddr, 'ip')
-                    else str(conn.raddr) if conn.raddr
-                    else "",
+                    "local_addr": _format_socket_address(conn.laddr),
+                    "remote_addr": _format_socket_address(conn.raddr),
                     "status": conn.status,
                     "pid": conn.pid,
                 }
