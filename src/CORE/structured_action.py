@@ -194,7 +194,8 @@ def drive(app: str, plan: List[str], contract: Dict[str, Any],
 
     for i in range(max(0, int(max_steps))):
         try:
-            proposal = thought_fn(dict(state)) if callable(thought_fn) else None
+            proposal: Any = (
+                thought_fn(dict(state)) if callable(thought_fn) else None)
         except Exception as exc:  # a broken thought is a named gap, not a crash
             note_failure("structured_action:L145", exc)
             gaps.append(f"thought-failed:{type(exc).__name__}")
@@ -357,7 +358,7 @@ def file_contract(workspace_root: str) -> Dict[str, Any]:
 
 
 def auto_lint_after_edit(target: str, lint_cmd: str,
-                         lint_args: List[str] = None) -> Dict[str, Any]:
+                         lint_args: List[str] | None = None) -> Dict[str, Any]:
     """Run linter after edit/create — guardrail for EP125."""
     cmd = [lint_cmd] + (lint_args or [target])
     try:
