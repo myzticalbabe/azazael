@@ -56,10 +56,17 @@ class TestLessonLifecycle:
 
     def test_upsert_lesson(self):
         """Test that re-recording the same pattern upserts."""
-        sm = self.sm
+        sm = SessionMemory(os.path.join(self.tmpdir, "test_upsert.db"))
+        sm.start_session("upsert test", "test-runner")
         sm.record_lesson(
             "Test pattern: create lesson",
-            "Updated lesson text — second encounter",
+            "Creating lessons stores them in the DB with correct metadata",
+            category="architecture",
+            confidence=0.85,
+        )
+        sm.record_lesson(
+            "Test pattern: create lesson",
+            "Updated lesson text ? second encounter",
             category="architecture",
             confidence=0.95,
         )
@@ -314,14 +321,30 @@ class TestGetStaleLessonsNoLimit:
 
     def test_increasing_stale_threshold_reduces_count(self):
         """Verify threshold filtering still works after LIMIT removal."""
-        sm = SessionMemory(self.db_path)
+        sm = SessionMemory(os.path.join(self.tmpdir, "test_threshold.db"))
+        sm.start_session("Session 1: create many lessons", "test")
+        for i in range(60):
+            sm.record_lesson(
+                f"Test pattern: stale lesson {i:03d}",
+                f"Lesson content for stale lesson {i}",
+                category="convention",
+                confidence=0.75,
+            )
+        sm.end_session("Session 1 done", regenerate_docs=False)
+
+        # Session 2: max_session=2, all 60 lessons have session_id=1 < 2 -> stale
+        sm.start_session("Session 2: check stale count", "test")
+        stale = sm.get_stale_lessons(session_threshold=0)
+        assert len(stale) == 60
+
+        # Session 3: threshold check
         sm.start_session("Session 3: check threshold", "test")
 
         # With tight threshold (0): all 60 from session 1 are stale
         stale_tight = sm.get_stale_lessons(session_threshold=0)
         assert len(stale_tight) == 60
 
-        # With wide threshold (10): cutoff = 3-10 = -7, nothing is below -7 → 0 stale
+        # With wide threshold (10): cutoff = 3-10 = -7, nothing is below -7 -> 0 stale
         stale_wide = sm.get_stale_lessons(session_threshold=10)
         assert len(stale_wide) == 0
         sm.end_session("Session 3 done", regenerate_docs=False)

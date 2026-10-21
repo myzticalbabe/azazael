@@ -26,7 +26,7 @@ import pytest
 
 from CORE import spine_registry as sr
 from CORE.worm_registry import (
-    WORM_REGISTRY, discover_worms, _guess_category, _guess_cooldown,
+    WORM_REGISTRY, discover_worms, reset_registry, _guess_category, _guess_cooldown,
     _VALID_CATEGORIES,
 )
 
@@ -68,6 +68,7 @@ def test_no_worm_name_collisions_across_expansion():
 
     Catches silent same-name overwrites (registry keys by class name).
     """
+    reset_registry()
     discover_worms()
     src_root = Path(__file__).resolve().parent.parent / "src" / "CORE" / "WORMS" / "expansion"
     for name, info in WORM_REGISTRY.items():
