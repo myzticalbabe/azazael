@@ -607,10 +607,11 @@ def enforce_gate(action: str = "", role: str = "developer", **conditions):
 
         if HAS_WRAPT and isinstance(wrapped, wrapt.ObjectProxy):
             # wrapt-based decoration (signature-preserving). The adapter is
-            # untyped (wrapt ships no py.typed), so it is Any: binding with
-            # just (wrapped) returns the signature-preserving proxy, while
-            # passing all four would INVOKE instead of bind.
-            wrapt_adapter = wrapt.decorator(
+            # explicitly Any: binding calls it with just (wrapped) to get
+            # the signature-preserving proxy, while passing all four args
+            # would INVOKE instead of bind -- and the resolved stubs only
+            # model the decorator protocol, not this bind call.
+            wrapt_adapter: Any = wrapt.decorator(
                 lambda w, i, a, k: gate_wrapper(w, *a, **k))
             return wrapt_adapter(wrapped)
         elif wrapped is not None:
