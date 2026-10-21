@@ -29,7 +29,7 @@ except ImportError:                               # never break the host
 
 # ── Worm Registry Import ─────────────────────────────────────────────
 try:
-    from CORE.worm_registry import register_worm, WORM_REGISTRY, discover_worms
+    from CORE.worm_registry import register_worm, WORM_REGISTRY, discover_worms  # pyright: ignore[reportAssignmentType]
     _REGISTRY = True
 except ImportError as exc:
     note_failure("WORM_SELECTOR:L25", exc)
@@ -115,9 +115,9 @@ class WormSelectorWorm:
         # Method 1: GRPO learned policy
         grpo = self._get_grpo()
         if grpo:
-            best = grpo.select_best(context_key=category or "default")
+            best = grpo.select_best(context_key=category or "default")  # pyright: ignore[reportAttributeAccessIssue]
             if best:
-                policy = grpo.get_policy(category or "default")
+                policy = grpo.get_policy(category or "default")  # pyright: ignore[reportAttributeAccessIssue]
                 score = policy.get(best, 0.0)
                 return {
                     "worm": best,
@@ -240,7 +240,7 @@ class WormSelectorWorm:
                 if len(worm_rewards) >= 2:
                     group = list(worm_rewards)[:8]
                     avg_rewards = [sum(worm_rewards[w]) / len(worm_rewards[w]) for w in group]
-                    grpo.update_policy(group, avg_rewards, context_key=category)
+                    grpo.update_policy(group, avg_rewards, context_key=category)  # pyright: ignore[reportAttributeAccessIssue]
 
     @staticmethod
     def _context_to_embedding(task_context: dict) -> list[float]:
@@ -291,7 +291,7 @@ class WormSelectorWorm:
     def execute(self) -> dict[str, Any]:
         """Standard worm execute() — reports selector status."""
         grpo = self._get_grpo()
-        grpo_stats = grpo.get_stats() if grpo else {"n_updates": 0}
+        grpo_stats = grpo.get_stats() if grpo else {"n_updates": 0}  # pyright: ignore[reportAttributeAccessIssue]
 
         store = self._get_store()
         kg_stats = {}
