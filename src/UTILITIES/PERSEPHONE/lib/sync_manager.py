@@ -142,8 +142,8 @@ class SyncManager:
 
     def sync_windows_to_wsl(
         self,
-        source: str = None,
-        target: str = None,
+        source: str | None = None,
+        target: str | None = None,
         dry_run: bool = True,
         delete: bool = False,
     ) -> SyncResult:
@@ -191,8 +191,8 @@ class SyncManager:
 
     def sync_wsl_to_windows(
         self,
-        source: str = None,
-        target: str = None,
+        source: str | None = None,
+        target: str | None = None,
         dry_run: bool = True,
         mirror: bool = False,
     ) -> SyncResult:
@@ -224,7 +224,7 @@ class SyncManager:
         return result
 
     def sync_windows_to_wsa(
-        self, source: str = None, wsa_path: str = "/mnt/sdcard/", dry_run: bool = True
+        self, source: str | None = None, wsa_path: str = "/mnt/sdcard/", dry_run: bool = True
     ) -> SyncResult:
         """Sync files from Windows to WSA via ADB."""
         if source is None:
@@ -255,7 +255,7 @@ class SyncManager:
 
     def sync_bidirectional(
         self,
-        windows_path: str = Path.home() / "Desktop" / "Azazael",
+        windows_path: str = str(Path.home() / "Desktop" / "Azazael"),
         wsl_path: str = "/mnt/c/Users/clint/Desktop/Azazael",
         dry_run: bool = True,
     ) -> dict[str, SyncResult]:
@@ -336,6 +336,7 @@ class SyncManager:
                 rel_path = str(item.relative_to(source))
                 excluded = any(
                     exc in rel_path or rel_path.endswith(exc.replace("*", ""))
+                    for exc in self.default_excludes
                 )
                 if not excluded:
                     result["files_count"] += 1
@@ -346,11 +347,12 @@ class SyncManager:
 
         return result
 
-    def save_sync_log(self, result: SyncResult, log_path: str = None):
+    def save_sync_log(self, result: SyncResult, log_path: str | Path | None = None):
         """Save sync result to log file."""
         if log_path is None:
             log_path = Path.home() / ".persephone" / "sync_log.json"
 
+        log_path = Path(log_path)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(log_path, "a", encoding="utf-8") as f:

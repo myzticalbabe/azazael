@@ -1,9 +1,7 @@
 """Azazael CODEX - Documentation and reference archive."""
 
-__all__ = [
-    "CODEXStudio",
-    "render_frames_to_png", "render_scenes_to_png",
-    "HTMLTextExtractor", "HTMLSceneExtractor",
-    "find_ffmpeg", "cli_mode",
-    "CAIN_FPS", "CAIN_CRF", "CAIN_PROFILE", "CAIN_GOP", "CAIN_WPS",
-]
+# Materialized export list: none of the names once listed here (CODEXStudio,
+# find_ffmpeg, CAIN_FPS, ...) is bound in this package namespace -- the live
+# symbols belong to CODEX_Studio.py -- so __all__ now reflects the module's
+# actual (empty) export set instead of listing unreachable names.
+__all__: list[str] = []

@@ -123,7 +123,7 @@ class WSAClient:
         self,
         host: str = DEFAULT_HOST,
         port: int = DEFAULT_PORT,
-        adb_path: str = None,
+        adb_path: str | None = None,
         timeout: int = DEFAULT_TIMEOUT,
     ):
         """
@@ -175,7 +175,7 @@ class WSAClient:
         return "adb"
 
     def _run_adb_command(
-        self, command: list[str], timeout: int = None
+        self, command: list[str], timeout: int | None = None
     ) -> tuple[str, str, int]:
         """
         Run ADB command.
@@ -277,7 +277,7 @@ class WSAClient:
 
         return info
 
-    def shell(self, command: str, timeout: int = None) -> tuple[str, str, int]:
+    def shell(self, command: str, timeout: int | None = None) -> tuple[str, str, int]:
         """
         Execute shell command on WSA.
 
@@ -411,7 +411,7 @@ class WSAClient:
             size=size,
         )
 
-    def run_app(self, package_name: str, activity: str = None) -> bool:
+    def run_app(self, package_name: str, activity: str | None = None) -> bool:
         """
         Launch app on WSA.
 
@@ -553,7 +553,7 @@ class WSAClient:
 
         return info
 
-    def take_screenshot(self, save_path: str = None) -> (bytes | None):
+    def take_screenshot(self, save_path: str | None = None) -> (bytes | None):
         """
         Take screenshot of WSA.
 
@@ -580,7 +580,7 @@ class WSAClient:
 
         return None
 
-    def record_screen(self, duration: int = 10, save_path: str = None) -> bool:
+    def record_screen(self, duration: int = 10, save_path: str | None = None) -> bool:
         """
         Record screen of WSA.
 
@@ -606,7 +606,7 @@ class WSAClient:
 
         return self.pull_file(remote_path, local_path)
 
-    def get_logs(self, tag: str = None, clear: bool = False) -> str:
+    def get_logs(self, tag: str | None = None, clear: bool = False) -> str:
         """
         Get WSA logs.
 
@@ -733,11 +733,11 @@ class WSARestAPI:
                 return {"error": "Failed to take screenshot"}
 
             @app.get("/logs")
-            async def logs(tag: str = None):
+            async def logs(tag: str | None = None):
                 return {"logs": self.wsa.get_logs(tag=tag)}
 
             @app.post("/connect")
-            async def connect(host: str = None, port: int = None):
+            async def connect(host: str | None = None, port: int | None = None):
                 if host:
                     self.wsa.host = host
                 if port:
