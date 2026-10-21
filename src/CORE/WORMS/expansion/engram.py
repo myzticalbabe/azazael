@@ -30,6 +30,7 @@ import threading
 import hashlib
 import math
 from datetime import datetime
+from types import ModuleType
 from typing import Any, List, Optional
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. A read
@@ -48,7 +49,7 @@ except ImportError:                               # runtime absent: stay importa
         _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("engram:L37", exc)
     def register_worm(**kw):
@@ -126,10 +127,10 @@ class _VectorIndex:
         self._dim = 0
         self._backend = "empty"
         self._dirty = True
-        self._faiss = None
-        self._np = None
-        self._faiss_index = None
-        self._matrix = None
+        self._faiss: Any = None
+        self._np: Any = None
+        self._faiss_index: Any = None
+        self._matrix: Any = None
 
     # ── writers ──────────────────────────────────────────────────────
     def add(self, mem_id: str, vec: list) -> dict:
@@ -207,15 +208,19 @@ class _VectorIndex:
         with self._lock:
             if not self._dirty:
                 return
+            faiss_mod = (self._faiss
+                         if isinstance(self._faiss, ModuleType) else None)
+            np_mod = self._np if isinstance(self._np, ModuleType) else None
             n = len(self._ids)
-            if self._backend == "faiss" and n:
+            if (self._backend == "faiss" and n
+                    and faiss_mod is not None and np_mod is not None):
                 try:
                     d = self._dim
                     if n > self.HNSW_THRESHOLD:
-                        idx = self._faiss.IndexHNSWFlat(d, 32)
+                        idx = faiss_mod.IndexHNSWFlat(d, 32)
                     else:
-                        idx = self._faiss.IndexFlatIP(d)
-                    mat = self._np.asarray(self._vecs, dtype="float32")
+                        idx = faiss_mod.IndexFlatIP(d)
+                    mat = np_mod.asarray(self._vecs, dtype="float32")
                     idx.add(mat)
                     self._faiss_index = idx
                     self._matrix = None
@@ -224,9 +229,9 @@ class _VectorIndex:
                 except Exception as exc:
                     note_failure("engram:L215", exc)
                     self._backend = "numpy" if self._np else "stdlib"
-            if self._backend == "numpy" and n:
+            if self._backend == "numpy" and n and np_mod is not None:
                 try:
-                    self._matrix = self._np.asarray(self._vecs, dtype="float64")
+                    self._matrix = np_mod.asarray(self._vecs, dtype="float64")
                     self._faiss_index = None
                     self._dirty = False
                     return
@@ -250,14 +255,17 @@ class _VectorIndex:
             if len(q) != self._dim:
                 return []
             k = max(1, min(int(top_k), len(self._ids)))
-            if backend == "faiss" and self._faiss_index is not None:
-                qm = self._np.asarray([q], dtype="float32")
+            np_mod = self._np if isinstance(self._np, ModuleType) else None
+            if (backend == "faiss" and self._faiss_index is not None
+                    and np_mod is not None):
+                qm = np_mod.asarray([q], dtype="float32")
                 scores, idxs = self._faiss_index.search(qm, k)
                 return [(self._ids[int(i)], float(s))
                         for s, i in zip(scores[0], idxs[0]) if int(i) >= 0]
-            if backend == "numpy" and self._matrix is not None:
-                sims = self._matrix @ self._np.asarray(q, dtype="float64")
-                order = self._np.argsort(-sims)[:k]
+            if (backend == "numpy" and self._matrix is not None
+                    and np_mod is not None):
+                sims = self._matrix @ np_mod.asarray(q, dtype="float64")
+                order = np_mod.argsort(-sims)[:k]
                 return [(self._ids[int(i)], float(sims[int(i)])) for i in order]
             scored = [(self._ids[i], _cosine(q, self._vecs[i]))
                       for i in range(len(self._ids))]

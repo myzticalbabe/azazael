@@ -116,6 +116,15 @@ class WORMZ_MLConfig:
         "AppData",
     ]
 
+    # Declared once here so the module-level reconfiguration below
+    # (_ROOT-derived path strings) binds known class attributes instead of
+    # writing undeclared attributes onto the class object.
+    TARGET_FOLDERS: list[str] = []
+    OUTPUT_PATH: str = ""
+    MODEL_PATH: str = ""
+    PATTERNS_PATH: str = ""
+    BIBL_PATH: str = ""
+
 
 from CORE.paths import get_project_root
 import argparse
@@ -180,14 +189,16 @@ class WORMZ_ML:
 
     def _extract_features(self, content: str) -> list:
         """Extract TF-IDF features from content (plain list, no numpy)."""
-        if self.vectorizer is None:
-            self.vectorizer = TfidfVectorizer(
+        vec = self.vectorizer
+        if vec is None:
+            vec = TfidfVectorizer(
                 max_features=100,
                 stop_words="english",
                 ngram_range=(1, 2),
             )
+            self.vectorizer = vec
         try:
-            return list(self.vectorizer.fit_transform([content]).toarray()[0])
+            return list(vec.fit_transform([content]).toarray()[0])
         except Exception as exc:
             note_failure("WORMZ_ML:L177", exc)
             return [0.0] * 100
@@ -414,18 +425,21 @@ class WORMZ_ML:
         labels = [d["category"] for d in training_data]
 
         try:
-            self.vectorizer = TfidfVectorizer(
+            vec = TfidfVectorizer(
                 max_features=100,
                 stop_words="english",
                 ngram_range=(1, 2),
             )
-            features = self.vectorizer.fit_transform(texts)
+            self.vectorizer = vec
+            features = vec.fit_transform(texts)
 
-            self.cluster_model = KMeans(n_clusters=len(self.config.CATEGORIES))
-            self.cluster_model.fit(features)
+            km = KMeans(n_clusters=len(self.config.CATEGORIES))
+            self.cluster_model = km
+            km.fit(features)
 
-            self.classifier = RandomForestClassifier(n_estimators=100)
-            self.classifier.fit(features, labels)
+            rf = RandomForestClassifier(n_estimators=100)
+            self.classifier = rf
+            rf.fit(features, labels)
 
             self._save_model()
             print("Model trained successfully")
