@@ -21,8 +21,19 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
+class _CodePanel(tk.Frame):
+    """Panel carrying its code label (declared for the type checker)."""
+
+    code_label: tk.Label
+
+
 class DualPanePopup:
     """Popup window with dual-pane animated comparison."""
+
+    stat_conflicts_label: tk.Label
+    stat_files_label: tk.Label
+    stat_time_label: tk.Label
+    stat_score_label: tk.Label
 
     def __init__(self, root=None):
         self.root = root or tk.Tk()
@@ -219,9 +230,9 @@ class DualPanePopup:
         )
         self.status_label.pack(side="right", padx=20)
 
-    def create_panel(self, parent, title, title_color, status_text):
+    def create_panel(self, parent, title, title_color, status_text) -> "_CodePanel":
         """Create a panel with header, code area, and stats."""
-        panel = tk.Frame(parent, bg="#101020", bd=1, relief="solid")
+        panel = _CodePanel(parent, bg="#101020", bd=1, relief="solid")
         panel.config(highlightbackground=title_color, highlightthickness=1)
 
         header = tk.Frame(panel, bg="#151525")

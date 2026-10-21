@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Documentation Video Generator
 
 Creates a scrolling video presentation of the Azazael Ecosystem reference
-
 """
+
+import os
+from pathlib import Path
+
 CONTENT = """Azazael ECOSYSTEM
 
 Complete Technical Reference v2.0
@@ -678,7 +679,7 @@ for frame_num in range(num_frames):
 
     
 
-    frame.save(os.path.join(output_dir, f"frame_{frame_num:06d}.png"), "PNG")
+    frame.save(os.path.join(output_dir, f"frame_{{frame_num:06d}}.png"), "PNG")
 
     if frame_num % 30 == 0:
 

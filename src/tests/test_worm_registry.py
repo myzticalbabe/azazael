@@ -249,6 +249,8 @@ class TestSpawnDiversityEngine(unittest.TestCase):
         """pick_next_spawn should return a worm type with metadata."""
         pick = self.engine.pick_next_spawn()
         self.assertIsNotNone(pick)
+        if pick is None:  # unreachable; narrows Optional for the type checker
+            self.fail("pick_next_spawn returned None unexpectedly")
         self.assertIn("type", pick)
         self.assertIn("category", pick)
         self.assertIn("priority", pick)
@@ -259,12 +261,16 @@ class TestSpawnDiversityEngine(unittest.TestCase):
         """Category rotation: no two consecutive picks from same category."""
         pick1 = self.engine.pick_next_spawn()
         self.assertIsNotNone(pick1)
+        if pick1 is None:  # unreachable; narrows Optional for the type checker
+            self.fail("pick_next_spawn returned None unexpectedly")
 
         # Simulate spawn
         self.engine._last_category = pick1["category"]
 
         pick2 = self.engine.pick_next_spawn()
         self.assertIsNotNone(pick2)
+        if pick2 is None:  # unreachable; narrows Optional for the type checker
+            self.fail("pick_next_spawn returned None unexpectedly")
         self.assertNotEqual(pick1["category"], pick2["category"],
                             "Consecutive picks should have different categories")
 
@@ -275,6 +281,8 @@ class TestSpawnDiversityEngine(unittest.TestCase):
         for i in range(5):
             pick = self.engine.pick_next_spawn()
             self.assertIsNotNone(pick, f"Pick {i+1} of 5 must succeed; all worms unspawned")
+            if pick is None:  # unreachable; narrows Optional for the type checker
+                self.fail("pick_next_spawn returned None unexpectedly")
             mark_spawned(pick["type"])
             self.engine._last_category = pick["category"]
 
