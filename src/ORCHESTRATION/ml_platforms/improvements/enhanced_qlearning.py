@@ -13,7 +13,7 @@ Date: 2026-02-10
 Version: 3.0.0
 """
 
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 import numpy as np
@@ -208,6 +208,13 @@ class PrioritizedReplay:
     def __len__(self):
         return self.size
 
+    def __iter__(self):
+        # Yield stored transitions (non-None) so callers can iterate the
+        # replay buffer without reaching into the SumTree.
+        for item in self.sum_tree.data:
+            if item is not None:
+                yield item
+
 
 if NUMBA_AVAILABLE:
 
@@ -309,7 +316,7 @@ class MultiAgentQLearning:
             }
             self.agents.append(agent)
 
-    def select_action(self, state: int, epsilon: float = None) -> int:
+    def select_action(self, state: int, epsilon: Optional[float] = None) -> int:
         """Vote among agents for best action."""
         votes = []
 
@@ -335,7 +342,7 @@ class MultiAgentQLearning:
         reward: float,
         next_state: int,
         done: bool,
-        agent_id: int = None,
+        agent_id: Optional[int] = None,
     ):
         """Train a specific agent or all agents."""
         if agent_id is not None:
