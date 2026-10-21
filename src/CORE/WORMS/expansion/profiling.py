@@ -24,7 +24,7 @@ except ImportError:                               # never break the host
 
 # -- Worm Registry Import ---------------------------------------------
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # pyright: ignore[reportAssignmentType] -- optional import: except-path defines fallback decorator; selected by import success
     _REGISTRY = True
 except ImportError as exc:
     note_failure("profiling:L18", exc)
@@ -119,7 +119,7 @@ class MemoryLeakDetector:
         if not tracemalloc.is_tracing():
             tracemalloc.start()
 
-    def take_snapshot(self, label: str = "") -> dict[str, Any]:
+    def take_snapshot(self, label: str = "") -> list[dict[str, Any]]:
         """Take a memory snapshot for comparison."""
         import tracemalloc
         snap = tracemalloc.take_snapshot()
@@ -161,6 +161,8 @@ class IOBottleneckFinder:
         """Measure current disk I/O counters."""
         import psutil
         counters = psutil.disk_io_counters()
+        if counters is None:
+            return {}
         return {
             "read_count": counters.read_count, "write_count": counters.write_count,
             "read_bytes_mb": round(counters.read_bytes / (1024**2), 2),
