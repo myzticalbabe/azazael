@@ -7,7 +7,7 @@ _ft_path = str(Path(__file__).resolve().parent.parent)
 if _ft_path not in sys.path:
     sys.path.insert(0, _ft_path)
 try:
-    from CORE.freethreading import FreeThreadPool, is_free_threaded, CancellationToken, TaskCancelledError
+    from CORE.freethreading import FreeThreadPool, is_free_threaded, CancellationToken, TaskCancelledError  # pyright: ignore[reportAssignmentType] -- try-success binds the real freethreading classes while the except fallback defines structurally distinct local classes behind the same names; selection is by import success, not substitutability
 except ImportError:
     import os
     from concurrent.futures import ThreadPoolExecutor
@@ -36,7 +36,9 @@ except ImportError:
             return self._executor.map(fn, *it, **kw)
     class TaskCancelledError(Exception):
         pass
-    CancellationToken = NoneIS_FREE_THREADED = is_free_threaded()
+    CancellationToken = None
+
+IS_FREE_THREADED = is_free_threaded()
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))
 
@@ -110,7 +112,7 @@ class ExecutionResult:
     success: bool
     duration_ms: float
     result: Any = None
-    error: str = None
+    error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -147,19 +149,19 @@ class ConcurrencyConfig:
 class TaskManager:
     """Manages concurrent tasks."""
 
-    def __init__(self, config: ConcurrencyConfig = None):
+    def __init__(self, config: ConcurrencyConfig | None = None):
         self.config = config or ConcurrencyConfig()
         self.tasks: dict[str, ExecutionResult] = {}
         self.lock = threading.Lock()
-        self.executor: ThreadPoolExecutor = None
+        self.executor: ThreadPoolExecutor | None = None
 
     def submit_task(
         self,
         task_id: str,
         task_name: str,
         func: Callable,
-        args: tuple = None,
-        kwargs: dict = None,
+        args: tuple | None = None,
+        kwargs: dict | None = None,
         cancellation_token: Any = None,
     ) -> ExecutionResult:
         """Submit a task for execution."""
@@ -466,7 +468,7 @@ except ImportError as exc:
 class ConcurrencyManager:
     VERSION = "1.0.0"
 
-    def __init__(self, config: ConcurrencyConfig = None):
+    def __init__(self, config: ConcurrencyConfig | None = None):
         self.config = config or ConcurrencyConfig()
         self.worm_executor = WormExecutor()
         self.cluster_executor = ClusterExecutor()
@@ -476,12 +478,12 @@ class ConcurrencyManager:
     def cancel_all(self) -> None:
         """Cancel all in-flight parallel operations."""
         if self.cancellation_token is not None:
-            self.cancellation_token.cancel()
+            getattr(self.cancellation_token, "cancel")()
 
     def reset_token(self) -> None:
         """Reset the cancellation token for a new scan."""
         if self.cancellation_token is not None and hasattr(self.cancellation_token, 'reset'):
-            self.cancellation_token.reset()
+            getattr(self.cancellation_token, "reset")()
         else:
             self.cancellation_token = CancellationToken() if CancellationToken is not None else threading.Event()
 
