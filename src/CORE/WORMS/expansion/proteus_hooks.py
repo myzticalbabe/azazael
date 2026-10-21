@@ -118,7 +118,11 @@ def _margin_of(data: dict) -> Optional[float]:
     m = data.get("margin")
     if m is None:
         try:
-            m = float(data.get("best_total")) - float(data.get("baseline"))
+            best_raw = data.get("best_total")
+            base_raw = data.get("baseline")
+            if not isinstance(best_raw, (int, float, str)) or not isinstance(base_raw, (int, float, str)):
+                raise TypeError(f"non-numeric best_total/baseline: {type(best_raw).__name__}/{type(base_raw).__name__}")
+            m = float(best_raw) - float(base_raw)
         except (TypeError, ValueError) as exc:
             note_failure("proteus_hooks:L112", exc)
             return None
@@ -1018,7 +1022,11 @@ def morph_free_growth(history_path: str) -> Dict[str, Any]:
         if not is_inert:
             continue
         try:
-            delta = float(row.get("fitness")) - float(row.get("baseline_fitness"))
+            fit_raw = row.get("fitness")
+            base_raw = row.get("baseline_fitness")
+            if not isinstance(fit_raw, (int, float, str)) or not isinstance(base_raw, (int, float, str)):
+                raise TypeError(f"non-numeric fitness/baseline_fitness: {type(fit_raw).__name__}/{type(base_raw).__name__}")
+            delta = float(fit_raw) - float(base_raw)
         except (TypeError, ValueError) as exc:
             note_failure("proteus_hooks:L998", exc)
             delta = 0.0
@@ -1084,7 +1092,10 @@ def morph_rotation_verdict(evidence: Optional[Dict[str, Any]],
             continue
         try:
             n = int(ev.get("n") or 0)
-            win = float(ev.get("win_rate"))
+            win_raw = ev.get("win_rate")
+            if not isinstance(win_raw, (int, float, str)):
+                raise TypeError(f"non-numeric win_rate: {type(win_raw).__name__}")
+            win = float(win_raw)
         except (TypeError, ValueError) as exc:
             note_failure("proteus_hooks:L1063", exc)
             undetermined.append(str(gene))
