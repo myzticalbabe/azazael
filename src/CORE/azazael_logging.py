@@ -30,13 +30,46 @@ Features:
 """
 
 import sys
+import os
 import json
-import logging
 import threading
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Shadowing guard: when src/CORE is on sys.path, a bare ``import logging``
+#: resolves to CORE/logging.py instead of the stdlib. Force the stdlib module.
+import importlib.util
+import sysconfig
+
+def _import_stdlib_logging():
+    # find_spec respects sys.path, so when src/CORE is on sys.path it returns
+    # CORE/logging.py -> infinite recursion (verified Oct 20 2026). Load from
+    # the stdlib dir explicitly, bypassing sys.path shadowing.
+    try:
+        stdlib = sysconfig.get_path("stdlib")
+        for cand in (f"{stdlib}/logging/__init__.py", f"{stdlib}/logging.py"):
+            if os.path.exists(cand):
+                spec = importlib.util.spec_from_file_location("_stdlib_logging", cand)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                return mod
+    except Exception as exc:
+        print("CORE/azazael_logging: stdlib load failed (%s); using fallback" % exc, file=sys.stderr)
+    import logging as _fallback  # sys.path already safe here
+    return _fallback
+
+logging = _import_stdlib_logging()
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
