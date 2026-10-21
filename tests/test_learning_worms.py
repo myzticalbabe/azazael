@@ -479,9 +479,30 @@ class TestAutoDiscoverShapes(unittest.TestCase):
             self.assertIsInstance(shape["numeric_keys"], list)
 
     def test_discover_multiple_event_types(self):
-        """Should discover multiple event types from the store."""
+        """Should discover multiple event types from the store.
+
+        Seeds its own events: under xdist every worker starts with an
+        empty AZAZAEL_MEMORY_DIR (tests/conftest.py per-worker isolation),
+        so an assertion over ambient store content only passes when a
+        same-worker test happened to write telemetry first — a
+        scheduling-dependent outcome, not evidence about this changeset.
+        """
+        store = self.pipeline._get_store()
+        self.assertIsNotNone(store)
+        store.record_event(
+            source="learning_pipeline_probe",
+            event_type="pipeline_probe_executed",
+            data={"worm": "ProbeWorm", "duration_ms": 1.5},
+        )
+        store.record_event(
+            source="learning_pipeline_probe",
+            event_type="pipeline_probe_summary",
+            data={"rounds": 3, "ok": 2},
+        )
         result = self.pipeline.auto_discover_shapes(sample_limit=5)
         self.assertGreater(len(result["discovered"]), 0)
+        self.assertIn("pipeline_probe_executed", result["discovered"])
+        self.assertIn("pipeline_probe_summary", result["discovered"])
 
 
 class TestDynamicShapes(unittest.TestCase):
@@ -584,9 +605,9 @@ class TestFallbackAccuracyReport(unittest.TestCase):
         """fallback_accuracy_report returns dict with expected keys."""
         records = [
             {
-                "event_type": "nature_cluster_executed",
+                "event_type": "category_cluster_executed",
                 "severity": "info",
-                "source": "NatureClusters",
+                "source": "ClusterWORMZs",
                 "data": {"nature": "SystemZ", "worms": 5, "success": 4, "failures": 1, "duration_ms": 300},
             }
         ]
@@ -605,7 +626,7 @@ class TestFallbackAccuracyReport(unittest.TestCase):
                 "event_type": "cluster_created",
                 "severity": "info",
                 "source": "CLUSTERWORMS",
-                "data": {"cluster_type": "NatureClusters", "cluster_id": "abc"},
+                "data": {"cluster_type": "ClusterWORMZs", "cluster_id": "abc"},
             }
         ]
         report = self.extractor.fallback_accuracy_report(records)
@@ -709,7 +730,7 @@ class TestSchemaAwareFeatureExtractor(unittest.TestCase):
                 "event_type": "metacluster_orchestrated",
                 "severity": "info",
                 "source": "MetaCluster",
-                "data": {"natures": 5, "ok": 4, "fail": 1, "duration_ms": 1200},
+                "data": {"categories": 5, "ok": 4, "fail": 1, "duration_ms": 1200},
             }
         ]
         features, meta = self.extractor.extract(records)
@@ -728,12 +749,12 @@ class TestSchemaAwareFeatureExtractor(unittest.TestCase):
                 "event_type": "metacluster_orchestrated",
                 "severity": "info",
                 "source": "MetaCluster",
-                "data": {"natures": 3, "ok": 3, "fail": 0, "duration_ms": 500},
+                "data": {"categories": 3, "ok": 3, "fail": 0, "duration_ms": 500},
             },
             {
-                "event_type": "nature_cluster_executed",
+                "event_type": "category_cluster_executed",
                 "severity": "error",
-                "source": "NatureClusters",
+                "source": "ClusterWORMZs",
                 "data": {"nature": "SystemZ", "worms": 10, "success": 8, "failures": 2, "duration_ms": 800},
             },
         ]
@@ -763,15 +784,15 @@ class TestSchemaAwareFeatureExtractor(unittest.TestCase):
         """fit and extract should produce consistent shapes."""
         records = [
             {
-                "event_type": "nature_cluster_executed",
+                "event_type": "category_cluster_executed",
                 "severity": "info",
-                "source": "NatureClusters",
+                "source": "ClusterWORMZs",
                 "data": {"nature": "SystemZ", "worms": 5, "success": 4, "failures": 1, "duration_ms": 300},
             },
             {
-                "event_type": "nature_cluster_executed",
+                "event_type": "category_cluster_executed",
                 "severity": "info",
-                "source": "NatureClusters",
+                "source": "ClusterWORMZs",
                 "data": {"nature": "ProcessZ", "worms": 3, "success": 3, "failures": 0, "duration_ms": 150},
             },
         ]
@@ -793,7 +814,7 @@ class TestSchemaAwareFeatureExtractor(unittest.TestCase):
                 "event_type": "cluster_execution_started",
                 "severity": "info",
                 "source": "CLUSTERWORMS",
-                "data": {"cluster_type": "NatureClusters", "worm_count": 15, "parallel": 4},
+                "data": {"cluster_type": "ClusterWORMZs", "worm_count": 15, "parallel": 4},
             }
         ]
         features, meta = self.extractor.extract(records)

@@ -910,11 +910,23 @@ def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
             # demonstrate the production configuration. Measured 2026-10-20:
             # single-file controls pass under xdist on 3.15t (~2.6s vs 0.3s
             # serial); the startup cost is the price of a faithful control.
-            result = run_control(
-                [interpreter_path, "-m", "pytest", gate.control_test, "-q",
-                 "-p", "no:xdist", "-o", "addopts="],
-                env=("PYTHONPATH=src",),
-            )
+            # A single transient collection failure (e.g. a just-written
+            # control file not yet visible to the subprocess, or a momentary
+            # interpreter/FS hiccup under xdist load) must not flip a healthy
+            # tree red: retry once before declaring the control dead.
+            result = None
+            for _attempt in (1, 2):
+                result = run_control(
+                    [interpreter_path, "-m", "pytest", gate.control_test, "-q",
+                     "-p", "no:xdist", "-o", "addopts="],
+                    env=("PYTHONPATH=src",),
+                )
+                if result.exit_code == 0:
+                    break
+                if _attempt == 1 and "FileNotFoundError" in (result.detail or ""):
+                    time.sleep(0.25)
+                    continue
+                break
             seconds = time.monotonic() - started
             ok = result.exit_code == 0
             print("   %s %-26s %5.1fs %s"
