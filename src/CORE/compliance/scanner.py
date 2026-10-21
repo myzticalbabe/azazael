@@ -921,7 +921,7 @@ def run_cli():
 
     # Fix UnicodeEncodeError on Windows console
     if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # pyright: ignore[reportAttributeAccessIssue]
 
     parser = argparse.ArgumentParser(
         description="AST Anti-Pattern Scanner for Python source files"
@@ -1113,21 +1113,21 @@ def run_cli():
             sys.exit(2)
 
     if args.db_init:
-        print(f"  Database initialized: {_db._db_path}")
+        print(f"  Database initialized: {_db._db_path}")  # pyright: ignore[reportOptionalMemberAccess]
         sys.exit(0)
 
     if args.db_history is not None:
-        history = _db.get_history(days=args.db_history)
+        history = _db.get_history(days=args.db_history)  # pyright: ignore[reportOptionalMemberAccess]
         print_history(history)
         sys.exit(0)
 
     if args.db_trend is not None:
-        trend = _db.get_trend(days=args.db_trend)
+        trend = _db.get_trend(days=args.db_trend)  # pyright: ignore[reportOptionalMemberAccess]
         print_trend(trend)
         sys.exit(0)
 
     if args.db_regression is not None:
-        regressions = _db.get_regressions(days=args.db_regression)
+        regressions = _db.get_regressions(days=args.db_regression)  # pyright: ignore[reportOptionalMemberAccess]
         print_regressions(regressions)
         sys.exit(0)
 
@@ -1762,7 +1762,7 @@ def _run_watch_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None), 
 def _init_config():
     """Create a default .scanner-config.yaml in the current directory."""
     try:
-        import yaml
+        import yaml  # pyright: ignore[reportMissingModuleSource]
     except ImportError:
         print("Error: --init requires PyYAML. Install with: pip install pyyaml")
         print("       Or create .scanner-config.yaml manually.")
