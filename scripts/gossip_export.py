@@ -24,7 +24,7 @@ try:
 except Exception:  # noqa: BLE001 -- hygiene is best-effort, never fatal here
     pass
 
-DROP = "/mnt/c/Users/clint/azazael/output/gossip"
+DROP = "/mnt/c/Azazael/azazael/output/gossip"
 
 
 def main():

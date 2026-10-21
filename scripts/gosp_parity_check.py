@@ -8,7 +8,7 @@ each engine flags for shared query terms. Structural agreement expected; semanti
 depth differs by design (Rust heuristic tags vs Python compositional semantics).
 
 Run in WSL2 Ubuntu (needs gossamer + interop access to the Windows gosp.exe):
-    python3 /mnt/c/Users/clint/azazael/scripts/gosp_parity_check.py
+    python3 /mnt/c/Azazael/azazael/scripts/gosp_parity_check.py
 """
 import json
 import subprocess

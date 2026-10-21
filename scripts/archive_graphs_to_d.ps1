@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Continue'
 
 $stamp   = '2026-09-11'
 $arcRoot = "D:\azazael_graph_archive_$stamp"
-$logPath = "C:\Users\clint\azazael\logs\archive_graphs_$stamp.log"
+$logPath = "C:\Azazael\azazael\logs\archive_graphs_$stamp.log"
 
 function Log($msg) {
     $line = "{0} {1}" -f (Get-Date -Format 'HH:mm:ss'), $msg
@@ -16,8 +16,8 @@ function Log($msg) {
 }
 
 $sets = @(
-    @{ Name = 'azazael_graphify-out'; Src = 'C:\Users\clint\azazael\graphify-out' },
-    @{ Name = 'azazael_graphs';      Src = 'C:\Users\clint\azazael\graphs' },
+    @{ Name = 'azazael_graphify-out'; Src = 'C:\Azazael\azazael\graphify-out' },
+    @{ Name = 'azazael_graphs';      Src = 'C:\Azazael\azazael\graphs' },
     @{ Name = 'desktop_atlas_Graphify_Codebase_Atlas_2026-08-27'; Src = 'C:\Users\clint\Desktop\Graphify_Codebase_Atlas_2026-08-27' }
 )
 

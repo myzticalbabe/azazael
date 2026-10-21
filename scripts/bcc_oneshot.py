@@ -2,7 +2,7 @@
 """WSL one-shot eBPF sample -> check_ebpf scores -> JSON.
 
 Invoked hourly from Windows (spine_cycle_apply.py) via:
-  wsl -d Ubuntu-26.04 -- python3 /mnt/c/Users/clint/azazael/scripts/bcc_oneshot.py
+  wsl -d Ubuntu-26.04 -- python3 /mnt/c/Azazael/azazael/scripts/bcc_oneshot.py
 Self-heals tracefs mount (doesn't persist across WSL sessions). Reads the
 C:-mirrored baseline (WSL cannot see G:). Never raises: prints {} on failure.
 """
@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 
-sys.path.insert(0, "/mnt/c/Users/clint/azazael/src")
+sys.path.insert(0, "/mnt/c/Azazael/azazael/src")
 
 BT = "/tmp/bcc_oneshot.bt"
 PROG = """tracepoint:raw_syscalls:sys_enter { @sys[comm] = count(); }
