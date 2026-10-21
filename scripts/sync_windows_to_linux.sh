@@ -1,7 +1,7 @@
 #!/bin/bash
 # sync_windows_to_linux.sh — One-way sync from Windows 11 → WSL2 Linux
 #
-# Source: /mnt/c/Users/clint/azazael  (Windows canonical environment)
+# Source: /mnt/c/Azazael/azazael  (Windows canonical environment)
 # Target: /root/azazael               (WSL2 Linux build environment)
 #
 # Windows is the canonical source of truth. This script ensures Linux
@@ -31,7 +31,7 @@ err()    { echo -e "${RED}[FAIL]${NC} $1"; }
 header() { echo -e "\n${CYAN}━━━ $1 ━━━${NC}"; }
 
 # ── Paths ────────────────────────────────────────────────────────────
-WINDOWS_ROOT="/mnt/c/Users/clint/azazael"
+WINDOWS_ROOT="/mnt/c/Azazael/azazael"
 LINUX_ROOT="/root/azazael"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"

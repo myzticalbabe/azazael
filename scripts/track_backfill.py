@@ -11,8 +11,8 @@ from CORE.local_memory import get_memory_store
 
 TARGET = 30
 PYTHON = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
-ORCH = r'C:\Users\clint\azazael\scripts\run_training_orchestrator.py'
-LOG = r'C:\Users\clint\azazael\logs\track_backfill.log'
+ORCH = r'C:\Azazael\azazael\scripts\run_training_orchestrator.py'
+LOG = r'C:\Azazael\azazael\logs\track_backfill.log'
 TRACK_EVENTS = ('sb3_training_orchestrated', 'grpo_training_orchestrated',
                 'dpo_training_orchestrated', 'offline_training_orchestrated',
                 'training_run_complete', 'dreamtune_training_orchestrated',

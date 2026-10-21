@@ -68,7 +68,7 @@ JOBS = {
     "gosp":      ("nightly:04:30", 1800, "py", "rani_llm_test.py",
                   ["--backend", "gosp", "--rounds", "5"]),
     "wslclean":  ("nightly:06:00", 600, "wsl",
-                  "-d Ubuntu-26.04 bash /mnt/c/Users/clint/azazael/scripts/wsl2_cleanup.sh".split()),
+                  "-d Ubuntu-26.04 bash /mnt/c/Azazael/azazael/scripts/wsl2_cleanup.sh".split()),
 }
 
 

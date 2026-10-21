@@ -28,7 +28,7 @@ Write-Host "shortcut AZAZAEL_VIEWER -> $azViewer"
 # Project launcher shortcuts (Python-based)
 $py = "C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe"
 $projectShortcuts = @(
-    @( "Azazael_MetaCluster", "C:\Users\clint\azazael\METACLUSTER.py", "C:\Users\clint\azazael" ),
+    @( "Azazael_MetaCluster", "C:\Azazael\azazael\METACLUSTER.py", "C:\Azazael\azazael" ),
     @( "Tigger_CLI", "C:\Users\clint\tigger\cli.py", "C:\Users\clint\tigger" )
 )
 
