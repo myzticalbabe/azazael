@@ -51,6 +51,20 @@ def event_collector(event):
 bus.subscribe("*", event_collector)
 
 registry = ArmRegistry()
+
+
+def _require_arm(name: str):
+    """Fetch a registered arm, failing loudly when it is missing.
+
+    get_arm returns None for unknown ids; calling .execute on that would
+    raise a bare AttributeError. The explicit RuntimeError names the arm.
+    """
+    arm = registry.get_arm(name)
+    if arm is None:
+        raise RuntimeError(f"arm not registered: {name}")
+    return arm
+
+
 t0 = time.perf_counter()
 
 # Phase 1: INIT
@@ -134,14 +148,14 @@ ready_results = {}
 
 # PerfMon: get_metrics
 print("  PerfMon.get_metrics...", end=" ")
-r = registry.get_arm("perfmon").execute("get_metrics")
+r = _require_arm("perfmon").execute("get_metrics")
 ready_results["perfmon"] = r
 ok = r.get("status") == "ok"
 print(f"{'[OK]' if ok else '[FAIL]'} CPU={r.get('data',{}).get('cpu_percent','?')}% Mem={r.get('data',{}).get('memory_percent','?')}%")
 
 # PAMS: record_event with perf data
 print("  PAMS.record_event...", end=" ")
-r = registry.get_arm("pams").execute("record_event", {
+r = _require_arm("pams").execute("record_event", {
     "event": "cross_arm.test.metrics",
     "data": ready_results.get("perfmon", {}).get("data", {}),
     "tags": ["test", "cross-arm", "ready"]
@@ -151,48 +165,48 @@ print(f"{'[OK]' if r.get('status') == 'ok' else '[FAIL]'} {r.get('data',{}).get(
 
 # Azazael: discover_worms
 print("  Azazael.discover_worms...", end=" ")
-r = registry.get_arm("azazael").execute("discover_worms")
+r = _require_arm("azazael").execute("discover_worms")
 ready_results["azazael"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} worms={r.get('data',{}).get('worm_count','?')} cats={len(r.get('data',{}).get('categories',[]))}")
 
 # Libra: list_templates + calculate_fees
 print("  Libra.list_templates...", end=" ")
-r = registry.get_arm("libra").execute("list_templates")
+r = _require_arm("libra").execute("list_templates")
 ready_results["libra_templates"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} count={r.get('data',{}).get('count','?')}")
 
 print("  Libra.calculate_fees...", end=" ")
-r = registry.get_arm("libra").execute("calculate_fees", {"filing_type": "PFA_PETITION", "court": "pa_commonwealth"})
+r = _require_arm("libra").execute("calculate_fees", {"filing_type": "PFA_PETITION", "court": "pa_commonwealth"})
 ready_results["libra_fees"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} fee={r.get('data',{}).get('fee','?')}")
 
 # CODEX: get_status (skip heavy render_video)
 print("  CODEX.get_status...", end=" ")
-r = registry.get_arm("codex").execute("get_status")
+r = _require_arm("codex").execute("get_status")
 ready_results["codex"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} studio={'exists' if r.get('data',{}).get('codex_studio_exists') else 'missing'}")
 
 # EveUnleashed: get_status
 print("  Eve.get_status...", end=" ")
-r = registry.get_arm("eve").execute("get_status")
+r = _require_arm("eve").execute("get_status")
 ready_results["eve"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} initialized={r.get('data',{}).get('initialized','?')}")
 
 # LlamaServer: get_status
 print("  Llama.get_status...", end=" ")
-r = registry.get_arm("llama").execute("get_status")
+r = _require_arm("llama").execute("get_status")
 ready_results["llama"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'}")
 
 # AgentSelector: select_agent
 print("  AgentSelector.select_agent...", end=" ")
-r = registry.get_arm("agent_selector").execute("select_agent", {"task": "cross_arm_integration_test"})
+r = _require_arm("agent_selector").execute("select_agent", {"task": "cross_arm_integration_test"})
 ready_results["agent_selector"] = r
 ok = r.get('status') == 'ok'
 print(f"{'[OK]' if ok else '[FAIL]'} selected={r.get('data',{}).get('selected','?')} score={r.get('data',{}).get('score','?')}")

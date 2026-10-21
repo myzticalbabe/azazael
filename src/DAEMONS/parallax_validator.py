@@ -162,6 +162,10 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
                 private_key = serialization.load_pem_private_key(
                     key_path.read_bytes(), password=None
                 )
+                if not isinstance(private_key, ed25519.Ed25519PrivateKey):
+                    return False, (
+                        "gate key is %s, not Ed25519"
+                        % type(private_key).__name__)
                 public_key = private_key.public_key()
                 sig_bytes = bytes.fromhex(sig.split(":", 1)[1])
                 # InvalidSignature is NOT a ValueError (it derives straight

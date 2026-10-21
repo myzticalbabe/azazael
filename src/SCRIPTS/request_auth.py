@@ -147,9 +147,14 @@ def _get_ed25519_key():
         key_path = key_dir / "id_ed25519_gate"
         try:
             if key_path.exists():
-                _ED25519_KEY = serialization.load_pem_private_key(
+                loaded_key = serialization.load_pem_private_key(
                     key_path.read_bytes(), password=None
                 )
+                if not isinstance(loaded_key, ed25519.Ed25519PrivateKey):
+                    raise ValueError(
+                        "gate key is %s, not Ed25519"
+                        % type(loaded_key).__name__)
+                _ED25519_KEY = loaded_key
             else:
                 _ED25519_KEY = ed25519.Ed25519PrivateKey.generate()
                 key_path.write_bytes(_ED25519_KEY.private_bytes(
@@ -332,7 +337,7 @@ def _check_anti_patterns(filepath: str, content_hint: str = "") -> tuple[bool, s
     if not target_path.exists():
         return True, "File does not exist yet (pre-create auth)"
     
-    if not _SCANNER_AVAILABLE:
+    if not _SCANNER_AVAILABLE or ASTAntiPatternScanner is None:
         return True, "Scanner not available"
     
     scanner = ASTAntiPatternScanner()
@@ -439,7 +444,8 @@ def validate_action(intent: str, target: str, cite_inference: str = "",
     
     # Check 5: PreActionGate validation (for modifying actions)
     if is_modifying:
-        if not _BROKER_AVAILABLE:
+        if (not _BROKER_AVAILABLE or gate_passed is None
+                or can_edit is None):
             gate_data["checks"]["broker_gate"] = {
                 "passed": True,
                 "message": "Broker not loaded (non-blocking)"
