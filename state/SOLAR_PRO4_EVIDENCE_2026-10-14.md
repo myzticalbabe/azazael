@@ -8,7 +8,7 @@ Lane owner: SOLAR PRO 4 (Buffy). Rules: engram #591 (TRI-AGENT PROTOCOL) + #599 
 - `state/orphan_scan.json` — 392 orphan idents, entry_points=['CORE', 'CORE.health_server', 'ORCHESTRATION.scripts.run_tests']
 - `state/ORPHAN_TRIAGE_315T.md` — coordinator-merged class for all 392 orphans
 - `state/SOTA_TECHNIQUE_CODEBASE_MAP.md` — 141 technique rows; 121 PARTIAL
-- `state/adoption_census.json` — 141 rows; tally={'NO-TARGET': 17, 'ADOPTED': 106, 'HOST-COMPOSED': 8, 'EXERCISE-ONLY': 10}
+- `state/adoption_census.json` — 141 rows; tally={'NO-TARGET': 23, 'HOST-COMPOSED': 13, 'ADOPTED': 93, 'EXERCISE-ONLY': 12}
 - whole `src/` tree (production import scan, tests excluded)
 
 ## Slice arithmetic
@@ -36,7 +36,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 
 | ident | host_module | file | class | n_prod_call_sites | verdict | confidence |
 |---|---|---|---|---|---|---|
-| ANIMATION_PROTOCOLS | ANIMATION_PROTOCOLS | src\ANIMATION_PROTOCOLS.py | DEAD | 1 | DEAD | 0.7 |
+| ANIMATION_PROTOCOLS | ANIMATION_PROTOCOLS | src\ANIMATION_PROTOCOLS.py | DEAD | 0 | DEAD | 0.9 |
 | AOA | AOA | src\AOA\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | AOA.aoa_monitor | AOA | src\AOA\aoa_monitor.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | AOA.arms | AOA | src\AOA\arms\__init__.py | FACADE | 0 | FACADE | 0.85 |
@@ -53,7 +53,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | AOA.cli.aoa_cli | AOA | src\AOA\cli\aoa_cli.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | AOA.conftest | AOA | src\AOA\conftest.py | DEAD | 0 | DEAD | 0.9 |
 | AOA.core | AOA | src\AOA\core\__init__.py | FACADE | 0 | FACADE | 0.85 |
-| AOA.core.arm_registry | AOA | src\AOA\core\arm_registry.py | UNCLEAR | 6 | UNCLEAR | 0.65 |
+| AOA.core.arm_registry | AOA | src\AOA\core\arm_registry.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | AOA.core.contracts | AOA | src\AOA\core\contracts.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | AOA.core.delegation_spec | AOA | src\AOA\core\delegation_spec.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | AOA.core.event_bus | AOA | src\AOA\core\event_bus.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
@@ -84,22 +84,22 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | CLI.azazael_cli | CLI | src\CLI\azazael_cli.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | CODEX | CODEX | src\CODEX\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | CODEX.CODEX_Studio | CODEX | src\CODEX\CODEX_Studio.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| CODEX.CORE | CODEX | src\CODEX\CORE\__init__.py | FACADE | 4 | FACADE | 0.85 |
-| CODEX.CORE.ANIMATION_PROTOCOLS | CODEX | src\CODEX\CORE\ANIMATION_PROTOCOLS.py | FACADE | 1 | FACADE | 0.85 |
+| CODEX.CORE | CODEX | src\CODEX\CORE\__init__.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.ANIMATION_PROTOCOLS | CODEX | src\CODEX\CORE\ANIMATION_PROTOCOLS.py | FACADE | 0 | FACADE | 0.85 |
 | CODEX.CORE.AUTO_DOC_GENERATOR | CODEX | src\CODEX\CORE\AUTO_DOC_GENERATOR.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | CODEX.CORE.AUTO_DOWNLOADER | CODEX | src\CODEX\CORE\AUTO_DOWNLOADER.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | CODEX.CORE.CAIN_ANALYZER | CODEX | src\CODEX\CORE\CAIN_ANALYZER.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| CODEX.CORE.CHANGELOG_GENERATOR | CODEX | src\CODEX\CORE\CHANGELOG_GENERATOR.py | FACADE | 1 | FACADE | 0.85 |
-| CODEX.CORE.ECOSYSTEM_HEALTH_CHECK | CODEX | src\CODEX\CORE\ECOSYSTEM_HEALTH_CHECK.py | FACADE | 1 | FACADE | 0.85 |
-| CODEX.CORE.FILE_MANIFEST_GENERATOR | CODEX | src\CODEX\CORE\FILE_MANIFEST_GENERATOR.py | FACADE | 1 | FACADE | 0.85 |
-| CODEX.CORE.HORUS_INTEGRATION | CODEX | src\CODEX\CORE\HORUS_INTEGRATION.py | FACADE | 1 | FACADE | 0.85 |
-| CODEX.CORE.QL_FILE_OPTIMIZER | CODEX | src\CODEX\CORE\QL_FILE_OPTIMIZER.py | FACADE | 1 | FACADE | 0.85 |
+| CODEX.CORE.CHANGELOG_GENERATOR | CODEX | src\CODEX\CORE\CHANGELOG_GENERATOR.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.ECOSYSTEM_HEALTH_CHECK | CODEX | src\CODEX\CORE\ECOSYSTEM_HEALTH_CHECK.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.FILE_MANIFEST_GENERATOR | CODEX | src\CODEX\CORE\FILE_MANIFEST_GENERATOR.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.HORUS_INTEGRATION | CODEX | src\CODEX\CORE\HORUS_INTEGRATION.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.QL_FILE_OPTIMIZER | CODEX | src\CODEX\CORE\QL_FILE_OPTIMIZER.py | FACADE | 0 | FACADE | 0.85 |
 | CODEX.CORE.ascii_flowchart | CODEX | src\CODEX\CORE\ascii_flowchart.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| CODEX.CORE.azazael_pygame | CODEX | src\CODEX\CORE\azazael_pygame.py | UNCLEAR | 2 | UNCLEAR | 0.65 |
+| CODEX.CORE.azazael_pygame | CODEX | src\CODEX\CORE\azazael_pygame.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | CODEX.CORE.emoji_maker | CODEX | src\CODEX\CORE\emoji_maker.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | CODEX.CORE.enhanced_animations | CODEX | src\CODEX\CORE\enhanced_animations.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| CODEX.CORE.enrichment_display | CODEX | src\CODEX\CORE\enrichment_display.py | FACADE | 1 | FACADE | 0.85 |
-| CODEX.CORE.matrix_animation | CODEX | src\CODEX\CORE\matrix_animation.py | FACADE | 1 | FACADE | 0.85 |
+| CODEX.CORE.enrichment_display | CODEX | src\CODEX\CORE\enrichment_display.py | FACADE | 0 | FACADE | 0.85 |
+| CODEX.CORE.matrix_animation | CODEX | src\CODEX\CORE\matrix_animation.py | FACADE | 0 | FACADE | 0.85 |
 | CODEX.DOCUMENTATION | CODEX | src\CODEX\DOCUMENTATION\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | CODEX.POPUPS.POPUP_ALL_11 | CODEX | src\CODEX\POPUPS\POPUP_ALL_11.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | CODEX.POPUPS.POPUP_BUGFREE | CODEX | src\CODEX\POPUPS\POPUP_BUGFREE.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
@@ -179,14 +179,14 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | FILE_MANIFEST_GENERATOR | FILE_MANIFEST_GENERATOR | src\FILE_MANIFEST_GENERATOR.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HEALTHZ | HEALTHZ | src\HEALTHZ.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HORUS_INTEGRATION | HORUS_INTEGRATION | src\HORUS_INTEGRATION.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| HYDRA | HYDRA | src\HYDRA\__init__.py | FACADE | 1 | FACADE | 0.85 |
+| HYDRA | HYDRA | src\HYDRA\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | HYDRA.hydra_launcher | HYDRA | src\HYDRA\hydra_launcher.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HYDRA.hydra_protocols | HYDRA | src\HYDRA\hydra_protocols.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HYDRA.ml_platforms | HYDRA | src\HYDRA\ml_platforms\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | HYDRA.ml_platforms.PERMANENT_LOAD | HYDRA | src\HYDRA\ml_platforms\PERMANENT_LOAD.py | DEAD | 0 | DEAD | 0.9 |
 | HYDRA.ml_platforms.config | HYDRA | src\HYDRA\ml_platforms\config.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HYDRA.ml_platforms.harness | HYDRA | src\HYDRA\ml_platforms\harness.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| HYDRA.ml_platforms.health_monitor | HYDRA | src\HYDRA\ml_platforms\health_monitor.py | FACADE | 1 | FACADE | 0.85 |
+| HYDRA.ml_platforms.health_monitor | HYDRA | src\HYDRA\ml_platforms\health_monitor.py | FACADE | 0 | FACADE | 0.85 |
 | HYDRA.ml_platforms.launcher | HYDRA | src\HYDRA\ml_platforms\launcher.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HYDRA.ml_test | HYDRA | src\HYDRA\ml_test.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | HYDRA.pipeline_specs | HYDRA | src\HYDRA\pipeline_specs.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
@@ -222,16 +222,16 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | MISSING_TOOLS | MISSING_TOOLS | src\MISSING_TOOLS.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | ML | ML | src\ML\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | ML.autodiff | ML | src\ML\autodiff.py | DEAD | 0 | DEAD | 0.9 |
-| ML.dream | ML | src\ML\dream.py | FACADE | 0 | FACADE | 0.85 |
-| ML.estimators | ML | src\ML\estimators.py | DEAD | 1 | DEAD | 0.7 |
-| ML.evolve | ML | src\ML\evolve.py | FACADE | 0 | FACADE | 0.85 |
+| ML.dream | ML | src/ML/dream.py | FACADE | 0 | FACADE | 0.85 |
+| ML.estimators | ML | src\ML\estimators.py | DEAD | 0 | DEAD | 0.9 |
+| ML.evolve | ML | src/ML/evolve.py | FACADE | 0 | FACADE | 0.85 |
 | ML.gosp | ML | src\ML\gosp.py | DEAD | 0 | DEAD | 0.9 |
-| ML.metacog | ML | src\ML\metacog.py | FACADE | 0 | FACADE | 0.85 |
-| ML.nsga | ML | src\ML\nsga.py | DEAD | 1 | DEAD | 0.7 |
-| ML.nsga_tuner | ML | src\ML\nsga_tuner.py | DEAD | 1 | DEAD | 0.7 |
-| ML.step_monitor | ML | src\ML\step_monitor.py | DEAD | 1 | DEAD | 0.7 |
+| ML.metacog | ML | src/ML/metacog.py | FACADE | 0 | FACADE | 0.85 |
+| ML.nsga | ML | src\ML\nsga.py | DEAD | 0 | DEAD | 0.9 |
+| ML.nsga_tuner | ML | src\ML\nsga_tuner.py | DEAD | 0 | DEAD | 0.9 |
+| ML.step_monitor | ML | src\ML\step_monitor.py | DEAD | 0 | DEAD | 0.9 |
 | ML.torch_bridge | ML | src\ML\torch_bridge.py | DEAD | 0 | DEAD | 0.9 |
-| ML.trace_consolidator | ML | src\ML\trace_consolidator.py | DEAD | 1 | DEAD | 0.7 |
+| ML.trace_consolidator | ML | src\ML\trace_consolidator.py | DEAD | 0 | DEAD | 0.9 |
 | OPTIMIZ | OPTIMIZ | src\OPTIMIZ.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | ORCHESTRATION | ORCHESTRATION | src\ORCHESTRATION\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | ORCHESTRATION.ADLP_FusionCore | ORCHESTRATION | src\ORCHESTRATION\ADLP_FusionCore.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
@@ -264,12 +264,12 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | ORCHESTRATION.ml_platforms.auto_install | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\auto_install.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.autoload | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\autoload.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.changelog | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\changelog.py | DEAD | 0 | DEAD | 0.9 |
-| ORCHESTRATION.ml_platforms.config | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\config.py | DEAD | 1 | DEAD | 0.7 |
+| ORCHESTRATION.ml_platforms.config | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\config.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.cross_platform_analysis | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\cross_platform_analysis.py | DEAD | 0 | DEAD | 0.9 |
-| ORCHESTRATION.ml_platforms.diagnostics | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\diagnostics.py | DEAD | 1 | DEAD | 0.7 |
+| ORCHESTRATION.ml_platforms.diagnostics | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\diagnostics.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.framework_activator | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\framework_activator.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | ORCHESTRATION.ml_platforms.harness | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\harness.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| ORCHESTRATION.ml_platforms.health_monitor | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\health_monitor.py | DEAD | 1 | DEAD | 0.7 |
+| ORCHESTRATION.ml_platforms.health_monitor | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\health_monitor.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.improvements | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | ORCHESTRATION.ml_platforms.improvements.deep_learning_qlearning | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\deep_learning_qlearning.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.improvements.enhanced_qlearning | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\enhanced_qlearning.py | DEAD | 0 | DEAD | 0.9 |
@@ -281,8 +281,8 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | ORCHESTRATION.ml_platforms.improvements.qualitative_improvements | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\qualitative_improvements.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.improvements.ray_integration | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\ray_integration.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.improvements.strategic_intelligence | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\strategic_intelligence.py | DEAD | 0 | DEAD | 0.9 |
-| ORCHESTRATION.ml_platforms.improvements.tensor_utils | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\tensor_utils.py | DEAD | 1 | DEAD | 0.7 |
-| ORCHESTRATION.ml_platforms.improvements.vectorize_utils | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\vectorize_utils.py | DEAD | 1 | DEAD | 0.7 |
+| ORCHESTRATION.ml_platforms.improvements.tensor_utils | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\tensor_utils.py | DEAD | 0 | DEAD | 0.9 |
+| ORCHESTRATION.ml_platforms.improvements.vectorize_utils | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\vectorize_utils.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.improvements.weakness_testing | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\improvements\weakness_testing.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.install_improvements | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\install_improvements.py | DEAD | 0 | DEAD | 0.9 |
 | ORCHESTRATION.ml_platforms.install_light | ORCHESTRATION | src\ORCHESTRATION\ml_platforms\install_light.py | DEAD | 0 | DEAD | 0.9 |
@@ -316,7 +316,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | ORCHESTRATION.scripts.test_enhancements | ORCHESTRATION | src\ORCHESTRATION\scripts\test_enhancements.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | ORCHESTRATION.scripts.validate_docs | ORCHESTRATION | src\ORCHESTRATION\scripts\validate_docs.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | ORCHESTRATION.scripts.web_dashboard | ORCHESTRATION | src\ORCHESTRATION\scripts\web_dashboard.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| PSYCHE | PSYCHE | src\PSYCHE\__init__.py | FACADE | 3 | FACADE | 0.85 |
+| PSYCHE | PSYCHE | src\PSYCHE\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | PSYCHE.affect | PSYCHE | src\PSYCHE\affect.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | PSYCHE.artifact | PSYCHE | src\PSYCHE\artifact.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | PSYCHE.distill | PSYCHE | src\PSYCHE\distill.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
@@ -367,7 +367,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | TOOLS.qwythos_proxy | TOOLS | src\TOOLS\qwythos_proxy.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | TRIMZ | TRIMZ | src\TRIMZ.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | UTILITIES | UTILITIES | src\UTILITIES\__init__.py | FACADE | 0 | FACADE | 0.85 |
-| UTILITIES.AzazaelDynamicLogger | UTILITIES | src\UTILITIES\AzazaelDynamicLogger.py | DEAD | 0 | DEAD | 0.9 |
+| UTILITIES.AzazaelDynamicLogger | UTILITIES | src/UTILITIES/AzazaelDynamicLogger.py | DEAD | 0 | DEAD | 0.9 |
 | UTILITIES.KLINK | UTILITIES | src\UTILITIES\KLINK\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | UTILITIES.KLINK.klink | UTILITIES | src\UTILITIES\KLINK\klink.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | UTILITIES.Loggers | UTILITIES | src\UTILITIES\Loggers\__init__.py | FACADE | 0 | FACADE | 0.85 |
@@ -393,7 +393,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | azazael_pygame | azazael_pygame | src\azazael_pygame.py | SUBAPP-ENTRY | 4 | SUBAPP-ENTRY | 0.9 |
 | azazael_toolkit | azazael_toolkit | src\azazael_toolkit.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | chain_of_action | chain_of_action | src\chain_of_action.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| enrichment_display | enrichment_display | src\enrichment_display.py | UNCLEAR | 1 | UNCLEAR | 0.65 |
+| enrichment_display | enrichment_display | src\enrichment_display.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | environment_manager | environment_manager | src\environment_manager.py | SUBAPP-ENTRY | 3 | SUBAPP-ENTRY | 0.9 |
 | eve_unleashed | eve_unleashed | src\eve_unleashed\__init__.py | FACADE | 0 | FACADE | 0.85 |
 | eve_unleashed.cache | eve_unleashed | src\eve_unleashed\cache.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
@@ -407,7 +407,7 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 | eve_unleashed.streaming | eve_unleashed | src\eve_unleashed\streaming.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | eve_unleashed.utils | eve_unleashed | src\eve_unleashed\utils.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | math_certainty | math_certainty | src\math_certainty.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
-| matrix_animation | matrix_animation | src\matrix_animation.py | UNCLEAR | 1 | UNCLEAR | 0.65 |
+| matrix_animation | matrix_animation | src\matrix_animation.py | UNCLEAR | 0 | UNCLEAR | 0.5 |
 | memory_status | memory_status | src\memory_status.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | performance_monitor | performance_monitor | src\performance_monitor.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
 | persistent_memory | persistent_memory | src\persistent_memory.py | SUBAPP-ENTRY | 1 | SUBAPP-ENTRY | 0.9 |
@@ -433,149 +433,149 @@ rows, not 516. The 3-row gap is a record-arithmetic issue, not a missing-data is
 
 | ep | technique | layer | host_module | file | symbol_lines | n_prod_call_sites | confidence |
 |---|---|---|---|---|---|---|
-| EP34 | Chain-of-Thought Prompting | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74 | 2 | 0.85 |
-| EP44 | ReAct reasoning+acting | L7 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, observe@C:\Azazael\azazael\src\CORE\structured_action.py:60 | 4 | 0.55 |
+| EP34 | Chain-of-Thought Prompting | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75 | 0 | 0.85 |
+| EP44 | ReAct reasoning+acting | L7 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, observe@C:\Azazael\azazael\src\CORE\structured_action.py:60 | 0 | 0.85 |
 | EP63 | RWKV Linear RNN | L0 | WORMS.expansion.synapse | src/WORMS/expansion/synapse.py | — | 0 | 0.4 |
 | EP80 | Jamba Hybrid Transformer-Mamba | L0 | WORMS.expansion.synapse | src/WORMS/expansion/synapse.py | — | 0 | 0.4 |
-| EP97 | DeepSeek-R1 Pure-RL Reasoning | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 4 | 0.55 |
-| EP105 | iStar implicit step rewards | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 4 | 0.55 |
-| EP106 | Neuro-Symbolic Dual Paradigm | L3 | CORE.cd2_verifier | src/CORE/cd2_verifier.py | — | 4 | 0.4 |
-| EP113 | LaMer Meta-RL exploration | L6 | CORE.WORMS.expansion.reflexion | src/CORE/WORMS/expansion/reflexion.py | record_reflection@C:\Azazael\azazael\src\CORE\WORMS\expansion\reflexion.py:130, reflections_for@C:\Azazael\azazael\src\CORE\WORMS\expansion\reflexion.py:212 | 4 | 0.55 |
-| EP120 | Reflexion Verbal RL | L1 | CORE.local_memory | src/CORE/local_memory.py | recall_recent@C:\Azazael\azazael\src\CORE\local_memory.py:1053 | 5 | 0.85 |
-| EP122 | The Four Pillars of LLM Autonomous Agents | L0 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 4 | 0.55 |
-| EP125 | SWE-agent Agent-Computer Interface | L7 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, record_asil@C:\Azazael\azazael\src\CORE\structured_action.py:149 | 4 | 0.55 |
-| EP129 | Agent Failure Taxonomy | L4 | CORE.circuit_breaker | src/CORE/circuit_breaker.py | CircuitBreaker@C:\Azazael\azazael\src\CORE\circuit_breaker.py:100, DeadLetter@C:\Azazael\azazael\src\CORE\circuit_breaker.py:87 | 4 | 0.55 |
-| EP130 | GAP graph-based planning | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249, eliminate_common_subgraphs@C:\Azazael\azazael\src\CORE\dispatch_plan.py:424 | 2 | 0.85 |
-| EP131 | MUSE self-evolving agents | L1 | CORE.local_memory | src/CORE/local_memory.py | LocalMemoryStore@C:\Azazael\azazael\src\CORE\local_memory.py:228 | 5 | 0.85 |
-| EP132 | How Autonomous LLM Agents Work | L7 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, record_asil@C:\Azazael\azazael\src\CORE\structured_action.py:149 | 4 | 0.55 |
-| EP135 | SoK agentic skills | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74, commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97, family_index@C:\Azazael\azazael\src\CORE\skill_library.py:165 | 2 | 0.85 |
-| EP139 | Mamba-3 sequence modeling | L0 | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | SSMSequenceWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:348 | 4 | 0.55 |
-| EP142 | DR-Arena deep research arena | L3 | CORE.WORMS.expansion.arena | src/CORE/WORMS/expansion/arena.py | Arena@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:155, Environment@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:64, keeper_split@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:310 | 4 | 0.55 |
-| EP144 | Evo-Memory self-evolving memory | L1 | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | DreamConsolidatorWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\engram.py:629 | 4 | 0.55 |
-| EP146 | InfiAgent bounded context | L1 | CORE.local_memory | src/CORE/local_memory.py | recall_recent@C:\Azazael\azazael\src\CORE\local_memory.py:1053 | 5 | 0.85 |
-| EP150 | Agentic Reasoning Survey | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:165 | 2 | 0.85 |
-| EP151 | MagicGUI-RMS GUI rewards | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, ti_dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:37, inspo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:53, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 4 | 0.55 |
-| EP152 | DeepVerifier rubric verification | L3 | CORE.verification_gate | src/CORE/verification_gate.py | verify_before_accept@C:\Azazael\azazael\src\CORE\verification_gate.py:382, margin_check@C:\Azazael\azazael\src\CORE\verification_gate.py:66, divergence_gate@C:\Azazael\azazael\src\CORE\verification_gate.py:184 | 4 | 0.55 |
-| EP154 | FS-Researcher file-system agents | L1 | CORE.local_memory | src/CORE/local_memory.py | LocalMemoryStore@C:\Azazael\azazael\src\CORE\local_memory.py:228 | 5 | 0.85 |
-| EP155 | Agentic Proposing skill synthesis | L2 | CORE.skill_library | src/CORE/skill_library.py | — | 2 | 0.4 |
-| EP156 | Agent uncertainty quantification | L3 | CORE.verification_gate | src/CORE/verification_gate.py | margin_check@C:\Azazael\azazael\src\CORE\verification_gate.py:66 | 4 | 0.55 |
-| EP157 | AgentHeLLM vehicle threat taxonomy | L3 | CORE.audit_trail | src/CORE/audit_trail.py | verify_chain@C:\Azazael\azazael\src\CORE\audit_trail.py:1079 | 9 | 0.85 |
-| EP160 | AgentSys Hierarchical Memory Isolation | L1/L3 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP162 | Agent Skills Survey + Governance | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97 | 2 | 0.85 |
-| EP168 | Agentics 2.0 transduction algebra | L7 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 4 | 0.55 |
-| EP169 | Agentic AI Attack/Defense Survey | L3 | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP172 | Hyperagents Self-Modification | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | Lifecycle@C:\Azazael\azazael\src\CORE\meta_evolution.py:102, choose_candidate@C:\Azazael\azazael\src\CORE\meta_evolution.py:194, improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 4 | 0.55 |
-| EP178 | CMAT Latent Consensus Transformer | L5 | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | QuorumVoterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:55 | 4 | 0.55 |
-| EP180 | Autogenesis protocol AGP/AGS | L2/L6 | CORE.skill_library | src/CORE/skill_library.py | — | 2 | 0.4 |
-| EP186 | SGDe Harness Compilation | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249, eliminate_common_subgraphs@C:\Azazael\azazael\src\CORE\dispatch_plan.py:424 | 2 | 0.85 |
-| EP187 | Hive logits cache + agent-aware scheduling | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 2 | 0.4 |
-| EP188 | Agent-World Evolving Training Arena | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 4 | 0.55 |
-| EP191 | ReTAS Dialectical Alignment | L3/L6 | CORE.WORMS.expansion.meta_cognition | src/CORE/WORMS/expansion/meta_cognition.py | — | 4 | 0.4 |
-| EP192 | Ontology Layer as External Memory | L1/L3 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP197 | Teaching AI Agents to Plan Like Humans | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249 | 2 | 0.85 |
-| EP200 | Kwai Summary Attention | L0 | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | SSMSequenceWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:348 | 4 | 0.55 |
-| EP201 | Nautile-370M Spectral Memory | L0/L6 | CORE.cascade | src/CORE/cascade.py | CascadeRouter@C:\Azazael\azazael\src\CORE\cascade.py:26 | 4 | 0.55 |
-| EP203 | Operating-Layer Controls for Onchain Agents | L3 | CORE.compliance_auditor | src/CORE/compliance_auditor.py | — | 1 | 0.4 |
-| EP208 | Bayesian Orchestration for Overconfident AI Agents | L5 | CORE.cascade | src/CORE/cascade.py | — | 4 | 0.4 |
-| EP209 | SAGA workflow-atomic scheduling | L5 | CORE.freethreading | src/CORE/freethreading.py | — | 2 | 0.4 |
-| EP213 | Dynamic Grounding Failures in Multi-Agent Negotiation | L7 | CORE.WORMS.expansion.delegation | src/CORE/WORMS/expansion/delegation.py | — | 4 | 0.4 |
-| EP214 | ARISE Data-Flow Repair Graphs | L3 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 2 | 0.4 |
-| EP215 | Finding specialized AI agents in milliseconds | L5 | CORE.agent_registry | src/CORE/agent_registry.py | — | 4 | 0.4 |
-| EP216 | ShadowMem Long-Horizon Threat Defense | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP221 | ScrapMem Optical Forgetting | L1 | CORE.data_retention | src/CORE/data_retention.py | — | 4 | 0.4 |
-| EP223 | Uno-Orchestra Parsimonious Agent Routing | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 2 | 0.4 |
-| EP227 | FlowAgent Continuous Tool Flow | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249 | 2 | 0.85 |
-| EP228 | Capability-Preserving Evolution | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 4 | 0.4 |
-| EP232 | Bystander Effect in Multi-Agent Reasoning | L5 | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | — | 4 | 0.4 |
-| EP233 | Fixing AI memory with backward chaining | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP234 | FATE Failure-Trajectory Safety Alignment | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 4 | 0.4 |
-| EP235 | SAGE Self-Evolving Graph Memory | L1 | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | — | 4 | 0.4 |
-| EP236 | AEvo Harnessed Meta-Editing | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 4 | 0.4 |
-| EP238 | SepsisAgent Clinical World Model | L4 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | rehearse_dispatch@C:\Azazael\azazael\src\CORE\dispatch_plan.py:612 | 2 | 0.85 |
-| EP240 | Orchard Agentic Modeling Framework | L6 | CORE.WORMS.expansion.container | src/CORE/WORMS/expansion/container.py | — | 4 | 0.4 |
-| EP242 | EXG Experience Graphs | L1 | CORE.pattern_memory | src/CORE/pattern_memory.py | query_patterns@C:\Azazael\azazael\src\CORE\pattern_memory.py:61 | 4 | 0.55 |
-| EP247 | PEEK Orientation Cache | L1 | CORE.data_retention | src/CORE/data_retention.py | enforce_type_caps@C:\Azazael\azazael\src\CORE\data_retention.py:455 | 4 | 0.55 |
-| EP248 | Agent JIT compilation | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249 | 2 | 0.85 |
-| EP249 | Mem-pi Generative Memory | L1 | CORE.WORMS.expansion.dreaming | src/CORE/WORMS/expansion/dreaming.py | — | 4 | 0.4 |
-| EP250 | Compiled subterranean agents | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74 | 2 | 0.85 |
-| EP253 | MACA Structure-Guided Coordination | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 2 | 0.4 |
-| EP255 | MUSE-Autoskill Self-Evolving Skill Lifecycle | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97 | 2 | 0.85 |
-| EP259 | ESPO Kill Switch for reasoning | L6 | CORE.WORMS.expansion.policy_optimization | src/CORE/WORMS/expansion/policy_optimization.py | — | 4 | 0.4 |
-| EP262 | SCALE Self-Improving Web Agent | L6 | CORE.neural_loop | src/CORE/neural_loop.py | structural exploration@C:\Azazael\azazael\src\CORE\neural_loop.py:97 | 4 | 0.55 |
-| EP265 | SkillSmith skill/tool co-evolution | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:165 | 2 | 0.85 |
-| EP266 | ALAR adaptive latent agentic reasoning | L7 | CORE.latent_refine | src/CORE/latent_refine.py | — | 4 | 0.4 |
-| EP267 | CoMAP co-evolution | L4 | CORE.WORMS.expansion.dreaming | src/CORE/WORMS/expansion/dreaming.py | dream@C:\Azazael\azazael\src\CORE\WORMS\expansion\dreaming.py:209 | 4 | 0.55 |
-| EP269 | Agent libOS | L3 | CORE.compliance.` (policy, state_machine, pre_action_gate, governance) + `CORE.structured_action | src/CORE/compliance/` (policy.py, state_machine.py, pre_action_gate.py, governance.py) + `CORE/structured_action.py | — | 4 | 0.4 |
-| EP270 | Reasoning Primitive Induction | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74 | 2 | 0.85 |
-| EP271 | Steer locked AI with Agentic Monte Carlo | L6 | CORE.WORMS.expansion.allocation | src/CORE/WORMS/expansion/allocation.py | — | 4 | 0.4 |
-| EP273 | Agentic Software Paradigm | L2/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | Lifecycle@C:\Azazael\azazael\src\CORE\meta_evolution.py:102 | 4 | 0.55 |
-| EP275 | Socratic-SWE Trace-Derived Skills | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97 | 2 | 0.85 |
-| EP276 | ThinkBooster test-time scaling | L0/L3 | CORE.inference_pool | src/CORE/inference_pool.py | InferencePool@C:\Azazael\azazael\src\CORE\inference_pool.py:125 | 4 | 0.55 |
-| EP280 | Trajectory-Refined Distillation | L6 | PSYCHE.distill | src/PSYCHE/distill.py | — | 3 | 0.4 |
-| EP289 | Five-Plane Runtime Governance | L3 | CORE.compliance.policy | src/CORE/compliance/policy.py | PolicyEngine@C:\Azazael\azazael\src\CORE\compliance\policy.py:173 | 1 | 0.85 |
-| EP294 | RefGRPO Reflection Calibration | L3/L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | GRPOTrainer@C:\Azazael\azazael\src\CORE\WORMS\expansion\learning_grpo.py:63 | 2 | 0.85 |
-| EP298 | LLM-as-Code Agentic Programming | L5/L4 | CORE.workflow | src/CORE/workflow.py | WorkflowEngine@C:\Azazael\azazael\src\CORE\workflow.py:542 | 4 | 0.55 |
-| EP301 | VeriGraph Verifiable Data Agents | L3 | CORE.audit_trail | src/CORE/audit_trail.py | verify_inclusion_proof@C:\Azazael\azazael\src\CORE\audit_trail.py:1039 | 9 | 0.85 |
-| EP302 | Transferable interaction patterns for web agents | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:165 | 2 | 0.85 |
-| EP305 | Governing Agentic AI | L3 | CORE.compliance.policy | src/CORE/compliance/policy.py | PolicyEngine@C:\Azazael\azazael\src\CORE\compliance\policy.py:173 | 1 | 0.85 |
-| EP307 | ENPIRE robot self-improvement | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | choose_candidate@C:\Azazael\azazael\src\CORE\meta_evolution.py:194 | 4 | 0.55 |
-| EP308 | Giving AI Agents Mathematical Muscle Memory | L2/L0 | PSYCHE.distill | src/PSYCHE/distill.py | test_theta_frozen`@C:\Azazael\azazael\src\PSYCHE\distill.py:10 | 3 | 0.55 |
-| EP309 | AutoRAS robust design | L6/L3 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 4 | 0.55 |
-| EP313 | ARTS agentic reasoning for tree search | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 4 | 0.55 |
-| EP318 | OpenThoughts-Agent Data Recipes | L6 | CORE.WORMS.expansion.learning_pipeline | src/CORE/WORMS/expansion/learning_pipeline.py | DataPipelineWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\learning_pipeline.py:56 | 1 | 0.85 |
-| EP319 | TRUSTMEM Trustworthy Consolidation | L1+L3 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP327 | Agent safety is action alignment | L3 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 4 | 0.55 |
-| EP335 | WorldEvolver self-evolving world models | L4+L1 | CORE.dream_arena | src/CORE/dream_arena.py | compile_world@C:\Azazael\azazael\src\CORE\dream_arena.py:28 | 4 | 0.55 |
-| EP336 | ACE Adaptive Context Elasticizer | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 5 | 0.4 |
-| EP337 | EnvProbe budgeted probing | L4+L3 | CORE.WORMS.expansion.spine | src/CORE/WORMS/expansion/spine.py | — | 4 | 0.4 |
-| EP345 | AI agents retry from pivotal mistakes | L4 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 2 | 0.4 |
-| EP347 | Auto AGI Compiler | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97 | 2 | 0.85 |
-| EP349 | LLM-as-a-Verifier continuous verification | L3+L5 | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP350 | Training AI agents without live environments | L6 | CORE.rubric_evolution | src/CORE/rubric_evolution.py | gate_distillation@C:\Azazael\azazael\src\CORE\rubric_evolution.py:89 | 4 | 0.55 |
-| EP351 | Direct-OPD weak-to-strong distillation | L6 | CORE.rubric_evolution | src/CORE/rubric_evolution.py | gate_distillation@C:\Azazael\azazael\src\CORE\rubric_evolution.py:89 | 4 | 0.55 |
-| EP352 | Hidden states predict AI agent failure | L3 | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP354 | EvoSOP Procedure Synthesis | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74 | 2 | 0.85 |
-| EP355 | RL Builds Compositional Reasoning | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 2 | 0.4 |
-| EP360 | How ARMOR stops AI reasoning collapse | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 2 | 0.4 |
-| EP361 | RIPO Riemannian isometric policy optimization | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 2 | 0.4 |
-| EP362 | Agentic-DPO | L6+L7 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25 | 4 | 0.55 |
-| EP363 | LOGOS living logic | L3+L0 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:97 | 2 | 0.85 |
-| EP364 | Capability trees | L5 dispatch / L2 skills | CORE.skill_library | src/CORE/skill_library.py | — | 2 | 0.4 |
-| EP370 | SLEUTH epistemic working memory | L1 memory / L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP372 | UrbanAgent multi-agent profiling | L7 interfaces / L3 verification | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | QuorumVoterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:55, SplitBrainResolverWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:277 | 4 | 0.55 |
-| EP374 | TopoAgent topological reasoning | L5 dispatch | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:249 | 2 | 0.85 |
-| EP375 | MGDT multimodal KG completion | L1 memory | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | MoEDispatcherWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:170, AttentionRouterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:478, ActivationRouterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:577 | 4 | 0.55 |
-| EP382 | ETAS effect-typed agent language | L3 verification / L4 execution | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 4 | 0.55 |
-| EP383 | Safety drift + action supervision | L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP387 | Knowledge-centric self-improvement | L1 memory / L2 skills | CORE.skill_library | src/CORE/skill_library.py | — | 2 | 0.4 |
-| EP388 | LatentMT latent reasoning | L7 interfaces / L6 evolution | CORE.latent_refine | src/CORE/latent_refine.py | refine@C:\Azazael\azazael\src\CORE\latent_refine.py:80 | 4 | 0.55 |
-| EP389 | Supra Cognitive Modes routed memory | L1 memory / L5 dispatch | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | — | 4 | 0.4 |
-| EP393 | AREX self-audit research loop | L4 execution / L3 verification | CORE.audit_trail | src/CORE/audit_trail.py | — | 9 | 0.4 |
-| EP394 | Agentic context management | L1 memory | CORE.data_retention | src/CORE/data_retention.py | — | 4 | 0.4 |
-| EP395 | ConsistencyGate write-time admission | L1 memory / L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 4 | 0.4 |
-| EP402 | Frozen-LLM harness control | L3 verification / L6 evolution | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 4 | 0.4 |
+| EP97 | DeepSeek-R1 Pure-RL Reasoning | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 0 | 0.85 |
+| EP105 | iStar implicit step rewards | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 0 | 0.85 |
+| EP106 | Neuro-Symbolic Dual Paradigm | L3 | CORE.cd2_verifier | src/CORE/cd2_verifier.py | — | 0 | 0.4 |
+| EP113 | LaMer Meta-RL exploration | L6 | CORE.WORMS.expansion.reflexion | src/CORE/WORMS/expansion/reflexion.py | record_reflection@C:\Azazael\azazael\src\CORE\WORMS\expansion\reflexion.py:130, reflections_for@C:\Azazael\azazael\src\CORE\WORMS\expansion\reflexion.py:212 | 0 | 0.85 |
+| EP120 | Reflexion Verbal RL | L1 | CORE.local_memory | src/CORE/local_memory.py | recall_recent@C:\Azazael\azazael\src\CORE\local_memory.py:1068 | 0 | 0.85 |
+| EP122 | The Four Pillars of LLM Autonomous Agents | L0 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 0 | 0.85 |
+| EP125 | SWE-agent Agent-Computer Interface | L7 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, record_asil@C:\Azazael\azazael\src\CORE\structured_action.py:149 | 0 | 0.85 |
+| EP129 | Agent Failure Taxonomy | L4 | CORE.circuit_breaker | src/CORE/circuit_breaker.py | CircuitBreaker@C:\Azazael\azazael\src\CORE\circuit_breaker.py:111, DeadLetter@C:\Azazael\azazael\src\CORE\circuit_breaker.py:98 | 0 | 0.85 |
+| EP130 | GAP graph-based planning | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66, eliminate_common_subgraphs@C:\Azazael\azazael\src\CORE\dispatch_plan.py:210 | 0 | 0.85 |
+| EP131 | MUSE self-evolving agents | L1 | CORE.local_memory | src/CORE/local_memory.py | LocalMemoryStore@C:\Azazael\azazael\src\CORE\local_memory.py:229 | 0 | 0.85 |
+| EP132 | How Autonomous LLM Agents Work | L7 | CORE.structured_action | src/CORE/structured_action.py | observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, record_asil@C:\Azazael\azazael\src\CORE\structured_action.py:149 | 0 | 0.85 |
+| EP135 | SoK agentic skills | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75, commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117, family_index@C:\Azazael\azazael\src\CORE\skill_library.py:270 | 0 | 0.85 |
+| EP139 | Mamba-3 sequence modeling | L0 | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | SSMSequenceWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:349 | 0 | 0.85 |
+| EP142 | DR-Arena deep research arena | L3 | CORE.WORMS.expansion.arena | src/CORE/WORMS/expansion/arena.py | Arena@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:155, Environment@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:64, keeper_split@C:\Azazael\azazael\src\CORE\WORMS\expansion\arena.py:310 | 0 | 0.85 |
+| EP144 | Evo-Memory self-evolving memory | L1 | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | DreamConsolidatorWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\engram.py:629 | 0 | 0.85 |
+| EP146 | InfiAgent bounded context | L1 | CORE.local_memory | src/CORE/local_memory.py | recall_recent@C:\Azazael\azazael\src\CORE\local_memory.py:1068 | 0 | 0.85 |
+| EP150 | Agentic Reasoning Survey | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:270 | 0 | 0.85 |
+| EP151 | MagicGUI-RMS GUI rewards | L6 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, ti_dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:37, inspo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:53, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64 | 0 | 0.85 |
+| EP152 | DeepVerifier rubric verification | L3 | CORE.verification_gate | src/CORE/verification_gate.py | verify_before_accept@C:\Azazael\azazael\src\CORE\verification_gate.py:444, margin_check@C:\Azazael\azazael\src\CORE\verification_gate.py:66, divergence_gate@C:\Azazael\azazael\src\CORE\verification_gate.py:184 | 0 | 0.85 |
+| EP154 | FS-Researcher file-system agents | L1 | CORE.local_memory | src/CORE/local_memory.py | LocalMemoryStore@C:\Azazael\azazael\src\CORE\local_memory.py:229 | 0 | 0.85 |
+| EP155 | Agentic Proposing skill synthesis | L2 | CORE.skill_library | src/CORE/skill_library.py | — | 0 | 0.4 |
+| EP156 | Agent uncertainty quantification | L3 | CORE.verification_gate | src/CORE/verification_gate.py | margin_check@C:\Azazael\azazael\src\CORE\verification_gate.py:66 | 0 | 0.85 |
+| EP157 | AgentHeLLM vehicle threat taxonomy | L3 | CORE.audit_trail | src/CORE/audit_trail.py | verify_chain@C:\Azazael\azazael\src\CORE\audit_trail.py:1137 | 0 | 0.85 |
+| EP160 | AgentSys Hierarchical Memory Isolation | L1/L3 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP162 | Agent Skills Survey + Governance | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117 | 0 | 0.85 |
+| EP168 | Agentics 2.0 transduction algebra | L7 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 0 | 0.85 |
+| EP169 | Agentic AI Attack/Defense Survey | L3 | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP172 | Hyperagents Self-Modification | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | Lifecycle@C:\Azazael\azazael\src\CORE\meta_evolution.py:102, choose_candidate@C:\Azazael\azazael\src\CORE\meta_evolution.py:194, improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 0 | 0.85 |
+| EP178 | CMAT Latent Consensus Transformer | L5 | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | QuorumVoterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:56 | 0 | 0.85 |
+| EP180 | Autogenesis protocol AGP/AGS | L2/L6 | CORE.skill_library | src/CORE/skill_library.py | — | 0 | 0.4 |
+| EP186 | SGDe Harness Compilation | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66, eliminate_common_subgraphs@C:\Azazael\azazael\src\CORE\dispatch_plan.py:210 | 0 | 0.85 |
+| EP187 | Hive logits cache + agent-aware scheduling | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 0 | 0.4 |
+| EP188 | Agent-World Evolving Training Arena | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 0 | 0.85 |
+| EP191 | ReTAS Dialectical Alignment | L3/L6 | CORE.WORMS.expansion.meta_cognition | src/CORE/WORMS/expansion/meta_cognition.py | — | 0 | 0.4 |
+| EP192 | Ontology Layer as External Memory | L1/L3 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP197 | Teaching AI Agents to Plan Like Humans | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66 | 0 | 0.85 |
+| EP200 | Kwai Summary Attention | L0 | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | SSMSequenceWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:349 | 0 | 0.85 |
+| EP201 | Nautile-370M Spectral Memory | L0/L6 | CORE.cascade | src/CORE/cascade.py | CascadeRouter@C:\Azazael\azazael\src\CORE\cascade.py:26 | 0 | 0.85 |
+| EP203 | Operating-Layer Controls for Onchain Agents | L3 | CORE.compliance_auditor | src/CORE/compliance_auditor.py | — | 0 | 0.4 |
+| EP208 | Bayesian Orchestration for Overconfident AI Agents | L5 | CORE.cascade | src/CORE/cascade.py | — | 0 | 0.4 |
+| EP209 | SAGA workflow-atomic scheduling | L5 | CORE.freethreading | src/CORE/freethreading.py | — | 0 | 0.4 |
+| EP213 | Dynamic Grounding Failures in Multi-Agent Negotiation | L7 | CORE.WORMS.expansion.delegation | src/CORE/WORMS/expansion/delegation.py | — | 0 | 0.4 |
+| EP214 | ARISE Data-Flow Repair Graphs | L3 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 0 | 0.4 |
+| EP215 | Finding specialized AI agents in milliseconds | L5 | CORE.agent_registry | src/CORE/agent_registry.py | — | 0 | 0.4 |
+| EP216 | ShadowMem Long-Horizon Threat Defense | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP221 | ScrapMem Optical Forgetting | L1 | CORE.data_retention | src/CORE/data_retention.py | — | 0 | 0.4 |
+| EP223 | Uno-Orchestra Parsimonious Agent Routing | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 0 | 0.4 |
+| EP227 | FlowAgent Continuous Tool Flow | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66 | 0 | 0.85 |
+| EP228 | Capability-Preserving Evolution | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 0 | 0.4 |
+| EP232 | Bystander Effect in Multi-Agent Reasoning | L5 | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | — | 0 | 0.4 |
+| EP233 | Fixing AI memory with backward chaining | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP234 | FATE Failure-Trajectory Safety Alignment | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 0 | 0.4 |
+| EP235 | SAGE Self-Evolving Graph Memory | L1 | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | — | 0 | 0.4 |
+| EP236 | AEvo Harnessed Meta-Editing | L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 0 | 0.4 |
+| EP238 | SepsisAgent Clinical World Model | L4 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | rehearse_dispatch@C:\Azazael\azazael\src\CORE\dispatch_plan.py:398 | 0 | 0.85 |
+| EP240 | Orchard Agentic Modeling Framework | L6 | CORE.WORMS.expansion.container | src/CORE/WORMS/expansion/container.py | — | 0 | 0.4 |
+| EP242 | EXG Experience Graphs | L1 | CORE.pattern_memory | src/CORE/pattern_memory.py | query_patterns@C:\Azazael\azazael\src\CORE\pattern_memory.py:61 | 0 | 0.85 |
+| EP247 | PEEK Orientation Cache | L1 | CORE.data_retention | src/CORE/data_retention.py | enforce_type_caps@C:\Azazael\azazael\src\CORE\data_retention.py:472 | 0 | 0.85 |
+| EP248 | Agent JIT compilation | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66 | 0 | 0.85 |
+| EP249 | Mem-pi Generative Memory | L1 | CORE.WORMS.expansion.dreaming | src/CORE/WORMS/expansion/dreaming.py | — | 0 | 0.4 |
+| EP250 | Compiled subterranean agents | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75 | 0 | 0.85 |
+| EP253 | MACA Structure-Guided Coordination | L5 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 0 | 0.4 |
+| EP255 | MUSE-Autoskill Self-Evolving Skill Lifecycle | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117 | 0 | 0.85 |
+| EP259 | ESPO Kill Switch for reasoning | L6 | CORE.WORMS.expansion.policy_optimization | src/CORE/WORMS/expansion/policy_optimization.py | — | 0 | 0.4 |
+| EP262 | SCALE Self-Improving Web Agent | L6 | CORE.neural_loop | src/CORE/neural_loop.py | structural exploration@C:\Azazael\azazael\src\CORE\neural_loop.py:97 | 0 | 0.85 |
+| EP265 | SkillSmith skill/tool co-evolution | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:270 | 0 | 0.85 |
+| EP266 | ALAR adaptive latent agentic reasoning | L7 | CORE.latent_refine | src/CORE/latent_refine.py | — | 0 | 0.4 |
+| EP267 | CoMAP co-evolution | L4 | CORE.WORMS.expansion.dreaming | src/CORE/WORMS/expansion/dreaming.py | dream@C:\Azazael\azazael\src\CORE\WORMS\expansion\dreaming.py:209 | 0 | 0.85 |
+| EP269 | Agent libOS | L3 | CORE.compliance.` (policy, state_machine, pre_action_gate, governance) + `CORE.structured_action | src/CORE/compliance/` (policy.py, state_machine.py, pre_action_gate.py, governance.py) + `CORE/structured_action.py | — | 0 | 0.4 |
+| EP270 | Reasoning Primitive Induction | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75 | 0 | 0.85 |
+| EP271 | Steer locked AI with Agentic Monte Carlo | L6 | CORE.WORMS.expansion.allocation | src/CORE/WORMS/expansion/allocation.py | — | 0 | 0.4 |
+| EP273 | Agentic Software Paradigm | L2/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | Lifecycle@C:\Azazael\azazael\src\CORE\meta_evolution.py:102 | 0 | 0.85 |
+| EP275 | Socratic-SWE Trace-Derived Skills | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117 | 0 | 0.85 |
+| EP276 | ThinkBooster test-time scaling | L0/L3 | CORE.inference_pool | src/CORE/inference_pool.py | InferencePool@C:\Azazael\azazael\src\CORE\inference_pool.py:125 | 0 | 0.85 |
+| EP280 | Trajectory-Refined Distillation | L6 | PSYCHE.distill | src/PSYCHE/distill.py | — | 0 | 0.4 |
+| EP289 | Five-Plane Runtime Governance | L3 | CORE.compliance.policy | src/CORE/compliance/policy.py | PolicyEngine@C:\Azazael\azazael\src\CORE\compliance\policy.py:173 | 0 | 0.85 |
+| EP294 | RefGRPO Reflection Calibration | L3/L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | GRPOTrainer@C:\Azazael\azazael\src\CORE\WORMS\expansion\learning_grpo.py:64 | 0 | 0.85 |
+| EP298 | LLM-as-Code Agentic Programming | L5/L4 | CORE.workflow | src/CORE/workflow.py | WorkflowEngine@C:\Azazael\azazael\src\CORE\workflow.py:574 | 0 | 0.85 |
+| EP301 | VeriGraph Verifiable Data Agents | L3 | CORE.audit_trail | src/CORE/audit_trail.py | verify_inclusion_proof@C:\Azazael\azazael\src\CORE\audit_trail.py:1097 | 0 | 0.85 |
+| EP302 | Transferable interaction patterns for web agents | L2 | CORE.skill_library | src/CORE/skill_library.py | family_index@C:\Azazael\azazael\src\CORE\skill_library.py:270 | 0 | 0.85 |
+| EP305 | Governing Agentic AI | L3 | CORE.compliance.policy | src/CORE/compliance/policy.py | PolicyEngine@C:\Azazael\azazael\src\CORE\compliance\policy.py:173 | 0 | 0.85 |
+| EP307 | ENPIRE robot self-improvement | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | choose_candidate@C:\Azazael\azazael\src\CORE\meta_evolution.py:194 | 0 | 0.85 |
+| EP308 | Giving AI Agents Mathematical Muscle Memory | L2/L0 | PSYCHE.distill | src/PSYCHE/distill.py | test_theta_frozen`@C:\Azazael\azazael\src\PSYCHE\distill.py:10 | 0 | 0.85 |
+| EP309 | AutoRAS robust design | L6/L3 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 0 | 0.85 |
+| EP313 | ARTS agentic reasoning for tree search | L4/L6 | CORE.meta_evolution | src/CORE/meta_evolution.py | improvement_proved@C:\Azazael\azazael\src\CORE\meta_evolution.py:287 | 0 | 0.85 |
+| EP318 | OpenThoughts-Agent Data Recipes | L6 | CORE.WORMS.expansion.learning_pipeline | src/CORE/WORMS/expansion/learning_pipeline.py | DataPipelineWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\learning_pipeline.py:56 | 0 | 0.85 |
+| EP319 | TRUSTMEM Trustworthy Consolidation | L1+L3 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP327 | Agent safety is action alignment | L3 | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 0 | 0.85 |
+| EP335 | WorldEvolver self-evolving world models | L4+L1 | CORE.dream_arena | src/CORE/dream_arena.py | compile_world@C:\Azazael\azazael\src\CORE\dream_arena.py:28 | 0 | 0.85 |
+| EP336 | ACE Adaptive Context Elasticizer | L1 | CORE.local_memory | src/CORE/local_memory.py | — | 0 | 0.4 |
+| EP337 | EnvProbe budgeted probing | L4+L3 | CORE.WORMS.expansion.spine | src/CORE/WORMS/expansion/spine.py | — | 0 | 0.4 |
+| EP345 | AI agents retry from pivotal mistakes | L4 | CORE.dispatch_plan | src/CORE/dispatch_plan.py | — | 0 | 0.4 |
+| EP347 | Auto AGI Compiler | L2 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117 | 0 | 0.85 |
+| EP349 | LLM-as-a-Verifier continuous verification | L3+L5 | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP350 | Training AI agents without live environments | L6 | CORE.rubric_evolution | src/CORE/rubric_evolution.py | gate_distillation@C:\Azazael\azazael\src\CORE\rubric_evolution.py:89 | 0 | 0.85 |
+| EP351 | Direct-OPD weak-to-strong distillation | L6 | CORE.rubric_evolution | src/CORE/rubric_evolution.py | gate_distillation@C:\Azazael\azazael\src\CORE\rubric_evolution.py:89 | 0 | 0.85 |
+| EP352 | Hidden states predict AI agent failure | L3 | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP354 | EvoSOP Procedure Synthesis | L2 | CORE.skill_library | src/CORE/skill_library.py | protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75 | 0 | 0.85 |
+| EP355 | RL Builds Compositional Reasoning | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 0 | 0.4 |
+| EP360 | How ARMOR stops AI reasoning collapse | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 0 | 0.4 |
+| EP361 | RIPO Riemannian isometric policy optimization | L6 | CORE.WORMS.expansion.learning_grpo | src/CORE/WORMS/expansion/learning_grpo.py | — | 0 | 0.4 |
+| EP362 | Agentic-DPO | L6+L7 | CORE.dpo_losses | src/CORE/dpo_losses.py | dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25 | 0 | 0.85 |
+| EP363 | LOGOS living logic | L3+L0 | CORE.skill_library | src/CORE/skill_library.py | commit_gate@C:\Azazael\azazael\src\CORE\skill_library.py:117 | 0 | 0.85 |
+| EP364 | Capability trees | L5 dispatch / L2 skills | CORE.skill_library | src/CORE/skill_library.py | — | 0 | 0.4 |
+| EP370 | SLEUTH epistemic working memory | L1 memory / L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP372 | UrbanAgent multi-agent profiling | L7 interfaces / L3 verification | CORE.WORMS.expansion.consensus | src/CORE/WORMS/expansion/consensus.py | QuorumVoterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:56, SplitBrainResolverWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\consensus.py:277 | 0 | 0.85 |
+| EP374 | TopoAgent topological reasoning | L5 dispatch | CORE.dispatch_plan | src/CORE/dispatch_plan.py | plan_dag@C:\Azazael\azazael\src\CORE\dispatch_plan.py:66 | 0 | 0.85 |
+| EP375 | MGDT multimodal KG completion | L1 memory | CORE.WORMS.expansion.synapse | src/CORE/WORMS/expansion/synapse.py | MoEDispatcherWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:171, AttentionRouterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:478, ActivationRouterWorm@C:\Azazael\azazael\src\CORE\WORMS\expansion\synapse.py:577 | 0 | 0.85 |
+| EP382 | ETAS effect-typed agent language | L3 verification / L4 execution | CORE.structured_action | src/CORE/structured_action.py | semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78 | 0 | 0.85 |
+| EP383 | Safety drift + action supervision | L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP387 | Knowledge-centric self-improvement | L1 memory / L2 skills | CORE.skill_library | src/CORE/skill_library.py | — | 0 | 0.4 |
+| EP388 | LatentMT latent reasoning | L7 interfaces / L6 evolution | CORE.latent_refine | src/CORE/latent_refine.py | refine@C:\Azazael\azazael\src\CORE\latent_refine.py:80 | 0 | 0.85 |
+| EP389 | Supra Cognitive Modes routed memory | L1 memory / L5 dispatch | CORE.WORMS.expansion.engram | src/CORE/WORMS/expansion/engram.py | — | 0 | 0.4 |
+| EP393 | AREX self-audit research loop | L4 execution / L3 verification | CORE.audit_trail | src/CORE/audit_trail.py | — | 0 | 0.4 |
+| EP394 | Agentic context management | L1 memory | CORE.data_retention | src/CORE/data_retention.py | — | 0 | 0.4 |
+| EP395 | ConsistencyGate write-time admission | L1 memory / L3 verification | CORE.verification_gate | src/CORE/verification_gate.py | — | 0 | 0.4 |
+| EP402 | Frozen-LLM harness control | L3 verification / L6 evolution | CORE.meta_evolution | src/CORE/meta_evolution.py | — | 0 | 0.4 |
 
 ## Spot-checks (5 per slice, hand-verified)
 
 ### Orphan spot-checks
 
 - **AOA.aoa_monitor** (SUBAPP-ENTRY, host=AOA, file=src\AOA\aoa_monitor.py): 1 prod call sites — live sub-app; unreachable only from the 3 scanned entry points. Verdict SUBAPP-ENTRY @ 0.9.
-- **ANIMATION_PROTOCOLS** (DEAD, host=ANIMATION_PROTOCOLS, file=src\ANIMATION_PROTOCOLS.py): 1 prod call sites — has 1 importers but no entry point. Verdict DEAD @ 0.7.
+- **ANIMATION_PROTOCOLS** (DEAD, host=ANIMATION_PROTOCOLS, file=src\ANIMATION_PROTOCOLS.py): 0 prod call sites — no __main__, no CLI, nothing but tests/docs references it. Verdict DEAD @ 0.9.
 - **AOA** (FACADE, host=AOA, file=src\AOA\__init__.py): 0 prod call sites — package __init__ re-export; reachability via sibling imports. Verdict FACADE @ 0.85.
 - **AOA.arms.azazael_arm** (UNCLEAR, host=AOA, file=src\AOA\arms\azazael_arm.py): 0 prod call sites — not decidable from the file alone. Verdict UNCLEAR @ 0.5.
 - **AOA.arms.codex_arm** (UNCLEAR, host=AOA, file=src\AOA\arms\codex_arm.py): 0 prod call sites — not decidable from the file alone. Verdict UNCLEAR @ 0.5.
 
 ### PARTIAL spot-checks
 
-- **EP34 Chain-of-Thought Prompting** (LL2): target=CORE/skill_library.py :: protocol_artifact, host=CORE.skill_library, file=src/CORE/skill_library.py, symbols verified: protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:74, 2 prod callers. Confidence 0.85. 1/1 symbols verified
-- **EP44 ReAct reasoning+acting** (LL7): target=CORE/structured_action.py :: semantic_action, observe, host=CORE.structured_action, file=src/CORE/structured_action.py, symbols verified: semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, 4 prod callers. Confidence 0.55. no direct importers of CORE.structured_action; 4 importers of parent pkg CORE; 2/2 symbols verified
+- **EP34 Chain-of-Thought Prompting** (LL2): target=CORE/skill_library.py :: protocol_artifact, host=CORE.skill_library, file=src/CORE/skill_library.py, symbols verified: protocol_artifact@C:\Azazael\azazael\src\CORE\skill_library.py:75, 0 prod callers. Confidence 0.85. 1/1 symbols verified
+- **EP44 ReAct reasoning+acting** (LL7): target=CORE/structured_action.py :: semantic_action, observe, host=CORE.structured_action, file=src/CORE/structured_action.py, symbols verified: semantic_action@C:\Azazael\azazael\src\CORE\structured_action.py:78, observe@C:\Azazael\azazael\src\CORE\structured_action.py:60, 0 prod callers. Confidence 0.85. 2/2 symbols verified
 - **EP63 RWKV Linear RNN** (LL0): target=`WORMS/expansion/synapse.py :: SSMSequenceWorm`, host=WORMS.expansion.synapse, file=src/WORMS/expansion/synapse.py, symbols verified: NOT FOUND, 0 prod callers. Confidence 0.4. symbol not found in named file
 - **EP80 Jamba Hybrid Transformer-Mamba** (LL0): target=`WORMS/expansion/synapse.py :: SSMSequenceWorm`, host=WORMS.expansion.synapse, file=src/WORMS/expansion/synapse.py, symbols verified: NOT FOUND, 0 prod callers. Confidence 0.4. symbol not found in named file
-- **EP97 DeepSeek-R1 Pure-RL Reasoning** (LL6): target=CORE/dpo_losses.py :: dpo_loss, rappo_filter, host=CORE.dpo_losses, file=src/CORE/dpo_losses.py, symbols verified: dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64, 4 prod callers. Confidence 0.55. no direct importers of CORE.dpo_losses; 4 importers of parent pkg CORE; 2/2 symbols verified
+- **EP97 DeepSeek-R1 Pure-RL Reasoning** (LL6): target=CORE/dpo_losses.py :: dpo_loss, rappo_filter, host=CORE.dpo_losses, file=src/CORE/dpo_losses.py, symbols verified: dpo_loss@C:\Azazael\azazael\src\CORE\dpo_losses.py:25, rappo_filter@C:\Azazael\azazael\src\CORE\dpo_losses.py:64, 0 prod callers. Confidence 0.85. 2/2 symbols verified
 
 ## Method notes
 
-- Production import scan: single bulk `rg '^(import |from )' src/ --glob '!**/tests/**'` = 3967 import-statement lines, 240 distinct modules.
+- Production import scan: single bulk `rg '^(import |from )' src/ --glob '!**/tests/**'` = 0 import-statement lines, 0 distinct modules.
 - Every subprocess read used `encoding='utf-8', errors='replace'` (engram #591 rule 3).
 - Test-only references excluded from `prod_call_sites` by the ripgrep glob mask.
 - Orphan verdict inherits the coordinator-verified triage class; this sweep adds the
