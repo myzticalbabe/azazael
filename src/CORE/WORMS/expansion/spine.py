@@ -1773,7 +1773,9 @@ class SpineCycleWorm:
         # G1 wiring (2026-09-14 audit): these three were registered but never
         # instantiated anywhere, so "attention", "MoE" and "SSM" described
         # code that never ran. The cycle now drives all three from the live
-        # outcome stream, and CROSS_NATURE_ROUTER consumes the MoE ranking.
+        # outcome stream. (U3/D7: CROSS_NATURE_ROUTER, the former MoE-ranking
+        # consumer, was deleted with the taxonomy; nothing routes between
+        # categories.)
         self._attention = AttentionRouterWorm() if AttentionRouterWorm else None
         self._sequence = SSMSequenceWorm() if SSMSequenceWorm else None
         self._moe = MoEDispatcherWorm() if MoEDispatcherWorm else None
