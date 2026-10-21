@@ -84,7 +84,9 @@ def era_descriptor(pool: Optional[dict]) -> List[float]:
     def _f(key):
         v = p.get(key)
         try:
-            return float(v)
+            if isinstance(v, (int, float, str)):
+                return float(v)
+            raise TypeError("non-numeric pool value for %r: %r" % (key, v))
         except (TypeError, ValueError) as exc:
             note_failure("oracle:L78", exc)
             return 0.0
@@ -116,8 +118,8 @@ class FitnessOracle:
         self.seed = int(seed)
         self._device = device
         self._models = []
-        self._mu = None   # feature standardisation
-        self._sd = None
+        self._mu: Optional[List[float]] = None   # feature standardisation
+        self._sd: Optional[List[float]] = None
         self._fitted = False
         # Weights as plain nested lists, loaded from JSON. This is the ONLY
         # representation that always works: the production runner is the
@@ -238,6 +240,8 @@ class FitnessOracle:
 
     # -- inference ---------------------------------------------------------
     def _standardise(self, X: Sequence[Sequence[float]]):
+        if self._mu is None or self._sd is None:
+            raise RuntimeError("_standardise without standardisation stats")
         torch = self._torch()
         from CORE.device import to_device
         Xn = [[(x - self._mu[i]) / self._sd[i] for i, x in enumerate(row)]
@@ -532,10 +536,14 @@ class FitnessOracle:
             act = [math.tanh(v) for v in z] if li < last else z
             acts.append(act)
         n_layers = len(layers)
-        delta = [None] * n_layers
+        delta: List[Optional[List[float]]] = [None] * n_layers
         delta[n_layers - 1] = [1.0]
         for li in range(n_layers - 2, -1, -1):
             next_d = delta[li + 1]
+            if next_d is None:
+                raise RuntimeError(
+                    "_nuqls_jacobian: delta[%d] not filled before backward"
+                    % (li + 1))
             W_next = layers[li + 1]["w"]
             z_li = pre_acts[li]
             d = []
@@ -549,11 +557,15 @@ class FitnessOracle:
         jac = []
         for li, layer in enumerate(layers):
             W = layer["w"]
+            d_li = delta[li]
+            if d_li is None:
+                raise RuntimeError(
+                    "_nuqls_jacobian: delta[%d] not filled for jacobian" % li)
             for r in range(len(W)):
                 for c in range(len(W[r])):
-                    jac.append(delta[li][r] * acts[li][c])
+                    jac.append(d_li[r] * acts[li][c])
             for r in range(len(layer["b"])):
-                jac.append(delta[li][r])
+                jac.append(d_li[r])
         return jac
 
     def _nuqls_jac_var(self, x):

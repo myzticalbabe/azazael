@@ -26,7 +26,7 @@ Usage:
 import sys
 import subprocess
 import json
-import importlib
+import importlib.util
 from pathlib import Path
 from typing import Callable, List
 
@@ -40,7 +40,8 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from colorama import Fore, Style, init
+    # optional env dependency, not code: guarded below; installed ad hoc, ships no stubs
+    from colorama import Fore, Style, init  # pyright: ignore[reportMissingModuleSource] -- optional dependency without stubs
 
     COLORAMA_AVAILABLE = True
 except ImportError as exc:
@@ -166,7 +167,7 @@ class AzazaelConfig:
 class PluginManager:
     """Plugin system for custom commands."""
 
-    def __init__(self, plugins_dir: Path = None):
+    def __init__(self, plugins_dir: Path | None = None):
         self.plugins_dir = plugins_dir or Path.home() / ".azazael" / "plugins"
         self.plugins_dir.mkdir(parents=True, exist_ok=True)
         self.commands: dict[str, Callable] = {}
@@ -177,6 +178,8 @@ class PluginManager:
         for py_file in self.plugins_dir.glob("*.py"):
             try:
                 spec = importlib.util.spec_from_file_location(py_file.stem, py_file)
+                if spec is None or spec.loader is None:
+                    raise TypeError(f"no usable import spec/loader for plugin {py_file}")
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
@@ -425,7 +428,7 @@ EXAMPLES:
         print("Goodbye!")
         sys.exit(0)
 
-    def cmd_cd(self, args: list[str]):
+    def cmd_cd(self, args: str | list[str]):
         """Change directory."""
         if not args:
             args = [str(self.ROOT)]
@@ -449,7 +452,7 @@ EXAMPLES:
         except Exception as e:
             self.output.error(str(e))
 
-    def cmd_ls(self, args: list[str]):
+    def cmd_ls(self, args: str | list[str]):
         """list files."""
         pattern = args[0] if args else "*"
 
@@ -473,7 +476,11 @@ EXAMPLES:
                 else:
                     table.add_row(item.name, "FILE", f"{item.stat().st_size} B")
 
-            self.console.print(table)
+            # console lives on OutputStyle (self.output), not on AzazaelCLI;
+            # direct self.console raised AttributeError in the rich branch
+            console = self.output.console
+            if console is not None:
+                console.print(table)
         else:
             try:
                 search_path = Path(pattern)
@@ -490,7 +497,7 @@ EXAMPLES:
             except Exception as e:
                 self.output.error(str(e))
 
-    def cmd_cat(self, args: list[str]):
+    def cmd_cat(self, args: str | list[str] | None):
         """Show file content."""
         if not args:
             print("Usage: cat <file>")
@@ -512,7 +519,7 @@ EXAMPLES:
         except Exception as e:
             self.output.error(str(e))
 
-    def cmd_run(self, args: list[str]):
+    def cmd_run(self, args: str | list[str] | None):
         """Run a file."""
         if not args:
             print("Usage: run <file>")
@@ -536,7 +543,7 @@ EXAMPLES:
         except Exception as e:
             self.output.error(str(e))
 
-    def cmd_exec(self, args: list[str]):
+    def cmd_exec(self, args: str | list[str]):
         """Execute Python code."""
         code = " ".join(args)
         try:
@@ -544,7 +551,7 @@ EXAMPLES:
         except Exception as e:
             self.output.error(str(e))
 
-    def cmd_python(self, args: list[str]):
+    def cmd_python(self, args: str | list[str]):
         """Execute Python code (alias)."""
         self.cmd_exec(args)
 
@@ -778,7 +785,11 @@ EXAMPLES:
             table.add_row("Shortcuts", str(shortcuts_count))
             table.add_row("Scripts", str(scripts_count))
             table.add_row("Version", self.VERSION)
-            self.console.print(table)
+            # console lives on OutputStyle (self.output), not on AzazaelCLI;
+            # direct self.console raised AttributeError in the rich branch
+            console = self.output.console
+            if console is not None:
+                console.print(table)
         else:
             print(f"""
 Azazael Status
