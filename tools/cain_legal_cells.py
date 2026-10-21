@@ -1,7 +1,7 @@
 """The three legal rows my regexes missed. Read the markup, not a pattern."""
 import re
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
 h = open(DOC, encoding="utf-8").read()
 
 for probe in ("00 Societal $0.00 Legal $0", "User 0% Legal $0.00",

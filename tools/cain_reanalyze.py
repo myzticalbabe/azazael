@@ -4,8 +4,8 @@ Counts do not check intent. This extracts the real content and reads it.
 """
 import re, collections, html as H
 
-DOC = r"C:\Users\clint\azazael\dashboard\CAIN_20260930.html"
-TPL = r"C:\Users\clint\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
+DOC = r"C:\Azazael\azazael\dashboard\CAIN_20260930.html"
+TPL = r"C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\templates\output_cain.html"
 h = open(DOC, encoding="utf-8").read()
 t = open(TPL, encoding="utf-8").read()
 
