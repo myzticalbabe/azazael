@@ -20,7 +20,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, List
 import re
 import shutil
 
@@ -344,7 +344,7 @@ class AOAState:
         # In-process view (contains the write-back just made).
         try:
             out["inproc"] = sum(1 for k in spine.get_q_weights()
-                                if k.startswith("aoa_route:"))
+                                if k.startswith("aoa_route:")) if spine is not None else None
         except Exception as exc:
             note_failure("aoa_monitor:L326", exc)
             out["inproc"] = None
@@ -372,7 +372,7 @@ class AOAState:
     @staticmethod
     def _run_workflow():
         """Benchmark workflow via subprocess; parse its summary lines."""
-        out = {"ran": False}
+        out: dict[str, Any] = {"ran": False}
         try:
             r = subprocess.run(
                 [sys.executable, str(HERE / "test_benchmark_workflow.py")],
