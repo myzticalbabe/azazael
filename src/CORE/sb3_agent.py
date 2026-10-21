@@ -46,7 +46,20 @@ import numpy as np
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Annotation-only aliases: the runtime bindings of these names are
+    # try/except imports with None fallbacks (`BaseAlgorithm = None`, etc.),
+    # which would make the plain names resolve as variables in type
+    # expressions. Distinct alias names keep a single class binding.
+    # Never executed at runtime.
+    from stable_baselines3.common.base_class import BaseAlgorithm as _SB3ModelT
+    from CORE.WORMS.expansion.learning import (
+        DataPipelineWorm as _DataPipelineT,
+        ModelVersioner as _ModelVersionT,
+    )
+    import gymnasium as _GymModuleT
 
 # -- Import CORE utilities ----------------------------------------------------
 # Add parent dir (src/) to sys.path, NOT CORE/ directly, to avoid CORE/logging.py
@@ -166,7 +179,7 @@ except ImportError as exc:
 
 # -- Agent registry ----------------------------------------------------------
 try:
-    from CORE.agent_registry import register_agent
+    from CORE.agent_registry import register_agent  # pyright: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("sb3_agent:L153", exc)
 
@@ -540,21 +553,21 @@ class SB3Agent(FreeThreadedAgent):
         self.seed = seed or int(time.time())
 
         # Device selection
-        if device == "auto" and HAS_TORCH:
+        if device == "auto" and HAS_TORCH and torch is not None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
             self.device = device or "cpu"
 
         # SB3 model (lazy init)
-        self._model: (BaseAlgorithm | None) = None
-        self._env: (gym.Env | None) = None
+        self._model: (_SB3ModelT | None) = None
+        self._env: (_GymModuleT.Env | None) = None
         self._model_lock = threading.Lock()
 
         # DataPipelineWorm (lazy)
-        self._pipeline: (DataPipelineWorm | None) = None
+        self._pipeline: (_DataPipelineT | None) = None
 
         # ModelVersioner (lazy)
-        self._versioner: (ModelVersioner | None) = None
+        self._versioner: (_ModelVersionT | None) = None
 
         # Training metadata
         self._training_history: list[dict] = []
@@ -646,6 +659,7 @@ class SB3Agent(FreeThreadedAgent):
             pass  # records already in scope; skip pipeline.extract_from_memory
         else:
             pipeline = self._get_pipeline()
+            assert pipeline is not None  # None was an unguarded AttributeError here before
             records = pipeline.extract_from_memory(
                 source=source, event_type=event_type,
                 limit=5000, max_age_days=max_age_days,
@@ -702,7 +716,9 @@ class SB3Agent(FreeThreadedAgent):
 
                 # Train
                 n = n_episodes * 200 if n_episodes else total_timesteps
-                self._model.learn(total_timesteps=n, reset_num_timesteps=False)
+                model = self._model
+                assert model is not None  # both branches above assign it; narrows for .learn()
+                model.learn(total_timesteps=n, reset_num_timesteps=False)
                 self._total_timesteps_trained += n
 
         except Exception as e:
@@ -769,6 +785,7 @@ class SB3Agent(FreeThreadedAgent):
                 versioner = self._get_versioner()
                 version = _next_model_version(
                     versioner, mname, fallback=len(self._training_history))
+                assert versioner is not None  # None.register_model() previously crashed (caught at L789)
                 versioner.register_model(
                     name=mname,
                     version=version,
@@ -878,7 +895,7 @@ class SB3Agent(FreeThreadedAgent):
     # -- Environment Creation ------------------------------------------------
 
     def _create_env_from_records(self, records: list[dict],
-                                 continuous: bool = False) -> 'gym.Env':
+                                 continuous: bool = False) -> '_GymModuleT.Env':
         """
         Create a gym environment from LocalMemoryStore records.
 
@@ -945,7 +962,7 @@ class SB3Agent(FreeThreadedAgent):
         return self._create_vector_env(features, continuous=continuous)
 
     def _create_vector_env(self, feature_vectors: list[list[float]],
-                           continuous: bool = False) -> 'gym.Env':
+                           continuous: bool = False) -> '_GymModuleT.Env':
         """
         Create a simple vector-based gym environment.
 
@@ -1010,7 +1027,7 @@ class SB3Agent(FreeThreadedAgent):
 
         return _MemoryDatasetEnv(feature_vectors, continuous=continuous)
 
-    def _create_default_env(self, continuous: bool = False) -> 'gym.Env':
+    def _create_default_env(self, continuous: bool = False) -> '_GymModuleT.Env':
         """Create a default simple environment when no data is available."""
         import gymnasium as gym
         from gymnasium.spaces import Box, Discrete
@@ -1048,24 +1065,26 @@ class SB3Agent(FreeThreadedAgent):
 
     # -- Lazy helpers --------------------------------------------------------
 
-    def _get_pipeline(self) -> DataPipelineWorm:
+    def _get_pipeline(self) -> (_DataPipelineT | None):
         """Lazy DataPipelineWorm for memory access."""
-        if self._pipeline is None and HAS_PIPELINE:
+        if (self._pipeline is None and HAS_PIPELINE
+                and DataPipelineWorm is not None):
             try:
                 self._pipeline = DataPipelineWorm()
             except Exception as exc:
                 note_failure("sb3_agent:L1012", exc)
-                self._pipeline = False  # Sentinel
+                self._pipeline = False  # pyright: ignore[reportAttributeAccessIssue]  Sentinel: attempted-and-failed, no retry
         return self._pipeline if self._pipeline else None
 
-    def _get_versioner(self) -> (ModelVersioner | None):
+    def _get_versioner(self) -> (_ModelVersionT | None):
         """Lazy ModelVersioner for version tracking."""
-        if self._versioner is None and HAS_VERSIONER:
+        if (self._versioner is None and HAS_VERSIONER
+                and ModelVersioner is not None):
             try:
                 self._versioner = ModelVersioner()
             except Exception as exc:
                 note_failure("sb3_agent:L1021", exc)
-                self._versioner = False
+                self._versioner = False  # pyright: ignore[reportAttributeAccessIssue]  Sentinel: attempted-and-failed, no retry
         return self._versioner if self._versioner else None
 
     # -- FreeThreadedAgent._run override -------------------------------------
