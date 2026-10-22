@@ -20,11 +20,17 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # Core modules
+#
+# `bootstrap` is optional (not always present), so it is probed with
+# `find_spec` and loaded with `import_module` — the same convention the
+# OPEN_INTERPRETER probe below uses — instead of a static from-import,
+# which the checker cannot resolve when the module is absent.
 try:
-    from CORE import bootstrap
-except ImportError as exc:
-    note_failure("LOCAL_DEV:L14", exc)
-    bootstrap = None  # Optional bootstrap module (not always present)
+    _bootstrap_spec = importlib.util.find_spec("CORE.bootstrap")
+except (ImportError, ValueError) as exc:          # missing parent package / None entry
+    note_failure("LOCAL_DEV:L24", exc)
+    _bootstrap_spec = None
+bootstrap = importlib.import_module("CORE.bootstrap") if _bootstrap_spec is not None else None
 
 from CORE import NODE
 from CORE import PYTHON_MANAGER

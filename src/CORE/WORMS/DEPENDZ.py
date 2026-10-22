@@ -117,7 +117,7 @@ class DEPENDZ:
     def run(self) -> dict[str, Any]:
         """Run full dependency analysis."""
         # Pre-compute reverse alias map
-        self._reverse_aliases: dict[str, str] = {v: k for k, v in self.KNOWN_ALIASES.items()}
+        self._reverse_aliases = {v: k for k, v in self.KNOWN_ALIASES.items()}
         self._parse_requirements()
         self._parse_pyproject()
         self._scan_imports()

@@ -43,7 +43,7 @@ class PerformanceBenchmarks:
         self.results = []
 
     def benchmark_wormz_crawl(
-        self, path: str = None
+        self, path: str | None = None
     ):
         """Benchmark WORMZ crawl performance."""
         if path is None:
