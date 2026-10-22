@@ -79,7 +79,7 @@ class SessionOutcomeLearner:
             if not self._fitted:
                 raise RuntimeError("SessionOutcomeLearner is not fitted yet")
             X = self._vectorizer.transform([dict(r) for r in rows])
-            return list(self._model.predict(X))
+            return list(self._model.predict(X))  # type: ignore[reportArgumentType]
 
     def predict_proba(self, rows: Iterable[Mapping[str, Any]]) -> list[list[float]]:
         """Positive-class probabilities for unlabeled feature rows."""
