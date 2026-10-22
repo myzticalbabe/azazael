@@ -41,6 +41,41 @@ def _pams_record(content: str, role: str, session_id: str,
         print(f"   pams conversations record SKIPPED ({exc})")
 
 
+PY315T = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+
+
+def _pams_close_delegated(record: str, role: str, session_id: str,
+                          user_id: str, model_id: str) -> bool:
+    """Delegate the close to tools/pams_capture.py on the pinned 3.15t
+    interpreter (the interpreter with persistent_ai_memory). True when the
+    delegate ran to completion - INCLUDING a named skip - so the caller
+    never double-records. Prints one record line naming the outcome;
+    never raises."""
+    cli = HERE / "pams_capture.py"
+    if not (PY315T.exists() and cli.exists()):
+        return False
+    argv = [str(PY315T), str(cli), "close", record, "--record-role", role]
+    if session_id:
+        argv += ["--session-id", session_id]
+    if user_id:
+        argv += ["--user-id", user_id]
+    if model_id:
+        argv += ["--model-id", model_id]
+    try:
+        r = subprocess.run(argv, timeout=60, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace",
+                           cwd=str(HERE.parent))
+    except Exception as exc:  # noqa: BLE001 - report, then legacy fallback
+        print("   pams conversations record: delegate call failed (%s: %s)"
+              % (type(exc).__name__, exc))
+        return False
+    out = (r.stdout or "").strip().replace("\n", " ")
+    out = out.replace("pams capture close: ", "")
+    print("   pams conversations record: %s"
+          % (out or ("empty response (rc=%s)" % r.returncode)))
+    return True
+
+
 def _zerom_review(root: Path) -> None:
     """RULE 0Z-M defect-class capture review (advisory; the hard block is
     pre-commit: staged_scanner_gate + anti_pattern_gate --check). Names the
@@ -88,12 +123,16 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     print("=== SESSION END: improve pass ===")
     if args.record:
-        if not (args.user_id and args.model_id):
-            print("   pams conversations record SKIPPED: --user-id and"
-                  " --model-id are required (server refuses defaults)")
-        else:
-            _pams_record(args.record, args.record_role, args.session_id,
-                         args.user_id, args.model_id)
+        delegate_ran = _pams_close_delegated(
+            args.record, args.record_role, args.session_id,
+            args.user_id, args.model_id)
+        if not delegate_ran:
+            if not (args.user_id and args.model_id):
+                print("   pams conversations record SKIPPED: --user-id and"
+                      " --model-id are required (server refuses defaults)")
+            else:
+                _pams_record(args.record, args.record_role, args.session_id,
+                             args.user_id, args.model_id)
     print("1. Evidence: state/converge_315.json, PMB outbox, session tool outputs.")
     print("2. Write [IMP-N] items (Observation file:line, Suggestion, Grounded).")
     print("3. Fix trivial now; file the rest as a PMB goal.")
