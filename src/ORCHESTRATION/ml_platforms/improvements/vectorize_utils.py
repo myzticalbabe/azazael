@@ -106,16 +106,16 @@ class VectorizationUtils:
     def jit(func: Callable) -> Callable:
         """JIT compilation stub with caching."""
 
+        _cache: dict = {}
+
         @functools.wraps(func)
         def cached_func(*args):
             key = tuple(
                 tuple(a.shape) if isinstance(a, np.ndarray) else a for a in args
             )
-            if not hasattr(cached_func, "_cache"):
-                cached_func._cache = {}
-            if key not in cached_func._cache:
-                cached_func._cache[key] = func(*args)
-            return cached_func._cache[key]
+            if key not in _cache:
+                _cache[key] = func(*args)
+            return _cache[key]
 
         return cached_func
 

@@ -8,7 +8,7 @@ FederatedAggregatorWorm, NASMeshSearcherWorm, RewardShaperMeshWorm
 
 import threading
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Callable, Iterable, List, TypeVar
 from collections import defaultdict
 import math as _math
 
@@ -30,10 +30,10 @@ try:
     )
 except ImportError as exc:  # pragma: no cover - defensive
     note_failure("federated:L21", exc)
-    def hydrate(instance, provider, attrs):
+    def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
         return 0
 
-    def publish(instance, provider, attrs):
+    def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         return False
 
     def cap_list(seq, limit):
@@ -43,10 +43,10 @@ except ImportError as exc:  # pragma: no cover - defensive
         return d
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # type: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("federated:L36", exc)
-    def register_worm(**kw):
+    def register_worm(**kw: Any) -> Callable[[type], type]:
         return lambda cls: cls
 
 

@@ -110,7 +110,7 @@ def pivotal_credit_weights(turns: Any, pivotal: int | None = None,
         return []
     pivot = locate_pivotal_turn(seq) if pivotal is None else pivotal
     try:
-        pivot = int(pivot)
+        pivot = int(pivot) if pivot is not None else 0
     except (TypeError, ValueError) as exc:
         note_failure("expansion/reflexion:credit-pivot", exc)
         return []
@@ -228,6 +228,7 @@ def reflections_for(question: str, *, store: Any = None,
         # plain read otherwise. fetch_all_memories is required on a real store:
         # query_memories clamps at MAX_QUERY_LIMIT (500), which would make
         # recall silently ignore every reflection older than the newest 500.
+        rows: Any = []
         fetch = getattr(store, "fetch_all_memories", None)
         if callable(fetch):
             rows = fetch(event_type=EVENT_TYPE, limit=500) or []

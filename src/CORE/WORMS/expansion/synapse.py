@@ -34,7 +34,7 @@ import time
 import threading
 import math
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Callable, List
 from collections import defaultdict
 import random as _rng
 
@@ -48,10 +48,10 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # type: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("synapse:L42", exc)
-    def register_worm(**kw):
+    def register_worm(**kw: Any) -> Callable[[type], type]:
         return lambda cls: cls
 
 
@@ -418,11 +418,11 @@ class SSMSequenceWorm:
                                          else 0.9 * self._err_ema + 0.1 * err)
                     # LMS on the linear readout: dW_c[h][j] = lr * e * s[h] * phi[j]
                     for h in range(self._dim):
-                        base = self._lr_c * err * s_prev[h]
+                        base = self._lr_c * (err if err is not None else 0.0) * s_prev[h]
                         self._W_c[h][0] += base * phi_prev[0]
                         self._W_c[h][1] += base * phi_prev[1]
                         # Hebbian approximation for W_b (labelled as such)
-                        hb = (self._lr_b * err * (1.0 - decay_prev) * phi_prev[1])
+                        hb = (self._lr_b * (err if err is not None else 0.0) * (1.0 - decay_prev) * phi_prev[1])
                         self._W_b[h][0] += hb * phi_prev[0]
                         self._W_b[h][1] += hb * phi_prev[1]
                     self._params_updated += 1
