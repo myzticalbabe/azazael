@@ -1,0 +1,1001 @@
+{
+ "schema": "lazy_cycle_edges/v1",
+ "head": "6d3d81bc6ac973d808e8c02e8992bccf93b482f4",
+ "head_date": "2026-10-22T15:26:13-04:00",
+ "generator": "forensic_lazy_sweep.py + classify_cycles.py + live top-level reachability re-derivation, 2026-10-22",
+ "method": "function-body AST scan (3.15t ThreadPoolExecutor 16) for lazy sites; per-file git-show-HEAD top-level import edges; CYCLE-GENUINE iff target reaches importer over top-level edges; every genuine path re-derived live, not from report",
+ "tally": {
+  "CYCLE-GENUINE": 19,
+  "HABIT": 548,
+  "UNRESOLVED": 1
+ },
+ "genuine_sites": [
+  {
+   "file": "CORE/audit_trail.py",
+   "func": "__enter__",
+   "lineno": 346,
+   "raw": "CORE",
+   "target": "CORE",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE",
+    "CORE.audit_trail"
+   ]
+  },
+  {
+   "file": "CORE/compliance/pre_action_gate.py",
+   "func": "_lazy_import_orchestrator",
+   "lineno": 97,
+   "raw": "CORE.compliance.orchestrator",
+   "target": "CORE.compliance.orchestrator",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.compliance.orchestrator",
+    "CORE.sentinel_enforcer",
+    "CORE.compliance.pre_action_gate"
+   ]
+  },
+  {
+   "file": "CORE/compliance/pre_action_gate.py",
+   "func": "self_test",
+   "lineno": 1734,
+   "raw": "CORE.sentinel_enforcer",
+   "target": "CORE.sentinel_enforcer",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.sentinel_enforcer",
+    "CORE.compliance.pre_action_gate"
+   ]
+  },
+  {
+   "file": "CORE/config.py",
+   "func": "to_circuit_config",
+   "lineno": 158,
+   "raw": "CORE.circuit_breaker",
+   "target": "CORE.circuit_breaker",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.circuit_breaker",
+    "CORE.verification_gate",
+    "CORE",
+    "CORE._logging_shim",
+    "CORE.azazael_logging",
+    "CORE.config"
+   ]
+  },
+  {
+   "file": "CORE/direct_memory.py",
+   "func": "fetch_thoughts",
+   "lineno": 931,
+   "raw": "CORE.local_memory",
+   "target": "CORE.local_memory",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.local_memory",
+    "CORE.verification_gate",
+    "CORE",
+    "CORE.direct_memory"
+   ]
+  },
+  {
+   "file": "CORE/direct_memory.py",
+   "func": "reconstruct_context",
+   "lineno": 2350,
+   "raw": "CORE.local_memory",
+   "target": "CORE.local_memory",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.local_memory",
+    "CORE.verification_gate",
+    "CORE",
+    "CORE.direct_memory"
+   ]
+  },
+  {
+   "file": "CORE/dispatch_plan.py",
+   "func": "record_backtrack",
+   "lineno": 436,
+   "raw": "CORE.WORMS.expansion.rcpd_early_exit",
+   "target": "CORE.WORMS.expansion.rcpd_early_exit",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.rcpd_early_exit",
+    "CORE.dispatch_plan"
+   ]
+  },
+  {
+   "file": "CORE/local_memory.py",
+   "func": "decay_memory_in_place",
+   "lineno": 2201,
+   "raw": "CORE.data_retention",
+   "target": "CORE.data_retention",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.data_retention",
+    "CORE.local_memory"
+   ]
+  },
+  {
+   "file": "CORE/local_memory.py",
+   "func": "lifecycle_fidelity",
+   "lineno": 2391,
+   "raw": "CORE.data_retention",
+   "target": "CORE.data_retention",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.data_retention",
+    "CORE.local_memory"
+   ]
+  },
+  {
+   "file": "CORE/local_memory.py",
+   "func": "generative_compaction_status",
+   "lineno": 2452,
+   "raw": "CORE.data_retention",
+   "target": "CORE.data_retention",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.data_retention",
+    "CORE.local_memory"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/BINARY_ANALYSIS.py",
+   "func": "main",
+   "lineno": 304,
+   "raw": "CORE.WORMS.BINARY_ANALYSIS_CLI",
+   "target": "CORE.WORMS.BINARY_ANALYSIS_CLI",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.BINARY_ANALYSIS_CLI",
+    "CORE.WORMS.BINARY_ANALYSIS"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/learning_features.py",
+   "func": "_dynamic_shapes",
+   "lineno": 67,
+   "raw": "CORE.WORMS.expansion.learning_pipeline",
+   "target": "CORE.WORMS.expansion.learning_pipeline",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.learning_pipeline",
+    "CORE.WORMS.expansion.learning_features"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/learning_features.py",
+   "func": "fallback_accuracy_report",
+   "lineno": 394,
+   "raw": "CORE.WORMS.expansion.learning",
+   "target": "CORE.WORMS.expansion.learning",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.learning",
+    "CORE.WORMS.expansion.learning_features"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/learning_pipeline.py",
+   "func": "schedule_dynamic_refresh",
+   "lineno": 575,
+   "raw": "CORE.WORMS.expansion.learning",
+   "target": "CORE.WORMS.expansion.learning",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.learning",
+    "CORE.WORMS.expansion.learning_features"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/learning_rl.py",
+   "func": "_get_pipeline",
+   "lineno": 232,
+   "raw": "CORE.WORMS.expansion.learning",
+   "target": "CORE.WORMS.expansion.learning",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.learning",
+    "CORE.WORMS.expansion.learning_features"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/learning_rl.py",
+   "func": "_get_versioner",
+   "lineno": 244,
+   "raw": "CORE.WORMS.expansion.learning",
+   "target": "CORE.WORMS.expansion.learning",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.learning",
+    "CORE.WORMS.expansion.learning_features"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/queens.py",
+   "func": "rainbow_round",
+   "lineno": 890,
+   "raw": "CORE.WORMS.expansion.spine",
+   "target": "CORE.WORMS.expansion.spine",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.spine",
+    "CORE.WORMS.expansion.queens"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/queens.py",
+   "func": "rainbow_round",
+   "lineno": 945,
+   "raw": "CORE.WORMS.expansion.spine",
+   "target": "CORE.WORMS.expansion.spine",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.spine",
+    "CORE.WORMS.expansion.queens"
+   ]
+  },
+  {
+   "file": "CORE/WORMS/expansion/spine.py",
+   "func": "__init__",
+   "lineno": 1844,
+   "raw": "CORE.WORMS.expansion.spine",
+   "target": "CORE.WORMS.expansion.spine",
+   "verdict": "CYCLE-GENUINE",
+   "forensic": "confirmed genuine",
+   "reach_path": [
+    "CORE.WORMS.expansion.spine",
+    "CORE.WORMS.expansion.queens"
+   ]
+  }
+ ],
+ "unresolved": [
+  {
+   "file": "CORE/WORMS/expansion/chorus.py",
+   "func": "_get_provider",
+   "lineno": 309,
+   "raw": "src.CORE.inference.providers",
+   "target": null,
+   "verdict": "UNRESOLVED"
+  }
+ ],
+ "unresolved_note": "chorus.py:309 src.CORE... fallback removed 2026-10-22 (dead path, src/ not a package)",
+ "habit_by_file": {
+  "AOA/aoa_monitor.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "AOA/arms/azazael_arm.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 5,
+   "UNRESOLVED": 0
+  },
+  "AOA/arms/eve_arm.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 9,
+   "UNRESOLVED": 0
+  },
+  "AOA/arms/support_arms.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "AOA/core/router.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CODEX/comprehensive/GENERATE_ALL_11.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CODEX/comprehensive/GENERATE_HTML.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CODEX/comprehensive/GENERATE_RICH_HTML.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CODEX/SESSION_TEMPLATE/generators/unified_generator.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CODEX/TESTING/UNIT/test_metaworms.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CODEX/TESTING/UNIT/test_wormz.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CODEX/VIDEOS/generate_dashboard_video.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/arxiv_integration.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/audit_trail.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 0,
+   "UNRESOLVED": 0
+  },
+  "CORE/azazael_ctl.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 28,
+   "UNRESOLVED": 0
+  },
+  "CORE/backend_bandit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/backup.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/cd2_verifier.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/circuit_breaker.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/cli_audit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/cli_crossref.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/cli_memory.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/compliance/dashboard_api.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/compliance/governance.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/compliance/orchestrator.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/compliance/pre_action_gate.py": {
+   "CYCLE-GENUINE": 2,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "CORE/compliance/scanner.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/config.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 0,
+   "UNRESOLVED": 0
+  },
+  "CORE/dashboard.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 29,
+   "UNRESOLVED": 0
+  },
+  "CORE/data_retention.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 10,
+   "UNRESOLVED": 0
+  },
+  "CORE/direct_memory.py": {
+   "CYCLE-GENUINE": 2,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/dispatch_plan.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/doctor.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 13,
+   "UNRESOLVED": 0
+  },
+  "CORE/dream_arena.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/dream_policy_bridge.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/graph_artifacts.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/health_server.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "CORE/hlc.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/inference/bus_utils.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/l1_wiring_audit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 7,
+   "UNRESOLVED": 0
+  },
+  "CORE/latent_align.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/latent_refine.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/local_memory.py": {
+   "CYCLE-GENUINE": 3,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "CORE/MemoryBus.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/mesh_transport.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/metrics.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/neural_loop.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 15,
+   "UNRESOLVED": 0
+  },
+  "CORE/notifier.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 7,
+   "UNRESOLVED": 0
+  },
+  "CORE/orkg_integration.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/rollback.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/rubric_evolution.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/sentinel_enforcer.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/skill_library.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/spine_registry.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 14,
+   "UNRESOLVED": 0
+  },
+  "CORE/startup_warm.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 7,
+   "UNRESOLVED": 0
+  },
+  "CORE/structured_action.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_runtime.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_b01_05.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 9,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l0_model.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 7,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l1_memory.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l2_skills.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 9,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l3_verify.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 5,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l4_exec.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l5_dispatch.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 13,
+   "UNRESOLVED": 0
+  },
+  "CORE/technique_wiring/_l7_interface.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 11,
+   "UNRESOLVED": 0
+  },
+  "CORE/verification_gate.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/web_dashboard.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/workflow.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 5,
+   "UNRESOLVED": 0
+  },
+  "CORE/worm_governance.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/worm_health.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/worm_registry.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 8,
+   "UNRESOLVED": 0
+  },
+  "CORE/worm_registry_cache.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/__init__.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/BINARY_ANALYSIS.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 11,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/BINARY_ANALYSIS_TYPES.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/CLUSTERWORMS.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/CONCURRENCY.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/ablation_study.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/berks.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/chaos.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/chorus.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 1
+  },
+  "CORE/WORMS/expansion/code_audit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/consensus.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 5,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/cppn.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/cutting_edge_model.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/db_monitor.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/delegation.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/dreaming.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 10,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/engram.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/envmesh.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/evolution_audit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/fabric_state.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/hyperopt.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/immune.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/jev_advisor.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/learning_features.py": {
+   "CYCLE-GENUINE": 2,
+   "HABIT": 0,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/learning_grpo.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 10,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/learning_pipeline.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/learning_rl.py": {
+   "CYCLE-GENUINE": 2,
+   "HABIT": 8,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/learning_versioner.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/mesh.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 9,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/oracle.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 4,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/queens.py": {
+   "CYCLE-GENUINE": 2,
+   "HABIT": 12,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/reflexion.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/scheduling.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 17,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/servemesh.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/session_state.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/spawn_credit.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/spine.py": {
+   "CYCLE-GENUINE": 1,
+   "HABIT": 17,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/synapse.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/threatmon.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/expansion/xenomorph.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/INFERENCE_SUBSCRIBER.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/METACLUSTER.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 9,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/WORM_SELECTOR.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "CORE/WORMS/worm_telemetry.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "CORE/xref_auto_link.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "DAEMONS/parallax_validator.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/consciousness.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/decision_engine.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/pams_evolution.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/predictive_worms.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/self_modifying_worms.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "eve_unleashed/service_manager.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "HYDRA/hydra_protocols.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "META/DebugZ.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "META/DistillZ.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "META/FleetZ.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "META/InferenceBridge.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "MISSING_TOOLS.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 3,
+   "UNRESOLVED": 0
+  },
+  "ORCHESTRATION/ml_platforms/install_manager.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "SCRIPTS/generate_telemetry.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "SCRIPTS/request_auth.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "SCRIPTS/session_start.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "tests/test_ecosystem.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  },
+  "tests/test_evolution_accuracy.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 1,
+   "UNRESOLVED": 0
+  },
+  "tests/test_learning_loop.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 6,
+   "UNRESOLVED": 0
+  },
+  "UTILITIES/TERENCE/TERENCE.py": {
+   "CYCLE-GENUINE": 0,
+   "HABIT": 2,
+   "UNRESOLVED": 0
+  }
+ },
+ "habit_note": "548 habit-lazy sites across 138 files: deferred imports with no top-level reachability cycle. Conversion to top-level is safe per-site but NOT done in bulk: each needs its own import smoke (import-time side effects, e.g. AOA diagram writers f22-07, forbid blind hoisting).",
+ "fixes_applied_this_lane": [
+  "_nm_pe PE offset +112/+96 -> +108/+92 (netsh.exe 0 -> 24 rows)",
+  "chorus src.CORE fallback removed",
+  "spine:1844 self-import -> module-global",
+  "direct_memory:2350 docstring corrected (cycle is real, via verification_gate+CORE hub)",
+  "transcript_ap5_gate findings print full ids (was [:12])"
+ ],
+ "maps_checked_no_change": [
+  "state/tool_dependency_graph.json (registry nodes/edges unchanged: no function added, removed, or renamed)",
+  "state/SOK_DOMAIN_MAP_2026-10-22.json (technique domain untouched)",
+  "state/adoption_census.json + adoption_census_b01-05.json (technique adoption domain untouched)"
+ ]
+}

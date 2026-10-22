@@ -849,8 +849,10 @@ def main(argv: list[str] | None = None) -> int:
     print("")
     print("  AP-5: %d finding(s)" % len(report.findings))
     for f in report.findings:
+        # Full ids: 12-char truncations are not lookup keys (2026-10-22
+        # lane-B #9 — a truncated id reproduces to "not found").
         print("  [%s] %s %s msg=%s line=%d %r" % (
-            f.rule, f.source, f.session_id[:12], f.message_id[:12], f.line,
+            f.rule, f.source, f.session_id, f.message_id, f.line,
             f.match))
         if f.excerpt:
             print("      \u2026 %s" % f.excerpt)
