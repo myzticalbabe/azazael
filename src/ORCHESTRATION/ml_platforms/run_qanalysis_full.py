@@ -77,7 +77,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         note_failure("run_qanalysis_full:L66", exc)
 
     try:
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
         x = tf.random.normal((50, 50))
         y = tf.random.normal((50, 50))
