@@ -53,6 +53,12 @@ try:
 except Exception:
     _ParallelEngine = None  # type: ignore[assignment]
     _PI_OK = False
+try:
+    from CORE.WORMS.expansion import mars_claims as _MarsClaims
+    _MARS_OK = True
+except Exception:
+    _MarsClaims = None  # type: ignore[assignment]
+    _MARS_OK = False
 
 
 _NOTE_FAILURES: List[str] = []
@@ -97,6 +103,9 @@ class Anchors:
     symbols: List[str] = field(default_factory=list)
     hashes: Dict[str, str] = field(default_factory=dict)
     sections: List[str] = field(default_factory=list)
+    subsystem: str = ""
+    entropy_overall: float = 0.0
+    entropy_packed: bool = False
     tool_errors: List[str] = field(default_factory=list)
 
     def terms(self, limit: int = 40) -> List[str]:
@@ -152,6 +161,15 @@ def extract_anchors(path: str, limit: int = 200) -> Anchors:
                 if isinstance(secs, list):
                     out.sections = [str(s.get("name", "")) for s in secs
                                     if isinstance(s, dict) and s.get("name")][:limit]
+                sub = details.get("subsystem", "")
+                if isinstance(sub, str):
+                    out.subsystem = sub
+            ent = data.get("entropy", 0.0)
+            if isinstance(ent, (int, float)):
+                out.entropy_overall = float(ent)
+            packed = data.get("is_packed", False)
+            if isinstance(packed, bool):
+                out.entropy_packed = packed
     except Exception as exc:
         out.tool_errors.append("binary_analysis:%s" % type(exc).__name__)
         _note("anchor-retrieval:extract-static", exc)
@@ -307,7 +325,36 @@ class AnchorRetrievalWorm:
                 len(hits), anchors.path)
             rank = rerank_candidates(prompt, hits)
         ok = bool(anchors.terms())
+        # MARS absorption: every non-thin bundle is scored by the Lane B
+        # claim layer and its verdict links join the unity ledger. Thin
+        # bundles skip (no fabrication from absence); MARS never raises.
+        mars: Dict[str, Any] = {"evaluated": False, "reason": "thin-anchors",
+                                "score": 0.0, "verdict": "", "n_claims": 0,
+                                "emitted": []}
+        if _MARS_OK and _MarsClaims is not None and ok:
+            try:
+                pe_view = {"imports": list(anchors.imports),
+                           "exports": list(anchors.exports),
+                           "subsystem": anchors.subsystem,
+                           "sections": list(anchors.sections)}
+                ent_view = {"overall_entropy": anchors.entropy_overall,
+                            "is_packed": anchors.entropy_packed}
+                verdict = _MarsClaims.evaluate(
+                    pe=pe_view, entropy=ent_view,
+                    symbols=list(anchors.symbols) or None)
+                emitted = _MarsClaims.emit_verdict_links(verdict, anchors.path)
+                mars = {"evaluated": True, "reason": "ok",
+                        "score": float(getattr(verdict, "score", 0.0)),
+                        "verdict": str(getattr(verdict, "verdict", "")),
+                        "n_claims": len(list(getattr(verdict, "claims", ()) or ())),
+                        "emitted": [bool(x) for x in (emitted or ())]}
+            except Exception as exc:
+                mars["reason"] = "%s" % type(exc).__name__
+                _note("anchor-retrieval:mars", exc)
         _join_row("execute", anchors.path, ok,
-                  "kept=%d vetoed=%d" % (grounding["n_kept"], grounding["n_vetoed"]))
+                  "kept=%d vetoed=%d mars=%s/%.2f" % (
+                      grounding["n_kept"], grounding["n_vetoed"],
+                      mars["verdict"] or "skipped", mars["score"]))
         return {"success": ok, "anchors": anchors.__dict__,
-                "n_hits": len(hits), "grounding": grounding, "rerank": rank}
+                "n_hits": len(hits), "grounding": grounding, "rerank": rank,
+                "mars": mars}

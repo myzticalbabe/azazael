@@ -125,4 +125,32 @@ def test_worm_execute_never_raises_missing_binary(monkeypatch):
     assert out["success"] is False
     assert out["n_hits"] == 0
     assert out["rerank"]["reason"] == "rerank-disabled"
+    # Thin bundles skip MARS (no fabrication from absence).
+    assert out["mars"]["evaluated"] is False
+    assert out["mars"]["reason"] == "thin-anchors"
+
+
+def test_worm_execute_absorbs_mars_on_rich_bundle(monkeypatch):
+    import CORE.WORMS.expansion.anchor_retrieval as ar
+    rich = ar.Anchors(
+        path="rich_fixture.exe",
+        imports=["ws2_32.dll"],
+        sections=[".text", ".rdata"],
+        subsystem="WINDOWS_CUI",
+        entropy_overall=6.8,
+        entropy_packed=False,
+    )
+    monkeypatch.setattr(ar, "extract_anchors", lambda path, limit=200: rich)
+    out = AnchorRetrievalWorm().execute(
+        "rich_fixture.exe",
+        claims=[{"text": "binary uses ws2_32 sockets"}],
+        rerank=False)
+    assert out["success"] is True
+    mars = out["mars"]
+    assert mars["evaluated"] is True
+    # import_dll_ws2_32 + entropy_overall_elevated fire deterministically.
+    assert mars["n_claims"] >= 2
+    assert isinstance(mars["verdict"], str) and mars["verdict"]
+    # Both families emitted live unity-ledger rows (isolated store).
+    assert mars["emitted"] == [True, True]
     assert out["grounding"]["n_vetoed"] == 1
