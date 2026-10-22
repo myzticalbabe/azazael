@@ -30,7 +30,7 @@ except ImportError:                               # never break the host
 
 
 class _Proc:
-    def __init__(self, returncode=0, stdout="", stderr=""):
+    def __init__(self, returncode=0, stdout: str | bytes = "", stderr=""):
         self.returncode = returncode
         self.stdout = stdout
         self.stderr = stderr

@@ -93,15 +93,16 @@ class SessionManager:
     def record_milestone(self, arm_id, action, description="", status=None, artifacts=None, metadata=None, depends_on=None, duration_ms=0.0):
         if status is None:
             status = MilestoneStatus.COMPLETED
-        if self._active_session is None:
-            self.create_session()
+        session = self._active_session
+        if session is None:
+            session = self.create_session()
         milestone = Milestone(
             arm_id=arm_id, action=action, description=description,
             status=status, artifacts=artifacts or [],
             metadata=metadata or {}, depends_on=depends_on or [],
             duration_ms=duration_ms,
         )
-        self._active_session.milestones.append(milestone)
+        session.milestones.append(milestone)
         return milestone
 
     def complete_session(self, status="completed"):
