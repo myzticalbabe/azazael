@@ -128,6 +128,10 @@ def _alias_use(code: str, aliases: set) -> bool:
         # use of the channel — CLUSTERWORMS.py:89 names it without consuming it.
         if re.match(r"\s*(def|class)\s+" + re.escape(n) + r"\b", code):
             continue
+        # GUARD-1 alias arm (same EP301 shape): `CascadeRouter = None` and
+        # friends name the alias without consuming it.
+        if re.match(r"\s*" + re.escape(n) + r"\s*=\s*None\b", code):
+            continue
         return True
     return False
 
@@ -221,6 +225,58 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
     return out
 
 
+#: GUARD-2 (2026-10-22, EP271 falsification): bare-generic symbols that are
+#: ordinary English/programming vocabulary. EP271 measures bare `plan`/`proxy`
+#: while the technique is `MCTSPlanner` (`_uct`/`plan` methods): 192 production
+#: "sites" across 27 files, ZERO lines mentioning MCTS, most matching
+#: `morph_ab_plan(` (substring, different function) or each file's own local
+#: `plan()` (chain_controller.py defines its own at :409). A bare-generic hit
+#: counts only when the line names it on a word boundary AND the file binds the
+#: host module (imports its stem or uses `stem.` qualified). Narrow by design:
+#: only symbols in this set are gated; `dream`/`refine` rows stay under their
+#: recorded verdicts until a lane adjudicates them with the same line evidence.
+_GENERIC_BARE = {"plan", "proxy"}
+
+
+_HOST_IMPORT_CACHE: Dict[Path, set] = {}
+
+
+def _host_imported_names(repo: Path, rel: str, stems: set) -> set:
+    """Names the file binds to one of the host module stems (AST, cached).
+
+    `from allocation import plan` binds `plan`; `from allocation import plan
+    as _p` binds both; `import allocation` binds `allocation` (so a later
+    `allocation.plan(` resolves). Prose mentions ("the allocation policy") and
+    string literals never bind — the 2026-10-22 EP271 run showed a prose
+    sentence ending in "allocation." passing a text-level `stem.` check and
+    keeping 26 `self.plan` sites alive in a file that never imports the host.
+    Files do not change mid-run, so parse once.
+    """
+    p = repo / rel
+    hit = _HOST_IMPORT_CACHE.get(p)
+    if hit is None:
+        hit = set()
+        try:
+            text, _ = _load(p)
+            tree = ast.parse(text)
+        except (OSError, SyntaxError, ValueError, MemoryError):
+            tree = None
+        if tree is not None:
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.module:
+                    if node.module.split(".")[-1] in stems:
+                        for a in node.names:
+                            hit.add(a.name)
+                            if a.asname:
+                                hit.add(a.asname)
+                elif isinstance(node, ast.Import):
+                    for a in node.names:
+                        if a.name.split(".")[-1] in stems:
+                            hit.add(a.asname or a.name.split(".")[-1])
+        _HOST_IMPORT_CACHE[p] = hit
+    return hit
+
+
 def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
     """True when `line` mentions `symbol` as something other than its own def."""
     if symbol not in line:
@@ -228,6 +284,13 @@ def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
     if _is_prose_context(line):
         return False
     if _IMPORT.match(line):
+        return False
+    # GUARD-1 (2026-10-22, EP301 falsification): a None-fallback assignment arm
+    # (`verify_inclusion_proof = None` inside `except ImportError`) is a wiring
+    # ABSENCE, not a call site. The try-block import is excluded by mandate and
+    # nothing invokes the name, so counting the fallback adopted EP301 on zero
+    # production use. Lvalue `NAME = None` never counts, for any symbol.
+    if re.match(r"\s*" + re.escape(symbol.split(".")[-1]) + r"\s*=\s*None\b", line):
         return False
     if def_owner and re.match(r"\s*(def|class)\s+" + re.escape(symbol.split(".")[-1]) + r"\b", line):
         return False
@@ -500,6 +563,51 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
                     prod_hits.extend(ph)
                     exer_hits.extend(eh)
 
+        # GUARD-2 enforcement (see _GENERIC_BARE): drop bare-generic sites that
+        # neither name the symbol on a word boundary nor sit in a file bound to
+        # one of this row's host modules. A site also matching a non-generic
+        # measured symbol on a boundary survives regardless.
+        gen_syms = ({s.split(".")[-1] for _, ss in segments for s in ss}
+                    & _GENERIC_BARE)
+        if gen_syms:
+            stems = {Path(h).stem for h, _ in segments}
+            spec_syms = [s.split(".")[-1] for _, ss in segments for s in ss
+                        if s.split(".")[-1] not in _GENERIC_BARE]
+
+            def _generic_keep(loc: str) -> bool:
+                p, _, ln = loc.rpartition(":")
+                try:
+                    line = (repo / p).read_text(
+                        encoding="utf-8", errors="replace").splitlines()[int(ln) - 1]
+                except (OSError, IndexError, ValueError) as exc:
+                    _unreadable = "%s:%s" % (p, exc)
+                    return False
+                code = _code_part(line)
+                if any(re.search(r"(?<![\w])" + re.escape(s) + r"\b", code)
+                       for s in spec_syms):
+                    return True
+                if not any(re.search(r"(?<![\w])" + re.escape(g) + r"\b", code)
+                           for g in gen_syms):
+                    return False
+                # The generic name must resolve to the host: imported from it
+                # (`from allocation import plan` then `plan(`), or an attribute
+                # of a host-bound module (`allocation.plan(`). A file that
+                # merely imports a DIFFERENT surface (ThompsonAllocator) while
+                # running its own `self.plan` keeps nothing.
+                bound = _host_imported_names(repo, p, stems)
+                for g in gen_syms:
+                    if g in bound and re.search(
+                            r"(?<![\w])" + re.escape(g) + r"\s*\(", code):
+                        return True
+                    if any(re.search(r"(?<![\w])" + re.escape(b) +
+                                     r"\s*\.\s*" + re.escape(g) + r"\b", code)
+                           for b in bound):
+                        return True
+                return False
+
+            prod_hits = [loc for loc in prod_hits if _generic_keep(loc)]
+            exer_hits = [loc for loc in exer_hits if _generic_keep(loc)]
+
         # ADOPTION requires a caller in a DIFFERENT production module: a technique
         # merely referenced inside its own host file is built, not adopted. This is
         # the distinction the retired engaged=181 counter collapsed.
@@ -692,6 +800,37 @@ def _self_test(repo: Path = REPO) -> int:
             if _is_prose_context(line):
                 failures.append(f"prose leak: {loc} counted as a call site")
                 break
+
+    # NEGATIVE-F (2026-10-22, EP301): a None-fallback assignment arm is a
+    # wiring absence, not a call site. sentinel_gate.py:81 names
+    # verify_inclusion_proof only as `= None` under `except ImportError`.
+    prod_f, _ = production_callers("verify_inclusion_proof", repo)
+    if prod_f:
+        failures.append(
+            "negative control F FAILED: None-fallback arm counted as caller: "
+            f"{prod_f[:2]} (GUARD-1 regressed)")
+    else:
+        print("negative control F OK: verify_inclusion_proof scores 0 prod "
+              "(fallback arm excluded)")
+
+    # NEGATIVE-G (2026-10-22, EP271): bare-generic hits need host binding, and
+    # that rule lives in census(), not _sniff — so the control asserts the row
+    # outcome, not the raw matcher. chain_controller.py defines its own plan()
+    # (:409) and never imports allocation; morph_ab_plan is proteus_hooks, not
+    # MCTSPlanner. EP271 must not score ADOPTED; any surviving prod site must
+    # sit in an allocation-bound file.
+    rep271 = next((r for r in rep["results"] if r["ep"] == "EP271"), None)
+    if rep271 is None:
+        failures.append("negative control G FAILED: EP271 row missing from map")
+    elif rep271["verdict"] == "ADOPTED":
+        failures.append(
+            "negative control G FAILED: EP271 scores ADOPTED with sites "
+            f"{rep271['production_call_sites'][:3]} (GUARD-2 regressed: no "
+            "production file imports plan/proxy from allocation — batch-3 "
+            "demotion evidence + 2026-10-22 line audit stand)")
+    else:
+        print(f"negative control G OK: EP271 scores {rep271['verdict']}, "
+              f"{len(rep271['production_call_sites'])} prod site(s)")
 
     if failures:
         print("\nSELF-TEST FAILED:")
