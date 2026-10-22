@@ -48,7 +48,7 @@ class WormFleet:
         ("CIRCULAR_IMPORT_WORM", "Detects circular dependencies"),
     ]
 
-    def __init__(self, root: str = None):
+    def __init__(self, root: str | None = None):
         self.root = Path(root) if root else get_project_root()
         self.results: dict[str, list] = {}
         self.excluded = {

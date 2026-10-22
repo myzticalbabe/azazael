@@ -432,7 +432,7 @@ class AgentHealthReporter:
 
         self._last_check_time = now
 
-        by_status: dict[str, list[AgentHealth]] = defaultdict(list)
+        by_status = defaultdict(list)
         for h in results:
             by_status[h.status].append(h)
 

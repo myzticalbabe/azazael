@@ -1084,7 +1084,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
 
     # RADIX
     if keys and n >= 12:
-        pairs = {k: v[:n] for k, v in data.items() if len(v) >= n}
+        pairs: Dict[str, Sequence[float]] = {k: v[:n] for k, v in data.items() if len(v) >= n}
         try:
             out["radix"] = discover(pairs, target=target if target in pairs else None,
                                     check=check if check in pairs else None,

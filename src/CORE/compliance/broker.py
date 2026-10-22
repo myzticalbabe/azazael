@@ -554,7 +554,7 @@ def enforce_gate(action_name: str = ""):
             @wrapt.decorator
             def wrapper_func(wrapped, instance, args, kwargs):  # pyright: ignore[reportRedeclaration]
                 return gate_wrapper(wrapped, *args, **kwargs)
-            result = wrapper_func(wrapped)  # pyright: ignore[reportCallIssue]
+            result = wrapper_func(wrapped)  # pyright: ignore[reportCallIssue, reportArgumentType] -- wrapt ships no stubs; its decorator factory accepts the tool proxy at runtime
             _decorated_tools[actual_action] = wrapped
             return result
         elif wrapped is not None:

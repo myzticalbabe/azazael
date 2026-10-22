@@ -107,7 +107,7 @@ def list_backups() -> list:
     return backups
 
 
-def incremental_backup(output_dir: str = None) -> dict:
+def incremental_backup(output_dir: str | None = None) -> dict:
     """Create an incremental backup of DB and audit files.
     
     Only copies files that have changed since the last backup

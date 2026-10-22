@@ -13,7 +13,7 @@ except ImportError:                               # never break the host
 
 
 def walk_forward(series, min_train: int, step: int,
-                 forecast_fn: Callable, metric_fn: Callable = None):
+                 forecast_fn: Callable, metric_fn: Callable | None = None):
     """Expanding-window 1-step backtest. Returns list of (i, y, yhat, err)."""
     metric_fn = metric_fn or (lambda y, yh: abs(y - yh))
     out = []
