@@ -342,7 +342,7 @@ def distill_cap_victims(caps: dict | None = None,
 _COMPOSITE_RANK_CAP = 128
 
 
-def _composite_victims(conn: object, victim_type: str,
+def _composite_victims(conn: sqlite3.Connection, victim_type: str,
                        batch: int) -> tuple[list, dict]:
     """Pick victims by redundancy (EP478 composite rule).
 
@@ -449,7 +449,10 @@ def enforce_global_quota(quota_mb: int | None = None,
             # keeps the legacy oldest-first set above: the backstop must
             # never depend on the model server.
             try:
-                _store = _get_memory_store() if _STORE_OK else None
+                if _STORE_OK and callable(_get_memory_store):
+                    _store = _get_memory_store()
+                else:
+                    _store = None
                 _preview = (_store.composite_eviction_preview(
                     "quota:%s" % victim_type) if _store is not None else {})
             except Exception as exc:
