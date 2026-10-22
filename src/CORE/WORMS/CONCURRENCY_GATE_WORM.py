@@ -38,7 +38,7 @@ try:
 except ImportError as exc:
     note_failure("CONCURRENCY_GATE_WORM:registry", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 
@@ -183,7 +183,11 @@ class ConcurrencyGateWorm:
             if victim:
                 self._active.pop(victim.request_id, None)
                 self._token_bucket += victim.estimated_tokens
-                victim.future.set_exception(RuntimeError("Preempted by higher priority"))
+                fut = victim.future
+                if fut is not None:
+                    fut.set_exception(RuntimeError("Preempted by higher priority"))
+                else:
+                    note_failure("CONCURRENCY_GATE_WORM:L186", RuntimeError("preempted victim had no future to signal"))
                 self._stats["preempted"] += 1
                 return self._grant(req)
             

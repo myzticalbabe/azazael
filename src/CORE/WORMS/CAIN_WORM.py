@@ -60,10 +60,8 @@ except ImportError as exc:
     # No-op fallback so the module works without the registry
     # No-op fallback so the module works without the registry
     note_failure("CAIN_WORM:L50", exc)
-    def register_worm(**kwargs):
-        def decorator(cls):
-            return cls
-        return decorator
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
+        return lambda cls: cls
 
 
 @register_worm(
@@ -152,7 +150,7 @@ class CainWorm:
         }
 
     @staticmethod
-    def run_complete_analysis(session_data: dict[str, Any] = None) -> dict[str, Any]:
+    def run_complete_analysis(session_data: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run the complete CAIN psychoanalysis framework.
 
         Args:

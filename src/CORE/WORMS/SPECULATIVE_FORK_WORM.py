@@ -39,7 +39,7 @@ try:
 except ImportError as exc:
     note_failure("SPECULATIVE_FORK_WORM:registry", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 
