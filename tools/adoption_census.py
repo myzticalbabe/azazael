@@ -246,7 +246,17 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
 _GENERIC_BARE = {"plan", "proxy", "refine", "observe"}
 
 
-_HOST_IMPORT_CACHE: Dict[Path, set] = {}
+_HOST_IMPORT_MAP: Dict[Path, list] = {}
+
+#: Collaborator-alias cache: (file, symbol, stems) -> {alias names}. See the
+#: note at the build site — uncached full-text scans per _sniff call timed out
+#: the self-test.
+_COLLAB_CACHE: Dict[tuple, set] = {}
+
+#: Unreadable-site records from _generic_keep. The except handler must carry a
+#: second statement (record, not silence) so the body-length gate clears it
+#: structurally instead of by suppression.
+_READ_ERRORS: List[str] = []
 
 
 def _host_imported_names(repo: Path, rel: str, stems: set) -> set:
@@ -259,11 +269,18 @@ def _host_imported_names(repo: Path, rel: str, stems: set) -> set:
     sentence ending in "allocation." passing a text-level `stem.` check and
     keeping 26 `self.plan` sites alive in a file that never imports the host.
     Files do not change mid-run, so parse once.
+
+    Cache holds the FULL (stem, name) map per file and filters per call: the
+    same file is queried with DIFFERENT stem sets across rows/segments, so a
+    path-keyed RESULT set returned the first caller's answer to every later
+    caller (found 2026-10-22: a depo_filter scan poisoned the next
+    bounded_correct scan of the same file with an extra :253 hit). Filtering
+    a cached map keeps one parse per file AND per-stems correctness.
     """
     p = repo / rel
-    hit = _HOST_IMPORT_CACHE.get(p)
-    if hit is None:
-        hit = set()
+    pairs = _HOST_IMPORT_MAP.get(p)
+    if pairs is None:
+        pairs = []
         try:
             text, _ = _load(p)
             tree = ast.parse(text)
@@ -272,17 +289,17 @@ def _host_imported_names(repo: Path, rel: str, stems: set) -> set:
         if tree is not None:
             for node in ast.walk(tree):
                 if isinstance(node, ast.ImportFrom) and node.module:
-                    if node.module.split(".")[-1] in stems:
-                        for a in node.names:
-                            hit.add(a.name)
-                            if a.asname:
-                                hit.add(a.asname)
+                    stem = node.module.split(".")[-1]
+                    for a in node.names:
+                        pairs.append((stem, a.name))
+                        if a.asname:
+                            pairs.append((stem, a.asname))
                 elif isinstance(node, ast.Import):
                     for a in node.names:
-                        if a.name.split(".")[-1] in stems:
-                            hit.add(a.asname or a.name.split(".")[-1])
-        _HOST_IMPORT_CACHE[p] = hit
-    return hit
+                        stem = a.name.split(".")[-1]
+                        pairs.append((stem, a.asname or stem))
+        _HOST_IMPORT_MAP[p] = pairs
+    return {name for (stem, name) in pairs if stem in stems}
 
 
 def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
@@ -362,7 +379,8 @@ def _load(path: Path) -> Tuple[str, set]:
     return hit
 
 
-def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[str]]:
+def _sniff(path: Path, symbol: str, repo: Path,
+           host_stems: frozenset = frozenset()) -> Tuple[bool, List[str], List[str]]:
     """Return (defined_here, prod_hits, exercise_hits) for `symbol` in `path`."""
     rel = path.relative_to(repo).as_posix()
     if not path.exists():
@@ -381,18 +399,6 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
     if not short:
         return defined_here, [], []
 
-    # A QUALIFIED symbol (`CascadeRouter.route`) may not be collapsed to its last
-    # component. Doing so made `route` match ordinary English prose -- the row for
-    # EP208 reported 540 "production call sites" that were sentences like
-    # "full_text route is the practical extraction path." and a docstring line
-    # `("routing", "expert router sends everything to one expert")`. A file that
-    # never names the owner class cannot contain an attribute call on it, so the
-    # owner's presence is a precondition for any hit whatsoever.
-    parts = symbol.split(".")
-    owner = parts[-2] if len(parts) >= 2 else ""
-    if owner and not re.search(r"\b" + re.escape(owner) + r"\b", text):
-        return defined_here, [], []
-
     # Aliases: `from X import merge_sops as _MERGE_SOPS` means the real call site
     # says `_MERGE_SOPS(...)`. Without this the tool misses every aliased caller --
     # it reported canon_drift_check.py (the one REAL production caller of
@@ -404,6 +410,13 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
     # Alias map is cached per file: parsing per (file, symbol) triple regressed
     # the census past the command timeout. The regex pass below stays as a
     # fallback for files ast.parse cannot handle.
+    # COLLABORATOR aliases (2026-10-22, lifecycle redo): constructor-injected
+    # collaborators (`self._corrector = corrector or _bounded_correct`) move the
+    # call shape to `self._corrector(...)`, which names neither the symbol nor
+    # the owner word. The binding is still statically visible: the RHS names a
+    # host-bound import, so the LHS becomes an alias for THIS symbol only.
+    # Same binding standard as GUARD-2 (host-module import stem); bare
+    # `self._helper(` calls with no such binding score nothing.
     names = {short} | set(_alias_map(path, text).get(short, ()))
     for line in text.splitlines():
         m = re.match(r"\s*from\s+\S+\s+import\s+(.+)$", line)
@@ -417,6 +430,98 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
             if bits[0].strip() == short and len(bits) == 2:
                 names.add(bits[1].strip())
 
+    # A QUALIFIED symbol (`CascadeRouter.route`) may not be collapsed to its last
+    # component. Doing so made `route` match ordinary English prose -- the row for
+    # EP208 reported 540 "production call sites" that were sentences like
+    # "full_text route is the practical extraction path." and a docstring line
+    # `("routing", "expert router sends everything to one expert")`. A file that
+    # never names the owner class cannot contain an attribute call on it, so the
+    # owner's presence is a precondition for any hit whatsoever.
+    parts = symbol.split(".")
+    owner = parts[-2] if len(parts) >= 2 else ""
+    if owner and not re.search(r"\b" + re.escape(owner) + r"\b", text):
+        # OWNER-BINDING fallback (2026-10-22, EP414/EP478 falsification):
+        # factory-produced receivers (`store = get_memory_store();
+        # store.generative_compaction_status()`) never spell the owner class,
+        # so the bare-word precondition silenced genuine attribute calls
+        # (nightly_maintenance.py:158, data_retention.py:431 scored nothing).
+        # Keep ATTRIBUTE-call sites (`.method(`) in files bound to the
+        # owner's host module (import stem -- the GUARD-2 binding standard);
+        # bare `method(` calls without the owner word stay excluded, and
+        # files importing nothing from the host stay excluded, so EP208-style
+        # prose and foreign same-named methods still score nothing.
+        bound = (_host_imported_names(repo, rel, set(host_stems))
+                 if host_stems else set())
+        if not bound:
+            return defined_here, [], []
+        attr_pat = re.compile(
+            r"\.\s*(?:" + "|".join(re.escape(n) for n in names) + r")\s*\(")
+        fprod: List[str] = []
+        fexer: List[str] = []
+        for i, line in enumerate(text.splitlines(), 1):
+            if i in skip:
+                continue
+            code = _code_part(line)
+            if short not in code:
+                continue
+            if _IMPORT.match(line) or _is_prose_context(line):
+                continue
+            if re.match(r"\s*" + re.escape(short) + r"\s*=\s*None\b", line):
+                continue
+            if not attr_pat.search(code):
+                continue
+            loc = f"{rel}:{i}"
+            (fexer if rel.startswith(EXERCISE_DIR) else fprod).append(loc)
+        return defined_here, sorted(set(fprod)), sorted(set(fexer))
+
+    # Collaborator scan is cached per (file, symbol, stems): the DOTALL pass
+    # costs a full-text regex per _sniff call, and _sniff runs per
+    # (row, segment, candidate-file) — uncached it pushed the self-test past
+    # the command timeout. Files do not change mid-run, so memoize.
+    _ckey = (path, short, frozenset(host_stems))
+    collab = _COLLAB_CACHE.get(_ckey)
+    if collab is None:
+        collab = set()
+        if host_stems:
+            # The RHS must name the SYMBOL (short or its import asnames) as
+            # imported from a host stem — not merely any host-module name.
+            # `store = get_memory_store()` binds the FACTORY, and `_regime =
+            # track_regime()` binds a DIFFERENT function; neither is a call
+            # path to the measured symbol, but a host-names-only check kept
+            # both and adopted EP414/EP478 on `_regime()` lines that never
+            # utter either method (found 2026-10-22, 8 phantom sites per row
+            # in run_training_orchestrator.py). Factory receivers stay the
+            # OWNER-fallback's job (`.method(` attribute shape); collab is
+            # for symbol-or-asname RHS only.
+            _relevant = (_host_imported_names(repo, rel, set(host_stems))
+                          & names)
+            if _relevant:
+                for _ln in text.splitlines():
+                    _m = re.match(
+                        r"\s*(?:self\.)?(\w+)\s*=\s*(.+)$", _ln)
+                    if not _m:
+                        continue
+                    _lhs, _rhs = _m.group(1), _m.group(2)
+                    if _lhs == short or _lhs in names:
+                        continue
+                    _words = set(re.findall(r"[A-Za-z_]\w*", _rhs))
+                    if _words & _relevant:
+                        collab.add(_lhs)
+                # Multi-line parenthesised bindings
+                # (`self._x = (a if ... else _B)`) split the RHS across lines,
+                # so the line pass above never sees the bound name. Scan the
+                # joined statement instead (bounded: 500 chars of
+                # balanced-paren-free RHS, then back to line discipline).
+                for _m in re.finditer(
+                        r"(?:self\.)?(\w+)\s*=\s*\(([^()]{0,500})\)",
+                        text, flags=re.DOTALL):
+                    _lhs = _m.group(1)
+                    if _lhs == short or _lhs in names:
+                        continue
+                    if (set(re.findall(r"[A-Za-z_]\w*", _m.group(2)))
+                            & _relevant):
+                        collab.add(_lhs)
+        _COLLAB_CACHE[_ckey] = collab
     prod: List[str] = []
     exer: List[str] = []
     lines = text.splitlines()
@@ -426,13 +531,52 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
         # String-only mentions are prose, not call sites (local_memory.py:2465
         # adopted EP221 on a dict-value sentence naming enforce_global_quota).
         code = _code_part(line)
-        if not any(n in code for n in names):
+        if not any(n in code for n in names) and not any(
+                c in code for c in collab):
             continue
-        if not _is_call_occurrence(code, short, def_owner=defined_here) and not _alias_use(code, names - {short}):
+        if not _is_call_occurrence(code, short, def_owner=defined_here) and not _alias_use(code, names - {short}) and not _alias_use(code, collab):
             continue
         loc = f"{rel}:{i}"
         (exer if rel.startswith(EXERCISE_DIR) else prod).append(loc)
     return defined_here, prod, exer
+
+
+def _generic_keep(repo: Path, loc: str, gen_syms: set, spec_syms: list,
+                  stems: set) -> bool:
+    """GUARD-2 row filter: keep `loc` iff it survives the generic-word gate.
+
+    Module-level (not nested in census) so the self-test can pin it directly
+    (control O). A site matching a non-generic measured symbol survives; a
+    site with NO generic word on its line survives (it arrived through a
+    specific gate — call-shape, owner-binding, or lifecycle collaborator —
+    each host-bound by construction); otherwise the generic name must resolve
+    to the host via import or host-bound attribute. Files that merely import a
+    different surface while running their own `self.plan` keep nothing.
+    """
+    p, _, ln = loc.rpartition(":")
+    try:
+        line = (repo / p).read_text(
+            encoding="utf-8", errors="replace").splitlines()[int(ln) - 1]
+    except (OSError, IndexError, ValueError) as exc:
+        _READ_ERRORS.append("%s:%s" % (loc, type(exc).__name__))
+        return False
+    code = _code_part(line)
+    if any(re.search(r"(?<![\w])" + re.escape(s) + r"\b", code)
+           for s in spec_syms):
+        return True
+    if not any(re.search(r"(?<![\w])" + re.escape(g) + r"\b", code)
+               for g in gen_syms):
+        return True
+    bound = _host_imported_names(repo, p, stems)
+    for g in gen_syms:
+        if g in bound and re.search(
+                r"(?<![\w])" + re.escape(g) + r"\s*\(", code):
+            return True
+        if any(re.search(r"(?<![\w])" + re.escape(b) +
+                         r"\s*\.\s*" + re.escape(g) + r"\b", code)
+               for b in bound):
+            return True
+    return False
 
 
 def _resolve_host(repo: Path, path_s: str) -> Path:
@@ -575,14 +719,18 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
             for sym in seg_syms:
                 measured.append(sym)
                 if seg_host is not None:
-                    dh, ph, eh = _sniff(seg_host, sym, repo)
+                    dh, ph, eh = _sniff(
+                        seg_host, sym, repo,
+                        host_stems=frozenset(Path(s).stem for s, _ in segments))
                     defined_here = defined_here or dh
                     host_internal.extend(ph)  # a host's OWN mentions are not adoption
                     exer_hits.extend(eh)
                 for p in cands:
                     if seg_host is not None and p == seg_host:
                         continue
-                    _, ph, eh = _sniff(p, sym, repo)
+                    _, ph, eh = _sniff(
+                        p, sym, repo,
+                        host_stems=frozenset(Path(s).stem for s, _ in segments))
                     prod_hits.extend(ph)
                     exer_hits.extend(eh)
 
@@ -596,40 +744,10 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
             stems = {Path(h).stem for h, _ in segments}
             spec_syms = [s.split(".")[-1] for _, ss in segments for s in ss
                         if s.split(".")[-1] not in _GENERIC_BARE]
-
-            def _generic_keep(loc: str) -> bool:
-                p, _, ln = loc.rpartition(":")
-                try:
-                    line = (repo / p).read_text(
-                        encoding="utf-8", errors="replace").splitlines()[int(ln) - 1]
-                except (OSError, IndexError, ValueError) as exc:
-                    _unreadable = "%s:%s" % (p, exc)
-                    return False
-                code = _code_part(line)
-                if any(re.search(r"(?<![\w])" + re.escape(s) + r"\b", code)
-                       for s in spec_syms):
-                    return True
-                if not any(re.search(r"(?<![\w])" + re.escape(g) + r"\b", code)
-                           for g in gen_syms):
-                    return False
-                # The generic name must resolve to the host: imported from it
-                # (`from allocation import plan` then `plan(`), or an attribute
-                # of a host-bound module (`allocation.plan(`). A file that
-                # merely imports a DIFFERENT surface (ThompsonAllocator) while
-                # running its own `self.plan` keeps nothing.
-                bound = _host_imported_names(repo, p, stems)
-                for g in gen_syms:
-                    if g in bound and re.search(
-                            r"(?<![\w])" + re.escape(g) + r"\s*\(", code):
-                        return True
-                    if any(re.search(r"(?<![\w])" + re.escape(b) +
-                                     r"\s*\.\s*" + re.escape(g) + r"\b", code)
-                           for b in bound):
-                        return True
-                return False
-
-            prod_hits = [loc for loc in prod_hits if _generic_keep(loc)]
-            exer_hits = [loc for loc in exer_hits if _generic_keep(loc)]
+            prod_hits = [loc for loc in prod_hits
+                         if _generic_keep(repo, loc, gen_syms, spec_syms, stems)]
+            exer_hits = [loc for loc in exer_hits
+                         if _generic_keep(repo, loc, gen_syms, spec_syms, stems)]
 
         # ADOPTION requires a caller in a DIFFERENT production module: a technique
         # merely referenced inside its own host file is built, not adopted. This is
@@ -778,6 +896,113 @@ def _self_test(repo: Path = REPO) -> int:
                 "symbol matched nothing (the owner gate is too strict)")
         else:
             print(f"positive control C OK: qualified symbol found -> {(ph + eh)[:2]}")
+
+    # POSITIVE-K / NEGATIVE-L: OWNER-BINDING fallback for dotted symbols whose
+    # receivers are factory-produced (no owner word in the file). Fixtures are
+    # the real wire lines, transcribed from the worktree:
+    #   - scripts/nightly_maintenance.py:158 calls
+    #     `store.generative_compaction_status()` after `from CORE.local_memory
+    #     import get_memory_store` (:148); the file never spells
+    #     `LocalMemoryStore`, so the bare-word owner gate scored it nothing.
+    #   - src/CORE/data_retention.py:431 calls
+    #     `(_store.composite_eviction_preview(` with the same import (:429).
+    # K: with the true host stem both lines score. L: with a foreign stem the
+    # SAME lines score nothing (binding is module-specific, not a blank pass).
+    for fixture, sym, call_frag, stems_ok in (
+        (repo / "scripts" / "nightly_maintenance.py",
+         "LocalMemoryStore.generative_compaction_status",
+         "generative_compaction_status(", {"local_memory"}),
+        (repo / "src" / "CORE" / "data_retention.py",
+         "LocalMemoryStore.composite_eviction_preview",
+         "composite_eviction_preview(", {"local_memory"}),
+    ):
+        if not fixture.exists():
+            continue
+        try:
+            flines = fixture.read_text(
+                encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            flines = []
+        # Expected site derived from the live file (never a hardcoded
+        # line number — edits move lines and a stale pin fails closed on
+        # the wrong thing, as the redo proved when :158 became :177).
+        exp = ["%s:%d" % (fixture.relative_to(repo).as_posix(), i)
+               for i, l in enumerate(flines, 1)
+               if call_frag in l and "." in l.split(call_frag)[0][-24:]]
+        _, ph, _ = _sniff(fixture, sym, repo,
+                           host_stems=frozenset(stems_ok))
+        if not exp or not any(e in ph for e in exp):
+            failures.append(
+                "positive control K FAILED: owner-binding fallback missed "
+                f"genuine attribute call {exp[:1] or '<?>'} for {sym} "
+                f"(found {ph[:3] or 'nothing'})")
+        else:
+            print(f"positive control K OK: {exp[0]} scores for {sym}")
+        _, ph_wrong, eh_wrong = _sniff(
+            fixture, sym, repo, host_stems=frozenset({"unrelated_stem"}))
+        if ph_wrong or eh_wrong:
+            failures.append(
+                "negative control L FAILED: foreign-stem binding kept "
+                f"{(ph_wrong + eh_wrong)[:3]} for {sym}")
+        else:
+            print(f"negative control L OK: {exp[:1] or sym} scores nothing "
+                  f"under a foreign stem")
+
+    # POSITIVE-M / NEGATIVE-N: COLLABORATOR aliases for lifecycle-injected
+    # collaborators. Fixtures are the real redo lines, transcribed from the
+    # worktree: learning_grpo.py resolves `self._corrector` from
+    # `_bounded_correct` (module top-level `from CORE.latent_refine import
+    # bounded_correct`), and calls `self._corrector(...)` in update_policy.
+    # M: with the true host stem the `self._corrector(` line scores for
+    # bounded_correct. N: the SAME file under a foreign stem scores nothing
+    # (the binding is module-specific, not a blank pass for `self._` calls).
+    collab_fixture = repo / "src" / "CORE" / "WORMS" / "expansion" / "learning_grpo.py"
+    if collab_fixture.exists():
+        _, ph, _ = _sniff(collab_fixture, "bounded_correct", repo,
+                           host_stems=frozenset({"latent_refine"}))
+        _self_calls = [loc for loc in ph if "self._" in (
+            (repo / loc.rsplit(":", 1)[0]).read_text(
+                encoding="utf-8", errors="replace").splitlines()[int(loc.rsplit(":", 1)[1]) - 1])]
+        if not _self_calls:
+            failures.append(
+                "positive control M FAILED: collaborator call "
+                f"self._corrector(...) scores nothing for bounded_correct "
+                f"(found {ph[:3] or 'nothing'})")
+        else:
+            print(f"positive control M OK: collaborator alias scores -> "
+                  f"{_self_calls[:2]}")
+        _, ph_wrong, eh_wrong = _sniff(
+            collab_fixture, "bounded_correct", repo,
+            host_stems=frozenset({"unrelated_stem"}))
+        if ph_wrong or eh_wrong:
+            failures.append(
+                "negative control N FAILED: foreign-stem binding kept "
+                f"{(ph_wrong + eh_wrong)[:3]} for bounded_correct")
+        else:
+            print("negative control N OK: collaborator alias scores nothing "
+                  "under a foreign stem")
+        # CONTROL-O (row level): EP472's genuine self._corrector site must
+        # survive the GUARD-2 row filter. The line utters no generic word
+        # (`refine` appears nowhere on it), so the old no-generic-word->drop
+        # branch ate it and the row fell to HOST-COMPOSED. Pin the keep.
+        _o_loc = "src/CORE/WORMS/expansion/learning_grpo.py:484"
+        try:
+            _o_line = (repo / _o_loc.rpartition(":")[0]).read_text(
+                encoding="utf-8", errors="replace").splitlines()[483]
+        except (OSError, IndexError):
+            _o_line = ""
+        if "self._corrector(" not in _o_line:
+            failures.append(
+                "control O INVALID: fixture line moved, re-pin the control "
+                f"(line 484 now: {_o_line.strip()[:60]!r})")
+        elif not _generic_keep(repo, _o_loc, {"refine"}, ["bounded_correct"],
+                               {"latent_refine"}):
+            failures.append(
+                "control O FAILED: GUARD-2 row filter dropped the genuine "
+                f"collaborator site {_o_loc}")
+        else:
+            print(f"control O OK: GUARD-2 keeps {_o_loc} "
+                  f"(self._corrector, no generic word)")
 
     # NEGATIVE-D: the string-literal prose line must not be counted.
     str_fixture = repo / "src" / "CORE" / "local_memory.py"
