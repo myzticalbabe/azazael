@@ -55,6 +55,7 @@ ENGRAM_PROJECT = os.environ.get("ENGRAM_PROJECT", "azazael")
 ENGRAM_BIN = os.environ.get("ENGRAM_BIN") or shutil.which("engram") or str(
     Path.home() / "go" / "bin" / "engram.exe"
 )
+PAMS_PY315T = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
 
 
 def _emit(text: str) -> int:
@@ -173,6 +174,47 @@ def mcp_guard() -> str:
     return "exit=%s" % r.returncode
 
 
+def pams_capture_start(topic: str) -> "tuple[int, str]":
+    """Phase-3 (#380) session-start capture into PAMS conversations.db.
+
+    The conversation pipeline has been dead since 2026-05-27 (supervisor:
+    "pams conversation capture dead (0 messages)"); the writer was the
+    Codebuff client, so nothing records since that client left. Delegating
+    to tools/pams_capture.py on the pinned 3.15t interpreter keeps this
+    script runnable under ANY interpreter while the capture uses
+    persistent_ai_memory (3.15t-installed). Advisory: capture must never
+    block or fail a protocol step, so an unavailable capturer or a
+    skip-for-reason result is reported, never raised.
+
+    Returns (chars_delivered, status) for the summary line. Output is
+    emitted OUTSIDE the call's try, per the #706 separation (an output
+    failure is not a capture failure).
+    """
+    cli = HERE / "pams_capture.py"
+    if not (PAMS_PY315T.exists() and cli.exists()):
+        return (0, "unavailable (%s)" % (
+            "3.15t interpreter missing" if not PAMS_PY315T.exists()
+            else "capturer module missing"))
+    try:
+        r = subprocess.run(
+            [str(PAMS_PY315T), str(cli), "open", topic],
+            timeout=60, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(HERE.parent))
+    except Exception as exc:  # noqa: BLE001 - any call failure is a result here
+        return (0, "call failed (%s: %s)" % (type(exc).__name__, exc))
+    out = (r.stdout or "").strip()
+    if not out:
+        return (0, "no response (rc=%s)" % r.returncode)
+    # Emitted OUTSIDE the call's try, for the same reason as pmb_context().
+    if ">stored " in out:
+        return _emit(out[-500:]), "ok"
+    # disabled / skipped / error carry their named reason verbatim in the
+    # summary line; only a successful store counts as delivered context.
+    note = out.replace("\n", " ").replace("pams capture open>", "").strip()
+    return (0, note[:80] or ("rc=%s" % r.returncode))
+
+
 def supervisor_status() -> str:
     """Unified verdict at session open (advisory here; enforcement is downstream).
 
@@ -255,11 +297,14 @@ def main(argv=None) -> int:
     _emit("=== SUPERVISOR LOAD (post-restart drive) ===")
     load_status = supervisor_load()
     _emit("")
+    _emit("=== PAMS CAPTURE (session start, #380) ===")
+    pams_chars, pams_status = pams_capture_start(topic)
 
     # The whole point of the summary line: a reader can tell "delivered
     # everything" from "delivered nothing" without parsing the payload.
-    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s"
-          % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status, sup_status, load_status))
+    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s pams_capture=%s"
+          % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status,
+             sup_status, load_status, pams_status))
 
     absent = [name for name, chars in (("PMB", pmb_chars), ("engram", eng_chars))
               if chars == 0]

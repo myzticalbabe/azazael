@@ -96,6 +96,12 @@ def test_the_summary_line_states_what_each_store_delivered():
     """End-to-end, the way the protocol invokes it, under a cp1252 console."""
     env = dict(os.environ, PYTHONIOENCODING="cp1252:strict")
     env.pop("PYTHONUTF8", None)
+    # The start-side capture is real in production, but this e2e test must
+    # never write the production store; the disable flag is the documented
+    # opt-out and MUST show up in the summary line (a silent disable would
+    # look like a green capture).
+    env.pop("AZAZAEL_MODEL_ID", None)
+    env["AZAZAEL_PAMS_CAPTURE"] = "0"
     proc = subprocess.run(
         [sys.executable, str(TOOL), "test"],
         cwd=ROOT, capture_output=True, env=env, timeout=300)
@@ -105,6 +111,7 @@ def test_the_summary_line_states_what_each_store_delivered():
     assert "Traceback" not in stderr, stderr
     assert "UnicodeEncodeError" not in stderr, stderr
     assert "session_start: delivered PMB=" in stdout, stdout
+    assert "pams_capture=disabled" in stdout, stdout
 
 
 def test_strict_is_the_only_way_to_a_non_zero_exit(monkeypatch):
