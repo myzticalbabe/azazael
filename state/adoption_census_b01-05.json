@@ -1,0 +1,1441 @@
+{
+  "batches": [
+    "batch01",
+    "batch02",
+    "batch03",
+    "batch04",
+    "batch05"
+  ],
+  "rows": 40,
+  "tally": {
+    "ADOPTED": 14,
+    "EXERCISE-ONLY": 10,
+    "HOST-COMPOSED": 10,
+    "NO-TARGET": 5,
+    "HOSTED-ONLY": 1
+  },
+  "adoption_score": 14,
+  "in_production": 24,
+  "built_count": 35,
+  "note": "batches 01-05 absorption census, fixed instrument (call-shape + defined-shape + GUARD-2 refine/observe). claim=map coverage (synced post-derive), verdict=derived.",
+  "results": [
+    {
+      "ep": "EP171",
+      "name": "Graph-CoT",
+      "layer": "L5",
+      "coverage": "ADOPTED",
+      "target": "CORE/dispatch_plan.py :: plan_dag, eliminate_common_subgraphs",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "plan_dag, eliminate_common_subgraphs",
+      "symbols": [
+        "plan_dag",
+        "eliminate_common_subgraphs"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "plan_dag",
+        "eliminate_common_subgraphs"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/WORMS/METACLUSTER.py:415",
+        "src/CORE/WORMS/METACLUSTER.py:465"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l4_exec.py:394",
+        "src/CORE/technique_wiring/_l5_dispatch.py:114",
+        "src/CORE/technique_wiring/_l5_dispatch.py:126",
+        "src/CORE/technique_wiring/_l5_dispatch.py:143",
+        "src/CORE/technique_wiring/_l5_dispatch.py:155",
+        "src/CORE/technique_wiring/_l5_dispatch.py:169",
+        "src/CORE/technique_wiring/_l5_dispatch.py:170",
+        "src/CORE/technique_wiring/_l5_dispatch.py:186",
+        "src/CORE/technique_wiring/_l5_dispatch.py:289",
+        "src/CORE/technique_wiring/_l5_dispatch.py:339",
+        "src/CORE/technique_wiring/_l5_dispatch.py:351",
+        "src/CORE/technique_wiring/_l5_dispatch.py:80"
+      ],
+      "host_internal_uses": [],
+      "n_production": 2,
+      "n_exercise": 12,
+      "verdict": "ADOPTED",
+      "batch": "batch01"
+    },
+    {
+      "ep": "EP412",
+      "name": "CN101",
+      "layer": "L6",
+      "coverage": "ADOPTED",
+      "target": "CORE/WORMS/expansion/policy_optimization.py :: depo_filter",
+      "host_file": "CORE/WORMS/expansion/policy_optimization.py",
+      "symbol": "depo_filter",
+      "symbols": [
+        "depo_filter"
+      ],
+      "hosts": [
+        "CORE/WORMS/expansion/policy_optimization.py"
+      ],
+      "measured_symbols": [
+        "depo_filter"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:157",
+        "src/CORE/technique_wiring/_b01_05.py:159",
+        "src/CORE/technique_wiring/_l5_dispatch.py:233"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 3,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch01"
+    },
+    {
+      "ep": "EP413",
+      "name": "CYCLE",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/verification_gate.py :: margin_check, repair_tree",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "margin_check, repair_tree",
+      "symbols": [
+        "margin_check",
+        "repair_tree"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "margin_check",
+        "repair_tree"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:171",
+        "src/CORE/technique_wiring/_l3_verify.py:377",
+        "src/CORE/technique_wiring/_l3_verify.py:378"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:473",
+        "src/CORE/verification_gate.py:488"
+      ],
+      "n_production": 0,
+      "n_exercise": 3,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch01"
+    },
+    {
+      "ep": "EP442",
+      "name": "Mobius",
+      "layer": "L1",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/MemoryBus.py :: MemoryBus, HiddenStateCarrier",
+      "host_file": "CORE/MemoryBus.py",
+      "symbol": "MemoryBus, HiddenStateCarrier",
+      "symbols": [
+        "MemoryBus",
+        "HiddenStateCarrier"
+      ],
+      "hosts": [
+        "CORE/MemoryBus.py"
+      ],
+      "measured_symbols": [
+        "MemoryBus",
+        "HiddenStateCarrier"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "scripts/nightly_maintenance.py:124",
+        "src/CORE/Agent.py:581",
+        "src/CORE/FreeThreadedAgent.py:96",
+        "src/CORE/WORMS/CLUSTERWORMS.py:249",
+        "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py:92",
+        "src/CORE/WORMS/METACLUSTER.py:122",
+        "src/CORE/WORMS/expansion/berks.py:79",
+        "src/CORE/WORMS/expansion/delegation.py:123",
+        "src/CORE/WORMS/expansion/delegation.py:305",
+        "src/CORE/WORMS/expansion/threatmon.py:71",
+        "src/CORE/inference/bus_utils.py:55"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:171",
+        "src/CORE/technique_wiring/_b01_05.py:173"
+      ],
+      "host_internal_uses": [
+        "src/CORE/MemoryBus.py:1135"
+      ],
+      "n_production": 11,
+      "n_exercise": 2,
+      "verdict": "ADOPTED",
+      "batch": "batch01"
+    },
+    {
+      "ep": "EP408",
+      "name": "MemHarness",
+      "layer": "L1",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/local_memory.py :: reconstruct_events",
+      "host_file": "CORE/local_memory.py",
+      "symbol": "reconstruct_events",
+      "symbols": [
+        "reconstruct_events"
+      ],
+      "hosts": [
+        "CORE/local_memory.py"
+      ],
+      "measured_symbols": [
+        "reconstruct_events"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/direct_memory.py:2358"
+      ],
+      "exercise_call_sites": [],
+      "host_internal_uses": [
+        "src/CORE/local_memory.py:1358",
+        "src/CORE/local_memory.py:2159"
+      ],
+      "n_production": 1,
+      "n_exercise": 0,
+      "verdict": "ADOPTED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP414",
+      "name": "GLM",
+      "layer": "L1",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/local_memory.py :: LocalMemoryStore.generative_compaction_status",
+      "host_file": "CORE/local_memory.py",
+      "symbol": "LocalMemoryStore.generative_compaction_status",
+      "symbols": [
+        "LocalMemoryStore.generative_compaction_status"
+      ],
+      "hosts": [
+        "CORE/local_memory.py"
+      ],
+      "measured_symbols": [
+        "LocalMemoryStore.generative_compaction_status"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l1_memory.py:440"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP417",
+      "name": "MedAgentBoard",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/verification_gate.py :: preperiod_calibrate, within_subject_compare",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "preperiod_calibrate, within_subject_compare",
+      "symbols": [
+        "preperiod_calibrate",
+        "within_subject_compare"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "preperiod_calibrate",
+        "within_subject_compare"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:487",
+        "src/CORE/technique_wiring/_l3_verify.py:488"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:573"
+      ],
+      "n_production": 0,
+      "n_exercise": 2,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP420",
+      "name": "MobileUse",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/audit_trail.py :: audit_retrieval",
+      "host_file": "CORE/audit_trail.py",
+      "symbol": "audit_retrieval",
+      "symbols": [
+        "audit_retrieval"
+      ],
+      "hosts": [
+        "CORE/audit_trail.py"
+      ],
+      "measured_symbols": [
+        "audit_retrieval"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/local_memory.py:1099",
+        "src/CORE/local_memory.py:1356",
+        "src/CORE/local_memory.py:2115",
+        "src/CORE/local_memory.py:2151"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:295"
+      ],
+      "host_internal_uses": [],
+      "n_production": 4,
+      "n_exercise": 1,
+      "verdict": "ADOPTED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP423",
+      "name": "MassiveMoE",
+      "layer": "L5",
+      "coverage": "ADOPTED",
+      "target": "CORE/inference_pool.py :: _max_concurrent_for_model",
+      "host_file": "CORE/inference_pool.py",
+      "symbol": "_max_concurrent_for_model",
+      "symbols": [
+        "_max_concurrent_for_model"
+      ],
+      "hosts": [
+        "CORE/inference_pool.py"
+      ],
+      "measured_symbols": [
+        "_max_concurrent_for_model"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l5_dispatch.py:376"
+      ],
+      "host_internal_uses": [
+        "src/CORE/inference_pool.py:366"
+      ],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP425",
+      "name": "Bernstein Online Bandit",
+      "layer": "L4",
+      "coverage": "ADOPTED",
+      "target": "CORE/dispatch_plan.py :: rehearse_dispatch",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "rehearse_dispatch",
+      "symbols": [
+        "rehearse_dispatch"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "rehearse_dispatch"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/WORMS/METACLUSTER.py:428"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l4_exec.py:409",
+        "src/CORE/technique_wiring/_l4_exec.py:427",
+        "src/CORE/technique_wiring/_l5_dispatch.py:294",
+        "src/CORE/technique_wiring/_l5_dispatch.py:297",
+        "src/CORE/technique_wiring/_l5_dispatch.py:82"
+      ],
+      "host_internal_uses": [],
+      "n_production": 1,
+      "n_exercise": 5,
+      "verdict": "ADOPTED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP427",
+      "name": "Rewards-in-Context RFT",
+      "layer": "L2",
+      "coverage": "EXERCISE-ONLY",
+      "target": "scripts/meta_reflect.py :: gather_trajectories",
+      "host_file": "scripts/meta_reflect.py",
+      "symbol": "gather_trajectories",
+      "symbols": [
+        "gather_trajectories"
+      ],
+      "hosts": [
+        "scripts/meta_reflect.py"
+      ],
+      "measured_symbols": [
+        "gather_trajectories"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:161",
+        "src/CORE/technique_wiring/_l2_skills.py:284",
+        "src/CORE/technique_wiring/_l2_skills.py:302",
+        "src/CORE/technique_wiring/_l2_skills.py:492"
+      ],
+      "host_internal_uses": [
+        "scripts/meta_reflect.py:205"
+      ],
+      "n_production": 0,
+      "n_exercise": 4,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP429",
+      "name": "Thermodynamic Computing",
+      "layer": "L6",
+      "coverage": "ADOPTED",
+      "target": "CORE/meta_evolution.py :: is_protected_path",
+      "host_file": "CORE/meta_evolution.py",
+      "symbol": "is_protected_path",
+      "symbols": [
+        "is_protected_path"
+      ],
+      "hosts": [
+        "CORE/meta_evolution.py"
+      ],
+      "measured_symbols": [
+        "is_protected_path"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l6_evolve.py:267",
+        "src/CORE/technique_wiring/_l6_evolve.py:277"
+      ],
+      "host_internal_uses": [
+        "src/CORE/meta_evolution.py:179",
+        "src/CORE/meta_evolution.py:247"
+      ],
+      "n_production": 0,
+      "n_exercise": 2,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch02"
+    },
+    {
+      "ep": "EP431",
+      "name": "MCHT",
+      "layer": "L5",
+      "coverage": "ADOPTED",
+      "target": "CORE/dispatch_plan.py :: assign_roles",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "assign_roles",
+      "symbols": [
+        "assign_roles"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "assign_roles"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/WORMS/METACLUSTER.py:424"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l4_exec.py:397",
+        "src/CORE/technique_wiring/_l5_dispatch.py:144",
+        "src/CORE/technique_wiring/_l5_dispatch.py:156",
+        "src/CORE/technique_wiring/_l5_dispatch.py:81"
+      ],
+      "host_internal_uses": [],
+      "n_production": 1,
+      "n_exercise": 4,
+      "verdict": "ADOPTED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP435",
+      "name": "FIRE",
+      "layer": "L6",
+      "coverage": "ADOPTED",
+      "target": "CORE/WORMS/expansion/meta_cognition.py :: MetaCognitionWorm.adapt_strategy",
+      "host_file": "CORE/WORMS/expansion/meta_cognition.py",
+      "symbol": "MetaCognitionWorm.adapt_strategy",
+      "symbols": [
+        "MetaCognitionWorm.adapt_strategy"
+      ],
+      "hosts": [
+        "CORE/WORMS/expansion/meta_cognition.py"
+      ],
+      "measured_symbols": [
+        "MetaCognitionWorm.adapt_strategy"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "scripts/metacog_cycle.py:208",
+        "src/CORE/dream_policy_bridge.py:100"
+      ],
+      "exercise_call_sites": [],
+      "host_internal_uses": [
+        "src/CORE/WORMS/expansion/meta_cognition.py:1328",
+        "src/CORE/WORMS/expansion/meta_cognition.py:136"
+      ],
+      "n_production": 2,
+      "n_exercise": 0,
+      "verdict": "ADOPTED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP437",
+      "name": "SYNGAP",
+      "layer": "L4",
+      "coverage": "ADOPTED",
+      "target": "CORE/dispatch_plan.py :: record_backtrack, reuse_prefix",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "record_backtrack, reuse_prefix",
+      "symbols": [
+        "record_backtrack",
+        "reuse_prefix"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "record_backtrack",
+        "reuse_prefix"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/WORMS/expansion/rcpd_early_exit.py:76"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:103",
+        "src/CORE/technique_wiring/_b01_05.py:106"
+      ],
+      "host_internal_uses": [],
+      "n_production": 1,
+      "n_exercise": 2,
+      "verdict": "ADOPTED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP438",
+      "name": "CCRL",
+      "layer": "L5",
+      "coverage": "ADOPTED",
+      "target": "CORE/freethreading.py :: WorkStealingPool.submit",
+      "host_file": "CORE/freethreading.py",
+      "symbol": "WorkStealingPool.submit",
+      "symbols": [
+        "WorkStealingPool.submit"
+      ],
+      "hosts": [
+        "CORE/freethreading.py"
+      ],
+      "measured_symbols": [
+        "WorkStealingPool.submit"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/NeuralPipeline.py:104",
+        "src/CORE/NeuralPipeline.py:107",
+        "src/CORE/NeuralPipeline.py:67",
+        "src/CORE/NeuralPipeline.py:914",
+        "src/CORE/WORMS/expansion/ablation_study.py:406",
+        "src/CORE/parallel/work_stealing.py:298",
+        "src/CORE/parallel/work_stealing.py:470",
+        "src/CORE/parallel/work_stealing.py:477",
+        "src/CORE/workflow.py:1053",
+        "src/CORE/workflow.py:1134"
+      ],
+      "exercise_call_sites": [],
+      "host_internal_uses": [
+        "src/CORE/freethreading.py:1140",
+        "src/CORE/freethreading.py:363",
+        "src/CORE/freethreading.py:386",
+        "src/CORE/freethreading.py:630",
+        "src/CORE/freethreading.py:666"
+      ],
+      "n_production": 10,
+      "n_exercise": 0,
+      "verdict": "ADOPTED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP440",
+      "name": "Tetris",
+      "layer": "L7",
+      "coverage": "ADOPTED",
+      "target": "CORE/latent_align.py :: norm_calibrate, orthogonal_align, prefix_inject",
+      "host_file": "CORE/latent_align.py",
+      "symbol": "norm_calibrate, orthogonal_align, prefix_inject",
+      "symbols": [
+        "norm_calibrate",
+        "orthogonal_align",
+        "prefix_inject"
+      ],
+      "hosts": [
+        "CORE/latent_align.py"
+      ],
+      "measured_symbols": [
+        "norm_calibrate",
+        "orthogonal_align",
+        "prefix_inject"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l7_interface.py:176",
+        "src/CORE/technique_wiring/_l7_interface.py:177",
+        "src/CORE/technique_wiring/_l7_interface.py:184"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 3,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP441",
+      "name": "Uncertainty-Aware RLHF",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/verification_gate.py :: confidence_divergence_check",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "confidence_divergence_check",
+      "symbols": [
+        "confidence_divergence_check"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "confidence_divergence_check"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/circuit_breaker.py:313"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:391",
+        "src/CORE/technique_wiring/_l3_verify.py:500"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:537"
+      ],
+      "n_production": 1,
+      "n_exercise": 2,
+      "verdict": "ADOPTED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP446",
+      "name": "METORA",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/audit_trail.py :: verify_capsule_chain",
+      "host_file": "CORE/audit_trail.py",
+      "symbol": "verify_capsule_chain",
+      "symbols": [
+        "verify_capsule_chain"
+      ],
+      "hosts": [
+        "CORE/audit_trail.py"
+      ],
+      "measured_symbols": [
+        "verify_capsule_chain"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:253"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP447",
+      "name": "TRACE",
+      "layer": "L2",
+      "coverage": "ADOPTED",
+      "target": "CORE/skill_library.py :: commit_gate",
+      "host_file": "CORE/skill_library.py",
+      "symbol": "commit_gate",
+      "symbols": [
+        "commit_gate"
+      ],
+      "hosts": [
+        "CORE/skill_library.py"
+      ],
+      "measured_symbols": [
+        "commit_gate"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
+      ],
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch03"
+    },
+    {
+      "ep": "EP448",
+      "name": "DDRO",
+      "layer": "L3",
+      "coverage": "HOSTED-ONLY",
+      "target": "CORE/verification_gate.py :: tdd_dual_track_check",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "tdd_dual_track_check",
+      "symbols": [
+        "tdd_dual_track_check"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "tdd_dual_track_check"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:403",
+        "src/CORE/technique_wiring/_l3_verify.py:406"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:585"
+      ],
+      "n_production": 0,
+      "n_exercise": 2,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP452",
+      "name": "RAD",
+      "layer": "L3",
+      "coverage": "ADOPTED",
+      "target": "CORE/verification_gate.py :: confirmed_revise",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "confirmed_revise",
+      "symbols": [
+        "confirmed_revise"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "confirmed_revise"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "src/CORE/technique_runtime.py:373"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:428"
+      ],
+      "host_internal_uses": [],
+      "n_production": 1,
+      "n_exercise": 1,
+      "verdict": "ADOPTED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP453",
+      "name": "ROLL",
+      "layer": "L3",
+      "coverage": "ADOPTED",
+      "target": "CORE/verification_gate.py :: verify_workflow_step",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "verify_workflow_step",
+      "symbols": [
+        "verify_workflow_step"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "verify_workflow_step"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:126",
+        "src/CORE/technique_wiring/_l3_verify.py:441",
+        "src/CORE/technique_wiring/_l3_verify.py:442"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:596"
+      ],
+      "n_production": 0,
+      "n_exercise": 3,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP455",
+      "name": "SHAPLEY",
+      "layer": "L2",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/skill_library.py :: shapley_marginal",
+      "host_file": "CORE/skill_library.py",
+      "symbol": "shapley_marginal",
+      "symbols": [
+        "shapley_marginal"
+      ],
+      "hosts": [
+        "CORE/skill_library.py"
+      ],
+      "measured_symbols": [
+        "shapley_marginal"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:536"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP458",
+      "name": "BOND",
+      "layer": "L2",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/skill_library.py :: commit_gate",
+      "host_file": "CORE/skill_library.py",
+      "symbol": "commit_gate",
+      "symbols": [
+        "commit_gate"
+      ],
+      "hosts": [
+        "CORE/skill_library.py"
+      ],
+      "measured_symbols": [
+        "commit_gate"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
+      ],
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP461",
+      "name": "TALEC",
+      "layer": "L3",
+      "coverage": "ADOPTED",
+      "target": "CORE/verification_gate.py :: asymmetric_accept, divergence_gate",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "asymmetric_accept, divergence_gate",
+      "symbols": [
+        "asymmetric_accept",
+        "divergence_gate"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "asymmetric_accept",
+        "divergence_gate"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l3_verify.py:457",
+        "src/CORE/technique_wiring/_l3_verify.py:462",
+        "src/CORE/technique_wiring/_l3_verify.py:466",
+        "src/CORE/technique_wiring/_l3_verify.py:470",
+        "src/CORE/technique_wiring/_l3_verify.py:471"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:249",
+        "src/CORE/verification_gate.py:250",
+        "src/CORE/verification_gate.py:500",
+        "src/CORE/verification_gate.py:521"
+      ],
+      "n_production": 0,
+      "n_exercise": 5,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP463",
+      "name": "Episodic-RL",
+      "layer": "L1",
+      "coverage": "ADOPTED",
+      "target": "CORE/local_memory.py :: get_memory_store",
+      "host_file": "CORE/local_memory.py",
+      "symbol": "get_memory_store",
+      "symbols": [
+        "get_memory_store"
+      ],
+      "hosts": [
+        "CORE/local_memory.py"
+      ],
+      "measured_symbols": [
+        "get_memory_store"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [
+        "scripts/_cranium_reality_check.py:50",
+        "scripts/benchmark_evolution.py:140",
+        "scripts/check_tooling.py:291",
+        "scripts/check_tooling.py:349",
+        "scripts/clean_windows.py:182",
+        "scripts/code_evo_pilot.py:236",
+        "scripts/db_health.py:140",
+        "scripts/db_health.py:156",
+        "scripts/db_health.py:163",
+        "scripts/db_health.py:170",
+        "scripts/db_health.py:181",
+        "scripts/db_health.py:190",
+        "scripts/db_health.py:55",
+        "scripts/diagnose_margin_gate.py:38",
+        "scripts/dream_on_bcc.py:204",
+        "scripts/evolution_cycle.py:1192",
+        "scripts/evolution_cycle.py:1438",
+        "scripts/evolution_cycle.py:1629",
+        "scripts/evolution_cycle.py:1724",
+        "scripts/evolution_cycle.py:2377",
+        "scripts/evolution_cycle.py:2889",
+        "scripts/evolution_cycle.py:2926",
+        "scripts/evolution_cycle.py:564",
+        "scripts/evolution_cycle.py:588",
+        "scripts/ingest_bcc_ops_logs.py:207",
+        "scripts/inject_alert_drill.py:148",
+        "scripts/meta_reflect.py:181",
+        "scripts/meta_reflect.py:82",
+        "scripts/metacog_cycle.py:54",
+        "scripts/nightly_maintenance.py:149",
+        "scripts/prune_tensor_genome.py:77",
+        "scripts/repo_audit.py:135",
+        "scripts/run_training_orchestrator.py:1067",
+        "scripts/run_training_orchestrator.py:1124",
+        "scripts/run_training_orchestrator.py:154",
+        "scripts/run_training_orchestrator.py:305",
+        "scripts/run_training_orchestrator.py:364",
+        "scripts/run_training_orchestrator.py:506",
+        "scripts/run_training_orchestrator.py:588",
+        "scripts/run_training_orchestrator.py:698",
+        "scripts/run_training_orchestrator.py:89",
+        "scripts/run_training_orchestrator.py:924",
+        "scripts/scrub_probe_telemetry.py:241",
+        "scripts/stack_phase0.py:54",
+        "scripts/stack_router.py:108",
+        "scripts/technique_heartbeat.py:203",
+        "scripts/technique_heartbeat.py:207",
+        "scripts/technique_heartbeat.py:223",
+        "scripts/technique_heartbeat.py:227",
+        "scripts/technique_heartbeat.py:250",
+        "scripts/technique_heartbeat.py:70",
+        "scripts/tensor_gate_ab.py:91",
+        "scripts/track_backfill.py:23",
+        "scripts/train_fitness_oracle.py:37",
+        "scripts/train_tensor_model.py:61",
+        "src/CORE/WORMS/WORM_SELECTOR.py:94",
+        "src/CORE/WORMS/expansion/code_audit.py:123",
+        "src/CORE/WORMS/expansion/code_audit.py:160",
+        "src/CORE/WORMS/expansion/db_monitor.py:176",
+        "src/CORE/WORMS/expansion/delegation.py:132",
+        "src/CORE/WORMS/expansion/delegation.py:214",
+        "src/CORE/WORMS/expansion/dreaming.py:1001",
+        "src/CORE/WORMS/expansion/dreaming.py:140",
+        "src/CORE/WORMS/expansion/dreaming.py:158",
+        "src/CORE/WORMS/expansion/dreaming.py:195",
+        "src/CORE/WORMS/expansion/dreaming.py:564",
+        "src/CORE/WORMS/expansion/dreaming.py:947",
+        "src/CORE/WORMS/expansion/dreaming.py:971",
+        "src/CORE/WORMS/expansion/engram.py:767",
+        "src/CORE/WORMS/expansion/evolution.py:1519",
+        "src/CORE/WORMS/expansion/evolution.py:790",
+        "src/CORE/WORMS/expansion/evolution_audit.py:307",
+        "src/CORE/WORMS/expansion/jev_advisor.py:250",
+        "src/CORE/WORMS/expansion/jev_advisor.py:423",
+        "src/CORE/WORMS/expansion/learning_grpo.py:759",
+        "src/CORE/WORMS/expansion/learning_grpo.py:844",
+        "src/CORE/WORMS/expansion/learning_grpo.py:960",
+        "src/CORE/WORMS/expansion/learning_pipeline.py:108",
+        "src/CORE/WORMS/expansion/learning_rl.py:1093",
+        "src/CORE/WORMS/expansion/learning_rl.py:311",
+        "src/CORE/WORMS/expansion/learning_rl.py:345",
+        "src/CORE/WORMS/expansion/learning_rl.py:731",
+        "src/CORE/WORMS/expansion/learning_rl.py:897",
+        "src/CORE/WORMS/expansion/learning_versioner.py:111",
+        "src/CORE/WORMS/expansion/meta_cognition.py:279",
+        "src/CORE/WORMS/expansion/queens.py:873",
+        "src/CORE/WORMS/expansion/race_detector.py:488",
+        "src/CORE/WORMS/expansion/reflexion.py:164",
+        "src/CORE/WORMS/expansion/reflexion.py:225",
+        "src/CORE/WORMS/expansion/scheduling.py:1107",
+        "src/CORE/WORMS/expansion/scheduling.py:1376",
+        "src/CORE/WORMS/expansion/scheduling.py:505",
+        "src/CORE/WORMS/expansion/spawn_credit.py:648",
+        "src/CORE/WORMS/expansion/wiring_audit.py:220",
+        "src/CORE/WORMS/worm_telemetry.py:152",
+        "src/CORE/dashboard.py:193",
+        "src/CORE/dashboard.py:233",
+        "src/CORE/dashboard.py:254",
+        "src/CORE/dashboard.py:550",
+        "src/CORE/dashboard.py:621",
+        "src/CORE/data_retention.py:1013",
+        "src/CORE/data_retention.py:1049",
+        "src/CORE/direct_memory.py:932",
+        "src/CORE/health_server.py:130",
+        "src/CORE/skill_library.py:775",
+        "src/CORE/structured_action.py:116",
+        "src/CORE/technique_runtime.py:464",
+        "src/CORE/technique_runtime.py:538",
+        "src/CORE/technique_runtime.py:575",
+        "src/CORE/technique_runtime.py:616",
+        "src/CORE/training_intake.py:233",
+        "src/CORE/training_intake.py:384",
+        "src/CORE/training_intake.py:55",
+        "src/CORE/workflow.py:1094",
+        "src/META/DebugZ.py:111",
+        "src/META/DistillZ.py:80",
+        "src/META/InferenceBridge.py:95",
+        "tools/anchor_runtime_gate.py:118",
+        "tools/backtrack_metric.py:258",
+        "tools/evolution_backfill.py:60",
+        "tools/terence_invariants.py:237",
+        "tools/trace_intake_798.py:63"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:141",
+        "src/CORE/technique_wiring/_l1_memory.py:85"
+      ],
+      "host_internal_uses": [],
+      "n_production": 122,
+      "n_exercise": 2,
+      "verdict": "ADOPTED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP464",
+      "name": "Learning-to-Adapt",
+      "layer": "L5",
+      "coverage": "SURVEY",
+      "target": "no-host: pure selection rule",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP465",
+      "name": "ROAD",
+      "layer": "L7",
+      "coverage": "ADOPTED",
+      "target": "CORE/structured_action.py :: observe",
+      "host_file": "CORE/structured_action.py",
+      "symbol": "observe",
+      "symbols": [
+        "observe"
+      ],
+      "hosts": [
+        "CORE/structured_action.py"
+      ],
+      "measured_symbols": [
+        "observe"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/compliance/policy.py:247"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l7_interface.py:88"
+      ],
+      "host_internal_uses": [
+        "src/CORE/structured_action.py:212"
+      ],
+      "n_production": 1,
+      "n_exercise": 1,
+      "verdict": "ADOPTED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP471",
+      "name": "ARISE-RL",
+      "layer": "L6",
+      "coverage": "ADOPTED",
+      "target": "CORE/rubric_evolution.py :: gate_distillation",
+      "host_file": "CORE/rubric_evolution.py",
+      "symbol": "gate_distillation",
+      "symbols": [
+        "gate_distillation"
+      ],
+      "hosts": [
+        "CORE/rubric_evolution.py"
+      ],
+      "measured_symbols": [
+        "gate_distillation"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:188",
+        "src/CORE/technique_wiring/_b01_05.py:189",
+        "src/CORE/technique_wiring/_l6_evolve.py:191",
+        "src/CORE/technique_wiring/_l6_evolve.py:192"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 4,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP472",
+      "name": "NLPO",
+      "layer": "L7",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/latent_refine.py :: refine, bounded_correct",
+      "host_file": "CORE/latent_refine.py",
+      "symbol": "refine, bounded_correct",
+      "symbols": [
+        "refine",
+        "bounded_correct"
+      ],
+      "hosts": [
+        "CORE/latent_refine.py"
+      ],
+      "measured_symbols": [
+        "refine",
+        "bounded_correct"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l7_interface.py:204"
+      ],
+      "host_internal_uses": [
+        "src/CORE/latent_refine.py:100"
+      ],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP474",
+      "name": "PhaseEvo",
+      "layer": "L2",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/skill_library.py :: family_index",
+      "host_file": "CORE/skill_library.py",
+      "symbol": "family_index",
+      "symbols": [
+        "family_index"
+      ],
+      "hosts": [
+        "CORE/skill_library.py"
+      ],
+      "measured_symbols": [
+        "family_index"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/training_intake.py:339",
+        "src/CORE/training_intake.py:485",
+        "tools/canon_drift_check.py:321"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:92",
+        "src/CORE/technique_wiring/_l2_skills.py:226",
+        "src/CORE/technique_wiring/_l2_skills.py:263",
+        "src/CORE/technique_wiring/_l2_skills.py:320",
+        "src/CORE/technique_wiring/_l2_skills.py:449",
+        "src/CORE/technique_wiring/_l2_skills.py:532",
+        "src/CORE/technique_wiring/_l2_skills.py:565"
+      ],
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:820"
+      ],
+      "n_production": 3,
+      "n_exercise": 7,
+      "verdict": "ADOPTED",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP478",
+      "name": "LatentState",
+      "layer": "L1",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/local_memory.py :: LocalMemoryStore.composite_eviction_preview",
+      "host_file": "CORE/local_memory.py",
+      "symbol": "LocalMemoryStore.composite_eviction_preview",
+      "symbols": [
+        "LocalMemoryStore.composite_eviction_preview"
+      ],
+      "hosts": [
+        "CORE/local_memory.py"
+      ],
+      "measured_symbols": [
+        "LocalMemoryStore.composite_eviction_preview"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l1_memory.py:476"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch04"
+    },
+    {
+      "ep": "EP399",
+      "name": "ADAMT",
+      "layer": "L5",
+      "coverage": "SURVEY",
+      "target": "no-host: controller registry local-only",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP401",
+      "name": "SOSA",
+      "layer": "L2",
+      "coverage": "ADOPTED",
+      "target": "CORE/skill_library.py :: distill_trajectory_to_protocol",
+      "host_file": "CORE/skill_library.py",
+      "symbol": "distill_trajectory_to_protocol",
+      "symbols": [
+        "distill_trajectory_to_protocol"
+      ],
+      "hosts": [
+        "CORE/skill_library.py"
+      ],
+      "measured_symbols": [
+        "distill_trajectory_to_protocol"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:167",
+        "src/CORE/technique_wiring/_l2_skills.py:468"
+      ],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 2,
+      "verdict": "EXERCISE-ONLY",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP403",
+      "name": "COVENANT",
+      "layer": "L3",
+      "coverage": "EXERCISE-ONLY",
+      "target": "CORE/verification_gate.py :: verify_workflow_step",
+      "host_file": "CORE/verification_gate.py",
+      "symbol": "verify_workflow_step",
+      "symbols": [
+        "verify_workflow_step"
+      ],
+      "hosts": [
+        "CORE/verification_gate.py"
+      ],
+      "measured_symbols": [
+        "verify_workflow_step"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:126",
+        "src/CORE/technique_wiring/_l3_verify.py:441",
+        "src/CORE/technique_wiring/_l3_verify.py:442"
+      ],
+      "host_internal_uses": [
+        "src/CORE/verification_gate.py:596"
+      ],
+      "n_production": 0,
+      "n_exercise": 3,
+      "verdict": "HOST-COMPOSED",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP404",
+      "name": "HYBRID THINK",
+      "layer": "L3",
+      "coverage": "SURVEY",
+      "target": "no-host: envelope empty",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP405",
+      "name": "FUTURESELF",
+      "layer": "L3",
+      "coverage": "SURVEY",
+      "target": "no-host: envelope empty",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP406",
+      "name": "PERSIST TO MEMORY",
+      "layer": "L6",
+      "coverage": "SURVEY",
+      "target": "no-host: envelope empty",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET",
+      "batch": "batch05"
+    },
+    {
+      "ep": "EP462",
+      "name": "EMULATOR",
+      "layer": "L6",
+      "coverage": "HOSTED-ONLY",
+      "target": "CORE/meta_evolution.py :: LEGAL_TRANSITIONS",
+      "host_file": "CORE/meta_evolution.py",
+      "symbol": "LEGAL_TRANSITIONS",
+      "symbols": [
+        "LEGAL_TRANSITIONS"
+      ],
+      "hosts": [
+        "CORE/meta_evolution.py"
+      ],
+      "measured_symbols": [
+        "LEGAL_TRANSITIONS"
+      ],
+      "built": true,
+      "host_reachable": false,
+      "production_call_sites": [],
+      "exercise_call_sites": [],
+      "host_internal_uses": [],
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "HOSTED-ONLY",
+      "batch": "batch05"
+    }
+  ]
+}
