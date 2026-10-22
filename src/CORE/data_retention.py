@@ -60,6 +60,28 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
+# -- Lifecycle-owned collaborators (Lane C redo, 2026-10-22) ----------------
+# First-party, cycle-free (verified: pattern_memory imports only
+# failure_ledger at top; local_memory pulls data_retention lazily, so this
+# direction never cycles). Declared once at module load; the quota path and
+# _composite_victims read the globals instead of importing per call.
+try:
+    from CORE.pattern_memory import _cosine as _embed_cosine, _embed as _embed_text
+    _EMBED_OK = True
+except ImportError as exc:
+    note_failure("data_retention:embed-import", exc)
+    _embed_cosine = None  # type: ignore
+    _embed_text = None  # type: ignore
+    _EMBED_OK = False
+try:
+    from CORE.local_memory import get_memory_store as _get_memory_store
+    _STORE_OK = True
+except ImportError as exc:
+    note_failure("data_retention:store-import", exc)
+    _get_memory_store = None  # type: ignore
+    _STORE_OK = False
+
+
 def _note_failure(where: str, exc: BaseException | None = None) -> None:
     """Record a fail-open swallow so the degradation is visible."""
     note_failure(where, exc)
@@ -314,6 +336,67 @@ def distill_cap_victims(caps: dict | None = None,
     return {"groups": groups, "rows_summarized": total}
 
 
+# EP478 (ECOKV composite rule): cap on redundancy-ranked rows per quota
+# batch. Embeddings cost a local model call each; the ranking window stays
+# small while the batch fill below preserves eviction throughput.
+_COMPOSITE_RANK_CAP = 128
+
+
+def _composite_victims(conn: object, victim_type: str,
+                       batch: int) -> tuple[list, dict]:
+    """Pick victims by redundancy (EP478 composite rule).
+
+    Candidate pool is the oldest 2x batch; up to _COMPOSITE_RANK_CAP of them
+    are embedded and the most-redundant (max cosine to the other candidates)
+    are evicted first, filled to `batch` with the oldest unranked remainder
+    (throughput preserved, unique old rows survive the pass). Same batch
+    SIZE as legacy, different SET: redundancy-preferred, not merely old.
+    Any failure raises to the caller, which falls back to legacy.
+    """
+    if _embed_text is None or _embed_cosine is None:
+        raise RuntimeError("embedder-unavailable")
+    pool = [r[0] for r in conn.execute(
+        "SELECT id FROM memories WHERE event_type = ? "
+        "AND severity NOT IN ('error', 'alert', 'critical') "
+        "ORDER BY id ASC LIMIT ?", (victim_type, batch * 2))]
+    if len(pool) < 2:
+        return pool[:batch], {"rule": "legacy-oldest-first", "ranked": 0}
+    placeholders = ",".join("?" * len(pool))
+    rows = conn.execute(
+        "SELECT id, data FROM memories WHERE id IN ({}) "
+        "ORDER BY id ASC".format(placeholders),
+        (*pool,)).fetchall()
+    vecs: dict = {}
+    for rid, data in rows[:_COMPOSITE_RANK_CAP]:
+        try:
+            v = _embed_text(str(data or ""))
+        except Exception:
+            continue
+        if v:
+            vecs[rid] = v
+    if len(vecs) < 2:
+        return pool[:batch], {"rule": "legacy-oldest-first", "ranked": 0}
+    red: dict = {}
+    ids = list(vecs)
+    for i, a in enumerate(ids):
+        best = 0.0
+        for j, b in enumerate(ids):
+            if i == j:
+                continue
+            try:
+                s = _embed_cosine(vecs[a], vecs[b])
+            except Exception:
+                continue
+            if s > best:
+                best = s
+        red[a] = best
+    ranked = sorted(ids, key=lambda r: red.get(r, 0.0), reverse=True)
+    ranked_set = set(ranked)
+    victims = ranked + [r for r in pool if r not in ranked_set]
+    return victims[:batch], {"rule": "composite-redundancy",
+                              "ranked": len(ranked)}
+
+
 def enforce_global_quota(quota_mb: int | None = None,
                          db_path: str | None = None,
                          max_batches: int = 10,
@@ -336,6 +419,7 @@ def enforce_global_quota(quota_mb: int | None = None,
     freed_est = 0
     batches = 0
     trimmed: dict = {}
+    rules: dict = {"legacy": 0, "composite": 0}
     while _db_size_mb(db) - freed_est / 1e6 > quota_mb and batches < max_batches:
         conn = sqlite3.connect(db, timeout=30)
         try:
@@ -355,6 +439,32 @@ def enforce_global_quota(quota_mb: int | None = None,
                 "SELECT id FROM memories WHERE event_type = ? "
                 "AND severity NOT IN ('error', 'alert', 'critical') "
                 "ORDER BY id ASC LIMIT ?", (victim_type, batch))]
+            if not ids:
+                conn.close()
+                break
+            # EP478: consult the composite preview; when the embedder is
+            # available, victims are picked by REDUNDANCY (most cosine-
+            # similar first) instead of mere age — unique old rows survive
+            # the pass. Same batch size (throughput preserved). Any failure
+            # keeps the legacy oldest-first set above: the backstop must
+            # never depend on the model server.
+            try:
+                _store = _get_memory_store() if _STORE_OK else None
+                _preview = (_store.composite_eviction_preview(
+                    "quota:%s" % victim_type) if _store is not None else {})
+            except Exception as exc:
+                _note_failure("data_retention:quota-preview", exc)
+                _preview = {}
+            if _preview.get("embedding_available"):
+                try:
+                    ids, _info = _composite_victims(
+                        conn, victim_type, batch)
+                    rules["composite"] += 1
+                except Exception as exc:
+                    _note_failure("data_retention:quota-composite", exc)
+                    rules["legacy"] += 1
+            else:
+                rules["legacy"] += 1
             if not ids:
                 conn.close()
                 break
@@ -412,6 +522,7 @@ def enforce_global_quota(quota_mb: int | None = None,
     return {"enforced": size <= quota_mb, "size_mb": round(size, 1),
             "quota_mb": quota_mb, "batches": batches,
             "trimmed": trimmed,
+            "eviction_rules": rules,
             "freed_est_mb": round(freed_est / 1e6, 2)}
 
 

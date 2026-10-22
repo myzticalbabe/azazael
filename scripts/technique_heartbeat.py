@@ -30,6 +30,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+# -- Lifecycle-owned collaborators (Lane C redo, 2026-10-22) ----------------
+# Script-level declarations: resolved once at startup, not per heartbeat leg.
+# Both optional with None fallbacks; legs degrade to legacy/report paths.
+try:
+    from CORE.rubric_evolution import gate_distillation as _gate_distillation
+    _GATE_OK = True
+except ImportError:
+    _gate_distillation = None  # type: ignore
+    _GATE_OK = False
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from meta_reflect import gather_trajectories as _gather_trajectories
+    _TRAJ_OK = True
+except ImportError:
+    _gather_trajectories = None  # type: ignore
+    _TRAJ_OK = False
+
 
 def _fail(where, exc):
     try:
@@ -114,17 +131,48 @@ def psyche_fit_step(store=None, chain_limit: int = 500) -> dict:
                           (("C", fitted.get("C")), ("H", fitted.get("H")))
                           if isinstance(v, (int, float))}
                 if scores:
+                    # EP471 (RG-SED strict-improvement gate): the owner
+                    # snapshot is the distilled policy — distill back ONLY on
+                    # empirical gain over the last good snapshot. A regression
+                    # or tie keeps the old snapshot and reports gated, so a
+                    # bad fit can never clobber a good one. Any comparison
+                    # error falls back to the legacy write: the gate must
+                    # never clobber on an unreadable comparison.
                     snapshot = {"name": "heartbeat-fit",
                                 "source": "psyche-heartbeat",
                                 "domain_scores": scores,
                                 "n_used": len(actions)}
                     dest = default_theta_path()
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    dest.write_text(json.dumps(snapshot, indent=2,
-                                               sort_keys=True),
-                                    encoding="utf-8")
-                    report["snapshot_written"] = True
-                    fitted_any_owner = True
+                    try:
+                        if _gate_distillation is None:
+                            raise RuntimeError("distill-gate-unavailable")
+                        old_scores = {}
+                        if dest.is_file():
+                            old_scores = (json.loads(dest.read_text(
+                                encoding="utf-8")) or {}).get(
+                                    "domain_scores", {}) or {}
+                        old_scalar = sum(
+                            float(v) for v in old_scores.values()
+                            if isinstance(v, (int, float)))
+                        gate = _gate_distillation(
+                            old_scalar, float(sum(scores.values())))
+                    except Exception as exc:
+                        _fail("technique-heartbeat:distill-gate", exc)
+                        gate = {"distill": True, "gain": 0.0,
+                                "gaps": ["gate-error-legacy-write"]}
+                    if gate.get("distill"):
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_text(json.dumps(snapshot, indent=2,
+                                                   sort_keys=True),
+                                        encoding="utf-8")
+                        report["snapshot_written"] = True
+                        fitted_any_owner = True
+                    else:
+                        report["snapshot_written"] = False
+                        report["snapshot_gated"] = {
+                            "gain": gate.get("gain"),
+                            "reason": ("no empirical gain over last "
+                                       "snapshot")}
         if fitted_any_owner:
             report["verdict"] = "fitted"
         elif report["actors"]:
@@ -251,6 +299,24 @@ def main() -> int:
         except Exception as exc:
             _fail("technique-heartbeat:calibration", exc)
             out["steps"]["calibration"] = {"scales": {}, "refused": []}
+        # EP427: recent trial outcomes as a health signal. gather_trajectories
+        # reads the meta lineage + evolution margins (read-only); the leg
+        # reports the verdict mix so a failing trial regime is visible in the
+        # heartbeat. Read-only: never writes, never gates.
+        try:
+            if _gather_trajectories is None:
+                raise RuntimeError("trajectories-unavailable")
+            _trajs, _note = _gather_trajectories(limit=25)
+            _verdicts: dict = {}
+            for _t in _trajs:
+                _v = str((_t or {}).get("verdict", "?"))
+                _verdicts[_v] = _verdicts.get(_v, 0) + 1
+            out["steps"]["meta_trials"] = {
+                "ok": True, "n": len(_trajs), "note": str(_note)[:160],
+                "verdicts": _verdicts}
+        except Exception as exc:
+            _fail("technique-heartbeat:meta-trials", exc)
+            out["steps"]["meta_trials"] = {"ok": False, "n": 0}
         # E2 production caller for NeuralPipeline.replay_failed: the shared
         # file-backed DLQ (populated by pipeline training failures) is
         # replayed through single-worm clusters. Bounded: max 1 thread, and
