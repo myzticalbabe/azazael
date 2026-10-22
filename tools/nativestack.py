@@ -53,7 +53,7 @@ def live_dump(pid: int, path, preset: str = "normal") -> Path:
         raise OSError(f"OpenProcess({pid}) failed: {ctypes.get_last_error()}")
     try:
         import msvcrt
-        f = open(path, "wb")  # scanner:ignore
+        f = open(path, "wb")
         try:
             # NOTE: fileno() is a CRT descriptor, NOT a Windows HANDLE --
             # MiniDumpWriteDump needs the real handle via get_osfhandle.
@@ -78,7 +78,7 @@ def watch(cmd, dump_dir="state/crashdumps", timeout: float = 600.0,
     """
     dump_dir = Path(dump_dir)
     dump_dir.mkdir(parents=True, exist_ok=True)
-    proc = subprocess.Popen(cmd)  # scanner:ignore
+    proc = subprocess.Popen(cmd)
     try:
         proc.wait(timeout=timeout)
         return proc.returncode, None

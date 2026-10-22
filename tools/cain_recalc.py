@@ -74,7 +74,7 @@ for pat, label in ((r"[Ll]egal" + TAG + r"\$0\.00", "legal"),
     print("  %-9s %s (%d)" % (label, "CLEAN" if n == 0 else "** PRESENT **", n))
 
 json.dump({k: round(v, 4) for k, v in AUTH.items()},
-          open(r"C:\Azazael\azazael\dashboard\cain_financials.json", "w", encoding="utf-8"),  # scanner:ignore
+          open(r"C:\Azazael\azazael\dashboard\cain_financials.json", "w", encoding="utf-8"),
           indent=1)
 print()
 print("written: dashboard/cain_financials.json")
