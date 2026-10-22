@@ -105,7 +105,7 @@ class TestTerenceVerify:
                 import os as _os
                 _os.remove(str(p) + ".terence.lock")
             except OSError:
-                pass  # scanner:ignore
+                pass  # scanner:ignore -- best-effort lock cleanup in tmp_path; assertions already completed above
 
 
 class TestTerenceSelfGuard:
