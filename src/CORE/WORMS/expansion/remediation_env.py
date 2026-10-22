@@ -187,7 +187,7 @@ class RemediationEnv:
 
 def gymnasium_env(records, horizon: int = 50, seed: int = 0):
     """gymnasium adapter with Discrete(4) REMEDIATION actions (not severities)."""
-    if not _HAS_GYM:                                  # pragma: no cover
+    if not _HAS_GYM or gym is None:                   # pragma: no cover
         raise RuntimeError("gymnasium is not installed")
 
     base = RemediationEnv(records, horizon=horizon, seed=seed)

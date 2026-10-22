@@ -190,7 +190,7 @@ def bc_policy(theta: dict, demo_states: list[dict], seed: int = 0) -> dict:
 
 
 def onpolicy_refine(theta: dict, demo_states: list[dict],
-                    extra_rounds: int = 3, seed: int = 0) -> dict:
+                    extra_rounds: int = 3, seed: int = 0) -> dict | None:
     """DAgger rounds on frozen theta: student visits, expert labels.
 
     Round 0 = BC. Each further round rolls the CURRENT student through the

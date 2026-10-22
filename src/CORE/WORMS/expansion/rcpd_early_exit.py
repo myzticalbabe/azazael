@@ -213,5 +213,4 @@ __all__ = [
     'RCPDEarlyExit',
     'monitor_backtrack',
     'set_rcpd_instance',
-    'evaluate_flip',
 ]
