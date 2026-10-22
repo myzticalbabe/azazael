@@ -22,14 +22,18 @@ except ImportError:                               # never break the host
 
 # Optional pydantic import
 try:
-    from pydantic import BaseModel, Field, ValidationError
+    from pydantic import BaseModel, Field, ValidationError  # pyright: ignore[reportAssignmentType] -- try-success binds the real pydantic class while the except fallback defines a structurally compatible local class behind the same name; selection is by import success, not substitutability
     HAS_PYDANTIC = True
 except ImportError as exc:
     note_failure("validating:L18", exc)
     HAS_PYDANTIC = False
     BaseModel = object
     Field = None
-    ValidationError = type("ValidationError", (Exception,), {})
+    # The fallback mirrors the interface validate_model assumes (an errors()
+    # method); without pydantic there is no detail to report, so it is empty.
+    class ValidationError(Exception):
+        def errors(self) -> list:
+            return []
 
 
 # ---------------------------------------------------------------------------

@@ -1689,7 +1689,12 @@ def _run_watch_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None), 
 
             if event.is_directory:
                 return
-            if not event.src_path.endswith(".py"):
+            # src_path is bytes when the path is undecodable; decode it so the
+            # suffix check (and the crash it replaces) works on both kinds.
+            src_path = event.src_path
+            if isinstance(src_path, bytes):
+                src_path = src_path.decode("utf-8", "replace")
+            if not src_path.endswith(".py"):
                 return
 
             scanner = ASTAntiPatternScanner()
