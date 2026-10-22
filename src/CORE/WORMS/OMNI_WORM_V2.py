@@ -42,7 +42,7 @@ class OMNIV2:
         ],
     }
 
-    def __init__(self, root: str = None):
+    def __init__(self, root: str | None = None):
         self.root = Path(root) if root else get_project_root()
         self.stats = {
             "bom_fixes": 0,

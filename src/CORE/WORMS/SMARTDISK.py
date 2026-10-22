@@ -539,7 +539,7 @@ class SMARTDISK:
         recent = [
             h
             for h in self.disk_history
-            if datetime.fromisoparse(h["timestamp"]) > cutoff
+            if datetime.fromisoformat(h["timestamp"]) > cutoff
         ]
 
         if not recent:

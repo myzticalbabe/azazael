@@ -40,7 +40,7 @@ from CORE.inference.bus_utils import InferenceBusPublisher
 from CORE.direct_memory import DirectMemory
 from CORE.inference.providers import get_provider
 try:
-    from CORE.freethreading import FreeThreadPool
+    from CORE.freethreading import FreeThreadPool  # pyright: ignore[reportAssignmentType] -- try-success binds the real freethreading class while the except fallback defines a structurally distinct local class behind the same name; selection is by import success, not substitutability
 except ImportError:
     import os
     from concurrent.futures import ThreadPoolExecutor

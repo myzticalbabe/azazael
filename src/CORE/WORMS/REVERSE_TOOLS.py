@@ -89,7 +89,7 @@ try:
     _pams: Any = get_recorder()
 except ImportError as exc:
     note_failure("REVERSE_TOOLS:L88", exc)
-    _pams: Any = None
+    _pams = None
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")
 
