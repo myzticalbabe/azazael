@@ -68,7 +68,7 @@ import azazael_pygame as _canonical  # noqa: E402
 #: NOT in `__all__` (it is underscore-private) but CONTRACTUAL: the canonical
 #: module's `if _PYGAME_AVAILABLE: pygame.init()` gate and its `__main__` handler
 #: both read it, and this path re-exported it before the copy was retired.
-_PYGAME_AVAILABLE = _canonical._PYGAME_AVAILABLE
+_PYGAME_AVAILABLE: bool = bool(getattr(_canonical, "_PYGAME_AVAILABLE", False))
 
 __all__ = [
     "AnimationState",

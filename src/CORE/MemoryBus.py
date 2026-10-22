@@ -970,7 +970,8 @@ class MemoryBus:
         }
 
         if HAS_REQUESTS:
-            headers = {"X-API-Key": _pams_api_key()} if _pams_api_key() else {}
+            _api_key = _pams_api_key()
+            headers: dict[str, str] = {"X-API-Key": _api_key} if _api_key else {}
             resp = requests.post(
                 f"{self.pams_url}{PAMS_API_PREFIX}/memories/promote",
                 json=body,

@@ -131,7 +131,7 @@ class DiagnosticWorm:
         for py_file in AZAAZEL_ROOT.rglob("*.py"):
             try:
                 content = py_file.read_bytes()
-                if pattern in content:
+                if str(pattern).encode("utf-8") in content:
                     bad_files.append(py_file)
             except Exception as exc:
                 note_failure("DIAGNOSTIC_WORM:L125", exc)

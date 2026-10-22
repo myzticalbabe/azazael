@@ -30,7 +30,7 @@ except ImportError:                               # never break the host
 # Fix stdout encoding for Windows console emoji safety
 if hasattr(sys.stdout, 'reconfigure'):
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+        getattr(sys.stdout, 'reconfigure')(encoding='utf-8', errors='backslashreplace')
     except Exception as exc:
         note_failure("build_bcc_cain_alternate:L24", exc)
 

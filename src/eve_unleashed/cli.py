@@ -40,7 +40,7 @@ except ImportError:                               # never break the host
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
-    from .core import ModelLoader
+    from .core import ModelLoader, BatchResult
 
     # Parse input
     input_str = args.input
@@ -72,7 +72,12 @@ def cmd_infer(args) -> int:
         return 1
 
     # Output
-    if args.output == "json":
+    if isinstance(result, BatchResult):
+        print(f"Batch results: {len(result.results)}")
+        print(f"Total time:    {result.total_time_ms:.2f} ms")
+        print(f"Avg latency:   {result.avg_latency_ms:.2f} ms")
+        print(f"Throughput:    {result.throughput_per_sec:.2f} inf/s")
+    elif args.output == "json":
         out = {
             "model": result.model_name,
             "framework": result.framework,
@@ -237,7 +242,7 @@ def cmd_config(args) -> int:
 def cmd_benchmark(args) -> int:
     """Benchmark inference across CPU and available GPU backends."""
     from .engine import InferenceEngine
-    from .core import ModelLoader
+    from .core import ModelLoader, BatchResult
 
     print("=== Eve Unleashed GPU Benchmark ===\n")
 
@@ -348,7 +353,10 @@ def cmd_benchmark(args) -> int:
             if times:
                 avg = sum(times) / len(times)
                 print(f"  Model: {args.model}")
-                print(f"  Framework: {result.framework}")
+                if isinstance(result, BatchResult):
+                    print("  Framework: batch")
+                else:
+                    print(f"  Framework: {result.framework}")
                 print(f"  Latency: {avg:.2f} ms avg over {len(times)} runs")
             else:
                 print(f"  Model: {args.model}")
@@ -374,6 +382,7 @@ def cmd_serve(args) -> int:
         return 1
 
     from .engine import create_engine
+    from .core import BatchResult
 
     engine = create_engine()
     app = FastAPI(
@@ -445,7 +454,7 @@ def cmd_serve(args) -> int:
             raise HTTPException(status_code=500, detail=str(e))
 
         # Handle both single InferenceResult and BatchResult
-        if hasattr(result, "predictions"):
+        if not isinstance(result, BatchResult):
             return {
                 "model": result.model_name,
                 "framework": result.framework,
