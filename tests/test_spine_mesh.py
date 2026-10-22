@@ -484,7 +484,7 @@ def test_save_cache_atomic_no_torn_file():
     from CORE import worm_registry_cache as wrc
     discover_worms()
     wrc.save_cache(dict(WORM_REGISTRY), str(wrc.Path(__file__).resolve().parent.parent / "src" / "CORE" / "WORMS"))
-    with open(wrc.CACHE_FILE, "rb") as fh:  # scanner:ignore
+    with open(wrc.CACHE_FILE, "rb") as fh:
         head = fh.read(16)
     assert len(head) == 16  # non-empty -> a reader would never hit EOFError
     # leftover tmp file must be gone (os.replace consumed it)

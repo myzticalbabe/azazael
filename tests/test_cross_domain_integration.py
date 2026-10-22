@@ -633,7 +633,7 @@ def _read_text_retry(path: str, attempts: int = 20) -> str:
     """Open+read with backoff: concurrent atomic replaces deny opens on Windows."""
     for attempt in range(attempts):
         try:
-            with open(path, "r", encoding="utf-8") as f:  # scanner:ignore
+            with open(path, "r", encoding="utf-8") as f:
                 return f.read()
         except PermissionError:
             if attempt == attempts - 1:

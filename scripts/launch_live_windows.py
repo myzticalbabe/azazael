@@ -46,7 +46,7 @@ def main() -> int:
     else:
         print("controller: scheduler already running; visible controller skipped")
     for title, command in commands.items():
-        subprocess.Popen(  # scanner:ignore
+        subprocess.Popen(
             command,
             cwd=str(ROOT),
             creationflags=creationflags,
