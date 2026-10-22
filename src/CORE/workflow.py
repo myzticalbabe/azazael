@@ -818,7 +818,7 @@ class WorkflowEngine:
 
     def _run_execute_category(self, params: dict) -> Any:
         """Execute a registry category cluster."""
-        nature = params.get("category", params.get("nature"))
+        nature = params.get("category", params.get("nature")) or ""
         parallel = params.get("parallel", False)
 
         try:

@@ -143,7 +143,7 @@ class HORUSAnimationBridge:
 """
         return html
 
-    def export_to_horus(self, filepath: str = None) -> dict[str, Any]:
+    def export_to_horus(self, filepath: (str | None) = None) -> dict[str, Any]:
         """Export animation protocols for HORUS consumption."""
 
         export = {

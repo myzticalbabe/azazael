@@ -224,7 +224,7 @@ class WORMZ_ML:
             proba = list(self.classifier.predict_proba([features])[0])
             category_idx = max(range(len(proba)), key=lambda i: proba[i])
             category = self.config.CATEGORIES[category_idx]
-            confidence = proba[category_idx]
+            confidence = float(proba[category_idx])
             return category, confidence
         except Exception as exc:
             note_failure("WORMZ_ML:L203", exc)
