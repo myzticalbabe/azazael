@@ -44,7 +44,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-sys.path.insert(0, Path.home() / "Desktop" / "Azazael" / "ml_platforms")
+sys.path.insert(0, str(Path.home() / "Desktop" / "Azazael" / "ml_platforms"))
 
 print("=" * 80)
 print("MULTI-ITERATION DEEP LEARNING Q-ANALYSIS")
@@ -83,7 +83,7 @@ def load_frameworks():
     except Exception as exc:
         note_failure("run_qanalysis_multi:L73", exc)
     try:
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
         loaded["tensorflow"] = {"version": tf.__version__}
     except Exception as exc:
@@ -141,7 +141,7 @@ def run_iteration(iter_num):
 
     # TensorFlow benchmark
     try:
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
         x = tf.random.normal((100, 100))
         y = tf.random.normal((100, 100))

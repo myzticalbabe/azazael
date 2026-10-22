@@ -48,7 +48,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 import os
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -61,10 +61,10 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.worm_registry import register_worm, WORM_REGISTRY
+    from CORE.worm_registry import register_worm, WORM_REGISTRY  # type: ignore[reportAssignmentType]
 except ImportError as exc:  # pragma: no cover — registry optional
     note_failure("queens:L55", exc)
-    def register_worm(**kw):
+    def register_worm(**kw: Any) -> Callable[[type], type]:
         return lambda cls: cls
     WORM_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
@@ -547,7 +547,7 @@ class BlackQueenWorm:
         """
         out: List[Dict[str, Any]] = []
         try:
-            from CORE.worm_registry import is_protected_worm
+            from CORE.worm_registry import is_protected_worm  # type: ignore[reportAssignmentType]
         except Exception as exc:
             note_failure("queens:L533", exc)
             def is_protected_worm(_info):  # type: ignore
@@ -704,7 +704,7 @@ class BlackQueenWorm:
         raw = _load_json(census_path)
         if not isinstance(raw, dict) or not isinstance(raw.get("declared"), dict):
             return 0
-        stem = _stamp_stem(rec.get("worm"))
+        stem = _stamp_stem(str(rec.get("worm") or ""))
         if not stem:
             return 0
         rows = raw["declared"]

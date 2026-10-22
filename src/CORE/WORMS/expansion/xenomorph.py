@@ -14,7 +14,7 @@ Queen election consults EnvBeaconWorm peers + LeaderElectorWorm terms.
 
 import threading
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Callable, Iterable, List
 import os
 import time as _t
 
@@ -28,10 +28,10 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.worm_registry import register_worm
+    from CORE.worm_registry import register_worm  # type: ignore[reportAssignmentType]
 except ImportError as exc:
     note_failure("xenomorph:L21", exc)
-    def register_worm(**kw):
+    def register_worm(**kw: Any) -> Callable[[type], type]:
         return lambda cls: cls
 
 # Fabric operational state (audit 2026-09-15, finding #7 follow-up): the
@@ -45,10 +45,10 @@ try:
     )
 except ImportError as exc:  # pragma: no cover - defensive
     note_failure("xenomorph:L34", exc)
-    def fabric_hydrate(instance, provider, attrs):
+    def fabric_hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
         return 0
 
-    def fabric_publish(instance, provider, attrs):
+    def fabric_publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         return False
 
 
