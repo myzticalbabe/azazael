@@ -27,7 +27,7 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("glia:L18", exc)
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 
