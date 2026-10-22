@@ -39,8 +39,8 @@ except ImportError:                               # never break the host
 
 ML_PATH = Path.home() / "Desktop" / "Azazael" / "ml_platforms"
 
-if ML_PATH not in sys.path:
-    sys.path.insert(0, ML_PATH)
+if str(ML_PATH) not in sys.path:
+    sys.path.insert(0, str(ML_PATH))
 
 try:
     pass

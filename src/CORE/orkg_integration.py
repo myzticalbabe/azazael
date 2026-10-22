@@ -150,14 +150,13 @@ class OrkGIntegration:
                 "source": "orkg_integration",
             }
 
-            metadata_json = json.dumps(metadata)
-
             # Use the existing register_pattern infrastructure
+            # (it serializes metadata itself; pre-encoding would double-encode)
             pid = store.register_pattern(
                 source_agent=source_agent,
                 pattern_type=pattern_type,
                 embedding=vector,
-                metadata=metadata_json,
+                metadata=metadata,
                 confidence=1.0,
             )
 
