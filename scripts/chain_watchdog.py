@@ -62,7 +62,7 @@ def _log(row: dict[str, Any]) -> None:
         with LOG_PATH.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row, sort_keys=True, default=str) + "\n")
     except OSError:
-        pass  # a watchdog that cannot log must still act  # scanner:ignore
+        pass  # scanner:ignore  # a watchdog that cannot log must still act
 
 
 def _pid_alive(pid: int) -> bool:
