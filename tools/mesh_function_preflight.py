@@ -1431,10 +1431,10 @@ def decide(table: dict) -> dict:
         owners = sorted(methods.get(name, set()) - {cls})
         if owners:
             klass = "protocol_or_override"
-            evidence = ["also defined by: %s" % ", ".join(owners[:3])]
+            evidence = ["also defined by: %s" % ", ".join(owners)]
         elif data.get(name):
             klass = "declared_in_data"
-            evidence = ["named by %s" % h for h in data[name][:3]]
+            evidence = ["named by %s" % h for h in data[name]]
         elif rel and rel in dynamic:
             klass = "dynamic_call"
             evidence = [rel]
@@ -1444,7 +1444,10 @@ def decide(table: dict) -> dict:
         else:
             klass = "dead_candidate"
         entry["decider"] = klass
-        entry["decider_evidence"] = evidence[:3]
+        # Full provenance, not a window: the recorded evidence is what the
+        # decider actually acted on (2026-10-22 sweep D1 site). Decision
+        # logic is untouched -- decide() still writes no status.
+        entry["decider_evidence"] = evidence
     counts: Counter = Counter()
     for entry in (table.get("declared") or {}).values():
         if str(entry.get("status")) == "pending":

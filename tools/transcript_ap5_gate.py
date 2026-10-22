@@ -825,9 +825,14 @@ def main(argv: list[str] | None = None) -> int:
         print("  announcements: %d (plan announcements -- NOT violations; "
               "they offer the operator no decision)"
               % len(report.announcements))
-        for f in report.announcements[:5]:
+        shown = report.announcements[:5]
+        for f in shown:
             print("      [%s] %s line=%d %r"
                   % (f.rule, f.source, f.line, f.match))
+        if len(report.announcements) > len(shown):
+            print("      ... and %d more (total %d; full list in --output JSON)"
+                  % (len(report.announcements) - len(shown),
+                     len(report.announcements)))
 
     if not scannable:
         print("")
