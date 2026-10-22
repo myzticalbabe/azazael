@@ -101,7 +101,8 @@ def _check_r2(target: str) -> object:
         return None
     # Depth bar: a thin run proves plumbing, not retrieval. The middle of
     # the pipeline (FTS5 loop over real terms) must execute or R2 refuses.
-    ok = (isinstance(out, dict) and {"success", "anchors", "n_hits", "grounding", "rerank"} <= set(out)
+    want = {"success", "anchors", "n_hits", "grounding", "rerank", "mars"}
+    ok = (isinstance(out, dict) and want <= set(out)
           and len(terms) > 0)
     grounding = out.get("grounding") if isinstance(out, dict) else None
     kept = grounding.get("n_kept") if isinstance(grounding, dict) else "?"
