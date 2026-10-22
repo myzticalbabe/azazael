@@ -132,6 +132,10 @@ def _alias_use(code: str, aliases: set) -> bool:
         # friends name the alias without consuming it.
         if re.match(r"\s*" + re.escape(n) + r"\s*=\s*None\b", code):
             continue
+        # CALL-SHAPE (2026-10-22, EP472/EP465): aliases get the same gate —
+        # a bare mention of the alias is not a call through it.
+        if not re.search(r"(?<![\w])" + re.escape(n) + r"\s*\(", code):
+            continue
         return True
     return False
 
@@ -235,7 +239,11 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
 #: host module (imports its stem or uses `stem.` qualified). Narrow by design:
 #: only symbols in this set are gated; `dream`/`refine` rows stay under their
 #: recorded verdicts until a lane adjudicates them with the same line evidence.
-_GENERIC_BARE = {"plan", "proxy"}
+# GUARD-2 set (2026-10-22): bare symbols generic enough that unrelated
+# receivers share the method name. `plan`/`proxy` (EP271), `refine`
+# (EP472: `_pareto_refine(`, `self.run(`) and `observe` (EP465:
+# `tpe.observe(`, `_observed_and_registry(`) each falsely adopted a row.
+_GENERIC_BARE = {"plan", "proxy", "refine", "observe"}
 
 
 _HOST_IMPORT_CACHE: Dict[Path, set] = {}
@@ -293,6 +301,14 @@ def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
     if re.match(r"\s*" + re.escape(symbol.split(".")[-1]) + r"\s*=\s*None\b", line):
         return False
     if def_owner and re.match(r"\s*(def|class)\s+" + re.escape(symbol.split(".")[-1]) + r"\b", line):
+        return False
+    # CALL-SHAPE (2026-10-22, EP472/EP465 falsification): a substring mention
+    # is not a call site. `_pareto_refine(` counted for `refine`,
+    # `tpe.observe(` for `observe`, `_LEGAL_TRANSITIONS` for
+    # `LEGAL_TRANSITIONS`. Require NAME + '(' with a left word boundary —
+    # covers bare `f(` and attribute `.f(` alike. A bare `@deco` / value
+    # reference without parens does not count (no such genuine site seen).
+    if not re.search(r"(?<![\w])" + re.escape(symbol.split(".")[-1]) + r"\s*\(", line):
         return False
     return True
 
@@ -353,8 +369,15 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
         return False, [], []
     text, skip = _load(path)
     short = symbol.split(".")[-1] if symbol else ""
+    # DEFINED-SHAPE (2026-10-22, EP462 falsification): module constants use
+    # annotated/plain assignment (`LEGAL_TRANSITIONS: dict[...] = {...}` in
+    # meta_evolution.py:46), which the def/class-only check missed and the row
+    # scored TARGET-UNVERIFIED while the host defines it. Anchored at line
+    # start so RHS mentions (`x = NAME`) and comparisons (`NAME ==`) pass.
     defined_here = bool(short) and bool(
-        re.search(r"\s*(def|class)\s+" + re.escape(short) + r"\b", text))
+        re.search(r"\s*(def|class)\s+" + re.escape(short) + r"\b", text)
+        or re.search(r"(?m)^\s*" + re.escape(short)
+                     + r"\s*(?::[^=\n]*=|(?<![=!<>+*/-])=(?!=))", text))
     if not short:
         return defined_here, [], []
 
@@ -832,6 +855,65 @@ def _self_test(repo: Path = REPO) -> int:
         print(f"negative control G OK: EP271 scores {rep271['verdict']}, "
               f"{len(rep271['production_call_sites'])} prod site(s)")
 
+    # NEGATIVE-H (2026-10-22, EP472 falsification): `_pareto_refine(` (a
+    # different function) and `self.run(` (a method, no refine token at all
+    # — matched by pure substring) adopted EP472. Both live in files that
+    # never import the host stem, so GUARD-2 + call-shape must leave zero
+    # production sites from them. Map-independent: asserts the matcher.
+    prod_h, _ = production_callers("refine", repo)
+    bad_h = [loc for loc in prod_h
+             if loc.startswith(("scripts/evolution_cycle.py",
+                                "src/CORE/inference/sequential_analyzer.py"))]
+    if bad_h:
+        failures.append(
+            "negative control H FAILED: foreign refine-shapes counted: "
+            f"{bad_h[:3]} (call-shape regressed)")
+    else:
+        print("negative control H OK: no _pareto_refine/self.run site "
+              f"counts for refine ({len(prod_h)} prod site(s) remain)")
+
+    # NEGATIVE-I (2026-10-22, EP465 falsification): `tpe.observe(` IS a
+    # call-shape match (attribute call) — the matcher cannot drop it, the
+    # RECEIVER is foreign (optimiser sampler, never imports the host stem),
+    # so this control asserts the ROW outcome like G, not the raw matcher.
+    # EP465 lives in the batch04 map: re-point census there live (never a
+    # stale artifact) and require the foreign sites gone from prod.
+    _map_saved = MAP
+    try:
+        globals()["MAP"] = Path("state/sota_batches/batch04/technique-map.json")
+        rep04 = census()
+    finally:
+        globals()["MAP"] = _map_saved
+    rep465 = next((r for r in rep04["results"] if r["ep"] == "EP465"), None)
+    sites465 = rep465["production_call_sites"] if rep465 else []
+    bad_i = [l for l in sites465
+             if l.startswith(("scripts/evolution_cycle.py",
+                              "scripts/jev_advise.py"))]
+    genuine_i = [l for l in sites465
+                 if l.startswith("src/CORE/compliance/policy.py")]
+    if rep465 is None or rep465["verdict"] != "ADOPTED" or bad_i or not genuine_i:
+        failures.append(
+            "negative control I FAILED: EP465 row="
+            f"{rep465['verdict'] if rep465 else 'MISSING'} foreign="
+            f"{bad_i[:3]} genuine={genuine_i[:2]} (GUARD-2 receiver "
+            "binding regressed)")
+    else:
+        print(f"negative control I OK: EP465 ADOPTED on genuine sites "
+              f"{genuine_i[:1]}, tpe.observe sites excluded")
+
+    # POSITIVE-J (2026-10-22, EP462 falsification): an annotated module
+    # constant IS defined here. meta_evolution.py:46 assigns
+    # `LEGAL_TRANSITIONS: dict[...] = {...}` — no def/class line.
+    from pathlib import Path as _P
+    _dh_j, _, _ = _sniff(repo / "src/CORE/meta_evolution.py",
+                          "LEGAL_TRANSITIONS", repo)
+    if not _dh_j:
+        failures.append(
+            "positive control J FAILED: annotated assignment not recognised "
+            "as defined (defined-shape regressed)")
+    else:
+        print("positive control J OK: LEGAL_TRANSITIONS defined_here=True")
+
     if failures:
         print("\nSELF-TEST FAILED:")
         for f in failures:
@@ -847,7 +929,14 @@ def main() -> int:
     ap.add_argument("--json", default="", help="write the full report to this path")
     ap.add_argument("--self-test", action="store_true",
                     help="positive + negative control run")
+    ap.add_argument("--map", default="",
+                    help="technique map to measure (default: batch06 map). "
+                    "Batch loop (2026-10-22): batches 01-05 each carry their "
+                    "own technique_codebase_map.json; the instrument is "
+                    "map-agnostic, only the default differs.")
     args = ap.parse_args()
+    if args.map:
+        globals()["MAP"] = Path(args.map)
 
     if args.self_test:
         return _self_test()
