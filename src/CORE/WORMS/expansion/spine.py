@@ -1841,10 +1841,13 @@ class SpineCycleWorm:
         # G8: Morphogenesis output gate
         self._morphogenesis = None
         try:
-            from CORE.WORMS.expansion.spine import MorphogenesisWorm
+            # Same-module reference: MorphogenesisWorm is defined in THIS
+            # file, so no import is needed. The old self-import only worked
+            # because __init__ runs after module load (2026-10-22 sweep).
             self._morphogenesis = MorphogenesisWorm()
-        except ImportError as exc:
+        except Exception as exc:                  # noqa: BLE001 — fail-open gate
             note_failure("spine:L1813", exc)
+            self._morphogenesis = None
         # Colour queens (audit §5.1/§5.2): Gray (entrenchment delta) and Black
         # (quorum-gated retirement). Their named consumer is the governance
         # stage below — without a caller they would be exactly the orphan

@@ -304,13 +304,12 @@ class Chorus:
         try:
             from CORE.inference.providers import get_best_provider  # type: ignore
         except Exception as exc:
+            # No src.-prefixed fallback: src/ is not a package on sys.path,
+            # so that import can never resolve (2026-10-22 forensic sweep:
+            # the lone UNRESOLVED lazy site). Fail open instead.
             note_failure("chorus:L294", exc)
-            try:
-                from src.CORE.inference.providers import get_best_provider  # type: ignore
-            except Exception as exc:
-                note_failure("chorus:L297", exc)
-                self._provider = None
-                return None
+            self._provider = None
+            return None
         try:
             self._provider = get_best_provider()
         except Exception as exc:
