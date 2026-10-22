@@ -291,8 +291,9 @@ def _warm_worker(on_complete: (Callable | None) = None,
             if _wiring_path.is_file():
                 _spec = _ilu.spec_from_file_location(
                     "wiring_cycle_warm", str(_wiring_path))
-                _wmod = _ilu.module_from_spec(_spec)
-                _spec.loader.exec_module(_wmod)
+                if _spec is not None and _spec.loader is not None:
+                    _wmod = _ilu.module_from_spec(_spec)
+                    _spec.loader.exec_module(_wmod)
                 _prime = getattr(_wmod, "prime_caches", None)
                 if callable(_prime):
                     _prime()

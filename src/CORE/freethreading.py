@@ -85,7 +85,7 @@ class CancellationToken:
         """Check if cancellation has been signalled (non-blocking)."""
         return self._event.is_set()
 
-    def wait(self, timeout: float = None) -> bool:
+    def wait(self, timeout: float | None = None) -> bool:
         """Block until cancelled or timeout expires. Returns True if cancelled."""
         return self._event.wait(timeout)
 
@@ -97,7 +97,7 @@ class CancellationToken:
         if self._event.is_set():
             raise TaskCancelledError("Task execution cancelled via token")
 
-    def register_callback(self, cb: callable) -> None:
+    def register_callback(self, cb: Callable) -> None:
         """Register a cleanup callback. Fires immediately if already cancelled."""
         with self._lock:
             if self._event.is_set():
@@ -714,8 +714,12 @@ class WorkStealingPool:
         with self._results_lock:
             rows = [r for r in self._results if r.get("task_id") in member_ids]
 
+        def _branch_key(r: Dict[str, Any]) -> int:
+            b = r.get("branch")
+            return -1 if b is None else int(b)
+
         # -1 for a member with no branch index keeps the sort total.
-        rows.sort(key=lambda r: -1 if r.get("branch") is None else r.get("branch"))
+        rows.sort(key=_branch_key)
 
         errors = [
             {"branch": r.get("branch"), "task_id": r.get("task_id"),

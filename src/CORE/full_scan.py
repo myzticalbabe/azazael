@@ -66,7 +66,7 @@ def scan(root: Path | str, output_dir: Path | str, batch_size: int = 50000, batc
         index_path.write_text("\n".join(paths) + ("\n" if paths else ""), encoding="utf-8")
     all_paths = index_path.read_text(encoding="utf-8").splitlines()
     total_batches = (len(all_paths) + batch_size - 1) // batch_size
-    state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {"completed_batches": [], "errors": []}
+    state: dict[str, Any] = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {"completed_batches": [], "errors": []}
     pending = range(total_batches) if batch_index is None else [batch_index]
     with manifest_path.open("a", encoding="utf-8") as manifest:
         for current_batch in pending:

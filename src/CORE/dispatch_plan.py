@@ -347,11 +347,11 @@ def assign_roles(order: List[str],
     for key, value in (role_pools or {}).items():
         role = str(key).strip()
         if isinstance(value, (list, tuple, set)):
-            pools = [str(p).strip() for p in value if str(p).strip()]
+            pool_list = [str(p).strip() for p in value if str(p).strip()]
         else:
             single = str(value).strip()
-            pools = [single] if single else []
-        candidates[role] = pools
+            pool_list = [single] if single else []
+        candidates[role] = pool_list
     prior = {str(k).strip(): _as_float(v)
              for k, v in (participation or {}).items()}
     prior_used = False

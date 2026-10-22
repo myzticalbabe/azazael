@@ -335,8 +335,8 @@ def history_summary(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     for r in l1:
         key = str(r.get("reason") or "unknown")
         reasons[key] = reasons.get(key, 0) + 1
-    stamps = [r.get("at") for r in l1 if r.get("at")]
-    promoted_at = [r.get("at") for r in promoted if r.get("at")]
+    stamps = [str(r.get("at")) for r in l1 if r.get("at")]
+    promoted_at = [str(r.get("at")) for r in promoted if r.get("at")]
     best = [r.get("best") for r in promoted]
     return {
         "rows": len(l1),
