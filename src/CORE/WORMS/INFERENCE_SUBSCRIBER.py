@@ -209,7 +209,10 @@ class InferenceSubscriberWorm:
     def _llm_analyze(self, events: list[dict]) -> list[dict]:
         """Use LLM to deeply analyze event patterns."""
         worm = self._get_inference()
-        if not worm:
+        # _get_inference caches False when the optional import fails; the
+        # isinstance check narrows away the checker's Literal[True] remnant
+        # so only the usable worm survives (falsy values already returned).
+        if not worm or isinstance(worm, bool):
             return []
 
         # Build event summary

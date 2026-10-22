@@ -204,7 +204,7 @@ class SYSTEMZ_ML:
             features_scaled = self.scaler.fit_transform(features)
 
             self.anomaly_model = IsolationForest(
-                contamination=self.config.ANOMALY_CONTAMINATION,
+                contamination=self.config.ANOMALY_CONTAMINATION,  # pyright: ignore[reportArgumentType] -- sklearn annotates contamination as str (its default "auto") but accepts float per its documented contract; 0.1 is the intended fraction
                 random_state=42,
             )
             self.anomaly_model.fit(features_scaled)

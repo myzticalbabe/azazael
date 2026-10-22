@@ -32,7 +32,7 @@ except ImportError as exc:
 class MorphingWormV2:
     VERSION = "2.0.0"
 
-    def __init__(self, root: str = None):
+    def __init__(self, root: str | None = None):
         self.root = Path(root) if root else get_project_root()
         self.stats = {"scans": 0, "real_errors": 0, "false_positives_avoided": 0}
 

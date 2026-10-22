@@ -100,7 +100,7 @@ class PROCESSZ:
         self,
         limit: int = 50,
         sort_by: str = "cpu_percent",
-        filter_name: str = None,
+        filter_name: str | None = None,
     ) -> list[ProcessInfo]:
         """list processes with optional filtering."""
         import psutil
