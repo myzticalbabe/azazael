@@ -45,7 +45,7 @@ from typing import List
 try:
     from CORE.cascade import CascadeRouter
 except ImportError:                               # never break the analyzer
-    CascadeRouter = None  # type: ignore[assignment]
+    CascadeRouter = None
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -589,7 +589,10 @@ class SequentialAnalyzer:
             # Lazy import: this analyzer stays importable without the router.
             try:
 
-                router = CascadeRouter(threshold=self.CASCADE_THRESHOLD)
+                router_cls = CascadeRouter
+                if router_cls is None:
+                    raise ImportError("CORE.cascade unavailable; skipping cascade")
+                router = router_cls(threshold=self.CASCADE_THRESHOLD)
 
                 def _triage(_task: str) -> tuple:
                     return triage.content, triage.confidence

@@ -341,13 +341,17 @@ def _enforce_impl(
 
     # Phase 2: PreActionGate validation (RULE 0S)
     if _PAG_AVAILABLE:
-        gate = get_pre_action_gate()
-        if action == "str_replace":
+        gate_fn = get_pre_action_gate
+        gate = gate_fn() if gate_fn is not None else None
+        if action == "str_replace" and gate is not None:
             ok, msg, backup = gate.gate_str_replace(filepath, old_content, new_content)
             if not ok:
                 with _lock:
                     _denial_count += 1
                 return False, f"DENIED by PreActionGate: {msg}"
+        elif action == "str_replace":
+            note_failure("sentinel_enforcer:PAG-unavailable",
+                         ImportError("get_pre_action_gate returned None"))
 
     # Phase 3: Sentinel Gate validation
     if _SENTINEL_AVAILABLE:
