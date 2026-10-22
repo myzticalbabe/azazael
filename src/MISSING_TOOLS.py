@@ -39,7 +39,7 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("MISSING_TOOLS:L31", exc)
-    def register_worm(**kw): return lambda cls: cls
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None): return lambda cls: cls
 
 __all__ = [
     "DependencyAuditor", "ImportGraphBuilder", "DeadCodeDetector",
