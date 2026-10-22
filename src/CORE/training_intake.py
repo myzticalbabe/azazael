@@ -338,3 +338,140 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
         note_failure("training-intake:family-attach", exc)
     return out
 
+
+CLUSTER_SOURCES = ("cluster_execution_completed",
+                   "category_cluster_executed")
+
+
+def build_cluster_records(limit: int = 500) -> Dict[str, Any]:
+    """Normalise CLUSTER execution rows into trainer-consumable records.
+
+    Gap-4 resolve (Engram #1655): the cluster pool (ClusterWORMZ-sourced
+    `cluster_execution_completed` rows, 500 live at wiring) was trainer-unread
+    as a pool -- learning_grpo scores FROM these rows for rewards (Beam turf,
+    untouched) but no trainer trained ON them. This is the reader half the
+    H-3 producer shape-registration left open: same record contract as
+    `build_training_records` (producer severity untouched, `data.success`
+    added as the outcome refinement), so RLTrainLoop's `records=` path and
+    the schema extractor consume both pools unchanged.
+
+    Verdict logic mirrors the intake builder: `data.success` when the producer
+    measured a bool; producer-declared failure severities rescue otherwise;
+    anything else is unmeasured and skipped, never invented. Read-side only:
+    nothing is written to the store it reads.
+    """
+    out: Dict[str, Any] = {"records": [], "n": 0, "n_rows": 0,
+                           "n_unmeasured": 0, "n_negative": 0,
+                           "n_nat_declared": 0, "n_near_miss": 0,
+                           "ok_rate": None,
+                           "source": "cluster_execution_completed",
+                           "by_hook": {}}
+    try:
+        store = get_memory_store()
+    except Exception as exc:
+        note_failure("training-intake:cluster-store", exc)
+        out["store_error"] = type(exc).__name__
+        return out
+    rows: List[Dict[str, Any]] = []
+    try:
+        for _et in CLUSTER_SOURCES:
+            _rows = store.query_memories(event_type=_et,
+                                         limit=int(limit)) or []
+            if _rows:
+                rows = _rows
+                out["source"] = _et
+                break
+    except Exception as exc:
+        note_failure("training-intake:cluster-read", exc)
+        out["read_error"] = type(exc).__name__
+        rows = []
+    if not isinstance(rows, list):
+        rows = []
+
+    records: List[Dict[str, Any]] = []
+    by_hook: Dict[str, List[int]] = {}
+    unmeasured = 0
+    negatives = 0
+    nat_declared = 0
+    n_near_miss = 0
+    for row in rows:
+        data = _row_data(row)
+        ok = data.get("success")
+        severity = str((row or {}).get("severity") or "info")
+        success_rate = None
+        if not isinstance(ok, bool):
+            # Producer-count form (CLUSTERWORMS._record, transcribed from
+            # src/CORE/WORMS/CLUSTERWORMS.py:1288): `results` = total worm
+            # runs, `success` = runs with r.get("success") truthy. A full
+            # sweep is ok; a partial sweep is a measured negative (rate is
+            # the producer's own count ratio, not an invention); an empty
+            # run carries no verdict and stays unmeasured.
+            _total = data.get("results")
+            if (isinstance(ok, int) and not isinstance(ok, bool)
+                    and isinstance(_total, int) and not isinstance(_total, bool)
+                    and _total > 0):
+                success_rate = ok / _total
+                ok = (ok == _total)
+            elif severity in NAT_NEGATIVE_SEVERITIES:
+                ok = False
+                nat_declared += 1
+            else:
+                unmeasured += 1
+                continue
+        negative = (not ok) or (severity != "info")
+        if negative:
+            negatives += 1
+        # Count-form partial sweeps (0 < rate < 1) are adjacent to success
+        # by the producer's own counts, so they join the warning-segment
+        # near-miss mark; the mark travels, emphasis stays trainer-side.
+        near_miss = (negative and severity == NEAR_MISS_SEVERITY) or (
+            success_rate is not None and 0 < success_rate < 1)
+        if near_miss:
+            n_near_miss += 1
+        hook = str(data.get("cluster_type") or data.get("hook") or "")
+        if not hook:
+            hook = str((row or {}).get("source") or "?")
+        slot = by_hook.setdefault(hook, [0, 0])
+        slot[0] += 1 if ok else 0
+        slot[1] += 1
+        _rec_data = {"success": ok, "ok": ok, "hook": hook,
+                     "subject": str(data.get("cluster_type", "")),
+                     "nat_negative": negative,
+                     "near_miss": near_miss}
+        if success_rate is not None:
+            _rec_data["success_rate"] = round(success_rate, 4)
+        records.append({
+            "source": "cluster_execution_completed",
+            "event_type": "cluster:%s" % hook,
+            "severity": severity,
+            "data": _rec_data,
+            "timestamp": (row or {}).get("timestamp"),
+            "session_id": (row or {}).get("session_id"),
+        })
+    out["records"] = records
+    out["n"] = len(records)
+    out["n_rows"] = len(rows)
+    out["n_unmeasured"] = unmeasured
+    out["n_negative"] = negatives
+    out["n_nat_declared"] = nat_declared
+    out["n_near_miss"] = n_near_miss
+    out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
+                      if records else None)
+    out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
+    try:
+        _fi = _family_index(
+            [{"name": _h, "family": _h.split(".")[0] if "." in _h else ""}
+             for _h in by_hook])
+        _fam_of = {}
+        for _fam, _names in (_fi.get("families") or {}).items():
+            for _nm in _names:
+                _fam_of[_nm] = _fam
+        for _rec in records:
+            _rec["data"]["family"] = _fam_of.get(
+                _rec["data"].get("hook", "?"), "unassigned")
+        out["families"] = _fi
+        out["n_families"] = int(_fi.get("n_families", 0))
+    except Exception as exc:
+        note_failure("training-intake:cluster-family-attach", exc)
+    return out
+
