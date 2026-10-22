@@ -48,7 +48,7 @@ def test_scipy():
     from scipy import stats
 
     result = stats.norm.rvs(size=1000)
-    print(f"  [OK] Statistical sampling: {len(result)} samples")
+    print(f"  [OK] Statistical sampling: {len(np.asarray(result))} samples")
 
     return True
 
@@ -87,12 +87,14 @@ def test_tensorflow():
 def test_sklearn():
     """Test scikit-learn operations."""
     print("\n[SKLEARN] Testing...")
+    import numpy as np
     from sklearn.decomposition import PCA
     from sklearn.datasets import make_classification
 
     X, y = make_classification(
         n_samples=1000, n_features=100, n_classes=5, n_informative=5
     )
+    X = np.asarray(X)
     pca = PCA(n_components=10)
     X_pca = pca.fit_transform(X)
     print(f"  [OK] PCA: {X.shape} -> {X_pca.shape}")

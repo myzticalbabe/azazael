@@ -581,12 +581,8 @@ class AzazaelPopup:
         messagebox.showinfo(f"{data['icon']} {name}", "\n".join(lines))
 
     def show_tier_details(self, num, data):
-        full = TIER[num]
+        full = data["desc"]
         messagebox.showinfo(f"Tier {num}: {data['name']}", full)
-
-
-class TIER_LABELS:
-    pass
 
 
 TIER_LABELS = {

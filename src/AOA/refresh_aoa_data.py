@@ -135,7 +135,10 @@ def live_worms():
     if reg is None:
         return None
     try:
-        d = reg.get_arm("azazael").execute("discover_worms")
+        arm = reg.get_arm("azazael")
+        if arm is None:
+            raise LookupError("azazael arm not registered")
+        d = arm.execute("discover_worms")
         return int(d.get("data", {}).get("worm_count"))
     except Exception as e:  # noqa: BLE001
         print(f"  [WARN] live worm discovery unavailable ({e})")
@@ -148,7 +151,10 @@ def live_perfmon():
     if reg is None:
         return {}
     try:
-        d = reg.get_arm("perfmon").execute("get_metrics")
+        arm = reg.get_arm("perfmon")
+        if arm is None:
+            raise LookupError("perfmon arm not registered")
+        d = arm.execute("get_metrics")
         return dict(d.get("data", {}))
     except Exception as e:  # noqa: BLE001
         print(f"  [WARN] perfmon unavailable ({e})")
