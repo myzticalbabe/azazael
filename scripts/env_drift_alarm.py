@@ -45,7 +45,7 @@ for _stream in (sys.stdout, sys.stderr):
     try:
         _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
     except Exception:
-        pass  # scanner:ignore
+        pass  # scanner:ignore -- console reconfigure is best-effort; a stream that refuses UTF-8 still runs the alarm
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPTS = REPO / "scripts"

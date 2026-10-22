@@ -32,6 +32,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import subprocess
@@ -76,11 +77,13 @@ def _pid_alive(pid: int) -> bool:
             ctypes.windll.kernel32.CloseHandle(handle)
             return True
         except Exception:
-            return False  # scanner:ignore
+            return False  # scanner:ignore -- probe semantics: a failed liveness query means alive-ness cannot be confirmed; False is the safe answer
     try:
         os.kill(pid, 0)
-    except OSError:
-        return False  # scanner:ignore
+    except OSError as exc:
+        # EPERM = the process exists but belongs to someone else — alive.
+        # Other errors (ESRCH, EINVAL...) mean it cannot be signalled — dead.
+        return exc.errno == errno.EPERM
     return True
 
 
@@ -96,7 +99,7 @@ def _heartbeat_age_s() -> float | None:
     try:
         return max(0.0, time.time() - HEARTBEAT_PATH.stat().st_mtime)
     except OSError:
-        return None  # scanner:ignore
+        return None  # scanner:ignore -- probe semantics: an unreadable heartbeat IS the no-heartbeat signal; None is the designed marker
 
 
 def _revive() -> dict[str, Any]:

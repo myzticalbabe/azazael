@@ -109,7 +109,7 @@ def _worm_of(row):
         try:
             data = json.loads(data)
         except (ValueError, TypeError):
-            return None  # scanner:ignore
+            return None  # scanner:ignore -- probe contract: unparseable payloads fall outside the census; None marks the row uncounted
     if not isinstance(data, dict):
         return None
     return data.get("worm") or data.get("worm_type")
