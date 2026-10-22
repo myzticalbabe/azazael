@@ -22,10 +22,13 @@ This module is that intake. All reads, fail-open, stdlib-only:
 REJECTED (prior Phase-2 lesson, obs #382): per-worm GRPO reward shaping
 from global link terms — group normalization washes global terms, and
 per-worm mapping would be substring-guessing. No shaping wrapper ships
-in this module for that reason; shaping stays out until per-worm hook
-identity exists. `build_training_records` is NOT that wrapper: it introduces
-no per-worm term and changes no trainer's objective — it only stops the row
-from arriving with its outcome erased (see its docstring).
+in this module for that reason; shaping stays out by design (emphasis is
+the trainer's job). Per-worm hook identity now exists via
+`record_link(..., worm)` with caller-module derivation, carried per record
+as `data["worm"]` with a `by_worm` aggregate. `build_training_records`
+is NOT that wrapper: it introduces no per-worm term and changes no
+trainer's objective — it only stops the row from arriving with its
+outcome erased (see its docstring).
 """
 
 from __future__ import annotations
@@ -150,8 +153,9 @@ NAT_NEGATIVE_SEVERITIES = ("warning", "error")
 #: breakage. Near-miss negatives carry a stronger learning signal than
 #: arbitrary incorrect ones, so they are marked and counted here (see the
 #: no-shaping boundary on the loop below: this module's own prior lesson
-#: keeps the EMPHASIS application out until per-worm hook identity
-#: exists); a consumer that wants the emphasis reads the mark.
+#: keeps the EMPHASIS application trainer-side (per-worm via
+#: `data["worm"]` + `by_worm`); a consumer that wants the emphasis reads
+#: the mark.
 NEAR_MISS_SEVERITY = "warning"
 
 
@@ -274,11 +278,12 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
         # F2 Likra (Engram #813): among the measured negatives, the
         # "warning" segment is the near-miss one — plausible, adjacent to
         # success — versus "error", outright breakage. MARKED and COUNTED,
-        # deliberately not re-weighted into any reward here: per-worm hook
-        # identity does not exist yet (this module's REJECTED-lesson
-        # boundary), so an emphasis applied in this adapter would be a
-        # shaping wrapper the store cannot attribute. The mark travels to
-        # the trainer; applying emphasis is the trainer-side next step.
+        # deliberately not re-weighted into any reward here (this module's
+        # REJECTED-lesson boundary: shaping is the trainer's job).
+        # Per-worm hook identity travels with the record (`data["worm"]`,
+        # aggregated in `by_worm`), so the trainer applies emphasis per
+        # worm. The mark travels; applying emphasis is the trainer-side
+        # next step.
         near_miss = negative and severity == NEAR_MISS_SEVERITY
         if near_miss:
             n_near_miss += 1
@@ -291,6 +296,7 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
             hook = event_type[len("hook:"):] if event_type.startswith("hook:") \
                 else event_type
         hook = hook or "?"
+        worm = str(data.get("worm", "") or "unknown")
         slot = by_hook.setdefault(hook, [0, 0])
         slot[0] += 1 if ok else 0
         slot[1] += 1
@@ -300,6 +306,7 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
             # The producer's own severity, untouched (see the docstring).
             "severity": str((row or {}).get("severity") or "info"),
             "data": {"success": ok, "ok": ok, "hook": hook,
+                     "worm": worm,
                      "subject": str(data.get("subject", "")),
                      "citation": str(data.get("citation", "")),
                      "nat_negative": negative,
@@ -317,6 +324,13 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
                       if records else None)
     out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
+    by_worm: Dict[str, List[int]] = {}
+    for _rec in records:
+        _w = str(_rec["data"].get("worm", "") or "unknown")
+        _slot = by_worm.setdefault(_w, [0, 0])
+        _slot[0] += 1 if _rec["data"].get("success") else 0
+        _slot[1] += 1
+    out["by_worm"] = {w: [g, t] for w, (g, t) in by_worm.items()}
     # E1 (Engram #855): family attach — EP455 input side wired to
     # training. Each hook's producer namespace is its family; dotless
     # hooks land in family_index's own "unassigned" bucket. Additive
@@ -431,10 +445,12 @@ def build_cluster_records(limit: int = 500) -> Dict[str, Any]:
         hook = str(data.get("cluster_type") or data.get("hook") or "")
         if not hook:
             hook = str((row or {}).get("source") or "?")
+        worm = str(data.get("worm", "") or "unknown")
         slot = by_hook.setdefault(hook, [0, 0])
         slot[0] += 1 if ok else 0
         slot[1] += 1
         _rec_data = {"success": ok, "ok": ok, "hook": hook,
+                     "worm": worm,
                      "subject": str(data.get("cluster_type", "")),
                      "nat_negative": negative,
                      "near_miss": near_miss}
@@ -458,6 +474,13 @@ def build_cluster_records(limit: int = 500) -> Dict[str, Any]:
     out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
                       if records else None)
     out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
+    by_worm = {}
+    for _rec in records:
+        _w = str(_rec["data"].get("worm", "") or "unknown")
+        _slot = by_worm.setdefault(_w, [0, 0])
+        _slot[0] += 1 if _rec["data"].get("success") else 0
+        _slot[1] += 1
+    out["by_worm"] = {w: [g, t] for w, (g, t) in by_worm.items()}
     try:
         _fi = _family_index(
             [{"name": _h, "family": _h.split(".")[0] if "." in _h else ""}
