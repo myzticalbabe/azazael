@@ -164,10 +164,10 @@ def main():
         for pkg, msg in failed:
             print(f"  - {pkg}: {msg[:60]}")
 
-            print()
-            print("=" * 60)
-            print("AUTO-INSTALL COMPLETE")
-            print("=" * 60)
+        print()
+        print("=" * 60)
+        print("AUTO-INSTALL COMPLETE")
+        print("=" * 60)
 
 
 if __name__ == "__main__":
