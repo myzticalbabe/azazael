@@ -67,6 +67,13 @@ TRACKS: dict[str, dict] = {
     "INTAKE": {"kind": "cycle", "runner": "run_intake_cycle",
                "event": ("intake_training_orchestrated", "eval_mean_reward", None)},
 
+    # The cluster-outcome track (gap-4 resolve, Engram #1655). Same contract
+    # as INTAKE but over the ClusterWORMZ pool: cluster_execution_completed
+    # rows carried producer-count verdicts nobody trained on. Reader half via
+    # `CORE.training_intake.build_cluster_records()`; `run_cluster_cycle`.
+    "CLUSTER": {"kind": "cycle", "runner": "run_cluster_cycle",
+                "event": ("cluster_training_orchestrated", "eval_mean_reward", None)},
+
     # -- The former shadow orchestrator, folded in as one arm -------------
     # CORE/NeuralPipeline's parallel SB3+GRPO+QLEARN ensemble used to be a
     # separate chain with its own (broken) result assembly. It is a track now:
