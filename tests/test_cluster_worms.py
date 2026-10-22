@@ -29,10 +29,13 @@ def test_module_imports(mod_name, rel_path):
         attrs = [a for a in dir(mod) if not a.startswith('_')]
         assert len(attrs) > 0, f"{mod_name} has no public attributes"
     except Exception as e:
-        # Known 3.14t C extension incompatibility — skip, don't fail
+        # Heavy/optional deps may fail to import under the free-threaded
+        # interpreter (C-extension ABI or a missing build) — skip, don't fail.
+        # Empirically dead-on-host under 3.15t as of 2026-10-22 (18-test
+        # battery never fired this branch); guard kept for environmental degrades.
         err = str(e).lower()
         if "pandas" in err or "c extension" in err:
-            pytest.skip(f"3.14t C extension issue: {e}")
+            pytest.skip(f"import degraded under free-threaded interpreter: {e}")
         raise
 
 
