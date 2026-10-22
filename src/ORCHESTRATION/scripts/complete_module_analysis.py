@@ -96,7 +96,7 @@ class CompleteModuleFinder:
             "end_time": None,
         }
 
-    def find_all_modules(self, limit: int = None) -> dict[str, FullModuleInfo]:
+    def find_all_modules(self, limit: int | None = None) -> dict[str, FullModuleInfo]:
         """Find all Python modules with progress tracking."""
         self.scan_stats["start_time"] = datetime.now()
         print("=" * 70)
@@ -173,7 +173,7 @@ class CompleteModuleAnalyzer:
 
     def __init__(self, modules: dict[str, FullModuleInfo]):
         self.modules = modules
-        self.analyze_stats = {
+        self.analyze_stats: dict[str, float] = {
             "modules_analyzed": 0,
             "syntax_errors": 0,
             "analysis_time": 0,

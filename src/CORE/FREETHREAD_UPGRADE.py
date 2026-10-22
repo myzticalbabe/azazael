@@ -51,7 +51,9 @@ except ImportError:
             note_failure("FREETHREAD_UPGRADE:L41", exc)
             return False
 
-    class FreeThreadPool:
+    class _FreeThreadPool:
+        # Fallback pool; aliases the canonical name below so callers of this
+        # module always see `FreeThreadPool` regardless of which branch ran.
         def __init__(self, max_workers=0, thread_name_prefix="ft-worker"):
             if not isinstance(max_workers, int):  # type: ignore[reportUnnecessaryIsInstance]
                 raise TypeError(f"max_workers must be int, got {type(max_workers).__name__}")
@@ -81,11 +83,12 @@ except ImportError:
                 raise RuntimeError("FreeThreadPool not entered — use 'with'")
             return self.executor.map(fn, *it, **kw)
 
+    FreeThreadPool = _FreeThreadPool
     ThreadSafeDict = dict
     ThreadSafeList = list
 
     @dataclass
-    class DeviceParallelConfig:
+    class _DeviceParallelConfig:
         device_name: str = "CPU"
         max_workers: int = 16
         optimal_workers: int = 16
@@ -97,8 +100,10 @@ except ImportError:
             return cls(max_workers=os.cpu_count() or 16, optimal_workers=os.cpu_count() or 16)
         
         @classmethod
-        def for_device(cls, d): 
+        def for_device(cls, d):
             return cls.for_cpu()
+
+    DeviceParallelConfig = _DeviceParallelConfig
 
 
 # ===========================================================================
@@ -134,11 +139,14 @@ class WormPool:
     worm_name: str
     max_workers: int = 0
     task_type: str = "io"  # "io", "cpu", "mixed"
-    _pool: FreeThreadPool | None = field(default=None, repr=False, init=False)
     _results: List[TaskResult] = field(default_factory=list, repr=False, init=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False, init=False)
+    # The pooled executor is NOT a dataclass field: the concrete pool class is
+    # chosen at module import time (canonical re-export vs GIL fallback) and is
+    # created lazily in __enter__, so it lives on a plain instance attribute.
 
     def __post_init__(self):
+        self._pool = None
         ft = is_free_threaded()
         cpu = os.cpu_count() or 8
         if not isinstance(self.max_workers, int):  # type: ignore[reportUnnecessaryIsInstance]

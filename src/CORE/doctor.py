@@ -89,7 +89,7 @@ def get_db_size() -> dict:
     db = Path(str(DB_PATH))
     wal = db.with_suffix(".db-wal")
     shm = db.with_suffix(".db-shm")
-    sizes = {"db": db.stat().st_size if db.exists() else 0}
+    sizes: dict[str, float] = {"db": db.stat().st_size if db.exists() else 0}
     if wal.exists():
         sizes["wal"] = wal.stat().st_size
     if shm.exists():

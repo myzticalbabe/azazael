@@ -41,7 +41,7 @@ except ImportError:
     from concurrent.futures import ThreadPoolExecutor
     ThreadSafeDict = dict
 
-    class FreeThreadPool:
+    class _FreeThreadPool:
         """Fallback FreeThreadPool for Python 3.12 (wraps ThreadPoolExecutor)."""
 
         def __init__(self, max_workers=0, thread_name_prefix="ft-worker"):
@@ -71,8 +71,10 @@ except ImportError:
                 raise RuntimeError("FreeThreadPool not entered")
             return self._executor.map(fn, *it, **kw)
 
+    FreeThreadPool = _FreeThreadPool
 
-    class WorkStealingPool:
+
+    class _WorkStealingPool:
         """Simplified WorkStealingPool fallback using ThreadPoolExecutor."""
 
         def __init__(
@@ -114,6 +116,8 @@ except ImportError:
         @property
         def stats(self):
             return {"workers": self.num_workers, "submitted": 0, "completed": 0}
+
+    WorkStealingPool = _WorkStealingPool
 
 # -- Data pipeline imports ---------------------------------------------
 from CORE.WORMS.expansion.learning import (
