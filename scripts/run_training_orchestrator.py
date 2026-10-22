@@ -61,12 +61,13 @@ try:
 except Exception:  # pragma: no cover - registry unavailable, keep running
     ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
                 "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE",
-                "RL", "DREAMTUNE", "WORMGA", "INTAKE", "ALLPAR"]
+                "RL", "DREAMTUNE", "WORMGA", "INTAKE", "CLUSTER", "ALLPAR"]
     _TRACK_EVENTS = {
         "GRPO": ("grpo_training_orchestrated", "eval_mean_reward", None),
         "DPO": ("dpo_training_orchestrated", "eval_mean_reward", None),
         "OFFLINE": ("offline_training_orchestrated", "eval_mean_reward", None),
         "INTAKE": ("intake_training_orchestrated", "eval_mean_reward", None),
+        "CLUSTER": ("cluster_training_orchestrated", "eval_mean_reward", None),
         "DREAMTUNE": ("dreamtune_training_orchestrated", "eval_mean_reward", None),
         "RL": ("training_run_complete", "avg_reward", "ScheduledTrainingWorm"),
         "WORMGA": ("wormga_training_orchestrated", "eval_mean_reward", None),
@@ -515,6 +516,88 @@ def run_intake_cycle() -> dict:
             "note": ("%d technique hooks, ok_rate=%s, unmeasured=%s"
                      % (data["intake_hooks"], data["intake_ok_rate"],
                         data["intake_unmeasured"]))}
+
+
+def run_cluster_cycle() -> dict:
+    """One CLUSTER track run: Q-learning over MEASURED cluster outcomes.
+
+    Gap-4 resolve (Engram #1655): the reader half the H-3 producer
+    shape-registration left open. Mirrors run_intake_cycle exactly -- same
+    RLTrainLoop `records=` path, same frozen-pool discipline, same starve
+    rule (empty pool reports success=False and writes nothing), same
+    additive estimator arm. Output rows are TrainingOrchestrator-sourced
+    (already in EXCLUDED_TRAINING_SOURCES) so no track feeds itself.
+    learning_grpo's reward scoring FROM these rows is Beam turf and untouched.
+    """
+    from CORE.training_intake import build_cluster_records
+    from CORE.WORMS.expansion.learning import RLTrainLoop
+    from CORE.local_memory import get_memory_store
+
+    run_id = _gen_run_id("cluster")
+    t0 = time.time()
+    built = build_cluster_records(limit=500)
+    records = built.get("records") or []
+    if not records:
+        return {
+            "algo": "CLUSTER", "success": False, "records_used": 0,
+            "model_version": None, "eval_mean_reward": None,
+            "duration_ms": round((time.time() - t0) * 1000, 2),
+            "note": ("skipped: no MEASURED cluster outcomes (%d rows seen, "
+                     "%d unmeasured%s)"
+                     % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
+                        ", error=%s" % (built.get("store_error")
+                                         or built.get("read_error"))
+                        if (built.get("store_error")
+                            or built.get("read_error")) else "")),
+        }
+
+    loop = RLTrainLoop()
+    loaded = False
+    try:
+        loaded = bool(loop.load_q_table_from_store())
+    except Exception as exc:  # noqa: BLE001 - a missing table is not a failure
+        print(f"  [WARN] cluster q-table load skipped: {exc}", flush=True)
+    result = loop.train_from_memory(
+        records=records, n_episodes=60,
+        max_steps=min(50, len(records)),
+        use_schema_features=False,
+    )
+    if "error" in result:
+        raise RuntimeError(result["error"])
+
+    estimator_info = _estimator_arm(records)
+    duration_ms = round((time.time() - t0) * 1000, 2)
+    data = {
+        "run_id": run_id,
+        "algo": "CLUSTER",
+        "total_timesteps": 0,
+        "records_used": len(records),
+        "regime": _regime(),
+        "data_source": f"memory:{built.get('source')}",
+        "model_version": _next_track_version("cluster_training_orchestrated"),
+        "eval_mean_reward": round(float(result.get("avg_reward", 0.0)), 4),
+        "eval_std_reward": 0.0,
+        "q_table_size": int(result.get("q_table_size", 0)),
+        "cluster_ok_rate": built.get("ok_rate"),
+        "cluster_hooks": len(built.get("by_hook") or {}),
+        "cluster_unmeasured": built.get("n_unmeasured"),
+        "warm_started": loaded,
+        "duration_ms": duration_ms,
+    }
+    data.update(estimator_info)
+    store = get_memory_store()
+    store.record_event(
+        source="TrainingOrchestrator", event_type="cluster_training_orchestrated",
+        data=data, severity="info", tags=["cluster", "technique", "training",
+                                          "orchestrated"],
+    )
+    return {"algo": "CLUSTER", "success": True, "records_used": len(records),
+            "model_version": data["model_version"],
+            "eval_mean_reward": data["eval_mean_reward"],
+            "duration_ms": duration_ms,
+            "note": ("%d cluster hooks, ok_rate=%s, unmeasured=%s"
+                     % (data["cluster_hooks"], data["cluster_ok_rate"],
+                        data["cluster_unmeasured"]))}
 
 
 def _thought_family(task, words: int = 3) -> str:
@@ -1128,6 +1211,7 @@ def _run_impl():
         "DPO": run_dpo_cycle,
         "OFFLINE": run_offline_cycle,
         "INTAKE": run_intake_cycle,
+        "CLUSTER": run_cluster_cycle,
         "RL": run_rl_cycle,
         "DREAMTUNE": run_dreamtune_cycle,
         "WORMGA": run_wormga_cycle,
