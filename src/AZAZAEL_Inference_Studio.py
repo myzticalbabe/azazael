@@ -1423,9 +1423,10 @@ class InferenceStudio:
         cat = self.cat_var.get()
         models = MODEL_CATALOG.get(cat, [])
         if idx < len(models):
-            self.selected_model = models[idx]
+            model = models[idx]
+            self.selected_model = model
             self._set_status(
-                f"Model: {self.selected_model.name} ({self.selected_model.params})",
+                f"Model: {model.name} ({model.params})",
                 "cyan"
             )
 

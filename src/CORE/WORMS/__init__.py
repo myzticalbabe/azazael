@@ -18,6 +18,12 @@ __all__ = [
     "MetaCluster",
 ]
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # static names for __all__; PEP 562 __getattr__ serves them at runtime
+    from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+    from CORE.WORMS.METACLUSTER import MetaCluster
+
 
 def __getattr__(name: str):
     if name == "ClusterWORMZ":

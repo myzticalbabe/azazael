@@ -69,7 +69,11 @@ class TestHYDRAMETA:
     def test_hydrometa_initialization(self):
         """Test HYDRAMETA initializes with defaults."""
         try:
-            from CORE.WORMS.WORMZ_ML import HYDRAMETA
+            from CORE.WORMS import WORMZ_ML as _wormz_ml
+
+            HYDRAMETA = getattr(_wormz_ml, "HYDRAMETA", None)
+            if HYDRAMETA is None:
+                raise ImportError("HYDRAMETA not implemented in CORE.WORMS.WORMZ_ML")
 
             optimizer = HYDRAMETA()
             assert optimizer.population_size == 50
@@ -81,7 +85,11 @@ class TestHYDRAMETA:
     def test_hydrometa_has_optimize_method(self):
         """Test HYDRAMETA has optimize method."""
         try:
-            from CORE.WORMS.WORMZ_ML import HYDRAMETA
+            from CORE.WORMS import WORMZ_ML as _wormz_ml
+
+            HYDRAMETA = getattr(_wormz_ml, "HYDRAMETA", None)
+            if HYDRAMETA is None:
+                raise ImportError("HYDRAMETA not implemented in CORE.WORMS.WORMZ_ML")
 
             optimizer = HYDRAMETA()
             assert hasattr(optimizer, "optimize")
