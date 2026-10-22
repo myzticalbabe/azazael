@@ -349,8 +349,11 @@ def _function_rows(root: Path, rel: str) -> list[dict[str, Any]]:
         for candidate in ast.walk(tree):
             if isinstance(candidate, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) \
                     and node is not candidate:
-                if getattr(candidate, "lineno", 10**9) <= node.lineno \
-                        and getattr(candidate, "end_lineno", -1) >= node.end_lineno:
+                cand_lineno: int = getattr(candidate, "lineno", 10**9)
+                cand_end: int = getattr(candidate, "end_lineno", -1)
+                node_end: int = node.end_lineno if node.end_lineno is not None else node.lineno
+                if cand_lineno <= node.lineno \
+                        and cand_end >= node_end:
                     parent.append(candidate.name)
         qualname = ".".join(parent[-2:] + [node.name]) if parent else node.name
         rows.append({"name": node.name, "qualname": qualname, "line": node.lineno})

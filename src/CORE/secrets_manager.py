@@ -153,7 +153,7 @@ class SecretsManager:
     Thread-safe via double-checked locking for Python 3.14t free-threading.
     """
 
-    _instance: ("SecretsManager" | None) = None
+    _instance: "SecretsManager | None" = None
     _instance_lock = threading.Lock()
     _initialized = False
 

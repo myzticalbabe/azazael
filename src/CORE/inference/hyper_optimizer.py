@@ -388,6 +388,11 @@ class HyperOptimizer:
             error=error, confidence=confidence,
         )
 
+    def _execute_single_with_semaphore(self, step: ChainStep, prompt: str, sem: threading.Semaphore) -> ModelResponse:
+        """Execute a single model holding its provider semaphore (rate-limit guard)."""
+        with sem:
+            return self._execute_single(step, prompt)
+
     def _execute_batch(
         self,
         steps: list[ChainStep],

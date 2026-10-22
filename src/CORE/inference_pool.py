@@ -421,7 +421,7 @@ class InferencePool:
             return []
 
     def infer_with_fallback(self, prompt: str,
-                            models: list[str] = None,
+                            models: list[str] | None = None,
                             max_tokens: int = 256,
                             temperature: float = 0.0,
                             timeout: float = 15.0) -> dict[str, Any]:
