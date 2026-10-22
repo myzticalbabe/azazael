@@ -1,0 +1,3826 @@
+[
+  {
+    "ep": "EP1",
+    "title": "EP001: How Transformers Smashed the Sequential Bottleneck",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP2",
+    "title": "EP002: ULMFiT Was the ImageNet Moment for Text",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP3",
+    "title": "EP003: How ELMo Made Word Vectors Dynamic",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP4",
+    "title": "EP004: How 7000 Unpublished Books Birthed GPT",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP5",
+    "title": "EP005: How BERT Mastered Language by Hiding Words",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP6",
+    "title": "EP006: Transformer-XL Cures AI Amnesia",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP7",
+    "title": "EP007: How GPT-2 Hallucinated Ovid's Unicorn",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP8",
+    "title": "EP008: RoBERTa Proves BERT Was Just Undertrained",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP9",
+    "title": "EP009: Slicing the AI Brain with Megatron-LM",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP10",
+    "title": "EP010: ALBERT Outperforms BERT With Parameter Sharing",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP11",
+    "title": "EP011: ZeRO Solved the Trillion Parameter Memory Wall",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP12",
+    "title": "EP012: Google T5 Turns Every Task Into Text",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP13",
+    "title": "EP013: Reformer Cracked the Transformer Memory Wall",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP14",
+    "title": "EP014: ELECTRA Beats GPT On One GPU",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP15",
+    "title": "EP015: Longformer Smashes the 512 Token Barrier",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP16",
+    "title": "EP016: GPT-3 Learns From Examples Without Retraining",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP17",
+    "title": "EP017: RAG Gives AI a Library Card",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP18",
+    "title": "EP018: Turning Digital Static Into Images With Diffusion",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP19",
+    "title": "EP019: Facebook's Linformer Solves the Attention Bottleneck",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP20",
+    "title": "EP020: Big Bird Scales Transformers With Sparse Attention",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP21",
+    "title": "EP021: Vision Transformers Beat CNNs at Scale",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP22",
+    "title": "EP022: DALL-E Treats Images Like Language",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP23",
+    "title": "EP023: Scaling Switch Transformers to Trillion Parameters",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP24",
+    "title": "EP024: OpenAI CLIP Bridges Language and Vision",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP25",
+    "title": "EP025: RoPE Solves Sequence by Rotating Vectors",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP26",
+    "title": "EP026: LoRA Fine-Tunes Massive Models Without Supercomputers",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP27",
+    "title": "EP027: From Creative Writer to Logic Engine",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP28",
+    "title": "EP028: Train Short for Infinite Context",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP29",
+    "title": "EP029: Instruction Tuning Unlocked Zero-Shot Learning",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP30",
+    "title": "EP030: DeepMind's Gopher Exposes Limits of Scale",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP31",
+    "title": "EP031: DeepMind RETRO Swaps Memorization For Retrieval",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP32",
+    "title": "EP032: WebGPT Fights Hallucinations With Web Search",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP33",
+    "title": "EP033: Democratizing Image Generation with Latent Diffusion",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP34",
+    "title": "EP034: Chain of Thought Prompting Unlocks Reasoning",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP35",
+    "title": "EP035: How Google LaMDA Learned To Use Tools",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP36",
+    "title": "EP036: How 40 People Taught GPT-3 Manners",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP37",
+    "title": "EP037: DeepMind Chinchilla Ends The Parameter Wars",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP38",
+    "title": "EP038: PaLM's 540 Billion Parameters Unlock Reasoning",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP39",
+    "title": "EP039: Flamingo Unlocks Few-Shot Visual Reasoning",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP40",
+    "title": "EP040: Meta's Open Source GPT-3 Replica",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP41",
+    "title": "EP041: FlashAttention Smashes the AI Memory Wall",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP42",
+    "title": "EP042: Running 175B Models on Consumer Hardware",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP43",
+    "title": "EP043: Weak Supervision Made OpenAI Whisper Robust",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP44",
+    "title": "EP044: How ReAct Synergizes Reasoning and Acting",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP45",
+    "title": "EP045: BLOOM The Open Source Rival To GPT-3",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP46",
+    "title": "EP046: Training AI With A Constitution",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP47",
+    "title": "EP047: Bootstrapping AI With Self-Generated Instructions",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP48",
+    "title": "EP048: BLIP-2 Teaches Frozen Models to See",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP49",
+    "title": "EP049: Toolformer Teaches Itself to Use APIs",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP50",
+    "title": "EP050: How Meta's LLaMA Beat GPT-3",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP51",
+    "title": "EP051: ControlNet Solves Spatial Control With Zero Convolutions",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP52",
+    "title": "EP052: GPT-4 Bar Exam and Visual Reasoning",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP53",
+    "title": "EP053: Sparks of AGI in Early GPT-4",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP54",
+    "title": "EP054: Alpaca - Stanford Built a $600 GPT Clone",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP55",
+    "title": "EP055: Can GPT-4 Fairly Judge Other AI",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP56",
+    "title": "EP056: Pythia Turns AI Alchemy Into Chemistry",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP57",
+    "title": "EP057: Blind GPT-4 Taught LLaVA To See",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP58",
+    "title": "EP058: Inside the Autonomous AI Town of Smallville",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP59",
+    "title": "EP059: Tree of Thoughts Unlocks System 2 Thinking",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP60",
+    "title": "EP060: Direct Preference Optimization Replaces RLHF",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP61",
+    "title": "EP061: Fine-Tuning LLaMA 65B on One GPU",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP62",
+    "title": "EP062: VOYAGER AI Masters Minecraft by Writing Code",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP63",
+    "title": "EP063: RWKV Smashes the Transformer Memory Ceiling",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP64",
+    "title": "EP064: Synthetic Textbooks Break AI Scaling Laws",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP65",
+    "title": "EP065: Teaching Small AI To Think Like Giants",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP66",
+    "title": "EP066: Llama 2 Ghost Attention And Safety Secrets",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP67",
+    "title": "EP067: FlashAttention-2 Unlocks Massive Context Windows",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP68",
+    "title": "EP068: vLLM Fixes the KV Cache Bottleneck",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP69",
+    "title": "EP069: Alibaba's Qwen Specialized Models Beat Generalists",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP70",
+    "title": "EP070: Mistral 7B Beats Llama 2 13B",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP71",
+    "title": "EP071: How Zephyr-7B Beat Llama-70B",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP72",
+    "title": "EP072: Mamba Solves The Transformer's Fatal Flaw",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP73",
+    "title": "EP073: Mixtral 8x7B Sparse Experts Beat Giants",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP74",
+    "title": "EP074: How Gemini Beat Human Experts",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP75",
+    "title": "EP075: Microsoft Phi Beats Giants With Synthetic Textbooks",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP76",
+    "title": "EP076: OLMo Cracks Open the AI Black Box",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP77",
+    "title": "EP077: Google Squeezes Gemini Into Your Laptop",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP78",
+    "title": "EP078: Claude 3 Knew It Was Being Tested",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP79",
+    "title": "EP079: DBRX Beats GPT-3.5",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP80",
+    "title": "EP080: Jamba Hybrid Solves Transformer Memory Limits",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP81",
+    "title": "EP081: Replacing MLPs With Interpretable KANs",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP82",
+    "title": "EP082: Command R Plus The Verifiable Enterprise Agent",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP83",
+    "title": "EP083: How Meta Engineered the Llama 3 Herd",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP84",
+    "title": "EP084: Microsoft Phi-3 Fits Supercomputing in Your Pocket",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP85",
+    "title": "EP085: Aya 23 Breaks The Curse Of Multilinguality",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP86",
+    "title": "EP086: DeepSeek-V2 Breaks The Impossible Triangle",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP87",
+    "title": "EP087: Meta's Chameleon Unifies Text and Images",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP88",
+    "title": "EP088: Qwen2 Beats Llama-3 Through Data Quality",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP89",
+    "title": "EP089: Qwen2-VL Gives AI Native Eyesight",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP90",
+    "title": "EP090: Pixtral 12B Beats Llama With Better Eyesight",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP91",
+    "title": "EP091: Qwen 2.5 Beats Llama With Synthetic Data",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP92",
+    "title": "EP092: BitNet b1.58 Replaces Multiplication With Addition",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP93",
+    "title": "EP093: How OpenAI o1 Cracked the Strawberry Cipher",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP94",
+    "title": "EP094: DeepSeek-V3 Rivals GPT-4 for $6 Million",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP95",
+    "title": "EP095: Microsoft Phi-4 Beats Giants With Synthetic Data",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP96",
+    "title": "EP096: Gemini 1.5 Pro's 10 Million Token Window",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP97",
+    "title": "EP097: DeepSeek R1 Taught Itself to Reason",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP98",
+    "title": "EP098: OpenAI o3 Hacked Its Own Grading System",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP99",
+    "title": "EP099: Is AI Thinking Just Expensive Noise",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP100",
+    "title": "EP100: Meta's Llama 4 Herd Ends Monolithic Models",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP101",
+    "title": "EP101: Kimi k1.5 Breaks the AI Data Wall",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP102",
+    "title": "EP102: Gemini 2.5 Thinks Before It Speaks",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP103",
+    "title": "EP103: Why AI Agents Think Themselves To Death",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP104",
+    "title": "EP104: WebExplorer Beats Giants at Web Research",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP105",
+    "title": "EP105: iStar Autonomous Agents Grading Their Own Homework",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP106",
+    "title": "EP106: Fixing AI Agents With Symbolic Guardrails",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP107",
+    "title": "EP107: DeepMind’s SIMA 2 Masters Unseen Video Games",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP108",
+    "title": "EP108: GPT-5 Can Lie and Play Dumb",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP109",
+    "title": "EP109: The Rise of Agentic Reasoning",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP110",
+    "title": "EP110: Single agents beat expensive multi agent teams",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP111",
+    "title": "EP111: Claude Opus 4.6 Runs Businesses and Catches Manipulation",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP112",
+    "title": "EP112: GPT 5.4 Outperforms Human Professionals",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP113",
+    "title": "EP113: How FlashAttention-3 Doubles H100 Speed",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP114",
+    "title": "EP114: FlashAttention-4 Solves Blackwell Hardware Bottlenecks",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP115",
+    "title": "EP115: Dr.LLM brings dynamic depth to AI",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP116",
+    "title": "EP116: Why AI struggles with empathy and interruptions",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP117",
+    "title": "EP117: AI agents learn through textual reflection",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP118",
+    "title": "EP118: The AI Memory Wall Crisis",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP119",
+    "title": "EP119: HuggingGPT Turns LLMs Into AI Managers",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP120",
+    "title": "EP120: How Reflexion agents learn through verbal feedback",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP121",
+    "title": "EP121: How ToolLLaMA mastered 16000 real world APIs",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP122",
+    "title": "EP122: The Four Pillars of LLM Autonomous Agents",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP123",
+    "title": "EP123: MemGPT Turns LLMs into Operating Systems",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP124",
+    "title": "EP124: FRIDAY the AI that runs your computer",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP125",
+    "title": "EP125: Why AI Needs an Agent Computer Interface",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP126",
+    "title": "EP126: OrcaLoca locates bugs in massive codebases",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP127",
+    "title": "EP127: Why tool use makes AI less intelligent",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP128",
+    "title": "EP128: MCP-Zero lets AI find its own tools",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP129",
+    "title": "EP129: Why AI agents fail half the time",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP130",
+    "title": "EP130: [GAP] Graph-based planning for faster AI agents",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP131",
+    "title": "EP131: MUSE creates self evolving AI agents",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP132",
+    "title": "EP132: How Autonomous LLM Agents Actually Work",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP133",
+    "title": "EP133: RelayLLM Slashes AI Costs With Collaborative Decoding",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP134",
+    "title": "EP134: Autonomous AI squads building software",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP135",
+    "title": "EP135: [SoK] Curing AI Amnesia with Agentic Skills",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP136",
+    "title": "EP136: Modular skills for autonomous AI agents",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP137",
+    "title": "EP137: Attention Residuals Solve the LLM Depth Bottleneck",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP138",
+    "title": "EP138: [Mamba-2] Transformers and SSMs Are the Same Engine",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP139",
+    "title": "EP139: Mamba-3 Fixes the Transformer Memory Bottleneck",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP140",
+    "title": "EP140: [LeWorldModel] AI learns physics on one GPU",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP141",
+    "title": "EP141: [AIRS-Bench] AI agents beat human research benchmarks",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP142",
+    "title": "EP142: [DR-Arena] A ruthless arena for deep research agents",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP143",
+    "title": "EP143: Your AI will blackmail you to survive",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP144",
+    "title": "EP144: [Evo-Memory] Building AI agents with self-evolving memory.",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP145",
+    "title": "EP145: [LongDA] Why smart AI fails at messy data",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP146",
+    "title": "EP146: How InfiAgent solves the AI memory bottleneck",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP147",
+    "title": "EP147: [DeepSynth-Eval] AI fails at deep research synthesis",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP148",
+    "title": "EP148: How AI masters math through self-correction",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP149",
+    "title": "EP149: [IDRBench] Interactive AI beats lone wolf models",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP150",
+    "title": "EP150: The Leap to Autonomous Agentic Reasoning",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP151",
+    "title": "EP151: [MagicGUI-RMS] AI agents that think before they click",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP152",
+    "title": "EP152: DeepVerifier forces AI to check its work",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP153",
+    "title": "EP153: [SERA] Training AI coding agents on untested code",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP154",
+    "title": "EP154: [FS-Researcher] Giving AI agents a file system",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP155",
+    "title": "EP155: [Agentic Proposing] Small models beat giants with logic bricks",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP156",
+    "title": "EP156: [Uncertainty Quantification] How AI Agents Know They Are Guessing",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP157",
+    "title": "EP157: [AgentHeLLM] Protecting drivers from hijacked vehicle AI",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP158",
+    "title": "EP158: The hidden blind spots of AI logic",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP159",
+    "title": "EP159: Brute force scale dominates the AI frontier",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP160",
+    "title": "EP160: [AgentSys] Securing AI agents with hierarchical memory",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP161",
+    "title": "EP161: Small AI Judges Beat Massive Coding Giants",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP162",
+    "title": "EP162: AI agents beat humans with malicious skills",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP163",
+    "title": "EP163: Why AI Models Only Remember Five Percent",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP164",
+    "title": "EP164: [LACONIC] Teaching AI to stop overthinking",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP165",
+    "title": "EP165: Translating hidden AI logic into English",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP166",
+    "title": "EP166: The Auton solution to the integration paradox",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP167",
+    "title": "EP167: Why AI models ignore visual evidence",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP168",
+    "title": "EP168: Turning AI Agents into Mathematical Functions",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP169",
+    "title": "EP169: Cybersecurity Risks of Autonomous AI Agents",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP170",
+    "title": "EP170: Qwen3.5 Multimodal Agent",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP171",
+    "title": "EP171: Helium makes AI agent workflows 40x faster",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP172",
+    "title": "EP172: How HyperAgents rewrite their own code",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP173",
+    "title": "EP173: AI models diagnosing diseases from blank scans",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP174",
+    "title": "EP174: 1-bit Bonsai brings powerful AI offline",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP175",
+    "title": "EP175: How AI models teach themselves reasoning",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP176",
+    "title": "EP176: Trigonometry fixes the AI memory bottleneck",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP177",
+    "title": "EP177: CAPO math stops overconfident AI lies",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP178",
+    "title": "EP178: AI agents reaching silent latent consensus",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP179",
+    "title": "EP179: AIBuildAI Builds New AI Models From Scratch",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP180",
+    "title": "EP180: How AI agents rewrite their code",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP181",
+    "title": "EP181: Small models beating GPT-5 with logic",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP182",
+    "title": "EP182: AI logic is its weakest link",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP183",
+    "title": "EP183: AI coding agents cheat with keywords",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP184",
+    "title": "EP184: Defeating the AI consensus trap",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP185",
+    "title": "EP185: Why AI architecture fails at logic",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP186",
+    "title": "EP186: Harness engineering for near perfect small models",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP187",
+    "title": "EP187: Hive fixes multi-agent AI memory bottlenecks",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP188",
+    "title": "EP188: [Agent-World] AI Building Its Own Training Worlds",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP189",
+    "title": "EP189: How Sessa architecture fixes AI amnesia",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP190",
+    "title": "EP190: [OLLM] Replacing AI dice rolls with ten lanes",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP191",
+    "title": "EP191: Why AI Agents Blame Each Other",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP192",
+    "title": "EP192: Fixing AI memory with knowledge graphs",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP193",
+    "title": "EP193: AI image generators master physical reality",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP194",
+    "title": "EP194: AI coding through mental simulation",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP195",
+    "title": "EP195: How tool attention ends the tools tax",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP196",
+    "title": "EP196: Forcing AI to Prove Its Logic",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP197",
+    "title": "EP197: Teaching AI Agents to Plan Like Humans",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP198",
+    "title": "EP198: AI masters StarCraft using chat logs",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP199",
+    "title": "EP199: Separation of Powers for AI Safety",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP200",
+    "title": "EP200: Kwai Summary Attention and the memory wall",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP201",
+    "title": "EP201: Nautile-370M solves AI memory bottlenecks",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP202",
+    "title": "EP202: Why ADEMA AI Never Loses The Plot",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP203",
+    "title": "EP203: How AI Agents Trade Real Money",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP204",
+    "title": "EP204: Solving the AI compositionality crisis",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP205",
+    "title": "EP205: Qiushi AI Discovers Optical Computing Hardware",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP206",
+    "title": "EP206: ObjectGraph replaces Markdown for AI agents",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP207",
+    "title": "EP207: Robots learn the math of anticipation",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP208",
+    "title": "EP208: Bayesian Orchestration for Overconfident AI Agents",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP209",
+    "title": "EP209: Fixing AI agent memory with SAGA",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP210",
+    "title": "EP210: AI that rewrites its own logic",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP211",
+    "title": "EP211: SciResearcher turns AI into a scientific detective",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP212",
+    "title": "EP212: Sheaf Geometry Fixes Robot Logic",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP213",
+    "title": "EP213: Why AI agents fail at negotiation",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP214",
+    "title": "EP214: ARISE Maps Data Flow For AI Agents",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP215",
+    "title": "EP215: Finding specialized AI agents in milliseconds",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP216",
+    "title": "EP216: Shadow memory stops long horizon AI heists",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP217",
+    "title": "EP217: Why forced compliance triggers metacognitive collapse",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP218",
+    "title": "EP218: JoyAI-Image Solves AI 3D Geometry Errors",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP219",
+    "title": "EP219: OpenSeeker V2 Shatters The AI Compute Myth",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP220",
+    "title": "EP220: How PARSE Makes AI Four Times Faster",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP221",
+    "title": "EP221: ScrapMem Mimics Human Memory Through Forgetting",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP222",
+    "title": "EP222: Gyan Beats GPT-4o Without Using GPUs",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP223",
+    "title": "EP223: UNO-ORCHESTRA Slashes AI Costs via Selective Delegation",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP224",
+    "title": "EP224: Soft-Hamiltonian world models for robust planning",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP225",
+    "title": "EP225: Turning AI into its own lie detector",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP226",
+    "title": "EP226: MELT Decouples AI Reasoning from Memory",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP227",
+    "title": "EP227: FlowAgent fixes the AI tool bottleneck",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP228",
+    "title": "EP228: Why self-evolving AI forgets basic tasks",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP229",
+    "title": "EP229: Ending the AI verbosity tax with LEAD",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP230",
+    "title": "EP230: DeepRefine fixes messy AI knowledge bases",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP231",
+    "title": "EP231: Amazon PIVOT solves the AI execution gap",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP232",
+    "title": "EP232: Why AI agents lie to fit in",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP233",
+    "title": "EP233: Fixing AI memory with backward chaining",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP234",
+    "title": "EP234: FATE fixes safe but useless AI agents",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP235",
+    "title": "EP235: How SAGE Fixes AI Memory",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP236",
+    "title": "EP236: AI agents rewriting their own code",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP237",
+    "title": "EP237: Why AI agents must map before acting",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP238",
+    "title": "EP238: SepsisAgent outperforms clinicians using clinical world models",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP239",
+    "title": "EP239: The shift from chatbots to AI societies",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP240",
+    "title": "EP240: Small AI agents beat giants with Orchard",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP241",
+    "title": "EP241: Accelerating game theory with linear algebra",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP242",
+    "title": "EP242: Ending AI Amnesia with Experience Graphs",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP243",
+    "title": "EP243: Breaking the AI data wall with SYNPRO",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP244",
+    "title": "EP244: Training decentralized AI through private handoffs",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP245",
+    "title": "EP245: The Geometric Shape of AI Reasoning",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP246",
+    "title": "EP246: Replacing AI manuals with programmable runtimes",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP247",
+    "title": "EP247: PEEK Cures AI Goldfish Memory",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP248",
+    "title": "EP248: 10x Faster AI Agents with JIT Compilation",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP249",
+    "title": "EP249: Mem-pi fixes AI amnesia with generative memory",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP250",
+    "title": "EP250: Compiling agent workflows into model weights",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP251",
+    "title": "EP251: How SR2AM stops AI overthinking",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP252",
+    "title": "EP252: How batch sizes sharpen AI reasoning",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP253",
+    "title": "EP253: MACA optimizes AI agent coordination",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP254",
+    "title": "EP254: Why Innovation Guarantees AI Hallucination",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP255",
+    "title": "EP255: MUSE-Autoskill creates self-evolving AI agents",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP256",
+    "title": "EP256: Teaching AI to Doubt Its Own Answers",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP257",
+    "title": "EP257: How planning wakes up deep AI layers",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP258",
+    "title": "EP258: TRACER teaches AI to stay silent",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP259",
+    "title": "EP259: The ESPO Kill Switch For AI Reasoning",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP260",
+    "title": "EP260: GrepSeek brings Unix precision to AI",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP261",
+    "title": "EP261: EchoRL turns hesitation into genius",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP262",
+    "title": "EP262: Web agents that learn from failure",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP263",
+    "title": "EP263: How POPO ends AI training waste",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP264",
+    "title": "EP264: Science Earth and Planet Scale AI Discovery",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP265",
+    "title": "EP265: How AI agents rewrite their own tools",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP266",
+    "title": "EP266: AI agents learn to think without words",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP267",
+    "title": "EP267: AI Agents That Update Their Own Imagination",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP268",
+    "title": "EP268: How OpenWebRL masters the live web",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP269",
+    "title": "EP269: Securing AI Agents with Agent libOS",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP270",
+    "title": "EP270: AI agents building their own reasoning tools",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP271",
+    "title": "EP271: Steer locked AI with Agentic Monte Carlo",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP272",
+    "title": "EP272: AI rewiring its own brain live",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP273",
+    "title": "EP273: Why agents make code disposable",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP274",
+    "title": "EP274: Knowledge graphs fix AI memory loss",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP275",
+    "title": "EP275: AI Agents Building Their Own Coding Curriculum",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP276",
+    "title": "EP276: ThinkBooster scales LLM reasoning at test time",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP277",
+    "title": "EP277: AI quorums stop cloud infrastructure failures",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP278",
+    "title": "EP278: Hacking AI Agents with Fake Errors",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP279",
+    "title": "EP279: Ending AI amnesia with strategy cards",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP280",
+    "title": "EP280: Trajectory Refined Distillation Fixes AI Reasoning",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP281",
+    "title": "EP281: Restoring plasticity to over-trained AI",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP282",
+    "title": "EP282: AI gladiators training in shopping arenas",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP283",
+    "title": "EP283: Aligning AI planners with tool capabilities",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP284",
+    "title": "EP284: Compressing massive context into soft tokens",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP285",
+    "title": "EP285: How SkeMex builds medical AI intuition",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP286",
+    "title": "EP286: ReasonAlloc Solves the AI Memory Bottleneck",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP287",
+    "title": "EP287: Small models beat GPT-4o with Role-Agent",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP288",
+    "title": "EP288: Test-Time Training shatters quadratic sampling limits",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP289",
+    "title": "EP289: Runtime governance for autonomous AI agents",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP290",
+    "title": "EP290: How Knowledge Graphs Fix Multi-Hop Reasoning",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP291",
+    "title": "EP291: Ouroboros-Spatial Outperforms AI Giants in 3D",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP292",
+    "title": "EP292: Agents-K1 turns AI into research scientists",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP293",
+    "title": "EP293: Grading AI blueprints with Orch-RM",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP294",
+    "title": "EP294: Why AI agents second-guess their success",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP295",
+    "title": "EP295: Ending agent sprawl with canonical code",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP296",
+    "title": "EP296: Stop parallel AI agents from crashing production",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP297",
+    "title": "EP297: How T-Mem fixes the associative blind spot",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP298",
+    "title": "EP298: LLM-as-Code Fixes Unreliable AI Agents",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP299",
+    "title": "EP299: STRIDE grades the AI scratchpad",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP300",
+    "title": "EP300: Tensors prevent multi-agent LLM collisions",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP301",
+    "title": "EP301: VeriGraph Makes AI Data Analysis Verifiable",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP302",
+    "title": "EP302: Transferable interaction patterns for web agents",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP303",
+    "title": "EP303: How MODE-RAG stops AI video lies",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP304",
+    "title": "EP304: MagicSim Bridges AI and Physics",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP305",
+    "title": "EP305: Mathematical guardrails for autonomous AI agents",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP306",
+    "title": "EP306: AIs that engineer their own pipelines",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP307",
+    "title": "EP307: AI agents now train physical robots autonomously",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP308",
+    "title": "EP308: Giving AI Agents Mathematical Muscle Memory",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP309",
+    "title": "EP309: AutoRAS builds self-healing AI agent networks",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP310",
+    "title": "EP310: Why AI Breaks While Fixing Itself",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP311",
+    "title": "EP311: Why AI Teams Hallucinate Together",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP312",
+    "title": "EP312: BioMatrix translates English to 3D biology",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP313",
+    "title": "EP313: How ARTS reasons through its own failures",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP314",
+    "title": "EP314: Why AI hacks its own geometry",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP315",
+    "title": "EP315: Teaching robots to think like scientists",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP316",
+    "title": "EP316: Teaching robotaxis the biological urge to survive",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP317",
+    "title": "EP317: The Architecture Of Genuine Artificial Agency",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP318",
+    "title": "EP318: Open Data Recipes for AI Agents",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP319",
+    "title": "EP319: How TRUSTMEM Fixes Broken AI Memory",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP320",
+    "title": "EP320: Universal AI is mathematically impossible",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP321",
+    "title": "EP321: Measuring AI intelligence in bits",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP322",
+    "title": "EP322: Why cliff tokens break AI math",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP323",
+    "title": "EP323: Giving AI Einstein s visual imagination",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP324",
+    "title": "EP324: JERP synchronizes AI rules and neural weights",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP325",
+    "title": "EP325: Why robots have too much brain",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP326",
+    "title": "EP326: (harvest gap - not in manifest)",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP327",
+    "title": "EP327: Why Chatbot Safety Training Backfires for Agents",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP328",
+    "title": "EP328: FlowWM and branching futures",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP329",
+    "title": "EP329: Teaching AI to forget the right things",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP330",
+    "title": "EP330: AI agents audit 10,000 page nuclear reports",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP331",
+    "title": "EP331: Internalizing AI debate with Mixture of Debaters",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP332",
+    "title": "EP332: AI Architects Designing Better Embodied Agents",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP333",
+    "title": "EP333: Logic not length makes AI smarter",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP334",
+    "title": "EP334: Fixing AI Hallucinations With Process Rewards",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP335",
+    "title": "EP335: How AI agents learn from failure",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP336",
+    "title": "EP336: ACE fixes the AI goldfish memory problem",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP337",
+    "title": "EP337: Why AI Agents Fail in Silence",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP338",
+    "title": "EP338: DiscoPER conducts autonomous science via reflection",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP339",
+    "title": "EP339: How AI Safely Rewrites Its Own Code",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP340",
+    "title": "EP340: AI Models Prove Opposite Scientific Truths",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP341",
+    "title": "EP341: Gemma 4 brings thinking mode to laptops",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP342",
+    "title": "EP342: Why process rubrics triple AI accuracy",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP343",
+    "title": "EP343: How AI agents escape infinite loops",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP344",
+    "title": "EP344: AI predicts tool calls to skip waiting",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP345",
+    "title": "EP345: AI agents retry from pivotal mistakes",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP346",
+    "title": "EP346: Teaching small AI to ignore teachers",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP347",
+    "title": "EP347: Compiling AI into Permanent Free Skills",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP348",
+    "title": "EP348: Building AI agents like living cells",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP349",
+    "title": "EP349: Fixing AI judges with continuous verification",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP350",
+    "title": "EP350: Training AI agents without live environments",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP351",
+    "title": "EP351: Direct-OPD slashes AI reasoning compute costs",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "EXERCISE-ONLY"
+  },
+  {
+    "ep": "EP352",
+    "title": "EP352: Hidden states predict AI agent failure",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "NO-TARGET"
+  },
+  {
+    "ep": "EP353",
+    "title": "EP353: How IGRPO stops AI search distractions",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP354",
+    "title": "EP354: How AI Agents Code Their Own Habits",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP355",
+    "title": "EP355: RL builds compositional reasoning strategies",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP356",
+    "title": "EP356: CMA solves the visual token explosion",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP357",
+    "title": "EP357: Copying Smart Experts Makes AI Worse",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP358",
+    "title": "EP358: Europe s Transparent Soofi S AI Blueprint",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP359",
+    "title": "EP359: Why your AI should forget",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP360",
+    "title": "EP360: How ARMOR stops AI reasoning collapse",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP361",
+    "title": "EP361: How Riemannian geometry fixes AI reasoning",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP362",
+    "title": "EP362: How Agentic-DPO fixes brittle AI agents",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP363",
+    "title": "EP363: How Logos Architecture Stops AI Misevolution",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP364",
+    "title": "EP364: Capability Trees for Scalable AI Agents",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP365",
+    "title": "EP365: Smarter managers beat bigger AI brains",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP366",
+    "title": "EP366: Autonomous AI Writes Its Own Hacking Tools",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP367",
+    "title": "EP367: Why AI sounds so painfully corporate",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP368",
+    "title": "EP368: Samba Framework for Audio-Visual Navigation",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP369",
+    "title": "EP369: How Atomic Units Scale Intelligence",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP370",
+    "title": "EP370: SLEUTH fixes AI multi-hop reasoning failures",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP371",
+    "title": "EP371: Groc-PO Stops Multimodal AI Hallucinations",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP372",
+    "title": "EP372: How UrbanAgent profiles unseen cities",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP373",
+    "title": "EP373: Middle Layer Recurrence Fixes AI Amnesia",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP374",
+    "title": "EP374: TopoAgent Outperforms GPT-5 in Science",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP375",
+    "title": "EP375: M2GDT solves multimodal knowledge graph completion",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP376",
+    "title": "EP376: ToolVerse Teaches AI to Execute Complex Tasks",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP377",
+    "title": "EP377: PRIME Solves AI Curiosity Traps",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP378",
+    "title": "EP378: Giving AI a Silent Inner Monologue",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP379",
+    "title": "EP379: Smaller AI beats giants by thinking twice",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP380",
+    "title": "EP380: AI rewriting itself to solve formal math",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP381",
+    "title": "EP381: How AI finally learned to smell",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP382",
+    "title": "EP382: Etas The Native Language For AI Agents",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP383",
+    "title": "EP383: Why AI Agents Disobey Their Own Logic",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "HOST-COMPOSED"
+  },
+  {
+    "ep": "EP384",
+    "title": "EP384: How AI can finally stop forgetting",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP385",
+    "title": "EP385: AI self-correction can destroy correct answers",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP386",
+    "title": "EP386: Infinite playable worlds on a single GPU",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP387",
+    "title": "EP387: Shared libraries for disposable AI agents",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP388",
+    "title": "EP388: Machine translation with latent reasoning loops",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP389",
+    "title": "EP389: Solving the AI Memory Trilemma",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP390",
+    "title": "EP390: EvoDRC solves microscopic silicon design errors",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP391",
+    "title": "EP391: Programmatic memory fixes AI context rot",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP392",
+    "title": "EP392: Small models beat giants at malware analysis",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP393",
+    "title": "EP393: Why AREX agents audit their own research",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP394",
+    "title": "EP394: Agentic Context Management Beats Raw Compute",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP395",
+    "title": "EP395: ConsistencyGate stops AI memory contamination",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP396",
+    "title": "EP396: How numerical scores trigger AI reinforcement learning",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP397",
+    "title": "EP397: Teaching AI teams to focus",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP398",
+    "title": "EP398: Social deduction games teach AI creativity",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP399",
+    "title": "EP399: Training AI to follow any reasoning workflow",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP400",
+    "title": "EP400: Can GPT-5.1 understand the world",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP401",
+    "title": "EP401: Extracting Pure Reasoning From AI Giants",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP402",
+    "title": "EP402: Static baselines beat dynamic AI agents",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": true,
+    "disposition_hint": "ADOPTED"
+  },
+  {
+    "ep": "EP403",
+    "title": "EP403: COVENANT keeps AI agents on the rails",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP404",
+    "title": "EP404: AI agents hide betrayal in Werewolf",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP405",
+    "title": "EP405: Are AI Agents Just Talking to Themselves ",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP406",
+    "title": "EP406: Ending AI Groundhog Day With Living Harness",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP407",
+    "title": "EP407: How AI learns your teamwork capabilities",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP408",
+    "title": "EP408: AI memory reconstructed not replayed",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP409",
+    "title": "EP409: Robots That Dream Before They Move",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP410",
+    "title": "EP410: How provenance laundering brainwashes AI",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP411",
+    "title": "EP411: How NeSyFS Gives AI Fast-Slow Thinking",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP412",
+    "title": "EP412: Thermodynamic Computing Solves the AI Bottleneck",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP413",
+    "title": "EP413: Slashing AI latency with uncertainty repair",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP414",
+    "title": "EP414: Why context compaction breaks AI agents",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP415",
+    "title": "EP415: Fixing the AI granularity mismatch",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP416",
+    "title": "EP416: How AdaThinkV stops AI overthinking video",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP417",
+    "title": "EP417: AI agents replace human beta testers",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP418",
+    "title": "EP418: DeepVoyager-VL solves the visual search bottleneck",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP419",
+    "title": "EP419: Ten Weeks of Autonomous AI Research",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP420",
+    "title": "EP420: Hijacking AI memory via factual injection",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP421",
+    "title": "EP421: Fixing AI Hallucinations with RAIL Principles",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP422",
+    "title": "EP422: Stopping spurious signals in AI distillation",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP423",
+    "title": "EP423: Why Agentic AI breaks the datacenter",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP424",
+    "title": "EP424: Why Argus AI Thrives on Dead Ends",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP425",
+    "title": "EP425: AI agents playing actor and environment",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP426",
+    "title": "EP426: HiLP enables long horizon AI planning",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP427",
+    "title": "EP427: Replacing AI reasoning with distilled skills",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP428",
+    "title": "EP428: Tiny AI beats giants with silent logic",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP429",
+    "title": "EP429: AI agents redesigning their own software harnesses",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP430",
+    "title": "EP430: Khora Scales Real Time AI Hallucinated Worlds",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP431",
+    "title": "EP431: Yale MoRSE ends AI agent redundancy",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP432",
+    "title": "EP432: Motif 3 Replaces Brute Force with Specialization",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP433",
+    "title": "EP433: Joint planning for mathematically guaranteed code",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP434",
+    "title": "EP434: AI Panels Debate to Solve Medical Mysteries",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP435",
+    "title": "EP435: AI agents that learn from their misclicks",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP436",
+    "title": "EP436: Giving drones directions in 3D cities",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP437",
+    "title": "EP437: Giving AI agents an undo button",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP438",
+    "title": "EP438: Ready Cohorts Stop AI Agent Stutter",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP439",
+    "title": "EP439: AI internal math distinguishes lies from impossibilities",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP440",
+    "title": "EP440: Direct latent communication between AI agents",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP441",
+    "title": "EP441: Making AI Agents Reliable with ACID",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP442",
+    "title": "EP442: Mobius Separates AI Knowledge and Reasoning",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP443",
+    "title": "EP443: Securing Autonomous AI Through Infrastructure",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP444",
+    "title": "EP444: EgoGazeLite replaces bulky eye tracking hardware",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP445",
+    "title": "EP445: How HyMem stops AI context dilution",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP446",
+    "title": "EP446: Agent-Native Telemetry for Autonomous Cloud Operations",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP447",
+    "title": "EP447: Building muscle memory for AI agents",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP448",
+    "title": "EP448: TDD-Agent and test-driven AI reasoning",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP449",
+    "title": "EP449: Why AI Physics Code Hits Invisible Walls",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP450",
+    "title": "EP450: AI models grade each other to scale",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP451",
+    "title": "EP451: Breaking the AI environment bottleneck with SPADE",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP452",
+    "title": "EP452: A Budget for Smarter AI Reasoning",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP453",
+    "title": "EP453: PolicyGuide forces AI agents to follow workflows",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP454",
+    "title": "EP454: AI is eating the software stack",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP455",
+    "title": "EP455: Stopping Coalition Pollution In AI Agents",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP456",
+    "title": "EP456: Why AI robot crews need a bouncer",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP457",
+    "title": "EP457: How AI finally masters 3D space",
+    "domain": "Malware detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP458",
+    "title": "EP458: Building AI agents that know their limits",
+    "domain": "Patch presence detection (binary diffing)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP459",
+    "title": "EP459: Small models outsmart giants by coding",
+    "domain": "Unknown vulnerability discovery/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP460",
+    "title": "EP460: Teaching AI to Ignore Its Teacher",
+    "domain": "Known algorithm classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP461",
+    "title": "EP461: AsymSpec Slashes AI Agent Compute Costs",
+    "domain": "Code summarization",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP462",
+    "title": "EP462: OpsHarness turns general AI into SRE experts",
+    "domain": "Pseudocode recovery (decompilation)",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP463",
+    "title": "EP463: How PolyMemDB Solves AI Memory Hallucinations",
+    "domain": "Code protection restoration",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP464",
+    "title": "EP464: PROGROUTER manages the cost of AI agents",
+    "domain": "Code boundary (instruction/function) detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP465",
+    "title": "EP465: AI agents finally ditch computer screens",
+    "domain": "Data (taint) flow reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP466",
+    "title": "EP466: Sony OmniUE replaces typing with physical interaction",
+    "domain": "Indirect call target reconstruction",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP467",
+    "title": "EP467: LiteSearch-VL gives small AI search powers",
+    "domain": "Code similarity detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP468",
+    "title": "EP468: Steering AI logic with latent vectors",
+    "domain": "Symbolic path discovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP469",
+    "title": "EP469: How AutoCRAT stops AI from overthinking",
+    "domain": "Data structure/struct layout recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP470",
+    "title": "EP470: 1933 math fixes AI context limits",
+    "domain": "Variable type recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP471",
+    "title": "EP471: Self evolving autonomous agents with ARISE-RL",
+    "domain": "Function signature recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP472",
+    "title": "EP472: Why AI Reasons Better in Silence",
+    "domain": "Function symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP473",
+    "title": "EP473: How six templates make AI 120x faster",
+    "domain": "Variable symbol name recovery",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP474",
+    "title": "EP474: How SkillGLoW Fixes AI Memory Hoarding",
+    "domain": "Programmer authorship classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP475",
+    "title": "EP475: Von Neumann Automata for Self Reproducing AI",
+    "domain": "Toolchain provenance classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP476",
+    "title": "EP476: Hardcoding Values into AI Architecture",
+    "domain": "Malware family classification",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP477",
+    "title": "EP477: Why AI Decision Explanations Are Broken",
+    "domain": "Debloating target detection",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  },
+  {
+    "ep": "EP478",
+    "title": "EP478: How Geometry Fixes AI Memory Limits",
+    "domain": "Known vulnerability detection/clustering",
+    "domain_confidence": 0.5,
+    "producer_present": false,
+    "disposition_hint": "UNASSESSED"
+  }
+]
