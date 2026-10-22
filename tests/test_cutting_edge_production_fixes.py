@@ -533,7 +533,7 @@ def test_rebalance_loop_remediates_and_names_the_bound_it_cannot_cross():
     # is therefore suppressed on this one line -- the rule's intent (top-level
     # imports) is contradicted by a real constraint here, so the marker is the
     # sanctioned fallback rather than a hoist that would break the sibling test.
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         DEFAULT_BALANCE_MAX_ITERS, MAX_GATE_BIAS, CuttingEdgeModel,
     )
 
@@ -645,7 +645,7 @@ def test_rebalance_reports_the_full_batch_load_when_the_probe_is_a_sample():
     `before_full` / `after_full` are also recomputed here by a separate helper, not
     read back from the module's own numbers, so a dict copied from `after` fails.
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         DEFAULT_BALANCE_TOKENS, MAX_GATE_BIAS, CuttingEdgeModel,
     )
 

@@ -99,8 +99,8 @@ def watch(cmd, dump_dir="state/crashdumps", timeout: float = 600.0,
 def symbol_advice() -> str:
     return (
         "WinDbg analysis:\n"
-        "  .sympath+ srv*C:\\symbols*https://msdl.microsoft.com/download/symbols\n"  # scanner:ignore
-        "  .sympath+ cache*C:\\symbols;srv*https://pythonsymbols.github.io (CPython)\n"  # scanner:ignore
+        "  .sympath+ srv*C:\\symbols*https://msdl.microsoft.com/download/symbols\n"  # scanner:ignore -- string is a WinDbg .sympath command shown as advice, not a repo path
+        "  .sympath+ cache*C:\\symbols;srv*https://pythonsymbols.github.io (CPython)\n"  # scanner:ignore -- string is a WinDbg .sympath command shown as advice, not a repo path
         "  !analyze -v ; .ecxr ; kP 100 ; ~*e!pystack (with PyExt loaded)\n"
         "TTD (heisenbugs): record with WinDbg Preview Time Travel, replay backwards."
     )
