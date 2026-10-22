@@ -341,7 +341,7 @@ def main():
     results["clusterworms"] = test_clusterworms()
     results["metaworms"] = test_metaworms()
 
-    hydra_success, best_trial, best_params = test_hydrometa()
+    hydra_success = test_hydrometa()
     results["hydrometa"] = hydra_success
 
     if hydra_success:
@@ -361,7 +361,6 @@ def main():
 
         if results.get("hydra_cluster"):
             print("  HYDRA Cluster: ACTIVATED")
-            print(f"    Best efficiency: {best_trial.efficiency_score:.1f}%")
 
             print("\n" + "#" * 70)
             print("#  TEST SUITE COMPLETE")

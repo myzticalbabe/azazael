@@ -531,7 +531,7 @@ class AssistantLogProtocol:
         if hasattr(self.system_tools, tool_name):
             method = getattr(self.system_tools, tool_name)
             if callable(method):
-                return method(**kwargs)
+                return method(**kwargs)  # type: ignore[reportReturnType]
 
         result = self.system_tools.run_command(tool_name, **kwargs)
         return result

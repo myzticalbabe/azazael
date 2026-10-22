@@ -195,7 +195,7 @@ class IntrospectionLoop:
 
         if distill is not None:
             try:
-                distilled = distill.distill(insight)
+                distilled = distill.distill()
                 insight["distilled"] = distilled
             except Exception as exc:
                 note_failure("consciousness:distill", exc)

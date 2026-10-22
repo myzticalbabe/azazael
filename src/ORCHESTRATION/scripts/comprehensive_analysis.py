@@ -311,7 +311,7 @@ class ModuleFixer:
             with open(path, "r", encoding="utf-8") as f:
                 first_lines = f.read(200)
 
-            if "# -*- coding:" not in first_lines and not any(
+            if "# -*- coding:" not in first_lines and not (
                 b"\xc0" in first_lines.encode("utf-8", errors="replace")[:800]
             ):
                 # Check if file has non-ASCII characters that might cause issues
