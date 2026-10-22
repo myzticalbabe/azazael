@@ -2344,8 +2344,11 @@ class DirectMemory:
         """Audited reconstructive recall for the Codebuff path (P0 slices 2+3).
 
         recall_recent -> shared MAFIA audit + MemHarness reconstruction from
-        CORE.local_memory (lazy import; that module never imports this one,
-        so no cycle). Raw payloads never enter the returned brief.
+        CORE.local_memory (lazy import: breaks the local_memory ->
+        verification_gate -> CORE-package -> direct_memory top-level
+        reachability path; a top-level import here would re-enter this
+        partially-initialized module. The laziness is load-bearing.)
+        Raw payloads never enter the returned brief.
         """
         from CORE.local_memory import (  # noqa: PLC0415
             audit_result_set, LocalMemoryStore)
