@@ -1,0 +1,28 @@
+{
+  "head": "5d8f0477e40035c3ef19034ed1690ab3c3288c7f",
+  "pin": "784312de37dbb223a7e07008a0e347a726b7be17",
+  "pin_state": "MOVED since mint (pin advisory; reporting live HEAD)",
+  "files": 5091,
+  "rows": 6834,
+  "missed": 0,
+  "duration_s": 3.9,
+  "kinds": {
+    "slice_tail": 347,
+    "slice_head": 3374,
+    "drop_head": 562,
+    "sql_limit": 103,
+    "const": 1688,
+    "kw_cap": 591,
+    "slice_win": 142,
+    "pos_cap": 27
+  },
+  "zones": {
+    "first_party": 3946,
+    "excluded": 2888
+  },
+  "fp_slice_le32": 1247,
+  "fp_drop_le4096": 180,
+  "fp_cap_calls_le64": 345,
+  "fp_const_le4096": 214,
+  "missed_list": []
+}

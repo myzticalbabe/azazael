@@ -1,0 +1,24 @@
+{
+  "head": "5d8f0477e40035c3ef19034ed1690ab3c3288c7f",
+  "pin": "784312de37dbb223a7e07008a0e347a726b7be17",
+  "pin_state": "MOVED since mint (pin advisory; reporting live HEAD)",
+  "files": 5942,
+  "skipped_other_ext": 26403,
+  "rows": 541,
+  "missed_or_error": 0,
+  "duration_s": 3.5,
+  "kinds": {
+    "slice": 115,
+    "named": 400,
+    "sql": 4,
+    "flag": 10,
+    "cmd": 12
+  },
+  "zones": {
+    "first_party": 345,
+    "excluded": 196
+  },
+  "capped_files": {},
+  "missed_list": [],
+  "worker_errors": []
+}
