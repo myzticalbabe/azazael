@@ -45,7 +45,7 @@ def payload(r):
         try:
             d = json.loads(d)
         except Exception:
-            return None  # scanner:ignore
+            return None  # scanner:ignore -- probe contract: unparseable payload rows are skipped, never crash the diagnosis
     return d if isinstance(d, dict) else None
 
 

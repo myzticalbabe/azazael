@@ -61,7 +61,7 @@ def _file_stamp(path):
         st = os.stat(path)
         return {"size": int(st.st_size), "mtime": round(float(st.st_mtime), 3)}
     except Exception:
-        return None  # scanner:ignore
+        return None  # scanner:ignore -- probe semantics: an unstat-able path counts as absent; None is the designed missing-stamp marker
 
 
 def _candidate_genes(genome):

@@ -37,7 +37,7 @@ def log(msg: str) -> None:
         with open(_LOG_PATH, "a", encoding="utf-8") as f:
             f.write(line + "\n")
     except OSError:
-        pass  # scanner:ignore
+        pass  # scanner:ignore -- the line was already emitted to stdout above; file persistence is best-effort
 
 
 def main() -> int:
@@ -84,7 +84,7 @@ def main() -> int:
         try:
             monitor.stop_monitor()
         except Exception:  # noqa: BLE001 — best-effort stop
-            pass  # scanner:ignore
+            pass  # scanner:ignore -- shutdown stop is best-effort; the process is exiting regardless
         return 0
 
 
