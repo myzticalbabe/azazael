@@ -72,7 +72,7 @@ except ImportError as exc:
     note_failure("installation_debug:L62", exc)
 
 try:
-    import tensorflow as tf
+    import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
     HAS_TF = True
 except ImportError as exc:

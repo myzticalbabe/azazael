@@ -71,7 +71,7 @@ except ImportError as exc:
     HAS_TORCH = False
 
 try:
-    import tensorflow as tf
+    import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
     HAS_TF = True
 except ImportError as exc:

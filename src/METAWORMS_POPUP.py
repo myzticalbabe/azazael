@@ -94,7 +94,13 @@ def run_metaworms_popup():
         worms = ["METAZ", "DEPENDZ", "VALIDZ", "DEADZ", "METRICZ", "LOGZ", "CHANGEZ"]
         current_worm = 0
 
-        for line in iter(process.stdout.readline, ""):
+        # Created with stdout=subprocess.PIPE, so the pipe always exists; this
+        # explicit guard is the checker-facing narrowing (WORMZ_POPUP pattern).
+        stdout = process.stdout
+        if stdout is None:
+            raise RuntimeError("METAWORMS subprocess stdout pipe was not created")
+
+        for line in iter(stdout.readline, ""):
             line = line.strip()
             if line:
                 log(line)

@@ -74,7 +74,7 @@ def test_torch():
 def test_tensorflow():
     """Test TensorFlow operations."""
     print("\n[TENSORFLOW] Testing...")
-    import tensorflow as tf
+    import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
     x = tf.random.normal([100, 100])
     y = tf.random.normal([100, 100])
