@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Reference Video - Vibrant Single Column
 
 Large typeset with blue, purple, rainbow, fluorescent & pastel colors
@@ -14,6 +12,7 @@ Large typeset with blue, purple, rainbow, fluorescent & pastel colors
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import subprocess
 

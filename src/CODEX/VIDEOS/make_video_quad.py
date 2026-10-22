@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael 4-Quadrant Scrolling Video - Vibrant & Whimsical
 
 """
@@ -12,6 +10,7 @@ Azazael 4-Quadrant Scrolling Video - Vibrant & Whimsical
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import subprocess
 

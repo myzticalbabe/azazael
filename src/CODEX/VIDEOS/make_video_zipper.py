@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Scrolling Video - Interleaved Zipper Double Column
 
 """
@@ -12,6 +10,7 @@ Azazael Scrolling Video - Interleaved Zipper Double Column
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import subprocess
 
