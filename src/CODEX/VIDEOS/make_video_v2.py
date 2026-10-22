@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Scrolling Video Generator - Enhanced Version
 
 Double column full-screen with vibrant colors and emojis
@@ -14,6 +12,7 @@ Double column full-screen with vibrant colors and emojis
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import math
 import subprocess
@@ -646,7 +645,6 @@ def create_video():
 
 
 
-    WIDTH // 2 - 60
 
 
 

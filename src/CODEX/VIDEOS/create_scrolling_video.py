@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Reference Scrolling Video Generator
 
 Creates a static scrolling video presentation
@@ -14,6 +12,7 @@ Creates a static scrolling video presentation
 import os
 
 import subprocess
+from pathlib import Path
 
 
 

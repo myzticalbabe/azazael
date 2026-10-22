@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Reference Video - Double Column Scrolling
 
 Scrolling through the comprehensive markdown documentation
@@ -14,6 +12,7 @@ Scrolling through the comprehensive markdown documentation
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import subprocess
 
@@ -1011,7 +1010,6 @@ def create_video():
 
 
 
-    WIDTH // 2 - 80
 
 
 
