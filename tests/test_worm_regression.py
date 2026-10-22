@@ -170,7 +170,7 @@ def test_heavy_worms_import():
         except Exception as e:
             err = str(e).lower()
             if "c extension" in err or "dll" in err or "no module" in err:
-                pytest.skip(f"{name}: 3.14t C extension issue ({type(e).__name__}: {e})")
+                pytest.skip(f"{name}: import degraded under free-threaded interpreter ({type(e).__name__}: {e})")
             failures.append(f"{name}: {type(e).__name__}: {e}")
     assert not failures, "\n".join(failures[:20])
 
