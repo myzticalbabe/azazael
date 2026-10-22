@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""audit_merge.py — utility functions (merge_sessions)""",
-"""Merge multiple audit session files into one chronological file."""
+"""audit_merge.py — utility functions (merge_sessions)"""
 
 
 __all__ = [
@@ -22,7 +21,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-def merge_sessions(filepaths: list, output: str = None) -> str:
+def merge_sessions(filepaths: list, output: str | None = None) -> str:
     """Merge multiple audit files sorted by timestamp."""
     all_entries = []
     for fp in filepaths:

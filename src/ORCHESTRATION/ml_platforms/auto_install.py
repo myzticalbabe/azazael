@@ -140,15 +140,15 @@ def main():
             print(f"  [OK] {pkg_name}")
             continue
 
-            print(f"  [INSTALLING] {pkg}...", end=" ", flush=True)
-            success, msg = install_package(pkg)
+        print(f"  [INSTALLING] {pkg}...", end=" ", flush=True)
+        success, msg = install_package(pkg)
 
-            if success:
-                installed.append(pkg)
-                print("OK")
-    else:
-        failed.append((pkg, msg))
-        print(f"FAILED: {msg[:50]}")
+        if success:
+            installed.append(pkg)
+            print("OK")
+        else:
+            failed.append((pkg, msg))
+            print(f"FAILED: {msg[:50]}")
 
     print()
     print("=" * 60)
