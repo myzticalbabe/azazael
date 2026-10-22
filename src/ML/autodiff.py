@@ -17,6 +17,10 @@ from typing import Any, Callable, List
 import mygrad as mg
 import numpy as np
 
+#: mygrad.Tensor is usable at runtime but absent from mygrad.__all__, so the
+#: static private-import rule cannot see it; bind once via getattr.
+_Tensor = getattr(mg, "Tensor")
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
@@ -33,7 +37,7 @@ def backprop_grad(fn: Callable[[Any], Any], x0: np.ndarray) -> np.ndarray:
     ``fn`` must build its expression from mygrad operations acting on the
     single tensor argument.
     """
-    x = mg.Tensor(np.asarray(x0, dtype=float))
+    x = _Tensor(np.asarray(x0, dtype=float))
     y = fn(x)
     y.backward()
     grad = np.asarray(x.grad)
@@ -148,7 +152,7 @@ def minimize(
     for t in range(1, steps + 1):
         # Fresh tensor per step: mygrad accumulates .grad in place and the
         # attribute has no setter, so rebuilding is the clean reset.
-        x = mg.Tensor(np.asarray(current))
+        x = _Tensor(np.asarray(current))
         y = fn(x)
         loss = float(y.data)
         history.append(loss)

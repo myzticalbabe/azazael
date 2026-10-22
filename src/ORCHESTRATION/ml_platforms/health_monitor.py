@@ -169,7 +169,7 @@ class PlatformHealthMonitor:
             note_failure("health_monitor:L158", exc)
 
         try:
-            import tensorflow as tf
+            import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
             gpus = tf.config.list_physical_devices("GPU")
             if gpus:
@@ -314,7 +314,7 @@ class PlatformHealthMonitor:
             note_failure("health_monitor:L302", exc)
 
         try:
-            import tensorflow as tf
+            import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
             compat_info["tf_cuda"] = tf.sysconfig.get_build_info().get(
                 "cuda_version", "Not found"

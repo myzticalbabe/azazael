@@ -76,7 +76,7 @@ class EcosystemCrawlerLauncher:
                 f"{result.duration_ms:.0f}ms"
             )
 
-        env_path = Path(os.environ.get("USERPROFILE")) / "Azazael_ENV.bat"
+        env_path = Path(os.environ.get("USERPROFILE") or os.path.expanduser("~")) / "Azazael_ENV.bat"
         with open(env_path, "w", encoding="utf-8") as f:
             f.write("@echo off\n")
             f.write("echo Azazael Environment Update - %DATE% %TIME%\n")

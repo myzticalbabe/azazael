@@ -807,7 +807,7 @@ class TensorFlowConverter:
         self.logger.info(f"Converting to TensorFlow: {model_path}")
 
         try:
-            import tensorflow as tf
+            import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
             output_path = Path(output_dir) / "tensorflow_model"
             output_path.mkdir(parents=True, exist_ok=True)
@@ -855,7 +855,7 @@ class TensorFlowConverter:
 
     def _build_keras_model(self, metadata: ModelMetadata, tensor_names: list[str]):
         """Build Keras model structure."""
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[reportMissingModuleSource]
 
         vocab_size = metadata.vocab_size or 32000
         hidden_size = metadata.hidden_size or 4096

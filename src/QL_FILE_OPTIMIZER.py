@@ -126,7 +126,7 @@ class QLearningFileOptimizer:
         q_values = self.q_table[state]
         if not q_values:
             return random.choice(self.actions)
-        return max(q_values, key=q_values.get)
+        return max(q_values, key=q_values.__getitem__)
 
     def update_q_table(
         self, state: str, action: str, reward: float, next_state: str, done: bool
