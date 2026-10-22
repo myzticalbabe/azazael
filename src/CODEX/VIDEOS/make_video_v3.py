@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-from pathlib import Path
-
 Azazael Scrolling Video - Full Screen Double Column Version
 
 """
@@ -12,6 +10,7 @@ Azazael Scrolling Video - Full Screen Double Column Version
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 from typing import List
 import subprocess
 
@@ -593,7 +592,6 @@ def create_video():
 
 
 
-    WIDTH // 2 - 80
 
 
 

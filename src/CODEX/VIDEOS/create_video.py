@@ -7,6 +7,7 @@ Uses ffmpeg directly as fallback when moviepy not available.
 import os
 import subprocess
 import numpy as np
+from PIL import Image, ImageDraw
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

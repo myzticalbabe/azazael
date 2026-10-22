@@ -10,6 +10,7 @@ import os
 import subprocess
 import json
 import time
+import threading
 from pathlib import Path
 from datetime import datetime
 import traceback
@@ -368,7 +369,6 @@ class RealFrameworkTest:
         self.log("SYSTEM INFORMATION", "INFO")
         self.log("=" * 70, "INFO")
 
-        import resource
         import platform
 
         sys_info = {
@@ -385,6 +385,7 @@ class RealFrameworkTest:
         }
 
         try:
+            import resource
             sys_info["memory_rss"] = (
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             )

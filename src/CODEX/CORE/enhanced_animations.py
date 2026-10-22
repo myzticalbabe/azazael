@@ -12,11 +12,11 @@ Azazael Enhanced CSS Animations
 
     Usage:
     from enhanced_animations import ANIMATIONS, generate_css
-    import argparse
     print(generate_css())
     """
 
 import json
+import argparse
 # from typing import Dict  # removed — all names have native equivalents
 from dataclasses import dataclass
 from typing import List
