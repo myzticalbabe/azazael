@@ -472,7 +472,7 @@ def render_vibrant_dashboard_frames(cards_data, frames_dir, width, height, fps,
                 continue
         # Try loading default with larger size (Pillow >= 9.0)
         try:
-            return ImageFont.load_default().font_variant(size=size)
+            return ImageFont.load_default(size=size)
         except Exception as exc:
             note_failure("generate_dashboard_video:L453", exc)
         return None

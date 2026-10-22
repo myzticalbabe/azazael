@@ -46,8 +46,6 @@ def generate_matrix_frames():
                 r, g, b = 10, 10, 26  # Dark blue-black
 
                 # Add Matrix rain - columns
-                col_width = width // num_columns
-                x // col_width
 
                 # Random rain in each column
                 if random.random() < 0.15:

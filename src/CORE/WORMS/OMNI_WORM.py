@@ -63,7 +63,7 @@ def fix_syspath_imports():
         return 0
     fixed = 0
 
-    pattern = rbPath.home() / "Desktop" / "Azazael_UNIFIED"
+    pattern = str(Path.home() / "Desktop" / "Azazael_UNIFIED").encode("utf-8")
 
     for py_file in AZAAZEL_ROOT.rglob("*.py"):
         try:

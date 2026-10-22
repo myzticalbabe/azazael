@@ -9,6 +9,7 @@ from tkinter import ttk, scrolledtext
 from datetime import datetime
 import subprocess
 import sys
+from pathlib import Path
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -84,7 +85,11 @@ def run_wormz_popup():
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1
         )
 
-        for line in iter(process.stdout.readline, ""):
+        stdout = process.stdout
+        if stdout is None:
+            raise RuntimeError("WORMZ subprocess stdout pipe was not created")
+
+        for line in iter(stdout.readline, ""):
             line = line.strip()
             if line:
                 log(line)
