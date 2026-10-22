@@ -40,9 +40,8 @@ try:
 except ImportError as exc:
     note_failure("session_state:L31", exc)
     _REGISTRY_OK = False
-    class BaseWormMixin:  # type: ignore[no-redef]
-        pass
-    def register_worm(**kw):  # type: ignore[no-redef]
+    BaseWormMixin: Any = object
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 

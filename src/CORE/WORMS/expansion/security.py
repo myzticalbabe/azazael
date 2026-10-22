@@ -28,7 +28,7 @@ try:
 except ImportError as exc:
     note_failure("security:L18", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 # -- Python 3.14t Free-Threading Awareness ----------------------------
@@ -155,7 +155,7 @@ class CertMonitor:
                     if cert:
                         exp_str = cert.get("notAfter", "")
                         if exp_str:
-                            exp_date = datetime.strptime(exp_str, "%b %d %H:%M:%S %Y %Z")
+                            exp_date = datetime.strptime(str(exp_str), "%b %d %H:%M:%S %Y %Z")
                             days_left = (exp_date - datetime.now()).days
                             result["expires_in_days"] = days_left
                             result["valid"] = days_left > 0

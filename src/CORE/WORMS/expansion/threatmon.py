@@ -32,7 +32,7 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("threatmon:register-worm-import", exc)
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 _get_recorder = None
@@ -208,8 +208,8 @@ class ThreatIntelMonitorWorm:
             self._history = self._history[-200:]
         try:
             p = _pams()
-            if p is not None and hasattr(p, "record"):
-                p.record("threat_check", snap.__dict__)
+            if p is not None and hasattr(p, "record_event"):
+                p.record_event("threat_check", snap.__dict__)
         except Exception as exc:
             note_failure("threatmon:pams-record", exc)
         try:
