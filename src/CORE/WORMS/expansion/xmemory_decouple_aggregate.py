@@ -174,7 +174,7 @@ class XMemoryDecoupler:
 
         if conflicting_ops and self._has_pending_write(conflicting_ops, bank):
             # Conflict detected - resolve or abort
-            resolution = self._resolve_conflict(bank, key, conflicting_ops)
+            resolution = self._resolve_conflict(bank, key, conflicting_ops, worm)
             if resolution == "abort":
                 return False
 
@@ -219,16 +219,40 @@ class XMemoryDecoupler:
         return any(op.operation == OperationType.WRITE for op in ops)
 
     def _resolve_conflict(
-        self, bank: MemoryBank, key: str, conflicting_ops: List[MemoryOp]
-    ) -> "str | None":
+        self,
+        bank: MemoryBank,
+        key: str,
+        conflicting_ops: List[MemoryOp],
+        worm: Optional[str] = None,
+    ) -> str:
         """Resolve a detected memory conflict.
 
-        Returns: "abort", "merge", or "retry" -- currently only "retry" is
-        implemented; unresolved cases fall through with None (the caller
-        treats None like any non-"abort" resolution). Resolver body is
-        incomplete; completing it is a deferred functional gap.
+        Args:
+            bank: Bank the incoming write targets.
+            key: Key the incoming write targets.
+            conflicting_ops: Prior ops found conflicting with the write.
+            worm: Source of the incoming write (None = anonymous source).
+
+        Returns: "abort", "merge", or "retry". A write replaying its own
+        source's history is not a cross-contamination conflict -- the
+        version vectors already order those operations -- so it resolves
+        to "retry" and the write proceeds. When any prior conflicting op
+        originates from a different source, the write resolves to "abort"
+        and fails; the conflicting worm can re-read and re-write
+        deliberately. "merge" is reserved for a future reconciliation
+        policy. An unset source_worm on prior ops counts as its own
+        anonymous source.
         """
         if not conflicting_ops:
             return "retry"
 
-        # Simple resolution: if all conflicting ops are from the same w
+        # Simple resolution: if every conflicting op is from the same worm
+        # as the incoming write (or has no source and the write is
+        # anonymous), the "conflict" is a replay of that worm's own writes
+        # -- the version vector already orders them, so proceed. A prior
+        # op from any other source means a real cross-worm collision:
+        # abort rather than silently merge over another worm's value.
+        sources = {op.source_worm for op in conflicting_ops}
+        if sources.issubset({worm}):
+            return "retry"
+        return "abort"
