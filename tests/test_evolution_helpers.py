@@ -92,7 +92,7 @@ class TestTerenceVerify:
         import msvcrt
         p = tmp_path / "a.py"
         p.write_text("x = 1\n", encoding="utf-8")
-        lfh = open(str(p) + ".terence.lock", "w", encoding="utf-8")  # scanner:ignore
+        lfh = open(str(p) + ".terence.lock", "w", encoding="utf-8")
         msvcrt.locking(lfh.fileno(), msvcrt.LK_NBLCK, 1)
         try:
             t, fix = self._fix(p, 1, "x = 1", "x = 2")

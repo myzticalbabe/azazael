@@ -116,7 +116,7 @@ def _revive() -> dict[str, Any]:
         first_try = str(exc)[:160]
     if LAUNCHER.is_file():
         try:
-            subprocess.Popen(  # scanner:ignore
+            subprocess.Popen(
                 ["cmd", "/c", str(LAUNCHER)],
                 cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 creationflags=getattr(subprocess, "DETACHED_PROCESS", 0)
