@@ -47,6 +47,7 @@ that cannot run on this box is not a wiring, it is a wish.
 from __future__ import annotations
 
 import importlib
+import inspect
 import threading
 import time
 from typing import Any, Callable, Dict, List
@@ -496,8 +497,28 @@ def _cite(subject: str, accepted: bool, reasons: List[str],
         return ""
 
 
+def _producer_identity() -> str:
+    """Caller module identity for record_link rows (per-worm hook identity).
+
+    Walks past this module's own frames to the first external caller and
+    returns its `__name__` (e.g. `CORE.WORMS.expansion.queens`). Lets the
+    intake attribute a hook row to the worm that produced it instead of
+    guessing from the hook string. Stdlib-only, never raises: "unknown"
+    on any failure so the row is still written.
+    """
+    try:
+        for frame_info in inspect.stack()[1:]:
+            mod = str(frame_info.frame.f_globals.get("__name__", "") or "")
+            if mod and mod != __name__ and not mod.startswith("importlib"):
+                return mod
+    except Exception as exc:
+        note_failure("technique-runtime:producer-identity", exc)
+    return "unknown"
+
+
 def record_link(hook: str, subject: str, ok: bool,
-                citation: str = "", decision_id: str = "") -> bool:
+                citation: str = "", decision_id: str = "",
+                worm: str = "") -> bool:
     """Write one join row for a live hook invocation (memory unity, Phase 1).
 
     Every production hook call leaves a row in the canonical store
@@ -505,7 +526,13 @@ def record_link(hook: str, subject: str, ok: bool,
     recall, and future training intake can JOIN on it instead of living in
     separate systems. source="technique-link".
     Fail-open: never raises; False only if the store is unwritable.
+
+    Per-worm hook identity: `worm` names the producing worm/module. When
+    empty it is derived from the caller module, so every row carries an
+    attributable producer without call-site churn. Additive only: existing
+    readers that ignore the field see byte-identical verdicts.
     """
+    producer = str(worm or "") or _producer_identity()
     kept = False
     try:
         kept = bool(get_memory_store().record_event(
@@ -513,9 +540,10 @@ def record_link(hook: str, subject: str, ok: bool,
             "hook:%s" % hook,
             {"subject": str(subject), "ok": bool(ok),
              "citation": str(citation or ""),
-             "decision_id": str(decision_id or "")},
+             "decision_id": str(decision_id or ""),
+             "worm": producer},
             severity="info" if ok else "warning",
-            tags=["technique-link", str(hook)]))
+            tags=["technique-link", str(hook), producer]))
     except Exception as exc:
         note_failure("technique-runtime:record-link", exc)
     return kept
