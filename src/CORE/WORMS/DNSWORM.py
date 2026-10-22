@@ -30,7 +30,7 @@ try:
     from CORE.worm_registry import register_worm
 except ImportError as exc:
     note_failure("DNSWORM:L21", exc)
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 
@@ -65,7 +65,7 @@ class DnsWorm:
             return {"ok": False, "error": str(e)[:120]}
         addrs = sorted({i[4][0] for i in infos})
         try:
-            reverse = socket.gethostbyaddr(addrs[0])[0]
+            reverse = socket.gethostbyaddr(str(addrs[0]))[0]
         except Exception as exc:
             note_failure("DNSWORM:L57", exc)
             reverse = ""
