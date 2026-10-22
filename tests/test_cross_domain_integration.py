@@ -819,12 +819,12 @@ def test_cd5_docker_benchmark(correlation_id: str = "") -> dict[str, Any]:
         try:
             os.remove(db)
         except OSError:
-            pass  # scanner:ignore
+            pass  # scanner:ignore -- temp cleanup only; assertions already completed, residue in tmp is harmless
         for ext in ["-wal", "-shm"]:
             try:
                 os.remove(db + ext)
             except OSError:
-                pass  # scanner:ignore
+                pass  # scanner:ignore -- -wal/-shm sidecars can still be locked right after close(); same cleanup-only bound
     
     # Record benchmark to audit trail for full chain provenance
     dm.record("cd5_benchmark", {

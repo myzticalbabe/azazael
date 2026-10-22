@@ -167,7 +167,7 @@ def pytest_runtest_logreport(report):
                 msg = str(report.longrepr)[:400]
             _FAILED_FOR_SUGGEST.append((report.nodeid, msg))
         except Exception:
-            pass  # scanner:ignore
+            pass  # scanner:ignore -- hook contract: logreport must never raise; telemetry append is best-effort
 
 
 def _pmb_suggest_for(error_text):
@@ -192,7 +192,7 @@ def _pmb_suggest_for(error_text):
         out = (r.stdout or b"").decode("utf-8", "replace").strip()
         return out[:900] if out else ""
     except Exception:
-        return ""  # scanner:ignore
+        return ""  # scanner:ignore -- designed degrade: PMB unreachable means no suggestion (docstring: "Returns text or ''")
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -259,4 +259,4 @@ def pytest_configure(config):
                 "the editable install points at." % (core_tree, test_tree),
                 RuntimeWarning, stacklevel=2)
     except Exception:
-        pass  # scanner:ignore
+        pass  # scanner:ignore -- the shadow-split guard is advisory ("a warning, never a failure" per its own header); configure() must not raise
