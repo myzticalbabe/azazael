@@ -85,7 +85,7 @@ NORMALIZED_TASKS = {
 }
 
 
-def normalize_task(task: str) -> str:
+def normalize_task(task: str | None) -> str:
     """Normalize task type names."""
     task = sanitize_input(task, "")
     if not task:
@@ -150,9 +150,9 @@ class AzazaelIntelligenceHardened:
 
     def record_event(
         self,
-        action: str,
-        framework: str,
-        task_type: str,
+        action: str | None,
+        framework: str | None,
+        task_type: str | None,
         duration: float,
         success: bool,
         metrics: (dict | None) = None,
@@ -204,7 +204,7 @@ class AzazaelIntelligenceHardened:
         if success:
             scores["task_types"][task_type]["success"] += 1
 
-    def get_framework_recommendation(self, task_type: str) -> dict:
+    def get_framework_recommendation(self, task_type: str | None) -> dict:
         """Get framework recommendation with fallback."""
         task_type = normalize_task(task_type)
 

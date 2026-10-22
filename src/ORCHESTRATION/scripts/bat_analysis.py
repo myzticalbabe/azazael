@@ -773,7 +773,7 @@ def main():
         print(f"    Edges: {graph_builder.graph.number_of_edges()}")
 
         centrality = graph_builder.get_centrality()
-        max_centrality_node = max(centrality, key=centrality.get)
+        max_centrality_node = max(centrality, key=centrality.__getitem__)
         max_centrality_value = max(list(centrality.values()))
         print(f"    Most central: {max_centrality_node} ({max_centrality_value:.3f})")
 

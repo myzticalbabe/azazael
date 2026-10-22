@@ -217,7 +217,11 @@ class UnifiedInstaller:
                 f"import {module} as _m; "
                 "print(getattr(_m, '__version__', 'unknown'))"
             )
-            result = python_env.probe(code, module=module, timeout=60)
+            # NOTE: CORE.python_env currently only resolves interpreter
+            # environments (probe() returns a cleaned environ); there is no
+            # sidecar code-runner yet, so this check stays unimplemented and
+            # returns None exactly like the previous TypeError path did.
+            result = python_env.probe()
             if result.get("ok"):
                 version = (result.get("stdout") or "").strip()
                 return version or None
