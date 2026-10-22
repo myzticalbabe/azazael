@@ -546,7 +546,7 @@ def handshake(entry, timeout=30):
     env.update({k: str(v) for k, v in (entry.get("env") or {}).items()})
     t0 = time.time()
     try:
-        p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,  # scanner:ignore subprocess_no_timeout -- Popen takes no timeout kwarg; this spawn is bounded by th.join(timeout) and the p.kill() that follows it, and communicate(timeout=) is unusable because an MCP server does not exit after answering
+        p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              stderr=subprocess.DEVNULL, text=True, bufsize=1,
                              cwd=str(CWD), env=env, encoding="utf-8", errors="replace")
     except Exception as e:

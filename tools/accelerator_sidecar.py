@@ -195,7 +195,7 @@ class BackendManager:
                         continue
                     bport = 18181
                     try:
-                        self._proc = subprocess.Popen(  # scanner:ignore subprocess_no_timeout — daemon spawn
+                        self._proc = subprocess.Popen(
                             [str(spec["binary"]), str(worker),
                              "--model-dir", model_dir, "--device", "GPU",
                              "--host", "127.0.0.1", "--port", str(bport)],
@@ -209,7 +209,7 @@ class BackendManager:
                         continue
                     bport = 18181
                     try:
-                        self._proc = subprocess.Popen(  # scanner:ignore subprocess_no_timeout — daemon spawn
+                        self._proc = subprocess.Popen(
                             [str(spec["binary"]), "-m", str(model),
                              "--host", "127.0.0.1", "--port", str(bport),
                              "-c", "4096", "-b", "4096"],

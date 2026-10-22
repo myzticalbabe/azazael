@@ -67,7 +67,7 @@ def _worker(mode: str, directory: str, records: int, pad: int) -> None:
 def _run_mode(mode: str, procs: int, records: int, pad: int) -> dict:
     directory = tempfile.mkdtemp(prefix="audit-stress-%s-" % mode)
     workers = [
-        subprocess.Popen([sys.executable, os.path.abspath(__file__),  # scanner:ignore -- Popen takes no timeout kwarg; the bound is wait(timeout=900)+kill below
+        subprocess.Popen([sys.executable, os.path.abspath(__file__),
                           "--worker", "--mode", mode, "--dir", directory,
                           "--records", str(records), "--pad", str(pad)])
         for _ in range(procs)

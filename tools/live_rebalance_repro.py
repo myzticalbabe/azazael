@@ -31,7 +31,7 @@ REPORT_PATH = Path("C:/Temp/round4_report.json")
 
 def sha256_of(path):
     h = hashlib.sha256()
-    with open(path, "rb") as fh:  # scanner:ignore open_no_encoding
+    with open(path, "rb") as fh:
         for chunk in iter(lambda: fh.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
