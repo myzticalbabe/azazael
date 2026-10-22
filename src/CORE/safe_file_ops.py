@@ -44,7 +44,7 @@ import tempfile
 import hashlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, Callable, Iterable, List
 from datetime import datetime
 import json
 
@@ -216,7 +216,9 @@ def safe_copytree(
     dst: str | Path,
     verify: bool = True,
     sample_hashes: bool = False,
-    ignore: (Callable[[str, list[str]], list[str]] | None) = None,
+    # Widened to Iterable[str] to match shutil.copytree (and shutil.ignore_patterns,
+    # which returns a set) -- the value is forwarded to shutil.copytree untouched.
+    ignore: (Callable[[str, list[str]], Iterable[str]] | None) = None,
     dirs_exist_ok: bool = True,
     symlinks: bool = False,
     progress_callback: (Callable[[int, int, str], None] | None) = None,
