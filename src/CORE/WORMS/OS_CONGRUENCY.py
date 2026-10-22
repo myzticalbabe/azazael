@@ -199,13 +199,15 @@ class OSCongruency:
                     note_failure("os_congruency:L183", exc)
 
             io = psutil.disk_io_counters()
+            io_read_mb = round(io.read_bytes / (1024**2), 2) if io is not None else 0
+            io_write_mb = round(io.write_bytes / (1024**2), 2) if io is not None else 0
             return {
                 "root_percent": disk.percent,
                 "root_used_gb": round(disk.used / (1024**3), 2),
                 "root_total_gb": round(disk.total / (1024**3), 2),
                 "partitions": partitions,
-                "io_read_mb": round(io.read_bytes / (1024**2), 2),
-                "io_write_mb": round(io.write_bytes / (1024**2), 2),
+                "io_read_mb": io_read_mb,
+                "io_write_mb": io_write_mb,
             }
         except Exception as exc:  # noqa: BLE001 — psutil disk read failed; neutral defaults
             note_failure("os_congruency:L195", exc)

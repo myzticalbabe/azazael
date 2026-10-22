@@ -39,7 +39,7 @@ class WormGenome:
 class MorphingWorm:
     VERSION = "1.0.0"
 
-    def __init__(self, root: str = None):
+    def __init__(self, root: str | None = None):
         self.root = Path(root) if root else get_project_root()
         self.genome_library: dict[str, WormGenome] = {}
         self.error_patterns: list[dict] = []
@@ -60,7 +60,7 @@ class MorphingWorm:
 
     def spawn_variant(
         self, parent: str, variant_name: str, modifications: str
-    ) -> WormGenome:
+    ) -> WormGenome | None:
         if parent in self.genome_library:
             parent_gene = self.genome_library[parent]
             new_gene = WormGenome(

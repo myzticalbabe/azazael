@@ -26,9 +26,10 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # Fix stdout encoding for Windows console emoji safety
-if hasattr(sys.stdout, 'reconfigure'):
+_reconfigure = getattr(sys.stdout, "reconfigure", None)
+if callable(_reconfigure):
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+        _reconfigure(encoding="utf-8", errors="backslashreplace")
     except Exception as exc:
         note_failure("inject_session_cain:L22", exc)
 
@@ -208,7 +209,7 @@ REPLACEMENTS = [
 # -- NOTE: Banner description is updated in inject() post-loop below --
 
 
-def inject(output_path: str = None):
+def inject(output_path: str | None = None):
     """Read the template and apply all replacements."""
     if not TEMPLATE_PATH.exists():
         print(f"ERROR: Template not found at {TEMPLATE_PATH}")

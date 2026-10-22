@@ -84,7 +84,6 @@ class AsciiFlowchart:
             lines = [top, mid, bot]
 
         elif shape == "diamond":
-            (w - len(text)) // 2
             lines = [
                 " " * (w // 2) + self.bc["diamond"],
                 " " * max(0, (w - len(text)) // 2) + text,
@@ -339,7 +338,6 @@ class AsciiFlowchart:
             return left + f"{mid}".join(parts) + right
 
         # Header
-        sum(col_widths) + 3 * (len(headers) - 1) + 2
         lines.append(draw_row(headers, self.bc["tl"], self.bc["t_down"], self.bc["tr"]))
         lines.append(draw_row(
             [self.bc["h"] * col_widths[i] for i in range(len(headers))],

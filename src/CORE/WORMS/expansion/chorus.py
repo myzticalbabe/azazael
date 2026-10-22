@@ -84,7 +84,7 @@ class FailureDigest:
     @classmethod
     def from_analysis(cls, peak: Optional[dict] = None,
                       allocator_report: Optional[Dict[str, dict]] = None,
-                      top_rows: Optional[Sequence[dict]] = None) -> "FailureDigest":
+                      top_rows: Optional[Sequence[dict[str, Any]]] = None) -> "FailureDigest":
         """Adapt the artifacts the monitor and analyzer already produce."""
         peak = peak or {}
         holdout = int(peak.get("holdout_fail") or peak.get("holdout_failures") or 0)
@@ -101,7 +101,7 @@ class FailureDigest:
         best = None
         if top_rows:
             try:
-                best = max(float(r.get("fitness")) for r in top_rows if r.get("fitness") is not None)
+                best = max(float(f) for r in top_rows if (f := r.get("fitness")) is not None)
             except (TypeError, ValueError) as exc:
                 note_failure("chorus:L96", exc)
                 best = None
