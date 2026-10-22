@@ -92,6 +92,7 @@ except ImportError:                               # never break the host
 # cleanly either way, and `OTEL_SDK_AVAILABLE` reports which case it is in.
 if TYPE_CHECKING:               # annotation-only: never evaluated at run time
     from opentelemetry.sdk.trace import ReadableSpan
+    from opentelemetry.sdk.trace.export import SpanExportResult as _SpanExportResultType
 
 
 class _SpanExportResultFallback:
@@ -240,7 +241,7 @@ class SQLiteSpanExporter:
         finally:
             conn.close()
 
-    def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
+    def export(self, spans: Sequence[ReadableSpan]) -> "_SpanExportResultType":
         """Export a batch of spans to the SQLite database.
 
         Implements the OTel SpanExporter interface.

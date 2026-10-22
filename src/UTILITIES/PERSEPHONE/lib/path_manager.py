@@ -65,7 +65,7 @@ class PathManager:
         exists = Path(windows).exists() or Path(wsl).exists()
         self.paths[name] = PathInfo(name, windows, wsl, exists)
 
-    def get(self, name: str, platform: str = None) -> (PathInfo | None):
+    def get(self, name: str, platform: str | None = None) -> (PathInfo | None):
         """Get path information by name."""
         return self.paths.get(name)
 

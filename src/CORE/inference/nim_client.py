@@ -31,7 +31,7 @@ import json
 import threading
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -43,6 +43,9 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # 3.14t port: openai SDK needs pydantic_core (no free-threaded build).
+if TYPE_CHECKING:                 # annotation-only: never evaluated at run time
+    from openai import OpenAI as _OpenAIClientType
+
 try:
     from openai import OpenAI
 except ImportError as exc:
@@ -128,7 +131,7 @@ class NimClient(OpenAIProvider):
         self._total_requests: int = 0
         self._total_tokens: int = 0
         self._last_error: (str | None) = None
-        self._openai_client: (OpenAI | None) = None
+        self._openai_client: "_OpenAIClientType | None" = None
         self.provider_name = "nvidia_nim"
 
         if config is not None:

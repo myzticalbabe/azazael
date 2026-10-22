@@ -58,7 +58,7 @@ class ArchiveSystem:
         self.archived: list[tuple[str, str, int]] = []  # (path, reason, size_bytes)
         self.total_size = 0
 
-    def _size_str(self, size: int) -> str:
+    def _size_str(self, size: float) -> str:
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size < 1024:
                 return f"{size:.1f} {unit}"

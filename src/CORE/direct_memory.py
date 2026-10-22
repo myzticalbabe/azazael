@@ -58,10 +58,6 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Iterable, List, Optional
 
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
-
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
@@ -73,6 +69,9 @@ except ImportError:                               # never break the host
 #: module docstring), so it must not depend on the shared runtime recorder. An
 #: unrecorded swallow is indistinguishable from success, so the tally exists
 #: anyway -- a reader can inspect it instead of guessing whether the handler ran.
+#: (The fallback ``note_failure`` above records into this same tally when the
+#: failure ledger is unavailable -- it is a stdlib-only leaf, so that fallback
+#: should never fire; if it does, the ledger is missing.)
 _SWALLOWED: List[str] = []
 
 

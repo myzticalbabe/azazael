@@ -500,7 +500,7 @@ class SystemManager:
             )
 
     def get_health_summary(self) -> dict:
-        summary = {"timestamp": datetime.datetime.now().isoformat()}
+        summary: dict[str, object] = {"timestamp": datetime.datetime.now().isoformat()}
         for name, comp in self.components.items():
             summary[name] = {
                 "status": comp.status,
@@ -564,9 +564,13 @@ class SystemManager:
 
     def kill_python_processes(self) -> dict:
         """Kill all Python processes."""
-        out, _, _ = subprocess.run(
+        # REAL-BUG FIX (slice C): subprocess.run returns a CompletedProcess, not a
+        # 3-tuple -- the old unpack raised TypeError on every call, so this
+        # command could never have executed. Take .stdout directly.
+        result = subprocess.run(
             "tasklist /FO CSV /NH", capture_output=True, text=True, encoding="utf-8", errors="replace",
-        timeout=1800)
+            timeout=1800)
+        out = result.stdout or ""
         killed = []
         for line in out.split("\n"):
             if "python.exe" in line.lower():

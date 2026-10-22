@@ -220,10 +220,13 @@ class XMemoryDecoupler:
 
     def _resolve_conflict(
         self, bank: MemoryBank, key: str, conflicting_ops: List[MemoryOp]
-    ) -> str:
+    ) -> "str | None":
         """Resolve a detected memory conflict.
 
-        Returns: "abort", "merge", or "retry"
+        Returns: "abort", "merge", or "retry" -- currently only "retry" is
+        implemented; unresolved cases fall through with None (the caller
+        treats None like any non-"abort" resolution). Resolver body is
+        incomplete; completing it is a deferred functional gap.
         """
         if not conflicting_ops:
             return "retry"
