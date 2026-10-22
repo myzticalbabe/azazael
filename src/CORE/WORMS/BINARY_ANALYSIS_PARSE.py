@@ -235,10 +235,15 @@ def _nm_pe(path: Path) -> list[SymbolEntry]:
             magic = struct.unpack("<H", f.read(2))[0]
             f.seek(opt_header_start)
 
+            # NumberOfRvaAndSizes precedes the DataDirectory array: +108
+            # (PE32+) / +92 (PE32) per the PE spec. Seeking +112/+96 instead
+            # reads DataDirectory[0].VirtualAddress as the count and every
+            # tuple one DWORD late, so every real PE parsed to 0 rows
+            # (2026-10-22 lane-B root-cause #4, applied here by the owner).
             if magic == 0x20B:  # PE32+
-                f.seek(opt_header_start + 112)
+                f.seek(opt_header_start + 108)
             else:
-                f.seek(opt_header_start + 96)
+                f.seek(opt_header_start + 92)
 
             num_rvas = struct.unpack("<I", f.read(4))[0]
             directories = []
