@@ -36,7 +36,7 @@ class ChangelogGenerator:
 
     def __init__(
         self,
-        output_path: str = None,
+        output_path: str | None = None,
     ):
         if output_path is None:
             output_path = str(get_desktop_dir() / "CODEX" / "DOCUMENTATION" / "CHANGELOG.md")

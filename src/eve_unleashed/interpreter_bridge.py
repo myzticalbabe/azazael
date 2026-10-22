@@ -383,7 +383,8 @@ class EveInterpreterBridge:
                         return {"status": "ok", "result": result, "provider": "interpreter", "server": {"base": target["base"], "model": target["model"]}}
             attempt, fail = self._try_target(target, prompt, system)
             if attempt is None:
-                failures.append(fail)
+                if fail is not None:
+                    failures.append(fail)
                 continue
             return attempt
         gguf = self._gguf_fallback(prompt, provider_tag="llama-cpp-python-direct" if targets else "llama-cpp-python")
@@ -426,7 +427,7 @@ class EveInterpreterBridge:
     def get_status(self) -> Dict[str, Any]:
         """Bridge status incl. the latest server-probe summary, when probed."""
         mesh_drivable = self._available and self._eve is not None
-        status = {
+        status: Dict[str, Any] = {
             "interpreter_available": self._available,
             "eve_arm_available": self._eve is not None,
             "mesh_drivable": mesh_drivable,

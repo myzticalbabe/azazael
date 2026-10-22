@@ -40,7 +40,7 @@ def _attach_utility(engine, decision) -> None:
     records the PROCEED utility estimate (expected utility, confidence, cost)
     without changing gating, autonomy, or veto behavior.
     """
-    if _UtilityEngine is None:
+    if _UtilityEngine is None or _OrchestrationAction is None or _OrchestrationContext is None:
         return
     ctx = _OrchestrationContext(step=len(engine._order), available_tools=(),
                                 user_intent=decision.action)

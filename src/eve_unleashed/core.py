@@ -219,9 +219,8 @@ class ModelLoader:
         if _import_ok("torch"):
             try:
                 import torch
-                frameworks["vulkan"] = (
-                    hasattr(torch, "vulkan") and torch.vulkan.is_available()
-                )
+                _vulkan = getattr(torch, "vulkan", None)
+                frameworks["vulkan"] = bool(_vulkan and _vulkan.is_available())
             except Exception as exc:
                 note_failure("core:L198", exc)
 
@@ -362,9 +361,8 @@ class ModelLoader:
         # Vulkan detection (via torch backend)
         try:
             import torch
-            info["vulkan_available"] = (
-                hasattr(torch, "vulkan") and torch.vulkan.is_available()
-            )
+            _vulkan = getattr(torch, "vulkan", None)
+            info["vulkan_available"] = bool(_vulkan and _vulkan.is_available())
         except Exception as exc:
             note_failure("core:L340", exc)
 
