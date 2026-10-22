@@ -85,16 +85,17 @@ def run_metaworms_popup():
         worms = ["METAZ", "DEPENDZ", "VALIDZ", "DEADZ", "METRICZ", "LOGZ", "CHANGEZ"]
         current_worm = 0
 
-        for line in iter(process.stdout.readline, ""):
-            line = line.strip()
-            if line:
-                log(line)
-                if any(w in line for w in worms):
-                    if "] Running..." in line:
-                        current_worm = worms.index(
-                            line.split("]")[0].split("[")[1].strip()
-                        )
-                    progress["value"] = ((current_worm + 1) / len(worms)) * 100
+        if process.stdout is not None:
+            for line in iter(process.stdout.readline, ""):
+                line = line.strip()
+                if line:
+                    log(line)
+                    if any(w in line for w in worms):
+                        if "] Running..." in line:
+                            current_worm = worms.index(
+                                line.split("]")[0].split("[")[1].strip()
+                            )
+                        progress["value"] = ((current_worm + 1) / len(worms)) * 100
 
         process.wait(timeout=1800)
 
