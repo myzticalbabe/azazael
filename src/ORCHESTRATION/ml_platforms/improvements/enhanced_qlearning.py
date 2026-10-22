@@ -83,11 +83,10 @@ class SumTree:
         self.write = 0
 
     def _propagate(self, idx: int, change: float):
-        """Propagate change up the tree."""
-        parent = (idx - 1) // 2
-        self.tree[parent] += change
-        if parent != 0:
-            self._propagate(parent, change)
+        """Propagate change up the tree (iterative: root/underflow safe)."""
+        while idx > 0:
+            idx = (idx - 1) // 2
+            self.tree[idx] += change
 
     def _retrieve(self, idx: int, s: float) -> int:
         """Find the index of the leaf with priority s."""
@@ -117,6 +116,8 @@ class SumTree:
             self.size = self.capacity
         elif self.size < self.capacity:
             self.size += 1
+
+        return idx
 
     def update(self, idx: int, priority: float):
         """Update priority of a sample."""
@@ -160,10 +161,12 @@ class PrioritizedReplay:
         )
         priority = max(priority, 1e-6)
         transition = Transition(state, action, reward, next_state, done, priority)
-        self.sum_tree.add(priority, transition)
+        leaf_idx = self.sum_tree.add(priority, transition)
 
         if self.size < self.capacity:
             self.size += 1
+
+        return leaf_idx
 
     def sample(
         self, batch_size: int
@@ -552,11 +555,11 @@ class EnhancedQLearningTable:
 
         self.q_table[state, action] += self.alpha * td_error
 
-        if self.replay_buffer:
+        if self.replay_buffer is not None:
             priority = abs(td_error) + 1e-6
-            self.replay_buffer.push(state, action, reward, next_state, done)
+            leaf_idx = self.replay_buffer.push(state, action, reward, next_state, done)
             self.replay_buffer.update_priorities(
-                [len(self.replay_buffer) - 1], [priority]
+                [leaf_idx], np.array([priority])
             )
 
         self.reward_history.append(reward)

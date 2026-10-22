@@ -71,7 +71,7 @@ class FusionHealer:
                 f"ADLP Connected: {state['id']} | Modules: {len(state['mods'])}", "INFO"
             )
             CORE.log_entry(
-                TIER.HEALING.value if hasattr(TIER, "HEALING") else TIER.ORCH.value,
+                getattr(TIER, "HEALING", TIER.ORCH).value,
                 LVL.INFO.name,
                 "FusionHealer",
                 "health_check",

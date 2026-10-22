@@ -262,7 +262,7 @@ def jax_critique(target: dict) -> list[str]:
     return critiques
 
 
-def functional_composition_score() -> dict:
+def functional_composition_score() -> list:
     """
     Calculate overall functional composition readiness for each platform.
     """

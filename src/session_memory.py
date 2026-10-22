@@ -345,7 +345,7 @@ class SessionMemory:
     # ------------------------------------------------------------------
 
     def start_session(self, summary_hint: str = "", agent_model: str = "",
-                      capture_perf: bool = True) -> int:
+                      capture_perf: bool = True) -> int | None:
         """Begin a new session. Returns session ID.
 
         Auto-closes any previous session that was never properly ended
