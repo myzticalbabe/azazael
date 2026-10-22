@@ -2,14 +2,14 @@
   "repo": "C:\\Azazael\\azazael",
   "rows": 141,
   "tally": {
-    "NO-TARGET": 23,
+    "NO-TARGET": 17,
+    "ADOPTED": 105,
     "HOST-COMPOSED": 13,
-    "ADOPTED": 93,
-    "EXERCISE-ONLY": 12
+    "EXERCISE-ONLY": 6
   },
-  "adoption_score": 93,
-  "in_production": 106,
-  "built_count": 118,
+  "adoption_score": 105,
+  "in_production": 118,
+  "built_count": 124,
   "note": "adoption_score counts ADOPTED rows (caller in a DIFFERENT production module); in_production adds HOST-COMPOSED (consumed by production code in its own host, where that host is imported by production). EXERCISE-ONLY and HOSTED-ONLY score zero by mandate (ACTION_REGISTRY H-2, TODO_315T_BUILD T-15)",
   "results": [
     {
@@ -336,24 +336,22 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/run_training_orchestrator.py:774",
+        "src/CORE/WORMS/expansion/learning_grpo.py:1122"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
-        "src/CORE/technique_wiring/_l6_evolve.py:160",
-        "src/CORE/technique_wiring/_l6_evolve.py:230",
-        "src/CORE/technique_wiring/_l6_evolve.py:233",
-        "src/CORE/technique_wiring/_l6_evolve.py:234",
-        "src/CORE/technique_wiring/_l6_evolve.py:520"
+        "src/CORE/technique_wiring/_l6_evolve.py:233"
       ],
       "host_internal_uses": [
         "src/CORE/dpo_losses.py:37",
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 0,
-      "n_exercise": 7,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 2,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP105",
@@ -376,80 +374,94 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/run_training_orchestrator.py:774",
+        "src/CORE/WORMS/expansion/learning_grpo.py:1122"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
-        "src/CORE/technique_wiring/_l6_evolve.py:160",
-        "src/CORE/technique_wiring/_l6_evolve.py:230",
-        "src/CORE/technique_wiring/_l6_evolve.py:233",
-        "src/CORE/technique_wiring/_l6_evolve.py:234",
-        "src/CORE/technique_wiring/_l6_evolve.py:520"
+        "src/CORE/technique_wiring/_l6_evolve.py:233"
       ],
       "host_internal_uses": [
         "src/CORE/dpo_losses.py:37",
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 0,
-      "n_exercise": 7,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 2,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP106",
       "name": "Neuro-Symbolic Dual Paradigm",
       "layer": "L3",
       "coverage": "PARTIAL",
-      "target": "`CORE/cd2_verifier.py :: SMTVerifier` \u00b7 `CORE/compliance/state_machine.py :: FormalVerifier`",
+      "target": "`CORE/cd2_verifier.py :: SMTVerifier` \u00c2\u00b7 `CORE/compliance/state_machine.py :: FormalVerifier`",
       "host_file": "CORE/cd2_verifier.py",
       "symbol": "SMTVerifier",
       "symbols": [
         "SMTVerifier"
       ],
       "hosts": [
-        "CORE/cd2_verifier.py"
+        "CORE/cd2_verifier.py",
+        "CORE/compliance/state_machine.py"
       ],
       "measured_symbols": [
-        "SMTVerifier"
+        "SMTVerifier",
+        "FormalVerifier"
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/compliance/orchestrator.py:201",
+        "src/CORE/compliance/orchestrator.py:758"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l3_verify.py:519",
-        "src/CORE/technique_wiring/_l3_verify.py:559",
-        "src/CORE/technique_wiring/_l3_verify.py:647",
-        "src/CORE/technique_wiring/_l3_verify.py:655"
+        "src/CORE/technique_wiring/_l3_verify.py:555",
+        "src/CORE/technique_wiring/_l3_verify.py:625"
       ],
       "host_internal_uses": [
-        "src/CORE/cd2_verifier.py:759",
-        "src/CORE/cd2_verifier.py:760",
-        "src/CORE/cd2_verifier.py:764",
-        "src/CORE/cd2_verifier.py:786"
+        "src/CORE/cd2_verifier.py:768",
+        "src/CORE/cd2_verifier.py:769",
+        "src/CORE/cd2_verifier.py:773",
+        "src/CORE/cd2_verifier.py:795",
+        "src/CORE/compliance/state_machine.py:299",
+        "src/CORE/compliance/state_machine.py:322"
       ],
-      "n_production": 0,
-      "n_exercise": 4,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 2,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP110",
       "name": "OneFlow Single-Agent Baseline",
       "layer": "L5",
-      "coverage": "ABSENT",
-      "target": "\u2014",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "coverage": "PRESENT",
+      "target": "`CORE/dispatch_plan.py :: simulate_vs_spawn`",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "simulate_vs_spawn",
+      "symbols": [
+        "simulate_vs_spawn"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "simulate_vs_spawn"
+      ],
+      "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/WORMS/METACLUSTER.py:434"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l5_dispatch.py:292",
+        "src/CORE/technique_wiring/_l5_dispatch.py:295"
+      ],
       "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_production": 1,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP113",
@@ -1275,21 +1287,18 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:41"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l1_memory.py:146",
-        "src/CORE/technique_wiring/_l1_memory.py:467"
+        "src/CORE/technique_wiring/_l1_memory.py:151"
       ],
       "host_internal_uses": [
-        "src/CORE/WORMS/expansion/engram.py:489",
-        "src/CORE/WORMS/expansion/engram.py:517",
-        "src/CORE/WORMS/expansion/engram.py:779"
+        "src/CORE/WORMS/expansion/engram.py:497",
+        "src/CORE/WORMS/expansion/engram.py:525",
+        "src/CORE/WORMS/expansion/engram.py:795"
       ],
-      "n_production": 1,
-      "n_exercise": 2,
-      "verdict": "ADOPTED"
+      "n_production": 0,
+      "n_exercise": 1,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP146",
@@ -1400,24 +1409,22 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/run_training_orchestrator.py:774",
+        "src/CORE/WORMS/expansion/learning_grpo.py:1122"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
-        "src/CORE/technique_wiring/_l6_evolve.py:160",
-        "src/CORE/technique_wiring/_l6_evolve.py:230",
-        "src/CORE/technique_wiring/_l6_evolve.py:233",
-        "src/CORE/technique_wiring/_l6_evolve.py:234",
-        "src/CORE/technique_wiring/_l6_evolve.py:520"
+        "src/CORE/technique_wiring/_l6_evolve.py:233"
       ],
       "host_internal_uses": [
         "src/CORE/dpo_losses.py:37",
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 0,
-      "n_exercise": 7,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 2,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP152",
@@ -2066,32 +2073,23 @@
         "commit_gate"
       ],
       "built": true,
-      "host_reachable": false,
+      "host_reachable": true,
       "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
-      "host_internal_uses": [],
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
       "n_production": 0,
-      "n_exercise": 18,
-      "verdict": "EXERCISE-ONLY"
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP168",
@@ -2315,34 +2313,53 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/meta_evolution_cycle.py:563",
+        "src/CORE/worm_governance.py:1001",
+        "src/CORE/worm_governance.py:1003",
+        "src/CORE/worm_governance.py:1004",
+        "src/CORE/worm_governance.py:1005",
+        "src/CORE/worm_governance.py:1006",
+        "src/CORE/worm_governance.py:1018",
+        "src/CORE/worm_governance.py:1029",
+        "src/CORE/worm_governance.py:1038",
+        "src/CORE/worm_governance.py:1040",
+        "src/CORE/worm_governance.py:1042",
+        "src/CORE/worm_governance.py:107",
+        "src/CORE/worm_governance.py:1080",
+        "src/CORE/worm_governance.py:1144",
+        "src/CORE/worm_governance.py:121",
+        "src/CORE/worm_governance.py:1274",
+        "src/CORE/worm_governance.py:129",
+        "src/CORE/worm_governance.py:138",
+        "src/CORE/worm_governance.py:148",
+        "src/CORE/worm_governance.py:831",
+        "src/CORE/worm_governance.py:858",
+        "src/CORE/worm_governance.py:864",
+        "src/CORE/worm_governance.py:866",
+        "src/CORE/worm_governance.py:931",
+        "src/CORE/worm_governance.py:942",
+        "src/CORE/worm_governance.py:944",
+        "src/CORE/worm_governance.py:945",
+        "src/CORE/worm_governance.py:966",
+        "src/CORE/worm_governance.py:977",
+        "src/CORE/worm_governance.py:99"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570",
-        "src/CORE/technique_wiring/_l6_evolve.py:320"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
       "host_internal_uses": [
-        "src/CORE/meta_evolution.py:527"
+        "src/CORE/skill_library.py:232"
       ],
-      "n_production": 0,
-      "n_exercise": 19,
-      "verdict": "EXERCISE-ONLY"
+      "n_production": 30,
+      "n_exercise": 7,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP183",
@@ -2846,17 +2863,31 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/dispatch_plan.py:307",
+        "src/CORE/dispatch_plan.py:444",
+        "src/CORE/latent_align.py:131",
+        "src/CORE/latent_refine.py:120",
+        "src/CORE/rubric_evolution.py:116",
+        "src/CORE/skill_library.py:175",
+        "src/CORE/skill_library.py:258",
+        "src/CORE/skill_library.py:575",
+        "src/CORE/skill_library.py:892",
+        "src/CORE/structured_action.py:157",
+        "src/CORE/structured_action.py:242",
+        "src/CORE/technique_runtime.py:491",
+        "src/CORE/verification_gate.py:608",
+        "src/CORE/verification_gate.py:897"
+      ],
       "exercise_call_sites": [],
       "host_internal_uses": [
         "src/CORE/compliance_auditor.py:393",
         "src/CORE/compliance_auditor.py:407",
-        "src/CORE/compliance_auditor.py:413",
-        "src/CORE/compliance_auditor.py:730"
+        "src/CORE/compliance_auditor.py:413"
       ],
-      "n_production": 0,
+      "n_production": 14,
       "n_exercise": 0,
-      "verdict": "HOST-COMPOSED"
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP206",
@@ -2908,26 +2939,36 @@
         "proto_route"
       ],
       "built": true,
-      "host_reachable": false,
-      "production_call_sites": [],
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/inference/sequential_analyzer.py:592",
+        "src/CORE/inference/sequential_analyzer.py:593",
+        "src/CORE/inference/sequential_analyzer.py:595",
+        "src/CORE/inference/sequential_analyzer.py:606",
+        "src/CORE/inference/sequential_analyzer.py:607"
+      ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:202",
-        "src/CORE/technique_wiring/_l0_model.py:204",
         "src/CORE/technique_wiring/_l0_model.py:205",
-        "src/CORE/technique_wiring/_l5_dispatch.py:196",
-        "src/CORE/technique_wiring/_l5_dispatch.py:197",
         "src/CORE/technique_wiring/_l5_dispatch.py:199",
-        "src/CORE/technique_wiring/_l5_dispatch.py:201",
-        "src/CORE/technique_wiring/_l5_dispatch.py:204",
-        "src/CORE/technique_wiring/_l5_dispatch.py:332",
-        "src/CORE/technique_wiring/_l5_dispatch.py:492",
-        "src/CORE/technique_wiring/_l5_dispatch.py:493",
-        "src/CORE/technique_wiring/_l5_dispatch.py:534"
+        "src/CORE/technique_wiring/_l5_dispatch.py:200",
+        "src/CORE/technique_wiring/_l5_dispatch.py:202",
+        "src/CORE/technique_wiring/_l5_dispatch.py:204"
       ],
-      "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 12,
-      "verdict": "EXERCISE-ONLY"
+      "host_internal_uses": [
+        "src/CORE/cascade.py:120",
+        "src/CORE/cascade.py:121",
+        "src/CORE/cascade.py:122",
+        "src/CORE/cascade.py:93",
+        "src/CORE/cascade.py:94",
+        "src/CORE/cascade.py:95",
+        "src/CORE/cascade.py:96",
+        "src/CORE/cascade.py:97",
+        "src/CORE/cascade.py:99"
+      ],
+      "n_production": 5,
+      "n_exercise": 6,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP209",
@@ -2975,79 +3016,51 @@
       "coverage": "PARTIAL",
       "target": "CORE/WORMS/expansion/delegation.py :: `ask_owner` / `answer_question` / `NeedsClarification`",
       "host_file": "CORE/WORMS/expansion/delegation.py",
-      "symbol": "ask_owner",
+      "symbol": "ask_owner, answer_question, NeedsClarification",
       "symbols": [
-        "ask_owner"
+        "ask_owner",
+        "answer_question",
+        "NeedsClarification"
       ],
       "hosts": [
         "CORE/WORMS/expansion/delegation.py"
       ],
       "measured_symbols": [
-        "ask_owner"
+        "ask_owner",
+        "answer_question",
+        "NeedsClarification"
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l5_dispatch.py:418",
-        "src/CORE/technique_wiring/_l5_dispatch.py:497"
+      "production_call_sites": [
+        "src/CORE/WORMS/CLUSTERWORMS.py:897",
+        "src/CORE/WORMS/CLUSTERWORMS.py:91"
       ],
+      "exercise_call_sites": [],
       "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 2,
-      "verdict": "EXERCISE-ONLY"
+      "n_production": 2,
+      "n_exercise": 0,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP214",
       "name": "ARISE Data-Flow Repair Graphs",
       "layer": "L3",
       "coverage": "PARTIAL",
-      "target": "CORE/dispatch_plan.py :: plan_dag / eliminate_common_subgraphs",
-      "host_file": "CORE/dispatch_plan.py",
-      "symbol": "plan_dag",
-      "symbols": [
-        "plan_dag"
-      ],
-      "hosts": [
-        "CORE/dispatch_plan.py"
-      ],
-      "measured_symbols": [
-        "plan_dag"
-      ],
-      "built": true,
+      "target": "no-host: no def-use/data-flow analysis",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
       "host_reachable": false,
-      "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:369",
-        "src/CORE/WORMS/METACLUSTER.py:411"
-      ],
-      "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l4_exec.py:394",
-        "src/CORE/technique_wiring/_l5_dispatch.py:111",
-        "src/CORE/technique_wiring/_l5_dispatch.py:116",
-        "src/CORE/technique_wiring/_l5_dispatch.py:140",
-        "src/CORE/technique_wiring/_l5_dispatch.py:152",
-        "src/CORE/technique_wiring/_l5_dispatch.py:166",
-        "src/CORE/technique_wiring/_l5_dispatch.py:167",
-        "src/CORE/technique_wiring/_l5_dispatch.py:172",
-        "src/CORE/technique_wiring/_l5_dispatch.py:183",
-        "src/CORE/technique_wiring/_l5_dispatch.py:188",
-        "src/CORE/technique_wiring/_l5_dispatch.py:217",
-        "src/CORE/technique_wiring/_l5_dispatch.py:251",
-        "src/CORE/technique_wiring/_l5_dispatch.py:306",
-        "src/CORE/technique_wiring/_l5_dispatch.py:310",
-        "src/CORE/technique_wiring/_l5_dispatch.py:318",
-        "src/CORE/technique_wiring/_l5_dispatch.py:324",
-        "src/CORE/technique_wiring/_l5_dispatch.py:481",
-        "src/CORE/technique_wiring/_l5_dispatch.py:487",
-        "src/CORE/technique_wiring/_l5_dispatch.py:491",
-        "src/CORE/technique_wiring/_l5_dispatch.py:503",
-        "src/CORE/technique_wiring/_l5_dispatch.py:525",
-        "src/CORE/technique_wiring/_l5_dispatch.py:77"
-      ],
+      "production_call_sites": [],
+      "exercise_call_sites": [],
       "host_internal_uses": [],
-      "n_production": 2,
-      "n_exercise": 22,
-      "verdict": "ADOPTED"
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET"
     },
     {
       "ep": "EP215",
@@ -3241,52 +3254,20 @@
       "name": "FlowAgent Continuous Tool Flow",
       "layer": "L5",
       "coverage": "PARTIAL",
-      "target": "CORE/dispatch_plan.py :: plan_dag",
-      "host_file": "CORE/dispatch_plan.py",
-      "symbol": "plan_dag",
-      "symbols": [
-        "plan_dag"
-      ],
-      "hosts": [
-        "CORE/dispatch_plan.py"
-      ],
-      "measured_symbols": [
-        "plan_dag"
-      ],
-      "built": true,
+      "target": "no-host: needs trained flow model",
+      "host_file": "",
+      "symbol": "",
+      "symbols": [],
+      "hosts": [],
+      "measured_symbols": [],
+      "built": false,
       "host_reachable": false,
-      "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:369",
-        "src/CORE/WORMS/METACLUSTER.py:411"
-      ],
-      "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l4_exec.py:394",
-        "src/CORE/technique_wiring/_l5_dispatch.py:111",
-        "src/CORE/technique_wiring/_l5_dispatch.py:116",
-        "src/CORE/technique_wiring/_l5_dispatch.py:140",
-        "src/CORE/technique_wiring/_l5_dispatch.py:152",
-        "src/CORE/technique_wiring/_l5_dispatch.py:166",
-        "src/CORE/technique_wiring/_l5_dispatch.py:167",
-        "src/CORE/technique_wiring/_l5_dispatch.py:172",
-        "src/CORE/technique_wiring/_l5_dispatch.py:183",
-        "src/CORE/technique_wiring/_l5_dispatch.py:188",
-        "src/CORE/technique_wiring/_l5_dispatch.py:217",
-        "src/CORE/technique_wiring/_l5_dispatch.py:251",
-        "src/CORE/technique_wiring/_l5_dispatch.py:306",
-        "src/CORE/technique_wiring/_l5_dispatch.py:310",
-        "src/CORE/technique_wiring/_l5_dispatch.py:318",
-        "src/CORE/technique_wiring/_l5_dispatch.py:324",
-        "src/CORE/technique_wiring/_l5_dispatch.py:481",
-        "src/CORE/technique_wiring/_l5_dispatch.py:487",
-        "src/CORE/technique_wiring/_l5_dispatch.py:491",
-        "src/CORE/technique_wiring/_l5_dispatch.py:503",
-        "src/CORE/technique_wiring/_l5_dispatch.py:525",
-        "src/CORE/technique_wiring/_l5_dispatch.py:77"
-      ],
+      "production_call_sites": [],
+      "exercise_call_sites": [],
       "host_internal_uses": [],
-      "n_production": 2,
-      "n_exercise": 22,
-      "verdict": "ADOPTED"
+      "n_production": 0,
+      "n_exercise": 0,
+      "verdict": "NO-TARGET"
     },
     {
       "ep": "EP228",
@@ -3515,21 +3496,38 @@
       "ep": "EP237",
       "name": "Why AI agents must map before acting",
       "layer": "L4",
-      "coverage": "ABSENT",
-      "target": "searched `azazael/src` for `cognitive_map` / `map_before` / `exploration_prior` / `world_map` \u2014 0 matches",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
-      "host_reachable": false,
-      "production_call_sites": [],
+      "coverage": "PARTIAL",
+      "target": "`CORE/graph_artifacts.py :: consult_map, MapBeforeAct`",
+      "host_file": "CORE/graph_artifacts.py",
+      "symbol": "consult_map, MapBeforeAct",
+      "symbols": [
+        "consult_map",
+        "MapBeforeAct"
+      ],
+      "hosts": [
+        "CORE/graph_artifacts.py"
+      ],
+      "measured_symbols": [
+        "consult_map",
+        "MapBeforeAct"
+      ],
+      "built": true,
+      "host_reachable": true,
+      "production_call_sites": [
+        "src/CORE/workflow.py:599",
+        "src/CORE/workflow.py:608",
+        "src/CORE/workflow.py:612",
+        "src/CORE/workflow.py:615",
+        "src/CORE/workflow.py:63",
+        "src/CORE/workflow.py:750"
+      ],
       "exercise_call_sites": [],
-      "host_internal_uses": [],
-      "n_production": 0,
+      "host_internal_uses": [
+        "src/CORE/graph_artifacts.py:161"
+      ],
+      "n_production": 6,
       "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP238",
@@ -3933,20 +3931,33 @@
       "name": "MACA Structure-Guided Coordination",
       "layer": "L5",
       "coverage": "PARTIAL",
-      "target": "",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "CORE/dispatch_plan.py :: assign_roles",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "assign_roles",
+      "symbols": [
+        "assign_roles"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "assign_roles"
+      ],
+      "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/WORMS/METACLUSTER.py:424"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l4_exec.py:397",
+        "src/CORE/technique_wiring/_l5_dispatch.py:144",
+        "src/CORE/technique_wiring/_l5_dispatch.py:156",
+        "src/CORE/technique_wiring/_l5_dispatch.py:81"
+      ],
       "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_production": 1,
+      "n_exercise": 4,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP255",
@@ -3966,52 +3977,53 @@
         "commit_gate"
       ],
       "built": true,
-      "host_reachable": false,
+      "host_reachable": true,
       "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
-      "host_internal_uses": [],
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
       "n_production": 0,
-      "n_exercise": 18,
-      "verdict": "EXERCISE-ONLY"
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP259",
       "name": "ESPO Kill Switch for reasoning",
       "layer": "L6",
       "coverage": "PARTIAL",
-      "target": "",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "CORE/WORMS/expansion/policy_optimization.py :: depo_filter",
+      "host_file": "CORE/WORMS/expansion/policy_optimization.py",
+      "symbol": "depo_filter",
+      "symbols": [
+        "depo_filter"
+      ],
+      "hosts": [
+        "CORE/WORMS/expansion/policy_optimization.py"
+      ],
+      "measured_symbols": [
+        "depo_filter"
+      ],
+      "built": true,
       "host_reachable": false,
       "production_call_sites": [],
-      "exercise_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:157",
+        "src/CORE/technique_wiring/_b01_05.py:159",
+        "src/CORE/technique_wiring/_l5_dispatch.py:233"
+      ],
       "host_internal_uses": [],
       "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_exercise": 3,
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP262",
@@ -4105,48 +4117,43 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/evolution_cycle.py:3014",
+        "scripts/evolution_cycle.py:986",
+        "src/CORE/compliance/policy.py:235",
+        "src/CORE/compliance/policy.py:245",
+        "src/CORE/compliance/policy.py:54",
+        "src/CORE/inference/sequential_analyzer.py:831",
+        "src/CORE/inference/sequential_analyzer.py:833",
+        "src/CORE/inference/sequential_analyzer.py:834",
+        "src/CORE/inference/sequential_analyzer.py:835",
+        "src/CORE/inference/sequential_analyzer.py:836",
+        "src/CORE/inference/sequential_analyzer.py:837",
+        "src/CORE/inference/sequential_analyzer.py:838",
+        "src/CORE/inference/sequential_analyzer.py:839",
+        "src/PSYCHE/distill.py:192"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_b01_05.py:67",
-        "src/CORE/technique_wiring/_l3_verify.py:489",
-        "src/CORE/technique_wiring/_l3_verify.py:491",
-        "src/CORE/technique_wiring/_l3_verify.py:503",
-        "src/CORE/technique_wiring/_l3_verify.py:643",
-        "src/CORE/technique_wiring/_l3_verify.py:645",
-        "src/CORE/technique_wiring/_l5_dispatch.py:490",
-        "src/CORE/technique_wiring/_l6_evolve.py:375",
-        "src/CORE/technique_wiring/_l6_evolve.py:376",
-        "src/CORE/technique_wiring/_l6_evolve.py:467",
-        "src/CORE/technique_wiring/_l6_evolve.py:474",
-        "src/CORE/technique_wiring/_l6_evolve.py:476",
-        "src/CORE/technique_wiring/_l6_evolve.py:503",
-        "src/CORE/technique_wiring/_l6_evolve.py:521",
+        "src/CORE/technique_wiring/_l3_verify.py:518",
+        "src/CORE/technique_wiring/_l3_verify.py:520",
+        "src/CORE/technique_wiring/_l3_verify.py:532",
+        "src/CORE/technique_wiring/_l6_evolve.py:500",
         "src/CORE/technique_wiring/_l7_interface.py:112",
         "src/CORE/technique_wiring/_l7_interface.py:155",
         "src/CORE/technique_wiring/_l7_interface.py:156",
         "src/CORE/technique_wiring/_l7_interface.py:177",
         "src/CORE/technique_wiring/_l7_interface.py:200",
         "src/CORE/technique_wiring/_l7_interface.py:205",
-        "src/CORE/technique_wiring/_l7_interface.py:229",
-        "src/CORE/technique_wiring/_l7_interface.py:293",
-        "src/CORE/technique_wiring/_l7_interface.py:298",
-        "src/CORE/technique_wiring/_l7_interface.py:301",
         "src/CORE/technique_wiring/_l7_interface.py:313",
         "src/CORE/technique_wiring/_l7_interface.py:89",
         "src/CORE/technique_wiring/_l7_interface.py:90"
       ],
       "host_internal_uses": [
-        "src/CORE/latent_refine.py:108",
-        "src/CORE/latent_refine.py:124",
-        "src/CORE/latent_refine.py:126",
-        "src/CORE/latent_refine.py:63",
-        "src/CORE/latent_refine.py:94",
-        "src/CORE/latent_refine.py:95",
-        "src/CORE/structured_action.py:201"
+        "src/CORE/structured_action.py:211"
       ],
-      "n_production": 0,
-      "n_exercise": 27,
-      "verdict": "EXERCISE-ONLY"
+      "n_production": 14,
+      "n_exercise": 13,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP267",
@@ -4509,35 +4516,23 @@
         "commit_gate"
       ],
       "built": true,
-      "host_reachable": false,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
-      ],
+      "host_reachable": true,
+      "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
-      "host_internal_uses": [],
-      "n_production": 2,
-      "n_exercise": 18,
-      "verdict": "ADOPTED"
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP276",
@@ -4602,20 +4597,28 @@
       "name": "Trajectory-Refined Distillation",
       "layer": "L6",
       "coverage": "PARTIAL",
-      "target": "`PSYCHE/distill.py`",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "PSYCHE/distill.py :: onpolicy_refine",
+      "host_file": "PSYCHE/distill.py",
+      "symbol": "onpolicy_refine",
+      "symbols": [
+        "onpolicy_refine"
+      ],
+      "hosts": [
+        "PSYCHE/distill.py"
+      ],
+      "measured_symbols": [
+        "onpolicy_refine"
+      ],
+      "built": true,
       "host_reachable": false,
       "production_call_sites": [],
-      "exercise_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l6_evolve.py:500"
+      ],
       "host_internal_uses": [],
       "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP289",
@@ -5245,126 +5248,158 @@
       "name": "WorldEvolver self-evolving world models",
       "layer": "L4+L1",
       "coverage": "PARTIAL",
-      "target": "`CORE/dream_arena.py :: compile_world, admit_worlds` \u00b7 `CORE/WORMS/expansion/consolidation.py :: DreamCriticWorm, SleepConsolidatorWorm`",
+      "target": "`CORE/dream_arena.py :: compile_world, admit_worlds` \u00c2\u00b7 `CORE/WORMS/expansion/consolidation.py :: DreamCriticWorm, SleepConsolidatorWorm`",
       "host_file": "CORE/dream_arena.py",
-      "symbol": "compile_world, admit_worlds, SleepConsolidatorWorm",
+      "symbol": "compile_world, admit_worlds",
       "symbols": [
         "compile_world",
-        "admit_worlds",
-        "SleepConsolidatorWorm"
+        "admit_worlds"
       ],
       "hosts": [
-        "CORE/dream_arena.py"
+        "CORE/dream_arena.py",
+        "CORE/WORMS/expansion/consolidation.py"
       ],
       "measured_symbols": [
         "compile_world",
         "admit_worlds",
+        "DreamCriticWorm",
         "SleepConsolidatorWorm"
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/night_shift.py:98"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l4_exec.py:453",
-        "src/CORE/technique_wiring/_l4_exec.py:497"
+        "src/CORE/technique_wiring/_l4_exec.py:453"
       ],
       "host_internal_uses": [
-        "src/CORE/dream_arena.py:57"
+        "src/CORE/dream_arena.py:62"
       ],
-      "n_production": 0,
-      "n_exercise": 2,
-      "verdict": "EXERCISE-ONLY"
+      "n_production": 1,
+      "n_exercise": 1,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP336",
       "name": "ACE Adaptive Context Elasticizer",
       "layer": "L1",
       "coverage": "PARTIAL",
-      "target": "",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "CORE/local_memory.py :: LocalMemoryStore.retype_ladder",
+      "host_file": "CORE/local_memory.py",
+      "symbol": "LocalMemoryStore.retype_ladder",
+      "symbols": [
+        "LocalMemoryStore.retype_ladder"
+      ],
+      "hosts": [
+        "CORE/local_memory.py"
+      ],
+      "measured_symbols": [
+        "LocalMemoryStore.retype_ladder"
+      ],
+      "built": true,
       "host_reachable": false,
       "production_call_sites": [],
-      "exercise_call_sites": [],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l1_memory.py:343"
+      ],
       "host_internal_uses": [],
       "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_exercise": 1,
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP337",
       "name": "EnvProbe budgeted probing",
       "layer": "L4+L3",
       "coverage": "PARTIAL",
-      "target": "`CORE/WORMS/expansion/spine.py :: _probe_candidates` \u00b7 `CORE/worm_health.py` (staleness_penalty ladder) \u00b7 `CORE/worm_registry.py :: get_staleness_report`",
+      "target": "`CORE/WORMS/expansion/spine.py :: _probe_candidates` \u00c2\u00b7 `CORE/worm_health.py` (staleness_penalty ladder) \u00c2\u00b7 `CORE/worm_registry.py :: get_staleness_report`",
       "host_file": "CORE/WORMS/expansion/spine.py",
       "symbol": "_probe_candidates",
       "symbols": [
         "_probe_candidates"
       ],
       "hosts": [
-        "CORE/WORMS/expansion/spine.py"
+        "CORE/WORMS/expansion/spine.py",
+        "CORE/worm_registry.py"
       ],
       "measured_symbols": [
-        "_probe_candidates"
+        "_probe_candidates",
+        "get_staleness_report"
       ],
       "built": true,
       "host_reachable": true,
       "production_call_sites": [],
-      "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l4_exec.py:466",
-        "src/CORE/technique_wiring/_l4_exec.py:467"
-      ],
+      "exercise_call_sites": [],
       "host_internal_uses": [
-        "src/CORE/WORMS/expansion/spine.py:871"
+        "src/CORE/WORMS/expansion/spine.py:879"
       ],
       "n_production": 0,
-      "n_exercise": 2,
-      "verdict": "EXERCISE-ONLY"
+      "n_exercise": 0,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP343",
       "name": "Agentic Test-Time Training aTTT",
       "layer": "L6+L4",
       "coverage": "ABSENT",
-      "target": "`CORE/WORMS/expansion/reflexion.py` (nearest artefact \u2014 and it states \"verbal reinforcement **without weight updates**\")",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "CORE/WORMS/expansion/reflexion.py :: record_reflection",
+      "host_file": "CORE/WORMS/expansion/reflexion.py",
+      "symbol": "record_reflection",
+      "symbols": [
+        "record_reflection"
+      ],
+      "hosts": [
+        "CORE/WORMS/expansion/reflexion.py"
+      ],
+      "measured_symbols": [
+        "record_reflection"
+      ],
+      "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/technique_runtime.py:322"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:49"
+      ],
       "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_production": 1,
+      "n_exercise": 1,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP345",
       "name": "AI agents retry from pivotal mistakes",
       "layer": "L4",
       "coverage": "PARTIAL",
-      "target": "CORE/dispatch_plan.py :: (LoongReflect prune-branch-keep-lesson, ~L221)",
-      "host_file": "",
-      "symbol": "",
-      "symbols": [],
-      "hosts": [],
-      "measured_symbols": [],
-      "built": false,
+      "target": "CORE/dispatch_plan.py :: record_backtrack, reuse_prefix",
+      "host_file": "CORE/dispatch_plan.py",
+      "symbol": "record_backtrack, reuse_prefix",
+      "symbols": [
+        "record_backtrack",
+        "reuse_prefix"
+      ],
+      "hosts": [
+        "CORE/dispatch_plan.py"
+      ],
+      "measured_symbols": [
+        "record_backtrack",
+        "reuse_prefix"
+      ],
+      "built": true,
       "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/WORMS/expansion/rcpd_early_exit.py:76"
+      ],
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_b01_05.py:103",
+        "src/CORE/technique_wiring/_b01_05.py:106"
+      ],
       "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 0,
-      "verdict": "NO-TARGET"
+      "n_production": 1,
+      "n_exercise": 2,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP347",
@@ -5384,35 +5419,23 @@
         "commit_gate"
       ],
       "built": true,
-      "host_reachable": false,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
-      ],
+      "host_reachable": true,
+      "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
-      "host_internal_uses": [],
-      "n_production": 2,
-      "n_exercise": 18,
-      "verdict": "ADOPTED"
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP349",
@@ -5482,33 +5505,37 @@
       "name": "Direct-OPD weak-to-strong distillation",
       "layer": "L6",
       "coverage": "PARTIAL",
-      "target": "CORE/rubric_evolution.py :: gate_distillation",
-      "host_file": "CORE/rubric_evolution.py",
-      "symbol": "gate_distillation",
+      "target": "CORE/WORMS/expansion/learning_grpo.py :: save_policy, load_policy",
+      "host_file": "CORE/WORMS/expansion/learning_grpo.py",
+      "symbol": "save_policy, load_policy",
       "symbols": [
-        "gate_distillation"
+        "save_policy",
+        "load_policy"
       ],
       "hosts": [
-        "CORE/rubric_evolution.py"
+        "CORE/WORMS/expansion/learning_grpo.py"
       ],
       "measured_symbols": [
-        "gate_distillation"
+        "save_policy",
+        "load_policy"
       ],
       "built": true,
-      "host_reachable": false,
-      "production_call_sites": [],
-      "exercise_call_sites": [
-        "src/CORE/technique_wiring/_b01_05.py:179",
-        "src/CORE/technique_wiring/_b01_05.py:180",
-        "src/CORE/technique_wiring/_b01_05.py:195",
-        "src/CORE/technique_wiring/_l6_evolve.py:191",
-        "src/CORE/technique_wiring/_l6_evolve.py:192",
-        "src/CORE/technique_wiring/_l6_evolve.py:511"
+      "host_reachable": true,
+      "production_call_sites": [
+        "scripts/run_training_orchestrator.py:266"
       ],
-      "host_internal_uses": [],
-      "n_production": 0,
-      "n_exercise": 6,
-      "verdict": "EXERCISE-ONLY"
+      "exercise_call_sites": [
+        "src/CORE/technique_wiring/_l2_skills.py:170"
+      ],
+      "host_internal_uses": [
+        "src/CORE/WORMS/expansion/learning_grpo.py:118",
+        "src/CORE/WORMS/expansion/learning_grpo.py:119",
+        "src/CORE/WORMS/expansion/learning_grpo.py:437",
+        "src/CORE/WORMS/expansion/learning_grpo.py:92"
+      ],
+      "n_production": 1,
+      "n_exercise": 1,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP352",
@@ -5549,19 +5576,21 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "tools/canon_drift_check.py:317",
+        "tools/canon_drift_check.py:323",
+        "tools/canon_drift_check.py:81"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:549",
-        "src/CORE/technique_wiring/_l2_skills.py:566",
-        "src/CORE/technique_wiring/_l2_skills.py:69"
+        "src/CORE/technique_wiring/_l2_skills.py:72"
       ],
       "host_internal_uses": [
-        "src/CORE/skill_library.py:319",
-        "src/CORE/skill_library.py:584"
+        "src/CORE/skill_library.py:476",
+        "src/CORE/skill_library.py:741"
       ],
-      "n_production": 0,
-      "n_exercise": 3,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 3,
+      "n_exercise": 1,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP355",
@@ -5841,35 +5870,23 @@
         "commit_gate"
       ],
       "built": true,
-      "host_reachable": false,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
-      ],
+      "host_reachable": true,
+      "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
-      "host_internal_uses": [],
-      "n_production": 2,
-      "n_exercise": 18,
-      "verdict": "ADOPTED"
+      "host_internal_uses": [
+        "src/CORE/skill_library.py:232"
+      ],
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP364",
@@ -5890,32 +5907,28 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "src/CORE/training_intake.py:339",
+        "src/CORE/training_intake.py:485",
+        "tools/canon_drift_check.py:317",
+        "tools/canon_drift_check.py:321",
+        "tools/canon_drift_check.py:80"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_b01_05.py:189",
         "src/CORE/technique_wiring/_b01_05.py:92",
-        "src/CORE/technique_wiring/_l2_skills.py:202",
-        "src/CORE/technique_wiring/_l2_skills.py:204",
-        "src/CORE/technique_wiring/_l2_skills.py:239",
-        "src/CORE/technique_wiring/_l2_skills.py:296",
-        "src/CORE/technique_wiring/_l2_skills.py:415",
-        "src/CORE/technique_wiring/_l2_skills.py:418",
-        "src/CORE/technique_wiring/_l2_skills.py:498",
-        "src/CORE/technique_wiring/_l2_skills.py:537",
-        "src/CORE/technique_wiring/_l2_skills.py:540",
-        "src/CORE/technique_wiring/_l2_skills.py:554",
-        "src/CORE/technique_wiring/_l2_skills.py:556",
-        "src/CORE/technique_wiring/_l2_skills.py:564",
-        "src/CORE/technique_wiring/_l2_skills.py:565",
-        "src/CORE/technique_wiring/_l2_skills.py:569",
-        "src/CORE/technique_wiring/_l2_skills.py:571"
+        "src/CORE/technique_wiring/_l2_skills.py:226",
+        "src/CORE/technique_wiring/_l2_skills.py:263",
+        "src/CORE/technique_wiring/_l2_skills.py:320",
+        "src/CORE/technique_wiring/_l2_skills.py:449",
+        "src/CORE/technique_wiring/_l2_skills.py:532",
+        "src/CORE/technique_wiring/_l2_skills.py:565"
       ],
       "host_internal_uses": [
-        "src/CORE/skill_library.py:663"
+        "src/CORE/skill_library.py:820"
       ],
-      "n_production": 0,
-      "n_exercise": 17,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 5,
+      "n_exercise": 7,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP370",
@@ -6153,23 +6166,53 @@
       ],
       "measured_symbols": [
         "confidence_divergence_check",
-        "CircuitBreaker.force_trip"
+        "CircuitBreaker.force_trip",
+        "DeadLetter"
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "scripts/db_health.py:22",
+        "scripts/dlq_burndown.py:120",
+        "scripts/dlq_watch.py:181",
+        "scripts/run_mesh_cycle.py:257",
+        "src/CORE/NeuralPipeline.py:240",
+        "src/CORE/WORMS/dead_letter_queue.py:101",
+        "src/CORE/WORMS/dead_letter_queue.py:117",
+        "src/CORE/WORMS/dead_letter_queue.py:121",
+        "src/CORE/WORMS/dead_letter_queue.py:157",
+        "src/CORE/WORMS/dead_letter_queue.py:173",
+        "src/CORE/WORMS/dead_letter_queue.py:198",
+        "src/CORE/WORMS/dead_letter_queue.py:216",
+        "src/CORE/WORMS/dead_letter_queue.py:274",
+        "src/CORE/WORMS/dead_letter_queue.py:300",
+        "src/CORE/WORMS/dead_letter_queue.py:315",
+        "src/CORE/WORMS/dead_letter_queue.py:320",
+        "src/CORE/WORMS/dead_letter_queue.py:325",
+        "src/CORE/WORMS/dead_letter_queue.py:79",
+        "src/CORE/WORMS/expansion/mesh.py:630",
+        "src/CORE/circuit_breaker.py:309",
+        "src/CORE/circuit_breaker.py:313",
+        "src/CORE/circuit_breaker.py:50",
+        "tools/cutting_edge_ablation_matrix.py:106",
+        "tools/live_rebalance_repro.py:61",
+        "tools/live_rebalance_repro_round5.py:143",
+        "tools/live_rebalance_repro_round6.py:144"
+      ],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l3_verify.py:381",
-        "src/CORE/technique_wiring/_l3_verify.py:471",
-        "src/CORE/technique_wiring/_l3_verify.py:629",
-        "src/CORE/technique_wiring/_l3_verify.py:641"
+        "src/CORE/technique_wiring/_l3_verify.py:391",
+        "src/CORE/technique_wiring/_l3_verify.py:500",
+        "src/CORE/technique_wiring/_l4_exec.py:207"
       ],
       "host_internal_uses": [
-        "src/CORE/verification_gate.py:393"
+        "src/CORE/circuit_breaker.py:329",
+        "src/CORE/circuit_breaker.py:429",
+        "src/CORE/circuit_breaker.py:538",
+        "src/CORE/verification_gate.py:537"
       ],
-      "n_production": 0,
-      "n_exercise": 4,
-      "verdict": "HOST-COMPOSED"
+      "n_production": 26,
+      "n_exercise": 3,
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP387",
@@ -6192,37 +6235,23 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
-        "src/CORE/technique_wiring/_l2_skills.py:169",
-        "src/CORE/technique_wiring/_l2_skills.py:170",
-        "src/CORE/technique_wiring/_l2_skills.py:184",
-        "src/CORE/technique_wiring/_l2_skills.py:218",
-        "src/CORE/technique_wiring/_l2_skills.py:293",
-        "src/CORE/technique_wiring/_l2_skills.py:338",
-        "src/CORE/technique_wiring/_l2_skills.py:380",
-        "src/CORE/technique_wiring/_l2_skills.py:381",
-        "src/CORE/technique_wiring/_l2_skills.py:477",
-        "src/CORE/technique_wiring/_l2_skills.py:516",
-        "src/CORE/technique_wiring/_l2_skills.py:552",
-        "src/CORE/technique_wiring/_l2_skills.py:553",
-        "src/CORE/technique_wiring/_l2_skills.py:555",
-        "src/CORE/technique_wiring/_l2_skills.py:559",
-        "src/CORE/technique_wiring/_l2_skills.py:561",
-        "src/CORE/technique_wiring/_l2_skills.py:563",
-        "src/CORE/technique_wiring/_l2_skills.py:568",
-        "src/CORE/technique_wiring/_l2_skills.py:570"
+        "src/CORE/technique_wiring/_l2_skills.py:193",
+        "src/CORE/technique_wiring/_l2_skills.py:208",
+        "src/CORE/technique_wiring/_l2_skills.py:242",
+        "src/CORE/technique_wiring/_l2_skills.py:317",
+        "src/CORE/technique_wiring/_l2_skills.py:362",
+        "src/CORE/technique_wiring/_l2_skills.py:511",
+        "src/CORE/technique_wiring/_l2_skills.py:552"
       ],
       "host_internal_uses": [
-        "src/CORE/data_retention.py:28",
-        "src/CORE/data_retention.py:890"
+        "src/CORE/data_retention.py:958",
+        "src/CORE/skill_library.py:232"
       ],
-      "n_production": 2,
-      "n_exercise": 18,
-      "verdict": "ADOPTED"
+      "n_production": 0,
+      "n_exercise": 7,
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP388",
