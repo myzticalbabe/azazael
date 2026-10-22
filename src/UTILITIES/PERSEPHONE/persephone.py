@@ -475,7 +475,7 @@ set-Alias -Name persephone -Value "python $env:PERSEPHONE_ROOT\\bin\\persephone.
             name = shortcut["name"] + ".lnk"
             path = desktop / name
 
-            import win32com.client
+            import win32com.client  # type: ignore[reportMissingModuleSource]
 
             shell = win32com.client.Dispatch("WScript.Shell")
             ws = shell.CreateShortCut(str(path))

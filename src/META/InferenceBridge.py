@@ -92,10 +92,12 @@ class InferenceBridge:
         del self._intelligence[:-50]  # bounded
         try:
             from CORE.local_memory import get_memory_store
-            get_memory_store().append_event(
-                {"type": "inference_bridge_intelligence",
-                 "content": response[:4000]}) if hasattr(
-                get_memory_store(), "append_event") else None
+            store = get_memory_store()
+            append = getattr(store, "append_event", None)
+            if append is not None:
+                append(
+                    {"type": "inference_bridge_intelligence",
+                     "content": response[:4000]})
         except Exception as exc:                      # recording must never raise
             note_failure("inference_bridge:record_intelligence", exc)
         return entry

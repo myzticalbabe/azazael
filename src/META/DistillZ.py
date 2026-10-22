@@ -103,7 +103,8 @@ class DistillZ:
                 # Name the concrete measured keys (memories/sessions) so the
                 # insight says what was counted, not just a bare number.
                 try:
-                    g = (self._get_store().get_stats() or {}) if self._store else {}
+                    s2 = self._get_store()
+                    g = (s2.get_stats() or {}) if (s2 is not None and self._store) else {}
                     mem = int(g.get("total_memories") or 0)
                     ses = int(g.get("total_sessions") or 0)
                     act = int(g.get("active_sessions") or 0)

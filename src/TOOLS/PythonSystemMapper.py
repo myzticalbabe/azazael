@@ -137,11 +137,11 @@ class PythonSystemMapper:
                         {
                             "file": f,
                             "path": os.path.join(downloads, f),
-                            "detected_version": re.search(
-                                r"python-([\d.]+)", f, re.I
-                            ).group(1)
-                            if re.search(r"python-([\d.]+)", f, re.I)
-                            else None,
+                            "detected_version": (
+                                m.group(1)
+                                if (m := re.search(r"python-([\d.]+)", f, re.I))
+                                else None
+                            ),
                         }
                     )
         return installers

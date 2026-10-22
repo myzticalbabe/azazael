@@ -123,6 +123,8 @@ class RMSNorm(nn.Module):
 
 class RotaryEmbedding(nn.Module):
     """Rotary Position Embedding (RoPE)."""
+    inv_freq: torch.Tensor  # buffer registered unconditionally in __init__
+
     def __init__(self, dim: int, max_position_embeddings: int = 262144, theta: float = 10000000.0):
         super().__init__()
         self.dim = dim
