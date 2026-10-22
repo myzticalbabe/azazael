@@ -128,8 +128,12 @@ def merge_lanes(lanes):
                 continue
             lane_seen.add(key)
             seen.add(key)
-            merged.append({"source": str(r["source"])[:80], "item_id": str(r["item_id"])[:80],
-                           "title": str(r["title"])[:120], "body": str(r["body"])[:4000],
+            # Fields persist FULL-SIZE. Cutting here produced silently
+            # truncated merged rows -- no marker, no drop row (D1 site,
+            # truncation sweep 2026-10-22). Point-count validation above
+            # (body >= 40) is the size floor; a size is not a reason to cut.
+            merged.append({"source": str(r["source"]), "item_id": str(r["item_id"]),
+                           "title": str(r["title"]), "body": str(r["body"]),
                            "kind": r["kind"]})
             accepted += 1
     return merged, dropped, accepted, len(base)

@@ -271,7 +271,39 @@ probes: `scripts/live_monitor.py` :100/:109/:171/:1073/:1178/:1202/:1240,
   `truncation_classify.py`) — never in the repo
 - Bake lane: `azazael/state/bake_harvest_laneB_2026-10-22.jsonl` rows 11-13 (this sweep)
 
-## Pending (deferred — needs user go/no-go)
+## Fix pass (user GO — Oct 22, 2026)
 
-P1 consolidation ("fix to a single threshold const") from the approved roadmap was
-**not started** — awaiting explicit user instruction.
+Every defect-class finding above was repaired structurally in this session's fix
+commit (same session as the sweep; bake lane now carries rows 14-16 as the
+fix-pass record). Proof commands, live:
+
+- `tools/merge_bake_lane.py --lane state/bake_harvest_laneB_2026-10-22.jsonl --apply`
+  → `BASE=10970 ACCEPTED=16 MERGED=10986 DROPPED=0`; merged rows now persist
+  fields full-size (base rows were always rebuilt uncapped from raw
+  `bake_corpus.jsonl` + `bake_harvest_*.jsonl` each run, so re-apply self-heals
+  the merged set).
+- `tools/mesh_function_preflight.py --check` → `ledger fresh: 370 declaration(s),
+  statuses unchanged against HEAD` — the fix touches record fields only;
+  `decide()` still writes no status (Error #190 contract intact).
+- Targeted pytest on the three contract files
+  (`tests/test_fault_injection_state.py`, `tests/test_mesh_wire_or_cut.py`,
+  `tests/test_mesh_preflight_status_drift.py`) → **44 passed, 2 skipped**
+  (16 workers, 3.15t).
+- Advisory `transcript_ap5_gate.py` scan runs unchanged in shape; the new
+  `... and N more (total N; full list in --output JSON)` marker renders only
+  when the 5-announcement console window is exceeded (current data: none).
+
+| site | fix |
+|---|---|
+| `merge_bake_lane.py:131` | field slices (`source[:80] item_id[:80] title[:120] body[:4000]`) removed — point-count validation (`body >= 40`) remains the floor; no silent size cut persists |
+| `mesh_function_preflight.py:1434/:1437/:1447` | all three provenance caps removed — `decider_evidence` records the complete `owners` list, every `data` hash, and the full `triage_evidence` (in the `test_is_the_wire` branch the full reached-by list is the whole point) |
+| `transcript_ap5_gate.py:828` | console keeps a bounded 5-announcement display and now names the remainder explicitly |
+
+Kept deliberately (verified, not defects): `transcript_ap5_gate.py:848` 48-bit
+linking prefixes `[:12]` (collision-bounded, console joins), the honest
+`session_memory.py:1014` banner (true count, display-only, durable data
+full-size), and every D2/D3/D4/D5/D6/D7 class — each verified intentional;
+changing it would break designed behavior. The harness-layer items (Engram
+`mem_save` 50KB record truncation, MCP instructions-payload discard) are
+outside repo remit. **P1 is closed** by the `merge_bake_lane.py` fix:
+full-size persistence structurally, with no silent cap remaining at that site.
