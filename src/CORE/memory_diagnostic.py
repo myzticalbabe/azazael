@@ -32,12 +32,13 @@ def fit_budget(items: list[dict], budget: int,
         note_failure("memory_diagnostic:L21", exc)
         return list(items or [])
     if size_of is None:
-        def size_of(it):
+        def _default_size_of(it):
             try:
                 return len(str(it.get("text", it)))
             except Exception as exc:
                 note_failure("memory_diagnostic:L27", exc)
                 return 0
+        size_of = _default_size_of
     out = []
     spent = 0
     for it in items or []:

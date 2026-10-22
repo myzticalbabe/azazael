@@ -49,7 +49,7 @@ except ImportError:                               # never break the host
 
 
 # Module-level state
-_log_config: ("LogConfig" | None) = None
+_log_config: "LogConfig | None" = None
 _request_id_local = threading.local()
 
 

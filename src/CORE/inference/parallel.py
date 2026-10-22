@@ -67,7 +67,7 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 try:
-    from CORE.freethreading import FreeThreadPool, is_free_threaded
+    from CORE.freethreading import FreeThreadPool, is_free_threaded  # pyright: ignore[reportAssignmentType] -- try-success binds the real freethreading classes while the except fallback defines structurally distinct local classes behind the same names; selection is by import success, not substitutability
 except ImportError:
     import os
     from concurrent.futures import ThreadPoolExecutor

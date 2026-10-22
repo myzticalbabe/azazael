@@ -254,7 +254,8 @@ class ThreadSafeList(MutableSequence[T]):
     def sorted_copy(self) -> list[T]:
         """Return a sorted copy of the list (snapshot for iteration safety)."""
         with self._lock:
-            return sorted(self._list)
+            # Elements are orderable by caller contract; the generic cannot prove it.
+            return sorted(cast("list[Any]", self._list))
 
     def snapshot(self) -> list[T]:
         """Return a shallow copy of the list (safe for iteration)."""
