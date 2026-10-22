@@ -102,7 +102,7 @@ def start_server(wait_s=420, lowvram=False, min_vram_free_gb=5.0):
         print("lowvram mode: weights stream instead of full-load")
     print("launching:", " ".join(cmd[:3]), "... --listen", HOST, "--port", PORT)
     log = open(APP.parent / "comfyui_headless.log", "w", encoding="utf-8")
-    proc = subprocess.Popen(cmd, cwd=str(APP), stdout=log, stderr=subprocess.STDOUT,  # scanner:ignore
+    proc = subprocess.Popen(cmd, cwd=str(APP), stdout=log, stderr=subprocess.STDOUT,
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     print(f"pid {proc.pid}; waiting up to {wait_s}s for the API")
     t0 = time.time()

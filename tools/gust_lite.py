@@ -122,7 +122,7 @@ def run_chain(chain):
         except subprocess.TimeoutExpired:
             results.append({"step": node, "kind": "tool", "exit": None,
                             "status": "timeout"})
-        except Exception as exc:  # scanner:ignore
+        except Exception as exc:
             results.append({"step": node, "kind": "tool", "exit": None,
                             "status": "error", "error": str(exc)[:120]})
     return results
