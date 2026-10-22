@@ -22,6 +22,8 @@ import json
 import time
 import ssl
 import re
+import math
+import zlib
 
 try:
     from CORE.failure_ledger import note_failure
@@ -234,6 +236,26 @@ class ArxivIntegration:
                 deduped.append(k)
         return deduped[:20]
 
+    def _keywords_to_vector(self, keywords: List[str], dim: int = 64) -> List[float]:
+        """Deterministic bag-of-keywords feature vector for register_pattern.
+
+        register_pattern expects a numeric feature vector and JSON-encodes its
+        argument itself, so passing it a pre-encoded JSON *string* produced
+        double-encoded rows that broke query_similar_patterns' cosine
+        comparison. Each keyword hashes (CRC32) into one of `dim` buckets; the
+        vector is L2-normalized so identical keyword sets compare at 1.0 and
+        disjoint sets at 0.0. Empty keyword lists yield an all-zero vector
+        (which _cosine_similarity scores as 0.0, never raising).
+        """
+        vec = [0.0] * dim
+        for kw in keywords:
+            bucket = zlib.crc32(kw.lower().encode("utf-8")) % dim
+            vec[bucket] += 1.0
+        norm = math.sqrt(sum(v * v for v in vec))
+        if norm == 0:
+            return vec
+        return [round(v / norm, 6) for v in vec]
+
     def index_paper(
         self,
         paper: Dict[str, Any],
@@ -242,8 +264,9 @@ class ArxivIntegration:
     ) -> Optional[int]:
         """Index a single arXiv paper into the knowledge_patterns table.
 
-        The paper's title, abstract, authors, and categories are stored as the
-        embedding/metadata fields so they can be searched later via the existing
+        Paper metadata (title, abstract, authors, and categories) is stored in
+        the metadata field and a deterministic keyword-hash feature vector in
+        the embedding field, so papers can be searched later via the existing
         knowledge graph query interface.
 
         Returns the memory ID (rowid), or None if indexing failed.
@@ -258,7 +281,7 @@ class ArxivIntegration:
                 paper.get("title", "") or "",
                 paper.get("abstract", "") or "",
             )
-            embedding_json = json.dumps(keywords)
+            vector = self._keywords_to_vector(keywords)
 
             # Build metadata with all available fields
             metadata: Dict[str, Any] = {
@@ -279,7 +302,7 @@ class ArxivIntegration:
             pid = store.register_pattern(
                 source_agent=source_agent,
                 pattern_type=pattern_type,
-                embedding=embedding_json,
+                embedding=vector,
                 metadata=metadata_json,
                 confidence=1.0,
             )
