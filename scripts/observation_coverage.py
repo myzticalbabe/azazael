@@ -118,7 +118,7 @@ def build_report(store=None, limit=20000):
     try:
         discover_worms()
     except Exception:
-        pass  # scanner:ignore
+        pass  # scanner:ignore -- discovery failure falls back to the already-populated registry; the coverage report still renders
     registry = dict(WORM_REGISTRY)
     eligible = sorted(n for n in registry if wg.is_evolvable_organ(n))
 
