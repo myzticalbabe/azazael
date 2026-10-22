@@ -1282,7 +1282,7 @@ def export_html(path: str, since: (str | None) = None) -> str:
     Returns:
         The path the report was written to
     """
-    report = {}
+    report: dict[str, Any] = {}
     try:
         from CORE.dashboard import get_report
         report = get_report(since=since)

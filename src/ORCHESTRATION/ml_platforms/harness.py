@@ -76,7 +76,7 @@ if str(ML_PLATFORMS_DIR) not in sys.path:
     sys.path.insert(0, str(ML_PLATFORMS_DIR))
 
 __version__ = "2.0.0"
-__path__ = str(Path(__file__).parent)
+__path__ = str(Path(__file__).parent)  # type: ignore[reportAssignmentType]
 
 
 def get_version():
@@ -88,8 +88,12 @@ def cmd_analyze(args):
     print("Running framework analysis...")
 
     try:
-        from run_qanalysis import run_q_analysis
+        from run_qanalysis import run_q_analysis  # type: ignore[reportAttributeAccessIssue]
+    except ImportError:
+        def run_q_analysis():
+            print("run_q_analysis not available")
 
+    try:
         run_q_analysis()
     except Exception as e:
         print(f"Analysis error: {e}")
@@ -220,7 +224,7 @@ def cmd_status(args):
             note_failure("harness:L209", exc)
             frameworks[name] = "not installed"
 
-    status["frameworks"] = frameworks
+    status["frameworks"] = frameworks  # type: ignore[reportArgumentType]
 
     if args.json:
         print(json.dumps(status, indent=2))

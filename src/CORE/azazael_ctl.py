@@ -202,7 +202,7 @@ def cmd_status_json():
     print(json.dumps(report, indent=2))
 
 
-def cmd_backup(output_dir: str = None):
+def cmd_backup(output_dir: str | None = None):
     """Backup memory_store.db and .audit/ to a directory."""
     from datetime import datetime
     from pathlib import Path
@@ -327,7 +327,7 @@ def cmd_graph(args: list[str]):
 def cmd_atlas(args: list[str]):
     """Inventory explicitly supplied project roots and export provenance atlas."""
     from CORE.project_atlas import scan_projects
-    roots = {
+    roots: dict[str, Path | str] = {
         "azazael": Path("C:/Azazael/azazael"),
         "azazael_archive": Path("G:/azazael.archived-20261021"),  # archived 2026-10-21; was azazael_secondary
         # Relocated 2026-09-30: vermillion_lightfury is Kali-native and
