@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""xref_dashboard.py — utility functions (generate_html)""",
-"""Cross-reference HTML dashboard generator."""
+"""xref_dashboard.py - utility functions (generate_html).
+
+Cross-reference HTML dashboard generator.
+"""
 
 
 __all__ = [

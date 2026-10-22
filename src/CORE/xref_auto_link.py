@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""xref_auto_link.py — utility functions (auto_link_at_creation)""",
-"""Auto-link DM sessions with AJ sessions at creation time."""
+"""xref_auto_link.py - utility functions (auto_link_at_creation).
+
+Auto-link DM sessions with AJ sessions at creation time.
+"""
 
 
 __all__ = [
