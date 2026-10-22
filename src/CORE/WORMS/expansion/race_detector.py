@@ -34,7 +34,7 @@ try:
 except ImportError as exc:
     note_failure("race_detector:L25", exc)
     _REGISTRY = False
-    def register_worm(**kw):
+    def register_worm(category: str = "utility", priority: int = 5, cooldown_seconds: float = 30.0, description: str = "", tags=None):
         return lambda cls: cls
 
 # Module-level memory store import (3.14t safe — Lesson #29)
@@ -202,7 +202,7 @@ class RaceConditionDetector:
         installed and attribute-write tracing produced zero events.
         `type.__setattr__` is the correct primitive for a class object.
         """
-        original_setattr = worm_type.__setattr__
+        original_setattr: Any = worm_type.__setattr__
         # Store original on the type for later restoration
         if not hasattr(worm_type, '_rcd_original_setattr'):
             try:
