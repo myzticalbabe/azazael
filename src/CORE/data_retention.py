@@ -259,7 +259,7 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
             "rollups": wrote, "cutoff": cutoff}
 
 
-def distill_cap_victims(caps: dict = None,
+def distill_cap_victims(caps: dict | None = None,
                         db_path: str | None = None) -> dict:
     """Roll up rows that enforce_type_caps is about to delete.
 
@@ -469,7 +469,7 @@ def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS,
             _note_failure("data_retention:enforce_event_ttl:close", close_exc)
 
 
-def enforce_type_caps(caps: dict = None,
+def enforce_type_caps(caps: dict | None = None,
                       db_path: str | None = None) -> dict:
     """Keep-last-N trim per high-volume bookkeeping event_type.
 

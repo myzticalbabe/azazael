@@ -124,7 +124,7 @@ class PamsRecorder:
     """
     
     VERSION = "2.0.1"
-    _instance = None
+    _instance: "PamsRecorder | None" = None
     _instance_lock = threading.Lock()
     _lock = threading.Lock()
     # NOTE (2026-09-21): the constructor is deliberately NOT a singleton.
