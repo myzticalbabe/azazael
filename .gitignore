@@ -269,6 +269,7 @@ state/*
 !state/DOC_DRIFT_793.md
 !state/EP237_SEAM_793.md
 !state/REPORT_784_DEEPSEEK_TESTCAMPAIGN.md
+!state/REPORT_BYPASS_FORENSIC_2026-10-22.md
 # Bake harvest lanes (RULE #714/#716 ERROR CAPTURE): the per-session JSONL is
 # the encounter-time record merged by tools/merge_bake_lane.py --apply; its
 # merged store and merge report stay regenerable scratch. Added 2026-10-21
