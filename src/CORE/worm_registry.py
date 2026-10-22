@@ -307,7 +307,7 @@ def _replay_policy_journal() -> int:
         # busy enough to wrap the ring. The compacting per-worm map is the
         # authoritative state; the ring is only the audit log. Fall back to the
         # ring for state files written before the map existed.
-        latest = None
+        latest: Any = None
         getter = getattr(_spine_reg, "get_policy_latest", None)
         if callable(getter):
             try:
@@ -1547,7 +1547,7 @@ class SpawnDiversityEngine:
         wiring_active = (wiring or {}).get("active")
         active_set = set(wiring_active) if isinstance(wiring_active, list) else None
 
-        def _key(name: str) -> Tuple[float, float, float, str]:
+        def _key(name: str) -> Tuple[int, float, float, float, str]:
             reg = WORM_REGISTRY.get(name, {}) or {}
             priority = reg.get("priority", 5) or 5
             if name in wiring_priority:

@@ -77,14 +77,14 @@ def _decouple_rows(rows):
     Isolates facts/updates/details BEFORE organizing: classifies each recalled
     row by event_type and bank-tags it. Never drops or reorders rows.
     """
-    dec = _XMemoryDecoupler() if _XMEMORY else None
+    dec = _XMemoryDecoupler() if (_XMEMORY and _XMemoryDecoupler is not None) else None
     out = []
     for r in rows:
         et = str(r.get("event_type", "")).lower()
         kind = ("fact" if any(h in et for h in _FACT_HINTS)
                 else "update" if any(h in et for h in _UPDATE_HINTS)
                 else "detail")
-        if dec is not None:
+        if dec is not None and _XMemoryBank is not None:
             dec.write(_XMemoryBank.SHORT_TERM, "recall:%s" % r.get("id"),
                       kind, worm="recall_recent")
         r = dict(r)

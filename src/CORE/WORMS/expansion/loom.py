@@ -294,8 +294,11 @@ class NoveltyDrive:
 
     # -- persistence -------------------------------------------------------
     def _persist(self) -> None:
+        path = self.path
+        if not path:
+            return
         try:
-            with open(self.path, "w", encoding="utf-8") as fh:
+            with open(path, "w", encoding="utf-8") as fh:
                 json.dump({"setpoint": self.setpoint, "ema_id": self.ema_id,
                            "pressure": self.pressure,
                            "collapse_run": self.collapse_run,

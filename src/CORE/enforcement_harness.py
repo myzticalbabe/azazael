@@ -99,7 +99,7 @@ def check_no_todo_comments(source_code: str, filename: str = "<unknown>") -> Non
             )
 
 
-def enforce_compliance(filepath: str = None, source_code: str = None) -> None:
+def enforce_compliance(filepath: str | None = None, source_code: str | None = None) -> None:
     """Main enforcement function. Runs all checks. Raises ComplianceError on violation."""
     if source_code is None:
         if filepath is None:

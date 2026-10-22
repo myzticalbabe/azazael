@@ -338,7 +338,7 @@ class LexiconUpdater:
                 self.last_trigger = 0
 
             def on_modified(self, event):
-                if event.is_directory or not event.src_path.endswith(".py"):
+                if event.is_directory or not str(event.src_path).endswith(".py"):
                     return
                 if time.time() - self.last_trigger < 2.0:
                     return
@@ -346,7 +346,7 @@ class LexiconUpdater:
                 logger.info(f"Detected change: {event.src_path}")
                 self.upd.update_lexicon()
 
-        observer: Observer = Observer()
+        observer = Observer()
         observer.schedule(FileChangeHandler(self), str(self.ml_path), recursive=True)
         observer.start()
         logger.info(f"Started live watch on {self.ml_path}")

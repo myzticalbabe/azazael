@@ -56,12 +56,21 @@ except ImportError:                               # never break the host
 
 # EVENT_VOCAB / EVENT_VOCAB_REVERSE — not yet defined in audit_trail.py.
 # Fall back to empty dicts to avoid blocking all CORE imports.
+_EVENT_VOCAB: dict | None = None
+_EVENT_VOCAB_REVERSE: dict | None = None
 try:
-    from CORE.audit_trail import EVENT_VOCAB, EVENT_VOCAB_REVERSE
+    from CORE import audit_trail as _audit_trail_mod
+
+    _EVENT_VOCAB = getattr(_audit_trail_mod, "EVENT_VOCAB", None)
+    _EVENT_VOCAB_REVERSE = getattr(_audit_trail_mod, "EVENT_VOCAB_REVERSE", None)
+    if _EVENT_VOCAB is None or _EVENT_VOCAB_REVERSE is None:
+        raise ImportError("EVENT_VOCAB pair missing in CORE.audit_trail")
 except ImportError as exc:
     note_failure("__init__:L51", exc)
-    EVENT_VOCAB: dict = {}
-    EVENT_VOCAB_REVERSE: dict = {}
+    _EVENT_VOCAB = None
+    _EVENT_VOCAB_REVERSE = None
+EVENT_VOCAB: dict = _EVENT_VOCAB if _EVENT_VOCAB is not None else {}
+EVENT_VOCAB_REVERSE: dict = _EVENT_VOCAB_REVERSE if _EVENT_VOCAB_REVERSE is not None else {}
 
 # InferencePool is optional (requires CORE.freethreading)
 try:
