@@ -88,10 +88,10 @@ def extract_xml(path):
         om = re.search(r"<OtherCompensationAmt[^>]*>([^<]+)</OtherCompensationAmt>", tail)
         if cm:
             try: comp = int(float(cm.group(1)))
-            except ValueError: pass  # scanner:ignore
+            except ValueError: pass  # scanner:ignore -- formatted/unparseable amount parses to 0; the officer row is retained either way
         if om:
             try: other = int(float(om.group(1)))
-            except ValueError: pass  # scanner:ignore
+            except ValueError: pass  # scanner:ignore -- same parse-to-0 contract for the other-compensation column
         rows.append({"name": name, "title": title, "comp": comp, "other": other})
     return rows
 

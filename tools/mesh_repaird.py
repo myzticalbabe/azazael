@@ -109,7 +109,7 @@ def main():
                 if latest is None or ts > latest:
                     latest = ts
             except (ValueError, TypeError):
-                pass  # scanner:ignore
+                pass  # scanner:ignore -- unparseable/missing last_at means the record never ran; leaving latest unset is the designed stale trigger
             f = int(rec.get("failures", 0) or 0)
             s = int(rec.get("successes", 0) or 0)
             if s + f > 0 and f / (s + f) > 0.5:

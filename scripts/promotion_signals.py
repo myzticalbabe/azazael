@@ -32,14 +32,14 @@ def _read_json(path):
         with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
-        return None  # scanner:ignore
+        return None  # scanner:ignore -- probe contract: a missing/corrupt state file is "no signal"; callers render None as the neutral part
 
 
 def _age_h(path):
     try:
         return (time.time() - os.path.getmtime(path)) / 3600.0
     except Exception:
-        return None  # scanner:ignore
+        return None  # scanner:ignore -- probe contract: an unstat-able path has no age; None is the designed missing-age marker
 
 
 def hive_signal():
@@ -53,7 +53,7 @@ def hive_signal():
         age_m = (time.time() - os.path.getmtime(
             os.path.join(_ROOT, "state", "mesh_cycle.json"))) / 60.0
     except Exception:
-        pass  # scanner:ignore
+        pass  # scanner:ignore -- best-effort freshness probe; age_m stays None and the signal reports its unset/missing path
     if age_m is not None and age_m > 10:
         return {"value": 1.0, "source": out["source"],
                 "note": "stale (%.0fm), neutral" % age_m}
@@ -149,6 +149,6 @@ def combined():
         try:
             prod *= float(v.get("value", 1.0))
         except Exception:
-            pass  # scanner:ignore
+            pass  # scanner:ignore -- documented tolerance: a non-numeric part value is skipped as neutral 1.0 (combined()'s contract)
     veto = bool(parts["human"].get("veto"))
     return {"combined": round(prod, 4), "veto": veto, "parts": parts}
