@@ -11,6 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from hypothesis import given, settings, strategies as st
+
 from CORE.WORMS.BINARY_ANALYSIS_TYPES import (
     ElfHeaders,
     EntropyResult,
@@ -19,6 +21,7 @@ from CORE.WORMS.BINARY_ANALYSIS_TYPES import (
     SymbolEntry,
 )
 from CORE.WORMS.expansion.mars_claims import (
+    CLAIM_FAMILIES,
     DEFAULT_CUTOFFS,
     DEFAULT_POLICY,
     MarsClaim,
@@ -230,3 +233,76 @@ def test_emit_verdict_links_is_fail_open_out_of_band():
     empty = evaluate()
     rows = mc.emit_verdict_links.__doc__ and emit_verdict_links(empty, "unit")
     assert rows == tuple()  # no claims -> no rows, even out of band
+
+
+# -- Hypothesis properties (testing-paradigm Rule 1 / Engram #784) -------
+# Behavior contracts the unit fixtures cannot cover alone: order/duplicate
+# invariance of the additive score, the retention recompute algebra, and
+# the verdict-band mapping across the whole score domain.
+
+_UNIQUE_CLAIMS = st.lists(
+    st.tuples(
+        st.sampled_from(CLAIM_FAMILIES),
+        st.text(alphabet="abcdefghkmnprstuwz_", min_size=3, max_size=12),
+        st.floats(
+            min_value=-20.0, max_value=20.0, allow_nan=False, allow_infinity=False
+        ),
+    ).map(lambda t: MarsClaim(*t)),
+    max_size=12,
+    unique_by=lambda c: (c.family, c.name),
+)
+
+
+@settings(max_examples=100, deadline=None)
+@given(_UNIQUE_CLAIMS)
+def test_score_invariant_under_order_and_duplicates(rows):
+    """Scoring canonicalizes on (family, name) before summing, so any
+    permutation and any exact-duplicate injection scores identically."""
+    expected = score_claims(rows)
+    assert score_claims(list(reversed(rows))) == expected
+    assert score_claims(rows + rows) == expected
+
+
+@settings(max_examples=100, deadline=None)
+@given(_UNIQUE_CLAIMS)
+def test_fragment_recompute_reassembly_reproduces_verdict(rows):
+    """Recompute minus one claim, then that claim re-added, reproduces the
+    exact score/verdict/claim set; the removed weight accounts for the
+    fragment delta."""
+    total = recompute(rows)
+    for dropped in rows:
+        kept = [
+            c for c in rows
+            if (c.family, c.name) != (dropped.family, dropped.name)
+        ]
+        fragment = recompute(kept)
+        assert abs(total.score - (fragment.score + dropped.weight)) <= 1e-9
+        reassembled = recompute(list(fragment.claims) + [dropped])
+        assert reassembled.score == total.score
+        assert reassembled.verdict == total.verdict
+        assert [(c.family, c.name, c.weight) for c in reassembled.claims] == [
+            (c.family, c.name, c.weight) for c in total.claims
+        ]
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    st.floats(
+        min_value=0.0, max_value=10.0, allow_nan=False, allow_infinity=False
+    ),
+    st.floats(
+        min_value=0.0, max_value=10.0, allow_nan=False, allow_infinity=False
+    ),
+)
+def test_verdict_bands_monotone_and_boundary_exact(base, step):
+    """Bands are right-continuous: a higher-or-equal score never yields a
+    lower band, and each cutoff opens its band exactly (a hair below the
+    cutoff still falls in the strictly lower band)."""
+    bands = DEFAULT_POLICY.bands
+    assert bands.index(verdict_of_score(base)) <= bands.index(
+        verdict_of_score(base + step)
+    )
+    for cutoff in DEFAULT_CUTOFFS:
+        assert bands.index(verdict_of_score(cutoff)) == bands.index(
+            verdict_of_score(cutoff - 1e-6)
+        ) + 1
