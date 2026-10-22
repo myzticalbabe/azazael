@@ -371,6 +371,39 @@ def run_offline_cycle() -> dict:
             "duration_ms": duration_ms}
 
 
+def _estimator_arm(records):
+    """ML/estimators comparison arm over a frozen trainer pool (gap-3 wire).
+
+    Fits logistic_regression on SchemaAwareFeatureExtractor features+labels
+    from the SAME frozen pool the Q-learner trained on and records train
+    agreement beside the Q-policy metric. A single-class pool or any failure
+    names itself in estimator_error instead of vanishing (rule 12: no silent
+    arms) and never fabricates a score.
+    """
+    try:
+        from CORE.WORMS.expansion.learning_features import (  # noqa: E402
+            SchemaAwareFeatureExtractor as _Extractor)
+        from ML.estimators import fit_score as _ml_fit_score  # noqa: E402
+        _fx = _Extractor()
+        _X, _y, _meta = _fx.extract_features_and_labels(records)
+        if _X and _y and len(set(_y)) > 1:
+            _, _agree = _ml_fit_score("logistic_regression", _X, _y)
+            return {
+                "estimator_family": "logistic_regression",
+                "estimator_train_agreement": round(float(_agree), 4),
+                "estimator_feature_dim": int((_meta or {}).get("dim", 0)),
+            }
+        return {
+            "estimator_family": None,
+            "estimator_error": ("single-class pool (%d rows): agreement "
+                                 "undefined, arm skipped" % len(_y)),
+        }
+    except Exception as exc:  # noqa: BLE001 - recorded, never swallowed
+        return {"estimator_family": None,
+                "estimator_error": "%s: %s"
+                % (type(exc).__name__, exc)}
+
+
 def run_intake_cycle() -> dict:
     """One INTAKE track run: Q-learning over the MEASURED technique outcomes.
 
@@ -445,35 +478,10 @@ def run_intake_cycle() -> dict:
     if "error" in result:
         raise RuntimeError(result["error"])
 
-    # Gap-3 wire (Engram #1655): ML/estimators comparison arm. ADDITIVE ONLY:
-    # fits logistic_regression on extractor features+labels from the SAME frozen
-    # pool and records train agreement beside the Q-policy metric. It never
-    # touches the Q-policy, the pool, or any existing field; a failure names
-    # itself in estimator_error instead of vanishing (rule 12: no silent arms).
-    estimator_info: dict = {}
-    try:
-        from CORE.WORMS.expansion.learning_features import (  # noqa: E402
-            SchemaAwareFeatureExtractor as _Extractor)
-        from ML.estimators import fit_score as _ml_fit_score  # noqa: E402
-        _fx = _Extractor()
-        _X, _y, _meta = _fx.extract_features_and_labels(records)
-        if _X and _y and len(set(_y)) > 1:
-            _, _agree = _ml_fit_score("logistic_regression", _X, _y)
-            estimator_info = {
-                "estimator_family": "logistic_regression",
-                "estimator_train_agreement": round(float(_agree), 4),
-                "estimator_feature_dim": int((_meta or {}).get("dim", 0)),
-            }
-        else:
-            estimator_info = {
-                "estimator_family": None,
-                "estimator_error": ("single-class pool (%d rows): agreement "
-                                     "undefined, arm skipped" % len(_y)),
-            }
-    except Exception as exc:  # noqa: BLE001 - recorded, never swallowed
-        estimator_info = {"estimator_family": None,
-                          "estimator_error": "%s: %s"
-                          % (type(exc).__name__, exc)}
+    # Gap-3 wire (Engram #1655): ML/estimators comparison arm (shared helper,
+    # also used by run_cluster_cycle). ADDITIVE ONLY, never touches the
+    # Q-policy, the pool, or any existing field.
+    estimator_info = _estimator_arm(records)
 
     duration_ms = round((time.time() - t0) * 1000, 2)
     data = {
