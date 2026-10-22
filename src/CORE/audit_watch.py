@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""audit_watch.py — utility functions (watch_audit)""",
-"""Real-time audit trail watcher — tail -f for new audit entries."""
+"""audit_watch.py - utility functions (watch_audit).
+
+Real-time audit trail watcher - tail -f for new audit entries.
+"""
 
 
 __all__ = [

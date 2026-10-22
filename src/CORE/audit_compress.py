@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""audit_compress.py — utility functions (compress_session, archive_sessions)""",
-"""Audit file compression and archival."""
+"""audit_compress.py - utility functions (compress_session, archive_sessions).
+
+Audit file compression and archival.
+"""
 
 
 __all__ = [

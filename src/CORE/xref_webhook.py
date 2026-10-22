@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""xref_webhook.py — utility functions (notify_new_links)""",
-"""Webhook notifier for new cross-reference links."""
+"""xref_webhook.py - utility functions (notify_new_links).
+
+Webhook notifier for new cross-reference links.
+"""
 
 
 __all__ = [

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""audit_export_html.py — utility functions (audit_to_html)""",
-"""Render an audit trail file as a readable HTML page."""
+"""audit_export_html.py - utility functions (audit_to_html).
+
+Render an audit trail file as a readable HTML page.
+"""
 
 
 __all__ = [
