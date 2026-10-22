@@ -68,8 +68,8 @@ else:
     print("IMPACT SUMMARY not found")
 
 # the SNAKE TAIL figure
-h = re.sub(r"🐍\s*-\$285\.00\s*TOTAL DAMAGE PER INCIDENT",  # scanner:ignore
-           "🐍 TOTAL DAMAGE PER INCIDENT (this session)", h)  # scanner:ignore
+h = re.sub(r"🐍\s*-\$285\.00\s*TOTAL DAMAGE PER INCIDENT",  # scanner:ignore -- emoji literal is captured CAIN cost data being re.sub'd, not decoration
+           "🐍 TOTAL DAMAGE PER INCIDENT (this session)", h)  # scanner:ignore -- emoji literal is captured CAIN cost data being re.sub'd, not decoration
 h = re.sub(r"TOTAL DAMAGE PER INCIDENT\s*\$[\d,\.]+",
            "TOTAL DAMAGE PER INCIDENT (this session)", h)
 

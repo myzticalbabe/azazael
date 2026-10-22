@@ -90,7 +90,7 @@ def _skewed_gate_fixture():
     so a self-match logit is ~1.0 against ~0.0 cross-matches, and a +2.0 bias
     therefore takes the top slot on every row.
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         MAX_GATE_BIAS, SparseMoE,
     )
 
@@ -109,7 +109,7 @@ def test_a_single_nudge_is_not_remediation_and_the_loop_converges():
     numbers were hardcoded fails the before/after comparison, because the
     fixture's starting collapse is asserted rather than assumed.
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         DEFAULT_BALANCE_GAMMA, DEFAULT_BALANCE_MAX_ITERS, MAX_GATE_BIAS,
     )
 
@@ -180,7 +180,7 @@ def test_the_iteration_cap_is_a_reported_parameter_when_hit():
     A report that always claimed convergence, or that reported the DEFAULT cap
     regardless of the cap it was given, fails here.
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         DEFAULT_BALANCE_MAX_ITERS,
     )
 
@@ -222,7 +222,7 @@ def test_a_collinear_batch_is_reported_on_its_entropy_floor_not_as_convergence()
     falsifiable direction is the second assertion: a report that named no bound,
     or that called this balanced, is the failure this test exists to catch.
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         DEFAULT_BALANCE_MAX_ITERS, SparseMoE,
     )
 
@@ -291,7 +291,7 @@ def test_top_k_pinned_fires_exactly_when_one_choice_set_is_shared():
     (the default-cap case is covered by
     ``test_a_collinear_batch_is_reported_on_its_entropy_floor_not_as_convergence``).
     """
-    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore -- hoist would register worm at collection; sibling asserts module unimported
         MAX_GATE_BIAS, SparseMoE,
     )
 
