@@ -48,6 +48,39 @@ except ImportError as exc:                               # never break the host
     _emit_canonical = None  # type: ignore
 
 
+# -- Lifecycle-owned collaborators (Lane C redo, 2026-10-22): first-party,
+# cycle-free, declared ONCE at module load (None fallback each); __init__
+# injects them as instance collaborators (module globals are the defaults).
+try:
+    from CORE.WORMS.expansion.policy_optimization import depo_filter as _depo_filter
+    _DEPO_OK = True
+except ImportError as exc:
+    note_failure("learning_grpo:depo-import", exc)
+    _depo_filter = None  # type: ignore
+    _DEPO_OK = False
+try:
+    from CORE.latent_refine import bounded_correct as _bounded_correct
+    _REFINE_OK = True
+except ImportError as exc:
+    note_failure("learning_grpo:refine-import", exc)
+    _bounded_correct = None  # type: ignore
+    _REFINE_OK = False
+try:
+    from CORE.skill_library import distill_trajectory_to_protocol as _distill_proto
+    _DISTILL_OK = True
+except ImportError as exc:
+    note_failure("learning_grpo:distill-import", exc)
+    _distill_proto = None  # type: ignore
+    _DISTILL_OK = False
+try:
+    from CORE.local_memory import LocalMemoryStore as _LocalMemoryStore
+    _STORE_OK = True
+except ImportError as exc:
+    note_failure("learning_grpo:store-import", exc)
+    _LocalMemoryStore = None  # type: ignore
+    _STORE_OK = False
+
+
 def _softmax(scores: dict) -> dict[str, float]:
     """Numerically-stable softmax; log() of it is the log-softmax (EP351)."""
     if not scores:
@@ -90,7 +123,10 @@ class GRPOTrainer:
     VERSION = "1.0.0"
 
     def __init__(self, beta: float = 0.04, lr: float = 0.01, load_policy: bool = True,
-                 step_decay: float = 0.0, dense_reward_weight: float = 0.0):
+                 step_decay: float = 0.0, dense_reward_weight: float = 0.0,
+                 trust_region: float = 1.0, frontier_filter=None,
+                 corrector=None, protocol_distiller=None,
+                 protocol_store=None):
         """
         Args:
             beta: KL penalty coefficient (higher = more conservative).
@@ -104,6 +140,17 @@ class GRPOTrainer:
             dense_reward_weight: EP351. > 0 fuses the checkpoint-pair implicit
                           reward into each group's rewards before the policy
                           update. 0.0 (the default) leaves them untouched.
+            trust_region: EP472. L2 bound on the per-update correction vector
+                          (bounded_correct trust-region clip). Must be > 0;
+                          a non-positive value degrades to the unclipped
+                          update via the corrector's own gap path.
+            frontier_filter: EP412 DEPO filter (lifecycle collaborator;
+                          default module-level depo_filter, None disables).
+            corrector: EP472 LRT mask-corrector (default bounded_correct).
+            protocol_distiller: EP401 distiller (default
+                          distill_trajectory_to_protocol).
+            protocol_store: EP401 replay-protocol store (default
+                          LocalMemoryStore; None disables).
         """
         self._beta = beta
         self._lr = lr
@@ -113,6 +160,17 @@ class GRPOTrainer:
         self._replay: list[dict] = []   # EP350 offline replay buffer
         self._step_decay = float(step_decay)                    # EP350
         self._dense_reward_weight = float(dense_reward_weight)  # EP351
+        self._trust_region = float(trust_region)                # EP472
+        # Lifecycle collaborators: resolved ONCE here, never imported per call.
+        self._frontier_filter = (frontier_filter if frontier_filter is not None
+                                 else _depo_filter)
+        self._corrector = (corrector if corrector is not None
+                           else _bounded_correct)
+        self._protocol_distiller = (protocol_distiller
+                                    if protocol_distiller is not None
+                                    else _distill_proto)
+        self._protocol_store = (protocol_store if protocol_store is not None
+                                else _LocalMemoryStore)
         self._lock = threading.Lock()
         # Auto-load persisted policy from LocalMemoryStore
         if load_policy:
@@ -165,13 +223,31 @@ class GRPOTrainer:
             preferred.sort(key=lambda w: ctx_pol.get(w, 0.0), reverse=True)
             others.sort(key=lambda w: ctx_pol.get(w, 0.0), reverse=True)
 
+        # EP412 (DEPO): filter the pool to the competence frontier BEFORE
+        # selection. Estimate = live policy (1 - min-max-normalized score).
+        # Cold policy (<2 distinct scores) or absent members pass through:
+        # no estimate is not evidence of mastery. Fail-open: full pool.
+        pool = preferred + others
+        # EP412: lifecycle collaborator resolved in __init__; no per-call import.
+        if self._frontier_filter is not None:
+            try:
+                with self._lock:
+                    ctx_pol = dict(self._policy.get(
+                        task_context.get("context_key", "default"), {}))
+                scored = {w: ctx_pol[w] for w in pool if w in ctx_pol}
+                if len(set(scored.values())) >= 2:
+                    lo = min(scored.values())
+                    span = (max(scored.values()) - lo) or 1.0
+                    difficulties = {w: 1.0 - (s - lo) / span
+                                    for w, s in scored.items()}
+                    frontier = set(self._frontier_filter(difficulties))
+                    pool = [w for w in pool if w in frontier or w not in scored]
+            except Exception as exc:
+                note_failure("learning_grpo:depo-filter", exc)
+
         # Fill group: preferred first, then others
         candidates = []
-        for w in preferred:
-            if len(candidates) >= group_size:
-                break
-            candidates.append(w)
-        for w in others:
+        for w in pool:
             if len(candidates) >= group_size:
                 break
             if w not in candidates:
@@ -376,14 +452,42 @@ class GRPOTrainer:
                 return min(1.5, max(0.5, 1.5 / (1.0 + math.exp(-(p - 0.3) / 0.1))))
 
             # Policy gradient update with KL penalty (k2 form: 0.5*(s-ref)^2)
-            ref = getattr(self, "_ref_policy", {}).get(context_key, {})
+            # EP472 (LRT mask-corrector): the raw per-worm deltas are the
+            # correction vector; bounded_correct scales them to norm <=
+            # trust_region and returns the new state. Corrector gaps (or a
+            # non-positive bound) fall back to the unclipped update, so a
+            # corrector failure never blocks learning.
+            deltas = []
             for worm, advantage in zip(group, advantages):
                 old_score = policy[worm]
                 # KL penalty: penalize large changes from old policy
                 kl_penalty = self._beta * old_score
                 w = tr_w(probs[worm])
                 # Update: move in direction of advantage, penalized by KL
-                policy[worm] += self._lr * (w * advantage - kl_penalty)
+                deltas.append(self._lr * (w * advantage - kl_penalty))
+            trust: dict[str, Any] = {"bound": self._trust_region,
+                                     "clipped": False, "gaps": []}
+            new_scores: list[float] | None = None
+            try:
+                if self._corrector is None:
+                    raise RuntimeError("corrector-unavailable")
+                out = self._corrector([policy[w] for w in group],
+                                      deltas, self._trust_region)
+                if out.get("gaps"):
+                    trust["gaps"] = list(out["gaps"])
+                elif len(out.get("state", [])) == len(group):
+                    new_scores = [float(x) for x in out["state"]]
+                    trust["clipped"] = bool(out.get("scale", 1.0) < 1.0)
+                    trust["applied_norm"] = out.get("applied_norm")
+            except Exception as exc:
+                note_failure("learning_grpo:trust-region", exc)
+                trust["gaps"] = ["corrector-error"]
+            if new_scores is not None:
+                for worm, score in zip(group, new_scores):
+                    policy[worm] = score
+            else:
+                for worm, delta in zip(group, deltas):
+                    policy[worm] += delta
 
             # Normalize scores to prevent drift
             scores = list(policy.values())
@@ -401,6 +505,7 @@ class GRPOTrainer:
             "advantages": advantages,
             "context_key": context_key,
             "timestamp": time.time(),
+            "trust_region": trust,
         }
         with self._lock:
             self._history.append(entry)
@@ -462,6 +567,33 @@ class GRPOTrainer:
                                  "timestamp": time.time()})
             self._replay = self._replay[-200:]
             n = len(self._replay)
+        # EP401: distill the admitted trajectory into a protocol artifact and
+        # record it — replayed experience builds the reusable protocol library
+        # (rendered via emit_skill_md). Collaborators resolved in __init__;
+        # best-effort: never blocks admission.
+        try:
+            if self._protocol_distiller is None or self._protocol_store is None:
+                raise RuntimeError("protocol-wire-unavailable")
+            proto = self._protocol_distiller(
+                {"actions": [s["worm"] for s in steps],
+                 "step_rewards": [s["reward"] for s in steps],
+                 "outcome": "replay:%s" % str(source),
+                 "evidence": ["context:%s" % s["context_key"]
+                              for s in steps],
+                 "outcome_reward": (sum(s["reward"] for s in steps)
+                                     / len(steps))},
+                "grpo-replay")
+            if proto.get("protocol"):
+                self._protocol_store().record_event(
+                    source="GRPOTrainer", event_type="replay_protocol",
+                    data={"protocol": proto["protocol"],
+                          "n_steps": proto["n_steps"],
+                          "outcome_reward": proto["outcome_reward"],
+                          "source": str(source)},
+                    severity="info",
+                    tags=["grpo", "replay", "protocol"])
+        except Exception as exc:
+            note_failure("learning_grpo:replay-protocol", exc)
         return {"accepted": True, "n_steps": len(steps), "n_buffered": n}
 
     def replay_batch(self, limit: int = 8) -> list[dict]:
