@@ -28,6 +28,23 @@ from typing import Dict, Any, List, Optional, Callable, Set
 from dataclasses import dataclass, field, asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+try:
+    from CORE.failure_ledger import note_failure  # type: ignore[assignment]
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:  # type: ignore[no-redef]
+        pass
+
+# EP455 lifecycle collaborator: exact Shapley marginal attribution.
+# First-party, cycle-free (skill_library never imports this module);
+# declared once here, not per call. None disables to the named gap.
+try:
+    from CORE.skill_library import shapley_marginal as _shapley_marginal
+    _SHAPLEY_OK = True
+except ImportError as exc:
+    note_failure("ablation_study:shapley-import", exc)
+    _shapley_marginal = None  # type: ignore
+    _SHAPLEY_OK = False
+
 
 @dataclass
 class AblationConfig:
@@ -426,6 +443,14 @@ class AblationStudy:
         
         # Generate summaries
         self._generate_summaries()
+
+        # EP455: exact Shapley marginal attribution when the measured
+        # subsets cover the full factorial (post-hoc, read-only).
+        try:
+            attribution = self.marginal_attribution()
+        except Exception:
+            attribution = {"metric": "avg_reward", "shapley": {},
+                           "gaps": ["attribution-error"]}
         
         # Save results
         self.save_results()
@@ -434,6 +459,7 @@ class AblationStudy:
             "results": [asdict(r) for r in self._results],
             "summaries": [asdict(s) for s in self._summaries],
             "configs": [asdict(c) for c in configs],
+            "marginal_attribution": attribution,
         }
     
     def _generate_summaries(self) -> None:
@@ -501,6 +527,62 @@ class AblationStudy:
             )
             self._summaries.append(summary)
     
+    def marginal_attribution(self, metric: str = "avg_reward") -> Dict[str, Any]:
+        """Exact Shapley marginal-contribution audit (EP455).
+
+        Post-hoc over the measured summaries: value(coalition) is the mean
+        `metric` of the summaries whose enabled-set equals the coalition.
+        Requires factorial-complete coverage (all 2^n subsets present with
+        a numeric metric) and n <= 8 (exact Shapley is factorial cost).
+        Anything else is a named gap, never a partial attribution.
+        Read-only over summaries; the study results are untouched.
+        """
+        if _shapley_marginal is None:
+            return {"metric": metric, "shapley": {},
+                    "gaps": ["shapley-unavailable"]}
+        try:
+            comps: set = set()
+            for s in self._summaries:
+                comps |= set((s.components_enabled or {}))
+            members = sorted(comps)
+            if not members:
+                return {"metric": metric, "shapley": {},
+                        "gaps": ["no-components"]}
+            if len(members) > 8:
+                return {"metric": metric, "shapley": {},
+                        "gaps": ["n>8-exact-intractable"]}
+            by_enabled: dict = {}
+            for s in self._summaries:
+                en = frozenset(
+                    k for k, v in (s.components_enabled or {}).items() if v)
+                m = (s.avg_metrics or {}).get(metric)
+                if isinstance(m, (int, float)):
+                    by_enabled.setdefault(en, []).append(float(m))
+            need = set()
+            for r in range(len(members) + 1):
+                for combo in itertools.combinations(members, r):
+                    need.add(frozenset(combo))
+            missing = sorted(
+                [sorted(c) for c in need if c not in by_enabled])
+            if missing:
+                return {"metric": metric, "shapley": {},
+                        "gaps": ["incomplete-factorial:%d-missing"
+                                 % len(missing)],
+                        "missing": missing[:8]}
+
+            def _value(coalition: frozenset) -> float:
+                vals = by_enabled.get(frozenset(coalition), [])
+                return sum(vals) / len(vals) if vals else 0.0
+
+            res = _shapley_marginal(members, _value)
+            res["metric"] = metric
+            res["n_coalitions"] = len(need)
+            return res
+        except Exception as exc:
+            return {"metric": metric, "shapley": {},
+                    "gaps": ["attribution-error:%s"
+                             % type(exc).__name__]}
+
     def save_results(self, filename: Optional[str] = None) -> str:
         """Save results to JSON file."""
         if filename is None:

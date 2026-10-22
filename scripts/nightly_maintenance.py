@@ -15,6 +15,25 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 LOG = _ROOT / "logs" / "maintenance.log"
 
+# -- Lifecycle-owned collaborators (Lane C redo, 2026-10-22) ----------------
+# Script-level declarations: resolved once at startup. get_memory_store is
+# the EP414 probe's host binding (no per-pass import); MemoryBus is the
+# pre-existing drain binding, lifted with it so the script owns both.
+try:
+    from CORE.local_memory import get_memory_store as _get_memory_store
+    _STORE_OK = True
+except ImportError:
+    _get_memory_store = None  # type: ignore
+    _STORE_OK = False
+try:
+    from CORE.MemoryBus import MemoryBus as _MemoryBus
+    from CORE.MemoryBus import _MEMORYBUS_DB_PATH as _MEMORYBUS_DB_PATH
+    _BUS_OK = True
+except ImportError:
+    _MemoryBus = None  # type: ignore
+    _MEMORYBUS_DB_PATH = None  # type: ignore
+    _BUS_OK = False
+
 
 def _pams_healthy(timeout: float = 4.0) -> bool:
     """True when PAMS answers on its real health path (/api/health)."""
@@ -120,8 +139,9 @@ def main() -> int:
     # never fail upkeep.
     try:
         _ensure_pams()
-        from CORE.MemoryBus import MemoryBus
-        drained = MemoryBus().flush_local_queue()
+        if _MemoryBus is None:
+            raise RuntimeError("memorybus-unavailable")
+        drained = _MemoryBus().flush_local_queue()
         with open(LOG, "a", encoding="utf-8") as f:
             f.write(f"  bus_drain: {drained} rows flushed\n")
             # Backlog visibility (2026-09-28): an unflushed backlog that
@@ -129,7 +149,7 @@ def main() -> int:
             # posts are failing again. Oldest-row age is the tripwire.
             try:
                 import sqlite3 as _sq
-                from CORE.MemoryBus import _MEMORYBUS_DB_PATH as _qp
+                _qp = _MEMORYBUS_DB_PATH
                 _c = _sq.connect(str(_qp), timeout=10)
                 _row = _c.execute(
                     "SELECT COUNT(*), MIN(timestamp) FROM memorybus_queue"
@@ -145,17 +165,35 @@ def main() -> int:
     # The pass itself is worth remembering: which caps/TTLs fired and what
     # the quota backstop did. Fail-soft — a dead store must not fail upkeep.
     try:
-        from CORE.local_memory import get_memory_store
-        store = get_memory_store()
+        store = _get_memory_store() if _STORE_OK else None
         if store is not None:
             summary = {k: (v if isinstance(v, (int, float, str, bool))
                            else str(v)[:300])
                        for k, v in (results or {}).items()}
+            # EP414: generation-based compaction state rides the pass record —
+            # which compaction family is active is maintenance-relevant state.
+            # Read-only probe; a probe failure records the gap, never the pass.
+            try:
+                compaction = store.generative_compaction_status()
+            except Exception:
+                compaction = {"verified": False,
+                              "reason": "probe-failed"}
             store.record_event(source="retention", event_type="retention_pass",
                                data={"tasks": summary,
-                                     "elapsed_s": round(elapsed, 1)},
+                                     "elapsed_s": round(elapsed, 1),
+                                     "compaction": {
+                                         "verified": compaction.get(
+                                             "verified"),
+                                         "generation_based": compaction.get(
+                                             "generation_based"),
+                                         "rollup": compaction.get("rollup"),
+                                         "budget": compaction.get("budget")},
+                                     },
                                severity="info",
                                tags=["retention", "maintenance"])
+            print("  compaction: generation_based=%s rollup=%s" % (
+                compaction.get("generation_based"),
+                compaction.get("rollup")))
     except Exception:
         pass
     print(f"maintenance done in {elapsed:.0f}s")

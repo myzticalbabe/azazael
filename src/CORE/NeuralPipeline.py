@@ -146,7 +146,8 @@ from CORE.local_memory import LocalMemoryStore
 # cryptography, and opens no session file at import (its session, atexit hook
 # and anchors are all created lazily on first write), so there is neither an
 # import cycle nor an import-time side effect here.
-from CORE.audit_trail import get_head_hash, graph_capsule
+from CORE.audit_trail import (
+    get_head_hash, graph_capsule, verify_capsule_chain)
 
 # -- CUTTING_EDGE ablation (optional) ------------------------------------
 # The comment that used to sit here said cutting_edge_model.py was "not yet
@@ -246,6 +247,10 @@ class NeuralPipeline:
         self._pipeline_stats = ThreadSafeDict() if ThreadSafeDict != dict else {}
         self._run_history: List[Dict] = []
         self._run_count = 0
+        # EP446: previous run capsule's signature. Each run mints its
+        # capsule chained to this (prev_hash), so the run history forms a
+        # verifiable chain instead of isolated capsules.
+        self._last_capsule_sig: str = ""
 
         # -- Inference API integration --
         self._augmentation_apis = augmentation_apis or [
@@ -1134,6 +1139,12 @@ class NeuralPipeline:
         # (that grows with training results, and the signed payload is what
         # every capsule has to carry).
         try:
+            # EP446: chain to the previous run's capsule signature (audit
+            # head hash only for the first run). A benign race here (two
+            # concurrent persists reading the same prev) fails the link
+            # check loudly below instead of corrupting silently.
+            with self._lock:
+                prev_sig = self._last_capsule_sig
             metrics["capsule"] = graph_capsule(
                 {
                     "pipeline": "NeuralPipeline",
@@ -1144,7 +1155,7 @@ class NeuralPipeline:
                     "run_index": self._run_count,
                     "timestamp": str(metrics.get("timestamp", "")),
                 },
-                get_head_hash() or "",
+                prev_sig or get_head_hash() or "",
             )
         except Exception as exc:
             note_failure("NeuralPipeline:provenance-capsule", exc)
@@ -1164,6 +1175,34 @@ class NeuralPipeline:
             self._run_history.append(metrics)
             if len(self._run_history) > 100:
                 self._run_history = self._run_history[-100:]
+            # EP446: verify the pipeline's own capsule chain. The bounded
+            # run history carries one capsule per run, each chained to its
+            # predecessor, so verify_capsule_chain re-verifies every seal
+            # and the signature linkage. The verdict lands on the metrics
+            # (visible to the caller) and in stats; a broken chain is
+            # reported, never fatal. (The stored payload was recorded above
+            # before the chain verdict existed; the verdict rides the live
+            # metrics and stats instead of rewriting history.)
+            try:
+                chain = [m.get("capsule")
+                         for m in self._run_history[-25:]
+                         if isinstance(m.get("capsule"), dict)]
+                verdict = verify_capsule_chain(chain)
+            except Exception as exc:
+                note_failure("NeuralPipeline:capsule-chain", exc)
+                verdict = {"n": 0, "chain_ok": False, "carried": False,
+                           "reason": "verify-error"}
+            metrics["capsule_chain"] = {
+                "n": verdict.get("n"),
+                "chain_ok": verdict.get("chain_ok"),
+                "carried": verdict.get("carried"),
+                "reason": verdict.get("reason", "")}
+            cap = metrics.get("capsule") or {}
+            if isinstance(cap, dict) and cap.get("signature"):
+                self._last_capsule_sig = str(cap["signature"])
+            if ThreadSafeDict != dict:
+                self._pipeline_stats["capsule_chain_ok"] = bool(
+                    verdict.get("chain_ok"))
 
             if ThreadSafeDict != dict:
                 self._pipeline_stats["total_runs"] = self._run_count
