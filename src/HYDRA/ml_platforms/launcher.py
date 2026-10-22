@@ -26,8 +26,10 @@ try:
         load_config,
     )
 except ImportError:  # same-dir fallback when ml_platforms/ itself is on sys.path
+    # Bare `config` only resolves at runtime with ml_platforms/ on sys.path
+    # (verified: load_config imports fine from that directory).
     from config import (
-        load_config,
+        load_config,  # pyright: ignore[reportAttributeAccessIssue]
     )
 from typing import List
 

@@ -34,7 +34,9 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.audit_trail import EVENT_VOCAB
+    # EVENT_VOCAB lives on the CORE package (re-exported with {} fallback),
+    # not in audit_trail directly -- importing from audit_trail always fails.
+    from CORE import EVENT_VOCAB
 except ImportError as exc:
     note_failure("vocab_migration:L29", exc)
     EVENT_VOCAB = {}

@@ -55,7 +55,7 @@ class MetricEntry:
 class MetricsTracker:
     """Track and analyze quantitative metrics."""
 
-    def __init__(self, base_path: str = None):
+    def __init__(self, base_path: (str | None) = None):
         if base_path is None:
             base_path = str(Path(__file__).resolve().parent.parent.parent.parent / "HYDRA")  # improvements/ -> ml_platforms/ -> ORCHESTRATION/ -> src/
         self.base_path = Path(base_path)

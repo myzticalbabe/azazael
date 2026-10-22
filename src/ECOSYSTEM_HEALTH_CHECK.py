@@ -42,7 +42,7 @@ class EcosystemHealthCheck:
         "TARBABY": {"path": "TARBABY/TARBABY.py", "check": "syntax"},
     }
 
-    def __init__(self, base_path: str = None):
+    def __init__(self, base_path: (str | None) = None):
         self.base_path = Path(base_path) if base_path is not None else get_desktop_dir()
 
     def check_syntax(self, filepath: Path) -> tuple[bool, str]:
