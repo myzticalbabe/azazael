@@ -102,7 +102,7 @@ def _board_head():
     if not os.path.exists(BOARD):
         return (0, "missing")
     h = hashlib.sha256()
-    with open(BOARD, "rb") as fh:  # scanner:ignore (binary read for sha256; encoding is meaningless for bytes)
+    with open(BOARD, "rb") as fh:
         h.update(fh.read())
     return (os.path.getmtime(BOARD), h.hexdigest()[:16])
 
@@ -214,8 +214,8 @@ def cmd_dispatch(args):
             brief = brief[:4000] + "\n[truncated: full brief on the board row]"
         msg = "[agent-board %s] %s\n%s" % (r["id"], r["title"], brief)
         argv, shell = _resolve_cli(r["executor"])
-        with open(log, "ab") as lf:  # scanner:ignore (append-binary dispatch log; the spawned CLI writes raw bytes)
-            subprocess.Popen(argv + [msg], stdout=lf, shell=shell,  # scanner:ignore (Popen has no timeout kwarg; _probe_clis bounds each CLI at 30s before any dispatch)
+        with open(log, "ab") as lf:
+            subprocess.Popen(argv + [msg], stdout=lf, shell=shell,
                              stderr=subprocess.STDOUT, cwd=ROOT)
         r["status"] = "claimed"
         r["updated_at"] = _now()

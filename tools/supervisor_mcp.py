@@ -121,7 +121,7 @@ def _tail_refusal_ids(path):
     path = Path(path)
     try:
         size = path.stat().st_size
-        with open(path, "rb") as fh:  # scanner:ignore open_no_encoding (binary tail read: encoding= is invalid on rb, and the ratchet's bounded-tail contract requires seek+partial read instead of read_bytes on a growing ledger)
+        with open(path, "rb") as fh:
             fh.seek(max(0, size - REFUSAL_TAIL_BYTES))
             raw = fh.read()
     except OSError:
@@ -462,7 +462,7 @@ def _run_cli_bounded(cmd, timeout=LEG_LIMIT_S, cwd=None, env=None):
     Returns (stdout, stderr, returncode); on timeout stdout is None and
     stderr names the kill -- callers print unreadable-loud, never silent.
     """
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,  # scanner:ignore subprocess_no_timeout -- Popen takes no timeout kwarg; the bound is communicate(timeout=<LEG>) below plus the taskkill /T tree-kill in its handler
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace",
                          cwd=cwd, env=env)
     try:
