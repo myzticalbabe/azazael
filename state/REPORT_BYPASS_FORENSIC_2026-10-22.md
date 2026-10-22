@@ -31,6 +31,8 @@ Scanner mechanics pinned before classification (verified from source, not inferr
 
 Specimen executed do-not-fix: `tools/swallow_inventory.py:356`.
 
+> **Wave-2 supersession of this table:** the (a)/(b)/(c) tally above is the wave-1 hand classification. The executed per-line census (§6) supersedes it with measured verdicts: **pre-redo 112 chips / 42 files → load_bearing 83 / redundant_b 25 / invalid_variant 4; post-redo 92 / 32 files → 83 / 5 / 4, BARE = 0.** Counts below the census runs are measured, not tallied.
+
 ## 3. Wave 1 — the 23 (a)-sites redone (landed)
 
 Cause text format: `# scanner:ignore -- <verified bound>` on the statement line (precedent `conftest.py:146`). One site was a **structural** fix because the swallow was semantically wrong, not merely undocumented.
@@ -82,9 +84,9 @@ Cause text format: `# scanner:ignore -- <verified bound>` on the statement line 
 
 Dead-premise skips awaiting re-derivation under the current interpreter regime (3.15t; the 3.14t regime they encode is retired):
 
-1. `tests/test_cluster_worms.py:35`
-2. `tests/test_worm_regression.py:173`
-3. `tests/test_worm_imports.py:41`
+1. `tests/test_cluster_worms.py:35` — **done** (`1986ef1e` 2026-10-22): the recorded premise ("3.14t C extension") was falsified against live bytes; label corrected in place, guard retained (a labeled guard, not a skip).
+2. `tests/test_worm_regression.py:173` — **done** (`1986ef1e`): same falsified-premise correction.
+3. `tests/test_worm_imports.py:41` — queued: re-derive the premise under 3.15t, then remove the skip or replace it with the true current bound.
 
 All other skips found classify as environment/data-version premises (documented in their `reason=`), not silencing bypasses — no skip-without-cause pattern found.
 
@@ -96,13 +98,41 @@ All other skips found classify as environment/data-version premises (documented 
 - **Ratchet src-only asymmetry** — the whole-tree ratchet scans `src/` only; findings outside `src/` are covered instead by the per-file staged check (this asymmetry is exactly why Waves target non-src files through the staged gate).
 - **`SWALLOW_INVENTORY.md`** — 2,994-row section is a superseded snapshot; kept for lineage, never consulted as a live count.
 
-## 6. Wave 2 queue (recorded, not started)
+## 6. Wave 2 — executed (2026-10-22, this pass)
 
-1. **(b) 53 redundant markers** — erase markers whose finding class cannot fire at the site (includes `test_evolution_helpers.py:95`, `test_cross_domain_integration.py:636`, `chain_watchdog.py:119`, `promotion_signals.py`-adjacent conftest-adjacent evo sites).
-2. **Non-scope bare-class census** — `unicode_emoji` 22, `import_inside_function` 13, `hardcoded_win_path` 2 (redo = verify each premise, then cause-or-erase).
-3. **Dead-premise 3.14t skips** — the three §4 sites: re-derive the premise under 3.15t, then remove the skip or replace it with the true current bound.
-4. Optional cosmetic: normalize `chain_watchdog.py:65` marker order (c-class, no urgency).
+### 6.1 Census instrument lineage (v4 = executed decision authority)
+
+- Probes v1/v2: discarded pre-adjudication — no built-in validators.
+- Probe v3: **discarded, defect proven** — marker excision used `sa[:m.start()]`, which ate the line terminator and shifted every subsequent lineno by one (off-by-one shown on a diffed echo). Its numbers are never citable.
+- Probe v4 (executed): per-line census; the sans-run removes exactly the marker token; canary (`lost_in_sans` must be empty) and positive control (removing `conftest.py:146`'s chip must surface exactly the pre-recorded `silent_except_pass` finding at line 146). **Pre-redo verdicts: 112 chips / 42 files → load_bearing 83 / redundant_b 25 / invalid_variant 4; `exposed_beyond` = 0 at every site; canary 0; HEAD stable.** (`wave2_census_v4.json` kept on disk as the pre-redo authority.)
+- v4's auxiliary `positive_control_ok=false` was a **check-code bug, not a data bug** (the collected finding pairs adjudicate the instrument VALID): line 87 tested membership with a list literal `[146, "..."]` against tuple-stored pairs (always False); line 89 computed `with − sans` when the informative delta is `sans − with`. Both fixed (tuple literal; direction), and the control re-adjudicated **true** on the post-redo run (v5). Label nuances the probe's plain suffix split cannot see: a cause may sit BEFORE the marker on the same line (the class2 pass labels it `CAUSE-BEFORE`; the label classifier emitted 1 = `scripts/chain_watchdog.py:65`, verified labeled in truth), and `silent_except_pass` fires only on bare `except`, never `except <type>`.
+
+### 6.2 Redo slices landed (2026-10-22)
+
+| Commit | Slice | Contents |
+|---|---|---|
+| `1986ef1e` | skip labels | §4 items 1–2: falsified "3.14t C extension" premise labels corrected in 2 test files; guards retained. |
+| `375405eb` | A — bare load_bearing cause-labeled | **20 bare chips → verified inline causes, 5 files**: 7 test-import sites (hoisting the function-level import would register a worm at collection; the sibling suite asserts the module unimported — full rationale lives in the suite docstrings), 11 cain sites (emoji literals are captured CAIN subject data / mapped entries, not decoration), 2 nativestack sites (strings are WinDbg `.sympath` advice, not repo paths). `py_compile` OK ×5 (3.15t); per-file marker counts unchanged (6/2/2/9/4). |
+| `1ecb07e8` | B1 — bare dead erased | 5 bare chips whose class cannot fire: Popen-not-a-run-call ×2 (`scripts/chain_watchdog.py:119`, `scripts/launch_live_windows.py:49`), `open` already carrying `encoding=` ×2 (`test_cross_domain_integration.py:636` — compiled, never executed: module-level benchmark suite; `test_evolution_helpers.py:95`), rb-binary ×1 (`test_spine_mesh.py:487`). |
+| `bfe115fd` | B2 — bare dead erased | 5 more (4 files): encoding-present `open` (`cain_recalc.py:77`), Popen (`comfyui_flux_headless.py:105`), typed-except (`gust_lite.py:125` — autopsied first: `except Exception as exc` whose body **records** the failure, `results.append({..., "error": str(exc)[:120]})`; no swallow → erase-only correct), binary open + Popen (`nativestack.py:56/:81`). |
+| `20a3c4ff` | B3 — false claims erased | 10 cause-labeled dead chips + their attached cause texts erased, 6 files (`accelerator_sidecar.py:198/:212`, `agent_board.py:105/:217/:218`, `audit_append_stress.py:70`, `live_rebalance_repro.py:34`, `supervisor_mcp.py:124/:465`, `verify_engram_mcp.py:549`): each cause described a rule that cannot fire on that construct (`open_no_encoding` cannot fire on rb reads; `subprocess_no_timeout` skips `Popen`), while the operative bounds exist as code (`communicate(timeout=)`, `wait(timeout=900)`+kill, rb semantics). Keeping the chips would have preserved the lie that a suppression exists. |
+
+Verification per slice: `py_compile` OK ×9 (B1/B2 files) and ×6 (B3 files) on 3.15t; the staged-scanner gate PASS per slice is the live per-file proof that the erasures surface zero findings.
+
+### 6.3 Non-suppression reclassification (no action, disclosed)
+
+8 chips are marker text as **prose**, not suppressions: markers inside string literals / doc prose — `tests/test_scanner.py:254`, `:291`, `tools/graph_semantic/semantic_layer.py:424`, `tools/swallow_inventory.py:206` (census class `invalid_variant`, classifier label META-STRING); and markers on prose-comment lines — `tools/encoding_audit.py:213`, `:242`, `tools/hook_dispatch.py:283`, `tools/swallow_inventory.py:22`. Remaining redundant pool after the 20 erasures = **5**: these 4 comment-prose rows + the executed do-not-fix specimen `tools/swallow_inventory.py:356` (§3; keep + disclose).
+
+### 6.4 Post-redo census (v5, executed — every prediction matched)
+
+The probe was retargeted to `wave2_census_v5.json` (pre-redo v4 preserved) with corrected control checks and run at HEAD `20a3c4ff`: **92 chips / 32 files → load_bearing 83 (82 CAUSE-AFTER + 1 CAUSE-BEFORE), redundant_b 5, invalid_variant 4; BARE = 0; canary 0; `positive_control_ok` TRUE; `ctrl_A_fresh_identical` TRUE; HEAD stable.** The label split comes from the executed classifier pass (`wave2_v4_class2.py` against v5): all 20 former-bare chips now carry verified inline causes, so the bare redo-queue is empty.
+
+### 6.5 Remaining queue (beyond this pass)
+
+1. `tests/test_worm_imports.py:41` dead-premise skip (§4 item 3) — re-derive under 3.15t, then remove or re-bound.
+2. Optional cosmetic: normalize `scripts/chain_watchdog.py:65` marker order (the verified rationale precedes the marker on the same line — legal, truth-labeled; no urgency).
+3. `SWALLOW_INVENTORY.md` regeneration as a separate lane (its snapshot is superseded per §5; never consulted as a live count).
 
 ## 7. Encounter-time evidence
 
-Bake lane `state/bake_harvest_laneB_2026-10-22.jsonl` rows 18–20 record: the checkpoint-assert vs visible-bytes near-miss (row 18), the pwsh-backtick silenced-probe fix (row 19), and the whole-index bulk-gate collision with Lane C's mid-landing bundle where the precise response was hands-off waiting, never `ALLOW_BULK_COMMIT=1` (row 20). Lane merged with `tools/merge_bake_lane.py --apply`: **BASE=10974 ACCEPTED=20 MERGED=10994 DROPPED=0**.
+Bake lane `state/bake_harvest_laneB_2026-10-22.jsonl` rows 18–20 record: the checkpoint-assert vs visible-bytes near-miss (row 18), the pwsh-backtick silenced-probe fix (row 19), and the whole-index bulk-gate collision with Lane C's mid-landing bundle where the precise response was hands-off waiting, never `ALLOW_BULK_COMMIT=1` (row 20). Lane merged with `tools/merge_bake_lane.py --apply`: **BASE=10974 ACCEPTED=20 MERGED=10994 DROPPED=0**. Wave-2 rows 21–25 were appended at encounter time and merged the same day: **ACCEPTED=25 MERGED=10999 DROPPED=0** (lane file committed with this REPORT in the artifacts slice).
