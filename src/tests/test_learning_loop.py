@@ -105,7 +105,7 @@ class TestRewardGradient(unittest.TestCase):
         loop.train_from_memory(source="SystemZ", n_episodes=20, max_steps=30,
                                learning_rate=0.1, discount_factor=0.9,
                                epsilon=0.1)
-        policy = {k: loop.ACTION_NAMES[max(v, key=v.get)]
+        policy = {k: loop.ACTION_NAMES[max(v, key=lambda qk: v[qk])]
                   for k, v in loop._q_table.items()}
         self.assertEqual(policy.get("SystemZ:error"), "remediate")
         self.assertEqual(policy.get("SystemZ:warning"), "alert")
@@ -145,6 +145,8 @@ class TestEvidenceRecommendations(unittest.TestCase):
             [("security", "error")] * 8 + [("security", "success")] * 2)
         self.assertEqual(rec["recommended"], "defensive")
         self.assertGreaterEqual(rec["confidence"], 0.5)
+        if adapted is None:
+            self.fail("no strategy adapted despite confident recommendation")
         self.assertTrue(adapted["should_adapt"])
         self.assertEqual(mc.get_current_strategy("global"), "defensive")
 
@@ -152,6 +154,8 @@ class TestEvidenceRecommendations(unittest.TestCase):
         rec, adapted, _ = self._scenario(
             [("security", "success")] * 9 + [("security", "error")])
         self.assertEqual(rec["recommended"], "aggressive")
+        if adapted is None:
+            self.fail("no strategy adapted despite confident recommendation")
         self.assertTrue(adapted["should_adapt"])
 
     def test_insufficient_evidence_holds(self):

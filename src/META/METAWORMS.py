@@ -623,6 +623,9 @@ def run_popup():
 
             log(f"[{name}] Starting...")
             result = metaworms.run(name)
+            if result is None:
+                log(f"[{name}] [FAIL] no result returned")
+                continue
             status = "OK" if result.success else "FAIL"
             log(
                 f"[{name}] [{status}] {result.files_processed} files, {result.items_found} items"
