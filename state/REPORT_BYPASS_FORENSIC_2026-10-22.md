@@ -86,7 +86,7 @@ Dead-premise skips awaiting re-derivation under the current interpreter regime (
 
 1. `tests/test_cluster_worms.py:35` — **done** (`1986ef1e` 2026-10-22): the recorded premise ("3.14t C extension") was falsified against live bytes; label corrected in place, guard retained (a labeled guard, not a skip).
 2. `tests/test_worm_regression.py:173` — **done** (`1986ef1e`): same falsified-premise correction.
-3. `tests/test_worm_imports.py:41` — queued: re-derive the premise under 3.15t, then remove the skip or replace it with the true current bound.
+3. `tests/test_worm_imports.py:41` — **done** (2026-10-22 finish pass): an executed `-c` probe under 3.15t (gil_off=True) imported all five heavy modules (PROCESSZ, SMARTDISK, ERRORZ, TRIMZ, METRICZ) OK, so the "may fail on a free-threading build due to C extensions" premise is dead-on-host. Docstring and skip wording corrected in place to state the verified all-five-OK fact and to disclose the conditional skip as a HOST gap guard (fires only on c-extension/pandas errors — a host capability gap, not a tree defect); the guard is retained per the `1986ef1e` precedent, never removed merely because it is quiet on one host. Live proof: `pytest tests/test_worm_imports.py` → **3 passed** (exit 0).
 
 All other skips found classify as environment/data-version premises (documented in their `reason=`), not silencing bypasses — no skip-without-cause pattern found.
 
@@ -96,7 +96,7 @@ All other skips found classify as environment/data-version premises (documented 
 - **PAMS outcome observer (check 6)** — deliberately non-blocking: its exit code is ignored so a memory side-effect can never reject a commit.
 - **Mesh ledger "carried" rows** — prior `accepted_gap` statuses carried forward are designed behavior of the wire-or-cut preflight.
 - **Ratchet src-only asymmetry** — the whole-tree ratchet scans `src/` only; findings outside `src/` are covered instead by the per-file staged check (this asymmetry is exactly why Waves target non-src files through the staged gate).
-- **`SWALLOW_INVENTORY.md`** — 2,994-row section is a superseded snapshot; kept for lineage, never consulted as a live count.
+- **`SWALLOW_INVENTORY.md`** — the 2,994-row section is a superseded snapshot kept verbatim for lineage; the additive 2026-10-22 fresh re-measure section (§6.5 item 3) is now the file's only citable live count.
 
 ## 6. Wave 2 — executed (2026-10-22, this pass)
 
@@ -127,12 +127,25 @@ Verification per slice: `py_compile` OK ×9 (B1/B2 files) and ×6 (B3 files) on 
 
 The probe was retargeted to `wave2_census_v5.json` (pre-redo v4 preserved) with corrected control checks and run at HEAD `20a3c4ff`: **92 chips / 32 files → load_bearing 83 (82 CAUSE-AFTER + 1 CAUSE-BEFORE), redundant_b 5, invalid_variant 4; BARE = 0; canary 0; `positive_control_ok` TRUE; `ctrl_A_fresh_identical` TRUE; HEAD stable.** The label split comes from the executed classifier pass (`wave2_v4_class2.py` against v5): all 20 former-bare chips now carry verified inline causes, so the bare redo-queue is empty.
 
-### 6.5 Remaining queue (beyond this pass)
+A **v6 re-run** (2026-10-22 finish pass, live HEAD `d8236c27` plus this pass's two code edits) re-executed the same instrument retargeted to `wave2_census_v6.json`: **92 chips / 32 files exactly as v5** — load_bearing 83 now **all CAUSE-AFTER** after the `chain_watchdog.py:65` normalization, CAUSE-BEFORE **0**, BARE **0**, redundant_b 5, invalid_variant 4; canary 0; `positive_control_ok` TRUE; `ctrl_A_fresh_identical` TRUE; HEAD stable. The population is invariant — only the `:65` label moved, exactly as predicted.
 
-1. `tests/test_worm_imports.py:41` dead-premise skip (§4 item 3) — re-derive under 3.15t, then remove or re-bound.
-2. Optional cosmetic: normalize `scripts/chain_watchdog.py:65` marker order (the verified rationale precedes the marker on the same line — legal, truth-labeled; no urgency).
-3. `SWALLOW_INVENTORY.md` regeneration as a separate lane (its snapshot is superseded per §5; never consulted as a live count).
+### 6.5 Remaining queue — CLOSED (2026-10-22 finish pass; nothing deferred)
+
+1. `tests/test_worm_imports.py:41` — **done** (§4 item 3, updated above; probe + pytest executed live).
+2. `scripts/chain_watchdog.py:65` — **done**: marker normalized to the first position on the line (`pass  # scanner:ignore  # a watchdog that cannot log must still act`); chip retained, cause text unchanged. Census v6 confirms the flip: CAUSE-BEFORE pool 1 → **0**.
+3. `SWALLOW_INVENTORY.md` — **done, additive**: fresh 2026-10-22 re-measure section inserted after the banner (73 rows / 41 files under `src/` at HEAD `d8236c27`: unlogged_handler 64, silent_continue 8, empty_literal_return 1; scanner-visible shapes 0; `--self-test` PASS same turn); the historical 2026-10-09/10 sections are verbatim untouched.
+
+**Final 92-chip disposition ledger (terminal — nothing open):**
+
+| class | n | disposition |
+|---|---|---|
+| load_bearing, CAUSE-AFTER | **83** | KEEP — every chip's finding verified present-with/present-sans (census v6), every cause recorded in place (§2/§6.2); zero BARE, zero CAUSE-BEFORE |
+| redundant_b — prose-comment markers | **4** | KEEP, disclosed — `tools/encoding_audit.py:213`, `:242`; `tools/hook_dispatch.py:283`; `tools/swallow_inventory.py:22`: marker text quoted inside historical explanation comments; class2 v6 shows each exposes nothing live, so the marker suppresses nothing; erasing would falsify the wave-1 explanations |
+| invalid_variant — META-STRING | **4** | KEEP — `tests/test_scanner.py:254`, `:291`; `tools/graph_semantic/semantic_layer.py:424`; `tools/swallow_inventory.py:206`: marker literal is string content (test fixtures asserting the marker; prose-in-string), not an executable suppression |
+| redundant_b — specimen | **1** | KEEP, disclosed — `tools/swallow_inventory.py:356`, the executed wave-1 do-not-fix specimen demonstrating suppress-dead for the inventory tool (§3) |
+| **TOTAL** | **92** | census v6 reconciles exactly: 83 + 5 + 4 = 92 across 32 files — count closed |
 
 ## 7. Encounter-time evidence
 
-Bake lane `state/bake_harvest_laneB_2026-10-22.jsonl` rows 18–20 record: the checkpoint-assert vs visible-bytes near-miss (row 18), the pwsh-backtick silenced-probe fix (row 19), and the whole-index bulk-gate collision with Lane C's mid-landing bundle where the precise response was hands-off waiting, never `ALLOW_BULK_COMMIT=1` (row 20). Lane merged with `tools/merge_bake_lane.py --apply`: **BASE=10974 ACCEPTED=20 MERGED=10994 DROPPED=0**. Wave-2 rows 21–25 were appended at encounter time and merged the same day: **ACCEPTED=25 MERGED=10999 DROPPED=0** (lane file committed with this REPORT in the artifacts slice).
+Bake lane `state/bake_harvest_laneB_2026-10-22.jsonl` rows 18–20 record: the checkpoint-assert vs visible-bytes near-miss (row 18), the pwsh-backtick silenced-probe fix (row 19), and the whole-index bulk-gate collision with Lane C's mid-landing bundle where the precise response was hands-off waiting, never `ALLOW_BULK_COMMIT=1` (row 20). Lane merged with `tools/merge_bake_lane.py --apply`: **BASE=10974 ACCEPTED=20 MERGED=10994 DROPPED=0**. Wave-2 rows 21–26 (probe-control bug fix, the path-scoping near-miss, the close-out harvest) were appended at encounter time and merged same-day — **ACCEPTED=26 MERGED=11000 DROPPED=0** at the artifacts commit (`764928b1`, shipped with this REPORT).
+Finish-pass rows 27–29 (2026-10-22) appended and merged the same turn: **BASE=10987 ACCEPTED=29 MERGED=11016 DROPPED=0** (`tools/merge_bake_lane.py --lane ... --apply`, exit 0). Row 27 = the worm-imports skip premise falsified live (§4 item 3); row 28 = the `chain_watchdog.py:65` cause-before→marker-first normalization (CAUSE-BEFORE pool 1→0); row 29 = the SWALLOW_INVENTORY regen as an additive dated section (§6.5 item 3). Commits this pass: code slice (2 files) then artifacts slice (REPORT + lane + inventory), explicit pathspec; the foreign dirty file `tools/transcript_ap5_gate.py` was never staged.

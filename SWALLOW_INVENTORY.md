@@ -25,6 +25,46 @@
 > The 23 remaining `src/`-wide remediation sites found on 2026-10-10 were repaired
 > in the fan-out recorded below (26 → 3).
 
+---
+
+## Fresh re-measure — 2026-10-22 (HEAD `d8236c27`) — the citable live count
+
+Measurement at encounter time by the 92-chip closure lane; re-execute to reproduce.
+Scope: the default root `src/` at the stated HEAD (this lane's edits and the one
+foreign dirty file, `tools/transcript_ap5_gate.py`, sit outside `src/`).
+
+```text
+C:/Azazael/.venvs/py315t/Scripts/python.exe tools/swallow_inventory.py --json <temp>/swallow_inventory_v6.json
+```
+
+**73 rows in 41 files:**
+
+| shape | count | class |
+|---|---|---|
+| `unlogged_handler` | **64** | deliberately inclusive: body never acts on `exc`; each row needs a human read before any repair |
+| `silent_continue` | **8** | the loop skips the failure and carries on |
+| `empty_literal_return` | **1** | single success-shaped `return []`/`{}`/`()` |
+
+Scanner-visible counter shapes (`silent_pass`, `return_default`): **0** — the
+2026-10-09/10 tree-wide sweep still holds; the residue regrew only through shapes
+the scanner cannot see. Largest concentration:
+`src/CORE/WORMS/expansion/anchor_retrieval.py` (16 `unlogged_handler` rows).
+
+The 2026-10-10 by-design residue is **re-verified present** in this scan:
+`src/CORE/failure_ledger.py` (1 `unlogged_handler` — the recorder itself),
+`src/CORE/inference/sequential_analyzer.py` (1), `src/CORE/local_memory.py` (1).
+`src/CORE/data_retention.py` contributes 2 `silent_continue` rows, first seen in
+this re-measure — measured state, recorded as found; no disposition claimed here.
+
+Negative control, same turn: `--self-test` **PASS** (8/8 silent-fixture shapes
+found; both acting handlers excluded). Per-row durable artifact:
+`swallow_inventory_v6.json` (this turn's Temp copy; regenerable — the tool is
+stdlib-only and lives in the repo).
+These 73 rows are the only live count in this file; the superseded numbers below
+remain history by design.
+
+---
+
 Date of the snapshot below: 2026-10-09. Tool: `tools/swallow_inventory.py` (AST,
 stdlib only). Raw rows: `SWALLOW_INVENTORY.json` (regenerated 2026-10-10; the
 2026-10-09 raw rows are preserved verbatim as
