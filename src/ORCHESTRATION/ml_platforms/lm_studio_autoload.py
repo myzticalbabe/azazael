@@ -56,8 +56,8 @@ ML_PATH = Path.home() / "Desktop" / "Azazael" / "ml_platforms"
 
 def auto_load():
     """Load ML platforms for LM Studio."""
-    if ML_PATH not in sys.path:
-        sys.path.insert(0, ML_PATH)
+    if str(ML_PATH) not in sys.path:
+        sys.path.insert(0, str(ML_PATH))
 
     try:
         pass

@@ -43,8 +43,8 @@ except ImportError:                               # never break the host
 
 # 1. Add ML platforms to path PERMANENTLY
 ML_PATH = Path.home() / "Desktop" / "Azazael" / "ml_platforms"
-if ML_PATH not in sys.path:
-    sys.path.insert(0, ML_PATH)
+if str(ML_PATH) not in sys.path:
+    sys.path.insert(0, str(ML_PATH))
     # Persist via user sitecustomize ONLY when run as a script. Importing
     # this module must be side-effect free: runtime trace 2026-10-18 showed
     # a bare import appending a dead Desktop path to ~/sitecustomize.py,
