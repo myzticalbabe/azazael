@@ -70,6 +70,25 @@ def _find_map() -> Path:
     return REPO / _REL_MAP  # report the miss at read time, with the path shown
 
 
+def _find_batch_map(batch: str, name: str) -> Path:
+    """Locate a per-batch map by the same multi-root rule as _find_map.
+
+    Batch maps live under workspace-root state/ (outside the repo), so a
+    repo-relative literal misses them exactly the way the first _find_map
+    run did (EP-REDO-7: control I pointed at repo state/ while batch04's
+    technique-map.json lives at C:/Azazael/state/sota_batches/).
+    """
+    rel = Path("state") / "sota_batches" / batch / name
+    for cand in (REPO / rel, REPO.parent / rel,
+                 REPO.parent / "azazael" / rel):
+        if cand.exists():
+            return cand
+    hits = sorted(p for p in REPO.parent.glob(f"*/{rel.as_posix()}"))
+    if hits:
+        return hits[0]
+    return REPO / rel  # report the miss at read time, with the path shown
+
+
 MAP = _find_map()
 
 EXERCISE_DIR = "src/CORE/technique_wiring/"
@@ -985,10 +1004,12 @@ def _self_test(repo: Path = REPO) -> int:
         # survive the GUARD-2 row filter. The line utters no generic word
         # (`refine` appears nowhere on it), so the old no-generic-word->drop
         # branch ate it and the row fell to HOST-COMPOSED. Pin the keep.
-        _o_loc = "src/CORE/WORMS/expansion/learning_grpo.py:484"
+        # Re-pinned 2026-10-22: Beam pool slice E shifted the fixture
+        # 484 -> 474 (genuine site unchanged, still no generic word).
+        _o_loc = "src/CORE/WORMS/expansion/learning_grpo.py:474"
         try:
             _o_line = (repo / _o_loc.rpartition(":")[0]).read_text(
-                encoding="utf-8", errors="replace").splitlines()[483]
+                encoding="utf-8", errors="replace").splitlines()[473]
         except (OSError, IndexError):
             _o_line = ""
         if "self._corrector(" not in _o_line:
@@ -1105,7 +1126,7 @@ def _self_test(repo: Path = REPO) -> int:
     # stale artifact) and require the foreign sites gone from prod.
     _map_saved = MAP
     try:
-        globals()["MAP"] = Path("state/sota_batches/batch04/technique-map.json")
+        globals()["MAP"] = _find_batch_map("batch04", "technique-map.json")
         rep04 = census()
     finally:
         globals()["MAP"] = _map_saved

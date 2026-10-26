@@ -29,8 +29,7 @@ def test_config_default():
     assert cfg.precision == "fp32"
     assert cfg.enable_cache is True
     assert cfg.warmup_iterations == 3
-    return {"test": "config_default", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_config_gpu_optimized():
     """Test GPU-optimized preset."""
@@ -40,8 +39,7 @@ def test_config_gpu_optimized():
     assert cfg.batch_size == 64
     assert cfg.precision == "fp16"
     assert cfg.num_workers == 4
-    return {"test": "config_gpu_optimized", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_config_cpu_optimized():
     """Test CPU-optimized preset."""
@@ -50,8 +48,7 @@ def test_config_cpu_optimized():
     assert cfg.device == "cpu"
     assert cfg.batch_size == 16
     assert cfg.precision == "int8"
-    return {"test": "config_cpu_optimized", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_config_serialization():
     """Test config to/from JSON file."""
@@ -67,8 +64,7 @@ def test_config_serialization():
         assert loaded.precision == "fp16"
     finally:
         Path(path).unlink()
-    return {"test": "config_serialization", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_model_loader_detect_frameworks():
     """Test ModelLoader.detect_frameworks() returns dict."""
@@ -79,8 +75,7 @@ def test_model_loader_detect_frameworks():
     assert "sklearn" in fw
     assert "transformers" in fw
     # At least numpy should always be available since we import it
-    return {"test": "model_loader_detect_frameworks", "status": "PASS",
-            "available": [k for k, v in fw.items() if v]}
+    pass  # removed return dict
 
 
 def test_model_loader_guess_framework():
@@ -94,8 +89,7 @@ def test_model_loader_guess_framework():
     assert ModelLoader._guess_framework(Path("model.onnx")) == "onnx"
     assert ModelLoader._guess_framework(Path("model.h5")) == "tensorflow"
     assert ModelLoader._guess_framework(Path("model.xyz")) == "unknown"
-    return {"test": "model_loader_guess_framework", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_inference_result():
     """Test InferenceResult dataclass fields."""
@@ -115,8 +109,7 @@ def test_inference_result():
     assert result.input_shape == (1, 256)
     assert result.output_shape == (1, 10)
     assert result.predictions == [0.1, 0.2, 0.7]
-    return {"test": "inference_result", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_engine_init():
     """Test InferenceEngine initialization."""
@@ -128,8 +121,7 @@ def test_engine_init():
     assert isinstance(engine.loaded_models, dict)
     assert len(engine.loaded_models) == 0
     assert isinstance(engine.available_frameworks, list)
-    return {"test": "engine_init", "status": "PASS",
-            "frameworks": engine.available_frameworks}
+    pass  # removed return dict
 
 
 def test_engine_list_models():
@@ -138,8 +130,7 @@ def test_engine_list_models():
     from eve_unleashed.engine import InferenceEngine
     engine = InferenceEngine(EveConfig())
     assert engine.list_models() == []
-    return {"test": "engine_list_models", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_engine_load_bad_framework():
     """Test loading with unsupported framework raises ValueError."""
@@ -151,8 +142,7 @@ def test_engine_load_bad_framework():
         assert False, "Should have raised ValueError"
     except ValueError:
         pass  # expected
-    return {"test": "engine_load_bad_framework", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_engine_load_missing_model():
     """A usable framework plus a missing path is still FileNotFoundError.
@@ -185,8 +175,7 @@ def test_engine_load_missing_model():
             assert False, "Should have raised FileNotFoundError"
         except FileNotFoundError:
             pass  # expected
-    return {"test": "engine_load_missing_model", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_prepare_input_array():
     """Test prepare_input_tensor with numpy array."""
@@ -195,8 +184,7 @@ def test_utils_prepare_input_array():
     result = prepare_input_tensor(data)
     assert result.shape == (32, 256)
     assert result.dtype == np.float32
-    return {"test": "utils_prepare_input_array", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_prepare_input_list():
     """Test prepare_input_tensor with Python list."""
@@ -205,8 +193,7 @@ def test_utils_prepare_input_list():
     result = prepare_input_tensor(data)
     assert result.shape == (2, 2)
     assert result.dtype == np.float32
-    return {"test": "utils_prepare_input_list", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_prepare_input_scalar():
     """Test prepare_input_tensor with scalar input."""
@@ -214,8 +201,7 @@ def test_utils_prepare_input_scalar():
     result = prepare_input_tensor(42)
     assert result.shape == (1, 1)
     assert result.dtype == np.float32
-    return {"test": "utils_prepare_input_scalar", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_postprocess_torch():
     """Test postprocess_output with torch framework."""
@@ -231,8 +217,7 @@ def test_utils_postprocess_torch():
     result = postprocess_output(t, "torch")
     assert isinstance(result, list)
     assert result == [[1.0, 2.0, 3.0]]
-    return {"test": "utils_postprocess_torch", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_postprocess_sklearn():
     """Test postprocess_output with sklearn framework."""
@@ -240,32 +225,28 @@ def test_utils_postprocess_sklearn():
     arr = np.array([0, 1, 0])
     result = postprocess_output(arr, "sklearn")
     assert result == [0, 1, 0]
-    return {"test": "utils_postprocess_sklearn", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_validate_shape_exact():
     """Test validate_input_shape with exact match."""
     from eve_unleashed.utils import validate_input_shape
     arr = np.ones((1, 256), dtype=np.float32)
     assert validate_input_shape(arr, (1, 256)) is True
-    return {"test": "utils_validate_shape_exact", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_validate_shape_batch():
     """Test validate_input_shape with batched input."""
     from eve_unleashed.utils import validate_input_shape
     arr = np.ones((32, 3, 224, 224), dtype=np.float32)
     assert validate_input_shape(arr, (3, 224, 224), allow_batch=True) is True
-    return {"test": "utils_validate_shape_batch", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_validate_shape_mismatch():
     """Test validate_input_shape with shape mismatch."""
     from eve_unleashed.utils import validate_input_shape
     arr = np.ones((1, 128), dtype=np.float32)
     assert validate_input_shape(arr, (1, 256)) is False
-    return {"test": "utils_validate_shape_mismatch", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_softmax():
     """Test softmax computation."""
@@ -275,8 +256,7 @@ def test_utils_softmax():
     assert len(result) == 3
     assert abs(result.sum() - 1.0) < 1e-6
     assert result[2] > result[1] > result[0]
-    return {"test": "utils_softmax", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_utils_top_k():
     """Test top_k predictions."""
@@ -286,8 +266,7 @@ def test_utils_top_k():
     assert len(top) == 3
     assert top[0][0] == 3  # index 3 has highest value
     assert abs(top[0][1] - 0.5) < 1e-6
-    return {"test": "utils_top_k", "status": "PASS"}
-
+    pass  # removed return dict
 
 def test_batch_result():
     """Test BatchResult dataclass."""
@@ -303,8 +282,7 @@ def test_batch_result():
     assert len(batch.results) == 2
     assert batch.total_time_ms == 11.0
     assert batch.avg_latency_ms == 5.5
-    return {"test": "batch_result", "status": "PASS"}
-
+    pass  # removed return dict
 
 def run_all_tests():
     """Run all Eve Unleashed unit tests."""
@@ -347,9 +325,9 @@ def run_all_tests():
             result = test_fn()
             passed += 1
             detail = ""
-            if "available" in result:
+            if result and "available" in result:
                 detail = f" ({', '.join(result['available'][:3])})"
-            elif "frameworks" in result:
+            elif result and "frameworks" in result:
                 detail = f" ({', '.join(result['frameworks'][:3])})"
             print(f"PASS{detail}")
         except Exception as e:
