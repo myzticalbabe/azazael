@@ -1,0 +1,53 @@
+{
+ "schema": "batch06-adjudication/v1",
+ "head": "b41b8afc9553039752b573d33fd547a9980308e5",
+ "record_compared": "workspace state/sota_batches/batch06/adoption_census_fixed.json (94 ADOPTED/109 in-production, 2026-10-22 13:37)",
+ "head_tally": {
+  "ADOPTED": 98,
+  "HOST-COMPOSED": 15,
+  "EXERCISE-ONLY": 10,
+  "NO-TARGET": 17,
+  "HOSTED-ONLY": 1,
+  "in_production": 113
+ },
+ "method": "full tools/adoption_census.py run at HEAD (self-test 18/18 PASS incl. re-pointed control I and re-pinned control O), per-flip line-read + import-binding verification + git blame",
+ "flips": [
+  {
+   "ep": "EP201",
+   "record": "EXERCISE-ONLY",
+   "head": "ADOPTED",
+   "site": "src/CORE/inference/sequential_analyzer.py:595",
+   "binding": "from CORE.cascade import CascadeRouter (46, None-fallback 48); router_cls(threshold=...) (595)",
+   "blame": "1701a395 2026-10-22 typecheck slice A",
+   "ruling": "ACCEPT: genuine host-class instantiation in production inference path"
+  },
+  {
+   "ep": "EP259",
+   "record": "EXERCISE-ONLY",
+   "head": "ADOPTED",
+   "site": "src/CORE/WORMS/expansion/learning_grpo.py:243",
+   "binding": "from policy_optimization import depo_filter as _depo_filter (55); self._frontier_filter = arg or _depo_filter (165-166); None-guarded call (232/243)",
+   "blame": "7b9b2bd5 Lane C redo",
+   "ruling": "ACCEPT: redo collaborator wire, host default binding verified"
+  },
+  {
+   "ep": "EP350",
+   "record": "EXERCISE-ONLY",
+   "head": "ADOPTED",
+   "site": "scripts/technique_heartbeat.py:157",
+   "binding": "from rubric_evolution import gate_distillation as _gate_distillation (37, None-fallback 40); None-guarded call (147/157)",
+   "blame": "42e0c363 Lane C redo",
+   "ruling": "ACCEPT: redo lifecycle wire, host import binding verified"
+  },
+  {
+   "ep": "EP388",
+   "record": "EXERCISE-ONLY",
+   "head": "ADOPTED",
+   "site": "src/CORE/WORMS/expansion/learning_grpo.py:474",
+   "binding": "from latent_refine import bounded_correct as _bounded_correct (62); self._corrector = arg or _bounded_correct (167-168); None-guarded call (472/474)",
+   "blame": "7b9b2bd5 Lane C redo",
+   "ruling": "ACCEPT: redo collaborator wire; same site as re-pinned control O fixture"
+  }
+ ],
+ "note": "Foreign record file untouched (active artifact, another lane); this companion is the EP-REDO-6 adjudication output. Landed in repo state/ because workspace state/ paths flaked ENOENT 4x this session (see bake row)."
+}

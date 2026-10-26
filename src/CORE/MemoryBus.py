@@ -531,9 +531,17 @@ class MemoryBus:
                 msg_id = self._post_to_pams(topic, payload, metadata, source)
                 if msg_id is not None:
                     with self._poll_lock:
-                        self._last_seen[topic] = max(
-                            self._last_seen.get(topic, 0), msg_id
-                        )
+                        if isinstance(msg_id, int):
+                            self._last_seen[topic] = max(
+                                self._last_seen.get(topic, 0), msg_id
+                            )
+                    if self.use_local_fallback:
+                        # Delivery copy: PAMS is long-term-memory only (no
+                        # list/query endpoint), so cross-instance delivery
+                        # rides the shared SQLite queue. Best-effort; the
+                        # PAMS post above already succeeded.
+                        self._persist_to_queue(topic, payload, metadata,
+                                               source, uuid7().hex)
                     return msg_id
             except Exception as exc:
                 note_failure("MemoryBus:L439", exc)
