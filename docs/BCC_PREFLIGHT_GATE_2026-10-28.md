@@ -34,11 +34,14 @@ until every item below is checked. Each lane confirms on the message board.
       operate the memory loop before proof work — (0) reachability: if memory
       MCP tools are unreachable from the lane's session, report ENVIRONMENT-FAIL
       (fix the path, not the lane); (1) close one surfaced lesson via
-      `mark_lesson_followed` + note; (2) `update_goal` progress on one real owned
-      goal; (3) one cross-project `mem_search` (`all_projects=true`). The
-      coordinator verifies the three rows exist — attestation without rows is not
-      a check. Each lane's P1–P9 confirmation is itself a PMB goal closed with
-      `done` (dogfood the mandate).
+      `mark_lesson_followed` + note — drill channel is `find_lessons` (the marker
+      false-OKs recall/fanout surfaces: PMB defect 2026-10-28, recorded);
+      (2) `update_goal` progress on one real owned goal; (3) one cross-project
+      `mem_search` (`all_projects=true`). The coordinator verifies the three rows
+      with `tools/verify_p9_drill.py --lane <lane> --since <epoch> --source
+      find_lessons --goal <ulid> --search "<query>" --expect-id <N>` — attestation
+      without rows is not a check. Each lane's P1–P9 confirmation is itself a PMB
+      goal closed with `done` (dogfood the mandate).
 
 ## Rule
 Pre-flight first. Any proof/store/edge commit before P1–P9 all check is out of
