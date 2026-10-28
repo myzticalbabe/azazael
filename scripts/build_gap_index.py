@@ -4,8 +4,10 @@
 # is the STRUCTURAL WRITER of scripts/bcc_gap_index.json (tracked dict: creates keys
 # and schema). Field updates (new_sources/new_evidence/last_updated/
 # investigation_metadata only, never add/remove keys) belong to
-# scripts/land_all_results.py. Never write *.enriched.json here; enrichment belongs
-# to scripts/gap_metadata.py only.
+# scripts/land_all_results.py. scripts/update_ddap_selenium_status.py is the blessed
+# field writer for the selenium trio only (selenium_status/selenium_checked/
+# last_selenium_check, per-gap scalars, never add/remove keys). Never write
+# *.enriched.json here; enrichment belongs to scripts/gap_metadata.py only.
 build_gap_index.py -- deterministic generator/verifier for the BCC gap index.
 
 The machine-readable gap index in INVESTIGATION_GAPS.html is the canonical
