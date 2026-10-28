@@ -573,7 +573,8 @@ class NeuralPipeline:
 
     def _train_sb3(self, source: str, event_type: Optional[str], train_records: Optional[List[Dict]] = None, **train_kwargs) -> Dict[str, Any]:
         """Train with SB3Agent (PPO/DQN/A2C)."""
-        agent = SB3Agent(algo="PPO")
+        worm_id = train_kwargs.pop("worm_id", None)
+        agent = SB3Agent(algo="PPO", worm_id=worm_id)
         result = agent.train(
             source=source, event_type=event_type,
             records=train_records,  # Frozen-record seam from #850
@@ -583,6 +584,7 @@ class NeuralPipeline:
         return {
             "trainer": "SB3Agent",
             "algo": agent.algo_name,
+            "worm_id": agent.worm_id,
             "trained": result.get("trained", False),
             "total_timesteps": result.get("total_timesteps", 0),
             "duration_ms": result.get("duration_ms", 0),

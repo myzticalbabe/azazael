@@ -1288,6 +1288,7 @@ class OrchestratorConfig:
     record_to_memory: bool = True                # Persist results to DB
     register_model: bool = True                  # Auto-register with ModelVersioner
     exclude_sources: (list[str] | None) = None   # Skip self-generated bookkeeping sources
+    worm_id: (str | None) = None                 # Worm identity threaded into SB3Agent
 
 
 @dataclass
@@ -1433,6 +1434,7 @@ class TrainingOrchestrator:
             agent = SB3Agent(
                 config=None,
                 algo=self.config.algo,
+                worm_id=self.config.worm_id,
                 policy=self.config.policy,
                 device=self.config.device,
                 algo_kwargs={

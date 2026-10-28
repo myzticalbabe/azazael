@@ -170,6 +170,20 @@ except ImportError as exc:
     HAS_VERSIONER = False
     ModelVersioner = None
 
+# -- New trainers_v2 (per-worm hook identity) --------------------------------
+try:
+    from CORE.WORMS.expansion.trainers_v2 import (
+        TrainerContext,
+        HookAwareTrainer,
+        SB3TrainerV2,
+        create_trainer,
+    )
+    HAS_TRAINERS_V2 = True
+except ImportError as exc:
+    note_failure("sb3_agent:L150", exc)
+    HAS_TRAINERS_V2 = False
+    TrainerContext = HookAwareTrainer = SB3TrainerV2 = create_trainer = None
+
 # -- MemoryBus for messaging -------------------------------------------------
 try:
     HAS_MEMORYBUS = True
@@ -260,6 +274,7 @@ def _run_training_in_gil_subprocess(
     algo: str, policy: str, device: str, seed: int,
     source: (str | None), event_type: (str | None),
     total_timesteps: int, model_name: (str | None),
+    worm_id: (str | None) = None,
 ) -> dict:
     """Run SB3 training in a standard (GIL-enabled) Python subprocess.
 
@@ -281,6 +296,7 @@ def _run_training_in_gil_subprocess(
         "--", algo, policy, device, str(seed),
         source or "", event_type or "", str(total_timesteps),
         model_name or "",
+        worm_id or "",
     ]
     env = dict(os.environ)
     # A GIL build aborts when PYTHON_GIL=0 is exported (see
@@ -334,16 +350,20 @@ source = sys.argv[4] or None
 event_type = sys.argv[5] or None
 total_timesteps = int(sys.argv[6])
 model_name = sys.argv[7] or None
+worm_id = sys.argv[8] if len(sys.argv) > 8 else None
 try:
     from CORE.sb3_agent import SB3Agent
-    agent = SB3Agent(algo=algo, policy=policy, device=device, seed=seed)
+    agent = SB3Agent(algo=algo, policy=policy, device=device, seed=seed,
+                       worm_id=worm_id)
     result = agent.train(source=source, event_type=event_type,
                          total_timesteps=total_timesteps,
                          model_name=model_name, register_model=True)
+    result.setdefault("worm_id", worm_id)
     result["gil_enforced"] = True
     print(json.dumps(result))
 except Exception as e:
     print(json.dumps({"error": f"{type(e).__name__}: {e}", "trained": False,
+                      "worm_id": worm_id,
                       "gil_enforced": True}))
 '''
 
@@ -531,7 +551,8 @@ class SB3Agent(FreeThreadedAgent):
     def __init__(self, config: (AgentConfig | None) = None, algo: str = "PPO",
                  policy: str = "MlpPolicy", algo_kwargs: (dict | None) = None,
                  device: str = "auto", seed: (int | None) = None,
-                 env_kwargs: (dict | None) = None):
+                 env_kwargs: (dict | None) = None,
+                 worm_id: (str | None) = None):
         """
         Initialize SB3Agent.
 
@@ -547,6 +568,9 @@ class SB3Agent(FreeThreadedAgent):
             device: Torch device ("auto", "cpu", "cuda"). "auto" picks cuda if available.
             seed: Random seed for reproducibility.
             env_kwargs: Additional kwargs for the gym environment.
+            worm_id: Worm identity threaded into all memory writes
+                (PAMS payload, bus events, versioner metadata).
+                Defaults to f"sb3_<algo>".
         """
         super().__init__(config or AgentConfig(
             agent_name=f"SB3-{algo}",
@@ -558,6 +582,9 @@ class SB3Agent(FreeThreadedAgent):
         # matches no key in SUPPORTED_ALGOS and made it report "unsupported".
         _canon = next((k for k in SUPPORTED_ALGOS if str(k).lower() == str(algo).lower()), None)
         self.algo_name = _canon or (algo if HAS_SB3 else "PPO")
+        # Worm identity (trainers_v2 contract): every memory write
+        # this agent emits carries this id in its payload.
+        self.worm_id = worm_id or f"sb3_{self.algo_name.lower()}"
         self.policy = policy
         self.algo_kwargs = algo_kwargs or {}
         self.env_kwargs = env_kwargs or {}
@@ -650,15 +677,18 @@ class SB3Agent(FreeThreadedAgent):
             gil_py = _find_gil_python()
             if gil_py is not None:
                 print(f"[SB3Agent] GIL-enforced fallback via {gil_py}", flush=True)
-                return _run_training_in_gil_subprocess(
+                gil_result = _run_training_in_gil_subprocess(
                     algo=self.algo_name, policy=self.policy, device=self.device,
                     seed=self.seed, source=source, event_type=event_type,
                     total_timesteps=(n_episodes * 200 if n_episodes else total_timesteps),
-                    model_name=model_name,
+                    model_name=model_name, worm_id=self.worm_id,
                 )
+                gil_result.setdefault("worm_id", self.worm_id)
+                return gil_result
 
         if not HAS_SB3:
-            return {"error": "stable-baselines3 not installed", "trained": False}
+            return {"error": "stable-baselines3 not installed", "trained": False,
+                    "worm_id": self.worm_id}
 
         start = time.perf_counter()
 
@@ -678,7 +708,8 @@ class SB3Agent(FreeThreadedAgent):
             )
 
         if not records:
-            return {"error": f"No training data found for source={source}", "trained": False}
+            return {"error": f"No training data found for source={source}", "trained": False,
+                    "worm_id": self.worm_id}
 
         # -- Step 2: Create environment --------------------------------
         try:
@@ -697,7 +728,8 @@ class SB3Agent(FreeThreadedAgent):
                 env = ActionMasker(env, _noop_mask)
         except Exception as e:
             note_failure("sb3_agent:L636", e)
-            return {"error": f"Failed to create environment: {e}", "trained": False}
+            return {"error": f"Failed to create environment: {e}", "trained": False,
+                    "worm_id": self.worm_id}
 
         # -- Step 3: Override params ----------------------------------
         params = dict(ALGO_DEFAULTS.get(self.algo_name, {}))
@@ -734,7 +766,8 @@ class SB3Agent(FreeThreadedAgent):
 
         except Exception as e:
             note_failure("sb3_agent:L670", e)
-            return {"error": f"Training failed: {e}", "trained": False}
+            return {"error": f"Training failed: {e}", "trained": False,
+                    "worm_id": self.worm_id}
 
         duration_ms = (time.perf_counter() - start) * 1000
         self._last_train_time = time.time()
@@ -761,6 +794,7 @@ class SB3Agent(FreeThreadedAgent):
         # -- Step 5: Record training stats -----------------------------
         train_result = {
             "algo": self.algo_name,
+            "worm_id": self.worm_id,
             "policy": self.policy,
             "total_timesteps": n,
             "records_used": len(records),
@@ -812,6 +846,7 @@ class SB3Agent(FreeThreadedAgent):
                         "policy": self.policy,
                         "device": self.device,
                         "data_source": source or "all",
+                        "worm_id": self.worm_id,
                         "run_ts": datetime.now().isoformat(),
                     },
                 )
@@ -1100,6 +1135,18 @@ class SB3Agent(FreeThreadedAgent):
                 self._versioner = False  # pyright: ignore[reportAttributeAccessIssue]  Sentinel: attempted-and-failed, no retry
         return self._versioner if self._versioner else None
 
+    # -- trainers_v2 delegation --------------------------------------------
+
+    def get_trainer(self):
+        """Build the trainers_v2 SB3TrainerV2 bound to this agent's worm_id.
+
+        Returns None when trainers_v2 is unavailable (the direct-SB3
+        train() path above remains the fallback).
+        """
+        if not HAS_TRAINERS_V2 or create_trainer is None:
+            return None
+        return create_trainer(self.algo_name.lower(), worm_id=self.worm_id)
+
     # -- FreeThreadedAgent._run override -------------------------------------
 
     def _run(self, task: dict[str, Any], pool: Any = None) -> Any:
@@ -1135,7 +1182,7 @@ class SB3Agent(FreeThreadedAgent):
 
     def __repr__(self) -> str:
         trained = "trained" if self.is_trained else "untrained"
-        return (f"SB3Agent(id={self.agent_id}, algo={self.algo_name}, "
+        return (f"SB3Agent(id={self.agent_id}, worm={self.worm_id}, algo={self.algo_name}, "
                 f"policy={self.policy}, {trained}, "
                 f"steps={self._total_timesteps_trained})")
 
