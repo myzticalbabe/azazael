@@ -30,7 +30,16 @@ until every item below is checked. Each lane confirms on the message board.
 - [ ] **P7 — BEAM_AGENTS.md commit decision**: operator decides include/leave.
 - [ ] **P8 — Record-first**: every lane demonstrates one Engram mem_save +
       PMB record_batch/outcome on its next action before doing proof work.
+- [ ] **P9 — Memory live-fire** (operator 2026-10-28): every lane proves it can
+      operate the memory loop before proof work — (0) reachability: if memory
+      MCP tools are unreachable from the lane's session, report ENVIRONMENT-FAIL
+      (fix the path, not the lane); (1) close one surfaced lesson via
+      `mark_lesson_followed` + note; (2) `update_goal` progress on one real owned
+      goal; (3) one cross-project `mem_search` (`all_projects=true`). The
+      coordinator verifies the three rows exist — attestation without rows is not
+      a check. Each lane's P1–P9 confirmation is itself a PMB goal closed with
+      `done` (dogfood the mandate).
 
 ## Rule
-Pre-flight first. Any proof/store/edge commit before P1–P8 all check is out of
+Pre-flight first. Any proof/store/edge commit before P1–P9 all check is out of
 sequence — the board task FREEBUFF-PREFLIGHT-2026-10-28 tracks it.
