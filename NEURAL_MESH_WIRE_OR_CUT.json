@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-20T20:27:35.861928",
+ "generated_at": "2026-10-28T08:00:01.752323",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -8,14 +8,14 @@
   "dispatched": 60,
   "accepted_gap": 107,
   "rejected": 5,
-  "pending": 0
+  "pending": 1
  },
- "total": 370,
+ "total": 371,
  "declared": {
   "NeuralPipeline:NeuralPipeline.ablate_cutting_edge": {
    "module": "NeuralPipeline",
    "qualname": "NeuralPipeline.ablate_cutting_edge",
-   "line": 326,
+   "line": 335,
    "seg": "def ablate_cutting_edge(self, component: str) -> Dict[str, Any]:\n        \"\"\"Switch `component` off, and report what the model now is.\n\n        The switch is recorded on the PIPELINE rather than edited into the live\n        model, and the built model is dropped so the next access rebuilds the\n        ablated configuration. That matches how CuttingEdgeModel itself is\n        addressed (`ablate()` returns a NEW model): an in-place edit is how a\n        sweep ends up comparing a state it already mutated.\n        \"\"\"\n        if component not in COMPONENTS:\n            raise KeyError(\n                \"unknown component %r (expected one of %r)\" % (component, COMPONENTS))\n        if self._cutting_edge_config_obj is not None:\n            self._cutting_edge_config_obj = self._cutting_edge_config_obj.variant(\n                **{\"use_\" + component: False})\n        else:\n            self._cutting_edge_config[\"use_\" + component] = False\n        self._cutting_edge_model = None\n        model = self.cutting_edge_model\n        return {\n            \"component\": component,\n            \"active_components\": list(model.active_components()),\n            \"switches\": dict(model.config.ablation_switches()),\n            \"config_fingerprint\": model.config_fingerprint(),\n        }",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=declared_in_data, triage=test_reached_only.",
@@ -28,7 +28,7 @@
   "NeuralPipeline:NeuralPipeline.cutting_edge_switches": {
    "module": "NeuralPipeline",
    "qualname": "NeuralPipeline.cutting_edge_switches",
-   "line": 299,
+   "line": 308,
    "seg": "def cutting_edge_switches(self) -> Dict[str, bool]:\n        \"\"\"The `use_*` switches configured for this pipeline, pre-build.\n\n        Readable without building the model, which is what lets a caller inspect\n        a pipeline before anything is registered or allocated.\n        \"\"\"\n        if self._cutting_edge_config_obj is not None:\n            return {k: bool(v) for k, v in\n                    self._cutting_edge_config_obj.ablation_switches().items()}\n        return {k: bool(v) for k, v in self._cutting_edge_config.items()\n                if k.startswith(\"use_\")}",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=declared_in_data, triage=test_reached_only.",
@@ -50,7 +50,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -70,7 +70,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -185,7 +185,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -216,7 +216,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -237,7 +237,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -268,7 +268,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -299,7 +299,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -320,7 +320,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -359,7 +359,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -380,7 +380,7 @@
     "also defined by: HDC"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'encode' in 130 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'encode' in 136 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
    "evidence": [
     "scripts/reencode_large_videos.py:202"
    ],
@@ -398,7 +398,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -419,7 +419,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -440,7 +440,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -471,7 +471,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -492,7 +492,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -513,7 +513,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -534,7 +534,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -555,7 +555,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -576,7 +576,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -612,7 +612,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -633,7 +633,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -652,7 +652,7 @@
    "module": "chorus",
    "qualname": "FailureDigest.from_analysis",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=declared_in_data, triage=test_reached_only.",
-   "seg": "def from_analysis(cls, peak: Optional[dict] = None,\n                      allocator_report: Optional[Dict[str, dict]] = None,\n                      top_rows: Optional[Sequence[dict]] = None) -> \"FailureDigest\":\n        \"\"\"Adapt the artifacts the monitor and analyzer already produce.\"\"\"\n        peak = peak or {}\n        holdout = int(peak.get(\"holdout_fail\") or peak.get(\"holdout_failures\") or 0)\n        pinned = peak.get(\"pinned_genes\") or peak.get(\"pinned\") or []\n        flat = float(peak.get(\"flat_fraction\") or peak.get(\"flat_frac\") or 0.0)\n        starved = [a for a, v in (allocator_report or {}).items()\n                   if float(v.get(\"weight\", 1.0)) < 0.05]\n        dims: List[int] = []\n        for r in (top_rows or []):\n            try:\n                dims.append(int(r.get(\"dimension\", 0)))\n            except (TypeError, ValueError) as exc:\n                note_failure(\"chorus:L90\", exc)\n        best = None\n        if top_rows:\n            try:\n                best = max(float(r.get(\"fitness\")) for r in top_rows if r.get(\"fitness\") is not None)\n            except (TypeError, ValueError) as exc:\n                note_failure(\"chorus:L96\", exc)\n                best = None\n        return cls(holdout, pinned, flat, starved, dims, best)",
+   "seg": "def from_analysis(cls, peak: Optional[dict] = None,\n                      allocator_report: Optional[Dict[str, dict]] = None,\n                      top_rows: Optional[Sequence[dict[str, Any]]] = None) -> \"FailureDigest\":\n        \"\"\"Adapt the artifacts the monitor and analyzer already produce.\"\"\"\n        peak = peak or {}\n        holdout = int(peak.get(\"holdout_fail\") or peak.get(\"holdout_failures\") or 0)\n        pinned = peak.get(\"pinned_genes\") or peak.get(\"pinned\") or []\n        flat = float(peak.get(\"flat_fraction\") or peak.get(\"flat_frac\") or 0.0)\n        starved = [a for a, v in (allocator_report or {}).items()\n                   if float(v.get(\"weight\", 1.0)) < 0.05]\n        dims: List[int] = []\n        for r in (top_rows or []):\n            try:\n                dims.append(int(r.get(\"dimension\", 0)))\n            except (TypeError, ValueError) as exc:\n                note_failure(\"chorus:L90\", exc)\n        best = None\n        if top_rows:\n            try:\n                best = max(float(f) for r in top_rows if (f := r.get(\"fitness\")) is not None)\n            except (TypeError, ValueError) as exc:\n                note_failure(\"chorus:L96\", exc)\n                best = None\n        return cls(holdout, pinned, flat, starved, dims, best)",
    "status": "accepted_gap",
    "disposition": "ACCEPT-GAP"
   },
@@ -718,7 +718,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -730,7 +730,7 @@
   "communication:IPCBridge.create_channel": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 175,
+   "line": 185,
    "module": "communication",
    "qualname": "IPCBridge.create_channel",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -749,7 +749,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -761,7 +761,7 @@
   "communication:IPCBridge.receive": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 190,
+   "line": 200,
    "module": "communication",
    "qualname": "IPCBridge.receive",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -798,7 +798,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -840,7 +840,7 @@
     "also defined by: EventBus, EventRouter, MemoryBus"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'subscribe' in 6 file(s) [src/AOA/test_benchmark_workflow.py, src/AOA/test_cross_arm.py, src/CORE/Agent.py, src/CORE/MemoryBus.py, src/CORE/WORMS/INFERENCE_SUBSCRIBER.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'subscribe' in 7 file(s) [src/AOA/test_benchmark_workflow.py, src/AOA/test_cross_arm.py, src/CORE/Agent.py, src/CORE/LaneMessageBoard.py, src/CORE/MemoryBus.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:536",
     "src/CORE/worm_governance.py:373",
@@ -860,7 +860,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -873,7 +873,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1201"
    ],
-   "line": 240,
+   "line": 253,
    "module": "communication",
    "qualname": "ProtocolNegotiator.deserialize",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
@@ -892,7 +892,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -907,7 +907,7 @@
     "src/CORE/worm_governance.py:373",
     "src/CORE/worm_registry.py:1170"
    ],
-   "line": 219,
+   "line": 229,
    "module": "communication",
    "qualname": "ProtocolNegotiator.negotiate",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:387, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
@@ -919,7 +919,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:538",
     "src/CORE/worm_registry.py:1172"
    ],
-   "line": 216,
+   "line": 226,
    "module": "communication",
    "qualname": "ProtocolNegotiator.register_peer",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
@@ -930,11 +930,11 @@
    "evidence": [
     "src/CORE/worm_registry.py:1201"
    ],
-   "line": 234,
+   "line": 244,
    "module": "communication",
    "qualname": "ProtocolNegotiator.serialize",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def serialize(self, data: Any, protocol: str) -> bytes:\n        if protocol == \"msgpack\":\n            import msgpack\n            return msgpack.dumps(data)\n        return json.dumps(data).encode()",
+   "seg": "def serialize(self, data: Any, protocol: str) -> bytes:\n        if protocol == \"msgpack\":\n            import msgpack\n            packed = msgpack.dumps(data)\n            if packed is None:\n                raise TypeError(\"msgpack.dumps returned None\")\n            return packed\n        return json.dumps(data).encode()",
    "status": "dispatched"
   },
   "communication:RPCEndpoint.__init__": {
@@ -949,7 +949,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -977,7 +977,7 @@
   },
   "communication:RPCEndpoint.list_methods": {
    "evidence": [],
-   "line": 118,
+   "line": 124,
    "module": "communication",
    "qualname": "RPCEndpoint.list_methods",
    "reason": "U3 surgery 2026-10-01: the only production string reference lived in NATURE_CLUSTERS._SAFE_METHODS, deleted with the taxonomy (D1). No live caller probes these methods; the methods themselves still exist on their worms. Rewire or delete per future need.",
@@ -989,7 +989,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:538",
     "src/CORE/worm_registry.py:1172"
    ],
-   "line": 99,
+   "line": 105,
    "module": "communication",
    "qualname": "RPCEndpoint.register_method",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1008,7 +1008,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1023,11 +1023,11 @@
     "src/CORE/worm_governance.py:373",
     "src/CORE/worm_registry.py:1170"
    ],
-   "line": 138,
+   "line": 144,
    "module": "communication",
    "qualname": "WebhookRelay.deliver",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:386, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def deliver(self, name: str, payload: dict, max_retries: int = 3) -> dict[str, Any]:\n        \"\"\"Deliver a webhook payload with retry.\"\"\"\n        hook = self._hooks.get(name)\n        if not hook:\n            return {\"success\": False, \"error\": \"Webhook not registered\"}\n        data = json.dumps(payload).encode()\n        for attempt in range(max_retries):\n            try:\n                req = urllib.request.Request(hook[\"url\"], data=data,\n                    headers={\"Content-Type\": \"application/json\"})\n                with urllib.request.urlopen(req, timeout=10) as resp:\n                    with self._lock:\n                        hook[\"deliveries\"] += 1\n                    return {\"success\": True, \"status\": resp.status, \"attempt\": attempt + 1}\n            except Exception as e:\n                note_failure(\"communication:L139\", e)\n                if attempt == max_retries - 1:\n                    with self._lock:\n                        hook[\"failures\"] += 1\n                    return {\"success\": False, \"error\": str(e), \"attempts\": attempt + 1}\n                time.sleep(2 ** attempt)",
+   "seg": "def deliver(self, name: str, payload: dict, max_retries: int = 3) -> dict[str, Any]:\n        \"\"\"Deliver a webhook payload with retry.\"\"\"\n        hook = self._hooks.get(name)\n        if not hook:\n            return {\"success\": False, \"error\": \"Webhook not registered\"}\n        data = json.dumps(payload).encode()\n        for attempt in range(max_retries):\n            try:\n                req = urllib.request.Request(hook[\"url\"], data=data,\n                    headers={\"Content-Type\": \"application/json\"})\n                with urllib.request.urlopen(req, timeout=10) as resp:\n                    with self._lock:\n                        hook[\"deliveries\"] += 1\n                    return {\"success\": True, \"status\": resp.status, \"attempt\": attempt + 1}\n            except Exception as e:\n                note_failure(\"communication:L139\", e)\n                if attempt == max_retries - 1:\n                    with self._lock:\n                        hook[\"failures\"] += 1\n                    return {\"success\": False, \"error\": str(e), \"attempts\": attempt + 1}\n                time.sleep(2 ** attempt)\n\n        # Unreachable when max_retries >= 1 (every attempt returns); covers the\n        # max_retries <= 0 degenerate case so all paths return a dict.\n        return {\"success\": False, \"error\": \"no delivery attempts made\", \"attempts\": 0}",
    "status": "dispatched"
   },
   "communication:WebhookRelay.get_summary": {
@@ -1042,7 +1042,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1055,7 +1055,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1197"
    ],
-   "line": 134,
+   "line": 140,
    "module": "communication",
    "qualname": "WebhookRelay.register_webhook",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1139), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1150,7 +1150,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1171,7 +1171,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1209,7 +1209,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1230,7 +1230,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1286,7 +1286,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1307,7 +1307,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1338,7 +1338,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1359,7 +1359,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1400,7 +1400,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1421,7 +1421,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1497,7 +1497,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1529,7 +1529,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1550,7 +1550,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1583,7 +1583,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1604,7 +1604,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1637,7 +1637,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -1747,7 +1747,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1768,7 +1768,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1789,7 +1789,7 @@
     "also defined by: ActivationRouterWorm, GateBash, SparseMoE"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'gate' in 27 file(s) [scripts/code_evo_pilot.py, scripts/diagnose_margin_gate.py, scripts/evolution_cycle.py, scripts/tensor_gate_ab.py, src/CORE/WORMS/expansion/cutting_edge_model.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'gate' in 28 file(s) [scripts/code_evo_pilot.py, scripts/diagnose_margin_gate.py, scripts/evolution_cycle.py, scripts/technique_heartbeat.py, scripts/tensor_gate_ab.py]; module-linked: no",
    "evidence": [
     "scripts/code_evo_pilot.py:250",
     "scripts/code_evo_pilot.py:270",
@@ -1819,7 +1819,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1840,7 +1840,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1883,7 +1883,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1904,7 +1904,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1946,7 +1946,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -1967,7 +1967,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -1988,7 +1988,7 @@
     "also defined by: FusionCore"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'fuse' in 2 file(s) [src/ORCHESTRATION/ADLP_FusionCore.py, src/ORCHESTRATION/SelfImprovingGUI.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'fuse' in 2 file(s) [src/ORCHESTRATION/ADLP_FusionCore.py, src/ORCHESTRATION/SelfImprovingGUI.py]; module-linked: yes",
    "evidence": [
     "src/ORCHESTRATION/ADLP_FusionCore.py:151",
     "src/ORCHESTRATION/ADLP_FusionCore.py:63"
@@ -2017,7 +2017,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2058,7 +2058,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -2099,7 +2099,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2120,7 +2120,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2141,7 +2141,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2162,7 +2162,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2198,7 +2198,7 @@
     "also defined by: Genome, _Rand"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'vector' in 3 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'vector' in 5 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/CORE/arxiv_integration.py, src/CORE/orkg_integration.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/dendrite.py:145"
    ],
@@ -2216,7 +2216,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2237,7 +2237,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -2258,7 +2258,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2279,7 +2279,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2300,7 +2300,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -2321,7 +2321,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2342,7 +2342,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2363,7 +2363,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2384,7 +2384,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -2449,7 +2449,7 @@
    "module": "evidence",
    "qualname": "evidence_from_rows",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evidence.py:38), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def evidence_from_rows(rows: Any, margin_key: str = \"margin\",\n                       era_key: str = \"pool_id\", threshold: float = 0.75,\n                       **kwargs) -> EraEvidence:\n    \"\"\"Build a Cranium from `evolution_result` rows.\n\n    Rows are the artifacts the pipeline already writes, so this needs no new\n    logging. A row without a usable margin or era is skipped, not fatal.\n    \"\"\"\n    ev = EraEvidence(threshold=threshold, **kwargs)\n    for row in rows or ():\n        data = row\n        if hasattr(row, \"get\") and \"data\" in row:\n            data = row.get(\"data\") or {}\n        if isinstance(data, str):\n            try:\n                data = json.loads(data)\n            except Exception as exc:\n                note_failure(\"evidence:L263\", exc)\n                continue\n        if not isinstance(data, dict):\n            continue\n        margin = data.get(margin_key)\n        if margin is None:\n            try:\n                margin = float(data.get(\"best_total\")) - float(data.get(\"baseline\"))\n            except (TypeError, ValueError) as exc:\n                note_failure(\"evidence:L271\", exc)\n                continue\n        ev.observe(str(data.get(era_key, \"unknown\")), margin)\n    return ev",
+   "seg": "def evidence_from_rows(rows: Any, margin_key: str = \"margin\",\n                       era_key: str = \"pool_id\", threshold: float = 0.75,\n                       **kwargs) -> EraEvidence:\n    \"\"\"Build a Cranium from `evolution_result` rows.\n\n    Rows are the artifacts the pipeline already writes, so this needs no new\n    logging. A row without a usable margin or era is skipped, not fatal.\n    \"\"\"\n    ev = EraEvidence(threshold=threshold, **kwargs)\n    for row in rows or ():\n        data = row\n        if hasattr(row, \"get\") and \"data\" in row:\n            data = row.get(\"data\") or {}\n        if isinstance(data, str):\n            try:\n                data = json.loads(data)\n            except Exception as exc:\n                note_failure(\"evidence:L263\", exc)\n                continue\n        if not isinstance(data, dict):\n            continue\n        margin = data.get(margin_key)\n        if margin is None:\n            try:\n                best_total = data.get(\"best_total\")\n                baseline = data.get(\"baseline\")\n                if best_total is None or baseline is None:\n                    raise TypeError(\"missing best_total/baseline for margin\")\n                margin = float(best_total) - float(baseline)\n            except (TypeError, ValueError) as exc:\n                note_failure(\"evidence:L271\", exc)\n                continue\n        ev.observe(str(data.get(era_key, \"unknown\")), margin)\n    return ev",
    "status": "dispatched"
   },
   "evolution:EvolutionEngine.get_generation_history": {
@@ -2685,7 +2685,7 @@
    "module": "exmachina_operators",
    "qualname": "operator_report",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:91), so a static caller cannot exist; wire it explicitly or delete it",
-   "seg": "def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = None,\n                    target: str = \"margin\", check: Optional[str] = None,\n                    max_features: int = 6, max_cond: int = 1) -> Dict[str, Any]:\n    \"\"\"Exercise every operator organ against real rows, never raising.\n\n    Each organ reports a MEASURED quantity (edges found, recall accuracy,\n    routing entropy, holdout error) rather than a claim of readiness.\n\n    `max_features`/`max_cond` are budgets, not preferences: PC conditions on\n    every subset of a node's neighbours up to `max_cond`, so the test count\n    grows combinatorially. Uncapped, RADIX on the fifteen auto-detected\n    columns runs tens of thousands of partial-correlation solves and would\n    stall a 30-second refresh loop.\n    \"\"\"\n    out: Dict[str, Any] = {}\n    keys = list(features or [])[:max(1, int(max_features))]\n    needed = keys + ([target] if target else [])\n    with_check = needed + ([check] if check else [])\n\n    def _numeric(row: dict) -> Dict[str, float]:\n        got: Dict[str, float] = {}\n        for k, v in row.items():\n            if isinstance(v, bool):\n                continue\n            try:\n                f = float(v)\n            except (TypeError, ValueError) as exc:\n                note_failure(\"exmachina_operators:L1036\", exc)\n                continue\n            if math.isfinite(f):\n                got[k] = f\n        return got\n\n    all_rows = [_numeric(r) for r in (rows or []) if isinstance(r, dict)]\n\n    def _columns(req: Sequence[str]) -> Dict[str, List[float]]:\n        \"\"\"Column lists built ONLY from rows that carry every required key.\n\n        Row alignment is the whole point. Building each column independently\n        across a sparse field -- the check flag exists on 15 rows out of 120\n        -- pairs one key's values with a DIFFERENT row's, so every\n        correlation computed afterwards describes a dataset that never\n        existed. Complete-case subsets are the honest alternative, and the\n        count is reported rather than hidden.\n        \"\"\"\n        cols: Dict[str, List[float]] = {k: [] for k in req}\n        if not req:\n            return cols\n        for got in all_rows:\n            if all(k in got for k in req):\n                for k in req:\n                    cols[k].append(got[k])\n        return cols\n\n    data = _columns(with_check)\n    model_data = _columns(needed)\n    n = min((len(v) for v in data.values()), default=0)\n    n_models = min((len(v) for v in model_data.values()), default=0)\n    out[\"n_rows\"] = len(all_rows)\n    out[\"n_complete\"] = n\n    out[\"n_complete_models\"] = n_models\n\n    # RADIX\n    if keys and n >= 12:\n        pairs = {k: v[:n] for k, v in data.items() if len(v) >= n}\n        try:\n            out[\"radix\"] = discover(pairs, target=target if target in pairs else None,\n                                    check=check if check in pairs else None,\n                                    max_cond=max_cond)\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1078\", exc)\n            out[\"radix\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n    else:\n        out[\"radix\"] = {\"note\": \"need >=12 rows and >=1 numeric predictor\"}\n\n    # VELA\n    try:\n        hdc = HDC(dim=512)\n        out[\"vela\"] = hdc.selftest(n_items=24, n_queries=12)\n    except Exception as exc:\n        note_failure(\"exmachina_operators:L1087\", exc)\n        out[\"vela\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n\n    # NEXUS + OPUS + NAVIS on the real series when there is enough of it.\n    # These use the MODEL subset, not the RADIX subset: they do not need the\n    # check column, and requiring it silently cut them from 120 rows to 15.\n    if keys and n_models >= 16:\n        nm = n_models\n        X = [[model_data[k][i] for k in keys] for i in range(nm)]\n        y = model_data.get(target, [0.0] * nm)[:nm]\n        split = max(4, int(nm * 0.7))\n        try:\n            moe = SparseMoE(n_experts=min(4, len(keys) + 1), top_k=2).fit(X[:split], y[:split])\n            pred = moe.predict(X[split:])\n            err = [abs(pred[i] - y[split + i]) for i in range(len(pred))]\n            moe_rep = moe.report(X)\n            moe_rep[\"holdout_mae\"] = round(sum(err) / len(err), 4) if err else None\n            out[\"nexus\"] = moe_rep\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1105\", exc)\n            out[\"nexus\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            kan = KAN(n_in=len(keys), n_grid=5).fit(X[:split], y[:split])\n            kp = kan.predict(X[split:])\n            kerr = [abs(kp[i] - y[split + i]) for i in range(len(kp))]\n            krep = kan.report()\n            krep[\"holdout_mae\"] = round(sum(kerr) / len(kerr), 4) if kerr else None\n            out[\"opus\"] = krep\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1114\", exc)\n            out[\"opus\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            esn = EchoState(n_in=len(keys), n_res=32, seed=7)\n            esn.fit(X[:split], y[:split], washout=2, ridge=1e-2)\n            ep = esn.predict(X[split:], washout=2)\n            eerr = [abs(ep[i] - y[split + i]) for i in range(min(len(ep), max(0, nm - split)))]\n            out[\"navis\"] = {\"n_res\": esn.n_res, \"spectral_radius\": esn.spectral_radius,\n                            \"trained\": esn.readout is not None,\n                            \"holdout_mae\": round(sum(eerr) / len(eerr), 4) if eerr else None}\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1124\", exc)\n            out[\"navis\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            bo = TrustRegionBO({k: (min(data[k]), max(data[k])) for k in keys})\n            for i in range(min(split, 30)):\n                bo.tell(X[i], y[i])\n            out[\"catena\"] = bo.report()\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1131\", exc)\n            out[\"catena\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n    else:\n        for k in (\"nexus\", \"opus\", \"navis\", \"catena\"):\n            out[k] = {\"note\": \"need >=16 rows and numeric predictors\"}\n\n    # LIMEN always available (it ranks whatever it is given)\n    out[\"limen\"] = {\"items\": 0, \"note\": \"call rank_candidates() with the evidence set\"}\n    return out",
+   "seg": "def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = None,\n                    target: str = \"margin\", check: Optional[str] = None,\n                    max_features: int = 6, max_cond: int = 1) -> Dict[str, Any]:\n    \"\"\"Exercise every operator organ against real rows, never raising.\n\n    Each organ reports a MEASURED quantity (edges found, recall accuracy,\n    routing entropy, holdout error) rather than a claim of readiness.\n\n    `max_features`/`max_cond` are budgets, not preferences: PC conditions on\n    every subset of a node's neighbours up to `max_cond`, so the test count\n    grows combinatorially. Uncapped, RADIX on the fifteen auto-detected\n    columns runs tens of thousands of partial-correlation solves and would\n    stall a 30-second refresh loop.\n    \"\"\"\n    out: Dict[str, Any] = {}\n    keys = list(features or [])[:max(1, int(max_features))]\n    needed = keys + ([target] if target else [])\n    with_check = needed + ([check] if check else [])\n\n    def _numeric(row: dict) -> Dict[str, float]:\n        got: Dict[str, float] = {}\n        for k, v in row.items():\n            if isinstance(v, bool):\n                continue\n            try:\n                f = float(v)\n            except (TypeError, ValueError) as exc:\n                note_failure(\"exmachina_operators:L1036\", exc)\n                continue\n            if math.isfinite(f):\n                got[k] = f\n        return got\n\n    all_rows = [_numeric(r) for r in (rows or []) if isinstance(r, dict)]\n\n    def _columns(req: Sequence[str]) -> Dict[str, List[float]]:\n        \"\"\"Column lists built ONLY from rows that carry every required key.\n\n        Row alignment is the whole point. Building each column independently\n        across a sparse field -- the check flag exists on 15 rows out of 120\n        -- pairs one key's values with a DIFFERENT row's, so every\n        correlation computed afterwards describes a dataset that never\n        existed. Complete-case subsets are the honest alternative, and the\n        count is reported rather than hidden.\n        \"\"\"\n        cols: Dict[str, List[float]] = {k: [] for k in req}\n        if not req:\n            return cols\n        for got in all_rows:\n            if all(k in got for k in req):\n                for k in req:\n                    cols[k].append(got[k])\n        return cols\n\n    data = _columns(with_check)\n    model_data = _columns(needed)\n    n = min((len(v) for v in data.values()), default=0)\n    n_models = min((len(v) for v in model_data.values()), default=0)\n    out[\"n_rows\"] = len(all_rows)\n    out[\"n_complete\"] = n\n    out[\"n_complete_models\"] = n_models\n\n    # RADIX\n    if keys and n >= 12:\n        pairs: Dict[str, Sequence[float]] = {k: v[:n] for k, v in data.items() if len(v) >= n}\n        try:\n            out[\"radix\"] = discover(pairs, target=target if target in pairs else None,\n                                    check=check if check in pairs else None,\n                                    max_cond=max_cond)\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1078\", exc)\n            out[\"radix\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n    else:\n        out[\"radix\"] = {\"note\": \"need >=12 rows and >=1 numeric predictor\"}\n\n    # VELA\n    try:\n        hdc = HDC(dim=512)\n        out[\"vela\"] = hdc.selftest(n_items=24, n_queries=12)\n    except Exception as exc:\n        note_failure(\"exmachina_operators:L1087\", exc)\n        out[\"vela\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n\n    # NEXUS + OPUS + NAVIS on the real series when there is enough of it.\n    # These use the MODEL subset, not the RADIX subset: they do not need the\n    # check column, and requiring it silently cut them from 120 rows to 15.\n    if keys and n_models >= 16:\n        nm = n_models\n        X = [[model_data[k][i] for k in keys] for i in range(nm)]\n        y = model_data.get(target, [0.0] * nm)[:nm]\n        split = max(4, int(nm * 0.7))\n        try:\n            moe = SparseMoE(n_experts=min(4, len(keys) + 1), top_k=2).fit(X[:split], y[:split])\n            pred = moe.predict(X[split:])\n            err = [abs(pred[i] - y[split + i]) for i in range(len(pred))]\n            moe_rep = moe.report(X)\n            moe_rep[\"holdout_mae\"] = round(sum(err) / len(err), 4) if err else None\n            out[\"nexus\"] = moe_rep\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1105\", exc)\n            out[\"nexus\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            kan = KAN(n_in=len(keys), n_grid=5).fit(X[:split], y[:split])\n            kp = kan.predict(X[split:])\n            kerr = [abs(kp[i] - y[split + i]) for i in range(len(kp))]\n            krep = kan.report()\n            krep[\"holdout_mae\"] = round(sum(kerr) / len(kerr), 4) if kerr else None\n            out[\"opus\"] = krep\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1114\", exc)\n            out[\"opus\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            esn = EchoState(n_in=len(keys), n_res=32, seed=7)\n            esn.fit(X[:split], y[:split], washout=2, ridge=1e-2)\n            ep = esn.predict(X[split:], washout=2)\n            eerr = [abs(ep[i] - y[split + i]) for i in range(min(len(ep), max(0, nm - split)))]\n            out[\"navis\"] = {\"n_res\": esn.n_res, \"spectral_radius\": esn.spectral_radius,\n                            \"trained\": esn.readout is not None,\n                            \"holdout_mae\": round(sum(eerr) / len(eerr), 4) if eerr else None}\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1124\", exc)\n            out[\"navis\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n        try:\n            bo = TrustRegionBO({k: (min(data[k]), max(data[k])) for k in keys})\n            for i in range(min(split, 30)):\n                bo.tell(X[i], y[i])\n            out[\"catena\"] = bo.report()\n        except Exception as exc:\n            note_failure(\"exmachina_operators:L1131\", exc)\n            out[\"catena\"] = {\"error\": \"%s: %s\" % (type(exc).__name__, exc)}\n    else:\n        for k in (\"nexus\", \"opus\", \"navis\", \"catena\"):\n            out[k] = {\"note\": \"need >=16 rows and numeric predictors\"}\n\n    # LIMEN always available (it ranks whatever it is given)\n    out[\"limen\"] = {\"items\": 0, \"note\": \"call rank_candidates() with the evidence set\"}\n    return out",
    "status": "dispatched"
   },
   "exmachina_operators:rank_candidates": {
@@ -2721,7 +2721,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2761,7 +2761,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2792,7 +2792,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2813,7 +2813,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -2834,7 +2834,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -2875,7 +2875,7 @@
     "also defined by: ASTAntiPatternScanner, AgentHealthReporter, AlertEscalator"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -2917,7 +2917,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -2980,7 +2980,7 @@
     "tests/test_learning_worms.py:740"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'extract_features_and_labels' in 1 file(s) [src/CORE/NeuralPipeline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'extract_features_and_labels' in 2 file(s) [scripts/run_training_orchestrator.py, src/CORE/NeuralPipeline.py]; module-linked: yes",
    "link_evidence": "C:/Azazael/azazael/src/CORE/NeuralPipeline.py:233 calls SchemaAwareFeatureExtractor",
    "link_kind": "module"
   },
@@ -3010,7 +3010,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3030,7 +3030,7 @@
     "also defined by: ASTAntiPatternScanner, AgentHealthReporter, AlertEscalator"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3051,7 +3051,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3079,7 +3079,7 @@
   "learning_grpo:GRPOTrainer.replay_offline_step": {
    "module": "learning_grpo",
    "qualname": "GRPOTrainer.replay_offline_step",
-   "line": 472,
+   "line": 604,
    "seg": "def replay_offline_step(self, prefix: dict | None = None) -> dict:\n        \"\"\"Update the policy from a replayed prefix - no environment runs.\n\n        Steps are grouped by context_key and each group goes through the\n        ordinary update_policy, so the offline path reuses the live one\n        rather than forking a second trainer whose gradient nothing compares.\n        \"\"\"\n        if prefix is None:\n            buffered = self.replay_batch(1)\n            prefix = buffered[0] if buffered else None\n        if not prefix:\n            return {\"updated\": False, \"reason\": \"no buffered prefix\"}\n        by_ctx: dict[str, list[dict]] = {}\n        for step in prefix.get(\"steps\", []) or []:\n            by_ctx.setdefault(step.get(\"context_key\", \"default\"), []).append(step)\n        results = {}\n        for ctx, steps in by_ctx.items():\n            results[ctx] = self.update_policy(\n                [s[\"worm\"] for s in steps],\n                [float(s.get(\"reward\", 0.0)) for s in steps],\n                context_key=ctx, record_replay=False)\n        return {\"updated\": True, \"contexts\": results,\n                \"n_steps\": sum(len(s) for s in by_ctx.values())}",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -3090,6 +3090,22 @@
     "tests/test_grpo_sota_rows.py:78"
    ],
    "disposition": "ACCEPT-GAP"
+  },
+  "learning_grpo:GRPOTrainer.snapshot_anchor": {
+   "module": "learning_grpo",
+   "qualname": "GRPOTrainer.snapshot_anchor",
+   "line": 691,
+   "seg": "def snapshot_anchor(self, label: str = \"\") -> dict:\n        \"\"\"Freeze the current policy tables as a named anchor reference set.\n\n        Training-structure accommodation, EP360 anchor half (Oct-10): the\n        mixed-objective step the delta names stays deferred (no weight-space\n        host), but the anchor snapshots it would compare against now exist:\n        a deep copy of every context policy, timestamped and capped at 20.\n        Read-only w.r.t. training; never mutates the live policy.\n        \"\"\"\n        with self._lock:\n            snap = {ctx: dict(pol) for ctx, pol in self._policy.items()}\n            self._anchors.append({\"label\": str(label or \"anchor\"),\n                                  \"policies\": snap,\n                                  \"timestamp\": time.time()})\n            self._anchors = self._anchors[-20:]\n            n = len(self._anchors)\n        return {\"anchored\": True, \"label\": str(label or \"anchor\"),\n                \"n_contexts\": len(snap), \"n_anchors\": n}",
+   "status": "pending",
+   "reason": "",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_grpo_sota_rows.py:127"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_grpo_sota_rows.py:127"
+   ]
   },
   "learning_pipeline:DataPipelineWorm.ablate_sources": {
    "module": "learning_pipeline",
@@ -3116,7 +3132,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3201,7 +3217,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3435,7 +3451,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3467,7 +3483,7 @@
   "learning_versioner:pareto_retain": {
    "module": "learning_versioner",
    "qualname": "pareto_retain",
-   "line": 240,
+   "line": 244,
    "seg": "def pareto_retain(candidates, metrics_key=\"metrics\"):\n    \"\"\"Pareto retention filter over version candidates (EP234, set half).\n\n    candidates: [{..., metrics: {obj: float}}], all objectives maximized.\n    Returns {\"retained\", \"dominated\"} (version strings). Wiring this into\n    register_model as the retention predicate (collapsing EP228/EP234/EP462)\n    stays deferred: admission policy needs coordinator approval.\n    \"\"\"\n    vecs = {}\n    for c in candidates or []:\n        m = (c or {}).get(metrics_key, {}) or {}\n        try:\n            vecs[str(c.get(\"version\", \"?\"))] = [float(v) for v in m.values()]\n        except (TypeError, ValueError) as exc:\n            note_failure(\"expansion/learning_versioner:253\", exc)\n            continue\n    names = list(vecs)\n    retained: list = []\n    dominated: list = []\n    for a in names:\n        beaten = False\n        for b in names:\n            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:\n                continue\n            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))\n                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):\n                beaten = True\n                break\n        (dominated if beaten else retained).append(a)\n    return {\"retained\": retained, \"dominated\": dominated}",
    "status": "retired",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -3515,7 +3531,7 @@
    "decider_evidence": [
     "tests/test_proteus_organs.py:551"
    ],
-   "line": 320,
+   "line": 323,
    "module": "loom",
    "qualname": "descriptors_from_archive",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -3526,11 +3542,11 @@
   "mesh:MeshRouterWorm.invalidate_route": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 278,
+   "line": 280,
    "module": "mesh",
    "qualname": "MeshRouterWorm.invalidate_route",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def invalidate_route(self, dst_env: str, reason: str = \"\") -> Dict[str, Any]:\n        \"\"\"Discount the learned penalty on one route, because its cause is fixed.\n\n        A deprioritised route is never re-chosen, so it never produces the\n        successes that would raise it: a penalty outlives its cause and is\n        self-sustaining. This is the explicit act that breaks the loop, and it\n        belongs at the ROUTER level rather than in a repair script, because the\n        learned state is the router's and a standalone scheduled script has no\n        import path to `spine_registry` to reach it.\n\n        Called by whoever fixed the fault. Halves evidence rather than zeroing\n        it: `route:windows>wsl2-ubuntu` sat below neutral on 30 failures at\n        exactly 8000ms -- a timeout signature belonging to the sync path bug\n        fixed in commit 56c15679 -- and that history was true when recorded.\n        \"\"\"\n        try:\n            from CORE import spine_registry as _spine\n            return _spine.invalidate_q(f\"route:{self._env}>{dst_env}\",\n                                       reason or f\"route repair: {dst_env}\")\n        except Exception as exc:\n            note_failure(\"mesh:L277\", exc)\n            return {\"success\": False, \"error\": str(exc)[:120]}",
+   "seg": "def invalidate_route(self, dst_env: str, reason: str = \"\") -> dict[str, Any]:\n        \"\"\"Discount the learned penalty on one route, because its cause is fixed.\n\n        A deprioritised route is never re-chosen, so it never produces the\n        successes that would raise it: a penalty outlives its cause and is\n        self-sustaining. This is the explicit act that breaks the loop, and it\n        belongs at the ROUTER level rather than in a repair script, because the\n        learned state is the router's and a standalone scheduled script has no\n        import path to `spine_registry` to reach it.\n\n        Called by whoever fixed the fault. Halves evidence rather than zeroing\n        it: `route:windows>wsl2-ubuntu` sat below neutral on 30 failures at\n        exactly 8000ms -- a timeout signature belonging to the sync path bug\n        fixed in commit 56c15679 -- and that history was true when recorded.\n        \"\"\"\n        try:\n            from CORE import spine_registry as _spine\n            return _spine.invalidate_q(f\"route:{self._env}>{dst_env}\",\n                                       reason or f\"route repair: {dst_env}\")\n        except Exception as exc:\n            note_failure(\"mesh:L277\", exc)\n            return {\"success\": False, \"error\": str(exc)[:120]}",
    "status": "retired"
   },
   "meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation": {
@@ -3562,7 +3578,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -3574,7 +3590,7 @@
   "meta_cognition:MetaCognitionWorm.recent_dialectics": {
    "module": "meta_cognition",
    "qualname": "MetaCognitionWorm.recent_dialectics",
-   "line": 860,
+   "line": 862,
    "seg": "def recent_dialectics(self, limit: int = 5) -> list[dict[str, Any]]:\n        \"\"\"The last few exchanges, so the channel has a reader (not write-only).\"\"\"\n        with self._lock:\n            return [dict(d) for d in self._dialectics[-limit:]]",
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/meta_cognition.py:928), so a static caller cannot exist; wire it explicitly or delete it",
@@ -3585,7 +3601,7 @@
   "meta_cognition:internalize": {
    "module": "meta_cognition",
    "qualname": "internalize",
-   "line": 83,
+   "line": 85,
    "seg": "def internalize(observation: dict[str, Any], *, worm: str = \"global\",\n                persist: bool = False, store: Any = None) -> dict[str, Any]:\n    \"\"\"Run analyse -> recommend -> adapt over one observation (EP435).\n\n    EP435's fourth phase is Internalize (Explore -> Evaluate -> Reflect ->\n    Internalize). This engine already had Evaluate (`analyze_patterns`), Reflect\n    (`recommend_from_evidence`) and Adapt (`adapt_strategy`) -- and nothing ran\n    the three in sequence, so the technique existed as parts with no chain. This\n    is that chain, in one fail-open call.\n\n    The confidence gate is the engine's own `ADOPT_CONFIDENCE`: a recommendation\n    below it is REPORTED but not adopted, so a self-test invocation cannot churn\n    the active strategy on thin evidence.\n\n    Read-mostly by default: `persist=False` builds the engine with persistence\n    disabled, so running this from a self-test never writes a live store. A\n    caller that wants the adaptation remembered passes `persist=True` (or an\n    explicit `store`).\n\n    Args:\n        observation: {\"worm_type\", \"action\", \"outcome\" (required keys of the\n            observe contract), plus optional \"context\", \"duration_ms\",\n            \"error\".\n        worm: fallback worm_type when the observation omits one.\n        persist: allow the engine to read/write persistent state.\n        store: an explicit memory store (overrides `persist`).\n\n    Returns:\n        dict with the chain's verdict: error_rate, recommended, confidence,\n        adopted, strategy, reason. On failure: {\"error\", \"adopted\": False}.\n    \"\"\"\n    try:\n        engine = MetaCognitionWorm(\n            memory_store=(store if store is not None\n                          else (None if persist else _PERSISTENCE_DISABLED)))\n        obs = dict(observation or {})\n        target = str(obs.get(\"worm_type\") or worm)\n        engine.observe(\n            worm_type=target,\n            action=str(obs.get(\"action\", \"unknown\")),\n            outcome=str(obs.get(\"outcome\", \"success\")),\n            context=obs.get(\"context\") or {},\n            duration_ms=float(obs.get(\"duration_ms\", 0.0) or 0.0),\n            error=obs.get(\"error\"),\n        )\n        analysis = engine.analyze_patterns(worm_type=target)\n        rec = engine.recommend_from_evidence(target)\n        recommended = rec.get(\"recommended\")\n        confidence = float(rec.get(\"confidence\", 0.0) or 0.0)\n        adopted = False\n        if recommended and confidence >= engine.ADOPT_CONFIDENCE:\n            engine.adapt_strategy(worm_type=target, recommended=recommended,\n                                  confidence=confidence)\n            adopted = True\n        return {\"engine\": \"meta_cognition\", \"worm_type\": target,\n                \"error_rate\": analysis.get(\"error_rate\"),\n                \"recommended\": recommended, \"confidence\": confidence,\n                \"adopted\": adopted,\n                \"strategy\": engine.get_current_strategy(target),\n                \"reason\": rec.get(\"reason\")}\n    except Exception as exc:\n        note_failure(\"meta_cognition:L110\", exc)\n        return {\"error\": f\"{type(exc).__name__}: {exc}\", \"adopted\": False}",
    "status": "dispatched",
    "reason": "Kept pending: EP435 analyse-recommend-adapt chain, read-mostly, fail-open; needs a production caller.",
@@ -3611,7 +3627,7 @@
     "also defined by: ASTAntiPatternScanner, AtomicCounter, BehavioralGraphAnalyzer"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reset' in 15 file(s) [scripts/run_full_suite.py, src/AOA/core/router.py, src/CODEX/CORE/AUTO_DOWNLOADER.py, src/CORE/WORMS/CONCURRENCY.py, src/CORE/WORMS/expansion/liveness.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reset' in 15 file(s) [scripts/run_full_suite.py, src/AOA/core/router.py, src/CODEX/CORE/AUTO_DOWNLOADER.py, src/CORE/WORMS/expansion/liveness.py, src/CORE/WORMS/expansion/rcpd_early_exit.py]; module-linked: no",
    "evidence": [
     "scripts/reset_guard.py:232",
     "scripts/reset_guard.py:250",
@@ -3631,7 +3647,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -3663,7 +3679,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3694,7 +3710,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -3727,7 +3743,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3759,7 +3775,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -3807,7 +3823,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3828,7 +3844,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -3860,7 +3876,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3891,7 +3907,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -3923,7 +3939,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -3971,7 +3987,7 @@
     "also defined by: _Rand, _VectorIndex"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'vector' in 3 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'vector' in 5 file(s) [src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/dreaming.py, src/CORE/arxiv_integration.py, src/CORE/orkg_integration.py, src/QL_FILE_OPTIMIZER.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/dendrite.py:145"
    ],
@@ -4029,7 +4045,7 @@
   "oracle:FitnessOracle.acquisition": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 265,
+   "line": 269,
    "module": "oracle",
    "qualname": "FitnessOracle.acquisition",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4042,7 +4058,7 @@
     "named by state/adoption_census.json:4389",
     "named by state/adoption_census.json:4403"
    ],
-   "line": 271,
+   "line": 275,
    "module": "oracle",
    "qualname": "FitnessOracle.era_robust_probability",
    "reason": "retired: no calls anywhere in the tree; definition exists but zero references; deleting removes dead code.",
@@ -4053,7 +4069,7 @@
   "oracle:FitnessOracle.overlapping_holdout_uncertainty": {
    "module": "oracle",
    "qualname": "FitnessOracle.overlapping_holdout_uncertainty",
-   "line": 576,
+   "line": 588,
    "seg": "def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],\n                                        y: Sequence[float],\n                                        n_holds: int = 5, holdout_frac: float = 0.3,\n                                        seed: int = 0) -> dict:\n        \"\"\"Overlapping holdout uncertainty for tiny-pool designs.\n\n        Draws n_holds random holdout subsets (each holdout_frac of rows), fits\n        a fresh ensemble on the complement, predicts on the holdout, and returns\n        the variance of holdout predictions plus per-holdout errors. Overlap\n        between holdouts (controlled by seed + random draw) gives more stable\n        estimates than k-fold when the pool is tiny.\n        \"\"\"\n        n = len(X)\n        if n < 4 or n_holds < 2:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"pool too small\"}\n        rng = random.Random(seed)\n        hold_size = max(1, int(n * holdout_frac))\n        hold_size = min(hold_size, n - 1)\n        errors = []\n        for h in range(n_holds):\n            idx = list(range(n))\n            rng.shuffle(idx)\n            hold_idx = set(idx[:hold_size])\n            train_rows = [X[i] for i in range(n) if i not in hold_idx]\n            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]\n            hold_rows = [X[i] for i in range(n) if i in hold_idx]\n            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]\n            if not train_rows or not hold_rows:\n                continue\n            # Fit a fresh ensemble on the train complement\n            try:\n                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,\n                                       self.n_models, self.seed + h)\n                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),\n                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))\n                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)\n                for j, hi in enumerate(sorted(hold_idx)):\n                    errors.append(abs(mean[j] - hold_y[j]))\n            except Exception:\n                continue\n        if not errors:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"all holds failed\"}\n        m = sum(errors) / len(errors)\n        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)\n        return {\"holds\": errors, \"holdout_var\": round(var, 6),\n                \"mean_abs_error\": round(m, 6), \"n_holds\": len(errors),\n                \"note\": \"overlapping holdout protocol (U2)\"}",
    "status": "accepted_gap",
    "reason": "ACCEPT-GAP: reached only by 3 test calls (tests/test_kilo_arxiv_qd.py); no production caller; missing production consumer.",
@@ -4089,7 +4105,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4110,7 +4126,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4131,7 +4147,7 @@
     "also defined by: CPPNGenome, ExperienceReplay, ExperienceReplayBuffer"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'sample' in 17 file(s) [scripts/render_graph_svg.py, scripts/verify_proteus.py, src/CODEX/CORE/emoji_maker.py, src/CORE/WORMS/expansion/chorus.py, src/CORE/WORMS/expansion/cutting_edge_model.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'sample' in 19 file(s) [scripts/motif_census_relations.py, scripts/pattern_catalog.py, scripts/render_graph_svg.py, scripts/verify_proteus.py, src/CODEX/CORE/emoji_maker.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/engram.py:621",
     "src/CORE/WORMS/expansion/profiling.py:245",
@@ -4142,7 +4158,7 @@
   "profiling:CPUFlameProfiler.to_flamegraph_data": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 236,
+   "line": 238,
    "module": "profiling",
    "qualname": "CPUFlameProfiler.to_flamegraph_data",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4161,7 +4177,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4192,7 +4208,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4223,7 +4239,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4236,7 +4252,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1188"
    ],
-   "line": 189,
+   "line": 191,
    "module": "profiling",
    "qualname": "GILContentionProbe.measure_contention",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it",
@@ -4255,7 +4271,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4268,7 +4284,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1186"
    ],
-   "line": 171,
+   "line": 173,
    "module": "profiling",
    "qualname": "IOBottleneckFinder.detect_bottleneck",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it",
@@ -4287,7 +4303,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4311,7 +4327,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/proteus_hooks.py:90"
    ],
-   "line": 770,
+   "line": 774,
    "module": "proteus_hooks",
    "qualname": "morph_dimension_summary",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:80), so a static caller cannot exist; wire it explicitly or delete it",
@@ -4321,7 +4337,7 @@
   "proteus_hooks:morph_policy_refresh": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1219,
+   "line": 1230,
    "module": "proteus_hooks",
    "qualname": "morph_policy_refresh",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4332,7 +4348,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/proteus_hooks.py:87"
    ],
-   "line": 613,
+   "line": 617,
    "module": "proteus_hooks",
    "qualname": "morph_treatment_value",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:77), so a static caller cannot exist; wire it explicitly or delete it",
@@ -4351,7 +4367,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4372,7 +4388,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4439,7 +4455,7 @@
    "decider_evidence": [
     "tests/test_training_orchestrator.py:95"
    ],
-   "line": 1602,
+   "line": 1604,
    "module": "scheduling",
    "qualname": "TrainingOrchestrator.get_run_history",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=test_is_the_wire, triage=test_reached_only.",
@@ -4459,7 +4475,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4475,7 +4491,7 @@
    "module": "security",
    "qualname": "CertMonitor.check_cert",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
-   "seg": "def check_cert(self, hostname: str, port: int = 443) -> dict[str, Any]:\n        \"\"\"Check certificate for a hostname:port.\"\"\"\n        import ssl\n        import socket\n        result = {\"host\": hostname, \"port\": port, \"valid\": False, \"expires_in_days\": -1, \"issuer\": \"\"}\n        try:\n            ctx = ssl.create_default_context()\n            with socket.create_connection((hostname, port), timeout=5) as sock:\n                with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:\n                    cert = ssock.getpeercert()\n                    if cert:\n                        exp_str = cert.get(\"notAfter\", \"\")\n                        if exp_str:\n                            exp_date = datetime.strptime(exp_str, \"%b %d %H:%M:%S %Y %Z\")\n                            days_left = (exp_date - datetime.now()).days\n                            result[\"expires_in_days\"] = days_left\n                            result[\"valid\"] = days_left > 0\n                        result[\"issuer\"] = str(cert.get(\"issuer\", \"\"))\n        except Exception as exc:\n            note_failure(\"security:L151\", exc)\n        with self._lock:\n            self._certs[f\"{hostname}:{port}\"] = result\n        return result",
+   "seg": "def check_cert(self, hostname: str, port: int = 443) -> dict[str, Any]:\n        \"\"\"Check certificate for a hostname:port.\"\"\"\n        import ssl\n        import socket\n        result = {\"host\": hostname, \"port\": port, \"valid\": False, \"expires_in_days\": -1, \"issuer\": \"\"}\n        try:\n            ctx = ssl.create_default_context()\n            with socket.create_connection((hostname, port), timeout=5) as sock:\n                with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:\n                    cert = ssock.getpeercert()\n                    if cert:\n                        exp_str = cert.get(\"notAfter\", \"\")\n                        if exp_str:\n                            exp_date = datetime.strptime(str(exp_str), \"%b %d %H:%M:%S %Y %Z\")\n                            days_left = (exp_date - datetime.now()).days\n                            result[\"expires_in_days\"] = days_left\n                            result[\"valid\"] = days_left > 0\n                        result[\"issuer\"] = str(cert.get(\"issuer\", \"\"))\n        except Exception as exc:\n            note_failure(\"security:L151\", exc)\n        with self._lock:\n            self._certs[f\"{hostname}:{port}\"] = result\n        return result",
    "status": "retired"
   },
   "security:CertMonitor.get_expiring_soon": {
@@ -4500,7 +4516,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4521,7 +4537,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4553,7 +4569,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4574,7 +4590,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4595,7 +4611,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4635,7 +4651,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4667,7 +4683,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4725,7 +4741,7 @@
     "also defined by: FormalVerifier, MathematicalCertaintySystem, PurePythonVerifier"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 19 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 18 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: no",
    "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm",
    "link_kind": "registry"
   },
@@ -4741,7 +4757,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -4762,7 +4778,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -4802,7 +4818,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -4814,7 +4830,7 @@
   "session_state:SessionStateManager.import_snapshots": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 526,
+   "line": 525,
    "module": "session_state",
    "qualname": "SessionStateManager.import_snapshots",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4824,7 +4840,7 @@
   "session_state:SessionStateManager.list_registered": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 199,
+   "line": 198,
    "module": "session_state",
    "qualname": "SessionStateManager.list_registered",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4834,7 +4850,7 @@
   "session_state:SessionStateManager.register_migration": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 209,
+   "line": 208,
    "module": "session_state",
    "qualname": "SessionStateManager.register_migration",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4844,7 +4860,7 @@
   "session_state:SessionStateManager.register_worm_state": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 142,
+   "line": 141,
    "module": "session_state",
    "qualname": "SessionStateManager.register_worm_state",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4855,7 +4871,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/session_state.py:474"
    ],
-   "line": 450,
+   "line": 449,
    "module": "session_state",
    "qualname": "SessionStateManager.restore_all",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/session_state.py:459), so a static caller cannot exist; wire it explicitly or delete it",
@@ -4865,7 +4881,7 @@
   "session_state:SessionStateManager.unregister_worm_state": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 190,
+   "line": 189,
    "module": "session_state",
    "qualname": "SessionStateManager.unregister_worm_state",
    "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
@@ -4897,7 +4913,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3865,
+   "line": 3870,
    "module": "spine",
    "qualname": "MorphogenesisWorm.retrieve_staged",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -4908,12 +4924,10 @@
   "spine:SpineCycleWorm._category_success_rate": {
    "module": "spine",
    "qualname": "SpineCycleWorm._category_success_rate",
-   "line": 2698,
-   "seg": "def _category_success_rate(self, nature: str) -> float | None:\n        return self._category_rates().get(nature)",
+   "line": 2703,
+   "seg": "def _category_success_rate(self, category: str) -> float | None:\n        return self._category_rates().get(category)",
    "status": "retired",
    "reason": "dead helper: superseded by SpineCycleWorm._category_rates() (callers use _category_rates() directly); no production or test reference; retiring per mesh wire-or-cut",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": [],
    "decider": "dead_candidate",
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
@@ -4925,7 +4939,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 4028,
+   "line": 4033,
    "module": "spine",
    "qualname": "measure_skill_lift",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -5168,7 +5182,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5228,7 +5242,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5270,7 +5284,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5301,7 +5315,7 @@
     "also defined by: EventBus, MemoryBus, MessageBroker"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'subscribe' in 6 file(s) [src/AOA/test_benchmark_workflow.py, src/AOA/test_cross_arm.py, src/CORE/Agent.py, src/CORE/MemoryBus.py, src/CORE/WORMS/INFERENCE_SUBSCRIBER.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'subscribe' in 7 file(s) [src/AOA/test_benchmark_workflow.py, src/AOA/test_cross_arm.py, src/CORE/Agent.py, src/CORE/LaneMessageBoard.py, src/CORE/MemoryBus.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:536",
     "src/CORE/worm_governance.py:373",
@@ -5321,7 +5335,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5364,7 +5378,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5425,7 +5439,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5484,7 +5498,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/tensorgene.py:58"
    ],
-   "line": 226,
+   "line": 233,
    "module": "tensorgene",
    "qualname": "dedupe_observations",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it",
@@ -5518,7 +5532,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5552,7 +5566,7 @@
     "also defined by: ActivationRouterWorm, AgentSelectorArm, AlgorithmLabWorm"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 108 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'execute' in 111 file(s) [scripts/_db_rows.py, scripts/_db_shape.py, scripts/_ex_timing.py, scripts/_exmachina_freeze.py, scripts/apply_runtime_baseline.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:107",
     "scripts/_evo_graph_build.py:68",
@@ -5588,7 +5602,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5619,7 +5633,7 @@
     "also defined by: ABTestRunner, ASTAntiPatternScanner, AgentHealthReporter"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 20 file(s) [scripts/gosp_rani_integration.py, scripts/rani_llm_test.py, src/CORE/WORMS/CLUSTERWORMS.py, src/CORE/WORMS/DISKZ.py, src/CORE/WORMS/NETWORXZ.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'get_summary' in 22 file(s) [scripts/gosp_rani_integration.py, scripts/motif_census.py, scripts/rani_llm_test.py, scripts/run_motif_census_bcc.py, src/CORE/WORMS/CLUSTERWORMS.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:532",
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2375",
@@ -5658,7 +5672,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5679,7 +5693,7 @@
     "also defined by: ConflictGraph"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'add_edge' in 18 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'add_edge' in 22 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1209"
    ],
@@ -5697,7 +5711,7 @@
     "also defined by: ConflictGraph"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'add_node' in 16 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'add_node' in 19 file(s) [scripts/bcc_embed_link_sna.py, scripts/bcc_gephi_launcher.py, scripts/bcc_network_sna.py, scripts/bcc_political_court_layer.py, scripts/bcc_pyvis_network.py]; module-linked: no",
    "evidence": [
     "src/CORE/worm_registry.py:1209"
    ],
@@ -5732,7 +5746,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5782,7 +5796,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5827,7 +5841,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5870,7 +5884,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5901,7 +5915,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5932,7 +5946,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -5973,7 +5987,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -6014,7 +6028,7 @@
     "also defined by: ABTestRunner, ADLPClient, AOAState"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 22 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '__init__' in 23 file(s) [src/CODEX/CODEX_Studio.py, src/CODEX/VIDEOS/generate_dashboard_video.py, src/CORE/WORMS/expansion/cutting_edge_model.py, src/CORE/WORMS/expansion/delegation.py, src/CORE/WORMS/expansion/meta_cognition.py]; module-linked: no",
    "evidence": [
     "scripts/_evo_graph_build.py:11",
     "scripts/_evo_graph_build.py:93",
@@ -6035,14 +6049,14 @@
   }
  },
  "triage_counts": {
-  "test_reached_only": 0,
-  "no_reference_anywhere": 1
+  "test_reached_only": 1,
+  "no_reference_anywhere": 0
  },
  "decider_counts": {
   "protocol_or_override": 0,
   "declared_in_data": 0,
-  "dynamic_call": 1,
-  "test_is_the_wire": 0,
+  "dynamic_call": 0,
+  "test_is_the_wire": 1,
   "dead_candidate": 0
  }
 }
