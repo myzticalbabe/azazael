@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCC Splink Record Linkage — September 5, 2026</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9;
+          --h:#f0f6fc; --a:#58a6ff; --g:#3fb950; --y:#ffa657; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--text); line-height:1.55; }
+  header { padding:28px 32px; border-bottom:1px solid var(--border);
+           background:linear-gradient(180deg,#10151d,#0d1117); }
+  h1 { color:var(--h); font-size:1.35rem; }
+  .sub { color:#8b949e; font-size:.9rem; margin-top:6px; }
+  main { max-width:1000px; margin:0 auto; padding:24px 32px; }
+  .stat { display:inline-block; background:var(--card); border:1px solid var(--border);
+          border-radius:10px; padding:14px 20px; margin:0 10px 18px 0; }
+  .stat b { color:var(--h); font-size:1.5rem; display:block; }
+  .stat span { color:#8b949e; font-size:.78rem; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border);
+          vertical-align:top; }
+  th { color:var(--a); font-size:.8rem; text-transform:uppercase;
+       letter-spacing:.06em; }
+  .src { display:inline-block; background:var(--card); border:1px solid var(--border);
+         border-radius:6px; padding:1px 8px; margin-right:8px;
+         color:var(--y); font-size:.75rem; }
+  ul { list-style:none; }
+  li { margin:6px 0; }
+  .note { background:var(--card); border:1px solid var(--border); border-radius:10px;
+          padding:14px 18px; margin:18px 0; color:#8b949e; font-size:.88rem; }
+</style></head><body>
+<header><h1>BCC Record Linkage — splink 4.0 (production)</h1>
+<div class="sub">Probabilistic linkage (DuckDB backend, name + forename-surname
+comparisons) across SNA labels, board roster, dossier, and people-search docs ·
+generated 2026-09-05</div></header>
+<main>
+<div class="stat"><b>71</b><span>person records</span></div>
+<div class="stat"><b>11</b><span>linkage clusters</span></div>
+<div class="stat"><b>0.75</b><span>match threshold</span></div>
+<div class="note"><b>Read:</b> splink assigns each pair a match probability from
+the trained model; clusters group records across sources that the model judges
+the same person (transitive closure at ≥ 0.75). Larger clusters = the
+individual appears under variant names across corpus sources — consolidation
+targets for the dossiers. Runs on the 3.13 tools venv because splink's duckdb
+dependency ships no cp314t wheel.</div>
+<table><thead><tr><th>Cluster</th><th>n</th><th>Records</th></tr></thead>
+<tbody><tr><td>C1</td><td>5</td><td><ul><li><span class="src">dossier</span> Joseph Plageman Jr</li><li><span class="src">sna</span> Joseph Plageman Jr</li><li><span class="src">dossier</span> Joseph Plageman Jr.</li><li><span class="src">dossier</span> Joseph William Plageman</li><li><span class="src">dossier</span> Plageman Jr</li></ul></td></tr><tr><td>C2</td><td>3</td><td><ul><li><span class="src">dossier</span> John Robinson</li><li><span class="src">sna</span> John Robinson</li><li><span class="src">roster</span> Robinson</li></ul></td></tr><tr><td>C3</td><td>3</td><td><ul><li><span class="src">dossier</span> Richard Bromley Jr</li><li><span class="src">sna</span> Richard Bromley Jr</li><li><span class="src">dossier</span> Richard Bromley Jr.</li></ul></td></tr><tr><td>C4</td><td>2</td><td><ul><li><span class="src">dossier</span> Frances Malley</li><li><span class="src">sna</span> Frances Malley</li></ul></td></tr><tr><td>C5</td><td>2</td><td><ul><li><span class="src">dossier</span> Greg Little</li><li><span class="src">sna</span> Greg Little</li></ul></td></tr><tr><td>C6</td><td>2</td><td><ul><li><span class="src">dossier</span> Brenda Gaul</li><li><span class="src">sna</span> Brenda Gaul</li></ul></td></tr><tr><td>C7</td><td>2</td><td><ul><li><span class="src">dossier</span> Deborah Scull</li><li><span class="src">sna</span> Deborah Scull</li></ul></td></tr><tr><td>C8</td><td>2</td><td><ul><li><span class="src">dossier</span> James Brooks</li><li><span class="src">sna</span> James Brooks</li></ul></td></tr><tr><td>C9</td><td>2</td><td><ul><li><span class="src">dossier</span> Jeffrey Ralph</li><li><span class="src">sna</span> Jeffrey Ralph</li></ul></td></tr><tr><td>C10</td><td>2</td><td><ul><li><span class="src">dossier</span> Linda Krause</li><li><span class="src">sna</span> Linda Krause</li></ul></td></tr><tr><td>C11</td><td>2</td><td><ul><li><span class="src">dossier</span> Edward Jones</li><li><span class="src">dossier</span> Edward Jones&#x27;</li></ul></td></tr></tbody></table>
+</main></body></html>

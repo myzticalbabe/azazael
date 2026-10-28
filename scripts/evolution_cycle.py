@@ -80,7 +80,7 @@ def _git_sha():
 
 
 from CORE.WORMS.expansion.evolution import EvolutionEngine
-from CORE.WORMS.expansion.learning import RLTrainLoop
+from CORE.WORMS.expansion.trainers_v2 import RLTrainLoopV2, create_trainer
 from CORE.WORMS.expansion.scheduling import EVAL_EPISODES
 import shutil
 
@@ -99,11 +99,12 @@ MULTI_GENS = 2
 
 # Sources that are pure training/bookkeeping noise (the training loops record
 # their own training_complete / model_registered events back into the store;
-# together RLTrainLoop+ModelVersioner are ~70% of all rows). Excluding them
+# together RLTrainLoop+RLTrainLoopV2+ModelVersioner are ~70% of all rows). Excluding them
 # keeps the eval pools on real worm/production signals instead of the system
 # optimizing against its own feedback loop.
 EXCLUDED_TRAINING_SOURCES = [
     'RLTrainLoop',
+    'RLTrainLoopV2',
     'ModelVersioner',
     'GRPOTrainer',
     'EvolutionEngine',
@@ -168,7 +169,9 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
     parallel speedup from isolated RNG.
     """
     _extra = _trainer_extra_kwargs(genes)
-    loop = RLTrainLoop()
+    # Use new trainer with worm identity for evolution cycle
+    ctx = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_{genome_seed(genes)}")
+    loop = RLTrainLoopV2(ctx)
     info_stats = loop.train_from_memory(
         **_extra,
         n_episodes=N_EPISODES, max_steps=50,
@@ -180,7 +183,9 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
         records=info_pool,
         persist=False,
         rng=rng)
-    alert_stats = RLTrainLoop().train_from_memory(
+    ctx2 = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_alert_{genome_seed(genes)}")
+    loop2 = RLTrainLoopV2(ctx2)
+    alert_stats = loop2.train_from_memory(
         **_extra,
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),

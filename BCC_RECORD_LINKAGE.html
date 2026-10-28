@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCC Record Linkage — September 5, 2026</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9;
+          --h:#f0f6fc; --a:#58a6ff; --g:#3fb950; --y:#ffa657; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--text); line-height:1.55; }
+  header { padding:28px 32px; border-bottom:1px solid var(--border);
+           background:linear-gradient(180deg,#10151d,#0d1117); }
+  h1 { color:var(--h); font-size:1.35rem; }
+  .sub { color:#8b949e; font-size:.9rem; margin-top:6px; }
+  main { max-width:1000px; margin:0 auto; padding:24px 32px; }
+  .stat { display:inline-block; background:var(--card); border:1px solid var(--border);
+          border-radius:10px; padding:14px 20px; margin:0 10px 18px 0; }
+  .stat b { color:var(--h); font-size:1.5rem; display:block; }
+  .stat span { color:#8b949e; font-size:.78rem; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border);
+          vertical-align:top; }
+  th { color:var(--a); font-size:.8rem; text-transform:uppercase;
+       letter-spacing:.06em; }
+  .src { display:inline-block; background:var(--card); border:1px solid var(--border);
+         border-radius:6px; padding:1px 8px; margin-right:8px;
+         color:var(--y); font-size:.75rem; }
+  ul { list-style:none; }
+  li { margin:6px 0; }
+  .note { background:var(--card); border:1px solid var(--border); border-radius:10px;
+          padding:14px 18px; margin:18px 0; color:#8b949e; font-size:.88rem; }
+</style></head><body>
+<header><h1>BCC Record Linkage — Person Dedupe</h1>
+<div class="sub">RapidFuzz token-sort similarity (threshold 82) across
+SNA network persons, dossier name mentions, and the core person roster ·
+generated 2026-09-05</div></header>
+<main>
+<div class="stat"><b>46</b><span>person records</span></div>
+<div class="stat"><b>2</b><span>linkage clusters</span></div>
+<div class="stat"><b>82</b><span>fuzzy threshold</span></div>
+<div class="note"><b>Read:</b> each cluster groups records across sources that
+likely refer to the same person. Cluster size &gt; 1 means the same individual
+appears under variant names — candidate consolidation targets for the dossiers.
+Singletons (no cross-source match) are the least-documented people: review for
+profile gaps. <i>Note: splink (the production-grade linker) is not installable on
+the free-threaded stack — duckdb/igraph ship source-only; RapidFuzz is the fallback.</i>
+</div>
+<table><thead><tr><th>Cluster</th><th>n</th><th>Records</th></tr></thead>
+<tbody><tr><td>C1</td><td>3</td><td><ul><li><span class="src">core</span> Greg Little</li><li><span class="src">dossier</span> Greg Little</li><li><span class="src">dossier</span> Greg Little CFO</li></ul></td></tr><tr><td>C2</td><td>2</td><td><ul><li><span class="src">core</span> Frances Malley</li><li><span class="src">dossier</span> Frances Malley</li></ul></td></tr></tbody></table>
+</main></body></html>

@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-10-28T08:28:40",
+  "requests": {
+    "18": {
+      "agency": "Berks County District Attorney",
+      "subject": "RTKL Request - 15-14644 CCP Berks (Leinbach/MCO)",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_18_Berks_County_District_Attorney.txt"
+    },
+    "34": {
+      "agency": "PA Courts / AOPC",
+      "subject": "RTKL Request - PACFile Access for BCC Dockets",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_34_PA_Courts___AOPC.txt"
+    },
+    "38": {
+      "agency": "Berks County Prothonotary",
+      "subject": "RTKL Request - UCS Docket Search for BCC Entities",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_38_Berks_County_Prothonotary.txt"
+    },
+    "50": {
+      "agency": "DDAP",
+      "subject": "RTKL Request - DDAP Event YQM512 (709.34(c)(2))",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_50_DDAP.txt"
+    },
+    "51": {
+      "agency": "DDAP",
+      "subject": "RTKL Request - 523 vs 350 Authorized Beds (709.14(b)(5))",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_51_DDAP.txt"
+    },
+    "52": {
+      "agency": "DDAP",
+      "subject": "RTKL Request - 2023 Statutory Revocation Ground Citation",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_52_DDAP.txt"
+    },
+    "53": {
+      "agency": "DDAP / CCBH",
+      "subject": "RTKL Request - Facility Out of Compliance (709.31(b))",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_53_DDAP___CCBH.txt"
+    },
+    "57": {
+      "agency": "Reading Eagle / WFMZ",
+      "subject": "RTKL Request - Media Coverage of BCC/Community Care",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_57_Reading_Eagle___WFMZ.txt"
+    },
+    "58": {
+      "agency": "DDAP / Managed Care Organizations",
+      "subject": "RTKL Request - Care-Gap Alert Thresholds / Treatment Duration Settings",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_58_DDAP___Managed_Care_Organizations.txt"
+    },
+    "60": {
+      "agency": "DDAP",
+      "subject": "RTKL Request - Unretrieved DDAP Records",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_60_DDAP.txt"
+    },
+    "61": {
+      "agency": "DDAP / CCBH",
+      "subject": "RTKL Request - 2020 Survey Citing 709.26(b)(3) - 2018 Evaluation",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_61_DDAP___CCBH.txt"
+    },
+    "62": {
+      "agency": "DDAP",
+      "subject": "RTKL Request - Unobtained DDAP Records",
+      "records_count": 3,
+      "filename": "RTKL_BCC_GAP_62_DDAP.txt"
+    }
+  },
+  "gaps_targeted": [
+    18,
+    34,
+    38,
+    50,
+    51,
+    52,
+    53,
+    57,
+    58,
+    60,
+    61,
+    62
+  ]
+}

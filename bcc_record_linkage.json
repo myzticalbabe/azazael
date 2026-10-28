@@ -1,0 +1,30 @@
+{
+ "threshold": 82,
+ "n_nodes": 46,
+ "clusters": [
+  [
+   {
+    "src": "core",
+    "name": "Greg Little"
+   },
+   {
+    "src": "dossier",
+    "name": "Greg Little"
+   },
+   {
+    "src": "dossier",
+    "name": "Greg Little CFO"
+   }
+  ],
+  [
+   {
+    "src": "core",
+    "name": "Frances Malley"
+   },
+   {
+    "src": "dossier",
+    "name": "Frances Malley"
+   }
+  ]
+ ]
+}

@@ -1,0 +1,784 @@
+{
+ "built": "2026-10-27",
+ "standard": "documented-edges-only; no inferred/name-matched edges",
+ "n_nodes": 27,
+ "n_persons": 15,
+ "n_orgs": 12,
+ "n_edges": 68,
+ "nodes": [
+  {
+   "id": "person_plageman",
+   "label": "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_seitz",
+   "label": "Crystal Seitz — Vice Chair (now Chairperson)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_robinson",
+   "label": "John Robinson — Treasurer (as of FY2025 990)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_krause",
+   "label": "Linda Krause — Director",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_gaul",
+   "label": "Brenda Gaul — Director (ex-Treasurer)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_orlando",
+   "label": "Missy Orlando — Director",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_scull",
+   "label": "Deborah Scull — Director",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_brooks",
+   "label": "James Brooks — Director",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_ralph",
+   "label": "Jeffrey Ralph — Director (now Treasurer)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_axford",
+   "label": "Christine Axford — CEO/President (since Jan 2019)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_little",
+   "label": "Greg Little — CFO (since Jan 2019)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_malley",
+   "label": "Frances Malley — former CEO (pre-2019)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_bromley",
+   "label": "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)",
+   "type": "person",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "person_goodman",
+   "label": "Marcia Goodman-Hinnershitz (COCA/Council)",
+   "type": "person",
+   "file": "RECUSAL_EVIDENCE.html"
+  },
+  {
+   "id": "person_himeback",
+   "label": "Linda S. Himeback, CPA (Herbein lead)",
+   "type": "person",
+   "file": "INVESTMENT_PEOPLE_REPORT.html"
+  },
+  {
+   "id": "org_bcc",
+   "label": "Berks Counseling Center (BCC)",
+   "type": "org",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "org_coca",
+   "label": "COCA — Council on Chemical Abuse",
+   "type": "org",
+   "file": "RECUSAL_EVIDENCE.html"
+  },
+  {
+   "id": "org_ej",
+   "label": "Edward Jones (Investments)",
+   "type": "org",
+   "file": "INVESTMENT_PEOPLE_REPORT.html"
+  },
+  {
+   "id": "org_tpuc",
+   "label": "TPUC — PA Universalist Convention",
+   "type": "org",
+   "file": "PEOPLE_DOSSIER.html"
+  },
+  {
+   "id": "org_herbein",
+   "label": "Herbein + Company, Inc. (Auditor/990)",
+   "type": "org",
+   "file": "INVESTMENT_PEOPLE_REPORT.html"
+  },
+  {
+   "id": "org_pershing",
+   "label": "Pershing LLC / BNY Mellon (Custodian)",
+   "type": "org",
+   "file": "INVESTMENT_PEOPLE_REPORT.html"
+  },
+  {
+   "id": "org_court",
+   "label": "PA Superior Court",
+   "type": "org",
+   "file": "fwa_opinion_898_mda_2017.pdf"
+  },
+  {
+   "id": "org_hud",
+   "label": "U.S. Dept of Housing and Urban Development",
+   "type": "org",
+   "file": "govtribe_grants.json"
+  },
+  {
+   "id": "org_nextgen",
+   "label": "NextGen Healthcare (EHR vendor)",
+   "type": "org",
+   "file": "BCC_Annual_Report_24-25.pdf"
+  },
+  {
+   "id": "org_mhdd",
+   "label": "Berks County MH/DD",
+   "type": "org",
+   "file": "BCC_Annual_Report_24-25.pdf"
+  },
+  {
+   "id": "org_cc",
+   "label": "Community Care Behavioral Health",
+   "type": "org",
+   "file": "fwa_opinion_898_mda_2017.pdf"
+  },
+  {
+   "id": "org_council",
+   "label": "Reading City Council",
+   "type": "org",
+   "file": "RECUSAL_EVIDENCE.html"
+  }
+ ],
+ "edges": [
+  {
+   "source": "person_plageman",
+   "target": "person_seitz",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_robinson",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_krause",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_gaul",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_orlando",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_robinson",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_krause",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_gaul",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_orlando",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_krause",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_gaul",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_orlando",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "person_gaul",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "person_orlando",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_gaul",
+   "target": "person_orlando",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_gaul",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_gaul",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_gaul",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_orlando",
+   "target": "person_scull",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_orlando",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_orlando",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_scull",
+   "target": "person_brooks",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_scull",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_brooks",
+   "target": "person_ralph",
+   "kind": "same_board",
+   "evidence": [
+    "FY2025 990 roster",
+    "live site Sep 2026 (PEOPLE_DOSSIER)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_krause",
+   "kind": "co_employment",
+   "evidence": [
+    "PEOPLE_NETWORK_CARD.html",
+    "INVESTMENT_PEOPLE_REPORT.html",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "person_bromley",
+   "kind": "same_org_committee",
+   "evidence": [
+    "PEOPLE_DOSSIER.html",
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "person_axford",
+   "target": "person_little",
+   "kind": "co_executive",
+   "evidence": [
+    "PEOPLE_DOSSIER.html",
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "person_malley",
+   "target": "person_axford",
+   "kind": "succession",
+   "evidence": [
+    "PEOPLE_DOSSIER.html",
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "person_goodman",
+   "target": "person_plageman",
+   "kind": "oversight_relationship",
+   "evidence": [
+    "RECUSAL_EVIDENCE.html (COCA funds BCC; recusal cluster)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_seitz",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_robinson",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_gaul",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_orlando",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_scull",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_brooks",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_ralph",
+   "target": "org_bcc",
+   "kind": "board_member",
+   "evidence": [
+    "FY2025 990 roster",
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_axford",
+   "target": "org_bcc",
+   "kind": "ceo",
+   "evidence": [
+    "PEOPLE_DOSSIER.html",
+    "BCC Annual Report 2024-25"
+   ]
+  },
+  {
+   "source": "person_little",
+   "target": "org_bcc",
+   "kind": "cfo",
+   "evidence": [
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_malley",
+   "target": "org_bcc",
+   "kind": "former_ceo",
+   "evidence": [
+    "PEOPLE_DOSSIER.html"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "org_ej",
+   "kind": "employed",
+   "evidence": [
+    "INVESTMENT_PEOPLE_REPORT.html (CRD #5964768, 918 Penn Ave)"
+   ]
+  },
+  {
+   "source": "person_krause",
+   "target": "org_ej",
+   "kind": "employed",
+   "evidence": [
+    "INVESTMENT_PEOPLE_REPORT.html (Sr Branch Office Admin)"
+   ]
+  },
+  {
+   "source": "person_plageman",
+   "target": "org_tpuc",
+   "kind": "president",
+   "evidence": [
+    "PEOPLE_DOSSIER.html (elected Apr 2026)"
+   ]
+  },
+  {
+   "source": "person_bromley",
+   "target": "org_tpuc",
+   "kind": "advisor",
+   "evidence": [
+    "PEOPLE_DOSSIER.html (Financial Committee advisor)"
+   ]
+  },
+  {
+   "source": "person_goodman",
+   "target": "org_coca",
+   "kind": "director",
+   "evidence": [
+    "RECUSAL_EVIDENCE.html"
+   ]
+  },
+  {
+   "source": "person_goodman",
+   "target": "org_council",
+   "kind": "council_member",
+   "evidence": [
+    "RECUSAL_EVIDENCE.html (20y)"
+   ]
+  },
+  {
+   "source": "person_himeback",
+   "target": "org_herbein",
+   "kind": "lead_cpa",
+   "evidence": [
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "org_coca",
+   "target": "org_bcc",
+   "kind": "funds",
+   "evidence": [
+    "RECUSAL_EVIDENCE.html ($3.3M)"
+   ]
+  },
+  {
+   "source": "org_herbein",
+   "target": "org_bcc",
+   "kind": "auditor",
+   "evidence": [
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "org_pershing",
+   "target": "org_bcc",
+   "kind": "custodian",
+   "evidence": [
+    "INVESTMENT_PEOPLE_REPORT.html"
+   ]
+  },
+  {
+   "source": "org_bcc",
+   "target": "org_court",
+   "kind": "litigant",
+   "evidence": [
+    "PA Courts PDF 898 MDA 2017",
+    "CourtListener"
+   ]
+  },
+  {
+   "source": "org_bcc",
+   "target": "org_cc",
+   "kind": "litigation_counterparty",
+   "evidence": [
+    "PA Courts PDF 898 MDA 2017"
+   ]
+  },
+  {
+   "source": "org_bcc",
+   "target": "org_hud",
+   "kind": "grant_recipient",
+   "evidence": [
+    "GovTribe/USAspending.gov (PA0703L3T062309, PA0159L3T062316)"
+   ]
+  },
+  {
+   "source": "org_bcc",
+   "target": "org_nextgen",
+   "kind": "ehr_vendor",
+   "evidence": [
+    "BCC Annual Report 2024-25 (go-live Mar 2 2025)"
+   ]
+  },
+  {
+   "source": "org_bcc",
+   "target": "org_mhdd",
+   "kind": "program_partner",
+   "evidence": [
+    "BCC Annual Report 2024-25 (Mobile Med Program)"
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "name": "John Sellers",
+   "reason": "dossier mention only; no documented edge"
+  },
+  {
+   "name": "Jeffrey Mogel",
+   "reason": "dossier mention only; no documented edge"
+  },
+  {
+   "name": "Karen Kramer",
+   "reason": "dossier mention only; no documented edge"
+  }
+ ]
+}

@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-10-28T08:24:32",
+  "domains": [
+    {
+      "domain": "bcc-cares.org",
+      "dmarc": {
+        "domain": "bcc-cares.org",
+        "record": null,
+        "found": false
+      },
+      "spf": {
+        "domain": "bcc-cares.org",
+        "record": null,
+        "found": false
+      },
+      "dkim": {
+        "domain": "bcc-cares.org",
+        "dkim": [],
+        "found": false
+      },
+      "timestamp": "2026-10-28T08:24:25"
+    },
+    {
+      "domain": "berkscounselingcenter.org",
+      "dmarc": {
+        "domain": "berkscounselingcenter.org",
+        "record": null,
+        "found": false
+      },
+      "spf": {
+        "domain": "berkscounselingcenter.org",
+        "record": null,
+        "found": false
+      },
+      "dkim": {
+        "domain": "berkscounselingcenter.org",
+        "dkim": [],
+        "found": false
+      },
+      "timestamp": "2026-10-28T08:24:26"
+    },
+    {
+      "domain": "cocaberks.org",
+      "dmarc": {
+        "domain": "cocaberks.org",
+        "record": null,
+        "found": false
+      },
+      "spf": {
+        "domain": "cocaberks.org",
+        "record": "v=spf1 ip4:66.23.233.115 include:relay.is.cc a mx include:spf.protection.outlook.com ?all",
+        "found": true
+      },
+      "dkim": {
+        "domain": "cocaberks.org",
+        "dkim": [],
+        "found": false
+      },
+      "timestamp": "2026-10-28T08:24:27"
+    },
+    {
+      "domain": "communitycarepa.org",
+      "dmarc": {
+        "domain": "communitycarepa.org",
+        "record": null,
+        "found": false
+      },
+      "spf": {
+        "domain": "communitycarepa.org",
+        "record": null,
+        "found": false
+      },
+      "dkim": {
+        "domain": "communitycarepa.org",
+        "dkim": [],
+        "found": false
+      },
+      "timestamp": "2026-10-28T08:24:30"
+    },
+    {
+      "domain": "tascpa.org",
+      "dmarc": {
+        "domain": "tascpa.org",
+        "record": null,
+        "found": false
+      },
+      "spf": {
+        "domain": "tascpa.org",
+        "record": null,
+        "found": false
+      },
+      "dkim": {
+        "domain": "tascpa.org",
+        "dkim": [],
+        "found": false
+      },
+      "timestamp": "2026-10-28T08:24:31"
+    }
+  ],
+  "gaps_targeted": [
+    28
+  ]
+}

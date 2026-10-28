@@ -1,0 +1,76 @@
+{
+  "graph": "BCC Person Network (True Cosmos)",
+  "source": "C:/Users/clint/BCC_COSMOS/bcc_network_sna_true.json",
+  "nodes": 13,
+  "edges": 39,
+  "density": 0.5,
+  "triangles": 84,
+  "clustering_coefficient": 0.675,
+  "components": 2,
+  "max_k": 5,
+  "total_motifs": 5478,
+  "motifs": {
+    "k3_triangle": {
+      "count": 168,
+      "description": "Complete 3-node cliques (triangles)",
+      "examples": [
+        ["person_plageman", "person_seitz", "person_robinson"],
+        ["person_plageman", "person_seitz", "person_krause"]
+      ]
+    },
+    "k3_path": {
+      "count": 18,
+      "description": "3-node paths (2 edges)",
+      "examples": [
+        ["person_plageman", "person_seitz", "person_bromley"],
+        ["person_plageman", "person_bromley", "person_krause"]
+      ]
+    },
+    "k4_clique": {
+      "count": 756,
+      "description": "Complete 4-node cliques",
+      "examples": [
+        ["person_plageman", "person_seitz", "person_robinson", "person_krause"],
+        ["person_plageman", "person_seitz", "person_robinson", "person_gaul"]
+      ]
+    },
+    "k4_path": {
+      "count": 168,
+      "description": "4-node paths/structures (4 edges)",
+      "examples": [
+        ["person_plageman", "person_bromley", "person_robinson", "person_krause"],
+        ["person_plageman", "person_bromley", "person_robinson", "person_gaul"]
+      ]
+    },
+    "k5_clique": {
+      "count": 3024,
+      "description": "Complete 5-node cliques",
+      "examples": [
+        ["person_plageman", "person_seitz", "person_robinson", "person_krause", "person_gaul"],
+        ["person_plageman", "person_seitz", "person_robinson", "person_krause", "person_orlando"]
+      ]
+    },
+    "k5_star": {
+      "count": 480,
+      "description": "5-node star-like (7 edges)",
+      "examples": [
+        ["person_plageman", "person_seitz", "person_robinson", "person_krause", "person_bromley"],
+        ["person_plageman", "person_seitz", "person_robinson", "person_gaul", "person_bromley"]
+      ]
+    },
+    "k5_other": {
+      "count": 1272,
+      "description": "Other 5-node structures (7 edges)",
+      "examples": [
+        ["person_plageman", "person_robinson", "person_krause", "person_scull", "person_bromley"],
+        ["person_plageman", "person_robinson", "person_krause", "person_gaul", "person_bromley"]
+      ]
+    }
+  },
+  "interpretation": {
+    "board_clique": "10 board members form dense clique (k5=3024, k4=756)",
+    "bromley_peripheral": "Bromley connects only to Plageman (TPUC link)",
+    "malley_axford_little": "Separate component: CEO succession + CFO",
+    "density_0.5": "Very dense for 13 nodes - board is fully interconnected"
+  }
+}

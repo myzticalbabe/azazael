@@ -37,8 +37,10 @@ if _src not in sys.path:
 # own recorded events (RLTrainLoop+ModelVersioner are ~70% of the store).
 EXCLUDED_TRAINING_SOURCES = [
     "RLTrainLoop",
+    "RLTrainLoopV2",
     "ModelVersioner",
     "GRPOTrainer",
+    "GRPOTrainerV2",
     "EvolutionEngine",
     "sb3_agent",
     "TrainingOrchestrator",
@@ -258,20 +260,23 @@ def run_grpo_cycle() -> dict:
     same comparison. Reward scale differs (0..1 success-rate-ish, not the
     SB3 episode totals).
     """
-    from CORE.WORMS.expansion.learning_grpo import GRPOTrainer
+    from CORE.training_intake import gather as _gather_intake
     from CORE.local_memory import get_memory_store
+    from CORE.WORMS.expansion.trainers_v2 import create_trainer
 
     run_id = _gen_run_id("grpotrain")
     t0 = time.time()
-    trainer = GRPOTrainer(load_policy=True)
-    ctx = {"task_type": "scheduled_training", "category": "utility"}
-    group = trainer.generate_group(ctx, group_size=8)
-    rewards = trainer.compute_group_rewards(group, ctx)
+    # Use new trainer with worm identity
+    # create_trainer returns a ready GRPOTrainerV2 (not a context) — use directly.
+    trainer = create_trainer(task_type="grpo", worm_id="orchestrator_grpo", task_id=f"grpo_{run_id}")
+    task_context = {"task_type": "scheduled_training", "category": "utility"}
+    group = trainer.generate_group(task_context, group_size=8)
+    rewards = trainer.compute_group_rewards(group, task_context)
     trainer.update_policy(group, rewards, context_key="scheduled")
     # Training-structure accommodation (Oct-10): freeze an anchor snapshot
     # for EP360 and gather the unity-row intake for observability. Reward
     # shaping stays OFF (link_weight=0) pending coordinator approval.
-    anchor = trainer.snapshot_anchor("orchestrated")
+    # Note: GRPOTrainerV2 doesn't have snapshot_anchor; using gather for intake stats
     try:
         from CORE.training_intake import gather as _gather_intake
         intake = _gather_intake()
@@ -323,12 +328,14 @@ def run_offline_cycle() -> dict:
     logged data is teaching a policy that transfers to newer behavior.
     (Added 2026-09-08; same artifact shape as the other tracks.)
     """
-    from CORE.WORMS.expansion.learning import RLTrainLoop
     from CORE.local_memory import get_memory_store
+    from CORE.WORMS.expansion.trainers_v2 import create_trainer
 
     run_id = _gen_run_id("offline")
     t0 = time.time()
-    loop = RLTrainLoop()
+    # Use new trainer with worm identity
+    # create_trainer returns a ready RLTrainLoopV2 (not a context) — use directly.
+    loop = create_trainer(task_type="offline", worm_id="orchestrator_offline", task_id=f"offline_{run_id}")
     result = loop.train_from_memory(
         n_episodes=80, max_steps=50,
         use_data_split=True, by_session=True,
@@ -437,10 +444,10 @@ def run_intake_cycle() -> dict:
     already carries a lesson for). Its own rows are `RLTrainLoop`/
     `ModelVersioner` sourced, both already in EXCLUDED_TRAINING_SOURCES, so this
     track cannot feed its own output back into other tracks' pools.
-    """
+"""
     from CORE.training_intake import build_training_records
-    from CORE.WORMS.expansion.learning import RLTrainLoop
     from CORE.local_memory import get_memory_store
+    from CORE.WORMS.expansion.trainers_v2 import create_trainer
 
     run_id = _gen_run_id("intake")
     t0 = time.time()
@@ -454,15 +461,17 @@ def run_intake_cycle() -> dict:
             "model_version": None, "eval_mean_reward": None,
             "duration_ms": round((time.time() - t0) * 1000, 2),
             "note": ("skipped: no MEASURED technique outcomes (%d rows seen, "
-                     "%d unmeasured%s)"
-                     % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
-                        ", error=%s" % (built.get("store_error")
-                                         or built.get("read_error"))
-                        if (built.get("store_error")
-                            or built.get("read_error")) else "")),
+                      "%d unmeasured%s)"
+                      % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
+                         ", error=%s" % (built.get("store_error")
+                                          or built.get("read_error"))
+                         if (built.get("store_error")
+                             or built.get("read_error")) else "")),
         }
 
-    loop = RLTrainLoop()
+    # Use new trainer with worm identity
+    # create_trainer returns a ready RLTrainLoopV2 (not a context) — use directly.
+    loop = create_trainer(task_type="intake", worm_id="orchestrator_intake", task_id=f"intake_{run_id}")
     # Best-effort warm start: the run continues the persisted policy instead of
     # relearning the same pool from zero every slot. Returns False when there is
     # no table yet, which is a fresh start, not a failure.
@@ -505,9 +514,9 @@ def run_intake_cycle() -> dict:
     data.update(estimator_info)
     store = get_memory_store()
     store.record_event(
-        source="TrainingOrchestrator", event_type="intake_training_orchestrated",
+        source=f"RLTrainLoopV2[worm:orchestrator_intake]", event_type="intake_training_orchestrated",
         data=data, severity="info", tags=["intake", "technique", "training",
-                                          "orchestrated"],
+                                          "orchestrated", "worm:orchestrator_intake"],
     )
     return {"algo": "INTAKE", "success": True, "records_used": len(records),
             "model_version": data["model_version"],
@@ -528,10 +537,10 @@ def run_cluster_cycle() -> dict:
     additive estimator arm. Output rows are TrainingOrchestrator-sourced
     (already in EXCLUDED_TRAINING_SOURCES) so no track feeds itself.
     learning_grpo's reward scoring FROM these rows is Beam turf and untouched.
-    """
+"""
     from CORE.training_intake import build_cluster_records
-    from CORE.WORMS.expansion.learning import RLTrainLoop
     from CORE.local_memory import get_memory_store
+    from CORE.WORMS.expansion.trainers_v2 import create_trainer
 
     run_id = _gen_run_id("cluster")
     t0 = time.time()
@@ -543,15 +552,17 @@ def run_cluster_cycle() -> dict:
             "model_version": None, "eval_mean_reward": None,
             "duration_ms": round((time.time() - t0) * 1000, 2),
             "note": ("skipped: no MEASURED cluster outcomes (%d rows seen, "
-                     "%d unmeasured%s)"
-                     % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
-                        ", error=%s" % (built.get("store_error")
-                                         or built.get("read_error"))
-                        if (built.get("store_error")
-                            or built.get("read_error")) else "")),
+                      "%d unmeasured%s)"
+                      % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
+                         ", error=%s" % (built.get("store_error")
+                                          or built.get("read_error"))
+                         if (built.get("store_error")
+                             or built.get("read_error")) else "")),
         }
 
-    loop = RLTrainLoop()
+    # Use new trainer with worm identity
+    # create_trainer returns a ready RLTrainLoopV2 (not a context) — use directly.
+    loop = create_trainer(task_type="offline", worm_id="orchestrator_cluster", task_id=f"cluster_{run_id}")
     loaded = False
     try:
         loaded = bool(loop.load_q_table_from_store())
@@ -587,9 +598,9 @@ def run_cluster_cycle() -> dict:
     data.update(estimator_info)
     store = get_memory_store()
     store.record_event(
-        source="TrainingOrchestrator", event_type="cluster_training_orchestrated",
+        source=f"RLTrainLoopV2[worm:orchestrator_cluster]", event_type="cluster_training_orchestrated",
         data=data, severity="info", tags=["cluster", "technique", "training",
-                                          "orchestrated"],
+                                          "orchestrated", "worm:orchestrator_cluster"],
     )
     return {"algo": "CLUSTER", "success": True, "records_used": len(records),
             "model_version": data["model_version"],

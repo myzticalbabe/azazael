@@ -15,7 +15,8 @@ LAYERS READ (all on-disk artifacts; paths resolved relative to cwd):
   - bcc_990_series.json            IRS/ProPublica 990 summary series FY2011-2025
   - bcc_bai_perron_results.json    econometric breakpoint dating (revenue/exp/comp)
   - BCC_KUZU_TEMPORAL_evidence.json / bcc_graphiti_temporal.json   officer tenure KG
-  - bcc_network_sna_results_v3.json  48-node documented network + 6-degrees stats
+  - bcc_codebase_import_sna_v3.json  CODEBASE-import graph (persons: 0; NOT BCC
+    evidence — see docs/REDO_NECESSITY_AUDIT_2026-10-28.md R5; BCC SNA recompute pending)
   - bcc_person_edges.json          documented person->person edges (v2)
   - bcc_record_linkage.json        cross-source identity clusters
   - _gap_status.json / azazael/scripts/bcc_gap_index.json   gap ledger (62)
@@ -209,7 +210,7 @@ def main():
     bp = load("bcc_bai_perron_results.json") or {}
     kuzu = load("BCC_KUZU_TEMPORAL_evidence.json") or {}
     graphiti = load("bcc_graphiti_temporal.json") or {}
-    sna = load("bcc_network_sna_results_v3.json") or {}
+    sna = load("bcc_codebase_import_sna_v3.json") or {}
     pedges = load("bcc_person_edges.json") or {}
     linkage = load("bcc_record_linkage.json") or {}
     campaign = load("pa_campaign_finance_bcc.json") or {}
@@ -362,7 +363,7 @@ def main():
                       f"{persons.get('median_separation')}. Farthest pair = "
                       f"{mx.get('a')} <-> {mx.get('b')} — the auditor and the county "
                       "oversight body are the least intertwined."),
-            "basis": ["bcc_network_sna_results_v3.json"],
+            "basis": ["bcc_codebase_import_sna_v3.json"],
             "gap_refs": ["27", "29"],
             "action": ("Use this as the structural baseline for the Herbein-independence "
                        "question (gap #27): the documented graph shows no close auditor-"
@@ -383,7 +384,7 @@ def main():
                      "active via donations); the SNA places COCA (county oversight body) "
                      "in the top closeness/betweenness tier of the documented network — "
                      "consistent with the institutional-influence thesis.",
-            "basis": ["pa_campaign_finance_bcc.json", "bcc_network_sna_results_v3.json"],
+            "basis": ["pa_campaign_finance_bcc.json", "bcc_codebase_import_sna_v3.json"],
             "gap_refs": ["22", "29", "45"],
             "action": ("Pursue the COCA grant-detail line (gap #22: cumulative, not "
                        "annual — request annual award letters) and the county-commissioner "
@@ -473,7 +474,7 @@ def main():
                       f"FY2016-18 990 Part VII rosters + {n_corr_fy25} on the FY2025-990 "
                       f"roster (corpus), leaving {len(uncorroborated)} with no roster hit: "
                       f"{'; '.join(p.split(' — ')[0] for p in uncorroborated) or 'none'}."),
-            "basis": ["bcc_record_linkage.json", "bcc_network_sna_results_v3.json",
+            "basis": ["bcc_record_linkage.json", "bcc_codebase_import_sna_v3.json",
                       "_990_FY2016.html", "_990_FY2017.html", "_990_FY2018.html",
                       "INVESTIGATION_GAPS.html"],
             "gap_refs": ["25", "34"],
@@ -526,7 +527,7 @@ def main():
             "class": "CORRUPTION-FOUND",
             "title": (f"Name-consistency watchdog found {len(wd_hits)} corruption "
                       f"candidate(s) across derived machine layers: {detail}"),
-            "basis": ["bcc_network_sna_results_v3.json", "bcc_record_linkage.json",
+            "basis": ["bcc_codebase_import_sna_v3.json", "bcc_record_linkage.json",
                        "bcc_person_edges.json", "bcc_graphiti_temporal.json",
                        "BCC_KUZU_TEMPORAL_evidence.json"],
             "gap_refs": [],
@@ -547,7 +548,7 @@ def main():
                       f"attested given names (Joseph Plageman Jr / John Robinson / "
                       f"Christine Axford / Missy Orlando / …). No 'Christopher "
                       f"Plageman'-class corruption remains in any machine layer."),
-            "basis": ["bcc_network_sna_results_v3.json", "bcc_record_linkage.json",
+            "basis": ["bcc_codebase_import_sna_v3.json", "bcc_record_linkage.json",
                        "bcc_person_edges.json", "bcc_graphiti_temporal.json",
                        "BCC_KUZU_TEMPORAL_evidence.json"],
             "gap_refs": [],
@@ -596,7 +597,7 @@ def main():
         "layers_loaded": [os.path.basename(p) for p in (
             "bcc_990_series.json", "bcc_bai_perron_results.json",
             "BCC_KUZU_TEMPORAL_evidence.json", "bcc_graphiti_temporal.json",
-            "bcc_network_sna_results_v3.json", "bcc_person_edges.json",
+            "bcc_codebase_import_sna_v3.json", "bcc_person_edges.json",
             "bcc_record_linkage.json", "pa_campaign_finance_bcc.json",
             "_gap_status.json")],
         "n_leads": len(leads),

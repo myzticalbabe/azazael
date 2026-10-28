@@ -1,0 +1,26 @@
+{
+ "search_date": "2026-10-27",
+ "source": "GovTribe (USAspending.gov)",
+ "grants": [
+  {
+   "award_id": "PA0703L3T062309",
+   "recipient": "Berks Counseling Center Inc.",
+   "amount": 113179,
+   "date_awarded": "2024-11-01",
+   "program": "Continuum of Care Program (CFDA 14.267)",
+   "agency": "HUD",
+   "place": "Reading, PA 19601",
+   "uei": "VC1XNFDJTV33"
+  },
+  {
+   "award_id": "PA0159L3T062316",
+   "recipient": "Berks Counseling Center Inc.",
+   "amount": 91691,
+   "date_awarded": "2024-04-01",
+   "program": "Continuum of Care Program (CFDA 14.267)",
+   "agency": "HUD",
+   "place": "Reading, PA 19601",
+   "uei": "VC1XNFDJTV33"
+  }
+ ]
+}

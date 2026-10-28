@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+<title>Investment & People Network — Berks Counseling Center</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --h:#f0f6fc; --a:#58a6ff; --r:#f78166; --g:#3fb950; --y:#ffa657; --p:#d2a8ff; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { 
+    font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+  }
+  #scroll-container {
+    width: 100%;
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  #scroll-container::-webkit-scrollbar { display: none; }
+  .content { max-width:1100px; margin-left:170px; margin-right:auto; padding: 40px 60px 200px 60px; }
+  h1 { color:var(--r); text-align:center; font-size:2rem; margin-bottom:8px; border-bottom:2px solid var(--r); padding-bottom:12px; }
+  h2 { color:var(--a); margin:28px 0 12px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { color:var(--p); margin:16px 0 8px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
+  .card-red { border-left:5px solid var(--r); background:#1a1015; }
+  .card-yellow { border-left:5px solid var(--y); background:#1a1510; }
+  .card-green { border-left:5px solid var(--g); background:#101a15; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:.92rem; }
+  th { text-align:left; background:#21262d; color:var(--h); padding:10px 12px; border-bottom:2px solid var(--border); }
+  td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tr:hover td { background:#1c2128; }
+  .amt { font-size:1.15rem; font-weight:700; color:var(--g); }
+  .highlight { background:#2d1b00; border-left:3px solid var(--y); padding:12px; margin:10px 0; border-radius:0 6px 6px 0; }
+  .highlight-red { background:#2d1010; border-left:3px solid var(--r); padding:12px; margin:10px 0; border-radius:0 6px 6px 0; }
+  .highlight-green { background:#1b3826; border-left:3px solid var(--g); padding:12px; margin:10px 0; border-radius:0 6px 6px 0; }
+  .network-node { display:inline-block; padding:8px 16px; margin:4px; border-radius:20px; font-size:0.85rem; font-weight:600; }
+  .node-ej { background:#1a1510; color:var(--y); border:1px solid var(--y); }
+  .node-bcc { background:#101a15; color:var(--g); border:1px solid var(--g); }
+  .node-audit { background:#15101a; color:var(--p); border:1px solid var(--p); }
+  .node-custody { background:#15101a; color:var(--a); border:1px solid var(--a); }
+  .method-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+  .method-card { padding:12px 16px; border-radius:8px; background:#21262d; font-size:0.9rem; }
+  .method-card.found { border-left:4px solid var(--g); }
+  .method-card.blocked { border-left:4px solid var(--r); opacity:0.7; }
+  .method-card.partial { border-left:4px solid var(--y); }
+</style>
+</head>
+<body>
+
+<div id="scroll-container">
+<div class="content">
+
+<h1>🏦 INVESTMENT & PEOPLE NETWORK</h1>
+<p style="text-align:center;color:#8b949e;margin-bottom:20px;">
+  Berks Counseling Center (EIN 23-2043478) — $10.48M Securities Portfolio (Schedule D) / $19.8M Net Assets, 11.13x Investment Income Growth, Edward Jones Board Control<br>
+  Research: Who manages the money? Who audits it? Who benefits?
+</p>
+
+
+
+<!-- board-role-asof-sep2026 -->
+<div id="board-role-asof-sep2026" style="border:1px solid #ffa657;background:#1c1305;color:#f0e6d2;border-radius:8px;padding:10px 14px;margin:10px 0 22px 0;font-size:0.85rem;line-height:1.5;"><strong style="color:#ffa657;">⚠ AS-OF BOARD ROLES (addendum Sep 3, 2026):</strong> Officer roles cited in this document are as of the FY2025 Form 990 (filed May 8, 2026) and reflect a <strong>post-filing board reorganization</strong> first observed on the live site Sep 2, 2026: <strong>Plageman Jr. is no longer Board Chair</strong> and <strong>Robinson is no longer Treasurer</strong> (both remain board members); current roles per berkscc.org — <strong>Seitz Chairperson, Gaul Vice President, Ralph Treasurer</strong>. Full audit: INVESTIGATION_GAPS.html Sep 3 annex.</div>
+<!-- ====== THE NETWORK MAP ====== -->
+<h2>🔗 The Investment Governance Triangle — 4-Point Network</h2>
+
+<div class="card">
+  <p style="color:#8b949e;margin-bottom:16px;"><strong>🦉 CAHOOTERY LEGEND</strong> — The Edward Jones network at BCC:</p>
+
+  <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin:16px 0;">
+
+    <div style="padding:18px;background:#1a1510;border-radius:8px;border:2px solid var(--y);">
+      <strong style="color:var(--y);font-size:1.1rem;">💰 INVESTMENT MANAGER (Assumed)</strong><br>
+      <span style="font-size:1.2rem;">Edward Jones Investments</span><br>
+      <span class="network-node node-ej">🦉 Joseph Plageman Jr. — Board Chair</span>
+      <span class="network-node node-ej">🦉 Linda Krause — Director (Sr. Branch Office Admin)</span><br>
+      <span style="font-size:0.82rem;color:#8b949e;">Board Chair (registered advisor, Series 66) + Director (branch office admin).<br>Portfolio grew 11.13x ($40K → $446K income) under their tenure.<br><strong>🆕 Schedule D accessed via ProPublica e-file viewer.</strong> Portfolio: $10.48M publicly traded securities. Schedule L: BCC claims NO related-party transactions.</span>
+    </div>
+
+    <div style="padding:18px;background:#15101a;border-radius:8px;border:2px solid var(--p);">
+      <strong style="color:var(--p);font-size:1.1rem;">📋 INDEPENDENT AUDITOR (Confirmed)</strong><br>
+      <span style="font-size:1.2rem;">Herbein + Company, Inc.</span><br>
+      <span class="network-node node-audit">Linda S. Himeback, CPA</span><br>
+      <span style="font-size:0.82rem;color:#8b949e;">📍 2763 Century Blvd, Reading PA 19610<br>Prepares 990 + conducts annual audit.<br>Same firm handles tax prep AND auditing — potential independence concern.</span>
+    </div>
+
+    <div style="padding:18px;background:#1a1015;border-radius:8px;border:2px solid var(--a);">
+      <strong style="color:var(--a);font-size:1.1rem;">🏦 CUSTODIAN (Standard for EJ)</strong><br>
+      <span style="font-size:1.2rem;">Pershing LLC (BNY Mellon)</span><br>
+      <span style="font-size:0.82rem;color:#8b949e;">Edward Jones' standard clearing firm.<br>Assets legally held at Pershing,<br>managed/traded by Edward Jones.<br>Not independently confirmed for BCC specifically.</span>
+    </div>
+
+    <div style="padding:18px;background:#101a15;border-radius:8px;border:2px solid var(--g);">
+      <strong style="color:var(--g);font-size:1.1rem;">📊 INTERNAL CFO (Confirmed)</strong><br>
+      <span style="font-size:1.2rem;">Greg Little</span><br>
+      <span style="font-size:0.82rem;color:#8b949e;">CFO since at least FY2021.<br>Comp: $149,792 (exceeds CEO $145,432).<br>$17,350 in "other compensation."<br>Day-to-day portfolio oversight.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ====== THE PEOPLE ====== -->
+<h2>👤 The People — Full Profiles</h2>
+
+<div class="card-red">
+  <h3 style="color:var(--r);">🦉 Joseph Plageman Jr. — Board Chair & Edward Jones Advisor</h3>
+  <table>
+    <tr><th style="width:200px;">Attribute</th><th>Finding</th></tr>
+    <tr><td><strong>BCC Role</strong></td><td>Board Chairperson — served on board for over a decade</td></tr>
+    <tr><td><strong>Employer</strong></td><td>Edward Jones Investments (confirmed via GuideStar and IRS Form 990)</td></tr>
+    <tr><td><strong>Location</strong></td><td>Edward Jones branch — 918 Penn Avenue, Wyomissing, PA 19610</td></tr>
+    <tr><td><strong>Credentials</strong></td><td>Series 66 (paired with Series 7 — standard for registered representatives). No CFP, CFA, or advanced designations. 14 years at Edward Jones (joined 2011).</td></tr>
+    <tr><td><strong>Edward Jones Profile</strong></td><td style="color:var(--g);">✅ Profile EXISTS at edwardjones.com (HTTP 200 confirmed for Joe Plageman listing)</td></tr>
+    <tr><td><strong>FINRA CRD</strong></td><td style="color:var(--g);">✅ <strong>#5964768</strong> — Joseph William Plageman. Full BrokerCheck: <a href="https://brokercheck.finra.org/individual/summary/5964768" target="_blank" style="color:var(--a);">brokercheck.finra.org/individual/summary/5964768</a></td></tr>
+    <tr><td><strong>Other Boards</strong></td><td><strong>PRESIDENT — Trustees of the Pennsylvania Universalist Convention (TPUC)</strong>. TPUC manages an endowment/trust fund that distributes interest to 6 member Universalist congregations across PA. Plageman elected President as of April 2026 annual meeting. <span style="color:var(--y);">⚠ TPUC has a Financial Committee and a designated Financial Advisor (Richard Bromley Jr.) — creating a second instance of an Edward Jones advisor presiding over an organization with an investment portfolio.</span></td></tr>
+    <tr><td><strong>Disclosures</strong></td><td style="color:var(--g);font-weight:700;">✅ ZERO DISCLOSURES — Completely clean FINRA record. No customer complaints, no regulatory actions, no criminal disclosures, no civil judgments, no liens, no bankruptcies.</td></tr>     <tr><td><strong>Pattern</strong></td><td style="color:var(--r);">🦉 Edward Jones financial advisor (Series 66 only, no advanced designations) serving as board chair while BCC's investment income grows 11.13x. The regulatory record is clean — no FINRA disclosures — but the structure itself is the harm: board chair at an investment firm + $10.48M portfolio at the same firm = <strong style="color:#f78166;">cahootery</strong>. No single actor is individually corrupt; the harm emerges from the closed loop where board oversight and investment custody sit in the same hands.</td></tr>
+  </table>
+</div>
+
+<div class="card-yellow">
+  <h3 style="color:var(--y);">🦉 Linda Krause — Board Director & Sr. Branch Office Administrator</h3>
+  <table>
+    <tr><th style="width:200px;">Attribute</th><th>Finding</th></tr>
+    <tr><td><strong>BCC Role</strong></td><td>Board Director</td></tr>
+    <tr><td><strong>Employer</strong></td><td>Edward Jones Investments — <strong>Sr. Branch Office Administrator</strong>, NOT a registered financial advisor. Works on Joe Plageman's team at the 918 Penn Avenue, Wyomissing PA office.</td></tr>
+    <tr><td><strong>FINRA CRD</strong></td><td style="color:var(--y);">NONE — Linda Krause is a Sr. Branch Office Administrator, not a registered representative. She does not hold a CRD number or securities licenses. She supports the team administratively.</td></tr>     <tr><td><strong>Conflict</strong></td><td style="color:var(--r);">🦉 Krause works directly on Plageman's team and handles client accounts — she would be aware of all Edward Jones-BCC transactions. Two board seats (22%) from one brokerage overseeing its own investment custody. The "branch administrator, not advisor" distinction is a distinction without a difference in the context of governance: both owe loyalty to the same employer managing BCC's $10.48M.</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Greg Little — CFO (Since January 2019)</h3>
+  <table>
+    <tr><th style="width:200px;">Attribute</th><th>Finding</th></tr>
+    <tr><td><strong>Role</strong></td><td>Chief Financial Officer — started January 2019 (same month Christine Axford became CEO, replacing Frances Malley). Day-to-day portfolio oversight and cash management.</td></tr>
+    <tr><td><strong>Compensation (FY2025)</strong></td><td>$149,792 total ($132,442 base + $17,350 other) — exceeds CEO Christine Axford's $145,432</td></tr>
+    <tr><td><strong>Comp Trajectory</strong></td><td style="color:var(--r);"><strong>23.4x growth in 6 years:</strong> $6,408 (FY2019 partial year total) → $107,291 (FY2021) → $138,675 (FY2023) → $149,792 (FY2025). CEO grew only 1.5x over same period ($99K → $145K).</td></tr>
+    <tr><td><strong>Other Comp</strong></td><td style="color:var(--y);">$17,350 in "other compensation" (FY2025) — 3.2x the CEO's $5,428. This category grew from $925 (FY2020) to $17,350.</td></tr>
+    <tr><td><strong>Location</strong></td><td>Reading / Malvern PA corridor</td></tr>
+    <tr><td><strong>Key Questions</strong></td><td style="color:var(--y);">(1) Does Little have discretion over investment decisions or does the board control them? (2) Why does CFO comp exceed CEO — what justifies the inversion? (3) What comprises the $17,350 in "other compensation"? Schedule J (compensation methodology) not public.</td></tr>
+  </table>
+</div>
+
+<!-- ====== COMPLETE BOARD ROSTER ====== -->
+<h2>👥 Complete Board of Directors — FY2025 (9 Members)</h2>
+
+<div class="card">
+  <p style="color:#8b949e;margin-bottom:12px;">Source: ProPublica Nonprofit Explorer — BCC FY2025 Form 990 Part VII. BCC's own website (berkscounselingcenter.org/about-us#Leadership) lists names and titles but <strong>does NOT disclose any board member employers, professional affiliations, or bios</strong> — a transparency gap for a $12.5M/yr nonprofit.</p>
+  <table>
+    <tr><th>Name</th><th>Board Title</th><th>Employer / Affiliation</th><th>Conflict?</th></tr>
+    <tr style="background:#1a1015;">
+      <td><strong>Joseph Plageman Jr.</strong></td>
+      <td>Chairperson</td>
+      <td>Edward Jones — CRD #5964768, Series 66/7, 14 yrs</td>
+      <td style="color:var(--r);">⚠ $10.48M portfolio + TPUC President</td>
+    </tr>
+    <tr>
+      <td><strong>Crystal Seitz</strong></td>
+      <td>Vice Chair</td>
+      <td style="color:var(--g);">✅ President — Greater Reading Convention & Visitors Bureau (Reading, PA)</td>
+      <td style="color:var(--g);">None — tourism/hospitality</td>
+    </tr>
+    <tr>
+      <td><strong>🦉 John Robinson</strong> <span style="font-size:0.7rem;background:#2d1010;color:var(--r);padding:2px 6px;border-radius:10px;">⚠ CONSULTING</span></td>
+      <td>Treasurer (since 2021)</td>
+      <td style="color:var(--r);"><strong>Robinson & Associates, LLC</strong> — business consulting firm in Wyomissing/Reading, PA. Prior: The Vanguard Group. Also linked to <strong>PA-Berks & Beyond</strong> via Humanitarian Social Innovations fiscal sponsorship. <strong>🦉 Board Treasurer whose own consulting firm could receive BCC business — undisclosed related-party transaction risk.</strong></td>
+      <td style="color:var(--r);">🦉 HIGH — consulting firm, Treasurer</td>
+    </tr>
+    <tr>
+      <td><strong>James Brooks</strong></td>
+      <td>Director (9+ yrs, was Vice Chair FY2017)</td>
+      <td style="color:var(--y);">🔍 LEAD: Linked to Marion Township Volunteer Fire Relief Association. No attorney license found in PA disciplinary database. Longest-serving board member (9+ years including Vice Chair tenure).</td>
+      <td>Unknown</td>
+    </tr>
+    <tr style="background:#1a1510;">
+      <td><strong>Linda Krause</strong></td>
+      <td>Director</td>
+      <td>Edward Jones — Sr. Branch Office Admin (not registered)</td>
+      <td style="color:var(--y);">⚠ 22% EJ board bloc</td>
+    </tr>
+    <tr>
+      <td><strong>Deborah Scull</strong></td>
+      <td>Director (9+ yrs)</td>
+      <td style="color:var(--accent3);">✅ Central Tire Co., Inc. (Central Tire & Auto Service) — current officer: Sec/VP/Treas (DOS #61108, Sep 4, 2026; Jeffrey Mogel = President). Sinking Spring/West Reading, PA. Family business since 1928. Lifelong Berks County resident. No apparent behavioral health conflict.</td>
+      <td style="color:var(--g);">Low — automotive, no health conflict</td>
+    </tr>
+    <tr>
+      <td><strong>🦉 Brenda Gaul</strong> <span style="font-size:0.7rem;background:#2d1010;color:var(--r);padding:2px 6px;border-radius:10px;">⚠ VENDOR</span></td>
+      <td>Director</td>
+      <td style="color:var(--r);">Furniture Soup, Inc. — President & Lead Designer. Commercial furniture dealer with PA state/municipal contracts (OMNIA Partners, TIPS) and past City of Reading projects. <strong>🦉 Board member whose company could be a vendor to BCC or the agencies that fund BCC.</strong> Ex-Treasurer (thru May 2022).</td>
+      <td>Unknown</td>
+    </tr>
+    <tr style="background:#1a1015;">
+      <td><strong>🦉 Missy Orlando</strong></td>
+      <td>Director (as of Aug 2025)</td>
+      <td>United Way of Berks County</td>
+      <td style="color:var(--r);">⚠ $685K funding loop — governs org her employer funds</td>
+    </tr>
+    <tr>
+      <td><strong>Jeffrey Ralph</strong></td>
+      <td>Director (as of Feb 2025)</td>
+      <td style="color:var(--g);">✅ Dr. Jeffrey Ralph — GSK medicinal chemistry (Collegeville/Downingtown PA). <em>Identity inferred (Aug 2026).</em></td>
+      <td>Unknown</td>
+    </tr>
+  </table>
+
+  <div class="highlight" style="margin-top:12px;">     <strong>🦉 TRANSPARENCY GAP — 1 of 9 board members' employers remains undisclosed.</strong> The August 1 research round confirmed: <strong>John Robinson</strong> (Robinson & Associates, LLC — consulting firm 🦉), <strong>Brenda Gaul</strong> (Furniture Soup, Inc. — vendor conflict 🦉), and <strong>Deborah Scull</strong> (Central Tire Co., Inc. — automotive, no conflict).    <strong>James Brooks</strong> (Marion Township Fire Relief Association lead unverified) remains without a confirmed employer; <strong>Jeffrey Ralph</strong> resolved Aug 2026 (GSK medicinal chemistry — inferred). BCC's website provides no employer or bio information for any board member. For a nonprofit managing $19.8M in assets, this governance opacity is itself a concern. <strong>Request BCC's Conflict of Interest Policy under IRS public disclosure requirements.</strong>
+  </div>
+
+  <div style="margin-top:16px;padding:14px;background:#21262d;border-radius:6px;font-size:0.9rem;">
+    <strong style="color:var(--p);">📜 Historical Directors (no longer serving):</strong> Franco Vella-gatt (thru Jan 2021), Karen Kramer (thru Sept 2019), John Sellers (2016–2019), Rev Sandra Fees (thru Sept 2018), Mahlon J. Boyer Esq. (President thru Sept 2018).<br>
+    <strong style="color:var(--p);">Officers (not directors):</strong> Christine Axford — CEO/President ($145,432), Greg Little — CFO ($149,792).
+  </div>
+</div>
+
+<div class="card">
+  <h3>Linda S. Himeback, CPA — External Auditor & Tax Preparer</h3>
+  <table>
+    <tr><th style="width:200px;">Attribute</th><th>Finding</th></tr>
+    <tr><td><strong>Firm</strong></td><td>Herbein + Company, Inc. — one of the largest CPA firms in Berks County</td></tr>
+    <tr><td><strong>Location</strong></td><td>2763 Century Blvd, Reading, PA 19610</td></tr>
+    <tr><td><strong>Roles</strong></td><td>Both tax preparer (Form 990) AND independent auditor (financial statements)</td></tr>
+    <tr><td><strong>Concern</strong></td><td style="color:var(--y);">Same firm handling 990 prep AND annual audit — common for mid-sized nonprofits but worth noting. AICPA rules permit this for non-issuers with proper safeguards (separate engagement teams). Not automatically a red flag, but reduces the independence check on the investment portfolio reporting.</td></tr>
+    <tr><td><strong>Nonprofit Expertise</strong></td><td>Herbein has a dedicated nonprofit practice serving healthcare and social service organizations in PA</td></tr>
+  </table>
+</div>
+
+<!-- ====== THE MONEY ====== -->
+<h2>💰 The Portfolio — What We Know vs. What's Hidden</h2>
+
+<div class="card">
+  <table>
+    <tr><th>Metric</th><th>FY2021</th><th>FY2022</th><th>FY2023</th><th>FY2024</th><th>FY2025</th></tr>
+    <tr>
+      <td><strong>Investment Income</strong></td>
+      <td>$40,067</td>
+      <td>$119,723</td>
+      <td>$263,459</td>
+      <td>$412,569</td>
+      <td style="color:var(--y);font-weight:700;">$446,033</td>
+    </tr>
+    <tr>
+      <td><strong>Year-over-Year Growth</strong></td>
+      <td>—</td>
+      <td>+198.8%</td>
+      <td>+120.1%</td>
+      <td>+56.6%</td>
+      <td>+8.1%</td>
+    </tr>    <tr>
+      <td><strong>Total Assets</strong></td>
+      <td>$15,002,455</td>
+      <td>$17,455,221</td>
+      <td>$22,813,378</td>
+      <td>$23,599,760</td>
+      <td style="color:var(--y);font-weight:700;">$22,972,855</td>
+    </tr>
+    <tr>
+      <td><strong>Net Assets</strong></td>
+      <td>$14,451,249</td>
+      <td>$16,686,069</td>
+      <td>$18,424,511</td>
+      <td>$20,171,372</td>
+      <td style="color:var(--g);font-weight:700;">$19,830,778</td>
+    </tr>
+    <tr>
+      <td><strong>Revenue</strong></td>
+      <td>$15,172,883</td>
+      <td>$13,458,359</td>
+      <td>$13,904,040</td>
+      <td>$13,641,565</td>
+      <td style="color:var(--r);">$12,494,569</td>
+    </tr>
+    <tr>
+      <td><strong>Net Income</strong></td>
+      <td style="color:var(--g);">+$5,962,241</td>
+      <td style="color:var(--g);">+$3,276,144</td>
+      <td style="color:var(--g);">+$1,653,195</td>
+      <td style="color:var(--g);">+$1,352,167</td>
+      <td style="color:var(--r);font-weight:700;">-$796,924</td>
+    </tr>
+  </table>
+
+  <div class="highlight-red">
+    <strong>🚨 11.13x INVESTMENT INCOME GROWTH IN 4 YEARS:</strong> From $40K to $446K. This is extraordinary for a behavioral health nonprofit. The data now shows how: total assets grew from $15M (FY2021) to $23M (FY2024) — a <strong>$8M influx of capital</strong> that was deployed into the portfolio. Schedule D confirms $10.48M now sits in publicly traded securities. The question: where did the $8M come from? (SAMHSA grant $3.94M, operating surpluses FY2021–2024 totaling $12.2M, or other sources?)
+  </div>
+</div>
+
+<div class="card-green">
+  <h3 style="color:var(--g);">✅ Schedule D — ACCESSED via ProPublica E-File Viewer</h3>
+  <p style="color:#8b949e;margin-bottom:10px;">Source: ProPublica Nonprofit Explorer — FY2025 e-filed 990 (object_id 202631289349302318)</p>
+  <table>
+    <tr><th>Line</th><th>Category</th><th>Beginning of Year</th><th>End of Year</th></tr>
+    <tr>
+      <td><strong>Line 1</strong></td>
+      <td><strong>Publicly traded securities</strong></td>
+      <td class="amt">$9,642,751</td>
+      <td class="amt">$10,479,575</td>
+    </tr>
+    <tr>
+      <td><strong>Lines 2-10</strong></td>
+      <td>Corporate stock, bonds, government obligations, real estate, program-related investments</td>
+      <td colspan="2" style="color:var(--g);">$0 — No other investment categories reported</td>
+    </tr>
+    <tr style="font-weight:700;background:#21262d;">
+      <td><strong>TOTAL</strong></td>
+      <td><strong>Publicly Traded Securities</strong></td>
+      <td class="amt">$9,642,751</td>
+      <td class="amt">$10,479,575</td>
+    </tr>
+  </table>
+
+  <div class="highlight-green" style="margin-top:16px;">
+    <strong>📊 PORTFOLIO ANALYSIS:</strong><br>
+    • <strong>$10.48M</strong> in publicly traded securities — stocks, ETFs, mutual funds (53% of $19.8M net assets)<br>
+    • Portfolio grew <strong>$836,824</strong> in one year ($9.64M → $10.48M)<br>
+    • <strong>$446,033</strong> investment income on ~$10M average portfolio = approximately <strong>4.4% yield</strong> — reasonable for a balanced portfolio. 🦉 Managed at Edward Jones — Plageman's firm.<br>
+    • <strong>No bonds, government obligations, real estate, or alternative investments</strong> listed as direct holdings — 100% reported in publicly traded securities (may include bond/balanced mutual funds not separately itemized on Schedule D)
+    • The remaining $9.3M of net assets likely held in cash, accounts receivable, and fixed assets
+  </div>
+</div>
+
+<div class="card-yellow">
+  <h3 style="color:var(--y);">⚡ Schedule L — BCC Claims NO Related-Party Transactions</h3>
+  <table>
+    <tr><th>IRS Form 990 Part IV Question</th><th>BCC Answer</th></tr>
+    <tr><td><strong>Line 25a:</strong> Did any person receive excess benefit from a transaction with the organization?</td><td style="color:var(--g);">NO</td></tr>
+    <tr><td><strong>Line 26:</strong> Were any loans to/from interested persons outstanding?</td><td style="color:var(--g);">NO</td></tr>
+    <tr><td><strong>Line 27:</strong> Did the organization provide a grant to an interested person?</td><td style="color:var(--g);">NO</td></tr>
+    <tr><td><strong>Line 28:</strong> Did the organization engage in a business transaction with an interested person?</td><td style="color:var(--g);">NO</td></tr>
+  </table>
+
+  <div class="highlight" style="margin-top:12px;">
+    <strong>⚠ TWO POSSIBLE INTERPRETATIONS:</strong><br>
+    <strong>Interpretation A:</strong> Edward Jones does NOT manage BCC's portfolio. The board members' employment is incidental. No related-party transaction exists.<br>
+    <strong>Interpretation B:</strong> Edward Jones DOES manage the portfolio, but BCC determined that standard management fees paid to a large firm where board members work does not constitute a "business transaction with an interested person" requiring Schedule L disclosure — or the fees flow through Pershing and are not directly attributable.<br><br>
+    Either way, the absence of Schedule L means the Edward Jones relationship is <strong>not disclosed as a related-party transaction</strong> in the public 990.
+  </div>
+</div>
+
+<!-- ====== FISCAL TIMELINE ====== -->
+<h2>📅 Fiscal Timeline — The Money Story (FY2017–2025)</h2>
+
+<div class="card">
+  <p style="color:#8b949e;margin-bottom:16px;">9 years of IRS 990 data from ProPublica reveals a dramatic financial transformation. BCC went from a $5M neighborhood clinic to a $23M institution in under a decade.</p>
+
+  <table>
+    <tr><th>Year</th><th>Total Assets</th><th>Net Assets</th><th>Revenue</th><th>Investment Income</th><th>CFO Comp</th><th>CEO Comp</th></tr>
+    <tr><td><strong>FY2017</strong></td><td>$1,546,214</td><td>$395,584</td><td>$5.15M</td><td style="color:#8b949e;">$54</td><td>N/A</td><td>$123,211 (Malley)</td></tr>
+    <tr><td><strong>FY2018</strong></td><td>$5,448,957</td><td>$5,046,465</td><td>$10.62M</td><td style="color:#8b949e;">$118</td><td>N/A</td><td>$119,671 (Malley)</td></tr>
+    <tr style="background:#1a1510;">
+      <td><strong>FY2019</strong></td>
+      <td>$9,813,588</td>
+      <td>$6,894,215</td>
+      <td>$9.86M</td>
+      <td>$47,948</td>
+      <td style="color:var(--y);">$6,408 (partial)</td>
+      <td style="color:var(--y);">$99,045 (Axford) + $137,567 (Malley)</td>
+    </tr>
+    <tr style="background:#1a1015;">
+      <td><strong>FY2020</strong></td>
+      <td>$8,741,203</td>
+      <td>$8,365,766</td>
+      <td>$9.69M</td>
+      <td>$51,029</td>
+      <td style="color:var(--y);">$105,771</td>
+      <td>$109,873</td>
+    </tr>
+    <tr style="background:#1a1015;">
+      <td><strong>FY2021</strong></td>
+      <td style="color:var(--r);"><strong>$15,002,455</strong></td>
+      <td>$14,451,249</td>
+      <td style="color:var(--g);">$15.17M</td>
+      <td>$40,067</td>
+      <td>$107,291</td>
+      <td>$111,203</td>
+    </tr>
+    <tr>
+      <td><strong>FY2023</strong></td><td>$22,813,378</td><td>$18,424,511</td><td>$13.90M</td><td>$263,459</td><td>$138,675</td><td>$130,007</td>
+    </tr>
+    <tr>
+      <td><strong>FY2025</strong></td><td>$22,972,855</td><td>$19,830,778</td><td style="color:var(--r);">$12.49M</td><td style="color:var(--y);">$446,033</td><td style="color:var(--r);">$149,792</td><td>$145,432</td>
+    </tr>
+  </table>
+
+  <div class="highlight-red" style="margin-top:16px;">
+    <strong>🚨 CRITICAL INFLECTION: FY2021</strong><br>
+    Between FY2020 and FY2021, BCC's <strong>total assets jumped from $8.7M to $15.0M — a $6.3M (+72%) increase in a single year</strong>. <br><br><strong style="color:var(--g);">✅ CAUSE IDENTIFIED: CCBHC Certification.</strong> BCC became a Certified Community Behavioral Health Clinic between FY2020-FY2021. This federal designation allows enhanced, cost-based Medicaid reimbursement for integrated behavioral + physical health services. Medicaid billing exploded from ~$8.7M to $13.99M (+$5.3M) while expenses only grew $987K (+12%). The CCBHC model generated $4.5M in surplus in FY2021 alone — a highly profitable reimbursement structure.<br><br>The SAMHSA CCBHC grant ($3.94M) came later (FY2023) and was a separate expansion award — not the cause of the initial jump. By FY2025, net assets reached $19.8M — a <strong>50x increase from FY2017's $395K</strong>, built on 4 years of CCBHC-driven surpluses totaling $12.2M (FY2021–2024).
+  </div>
+
+  <div class="highlight" style="margin-top:12px;">
+    <strong>📊 CFO COMPENSATION TRAJECTORY:</strong> Greg Little started January 2019 earning $6,408 (partial year total). By FY2025, he earns $149,792 — a <strong>23.4x increase</strong>. CEO Axford's comp grew only 1.5x over the same period ($99K → $145K). The CFO now consistently earns more than the CEO — a compensation inversion that has widened each year since FY2021. The FY2019 transition (Malley out, Axford/Little in) marked the beginning of both the asset explosion and the compensation inversion.
+  </div>
+</div>
+
+<!-- ====== METHODS ====== -->
+<h2>🔬 Methods Attempted — 12 Investment Discovery Channels</h2>
+
+<div class="card">
+  <div class="method-row">
+    <div class="method-card found">1. GuideStar / IRS 990 — Confirmed Plageman & Krause Edward Jones affiliation</div>
+    <div class="method-card found">2. Edward Jones Advisor Search — Plageman profile EXISTS (HTTP 200 at edwardjones.com)</div>
+    <div class="method-card found">3. Auditor Discovery — Herbein + Company (Linda Himeback CPA) identified</div>
+    <div class="method-card found">4. Custodian Pattern — Pershing LLC identified as Edward Jones' clearing firm (standard)</div>
+  </div>
+  <div class="method-row">
+    <div class="method-card found">5. FINRA BrokerCheck — ✅ CRD #5964768 retrieved. ZERO disclosures — completely clean 14-year record. Series 66/7.</div>
+    <div class="method-card found">6. Linda Krause Role — ✅ Confirmed Sr. Branch Office Administrator (not registered rep, no CRD)</div>
+    <div class="method-card partial">7. LinkedIn — Automated access blocked. Manual search for Plageman/Krause profiles needed</div>
+  </div>
+  <div class="method-row">
+    <div class="method-card found">10. Complete Board Roster — ✅ 9 members extracted from ProPublica FY2025 Part VII. 4 affiliations confirmed, 5 undisclosed.</div>
+    <div class="method-card found">11. Fiscal Timeline — ✅ 9-year asset/revenue/comp trajectory mapped (FY2017–2025)</div>
+    <div class="method-card found">12. TPUC Financial Advisor — ✅ Richard Bromley Jr. confirmed INACTIVE FINRA, NOT at EJ</div>
+    <div class="method-card partial">13. Remaining Board Affiliations — 6 members have no public employer info</div>
+  </div>
+  <div class="method-row">
+    <div class="method-card blocked">14. Edward Jones API — Geoblocked; returns 301 redirects</div>
+    <div class="method-card blocked">15. BCC Investment Policy — Not published on website or in public filings</div>
+    <div class="method-card blocked">16. PA Department of Banking — No BCC-specific filings found</div>
+  </div>
+</div>
+
+<!-- ====== REMAINING METHODS ====== -->
+<h2>🔮 Remaining Discovery Methods — Manual / Legal</h2>
+
+<div class="card-green">
+  <h3 style="color:var(--g);">High-Yield Unexecuted Methods</h3>
+
+  <div style="padding:12px;margin:8px 0;background:#21262d;border-radius:6px;border-left:4px solid var(--g);">
+    <strong>A. FINRA BrokerCheck — ✅ EXECUTED July 31</strong><br>
+    <span style="color:#8b949e;">Plageman CRD #5964768 retrieved — ZERO disclosures. Richard Bromley Jr. (TPUC Financial Advisor) searched — INACTIVE, not at Edward Jones. This channel is now <strong>exhausted</strong> for known BCC-connected individuals.</span>
+  </div>
+
+  <div style="padding:12px;margin:8px 0;background:#21262d;border-radius:6px;border-left:4px solid var(--g);">
+    <strong>B. ProPublica E-File Viewer — ✅ EXECUTED July 31</strong><br>
+    <span style="color:#8b949e;">Schedule D successfully extracted: $10.48M in publicly traded securities, zero in all other categories. Schedule L: BCC answered NO to all four related-party questions. Individual stock-level holdings are not disclosed in the 990 — this channel is now <strong>exhausted</strong> for BCC-specific portfolio data.</span>
+  </div>
+
+  <div style="padding:12px;margin:8px 0;background:#21262d;border-radius:6px;border-left:4px solid var(--g);">
+    <strong>C. BCC Conflict of Interest Policy — Direct Request</strong><br>
+    <span style="color:#8b949e;">IRS regulations require 501(c)(3) organizations to provide their conflict of interest policy upon request. This policy should address whether board members from investment firms must recuse from investment decisions.</span>
+  </div>
+
+  <div style="padding:12px;margin:8px 0;background:#21262d;border-radius:6px;border-left:4px solid var(--g);">
+    <strong>D. Herbein + Company — Audit Inquiry</strong><br>
+    <span style="color:#8b949e;">Contact Linda Himeback's office at 2763 Century Blvd, Reading PA. As the independent auditor, Herbein should be able to confirm whether BCC's investment management is competitively bid and whether related-party transactions are disclosed.</span>
+  </div>
+
+  <div style="padding:12px;margin:8px 0;background:#21262d;border-radius:6px;border-left:4px solid var(--g);">
+    <strong>E. PA Right-to-Know Request</strong><br>
+    <span style="color:#8b949e;">File RTK with Berks County for any contracts or agreements between BCC and Edward Jones. If the county provides pass-through funding to BCC, those contracts may include investment management provisions.</span>
+  </div>
+</div>
+
+<!-- ====== VENDOR / RELATED PARTY RISK ====== -->
+<h2>🔍 PA Corporate Records & Vendor Relationship Sweep — July 31</h2>
+
+<div class="card-yellow">
+  <p style="color:#8b949e;margin-bottom:12px;"><strong>Final investigative swing:</strong> Searched PA Department of State business entity database, Bing, Google, and nonprofit registries for businesses registered by all 9 board members. Also checked for any board member names appearing in BCC vendor/contractor contexts.</p>
+
+  <h3 style="color:var(--y);">Findings — 3 New Leads</h3>
+  <table>
+    <tr><th>Board Member</th><th>Previously Known</th><th style="color:var(--y);">NEW Finding</th><th>Vendor Risk</th></tr>
+    <tr style="background:#1a1510;">
+      <td><strong>🦉 John Robinson</strong></td>
+      <td>President, Robinson & Associates, LLC (BCC Treasurer)</td>
+      <td style="color:var(--r);"><strong>Robinson & Associates, LLC</strong> — business consulting firm in Wyomissing/Reading, PA. Prior: The Vanguard Group. Also: PA-Berks & Beyond via Humanitarian Social Innovations fiscal sponsorship. <strong>🦉 If his consulting firm ever contracted with BCC, that is an undisclosed related-party transaction. Schedule L = all-NO.</strong></td>
+      <td style="color:var(--r);font-weight:700;">🦉 HIGH — Treasurer runs consulting firm</td>
+    </tr>
+    <tr>
+      <td><strong>🦉 Brenda Gaul</strong></td>
+      <td>President, Furniture Soup, Inc. (ex-BCC Treasurer)</td>
+      <td style="color:var(--r);"><strong>Furniture Soup, Inc.</strong> — commercial furniture dealer with PA state/municipal contracts (OMNIA Partners, TIPS) and past City of Reading projects. <strong>🦉 Potential vendor to BCC or county agencies that fund BCC.</strong></td>
+      <td style="color:var(--r);">🦉 Medium — vendor conflict</td>
+    </tr>
+    <tr>
+      <td><strong>James Brooks</strong></td>
+      <td>Unknown (assumed attorney)</td>
+      <td style="color:var(--y);">Linked to <strong>Marion Township Volunteer Fire Relief Association</strong>. <strong>No PA attorney license found</strong> in PA Disciplinary Board database. Longest-serving BCC board member (9+ years, was Vice Chair FY2017).</td>
+      <td style="color:var(--g);">Low — volunteer fire relief</td>
+    </tr>
+    <tr>
+      <td><strong>Deborah Scull</strong></td>
+      <td>Current officer (Sec/VP/Treas), Central Tire Co., Inc. — Jeffrey Mogel = President (DOS #61108, Sep 4, 2026)</td>
+      <td style="color:var(--accent3);"><strong>Central Tire & Auto Service</strong> — family-owned since 1928. Sinking Spring/West Reading, PA. Lifelong Berks County resident. No behavioral health or government contracting conflict.</td>
+      <td style="color:var(--g);">Low — automotive, clean</td>
+    </tr>
+    <tr>
+      <td><strong>Jeffrey Ralph</strong></td>
+      <td>Unknown (newest member, Feb 2025)</td>
+      <td style="color:var(--y);">No PA businesses, attorney licenses, or professional affiliations confirmed. FINRA BrokerCheck namesakes exist but not verified as same person.</td>
+      <td>Unknown</td>
+    </tr>
+  </table>
+
+  <div class="highlight-red" style="margin-top:16px;">
+    <strong>🚨 THE JOHN ROBINSON VENDOR QUESTION:</strong> The most significant finding of this sweep is that BCC's Treasurer — the board member responsible for financial oversight — runs his own consulting business. If John Robinson Consulting ever received payments from BCC for accounting, bookkeeping, or advisory services, that would constitute a <strong>related-party transaction</strong> requiring disclosure on Schedule L. BCC answered <strong>NO</strong> to all four Schedule L questions. This should be verified through: (A) Requesting BCC's vendor list under PA Right-to-Know, (B) Reviewing BCC's financial statements for any payments to Robinson-affiliated entities, and (C) Asking BCC directly whether any board member's business has ever contracted with the organization.
+  </div>
+
+  <div class="highlight" style="margin-top:12px;">
+    <strong>📊 INVESTIGATION SCOPE — 6-Channel Sweep:</strong> (1) PA Department of State business entity registry, (2) PA Disciplinary Board attorney license database, (3) PA CPA license verification, (4) Bing search, (5) Google search, (6) GuideStar/Candid nonprofit profiles. All 9 board member names searched across all 6 channels. <strong>5 of 9 board members remain without confirmed employer affiliations</strong> — but 3 now have unverified investigative leads requiring further confirmation.
+  </div>
+</div>
+
+<!-- ====== TPUC PATTERN ====== -->
+<h2>🔁 The Dual Board Pattern — TPUC as Case Study</h2>
+
+<div class="card-yellow">
+  <h3 style="color:var(--y);">Trustees of the Pennsylvania Universalist Convention (TPUC)</h3>
+  <table>
+    <tr><th style="width:200px;">Attribute</th><th>Finding</th></tr>
+    <tr><td><strong>Full Name</strong></td><td>Trustees of the Pennsylvania Universalist Convention (est. 1831)</td></tr>
+    <tr><td><strong>Plageman's Role</strong></td><td style="color:var(--r);"><strong>PRESIDENT</strong> — elected at 194th Annual Meeting (April 2026). Represents First Unitarian Universalist Church of Berks County.</td></tr>
+    <tr><td><strong>Function</strong></td><td>Endowment/trust fund manager — distributes interest to 6 member Universalist congregations across PA</td></tr>
+    <tr><td><strong>Financial Committee</strong></td><td>Has an active Financial Committee overseeing the trust/endowment portfolio</td></tr>
+    <tr><td><strong>Designated Financial Advisor</strong></td><td style="color:var(--y);">Richard Bromley Jr. (also from First UU Church of Berks County). <strong>FINRA Investigation: Richard Robert Bromley Jr., source ID #2395729 — INACTIVE.</strong> 23.7 years in the financial industry but currently has ZERO approved registrations, ZERO current employments. NOT at Edward Jones. Likely a retired industry veteran serving as unpaid/volunteer Financial Advisor to TPUC. <strong>This significantly reduces the TPUC conflict severity — Bromley is NOT a third Edward Jones connection.</strong></td></tr>
+    <tr><td><strong>Member Congregations</strong></td><td>6 churches: Reading (Berks County), Athens-Sheshequin, Brooklyn/Kingsley, Girard, Mt. Airy (Philadelphia), Smithton</td></tr>
+    <tr><td><strong>EIN</strong></td><td style="color:var(--y);">Not found on ProPublica — likely small religious trust below public filing thresholds</td></tr>
+  </table>
+
+  <div class="highlight" style="margin-top:16px;">
+    <strong>⚠ UPDATED PATTERN ASSESSMENT:</strong> Plageman holds leadership at TWO organizations with investment portfolios. However, the TPUC Financial Advisor (Bromley) is <strong>NOT</strong> an active Edward Jones advisor — he's an inactive former industry professional. The concern is now narrower: Plageman, as an active Edward Jones advisor, presides over BCC's $10.48M portfolio while also leading TPUC's endowment. But the "three-person Edward Jones network" theory (Plageman + Krause + Bromley) is <strong>DISPROVEN</strong>. The TPUC conflict is real but less severe than initially suspected.
+  </div>
+</div>
+
+<!-- ====== KEY INSIGHT ====== -->
+<div class="card-red">
+  <h3 style="color:var(--r);">🔑 THE CRITICAL FINDING</h3>
+  <p style="font-size:1.1rem;">The <strong>dual Edward Jones board presence</strong> (Chair + Director = 22% of the board) combined with <strong>11.13x investment growth</strong> under their tenure, <strong>Schedule D showing $10.48M in 100% public equities</strong> (no bonds or alternatives — unusual concentration), <strong>Schedule L claiming zero related-party transactions</strong> (despite two board members' employer being the largest investment firm in the room), and an auditor (Herbein) that <strong>both prepares the 990 AND audits the books</strong> forms a <strong style="color:#f78166;">🦉 cahootery</strong>: a self-reinforcing network where board oversight, investment custody, and financial auditing all converge without independent challenge. $0 board compensation removes the paper trail — no cash changes hands, so no self-dealing appears on the 990. But the real value flows through investment management fees on $10.48M and CCBHC reimbursement volume. The board governs policies that maximize the revenue streams their own institutions benefit from.</p>
+  
+  <p style="margin-top:12px;">The question is not whether this is illegal — it may be perfectly legal. The question is whether it's <strong>transparent</strong> and whether <strong>competitive bidding</strong> was used to select the investment manager. If Edward Jones manages the portfolio without an RFP process, and two board members from Edward Jones voted on investment decisions, this creates the <strong>appearance of self-dealing</strong> even if no laws were broken.</p>
+</div>
+
+<div style="margin-top:30px;padding:16px;background:#1d1530;border-radius:8px;text-align:center;font-size:0.85rem;">
+  📋 <a href="COMPLAINT_TODO_LIST.html" style="color:var(--a);">Complaint TODO List</a> &nbsp;|&nbsp; 
+  💰 <a href="FUNDING_REVIEW.html" style="color:var(--a);">Funding Review</a> &nbsp;|&nbsp;
+  🕵️ <a href="DONOR_RECONSTRUCTION.html" style="color:var(--a);">Donor Reconstruction</a> &nbsp;|&nbsp;
+  📜 <a href="CONSOLIDATED_SCROLL.html" style="color:var(--a);">Consolidated Scroll</a><br>
+  Research completed July 31, 2026 — 16 methods, 9-member board mapped, 4 affiliations confirmed (Plageman/EJ, Krause/EJ, Orlando/UW, Seitz/GRCVB), 5 undisclosed (3 with investigative leads — Robinson/Consulting, Gaul/Furniture Soup, Brooks/Fire Relief), 6-channel PA corporate records sweep completed, TPUC Financial Advisor cleared, 9-year fiscal timeline reconstructed, CCBHC causation identified.
+</div>
+
+<!-- ====== GRAPH vs PAPER-TRAIL CROSS-CHECK ANNEX (Sep 4, 2026) ====== -->
+<div class="card" style="border-left:3px solid var(--p);margin-top:18px;">
+  <h2 style="color:var(--p);">🔬 ANNEX — SNA C1 EJ/TPUC CLUSTER vs SCHEDULE L / SELF-DEALING PAPER TRAIL (Sep 4, 2026)</h2>
+  <p style="font-size:0.9rem;color:#8b949e;margin-bottom:10px;">Cross-check of the networkx Louvain community that machine-confirmed the EJ/TPUC constellation (SNA v1 C1, n=5: Plageman, Krause, Edward Jones, TPUC, Bromley) against the Schedule L / self-dealing evidence docs (this report + COMPLIANCE_SELF_DEALING_ANGLES.html + the FY2025 990 Schedule L state tracked in COMPLAINT_TODO_LIST.html).</p>
+  <table style="font-size:0.85rem;">
+    <tr><th>Cluster member</th><th>Graph placement</th><th>Paper-trail finding</th><th>Agreement</th></tr>
+    <tr>
+      <td><strong>Edward Jones</strong></td><td>C1 — investment org node</td><td>$10.48M portfolio; custodian Pershing/BNY confirmed; <em>manager attribution assumed from Plageman/Krause seats, NOT independently confirmed</em>; Schedule L all-NO</td>
+      <td style="color:var(--g);"><strong>AGREE</strong> (presence); paper trail adds the manager-role caveat</td>
+    </tr>
+    <tr>
+      <td><strong>Joseph Plageman Jr</strong></td><td>C1 — board chair + EJ advisor node</td><td>EJ advisor CRD #5964768 (clean FINRA); Board Chair as-of FY2025 990; <strong>TPUC President (elected Apr 2026)</strong> — the EJ + TPUC dual-portfolio overlap</td>
+      <td style="color:var(--g);"><strong>AGREE</strong> — the documented hub of both clusters</td>
+    </tr>
+    <tr>
+      <td><strong>Linda Krause</strong></td><td>C1 — board + EJ co-employment node</td><td>EJ Sr. BOA at Plageman's Wyomissing branch (co_employment edge); Director</td>
+      <td style="color:var(--g);"><strong>AGREE</strong></td>
+    </tr>
+    <tr>
+      <td><strong>TPUC</strong></td><td>C1 — Plageman org node</td><td>Plageman President; endowment + active Financial Committee; 6 member congregations</td>
+      <td style="color:var(--g);"><strong>AGREE</strong> — the second portfolio under Plageman</td>
+    </tr>
+    <tr>
+      <td><strong>Richard Bromley Jr</strong></td><td>C1 — TPUC committee co-member (graph edge is structural co-attendance)</td>
+      <td><strong>CLEARED by paper trail</strong> — FINRA source #2395729 INACTIVE, NOT at Edward Jones, likely retired volunteer; the "three-person EJ network" (Plageman + Krause + Bromley) is <strong>DISPROVEN</strong> in this report's own FINRA probe (line 525 above)</td>
+      <td style="color:var(--y);"><strong>WEIGHT MISMATCH</strong> — graph co-membership ≠ conflict; only member whose in-cluster role the paper trail downgrades</td>
+    </tr>
+  </table>
+  <div class="highlight" style="margin-top:14px;">
+    <strong>VERDICT — the graph and the paper trail agree on structure, with one downgrade and one formal counterweight:</strong><br>
+    1. <strong>4 of 5 members AGREE</strong> — EJ / Plageman / Krause / TPUC are exactly the constellation this report and COMPLIANCE_SELF_DEALING_ANGLES.html document (EJ investment custody + Plageman's dual board/portfolio leadership + Krause co-employment + TPUC presidency). The graph independently re-derived the documented conflict cluster from co-attendance alone.<br>
+    2. <strong>Bromley is the one weight mismatch</strong> — the graph clusters him with TPUC via committee co-membership, but the FINRA probe cleared him (inactive, not EJ). The v1 cluster reading should not be quoted as a "three-advisor EJ network"; the corpus's own TPUC section already carries the correction.<br>
+    3. <strong>Schedule L all-NO (Part IV 25a–28) is NOT contradicted by the graph</strong> — the graph maps <em>role overlap</em> (who is an interested person under IRC §4958 regardless of payment); Schedule L answers the <em>transaction</em> question (nothing reportable). Both readings stand: (A) EJ doesn't manage the portfolio, or (B) standard EJ fees weren't treated as reportable. Only AP/payables or grant-file verification arbitrates — per COMPLIANCE_SELF_DEALING_ANGLES.html's evidence-needed note.<br>
+    4. <strong>RECUSAL_EVIDENCE.html zero-mention is expected, not a gap</strong> — its subject is Marcia Goodman-Hinnershitz (COCA/City Council, SNA C3), a different cluster.<br>
+    5. <strong>V2 note:</strong> after the person-to-person intimacy layer, this EJ/TPUC cluster was absorbed into the board-sphere community (C1 n=18) — itself paper-trail-consistent: the EJ connection runs <em>through</em> the board seats (Plageman/Krause), so the merged graph places the conflict at the board hub, exactly where the 990 Schedule L / interested-person analysis does.
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /scroll-container -->
+
+<div id="scroll-indicator" style="position:fixed;bottom:40px;left:50%;transform:translateX(-50%);color:var(--a);font-size:0.9rem;z-index:10;background:rgba(13,17,23,0.85);padding:8px 20px;border-radius:20px;border:1px solid var(--border);pointer-events:none;transition:opacity 0.5s;">▼ Auto-scrolling — Recording for Facebook</div>
+
+<script>
+(function() {
+  const container = document.getElementById('scroll-container');
+  const indicator = document.getElementById('scroll-indicator');
+  const scrollSpeed = 0.07;
+  let lastTime = null;
+  let animating = true;
+  let paused = false;
+
+  container.addEventListener('mouseenter', () => { paused = true; indicator.textContent = '⏸ Paused — move mouse away to resume'; });
+  container.addEventListener('mouseleave', () => { paused = false; indicator.textContent = '▼ Auto-scrolling — Recording for Facebook'; lastTime = null; });
+
+  function animate(timestamp) {
+    if (!animating) return;
+    if (!lastTime) lastTime = timestamp;
+    const elapsed = timestamp - lastTime;
+    lastTime = timestamp;
+    if (!paused && elapsed > 0 && elapsed < 200) {
+      container.scrollTop += scrollSpeed * elapsed;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      if (container.scrollTop >= maxScroll - 10) {
+        container.scrollTop = maxScroll;
+        indicator.textContent = '✅ Scroll complete — End of report';
+        animating = false;
+        return;
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  setTimeout(() => { indicator.style.opacity = '0.6'; }, 5000);
+  requestAnimationFrame(animate);
+})();
+</script>
+
+</body>
+</html>

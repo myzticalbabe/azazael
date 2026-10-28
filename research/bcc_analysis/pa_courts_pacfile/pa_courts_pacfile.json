@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-10-28T08:26:49",
+  "dockets": {
+    "898 MDA 2017": {
+      "pacfile": {
+        "docket": "898 MDA 2017",
+        "status_code": 200,
+        "accessible": true,
+        "html_length": 2605305
+      },
+      "courtlistener": {
+        "docket": "898 MDA 2017",
+        "count": 0
+      }
+    },
+    "15-14644": {
+      "pacfile": {
+        "docket": "15-14644",
+        "status_code": 200,
+        "accessible": true,
+        "html_length": 2605305
+      },
+      "courtlistener": {
+        "docket": "15-14644",
+        "count": 0
+      }
+    }
+  },
+  "gaps_targeted": [
+    34
+  ]
+}

@@ -1,0 +1,138 @@
+{
+ "generated": "2026-09-05",
+ "tool": "splink 5 (DuckDB backend, bccpipe venv, Python 3.14)",
+ "n_records": 71,
+ "threshold": 0.75,
+ "clusters": [
+  [
+   {
+    "source": "dossier",
+    "name": "Joseph Plageman Jr"
+   },
+   {
+    "source": "sna",
+    "name": "Joseph Plageman Jr"
+   },
+   {
+    "source": "dossier",
+    "name": "Joseph Plageman Jr."
+   },
+   {
+    "source": "dossier",
+    "name": "Joseph William Plageman"
+   },
+   {
+    "source": "dossier",
+    "name": "Plageman Jr"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "John Robinson"
+   },
+   {
+    "source": "sna",
+    "name": "John Robinson"
+   },
+   {
+    "source": "roster",
+    "name": "Robinson"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Richard Bromley Jr"
+   },
+   {
+    "source": "sna",
+    "name": "Richard Bromley Jr"
+   },
+   {
+    "source": "dossier",
+    "name": "Richard Bromley Jr."
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Frances Malley"
+   },
+   {
+    "source": "sna",
+    "name": "Frances Malley"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Greg Little"
+   },
+   {
+    "source": "sna",
+    "name": "Greg Little"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Brenda Gaul"
+   },
+   {
+    "source": "sna",
+    "name": "Brenda Gaul"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Deborah Scull"
+   },
+   {
+    "source": "sna",
+    "name": "Deborah Scull"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "James Brooks"
+   },
+   {
+    "source": "sna",
+    "name": "James Brooks"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Jeffrey Ralph"
+   },
+   {
+    "source": "sna",
+    "name": "Jeffrey Ralph"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Linda Krause"
+   },
+   {
+    "source": "sna",
+    "name": "Linda Krause"
+   }
+  ],
+  [
+   {
+    "source": "dossier",
+    "name": "Edward Jones"
+   },
+   {
+    "source": "dossier",
+    "name": "Edward Jones'"
+   }
+  ]
+ ]
+}
