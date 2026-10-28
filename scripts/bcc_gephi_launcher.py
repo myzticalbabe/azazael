@@ -29,7 +29,7 @@ SNA = os.path.join(ROOT, "azazael", "scripts", "bcc_network_sna.py")
 COSMOS = os.path.join(ROOT, "Desktop", "AZAZAEL_COSMOS_VIEWER_bcc", "cosmos")
 PERSON_EDGES = os.path.join(ROOT, "azazael", "scripts", "bcc_person_edges.json")
 OUT = os.path.join(ROOT, "gephi_export_bcc")
-RESULTS = os.path.join(ROOT, "bcc_network_sna_results_v3.json")
+RESULTS = os.path.join(ROOT, "bcc_codebase_import_sna_v3.json")
 
 GEPHI_HINTS = [
     os.path.join(os.environ.get("LOCALAPPDATA", "C:/"), "Programs", "Gephi-0.11.2", "bin", "gephi64.exe"),

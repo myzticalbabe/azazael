@@ -1,0 +1,348 @@
+{
+  "metadata": {
+    "created": "2026-10-28T07:58:13",
+    "version": "1.0.0",
+    "pattern_types": {
+      "ast_pattern": 852,
+      "import_pattern": 679,
+      "decorator_pattern": 28,
+      "graph_motif": 160,
+      "bcc_network_motif": 7,
+      "training_pattern": 8,
+      "memory_event": 8
+    },
+    "total_patterns": 1742
+  },
+  "by_type": {
+    "ast_pattern": 852,
+    "import_pattern": 679,
+    "decorator_pattern": 28,
+    "graph_motif": 160,
+    "bcc_network_motif": 7,
+    "training_pattern": 8,
+    "memory_event": 8
+  },
+  "by_source_category": {
+    "code": 1559,
+    "network": 160,
+    "bcc": 7,
+    "training": 8,
+    "memory": 8
+  },
+  "by_priority": {
+    "3": 123,
+    "2": 1619
+  },
+  "sample_patterns": {
+    "ast_0": {
+      "pattern_id": "ast_0",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 2470,
+      "priority": 3,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 10,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.9,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "func:args=1|decorators:"
+      }
+    },
+    "ast_1": {
+      "pattern_id": "ast_1",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 1012,
+      "priority": 3,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 10,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.7024,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "func:args=0|decorators:"
+      }
+    },
+    "ast_2": {
+      "pattern_id": "ast_2",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 22,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 0,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.5044,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import:ast"
+      }
+    },
+    "ast_3": {
+      "pattern_id": "ast_3",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 215,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 2,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.543,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import:json"
+      }
+    },
+    "ast_4": {
+      "pattern_id": "ast_4",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 301,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 3,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.5602,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import_from:pathlib|Path"
+      }
+    },
+    "ast_5": {
+      "pattern_id": "ast_5",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 124,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 1,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.5248,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import_from:datetime|datetime"
+      }
+    },
+    "ast_6": {
+      "pattern_id": "ast_6",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 100,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 1,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.52,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import_from:typing|Any,List"
+      }
+    },
+    "ast_7": {
+      "pattern_id": "ast_7",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 450,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 4,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.59,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "class:|decorators:"
+      }
+    },
+    "ast_8": {
+      "pattern_id": "ast_8",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 462,
+      "priority": 2,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 4,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.5924,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "import_from:CORE.failure_ledger|note_failure"
+      }
+    },
+    "ast_9": {
+      "pattern_id": "ast_9",
+      "pattern_type": "ast_pattern",
+      "source_category": "code",
+      "count": 655,
+      "priority": 3,
+      "confidence_score": 0.85,
+      "source_type": "code",
+      "retrieval_method": "static_analysis",
+      "universe": "codebase",
+      "verifier": "ast",
+      "tier_evidence": [
+        "ast_parse"
+      ],
+      "status": "unsaved",
+      "records_action": "",
+      "unblocker": "",
+      "evidence_completeness": 0.8,
+      "corroboration_count": 6,
+      "corroboration_layers": [],
+      "records_action_lead": "",
+      "verification_method": "",
+      "evidence_strength": 0.631,
+      "last_heartbeat": "",
+      "bound_violated": "",
+      "superseded_by": "",
+      "recovery_action": "",
+      "structural_data": {
+        "ast_pattern": "func:args=3|decorators:"
+      }
+    }
+  }
+}

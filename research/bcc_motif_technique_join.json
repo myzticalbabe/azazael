@@ -1,0 +1,165 @@
+{
+ "created": "2026-10-28",
+ "ruling": "operator 2026-10-28: JOIN (not quarantine)",
+ "technique_catalog": "docs/META_HUBS_REDO.md section 'Technique catalog application' (14 techniques T1-T14; task #45616 has no standalone file — the REDO section IS the catalog)",
+ "motif_source": "research/master_pattern_catalog.json patterns bcc_1719..bcc_1725 (esu_enumeration on bcc_true_cosmos)",
+ "caveat": "Motif counts are raw esu enumeration counts on the COSMOS graph, not the proofed 118-edge layer. Re-enumerate on the proofed 122-edge graph in R3 before any count is cited as evidence. k5_clique count 3024 is overlapping-enumeration, not 3024 distinct 5-cliques.",
+ "techniques": {
+  "T1": "KPP-POS (optimal seed set)",
+  "T2": "KPP-NEG / fragmentation",
+  "T3": "PageRank vs betweenness",
+  "T4": "Community/subgroup detection",
+  "T5": "Dynamic/temporal roles",
+  "T6": "Entity resolution (Fellegi-Sunter)",
+  "T7": "Pivoting (identifier re-query)",
+  "T8": "UBO layering",
+  "T9": "990 red-flag checklist",
+  "T10": "Self-dealing / disqualified-person screen",
+  "T11": "Structuring / round-tripping screen",
+  "T12": "Event-date reconstruction",
+  "T13": "Sequence-of-events chart per flock",
+  "T14": "APPLIED / N-A / LEAD-OUT row per technique"
+ },
+ "join": {
+  "bcc_1719": {
+   "motif": "k3_triangle",
+   "count": 168,
+   "map": {
+    "T4": "APPLIED: triangles are subgroup cores; Louvain communities should contain them",
+    "T2": "APPLIED: triangle members are joint-removal candidate sets for fragmentation test",
+    "T10": "APPLIED: closed triads are the minimal circular-flow shape for self-dealing screen",
+    "T11": "APPLIED: closed triad is the minimal round-trip shape; screen triangle edges for A->B->C->A flows",
+    "T1": "N-A: 3-cliques too small to anchor seed coverage",
+    "T3": "N-A: triangle membership does not separate PageRank from betweenness roles",
+    "T13": "N-A: triangles are unordered; no sequence content",
+    "T5": "N-A: motif has no temporal dimension",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1720": {
+   "motif": "k3_path",
+   "count": 18,
+   "map": {
+    "T1": "APPLIED: 2-edge paths are seed-coverage chains; endpoints extend KPP reach",
+    "T5": "APPLIED: paths are the trace shape for role-shift across time slices",
+    "T11": "APPLIED: 2-edge path is the pass-through shape (A->B->C); screen for structuring",
+    "T13": "APPLIED: 3-node paths are minimal event sequences; order against flock timelines",
+    "T2": "N-A: open paths fragment nothing on removal",
+    "T3": "N-A: path position alone does not separate the two key-player types",
+    "T4": "N-A: open triads are community boundaries, not cores",
+    "T10": "N-A: open path cannot close a self-dealing loop",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1721": {
+   "motif": "k4_clique",
+   "count": 756,
+   "map": {
+    "T4": "APPLIED: 4-cliques are dense subgroup cores; each should sit inside one Louvain community or challenge it",
+    "T2": "APPLIED: 4-clique members are joint-removal candidate sets",
+    "T10": "APPLIED: closed 4-sets admit circular flows; screen for insider loops",
+    "T11": "APPLIED: clique admits A->B->C->D->A round-trips; screen grant-contract chains through clique members",
+    "T1": "N-A: cliques overlap; poor seed diversity",
+    "T3": "N-A: clique membership does not separate the two key-player types",
+    "T13": "N-A: cliques are unordered; no sequence content",
+    "T5": "N-A: motif has no temporal dimension",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1722": {
+   "motif": "k4_path",
+   "count": 168,
+   "map": {
+    "T1": "APPLIED: 4-node chains extend KPP seed reach; endpoints are coverage-frontier candidates",
+    "T13": "APPLIED: 4-node chains are event-sequence candidates; order against flock timelines",
+    "T11": "APPLIED: longer pass-through shape; screen for multi-hop structuring",
+    "T5": "APPLIED: chains are role-shift traces across slices",
+    "T2": "N-A: open chains fragment nothing on removal",
+    "T3": "N-A: chain position alone does not separate the two key-player types",
+    "T4": "N-A: open chains are community boundaries, not cores",
+    "T10": "N-A: open chain cannot close a self-dealing loop",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1723": {
+   "motif": "k5_clique",
+   "count": 3024,
+   "map": {
+    "T4": "APPLIED: 5-cliques are the densest subgroup cores; each should sit inside one community or challenge it",
+    "T2": "APPLIED: 5-clique members are joint-removal candidate sets",
+    "T10": "APPLIED: closed 5-sets admit circular flows; screen for insider loops",
+    "T11": "APPLIED: clique admits 5-cycles; screen grant-contract chains through clique members",
+    "T1": "N-A: cliques overlap heavily at this count; poor seed diversity",
+    "T3": "N-A: clique membership does not separate the two key-player types",
+    "T13": "N-A: cliques are unordered; no sequence content",
+    "T5": "N-A: motif has no temporal dimension",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1724": {
+   "motif": "k5_star",
+   "count": 480,
+   "map": {
+    "T1": "APPLIED: stars are the seed-coverage shape itself; star centers are KPP-POS candidates (cf. BCC breadth hub)",
+    "T3": "APPLIED: star centers are high-degree/low-betweenness candidates — the exact PageRank-vs-betweenness separation test",
+    "T4": "APPLIED: star + leaves should co-locate in one community; split stars challenge the partition",
+    "T2": "N-A: removing a star center isolates leaves — trivially fragmenting, uninformative vs articulation analysis",
+    "T10": "N-A: stars have no cycles; cannot close a self-dealing loop",
+    "T11": "N-A: star paths are length-2 via center; pass-through screening belongs on k3_path",
+    "T13": "N-A: stars are unordered; no sequence content",
+    "T5": "N-A: motif has no temporal dimension",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  },
+  "bcc_1725": {
+   "motif": "k5_other",
+   "count": 1272,
+   "map": {
+    "T4": "APPLIED: residual 5-node structures; test whether Louvain splits or keeps each instance",
+    "T13": "LEAD-OUT: 7-edge 5-node structures may contain sequence fragments; per-instance inspection vs flock timelines",
+    "T10": "LEAD-OUT: some instances may close loops; per-instance screen required",
+    "T11": "LEAD-OUT: some instances may chain pass-throughs; per-instance screen required",
+    "T1": "N-A: heterogeneous class; no single seed reading",
+    "T2": "N-A: heterogeneous class; removal reading needs per-instance analysis",
+    "T3": "N-A: heterogeneous class; no uniform role reading",
+    "T5": "N-A: motif has no temporal dimension",
+    "T6": "N-A: pure structure; no entity attributes",
+    "T7": "N-A: no identifiers in motif",
+    "T8": "N-A: no corporate-registry content",
+    "T9": "N-A: no 990 fields in motif",
+    "T12": "N-A: motif has no dates",
+    "T14": "APPLIED: this row"
+   }
+  }
+ }
+}

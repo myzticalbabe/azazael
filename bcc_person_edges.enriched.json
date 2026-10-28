@@ -1,0 +1,169 @@
+[
+ {
+  "source": "person_plageman",
+  "target": "person_krause",
+  "type": "co_employment",
+  "detail": "Same Edward Jones branch/team — Plageman is Financial Advisor (918 Penn Ave, Wyomissing; CRD #5964768), Krause is his Sr. Branch Office Administrator on the same team",
+  "evidence": [
+   "PEOPLE_NETWORK_CARD.html",
+   "INVESTMENT_PEOPLE_REPORT.html",
+   "PEOPLE_DOSSIER.html"
+  ],
+  "grade": "D",
+  "source_type": "manual",
+  "retrieval_method": "manual",
+  "confidence_score": 0.3,
+  "retrieval_date": "2026-10-27",
+  "universe": "manual",
+  "verifier": "manual",
+  "tier_evidence": [],
+  "status": "unsaved",
+  "notes": "",
+  "priority": 2
+ },
+ {
+  "source": "person_plageman",
+  "target": "person_bromley",
+  "type": "same_org_committee",
+  "detail": "TPUC — Plageman is President (elected April 2026); Bromley is the TPUC Financial Committee's designated advisor",
+  "evidence": [
+   "PEOPLE_DOSSIER.html",
+   "INVESTMENT_PEOPLE_REPORT.html"
+  ],
+  "grade": "D",
+  "source_type": "manual",
+  "retrieval_method": "manual",
+  "confidence_score": 0.3,
+  "retrieval_date": "2026-10-27",
+  "universe": "manual",
+  "verifier": "manual",
+  "tier_evidence": [],
+  "status": "unsaved",
+  "notes": "",
+  "priority": 2
+ },
+ {
+  "source": "person_axford",
+  "target": "person_little",
+  "type": "co_executive",
+  "detail": "BCC executive team — Axford CEO/President and Little CFO, both in post since Jan 2019 (the Malley-out/Axford-Little-in transition)",
+  "evidence": [
+   "PEOPLE_DOSSIER.html",
+   "INVESTMENT_PEOPLE_REPORT.html"
+  ],
+  "grade": "D",
+  "source_type": "manual",
+  "retrieval_method": "manual",
+  "confidence_score": 0.3,
+  "retrieval_date": "2026-10-27",
+  "universe": "manual",
+  "verifier": "manual",
+  "tier_evidence": [],
+  "status": "unsaved",
+  "notes": "",
+  "priority": 2
+ },
+ {
+  "source": "person_malley",
+  "target": "person_axford",
+  "type": "succession",
+  "detail": "CEO transition — Axford 'took over from Frances Malley in the FY2019 transition that preceded the asset explosion'",
+  "evidence": [
+   "PEOPLE_DOSSIER.html",
+   "INVESTMENT_PEOPLE_REPORT.html"
+  ],
+  "grade": "D",
+  "source_type": "manual",
+  "retrieval_method": "manual",
+  "confidence_score": 0.3,
+  "retrieval_date": "2026-10-27",
+  "universe": "manual",
+  "verifier": "manual",
+  "tier_evidence": [],
+  "status": "unsaved",
+  "notes": "",
+  "priority": 2
+ },
+ {
+  "source": "Berks Counseling Center",
+  "target": "PA Superior Court",
+  "type": "litigation",
+  "detail": "BCC v Community Care Behavioral Health, 898 MDA 2017, affirmed Nov 7 2018 (Panella J.)",
+  "evidence": "PA Courts PDF (898 MDA 2017), CourtListener HTML",
+  "grade": "D",
+  "source_type": "pdf",
+  "retrieval_method": "headed_chrome",
+  "confidence_score": 0.95,
+  "retrieval_date": "2026-10-27",
+  "universe": "pacourts",
+  "verifier": "manual",
+  "tier_evidence": [
+   "sha_verified",
+   "court_opinion_pdf"
+  ],
+  "status": "dossier",
+  "notes": "Official PA Courts PDF + CourtListener cross-reference",
+  "priority": 5
+ },
+ {
+  "source": "Berks Counseling Center",
+  "target": "U.S. Dept of Housing and Urban Development",
+  "type": "grant_recipient",
+  "detail": "HUD CoC grants PA0703L3T062309 ($113,179) + PA0159L3T062316 ($91,691); CFDA 14.267",
+  "evidence": "GovTribe/USAspending.gov",
+  "grade": "D",
+  "source_type": "json",
+  "retrieval_method": "api_call",
+  "confidence_score": 0.9,
+  "retrieval_date": "2026-10-27",
+  "universe": "federal_grants",
+  "verifier": "api_call",
+  "tier_evidence": [
+   "sha_verified",
+   "usa_spending_gov"
+  ],
+  "status": "dossier",
+  "notes": "UEI VC1XNFDJTV33 matches BCC EIN 23-2043478",
+  "priority": 5
+ },
+ {
+  "source": "Berks Counseling Center",
+  "target": "NextGen Healthcare",
+  "type": "vendor_relationship",
+  "detail": "NextGen EHR implementation go-live March 2, 2025; Mock Go Live Jan 22, 2025",
+  "evidence": "BCC Annual Report 2024-25",
+  "grade": "D",
+  "source_type": "pdf",
+  "retrieval_method": "headed_chrome",
+  "confidence_score": 0.8,
+  "retrieval_date": "2026-10-27",
+  "universe": "vendor",
+  "verifier": "manual",
+  "tier_evidence": [
+   "annual_report"
+  ],
+  "status": "unsaved",
+  "notes": "March 2, 2025 go-live; Mock Go Live Jan 22, 2025; data migration critical risk",
+  "priority": 5
+ },
+ {
+  "source": "Berks Counseling Center",
+  "target": "Berks County MH/DD",
+  "type": "contract_partner",
+  "detail": "Annual Report lists as key collaborator; Mobile Medication Program pilot with Berks County MHDD",
+  "evidence": "BCC Annual Report 2024-25",
+  "grade": "D",
+  "source_type": "pdf",
+  "retrieval_method": "headed_chrome",
+  "confidence_score": 0.85,
+  "retrieval_date": "2026-10-27",
+  "universe": "government",
+  "verifier": "manual",
+  "tier_evidence": [
+   "annual_report"
+  ],
+  "status": "unsaved",
+  "notes": "Mobile Medication Program pilot for high-risk SMI patients (home-based psychiatric care)",
+  "priority": 5
+ }
+]

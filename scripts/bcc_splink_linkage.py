@@ -8,23 +8,23 @@ Sources:
   * azazael/scripts/bcc_person_edges.json — same-board roster
   * PEOPLE_SEARCH_ALT.html           — alternate-search person names
 
-Runs on the 3.13 tools venv (splink needs duckdb, no cp314t wheel):
-  venv-313-tools/Scripts/python.exe azazael/scripts/bcc_splink_linkage.py
+Runs on the bccpipe venv (splink 5 + duckdb on GIL-enabled 3.14):
+  C:/Azazael/.venvs/bccpipe/Scripts/python.exe azazael/scripts/bcc_splink_linkage.py
 
 Outputs:
   BCC_SPLINK_LINKAGE.html  +  bcc_splink_linkage.json
 """
+import argparse
 import html
 import json
 import re
 
 import pandas as pd
 try:
-    from splink.backends.duckdb import DuckDBAPI
     from splink import Linker
     from splink.comparison_library import NameComparison, ForenameSurnameComparison
 except ImportError as _dep_exc:
-    raise SystemExit("bcc_splink_linkage.py needs splink+duckdb (3.13 tools venv per docstring): " + str(_dep_exc)) from _dep_exc
+    raise SystemExit("bcc_splink_linkage.py needs splink+duckdb (bccpipe venv): " + str(_dep_exc)) from _dep_exc
 
 ROLE_WORDS = ("CEO", "CFO", "Director", "Treasurer", "Chair", "Chairperson",
               "Advisor", "Esq", "President", "former", "ex-", "Board", "(as of",
@@ -62,11 +62,18 @@ def name_mentions(path):
     return sorted(out)
 
 
+TRUE_SNA = "C:/Users/clint/BCC_COSMOS/bcc_network_sna_true.json"
+PERSON_EDGES = "C:/Azazael/azazael/scripts/bcc_person_edges.json"
+
+
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--sna-results", default=TRUE_SNA)
+    args = ap.parse_args()
     records = []
 
-    # SNA person labels
-    with open("bcc_network_sna_results_v3.json", encoding="utf-8") as f:
+    # SNA person labels (TRUE BCC people-entity cosmos)
+    with open(args.sna_results, encoding="utf-8") as f:
         d = json.load(f)
     for c in d.get("communities", []):
         for m in c.get("members", []):
@@ -78,7 +85,7 @@ def main():
                     records.append({"source": "sna", "name": stripped})
 
     # board roster
-    pe = json.load(open("azazael/scripts/bcc_person_edges.json", encoding="utf-8"))
+    pe = json.load(open(PERSON_EDGES, encoding="utf-8"))
     for p in pe.get("same_board_clique", []):
         records.append({"source": "roster", "name": p.replace("person_", "").title()})
 
@@ -139,7 +146,9 @@ def main():
         ],
     }
 
-    linker = Linker(df, settings, DuckDBAPI())
+    from splink.internals.duckdb.database_api import DuckDBAPI
+    db_api = DuckDBAPI()
+    linker = Linker(db_api.register(df), settings)
     try:
         linker.training.estimate_u_using_random_sampling(
             max_pairs=1e7, seed=1)
@@ -197,7 +206,7 @@ def main():
 
     out = {
         "generated": "2026-09-05",
-        "tool": "splink 4.0.17 (DuckDB backend, Python 3.13 tools venv)",
+        "tool": "splink 5 (DuckDB backend, bccpipe venv, Python 3.14)",
         "n_records": len(records),
         "threshold": THRESH,
         "clusters": out_clusters,

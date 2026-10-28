@@ -1,0 +1,15 @@
+ac17c0d4d6dfaa1267c1fbaff4ea185206932131484e61be067d95a4a66e48cb *BCC_Annual_Report_24-25.pdf
+6f22de3fb558e7f656de580926cfbaa1d564a6db5eca564d3c16e699d55b867e *fwa_opinion_898_mda_2017.pdf
+bc05270308a19498f98a8cba1d2f2b903a7373604197451631f44a86c250a98e *fwa_opinion_text.txt
+38370f2972fd2761ff229851221e61d2a8d27d39be1dc7adc379e90f6a0b508d *fwa_opinion_courtlistener.html
+e8eca4bd7e40eec533cade66576ba2a2e646b765156e812c3ebe0503f5cd9d24 *govtribe_grants.json
+bb50a523dd8926d1e206499986e90ff1288784a263b39eb7680387f97b9b10ca *news_articles.json
+fe5cf6dccf049d7a1cb9341b4ea80a7a2e8ad95fc998fff016f3da58638242b9 *bcc_geospatial_coordinates.md
+005a691e69726e6c39315f2ee13cd6deeafbdc153d70b3d9b306388f329b230f *BCC_REPROCESSING_ACTION_REPORT.md
+4adfaf580fb5db05803e76f83f4d097222e6b6fe9c3b5af90855fc574bf34841 *STANDARDS_AUDIT_REPORT.md
+69c5d4a7b72d9b2a36147cad89115952d6fbaf6cc151b654ead465916e756c5c *TASK_QUEUE.md
+
+# --- SCOPE (MS3 2026-10-28): entries above cover research/bcc_analysis/ analysis
+# files only. Proof-layer raws are covered by C:/Users/clint/.bcc_audit/00_raw/SHA256SUMS
+# (202 files, all verified). Cosmos build outputs are snapshotted + hashed in
+# cosmos_snapshot_2026-10-28/SHA256SUMS. Verify each manifest from its own dir.

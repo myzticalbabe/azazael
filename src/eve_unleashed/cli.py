@@ -120,7 +120,7 @@ def cmd_list_models(args) -> int:
     fws = ModelLoader.detect_frameworks()
     print("=== Detected Frameworks ===")
     for name, avail in sorted(fws.items()):
-        status = "✓ available" if avail else "✗ not installed"
+        status = "[OK] available" if avail else "[--] not installed"
         print(f"  {name:15s} {status}")
 
     # GPU info
@@ -194,7 +194,7 @@ def cmd_registry(args) -> int:
     if args.verbose:
         print("\n=== All Models ===")
         for m in reg.list_all():
-            used = "✓" if m.inference_count > 0 else " "
+            used = "OK" if m.inference_count > 0 else " "
             print(f"  [{used}] {m.filename:40s} {m.framework:12s} {m.size_mb:8.1f} MB  "
                   f"infer: {m.inference_count:4d}  avg: {m.avg_latency_ms:7.2f} ms")
 

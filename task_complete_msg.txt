@@ -1,0 +1,1 @@
+D-grade metadata schema implemented: scripts/d_grade_metadata.py with 11-field schema, computed priority 1-5, filter_for_press_pull(). Replaces "more grades" approach. Tested: 5/7 sample D-grade edges ready for press pull based on metadata (priority>=3, valid universe, retrievable source). Schema documented at docs/D_GRADE_METADATA_SCHEMA.md.

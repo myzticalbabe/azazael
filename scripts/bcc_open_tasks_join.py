@@ -12,7 +12,8 @@ documents, not actors. Build a person->document bipartite projection from the ev
 artifacts and report actor-level (projected) degree/centrality across the corpus.
 
 Inputs (all documented artifacts; paths resolved relative to CWD):
-  - bcc_network_sna_results_v3.json   (48-node documented network, communities, core clique)
+  - bcc_codebase_import_sna_v3.json   (CODEBASE-import graph, NOT BCC evidence;
+    communities/core-clique are source modules pending BCC recompute R3)
   - bcc_person_edges.json             (person->person documented edges v2)
   - bcc_record_linkage.json           (cross-source identity clusters)
   - bcc_splink_linkage.json           (probabilistic linkage, if present)
@@ -65,7 +66,7 @@ def task1_recusal_ej_join():
     print("OPEN TASK 1 — Recusal cluster <-> Edward Jones cluster join")
     print("=" * 78)
 
-    sna = load("bcc_network_sna_results_v3.json")
+    sna = load("bcc_codebase_import_sna_v3.json")
     person_edges = load("bcc_person_edges.json")
 
     # Documented edges: person->person (v2) + any edges embedded in SNA v3
@@ -249,6 +250,9 @@ def task2_bipartite_person_document():
         m = str(m)
         if any(o in m for o in ORG_BLOCK):
             return False
+        # person_* IDs are the canonical person roster (person_edges v2)
+        if m.startswith("person_"):
+            return True
         # A person label carries a role word or is a bare proper name in person_edges
         return any(x in m for x in ("Director", "Officer", "CEO", "CFO", "Chair", "Treasurer",
                                     "President", "Advisor", "CPA", "Esq", "— ", " Jr", " Sr"))
@@ -260,7 +264,7 @@ def task2_bipartite_person_document():
             persons.add(str(e.get("source")))
         if _is_person(e.get("target")):
             persons.add(str(e.get("target")))
-    sna = load("bcc_network_sna_results_v3.json")
+    sna = load("bcc_codebase_import_sna_v3.json")
     cc = sna.get("core_clique") or {}
     for shell in cc.get("core_shells", {}).values():
         for m in shell.get("members", []):
@@ -273,10 +277,58 @@ def task2_bipartite_person_document():
                 persons.add(str(p))
 
     # person -> canonical short name for matching
+    # person_* IDs map to surnames (person_edges v2 uses IDs, corpus uses names)
+    PERSON_ID_TO_NAME = {
+        "person_axford": "Axford", "person_little": "Greg Little",
+        "person_plageman": "Plageman", "person_robinson": "Robinson",
+        "person_krause": "Krause", "person_malley": "Frances Malley",
+        "person_scull": "Scull", "person_bromley": "Bromley",
+        "person_brooks": "Brooks", "person_gaul": "Gaul",
+        "person_orlando": "Orlando", "person_ralph": "Ralph",
+        "person_seitz": "Seitz",
+        "person_goodman": "Goodman-Hinnershitz",
+        "person_himeback": "Himeback",
+    }
+    # Documented person nodes absent from the typed edge sources still belong
+    # in the index (they carry documented affiliation edges in the cosmos).
+    persons.update(["person_goodman", "person_himeback"])
+    _ROLE_TOKS = ("CEO", "CFO", "Director", "Treasurer", "Chair",
+                   "Chairperson", "President", "Advisor", "CPA", "Esq",
+                   "Board", "Vice")
+    def _clean_label(n):
+        n = n.split(" — ")[0].strip() if " — " in n else n.strip()
+        n = re.sub(r"\s*\([^)]*\)", "", n)
+        n = re.sub(r",\s*(CPA|Esq|Jr\.?|Sr\.?)$", "", n).strip()
+        for w in _ROLE_TOKS:
+            n = re.sub(rf"\s*\(?{re.escape(w)}[^)]*\)?", "", n,
+                       flags=re.I)
+        return re.sub(r"\s{2,}", " ", n).strip()
     canon = {}
     for p in sorted(persons):
-        name = p.split(" — ")[0].strip() if " — " in p else p
-        canon[p] = name
+        if p in PERSON_ID_TO_NAME:
+            canon[p] = PERSON_ID_TO_NAME[p]
+        else:
+            canon[p] = _clean_label(p)
+    # Fold SNA full-name labels into roster entries by surname so one human =
+    # one row (e.g. "Joseph Plageman Jr" folds into roster "Plageman").
+    def _surname(n):
+        toks = re.sub(r"[.]", "", n).split()
+        while toks and toks[-1].upper() in ("JR", "SR", "II", "III", "IV"):
+            toks = toks[:-1]
+        return toks[-1].lower() if toks else n.lower()
+    roster_by_surname = {}
+    for p, n in canon.items():
+        if p in PERSON_ID_TO_NAME:
+            roster_by_surname.setdefault(_surname(n), p)
+    alias_of = {}
+    for p, n in list(canon.items()):
+        if p not in PERSON_ID_TO_NAME:
+            hit = roster_by_surname.get(_surname(n))
+            if hit:
+                alias_of[p] = hit
+    for p in alias_of:
+        del canon[p]
+    persons = set(canon)  # one human = one row; aliases folded above
 
     # Document -> persons mentioned (only via documented citations, not free-text inference:
     # match against the canonical names from the evidence artifacts)

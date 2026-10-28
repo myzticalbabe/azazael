@@ -3,7 +3,8 @@ bcc_record_linkage.py — RapidFuzz record linkage across the BCC people records
 
 splink is not installable on this stack (needs duckdb+igraph sdists), so this
 uses RapidFuzz for fuzzy person-name linkage across:
-  * bcc_network_sna_results_v3.json person labels (network persons)
+  * bcc_codebase_import_sna_v3.json person labels (currently VOID: persons=0;
+    linkage yields nothing until R1 repopulates the person layer)
   * PEOPLE_DOSSIER.html name mentions
   * PEOPLE_SEARCH_ALT.html / INVESTIGATION_GAPS person cites (optional)
 
@@ -49,7 +50,7 @@ def person_labels():
     """Collect person labels from SNA v3 communities + persons sections,
     returning the bare name (role suffix stripped) for linkage."""
     labels = set()
-    with open("bcc_network_sna_results_v3.json", encoding="utf-8") as f:
+    with open("bcc_codebase_import_sna_v3.json", encoding="utf-8") as f:
         d = json.load(f)
     for c in d.get("communities", []):
         for m in c.get("members", []):

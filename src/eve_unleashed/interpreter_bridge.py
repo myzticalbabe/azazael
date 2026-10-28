@@ -87,18 +87,20 @@ class EveInterpreterBridge:
     # Interpreter package availability
     # ------------------------------------------------------------------
     def _init_interpreter(self) -> None:
+        # Open Interpreter is an optional legacy dependency. In production it is
+        # absent from every Azazael venv (py315t included), and the direct
+        # OpenAI-compatible chat path is the primary (and only) generation
+        # route. Even when the package is importable (e.g. a dev environment),
+        # we disable it here so the direct-chat path is always used, keeping
+        # behaviour consistent with production and avoiding the interpreter
+        # consuming server responses before the direct-chat fallback runs.
         try:
-            import interpreter as interpreter_pkg  # scanner:ignore (optional legacy pkg; absent in every Azazael venv by design, urllib path is primary)
+            import interpreter as interpreter_pkg  # scanner:ignore (optional legacy pkg)
+            note_failure("eve_interpreter:init", None)
         except ImportError as exc:
             note_failure("eve_interpreter:init", exc)
-            # The package is absent from every Azazael venv (py315t production
-            # included); the direct OpenAI-compatible path keeps run_local
-            # usable without it.
-            self._interpreter = None
-            self._available = False
-            return
-        self._interpreter = interpreter_pkg.interpreter
-        self._available = True
+        self._interpreter = None
+        self._available = False
 
     def is_available(self) -> bool:
         return self._available

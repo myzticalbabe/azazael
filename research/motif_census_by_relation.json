@@ -1,0 +1,3133 @@
+{
+  "calls": {
+    "relation_group": [
+      "calls"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 17879,
+    "subgraph_nodes": 300,
+    "subgraph_edges": 29,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 9,
+          "time": 0.000579833984375
+        },
+        "4": {
+          "count": 2,
+          "time": 0.00030612945556640625
+        }
+      },
+      "total": 11,
+      "motif_counts": {
+        "k3:((1, 0), (2, 0))": 1,
+        "k3:((1, 0), (1, 2))": 1,
+        "k3:((0, 1), (0, 2))": 3,
+        "k3:((0, 1), (2, 1))": 1,
+        "k3:((0, 1), (2, 0))": 2,
+        "k3:((1, 0), (2, 1))": 1,
+        "k4:((0, 1), (0, 2), (0, 3))": 2
+      },
+      "examples": {
+        "k3:((1, 0), (2, 0))": [
+          [
+            "tests_test_fault_injection_state_test_record_link_fails_open_when_the_store_cannot_write",
+            "src_core_failure_ledger_failure_notes",
+            "tests_test_race_shared_structures_test_a_lock_broken_recorder_reports_a_lost_note_instead_of_a_silent_zero"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_core_l1_wiring_audit_promoted_path",
+            "src_core_l1_wiring_audit_margin_reachability",
+            "src_core_l1_wiring_audit_audit"
+          ]
+        ],
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_agent_registry_agenthealthreporter",
+            "src_core_agent_agentconfig",
+            "src_core_agent_freethreadedagent_init"
+          ],
+          [
+            "src_core_agent_note_failure",
+            "src_core_agent_agentconfig",
+            "src_core_agent_freethreadedagent_init"
+          ],
+          [
+            "src_core_agent_registry_agenthealthreporter",
+            "src_core_agent_note_failure",
+            "src_core_agent_freethreadedagent_init"
+          ]
+        ],
+        "k3:((0, 1), (2, 1))": [
+          [
+            "tools_terence_invariants_oracle_pool_shape",
+            "tools_terence_invariants_fault",
+            "tools_terence_invariants_oracle_stale_relocation_paths"
+          ]
+        ],
+        "k3:((0, 1), (2, 0))": [
+          [
+            "src_core_worms_expansion_db_monitor_databasemonitorworm_execute",
+            "src_core_worms_expansion_db_monitor_note_failure",
+            "src_core_worms_expansion_db_monitor_databasemonitorworm_record_alert"
+          ],
+          [
+            "src_core_worms_expansion_db_monitor_databasemonitorworm_execute",
+            "src_core_worms_expansion_db_monitor_note_failure",
+            "src_core_worms_expansion_db_monitor_databasemonitorworm_record_alert"
+          ]
+        ],
+        "k3:((1, 0), (2, 1))": [
+          [
+            "src_core_worms_expansion_exmachina_bounded_margin",
+            "src_core_worms_expansion_exmachina_epistemic_report",
+            "src_core_worms_expansion_exmachina_organ_readings"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (0, 3))": [
+          [
+            "src_core_agent_registry_agenthealthreporter",
+            "src_core_agent_note_failure",
+            "src_core_agent_agentconfig",
+            "src_core_agent_freethreadedagent_init"
+          ],
+          [
+            "src_core_agent_registry_agenthealthreporter",
+            "src_core_agent_note_failure",
+            "src_core_agent_agentconfig",
+            "src_core_agent_freethreadedagent_init"
+          ]
+        ]
+      }
+    }
+  },
+  "contains": {
+    "relation_group": [
+      "contains"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 12820,
+    "subgraph_nodes": 121,
+    "subgraph_edges": 120,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 13463,
+          "time": 0.29435062408447266
+        },
+        "4": {
+          "count": 36537,
+          "time": 0.8697459697723389
+        }
+      },
+      "total": 50000,
+      "motif_counts": {
+        "k3:((0, 1), (0, 2))": 6746,
+        "k3:((1, 0), (1, 2))": 5688,
+        "k3:((2, 0), (2, 1))": 1028,
+        "k3:((0, 2), (2, 1))": 1,
+        "k4:((1, 0), (1, 2), (1, 3))": 18616,
+        "k4:((0, 1), (0, 2), (0, 3))": 11351,
+        "k4:((2, 0), (2, 1), (2, 3))": 5588,
+        "k4:((3, 0), (3, 1), (3, 2))": 979,
+        "k4:((1, 2), (1, 3), (3, 0))": 1,
+        "k4:((0, 2), (1, 0), (1, 3))": 1,
+        "k4:((1, 0), (1, 3), (3, 2))": 1
+      },
+      "examples": {
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry",
+            "src_core_spine_registry_q_effective_from"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry",
+            "src_core_spine_registry_quarantine_item"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_selection_score_from",
+            "src_core_spine_registry"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry_remember_gossip",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_export_spine_gossip",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_publish_fabric_state",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry"
+          ]
+        ],
+        "k3:((0, 2), (2, 1))": [
+          [
+            "src_core_spine_registry_purge_implausible_stamps_fix",
+            "src_core_spine_registry",
+            "src_core_spine_registry_purge_implausible_stamps"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (1, 3))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry_selection_score_from",
+            "src_core_spine_registry"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (0, 3))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry",
+            "src_core_spine_registry_q_effective_from"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry",
+            "src_core_spine_registry_quarantine_item"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry",
+            "src_core_spine_registry_merge_disk_state"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (2, 3))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry_remember_gossip",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_export_spine_gossip",
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry"
+          ]
+        ],
+        "k4:((3, 0), (3, 1), (3, 2))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_merge_disk_state",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_outcome_stripe",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry"
+          ],
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_merge_quarantine",
+            "src_core_spine_registry_get_q_weight",
+            "src_core_spine_registry"
+          ]
+        ],
+        "k4:((1, 2), (1, 3), (3, 0))": [
+          [
+            "src_core_spine_registry_get_fabric_view",
+            "src_core_spine_registry_purge_implausible_stamps_fix",
+            "src_core_spine_registry",
+            "src_core_spine_registry_purge_implausible_stamps"
+          ]
+        ],
+        "k4:((0, 2), (1, 0), (1, 3))": [
+          [
+            "src_core_spine_registry_scars_snapshot",
+            "src_core_spine_registry_purge_implausible_stamps_fix",
+            "src_core_spine_registry",
+            "src_core_spine_registry_purge_implausible_stamps"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (3, 2))": [
+          [
+            "src_core_spine_registry_homeostat_stripe",
+            "src_core_spine_registry_purge_implausible_stamps_fix",
+            "src_core_spine_registry",
+            "src_core_spine_registry_purge_implausible_stamps"
+          ]
+        ]
+      }
+    }
+  },
+  "references": {
+    "relation_group": [
+      "references"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 12561,
+    "subgraph_nodes": 300,
+    "subgraph_edges": 101,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 4348,
+          "time": 0.05255293846130371
+        },
+        "4": {
+          "count": 45652,
+          "time": 0.6880550384521484
+        }
+      },
+      "total": 50000,
+      "motif_counts": {
+        "k3:((0, 2), (1, 2))": 254,
+        "k3:((0, 1), (2, 1))": 817,
+        "k3:((1, 0), (2, 0))": 2471,
+        "k3:((1, 0), (2, 1))": 1,
+        "k3:((1, 2), (2, 0))": 1,
+        "k3:((0, 1), (0, 2))": 561,
+        "k3:((2, 0), (2, 1))": 211,
+        "k3:((1, 0), (1, 2))": 32,
+        "k4:((0, 2), (1, 2), (3, 2))": 4854,
+        "k4:((0, 3), (1, 3), (2, 3))": 2932,
+        "k4:((0, 1), (2, 1), (3, 1))": 10786,
+        "k4:((0, 1), (2, 1), (3, 2))": 11,
+        "k4:((0, 1), (2, 3), (3, 1))": 2,
+        "k4:((1, 0), (2, 0), (3, 0))": 27006,
+        "k4:((1, 0), (2, 0), (3, 2))": 15,
+        "k4:((1, 0), (2, 3), (3, 0))": 15,
+        "k4:((1, 0), (2, 1), (3, 0))": 25,
+        "k4:((0, 2), (2, 1), (3, 1))": 2,
+        "k4:((1, 3), (2, 0), (3, 0))": 4
+      },
+      "examples": {
+        "k3:((0, 2), (1, 2))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_retrying",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_h2",
+            "skill_category_packages"
+          ]
+        ],
+        "k3:((0, 1), (2, 1))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_category_packages",
+            "skill_azazael_pkg_cffi"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k3:((1, 0), (2, 0))": [
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_retrying"
+          ],
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_cffi"
+          ]
+        ],
+        "k3:((1, 0), (2, 1))": [
+          [
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k3:((1, 2), (2, 0))": [
+          [
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages"
+          ]
+        ],
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_meta_trimz",
+            "catchall_backlog",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ],
+          [
+            "catchall_backlog",
+            "src_hydra_hydra_protocols",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ],
+          [
+            "catchall_backlog",
+            "src_utilities_persephone_persephone",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_tools_comprehensive_fix_comprehensivefix",
+            "catchall_backlog",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ],
+          [
+            "src_interpreters_go_runner",
+            "catchall_backlog",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ],
+          [
+            "src_core_worms_expansion_telemetry",
+            "catchall_backlog",
+            "scripts_benchmark_wal_docker_run_benchmarks"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_codex_videos_create_dual_pane_popup_dualpanepopup_update_scene",
+            "src_hydra_hydra_protocols",
+            "catchall_backlog"
+          ],
+          [
+            "src_tools_comprehensive_fix_comprehensivefix",
+            "src_hydra_hydra_protocols",
+            "catchall_backlog"
+          ],
+          [
+            "src_interpreters_go_runner",
+            "src_hydra_hydra_protocols",
+            "catchall_backlog"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (3, 2))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_retrying"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_cffi"
+          ]
+        ],
+        "k4:((0, 3), (1, 3), (2, 3))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_tinycss2",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_jmespath",
+            "skill_category_packages",
+            "skill_azazael_pkg_wordlistraider"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (3, 1))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages",
+            "skill_azazael_pkg_cffi"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_azazael_pkg_stringdist",
+            "skill_category_packages"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (3, 2))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_wordlistraider",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_hypercorn",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k4:((0, 1), (2, 3), (3, 1))": [
+          [
+            "skill_azazael_pkg_psycopg2",
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_wordlistraider",
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages"
+          ]
+        ],
+        "k4:((1, 0), (2, 0), (3, 0))": [
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skill_category_packages",
+            "skill_azazael_pkg_retrying"
+          ],
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_cffi",
+            "skill_category_packages",
+            "skill_azazael_pkg_retrying"
+          ],
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_stringdist",
+            "skill_category_packages",
+            "skill_azazael_pkg_retrying"
+          ]
+        ],
+        "k4:((1, 0), (2, 0), (3, 2))": [
+          [
+            "skill_azazael_pkg_jmespath",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_retrying",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_h2",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k4:((1, 0), (2, 3), (3, 0))": [
+          [
+            "skill_azazael_pkg_jmespath",
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages"
+          ],
+          [
+            "skills_azazael_pkg_hupper",
+            "skill_azazael_pkg_tinycss2",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_python_nmap",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k4:((1, 0), (2, 1), (3, 0))": [
+          [
+            "skill_azazael_pkg_isc_dhcp_leases",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skills_azazael_pkg_hupper",
+            "skill_azazael_pkg_cffi",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skills_azazael_pkg_hupper",
+            "skill_azazael_pkg_stringdist",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k4:((0, 2), (2, 1), (3, 1))": [
+          [
+            "skill_azazael_pkg_oletools",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ],
+          [
+            "skill_azazael_pkg_textfsm",
+            "skills_azazael_pkg_hupper",
+            "skill_category_packages",
+            "skill_azazael_pkg_hupper"
+          ]
+        ],
+        "k4:((1, 3), (2, 0), (3, 0))": [
+          [
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages",
+            "skill_azazael_pkg_cffi"
+          ],
+          [
+            "skill_azazael_pkg_types_geopandas",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_azazael_pkg_stringdist",
+            "skill_category_packages"
+          ],
+          [
+            "skill_azazael_pkg_types_geopandas",
+            "skill_azazael_pkg_filebytes",
+            "skills_azazael_pkg_types_geopandas",
+            "skill_category_packages"
+          ]
+        ]
+      }
+    }
+  },
+  "method": {
+    "relation_group": [
+      "method"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 10150,
+    "subgraph_nodes": 86,
+    "subgraph_edges": 85,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 3606,
+          "time": 0.06863880157470703
+        },
+        "4": {
+          "count": 46394,
+          "time": 1.0687963962554932
+        }
+      },
+      "total": 50000,
+      "motif_counts": {
+        "k3:((0, 1), (0, 2))": 3105,
+        "k3:((2, 0), (2, 1))": 452,
+        "k3:((1, 0), (1, 2))": 49,
+        "k4:((0, 1), (0, 2), (0, 3))": 33929,
+        "k4:((3, 0), (3, 1), (3, 2))": 10457,
+        "k4:((1, 0), (1, 2), (1, 3))": 841,
+        "k4:((2, 0), (2, 1), (2, 3))": 1167
+      },
+      "examples": {
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_generative_compaction_status",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_auto_backup_status",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_reflect_replay",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_object_graph",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_vacuum_loop",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_list_sessions",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_list_sessions",
+            "src_core_local_memory_localmemorystore_search_memories",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_list_sessions",
+            "src_core_local_memory_localmemorystore_backup_loop",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (0, 3))": [
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_generative_compaction_status",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_auto_backup_status",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore",
+            "src_core_local_memory_localmemorystore_list_sessions"
+          ]
+        ],
+        "k4:((3, 0), (3, 1), (3, 2))": [
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_reflect_replay",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_vacuum_loop",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_capsule_probe",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (1, 3))": [
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_reflect_replay",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_record_event",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_prune_backups",
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_query_similar_patterns",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (2, 3))": [
+          [
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_reflect_replay",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_record_event",
+            "src_core_local_memory_localmemorystore"
+          ],
+          [
+            "src_core_local_memory_localmemorystore_lifecycle_fidelity",
+            "src_core_local_memory_localmemorystore_recall_recent",
+            "src_core_local_memory_localmemorystore_query_similar_patterns",
+            "src_core_local_memory_localmemorystore"
+          ]
+        ]
+      }
+    }
+  },
+  "imports+imports_from": {
+    "relation_group": [
+      "imports",
+      "imports_from"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 10884,
+    "subgraph_nodes": 300,
+    "subgraph_edges": 193,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 5219,
+          "time": 0.06281042098999023
+        },
+        "4": {
+          "count": 44781,
+          "time": 0.6729040145874023
+        }
+      },
+      "total": 50000,
+      "motif_counts": {
+        "k3:((0, 1), (2, 1))": 1561,
+        "k3:((1, 0), (2, 0))": 744,
+        "k3:((1, 2), (2, 0))": 2,
+        "k3:((2, 0), (2, 1))": 36,
+        "k3:((0, 1), (0, 2), (2, 1))": 4,
+        "k3:((0, 2), (1, 2))": 2806,
+        "k3:((0, 1), (0, 2))": 19,
+        "k3:((1, 0), (1, 2))": 44,
+        "k3:((0, 2), (2, 1))": 1,
+        "k3:((0, 1), (1, 2))": 2,
+        "k4:((0, 1), (2, 1), (3, 1))": 3076,
+        "k4:((0, 2), (1, 2), (3, 2))": 20458,
+        "k4:((0, 1), (2, 3), (3, 1))": 30,
+        "k4:((0, 1), (0, 2), (3, 1), (3, 2))": 51,
+        "k4:((1, 0), (2, 0), (3, 0))": 2604,
+        "k4:((1, 0), (2, 3), (3, 0))": 36,
+        "k4:((1, 0), (1, 2), (3, 0), (3, 2))": 87,
+        "k4:((0, 1), (0, 2), (2, 1), (3, 1))": 4,
+        "k4:((0, 1), (0, 2), (3, 1))": 19,
+        "k4:((0, 1), (3, 1), (3, 2))": 26,
+        "k4:((1, 0), (3, 0), (3, 2))": 16,
+        "k4:((1, 0), (2, 1), (3, 0))": 3,
+        "k4:((2, 1), (3, 0), (3, 1))": 41,
+        "k4:((1, 3), (2, 0), (3, 0))": 30,
+        "k4:((2, 0), (2, 1), (3, 0))": 49,
+        "k4:((2, 0), (2, 1), (3, 1))": 64,
+        "k4:((1, 2), (1, 3), (3, 0), (3, 2))": 6,
+        "k4:((0, 1), (0, 2), (3, 2))": 74,
+        "k4:((2, 0), (3, 0), (3, 1))": 9,
+        "k4:((2, 0), (2, 1), (3, 0), (3, 1))": 28,
+        "k4:((0, 2), (3, 1), (3, 2))": 67,
+        "k4:((1, 2), (3, 0), (3, 2))": 146,
+        "k4:((1, 0), (1, 2), (3, 2))": 127,
+        "k4:((0, 2), (1, 2), (1, 3), (3, 2))": 183,
+        "k4:((1, 0), (1, 3), (2, 0), (3, 0))": 17,
+        "k4:((0, 2), (0, 3), (1, 2), (3, 2))": 29,
+        "k4:((0, 2), (1, 0), (1, 2), (3, 2))": 17,
+        "k4:((0, 1), (1, 2), (3, 2))": 2,
+        "k4:((0, 1), (0, 3), (2, 1), (2, 3))": 81,
+        "k4:((0, 3), (1, 3), (2, 3))": 16593,
+        "k4:((0, 2), (0, 3), (1, 3), (2, 3))": 2,
+        "k4:((0, 2), (0, 3), (1, 2))": 9,
+        "k4:((0, 2), (1, 2), (1, 3))": 8,
+        "k4:((0, 1), (0, 3), (2, 1))": 29,
+        "k4:((0, 2), (0, 3), (1, 2), (1, 3))": 14,
+        "k4:((1, 3), (2, 0), (2, 3))": 139,
+        "k4:((0, 3), (1, 2), (1, 3))": 28,
+        "k4:((0, 1), (0, 3), (2, 3))": 171,
+        "k4:((0, 2), (0, 3), (1, 3))": 45,
+        "k4:((0, 3), (2, 1), (2, 3))": 156,
+        "k4:((0, 3), (1, 2), (2, 3))": 2,
+        "k4:((1, 0), (1, 3), (2, 3))": 86,
+        "k4:((0, 2), (2, 1), (3, 1))": 18,
+        "k4:((1, 0), (2, 0), (2, 3))": 17,
+        "k4:((1, 0), (1, 3), (2, 0))": 6,
+        "k4:((1, 0), (1, 3), (2, 0), (2, 3))": 47,
+        "k4:((2, 0), (2, 1), (2, 3))": 4,
+        "k4:((1, 0), (1, 2), (3, 0))": 9,
+        "k4:((0, 1), (0, 3), (3, 1), (3, 2))": 2,
+        "k4:((0, 2), (0, 3), (2, 1))": 1,
+        "k4:((0, 1), (0, 2), (0, 3))": 2,
+        "k4:((0, 1), (2, 1), (2, 3))": 11,
+        "k4:((0, 1), (1, 3), (2, 3))": 2
+      },
+      "examples": {
+        "k3:((0, 1), (2, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_config",
+            "dataclasses"
+          ]
+        ],
+        "k3:((1, 0), (2, 0))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ]
+        ],
+        "k3:((1, 2), (2, 0))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "sysconfig",
+            "tools_live_rebalance_repro",
+            "traceback"
+          ]
+        ],
+        "k3:((0, 1), (0, 2), (2, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_tests_test_ml_metacog"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ]
+        ],
+        "k3:((0, 2), (1, 2))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_config",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_reverse_tools",
+            "dataclasses"
+          ]
+        ],
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "sysconfig",
+            "src_core_worms_expansion_telemetry",
+            "collections"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "sysconfig",
+            "src_core_failure_ledger"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor"
+          ]
+        ],
+        "k3:((0, 2), (2, 1))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading"
+          ]
+        ],
+        "k3:((0, 1), (1, 2))": [
+          [
+            "scripts_chain_controller",
+            "csv",
+            "tests_test_chain_controller"
+          ],
+          [
+            "tests_test_cluster_track",
+            "src_core_failure_ledger",
+            "src_core_training_intake"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (3, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (3, 2))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_config",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_reverse_tools",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (2, 3), (3, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_config",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (3, 1), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_config",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_worms_reverse_tools",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (2, 0), (3, 0))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (2, 3), (3, 0))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (3, 0), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_wormz_ml",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (2, 1), (3, 1))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_core_worms_wormz_ml",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (3, 1))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "src_core_parallel_work_stealing",
+            "src_ml_step_monitor",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "pytest",
+            "tests_test_clusterworms_unit",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (3, 1), (3, 2))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_utility_guided_orchestration",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_parallel_work_stealing",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (3, 0), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "tools_freebuff_parallel_benchmark",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (2, 1), (3, 0))": [
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ]
+        ],
+        "k4:((2, 1), (3, 0), (3, 1))": [
+          [
+            "src_scripts_environ_updater_py_enum",
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "sysconfig",
+            "tools_live_rebalance_repro",
+            "src_core_worms_expansion_learning_features",
+            "collections"
+          ]
+        ],
+        "k4:((1, 3), (2, 0), (3, 0))": [
+          [
+            "src_meta_uvz",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_meta_uvz",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "tools_deepseek_throughput_benchmark",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (3, 0))": [
+          [
+            "sysconfig",
+            "src_ml_step_monitor",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "sysconfig",
+            "src_core_worms_expansion_db_monitor",
+            "dataclasses"
+          ],
+          [
+            "sysconfig",
+            "tests_test_worm_smoke",
+            "src_core_worms_expansion_learning_features",
+            "collections"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (3, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_expansion_error_recovery",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_worms_speculative_fork_worm",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_scripts_bat_analysis",
+            "src_ml_step_monitor",
+            "collections",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 2), (1, 3), (3, 0), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_tests_test_ml_metacog",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (3, 2))": [
+          [
+            "src_core_parallel_work_stealing",
+            "src_ml_step_monitor",
+            "src_core_parallel_work_stealing_py_enum",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_worms_binary_analysis_parse",
+            "collections"
+          ],
+          [
+            "sysconfig",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_telemetry"
+          ]
+        ],
+        "k4:((2, 0), (3, 0), (3, 1))": [
+          [
+            "tools_deepseek_throughput_benchmark",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "tools_deepseek_throughput_benchmark",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "tools_deepseek_throughput_benchmark",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (3, 0), (3, 1))": [
+          [
+            "src_ml_step_monitor",
+            "src_meta_distillz",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_scripts_bat_analysis",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_scripts_bat_analysis",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (3, 1), (3, 2))": [
+          [
+            "src_psyche_identify",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_codex_videos_create_scrolling_video",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_worms_dependz",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 2), (3, 0), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_compliance_auditor",
+            "dataclasses"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_compliance_policy",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_sync_canonical_docs",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (3, 2))": [
+          [
+            "src_core_escalation_sft",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_driver",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_orchestration_test_ecosystem_test",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (1, 3), (3, 2))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_psyche_identify",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_core_worms_wormz_ml",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (2, 0), (3, 0))": [
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_compliance_policy",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_worms_benchmark_worm",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_worms_expansion_learning_features",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 2), (3, 2))": [
+          [
+            "src_scripts_sync_canonical_docs",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_meta_uvz",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((0, 2), (1, 0), (1, 2), (3, 2))": [
+          [
+            "src_core_escalation_sft",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_scripts_environ_updater",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ],
+          [
+            "src_core_worms_expansion_driver",
+            "src_ml_step_monitor",
+            "src_tests_test_ml_metacog",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((0, 1), (1, 2), (3, 2))": [
+          [
+            "tests_test_cluster_track",
+            "src_ml_step_monitor",
+            "src_core_failure_ledger",
+            "src_core_training_intake"
+          ],
+          [
+            "tests_test_cluster_track",
+            "src_core_failure_ledger",
+            "src_core_training_intake",
+            "src_core_compliance_policy"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 1), (2, 3))": [
+          [
+            "src_core_worms_wormz_ml",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_eve_unleashed_decision_engine",
+            "dataclasses"
+          ],
+          [
+            "src_meta_uvz",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 3), (1, 3), (2, 3))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_reverse_tools",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_core_worms_expansion_utility_guided_orchestration",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_orchestration_selfimprovinggui",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 3), (2, 3))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 2))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "collections",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_utility_guided_orchestration",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_parallel_work_stealing",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "collections",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (1, 3))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_parallel_work_stealing",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 1))": [
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_expansion_lazy_replan",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "tools_freebuff_parallel_benchmark",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 2), (1, 3))": [
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_config",
+            "dataclasses"
+          ],
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_reverse_tools",
+            "dataclasses"
+          ],
+          [
+            "src_core_algorithm_qualification",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 3), (2, 0), (2, 3))": [
+          [
+            "src_core_parallel_work_stealing_py_enum",
+            "src_core_parallel_work_stealing",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_hybrid_rewards_py_enum",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_expansion_hybrid_rewards"
+          ],
+          [
+            "tests_test_worm_smoke",
+            "pytest",
+            "tests_test_kilo_arxiv_qd",
+            "collections"
+          ]
+        ],
+        "k4:((0, 3), (1, 2), (1, 3))": [
+          [
+            "src_psyche_identify",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_embedding_backend",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_psyche_identify",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 3))": [
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_compliance_auditor",
+            "dataclasses"
+          ],
+          [
+            "src_scripts_sync_canonical_docs",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_thalamus",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 3))": [
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_worms_dependz",
+            "dataclasses"
+          ],
+          [
+            "src_core_azazael_ctl",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "dataclasses"
+          ],
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_freethreadedagent",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 3), (2, 1), (2, 3))": [
+          [
+            "src_eve_unleashed_models_init",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_eve_unleashed_models_qwen35_ssm_create_qwen35_model"
+          ],
+          [
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_tstrings",
+            "html"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher"
+          ]
+        ],
+        "k4:((0, 3), (1, 2), (2, 3))": [
+          [
+            "tests_test_cluster_track",
+            "src_core_failure_ledger",
+            "src_orchestration_ecosystem_crawler_launcher",
+            "src_core_training_intake"
+          ],
+          [
+            "tests_test_cluster_track",
+            "src_psyche_identify",
+            "src_core_failure_ledger",
+            "src_core_training_intake"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (2, 3))": [
+          [
+            "tests_test_ip_fuzz",
+            "string",
+            "pytest",
+            "tests_test_worm_imports"
+          ],
+          [
+            "src_core_worms_wormz_ml",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor",
+            "src_core_compliance_auditor"
+          ]
+        ],
+        "k4:((0, 2), (2, 1), (3, 1))": [
+          [
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "tools_live_rebalance_repro"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_core_worms_expansion_learning_features"
+          ],
+          [
+            "tools_live_rebalance_repro",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading"
+          ]
+        ],
+        "k4:((1, 0), (2, 0), (2, 3))": [
+          [
+            "src_core_worms_expansion_backup",
+            "sysconfig",
+            "tools_live_rebalance_repro",
+            "src_core_failure_ledger"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (2, 0))": [
+          [
+            "sysconfig",
+            "tools_live_rebalance_repro",
+            "src_core_worms_expansion_db_monitor",
+            "src_core_failure_ledger"
+          ],
+          [
+            "sysconfig",
+            "tools_live_rebalance_repro",
+            "src_core_worms_expansion_db_monitor",
+            "src_core_failure_ledger"
+          ],
+          [
+            "tools_live_rebalance_repro",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (2, 0), (2, 3))": [
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features",
+            "src_core_worms_expansion_db_monitor"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features",
+            "src_core_worms_expansion_db_monitor"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (2, 3))": [
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features",
+            "collections"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features",
+            "collections"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_db_monitor",
+            "dataclasses"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (3, 0))": [
+          [
+            "scripts_monitor_learning",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features"
+          ],
+          [
+            "scripts_monitor_learning",
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_learning_features"
+          ],
+          [
+            "src_core_worms_expansion_backup",
+            "scripts_monitor_learning",
+            "sysconfig",
+            "src_core_failure_ledger"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (3, 1), (3, 2))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ],
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (2, 1))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "sysconfig",
+            "packages_azazael_core_src_azazael_core_freethreading",
+            "collections"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (0, 3))": [
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_telemetry",
+            "collections"
+          ],
+          [
+            "sysconfig",
+            "src_core_failure_ledger",
+            "src_core_worms_expansion_telemetry",
+            "collections"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (2, 3))": [
+          [
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning",
+            "src_core_worms_wormz_ml",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_worms_expansion_utility_guided_orchestration",
+            "src_core_worms_wormz_ml",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ],
+          [
+            "src_core_parallel_work_stealing",
+            "src_core_worms_wormz_ml",
+            "src_core_failure_ledger",
+            "dataclasses"
+          ]
+        ],
+        "k4:((0, 1), (1, 3), (2, 3))": [
+          [
+            "tests_test_cluster_track",
+            "src_core_worms_wormz_ml",
+            "src_core_training_intake",
+            "src_core_failure_ledger"
+          ],
+          [
+            "tests_test_cluster_track",
+            "src_core_failure_ledger",
+            "src_core_training_intake",
+            "src_core_compliance_auditor"
+          ]
+        ]
+      }
+    }
+  },
+  "uses+indirect_call": {
+    "relation_group": [
+      "uses",
+      "indirect_call"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 3396,
+    "subgraph_nodes": 300,
+    "subgraph_edges": 72,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 203,
+          "time": 0.0029931068420410156
+        },
+        "4": {
+          "count": 1197,
+          "time": 0.01694321632385254
+        }
+      },
+      "total": 1400,
+      "motif_counts": {
+        "k3:((0, 2), (1, 2))": 79,
+        "k3:((0, 1), (2, 1))": 64,
+        "k3:((1, 0), (2, 0))": 25,
+        "k3:((1, 0), (2, 1))": 3,
+        "k3:((0, 2), (2, 1))": 5,
+        "k3:((0, 1), (0, 2))": 9,
+        "k3:((1, 2), (2, 0))": 9,
+        "k3:((1, 0), (1, 2))": 7,
+        "k3:((0, 2), (1, 0))": 1,
+        "k3:((2, 0), (2, 1))": 1,
+        "k4:((0, 3), (1, 3), (2, 3))": 361,
+        "k4:((0, 3), (2, 1), (2, 3))": 10,
+        "k4:((0, 1), (2, 1), (3, 1))": 177,
+        "k4:((0, 2), (1, 2), (3, 2))": 301,
+        "k4:((0, 2), (2, 1), (3, 2))": 18,
+        "k4:((0, 1), (0, 2), (3, 2))": 10,
+        "k4:((1, 0), (2, 0), (3, 0))": 65,
+        "k4:((0, 1), (2, 0), (3, 0))": 4,
+        "k4:((1, 0), (2, 1), (3, 1))": 6,
+        "k4:((0, 2), (1, 0), (3, 2))": 3,
+        "k4:((1, 2), (2, 0), (3, 2))": 30,
+        "k4:((0, 2), (0, 3), (1, 2))": 11,
+        "k4:((1, 3), (2, 0), (3, 0))": 1,
+        "k4:((0, 1), (0, 3), (2, 1))": 14,
+        "k4:((1, 0), (1, 3), (2, 0))": 9,
+        "k4:((0, 2), (1, 2), (1, 3))": 8,
+        "k4:((0, 2), (3, 1), (3, 2))": 1,
+        "k4:((0, 1), (0, 3), (3, 2))": 3,
+        "k4:((0, 1), (0, 3), (2, 3))": 20,
+        "k4:((0, 2), (0, 3), (3, 1))": 3,
+        "k4:((0, 2), (0, 3), (1, 3))": 6,
+        "k4:((0, 3), (2, 3), (3, 1))": 35,
+        "k4:((0, 3), (1, 0), (2, 3))": 6,
+        "k4:((0, 3), (1, 3), (3, 2))": 14,
+        "k4:((1, 3), (2, 3), (3, 0))": 49,
+        "k4:((0, 3), (1, 2), (1, 3))": 4,
+        "k4:((0, 1), (0, 3), (2, 1), (2, 3))": 4,
+        "k4:((0, 2), (1, 0), (1, 3))": 3,
+        "k4:((0, 3), (2, 0), (3, 1))": 1,
+        "k4:((0, 3), (1, 3), (2, 0))": 3,
+        "k4:((1, 2), (2, 0), (3, 0))": 3,
+        "k4:((2, 0), (3, 0), (3, 1))": 1,
+        "k4:((1, 0), (1, 2), (1, 3))": 2,
+        "k4:((1, 0), (1, 2), (3, 2))": 3,
+        "k4:((0, 1), (2, 1), (2, 3))": 7,
+        "k4:((1, 2), (1, 3), (2, 0))": 1
+      },
+      "examples": {
+        "k3:((0, 2), (1, 2))": [
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_colour_queens_test_black_never_retires_a_fleet_governor",
+            "tests_test_colour_queens_test_black_marks_census_rows_retired"
+          ],
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_colour_queens_test_black_marks_census_rows_retired",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_broker_reset_gate",
+            "src_core_compliance_state_machine_statemachineerror"
+          ]
+        ],
+        "k3:((0, 1), (2, 1))": [
+          [
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_worms_metacluster_get_mem_bus",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((1, 0), (2, 0))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((1, 0), (2, 1))": [
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_get_last_seen",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_bus_creation_no_fallback",
+            "src_core_freethreading_threadsafedict",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((0, 2), (2, 1))": [
+          [
+            "src_core_worms_expansion_delegation_needsclarification",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "src_core_worms_expansion_delegation_needsclarification",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_worms_clusterworms_clusterstate",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((1, 2), (2, 0))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_sb3_agent_sb3agent",
+            "tests_test_training_orchestrator_testsb3agentshapefix",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner"
+          ],
+          [
+            "src_core_sb3_agent_sb3agent",
+            "tests_test_training_orchestrator_testsb3agentshapefix",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner"
+          ]
+        ],
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_core_inference_parallel_broadcastresult",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher"
+          ],
+          [
+            "src_core_inference_parallel_broadcastresult",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher"
+          ],
+          [
+            "src_core_technique_wiring_l2_skills_ep347",
+            "src_core_technique_wiring_l2_skills_ep308",
+            "src_core_technique_wiring_l2_skills"
+          ]
+        ],
+        "k3:((0, 2), (1, 0))": [
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_core_worms_expansion_learning_versioner_modelversioner",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner",
+            "src_tests_test_learning_loop_testlearningsplitshim"
+          ]
+        ],
+        "k4:((0, 3), (1, 3), (2, 3))": [
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_colour_queens_test_black_never_retires_a_fleet_governor",
+            "tests_test_colour_queens_test_black_marks_census_rows_retired",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_colour_queens_test_black_never_retires_a_fleet_governor",
+            "tests_test_colour_queens_test_black_marks_census_rows_retired",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (2, 1), (2, 3))": [
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_colour_queens_test_black_marks_census_rows_retired",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (3, 1))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (3, 2))": [
+          [
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "src_core_worms_metacluster_get_mem_bus",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "tests_test_memorybus_test_publish_with_metadata",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ]
+        ],
+        "k4:((0, 2), (2, 1), (3, 2))": [
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (3, 2))": [
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_bus_creation_no_fallback",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((1, 0), (2, 0), (3, 0))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_worms_metacluster_get_mem_bus",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 1), (2, 0), (3, 0))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((1, 0), (2, 1), (3, 1))": [
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_get_last_seen",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_bus_creation_no_fallback"
+          ]
+        ],
+        "k4:((0, 2), (1, 0), (3, 2))": [
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_get_last_seen"
+          ],
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus",
+            "tests_test_memorybus_test_bus_creation_no_fallback"
+          ]
+        ],
+        "k4:((1, 2), (2, 0), (3, 2))": [
+          [
+            "src_core_freethreading_threadsafedict",
+            "src_core_worms_metacluster_get_mem_bus",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_with_metadata",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_poll_limit",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 2))": [
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_memorybus_test_subscribe_deliver_callback",
+            "tests_test_memorybus_test_topic_segments",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_with_metadata",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((1, 3), (2, 0), (3, 0))": [
+          [
+            "tests_test_delegation_ask_owner_test_outcome_shape_matches_executor_contract",
+            "src_core_worms_expansion_delegation_needsclarification",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 1))": [
+          [
+            "src_aoa_arms_eve_arm_evearm",
+            "tests_test_clusterworms_unit_testclusterwormzintegration",
+            "src_eve_unleashed_consciousness_introspectionloop",
+            "src_core_worms_clusterworms_clusterwormz"
+          ],
+          [
+            "tests_test_parallel_integration_testclusterparalleltimeout",
+            "src_aoa_arms_eve_arm_evearm",
+            "src_core_worms_clusterworms_clusterwormz",
+            "src_eve_unleashed_consciousness_introspectionloop"
+          ],
+          [
+            "src_aoa_arms_eve_arm_evearm",
+            "src_eve_unleashed_consciousness_introspectionloop",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_cluster_integration_p1_test_clusterworms_execute_all_system"
+          ]
+        ],
+        "k4:((1, 0), (1, 3), (2, 0))": [
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "tests_test_clusterworms_unit_testclusterwormzintegration",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_subscribe_deliver_callback",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_parallel_integration_testclusterparalleltimeout",
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ]
+        ],
+        "k4:((0, 2), (1, 2), (1, 3))": [
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "src_core_compliance_broker_reset_gate",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "tests_test_clusterworms_testclusterstate",
+            "src_core_worms_clusterworms_clusterstate",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_memorybus_test_subscribe_deliver_callback",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 2), (3, 1), (3, 2))": [
+          [
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_compliancestate",
+            "src_core_compliance_broker_reset_gate",
+            "src_core_compliance_state_machine_statemachineerror"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (3, 2))": [
+          [
+            "src_core_worms_expansion_delegation_needsclarification",
+            "src_core_worms_clusterworms_clusterstate",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "src_core_worms_expansion_delegation_needsclarification",
+            "src_core_worms_clusterworms_clusterstate",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ],
+          [
+            "src_core_worms_expansion_delegation_needsclarification",
+            "src_core_worms_clusterworms_clusterstate",
+            "tests_test_clusterworms_unit_testwormexecutor",
+            "src_core_worms_clusterworms_wormexecutor"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 3))": [
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_publish_non_serializable",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "src_core_worms_metacluster_get_mem_bus",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (3, 1))": [
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 2), (0, 3), (1, 3))": [
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_poll_empty",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_poll_empty",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_poll_empty",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks_cb2",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (2, 3), (3, 1))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_freethreading_threadsafedict",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (1, 0), (2, 3))": [
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (1, 3), (3, 2))": [
+          [
+            "tests_test_memorybus_test_poll_empty",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_poll_empty",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_subscribe_multiple_callbacks",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_poll_empty",
+            "src_core_freethreading_threadsafedict",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((1, 3), (2, 3), (3, 0))": [
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_get_last_seen",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_publish_non_serializable",
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_freethreadedagent_testmemorybusintegration",
+            "src_core_freethreading_threadsafedict",
+            "tests_test_memorybus_test_get_last_seen",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (1, 2), (1, 3))": [
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_deadlock_regression_testcrosscomponentdeadlock",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "src_scripts_sentinel_gate_get_compliance_orchestrator",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "src_scripts_sentinel_gate_get_compliance_orchestrator",
+            "src_core_compliance_state_machine_statemachineerror"
+          ]
+        ],
+        "k4:((0, 1), (0, 3), (2, 1), (2, 3))": [
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "src_core_compliance_broker_advance_to_code_edit",
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_statemachineerror"
+          ]
+        ],
+        "k4:((0, 2), (1, 0), (1, 3))": [
+          [
+            "src_core_inference_parallel_broadcastresult",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_inference_parallel_broadcastresult",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "src_core_inference_parallel_broadcastresult",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (2, 0), (3, 1))": [
+          [
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_freethreading_threadsafedict",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((0, 3), (1, 3), (2, 0))": [
+          [
+            "tests_test_memorybus_test_publish_with_metadata",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ],
+          [
+            "tests_test_memorybus_test_poll_empty",
+            "src_core_worms_parallel_inference_worm_parallelinferenceworm",
+            "src_core_inference_bus_utils_inferencebuspublisher",
+            "src_core_memorybus_memorybus"
+          ]
+        ],
+        "k4:((1, 2), (2, 0), (3, 0))": [
+          [
+            "src_core_sb3_agent_sb3agent",
+            "tests_test_training_orchestrator_testsb3agentshapefix",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner",
+            "src_tests_test_learning_loop_testlearningsplitshim"
+          ],
+          [
+            "src_core_sb3_agent_sb3agent",
+            "tests_test_training_orchestrator_testsb3agentshapefix",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner",
+            "src_tests_test_learning_loop_testlearningsplitshim"
+          ],
+          [
+            "src_core_sb3_agent_sb3agent",
+            "tests_test_training_orchestrator_testsb3agentshapefix",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner",
+            "src_tests_test_learning_loop_testlearningsplitshim"
+          ]
+        ],
+        "k4:((2, 0), (3, 0), (3, 1))": [
+          [
+            "src_core_sb3_agent_sb3agent",
+            "src_core_worms_expansion_learning_versioner_modelversioner",
+            "packages_azazael_core_src_azazael_core_worms_expansion_learning_modelversioner",
+            "src_tests_test_learning_loop_testlearningsplitshim"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (1, 3))": [
+          [
+            "src_core_technique_wiring_l2_skills_ep347",
+            "src_core_technique_wiring_l2_skills_ep308",
+            "src_core_technique_wiring_l2_skills_ep34",
+            "src_core_technique_wiring_l2_skills"
+          ],
+          [
+            "src_core_technique_wiring_l2_skills_ep347",
+            "src_core_technique_wiring_l2_skills_ep308",
+            "src_core_technique_wiring_l2_skills_ep34",
+            "src_core_technique_wiring_l2_skills"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (3, 2))": [
+          [
+            "src_aoa_arms_eve_arm_evearm",
+            "tests_test_clusterworms_integration_testclusterwormzcreation",
+            "src_core_worms_clusterworms_clusterwormz",
+            "src_eve_unleashed_consciousness_introspectionloop"
+          ],
+          [
+            "tests_test_compliance_step45_init_testcomponentavailability",
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_statemachineerror"
+          ],
+          [
+            "src_core_compliance_state_machine_compliancestate",
+            "tests_test_compliance_step45_init_teststatetransitions",
+            "src_core_compliance_state_machine_statemachineerror",
+            "src_core_compliance_broker_gate_asserted"
+          ]
+        ],
+        "k4:((0, 1), (2, 1), (2, 3))": [
+          [
+            "src_aoa_arms_eve_arm_evearm",
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_parallel_integration_testclusterparallelrealworms",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ],
+          [
+            "tests_test_cancellation_integration_testclusterwormzcancellationtoken",
+            "src_core_worms_expansion_queens_blackqueenworm",
+            "src_core_worms_clusterworms_clusterwormz",
+            "tests_test_colour_queens_test_black_force_channel_is_audited_and_effective"
+          ]
+        ],
+        "k4:((1, 2), (1, 3), (2, 0))": [
+          [
+            "tests_test_memorybus_test_subscribe_wildcard_star",
+            "tests_test_memorybus_test_subscribe_deliver_callback",
+            "src_core_freethreading_threadsafedict",
+            "src_core_memorybus_memorybus"
+          ]
+        ]
+      }
+    }
+  },
+  "inherits+defines+re_exports": {
+    "relation_group": [
+      "inherits",
+      "defines",
+      "re_exports"
+    ],
+    "full_nodes": 44719,
+    "full_edges": 449,
+    "subgraph_nodes": 27,
+    "subgraph_edges": 26,
+    "motifs": {
+      "by_k": {
+        "3": {
+          "count": 496,
+          "time": 0.006811380386352539
+        },
+        "4": {
+          "count": 9076,
+          "time": 0.1363823413848877
+        }
+      },
+      "total": 9572,
+      "motif_counts": {
+        "k3:((1, 0), (1, 2))": 264,
+        "k3:((0, 1), (0, 2))": 52,
+        "k3:((2, 0), (2, 1))": 180,
+        "k4:((2, 0), (2, 1), (2, 3))": 4661,
+        "k4:((0, 1), (0, 2), (0, 3))": 262,
+        "k4:((1, 0), (1, 2), (1, 3))": 2168,
+        "k4:((3, 0), (3, 1), (3, 2))": 1985
+      },
+      "examples": {
+        "k3:((1, 0), (1, 2))": [
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k3:((0, 1), (0, 2))": [
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_backup",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_dreaming",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_migration",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k3:((2, 0), (2, 1))": [
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_mesh",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_servemesh",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k4:((2, 0), (2, 1), (2, 3))": [
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_mesh",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k4:((0, 1), (0, 2), (0, 3))": [
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_visualization",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_communication",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_profiling",
+            "src_core_worms_expansion_spine",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k4:((1, 0), (1, 2), (1, 3))": [
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_backup",
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_dreaming",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_engram",
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_migration",
+            "src_core_worms_expansion_init"
+          ]
+        ],
+        "k4:((3, 0), (3, 1), (3, 2))": [
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_mesh",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_servemesh",
+            "src_core_worms_expansion_init"
+          ],
+          [
+            "src_core_worms_expansion_learning",
+            "src_core_worms_expansion_container",
+            "src_core_worms_expansion_race_detector",
+            "src_core_worms_expansion_init"
+          ]
+        ]
+      }
+    }
+  }
+}

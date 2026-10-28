@@ -22,7 +22,7 @@ import sys
 
 PYIO = sys.stdout.reconfigure(encoding="utf-8", errors="replace") if hasattr(sys.stdout, "reconfigure") else None
 
-IN_JSON = "bcc_lead_inference_evidence.json"
+IN_JSON = "scripts/bcc_lead_inference_evidence.enriched.json"  # R5: canonical lead store
 OUT_HTML = "BCC_LEAD_FINDINGS.html"
 
 CLASS_BADGE = {
@@ -118,6 +118,9 @@ def lead_cards(leads):
 
 def main():
     data = load(IN_JSON)
+    if isinstance(data, list):  # enriched store is a bare list of 11-field records
+        data = {"leads": data, "n_leads": len(data),
+                "generated": "2026-10-27 (enriched reprocessing)", "layers_loaded": []}
     leads = data.get("leads", [])
     n = data.get("n_leads", len(leads))
     gen = data.get("generated", "2026-09-05")

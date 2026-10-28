@@ -1,0 +1,1573 @@
+{
+  "network": {
+    "nodes": 27,
+    "edges": 67,
+    "components": 1,
+    "density": 0.1909,
+    "avg_degree": 4.963,
+    "diameter": 5,
+    "avg_shortest_path": 2.108
+  },
+  "persons": {
+    "n_persons": 15,
+    "total_pairs": 105,
+    "connected_pairs": 105,
+    "unreachable_pairs": 0,
+    "max_separation": 4,
+    "median_separation": 2,
+    "mean_separation": 1.829,
+    "dist_histogram": {
+      "1": 40,
+      "2": 45,
+      "3": 18,
+      "4": 2
+    },
+    "max_pair": {
+      "a": "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)",
+      "b": "Linda S. Himeback, CPA (Herbein lead)",
+      "dist": 4
+    },
+    "persons_with_no_path_to_any_other_person": []
+  },
+  "centrality": {
+    "degree": {
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)": 0.5,
+      "Crystal Seitz — Vice Chair (now Chairperson)": 0.3462,
+      "John Robinson — Treasurer (as of FY2025 990)": 0.3462,
+      "Linda Krause — Director": 0.3846,
+      "Brenda Gaul — Director (ex-Treasurer)": 0.3462,
+      "Missy Orlando — Director": 0.3462,
+      "Deborah Scull — Director": 0.3462,
+      "James Brooks — Director": 0.3462,
+      "Jeffrey Ralph — Director (now Treasurer)": 0.3462,
+      "Christine Axford — CEO/President (since Jan 2019)": 0.1154,
+      "Greg Little — CFO (since Jan 2019)": 0.0769,
+      "Frances Malley — former CEO (pre-2019)": 0.0769,
+      "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)": 0.0769,
+      "Marcia Goodman-Hinnershitz (COCA/Council)": 0.1154,
+      "Linda S. Himeback, CPA (Herbein lead)": 0.0385,
+      "Berks Counseling Center (BCC)": 0.7692,
+      "COCA — Council on Chemical Abuse": 0.0769,
+      "Edward Jones (Investments)": 0.0769,
+      "TPUC — PA Universalist Convention": 0.0769,
+      "Herbein + Company, Inc. (Auditor/990)": 0.0769,
+      "Pershing LLC / BNY Mellon (Custodian)": 0.0385,
+      "PA Superior Court": 0.0385,
+      "U.S. Dept of Housing and Urban Development": 0.0385,
+      "NextGen Healthcare (EHR vendor)": 0.0385,
+      "Berks County MH/DD": 0.0385,
+      "Community Care Behavioral Health": 0.0385,
+      "Reading City Council": 0.0385
+    },
+    "betweenness": {
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)": 0.2713,
+      "Crystal Seitz — Vice Chair (now Chairperson)": 0.0,
+      "John Robinson — Treasurer (as of FY2025 990)": 0.0,
+      "Linda Krause — Director": 0.0303,
+      "Brenda Gaul — Director (ex-Treasurer)": 0.0,
+      "Missy Orlando — Director": 0.0,
+      "Deborah Scull — Director": 0.0,
+      "James Brooks — Director": 0.0,
+      "Jeffrey Ralph — Director (now Treasurer)": 0.0,
+      "Christine Axford — CEO/President (since Jan 2019)": 0.0015,
+      "Greg Little — CFO (since Jan 2019)": 0.0,
+      "Frances Malley — former CEO (pre-2019)": 0.0,
+      "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)": 0.0,
+      "Marcia Goodman-Hinnershitz (COCA/Council)": 0.0826,
+      "Linda S. Himeback, CPA (Herbein lead)": 0.0,
+      "Berks Counseling Center (BCC)": 0.6974,
+      "COCA — Council on Chemical Abuse": 0.0369,
+      "Edward Jones (Investments)": 0.0,
+      "TPUC — PA Universalist Convention": 0.0,
+      "Herbein + Company, Inc. (Auditor/990)": 0.0769,
+      "Pershing LLC / BNY Mellon (Custodian)": 0.0,
+      "PA Superior Court": 0.0,
+      "U.S. Dept of Housing and Urban Development": 0.0,
+      "NextGen Healthcare (EHR vendor)": 0.0,
+      "Berks County MH/DD": 0.0,
+      "Community Care Behavioral Health": 0.0,
+      "Reading City Council": 0.0
+    },
+    "eigenvector": {
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)": 0.3232,
+      "Crystal Seitz — Vice Chair (now Chairperson)": 0.3048,
+      "John Robinson — Treasurer (as of FY2025 990)": 0.3048,
+      "Linda Krause — Director": 0.3116,
+      "Brenda Gaul — Director (ex-Treasurer)": 0.3048,
+      "Missy Orlando — Director": 0.3048,
+      "Deborah Scull — Director": 0.3048,
+      "James Brooks — Director": 0.3048,
+      "Jeffrey Ralph — Director (now Treasurer)": 0.3048,
+      "Christine Axford — CEO/President (since Jan 2019)": 0.047,
+      "Greg Little — CFO (since Jan 2019)": 0.0428,
+      "Frances Malley — former CEO (pre-2019)": 0.0428,
+      "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)": 0.0393,
+      "Marcia Goodman-Hinnershitz (COCA/Council)": 0.0401,
+      "Linda S. Himeback, CPA (Herbein lead)": 0.0041,
+      "Berks Counseling Center (BCC)": 0.3478,
+      "COCA — Council on Chemical Abuse": 0.0421,
+      "Edward Jones (Investments)": 0.0688,
+      "TPUC — PA Universalist Convention": 0.0393,
+      "Herbein + Company, Inc. (Auditor/990)": 0.0382,
+      "Pershing LLC / BNY Mellon (Custodian)": 0.0377,
+      "PA Superior Court": 0.0377,
+      "U.S. Dept of Housing and Urban Development": 0.0377,
+      "NextGen Healthcare (EHR vendor)": 0.0377,
+      "Berks County MH/DD": 0.0377,
+      "Community Care Behavioral Health": 0.0377,
+      "Reading City Council": 0.0043
+    },
+    "closeness": {
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)": 0.65,
+      "Crystal Seitz — Vice Chair (now Chairperson)": 0.5778,
+      "John Robinson — Treasurer (as of FY2025 990)": 0.5778,
+      "Linda Krause — Director": 0.5909,
+      "Brenda Gaul — Director (ex-Treasurer)": 0.5778,
+      "Missy Orlando — Director": 0.5778,
+      "Deborah Scull — Director": 0.5778,
+      "James Brooks — Director": 0.5778,
+      "Jeffrey Ralph — Director (now Treasurer)": 0.5778,
+      "Christine Axford — CEO/President (since Jan 2019)": 0.4643,
+      "Greg Little — CFO (since Jan 2019)": 0.4561,
+      "Frances Malley — former CEO (pre-2019)": 0.4561,
+      "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)": 0.4062,
+      "Marcia Goodman-Hinnershitz (COCA/Council)": 0.4262,
+      "Linda S. Himeback, CPA (Herbein lead)": 0.321,
+      "Berks Counseling Center (BCC)": 0.7879,
+      "COCA — Council on Chemical Abuse": 0.4815,
+      "Edward Jones (Investments)": 0.4062,
+      "TPUC — PA Universalist Convention": 0.4062,
+      "Herbein + Company, Inc. (Auditor/990)": 0.4643,
+      "Pershing LLC / BNY Mellon (Custodian)": 0.4483,
+      "PA Superior Court": 0.4483,
+      "U.S. Dept of Housing and Urban Development": 0.4483,
+      "NextGen Healthcare (EHR vendor)": 0.4483,
+      "Berks County MH/DD": 0.4483,
+      "Community Care Behavioral Health": 0.4483,
+      "Reading City Council": 0.3023
+    }
+  },
+  "rankings": {
+    "top_degree": [
+      "Berks Counseling Center (BCC)",
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+      "Linda Krause — Director",
+      "Crystal Seitz — Vice Chair (now Chairperson)",
+      "John Robinson — Treasurer (as of FY2025 990)",
+      "Brenda Gaul — Director (ex-Treasurer)",
+      "Missy Orlando — Director",
+      "Deborah Scull — Director",
+      "James Brooks — Director",
+      "Jeffrey Ralph — Director (now Treasurer)"
+    ],
+    "top_betweenness": [
+      "Berks Counseling Center (BCC)",
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+      "Marcia Goodman-Hinnershitz (COCA/Council)",
+      "Herbein + Company, Inc. (Auditor/990)",
+      "COCA — Council on Chemical Abuse",
+      "Linda Krause — Director",
+      "Christine Axford — CEO/President (since Jan 2019)",
+      "Crystal Seitz — Vice Chair (now Chairperson)"
+    ],
+    "top_eigenvector": [
+      "Berks Counseling Center (BCC)",
+      "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+      "Linda Krause — Director",
+      "Crystal Seitz — Vice Chair (now Chairperson)",
+      "John Robinson — Treasurer (as of FY2025 990)",
+      "Brenda Gaul — Director (ex-Treasurer)",
+      "Missy Orlando — Director",
+      "Deborah Scull — Director"
+    ]
+  },
+  "communities": [
+    {
+      "index": 0,
+      "n": 12,
+      "types": {
+        "person": 4,
+        "org": 8
+      },
+      "members": [
+        "Berks Counseling Center (BCC)",
+        "Berks County MH/DD",
+        "Christine Axford — CEO/President (since Jan 2019)",
+        "Community Care Behavioral Health",
+        "Frances Malley — former CEO (pre-2019)",
+        "Greg Little — CFO (since Jan 2019)",
+        "Herbein + Company, Inc. (Auditor/990)",
+        "Linda S. Himeback, CPA (Herbein lead)",
+        "NextGen Healthcare (EHR vendor)",
+        "PA Superior Court",
+        "Pershing LLC / BNY Mellon (Custodian)",
+        "U.S. Dept of Housing and Urban Development"
+      ]
+    },
+    {
+      "index": 1,
+      "n": 8,
+      "types": {
+        "person": 8
+      },
+      "members": [
+        "Brenda Gaul — Director (ex-Treasurer)",
+        "Crystal Seitz — Vice Chair (now Chairperson)",
+        "Deborah Scull — Director",
+        "James Brooks — Director",
+        "Jeffrey Ralph — Director (now Treasurer)",
+        "John Robinson — Treasurer (as of FY2025 990)",
+        "Linda Krause — Director",
+        "Missy Orlando — Director"
+      ]
+    },
+    {
+      "index": 2,
+      "n": 7,
+      "types": {
+        "person": 3,
+        "org": 4
+      },
+      "members": [
+        "COCA — Council on Chemical Abuse",
+        "Edward Jones (Investments)",
+        "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+        "Marcia Goodman-Hinnershitz (COCA/Council)",
+        "Reading City Council",
+        "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)",
+        "TPUC — PA Universalist Convention"
+      ]
+    }
+  ],
+  "core_clique": {
+    "core_max_k": 9,
+    "core_shells": {
+      "1": {
+        "n": 9,
+        "types": {
+          "person": 1,
+          "org": 8
+        },
+        "members": [
+          "Berks County MH/DD",
+          "Community Care Behavioral Health",
+          "Herbein + Company, Inc. (Auditor/990)",
+          "Linda S. Himeback, CPA (Herbein lead)",
+          "NextGen Healthcare (EHR vendor)",
+          "PA Superior Court",
+          "Pershing LLC / BNY Mellon (Custodian)",
+          "Reading City Council",
+          "U.S. Dept of Housing and Urban Development"
+        ]
+      },
+      "2": {
+        "n": 8,
+        "types": {
+          "person": 5,
+          "org": 3
+        },
+        "members": [
+          "COCA — Council on Chemical Abuse",
+          "Christine Axford — CEO/President (since Jan 2019)",
+          "Edward Jones (Investments)",
+          "Frances Malley — former CEO (pre-2019)",
+          "Greg Little — CFO (since Jan 2019)",
+          "Marcia Goodman-Hinnershitz (COCA/Council)",
+          "Richard Bromley Jr — TPUC financial advisor (INACTIVE FINRA)",
+          "TPUC — PA Universalist Convention"
+        ]
+      },
+      "9": {
+        "n": 10,
+        "types": {
+          "person": 9,
+          "org": 1
+        },
+        "members": [
+          "Berks Counseling Center (BCC)",
+          "Brenda Gaul — Director (ex-Treasurer)",
+          "Crystal Seitz — Vice Chair (now Chairperson)",
+          "Deborah Scull — Director",
+          "James Brooks — Director",
+          "Jeffrey Ralph — Director (now Treasurer)",
+          "John Robinson — Treasurer (as of FY2025 990)",
+          "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+          "Linda Krause — Director",
+          "Missy Orlando — Director"
+        ]
+      }
+    },
+    "innermost_core": {
+      "k": 9,
+      "n": 10,
+      "types": {
+        "person": 9,
+        "org": 1
+      },
+      "members": [
+        "Berks Counseling Center (BCC)",
+        "Brenda Gaul — Director (ex-Treasurer)",
+        "Crystal Seitz — Vice Chair (now Chairperson)",
+        "Deborah Scull — Director",
+        "James Brooks — Director",
+        "Jeffrey Ralph — Director (now Treasurer)",
+        "John Robinson — Treasurer (as of FY2025 990)",
+        "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+        "Linda Krause — Director",
+        "Missy Orlando — Director"
+      ]
+    },
+    "clique_number": 10,
+    "largest_cliques": [
+      {
+        "n": 10,
+        "types": {
+          "org": 1,
+          "person": 9
+        },
+        "members": [
+          "Berks Counseling Center (BCC)",
+          "Brenda Gaul — Director (ex-Treasurer)",
+          "Crystal Seitz — Vice Chair (now Chairperson)",
+          "Deborah Scull — Director",
+          "James Brooks — Director",
+          "Jeffrey Ralph — Director (now Treasurer)",
+          "John Robinson — Treasurer (as of FY2025 990)",
+          "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+          "Linda Krause — Director",
+          "Missy Orlando — Director"
+        ]
+      }
+    ],
+    "maximal_cliques_count": 17,
+    "person": {
+      "person_core_max_k": 8,
+      "person_innermost_core": {
+        "k": 8,
+        "n": 9,
+        "types": {
+          "person": 9
+        },
+        "members": [
+          "Brenda Gaul — Director (ex-Treasurer)",
+          "Crystal Seitz — Vice Chair (now Chairperson)",
+          "Deborah Scull — Director",
+          "James Brooks — Director",
+          "Jeffrey Ralph — Director (now Treasurer)",
+          "John Robinson — Treasurer (as of FY2025 990)",
+          "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+          "Linda Krause — Director",
+          "Missy Orlando — Director"
+        ]
+      },
+      "person_clique_number": 9,
+      "person_largest_cliques": [
+        {
+          "n": 9,
+          "types": {
+            "person": 9
+          },
+          "members": [
+            "Brenda Gaul — Director (ex-Treasurer)",
+            "Crystal Seitz — Vice Chair (now Chairperson)",
+            "Deborah Scull — Director",
+            "James Brooks — Director",
+            "Jeffrey Ralph — Director (now Treasurer)",
+            "John Robinson — Treasurer (as of FY2025 990)",
+            "Joseph Plageman Jr — Board Chair (as of FY2025 990)",
+            "Linda Krause — Director",
+            "Missy Orlando — Director"
+          ]
+        }
+      ]
+    }
+  },
+  "person_edges_added": [
+    {
+      "source": "person_plageman",
+      "target": "person_seitz",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_robinson",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_krause",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)",
+        "Same Edward Jones branch/team — Plageman is Financial Advisor (918 Penn Ave, Wyomissing; CRD #5964768), Krause is his Sr. Branch Office Administrator on the same team"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ],
+        [
+          "PEOPLE_NETWORK_CARD.html",
+          "INVESTMENT_PEOPLE_REPORT.html",
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_gaul",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_orlando",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_robinson",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_krause",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_gaul",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_orlando",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_krause",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_gaul",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_orlando",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_gaul",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_orlando",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_orlando",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_scull",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_scull",
+      "target": "person_brooks",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_scull",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_brooks",
+      "target": "person_ralph",
+      "type": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_bromley",
+      "type": [
+        "same_org_committee"
+      ],
+      "detail": "TPUC — Plageman is President (elected April 2026); Bromley is the TPUC Financial Committee's designated advisor",
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_axford",
+      "target": "person_little",
+      "type": [
+        "co_executive"
+      ],
+      "detail": "BCC executive team — Axford CEO/President and Little CFO, both in post since Jan 2019 (the Malley-out/Axford-Little-in transition)",
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_malley",
+      "target": "person_axford",
+      "type": [
+        "succession"
+      ],
+      "detail": "CEO transition — Axford 'took over from Frances Malley in the FY2019 transition that preceded the asset explosion'",
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    }
+  ],
+  "person_edges_count": 39,
+  "person_edges_graph": [
+    {
+      "source": "person_plageman",
+      "target": "person_seitz",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_robinson",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_krause",
+      "types": [
+        "same_board",
+        "co_employment"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)",
+        "Same Edward Jones branch/team — Plageman is Financial Advisor (918 Penn Ave, Wyomissing; CRD #5964768), Krause is his Sr. Branch Office Administrator on the same team"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ],
+        [
+          "PEOPLE_NETWORK_CARD.html",
+          "INVESTMENT_PEOPLE_REPORT.html",
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_gaul",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_orlando",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_plageman",
+      "target": "person_bromley",
+      "types": [
+        "same_org_committee"
+      ],
+      "detail": [
+        "TPUC — Plageman is President (elected April 2026); Bromley is the TPUC Financial Committee's designated advisor"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_robinson",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_krause",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_gaul",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_orlando",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_seitz",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_krause",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_gaul",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_orlando",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_robinson",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_gaul",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_orlando",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_krause",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_orlando",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_gaul",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_scull",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_orlando",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_scull",
+      "target": "person_brooks",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_scull",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_brooks",
+      "target": "person_ralph",
+      "types": [
+        "same_board"
+      ],
+      "detail": [
+        "co-serve on BCC board (FY2025 990 roster / live site Sep 2026)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_axford",
+      "target": "person_little",
+      "types": [
+        "co_executive"
+      ],
+      "detail": [
+        "BCC executive team — Axford CEO/President and Little CFO, both in post since Jan 2019 (the Malley-out/Axford-Little-in transition)"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    },
+    {
+      "source": "person_axford",
+      "target": "person_malley",
+      "types": [
+        "succession"
+      ],
+      "detail": [
+        "CEO transition — Axford 'took over from Frances Malley in the FY2019 transition that preceded the asset explosion'"
+      ],
+      "evidence": [
+        [
+          "PEOPLE_DOSSIER.html",
+          "INVESTMENT_PEOPLE_REPORT.html"
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-10-28T08:35:50",
+  "gaps_updated": 24,
+  "total_gaps": 62,
+  "sources_executed": [
+    "dmarc",
+    "propublica",
+    "pacfile",
+    "rtkl",
+    "opensecrets",
+    "irs",
+    "pa_doh_samhsa",
+    "foundation_hcup_teds",
+    "ddap",
+    "pa_dos",
+    "fwa",
+    "geospatial"
+  ],
+  "gap_updates": {
+    "1": {
+      "sources": [
+        "propublica"
+      ],
+      "evidence": "ProPublica API refreshed for BCC/COCA TY2023 financials"
+    },
+    "9": {
+      "sources": [
+        "propublica"
+      ],
+      "evidence": "ProPublica API refreshed for BCC/COCA TY2023 financials"
+    },
+    "11": {
+      "sources": [
+        "propublica"
+      ],
+      "evidence": "ProPublica API refreshed; Schedule J still not public"
+    },
+    "12": {
+      "sources": [
+        "propublica"
+      ],
+      "evidence": "ProPublica API refreshed; no service-line breakdown in 990"
+    },
+    "22": {
+      "sources": [
+        "propublica"
+      ],
+      "evidence": "ProPublica API refreshed; campaign finance negative on COCA institutional lines"
+    },
+    "28": {
+      "sources": [
+        "dmarc"
+      ],
+      "evidence": "DMARC check: cocaberks.org has SPF, others have none; DMARC/DKIM missing on all"
+    },
+    "34": {
+      "sources": [
+        "pacfile",
+        "fwa",
+        "rtkl"
+      ],
+      "evidence": "PACFile accessible for 898 MDA 2017 and 15-14644; FWA opinion downloaded; RTKL request generated"
+    },
+    "50": {
+      "sources": [
+        "fwa",
+        "rtkl"
+      ],
+      "evidence": "FWA opinion (898 MDA 2017) downloaded; RTKL for DDAP Event YQM512 generated"
+    },
+    "51": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL request for 523 vs 350 authorized beds generated"
+    },
+    "52": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL request for 2023 revocation ground generated"
+    },
+    "53": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL request for 709.31(b) compliance generated"
+    },
+    "54": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for post-2017 re-verification generated"
+    },
+    "57": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for Reading Eagle/WFMZ media sweep generated"
+    },
+    "58": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for care-gap alert thresholds generated"
+    },
+    "60": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for unretrieved DDAP records generated"
+    },
+    "61": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for 2020 survey citing 709.26(b)(3) generated"
+    },
+    "62": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for unobtained DDAP records generated"
+    },
+    "38": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for Berks Prothonotary UCS search generated"
+    },
+    "18": {
+      "sources": [
+        "rtkl"
+      ],
+      "evidence": "RTKL for 15-14644 judgment amount generated"
+    },
+    "10": {
+      "sources": [
+        "pa_dos_failed"
+      ],
+      "evidence": "PA DOS API SSL cert mismatch - needs manual query"
+    },
+    "17": {
+      "sources": [
+        "pa_dos_failed"
+      ],
+      "evidence": "PA DOS API SSL cert mismatch - needs manual query"
+    },
+    "25": {
+      "sources": [
+        "pa_dos_failed"
+      ],
+      "evidence": "PA DOS API SSL cert mismatch - needs manual query"
+    },
+    "14": {
+      "sources": [
+        "foundation"
+      ],
+      "evidence": "Foundation Directory Online strategy documented for funder mapping"
+    },
+    "20": {
+      "sources": [
+        "pa_doh"
+      ],
+      "evidence": "PA DOH licensing PDF + SAMHSA N-SSATS strategy documented"
+    }
+  },
+  "results_summary": {
+    "dmarc": "{'timestamp': '2026-10-28T08:24:32', 'domains': [{'domain': 'bcc-cares.org', 'dmarc': {'domain': 'bcc-cares.org', 'record': None, 'found': False}, 'spf': {'domain': 'bcc-cares.org', 'record': None, 'f",
+    "propublica": "{'timestamp': '2026-10-28T08:22:27', 'organizations': {'BCC': {'ein': '232043478', 'org': {'organization': {'id': 232043478, 'ein': 232043478, 'name': 'Berks Counseling Center Inc', 'careofname': None",
+    "pacfile": "{'timestamp': '2026-10-28T08:26:49', 'dockets': {'898 MDA 2017': {'pacfile': {'docket': '898 MDA 2017', 'status_code': 200, 'accessible': True, 'html_length': 2605305}, 'courtlistener': {'docket': '89",
+    "rtkl": "{'timestamp': '2026-10-28T08:28:40', 'requests': {'18': {'agency': 'Berks County District Attorney', 'subject': 'RTKL Request - 15-14644 CCP Berks (Leinbach/MCO)', 'records_count': 3, 'filename': 'RTK",
+    "opensecrets": "{'timestamp': '2026-10-28T08:27:47', 'fec_results': {'Berks Counseling Center': {'committees': None, 'candidates': None, 'opensecrets': {'note': 'OpenSecrets requires API key for organization lookup'}",
+    "irs": "{'timestamp': '2026-10-28T08:28:27', 'epostcard_matches': [], 'pub78_matches': [], 'gaps_targeted': ['financial_990', 'schedule_j', 'service_lines']}",
+    "pa_doh_samhsa": "{'timestamp': '2026-10-28T08:28:57', 'pa_doh_licensing': {'note': 'PA DOH facility list is published as PDF. Requires PDF parsing.', 'url': 'https://www.health.pa.gov/topics/Documents/Facilities%20and",
+    "foundation_hcup_teds": "{'timestamp': '2026-10-28T08:29:31', 'foundation_directory': {'name': 'Candid Foundation Directory Online', 'url': 'https://fconline.foundationcenter.org/', 'access': 'Subscription required ($1,500+/y",
+    "ddap": "{'timestamp': '2026-10-28T08:21:49', 'status': 'success', 'providers_found': 0, 'providers': [], 'gaps_targeted': [50, 51, 52, 53, 54, 58, 61, 62]}",
+    "pa_dos": "{'timestamp': '2026-10-28T08:26:27', 'searches': {}, 'gaps_targeted': [10, 17, 18, 25]}",
+    "fwa": "{'pdf': 'fwa_opinion_898_mda_2017.pdf', 'courtlistener': 'fwa_opinion_courtlistener.html', 'text': 'fwa_opinion_text.txt', 'gaps_targeted': [34, 50, 51, 52]}",
+    "geospatial": "{'markdown': \"# BCC Holdings \u00e2\u20ac\u201d Geospatial Coordinates Report\\n\\n**Task:** KILO-GEO-001 \u00e2\u20ac\u201d BCC geospatial coordinates\\n**Date:** 2026-10-27\\n**Source:** US Census Bureau Geocoder (Public AR Current "
+  }
+}

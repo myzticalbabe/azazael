@@ -5,8 +5,8 @@ FROM python:3.14-slim-bookworm
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-3.15t.txt .
+RUN pip install --no-cache-dir -r requirements-3.15t.txt
 
 COPY . .
 
