@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1920, initial-scale=1"/>
+<title>Yggdrasil Cleave — 10 Trees Off One Trunk</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;background:#060b18;overflow:hidden;font-family:'Sora',system-ui,sans-serif}
+  #stage{position:absolute;inset:0}
+  canvas{position:absolute;inset:0}
+  .hud{position:absolute;top:44px;left:0;right:0;text-align:center;z-index:5;pointer-events:none}
+  .kicker{display:inline-block;letter-spacing:.35em;font-size:15px;color:#7df9ff;border:1px solid #7df9ff55;padding:9px 22px;border-radius:999px;background:#00e5ff11;margin-bottom:16px}
+  h1{font-size:64px;font-weight:800;background:linear-gradient(92deg,#fff 10%,#7df9ff 45%,#ffd479 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin-top:10px;font-size:21px;color:#aeb9d6}
+  .caption{position:absolute;bottom:36px;left:0;right:0;text-align:center;z-index:5;font-family:'JetBrains Mono',monospace;font-size:16px;color:#8b96b3;pointer-events:none}
+  .caption b{color:#ffd479}
+  #fade{position:absolute;inset:0;background:#060b18;z-index:10;pointer-events:none;transition:opacity 1.2s ease;opacity:1}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="tree" width="1920" height="1080"></canvas></div>
+<div class="hud"><div class="kicker">AZAZAEL • THE YGGDRASIL CLEAVE</div><h1>10 Trees Off One Trunk — Zero Loss</h1><div class="sub">stdlib + numpy core stays rooted • every branch leaves with a shim • one producer at a time</div></div>
+<div class="caption" id="cap">growing the trunk… <b>azazael-core</b></div>
+<div id="fade"></div>
+<script>
+const cv=document.getElementById('tree'),ctx=cv.getContext('2d');
+const cap=document.getElementById('cap');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=mulberry32(20261028);
+// 10 limbs: [label, side(-1 left / 1 right), spread, hue]
+const LIMBS=[["worms",-1,.34,"#7df9ff"],["orchestration",1,.30,"#7df9ff"],["codex",-1,.52,"#00ffa3"],["cli",1,.55,"#00ffa3"],["tools",-1,.70,"#ffd479"],["klink",1,.72,"#ffd479"],["persephone",-1,.88,"#ff7ad9"],["poindexter",1,.86,"#ff7ad9"],["tarbaby",-1,1.04,"#c4b5fd"],["terence",1,1.02,"#c4b5fd"]];
+const T0=performance.now(),GROW=30000,LABEL=8000,HOLD=7000,TOTAL=GROW+LABEL+HOLD;
+window.__done=false;
+document.getElementById('fade').style.opacity=0;
+const segs=[]; // {x0,y0,x1,y1,w,hue,depth,t0,t1,label?}
+// build static geometry first (recursive fractal), animate reveal by time
+function branch(x,y,ang,len,w,depth,hue,label){
+  const x1=x+Math.cos(ang)*len,y1=y+Math.sin(ang)*len;
+  segs.push({x0:x,y0:y,x1:x1,y1:y1,w:w,hue:hue,depth:depth,label:label||null});
+  if(depth<=0||len<9){
+    // leaf cluster
+    for(let i=0;i<3;i++){segs.push({x0:x1,y0:y1,x1:x1+(R()-.5)*26,y1:y1+(R()-.5)*26,w:1.5,hue:hue,depth:-1,leaf:true});}
+    return;
+  }
+  const n=depth>6?2:(R()<.82?2:3);
+  for(let i=0;i<n;i++){
+    const na=ang+(R()-.5)*(depth>5?.5:.9)+(i-(n-1)/2)*.38;
+    branch(x1,y1,na,len*(.68+R()*.12),w*.66,depth-1,hue,null);
+  }
+}
+(function build(){
+  // trunk
+  branch(960,1080,-Math.PI/2,150,26,4,"#8a6b3d",null);
+  // 10 limbs from upper trunk
+  LIMBS.forEach((L,i)=>{
+    const bx=960+L[1]* (20+i*4), by=1080-150-(i%3)*40;
+    branch(bx,by,-Math.PI/2+L[1]*L[2],120+R()*30,13,7,L[3],L[0]);
+  });
+})();
+function draw(p){
+  ctx.clearRect(0,0,1920,1080);
+  // glow backdrop
+  const g=ctx.createRadialGradient(960,700,50,960,700,700);
+  g.addColorStop(0,"rgba(0,229,255,.10)");g.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,1920,1080);
+  const reveal=Math.min(1,p/GROW);
+  ctx.lineCap="round";
+  for(const s of segs){
+    const local=Math.max(0,Math.min(1,(reveal*1.15)-(s.depth<0?.02:(8-s.depth)*.015)));
+    if(local<=0)continue;
+    const x1=s.x0+(s.x1-s.x0)*local,y1=s.y0+(s.y1-s.y0)*local;
+    if(s.leaf){ctx.fillStyle=s.hue+"55";ctx.beginPath();ctx.arc(x1,y1,3.2,0,7);ctx.fill();continue;}
+    ctx.strokeStyle=s.hue;ctx.globalAlpha=s.depth<=0?.85:.95;ctx.lineWidth=Math.max(1,s.w*local);
+    ctx.shadowColor=s.hue;ctx.shadowBlur=s.depth>4?14:6;
+    ctx.beginPath();ctx.moveTo(s.x0,s.y0);ctx.lineTo(x1,y1);ctx.stroke();
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+  }
+  // trunk-root label
+  ctx.font="700 26px 'JetBrains Mono',monospace";ctx.textAlign="center";
+  ctx.fillStyle="#ffd479";ctx.fillText("azazael-core  (stdlib + numpy)",960,1052);
+  // limb labels fade in during LABEL phase
+  if(p>GROW){
+    const q=Math.min(1,(p-GROW)/LABEL);
+    ctx.globalAlpha=q;
+    ctx.font="700 24px 'JetBrains Mono',monospace";
+    // endpoints = stored label segment tips
+    for(const s of segs){
+      if(!s.label)continue;
+      // march down the limb: draw label near its tip (tip of first segment chain approx = segment end extended)
+      ctx.fillStyle=s.hue;
+      ctx.fillText(s.label,s.x1,s.y1-14);
+    }
+    ctx.globalAlpha=1;
+  }
+  // falling META leaves during hold
+  if(p>GROW+2000){
+    const t=(p-GROW-2000)/1000;
+    ctx.font="20px 'JetBrains Mono',monospace";ctx.fillStyle="#6b7694";
+    for(let i=0;i<14;i++){
+      const fx=(R()*0+ (i*137)%1920), fy=(t*60+i*90)%1080;
+      ctx.globalAlpha=.7;ctx.fillText("🍂",fx,fy);
+    }
+    ctx.globalAlpha=1;
+  }
+  // captions
+  if(p<9000)cap.innerHTML="growing the trunk… <b>azazael-core</b>";
+  else if(p<GROW)cap.innerHTML="cleaving branches — <b>each leaves with a shim, the trunk loses nothing</b>";
+  else if(p<GROW+LABEL)cap.innerHTML="10 functional trees + <b>1 free META prune</b> 🍂";
+  else cap.innerHTML="YGGDRASIL CLEAVE • <b>10 trees • 0 loss • one producer at a time</b>";
+}
+function frame(){
+  const p=performance.now()-T0;
+  draw(p);
+  if(p>=TOTAL){window.__done=true;return;}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
