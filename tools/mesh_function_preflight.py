@@ -992,9 +992,22 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
             old_status = str(entry.get("status") or "pending")
             # A carried row has no PF16 finding on regenerate, which means it is
             # now referenced (a caller was added). `pending`/`dispatched` entries
-            # therefore become `wired`; only `retired` survives unchanged, since
-            # genuine death exits only via an explicit disposition.
-            entry["status"] = "wired" if old_status in ("pending", "dispatched") else old_status
+            # therefore become `wired` -- BUT only on a module-qualified link.
+            # The bare-token form of this rule baked a false wire twice:
+            # ContextConcatWorm.merge via an unrelated tools/ merge() (#472/
+            # #682/#719), and config:FeatureFlagCtrl.is_enabled via Selenium's
+            # WebElement.is_enabled() (2026-10-28, module-linked: no). An
+            # unlinked carry keeps its prior status with the evidence stating
+            # why; genuine death still exits only via an explicit `retired`
+            # disposition, never via disappearance.
+            module, _, qualname = key.partition(":")
+            stub = Func(module=module or key, qualname=qualname or key,
+                        lineno=0, end_lineno=0, complexity=0, params=0,
+                        is_async=False, source="", seg="")
+            linked = _module_qualified_hit(stub, refs_by_file,
+                                           imports_by_file)
+            if old_status in ("pending", "dispatched") and linked:
+                entry["status"] = "wired"
             entry["carried"] = True
             entry["carry_evidence"] = _carry_evidence(key, entry,
                                                      refs_by_file,
