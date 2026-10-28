@@ -4,7 +4,9 @@ WRITERSHIP (MS1 2026-10-28): FIELD-UPDATE WRITER of scripts/bcc_gap_index.json.
 May only touch per-gap fields: new_sources, new_evidence, last_updated,
 investigation_metadata. Never add/remove gap keys (structure belongs to
 scripts/build_gap_index.py) and never write *.enriched.json (belongs to
-scripts/gap_metadata.py).
+scripts/gap_metadata.py). Coexists with scripts/update_ddap_selenium_status.py,
+the blessed writer for the selenium trio only (selenium_status/selenium_checked/
+last_selenium_check); no other writers.
 """
 
 import json

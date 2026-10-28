@@ -597,15 +597,15 @@ class SB3Agent(FreeThreadedAgent):
             self.device = device or "cpu"
 
         # SB3 model (lazy init)
-        self._model: (_SB3ModelT | None) = None
-        self._env: (_GymModuleT.Env | None) = None
+        self._model: '(_SB3ModelT | None)' = None
+        self._env: '(_GymModuleT.Env | None)' = None
         self._model_lock = threading.Lock()
 
         # DataPipelineWorm (lazy)
-        self._pipeline: (_DataPipelineT | None) = None
+        self._pipeline: '(_DataPipelineT | None)' = None
 
         # ModelVersioner (lazy)
-        self._versioner: (_ModelVersionT | None) = None
+        self._versioner: '(_ModelVersionT | None)' = None
 
         # Training metadata
         self._training_history: list[dict] = []
@@ -1113,7 +1113,7 @@ class SB3Agent(FreeThreadedAgent):
 
     # -- Lazy helpers --------------------------------------------------------
 
-    def _get_pipeline(self) -> (_DataPipelineT | None):
+    def _get_pipeline(self) -> '(_DataPipelineT | None)':
         """Lazy DataPipelineWorm for memory access."""
         if (self._pipeline is None and HAS_PIPELINE
                 and DataPipelineWorm is not None):
@@ -1124,7 +1124,7 @@ class SB3Agent(FreeThreadedAgent):
                 self._pipeline = False  # pyright: ignore[reportAttributeAccessIssue]  Sentinel: attempted-and-failed, no retry
         return self._pipeline if self._pipeline else None
 
-    def _get_versioner(self) -> (_ModelVersionT | None):
+    def _get_versioner(self) -> '(_ModelVersionT | None)':
         """Lazy ModelVersioner for version tracking."""
         if (self._versioner is None and HAS_VERSIONER
                 and ModelVersioner is not None):

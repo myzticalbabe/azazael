@@ -1258,7 +1258,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application (apps.ddap.pa.gov) returns 503 Service Unavailable. PA.gov pages are informational only. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "51": {
     "basis": "523 vs 350 authorized, no 90-day notice (709.14(b)(5)). No new public source.",
@@ -1288,7 +1291,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "52": {
     "basis": "Mar 2023 statutory revocation ground cited; no revocation action found. Unchanged.",
@@ -1318,7 +1324,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "53": {
     "basis": "Allegations unsubstantiated but facility out of compliance (709.31(b)); subject matter requires DDAP records.",
@@ -1348,7 +1357,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "54": {
     "basis": "Post-2017 re-verification of the no-supervising-physician practice requires CCBH/DDAP records. Unchanged.",
@@ -1378,7 +1390,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "55": {
     "basis": "Needs peer-facility survey sets; free and decidable using the now-real bcc-ddap-portal-enumeration skill. Unchanged since Aug 3.",
@@ -1488,7 +1503,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "59": {
     "basis": "USASpending re-confirmed live federal total and award dates; the SAMHSA-specific verification file requires the SAMHSA FOIA channel (draft UNSENT). Not re-probed this sweep.",
@@ -1601,7 +1619,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "62": {
     "basis": "Not obtained. Unchanged.",
@@ -1631,7 +1652,10 @@
         "fwa",
         "geospatial"
       ]
-    }
+    },
+    "selenium_status": "DDAP provider directory search application unavailable. RTKL request generated.",
+    "selenium_checked": true,
+    "last_selenium_check": "2026-10-28T12:50:00"
   },
   "7": {
     "basis": "Session 11 (GSK, inferred). Sep 4: DOS 658342 lists Ralph as current Governor.",
