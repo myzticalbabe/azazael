@@ -96,9 +96,11 @@ class PwshRunner:
         return True
 
     def _no_toolchain(self) -> PwshResult:
+        # Lowercase "not found" phrasing matches the node/go/bash/rust
+        # family: run_shard's skip contract keys on that substring.
         return PwshResult(
             success=False,
-            stderr="No PowerShell found. Install PowerShell 7.",
+            stderr="pwsh not found. Install PowerShell 7.",
             errors=[{"type": "toolchain", "message": "pwsh missing"}],
         )
 
