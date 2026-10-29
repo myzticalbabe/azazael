@@ -193,7 +193,10 @@ def _measured_order() -> list:
     """Languages sorted by measured WORK median ms (ascending).
 
     Falls back to LANG_ORDER with a ledger note when the sweep is stale
-    or missing — stale numbers must not silently drive routing (P1)."""
+    or missing — stale numbers must not silently drive routing (P1).
+    Owner decision 2026-10-29: warn AND degrade. A stale table is
+    evidence about the past, not a measurement of the present; routing
+    spends canonical preference until a fresh --sweep re-earns it."""
     try:
         data = json.loads(
             Path(__file__).with_name("sweep.json").read_text(encoding="utf-8"))
@@ -203,6 +206,7 @@ def _measured_order() -> list:
     freshness = sweep_freshness()
     if not freshness["fresh"]:
         note_failure("shards:stale-sweep", None)
+        return list(LANG_ORDER)
     ranked = sorted(medians, key=lambda lang: (medians[lang], lang))
     ordered = [lang for lang in ranked if lang in LANG_ORDER]
     ordered += [lang for lang in LANG_ORDER if lang not in ordered]
