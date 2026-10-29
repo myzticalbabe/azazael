@@ -30,6 +30,7 @@ import subprocess
 
 from INTERPRETERS.node_runner import NodeRunner
 from INTERPRETERS.pwsh_runner import PwshRunner
+from INTERPRETERS.sh_runner import ShRunner
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -174,13 +175,28 @@ def run_shell_untrusted(command: str) -> RunResult:
         )
 
 
-def run_bash(command: str) -> RunResult:
-    """Deprecated alias for run_shell_untrusted (P2 rename shim).
+def run_bash(code: str, args: list[str] | None = None) -> RunResult:
+    """Run bash via ShRunner (E3: the real bash binary, argv lists).
 
-    Kept for backward compatibility; new code must call
-    run_shell_untrusted. Emits no warning at runtime to keep the
-    dispatcher quiet, but the name documents the risk."""
-    return run_shell_untrusted(command)
+    Previously this name was a shell=True alias (which on Windows is
+    cmd.exe, not bash) and the dispatcher silently dropped args. Now
+    bash means bash: ShRunner finds the bash binary, runs the script
+    file, and forwards args as literal argv. For an explicit host-shell
+    string (pipes, redirection, cmd.exe-isms), call
+    run_shell_untrusted instead.
+
+    D6 contract: args are literal strings, NO shell evaluation."""
+    runner = ShRunner()
+    result = runner.run_code(code, args or [])
+    return RunResult(
+        language="bash",
+        success=result.success,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        returncode=result.returncode,
+        duration_ms=result.duration_ms,
+        stderr_bytes=getattr(result, "stderr_bytes", ""),
+    )
 
 
 def run_javascript(code: str, args: list[str] | None = None) -> RunResult:
@@ -222,9 +238,9 @@ LANGUAGE_RUNNERS: dict[str, Callable[..., RunResult]] = {
     "rs": run_rust,
     "go": run_go,
     "golang": run_go,
-    "bash": run_shell_untrusted,
-    "sh": run_shell_untrusted,
-    "shell": run_shell_untrusted,
+    "bash": run_bash,
+    "sh": run_bash,
+    "shell": run_bash,
     "javascript": run_javascript,
     "js": run_javascript,
     "node": run_javascript,
@@ -235,7 +251,11 @@ LANGUAGE_RUNNERS: dict[str, Callable[..., RunResult]] = {
 
 
 def run_code(language: str, code: str, args: list[str] | None = None) -> RunResult:
-    """Dispatch code execution to the appropriate language runner."""
+    """Dispatch code execution to the appropriate language runner.
+
+    Every runner takes (code, args): args are literal argv strings with
+    NO shell evaluation (D6). The only shell=True path is an explicit
+    run_shell_untrusted call — never the dispatcher."""
     runner = LANGUAGE_RUNNERS.get(language.lower())
     if not runner:
         return RunResult(
@@ -245,9 +265,6 @@ def run_code(language: str, code: str, args: list[str] | None = None) -> RunResu
                     f"Supported: {sorted(set(LANGUAGE_RUNNERS.keys()))}",
             returncode=1,
         )
-
-    if language.lower() in ("bash", "sh", "shell"):
-        return runner(code)
     return runner(code, args)
 
 

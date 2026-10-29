@@ -7,9 +7,9 @@ Subprocess-based runner mirroring the GoRunner/RustRunner shape:
     - Syntax check via `bash -n` (parse, never execute)
     - Lint via shellcheck when installed (clean skip otherwise)
 
-argv lists throughout -- never shell=True. The legacy run_bash() helper in
-__init__.py is the one designated shell=True path; this module is the
-structured replacement for file/code execution.
+argv lists throughout -- never shell=True. The run_shell_untrusted()
+helper in __init__.py is the designated host-shell path; this module is
+the structured replacement for file/code execution.
 """
 
 import hashlib
@@ -55,7 +55,7 @@ class ShResult:
     returncode: int = 0
     duration_ms: float = 0.0
     errors: List[dict] = field(default_factory=list)
-    stderr_raw_hex: str = ""  # D7: raw bytes (hex, truncated) on failure
+    stderr_bytes: str = ""  # D7: raw stderr (latin-1) for forensics
 
 
 class ShRunner:
@@ -101,10 +101,10 @@ class ShRunner:
             stdout = result.stdout.decode("utf-8", errors="replace") if isinstance(result.stdout, (bytes, bytearray)) else (result.stdout or "")
             stderr = result.stderr.decode("utf-8", errors="replace") if isinstance(result.stderr, (bytes, bytearray)) else (result.stderr or "")
             errors: List[dict] = []
-            raw_hex = ""
+            raw = ""
             if result.returncode != 0:
                 if isinstance(result.stderr, (bytes, bytearray)) and result.stderr:
-                    raw_hex = bytes(result.stderr[:512]).hex()
+                    raw = bytes(result.stderr[:4000]).decode("latin-1")
                 if stderr.strip():
                     errors = [{"level": "error", "message": stderr.strip().split("\n")[0]}]
             return ShResult(
@@ -114,7 +114,7 @@ class ShRunner:
                 returncode=result.returncode,
                 duration_ms=(time.time() - start) * 1000,
                 errors=errors,
-                stderr_raw_hex=raw_hex,
+                stderr_bytes=raw,
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("sh_runner:timeout", exc)
