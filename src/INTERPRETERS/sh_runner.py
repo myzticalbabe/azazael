@@ -55,6 +55,7 @@ class ShResult:
     returncode: int = 0
     duration_ms: float = 0.0
     errors: List[dict] = field(default_factory=list)
+    stderr_raw_hex: str = ""  # D7: raw bytes (hex, truncated) on failure
 
 
 class ShRunner:
@@ -90,22 +91,30 @@ class ShRunner:
         )
 
     def _run(self, cmd: List[str], cwd: str, timeout: int) -> ShResult:
+        # D7: capture raw bytes; display decodes with replace, but on
+        # failure the raw hex is kept in stderr_raw_hex for forensics.
         try:
             start = time.time()
             result = subprocess.run(
-                cmd, cwd=cwd, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=timeout,
+                cmd, cwd=cwd, capture_output=True, timeout=timeout,
             )
+            stdout = result.stdout.decode("utf-8", errors="replace") if isinstance(result.stdout, (bytes, bytearray)) else (result.stdout or "")
+            stderr = result.stderr.decode("utf-8", errors="replace") if isinstance(result.stderr, (bytes, bytearray)) else (result.stderr or "")
             errors: List[dict] = []
-            if result.returncode != 0 and result.stderr.strip():
-                errors = [{"level": "error", "message": result.stderr.strip().split("\n")[0]}]
+            raw_hex = ""
+            if result.returncode != 0:
+                if isinstance(result.stderr, (bytes, bytearray)) and result.stderr:
+                    raw_hex = bytes(result.stderr[:512]).hex()
+                if stderr.strip():
+                    errors = [{"level": "error", "message": stderr.strip().split("\n")[0]}]
             return ShResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=(time.time() - start) * 1000,
                 errors=errors,
+                stderr_raw_hex=raw_hex,
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("sh_runner:timeout", exc)
@@ -136,7 +145,9 @@ class ShRunner:
                          cwd=str(source.parent), timeout=60)
 
     def run_code(self, code: str, args: Optional[List[str]] = None) -> ShResult:
-        """Run an inline script (written to a hashed temp file)."""
+        """Run an inline script (written to a hashed temp file).
+
+        D6 contract: args are literal argv strings, NO shell evaluation."""
         if not self.has_bash:
             return self._no_toolchain()
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]

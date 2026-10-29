@@ -51,10 +51,14 @@ class RunResult:
     returncode: int = 0
     duration_ms: float = 0.0
     binary_path: str = ""
+    stderr_bytes: str = ""  # D7: raw stderr (latin-1) for forensics
 
 
 def run_python(code: str, args: list[str] | None = None) -> RunResult:
-    """Run Python code via exec."""
+    """Run Python code via exec.
+
+    D6 contract: args are literal strings exposed as sys.argv[1:] with NO
+    shell evaluation; args containing spaces/quotes arrive intact."""
     import time
     from contextlib import redirect_stdout, redirect_stderr
 
@@ -64,7 +68,12 @@ def run_python(code: str, args: list[str] | None = None) -> RunResult:
 
     try:
         with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-            exec(code, {"__name__": "__main__"})
+            _old_argv = sys.argv
+            sys.argv = ["<inline>"] + list(args or [])
+            try:
+                exec(code, {"__name__": "__main__"})
+            finally:
+                sys.argv = _old_argv
         success = True
         returncode = 0
     except Exception as e:
@@ -84,7 +93,10 @@ def run_python(code: str, args: list[str] | None = None) -> RunResult:
 
 
 def run_rust(code: str, args: list[str] | None = None) -> RunResult:
-    """Run Rust code via rust_runner."""
+    """Run Rust code via rust_runner.
+
+    D6 contract: args are literal strings forwarded as process argv with
+    NO shell evaluation; args containing spaces/quotes arrive intact."""
     from INTERPRETERS.rust_runner import RustRunner
 
     runner = RustRunner()
@@ -97,11 +109,15 @@ def run_rust(code: str, args: list[str] | None = None) -> RunResult:
         returncode=result.returncode,
         duration_ms=result.duration_ms,
         binary_path=result.binary_path or "",
+        stderr_bytes=getattr(result, "stderr_bytes", ""),
     )
 
 
 def run_go(code: str, args: list[str] | None = None) -> RunResult:
-    """Run Go code via go_runner."""
+    """Run Go code via go_runner.
+
+    D6 contract: args are literal strings forwarded as process argv with
+    NO shell evaluation; args containing spaces/quotes arrive intact."""
     from INTERPRETERS.go_runner import GoRunner
 
     runner = GoRunner()
@@ -114,32 +130,39 @@ def run_go(code: str, args: list[str] | None = None) -> RunResult:
         returncode=result.returncode,
         duration_ms=result.duration_ms,
         binary_path=result.binary_path or "",
+        stderr_bytes=getattr(result, "stderr_bytes", ""),
     )
 
 
-def run_bash(command: str) -> RunResult:
-    """Run a bash command.
+def run_shell_untrusted(command: str) -> RunResult:
+    """Run a bash command string (P2: explicit untrusted-shell name).
 
     NOTE: shell=True is INTENTIONAL here — this is a bash command runner.
     The `command` parameter is user-supplied and is meant to be arbitrary shell.
     This function is the designated shell execution path for the interpreter.
     Do NOT pass untrusted input through this function without sanitization.
+    D6 contract: argv-based runners (ShRunner/run_code) take literal string
+    args with NO shell evaluation; this function is the ONLY shell=True path.
     """
     import time
 
     start = time.time()
     try:
+        # D7: bytes capture; display via replace, evidence via stderr_bytes.
         result = subprocess.run(
-            command, shell=True,  # scanner:ignore -- run_bash IS the designated shell path; input is user shell by contract
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
+            command, shell=True,  # scanner:ignore -- run_shell_untrusted IS the designated shell path; input is user shell by contract
+            capture_output=True, timeout=30
         )
+        stdout = result.stdout.decode("utf-8", errors="replace")
+        stderr = result.stderr.decode("utf-8", errors="replace")
         return RunResult(
             language="bash",
             success=result.returncode == 0,
-            stdout=result.stdout,
-            stderr=result.stderr,
+            stdout=stdout,
+            stderr=stderr,
             returncode=result.returncode,
             duration_ms=(time.time() - start) * 1000,
+            stderr_bytes=result.stderr[:4000].decode("latin-1"),
         )
     except Exception as e:
         note_failure("__init__:L128", e)
@@ -149,6 +172,15 @@ def run_bash(command: str) -> RunResult:
             stderr=str(e),
             returncode=1,
         )
+
+
+def run_bash(command: str) -> RunResult:
+    """Deprecated alias for run_shell_untrusted (P2 rename shim).
+
+    Kept for backward compatibility; new code must call
+    run_shell_untrusted. Emits no warning at runtime to keep the
+    dispatcher quiet, but the name documents the risk."""
+    return run_shell_untrusted(command)
 
 
 def run_javascript(code: str, args: list[str] | None = None) -> RunResult:
@@ -162,6 +194,7 @@ def run_javascript(code: str, args: list[str] | None = None) -> RunResult:
         stderr=result.stderr,
         returncode=result.returncode,
         duration_ms=result.duration_ms,
+        stderr_bytes=getattr(result, "stderr_bytes", ""),
     )
 
 
@@ -176,6 +209,7 @@ def run_powershell(code: str, args: list[str] | None = None) -> RunResult:
         stderr=result.stderr,
         returncode=result.returncode,
         duration_ms=result.duration_ms,
+        stderr_bytes=getattr(result, "stderr_bytes", ""),
     )
 
 
@@ -188,9 +222,9 @@ LANGUAGE_RUNNERS: dict[str, Callable[..., RunResult]] = {
     "rs": run_rust,
     "go": run_go,
     "golang": run_go,
-    "bash": run_bash,
-    "sh": run_bash,
-    "shell": run_bash,
+    "bash": run_shell_untrusted,
+    "sh": run_shell_untrusted,
+    "shell": run_shell_untrusted,
     "javascript": run_javascript,
     "js": run_javascript,
     "node": run_javascript,

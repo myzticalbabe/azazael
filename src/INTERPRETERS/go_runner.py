@@ -66,6 +66,7 @@ class GoResult:
     duration_ms: float = 0.0
     binary_path: (str | None) = None
     errors: list[dict] = field(default_factory=list)
+    stderr_bytes: str = ""  # D7: raw stderr (latin-1) for forensics
 
 
 class GoRunner:
@@ -125,23 +126,26 @@ class GoRunner:
 
         try:
             start = time.time()
+            # D7: bytes capture; display via replace, evidence via stderr_bytes.
             result = subprocess.run(
                 cmd,
                 cwd=str(module_root or source.parent),
                 env=self._go_env(),
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace",
                 timeout=60,
             )
             duration = (time.time() - start) * 1000
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
 
             return GoResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=duration,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("go_runner:L122", exc)
@@ -158,11 +162,21 @@ class GoRunner:
             )
 
     def run_code(self, code: str, args: Optional[list[str]] = None) -> GoResult:
-        """Run Go source code from a string (writes to temp file)."""
+        """Run Go source code from a string (honest timing, P1-item-1).
+
+        `go run` compiles then executes in one process: the reported
+        duration covers both, matching RustRunner.run_code's compile+run
+        sum. Comparable numbers or no comparison."""
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
         source_path = GO_BUILD_DIR / f"azazael_{code_hash}.go"
+        t_write = time.time()
         source_path.write_text(code, encoding="utf-8")
-        return self.run_file(str(source_path), args)
+        write_ms = (time.time() - t_write) * 1000
+        result = self.run_file(str(source_path), args)
+        # run_file already includes compile+run; add only the write cost
+        # so cold-recompute totals stay honest across languages.
+        result.duration_ms += write_ms
+        return result
 
     def build_binary(self, file_path: str, output_name: str = "",
                      release: bool = False) -> GoResult:
@@ -192,20 +206,22 @@ class GoRunner:
                 cwd=str(module_root or source.parent),
                 env=self._go_env(),
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace",
                 timeout=120,
             )
             duration = (time.time() - start) * 1000
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
 
             binary_path = str(output) if result.returncode == 0 and output.exists() else None
             return GoResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=duration,
                 binary_path=binary_path,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except Exception as e:
             note_failure("go_runner:L184", e)

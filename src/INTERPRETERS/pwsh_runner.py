@@ -66,6 +66,7 @@ class PwshResult:
     returncode: int = 0
     duration_ms: float = 0.0
     errors: List[dict] = field(default_factory=list)
+    stderr_bytes: str = ""  # D7: raw stderr (latin-1) for forensics
 
 
 class PwshRunner:
@@ -112,19 +113,23 @@ class PwshRunner:
         return errors
 
     def _run(self, cmd: List[str], cwd: str, timeout: int) -> PwshResult:
+        # D7: capture bytes, decode manually — display via replace,
+        # evidence via stderr_bytes (latin-1 round-trips every byte).
         try:
             start = time.time()
             result = subprocess.run(
-                cmd, cwd=cwd, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=timeout,
+                cmd, cwd=cwd, capture_output=True, timeout=timeout,
             )
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
             return PwshResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=(time.time() - start) * 1000,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("pwsh_runner:timeout", exc)
@@ -144,7 +149,12 @@ class PwshRunner:
         return [self.pwsh_bin, "-NoProfile", "-NonInteractive"] + extra
 
     def run_file(self, file_path: str, args: Optional[List[str]] = None) -> PwshResult:
-        """Run a .ps1 file."""
+        """Run a .ps1 file.
+
+        D6 contract: args are literal strings passed to `pwsh -File` with NO
+        shell evaluation. PowerShell `-File` arg passing has legacy quoting
+        quirks (quotes stripped, `$` untouched, unlike `-Command`); callers
+        must not pre-quote — pass the raw string and let argv carry it."""
         if not self.has_pwsh:
             return self._no_toolchain()
         source = Path(file_path)
@@ -177,17 +187,25 @@ class PwshRunner:
         return self._run(self._base(["-Command", _PARSER_CHECK, str(source)]),
                          cwd=str(source.parent), timeout=30)
 
+    _module_cache: dict = {}  # P2: process-level probe cache (pwsh spawn ~200ms)
+
     def _module_present(self, name: str) -> bool:
-        """True when a PowerShell module is importable (fast probe)."""
+        """True when a PowerShell module is importable (fast probe).
+
+        P2: result cached per process — lint+test previously shelled out
+        twice (probe + run); repeated calls now pay one spawn per module."""
         if not self.has_pwsh:
             return False
+        if name in PwshRunner._module_cache:
+            return PwshRunner._module_cache[name]
         try:
             probe = subprocess.run(
                 self._base(["-Command", f"if(Get-Module -ListAvailable -Name {name}){{'YES'}}"]),
-                capture_output=True, text=True, encoding="utf-8",
-                errors="replace", timeout=30,
+                capture_output=True, timeout=30,
             )
-            return "YES" in probe.stdout
+            present = b"YES" in (probe.stdout or b"")
+            PwshRunner._module_cache[name] = present
+            return present
         except Exception as e:
             note_failure("pwsh_runner:module-probe", e)
             return False
