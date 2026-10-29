@@ -19,11 +19,7 @@ from INTERPRETERS.pwsh_runner import PwshRunner
 from INTERPRETERS.rust_runner import RustRunner
 from INTERPRETERS.sh_runner import ShRunner
 
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
+from CORE.failure_ledger import note_failure
 
 
 def _probe_toolchain_versions() -> dict:

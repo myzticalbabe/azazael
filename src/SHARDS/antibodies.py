@@ -24,29 +24,14 @@ import os
 import socket
 import subprocess
 import sys
-import tempfile
 import uuid
-from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-try:
-    import fcntl  # POSIX file locking (absent on Windows)
-except ImportError:
-    fcntl = None  # type: ignore[assignment]
-try:
-    import msvcrt  # Windows file locking (absent on POSIX)
-except ImportError:
-    msvcrt = None  # type: ignore[assignment]
-
+from CORE.atomic_store import atomic_write_json, file_lock
+from CORE.failure_ledger import note_failure
 from SHARDS.polyglot import EXPECTED_SUM, run_shard, supported_shard_langs
 from SHARDS import registry as _registry
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
 _STORE_PATH = Path(__file__).with_name("antibodies.json")
@@ -92,62 +77,14 @@ def _load_store() -> dict:
 
 
 def _save_store(store: dict) -> None:
-    """Atomic write: temp file in same dir + os.replace (D1 pattern)."""
+    """Atomic write via CORE.atomic_store (D1) — single implementation."""
     store["updated_at"] = datetime.now(timezone.utc).isoformat()
-    payload = (json.dumps(store, indent=1) + "\n").encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(_STORE_PATH.parent),
-                                prefix=".antibodies.", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(payload)
-            fh.flush()
-            try:
-                os.fsync(fh.fileno())
-            except OSError as e:
-                note_failure("antibodies:fsync", e)
-        os.replace(tmp, _STORE_PATH)
-    except BaseException:
-        try:
-            os.unlink(tmp)
-        except OSError as e:
-            note_failure("antibodies:tmp-cleanup", e)
-        raise
+    atomic_write_json(_STORE_PATH, store, "antibodies")
 
 
-@contextmanager
 def _store_lock():
-    """Exclusive lock for read-modify-write (D2 pattern, guarded imports)."""
-    lock_path = _STORE_PATH.with_suffix(".lock")
-    fh = open(str(lock_path), "ab")  # noqa: PTH123 -- lock handle, binary
-    try:
-        if fcntl is not None:
-            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
-            fh._lock_kind = "flock"
-        elif msvcrt is not None:
-            try:
-                fh.seek(0)
-                msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
-                fh._lock_kind = "msvcrt"
-            except OSError as e:
-                note_failure("antibodies:msvcrt-lock", e)
-                fh._lock_kind = "none"
-        else:
-            note_failure("antibodies:no-lock-primitive", None)
-            fh._lock_kind = "none"
-        yield lock_path
-    finally:
-        try:
-            kind = getattr(fh, "_lock_kind", "none")
-            if kind == "flock" and fcntl is not None:
-                fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
-            elif kind == "msvcrt" and msvcrt is not None:
-                fh.seek(0)
-                try:
-                    msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
-                except OSError as e:
-                    note_failure("antibodies:unlock", e)
-        finally:
-            fh.close()
+    """Exclusive lock for read-modify-write (D2) — via CORE.atomic_store."""
+    return file_lock(_STORE_PATH.with_suffix(".lock"), "antibodies")
 
 
 def _probe_work_tier() -> dict:
