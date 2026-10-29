@@ -6,7 +6,7 @@ Unified dispatcher for multi-language code execution.
 Built to mirror the openmono-rebuild pattern: each language gets a dedicated
 runner class with compile, run, test, and lint capabilities.
 
-Supported: Python, Rust (1.95+), Go (1.26+), Bash, JavaScript (Node).
+Supported: Python, Rust, Go, Bash, JavaScript (Node), PowerShell (pwsh).
 
 Usage:
     from INTERPRETERS import run_code
@@ -27,6 +27,9 @@ from dataclasses import dataclass
 from typing import Callable, List
 import io
 import subprocess
+
+from INTERPRETERS.node_runner import NodeRunner
+from INTERPRETERS.pwsh_runner import PwshRunner
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -148,43 +151,32 @@ def run_bash(command: str) -> RunResult:
         )
 
 
-def run_javascript(code: str) -> RunResult:
-    """Run JavaScript code via Node.js."""
-    import tempfile
-    import time
+def run_javascript(code: str, args: list[str] | None = None) -> RunResult:
+    """Run JavaScript code via NodeRunner (toolchain-checked)."""
+    runner = NodeRunner()
+    result = runner.run_code(code, args or [])
+    return RunResult(
+        language="javascript",
+        success=result.success,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        returncode=result.returncode,
+        duration_ms=result.duration_ms,
+    )
 
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".js", delete=False
-    ) as f:
-        f.write(code)
-        temp_path = f.name
 
-    start = time.time()
-    try:
-        result = subprocess.run(
-            ["node", temp_path], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
-        )
-        return RunResult(
-            language="javascript",
-            success=result.returncode == 0,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            returncode=result.returncode,
-            duration_ms=(time.time() - start) * 1000,
-        )
-    except Exception as e:
-        note_failure("__init__:L162", e)
-        return RunResult(
-            language="javascript",
-            success=False,
-            stderr=str(e),
-            returncode=1,
-        )
-    finally:
-        try:
-            os.unlink(temp_path)
-        except OSError as exc:
-            note_failure("__init__:L172", exc)
+def run_powershell(code: str, args: list[str] | None = None) -> RunResult:
+    """Run PowerShell code via PwshRunner."""
+    runner = PwshRunner()
+    result = runner.run_code(code, args or [])
+    return RunResult(
+        language="powershell",
+        success=result.success,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        returncode=result.returncode,
+        duration_ms=result.duration_ms,
+    )
 
 
 # --- Unified Dispatcher -----------------------------------------------------
@@ -202,6 +194,9 @@ LANGUAGE_RUNNERS: dict[str, Callable[..., RunResult]] = {
     "javascript": run_javascript,
     "js": run_javascript,
     "node": run_javascript,
+    "powershell": run_powershell,
+    "ps1": run_powershell,
+    "pwsh": run_powershell,
 }
 
 
