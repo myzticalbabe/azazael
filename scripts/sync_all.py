@@ -142,8 +142,26 @@ SYNC_SKILL_PATTERNS = [
     "skills/*.md",
 ]
 
+def _detect_wsl() -> bool:
+    """True only inside real WSL: non-Windows kernel carrying the Microsoft marker.
+
+    The old check (Path("/root/azazael").exists()) misfired on Windows hosts
+    that happen to have a C:\\root\\azazael directory, silently disabling the
+    Windows->WSL2 leg. Platform gate first, marker second."""
+    if sys.platform == "win32":
+        return False
+    marker = Path("/proc/version")
+    if not marker.is_file():
+        return False
+    try:
+        text = marker.read_text(encoding="utf-8", errors="replace").lower()
+    except OSError:
+        text = ""
+    return "microsoft" in text
+
+
 # WSL environment detection
-IS_WSL = Path("/root/azazael").exists()
+IS_WSL = _detect_wsl()
 
 
 def _resolve_path(p: Path, env_type: str) -> Path:
@@ -298,6 +316,8 @@ def sync_wsl_to_windows(dry_run: bool = False) -> Dict[str, Any]:
     Destination: Windows files via /mnt/c/Azazael/azazael/...
     Runs from WSL2 directly — no wsl.exe needed.
     """
+    if not IS_WSL:
+        return {"synced": [], "errors": ["sync_wsl_to_windows runs inside WSL2 only — a WSL-style absolute path on Windows resolves under the current drive, refusing"], "count": 0, "target": "windows"}
     wsl_root = Path("/root/azazael")
     windows_root = Path("/mnt/c/Azazael/azazael")
     
@@ -350,6 +370,8 @@ def sync_wsl_to_g(dry_run: bool = False) -> Dict[str, Any]:
     
     Runs from WSL2 directly — copies to /mnt/g/ paths.
     """
+    if not IS_WSL:
+        return {"synced": [], "errors": ["sync_wsl_to_g runs inside WSL2 only — refusing (a WSL-style absolute path on Windows resolves under the current drive, never the source)"], "count": 0, "target": "g"}
     wsl_root = Path("/root/azazael")
     g_targets = [
         Path("/mnt/g/source-of-truth/azazael"),
@@ -391,64 +413,143 @@ def sync_wsl_to_g(dry_run: bool = False) -> Dict[str, Any]:
     return {"synced": total_synced, "errors": total_errors, "count": len(total_synced), "target": "g"}
 
 
-def sync_wsl_to_kali(dry_run: bool = False) -> Dict[str, Any]:
-    """Sync WSL2 Ubuntu -> Kali WSL2 via E: drive bridge.
-    
-    Strategy (batched for performance):
-    1. Copy all files from /root/azazael to /mnt/e/kali_sync_temp/ (Windows filesystem bridge)
-    2. Run single wsl.exe command to rsync the bridge into Kali's /root/azazael/
-    3. Clean up bridge temp files
-    """
-    wsl_root = Path("/root/azazael")
-    e_bridge = Path("/mnt/e/kali_sync_temp")
-    kali_root = "/root/azazael"
-    
-    if not wsl_root.exists():
-        return {"synced": [], "errors": ["WSL root /root/azazael not found"], "count": 0, "target": "kali"}
-    
+def _glob_sync_set(root: Path) -> Tuple[list, list]:
+    """Glob every sync pattern under `root`; return (rel_paths, errors)."""
     all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
-    
-    # Stage 1: Batch copy all files to E: bridge
-    staged = []
-    errors = []
+    rels: list = []
+    errors: list = []
     for pattern in all_patterns:
-        for src_file in sorted(wsl_root.glob(pattern)):
-            rel_path = src_file.relative_to(wsl_root)
-            bridge_dest = e_bridge / rel_path
-            
-            if dry_run:
-                staged.append(rel_path)
-                continue
-            
+        try:
+            for src_file in sorted(root.glob(pattern)):
+                try:
+                    rels.append(src_file.relative_to(root).as_posix())
+                except ValueError as e:
+                    errors.append(f"{src_file}: {e}")
+        except OSError as e:
+            errors.append(f"glob {pattern}: {e}")
+    # The list is embedded in a bash double-quoted loop: drop anything that
+    # could break out of quoting rather than passing it through.
+    safe = [r for r in rels if '"' not in r and "`" not in r and "$" not in r and "\n" not in r]
+    for r in rels:
+        if r not in safe:
+            errors.append(f"skipped unsafe path for kali pull: {r!r}")
+    return safe, errors
+
+
+def _kali_pull_from_mntc(src_tree_wsl: str, rels: list, dry_run: bool) -> Dict[str, Any]:
+    """Have Kali pull `rels` straight from its own /mnt/c view of the source tree.
+
+    No E: bridge, no staging dir, no host-side residue: one wsl.exe call,
+    Kali copies from /mnt/c/... (which it mounts natively) into /root/azazael.
+    Returns the sync result dict; the caller supplies the already-globbed list
+    so dry_run never shells out."""
+    kali_root = "/root/azazael"
+    errors: list = []
+    if dry_run:
+        return {"synced": list(rels), "errors": errors, "count": len(rels), "target": "kali"}
+    import tempfile
+    fd, list_path = tempfile.mkstemp(prefix="kali_sync_", suffix=".lst")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("\n".join(rels) + "\n")
+        list_wsl = wsl_path(Path(list_path))
+        # Single Kali-side loop: copy, report per-file FAILs, print OK count.
+        # Quoted heredoc-free one-liner; 2>/dev/null keeps quiet, FAIL lines carry the signal.
+        kali_cmd = (
+            f"ok=0; bad=0; "
+            f"while IFS= read -r f; do "
+            f"[ -z \"$f\" ] && continue; "
+            f"mkdir -p \"{kali_root}/$(dirname \"$f\")\" 2>/dev/null; "
+            f"if cp \"{src_tree_wsl}/$f\" \"{kali_root}/$f\" 2>/dev/null; then ok=$((ok+1)); "
+            f"else echo \"FAIL:$f\"; bad=$((bad+1)); fi; "
+            f"done < \"{list_wsl}\"; "
+            f"echo \"PULL_DONE ok=$ok bad=$bad\""
+        )
+        rc, stdout, stderr = run_wsl_kali(kali_cmd, timeout=300)
+    finally:
+        try:
+            os.unlink(list_path)
+        except OSError as e:
+            print(f"warning: kali sync list not removed: {list_path}: {e}", file=sys.stderr)
+    if rc != 0:
+        errors.append(f"kali pull failed rc={rc}: {stderr.strip()[:300]}")
+        return {"synced": [], "errors": errors, "count": 0, "target": "kali"}
+    fails = [ln[5:] for ln in stdout.splitlines() if ln.startswith("FAIL:")]
+    errors.extend(f"kali:{f}: copy failed" for f in fails)
+    done = [ln for ln in stdout.splitlines() if ln.startswith("PULL_DONE")]
+    ok_n = 0
+    if done:
+        try:
+            ok_n = int(done[-1].split("ok=")[1].split()[0])
+        except (IndexError, ValueError):
+            ok_n = 0
+    synced = [r for r in rels if r not in set(fails)]
+    if ok_n != len(synced):
+        errors.append(f"kali pull count mismatch: loop ok={ok_n} vs files={len(synced)}")
+    return {"synced": synced, "errors": errors, "count": len(synced), "target": "kali"}
+
+
+def sync_wsl_to_kali(dry_run: bool = False) -> Dict[str, Any]:
+    """Sync the pattern set into Kali's /root/azazael — from either runtime.
+
+    Windows runtime (the normal one): glob the Windows tree, hand Kali the
+    relative list, Kali pulls straight from its own /mnt/c mount. No E:
+    bridge — the bridge only exists inside real WSL, and resolving /mnt/e on
+    Windows wrote staging residue into C:\\mnt\\e while Kali saw nothing
+    (2026-10-29: "5 files synced" + missing bridge, source was the stale
+    C:\\root fragment).
+
+    WSL-Ubuntu runtime: same Kali-side pull, but the source tree is first
+    staged to the E: bridge (real mount there) because Kali cannot see
+    Ubuntu's /root. The bridge mount is verified with
+    _is_mounted_windows_drive before a byte is written.
+    """
+    all_count_note = None
+    if IS_WSL:
+        wsl_root = Path("/root/azazael")
+        if not wsl_root.exists():
+            return {"synced": [], "errors": ["WSL root /root/azazael not found"], "count": 0, "target": "kali"}
+        e_mnt = Path("/mnt/e")
+        if not _is_mounted_windows_drive(e_mnt):
+            return {"synced": [], "errors": ["/mnt/e is not a mounted Windows drive here — refusing to stage the Kali bridge into this distro's own filesystem"], "count": 0, "target": "kali"}
+        e_bridge = Path("/mnt/e/kali_sync_temp")
+        rels, errors = _glob_sync_set(wsl_root)
+        if dry_run:
+            return {"synced": rels, "errors": errors, "count": len(rels), "target": "kali"}
+        staged = []
+        for rel in rels:
+            src_file = wsl_root / rel
+            bridge_dest = e_bridge / rel
             bridge_dest.parent.mkdir(parents=True, exist_ok=True)
             try:
                 shutil.copy2(src_file, bridge_dest)
-                staged.append(rel_path)
+                staged.append(rel)
             except OSError as e:
-                errors.append(f"bridge:{rel_path}: {e}")
-    
+                errors.append(f"bridge:{rel}: {e}")
+        rc, _out, stderr = run_wsl_kali(
+            "mkdir -p /root/azazael && cp -r /mnt/e/kali_sync_temp/* /root/azazael/"
+        )
+        if rc != 0:
+            errors.append(f"kali batch copy failed: {stderr.strip()}")
+            errors.append("Files staged at /mnt/e/kali_sync_temp/ — run manually in Kali:")
+            errors.append("  cp -r /mnt/e/kali_sync_temp/* /root/azazael/")
+            return {"synced": staged, "errors": errors, "count": len(staged), "target": "kali"}
+        try:
+            shutil.rmtree(e_bridge, ignore_errors=True)
+        except OSError:
+            pass
+        return {"synced": staged, "errors": errors, "count": len(staged), "target": "kali"}
+    # Windows runtime: Kali pulls from its /mnt/c view of the Windows tree.
+    windows_root = ENVIRONMENTS["windows"]["root"]
+    if not windows_root.exists():
+        return {"synced": [], "errors": [f"Windows root {windows_root} not found"], "count": 0, "target": "kali"}
+    rels, errors = _glob_sync_set(windows_root)
     if dry_run:
-        return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
-    
-    # Stage 2: Single batch copy from E: bridge into Kali
-    rc, stdout, stderr = run_wsl_kali(
-        f"mkdir -p {kali_root} && cp -r /mnt/e/kali_sync_temp/* {kali_root}/"
-    )
-    
-    if rc != 0:
-        errors.append(f"kali batch copy failed: {stderr.strip()}")
-        errors.append("Files staged at /mnt/e/kali_sync_temp/ — run manually in Kali:")
-        errors.append(f"  cp -r /mnt/e/kali_sync_temp/* {kali_root}/")
-        # Don't clean up bridge on failure — user may need the files
-        return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
-    
-    # Stage 3: Clean up bridge temp files (only on success)
-    try:
-        shutil.rmtree(e_bridge, ignore_errors=True)
-    except OSError:
-        pass
-    
-    return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
+        return {"synced": rels, "errors": errors, "count": len(rels), "target": "kali"}
+    src_tree_wsl = wsl_path(windows_root)
+    r = _kali_pull_from_mntc(src_tree_wsl, rels, dry_run=False)
+    r["errors"] = errors + r["errors"]
+    return r
 
 
 def run_wsl_kali(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
@@ -684,8 +785,10 @@ def main():
                     print(f"  {k}: out of sync")
 
     if args.sync_to == "wsl2" or args.sync_all:
-        # Skip Windows→WSL direction when already on WSL
-        if Path("/root/azazael").exists():
+        # Skip Windows→WSL direction when already on WSL. Platform-gated:
+        # Path("/root/azazael").exists() misfires on Windows hosts carrying
+        # a C:\root\azazael fragment and silently skipped this whole leg.
+        if IS_WSL:
             print("Skipping Windows -> WSL2 (already on WSL)")
         else:
             print("Syncing Windows -> WSL2...")
@@ -726,7 +829,7 @@ def main():
             print(f"  {r['count']} files synced")
 
     if args.sync_to == "kali" or args.sync_all:
-        print("Syncing WSL2 -> Kali Linux via E: bridge...")
+        print("Syncing -> Kali Linux" + (" via E: bridge..." if IS_WSL else " (Kali pulls from /mnt/c)..."))
         r = sync_wsl_to_kali(dry_run=args.dry_run)
         print(f"  {r['count']} files synced")
         for e in r.get("errors", []):
