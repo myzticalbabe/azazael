@@ -201,8 +201,10 @@ class RustRunner:
         if not compile_result.success:
             return compile_result
 
-        # Run
-        return self._run_binary(binary_path, args)
+        # Run (cold recompute: caller pays compile + run, honestly summed)
+        run_result = self._run_binary(binary_path, args)
+        run_result.duration_ms += compile_result.duration_ms
+        return run_result
 
     def run_file(self, file_path: str, args: Optional[list[str]] = None) -> RustResult:
         """Compile and run a .rs file."""

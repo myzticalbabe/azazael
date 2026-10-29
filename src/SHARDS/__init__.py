@@ -15,7 +15,8 @@ Usage:
     self_test()  # cold recompute across every available toolchain
 """
 
-from SHARDS.registry import SHARDS
-from SHARDS.polyglot import run_shard, self_test, supported_shard_langs
+from SHARDS.registry import BUDGETS, SHARDS, route_lang, route_shard
+from SHARDS.polyglot import run_shard, self_test, supported_shard_langs, sweep
 
-__all__ = ["SHARDS", "run_shard", "self_test", "supported_shard_langs"]
+__all__ = ["SHARDS", "BUDGETS", "route_lang", "route_shard",
+           "run_shard", "self_test", "supported_shard_langs", "sweep"]
