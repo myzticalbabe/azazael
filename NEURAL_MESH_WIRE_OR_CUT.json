@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T10:18:09.666065",
+ "generated_at": "2026-10-29T00:22:53.201305",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
