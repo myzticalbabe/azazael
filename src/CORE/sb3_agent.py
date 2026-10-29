@@ -186,12 +186,13 @@ except ImportError as exc:
 
 # -- Morphed trainers (outer-loop closure) -----------------------------------
 try:
-    from CORE.morphed_trainers import resolve_morphed
+    from CORE.morphed_trainers import MORPHABLE_KNOBS, resolve_morphed
     HAS_MORPHED = True
 except ImportError as exc:
     note_failure("sb3_agent:morphed-import", exc)
     HAS_MORPHED = False
     resolve_morphed = None
+    MORPHABLE_KNOBS = {}
 
 # -- MemoryBus for messaging -------------------------------------------------
 try:
@@ -607,7 +608,21 @@ class SB3Agent(FreeThreadedAgent):
                               if k.lower() == str(_entry.get("algo", "")).lower()), None)
                 if _base:
                     self.algo_name = _base
-                    self.morphed_params = dict(_entry.get("params", {}))
+                    # E4: the registry is hand-editable tracked source, so
+                    # stored params are allow-listed against the searchable
+                    # knobs before they reach the SB3 constructor. Unknown
+                    # keys are dropped with a ledger note, never crash.
+                    _knobs = MORPHABLE_KNOBS.get(_base) or []
+                    _allowed = {str(k) for k, *_ in _knobs}
+                    if not _allowed:
+                        _allowed = {str(k) for knobs in MORPHABLE_KNOBS.values()
+                                    for k, *_ in knobs}
+                    self.morphed_params = {}
+                    for _k, _v in dict(_entry.get("params", {})).items():
+                        if str(_k) in _allowed:
+                            self.morphed_params[_k] = _v
+                        else:
+                            note_failure("sb3_agent:morphed-kwarg-drop", None)
                     merged = dict(self.morphed_params)
                     merged.update(self.algo_kwargs)
                     self.algo_kwargs = merged
