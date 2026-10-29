@@ -315,3 +315,10 @@ state/*
 # (DEFAULT_OUT); deliberately untracked at 314cae20 as "generated census,
 # not task state". Keep on disk, hidden from status.
 /NEURAL_MESH_FUNCTION_TODO.md
+
+# coordinator churn cleanup 2026-10-29: binaries + render frames + backups
+# are local artifacts, never repo content (194MB frames, 24MB driver).
+/chromedriver.exe
+/chromedriver-win64/
+docs/_shard01_frames/
+*.backup2

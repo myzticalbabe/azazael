@@ -135,7 +135,9 @@ def run_python(script_path, args=None):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         ok = result.returncode == 0
-        return ok, "Success" if ok else f"Exit {result.returncode}: {result.stderr[:200].strip()}"
+        msg = "Success" if ok else f"Exit {result.returncode}: {result.stderr[:200].strip()}"
+        log(f"{script_path}: {msg}", "OK" if ok else "ERROR")
+        return ok, msg
     except Exception as e:
         note_failure("klink:L126", e)
         return False, f"Error: {e}"
@@ -375,8 +377,6 @@ Platforms: Windows, Linux, Debian, macOS, WSL
 
 if __name__ == "__main__":
     main()
-
-    print("=" * 60)
 
 
 def cmd_bridge(args):

@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-10-28T09:16:15",
+  "status": "completed",
+  "dockets_scraped": 2,
+  "results": [
+    {
+      "docket_number": "898 MDA 2017",
+      "status": "pending",
+      "case_info": {},
+      "docket_entries": [],
+      "parties": [],
+      "error": "ElementNotInteractableException: Message: element not interactable\n  (Session info: chrome=156.0.8078.73); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception\nStacktrace:\nSymbols not available. Dumping unresolved backtrace:\n\t(No symbol) [0x7ff701752e35]\n\t(No symbol) [0x7ff701661dc0]\n\t(No symbol) [0x7ff701a44fb1]\n\t(No symbol) [0x7ff701cf1b49]\n\t(No symbol) [0x7ff701d0c7aa]\n\t(No symbol) [0x7ff701cefb09]\n\t(No symbol) [0x7ff701cefaa0]\n\t(No symbol) [0x7ff701516271]\n\t(No symbol) [0x7ff7014fbae9]\n\t(No symbol) [0x7ff7014fce13]\n\t(No symbol) [0x7ff701be63c1]\n\t(No symbol) [0x7ff701c0987b]\n\t(No symbol) [0x7ff701bfe240]\n\t(No symbol) [0x7ff70187b4ee]\n\t(No symbol) [0x7ff701670985]\n\t(No symbol) [0x7ff70166b9e4]\n\t(No symbol) [0x7ff70166bb74]\n\t(No symbol) [0x7ff701654bfc]\n\t(No symbol) [0x7ffe9223dda7]\n\t(No symbol) [0x7ffe92e9ee4c]\n"
+    },
+    {
+      "docket_number": "15-14644",
+      "status": "pending",
+      "case_info": {},
+      "docket_entries": [],
+      "parties": [],
+      "error": "ElementNotInteractableException: Message: element not interactable\n  (Session info: chrome=156.0.8078.73); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception\nStacktrace:\nSymbols not available. Dumping unresolved backtrace:\n\t(No symbol) [0x7ff701752e35]\n\t(No symbol) [0x7ff701661dc0]\n\t(No symbol) [0x7ff701a44fb1]\n\t(No symbol) [0x7ff701cf1b49]\n\t(No symbol) [0x7ff701d0c7aa]\n\t(No symbol) [0x7ff701cefb09]\n\t(No symbol) [0x7ff701cefaa0]\n\t(No symbol) [0x7ff701516271]\n\t(No symbol) [0x7ff7014fbae9]\n\t(No symbol) [0x7ff7014fce13]\n\t(No symbol) [0x7ff701be63c1]\n\t(No symbol) [0x7ff701c0987b]\n\t(No symbol) [0x7ff701bfe240]\n\t(No symbol) [0x7ff70187b4ee]\n\t(No symbol) [0x7ff701670985]\n\t(No symbol) [0x7ff70166b9e4]\n\t(No symbol) [0x7ff70166bb74]\n\t(No symbol) [0x7ff701654bfc]\n\t(No symbol) [0x7ffe9223dda7]\n\t(No symbol) [0x7ffe92e9ee4c]\n"
+    }
+  ],
+  "gaps_targeted": [
+    34
+  ]
+}
