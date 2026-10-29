@@ -7,6 +7,9 @@ the router tries first. New shards are added by appending an entry; nothing
 moves. Doc-only skill families list ["doc"] — their SHARD.md IS the artifact.
 """
 
+import json
+from pathlib import Path
+
 SHARDS: dict = {
     "gateway": {
         "paths": ["gateway-go/main.go", "gateway/src/main.rs"],
@@ -83,9 +86,6 @@ _COMPILED_FIRST = ["rust", "go"]
 
 def _measured_order() -> list:
     """Languages sorted by measured median ms (ascending); empty when no sweep."""
-    import json
-    from pathlib import Path
-
     try:
         data = json.loads(
             Path(__file__).with_name("sweep.json").read_text(encoding="utf-8"))
