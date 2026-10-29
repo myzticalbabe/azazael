@@ -184,6 +184,15 @@ except ImportError as exc:
     HAS_TRAINERS_V2 = False
     TrainerContext = HookAwareTrainer = SB3TrainerV2 = create_trainer = None
 
+# -- Morphed trainers (outer-loop closure) -----------------------------------
+try:
+    from CORE.morphed_trainers import resolve_morphed
+    HAS_MORPHED = True
+except ImportError as exc:
+    note_failure("sb3_agent:morphed-import", exc)
+    HAS_MORPHED = False
+    resolve_morphed = None
+
 # -- MemoryBus for messaging -------------------------------------------------
 try:
     HAS_MEMORYBUS = True
@@ -582,11 +591,30 @@ class SB3Agent(FreeThreadedAgent):
         # matches no key in SUPPORTED_ALGOS and made it report "unsupported".
         _canon = next((k for k in SUPPORTED_ALGOS if str(k).lower() == str(algo).lower()), None)
         self.algo_name = _canon or (algo if HAS_SB3 else "PPO")
+        # Morphed resolution (outer-loop closure): morphed_<algo>_g<gen>
+        # names resolve to their base algo with Pareto params merged into
+        # algo_kwargs. The name is preserved on worm_id for lineage.
+        self.morphed_params: dict = {}
+        self.algo_kwargs = algo_kwargs or {}
+        if self.algo_name.lower().startswith("morphed_") and HAS_MORPHED:
+            try:
+                _entry = resolve_morphed(self.algo_name)
+            except Exception as exc:
+                note_failure("sb3_agent:morphed-resolve", exc)
+                _entry = None
+            if _entry:
+                _base = next((k for k in SUPPORTED_ALGOS
+                              if k.lower() == str(_entry.get("algo", "")).lower()), None)
+                if _base:
+                    self.algo_name = _base
+                    self.morphed_params = dict(_entry.get("params", {}))
+                    merged = dict(self.morphed_params)
+                    merged.update(self.algo_kwargs)
+                    self.algo_kwargs = merged
         # Worm identity (trainers_v2 contract): every memory write
         # this agent emits carries this id in its payload.
         self.worm_id = worm_id or f"sb3_{self.algo_name.lower()}"
         self.policy = policy
-        self.algo_kwargs = algo_kwargs or {}
         self.env_kwargs = env_kwargs or {}
         self.seed = seed or int(time.time())
 
