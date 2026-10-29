@@ -13,16 +13,36 @@ and exits 0. stdout agreement across languages IS the test.
 
 import argparse
 import json
+import os
+import re
 import statistics
 import sys
+import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from INTERPRETERS import run_code, supported_languages
+from INTERPRETERS.go_runner import GoRunner
+from INTERPRETERS.node_runner import NodeRunner
+from INTERPRETERS.pwsh_runner import PwshRunner
+from INTERPRETERS.rust_runner import RustRunner
+from INTERPRETERS.sh_runner import ShRunner
 from SHARDS.registry import LANG_ORDER, SHARDS, route_lang
 
-GOLDEN_TOKEN = "AZAZAEL-GOLDEN-OK"
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+GOLDEN_TOKEN = "AZAZAEL-GOLDEN-OK"
+WORK_TOKEN = "AZAZAEL-WORK-OK"
+WORK_N = 20000  # loop iterations for the `work` tier (D8)
+
+# D8 two-tier goldens: `instant` proves the pipe works (spawn health),
+# `work` proves throughput (routing numbers). Spending `instant` medians
+# on real jobs misleads — route_lang uses the work table by default.
 GOLDEN_SNIPPETS: dict = {
     "python": 'print("AZAZAEL-GOLDEN-OK")',
     "go": ('package main\nimport "fmt"\n'
@@ -33,29 +53,115 @@ GOLDEN_SNIPPETS: dict = {
     "bash": "echo AZAZAEL-GOLDEN-OK",
 }
 
+WORK_SNIPPETS: dict = {
+    "python": ("t=0\nfor i in range(20000): t+=i\n"
+                 'print("AZAZAEL-WORK-OK",t)'),
+    "go": ('package main\nimport "fmt"\nfunc main(){t:=0;'
+             'for i:=0;i<20000;i++{t+=i};'
+             'fmt.Println("AZAZAEL-WORK-OK",t)}'),
+    "rust": ('fn main(){let mut t:u64=0;'
+               'for i in 0..20000u64{t+=i;} '
+               'println!("AZAZAEL-WORK-OK {}",t);}'),
+    "javascript": ('let t=0;for(let i=0;i<20000;i++){t+=i;}'
+                     'console.log("AZAZAEL-WORK-OK",t);'),
+    "powershell": ('$t=0;for($i=0;$i -lt 20000;$i++){$t+=$i};'
+                     'Write-Output "AZAZAEL-WORK-OK $t"'),
+    "bash": "t=0;for i in $(seq 1 20000);do t=$((t+i));done;echo AZAZAEL-WORK-OK $t",
+}
+
+EXPECTED_SUM = 20000 * 19999 // 2  # 199990000 — work goldens must print this
+
 
 def supported_shard_langs() -> list:
     """Languages with golden snippets (subset actually runs: toolchain-gated)."""
     return [lang for lang in LANG_ORDER if lang in GOLDEN_SNIPPETS]
 
 
-def run_shard(lang: str) -> dict:
-    """Run one language golden; JSON-serializable result, no handles."""
+def run_shard(lang: str, tier: str = "instant") -> dict:
+    """Run one language golden; JSON-serializable result, no handles.
+
+    tier instant: pipe-health golden (token agreement).
+    tier work: throughput golden (sum agreement + timing for routing)."""
     key = (lang or "").lower()
-    if key not in GOLDEN_SNIPPETS:
-        return {"lang": key, "status": "unknown-language", "ok": False}
-    result = run_code(key, GOLDEN_SNIPPETS[key])
+    table = WORK_SNIPPETS if tier == "work" else GOLDEN_SNIPPETS
+    token = WORK_TOKEN if tier == "work" else GOLDEN_TOKEN
+    if key not in table:
+        return {"lang": key, "tier": tier, "status": "unknown-language", "ok": False}
+    result = run_code(key, table[key])
     if not result.success and "not found" in (result.stderr or ""):
         detail = (result.stderr or "").strip().split("\n")[0][:120]
-        return {"lang": key, "status": "skipped", "ok": True,
+        return {"lang": key, "tier": tier, "status": "skipped", "ok": True,
                 "detail": f"toolchain missing: {detail}"}
-    token_ok = GOLDEN_TOKEN in (result.stdout or "")
-    ok = bool(result.success and token_ok)
-    return {"lang": key, "status": "pass" if ok else "fail", "ok": ok,
-            "success": result.success, "token": token_ok,
+    token_ok = token in (result.stdout or "")
+    sum_ok = True
+    if tier == "work" and token_ok:
+        sum_ok = str(EXPECTED_SUM) in (result.stdout or "")
+    ok = bool(result.success and token_ok and sum_ok)
+    return {"lang": key, "tier": tier, "status": "pass" if ok else "fail", "ok": ok,
+            "success": result.success, "token": token_ok, "sum": sum_ok,
             "stdout": (result.stdout or "").strip()[:200],
             "stderr": (result.stderr or "").strip()[:300] if not ok else "",
             "duration_ms": round(result.duration_ms, 1)}
+
+
+def check_doc_shards() -> dict:
+    """D9: doc-only shards are verifiable — SKILL.md exists + frontmatter.
+
+    Doc shards (langs == ["doc"]) claim coverage the golden harness cannot
+    run. This checks the claim: each doc shard must resolve at least one
+    path to an existing SKILL.md with a `name:` frontmatter line, or to
+    an existing repo path. Returns {ok, checked, missing}. Never raises."""
+    checked = 0
+    missing: list = []
+    try:
+        repo = Path(__file__).resolve().parents[2]
+        candidates = [repo / ".agents" / "skills",
+                      repo.parent / ".agents" / "skills",
+                      repo / "docs",
+                      Path(__file__).resolve().parents[1]]
+    except Exception:
+        return {"ok": False, "checked": 0, "missing": ["repo-unresolvable"]}
+    for name in SHARDS:
+        try:
+            from SHARDS.registry import SHARDS as _SH
+            entry = _SH.get(name, {})
+        except Exception:
+            continue
+        langs = entry.get("langs", [])
+        if langs != ["doc"]:
+            continue
+        checked += 1
+        found = False
+        for pat in entry.get("paths", []):
+            stem = pat.rstrip("*").rstrip("/")
+            for base in candidates:
+                direct = base / stem
+                skill_md = direct / "SKILL.md" if direct.is_dir() else None
+                if skill_md is not None and skill_md.is_file():
+                    try:
+                        head = skill_md.read_text(encoding="utf-8")[:2000]
+                        if re.search(r"(?m)^name\s*:", head):
+                            found = True
+                            break
+                    except OSError:
+                        continue
+                if direct.exists():
+                    found = True
+                    break
+                for md in base.glob(f"{stem}*/SKILL.md"):
+                    try:
+                        if re.search(r"(?m)^name\s*:", md.read_text(encoding="utf-8")[:2000]):
+                            found = True
+                            break
+                    except OSError:
+                        continue
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            missing.append(name)
+    return {"ok": not missing, "checked": checked, "missing": missing}
 
 
 def self_test() -> bool:
@@ -66,47 +172,145 @@ def self_test() -> bool:
     # Agreement: every language that ran emitted the same token.
     tokens = {r["stdout"] for r in ran}
     agree = len(tokens) <= 1
-    report = {"self_test": "PASS" if (ok and agree) else "FAIL",
+    try:
+        doc = check_doc_shards()
+    except Exception:
+        doc = {"ok": False, "checked": 0, "missing": ["check-crashed"]}
+    ok_all = bool(ok and agree and doc.get("ok", False))
+    report = {"self_test": "PASS" if ok_all else "FAIL",
               "dispatcher_langs": sorted(supported_languages()),
               "ran": len(ran), "skipped": len(results) - len(ran),
-              "agree": agree, "results": results}
+              "agree": agree, "results": results, "doc_shards": doc}
     print(json.dumps(report, indent=1))
-    return bool(ok and agree)
+    return ok_all
+
+
+def prune_build_dirs(max_age_days: int = 14) -> dict:
+    """Delete hashed inline-run files older than max_age_days (D4).
+
+    build/<lang>/azazael_* grows unboundedly: every run_code writes a new
+    hashed file and nothing ever removes it. Sweep calls this by default;
+    safe to call anytime (only azazael_* files, only by mtime).
+    Returns {removed, kept} counts. Never raises."""
+    removed = 0
+    kept = 0
+    try:
+        build_root = Path(__file__).resolve().parents[2] / "build"
+    except Exception:
+        return {"removed": 0, "kept": 0}
+    if not build_root.is_dir():
+        return {"removed": 0, "kept": 0}
+    cutoff = time.time() - max_age_days * 86400
+    try:
+        for lang_dir in build_root.iterdir():
+            if not lang_dir.is_dir():
+                continue
+            for child in lang_dir.glob("azazael_*"):
+                try:
+                    if child.is_file() and child.stat().st_mtime < cutoff:
+                        child.unlink()
+                        removed += 1
+                    else:
+                        kept += 1
+                except OSError as e:
+                    note_failure("polyglot:prune-entry", e)
+                    kept += 1
+    except OSError as e:
+        note_failure("polyglot:prune", e)
+    return {"removed": removed, "kept": kept}
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    """Atomic JSON write (D1, shared pattern): temp + os.replace."""
+    raw = (json.dumps(payload, indent=1) + "\n").encode("utf-8")
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent),
+                                prefix="." + path.stem + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(raw)
+            fh.flush()
+            try:
+                os.fsync(fh.fileno())
+            except OSError as e:
+                note_failure("polyglot:fsync", e)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError as e:
+            note_failure("polyglot:tmp-cleanup", e)
+        raise
+
+
+def _toolchain_versions() -> dict:
+    """Record runner versions at sweep time (D5: consumed by freshness check)."""
+    versions: dict = {}
+    try:
+        versions["node"] = NodeRunner().version
+        versions["pwsh"] = PwshRunner().version
+        versions["bash"] = ShRunner().version
+        versions["go"] = "go-present" if GoRunner().has_go else ""
+        versions["rust"] = "rust-present" if RustRunner().has_rustc else ""
+    except Exception as e:
+        note_failure("polyglot:versions", e)
+    try:
+        versions["python"] = sys.version.split()[0]
+    except Exception as e:
+        note_failure("polyglot:versions-python", e)
+    return versions
 
 
 def sweep(n: int = 10) -> dict:
-    """Measure every golden language n times; write sweep.json; print table.
+    """Measure both golden tiers n times; write sweep.json; print tables.
 
-    Cold recompute per iteration (no caching — a gate that passes without
-    re-running proves nothing). Compiled languages pay full compile cost
-    every iteration; the table reports that honestly."""
-    medians: dict = {}
-    samples: dict = {}
+    D8: instant tier = pipe health; work tier = routing numbers.
+    route_lang spends the WORK medians by default. Cold recompute per
+    iteration. D1: atomic write. D5: toolchain versions recorded.
+    D4: prune stale build/<lang>/azazael_* files before measuring."""
+    t_start = time.time()
+    try:
+        prune_build_dirs()
+    except Exception as e:
+        note_failure("polyglot:prune-call", e)
+    work_medians: dict = {}
+    instant_medians: dict = {}
     rows = []
     for lang in supported_shard_langs():
-        durations = []
+        work_durations: list = []
         ok_all = True
         for _ in range(max(1, n)):
-            res = run_shard(lang)
+            res = run_shard(lang, tier="work")
             if res["status"] == "skipped":
                 ok_all = False
                 break
             ok_all = ok_all and res["ok"]
-            durations.append(res["duration_ms"])
-        if not durations:
+            work_durations.append(res["duration_ms"])
+        if not work_durations:
             rows.append({"lang": lang, "status": "skipped"})
             continue
-        medians[lang] = round(statistics.median(durations), 1)
-        samples[lang] = [round(d, 1) for d in durations]
+        work_medians[lang] = round(statistics.median(work_durations), 1)
         rows.append({"lang": lang, "status": "pass" if ok_all else "fail",
-                     "n": len(durations), "median_ms": medians[lang],
-                     "min_ms": round(min(durations), 1),
-                     "max_ms": round(max(durations), 1)})
+                     "n": len(work_durations), "median_ms": work_medians[lang],
+                     "min_ms": round(min(work_durations), 1),
+                     "max_ms": round(max(work_durations), 1)})
+    for lang in supported_shard_langs():
+        durations: list = []
+        for _ in range(max(1, min(n, 3))):
+            res = run_shard(lang, tier="instant")
+            if res["status"] == "skipped":
+                break
+            if res["ok"]:
+                durations.append(res["duration_ms"])
+        if durations:
+            instant_medians[lang] = round(statistics.median(durations), 1)
     report = {"generated_at": datetime.now(timezone.utc).isoformat(),
-              "n": n, "medians_ms": medians, "rows": rows}
-    Path(__file__).with_name("sweep.json").write_text(
-        json.dumps(report, indent=1) + "\n", encoding="utf-8")
-    print(f"{'lang':<12}{'n':>4}  median      min/max  status")
+              "n": n, "elapsed_s": round(time.time() - t_start, 1),
+              "medians_ms": work_medians,  # routing table = WORK (D8)
+              "instant_medians_ms": instant_medians,  # pipe health only
+              "versions": _toolchain_versions(),
+              "rows": rows}
+    _atomic_write_json(Path(__file__).with_name("sweep.json"), report)
+    print(f"{'lang':<12}{'n':>4}  work-median  min/max  status")
     for row in sorted(rows, key=lambda r: r.get("median_ms", float("inf"))):
         if row["status"] == "skipped":
             print(f"{row['lang']:<12}   -  skipped (toolchain missing)")

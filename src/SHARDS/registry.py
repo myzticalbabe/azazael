@@ -7,8 +7,16 @@ the router tries first. New shards are added by appending an entry; nothing
 moves. Doc-only skill families list ["doc"] — their SHARD.md IS the artifact.
 """
 
+import datetime as _dt
 import json
+import time
 from pathlib import Path
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 SHARDS: dict = {
     "gateway": {
@@ -84,16 +92,63 @@ BUDGETS = {
 _COMPILED_FIRST = ["rust", "go"]
 
 
+SWEEP_MAX_AGE_HOURS = 24 * 7  # re-sweep weekly or after runner changes (P1)
+
+
+def sweep_freshness() -> dict:
+    """Freshness of sweep.json: age, version match, runner-code newer check.
+
+    Returns {fresh: bool, reasons: [..]}. Stale tables warn, never raise —
+    routing must degrade to canonical order, not crash (P1-item-2)."""
+    reasons: list = []
+    sweep_path = Path(__file__).with_name("sweep.json")
+    try:
+        data = json.loads(sweep_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        return {"fresh": False, "reasons": [f"unreadable sweep.json: {e}"]}
+    # D5: versions recorded at sweep time must be present — a table without
+    # versions predates the comparability fix and cannot drive routing.
+    versions = data.get("versions")
+    if not isinstance(versions, dict) or not versions:
+        reasons = ["sweep.json predates versions (D5): re-run --sweep"]
+        return {"fresh": False, "reasons": reasons}
+    try:
+        gen = _dt.datetime.fromisoformat(str(data.get("generated_at", "")))
+        age_h = (time.time() - gen.timestamp()) / 3600
+        if age_h > SWEEP_MAX_AGE_HOURS:
+            reasons.append(f"age {age_h:.1f}h > {SWEEP_MAX_AGE_HOURS}h")
+    except (ValueError, TypeError, OverflowError) as e:
+        reasons.append(f"unparseable generated_at: {e}")
+    runners_dir = Path(__file__).parent.parent / "INTERPRETERS"
+    try:
+        sweep_mtime = sweep_path.stat().st_mtime
+        for runner in sorted(runners_dir.glob("*_runner.py")):
+            if runner.stat().st_mtime > sweep_mtime:
+                reasons.append(f"runner newer than sweep: {runner.name}")
+                break
+    except OSError as e:
+        reasons.append(f"runner mtime check failed: {e}")
+    return {"fresh": not reasons, "reasons": reasons}
+
+
 def _measured_order() -> list:
-    """Languages sorted by measured median ms (ascending); empty when no sweep."""
+    """Languages sorted by measured WORK median ms (ascending).
+
+    Falls back to LANG_ORDER with a ledger note when the sweep is stale
+    or missing — stale numbers must not silently drive routing (P1)."""
     try:
         data = json.loads(
             Path(__file__).with_name("sweep.json").read_text(encoding="utf-8"))
         medians = data.get("medians_ms", {})
     except (OSError, ValueError):
-        return []
+        return list(LANG_ORDER)
+    freshness = sweep_freshness()
+    if not freshness["fresh"]:
+        note_failure("shards:stale-sweep", None)
     ranked = sorted(medians, key=lambda lang: (medians[lang], lang))
-    return [lang for lang in ranked if lang in LANG_ORDER]
+    ordered = [lang for lang in ranked if lang in LANG_ORDER]
+    ordered += [lang for lang in LANG_ORDER if lang not in ordered]
+    return ordered
 
 
 def route_lang(shard_name: str, budget: str = "balanced") -> str:

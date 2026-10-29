@@ -27,19 +27,7 @@ i18n) is not part of this review. Listed here only so nobody re-investigates
 it under the "multi-lingual" heading. The remainder of this document covers
 GO / RUST / PYTHON exclusively.
 
-~~Human-locale detail removed from scope.~~ Original notes (superseded):
-1. **archify skill** (`.agents/skills/archify/SKILL.md:82`): `meta.locale`
-   controls only renderer-owned Viewer UI (`en` / `zh-CN`); every other
-   language omits `meta.locale` and the Viewer falls back to English.
-   **The renderer never translates authored content.** Contract lives in
-   `references/authoring-contract.md`.
-2. **armada dashboard i18n** (`armada/archive/I18N.md`, shipped per CHANGELOG):
-   locales `en/es/zh-Hans/zh-Hant/yue-Hant/ja/de/fr/it`; shared catalog
-   `src/Armada.Server/wwwroot/i18n/armada.json` consumed by both React
-   (`i18n/runtime.ts`) and legacy (`js/i18n.js`) runtimes; locale resolution
-   user-selection → localStorage (`armada_locale`) → profile → navigator →
-   fallback `en`; design rules (no hard-coded strings, no fragment
-   concatenation, semantic payloads persisted, `lang`+`dir` always set).
+[D10 2026-10-29: human-locale detail removed — owner scope is GO/RUST/PYTHON only.]
 
 ### 1c. Skills & tools inventory (measured)
 - Skills: **1247** entries in `.agents/skills/`; each is a `SKILL.md` package
@@ -81,30 +69,12 @@ peak = full family). Reuse `run_shard`/`self_test` shape: shard self-test
 loads each SKILL.md, validates frontmatter, asserts no dangling
 Related-Skills links.
 
-### Axis B — Human-locale shards — REMOVED FROM SCOPE (owner: GO/RUST/PYTHON only)
-Follow the armada model, constrained by the archify contract:
-- Canonical content stays **English** (single source of truth).
-- Locale shard = `<skill-id>.<bcp47>/SKILL.md` (e.g.
-  `azazael-conventions.zh-Hans/SKILL.md`), only for piloted shards.
-- Shared per-shard catalog (armada.json shape:
-  `{defaultLocale, supportedLocales[], locales:{code:{terms,phrases}}}`).
-- Fallback chain identical to armada; renderer never translates (archify rule).
-- CI: missing-key + dead-key checks (armada Workstream 12), plus
-  pseudo-locale expansion pass (`en-XA` 30–50% expansion, RTL `ar-XB`).
-
-### Why not all 1247 × 9 locales
-Full matrix ≈ 11k files. Translation, review, and drift cost dominate.
-Pilot 2–3 high-traffic shards (conventions, testing, tool-dynamic-logger),
-prove the fallback + CI loop, then expand by measured usage.
+### Axis B — REMOVED (owner: GO/RUST/PYTHON only, 2026-10-29) — see §1b.
 
 ## 4. Concrete proposal
 1. `shards/skill_shards.py` — SHARDS manifest over existing skill ids
    (no skill moves), `route(task)` keyword router, `--list/--self-test/--run`.
-2. `shards/locale_registry.py` — port armada's registry shape
-   (code, native label, dir, fallback, font hints) for skills.
-3. ~~Pilot locale shards~~ REMOVED — human linguistics out of scope.
-4. CI gates: frontmatter validity, missing/dead keys, hard-coded-string lint
-   for piloted locales, pseudo-locale render check.
+2. ~~locale_registry + pilot locale shards + locale CI~~ — REMOVED (owner: GO/RUST/PYTHON only, 2026-10-29).
 5. Tools: wrap the 37 `tools/*.py` in the same manifest with
    `execute()` entry points and per-tool self-tests (cold recompute,
    JSON-serializable results — arena rules).
