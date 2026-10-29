@@ -73,6 +73,7 @@ class RustResult:
     duration_ms: float = 0.0
     binary_path: (str | None) = None
     errors: list[dict] = field(default_factory=list)
+    stderr_bytes: str = ""  # D7: raw stderr (latin-1) for forensics
 
 
 class RustRunner:
@@ -115,17 +116,21 @@ class RustRunner:
 
         try:
             start = time.time()
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+            # D7: bytes capture; display via replace, evidence via stderr_bytes.
+            result = subprocess.run(cmd, capture_output=True, timeout=60)
             duration = (time.time() - start) * 1000
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
 
             return RustResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=duration,
                 binary_path=str(output_path) if result.returncode == 0 else None,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("rust_runner:L106", exc)
@@ -167,16 +172,19 @@ class RustRunner:
         cmd = [str(binary_path)] + (args or [])
         try:
             start = time.time()
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+            result = subprocess.run(cmd, capture_output=True, timeout=30)
             duration = (time.time() - start) * 1000
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
 
             return RustResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=duration,
                 binary_path=str(binary_path),
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("rust_runner:L155", exc)
@@ -234,13 +242,16 @@ class RustRunner:
 
         cmd = ["rustc", "--edition", self.edition.value, "--check", str(source)]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+            result = subprocess.run(cmd, capture_output=True, timeout=30)
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
             return RustResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except Exception as e:
             note_failure("rust_runner:L216", e)

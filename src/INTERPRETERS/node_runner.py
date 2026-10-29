@@ -56,6 +56,9 @@ class NodeResult:
     returncode: int = 0
     duration_ms: float = 0.0
     errors: List[dict] = field(default_factory=list)
+    # D7: raw stderr bytes (latin-1 round-trips every byte) for forensics.
+    # Display uses stderr (errors=replace); evidence uses stderr_bytes.
+    stderr_bytes: str = ""
 
 
 class NodeRunner:
@@ -120,17 +123,21 @@ class NodeRunner:
     def _run(self, cmd: List[str], cwd: str, timeout: int) -> NodeResult:
         try:
             start = time.time()
+            # D7: capture bytes, decode manually — display degrades via
+            # replace, but stderr_bytes keeps every byte for forensics.
             result = subprocess.run(
-                cmd, cwd=cwd, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=timeout,
+                cmd, cwd=cwd, capture_output=True, timeout=timeout,
             )
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            stderr = result.stderr.decode("utf-8", errors="replace")
             return NodeResult(
                 success=result.returncode == 0,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                stdout=stdout,
+                stderr=stderr,
                 returncode=result.returncode,
                 duration_ms=(time.time() - start) * 1000,
-                errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
+                errors=self._parse_errors(stderr) if result.returncode != 0 else [],
+                stderr_bytes=result.stderr[:4000].decode("latin-1"),
             )
         except subprocess.TimeoutExpired as exc:
             note_failure("node_runner:timeout", exc)
