@@ -17,12 +17,29 @@ Usage:
     proposals = propose("PPO", generations=8, pop_size=24, seed=7)
     winner = promote(proposals[0])   # registers morphed_ppo_g<N>
     SB3Agent(algo=winner["name"])     # resolves via factory
+
+P1 deed decision (2026-10-29): morphed_registry.json is TRACKED source,
+not ignored scratch — winners are property, the registry is the deed book.
+It lives at src/CORE/morphed_registry.json, writes atomically (D1) under
+an exclusive lock (D2), and must be committed + synced like code.
 """
 
 import json
 import math
+import os
+import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
+
+try:
+    import fcntl  # POSIX file locking (absent on Windows)
+except ImportError:
+    fcntl = None  # type: ignore[assignment]
+try:
+    import msvcrt  # Windows file locking (absent on POSIX)
+except ImportError:
+    msvcrt = None  # type: ignore[assignment]
 
 import numpy as np
 
@@ -65,8 +82,69 @@ def _load_store() -> dict:
 
 
 def _save_store(store: dict) -> None:
+    """Atomic write: temp file in same dir + os.replace (D1).
+
+    A crash mid-write leaves the old file intact — never a truncated
+    JSON that the loader would silently reset to generation 0."""
     store["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-    _STORE_PATH.write_text(json.dumps(store, indent=1) + "\n", encoding="utf-8")
+    payload = (json.dumps(store, indent=1) + "\n").encode("utf-8")
+    fd, tmp = tempfile.mkstemp(dir=str(_STORE_PATH.parent),
+                                prefix=".morphed_registry.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(payload)
+            fh.flush()
+            try:
+                os.fsync(fh.fileno())
+            except OSError as e:
+                note_failure("morphed_trainers:fsync", e)
+        os.replace(tmp, _STORE_PATH)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError as e:
+            note_failure("morphed_trainers:tmp-cleanup", e)
+        raise
+
+
+@contextmanager
+def _store_lock():
+    """Cross-platform exclusive lock for read-modify-write (D2).
+
+    POSIX: fcntl.flock. Windows: msvcrt.locking on a sidecar lock file.
+    Yields the lock path; no-op fallback (with ledger note) only when
+    neither mechanism imports — never silently."""
+    lock_path = _STORE_PATH.with_suffix(".lock")
+    fh = open(str(lock_path), "ab")  # noqa: PTH123 -- lock file needs raw handle (binary: no encoding)
+    try:
+        if fcntl is not None:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            fh._lock_kind = "flock"
+        elif msvcrt is not None:
+            try:
+                fh.seek(0)
+                msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+                fh._lock_kind = "msvcrt"
+            except OSError as e:
+                note_failure("morphed_trainers:msvcrt-lock", e)
+                fh._lock_kind = "none"
+        else:
+            note_failure("morphed_trainers:no-lock-primitive", None)
+            fh._lock_kind = "none"
+        yield lock_path
+    finally:
+        try:
+            kind = getattr(fh, "_lock_kind", "none")
+            if kind == "flock" and fcntl is not None:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+            elif kind == "msvcrt" and msvcrt is not None:
+                fh.seek(0)
+                try:
+                    msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError as e:
+                    note_failure("morphed_trainers:unlock", e)
+        finally:
+            fh.close()
 
 
 def _decode(genome, knobs: list) -> dict:
@@ -92,7 +170,8 @@ def propose(algo: str = "PPO", generations: int = 8,
     dim = len(knobs)
 
     def reward_proxy(x: np.ndarray) -> float:
-        """Maximize: favor mid-range stable hyperparams (negative cost)."""
+        """heuristic_v0 (D3): mid-range-LR guess, NOT a measurement.
+        Maximize: favor mid-range stable hyperparams."""
         params = _decode(x, knobs)
         lr_penalty = abs(float(np.log10(params.get("learning_rate", 3e-4))) + 3.5)
         gamma = float(params.get("gamma", 0.99))
@@ -100,7 +179,8 @@ def propose(algo: str = "PPO", generations: int = 8,
         return float(lr_penalty + gamma_penalty)
 
     def cost_proxy(x: np.ndarray) -> float:
-        """Maximize: favor cheap configs (placeholder for wall-clock)."""
+        """heuristic_v0 (D3): genome-spread guess, NOT wall-clock.
+        Maximize: favor cheap configs."""
         params = _decode(x, knobs)
         return float(abs(float(x[0]) - 0.5) + abs(float(x[-1]) - 0.5))
 
@@ -117,32 +197,48 @@ def propose(algo: str = "PPO", generations: int = 8,
             "rank": rank,
             "seed": seed,
             "generations": generations,
+            "fitness": "heuristic_v0",  # D3: proxy, not measurement
+            "trained_reward": None,  # set by real training before promote()
         })
     return proposals
 
 
 def promote(proposal: dict) -> dict:
     """Register a Pareto proposal as morphed_<algo>_g<gen> (transsubstantiation
-    hook: the name is factory-resolvable; substance upgraded, callers unchanged)."""
-    store = _load_store()
-    store["generation"] = int(store.get("generation", 0)) + 1
-    gen = store["generation"]
-    algo = str(proposal.get("algo", "PPO"))
-    name = f"morphed_{algo.lower()}_g{gen}"
-    store.setdefault("entries", {})[name] = {
-        "algo": algo,
-        "params": proposal.get("params", {}),
-        "objectives": proposal.get("objectives", []),
-        "parent": "nsga2-pareto",
-        "generation": gen,
-    }
-    try:
-        _save_store(store)
-    except OSError as e:
-        note_failure("morphed_trainers:store", e)
-        return {"name": "", "ok": False, "error": str(e)}
-    return {"name": name, "ok": True, "generation": gen,
-            "algo": algo, "params": store["entries"][name]["params"]}
+    hook: the name is factory-resolvable; substance upgraded, callers unchanged).
+
+    D3 gate: proxy-only proposals (trained_reward None) are REFUSED — the
+    heuristic_v0 front ranks guesses, not champions. Train first, then
+    promote with the measured reward attached. D2: the read-increment-write
+    runs under the store lock so concurrent promotes cannot share a gen.
+    """
+    if proposal.get("trained_reward") is None:
+        return {"name": "", "ok": False,
+                "error": "proxy-only proposal refused: attach trained_reward "
+                         "from a real training run (D3 heuristic_v0 gate)"}
+    with _store_lock():
+        store = _load_store()
+        store["generation"] = int(store.get("generation", 0)) + 1
+        gen = store["generation"]
+        algo = str(proposal.get("algo", "PPO"))
+        name = f"morphed_{algo.lower()}_g{gen}"
+        store.setdefault("entries", {})[name] = {
+            "algo": algo,
+            "params": proposal.get("params", {}),
+            "objectives": proposal.get("objectives", []),
+            "fitness": proposal.get("fitness", "heuristic_v0"),
+            "trained_reward": proposal.get("trained_reward"),
+            "parent": "nsga2-pareto",
+            "generation": gen,
+        }
+        try:
+            _save_store(store)
+        except OSError as e:
+            note_failure("morphed_trainers:store", e)
+            return {"name": "", "ok": False, "error": str(e)}
+        return {"name": name, "ok": True, "generation": gen,
+                "algo": algo, "params": store["entries"][name]["params"],
+                "trained_reward": proposal.get("trained_reward")}
 
 
 def resolve_morphed(name: str) -> dict | None:
