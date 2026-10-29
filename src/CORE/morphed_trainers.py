@@ -27,9 +27,11 @@ an exclusive lock (D2), and must be committed + synced like code.
 import json
 import math
 import os
+import socket
 import tempfile
-import time
+import uuid
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 try:
@@ -86,7 +88,7 @@ def _save_store(store: dict) -> None:
 
     A crash mid-write leaves the old file intact — never a truncated
     JSON that the loader would silently reset to generation 0."""
-    store["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    store["updated_at"] = datetime.now(timezone.utc).isoformat()  # E7: UTC, like sweep.json
     payload = (json.dumps(store, indent=1) + "\n").encode("utf-8")
     fd, tmp = tempfile.mkstemp(dir=str(_STORE_PATH.parent),
                                 prefix=".morphed_registry.", suffix=".tmp")
@@ -211,25 +213,51 @@ def promote(proposal: dict) -> dict:
     heuristic_v0 front ranks guesses, not champions. Train first, then
     promote with the measured reward attached. D2: the read-increment-write
     runs under the store lock so concurrent promotes cannot share a gen.
+
+    E6: the lock is single-host, but winners arrive from two distros via
+    git sync — a kilo promote and a local promote can both mint g<N> with
+    different params. Same name + different params no longer overwrites:
+    the second entry takes the first free suffixed name (g<N>b, g<N>c…)
+    so no winner is ever lost at merge. The common path (free name) is
+    unchanged, and kilo's morphed_<algo>_g<gen> pattern keeps matching.
     """
     if proposal.get("trained_reward") is None:
         return {"name": "", "ok": False,
                 "error": "proxy-only proposal refused: attach trained_reward "
                          "from a real training run (D3 heuristic_v0 gate)"}
+    try:
+        origin = socket.gethostname()
+    except OSError as e:
+        note_failure("morphed_trainers:origin", e)
+        origin = "unknown-host"
     with _store_lock():
         store = _load_store()
         store["generation"] = int(store.get("generation", 0)) + 1
         gen = store["generation"]
         algo = str(proposal.get("algo", "PPO"))
         name = f"morphed_{algo.lower()}_g{gen}"
-        store.setdefault("entries", {})[name] = {
+        entries = store.setdefault("entries", {})
+        params = proposal.get("params", {})
+        if name in entries and entries[name].get("params") != params:
+            # Cross-host generation collision (E6): keep both winners.
+            note_failure("morphed_trainers:generation-collision", None)
+            suffix_ord = ord("b")
+            while f"{name}{chr(suffix_ord)}" in entries and suffix_ord <= ord("z"):
+                suffix_ord += 1
+            if f"{name}{chr(suffix_ord)}" in entries:
+                name = f"{name}_{uuid.uuid4().hex[:8]}"
+            else:
+                name = f"{name}{chr(suffix_ord)}"
+        entries[name] = {
             "algo": algo,
-            "params": proposal.get("params", {}),
+            "params": params,
             "objectives": proposal.get("objectives", []),
             "fitness": proposal.get("fitness", "heuristic_v0"),
             "trained_reward": proposal.get("trained_reward"),
             "parent": "nsga2-pareto",
             "generation": gen,
+            "uuid": uuid.uuid4().hex[:8],
+            "origin": origin,
         }
         try:
             _save_store(store)
@@ -237,8 +265,9 @@ def promote(proposal: dict) -> dict:
             note_failure("morphed_trainers:store", e)
             return {"name": "", "ok": False, "error": str(e)}
         return {"name": name, "ok": True, "generation": gen,
-                "algo": algo, "params": store["entries"][name]["params"],
-                "trained_reward": proposal.get("trained_reward")}
+                "algo": algo, "params": entries[name]["params"],
+                "trained_reward": proposal.get("trained_reward"),
+                "uuid": entries[name]["uuid"], "origin": origin}
 
 
 def resolve_morphed(name: str) -> dict | None:
