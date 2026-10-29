@@ -26,14 +26,25 @@ def test_propose_returns_pareto_shaped_proposals():
         assert len(p["objectives"]) == 2
 
 
+def test_promote_refuses_proxy_only(tmp_path, monkeypatch):
+    store = tmp_path / "morphed_registry.json"
+    monkeypatch.setattr(morphed_trainers, "_STORE_PATH", store)
+    props = propose("DQN", generations=2, pop_size=8, seed=11)
+    refused = promote(props[0])
+    assert not refused["ok"] and "trained_reward" in refused["error"]
+
+
 def test_promote_registers_and_resolves(tmp_path, monkeypatch):
     store = tmp_path / "morphed_registry.json"
     monkeypatch.setattr(morphed_trainers, "_STORE_PATH", store)
     props = propose("DQN", generations=2, pop_size=8, seed=11)
+    props[0]["trained_reward"] = 123.4
     winner = promote(props[0])
     assert winner["ok"] and winner["name"].startswith("morphed_dqn_g")
+    assert winner["trained_reward"] == 123.4
     entry = resolve_morphed(winner["name"])
     assert entry and entry["algo"] == "DQN"
+    assert entry["trained_reward"] == 123.4
     assert winner["name"] in list_morphed()
 
 
@@ -41,6 +52,7 @@ def test_sb3agent_resolves_morphed_to_base(tmp_path, monkeypatch):
     store = tmp_path / "morphed_registry.json"
     monkeypatch.setattr(morphed_trainers, "_STORE_PATH", store)
     props = propose("PPO", generations=2, pop_size=8, seed=7)
+    props[0]["trained_reward"] = 99.0
     winner = promote(props[0])
     from CORE.sb3_agent import SB3Agent
 
