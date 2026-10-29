@@ -48,3 +48,15 @@ def test_golden_cross_language_agreement():
 def test_run_code_javascript_inline():
     res = run_code("javascript", 'console.log("AZAZAEL-GOLDEN-OK");')
     assert res.success and "AZAZAEL-GOLDEN-OK" in res.stdout
+
+
+def test_route_lang_spends_budgets():
+    from SHARDS.registry import route_lang
+    assert route_lang("gateway", "balanced") == "go"
+    assert route_lang("gateway", "peak") == "rust"
+    assert route_lang("gateway", "fast") in ("go", "rust")
+    assert route_lang("skills-core") == "doc"
+    assert route_lang("no-such-shard") == "python"
+    assert route_lang("interpreters", "balanced") == "python"
+    assert route_lang("interpreters", "fast") in (
+        "python", "go", "rust", "javascript", "powershell", "bash")
