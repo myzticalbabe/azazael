@@ -80,7 +80,7 @@ def main():
         r = subprocess.run(
             ['yt-dlp', '--cookies', cookie_file, '--no-playlist',
              '-o', os.path.join(outdir, 'TIKTOK_%(id)s.%(ext)s'), url],
-            capture_output=True, text=True, timeout=300)
+            capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=300)
         print((r.stdout or '')[-800:])
         if r.returncode != 0:
             print((r.stderr or '')[-800:])
