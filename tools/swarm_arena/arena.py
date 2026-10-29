@@ -56,7 +56,7 @@ def parse_pairs(path):
 def run_shard(name, cmd, payload):
     try:
         r = subprocess.run(cmd, input=payload, capture_output=True, text=True,
-                           timeout=300)
+                           encoding='utf-8', errors='replace', timeout=300)
         if r.returncode != 0:
             return name, None, r.stderr[:300]
         return name, json.loads(r.stdout), ""
