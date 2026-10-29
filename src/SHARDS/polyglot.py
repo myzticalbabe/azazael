@@ -23,12 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from INTERPRETERS import run_code, supported_languages
-from INTERPRETERS.go_runner import GoRunner
-from INTERPRETERS.node_runner import NodeRunner
-from INTERPRETERS.pwsh_runner import PwshRunner
-from INTERPRETERS.rust_runner import RustRunner
-from INTERPRETERS.sh_runner import ShRunner
-from SHARDS.registry import LANG_ORDER, SHARDS, route_lang
+from SHARDS.registry import LANG_ORDER, SHARDS, _probe_toolchain_versions, route_lang
 
 try:
     from CORE.failure_ledger import note_failure
@@ -66,7 +61,8 @@ WORK_SNIPPETS: dict = {
                      'console.log("AZAZAEL-WORK-OK",t);'),
     "powershell": ('$t=0;for($i=0;$i -lt 20000;$i++){$t+=$i};'
                      'Write-Output "AZAZAEL-WORK-OK $t"'),
-    "bash": "t=0;for i in $(seq 1 20000);do t=$((t+i));done;echo AZAZAEL-WORK-OK $t",
+    "bash": ("t=0;for ((i=0;i<20000;i++));do t=$((t+i));done;"
+             "echo AZAZAEL-WORK-OK $t"),
 }
 
 EXPECTED_SUM = 20000 * 19999 // 2  # 199990000 — work goldens must print this
@@ -88,7 +84,9 @@ def run_shard(lang: str, tier: str = "instant") -> dict:
     if key not in table:
         return {"lang": key, "tier": tier, "status": "unknown-language", "ok": False}
     result = run_code(key, table[key])
-    if not result.success and "not found" in (result.stderr or ""):
+    # Case-insensitive: toolchain messages vary in case across runners,
+    # and the skip contract must not depend on a capital letter.
+    if not result.success and "not found" in (result.stderr or "").lower():
         detail = (result.stderr or "").strip().split("\n")[0][:120]
         return {"lang": key, "tier": tier, "status": "skipped", "ok": True,
                 "detail": f"toolchain missing: {detail}"}
@@ -101,6 +99,8 @@ def run_shard(lang: str, tier: str = "instant") -> dict:
             "success": result.success, "token": token_ok, "sum": sum_ok,
             "stdout": (result.stdout or "").strip()[:200],
             "stderr": (result.stderr or "").strip()[:300] if not ok else "",
+            # E8: raw stderr survives display truncation (D7) for forensics.
+            "stderr_bytes": (getattr(result, "stderr_bytes", "") or "")[:500] if not ok else "",
             "duration_ms": round(result.duration_ms, 1)}
 
 
@@ -242,24 +242,6 @@ def _atomic_write_json(path: Path, payload: dict) -> None:
         raise
 
 
-def _toolchain_versions() -> dict:
-    """Record runner versions at sweep time (D5: consumed by freshness check)."""
-    versions: dict = {}
-    try:
-        versions["node"] = NodeRunner().version
-        versions["pwsh"] = PwshRunner().version
-        versions["bash"] = ShRunner().version
-        versions["go"] = "go-present" if GoRunner().has_go else ""
-        versions["rust"] = "rust-present" if RustRunner().has_rustc else ""
-    except Exception as e:
-        note_failure("polyglot:versions", e)
-    try:
-        versions["python"] = sys.version.split()[0]
-    except Exception as e:
-        note_failure("polyglot:versions-python", e)
-    return versions
-
-
 def sweep(n: int = 10) -> dict:
     """Measure both golden tiers n times; write sweep.json; print tables.
 
@@ -307,7 +289,7 @@ def sweep(n: int = 10) -> dict:
               "n": n, "elapsed_s": round(time.time() - t_start, 1),
               "medians_ms": work_medians,  # routing table = WORK (D8)
               "instant_medians_ms": instant_medians,  # pipe health only
-              "versions": _toolchain_versions(),
+              "versions": _probe_toolchain_versions(),
               "rows": rows}
     _atomic_write_json(Path(__file__).with_name("sweep.json"), report)
     print(f"{'lang':<12}{'n':>4}  work-median  min/max  status")

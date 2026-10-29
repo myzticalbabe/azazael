@@ -9,14 +9,61 @@ moves. Doc-only skill families list ["doc"] — their SHARD.md IS the artifact.
 
 import datetime as _dt
 import json
+import sys
 import time
 from pathlib import Path
+
+from INTERPRETERS.go_runner import GoRunner
+from INTERPRETERS.node_runner import NodeRunner
+from INTERPRETERS.pwsh_runner import PwshRunner
+from INTERPRETERS.rust_runner import RustRunner
+from INTERPRETERS.sh_runner import ShRunner
 
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+
+def _probe_toolchain_versions() -> dict:
+    """Probe current toolchain versions (single source of truth, E5).
+
+    Lives here (not polyglot) so both sweep-time recording and
+    freshness-time comparison measure the SAME instrument. Probing
+    spawns 3 subprocesses (~250ms); sweep calls it once, freshness
+    goes through the cached _current_versions() below."""
+    versions: dict = {}
+    try:
+        versions["node"] = NodeRunner().version
+        versions["pwsh"] = PwshRunner().version
+        versions["bash"] = ShRunner().version
+        versions["go"] = "go-present" if GoRunner().has_go else ""
+        versions["rust"] = "rust-present" if RustRunner().has_rustc else ""
+    except Exception as e:
+        note_failure("registry:version-probe", e)
+    try:
+        versions["python"] = sys.version.split()[0]
+    except Exception as e:
+        note_failure("registry:version-probe-python", e)
+    return versions
+
+
+_VERSION_CACHE: dict = {"at": 0.0, "versions": {}}
+_VERSION_CACHE_TTL_S = 3600.0  # re-probe hourly per process
+
+
+def _current_versions() -> dict:
+    """Current toolchain versions, cached per process (E5).
+
+    sweep_freshness() runs on every route_lang call; uncached probes
+    would add ~250ms of spawns to the hot path. The cache keeps routing
+    free after the first call; an hourly re-probe bounds staleness."""
+    now = time.time()
+    if now - float(_VERSION_CACHE.get("at", 0.0)) > _VERSION_CACHE_TTL_S:
+        _VERSION_CACHE["versions"] = _probe_toolchain_versions()
+        _VERSION_CACHE["at"] = now
+    return dict(_VERSION_CACHE.get("versions", {}))
 
 SHARDS: dict = {
     "gateway": {
@@ -112,6 +159,17 @@ def sweep_freshness() -> dict:
     if not isinstance(versions, dict) or not versions:
         reasons = ["sweep.json predates versions (D5): re-run --sweep"]
         return {"fresh": False, "reasons": reasons}
+    # E5: compare sweep-time versions against current toolchains. A node
+    # upgrade that changes type-stripping behavior (or a vanished pwsh)
+    # silently invalidates the table even when no runner file changed.
+    current = _current_versions()
+    for key, swept in versions.items():
+        now = current.get(key, "")
+        if now != swept:
+            if not now:
+                reasons.append(f"toolchain gone since sweep: {key} was {swept!r}")
+            else:
+                reasons.append(f"toolchain drift: {key} {swept!r} -> {now!r}")
     try:
         gen = _dt.datetime.fromisoformat(str(data.get("generated_at", "")))
         age_h = (time.time() - gen.timestamp()) / 3600

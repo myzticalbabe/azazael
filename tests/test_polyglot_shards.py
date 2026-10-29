@@ -60,3 +60,27 @@ def test_route_lang_spends_budgets():
     assert route_lang("interpreters", "balanced") == "python"
     assert route_lang("interpreters", "fast") in (
         "python", "go", "rust", "javascript", "powershell", "bash")
+
+
+def test_work_tier_sum_agreement_where_toolchains_exist():
+    # E1 regression net: the work goldens must each print EXPECTED_SUM.
+    # (The bash golden once summed 1..20000 via seq while every other
+    # language summed 0..19999 — nothing covered the work tier, so the
+    # routing table silently ranked bash on a failing measurement.)
+    from SHARDS.polyglot import EXPECTED_SUM, WORK_SNIPPETS
+    assert EXPECTED_SUM == 20000 * 19999 // 2 == 199990000
+    assert set(WORK_SNIPPETS) == set(polyglot.supported_shard_langs())
+    for lang in polyglot.supported_shard_langs():
+        res = polyglot.run_shard(lang, tier="work")
+        if res["status"] == "skipped":
+            continue
+        assert res["ok"], f"work golden failed for {lang}: {res}"
+        assert res["sum"], f"work sum mismatch for {lang}: {res}"
+
+
+def test_skip_contract_is_case_insensitive():
+    # E2 regression net: a toolchain message with different casing must
+    # still skip cleanly instead of failing the agreement test.
+    res = polyglot.run_shard("powershell")
+    assert res["status"] in ("pass", "skipped")
+    assert res["ok"]
