@@ -76,6 +76,80 @@ def test_immune_requires_streak_and_order(tmp_path, monkeypatch):
     assert done["ok"] and done["to"] == "immune"
 
 
+def _mkcheckout(base, *parts):
+    marker = base.joinpath(*parts, "src", "SHARDS", "antibodies.py")
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("# marker", encoding="utf-8")
+    return str(base.joinpath(*parts))
+
+
+def test_discover_finds_marker_checkouts_only(tmp_path):
+    from SHARDS.antibodies import discover_checkouts
+    good = _mkcheckout(tmp_path, "a")
+    _mkcheckout(tmp_path, "a", "nested")  # inside a checkout: not double-counted
+    tmp_path.joinpath("b").mkdir()  # no marker: invisible
+    _mkcheckout(tmp_path, ".hidden", "c")  # hidden: never entered
+    _mkcheckout(tmp_path, "venv", "d")  # env dir: never entered
+    found = discover_checkouts(roots=[str(tmp_path)], max_depth=5)
+    assert found == [good]
+
+
+def test_discover_honors_depth_cap(tmp_path):
+    from SHARDS.antibodies import discover_checkouts
+    _mkcheckout(tmp_path, "x", "y", "z")
+    assert discover_checkouts(roots=[str(tmp_path)], max_depth=1) == []
+    assert len(discover_checkouts(roots=[str(tmp_path)], max_depth=5)) == 1
+
+
+def test_record_tags_root(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    record_seek("seq-range-mismatch", {"ok": True, "instances": []},
+                root="C:/fake/checkout")
+    gens = antibody_status("seq-range-mismatch")["generations"]
+    assert gens and gens[-1]["root"] == "C:/fake/checkout"
+
+
+def test_box_aggregates_per_root_and_unreachable(tmp_path, monkeypatch):
+    from SHARDS import antibodies as ab
+    monkeypatch.setattr(ab, "discover_checkouts",
+                        lambda roots=None, max_depth=5: ["r-clean", "r-dirty", "r-dead"])
+
+    def fake_seek(root, timeout=300):
+        if root == "r-clean":
+            return {"ok": True, "results": [
+                {"name": "seq-range-mismatch", "ok": True, "ran": 6, "instances": []},
+                {"name": "stale-table-routing", "ok": True, "ran": 1, "instances": []}]}
+        if root == "r-dirty":
+            return {"ok": False, "results": [
+                {"name": "seq-range-mismatch", "ok": False, "ran": 6,
+                 "instances": ["bash: sum mismatch"]},
+                {"name": "stale-table-routing", "ok": True, "ran": 1, "instances": []}]}
+        return {"unreachable": "timeout"}
+
+    monkeypatch.setattr(ab, "_seek_checkout", fake_seek)
+    rep = ab.seek_box(record=False)
+    assert not rep["ok"]
+    by_name = {r["name"]: r for r in rep["results"]}
+    assert by_name["seq-range-mismatch"]["instances"] == [
+        "r-dirty: bash: sum mismatch",
+        "r-dead: checkout unreachable (timeout)"]
+    assert by_name["stale-table-routing"]["instances"] == [
+        "r-dead: checkout unreachable (timeout)"]
+    assert rep["checkouts"] == ["r-clean", "r-dirty", "r-dead"]
+
+
+def test_seek_checkout_parses_own_report():
+    # Real subprocess against this checkout: proves the isolation path
+    # (run elsewhere, parse here) end to end.
+    import pathlib
+    from SHARDS.antibodies import _seek_checkout
+    repo = str(pathlib.Path(__file__).resolve().parents[1])
+    rep = _seek_checkout(repo, timeout=300)
+    assert rep["ok"] is True
+    assert {r["name"] for r in rep["results"]} == {
+        "seq-range-mismatch", "stale-table-routing"}
+
+
 def test_reinfection_reopens_and_backward_skip_refused(tmp_path, monkeypatch):
     _isolate(tmp_path, monkeypatch)
     for _ in range(3):
