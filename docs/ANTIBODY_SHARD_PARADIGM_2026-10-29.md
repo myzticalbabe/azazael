@@ -162,3 +162,24 @@ works in both directions. Status in `src/SHARDS/antibodies.json`:
 both `immune`. The remaining lifecycle proof is reinfection response
 (covered by tests: a failing seek reopens to `seeking`), which fires
 only when a real regression lands.
+
+## 10. Box scope (reengineered 2026-10-29 — the seek was repo-scoped)
+
+Owner intent: the antibody seeks itself on the entire box, not one
+checkout. Reengineered: marker-gated discovery (`src/SHARDS/antibodies.py`
+is the marker) over the repo parent + `AZAZAEL_BOX_ROOTS`, bounded depth,
+hidden/build/env dirs never entered; each discovered checkout is sought
+in its own subprocess (its code, its interpreter, its sweep.json — no
+cross-contamination) and generations are recorded per (antibody, root)
+in the one deed book. Box semantics are strict: ok requires every
+reachable checkout clean AND every discovered checkout reachable — an
+unreachable copy is recorded as an instance, so a stale checkout breaks
+the streak honestly instead of silently leaving the evidence.
+
+Live box outcome: 1 checkout discovered (`C:\Azazael\azazael`), both
+probes pass, per-root generations recorded (4 seeks each, streak
+intact, statuses stay `immune`). Two honest boundaries, both by design:
+pre-antibody checkouts carry no marker and are invisible until synced
+(discovery cannot find what does not advertise); and the default roots
+are conservative — the rest of the box joins via the env var, one path
+per line, no full-disk walk ever.

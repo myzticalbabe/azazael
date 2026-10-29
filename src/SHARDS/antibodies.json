@@ -1,6 +1,6 @@
 {
- "generation": 6,
- "updated_at": "2026-10-29T07:50:50.302189+00:00",
+ "generation": 8,
+ "updated_at": "2026-10-29T07:59:19.957973+00:00",
  "antibodies": {
   "seq-range-mismatch": {
    "status": "immune",
@@ -37,6 +37,15 @@
      "instances": [],
      "origin": "LAPTOP-8U5MSH3G",
      "uuid": "4248a4fd"
+    },
+    {
+     "gen": 7,
+     "at": "2026-10-29T07:59:19.955362+00:00",
+     "ok": true,
+     "instances": [],
+     "origin": "LAPTOP-8U5MSH3G",
+     "root": "C:\\Azazael\\azazael",
+     "uuid": "5812e738"
     }
    ]
   },
@@ -75,6 +84,15 @@
      "instances": [],
      "origin": "LAPTOP-8U5MSH3G",
      "uuid": "d4402710"
+    },
+    {
+     "gen": 8,
+     "at": "2026-10-29T07:59:19.957931+00:00",
+     "ok": true,
+     "instances": [],
+     "origin": "LAPTOP-8U5MSH3G",
+     "root": "C:\\Azazael\\azazael",
+     "uuid": "06ee2e84"
     }
    ]
   }

@@ -17,10 +17,11 @@ Usage:
 
 from SHARDS.registry import BUDGETS, SHARDS, route_lang, route_shard
 from SHARDS.polyglot import run_shard, self_test, supported_shard_langs, sweep
-from SHARDS.antibodies import (antibody_status, promote_antibody,
-                               run_antibody, seek_all)
+from SHARDS.antibodies import (antibody_status, discover_checkouts,
+                               promote_antibody, run_antibody, seek_all,
+                               seek_box)
 
 __all__ = ["SHARDS", "BUDGETS", "route_lang", "route_shard",
            "run_shard", "self_test", "supported_shard_langs", "sweep",
-           "run_antibody", "seek_all", "antibody_status",
-           "promote_antibody"]
+           "run_antibody", "seek_all", "seek_box", "antibody_status",
+           "promote_antibody", "discover_checkouts"]
