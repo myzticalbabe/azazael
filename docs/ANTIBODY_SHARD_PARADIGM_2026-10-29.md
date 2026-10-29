@@ -151,3 +151,14 @@ Kilo's lane (first real `trained_reward` -> morphed gen-1 promote)
 closes the parallel trainers loop; this store is compatible (resolve/
 list unchanged), and cross-host collision suffixes cover the case where
 both lanes promote the same generation number.
+
+## 9. Immunity achieved (same session, two further training seeks)
+
+Two more `--seek` runs recorded store generations 3-6 (three consecutive
+passing seeks per antibody, zero instances throughout). Both antibodies
+then promoted `neutralized -> immune` on the streak evidence; the gate
+that refused immunity at streak 1 accepted it at streak 3 — the rule
+works in both directions. Status in `src/SHARDS/antibodies.json`:
+both `immune`. The remaining lifecycle proof is reinfection response
+(covered by tests: a failing seek reopens to `seeking`), which fires
+only when a real regression lands.
