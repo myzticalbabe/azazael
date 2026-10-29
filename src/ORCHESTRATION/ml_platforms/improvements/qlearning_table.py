@@ -967,8 +967,11 @@ authors: Azazael System
             placeholders = issues.get("link_issues", [])
             for placeholder in placeholders:
                 if "placeholder" in str(placeholder):
+                    # A4 (2026-09-10 scope, fixed 2026-10-28): the link target
+                    # is unknown at generation time, so emit bold text with no
+                    # placeholder — a doc generator must not mint TODOs.
                     content = re.sub(
-                        r"\[([^\]]+)\]\(\s*#\s*\)", r"**\1** (TODO: add link)", content
+                        r"\[([^\]]+)\]\(\s*#\s*\)", r"**\1**", content
                     )
             path.write_text(content, encoding="utf-8")
             applied.append("Replaced placeholder links")

@@ -4,7 +4,9 @@
 # Usage: ./terence.sh [command]
 # ============================================================================
 
-export AZAZAEL_ROOT="${AZAZAEL_ROOT:-$HOME/Desktop/Azazael}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export AZAZAEL_ROOT="${AZAZAEL_ROOT:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
+TERENCE_PY="$AZAZAEL_ROOT/src/UTILITIES/TERENCE/TERENCE.py"
 
 case "${1:-}" in
     --help|-h|"")
@@ -19,9 +21,9 @@ case "${1:-}" in
         echo "  --help      - Show this help"
         ;;
     scan|fix|report)
-        python3 "$AZAZAEL_ROOT/TERENCE/TERENCE.py" --${1}
+        python3 "$TERENCE_PY" --${1}
         ;;
     *)
-        python3 "$AZAZAEL_ROOT/TERENCE/TERENCE.py" --scan
+        python3 "$TERENCE_PY" --scan
         ;;
 esac

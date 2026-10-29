@@ -171,6 +171,9 @@ class Calculator:
     except ComplianceError as e:
         print(f"  PASS: Correctly raised error: {e}\n")
     # Test 5: TODO comment should fail
+    # A3 EXEMPT (2026-09-10 scope, re-verified 2026-10-28): the TODO below is
+    # an intentional test fixture proving enforce_compliance rejects TODOs —
+    # not tech debt. Do not "fix" it; Test 5 fails if it is removed.
     print("Test 5: TODO comment should raise ComplianceError...")
     invalid_code_todo = '''def handle():
     # TODO: fix this later

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1920, initial-scale=1"/>
+<title>Yggdrasil Shard Cycle — Episode 01: Worms</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;background:#060b18;overflow:hidden;font-family:'Sora',system-ui,sans-serif}
+  #stage{position:absolute;inset:0}
+  canvas{position:absolute;inset:0}
+  .hud{position:absolute;top:40px;left:0;right:0;text-align:center;z-index:5;pointer-events:none}
+  .kicker{display:inline-block;letter-spacing:.35em;font-size:15px;color:#7df9ff;border:1px solid #7df9ff55;padding:9px 22px;border-radius:999px;background:#00e5ff11;margin-bottom:14px}
+  h1{font-size:60px;font-weight:800;background:linear-gradient(92deg,#fff 10%,#7df9ff 45%,#ffd479 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin-top:8px;font-size:20px;color:#aeb9d6}
+  .caption{position:absolute;bottom:32px;left:0;right:0;text-align:center;z-index:5;font-family:'JetBrains Mono',monospace;font-size:17px;color:#8b96b3;pointer-events:none}
+  .caption b{color:#ffd479}
+  #fade{position:absolute;inset:0;background:#060b18;z-index:10;pointer-events:none;transition:opacity 1.2s ease;opacity:1}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="tree" width="1920" height="1080"></canvas></div>
+<div class="hud"><div class="kicker">AZAZAEL • SHARD CYCLE • EPISODE 01</div><h1>Worms — 24 Shards Reincarnate</h1><div class="sub">150 files • 72,373 lines • 146 registered • one limb gives back its light</div></div>
+<div class="caption" id="cap"></div>
+<div id="fade"></div>
+<script>
+// Deterministic pilot: draw(p) is a pure function of milliseconds.
+// Capture driver calls window.__draw(t) per frame.
+const cv=document.getElementById('tree'),ctx=cv.getContext('2d');
+const cap=document.getElementById('cap');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=mulberry32(20261029);
+const HUE='#7df9ff', HUE2='#00ffa3', GOLD='#ffd479';
+const GROUND=950;
+const T_GROW=8000, T_SHED=18000, T_SAP=28000, T_GUARD=34000, TOTAL=38000;
+window.__TOTAL=TOTAL; window.__done=false;
+document.getElementById('fade').style.opacity=0;
+
+// ---- limb fractal (worms limb, left side) ----
+const segs=[];
+function branch(x,y,ang,len,w,depth){
+  const x1=x+Math.cos(ang)*len,y1=y+Math.sin(ang)*len;
+  segs.push({x0:x,y0:y,x1:x1,y1:y1,w:w,depth:depth});
+  if(depth<=0||len<9){
+    for(let i=0;i<3;i++)segs.push({x0:x1,y0:y1,x1:x1+(R()-.5)*26,y1:y1+(R()-.5)*26,w:1.5,depth:-1,leaf:true});
+    return;
+  }
+  const n=depth>5?2:(R()<.82?2:3);
+  for(let i=0;i<n;i++){const na=ang+(R()-.5)*(depth>5?.5:.9)+(i-(n-1)/2)*.38;branch(x1,y1,na,len*(.68+R()*.12),w*.66,depth-1);}
+}
+branch(940,1080,-Math.PI/2,150,26,4);                 // trunk stub
+branch(900,930,-Math.PI/2-0.34,130,13,7);              // worms limb
+// canopy anchor points = leaf-cluster tips of the limb (only depth -1 on left half)
+const canopy=segs.filter(s=>s.leaf&&s.x0<1000).map(s=>({x:s.x0,y:s.y0}));
+// ---- 24 shards: anchor, delay, drift, landing slot on a ground ring ----
+const SHARDS=[];
+for(let i=0;i<24;i++){
+  const a=canopy[Math.floor(R()*canopy.length)];
+  const delay=T_GROW+ R()*6000;
+  const landX=960+(i-11.5)*52+(R()-.5)*18;
+  SHARDS.push({x0:a.x,y0:a.y,delay:delay,landX:landX,drift:(R()-.5)*140,fall:3200+R()*1800,spin:R()*6.28});
+}
+// ---- sapling: young fractal grown at center ground ----
+const sap=[];
+(function(){const sv=[];function b(x,y,ang,len,w,d){const x1=x+Math.cos(ang)*len,y1=y+Math.sin(ang)*len;sv.push({x0:x,y0:y,x1:x1,y1:y1,w:w,d:d});if(d<=0||len<8)return;const n=R()<.8?2:3;for(let i=0;i<n;i++)b(x1,y1,ang+(R()-.5)*.8+(i-(n-1)/2)*.4,len*.7,w*.68,d-1);}b(960,GROUND,-Math.PI/2,46,7,5);sv.forEach(s=>sap.push(s));})();
+// ---- guardian: 7-segment worm-guardian standing right of sapling ----
+const GX=1230, GB=GROUND; // feet baseline
+function guardian(progress){
+  // progress 0..1 assembles bottom-up; returns list of drawn parts
+  const parts=[];
+  const segN=7;
+  for(let i=0;i<segN;i++){
+    const on=progress* (segN+4) - i; if(on<=0)continue;
+    const k=Math.min(1,on);
+    const w=(64-i*6)*k, y=GB-14-i*34;
+    parts.push({kind:'seg',x:GX,y:y,w:w,h:30});
+  }
+  if(progress>.62){parts.push({kind:'head',x:GX,y:GB-14-7*34-6});parts.push({kind:'eyes',x:GX,y:GB-14-7*34-6});}
+  if(progress>.74){for(const s of [-1,1]){parts.push({kind:'arm',x:GX,y:GB-120,s:s});}}
+  if(progress>.5){for(const s of [-1,1]){parts.push({kind:'leg',x:GX,y:GB,s:s});}}
+  return parts;
+}
+function draw(p){
+  ctx.clearRect(0,0,1920,1080);
+  const g=ctx.createRadialGradient(960,700,50,960,700,720);
+  g.addColorStop(0,"rgba(0,229,255,.10)");g.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,1920,1080);
+  ctx.lineCap="round";
+  // ground line
+  ctx.strokeStyle="#1d2740";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(120,GROUND);ctx.lineTo(1800,GROUND);ctx.stroke();
+  // Act 1: limb grows
+  const rev1=Math.min(1,p/T_GROW*1.12);
+  for(const s of segs){
+    const local=Math.max(0,Math.min(1,rev1*1.15-(s.depth<0?.02:(8-s.depth)*.015)));
+    if(local<=0)continue;
+    const x1=s.x0+(s.x1-s.x0)*local,y1=s.y0+(s.y1-s.y0)*local;
+    if(s.leaf){ctx.fillStyle=HUE+"55";ctx.beginPath();ctx.arc(x1,y1,3.2,0,7);ctx.fill();continue;}
+    ctx.strokeStyle=s.hue||HUE;ctx.globalAlpha=s.depth<=0?.85:.95;ctx.lineWidth=Math.max(1,s.w*local);
+    ctx.shadowColor=HUE;ctx.shadowBlur=s.depth>4?14:6;
+    ctx.beginPath();ctx.moveTo(s.x0,s.y0);ctx.lineTo(x1,y1);ctx.stroke();
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+  }
+  // Act 2+3: shards fall, land, glow
+  const landed=[];
+  for(let i=0;i<SHARDS.length;i++){
+    const s=SHARDS[i];
+    const t=(p-s.delay)/s.fall;
+    if(t<=0)continue;
+    if(t>=1){landed.push(s);drawShard(s.landX,GROUND-6,i,true);continue;}
+    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // easeInOut
+    const x=s.x0+(s.landX-s.x0)*e+Math.sin(t*6+s.spin)*24*(1-t);
+    const y=s.y0+(GROUND-6-s.y0)*e;
+    // trail
+    ctx.strokeStyle=HUE+"44";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(s.x0,s.y0);ctx.lineTo(x,y);ctx.stroke();
+    drawShard(x,y,i,false);
+  }
+  // Act 3: sapling grows from landed light
+  if(p>T_SHED){
+    const q=Math.min(1,(p-T_SHED)/(T_SAP-T_SHED)*1.1);
+    for(const s of sap){
+      const local=Math.max(0,Math.min(1,q*1.2-(5-s.d)*.06));
+      if(local<=0)continue;
+      const x1=s.x0+(s.x1-s.x0)*local,y1=s.y0+(s.y1-s.y0)*local;
+      ctx.strokeStyle=HUE2;ctx.globalAlpha=.95;ctx.lineWidth=Math.max(1,s.w*local);
+      ctx.shadowColor=HUE2;ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(s.x0,s.y0);ctx.lineTo(x1,y1);ctx.stroke();
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+    }
+    ctx.font="700 20px 'JetBrains Mono',monospace";ctx.textAlign="center";ctx.fillStyle=HUE2;
+    if(q>.7){ctx.globalAlpha=(q-.7)/.3;ctx.fillText("sapling • 2nd incarnation",880,GROUND+38);ctx.globalAlpha=1;}
+  }
+  // Act 4: guardian assembles right of sapling
+  if(p>T_SAP){
+    const gp=Math.min(1,(p-T_SAP)/(T_GUARD-T_SAP));
+    for(const part of guardian(gp)){
+      ctx.shadowColor=HUE;ctx.shadowBlur=12;
+      if(part.kind==='seg'){ctx.fillStyle="#0e2233";ctx.strokeStyle=HUE;ctx.lineWidth=3;
+        ctx.beginPath();ctx.ellipse(part.x,part.y,part.w/2,part.h/2,0,0,7);ctx.fill();ctx.stroke();
+        ctx.fillStyle=HUE+"88";ctx.beginPath();ctx.ellipse(part.x-8,part.y-4,4,6,0,0,7);ctx.fill();}
+      else if(part.kind==='head'){ctx.fillStyle="#0e2233";ctx.strokeStyle=HUE;ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(part.x,part.y,26,0,7);ctx.fill();ctx.stroke();}
+      else if(part.kind==='eyes'){ctx.fillStyle="#fff";ctx.shadowBlur=16;
+        ctx.beginPath();ctx.arc(part.x-9,part.y-3,5.5,0,7);ctx.fill();
+        ctx.beginPath();ctx.arc(part.x+9,part.y-3,5.5,0,7);ctx.fill();}
+      else if(part.kind==='arm'){ctx.strokeStyle=HUE;ctx.lineWidth=7;
+        ctx.beginPath();ctx.moveTo(part.x,part.y);ctx.lineTo(part.x+part.s*64,part.y+38);ctx.stroke();}
+      else if(part.kind==='leg'){ctx.strokeStyle=HUE;ctx.lineWidth=9;
+        ctx.beginPath();ctx.moveTo(part.x+part.s*16,GB-16);ctx.lineTo(part.x+part.s*30,GB);ctx.stroke();}
+      ctx.shadowBlur=0;
+    }
+    if(gp>.85){ctx.font="700 20px 'JetBrains Mono',monospace";ctx.textAlign="center";ctx.fillStyle=HUE;
+      ctx.globalAlpha=(gp-.85)/.15;ctx.fillText("guardian • 3rd incarnation",1290,GROUND+68);ctx.globalAlpha=1;}
+  }
+  // captions
+  if(p<T_GROW)cap.innerHTML="the worms limb holds <b>146 registered</b>…";
+  else if(p<T_SHED+2000)cap.innerHTML="shedding — <b>24 shards</b> fall, one per half-dozen worms";
+  else if(p<T_SAP)cap.innerHTML="landing — shard-light pools on the <b>forest floor</b>";
+  else if(p<T_GUARD)cap.innerHTML="second incarnation — a <b>sapling</b> rises from the light";
+  else cap.innerHTML="YGGDRASIL SHARD CYCLE 01 • <b>limb → 24 shards → sapling → guardian</b>";
+  function drawShard(x,y,i,rest){
+    ctx.save();ctx.translate(x,y);ctx.rotate(p/900+i);
+    ctx.fillStyle=rest?GOLD:HUE;ctx.shadowColor=rest?GOLD:HUE;ctx.shadowBlur=rest?18:10;
+    ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(6,0);ctx.lineTo(0,9);ctx.lineTo(-6,0);ctx.closePath();ctx.fill();
+    ctx.restore();ctx.shadowBlur=0;
+    if(!rest&&p%3<1.2){ctx.font="14px 'JetBrains Mono',monospace";ctx.fillStyle="#5b6a8a";ctx.textAlign="center";ctx.fillText("S-"+String(i+1).padStart(2,"0"),x,y-16);}
+  }
+}
+window.__draw=draw;
+// live playback (also used by capture driver per-frame)
+(function(){const T0=performance.now();function frame(){const p=performance.now()-T0;draw(p);if(p>=TOTAL){window.__done=true;return;}requestAnimationFrame(frame);}requestAnimationFrame(frame);})();
+</script>
+</body>
+</html>
