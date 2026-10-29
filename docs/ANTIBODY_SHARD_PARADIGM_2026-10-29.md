@@ -117,12 +117,37 @@ An antibody fits without new machinery:
    failures (diverged runs, NaN rewards), or do training-path antibodies stay
    local until the outer loop closes? Undecided — flagging, not blocking.
 
-## 7. Minimal pilot (if approved)
+## 7. Minimal pilot (as built — differs from proposal in two places)
 
-1. One JSON antibody for `seq-range-mismatch` under
-   `src/CORE/compliance/antibodies/`, loaded by the scanner as an extra rule.
-2. `tools/antibody_derive.py --from "ledger-key"` that prints a candidate
-   probe + the instances it finds (derive-only; promotion stays manual).
-3. Status line in the session-improvements log when an antibody retires.
+Built: `src/SHARDS/antibodies.py` (specs, probes, generational store,
+seek/record/promote, `--seek/--list/--status/--promote` CLI), `antibodies`
+shard entry + route keywords in `src/SHARDS/registry.py`, exports in
+`src/SHARDS/__init__.py`, `tests/test_antibodies.py` (7 tests), deed book
+`src/SHARDS/antibodies.json` (atomic + locked, same D1/D2 pattern).
 
-No new runtime, no new gate, no new dependency. Three files.
+Deviations from the §7 proposal, both deliberate:
+- Store lives beside the shard (`src/SHARDS/antibodies.json`), not under
+  `src/CORE/compliance/` — antibodies are shards first, scanner rules
+  second; loading them into the scanner is still open (question 3).
+- No `tools/antibody_derive.py` yet — cloning is manual until five
+  antibodies prove the shape (question 1 stands).
+
+## 8. Pilot outcome, measured live 2026-10-29
+
+Train (live `--seek`): both probes pass — work tier ran 6/6 toolchains
+with zero sum mismatches, forced-stale degraded to canonical order.
+Recorded as store generation 1 (both antibodies, with uuid + origin).
+
+Evolve (promote on evidence): both `seeking -> neutralized` accepted on
+the passing seeks. `neutralized -> immune` correctly REFUSED for both
+(streak 1 < 3 required) — immunity is unearned, and the gate said so.
+Reinfection path verified in tests (fail record -> `seeking` reopens).
+
+Loop status: exposure (E-series) -> seeking (gen-1 recorded) ->
+neutralized (promoted on evidence) is closed and committed in
+`src/SHARDS/antibodies.json`. The remaining open step is `immune`,
+which needs two more consecutive clean seeks — i.e., time, not code.
+Kilo's lane (first real `trained_reward` -> morphed gen-1 promote)
+closes the parallel trainers loop; this store is compatible (resolve/
+list unchanged), and cross-host collision suffixes cover the case where
+both lanes promote the same generation number.
