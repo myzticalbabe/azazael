@@ -78,6 +78,20 @@ def test_work_tier_sum_agreement_where_toolchains_exist():
         assert res["sum"], f"work sum mismatch for {lang}: {res}"
 
 
+def test_stale_sweep_falls_back_to_canonical_order():
+    # Owner decision 2026-10-29: a stale table degrades to canonical
+    # preference, never spends stale numbers. MAX_AGE=-1 makes every
+    # table stale by age, deterministically, on any machine.
+    import SHARDS.registry as reg
+    old = reg.SWEEP_MAX_AGE_HOURS
+    reg.SWEEP_MAX_AGE_HOURS = -1
+    try:
+        assert reg.sweep_freshness()["fresh"] is False
+        assert reg._measured_order() == list(reg.LANG_ORDER)
+    finally:
+        reg.SWEEP_MAX_AGE_HOURS = old
+
+
 def test_skip_contract_is_case_insensitive():
     # E2 regression net: a toolchain message with different casing must
     # still skip cleanly instead of failing the agreement test.
