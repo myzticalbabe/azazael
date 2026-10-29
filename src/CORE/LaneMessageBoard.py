@@ -25,12 +25,13 @@ survive session restarts — unlike message-history.json which is ephemeral chat
 from __future__ import annotations
 
 import json
+import sqlite3
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from CORE.MemoryBus import MemoryBus, BusMessage
+from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 
 
 @dataclass
@@ -447,6 +448,92 @@ class LaneMessageBoard:
 
         return out[:limit]
 
+
+    def poll_status(
+        self,
+        lane: str,
+        since_id: int = 0,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """Poll status updates posted by a lane.
+
+        Status rows were previously write-only across processes: post_status
+        publishes via the bus, but MemoryBus.poll only sees the same-process
+        in-memory queue (PAMS has no list/query endpoint), so cross-instance
+        readers saw nothing. This mirrors poll_tasks: it merges the live bus
+        poll with the shared persistent SQLite queue, deduplicates by durable
+        row id, and returns newest-first when uncursored (same board-blindness
+        fix as _poll_persistent_queue).
+
+        Returns status dicts with an extra `_row_id` key (the durable queue
+        id) for max-id-checked posting discipline.
+        """
+        if lane not in self.VALID_LANES:
+            raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
+
+        topic = self._status_topic(lane)
+        msgs = self._bus.poll(topic=topic, since_id=since_id, limit=limit)
+        persistent = self._poll_persistent_queue(topic, since_id, limit)
+
+        seen: set = set()
+        rows: List[Dict[str, Any]] = []
+
+        for m in msgs:
+            mid = m.message_id
+            if mid in seen:
+                continue
+            seen.add(mid)
+            try:
+                content = m.content if isinstance(m.content, dict) else json.loads(m.content)
+            except Exception:
+                continue
+            if isinstance(content, dict):
+                content = dict(content)
+                content.setdefault("_row_id", mid)
+                rows.append(content)
+
+        for p in persistent:
+            mid = p["id"]
+            if mid in seen:
+                continue
+            seen.add(mid)
+            try:
+                content = p["content"]
+                if not isinstance(content, dict):
+                    continue
+                content = dict(content)
+                content.setdefault("_row_id", mid)
+                rows.append(content)
+            except Exception:
+                continue
+
+        def _order(r: Dict[str, Any]):
+            try:
+                rid = int(r.get("_row_id", 0))
+            except Exception:
+                rid = -1
+            if rid >= 0:
+                return (0, rid)
+            return (1, 0)
+
+        rows.sort(key=_order)
+        return rows[:limit]
+
+    def max_id(self) -> int:
+        """Return the highest durable queue row id (for max-id-checked posting)."""
+        top = 0
+        try:
+            conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
+        except Exception:
+            conn = None
+        if conn is not None:
+            try:
+                row = conn.execute("SELECT MAX(id) FROM memorybus_queue").fetchone()
+                if row and row[0] is not None:
+                    top = int(row[0])
+            finally:
+                conn.close()
+        return top
 
     def poll_and_deliver(self) -> int:
         """Poll all lanes' task topics and deliver to subscribers.
