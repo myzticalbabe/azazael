@@ -80,6 +80,14 @@ SHARDS: dict = {
         "notes": "Runner fleet. Python hosts; every other language executes "
                  "through its dedicated runner module.",
     },
+    "antibodies": {
+        "paths": ["src/SHARDS/antibodies.py"],
+        "langs": ["python"],
+        "canonical": "python",
+        "notes": "Error-derived detectors. Each antibody is cloned from one "
+                 "observed instance and seeks every recurrence; status "
+                 "advances seeking->neutralized->immune on recorded evidence.",
+    },
     "skills-core": {
         "paths": ["azazael-conventions", "azazael-testing", "azazael-git",
                   "azazael-sop", "azazael-mandates"],
@@ -250,6 +258,8 @@ SHARD_KEYWORDS: dict = {
     "gateway": ["gateway", "llama-server", "upstream", "chat/completions"],
     "interpreters": ["runner", "go_runner", "rust_runner", "node_runner",
                      "pwsh_runner", "sh_runner", "polyglot"],
+    "antibodies": ["antibody", "antibodies", "immune", "seek",
+                   "drift", "work golden", "stale sweep", "regression"],
     "skills-inference": ["inference", "provider", "nim", "llm"],
     "skills-worms": ["worm", "cluster", "registry"],
     "skills-devtools": ["devtools", "chrome", "lighthouse", "dom"],

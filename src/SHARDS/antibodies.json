@@ -1,0 +1,50 @@
+{
+ "generation": 2,
+ "updated_at": "2026-10-29T07:44:15.784456+00:00",
+ "antibodies": {
+  "seq-range-mismatch": {
+   "status": "neutralized",
+   "signature": {
+    "namespace": "polyglot",
+    "handler_role": "work-golden",
+    "exc_type": "none",
+    "message_shape": "work sum != EXPECTED_SUM",
+    "ast_shape": "n/a (data bug, not structural)",
+    "first_seen": "2026-10-29",
+    "parent_instance": "bash work golden summed 1..20000 via seq"
+   },
+   "generations": [
+    {
+     "gen": 1,
+     "at": "2026-10-29T07:44:06.589832+00:00",
+     "ok": true,
+     "instances": [],
+     "origin": "LAPTOP-8U5MSH3G",
+     "uuid": "b5ee9df9"
+    }
+   ]
+  },
+  "stale-table-routing": {
+   "status": "neutralized",
+   "signature": {
+    "namespace": "registry",
+    "handler_role": "_measured_order",
+    "exc_type": "none",
+    "message_shape": "stale medians spent as measurements",
+    "ast_shape": "n/a (policy bug, not structural)",
+    "first_seen": "2026-10-29",
+    "parent_instance": "stale sweep.json drove route_lang with warning only"
+   },
+   "generations": [
+    {
+     "gen": 2,
+     "at": "2026-10-29T07:44:06.824556+00:00",
+     "ok": true,
+     "instances": [],
+     "origin": "LAPTOP-8U5MSH3G",
+     "uuid": "b583a98c"
+    }
+   ]
+  }
+ }
+}

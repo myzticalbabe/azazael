@@ -51,6 +51,12 @@ node_modules/
 *.tmp
 *~
 
+# Antibody/morphed store sidecar locks (2026-10-29): content-free flock
+# handles recreated on demand by _store_lock(); the deed books themselves
+# (antibodies.json, morphed_registry.json) stay tracked.
+src/SHARDS/*.lock
+src/CORE/*.lock
+
 # Mypy
 .mypy_cache/
 
