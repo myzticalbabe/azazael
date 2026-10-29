@@ -13,23 +13,17 @@ and exits 0. stdout agreement across languages IS the test.
 
 import argparse
 import json
-import os
 import re
 import statistics
 import sys
-import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from CORE.atomic_store import atomic_write_json
+from CORE.failure_ledger import note_failure
 from INTERPRETERS import run_code, supported_languages
 from SHARDS.registry import LANG_ORDER, SHARDS, _probe_toolchain_versions, route_lang
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 GOLDEN_TOKEN = "AZAZAEL-GOLDEN-OK"
 WORK_TOKEN = "AZAZAEL-WORK-OK"
@@ -221,25 +215,8 @@ def prune_build_dirs(max_age_days: int = 14) -> dict:
 
 
 def _atomic_write_json(path: Path, payload: dict) -> None:
-    """Atomic JSON write (D1, shared pattern): temp + os.replace."""
-    raw = (json.dumps(payload, indent=1) + "\n").encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent),
-                                prefix="." + path.stem + ".", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(raw)
-            fh.flush()
-            try:
-                os.fsync(fh.fileno())
-            except OSError as e:
-                note_failure("polyglot:fsync", e)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.unlink(tmp)
-        except OSError as e:
-            note_failure("polyglot:tmp-cleanup", e)
-        raise
+    """Atomic JSON write (D1) via CORE.atomic_store — single implementation."""
+    atomic_write_json(path, payload, "shards")
 
 
 def sweep(n: int = 10) -> dict:

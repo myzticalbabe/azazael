@@ -26,32 +26,18 @@ an exclusive lock (D2), and must be committed + synced like code.
 
 import json
 import math
-import os
 import socket
-import tempfile
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-try:
-    import fcntl  # POSIX file locking (absent on Windows)
-except ImportError:
-    fcntl = None  # type: ignore[assignment]
-try:
-    import msvcrt  # Windows file locking (absent on POSIX)
-except ImportError:
-    msvcrt = None  # type: ignore[assignment]
-
 import numpy as np
 
 from ML.nsga import NSGA2
 
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
+from CORE.atomic_store import atomic_write_json, file_lock
+from CORE.failure_ledger import note_failure
 
 
 # Searchable numeric knobs per algo: (key, low, high, log_scale).
@@ -84,69 +70,17 @@ def _load_store() -> dict:
 
 
 def _save_store(store: dict) -> None:
-    """Atomic write: temp file in same dir + os.replace (D1).
-
-    A crash mid-write leaves the old file intact — never a truncated
-    JSON that the loader would silently reset to generation 0."""
+    """Atomic write via CORE.atomic_store (D1) — single implementation."""
     store["updated_at"] = datetime.now(timezone.utc).isoformat()  # E7: UTC, like sweep.json
-    payload = (json.dumps(store, indent=1) + "\n").encode("utf-8")
-    fd, tmp = tempfile.mkstemp(dir=str(_STORE_PATH.parent),
-                                prefix=".morphed_registry.", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(payload)
-            fh.flush()
-            try:
-                os.fsync(fh.fileno())
-            except OSError as e:
-                note_failure("morphed_trainers:fsync", e)
-        os.replace(tmp, _STORE_PATH)
-    except BaseException:
-        try:
-            os.unlink(tmp)
-        except OSError as e:
-            note_failure("morphed_trainers:tmp-cleanup", e)
-        raise
+    atomic_write_json(_STORE_PATH, store, "morphed_trainers")
 
 
 @contextmanager
 def _store_lock():
-    """Cross-platform exclusive lock for read-modify-write (D2).
-
-    POSIX: fcntl.flock. Windows: msvcrt.locking on a sidecar lock file.
-    Yields the lock path; no-op fallback (with ledger note) only when
-    neither mechanism imports — never silently."""
-    lock_path = _STORE_PATH.with_suffix(".lock")
-    fh = open(str(lock_path), "ab")  # noqa: PTH123 -- lock file needs raw handle (binary: no encoding)
-    try:
-        if fcntl is not None:
-            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
-            fh._lock_kind = "flock"
-        elif msvcrt is not None:
-            try:
-                fh.seek(0)
-                msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
-                fh._lock_kind = "msvcrt"
-            except OSError as e:
-                note_failure("morphed_trainers:msvcrt-lock", e)
-                fh._lock_kind = "none"
-        else:
-            note_failure("morphed_trainers:no-lock-primitive", None)
-            fh._lock_kind = "none"
+    """Exclusive lock for read-modify-write (D2) — via CORE.atomic_store."""
+    with file_lock(_STORE_PATH.with_suffix(".lock"),
+                    "morphed_trainers") as lock_path:
         yield lock_path
-    finally:
-        try:
-            kind = getattr(fh, "_lock_kind", "none")
-            if kind == "flock" and fcntl is not None:
-                fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
-            elif kind == "msvcrt" and msvcrt is not None:
-                fh.seek(0)
-                try:
-                    msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
-                except OSError as e:
-                    note_failure("morphed_trainers:unlock", e)
-        finally:
-            fh.close()
 
 
 def _decode(genome, knobs: list) -> dict:
