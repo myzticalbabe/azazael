@@ -39,13 +39,27 @@ def _treerel(mod, path):
     is same-ARTIFACT (observer reads what the producer writes), not
     same-absolute-path -- relativize each side to its own tree and compare
     those. A genuine drift (different relative artifacts) still fails.
+
+    2026-10-30: the tree is found by its REPOSITORY marker first. The old
+    `src` + `scripts` heuristic silently picked `src/` for every CORE module,
+    because this worktree carries untracked `src/src/` and `src/scripts/`
+    directories -- so an observer path relativised to `..\\state\\...` while the
+    producer's relativised to `state\\...`, and
+    test_algorithm_lab_path_matches_producer failed on its own normalisation
+    while both constants named the SAME file. `.git` cannot be faked by a
+    stray copy of a directory tree.
     """
     anchor = Path(getattr(mod, "__file__", "") or ".").resolve()
     root = anchor.parent
     for cand in [anchor.parent, *anchor.parents]:
-        if (cand / "src").is_dir() and (cand / "scripts").is_dir():
+        if (cand / ".git").exists():
             root = cand
             break
+    else:
+        for cand in [anchor.parent, *anchor.parents]:
+            if (cand / "src").is_dir() and (cand / "scripts").is_dir():
+                root = cand
+                break
     try:
         return os.path.normcase(os.path.relpath(
             os.path.abspath(str(path)), str(root)))
