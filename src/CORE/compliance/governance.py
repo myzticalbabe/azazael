@@ -11,6 +11,7 @@ Components:
 
 import json
 import sqlite3
+import time
 import threading
 from collections import Counter
 from dataclasses import dataclass
@@ -628,6 +629,13 @@ class BehavioralGraphAnalyzer:
         return f"BehavioralGraphAnalyzer(actions={len(self._actions)})"
 
 
+
+def _chunks(items: list, size: int):
+    """Yield `items` in `size`-sized slices (SQLite parameter-count safety)."""
+    for k in range(0, len(items), size):
+        yield items[k:k + size]
+
+
 # ---------------------------------------------------------------------------
 # Dual-Ledger Validator (RULE 0Y-4)
 # ---------------------------------------------------------------------------
@@ -656,6 +664,22 @@ class DualLedgerValidator:
         self._memory_db = Path(memory_db_path or str(Path.home() / ".azazael" / "memory_store.db"))
         self._lock = threading.Lock()
 
+    #: Wall-clock budget for the memory half of a comparison.
+    #:
+    #: The DirectMemory store measured 5.4 GB / 4,028,967 rows on the dev host
+    #: on 2026-10-30. The previous implementation answered "which sessions do
+    #: both ledgers share?" by issuing `SELECT * FROM memories ... fetchall()`
+    #: and materialising every row in Python. That blocked the first test to
+    #: reach check_all() for minutes -- faulthandler named the frame exactly:
+    #: governance.py:791 (_read_memory_events) <- cross_validate <-
+    #: check_rule_0y <- check_all. Two test files therefore hung, no suite run
+    #: ever completed, and the compliance gate silently cost minutes per call.
+    #:
+    #: Nothing here reads a row it does not need: the audit side is a 9.3 MB
+    #: JSONL read, the memory side is indexed lookups scoped to the sessions the
+    #: audit trail names, and the whole comparison is abandoned at this deadline.
+    MEMORY_BUDGET_S = 2.0
+
     def cross_validate(self, session_id: (str | None) = None) -> dict[str, Any]:
         """Cross-validate the audit trail against DirectMemory.
 
@@ -666,60 +690,74 @@ class DualLedgerValidator:
         sessions that exist in only one ledger.
 
         Returns:
-            dict with consistent flag and discrepancy details
+            dict with `consistent`, `comparable`, and discrepancy details.
+
+            `comparable` is the honest qualifier: it is False when no session id
+            is spelled the same way in both ledgers. In that case nothing was
+            compared, and `consistent` is True only because there is no
+            evidence of inconsistency -- not because the two ledgers agreed.
+            Callers that need a real verdict must check `comparable` first.
         """
-        discrepancies = []
+        deadline = time.monotonic() + self.MEMORY_BUDGET_S
+        audit_events = self._read_audit_trail(session_id)
 
-        # Read ALL events from both stores first
-        audit_events = self._read_audit_trail(None)
-        memory_events = self._read_memory_events(None)
-
-        # Extract session IDs from both ledgers
         audit_sessions: set[str] = set()
         for e in audit_events:
             sid = e.get("session_file", "") or e.get("session_uuid", "")
             if sid:
                 audit_sessions.add(sid)
 
-        memory_sessions: set[str] = set()
-        for e in memory_events:
-            sid = e.get("session_id", "")
-            if sid:
-                memory_sessions.add(sid)
+        memory_sessions = self._memory_sessions_present(audit_sessions, deadline)
 
-        # Determine which sessions to compare
         if session_id:
-            matching_sessions = {session_id} if session_id in audit_sessions or session_id in memory_sessions else set()
+            matching_sessions = (
+                {session_id}
+                if session_id in audit_sessions or session_id in memory_sessions
+                else set()
+            )
         else:
             matching_sessions = audit_sessions & memory_sessions
 
-        # When zero sessions overlap (different time windows or ID schemes),
-        # comparing unfiltered lists guarantees false discrepancies.
-        # Return consistent so the gate doesn't block on a time-window
-        # mismatch rather than an actual integrity violation.
-        if not matching_sessions:
-            return {
-                "consistent": True,
-                "discrepancies": [],
-                "total_audit_events": len(audit_events),
-                "total_memory_events": len(memory_events),
-                "matching_sessions": 0,
-                "note": "No overlapping sessions between ledgers — different time windows.",
-                "validated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            }
-            audit_events = [
-                e for e in audit_events
-                if (e.get("session_file", "") or e.get("session_uuid", "")) in matching_sessions
-            ]
-            memory_events = [
-                e for e in memory_events
-                if e.get("session_id", "") in matching_sessions
-            ]
+        base: dict[str, Any] = {
+            "total_audit_events": len(audit_events),
+            "memory_budget_s": self.MEMORY_BUDGET_S,
+            "validated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
 
-        # Compare counts for event types that matter
+        if not matching_sessions:
+            # The audit trail keys on session_file/session_uuid; DirectMemory
+            # keys on its own session_id. On this host the two never coincide
+            # (measured 2026-10-30: 1,391 audit ids, 0 present in the store).
+            # Comparing unfiltered lists would manufacture discrepancies, so the
+            # comparison is reported as NOT PERFORMED rather than as a pass.
+            return {
+                **base,
+                "consistent": True,
+                "comparable": False,
+                "discrepancies": [],
+                "total_memory_events": None,
+                "matching_sessions": 0,
+                "memory_sessions_scanned": len(memory_sessions),
+                "note": (
+                    "No session id is shared between the two ledgers "
+                    "(audit: session_file/session_uuid; DirectMemory: session_id). "
+                    "Nothing was compared."
+                ),
+            }
+
+        memory_counts = self._memory_event_counts(matching_sessions, deadline)
+        audit_scoped = [
+            e
+            for e in audit_events
+            if (e.get("session_file", "") or e.get("session_uuid", "")) in matching_sessions
+        ]
+
+        discrepancies = []
         for event_type in ["file_edit", "file_create", "code_review", "test_run", "inference_spawn"]:
-            audit_count = sum(1 for e in audit_events if e.get("type") == event_type)
-            memory_count = sum(1 for e in memory_events if e.get("event_type") == event_type)
+            audit_count = sum(1 for e in audit_scoped if e.get("type") == event_type)
+            memory_count = sum(
+                n for (_sid, et), n in memory_counts.items() if et == event_type
+            )
 
             if audit_count != memory_count:
                 discrepancies.append({
@@ -730,13 +768,14 @@ class DualLedgerValidator:
                 })
 
         return {
+            **base,
             "consistent": len(discrepancies) == 0,
+            "comparable": True,
             "discrepancies": discrepancies,
-            "total_audit_events": len(audit_events),
-            "total_memory_events": len(memory_events),
+            "total_memory_events": sum(memory_counts.values()),
             "matching_sessions": len(matching_sessions),
+            "memory_scope": "compared-sessions",
             "note": "",
-            "validated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
 
     def _read_audit_trail(self, session_id: (str | None) = None) -> list[dict]:
@@ -765,11 +804,89 @@ class DualLedgerValidator:
 
         return events
 
-    def _read_memory_events(self, session_id: (str | None) = None) -> list[dict]:
-        """Read events from DirectMemory SQLite.
+    def _memory_sessions_present(self, candidates: set[str], deadline: float) -> set[str]:
+        """Which of `candidates` are real session_id values in the memory store.
 
-        Excludes audit_backfill source events to avoid historical skew —
-        the backfill exists for archival integrity, not for live comparison.
+        One indexed lookup per candidate (`idx_memories_session`), chunked, and
+        abandoned at `deadline`. Replaces a whole-store read that took minutes.
+        """
+        present: set[str] = set()
+        if not candidates or not self._memory_db.exists():
+            return present
+
+        try:
+            conn = sqlite3.connect(str(self._memory_db), timeout=5)
+        except sqlite3.Error as exc:
+            note_failure("governance:memory-open", exc)
+            return present
+
+        try:
+            for chunk in _chunks([c for c in candidates if c], 400):
+                if time.monotonic() > deadline:
+                    note_failure("governance:memory-budget-sessions", None)
+                    break
+                marks = ",".join("?" * len(chunk))
+                try:
+                    rows = conn.execute(
+                        f"SELECT DISTINCT session_id FROM memories WHERE session_id IN ({marks})",
+                        chunk,
+                    ).fetchall()
+                except sqlite3.Error as exc:
+                    note_failure("governance:memory-sessions", exc)
+                    continue
+                present.update(r[0] for r in rows if r[0])
+        finally:
+            conn.close()
+
+        return present
+
+    def _memory_event_counts(self, sessions: set[str], deadline: float) -> Counter:
+        """Per-(session, event_type) counts for `sessions`, aggregated in SQLite.
+
+        Never materialises rows: the aggregate is computed by the store, so the
+        cost is one index range per session rather than 4M Python dicts.
+        """
+        counts: Counter = Counter()
+        if not sessions or not self._memory_db.exists():
+            return counts
+
+        try:
+            conn = sqlite3.connect(str(self._memory_db), timeout=5)
+        except sqlite3.Error as exc:
+            note_failure("governance:memory-open", exc)
+            return counts
+
+        try:
+            for chunk in _chunks(sorted(sessions), 200):
+                if time.monotonic() > deadline:
+                    note_failure("governance:memory-budget-counts", None)
+                    break
+                marks = ",".join("?" * len(chunk))
+                try:
+                    rows = conn.execute(
+                        "SELECT session_id, event_type, COUNT(*) FROM memories "
+                        f"WHERE source != 'audit_backfill' AND session_id IN ({marks}) "
+                        "GROUP BY session_id, event_type",
+                        chunk,
+                    ).fetchall()
+                except sqlite3.Error as exc:
+                    note_failure("governance:memory-counts", exc)
+                    continue
+                for sid, event_type, n in rows:
+                    counts[(sid, event_type)] += n
+        finally:
+            conn.close()
+
+        return counts
+
+    def _read_memory_events(self, session_id: (str | None) = None) -> list[dict]:
+        """DEPRECATED -- unbounded by construction; kept only for diagnostics.
+
+        Reads WHOLE rows for every non-backfill event. On the 5.4 GB dev store
+        that is 4M dicts and minutes of wall clock, which is what hung the test
+        suite. `cross_validate` no longer calls this. Any new caller must bound
+        it itself (a LIMIT, or a session filter), and must not sit on a gate
+        path.
         """
         events = []
 
@@ -785,7 +902,7 @@ class DualLedgerValidator:
             if session_id:
                 query += " AND session_id = ?"
                 params.append(session_id)
-            query += " ORDER BY id"
+            query += " ORDER BY id LIMIT 5000"
 
             cursor = conn.execute(query, params)
             for row in cursor.fetchall():
