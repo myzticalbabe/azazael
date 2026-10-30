@@ -25,7 +25,7 @@ grep '^# ─── Check' .githooks/pre-commit
 | 6 | wire evidence (`tools/wire_evidence_audit.py`) | every `wired` declaration |
 | 7b | testing paradigm G1 (`tools/test_paradigm_gate.py`) | new `src/` functions vs staged property tests |
 | 8 | supervisor verdict (`tools/supervisor_mcp.py --verdict`) | engram doctor, conflicts, PMB liveness, PAMS |
-| 10 | generated instruction blocks (`tools/agent_orders_sync.py --hook`) | the nine generated blocks in the lane instruction files vs `docs/agent_orders/*.md` |
+| 10 | generated instruction blocks (`tools/agent_orders_sync.py --hook`) | the ten generated blocks in the lane instruction files vs `docs/agent_orders/*.md` (nine until 2026-10-30, when `~/.codebuff/rules.md` was added for the freebuff lane) |
 | 9 | unified registry (`tools/preflight_all.py --check`) | re-runs the registry; runs last as the backstop |
 
 ## Advisory / non-blocking

@@ -28,14 +28,15 @@ USAGE
   python tools/agent_orders_sync.py --hook     # commit-gate mode (see below)
 
 TARGETS ARE HOST-ABSOLUTE, SO `--hook` IS NOT STRICT ABOUT THEIR EXISTENCE
-The nine targets are lane files on THIS host (`~/AGENTS.md`, the kilo/opencode/
-claude paths, `C:/Azazael/AGENTS.md`). A Kali lane or a fresh clone has none of
+The lane files are host-absolute (`~/AGENTS.md`, the kilo/opencode/
+claude paths, `C:/Azazael/AGENTS.md`, `~/.codebuff/rules.md`). A Kali lane or a
+fresh clone has none of
 them, and a check that blocks every commit there for files it cannot see would be
 switched off within a day. `--hook` therefore compares only the targets that
 exist, PRINTS the ones it skipped, and still exits non-zero if none exist at all
 (nothing verified is not a pass). `--check` stays strict: a missing target is a
 defect when you are running deliberately on a host that is supposed to have all
-nine.
+of them.
 
 A MISSING block is reported, never appended: WHERE a block sits in a file is an
 editorial decision (a precedence statement at the bottom of a file is useless),
@@ -66,10 +67,16 @@ TARGETS = {
             HOME / ".config/kilo/AGENTS.md",        # kilo lane
             HOME / ".config/opencode/AGENTS.md",    # opencode lane (own file, since 2026-10-30)
             HOME / ".claude/CLAUDE.md",             # claude code lane
-            # `~/.codebuff/rules.md` is deliberately NOT a target: freebuff already
-            # receives ~/AGENTS.md in full, so generating the block there too would
-            # push the same 60 lines twice into one prompt. Its MEMORY_PUSH_MANDATE
-            # names step 0 (the gate) instead.
+            # freebuff lane. Added 2026-10-30 on user directive: "add the
+            # standing-order block to .codebuff/rules.md so the freebuff lane also
+            # gets the startup gate". It was previously excluded on the reasoning
+            # that freebuff already receives ~/AGENTS.md in full, so the block
+            # would push the same text twice into one prompt. A lane that must
+            # DEPEND on another lane's file for its session order is exactly the
+            # duplication this tool exists to end, so the block now lives here too
+            # and the home pre-commit verifies it (`.codebuff/` is gitignored, so
+            # nothing else ever would).
+            HOME / ".codebuff/rules.md",
         ],
     ),
     "flock-canon": (
