@@ -16,10 +16,11 @@ Usage:
 from typing import Any, Dict, List, Optional
 
 from CORE.worm_registry import register_worm
-from UTILITIES.POINDEXTER.POINDEXTER import (
-    POINDEXTER,
-    get_default_systems,
-)
+# Hoisted 2026-10-30. The old comment claimed a CORE <-> UTILITIES cycle;
+# MEASURED otherwise: `import UTILITIES.POINDEXTER.POINDEXTER` pulls ZERO
+# CORE modules, so this module creates no cycle. (The package-wide count
+# of CORE imports elsewhere in UTILITIES is a different claim.)
+from UTILITIES.POINDEXTER.POINDEXTER import POINDEXTER, get_default_systems
 
 
 @register_worm(

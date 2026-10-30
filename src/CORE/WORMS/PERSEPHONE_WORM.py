@@ -18,10 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from CORE.worm_registry import register_worm
-from UTILITIES.PERSEPHONE.persephone import (
-    PathTranslator,
-    detect_platform,
-)
+from UTILITIES.PERSEPHONE.persephone import PathTranslator, detect_platform
 
 
 @register_worm(
