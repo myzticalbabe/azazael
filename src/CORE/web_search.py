@@ -47,6 +47,17 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+#: CaMeL ingress (2026-10-30). Every fetched body is registered with the taint
+#: ledger BEFORE the caller sees it, so a later tool call that reproduces this
+#: text is refused by `CORE.camel.guard`. The import is guarded because a tree
+#: without the package must still fetch — but the failure is then REPORTED in
+#: `FetchResult.taint_id` as UNREGISTERED:<reason>, never silently swallowed:
+#: "the guard found nothing" must not be mistakable for "the guard was watching".
+try:
+    from CORE.camel.guard import register_untrusted as _register_untrusted
+except ImportError:                               # pragma: no cover - bare tree
+    _register_untrusted = None  # type: ignore[assignment]
+
 #: Hard ceiling per fetch. A search helper that buffers megabytes is how a
 #: tap becomes slow enough that someone disables it.
 MAX_BYTES = 200_000
@@ -80,6 +91,24 @@ class FetchResult:
     truncated: bool = False
     retrieved_at: str = ""
     error: Optional[str] = None
+    #: Origin id under which this body was registered with the CaMeL taint ledger
+    #: ("quote:<url>"), or "UNREGISTERED:<reason>" when registration failed. Empty
+    #: only for responses that carried no text.
+    taint_id: str = ""
+
+
+def _register_body(text: str, source: str) -> str:
+    """Register a fetched body as untrusted; return the origin id or a reason."""
+    if not text or not source:
+        return ""
+    if _register_untrusted is None:
+        return "UNREGISTERED:camel-import"
+    try:
+        label = _register_untrusted(text, source=source)
+    except Exception as e:  # noqa: BLE001 — taint ledger must not break a fetch
+        note_failure("web_search:L98-taint", e)
+        return "UNREGISTERED:%s" % type(e).__name__
+    return "quote:%s" % source if label.tainted else ""
 
 
 def fetch_url(url: str, *,
@@ -136,7 +165,9 @@ def fetch_url(url: str, *,
                 final_url = str(url)
             return FetchResult(url=str(url), final_url=str(final_url),
                                status=status, text=text,
-                               truncated=truncated, retrieved_at=ts)
+                               truncated=truncated, retrieved_at=ts,
+                               taint_id=_register_body(text,
+                                                       str(final_url or url)))
         finally:
             try:
                 resp.close()

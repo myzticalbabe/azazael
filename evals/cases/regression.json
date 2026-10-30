@@ -163,5 +163,48 @@
    "max_seconds": 120
   },
   "id": "suite-collects"
+ },
+ {
+  "id": "camel-selftest",
+  "title": "CaMeL refuses injections and still allows clean runs",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-m",
+   "CORE.camel",
+   "--self-test"
+  ],
+  "cwd": "src",
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "8/8 checks behaved",
+    "negative controls included"
+   ],
+   "timeout_s": 60,
+   "max_seconds": 30
+  }
+ },
+ {
+  "id": "camel-guard-refuses-copy",
+  "title": "a copied fetched body cannot reach an acting tool",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-m",
+   "pytest",
+   "tests/test_camel_guard.py",
+   "-q",
+   "-p",
+   "no:cacheprovider"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "passed"
+   ],
+   "timeout_s": 120,
+   "max_seconds": 60
+  }
  }
 ]
