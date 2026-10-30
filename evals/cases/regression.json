@@ -1,0 +1,167 @@
+[
+ {
+  "title": "skill source corpus and load path agree",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "tools/canon_drift_check.py",
+   "--check"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "OK: source corpus and load path agree."
+   ],
+   "timeout_s": 60
+  },
+  "id": "canon-drift-zero"
+ },
+ {
+  "title": "the compliance comparison stays bounded (regression: it once read 4M rows)",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-m",
+   "pytest",
+   "tests/test_dual_ledger_budget.py",
+   "-q",
+   "-p",
+   "no:cacheprovider"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "timeout_s": 90,
+   "max_seconds": 90
+  },
+  "id": "dual-ledger-bounded"
+ },
+ {
+  "title": "the two tests that used to hang complete inside a minute",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-m",
+   "pytest",
+   "tests/test_compliance_deadlock_regression.py",
+   "tests/test_compliance_step45_init.py",
+   "-q",
+   "-p",
+   "no:cacheprovider"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "timeout_s": 90,
+   "max_seconds": 90
+  },
+  "id": "former-hangs-finish"
+ },
+ {
+  "title": "the memory backup path resolves and reports its plan",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "tools/memory_backup.py",
+   "--dry-run"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "would write",
+    "free space"
+   ],
+   "timeout_s": 60
+  },
+  "id": "memory-backup-dryrun"
+ },
+ {
+  "title": "generated lane instruction blocks match their source",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "tools/agent_orders_sync.py",
+   "--check"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "0 problem(s)"
+   ],
+   "timeout_s": 60
+  },
+  "id": "orders-in-sync"
+ },
+ {
+  "title": "1,042 package skills stay archived and indexed",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-c",
+   "import json,pathlib;live=list(pathlib.Path('skills').glob('azazael-pkg*.md'));arch=list(pathlib.Path('skills.pkg-archive/source').glob('azazael-pkg*.md'));idx=json.loads(pathlib.Path('tools/data/pkg_index.json').read_text(encoding='utf-8'));print(f'live={len(live)} archived={len(arch)} indexed={idx[\"count\"]}');raise SystemExit(0 if (len(live)==0 and len(arch)==1042 and idx['count']==1042) else 1)"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "live=0 archived=1042 indexed=1042"
+   ],
+   "timeout_s": 60
+  },
+  "id": "pkg-skills-archived"
+ },
+ {
+  "title": "the index reports its own duplicate pairs",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "tools/skills_find.py",
+   "--stats"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "packages appearing in BOTH layers: 54"
+   ],
+   "timeout_s": 40
+  },
+  "id": "skills-find-dupes"
+ },
+ {
+  "title": "a retired package is reachable through the index",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "tools/skills_find.py",
+   "anyio"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "azazael-pkg-anyio",
+    "azazael-pkg314t-anyio"
+   ],
+   "timeout_s": 40
+  },
+  "id": "skills-find-resolves"
+ },
+ {
+  "title": "the test suite still collects (a broken import is invisible otherwise)",
+  "suite": "regression",
+  "cmd": [
+   "{python}",
+   "-m",
+   "pytest",
+   "--collect-only",
+   "-q",
+   "-p",
+   "no:cacheprovider"
+  ],
+  "expect": {
+   "exit_code": 0,
+   "stdout_contains": [
+    "tests collected"
+   ],
+   "timeout_s": 180,
+   "max_seconds": 120
+  },
+  "id": "suite-collects"
+ }
+]
