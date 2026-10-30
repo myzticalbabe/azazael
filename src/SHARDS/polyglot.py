@@ -116,11 +116,10 @@ def check_doc_shards() -> dict:
     except Exception:
         return {"ok": False, "checked": 0, "missing": ["repo-unresolvable"]}
     for name in SHARDS:
-        try:
-            from SHARDS.registry import SHARDS as _SH
-            entry = _SH.get(name, {})
-        except Exception:
-            continue
+        # `SHARDS` is already imported from SHARDS.registry at module level;
+        # the per-iteration re-import here was the same dict every time, and
+        # its except-continue could hide a failure nothing else would show.
+        entry = SHARDS.get(name, {})
         langs = entry.get("langs", [])
         if langs != ["doc"]:
             continue

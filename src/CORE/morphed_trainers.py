@@ -34,8 +34,11 @@ from pathlib import Path
 
 import numpy as np
 
+# Hoisted 2026-10-30. The removed comment claimed a CORE <-> ML cycle;
+# MEASURED otherwise: `import ML.nsga` pulls ZERO CORE modules (it imports
+# only math/typing/numpy). Nine CORE imports elsewhere in src/ML is a
+# package claim, not this module's edge.
 from ML.nsga import NSGA2
-
 from CORE.atomic_store import atomic_write_json, file_lock
 from CORE.failure_ledger import note_failure
 
