@@ -77,3 +77,27 @@ They only make answers wrong.
   it appears. Encounter-time writes win over batching. (Recorded 2026-10-30; this
   paragraph is the resolution of a direct contradiction between the PMB block's
   "batch them together at turn end" and the ERROR CAPTURE rules.)
+
+### Tooling facts — measured 2026-10-30, verify before contradicting
+
+- **The production interpreter is 3.15t free-threaded:**
+  `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `sys._is_gil_enabled()`
+  is False). `python` on PATH is 3.14.7 **with** the GIL. Run the suite with the
+  3.15t interpreter; a "hang" measured under 3.14 is not evidence about production.
+- **5,380 tests exist and nothing gates them.** No stanza of the commit hook runs
+  pytest. Before concluding "the suite is slow", check that it is not *stuck*:
+  metering helpers need a bound, and a test with no timeout can wedge a whole run
+  (two did, for months — the compliance gate under test read a 5.4 GB store on
+  every `check_all()`; it now costs 0.09 s, measured).
+- **`azazael-pkg-*` are no longer skills.** 1,042 package references were archived
+  on 2026-10-30 (`skills.pkg-archive/`) because their descriptions alone cost
+  ~34.7k tokens on every request. Look one up with
+  `python C:/Azazael/azazael/tools/skills_find.py <package>`; never restore the
+  catalogue to `skills/`. 204 skills remain loadable.
+- **Memory has a verified backup path:** `python C:/Azazael/azazael/tools/memory_backup.py`
+  copies through SQLite's online backup API and refuses a copy that fails
+  `integrity_check`. The 5.4 GB DirectMemory store is excluded unless
+  `--include-large`, because this disk runs at 98%.
+- **The commit gates bite, by design.** A scanner finding is fixed, not
+  rebaselined; a bulk override (`ALLOW_BULK_COMMIT=1`) is declared in the commit
+  message. Both were used today and named in their commits.

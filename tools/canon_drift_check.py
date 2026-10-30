@@ -61,7 +61,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / "skills"
 LOAD_DIR = ROOT / ".agents" / "skills"
 #: Expected-stale archive layers, excluded by design (not silently skipped).
-ARCHIVE_DIRS = (ROOT / "skills.win-backup", ROOT / "skills_staging")
+#: `skills.pkg-archive` (2026-10-30): the 1,042 `azazael-pkg-*` skills were moved
+#: out of both live layers because their descriptions alone cost ~34.7k tokens on
+#: every request. They are still here, byte for byte, and reachable through
+#: `python tools/skills_find.py` -- excluded from drift, not deleted.
+ARCHIVE_DIRS = (ROOT / "skills.win-backup", ROOT / "skills_staging", ROOT / "skills.pkg-archive")
 
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
