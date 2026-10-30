@@ -14,6 +14,9 @@
 #   4. repo-wide anti-pattern ratchet (tools/anti_pattern_gate.py --check)
 #   9. unified gate registry     (tools/preflight_all.py --check, blocking;
 #       runs after the hand-written gates, see its stanza below)
+#  10. generated instruction blocks (tools/agent_orders_sync.py --check,
+#       blocking) -- the rule files this session READS are generated from one
+#       source; a commit must not land while a copy disagrees with it
 #
 # Why check 3 exists even though check 2 already scans: check 2 is PER-FILE
 # (staged vs HEAD), so it catches an anti-pattern being ADDED but cannot see
@@ -290,6 +293,47 @@ if [ -f "$SCRIPT_DIR/tools/paradigm_gate.py" ]; then
         echo "[Paradigm] BLOCKED (strict mode). Stage a Hypothesis property test."
         exit 1
     fi
+fi
+
+# ─── Check 10 (blocking): generated instruction blocks vs their source ───
+# The MCP gate standing order, the FLOCK canon and the META-LEVELS canon are
+# single-sourced in `docs/agent_orders/*.md` and GENERATED into nine instruction
+# files (home `AGENTS.md`, `C:/Azazael/AGENTS.md`, and the kilo / opencode /
+# claude lane files). Until 2026-10-30 those blocks had four hand-maintained
+# copies; the gate they described was rewritten the same day and every copy was
+# stale within hours, so each session opened on instructions describing a check
+# that no longer existed. A commit is where the source changes, so a commit is
+# where the copies must still match it.
+# Runs on EVERY commit, including commits that touch no rule file: the targets
+# live OUTSIDE the repo, so a staged-path filter could never see the drift this
+# check exists to stop.
+# Declared override, never silent: ALLOW_AGENT_ORDERS_DRIFT=1.
+if [ "${ALLOW_AGENT_ORDERS_DRIFT:-}" = "1" ]; then
+    echo "[AgentOrders] skipped: ALLOW_AGENT_ORDERS_DRIFT=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_AGENT_ORDERS_DRIFT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/agent_orders_sync.py" ]; then
+    echo "[AgentOrders] Checking generated instruction blocks against their source..."
+    # Status captured immediately, output printed after. `cmd | tail` makes $?
+    # tail's status, not the check's -- a false pass this repo has produced
+    # three times.
+    #           --hook: compare only the targets that EXIST on this host, print
+    #           the ones that do not, and fail if none exist at all. The nine
+    #           targets are host-absolute lane files, so a Kali lane or a fresh
+    #           clone would otherwise block every commit over files it cannot
+    #           see -- a gate that cannot run here is worse than no gate.
+    ORDERS_OUT=$("$PY" "$SCRIPT_DIR/tools/agent_orders_sync.py" --hook 2>&1)
+    ORDERS_EXIT=$?
+    echo "$ORDERS_OUT"
+    if [ $ORDERS_EXIT -ne 0 ]; then
+        echo ""
+        echo "[AgentOrders] BLOCKED: a generated block differs from azazael/docs/agent_orders/."
+        echo "[AgentOrders] Fix: $PY $SCRIPT_DIR/tools/agent_orders_sync.py --apply"
+        echo "[AgentOrders] Copies are never hand-edited -- edit the source, then regenerate."
+        echo "[AgentOrders] Override (declared): ALLOW_AGENT_ORDERS_DRIFT=1."
+        exit 1
+    fi
+    echo ""
 fi
 
 # ─── Check 9 (blocking): unified gate registry (tools/preflight_all.py) ───

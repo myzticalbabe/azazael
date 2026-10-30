@@ -241,6 +241,30 @@ GATES: Tuple[Gate, ...] = (
         requires=(),
     ),
     Gate(
+        name="agent-orders",
+        # `--hook`, not `--check`: the targets are host-absolute lane files, so the
+        # commit path compares only those that exist and reports the rest. Strict
+        # mode would block every commit on a host that does not carry all nine.
+        argv=("tools/agent_orders_sync.py", "--hook"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=(
+            "each generated block in the nine instruction files vs "
+            "docs/agent_orders/*.md (the single source for each block)"
+        ),
+        control_test="tests/test_agent_orders_sync.py",
+        control="agent-orders-negative-control",
+        uncontrolled_because=None,
+        requires=(
+            "docs/agent_orders/00_session_order.md",
+            "docs/agent_orders/flock_canon.md",
+            "docs/agent_orders/meta_levels_canon.md",
+        ),
+    ),
+    Gate(
         name="supervisor-verdict",
         argv=("tools/supervisor_mcp.py", "--verdict"),
         interpreter="python3",
@@ -657,7 +681,61 @@ def run_control(cmd: Sequence[str], env: Tuple[str, ...], timeout: float = RUN_T
                   proc.returncode, 0.0, tail)
 
 
-CONTROLS = {"anti-pattern-ratchet": control_anti_pattern_ratchet}
+def control_agent_orders(interpreter_path: str) -> Tuple[bool, str]:
+    """A real negative control for the standing-order drift gate.
+
+    `tools/agent_orders_sync.py` resolves its targets from module globals, so a
+    sandbox has to be installed rather than passed on the command line. The
+    control therefore runs that module under the SAME interpreter the hook uses
+    and drives the real `check()` twice, in a temp directory: once on a target
+    whose block is stale (must return 1) and once after `apply=True` repaired it
+    (must return 0). Both matter -- a gate that always fails is as useless as one
+    that never does, and `--apply` moving a block instead of rewriting it in
+    place would look healthy on the first leg alone.
+
+    Why this is not the same as the pytest file: the artifact proves the logic,
+    this proves the CLI-shaped entry point under the hook's interpreter. The
+    registry refuses a `control=` name with no implementation, which is how this
+    function came to exist.
+    """
+    script = """
+import pathlib, sys, tempfile
+sys.path.insert(0, %r)
+import agent_orders_sync as orders
+
+tmp = pathlib.Path(tempfile.mkdtemp(prefix="az_orders_ctl_"))
+src = tmp / "orders"
+src.mkdir()
+(src / "00_session_order.md").write_text("## ORDER\\n\\nbody\\n", encoding="utf-8")
+target = tmp / "lane.md"
+target.write_text(
+    "intro\\n<!-- AO:session-order START -->\\nstale\\n<!-- AO:session-order END -->\\ntail\\n",
+    encoding="utf-8")
+orders.ORDERS = src
+orders.TARGETS = {"session-order": ("00_session_order.md", [target])}
+
+stale = orders.check()
+if stale != 1:
+    sys.exit("control did not fail: check() returned %%r on a stale block" %% (stale,))
+if orders.check(apply=True) != 0:
+    sys.exit("apply did not repair the stale block")
+if orders.check() != 0:
+    sys.exit("repaired tree still reports drift")
+text = target.read_text(encoding="utf-8")
+if not text.startswith("intro") or "stale" in text:
+    sys.exit("apply moved the block or left the old body: %%r" %% (text[:60],))
+sys.exit(0)
+""" % (str(REPO / "tools"),)
+    record = run_control([interpreter_path, "-X", "utf8", "-c", script], env=())
+    if record.exit_code == 0:
+        return True, "check() returns 1 on a stale block, 0 after apply, position kept"
+    return False, "control failed (exit %s): %s" % (record.exit_code, record.detail)
+
+
+CONTROLS = {
+    "anti-pattern-ratchet": control_anti_pattern_ratchet,
+    "agent-orders-negative-control": control_agent_orders,
+}
 
 
 # --------------------------------------------------------------------------- #
