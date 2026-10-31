@@ -1,6 +1,6 @@
 ---
 name: azazael-sentinel-gate
-description: COMPLIANCE SENTINEL (RULE 0C/0S) — Mandatory PRE-ACTION AUTHORIZATION GATE. 25-item self-audit checklist. NOT a post-action audit. HALT on any violation. NOTE: auto_load is inert in this client (body never reaches agent unprompted); load explicitly via skill("azazael-sentinel-gate"). Checks whose agent is UNAVAILABLE per the AVAILABILITY PRE-CHECK resolve to N/A, not HALT.
+description: "COMPLIANCE SENTINEL (RULE 0C/0S) — Mandatory PRE-ACTION AUTHORIZATION GATE. 25-item self-audit checklist. NOT a post-action audit. HALT on any violation. NOTE: auto_load is inert in this client (body never reaches agent unprompted); load explicitly via skill(\"azazael-sentinel-gate\"). Checks whose agent is UNAVAILABLE per the AVAILABILITY PRE-CHECK resolve to N/A, not HALT."
 metadata:
   category: system
   project: azazael
