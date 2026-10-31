@@ -125,6 +125,325 @@ def _walk_imports(tree: ast.AST, module_level_only: bool) -> Iterable[str]:
             yield from _imported_roots(node)
 
 
+# --------------------------------------------------------------------------
+# non-python graphs: analyse the other languages, do not just count them
+# --------------------------------------------------------------------------
+
+#: Extensions a JS/TS relative import can resolve to, plus the directory-index
+#: forms node and bundlers accept (`./panel` -> `./panel/index.ts`).
+_JS_SUFFIXES = ("", ".js", ".mjs", ".cjs", ".jsx", ".ts", ".tsx", ".json")
+_JS_INDEX = ("index.js", "index.mjs", "index.ts", "index.tsx", "index.jsx")
+
+#: `python -m pkg.mod` and the `py` launcher: the two forms a batch driver uses
+#: to reach python without naming a .py file.
+_PY_M_RE = re.compile(r"\bpython[0-9.]*(?:\.exe)?\s+-m\s+([\w.]+)")
+_PY_LAUNCHER_RE = re.compile(r"(?:^|[&|(\s])py(?:\.exe)?(?:\s+-[0-9.]+)?\s+['\"]?([^\"'\s|>;&]+\.py)",
+                            re.I | re.M)
+
+#: Batch/PowerShell prefixes that name the script's own directory. `%~dp0` is the
+#: commonest way a .bat reaches a sibling .py, and stripping it is what turns
+#: "target-not-found" into a real edge when the sibling is under src.
+_SHELL_PREFIX_RE = re.compile(r"^(?:%~dp0|%CD%|%cd%|\$PSScriptRoot[\\/]|\.\\)", re.I)
+
+
+def _resolve_ref(src: Path, base: Path, ref: str,
+                 suffixes: Tuple[str, ...] = _JS_SUFFIXES,
+                 index_names: Tuple[str, ...] = _JS_INDEX) -> Optional[Path]:
+    """Resolve one reference string to a real file under ``src``, or None.
+
+    Order matters and is the one every toolchain uses: the literal path first,
+    then the extension candidates, then the directory index. A resolver that
+    guesses (basename matching anywhere in the tree) manufactures edges, so an
+    unresolved reference stays unresolved and is counted as such.
+    """
+    ref = ref.strip().strip("'\"").replace("\\", "/")
+    if not ref or ref.startswith(("http://", "https://", "data:", "#")):
+        return None
+    rp = Path(ref)
+    roots: List[Path] = [rp] if rp.is_absolute() else [base / ref, src / ref]
+    # The literal path is ALWAYS tried first. Passing `suffixes=(".py",)` for a
+    # shell call used to test only `f.py.py`, so `python ../FFF/f.py` resolved to
+    # nothing and was reported as outside-src -- a resolver bug wearing the
+    # costume of a finding.
+    candidates = ("",) + tuple(s for s in suffixes if s)
+    for cand in roots:
+        for suffix in candidates:
+            path = Path(str(cand) + suffix)
+            if path.suffix and not path.is_file():
+                continue
+            if not path.is_file():
+                continue
+            try:
+                path.resolve().relative_to(src.resolve())
+            except (OSError, ValueError):
+                continue
+            return path
+        for index_name in index_names:
+            path = cand / index_name
+            if path.is_file():
+                try:
+                    path.resolve().relative_to(src.resolve())
+                except (OSError, ValueError):
+                    continue
+                return path
+    return None
+
+
+#: Paths a resolver reached that are not under src. Counted, not swallowed: a
+#: rising number means the graph is being asked about a tree it does not own.
+_OUTSIDE_SRC: Counter[str] = Counter()
+
+
+def _tree_of(src: Path, path: Optional[Path]) -> Optional[str]:
+    if path is None:
+        return None
+    try:
+        rel = path.resolve().relative_to(src.resolve())
+    except (OSError, ValueError):
+        _OUTSIDE_SRC[str(path)] += 1
+        return None
+    return rel.parts[0] if len(rel.parts) > 1 else None
+
+
+def _rel_posix(src: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(src.resolve()).as_posix()
+    except (OSError, ValueError):
+        return str(path)
+
+
+def _read_capped(path: Path, cap: int = 400_000) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")[:cap]
+    except OSError as exc:
+        print("[census] unreadable %s: %s" % (path, exc), file=sys.stderr)
+        return ""
+
+
+def _line_of(text: str, pos: int) -> int:
+    return text.count("\n", 0, pos) + 1
+
+
+def _graph_cycles(edges: Iterable[Tuple[str, str]]) -> List[List[str]]:
+    """Direct mutual pairs. Same definition as the python cycle rule, so the two
+    graphs are comparable rather than merely both non-empty."""
+    pairs = set(edges)
+    out = {tuple(sorted(p)) for p in pairs if (p[1], p[0]) in pairs and p[0] != p[1]}
+    return [list(p) for p in sorted(out)]
+
+
+def build_js_graph(src: Path, js_files: List[Path]) -> Dict[str, Any]:
+    """The js/ts module graph: file -> file, resolved through import/require.
+
+    Counting 62 javascript files and calling it coverage is what this replaces.
+    An external package (`require('puppeteer')`) is a dependency, not an edge, and
+    is counted separately; only a specifier that resolves to a file under src is
+    an edge.
+    """
+    edges: Counter[Tuple[str, str]] = Counter()
+    tree_pairs: Counter[Tuple[str, str]] = Counter()
+    tree_out: Counter[str] = Counter()
+    tree_in: Counter[str] = Counter()
+    external: Counter[str] = Counter()
+    unresolved: Counter[str] = Counter()
+    detail: List[Dict[str, Any]] = []
+
+    for path in js_files:
+        text = _read_capped(path)
+        if not text:
+            continue
+        base = path.parent
+        here_file = _rel_posix(src, path)
+        here_tree = _tree_of(src, path)
+        for m in _JS_IMPORT_RE.finditer(text):
+            ref = m.group(1)
+            if not ref.startswith("."):
+                external[ref.split("/")[0]] += 1
+                continue
+            target = _resolve_ref(src, base, ref)
+            if target is None:
+                unresolved["target-not-found"] += 1
+                if len(detail) < 30:
+                    detail.append({"from": here_file, "line": _line_of(text, m.start()),
+                                   "ref": ref, "result": "unresolved"})
+                continue
+            there_file = _rel_posix(src, target)
+            edges[(here_file, there_file)] += 1
+            there_tree = _tree_of(src, target)
+            if here_tree:
+                tree_out[here_tree] += 1
+            if there_tree:
+                tree_in[there_tree] += 1
+            if here_tree and there_tree and here_tree != there_tree:
+                tree_pairs[(here_tree, there_tree)] += 1
+            if len(detail) < 30:
+                detail.append({"from": here_file, "line": _line_of(text, m.start()),
+                               "to": there_file, "ref": ref})
+
+    return {
+        "language": "javascript",
+        "files": len(js_files),
+        "statements": sum(edges.values()),
+        "file_pairs": len(edges),
+        "tree_pairs": [{"from": a, "to": b, "refs": n}
+                       for (a, b), n in sorted(tree_pairs.items())],
+        "cycles": _graph_cycles(edges),
+        "per_tree": {t: {"out": tree_out[t], "in": tree_in[t]}
+                     for t in sorted(set(tree_out) | set(tree_in))},
+        "external_packages": dict(external.most_common(12)),
+        "external_statements": sum(external.values()),
+        "unresolved": dict(sorted(unresolved.items())),
+        "detail": detail,
+        "note": ("only a specifier resolving to a file under src is an edge; a bare "
+                 "package name is a dependency and is counted separately"),
+    }
+
+
+def build_shell_graph(src: Path, script_files: List[Path]) -> Dict[str, Any]:
+    """The shell/batch -> python call graph.
+
+    This is the join the cleave actually trips on: 58 .bat and 15 .ps1 drive the
+    python tree, and none of them is an import. Three forms are followed --
+    `python <file>`, `python -m <module>` and the `py` launcher -- and each call
+    is resolved to a real file or a module path, never guessed from a name.
+    """
+    calls: Counter[Tuple[str, str]] = Counter()
+    tree_pairs: Counter[Tuple[str, str]] = Counter()
+    tree_out: Counter[str] = Counter()
+    tree_in: Counter[str] = Counter()
+    forms: Counter[str] = Counter()
+    unresolved: Counter[str] = Counter()
+    missing: Counter[str] = Counter()
+    detail: List[Dict[str, Any]] = []
+
+    for path in script_files:
+        text = _read_capped(path)
+        if not text:
+            continue
+        here_file = _rel_posix(src, path)
+        here_tree = _tree_of(src, path)
+        base = path.parent
+        found: List[Tuple[str, str, int]] = []
+        for m in _PY_CALL_RE.finditer(text):
+            found.append((m.group(1), "file", _line_of(text, m.start())))
+        for m in _PY_LAUNCHER_RE.finditer(text):
+            found.append((m.group(1), "launcher", _line_of(text, m.start())))
+        for m in _PY_M_RE.finditer(text):
+            found.append((m.group(1), "module", _line_of(text, m.start())))
+        for ref, form, line in found:
+            forms[form] += 1
+            target: Optional[Path] = None
+            stem = _SHELL_PREFIX_RE.sub("", ref)
+            tail = re.sub(r"^[%$][\w]+[%$]?", "", stem) or ref
+            if form == "module":
+                mod_path = tail.replace(".", "/")
+                target = _resolve_ref(src, base, mod_path,
+                                      suffixes=(".py",), index_names=("__init__.py",))
+            else:
+                target = _resolve_ref(src, base, tail,
+                                      suffixes=(".py",), index_names=("__init__.py",))
+            if target is None:
+                reason = ("variable-unresolved" if tail != stem or stem != ref
+                          else "outside-src" if Path(ref).is_absolute()
+                          or ref.replace("\\", "/").startswith("..")
+                          # `python -m pip install ...` names an installed
+                          # package, not a shard: reporting it as a missing file
+                          # put "pip" at the top of the broken-launcher list.
+                          else "external-module" if form == "module"
+                          else "target-not-found")
+                unresolved[reason] += 1
+                if reason == "target-not-found":
+                    # The useful form: WHICH file the driver wanted. A launcher
+                    # pointing at a path that exists nowhere in the repo is a
+                    # broken launcher, not a resolution gap.
+                    missing[ref.strip().strip("'\"").replace("\\", "/")] += 1
+                if len(detail) < 30:
+                    detail.append({"from": here_file, "line": line, "ref": ref,
+                                   "form": form, "result": reason})
+                continue
+            there_file = _rel_posix(src, target)
+            calls[(here_file, there_file)] += 1
+            there_tree = _tree_of(src, target)
+            if here_tree:
+                tree_out[here_tree] += 1
+            if there_tree:
+                tree_in[there_tree] += 1
+            if here_tree and there_tree and here_tree != there_tree:
+                tree_pairs[(here_tree, there_tree)] += 1
+            if len(detail) < 30:
+                detail.append({"from": here_file, "line": line, "to": there_file,
+                               "form": form, "ref": ref})
+
+    return {
+        "language": "shell",
+        "files": len(script_files),
+        "statements": sum(calls.values()),
+        "file_pairs": len(calls),
+        "by_form": dict(sorted(forms.items())),
+        "per_tree": {t: {"out": tree_out[t], "in": tree_in[t]}
+                     for t in sorted(set(tree_out) | set(tree_in))},
+        "tree_pairs": [{"from": a, "to": b, "refs": n}
+                       for (a, b), n in sorted(tree_pairs.items())],
+        "targets": dict(Counter(t for (_, t) in calls).most_common(12)),
+        "missing_targets": dict(missing.most_common(15)),
+        "missing_target_count": len(missing),
+        "unresolved": dict(sorted(unresolved.items())),
+        "detail": detail,
+        "note": ("`python <file>`, `python -m <module>` and the `py` launcher; "
+                 "%VAR%/`$VAR` prefixes are stripped before resolution and a call "
+                 "that still does not resolve is counted by reason"),
+    }
+
+
+def build_html_graph(src: Path, html_files: List[Path]) -> Dict[str, Any]:
+    """html -> asset edges (`<script src>`).
+
+    142 html files made html the second-largest language here and none of it was
+    analysed: a template that loads a recorder script is a join like any other.
+    """
+    edges: Counter[Tuple[str, str]] = Counter()
+    tree_pairs: Counter[Tuple[str, str]] = Counter()
+    tree_out: Counter[str] = Counter()
+    tree_in: Counter[str] = Counter()
+    unresolved: Counter[str] = Counter()
+    external: Counter[str] = Counter()
+    for path in html_files:
+        text = _read_capped(path)
+        if not text:
+            continue
+        here_file = _rel_posix(src, path)
+        here_tree = _tree_of(src, path)
+        for m in _HTML_SRC_RE.finditer(text):
+            ref = m.group(1)
+            if re.match(r"^(https?:)?//", ref) or ref.startswith("data:"):
+                external[ref.split("/")[0][:40]] += 1
+                continue
+            target = _resolve_ref(src, path.parent, ref)
+            if target is None:
+                unresolved["target-not-found"] += 1
+                continue
+            there_file = _rel_posix(src, target)
+            edges[(here_file, there_file)] += 1
+            there_tree = _tree_of(src, target)
+            if here_tree:
+                tree_out[here_tree] += 1
+            if there_tree:
+                tree_in[there_tree] += 1
+            if here_tree and there_tree and here_tree != there_tree:
+                tree_pairs[(here_tree, there_tree)] += 1
+    return {
+        "language": "html",
+        "files": len(html_files),
+        "statements": sum(edges.values()),
+        "file_pairs": len(edges),
+        "tree_pairs": [{"from": a, "to": b, "refs": n}
+                       for (a, b), n in sorted(tree_pairs.items())],
+        "external_assets": sum(external.values()),
+        "unresolved": dict(sorted(unresolved.items())),
+        "note": "<script src> only; inline <script> bodies are not parsed",
+    }
+
+
 def census(src: Path, archive: Optional[Path] = None,
            extras: Optional[List[Path]] = None) -> Dict[str, Any]:
     """Measure one ``src`` tree (and optionally an archive) into a dict.
@@ -329,6 +648,45 @@ def census(src: Path, archive: Optional[Path] = None,
                                     "pair": f"{lang}->{to_lang}", "ref": ref,
                                     "via_variable": bool(via_var)})
 
+    # --- per-language graphs, not per-language counts -----------------------
+    # A count says "62 javascript modules". These say which module imports which,
+    # which js module is imported by another tree, and which batch driver calls
+    # which python file -- the joins that break when a shard is lifted out.
+    js_files = [f for f, lg in lang_files if lg in ("javascript", "typescript")]
+    shell_files = [f for f, lg in lang_files if lg in ("shell", "batch", "powershell")]
+    html_files = [f for f, lg in lang_files if lg == "html"]
+    graphs = {
+        "javascript": build_js_graph(src, js_files),
+        "shell": build_shell_graph(src, shell_files),
+        "html": build_html_graph(src, html_files),
+    }
+
+    # Per-tree non-python coupling, so a tree's verdict can carry it. Counts ALL
+    # edges whose endpoints are known, not only cross-tree ones: an intra-tree
+    # edge still means the limb holds a real module graph and is not a flat pile
+    # of scripts, which is what `0 edges` was hiding for CODEX's 61 js files.
+    for gname, g in graphs.items():
+        for tree, counts in (g.get("per_tree") or {}).items():
+            if tree not in per_tree:
+                continue
+            rec = per_tree[tree].setdefault("nonpython", {})
+            if counts.get("out"):
+                out = rec.setdefault("out", {"total": 0, "by_language": {}})
+                out["total"] += counts["out"]
+                out["by_language"][gname] = out["by_language"].get(gname, 0) + counts["out"]
+            if counts.get("in"):
+                inn = rec.setdefault("in", {"total": 0, "by_language": {}})
+                inn["total"] += counts["in"]
+                inn["by_language"][gname] = inn["by_language"].get(gname, 0) + counts["in"]
+        for tp in g.get("tree_pairs") or []:
+            src_t, dst_t, n = tp["from"], tp["to"], tp["refs"]
+            if src_t in per_tree:
+                per_tree[src_t].setdefault("nonpython", {}).setdefault(
+                    "cross_out", {})[dst_t] = n
+            if dst_t in per_tree:
+                per_tree[dst_t].setdefault("nonpython", {}).setdefault(
+                    "cross_in", {})[src_t] = n
+
     # Seams: native or string-level coupling the AST graph cannot follow.
     for f in src.rglob("*"):
         if not f.is_file() or any(part in SKIP_DIRS for part in f.parts):
@@ -488,6 +846,7 @@ def census(src: Path, archive: Optional[Path] = None,
                 "langs": per_tree[t]["langs"],
                 "seams": sorted(set(per_tree[t]["seams"])),
                 "is_stub": t in stub_trees,
+                "nonpython": per_tree[t].get("nonpython") or {},
                 "hubs": sorted(h for h, ts in hub_tokens.items() if t in ts),
             }
             for t in trees
@@ -551,6 +910,7 @@ def census(src: Path, archive: Optional[Path] = None,
                      "tree, not guessed from a filename match. `unresolved` counts "
                      "the references this pass could not place, by reason"),
         },
+        "graphs": graphs,
         "periphery": periphery,
         "languages": {
             "modules": dict(sorted(lang_totals.items())),
@@ -606,6 +966,18 @@ def render(led: Dict[str, Any]) -> str:
     for row in xa:
         by = ", ".join(f"{k} {v} ref(s)" for k, v in row["by"].items())
         add(f"  {row['tree']:<16}{by}")
+    add("")
+    add("LANGUAGE GRAPHS — resolved file by file, not counted")
+    for key, g in (led.get("graphs") or {}).items():
+        ext = g.get("external_statements", g.get("external_assets", 0))
+        cycles = len(g.get("cycles") or [])
+        add(f"  {key:<11}{g['files']:>4} file(s) {g['statements']:>5} edge(s) "
+            f"{g['file_pairs']:>4} pair(s)  {len(g.get('tree_pairs') or []):>2} tree pair(s)"
+            f"  {cycles} cycle(s)  {ext} external"
+            + (f"  forms {g['by_form']}" if g.get("by_form") else ""))
+        unres = g.get("unresolved") or {}
+        if unres:
+            add("    unresolved: " + ", ".join(f"{k} {v}" for k, v in unres.items()))
     add("")
     add(f"CROSS-LANGUAGE — {cross.get('statements', 0)} reference(s) between "
         f"{len(cross.get('tree_pairs') or [])} tree pair(s)")
@@ -798,6 +1170,19 @@ def selftest() -> int:
         (root / "GGG").mkdir()
         (root / "GGG" / "run.sh").write_text("#!/bin/sh\npython ../FFF/f.py\n",
                                              encoding="utf-8")
+        (root / "GGG" / "mod.sh").write_text("#!/bin/sh\npython -m FFF.f\n",
+                                             encoding="utf-8")
+        # A js graph with one real edge, one cross-tree import and one external
+        # package: the three outcomes must not be collapsed into "imports: 3".
+        (root / "III").mkdir()
+        (root / "III" / "widget.js").write_text("export const w = 1;\n", encoding="utf-8")
+        (root / "III" / "use.js").write_text(
+            "import { w } from './widget.js';\nexport default w;\n", encoding="utf-8")
+        (root / "III" / "tool.js").write_text(
+            "const p = require('puppeteer');\nmodule.exports = p;\n", encoding="utf-8")
+        (root / "HHH").mkdir()
+        (root / "HHH" / "app.js").write_text(
+            "const { w } = require('../III/widget.js');\n", encoding="utf-8")
 
         led = census(root)
         tiers = led["tiers"]
@@ -837,6 +1222,25 @@ def selftest() -> int:
             failures.append(f"A-CROSS = {across!r}, expected ['FFF']")
         if "FFF" not in led["tiers"]["A_cleave_today"]:
             failures.append("a shell reference must not evict FFF from tier A")
+        g = led.get("graphs") or {}
+        js = g.get("javascript") or {}
+        # Two internal edges (use->widget, HHH/app->widget). tool->puppeteer is a
+        # dependency, so counting it here would be the old bug in a new function.
+        if js.get("statements") != 2:
+            failures.append("js graph statements = %r, expected 2 internal edges"
+                            % js.get("statements"))
+        if js.get("external_packages", {}).get("puppeteer") != 1:
+            failures.append("js external package not isolated: %r"
+                            % (js.get("external_packages"),))
+        if {"from": "HHH", "to": "III", "refs": 1} not in (js.get("tree_pairs") or []):
+            failures.append("js cross-tree edge HHH->III missing: %r"
+                            % (js.get("tree_pairs"),))
+        sh = g.get("shell") or {}
+        if sh.get("by_form") != {"file": 1, "module": 1}:
+            failures.append("shell call forms = %r, expected {'file': 1, 'module': 1}"
+                            % (sh.get("by_form"),))
+        if sh.get("statements") != 2:
+            failures.append("shell graph statements = %r, expected 2" % sh.get("statements"))
         plan = shard_plan(root)
         for lang, blk in plan["languages"].items():
             flat = [m for s in blk["detail"] for m in s["modules"]]
@@ -868,10 +1272,12 @@ def selftest() -> int:
         for f in failures:
             print("  - " + f, file=sys.stderr)
         return 3
-    print("SELFTEST OK — 14 controls (tier list, cycle filter, tier B membership, "
+    print("SELFTEST OK — 19 controls (tier list, cycle filter, tier B membership, "
           "loose modules, parse failure, hub silence, stub tier, no stub in tier A, "
           "mixed-language tier, no mixed tree in tier A, cross-language edge, "
-          "A-CROSS membership, shell does not evict a tree, shard plan partitions)")
+          "A-CROSS membership, shell does not evict a tree, shard plan partitions, "
+          "js edge count, js external isolation, js cross-tree edge, shell call "
+          "forms, shell statement count)")
     return 0
 
 
