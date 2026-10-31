@@ -4,37 +4,29 @@ title: BIBL Terms K
 
 # BIBL Terms: K
 
-## keras_model
+## k
 
-**Category:** documentation
+**Category:** variable
 
-Section: keras_model
+Variable: k
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
 ## key
 
-**Category:** documentation
+**Category:** variable
 
-Section: key
+Variable: key
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## keys
 
-**Category:** documentation
+**Category:** variable
 
-Section: keys
+Variable: keys
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
-
-## keywords
-
-**Category:** documentation
-
-Section: keywords
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
 
 ## kill-python
 
@@ -42,31 +34,47 @@ Section: keywords
 
 Term: kill-python
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
-
-## kill_by_name
-
-**Category:** documentation
-
-Section: kill_by_name
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## kill_process
 
-**Category:** documentation
+**Category:** function
 
-Section: kill_process
+Function: kill_process
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## kill_process_by_name
+
+**Category:** function
+
+Function: kill_process_by_name
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## kill_python_processes
+
+**Category:** function
+
+Kill all Python processes.
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## killed
 
-**Category:** documentation
+**Category:** variable
 
-Section: killed
+Variable: killed
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## kind
+
+**Category:** variable
+
+Variable: kind
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## klink
 
@@ -74,20 +82,21 @@ Section: killed
 
 Section: klink
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
-## klink.py
+## known
 
-**Category:** documentation
+**Category:** variable
 
-Section: klink.py
+Variable: known
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol.py*
 
-## kwargs
+## known_paths
 
-**Category:** documentation
+**Category:** variable
 
-Section: kwargs
+Variable: known_paths
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\K.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+

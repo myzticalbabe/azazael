@@ -4,21 +4,83 @@ title: BIBL Terms J
 
 # BIBL Terms: J
 
-## j
+## javascript
+const puppeteer = require('puppeteer');
+const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 
-**Category:** documentation
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  
+  await page.setViewport({ width: 1280, height: 720 });
+  
+  const recorder = new PuppeteerScreenRecorder(page);
+  
+  // Update URL to your HTML file
+  await page.goto('file:///path/to/your/file.html');
+  await recorder.start('output.mp4');
+  
+  // Scroll through entire page
+  await page.evaluate(() => {
+    const scrollStep = 30;
+    const scrollDelay = 600;
+    const scrollInterval = setInterval(() => {
+      if (window.scrollY + window.innerHeight >= document.body.scrollHeight) {
+        clearInterval(scrollInterval);
+        return;
+      }
+      window.scrollBy(0, scrollStep);
+    }, scrollDelay);
+  });
+  
+  // Duration: adjust based on content length
+  await new Promise(r => setTimeout(r, 120000));
+  
+  await recorder.stop();
+  await browser.close();
+})();
 
-Section: j
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
+**Category:** inline_code
 
-## jax_analysis
+Term: javascript
+const puppeteer = require('puppeteer');
+const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 
-**Category:** documentation
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  
+  await page.setViewport({ width: 1280, height: 720 });
+  
+  const recorder = new PuppeteerScreenRecorder(page);
+  
+  // Update URL to your HTML file
+  await page.goto('file:///path/to/your/file.html');
+  await recorder.start('output.mp4');
+  
+  // Scroll through entire page
+  await page.evaluate(() => {
+    const scrollStep = 30;
+    const scrollDelay = 600;
+    const scrollInterval = setInterval(() => {
+      if (window.scrollY + window.innerHeight >= document.body.scrollHeight) {
+        clearInterval(scrollInterval);
+        return;
+      }
+      window.scrollBy(0, scrollStep);
+    }, scrollDelay);
+  });
+  
+  // Duration: adjust based on content length
+  await new Promise(r => setTimeout(r, 120000));
+  
+  await recorder.stop();
+  await browser.close();
+})();
 
-Section: jax_analysis
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\documentation\README.md*
 
 ## jax_analysis.py
 
@@ -26,55 +88,7 @@ Section: jax_analysis
 
 Section: jax_analysis.py
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## jax_critique
-
-**Category:** documentation
-
-Section: jax_critique
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
-
-## jax_score
-
-**Category:** documentation
-
-Section: jax_score
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
-
-## jax_time
-
-**Category:** documentation
-
-Section: jax_time
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
-
-## jax_weights
-
-**Category:** documentation
-
-Section: jax_weights
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
-
-## jit
-
-**Category:** documentation
-
-Section: jit
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
-
-## json
-
-**Category:** documentation
-
-Section: json
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## json
 {
@@ -102,7 +116,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\TERENCE\100_USES.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\TERENCE\100_USES.md*
 
 ## json
 {
@@ -128,7 +142,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## json
 {
@@ -162,7 +176,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## json
 {
@@ -188,7 +202,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json
 {
@@ -208,7 +222,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json
 {
@@ -252,7 +266,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## json
 {
@@ -330,7 +344,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## json
 {
@@ -376,7 +390,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json
 {
@@ -406,7 +420,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## json
 {
@@ -484,7 +498,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## json
 {
@@ -504,7 +518,47 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
+
+## json
+{
+  "sessionReport": {
+    "title": "Your Session Title",
+    "date": "2026-02-18",
+    "orderOfOperations": [
+      {"step": 1, "command": "your command", "description": "what happened"}
+    ],
+    "documentedFailures": [
+      {"id": "F1", "issue": "failure description"}
+    ],
+    "phases": [
+      {"id": 1, "name": "Phase Name", "steps": [1,2,3], "color": "red"}
+    ]
+  }
+}
+
+
+**Category:** inline_code
+
+Term: json
+{
+  "sessionReport": {
+    "title": "Your Session Title",
+    "date": "2026-02-18",
+    "orderOfOperations": [
+      {"step": 1, "command": "your command", "description": "what happened"}
+    ],
+    "documentedFailures": [
+      {"id": "F1", "issue": "failure description"}
+    ],
+    "phases": [
+      {"id": 1, "name": "Phase Name", "steps": [1,2,3], "color": "red"}
+    ]
+  }
+}
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\README.md*
 
 ## json
 {
@@ -536,7 +590,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json
 {
@@ -562,7 +616,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json
 {
@@ -584,15 +638,7 @@ Term: json
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
-
-## json_path
-
-**Category:** documentation
-
-Section: json_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## json_structure
 
@@ -600,12 +646,5 @@ Section: json_path
 
 Term: json_structure
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A.md*
 
-## jx
-
-**Category:** documentation
-
-Section: jx
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\J.md*

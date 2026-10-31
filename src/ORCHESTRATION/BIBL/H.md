@@ -4,69 +4,13 @@ title: BIBL Terms H
 
 # BIBL Terms: H
 
-## h
+## handle_message
 
-**Category:** documentation
+**Category:** function
 
-Section: h
+Handle HORUS-specific message types.
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## h1_match
-
-**Category:** documentation
-
-Section: h1_match
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## h_line
-
-**Category:** documentation
-
-Section: h_line
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## handle_events
-
-**Category:** documentation
-
-Section: handle_events
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hard_update
-
-**Category:** documentation
-
-Section: hard_update
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hard_update_target
-
-**Category:** documentation
-
-Section: hard_update_target
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hardening
-
-**Category:** documentation
-
-Section: hardening
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hardware_factor
-
-**Category:** documentation
-
-Section: hardware_factor
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## harness.py
 
@@ -74,31 +18,31 @@ Section: hardware_factor
 
 Term: harness.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CHANGELOG.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CHANGELOG.md*
 
-## has_windows
+## hash_chain
 
-**Category:** documentation
+**Category:** variable
 
-Section: has_windows
+Variable: hash_chain
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
-## has_wsl
+## hash_value
 
-**Category:** documentation
+**Category:** variable
 
-Section: has_wsl
+Variable: hash_value
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
-## hc
+## head
 
-**Category:** documentation
+**Category:** variable
 
-Section: hc
+Variable: head
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## header
 
@@ -106,15 +50,7 @@ Section: hc
 
 Variable: header
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## header_end
-
-**Category:** documentation
-
-Section: header_end
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## header_frame
 
@@ -122,151 +58,47 @@ Section: header_end
 
 Variable: header_frame
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## header_issues
+## heading
 
-**Category:** documentation
+**Category:** variable
 
-Section: header_issues
+Variable: heading
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## header_line
-
-**Category:** documentation
-
-Section: header_line
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## header_match
-
-**Category:** documentation
-
-Section: header_match
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## header_pattern
-
-**Category:** documentation
-
-Section: header_pattern
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## header_text
-
-**Category:** documentation
-
-Section: header_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## headers
-
-**Category:** documentation
-
-Section: headers
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## headings
-
-**Category:** documentation
-
-Section: headings
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## heal_module
 
-**Category:** documentation
+**Category:** function
 
-Section: heal_module
+Function: heal_module
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
 
-## healing_actions
+## healer
 
-**Category:** documentation
+**Category:** variable
 
-Section: healing_actions
+Variable: healer
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
+
+## healing
+
+**Category:** variable
+
+Variable: healing
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TotalFusion.py*
 
 ## health
 
-**Category:** documentation
+**Category:** variable
 
-Section: health
+Variable: health
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.critical_issues
-
-**Category:** documentation
-
-Section: health.critical_issues
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.json
-
-**Category:** documentation
-
-Section: health.json
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.last_scan
-
-**Category:** documentation
-
-Section: health.last_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.resolved
-
-**Category:** documentation
-
-Section: health.resolved
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.score
-
-**Category:** documentation
-
-Section: health.score
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health.warnings
-
-**Category:** documentation
-
-Section: health.warnings
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health_check
-
-**Category:** documentation
-
-Section: health_check
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health_monitor....
-
-**Category:** documentation
-
-Section: health_monitor....
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## health_monitor.py
 
@@ -274,47 +106,7 @@ Section: health_monitor....
 
 Term: health_monitor.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CHANGELOG.md*
-
-## health_monitor.py checks critical imports
-
-**Category:** documentation
-
-Section: health_monitor.py checks critical imports
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health_score
-
-**Category:** documentation
-
-Section: health_score
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## health_tab
-
-**Category:** documentation
-
-Section: health_tab
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## healthy
-
-**Category:** documentation
-
-Section: healthy
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## height
-
-**Category:** documentation
-
-Section: height
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CHANGELOG.md*
 
 ## help
 
@@ -322,167 +114,23 @@ Section: height
 
 Term: help
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
-## hidden
+## history_snapshot
 
-**Category:** documentation
+**Category:** variable
 
-Section: hidden
+Variable: history_snapshot
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
 
-## hidden_size
+## hour_ago
 
-**Category:** documentation
+**Category:** variable
 
-Section: hidden_size
+Variable: hour_ago
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hierarchical_enrichment
-
-**Category:** documentation
-
-Section: hierarchical_enrichment
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## high
-
-**Category:** documentation
-
-Section: high
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## historical
-
-**Category:** documentation
-
-Section: historical
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## historical_failures
-
-**Category:** documentation
-
-Section: historical_failures
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history
-
-**Category:** documentation
-
-Section: history
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history[0].healthy
-
-**Category:** documentation
-
-Section: history[0].healthy
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history[0].issues
-
-**Category:** documentation
-
-Section: history[0].issues
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history[0].timestamp
-
-**Category:** documentation
-
-Section: history[0].timestamp
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history_count
-
-**Category:** documentation
-
-Section: history_count
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history_data
-
-**Category:** documentation
-
-Section: history_data
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history_file
-
-**Category:** documentation
-
-Section: history_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history_len
-
-**Category:** documentation
-
-Section: history_len
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## history_path
-
-**Category:** documentation
-
-Section: history_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hm
-
-**Category:** documentation
-
-Section: hm
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hot
-
-**Category:** documentation
-
-Section: hot
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hot_text
-
-**Category:** documentation
-
-Section: hot_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hotpaths_tab
-
-**Category:** documentation
-
-Section: hotpaths_tab
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## href_pattern
-
-**Category:** documentation
-
-Section: href_pattern
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## html
 
@@ -490,15 +138,7 @@ Section: href_pattern
 
 Variable: html
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## html_content
-
-**Category:** documentation
-
-Section: html_content
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## html_path
 
@@ -506,7 +146,7 @@ Section: html_content
 
 Variable: html_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## html_report
 
@@ -514,15 +154,7 @@ Variable: html_path
 
 Variable: html_report
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
-
-## http
-
-**Category:** documentation
-
-Section: http
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## http
 GET  /api/v1/system/status              # 🩺 Health
@@ -546,76 +178,45 @@ POST /api/v1/terence/fix               # 🔧 Apply fix
 GET  /api/v1/horus/dashboard           # 📺 Dashboard
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_SUMMARY_DUAL.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_SUMMARY_DUAL.md*
 
-## http_code
+## huggingface
 
-**Category:** documentation
+**Category:** json_key
 
-Section: http_code
+JSON key: huggingface
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6api_maximal.json*
 
-## hue
+## huggingface.content
 
-**Category:** documentation
+**Category:** json_key
 
-Section: hue
+JSON key: huggingface.content
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6api_maximal.json*
 
-## hw_idx
+## huggingface.elapsed_s
 
-**Category:** documentation
+**Category:** json_key
 
-Section: hw_idx
+JSON key: huggingface.elapsed_s
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6api_maximal.json*
 
-## hw_list
+## huggingface.model
 
-**Category:** documentation
+**Category:** json_key
 
-Section: hw_list
+JSON key: huggingface.model
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6api_maximal.json*
 
-## hydra
+## huggingface.tokens
 
-**Category:** documentation
+**Category:** json_key
 
-Section: hydra
+JSON key: huggingface.tokens
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6api_maximal.json*
 
-## hydra_protocols_path
-
-**Category:** documentation
-
-Section: hydra_protocols_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hydra_result
-
-**Category:** documentation
-
-Section: hydra_result
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hydrometa
-
-**Category:** documentation
-
-Section: hydrometa
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*
-
-## hz
-
-**Category:** documentation
-
-Section: hz
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\H.md*

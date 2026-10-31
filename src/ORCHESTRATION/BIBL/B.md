@@ -4,157 +4,13 @@ title: BIBL Terms B
 
 # BIBL Terms: B
 
-## b
-
-**Category:** documentation
-
-Section: b
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## back
-
-**Category:** documentation
-
-Section: back
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## background
-
-**Category:** documentation
-
-Section: background
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup
-
-**Category:** documentation
-
-Section: backup
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup_check
-
-**Category:** documentation
-
-Section: backup_check
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup_enabled
-
-**Category:** documentation
-
-Section: backup_enabled
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup_file
-
-**Category:** documentation
-
-Section: backup_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup_path
-
-**Category:** documentation
-
-Section: backup_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## backup_var
-
-**Category:** documentation
-
-Section: backup_var
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bad_files
-
-**Category:** documentation
-
-Section: bad_files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bad_syspath_files
-
-**Category:** documentation
-
-Section: bad_syspath_files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## badge
-
-**Category:** documentation
-
-Section: badge
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## badge_colors
-
-**Category:** documentation
-
-Section: badge_colors
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## badge_count
-
-**Category:** documentation
-
-Section: badge_count
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## badge_pop
-
-**Category:** documentation
-
-Section: badge_pop
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
 ## bar
 
 **Category:** variable
 
 Variable: bar
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
-
-## bar_bg
-
-**Category:** documentation
-
-Section: bar_bg
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bar_fill
-
-**Category:** documentation
-
-Section: bar_fill
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bar_frame
-
-**Category:** documentation
-
-Section: bar_frame
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## base
 
@@ -162,23 +18,7 @@ Section: bar_frame
 
 Variable: base
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
-
-## base_delay
-
-**Category:** documentation
-
-Section: base_delay
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_name
-
-**Category:** documentation
-
-Section: base_name
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
 ## base_path
 
@@ -186,63 +26,7 @@ Section: base_name
 
 Variable: base_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## base_q
-
-**Category:** documentation
-
-Section: base_q
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_score
-
-**Category:** documentation
-
-Section: base_score
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_scores
-
-**Category:** documentation
-
-Section: base_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_win
-
-**Category:** documentation
-
-Section: base_win
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_worms
-
-**Category:** documentation
-
-Section: base_worms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## base_wsl
-
-**Category:** documentation
-
-Section: base_wsl
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bash
-
-**Category:** documentation
-
-Section: bash
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## bash
    git checkout -b docs/your-feature
@@ -254,7 +38,7 @@ Term: bash
    git checkout -b docs/your-feature
    
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
 
 ## bash
    git commit -m "docs: Describe your change"
@@ -266,7 +50,7 @@ Term: bash
    git commit -m "docs: Describe your change"
    
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
 
 ## bash
    git push origin docs/your-feature
@@ -278,7 +62,19 @@ Term: bash
    git push origin docs/your-feature
    
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+
+## bash
+   python batch_recorder.py
+   
+
+**Category:** inline_code
+
+Term: bash
+   python batch_recorder.py
+   
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\README.md*
 
 ## bash
    python scripts/validate_docs.py .
@@ -290,7 +86,7 @@ Term: bash
    python scripts/validate_docs.py .
    
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
 
 ## bash
 "C:\Program Files\VideoLAN\VLC\vlc.exe" "C:\Users\clint\Desktop\CODEX\Azazael_MATRIX_CASCADE.mp4"
@@ -302,7 +98,7 @@ Term: bash
 "C:\Program Files\VideoLAN\VLC\vlc.exe" "C:\Users\clint\Desktop\CODEX\Azazael_MATRIX_CASCADE.mp4"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\CURRENT_STATE.md*
 
 ## bash
 # 1. Check current metrics
@@ -334,7 +130,7 @@ azazael optimize --population 200 --generations 50
 azazael monitor --interval 5s
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # 1. Check everything works
@@ -362,7 +158,7 @@ python ml_platforms\harness.py recommend -t cv
 python ml_platforms\harness.py analyze
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\README.md*
 
 ## bash
 # 1. Check recent errors
@@ -394,7 +190,7 @@ azazael terence fix --auto
 azazael health --quick
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # 1. Install CLI
@@ -432,7 +228,7 @@ azazael health --full
 azazael scan --target /your/project
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # 1. Run a single worm
@@ -470,7 +266,7 @@ python METAWORMS/HYDRAMETA.py --trials 5 --popup
 python TERENCE/TERENCE.py --scan --auto-fix
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 # 1. Scan the codebase
@@ -502,33 +298,7 @@ azazael health --full
 azazael monitor --dashboard &
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
-
-## bash
-# All tests
-python scripts/run_tests.py
-
-# Enhancement tests
-python scripts/test_enhancements.py
-
-# WSA integration demo
-python scripts/azazael_wsa.py
-
-
-**Category:** inline_code
-
-Term: bash
-# All tests
-python scripts/run_tests.py
-
-# Enhancement tests
-python scripts/test_enhancements.py
-
-# WSA integration demo
-python scripts/azazael_wsa.py
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Analyze a model (no conversion)
@@ -572,7 +342,7 @@ python universal_converter.py models/mistral.gguf --framework jax
 python universal_converter.py models/mistral.gguf --framework pytorch --output my_conversion
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## bash
 # Analyze an error
@@ -604,7 +374,7 @@ python TERENCE/TERENCE.py --reinforce --history
 python TERENCE/TERENCE.py --scan --all-tiers --auto-fix
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 # Analyze new error
@@ -630,7 +400,7 @@ python -m continuous_learner stats
 python -m continuous_learner queue
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
 
 ## bash
 # Azazael paths
@@ -672,7 +442,7 @@ alias persephone="python $PERSEPHONE_ROOT/bin/persephone.py"
 alias sync="bash $PERSEPHONE_ROOT/sync_azazael_wsl.sh"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 # Basic calculations
@@ -704,7 +474,7 @@ poindexter stats --data "[1,2,3,4,5]" --stddev
 poindexter sequence --start 1 --end 100 --step 2
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Basic optimization
@@ -730,7 +500,7 @@ azazael optimize --population 500 --generations 100 --strategy tournament
 azazael optimize --output optimization_results.json
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Build for current platform
@@ -766,7 +536,7 @@ tarbaby build --output docker   # Docker image
 tarbaby build --output static   # Static binary
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # CLI
@@ -788,57 +558,7 @@ python TERENCE.py --fix
 terence.scan()  # In build pipeline
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\TERENCE\100_USES.md*
-
-## bash
-# CLI
-python scripts/azazael_cli.py
-
-# Validate docs
-python scripts/validate_docs.py .
-
-# Run tests
-python scripts/run_tests.py
-
-# BAT analysis
-python scripts/bat_analysis.py
-
-# WSA Demo
-python scripts/azazael_wsa.py
-
-# Web Dashboard (requires streamlit)
-python scripts/web_dashboard.py
-
-# Property tests
-python scripts/test_enhancements.py
-
-
-**Category:** inline_code
-
-Term: bash
-# CLI
-python scripts/azazael_cli.py
-
-# Validate docs
-python scripts/validate_docs.py .
-
-# Run tests
-python scripts/run_tests.py
-
-# BAT analysis
-python scripts/bat_analysis.py
-
-# WSA Demo
-python scripts/azazael_wsa.py
-
-# Web Dashboard (requires streamlit)
-python scripts/web_dashboard.py
-
-# Property tests
-python scripts/test_enhancements.py
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\TERENCE\100_USES.md*
 
 ## bash
 # Check Python path
@@ -870,7 +590,7 @@ python -c "import torch; print(torch.cuda.is_available())"
 python -m ml_platforms.launcher
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## bash
 # Check available commands
@@ -884,7 +604,7 @@ Term: bash
 python harness.py --help
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## bash
 # Check configuration
@@ -904,7 +624,7 @@ azazael config get database.*
 azazael db test --type ${DATABASE_TYPE}
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Check query performance
@@ -924,7 +644,7 @@ azazael db analyze --slow-queries
 azazael optimize --target query-performance
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Check worm memory
@@ -944,7 +664,7 @@ azazael system --memory --processes
 azazael execute --workers 4
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Colored bar with text
@@ -960,7 +680,7 @@ drawbox=x=0:y=0:w=1280:h=80:color=0x1a1a3a:t=fill
 drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='TITLE':fontcolor=white:fontsize=36:x=50:y=25
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## bash
 # Configure ElasticSearch
@@ -990,7 +710,7 @@ azazael config set database.index_prefix azazael
 - Scalable search
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Configure InfluxDB
@@ -1022,7 +742,7 @@ azazael config set database.bucket metrics
 - Flux language
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Configure PostgreSQL
@@ -1058,7 +778,7 @@ azazael config set database.password ${DB_PASSWORD}
 - Row-level security
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Configure Redis
@@ -1090,7 +810,7 @@ azazael config set database.password ${REDIS_PASSWORD}
 - Cluster mode
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Configure SQLite
@@ -1118,7 +838,7 @@ azazael config set database.path /var/lib/azazael/azazael.db
 - Up to 1TB supported
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Crawl codebase for terminology
@@ -1154,7 +874,7 @@ bibl export --format markdown --output glossary.md
 bibl import --source corporate-glossary.xlsx
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Create destination directories
@@ -1182,7 +902,7 @@ mv /c/Users/clint/Desktop/HYDRA.md /c/Users/clint/Desktop/HYDRA/DOCUMENTATION/
 mv /c/Users/clint/Desktop/ML_PLATFORM_CHANGES.txt /c/Users/clint/Desktop/CODEX/ARCHIVE/
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## bash
 # Define custom shortcuts
@@ -1216,7 +936,7 @@ fullscan
 health
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Fade in effect
@@ -1236,7 +956,7 @@ fade=t=in:st=0:d=1.5
 drawtext=text='Section 1':fade_in=t=in:st=1:d=0.5
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## bash
 # For tensor_utils.py
@@ -1268,7 +988,7 @@ pip install ray
 pip install onnx onnxruntime tf2onnx
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## bash
 # From Azazael directory
@@ -1306,7 +1026,7 @@ python ml_platforms\harness.py analyze
 python ml_platforms\harness.py recommend -t cv
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## bash
 # Full verification
@@ -1332,7 +1052,7 @@ python verify_moe.py --analysis
 python verify_moe.py --recommend
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## bash
 # Full verification (all tests)
@@ -1358,7 +1078,7 @@ python verify_moe.py --analysis
 python verify_moe.py --recommend
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## bash
 # Generate video
@@ -1382,7 +1102,7 @@ vlc C:\Users\clint\Desktop\CODEX\Azazael_TECHNICAL.mp4
 # Or double-click in Windows Explorer
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
 
 ## bash
 # Grid pattern
@@ -1402,23 +1122,7 @@ drawgrid=w=50:h=50:color=cyan@0.02
 drawbox=x=0:y=0:w=1280:h=80:color=0x1a1a3a:t=fill
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
-
-## bash
-# Install for enhancements
-pip install colorama rich numba hypothesis
-pip install streamlit grpcio-tools
-
-
-**Category:** inline_code
-
-Term: bash
-# Install for enhancements
-pip install colorama rich numba hypothesis
-pip install streamlit grpcio-tools
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## bash
 # Launch session
@@ -1446,7 +1150,7 @@ from ml_platforms.config import list_platforms, get_env_path
 list_platforms()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\README.md*
 
 ## bash
 # Monitor all resources every 5 seconds
@@ -1472,39 +1176,7 @@ azazael systemz --cpu --temp --cores --interval 1s
 azazael systemz --all --prometheus --output /metrics
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
-
-## bash
-# Run CLI
-python scripts/azazael_cli.py
-
-# Validate docs
-python scripts/validate_docs.py .
-
-# Run tests
-python scripts/run_tests.py
-
-# BAT analysis
-python scripts/bat_analysis.py
-
-
-**Category:** inline_code
-
-Term: bash
-# Run CLI
-python scripts/azazael_cli.py
-
-# Validate docs
-python scripts/validate_docs.py .
-
-# Run tests
-python scripts/run_tests.py
-
-# BAT analysis
-python scripts/bat_analysis.py
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Run all metaworms
@@ -1536,7 +1208,7 @@ azazael analyze --metaworms all --threshold 80
 azazael analyze --metaworms all --fail-on-issues
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Run comprehensive health check
@@ -1562,7 +1234,7 @@ azazael healthz --cpu --memory --disk --network
 azazael healthz --full --report pdf
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Run framework analysis
@@ -1606,7 +1278,7 @@ python harness.py status --json
 python harness.py models
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## bash
 # Run from Azazael directory
@@ -1632,7 +1304,7 @@ python ml_platforms\launcher.py
 >>> monitor = PlatformHealthMonitor()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
 
 ## bash
 # Run full analysis
@@ -1658,7 +1330,7 @@ ls analysis_logs/
 cat analysis_logs/dlq_full_converge_*.json | python -m json.tool
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## bash
 # Run full convergence analysis
@@ -1676,7 +1348,7 @@ python run_qanalysis_full.py
 # Results saved to analysis_logs/
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## bash
 # Safety checking
@@ -1700,7 +1372,7 @@ pip install pip-audit
 pip-audit
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
 
 ## bash
 # Scan current directory
@@ -1732,7 +1404,7 @@ azazael scan --target . --language python
 azazael scan --target /app --format html --output report.html
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Schedule system scan every hour
@@ -1758,7 +1430,7 @@ azazael clockz --schedule "0 3 * * 0" --worm hydrameta
 azazael clockz --schedule "*/30 * * * *" --worm diskz
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Search
@@ -1790,41 +1462,7 @@ python -m knowledge_base category cuda_memory
 python -m knowledge_base tip
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
-
-## bash
-# Start API server
-python -m azazael_wsa
-
-# Endpoints:
-# GET  /status         - Device status
-# GET  /apps           - List apps
-# POST /install        - Install APK
-# POST /uninstall      - Uninstall app
-# POST /run            - Launch app
-# GET  /performance    - Performance metrics
-# GET  /screenshot     - Take screenshot
-# GET  /logs          - View logs
-
-
-**Category:** inline_code
-
-Term: bash
-# Start API server
-python -m azazael_wsa
-
-# Endpoints:
-# GET  /status         - Device status
-# GET  /apps           - List apps
-# POST /install        - Install APK
-# POST /uninstall      - Uninstall app
-# POST /run            - Launch app
-# GET  /performance    - Performance metrics
-# GET  /screenshot     - Take screenshot
-# GET  /logs          - View logs
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
 
 ## bash
 # Start dashboard
@@ -1850,7 +1488,7 @@ azazael monitor --dashboard --interval 5
 azazael monitor --dashboard --components cpu,memory,disk
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Start interactive session
@@ -1876,7 +1514,7 @@ python ml_platforms\launcher.py
 >>> monitor.print_status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
 
 ## bash
 # Using API token
@@ -1900,7 +1538,7 @@ curl -H "X-API-Key: $API_KEY" \
      https://api.azazael.local/v1/system/status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Verbose output
@@ -1926,7 +1564,7 @@ python harness.py status --json
 python harness.py convert -m model.gguf -f pytorch -o my_output
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## bash
 # Via pip
@@ -1954,33 +1592,7 @@ git clone https://github.com/azazael/cli.git
 cd cli && make install
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
-
-## bash
-# With Hypothesis
-python scripts/test_enhancements.py --verbose
-
-# Tests Q-Learning properties:
-# - Q-table initialization
-# - Epsilon-greedy policy
-# - Transition validation
-# - Priority normalization
-
-
-**Category:** inline_code
-
-Term: bash
-# With Hypothesis
-python scripts/test_enhancements.py --verbose
-
-# Tests Q-Learning properties:
-# - Q-table initialization
-# - Epsilon-greedy policy
-# - Transition validation
-# - Priority normalization
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 # Zoom effect
@@ -2006,7 +1618,7 @@ scroll=vertical=1:h=720
 xfade=transition=fade:duration=1:offset=5
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## bash
 $ azazael --help
@@ -2072,7 +1684,7 @@ OPTIONS:
 For more info: azazael <command> --help
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 ./sync_azazael_wsl.sh
@@ -2084,7 +1696,7 @@ Term: bash
 ./sync_azazael_wsl.sh
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 ./sync_azazael_wsl.sh
@@ -2106,7 +1718,7 @@ Term: bash
 #   dry        = Compare only
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 /c/Users/clint/.local/bin/python3.11 /c/Users/clint/Desktop/CODEX/matrix_animation.py
@@ -2118,7 +1730,7 @@ Term: bash
 /c/Users/clint/.local/bin/python3.11 /c/Users/clint/Desktop/CODEX/matrix_animation.py
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\CURRENT_STATE.md*
 
 ## bash
 C:\Users\clint\AppData\Roaming\uv\python\cpython-3.14+freethreaded-windows-x86_64-none\python.exe src/META/MetaWormSpawner.py --demo --duration 120
@@ -2130,7 +1742,7 @@ Term: bash
 C:\Users\clint\AppData\Roaming\uv\python\cpython-3.14+freethreaded-windows-x86_64-none\python.exe src/META/MetaWormSpawner.py --demo --duration 120
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
 
 ## bash
 Error: Could not find version that satisfies the requirement
@@ -2142,7 +1754,7 @@ Term: bash
 Error: Could not find version that satisfies the requirement
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## bash
 Error: No module named 'numpy'
@@ -2154,7 +1766,7 @@ Term: bash
 Error: No module named 'numpy'
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## bash
 ModuleNotFoundError: No module named 'gymnasium'
@@ -2166,7 +1778,7 @@ Term: bash
 ModuleNotFoundError: No module named 'gymnasium'
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## bash
 azazael execute --mode cotemporaneous --worms systemz,processz,diskz
@@ -2178,7 +1790,7 @@ Term: bash
 azazael execute --mode cotemporaneous --worms systemz,processz,diskz
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 azazael execute --mode ml-optimized --auto-tune
@@ -2190,7 +1802,7 @@ Term: bash
 azazael execute --mode ml-optimized --auto-tune
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 azazael execute --mode parallel --workers 8
@@ -2202,7 +1814,7 @@ Term: bash
 azazael execute --mode parallel --workers 8
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 azazael execute --mode threadpool --max-threads 16 --queue-size 1000
@@ -2214,7 +1826,7 @@ Term: bash
 azazael execute --mode threadpool --max-threads 16 --queue-size 1000
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## bash
 cd C:\Users\clint\Desktop\Azazael
@@ -2230,7 +1842,7 @@ cd C:\Users\clint\Desktop\Azazael
 python -m ml_platforms
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 cd C:\Users\clint\Desktop\Azazael
@@ -2244,7 +1856,7 @@ cd C:\Users\clint\Desktop\Azazael
 python ml_platforms\harness.py status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## bash
 cd C:\Users\clint\azazael
@@ -2262,7 +1874,97 @@ python src/UTILITIES/KLINK/klink.py worms      # Run monitoring worms
 python src/UTILITIES/KLINK/klink.py hydra all  # Run HYDRA cluster
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+
+## bash
+cd Desktop/SESSION_TEMPLATE
+npm install puppeteer puppeteer-screen-recorder
+node recorders/record_ultimate.js
+
+
+**Category:** inline_code
+
+Term: bash
+cd Desktop/SESSION_TEMPLATE
+npm install puppeteer puppeteer-screen-recorder
+node recorders/record_ultimate.js
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\INDEX.md*
+
+## bash
+cd Desktop/SESSION_TEMPLATE
+python generators/generate_session_report.py data/session_data.json
+python generators/generate_failure_report.py data/failure_data.json
+
+
+**Category:** inline_code
+
+Term: bash
+cd Desktop/SESSION_TEMPLATE
+python generators/generate_session_report.py data/session_data.json
+python generators/generate_failure_report.py data/failure_data.json
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\INDEX.md*
+
+## bash
+cd SESSION_TEMPLATE/generators
+python unified_generator.py [style]
+
+
+**Category:** inline_code
+
+Term: bash
+cd SESSION_TEMPLATE/generators
+python unified_generator.py [style]
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\README.md*
+
+## bash
+cd generators
+python batch_generator.py              # Generate all 9 styles
+python batch_generator.py -l           # List available styles
+python batch_generator.py ultimate     # Generate single style
+python batch_generator.py neon cosmic mystical  # Generate multiple
+python batch_generator.py all         # Generate all
+
+
+**Category:** inline_code
+
+Term: bash
+cd generators
+python batch_generator.py              # Generate all 9 styles
+python batch_generator.py -l           # List available styles
+python batch_generator.py ultimate     # Generate single style
+python batch_generator.py neon cosmic mystical  # Generate multiple
+python batch_generator.py all         # Generate all
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\INDEX.md*
+
+## bash
+cd generators
+python batch_recorder.py              # Record all to MP4
+python batch_recorder.py -l           # List available templates
+python batch_recorder.py ultimate     # Record single template
+python batch_recorder.py neon cosmic # Record multiple
+python batch_recorder.py all         # Record all
+
+
+**Category:** inline_code
+
+Term: bash
+cd generators
+python batch_recorder.py              # Record all to MP4
+python batch_recorder.py -l           # List available templates
+python batch_recorder.py ultimate     # Record single template
+python batch_recorder.py neon cosmic # Record multiple
+python batch_recorder.py all         # Record all
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\INDEX.md*
 
 ## bash
 chmod +x sync_azazael_wsl.sh
@@ -2274,7 +1976,19 @@ Term: bash
 chmod +x sync_azazael_wsl.sh
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
+
+## bash
+copy consequences_ultimate.html new_theme.html
+
+
+**Category:** inline_code
+
+Term: bash
+copy consequences_ultimate.html new_theme.html
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\documentation\README.md*
 
 ## bash
 export Azazael_ROOT="/mnt/c/Users/clint/Desktop/Azazael"
@@ -2288,7 +2002,7 @@ export Azazael_ROOT="/mnt/c/Users/clint/Desktop/Azazael"
 export PERSEPHONE_ROOT="/mnt/c/Users/clint/Desktop/PERSEPHONE"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 ffmpeg -y -f lavfi -i "color=c=0x0a0a1a:d=20" -vf "
@@ -2316,7 +2030,7 @@ drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='SYSTEMZ PROCESSZ DISKZ NETW
 " -c:v libx264 -pix_fmt yuv420p -t 20 OUTPUT.mp4
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
 
 ## bash
 ffmpeg -y -f lavfi -i "color=c=0x0a0a1a:d=5" -vf "
@@ -2334,7 +2048,7 @@ drawtext=fontfile=/c/Windows/Fonts/consola.ttf:text='Azazael':fontsize=64:x=(w-t
 " -c:v libx264 -pix_fmt yuv420p -t 5 OUTPUT.mp4
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
 
 ## bash
 ffmpeg -y \
@@ -2354,7 +2068,7 @@ ffmpeg -y \
     OUTPUT.mp4
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## bash
 ffmpeg -y \
@@ -2374,7 +2088,7 @@ ffmpeg -y \
   OUTPUT.mp4
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\VIDEO_GENERATION_PROTOCOL.md*
 
 ## bash
 grep -ri "HYDROMETA" /c/Users/clint/Desktop --include="*.py" --include="*.md" --include="*.bat" --include="*.ps1" --include="*.html" --include="*.json" 2>/dev/null
@@ -2386,7 +2100,31 @@ Term: bash
 grep -ri "HYDROMETA" /c/Users/clint/Desktop --include="*.py" --include="*.md" --include="*.bat" --include="*.ps1" --include="*.html" --include="*.json" 2>/dev/null
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+
+## bash
+node record_ultimate.js
+
+
+**Category:** inline_code
+
+Term: bash
+node record_ultimate.js
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\INDEX.md*
+
+## bash
+npm install puppeteer puppeteer-screen-recorder
+
+
+**Category:** inline_code
+
+Term: bash
+npm install puppeteer puppeteer-screen-recorder
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\documentation\README.md*
 
 ## bash
 numpy.ndarray size changed
@@ -2398,31 +2136,7 @@ Term: bash
 numpy.ndarray size changed
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
-
-## bash
-pip install -r requirements.txt
-
-
-**Category:** inline_code
-
-Term: bash
-pip install -r requirements.txt
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
-
-## bash
-pip install -r requirements_wsa.txt
-
-
-**Category:** inline_code
-
-Term: bash
-pip install -r requirements_wsa.txt
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## bash
 pip install -r requirements_wsl.txt
@@ -2434,7 +2148,7 @@ Term: bash
 pip install -r requirements_wsl.txt
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 pip install llama-cpp-python
@@ -2446,7 +2160,7 @@ Term: bash
 pip install llama-cpp-python
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## bash
 pip install llama-cpp-python safetensors transformers optimum onnxruntime tensorflow jax jaxlib flax
@@ -2458,7 +2172,7 @@ Term: bash
 pip install llama-cpp-python safetensors transformers optimum onnxruntime tensorflow jax jaxlib flax
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## bash
 pip install mlflow                    # Core
@@ -2482,7 +2196,7 @@ pip install lightgbm                  # LightGBM support
 pip install catboost                  # CatBoost support
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## bash
 pip install onnx onnxruntime          # Core
@@ -2498,7 +2212,7 @@ pip install tf2onnx                    # TensorFlow
 pip install skl2onnx                   # sklearn
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## bash
 pip install optimum[onnxruntime]
@@ -2510,7 +2224,7 @@ Term: bash
 pip install optimum[onnxruntime]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## bash
 pip install pre-commit
@@ -2526,7 +2240,7 @@ pre-commit install
 pre-commit run --all-files
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
 
 ## bash
 pip install ray
@@ -2538,27 +2252,7 @@ Term: bash
 pip install ray
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
-
-## bash
-pip install ruff mypy          # Code quality
-pip install streamlit         # Web dashboard
-pip install numba             # JIT compilation
-pip install optuna            # Hyperparameter tuning
-pip install hypothesis        # Property testing
-
-
-**Category:** inline_code
-
-Term: bash
-pip install ruff mypy          # Code quality
-pip install streamlit         # Web dashboard
-pip install numba             # JIT compilation
-pip install optuna            # Hyperparameter tuning
-pip install hypothesis        # Property testing
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## bash
 pytest tests/ -v
@@ -2572,7 +2266,7 @@ pytest tests/ -v
 pytest tests/ --cov=. --cov-report=html
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\META_LEARNING.md*
 
 ## bash
 python -c "import json; json.load(open('ml_platform_config.json'))"
@@ -2584,7 +2278,7 @@ Term: bash
 python -c "import json; json.load(open('ml_platform_config.json'))"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## bash
 python ../METAWORMS/ERRORZ.py --scan   # Scan for code errors
@@ -2600,7 +2294,7 @@ python ../METAWORMS/ERRORZ.py --popup  # Run with popup window
 python ../METAWORMS/ERRORZ.py --status # Show status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python ../METAWORMS/METAWORMS_ENRICHED.py --all   # Run all meta worms (enriched)
@@ -2618,7 +2312,7 @@ python ../METAWORMS/METAWORMS_ENRICHED.py --report # Generate HTML report
 python ../METAWORMS/METAWORMS_ENRICHED.py --status # Show status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python ../POINDEXTER/POINDEXTER.py    # Run mathematical analysis
@@ -2630,7 +2324,7 @@ Term: bash
 python ../POINDEXTER/POINDEXTER.py    # Run mathematical analysis
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python ../WORMZ/WORMZ.py --all        # Crawl all folders (console)
@@ -2648,7 +2342,7 @@ python ../WORMZ/WORMZ.py --delta      # Delta crawl (changes only)
 python ../WORMZ/WORMZ.py --status     # Show crawler status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python Azazael/Azazael_INTEGRATION.py --components    List all components
@@ -2662,7 +2356,7 @@ python Azazael/Azazael_INTEGRATION.py --components    List all components
 python Azazael/Azazael_INTEGRATION.py --paths          Show all paths
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python Azazael/Azazael_INTEGRATION.py --demo          Run demo
@@ -2678,7 +2372,7 @@ python Azazael/Azazael_INTEGRATION.py --status        Show ecosystem status
 python Azazael/Azazael_INTEGRATION.py --full          Run full ecosystem
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python Azazael/Azazael_INTEGRATION.py --hydra --stage discovery
@@ -2696,7 +2390,7 @@ python Azazael/Azazael_INTEGRATION.py --shorty index --path C:/
 python Azazael/Azazael_INTEGRATION.py --shorty search --path C:/ --pattern "*.py"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python Azazael/Azazael_INTEGRATION.py --worm systemz  Run SYSTEMZ
@@ -2712,7 +2406,7 @@ python Azazael/Azazael_INTEGRATION.py --worm processz  Run PROCESSZ
 python Azazael/Azazael_INTEGRATION.py --worms all     Run all worms
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python HORUS.py --destination file    # Generate HTML results
@@ -2728,7 +2422,7 @@ python HORUS.py --watch               # Watch for updates
 python HORUS.py --destination popup    # Show popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python HYDRA.py --discover      # Auto-discover ML nodes
@@ -2746,7 +2440,7 @@ python HYDRA.py --popup         # Show popup monitor
 python HYDRA.py --status       # Cluster status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python HYDRA.py --discover    # Auto-discover ML groups
@@ -2764,7 +2458,7 @@ python HYDRA.py --adapt       # Run adaptive learning
 python HYDRA.py --status      # Show cluster status
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\HYDRA\DOCUMENTATION\HYDRA.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\HYDRA\DOCUMENTATION\HYDRA.md*
 
 ## bash
 python METAWORMS/HYDRAMETA.py --run
@@ -2780,7 +2474,7 @@ python METAWORMS/HYDRAMETA.py --trials 10 --popup
 python METAWORMS/HYDRAMETA.py --analyze
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 python METAWORMS/HYDRAMETA.py --run             Run optimized
@@ -2798,7 +2492,7 @@ python METAWORMS/HYDRAMETA.py --analyze         Analyze performance
 python METAWORMS/HYDRAMETA.py --popup           GUI interface
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python METAWORMS/METAWORMS_ENRICHED.py --all
@@ -2816,7 +2510,7 @@ python METAWORMS/TRIMZ.py --scan --trim
 python METAWORMS/HEALTHZ.py --check
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 python METAWORMS/METAWORMS_ENRICHED.py --all
@@ -2830,7 +2524,7 @@ python METAWORMS/METAWORMS_ENRICHED.py --all
 python METAWORMS/HYDRAMETA.py --trials 5 --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python METAWORMS/METAWORMS_ENRICHED.py --all     Run all metaworms
@@ -2848,7 +2542,7 @@ python METAWORMS/TRIMZ.py --scan --trim          Trim content
 python METAWORMS/HEALTHZ.py --check             Health check
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python TARBABY.py --test --path C:/ --duration 600    # 10-min test
@@ -2864,7 +2558,7 @@ python TARBABY.py --source script.py --format exe       # Build exe
 python TARBABY.py --monitor                               # Popup monitor
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python TERENCE/TERENCE.py --analyze error_file.txt
@@ -2882,7 +2576,7 @@ python TERENCE/TERENCE.py --reinforce --history
 python TERENCE/TERENCE.py --scan --all-tiers
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python TERENCE/TERENCE.py --status
@@ -2896,7 +2590,7 @@ python TERENCE/TERENCE.py --status
 python TERENCE/TERENCE.py --scan --all-tiers
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/CLUSTERWORMS.py --list
@@ -2912,7 +2606,7 @@ python WORMZ/CLUSTERWORMS.py --type system --execute
 python WORMZ/CLUSTERWORMS.py --type full --parallel --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/CLUSTERWORMS.py --list              List available clusters
@@ -2928,7 +2622,7 @@ python WORMZ/CLUSTERWORMS.py --type system --execute
 python WORMZ/CLUSTERWORMS.py --type full --parallel --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/CLUSTERWORMS.py --type system --execute
@@ -2946,7 +2640,7 @@ python WORMZ/CLUSTERWORMS.py --list
 python WORMZ/CLUSTERWORMS.py --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 python WORMZ/CONCURRENCY.py --scan
@@ -2962,7 +2656,7 @@ python WORMZ/CONCURRENCY.py --ecosystem --workers 16
 python WORMZ/CONCURRENCY.py --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/CONCURRENCY.py --scan          # Parallel system scan
@@ -2980,7 +2674,7 @@ python WORMZ/CONCURRENCY.py --workers 16    # Set worker count
 python WORMZ/CONCURRENCY.py --popup         # GUI interface
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 python WORMZ/CONCURRENCY.py --scan          Parallel system scan
@@ -2998,7 +2692,7 @@ python WORMZ/CONCURRENCY.py --workers 16    Set worker count
 python WORMZ/CONCURRENCY.py --popup         GUI interface
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/OS_CONGRUENCY.py --status
@@ -3018,7 +2712,7 @@ python WORMZ/OS_CONGRUENCY.py --comprehensive
 python WORMZ/OS_CONGRUENCY.py --popup
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/OS_CONGRUENCY.py --status          System status
@@ -3040,7 +2734,7 @@ python WORMZ/OS_CONGRUENCY.py --comprehensive Full status
 python WORMZ/OS_CONGRUENCY.py --popup         GUI interface
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/SYSTEMZ.py --status
@@ -3058,7 +2752,7 @@ python WORMZ/DISKZ.py --usage
 python WORMZ/NETWORXZ.py --stats
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## bash
 python WORMZ/SYSTEMZ.py --status
@@ -3076,7 +2770,7 @@ python WORMZ/DISKZ.py --usage
 python WORMZ/NETWORXZ.py --stats
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/SYSTEMZ.py --status      Full status
@@ -3096,7 +2790,7 @@ python WORMZ/SYSTEMZ.py --disk        Disk info
 python WORMZ/SYSTEMZ.py --json       JSON output
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## bash
 python WORMZ/WORMZ.py --all        Full BIBL crawl
@@ -3114,7 +2808,19 @@ python WORMZ/WORMZ.py --folder PATH  Specific folder
 python WORMZ/WORMZ.py --popup      GUI interface
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+
+## bash
+python batch_generator.py
+
+
+**Category:** inline_code
+
+Term: bash
+python batch_generator.py
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\README.md*
 
 ## bash
 python harness.py analyze           # Run framework analysis
@@ -3132,7 +2838,7 @@ python harness.py recommend -t cv   # Get CV framework recommendation
 python harness.py monitor           # Check system health
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## bash
 python launcher.py
@@ -3144,7 +2850,7 @@ Term: bash
 python launcher.py
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\G-L.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\G-L.md*
 
 ## bash
 python ml_platforms/auto_install.py
@@ -3156,7 +2862,7 @@ Term: bash
 python ml_platforms/auto_install.py
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INDEX.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INDEX.md*
 
 ## bash
 python ml_platforms/verify_moe.py --analysis
@@ -3168,7 +2874,7 @@ Term: bash
 python ml_platforms/verify_moe.py --analysis
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
 
 ## bash
 python ml_platforms/verify_moe.py --full
@@ -3180,7 +2886,7 @@ Term: bash
 python ml_platforms/verify_moe.py --full
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
 
 ## bash
 python ml_platforms/verify_moe.py --recommend
@@ -3192,7 +2898,7 @@ Term: bash
 python ml_platforms/verify_moe.py --recommend
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
 
 ## bash
 python scripts/validate_docs.py --generate-search
@@ -3204,7 +2910,7 @@ Term: bash
 python scripts/validate_docs.py --generate-search
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\README.md*
 
 ## bash
 python scripts/validate_docs.py .
@@ -3216,7 +2922,7 @@ Term: bash
 python scripts/validate_docs.py .
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\README.md*
 
 ## bash
 python src/UTILITIES/KLINK/klink.py optimize   # Ecosystem optimizer
@@ -3232,7 +2938,19 @@ python src/UTILITIES/KLINK/klink.py analyze    # Batch file analysis
 python src/UTILITIES/KLINK/klink.py horus      # HORUS output formatting
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+
+## bash
+python unified_generator.py cain
+
+
+**Category:** inline_code
+
+Term: bash
+python unified_generator.py cain
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\SESSION_TEMPLATE\README.md*
 
 ## bash
 python universal_converter.py model.gguf --framework pytorch
@@ -3246,7 +2964,7 @@ python universal_converter.py model.gguf --framework pytorch
 python universal_converter.py model.gguf --analyze
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\S-Z.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\S-Z.md*
 
 ## bash
 python universal_converter.py model.gguf --framework pytorch
@@ -3260,7 +2978,7 @@ python universal_converter.py model.gguf --framework pytorch
 python universal_converter.py model.gguf --analyze  # Just analyze
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## bash
 python verify_moe.py --full    # Full verification
@@ -3276,7 +2994,7 @@ python verify_moe.py --analysis # Q-analysis only
 python verify_moe.py --recommend  # Get recommendations
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\S-Z.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\S-Z.md*
 
 ## bash
 sudo apt install rsync
@@ -3288,7 +3006,7 @@ Term: bash
 sudo apt install rsync
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## bash
 🔮 azazael --help                          # Show commands
@@ -3312,63 +3030,7 @@ Term: bash
 🔮 azazael history --metrics               # Show metrics
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_SUMMARY_DUAL.md*
-
-## bash_script
-
-**Category:** documentation
-
-Section: bash_script
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## basic_tests
-
-**Category:** documentation
-
-Section: basic_tests
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bat_analysis.py
-
-**Category:** inline_code
-
-Term: bat_analysis.py
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## bat_file
-
-**Category:** documentation
-
-Section: bat_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bat_files
-
-**Category:** documentation
-
-Section: bat_files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bat_improver
-
-**Category:** documentation
-
-Section: bat_improver
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bat_pass_rate
-
-**Category:** documentation
-
-Section: bat_pass_rate
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_SUMMARY_DUAL.md*
 
 ## bat_results
 
@@ -3376,23 +3038,7 @@ Section: bat_pass_rate
 
 Variable: bat_results
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
-
-## bat_test
-
-**Category:** documentation
-
-Section: bat_test
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## batch
-
-**Category:** documentation
-
-Section: batch
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## batch
 REM Start pams-server (memory backend)
@@ -3412,263 +3058,7 @@ REM Start llama-server (inference)
 C:\Users\clint\Desktop\Llama Server\launch_chat.bat
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
-
-## batch_improve
-
-**Category:** documentation
-
-Section: batch_improve
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## batch_size
-
-**Category:** documentation
-
-Section: batch_size
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## battery
-
-**Category:** documentation
-
-Section: battery
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bbox
-
-**Category:** documentation
-
-Section: bbox
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bench
-
-**Category:** documentation
-
-Section: bench
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark
-
-**Category:** documentation
-
-Section: benchmark
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_discovery
-
-**Category:** documentation
-
-Section: benchmark_discovery
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_framework
-
-**Category:** documentation
-
-Section: benchmark_framework
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_hydra_pipeline
-
-**Category:** documentation
-
-Section: benchmark_hydra_pipeline
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_install
-
-**Category:** documentation
-
-Section: benchmark_install
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_integration
-
-**Category:** documentation
-
-Section: benchmark_integration
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_metaworms
-
-**Category:** documentation
-
-Section: benchmark_metaworms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_qlearning
-
-**Category:** documentation
-
-Section: benchmark_qlearning
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_uv_speed
-
-**Category:** documentation
-
-Section: benchmark_uv_speed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmark_wormz_crawl
-
-**Category:** documentation
-
-Section: benchmark_wormz_crawl
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## benchmarks
-
-**Category:** documentation
-
-Section: benchmarks
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best
-
-**Category:** documentation
-
-Section: best
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_action
-
-**Category:** documentation
-
-Section: best_action
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_dev
-
-**Category:** documentation
-
-Section: best_dev
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_doc
-
-**Category:** documentation
-
-Section: best_doc
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_expert
-
-**Category:** documentation
-
-Section: best_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_framework
-
-**Category:** documentation
-
-Section: best_framework
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_idx
-
-**Category:** documentation
-
-Section: best_idx
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_next
-
-**Category:** documentation
-
-Section: best_next
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_next_action
-
-**Category:** documentation
-
-Section: best_next_action
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_next_q
-
-**Category:** documentation
-
-Section: best_next_q
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_trial
-
-**Category:** documentation
-
-Section: best_trial
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## best_vote
-
-**Category:** documentation
-
-Section: best_vote
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bg_b
-
-**Category:** documentation
-
-Section: bg_b
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bg_file
-
-**Category:** documentation
-
-Section: bg_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bg_g
-
-**Category:** documentation
-
-Section: bg_g
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bg_r
-
-**Category:** documentation
-
-Section: bg_r
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
 
 ## bibl_files
 
@@ -3676,279 +3066,23 @@ Section: bg_r
 
 Variable: bibl_files
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
-
-## bibl_terms
-
-**Category:** documentation
-
-Section: bibl_terms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bin/
-
-**Category:** documentation
-
-Section: bin/
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bitrate
-
-**Category:** documentation
-
-Section: bitrate
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## blended
-
-**Category:** documentation
-
-Section: blended
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bom
-
-**Category:** documentation
-
-Section: bom
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bom_fixes
-
-**Category:** documentation
-
-Section: bom_fixes
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## boost
-
-**Category:** documentation
-
-Section: boost
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## boot
-
-**Category:** documentation
-
-Section: boot
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## boot_file
-
-**Category:** documentation
-
-Section: boot_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bootstrap
-
-**Category:** documentation
-
-Section: bootstrap
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## border_bot
-
-**Category:** documentation
-
-Section: border_bot
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## border_top
-
-**Category:** documentation
-
-Section: border_top
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bot
-
-**Category:** documentation
-
-Section: bot
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bot_center
-
-**Category:** documentation
-
-Section: bot_center
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bot_line
-
-**Category:** documentation
-
-Section: bot_line
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bot_width
-
-**Category:** documentation
-
-Section: bot_width
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## both       = Bidirectional
-
-**Category:** documentation
-
-Section: both       = Bidirectional
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bottle_text
-
-**Category:** documentation
-
-Section: bottle_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bottlenecks
-
-**Category:** documentation
-
-Section: bottlenecks
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bottlenecks_tab
-
-**Category:** documentation
-
-Section: bottlenecks_tab
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bounce
-
-**Category:** documentation
-
-Section: bounce
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## box
-
-**Category:** documentation
-
-Section: box
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## box_width
-
-**Category:** documentation
-
-Section: box_width
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## branch_connector
-
-**Category:** documentation
-
-Section: branch_connector
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## branches
-
-**Category:** documentation
-
-Section: branches
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## breadcrumb_line
-
-**Category:** documentation
-
-Section: breadcrumb_line
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## breadcrumbs
-
-**Category:** documentation
-
-Section: breadcrumbs
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## breaking_pattern
-
-**Category:** documentation
-
-Section: breaking_pattern
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## bridge
 
-**Category:** documentation
+**Category:** variable
 
-Section: bridge
+Variable: bridge
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## brightness
-
-**Category:** documentation
-
-Section: brightness
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## broadcast
-
-**Category:** documentation
-
-Section: broadcast
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## btn
 
-**Category:** documentation
+**Category:** variable
 
-Section: btn
+Variable: btn
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_comp
-
-**Category:** documentation
-
-Section: btn_comp
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_eco
-
-**Category:** documentation
-
-Section: btn_eco
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
 
 ## btn_frame
 
@@ -3956,143 +3090,7 @@ Section: btn_eco
 
 Variable: btn_frame
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS_LIVE_MONITOR.py*
-
-## btn_parts
-
-**Category:** documentation
-
-Section: btn_parts
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_perf
-
-**Category:** documentation
-
-Section: btn_perf
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_run
-
-**Category:** documentation
-
-Section: btn_run
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_scan
-
-**Category:** documentation
-
-Section: btn_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_services
-
-**Category:** documentation
-
-Section: btn_services
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_show
-
-**Category:** documentation
-
-Section: btn_show
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_startup
-
-**Category:** documentation
-
-Section: btn_startup
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_status
-
-**Category:** documentation
-
-Section: btn_status
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_style
-
-**Category:** documentation
-
-Section: btn_style
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## btn_trials
-
-**Category:** documentation
-
-Section: btn_trials
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_binary
-
-**Category:** documentation
-
-Section: build_binary
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_complete_graph
-
-**Category:** documentation
-
-Section: build_complete_graph
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_dependency_graph
-
-**Category:** documentation
-
-Section: build_dependency_graph
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_doc_index
-
-**Category:** documentation
-
-Section: build_doc_index
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_from_bat_files
-
-**Category:** documentation
-
-Section: build_from_bat_files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_image
-
-**Category:** documentation
-
-Section: build_image
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## build_index
-
-**Category:** documentation
-
-Section: build_index
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS_LIVE_MONITOR.py*
 
 ## build_interface_matrix
 
@@ -4100,132 +3098,21 @@ Section: build_index
 
 Build interface compatibility matrix using dot product of interface sets.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
-## build_matrix
+## buttons
 
-**Category:** documentation
+**Category:** variable
 
-Section: build_matrix
+Variable: buttons
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
 
-## build_tab
+## by_group
 
-**Category:** documentation
+**Category:** variable
 
-Section: build_tab
+Variable: by_group
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
 
-## build_worm_image
-
-**Category:** documentation
-
-Section: build_worm_image
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## builds_failed
-
-**Category:** documentation
-
-Section: builds_failed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## builds_success
-
-**Category:** documentation
-
-Section: builds_success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## button_frame
-
-**Category:** documentation
-
-Section: button_frame
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## button_scan
-
-**Category:** documentation
-
-Section: button_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## button_sync
-
-**Category:** documentation
-
-Section: button_sync
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## button_trim
-
-**Category:** documentation
-
-Section: button_trim
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_category
-
-**Category:** documentation
-
-Section: by_category
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_component
-
-**Category:** documentation
-
-Section: by_component
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_name
-
-**Category:** documentation
-
-Section: by_name
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_status
-
-**Category:** documentation
-
-Section: by_status
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_type
-
-**Category:** documentation
-
-Section: by_type
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## by_word
-
-**Category:** documentation
-
-Section: by_word
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
-
-## bytes_removed
-
-**Category:** documentation
-
-Section: bytes_removed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*

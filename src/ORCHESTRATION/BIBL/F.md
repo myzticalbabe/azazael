@@ -4,12 +4,13 @@ title: BIBL Terms F
 
 # BIBL Terms: F
 
+## failed_stages
 
----
-title: BIBL Terms F
----
+**Category:** variable
 
-# BIBL Terms: F
+Variable: failed_stages
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## fan_in
 
@@ -17,7 +18,7 @@ title: BIBL Terms F
 
 Variable: fan_in
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## fan_in_out
 
@@ -25,7 +26,7 @@ Variable: fan_in
 
 Variable: fan_in_out
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## fan_out
 
@@ -33,7 +34,7 @@ Variable: fan_in_out
 
 Variable: fan_out
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## file_metadata
 
@@ -41,7 +42,7 @@ Variable: fan_out
 
 Variable: file_metadata
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
 
 ## file_path
 
@@ -49,7 +50,7 @@ Variable: file_metadata
 
 Variable: file_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
 
 ## filename
 
@@ -57,7 +58,7 @@ Variable: file_path
 
 Variable: filename
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## filepath
 
@@ -65,7 +66,7 @@ Variable: filename
 
 Variable: filepath
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## files
 
@@ -73,7 +74,31 @@ Variable: filepath
 
 Variable: files
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
+
+## filtered
+
+**Category:** variable
+
+Variable: filtered
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## find_executable
+
+**Category:** function
+
+Function: find_executable
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## first
+
+**Category:** variable
+
+Variable: first
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## flows
 
@@ -81,7 +106,15 @@ Variable: files
 
 Variable: flows
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+
+## flush
+
+**Category:** function
+
+Function: flush
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## fmt
 
@@ -89,7 +122,15 @@ Variable: flows
 
 Variable: fmt
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+
+## fn
+
+**Category:** variable
+
+Variable: fn
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## footer_frame
 
@@ -97,7 +138,7 @@ Variable: fmt
 
 Variable: footer_frame
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## formats
 
@@ -105,7 +146,7 @@ Variable: footer_frame
 
 Variable: formats
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
 
 ## formatted
 
@@ -113,7 +154,23 @@ Variable: formats
 
 Variable: formatted
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## found
+
+**Category:** variable
+
+Variable: found
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
+
+## fp
+
+**Category:** variable
+
+Variable: fp
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## frame
 
@@ -121,7 +178,15 @@ Variable: formatted
 
 Variable: frame
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## freed
+
+**Category:** variable
+
+Variable: freed
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## from-pers  = PERSEPHONE -> Azazael
 
@@ -129,7 +194,7 @@ Variable: frame
 
 Section: from-pers  = PERSEPHONE -> Azazael
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\B.md*
 
 ## from_dict
 
@@ -137,7 +202,23 @@ Section: from-pers  = PERSEPHONE -> Azazael
 
 Function: from_dict
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## full_audit
+
+**Category:** function
+
+Function: full_audit
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
+
+## full_cmd
+
+**Category:** variable
+
+Variable: full_cmd
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## full_path
 
@@ -145,7 +226,7 @@ Function: from_dict
 
 Variable: full_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## func
 
@@ -153,7 +234,15 @@ Variable: full_path
 
 Variable: func
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+
+## func_stack
+
+**Category:** variable
+
+Variable: func_stack
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## functions
 
@@ -161,4 +250,45 @@ Variable: func
 
 Variable: functions
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## fuse
+
+**Category:** function
+
+Function: fuse
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
+
+## fuse_all
+
+**Category:** function
+
+Function: fuse_all
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\TotalFusion.py*
+
+## fuse_status
+
+**Category:** function
+
+Function: fuse_status
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\TotalFusion.py*
+
+## fusion
+
+**Category:** variable
+
+Variable: fusion
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TotalFusion.py*
+
+## futures
+
+**Category:** variable
+
+Variable: futures
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+

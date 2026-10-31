@@ -6,219 +6,11 @@ title: BIBL Terms Q
 
 ## q
 
-**Category:** documentation
+**Category:** variable
 
-Section: q
+Variable: q
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_matrix
-
-**Category:** documentation
-
-Section: q_matrix
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_state
-
-**Category:** documentation
-
-Section: q_state
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table
-
-**Category:** documentation
-
-Section: q_table
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table.data
-
-**Category:** documentation
-
-Section: q_table.data
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table.expert_names
-
-**Category:** documentation
-
-Section: q_table.expert_names
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table.task_names
-
-**Category:** documentation
-
-Section: q_table.task_names
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table_copy
-
-**Category:** documentation
-
-Section: q_table_copy
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table_history
-
-**Category:** documentation
-
-Section: q_table_history
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table_path
-
-**Category:** documentation
-
-Section: q_table_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_table_tests
-
-**Category:** documentation
-
-Section: q_table_tests
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_type
-
-**Category:** documentation
-
-Section: q_type
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_value
-
-**Category:** documentation
-
-Section: q_value
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## q_values
-
-**Category:** documentation
-
-Section: q_values
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qa_system
-
-**Category:** documentation
-
-Section: qa_system
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## ql
-
-**Category:** documentation
-
-Section: ql
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearner
-
-**Category:** documentation
-
-Section: qlearner
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning
-
-**Category:** documentation
-
-Section: qlearning
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.actions
-
-**Category:** documentation
-
-Section: qlearning.actions
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.alpha
-
-**Category:** documentation
-
-Section: qlearning.alpha
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.discount_factor
-
-**Category:** documentation
-
-Section: qlearning.discount_factor
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.epsilon
-
-**Category:** documentation
-
-Section: qlearning.epsilon
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.epsilon_decay
-
-**Category:** documentation
-
-Section: qlearning.epsilon_decay
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.epsilon_min
-
-**Category:** documentation
-
-Section: qlearning.epsilon_min
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.gamma
-
-**Category:** documentation
-
-Section: qlearning.gamma
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.learning_rate
-
-**Category:** documentation
-
-Section: qlearning.learning_rate
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qlearning.states
-
-**Category:** documentation
-
-Section: qlearning.states
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
 ## qlearning_table.py
 
@@ -226,71 +18,55 @@ Section: qlearning.states
 
 Term: qlearning_table.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\G-L.md*
-
-## quad_hues
-
-**Category:** documentation
-
-Section: quad_hues
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## quads
-
-**Category:** documentation
-
-Section: quads
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## quantization
-
-**Category:** documentation
-
-Section: quantization
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\G-L.md*
 
 ## query
 
-**Category:** variable
+**Category:** function
 
-Variable: query
+Function: query
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
-## question
+## query_by_conversation
 
-**Category:** documentation
+**Category:** function
 
-Section: question
+Function: query_by_conversation
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
-## question_keywords
+## query_recent
 
-**Category:** documentation
+**Category:** function
 
-Section: question_keywords
+Function: query_recent
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
-## question_lower
+## query_timerange
 
-**Category:** documentation
+**Category:** function
 
-Section: question_lower
+Function: query_timerange
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
-## queue
+## queue_entry
 
-**Category:** documentation
+**Category:** function
 
-Section: queue
+Function: queue_entry
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
+
+## quick_log
+
+**Category:** function
+
+Function: quick_log
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol.py*
 
 ## quit
 
@@ -298,20 +74,5 @@ Section: queue
 
 Function: quit
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## qx
-
-**Category:** documentation
-
-Section: qx
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
-
-## qy
-
-**Category:** documentation
-
-Section: qy
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\Q.md*
