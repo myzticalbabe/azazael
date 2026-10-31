@@ -163,9 +163,30 @@ class WORMZ:
         self.running = False
         self.status_callback = None
 
+    def _is_own_output(self, path) -> bool:
+        """True when `path` is a file WORMZ itself writes into BIBL.
+
+        Path prefixes are compared as normalised strings rather than via
+        is_relative_to so this cannot raise inside a crawl loop.
+        """
+        out = str(self.bibl_path).replace("\\", "/").rstrip("/").lower()
+        return str(path).replace("\\", "/").lower().startswith(out + "/")
+
     def _should_skip(self, path: Path) -> bool:
-        """Check if path should be skipped."""
+        """Check if path should be skipped.
+
+        The first check is the BIBL self-index guard. WORMZ writes
+        BIBL/<LETTER>.md, those files are .md inside the crawl root, and each
+        carries `## <term>` headers that _parse_markdown turns into fresh
+        entries -- so every pass re-ingested the previous pass's output and
+        appended it again. Measured 2026-10-31: F.md reached 62 MB / 2,938,437
+        lines holding 24,990 copies of its own `markdown_header` record, and
+        E.md 12 MB. Growth is quadratic in passes, and a diff summary hides it
+        because 2.9M lines read as one large file, not as a loop.
+        """
         path_str = str(path)
+        if self._is_own_output(path):
+            return True
         for pattern in self.config.skip_patterns:
             if pattern in path_str:
                 return True
@@ -509,6 +530,11 @@ class WORMZ:
             self.crawl_history[result.file_path] = datetime.now()
 
             for entry in result.terms_found:
+                # Defence in depth: even if a caller hands us a pre-built
+                # CrawlResult from BIBL (the guard in _should_skip only covers
+                # files WE walk), never adopt our own output as knowledge.
+                if self._is_own_output(entry.file_path):
+                    continue
                 if entry.term not in self.entries:
                     self.entries[entry.term] = entry
                 else:
