@@ -156,6 +156,88 @@ class Ratchet(unittest.TestCase):
         self.assertEqual(rr.main(["--check"]), 0)
 
 
+class FileIndex(unittest.TestCase):
+    """Every file gets a bucket, and the buckets are checkable.
+
+    The census `--selftest` asserts the same shape on a fixture; these tests keep
+    the CLASSIFIER honest against the two directions it can fail in -- swallowing
+    an unknown format (always "data") and refusing a known one (always
+    "unclassified"). A fallback that hides the second failure is the one worth
+    guarding hardest, because it makes the "100%" claim unfalsifiable.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.yc = _load("yggdrasil_census")
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.root = Path(cls.tmp.name)
+        r = cls.root
+        (r / "node_modules").mkdir()
+        (r / "node_modules" / "dep.js").write_text("import 'x';\n", encoding="utf-8")
+        (r / "vendor" / "lib").mkdir(parents=True)
+        (r / "vendor" / "lib" / "dep.py").write_text("x = 1\n", encoding="utf-8")
+        (r / "archived" / "2026-01-01").mkdir(parents=True)
+        (r / "archived" / "2026-01-01" / "old.py").write_text("x = 1\n", encoding="utf-8")
+        (r / "cli.build").mkdir()
+        (r / "cli.build" / "x.obj").write_text("1", encoding="utf-8")
+        (r / "hook").write_text("#!/usr/bin/env bash\necho\n", encoding="utf-8")
+        (r / "mod.py").write_text("y = 2\n", encoding="utf-8")
+        (r / "data.json").write_text("{}", encoding="utf-8")
+        (r / "odd.zzz").write_text("plain text\n", encoding="utf-8")
+        (r / "blob.zzz").write_bytes(b"\x00\x01\x02")
+        (r / "weird").write_text("#!/opt/bin/mystery-lang\n", encoding="utf-8")
+        cls.inv = cls.yc.file_inventory([r])
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def cls_of(self, rel):
+        return self.yc.classify_file(self.root / rel, self.root)
+
+    def test_code_and_noncode_are_declared(self):
+        self.assertEqual(self.cls_of("mod.py"), ("code", "python"))
+        self.assertEqual(self.cls_of("data.json"), ("noncode", "data"))
+        # a script with no suffix is code: `scripts/hooks/pre-commit` is this shape
+        self.assertEqual(self.cls_of("hook"), ("code", "shell"))
+
+    def test_directory_classes_apply_within_the_root(self):
+        self.assertEqual(self.cls_of("node_modules/dep.js"), ("vendored", "vendored"))
+        self.assertEqual(self.cls_of("vendor/lib/dep.py"), ("vendored", "vendored"))
+        self.assertEqual(self.cls_of("archived/2026-01-01/old.py"), ("archived", "archived"))
+        self.assertEqual(self.cls_of("cli.build/x.obj"), ("generated", "generated"))
+        # ...and a class must NOT leak onto an unrelated tree: `vendor` here is a
+        # sibling of the file, not an ancestor of it.
+        self.assertEqual(self.cls_of("mod.py")[0], "code")
+
+    def test_undeclared_suffix_is_sniffed_and_named(self):
+        self.assertEqual(self.cls_of("odd.zzz"), ("noncode", "text:unrecognised"))
+        self.assertEqual(self.cls_of("blob.zzz"), ("noncode", "binary:unrecognised"))
+        self.assertEqual(self.inv["undeclared_extensions"].get(".zzz"), 2)
+
+    def test_unknown_interpreter_stays_unclassified(self):
+        # The falsifiable path: an interpreter nobody declared is genuinely
+        # unknown, and `unclassified` must be able to say so.
+        self.assertEqual(self.cls_of("weird"), ("unclassified",
+                                                "shebang:#!/opt/bin/mystery-lang"))
+        self.assertEqual(self.inv["unclassified"], 1)
+        self.assertFalse(self.inv["every_file_indexed"])
+
+    def test_totals_reconcile_with_disk(self):
+        on_disk = sum(1 for p in self.root.rglob("*") if p.is_file())
+        self.assertEqual(self.inv["total"], on_disk)
+        self.assertTrue(self.inv["adds_up"], "buckets do not sum to the total")
+        self.assertEqual(self.inv["unrecognised"], 2)
+        self.assertFalse(self.inv["fully_declared"],
+                         "a sniffed file was reported as fully declared")
+
+    def test_real_tree_is_fully_declared(self):
+        """The repository itself: no undeclared suffix, no unplaced file."""
+        inv = self.yc.file_inventory([ROOT / "tools"])
+        self.assertEqual(inv["unclassified"], 0)
+        self.assertTrue(inv["adds_up"])
+
+
 class BoundaryPolicy(unittest.TestCase):
     """Tier constraints are only worth having if their controls are green."""
 

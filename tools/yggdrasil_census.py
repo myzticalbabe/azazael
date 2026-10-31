@@ -62,15 +62,175 @@ LANGUAGES: Dict[str, str] = {
     ".hpp": "cpp", ".cuh": "cuda", ".cu": "cuda",
     ".java": "java", ".kt": "kotlin", ".cs": "dotnet", ".jl": "julia",
     ".m": "objc", ".swift": "swift", ".rb": "ruby", ".sh": "shell",
+    # Source formats the drive-wide walk found in third-party trees. A `.pyx` is
+    # a compile unit like a `.py`, and `.mm`/.s/.asm are source, not data: calling
+    # them unclassified would report the largest C-extension projects on this
+    # disk as unmeasured.
+    ".mm": "objc", ".s": "asm", ".asm": "asm", ".pyx": "cython",
+    ".pxd": "cython", ".pxi": "cython", ".r": "r", ".vala": "vala",
+    ".lua": "lua", ".vbs": "vbscript", ".hlsl": "hlsl", ".glsl": "glsl",
+    ".wgsl": "wgsl", ".hip": "cuda", ".inc": "c", ".inl": "cpp",
+    ".pl": "perl", ".pm": "perl", ".tcl": "tcl", ".awk": "awk",
     # The driver layer is not .sh here: 58 .bat + 18 .ps1 were uncounted, and
     # those files are exactly where python is invoked from outside python.
     ".bat": "batch", ".cmd": "batch", ".ps1": "powershell",
     ".html": "html", ".htm": "html",
 }
 
-#: Directories that hold generated or vendored output, not authored shards.
-SKIP_DIRS = {"__pycache__", "node_modules", "target", ".venv", "venv", "dist",
-              "build", ".git", "graphify-out", ".mypy_cache", ".pytest_cache"}
+#: Never walked by anything: VCS metadata and the interpreter's bytecode cache.
+#: These are the ONLY things the inventory refuses to count -- every other
+#: directory is walked and CLASSIFIED, because a directory that is skipped is a
+#: directory whose files are not accounted for, and "not in the total" reads as
+#: "does not exist" to every reader downstream.
+ALWAYS_SKIP = {".git", "__pycache__", ".mypy_cache", ".pytest_cache"}
+
+#: Walked (so the total reconciles with the disk) and classified `vendored`, but
+#: never parsed: third-party packages, build output, downloaded driver bundles.
+#: 145 MB of node_modules and 310 MB of cargo `target/` live here; counting them
+#: as "files" is honest, pretending to graph them is not.
+VENDOR_DIRS = {".venv", ".venvs", "venv", "node_modules", "target", "dist",
+               "build", ".build", "site-packages", "vendor", "third_party",
+               "third-party", "chromedriver-win64", "graphify-out", "externals",
+               # Toolchain caches a user profile carries. They are third-party
+               # copies of other people's trees, which is what `vendored` says.
+               ".cargo", ".rustup", ".npm", ".conda", ".m2", ".gradle",
+               ".nuget", ".dotnet", ".vscode", ".cursor", "Packages"}
+
+#: Classified `generated`: tool output, not authored. Counted, never dropped --
+#: `src/.hypothesis/constants` alone held 446 files.
+GENERATED_DIRS = {".hypothesis", ".inference_cache", ".ruff_cache", ".nox",
+                  ".tox", ".cache", "nuitka_build_backup", ".freebuff",
+                  # Windows application state: settings, caches, unpacked
+                  # payloads. Authored files do not live here, and "AppData is
+                  # generated" is a statement about who writes it, not a way to
+                  # avoid counting it -- the count is in `files.generated`.
+                  "AppData"}
+
+#: Classified `archived`: a dated snapshot of the tree, kept for provenance. The
+#: ledger already declares that an archive is counted and never import-analysed;
+#: this makes the same statement about the FILES. Measured 2026-10-31: 2,085 of
+#: the 2,138 unplaced files were three ONNX-Runtime source snapshots under
+#: `archived/2026-05-31/`, which is a vendored copy of someone else's tree inside
+#: an archive of ours.
+ARCHIVE_DIRS = {"archived", "archived_unified"}
+
+#: What the language count and the graphs skip. Derived, so the three cannot
+#: drift apart: a directory is skipped by the ANALYSIS exactly when it is vendored
+#: or generated, and the INVENTORY still counts it.
+SKIP_DIRS = ALWAYS_SKIP | VENDOR_DIRS | GENERATED_DIRS
+
+#: Extension -> class for files that are NOT code. A file whose extension is in
+#: neither LANGUAGES nor here is `unclassified`: named in the ledger with its
+#: size, and failed by --selftest, because "not in any bucket" is not "not
+#: code", it is unmeasured. Measured 2026-10-31: 1,236 of the 2,892 files under
+#: src/tools/scripts were invisible to every number the ledger held -- the
+#: periphery reported `files: 495` for a root whose language table explained 299.
+NONCODE_CLASSES: Dict[str, str] = {
+    ".md": "doc", ".rst": "doc", ".txt": "text",
+    ".json": "data", ".jsonl": "data", ".csv": "data", ".tsv": "data",
+    ".xml": "data", ".yaml": "data", ".yml": "data", ".db": "data",
+    ".sqlite": "data", ".sql": "data", ".gz": "data", ".zip": "data",
+    ".pkl": "data", ".npz": "data", ".npy": "data", ".onnx": "data",
+    ".wasm": "data", ".typed": "data",
+    ".ini": "config", ".cfg": "config", ".conf": "config", ".toml": "config",
+    ".lock": "config", ".mod": "config", ".sum": "config", ".args": "config",
+    ".env": "config", ".properties": "config", ".plist": "config",
+    ".png": "media", ".jpg": "media", ".jpeg": "media", ".gif": "media",
+    ".svg": "media", ".ico": "media", ".mp4": "media", ".webm": "media",
+    ".ttf": "media", ".woff": "media", ".woff2": "media",
+    ".exe": "binary", ".dll": "binary", ".so": "binary", ".pyd": "binary",
+    ".dylib": "binary", ".o": "binary", ".a": "binary", ".lib": "binary",
+    ".bin": "binary", ".whl": "binary",
+    ".log": "log", ".err": "log",
+    ".bak": "backup", ".backup": "backup", ".backup2": "backup",
+    ".orig": "backup", ".patch": "backup", ".rej": "backup",
+    ".diff": "backup",
+    # Formats the 2026-10-31 inventory found outside every bucket. Each one is a
+    # decision, not a default: a notebook is JSON, a CMake list is a build
+    # recipe, a diagram source is a document.
+    ".ipynb": "data", ".pb": "data", ".ort": "data", ".ort_partial": "data",
+    ".partial": "data", ".lst": "data", ".dlc": "data", ".cff": "data",
+    ".jsbundle": "data", ".pt": "data", ".pth": "data", ".safetensors": "data",
+    ".prof": "data", ".binlog": "data", ".pyc": "binary",
+    ".jar": "binary", ".dmp": "binary", ".chromedriver": "binary",
+    ".cmake": "config", ".gradle": "config", ".scons": "config",
+    ".in": "config", ".config": "config", ".sln": "config", ".csproj": "config",
+    ".vcxproj": "config", ".props": "config", ".targets": "config",
+    ".xaml": "config", ".xib": "config", ".storyboard": "config",
+    ".pbxproj": "config", ".xcworkspacedata": "config", ".xcscheme": "config",
+    ".xcsettings": "config", ".appxmanifest": "config", ".natvis": "config",
+    ".wprp": "config", ".runsettings": "config", ".exclude": "config",
+    ".idl": "config", ".fbs": "config", ".mmd": "doc", ".tex": "doc",
+    ".pdf": "doc", ".css": "style", ".scss": "style",
+    ".liquid": "template", ".tmpl": "template", ".template": "template",
+    ".gexf": "data", ".graphml": "data", ".example": "config",
+    ".kml": "data", ".gephi": "data",
+    # Second pass, 2026-10-31, from the 87 extensions the drive-wide walk left
+    # over. The datacode split follows the file's role, not its parser: a
+    # linker script is a build recipe, a parquet column store is data.
+    ".rd": "doc", ".rmd": "doc", ".dox": "doc", ".dot": "doc",
+    ".links": "doc", ".doc-base": "doc", ".pptx": "doc", ".graffle": "doc",
+    ".proto": "config", ".thrift": "config", ".flatbuffers": "config",
+    ".tt": "template", ".ttinclude": "template", ".j2": "template",
+    ".jinja": "template", ".dockerfile": "config", ".def": "config",
+    ".lds": "config", ".rc": "config", ".pp": "config", ".build": "config",
+    ".install": "config", ".wrap": "config", ".pc": "config", ".gemspec": "config",
+    ".podspec": "config", ".proj": "config", ".pro": "config", ".ruleset": "config",
+    ".entitlements": "config", ".xcprivacy": "config", ".wxs": "config",
+    ".manifest": "config", ".repo": "config", ".tcc": "config",
+    ".supp": "config", ".rproj": "config", ".ucrt": "config",
+    ".jsonc": "data", ".parquet": "data", ".feather": "data", ".orc": "data",
+    ".lance": "data", ".ckpt": "data", ".model": "data", ".map": "data",
+    ".shp": "data", ".dbf": "data", ".asc": "data", ".tcc_data": "data",
+    ".sqlite-shm": "data", ".sqlite-wal": "data", ".txn": "data",
+    ".metadata": "data", ".options": "data", ".sample": "data",
+    ".expected_out": "data", ".out": "log", ".pid": "log", ".local": "data",
+    ".win": "data", ".runningtree": "data", ".runningtree-oct05": "data",
+    ".onnx_adapter": "data", ".onnx_model_with_excluded_ops": "data",
+    ".lnk": "binary", ".snk": "binary", ".eot": "media", ".bmp": "media",
+    ".mp3": "media", ".obj": "binary", ".tmp": "backup", ".history": "log",
+    # A `.dat` is a data blob (the registry hive included); `.log1`/`.log2` are
+    # the second and third rolls of a log. Neither needs reading to be placed,
+    # which matters: `NTUSER.DAT` is locked by the running hive and a classifier
+    # that has to open a file to know what it is reports a live system file as
+    # an unknown format.
+    ".dat": "data", ".log1": "log", ".log2": "log", ".log0": "log",
+    ".spec": "config", ".dblite": "data", ".const": "data", ".exp": "data",
+    ".stderr": "log",
+}
+
+#: Variant suffixes a backup or a downloaded artefact can carry
+#: (`.bak-20261029-freebuff`, `.bak_pretechniques`, `.pre_gate_backup`). A table
+#: of exact suffixes cannot hold those, and reporting them as unclassified would
+#: be a hole papered over rather than a decision.
+NONCODE_PREFIXES: Tuple[Tuple[str, str], ...] = (
+    (".bak", "backup"), (".backup", "backup"), (".pre_gate", "backup"),
+    (".orig", "backup"), (".diff", "backup"), (".fixbak", "backup"),
+)
+
+#: Suffixless files that are still a known class. `Dockerfile` is a config
+#: artefact; `PKG-INFO` is metadata. Anything suffixless and NOT here is sniffed
+#: for a shebang (a script is code whatever it is called) and otherwise
+#: reported unclassified rather than guessed into a bucket.
+NONCODE_NAMES: Dict[str, str] = {
+    "dockerfile": "config", "makefile": "config", "procfile": "config",
+    "pkg-info": "data", "requirements": "config", "notice": "doc",
+    "license": "doc", "readme": "doc", "authors": "doc",
+    "sha256sums": "data", "sha256sum": "data", "checksums": "data",
+    # Suffixless files the drive-wide walk left over: build recipes (a Rakefile
+    # runs, it is still a recipe) and the metadata files a source tree carries.
+    "rakefile": "config", "gemfile": "config", "podfile": "config",
+    "brewfile": "config", "justfile": "config", "codeowners": "config",
+    "version_number": "data", "upstream_version": "data",
+    "min_onnxruntime_version": "data", "format": "data", "compat": "data",
+    "usage": "data", "from": "data", "checkpoint": "data",
+    "nominal_checkpoint": "data", "hip_fatbin_insert": "data",
+    "copyright": "doc", "changelog": "doc",
+    # A file literally named `nul` is a Windows redirect accident (`> nul` in
+    # cmd), three of which are committed in this repo and its mirrors. It is not
+    # a document, not code, and not a format: an artefact of the shell.
+    "nul": "artifact",
+}
 
 #: A tree is a STUB when nothing imports it, it holds at most this many Python
 #: modules, and none of them define a function or class. Measured 2026-10-31:
@@ -266,13 +426,30 @@ _SUFFIX_INDEX: Dict[str, Dict[str, List[Path]]] = {}
 _NAME_INDEX: Dict[str, Dict[str, List[Path]]] = {}
 
 
+def _skip(path: Path, root: Optional[Path]) -> bool:
+    """Is this path under a skipped DIRECTORY of `root`?
+
+    Relative parts, never absolute: checking the whole absolute path made a temp
+    fixture under `AppData/Local/Temp` invisible to the entire census once
+    `AppData` became a generated directory, and a class that applies to a drive
+    rather than to a position in the tree is a class that skips the tests.
+    """
+    parts = path.parts
+    if root is not None:
+        try:
+            parts = path.relative_to(root).parts
+        except ValueError:
+            parts = path.parts
+    return any(p in SKIP_DIRS for p in parts)
+
+
 def _indices(src: Path) -> Tuple[Dict[str, List[Path]], Dict[str, List[Path]]]:
     key = str(src)
     if key not in _SUFFIX_INDEX:
         suffix: Dict[str, List[Path]] = defaultdict(list)
         by_name: Dict[str, List[Path]] = defaultdict(list)
         for f in src.rglob("*"):
-            if not f.is_file() or any(p in SKIP_DIRS for p in f.parts):
+            if not f.is_file() or _skip(f, src):
                 continue
             parts = f.relative_to(src).as_posix().split("/")
             by_name[f.name.lower()].append(f)
@@ -488,6 +665,234 @@ def _read_capped(path: Path, cap: int = 400_000) -> str:
 
 def _line_of(text: str, pos: int) -> int:
     return text.count("\n", 0, pos) + 1
+
+
+def classify_file(path: Path, root: Optional[Path] = None) -> Tuple[str, str]:
+    """``(kind, label)`` for one file: code / noncode / generated / unclassified.
+
+    One classifier, used by the module shard plan and by the file inventory, so
+    the two cannot disagree about what counts as code. ``label`` is a language
+    for code, a class for noncode, and -- for the last return -- the reason the
+    file was not placed, which is what makes an unplaced file nameable.
+
+    The suffixless case is not a corner: ``scripts/hooks/pre-commit`` is a bash
+    program and ``module_inventory`` could not see it, so the hook that gates
+    every commit was outside every shard. A shebang settles it; a dot-file is
+    config; anything else is reported, not guessed.
+    """
+    # Directory classes apply to the path WITHIN the walked root. Matching the
+    # absolute path made every file under `C:/Users/clint/AppData/...` generated --
+    # including this test's own temp directory -- because `AppData` was an
+    # ancestor. A class is a property of where a file sits in the tree, not of
+    # which drive it happens to be on.
+    parts = path.parts
+    if root is not None:
+        try:
+            parts = path.relative_to(root).parts
+        except ValueError:
+            parts = path.parts
+    for part in parts:
+        if part in ARCHIVE_DIRS:
+            return "archived", "archived"
+        if part in VENDOR_DIRS:
+            return "vendored", "vendored"
+        # Nuitka names its output `cli.build/` and `cli.onefile-build/`, so the
+        # fixed-name set above cannot see it: the SUFFIX is the signal. Same for
+        # `*.egg-info` and `*.dist`.
+        if (part in GENERATED_DIRS or part.endswith(".egg-info")
+                or part.endswith(".build") or part.endswith("-build")
+                or part.endswith(".dist")):
+            return "generated", "generated"
+    ext = path.suffix.lower()
+    if ext in LANGUAGES:
+        return "code", LANGUAGES[ext]
+    if ext in NONCODE_CLASSES:
+        return "noncode", NONCODE_CLASSES[ext]
+    for prefix, klass in NONCODE_PREFIXES:
+        if ext.startswith(prefix):
+            return "noncode", klass
+    # `Dockerfile.ubuntu`, `Dockerfile.alpine`: the suffix is a VARIANT, not a
+    # format, so the stem decides and the suffix is kept as a label.
+    stem = path.name.lower().split(".", 1)[0]
+    if stem in NONCODE_NAMES:
+        return "noncode", NONCODE_NAMES[stem]
+    stem = path.name.lower()
+    if stem in NONCODE_NAMES:
+        return "noncode", NONCODE_NAMES[stem]
+    if ext == "":
+        try:
+            head = path.open("rb").read(128)
+        except OSError:
+            return "unreadable", "<io-error>"
+        if head.startswith(b"#!"):
+            first = head.split(b"\n", 1)[0].decode("utf-8", "replace").lower()
+            if "python" in first:
+                return "code", "python"
+            # `#!/usr/bin/env sh` has a space before `sh`, not a slash: the first
+            # pass looked only for `/sh` and reported six shell scripts as an
+            # unknown shebang.
+            if any(s in first for s in ("bash", "zsh", "dash", "/sh", " sh",
+                                        "env sh")):
+                return "code", "shell"
+            if "ruby" in first:
+                return "code", "ruby"
+            if "perl" in first:
+                return "code", "perl"
+            if "tclsh" in first:
+                return "code", "tcl"
+            if "mawk" in first or "gawk" in first or "awk" in first:
+                return "code", "awk"
+            if "make" in first:
+                # `#!/usr/bin/make -f` is a make recipe wearing a shebang.
+                return "noncode", "config"
+            if "pwsh" in first or "powershell" in first:
+                return "code", "powershell"
+            if "node" in first:
+                return "code", "javascript"
+            return "unclassified", "shebang:%s" % first.strip()
+        if path.name.startswith("."):
+            return "noncode", "config"
+        # `LICENSE-APACHE`, `README.rst`'s suffixless cousins: a licence file is
+        # a document whatever qualifier it carries.
+        for prefix in ("license", "licence", "readme", "changelog", "notice",
+                       "authors", "copyright"):
+            if stem.startswith(prefix):
+                return "noncode", "doc"
+        # No suffix, no shebang, no known name: sniff it like any other
+        # undeclared format. Guessing a FORMAT would be wrong; saying whether the
+        # bytes are text or binary is a reading, and a reading is not a guess.
+        return ("noncode", "binary:unrecognised" if b"\x00" in head
+                else "text:unrecognised")
+    # A declared table cannot name every format a full user profile holds (the
+    # 2026-10-31 walk found 1,290 undeclared suffixes: apt indexes, fonts,
+    # terminal descriptions, kernel modules). Reporting them as `unclassified`
+    # would be honest but useless -- 166k files and no information. So the
+    # suffix is left UNDECLARED and the file is classified by what it is made
+    # of, which is a weaker claim and is labelled as one: `text:unrecognised`
+    # or `binary:unrecognised`, with the suffix counted in
+    # `undeclared_extensions`. `unclassified` stays reserved for a file with no
+    # suffix at all, where even the shape is unknown.
+    try:
+        head = path.open("rb").read(4096)
+    except OSError:
+        # Not `unclassified`: we know the path, the size and that the OS holds it
+        # (the live registry hive, OneDrive's marker). `unreadable` says exactly
+        # that, and it is counted separately so the gap is a number, not a shrug.
+        return "unreadable", "<io-error>"
+    return ("noncode", "binary:unrecognised" if b"\x00" in head
+            else "text:unrecognised")
+
+
+def file_inventory(roots: Iterable[Path],
+                   unclassified_sample: int = 200) -> Dict[str, Any]:
+    """Every file under every root, placed in exactly one bucket.
+
+    The ledger used to answer "how many python modules" and nothing else, so
+    1,236 of the 2,892 files under src/tools/scripts sat in no bucket at all and
+    the total could not be reconciled with the disk. This reconciles it: for each
+    root, ``total`` must equal ``code + noncode + generated + unclassified``, and
+    ``unclassified`` must be empty for the claim to be "100% of files indexed".
+
+    ``by_extension`` is the population the classifier was tested against, kept
+    whole: a table that explains every file is checkable, a table that explains
+    most of them is a summary pretending to be a census.
+    """
+    per_root: List[Dict[str, Any]] = []
+    grand = Counter()
+    by_ext: Counter = Counter()
+    unclassified: List[Dict[str, Any]] = []
+    unclassified_ext: Counter = Counter()
+    undeclared_ext: Counter = Counter()
+    unrecognised = 0
+    for root in roots:
+        root = Path(root)
+        if not root.is_dir():
+            per_root.append({"root": str(root), "exists": False})
+            continue
+        c: Counter = Counter()
+        langs: Counter = Counter()
+        classes: Counter = Counter()
+        for f in root.rglob("*"):
+            try:
+                rel = f.relative_to(root)
+            except ValueError:
+                continue
+            if any(p in ALWAYS_SKIP for p in rel.parts) or not f.is_file():
+                continue
+            kind, label = classify_file(f, root)
+            c[kind] += 1
+            by_ext[f.suffix.lower() or "<none>"] += 1
+            if label.endswith(":unrecognised"):
+                # Counted, classed, and NAMED as undeclared: a weaker claim than
+                # `declared`, and one the reader can see the size of.
+                unrecognised += 1
+                undeclared_ext[f.suffix.lower()] += 1
+            if kind == "code":
+                langs[label] += 1
+            elif kind == "noncode":
+                classes[label] += 1
+            elif kind in ("unclassified", "unreadable"):
+                unclassified_ext[label] += 1
+                if len(unclassified) < unclassified_sample:
+                    try:
+                        size = f.stat().st_size
+                    except OSError:
+                        size = -1
+                    unclassified.append({"root": str(root), "path": rel.as_posix(),
+                                         "ext": f.suffix.lower() or "<none>",
+                                         "reason": label, "bytes": size})
+        total = sum(c.values())
+        per_root.append({
+            "root": str(root),
+            "exists": True,
+            "total": total,
+            "code": c["code"],
+            "noncode": c["noncode"],
+            "generated": c["generated"],
+            "vendored": c["vendored"],
+            "archived": c["archived"],
+            "unreadable": c["unreadable"],
+            "unclassified": c["unclassified"],
+            "adds_up": total == (c["code"] + c["noncode"] + c["generated"]
+                                 + c["vendored"] + c["archived"]
+                                 + c["unreadable"] + c["unclassified"]),
+            "languages": dict(sorted(langs.items())),
+            "noncode_by_class": dict(sorted(classes.items())),
+        })
+        grand.update(c)
+    total = sum(grand.values())
+    return {
+        "roots": per_root,
+        "total": total,
+        "code": grand["code"],
+        "noncode": grand["noncode"],
+        "generated": grand["generated"],
+        "vendored": grand["vendored"],
+        "archived": grand["archived"],
+        "unreadable": grand["unreadable"],
+        "unclassified": grand["unclassified"],
+        "adds_up": total == (grand["code"] + grand["noncode"] + grand["generated"]
+                             + grand["vendored"] + grand["archived"]
+                             + grand["unreadable"] + grand["unclassified"]),
+        "every_file_indexed": grand["unclassified"] == 0 and total > 0,
+        # `every_file_indexed` says no file is unplaced. `fully_declared` is the
+        # stronger claim -- no file needed a content sniff either -- and the two
+        # are reported apart so a fallback can never be read as a declaration.
+        "unrecognised": unrecognised,
+        "fully_declared": grand["unclassified"] == 0 and unrecognised == 0,
+        "declared_share": (round(1 - unrecognised / total, 4) if total else None),
+        "undeclared_extensions": dict(sorted(undeclared_ext.items(),
+                                             key=lambda kv: (-kv[1], kv[0]))[:60]),
+        "unclassified_by_extension": dict(sorted(unclassified_ext.items(),
+                                                 key=lambda kv: (-kv[1], kv[0]))),
+        "unclassified_rows": unclassified,
+        "by_extension": dict(sorted(by_ext.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "note": ("every file under every root lands in exactly one bucket; "
+                 "`code` is the population the per-language graphs and the shard "
+                 "plan address, `generated` is tool output counted but not "
+                 "authored, and `unclassified` must be empty -- a non-empty list "
+                 "is a hole in this table, not a category"),
+    }
 
 
 def _graph_cycles(edges: Iterable[Tuple[str, str]]) -> List[List[str]]:
@@ -1027,6 +1432,123 @@ def build_rust_graph(src: Path, rust_files: List[Path],
     return out
 
 
+#: Which graph INSTRUMENTS which counted language. This is the table the
+#: ledger's `uninstrumented` is read from, and the reason it is a table: the
+#: previous version exempted languages by name in an inline literal
+#: ("python", "javascript", "typescript", ...) instead of by whether an extractor
+#: existed, so `go` and `java` were counted and then explained away for not being
+#: on the list. A language is instrumented iff a graph covers it.
+GRAPH_LANGUAGES: Dict[str, Tuple[str, ...]] = {
+    "python": ("python",),
+    "javascript": ("javascript", "typescript"),
+    "shell": ("shell", "batch", "powershell"),
+    "html": ("html",),
+    "rust": ("rust",),
+    "go": ("go",),
+    "java": ("java",),
+}
+
+#: Go: a single-import line and a parenthesised block, plus the quoted paths in
+#: it. Java: one `import a.b.C;` per line. Both name a MODULE PATH, which is
+#: absolute, so neither is tail-matched.
+_GO_IMPORT_ONE = re.compile(r'^\s*import\s+(?:[A-Za-z_.]\w*\s+)?"([^"]+)"', re.M)
+_GO_IMPORT_BLOCK = re.compile(r"^\s*import\s*\((.*?)^\s*\)", re.M | re.S)
+_GO_QUOTED = re.compile(r'"([^"]+)"')
+_JAVA_IMPORT = re.compile(r"^\s*import\s+(?:static\s+)?([\w.]+)\s*;", re.M)
+
+#: First path segment of an import that names the STANDARD library, not a
+#: project package. Both go files here are stdlib-only, and calling `fmt` an
+#: "unresolved reference" would be a false finding of exactly the kind this
+#: instrument exists to avoid.
+_STDLIB_ROOTS = frozenset({
+    "fmt", "os", "io", "sync", "time", "flag", "runtime", "strings", "bytes",
+    "sort", "math", "strconv", "errors", "bufio", "context", "encoding",
+    "path", "net", "http", "log", "regexp", "json", "testing", "crypto",
+    "reflect", "unicode", "hash", "archive", "compress", "container",
+    "database", "debug", "embed", "expvar", "go", "html", "image", "index",
+    "internal", "mime", "plugin", "text", "unsafe", "java", "javax", "sun",
+    "jdk",
+})
+# `com` and `org` are conspicuously NOT stdlib: every java import here is
+# `org.gephi.*` or `org.openide.*`, so treating the prefix as standard would have
+# counted 36 third-party imports as part of the language and reported a dependency
+# as nothing at all.
+
+
+def _imports_of(language: str, text: str) -> List[Tuple[str, int]]:
+    """``(ref, line)`` for each import in a go or java file."""
+    out: List[Tuple[str, int]] = []
+    if language == "go":
+        for m in _GO_IMPORT_BLOCK.finditer(text):
+            for q in _GO_QUOTED.finditer(m.group(1)):
+                out.append((q.group(1), _line_of(text, m.start(1) + q.start())))
+        for m in _GO_IMPORT_ONE.finditer(text):
+            # A block import also matches the one-line pattern on its header, so
+            # the quoted path is added once; the block pass covers the rest.
+            out.append((m.group(1), _line_of(text, m.start())))
+    else:
+        for m in _JAVA_IMPORT.finditer(text):
+            out.append((m.group(1), _line_of(text, m.start())))
+    return out
+
+
+def build_import_graph(src: Path, files: List[Path], language: str,
+                       suffixes: Tuple[str, ...], dot_to_slash: bool = False,
+                       root: Optional[Path] = None,
+                       aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
+    """Go and Java: an import names a path; resolve it or declare it external.
+
+    Both languages were COUNTED and never analysed, which is the one state this
+    ledger is not allowed to leave a file in: `go: 2` with no graph reads as
+    "nothing to see" and the measured truth is "two stdlib-only programs, zero
+    internal references" -- a different claim, and a checkable one.
+
+    Resolution is exact only (a module path is absolute by construction). An
+    import whose first segment is stdlib or a vendor root is a dependency and is
+    counted as one; anything else that does not resolve is a real finding and is
+    reported unresolved with its reason.
+    """
+    acc = _new_acc()
+    external: Counter = Counter()
+    stdlib: Counter = Counter()
+    for path in files:
+        text = _read_capped(path)
+        if not text:
+            continue
+        here_file = _rel_posix(src, path, root)
+        here_tree = _tree_of(src, path, root)
+        for ref, line in _imports_of(language, text):
+            look = ref.replace(".", "/") if dot_to_slash else ref
+            target, _how = resolve_ref(src, path.parent, look, root, suffixes, (),
+                                      False, aliases)
+            if target is None and root is not None:
+                # A go import path is relative to the module root, not the file.
+                target, _how = resolve_ref(src, Path(root), look, root, suffixes,
+                                           (), False, aliases)
+            if target is not None:
+                _record_ref(acc, src, root, here_file, here_tree, path.parent, look,
+                            suffixes=suffixes, index_names=(), allow_tail=False,
+                            line=line, aliases=aliases)
+                continue
+            head = look.split("/", 1)[0]
+            if head in _STDLIB_ROOTS:
+                stdlib[head] += 1
+            else:
+                external[look] += 1
+    out = _graph_common(
+        acc, language, len(files),
+        "an import names a module path and is resolved exactly, against the "
+        "file's directory and the module root; a stdlib import is counted as "
+        "stdlib and a third-party one as a dependency, so `0 internal edges` is "
+        "a measurement rather than an absence of analysis")
+    out["external_packages"] = dict(external.most_common(12))
+    out["external_statements"] = sum(external.values())
+    out["stdlib_packages"] = dict(stdlib.most_common(12))
+    out["stdlib_statements"] = sum(stdlib.values())
+    out["cycles"] = _graph_cycles(acc["edges"])
+    return out
+
+
 def build_html_graph(src: Path, html_files: List[Path],
                      root: Optional[Path] = None,
                      aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
@@ -1387,7 +1909,7 @@ def census(src: Path, archive: Optional[Path] = None,
     for f in src.rglob("*"):
         if not f.is_file():
             continue
-        if any(part in SKIP_DIRS for part in f.parts):
+        if _skip(f, src):
             continue
         ext = f.suffix.lower()
         if ext == ".py" or ext not in LANGUAGES:
@@ -1414,6 +1936,8 @@ def census(src: Path, archive: Optional[Path] = None,
     shell_files = [f for f, lg in lang_files if lg in ("shell", "batch", "powershell")]
     html_files = [f for f, lg in lang_files if lg == "html"]
     rust_files = [f for f, lg in lang_files if lg == "rust"]
+    go_files = [f for f, lg in lang_files if lg == "go"]
+    java_files = [f for f, lg in lang_files if lg == "java"]
     # The repo root is a resolution base, not a convenience: a driver at
     # `src/X/y.bat` saying `python scripts/validate_docs.py` means the repo
     # root, and 4 of these references land on real files there. `root=None`
@@ -1428,6 +1952,21 @@ def census(src: Path, archive: Optional[Path] = None,
         "html": build_html_graph(src, html_files, repo_root, aliases),
         "rust": build_rust_graph(src, rust_files, repo_root, aliases),
     }
+    # A language with no file in src/ gets no graph row rather than a zero row:
+    # "0 go files" and "go not instrumented" are different statements, and the
+    # second one is what `languages.uninstrumented` exists to carry.
+    if go_files:
+        graphs["go"] = build_import_graph(src, go_files, "go", (".go",),
+                                          root=repo_root, aliases=aliases)
+    if java_files:
+        graphs["java"] = build_import_graph(src, java_files, "java", (".java",),
+                                            dot_to_slash=True, root=repo_root,
+                                            aliases=aliases)
+    # Every language a graph covers is INSTRUMENTED, derived from the table that
+    # built the graphs above -- not from an inline exemption list.
+    covered_languages = {lg for gname in graphs
+                         for lg in GRAPH_LANGUAGES.get(gname, ())}
+    covered_languages.add("python")
 
     # Per-tree non-python coupling, so a tree's verdict can carry it. Counts ALL
     # edges whose endpoints are known, not only cross-tree ones: an intra-tree
@@ -1531,7 +2070,7 @@ def census(src: Path, archive: Optional[Path] = None,
 
     # Seams: native or string-level coupling the AST graph cannot follow.
     for f in src.rglob("*"):
-        if not f.is_file() or any(part in SKIP_DIRS for part in f.parts):
+        if not f.is_file() or _skip(f, src):
             continue
         rel = f.relative_to(src)
         if len(rel.parts) < 2:
@@ -1565,20 +2104,71 @@ def census(src: Path, archive: Optional[Path] = None,
         lang: Dict[str, int] = {}
         seams: List[str] = []
         n_files = 0
+        by_kind: Counter = Counter()
+        unplaced: List[Dict[str, Any]] = []
+        go_java: Dict[str, List[Path]] = {"go": [], "java": []}
         for f in ep.rglob("*"):
-            if not f.is_file() or any(part in SKIP_DIRS for part in f.parts):
+            try:
+                relp = f.relative_to(ep)
+            except ValueError:
                 continue
+            if any(part in SKIP_DIRS for part in relp.parts) or not f.is_file():
+                continue  # relp is already root-relative
             n_files += 1
-            lg = LANGUAGES.get(f.suffix.lower())
-            if lg:
-                lang[lg] = lang.get(lg, 0) + 1
+            # Same classifier as the file inventory: a periphery root cannot
+            # report `files: 495` with 196 of them in no bucket, which is what
+            # `tools/` did -- 299 explained by the language table, 495 on disk.
+            kind, label = classify_file(f, ep)
+            by_kind[kind] += 1
+            if kind == "code":
+                lang[label] = lang.get(label, 0) + 1
+                if label in go_java:
+                    go_java[label].append(f)
+            elif kind == "unclassified":
+                unplaced.append({"path": relp.as_posix(),
+                                 "ext": f.suffix.lower() or "<none>",
+                                 "reason": label, "bytes": f.stat().st_size})
             name = f.name.lower()
             if name == "cargo.toml" or name == "build.rs":
-                seams.append(f"{name}:{f.relative_to(ep).as_posix()}")
+                seams.append(f"{name}:{relp.as_posix()}")
             elif f.suffix.lower() in (".pyd", ".so", ".dll", ".dylib"):
-                seams.append(f"native:{f.relative_to(ep).as_posix()}")
+                seams.append(f"native:{relp.as_posix()}")
+        # Go and Java are indexed here too: both were counted and never analysed,
+        # and the measured answer (stdlib-only / vendor-only, zero internal
+        # references) is what makes `0 edges` a finding instead of a gap.
+        pg: Dict[str, Any] = {}
+        # NOT `files`: that name holds the python module list for the rest of
+        # this function, and rebinding it here fed a .java path into the python
+        # walk three hundred lines later. A shadowed loop variable is a bug that
+        # only appears in the branch that runs.
+        for glang, glang_files in go_java.items():
+            if not glang_files:
+                continue
+            g = build_import_graph(ep, glang_files, glang,
+                                   (".go",) if glang == "go" else (".java",),
+                                   dot_to_slash=(glang == "java"), root=ep,
+                                   aliases=aliases)
+            g.pop("_edges", None)
+            pg[glang] = {k: g[k] for k in ("files", "statements", "resolved_by",
+                                          "external_packages", "external_statements",
+                                          "stdlib_packages", "stdlib_statements",
+                                          "unresolved")}
+        # A periphery language is instrumented when a graph was built for it HERE.
+        # Reading `covered_languages` alone reported go/java as uninstrumented
+        # while their graphs sat in the same record -- the exact defect the table
+        # was introduced to remove, one level down.
+        periph_covered = set(covered_languages) | set(pg)
         periphery[str(ep)] = {"exists": True, "files": n_files,
+                              "code": by_kind["code"],
+                              "noncode": by_kind["noncode"],
+                              "generated": by_kind["generated"],
+                              "unclassified_count": by_kind["unclassified"],
+                              "unclassified": unplaced[:40],
                               "languages": dict(sorted(lang.items())),
+                              "graphs": pg,
+                              "uninstrumented": dict(sorted(
+                                  (lg, n) for lg, n in lang.items()
+                                  if lg not in periph_covered)),
                               "seams": seams[:40], "seam_count": len(seams)}
 
     inbound_any: Dict[str, Dict[str, int]] = defaultdict(dict)
@@ -1655,6 +2245,26 @@ def census(src: Path, archive: Optional[Path] = None,
                               if "__pycache__" not in p.parts)
         archive_trees = sum(1 for d in arch.iterdir()
                             if d.is_dir() and any(d.rglob("*.py")))
+
+    # --- the file ledger: nothing on disk is left in no bucket ---------------
+    # Reconciliation is the point, so it is computed and stated: `code` for src
+    # must equal the modules the shard plan addresses (python + other), and for
+    # each periphery root it must equal the sum of its language counts. If those
+    # disagree the inventory is describing a different directory than the graphs.
+    files_block = file_inventory([src] + [Path(e) for e in (extras or [])])
+    files_block["reconciliation"] = {
+        "src_code": next((r.get("code") for r in files_block["roots"]
+                          if r.get("root") == str(src)), None),
+        "modules_src": src_modules,
+        "other_modules": sum(lang_totals.values()),
+        "matches_shard_population": (
+            next((r.get("code") for r in files_block["roots"]
+                  if r.get("root") == str(src)), -1)
+            == src_modules + sum(lang_totals.values())),
+        "periphery_matches": all(
+            (r.get("code") == sum((periphery.get(r["root"], {}).get("languages") or {}).values()))
+            for r in files_block["roots"][1:] if r.get("exists")),
+    }
 
     return {
         "schema": SCHEMA,
@@ -1788,23 +2398,28 @@ def census(src: Path, archive: Optional[Path] = None,
                     "used": dict(sorted(aliases.used.items())),
                     "stale_alias": aliases.stale()},
         "periphery": periphery,
+        "files": files_block,
         "languages": {
             "modules": dict(sorted(lang_totals.items())),
             "lines": dict(sorted(lang_lines.items())),
             "python_modules": src_modules,
             "other_modules": sum(lang_totals.values()),
-            # `instrumented` is now read off the graphs that actually exist, not
-            # written by hand: the old literal said ["python"] while three more
-            # languages already had graphs, and a hard-coded inventory drifts.
-            "instrumented": sorted(["python"] + list(graphs)),
+            # `instrumented` is read off the graphs that actually exist and the
+            # languages those graphs cover, not written by hand: the old literal
+            # said ["python"] while three more languages had graphs, and the
+            # exemption list beside it named languages instead of asking whether
+            # an extractor existed -- so `go` and `java` were counted and then
+            # explained away for not being on it.
+            "instrumented": sorted(covered_languages),
             "uninstrumented": dict(sorted(
                 (lg, n) for lg, n in lang_totals.items()
-                if lg not in ("python", "javascript", "typescript", "shell",
-                              "batch", "powershell", "html", "rust"))),
-            "note": ("python, js/ts, shell/batch and html have file-level graphs; "
-                     "`uninstrumented` names what is COUNTED but not resolved "
-                     "(rust, powershell), so a mixed tree's clean-cut verdict rests "
-                     "on the instrumented half. Inline <script> bodies are not parsed"),
+                if lg not in covered_languages)),
+            "note": ("a language is instrumented iff a graph covers it "
+                     "(GRAPH_LANGUAGES); `uninstrumented` names what is COUNTED "
+                     "but not resolved, and is empty when every code file in "
+                     "src/ lands in a graph. Inline <script> bodies are not "
+                     "parsed, and a bare js/ts/html specifier is a package "
+                     "dependency, never an edge"),
         },
         "parse_failure_detail": parse_failures[:20],
         "limits": [
@@ -1994,11 +2609,13 @@ def module_inventory(src: Path) -> Dict[str, List[str]]:
     src = Path(src)
     out: Dict[str, List[str]] = {}
     for f in src.rglob("*"):
-        if not f.is_file() or any(p in SKIP_DIRS for p in f.parts):
+        if not f.is_file() or _skip(f, src):
             continue
-        ext = f.suffix.lower()
-        lang = "python" if ext == ".py" else LANGUAGES.get(ext)
-        if not lang:
+        # The classifier, not a suffix lookup: a script with a shebang and no
+        # suffix is code, and leaving it out of the shard plan is how a file ends
+        # up counted by the inventory and addressed by nothing.
+        kind, lang = classify_file(f, src)
+        if kind != "code":
             continue
         out.setdefault(lang, []).append(f.relative_to(src).as_posix())
     return {k: sorted(v) for k, v in sorted(out.items())}
@@ -2042,7 +2659,9 @@ def shard_plan(src: Path, shard_size: int = SHARDS_PER_LIMB) -> Dict[str, Any]:
             "shards": len(shards),
             "saplings": len(shards) // shard_size,
             "pending": len(keyed) % shard_size,
-            "instrumented": lang == "python",
+            "instrumented": any(lang in cover for cover in GRAPH_LANGUAGES.values()),
+            "graph": next((g for g, cover in GRAPH_LANGUAGES.items() if lang in cover),
+                          None),
             "straddling_shards": sum(1 for s in shards if s["straddles"]),
             "underfilled": sum(1 for s in shards if s["size"] < shard_size // 2),
             "wasted_slots": len(shards) * shard_size - len(keyed),
@@ -2340,12 +2959,85 @@ def selftest() -> int:
             failures.append("nearest resolution not visible in any detail row: %r"
                             % (sh2.get("detail") or [],))
 
+    # --- the file inventory: one bucket per file, and no bucket invented -----
+    # The negative control is the point. A classifier that calls everything
+    # "unclassified" would pass a "find the unknown file" test, and one that
+    # calls everything "data" would pass a "zero unclassified" test. Both are
+    # asserted here, in opposite directions, on the same fixture.
+    with tempfile.TemporaryDirectory() as tmp2:
+        r = Path(tmp2)
+        (r / "node_modules").mkdir()
+        (r / "node_modules" / "vendored.js").write_text("import 'x';\n")
+        (r / "archived" / "old").mkdir(parents=True)
+        (r / "archived" / "old" / "old.py").write_text("x = 1\n")
+        (r / ".hypothesis").mkdir()
+        (r / ".hypothesis" / "abc123").write_text("1")
+        (r / "tool.build" / "mod").mkdir(parents=True)
+        (r / "tool.build" / "mod" / "x.obj").write_text("1")
+        (r / "hook").write_text("#!/usr/bin/env bash\necho hi\n")
+        (r / "notes.md").write_text("# n\n")
+        (r / "Dockerfile.alpine").write_text("FROM alpine\n")
+        (r / "odd.zzz").write_text("?\n")
+        (r / "mystery").write_text("no suffix, no shebang\n")
+        # ...and the one shape that stays genuinely unknown: a script whose
+        # interpreter nobody has declared. This is the control that keeps
+        # `unclassified` falsifiable instead of an empty column.
+        (r / "weird").write_text("#!/opt/bin/mystery-lang\nrun\n")
+        (r / "mod.py").write_text("y = 2\n")
+        expect = [
+            ("mod.py", ("code", "python")),
+            ("notes.md", ("noncode", "doc")),
+            # A shebang script with NO suffix is code. `scripts/hooks/pre-commit`
+            # is exactly this shape and was outside every shard.
+            ("hook", ("code", "shell")),
+            ("Dockerfile.alpine", ("noncode", "config")),
+            ("node_modules/vendored.js", ("vendored", "vendored")),
+            ("archived/old/old.py", ("archived", "archived")),
+            (".hypothesis/abc123", ("generated", "generated")),
+            ("tool.build/mod/x.obj", ("generated", "generated")),
+            # An undeclared SUFFIX is sniffed and labelled as undeclared...
+            ("odd.zzz", ("noncode", "text:unrecognised")),
+            # A file with no suffix and no shebang is sniffed, not guessed.
+            ("mystery", ("noncode", "text:unrecognised")),
+            # An unknown INTERPRETER is the shape that stays unknown.
+            ("weird", ("unclassified", "shebang:#!/opt/bin/mystery-lang")),
+        ]
+        for rel, want in expect:
+            got = classify_file(r / rel, r)
+            if got != want:
+                failures.append(f"classify {rel} = {got!r}, expected {want!r}")
+        inv = file_inventory([r])
+        if not inv["adds_up"]:
+            failures.append("file inventory does not add up: %r" % (inv,))
+        if inv["unclassified"] != 1:
+            failures.append("file inventory unclassified = %r, expected exactly the "
+                            "one suffixless mystery" % (inv["unclassified"],))
+        if inv["every_file_indexed"]:
+            failures.append("one unclassified file was still reported as 100% indexed")
+        if inv["unrecognised"] != 2:
+            failures.append("unrecognised = %r, expected 2 (.zzz suffix and the "
+                            "suffixless text file)" % (inv["unrecognised"],))
+        if inv["unreadable"] != 0:
+            failures.append("readable fixture reported unreadable files: %r"
+                            % (inv["unreadable"],))
+        if inv["undeclared_extensions"].get(".zzz") != 1:
+            failures.append("undeclared extension not named: %r"
+                            % (inv["undeclared_extensions"],))
+        if inv["total"] != sum(1 for _ in r.rglob("*")
+                               if _.is_file()):
+            failures.append("file inventory total %r != files on disk %r"
+                            % (inv["total"], sum(1 for _ in r.rglob("*") if _.is_file())))
+
     if failures:
         print("SELFTEST FAILED", file=sys.stderr)
         for f in failures:
             print("  - " + f, file=sys.stderr)
         return 3
-    print("SELFTEST OK — 30 controls (tier list, cycle filter, tier B membership, "
+    print("SELFTEST OK — 42 controls (file classification x10, no false "
+          "unreadable, undeclared suffix "
+          "sniffed and NAMED, suffixless file left unplaced, inventory adds up, "
+          "unclassified counted not absorbed, 100%-claim refused with one unknown, "
+          "inventory total equals disk, tier list, cycle filter, tier B membership, "
           "loose modules, parse failure, hub silence, stub tier, no stub in tier A, "
           "mixed-language tier, no mixed tree in tier A, cross-language edge, "
           "A-CROSS membership, shell does not evict a tree, shard plan partitions, "
@@ -2381,6 +3073,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--refs", nargs="?", const="", default=None, metavar="RESULT",
                     help="print EVERY reference with its outcome (optionally only "
                          "one result, e.g. --refs tail); the ledger keeps a 30-row sample")
+    ap.add_argument("--files", action="store_true",
+                    help="print ONLY the file inventory for --root/--extra-root: every "
+                         "file in one bucket, unclassified named. Runs under any python3 "
+                         "(no aliases, no graphs), so each environment can be measured "
+                         "where it lives instead of over a network share")
+    ap.add_argument("--top", action="append", default=None, metavar="DIR",
+                    help="with --files: walk this WHOLE directory (a repo root) instead "
+                         "of src + extras; repeatable")
     args = ap.parse_args(argv)
 
     if args.selftest:
@@ -2389,6 +3089,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     here = Path(__file__).resolve().parent
     root = Path(args.root) if args.root else here.parent / "src"
     archive = Path(args.archive) if args.archive else here.parent / "archived_unified"
+
+    if args.files:
+        walk = [Path(p) for p in (args.top or [])] or (
+            [root] + [Path(p) for p in (args.extra_root or [])])
+        inv = file_inventory(walk)
+        inv["schema"] = "azazael.file_inventory/1"
+        inv["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        inv["host_root"] = str(here.parent)
+        print(json.dumps(inv, indent=2))
+        return 0 if inv["every_file_indexed"] else 1
 
     try:
         extras = [Path(p) for p in (args.extra_root or [])]
