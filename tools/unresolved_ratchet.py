@@ -68,6 +68,9 @@ def main(argv: List[str] | None = None) -> int:
     ap.add_argument("--root", default=None, help="repo root (default: parent of src/)")
     ap.add_argument("--check", action="store_true", help="fail if any count grew")
     ap.add_argument("--baseline", action="store_true", help="record the current counts")
+    ap.add_argument("--note", default=None,
+                    help="why this baseline is what it is; recorded beside the counts "
+                         "so a later session reads a decision instead of a delta")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
@@ -84,6 +87,7 @@ def main(argv: List[str] | None = None) -> int:
             "note": ("shell/batch references the census cannot place, by reason. "
                      "Decline only: resolve the reference, or declare an alias in "
                      "tools/resolution_aliases.json."),
+            "review": args.note or "",
         }
         BASELINE.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         print("wrote %s (total %d)" % (BASELINE.name, now["total"]))
