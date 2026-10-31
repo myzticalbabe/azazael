@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import re
 import sys
 from collections import Counter, defaultdict
@@ -139,6 +140,15 @@ _JS_INDEX = ("index.js", "index.mjs", "index.ts", "index.tsx", "index.jsx")
 _PY_M_RE = re.compile(r"\bpython[0-9.]*(?:\.exe)?\s+-m\s+([\w.]+)")
 _PY_LAUNCHER_RE = re.compile(r"(?:^|[&|(\s])py(?:\.exe)?(?:\s+-[0-9.]+)?\s+['\"]?([^\"'\s|>;&]+\.py)",
                             re.I | re.M)
+
+#: PowerShell launches the interpreter through a VARIABLE -- `& $python311Path -m
+#: venv $EnvDir` was the one python invocation its 15 files hold, and no literal
+#: `python ...` pattern can see it. Without this the file reads as "scanned, 0
+#: references", which is a different claim from "one reference, to an external
+#: module". Group 1 = `-m module`, group 2 = a `.py` path.
+_PS_INVOKE_RE = re.compile(
+    r"^\s*&\s*\$[\w:]+\s+(?:-m\s+([\w.]+)|['\"]?([^\"'\s|>;&]+\.py))",
+    re.I | re.M)
 
 #: Batch/PowerShell prefixes that name the script's own directory. `%~dp0` is the
 #: commonest way a .bat reaches a sibling .py, and stripping it is what turns
@@ -334,6 +344,11 @@ def resolve_ref(src: Path, base: Path, ref: str,
                         live under `src/ORCHESTRATION/`. Only accepted when the
                         tail identifies exactly one file, and only when the
                         caller says the syntax tolerates it.
+    * ``nearest``    -- a bare name that matched more than one file, narrowed to
+                        the one candidate under the referring script's own
+                        directory (`HYDRA/run_hydra.bat` ->
+                        `HYDRA/ml_platforms/harness.py`). Directory agreement,
+                        arrived at from the referring end; still unique-or-nothing.
     * ``basename``   -- a UNIQUE filename with no directory agreement at all
                         (`WORMZ/CONCURRENCY.py` -> `CORE/WORMS/CONCURRENCY.py`).
                         Real coupling, weak evidence: it is counted, labelled,
@@ -406,11 +421,17 @@ def resolve_ref(src: Path, base: Path, ref: str,
                 if len(hits) == 1:
                     return hits[0], "tail"
                 if len(hits) > 1:
+                    near = _nearest(hits, base)
+                    if near is not None:
+                        return near, "nearest"
                     return None, "ambiguous"
             hits = name_index.get(parts[-1].lower()) or []
             if len(hits) == 1:
                 return hits[0], "basename"
             if len(hits) > 1:
+                near = _nearest(hits, base)
+                if near is not None:
+                    return near, "nearest"
                 return None, "ambiguous"
 
     if was_absolute or tail.startswith("../"):
@@ -522,6 +543,12 @@ def _new_acc() -> Dict[str, Any]:
     }
 
 
+#: Set by census(keep_refs=True). `detail` is capped at 30 rows per graph because a
+#: ledger should not carry every edge twice, but a question like "show me the 67
+#: tail matches so I can name them" cannot be answered from a sample.
+_KEEP_REFS = False
+
+
 def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
                 here_file: str, here_tree: Optional[str], base: Path, ref: str,
                 *, suffixes: Tuple[str, ...] = _JS_SUFFIXES,
@@ -543,6 +570,11 @@ def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
     target, how = resolve_ref(src, base, ref, root, suffixes, index_names,
                              allow_tail, aliases)
     note = dict(extra or {})
+    if _KEEP_REFS:
+        row = {"from": here_file, "ref": ref, "result": how}
+        if line is not None:
+            row["line"] = line
+        acc.setdefault("refs", []).append(row)
     if target is None and how == "ambiguous":
         note["candidates"] = _ambiguity_candidates(src, ref, root, suffixes)
     if target is None:
@@ -561,6 +593,9 @@ def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
         return how
     there_file = _rel_posix(src, target, root)
     there_tree = _tree_of(src, target, root)
+    if _KEEP_REFS and acc.get("refs"):
+        acc["refs"][-1]["to"] = there_file
+        acc["refs"][-1]["result"] = how
     acc["edges"][(here_file, there_file)] += 1
     acc["resolved_by"][how] += 1
     here_lang = LANGUAGES.get(Path(here_file).suffix.lower(), "other")
@@ -590,6 +625,24 @@ def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
     return how
 
 
+def _nearest(hits: List[Path], base: Path) -> Optional[Path]:
+    """The one candidate under the referring script's own directory, if unique.
+
+    A bare `harness.py` next to a launcher means the copy in that launcher's own
+    tree, so a shared directory prefix is directory agreement -- the same thing
+    `tail` establishes, arrived at from the other end. Returns None when zero or
+    more than one candidate is under `base`, so the caller still reports
+    `ambiguous`: this narrows a tie, it does not pick a favourite.
+    """
+    # `abspath`, not `resolve`: resolve() follows links and can raise on a path
+    # that no longer exists, and swallowing that would turn "cannot narrow" into
+    # a silent default. Both sides are made absolute, so `src` may be relative.
+    here = Path(os.path.abspath(base))
+    under = [h for h in hits
+             if here == Path(os.path.abspath(h)) or here in Path(os.path.abspath(h)).parents]
+    return under[0] if len(under) == 1 else None
+
+
 def _graph_common(acc: Dict[str, Any], language: str, n_files: int,
                   note: str) -> Dict[str, Any]:
     return {
@@ -617,6 +670,9 @@ def _graph_common(acc: Dict[str, Any], language: str, n_files: int,
         # file-level pairs, and a summary that keeps only counts cannot answer
         # "which shard does this edge enter".
         "_edges": [(a, b, n) for (a, b), n in acc["edges"].items()],
+        # Private, and only when the caller asked: every reference with its
+        # outcome, so a question about the population is answerable.
+        **(({"refs": acc.get("refs") or []}) if _KEEP_REFS else {}),
     }
 
 
@@ -849,6 +905,10 @@ def build_shell_graph(src: Path, script_files: List[Path],
     acc = _new_acc()
     forms: Counter[str] = Counter()
     missing: Counter[str] = Counter()
+    # Coverage per SCRIPT language, not per count: powershell was listed as
+    # "counted, not analysed" while it was in fact scanned, and the only way to
+    # show that is to say how many references the scan found in its 18 files.
+    coverage: Dict[str, Dict[str, int]] = {}
 
     for path in script_files:
         text = _read_capped(path)
@@ -857,6 +917,9 @@ def build_shell_graph(src: Path, script_files: List[Path],
         here_file = _rel_posix(src, path, root)
         here_tree = _tree_of(src, path, root)
         base = path.parent
+        lang = LANGUAGES.get(path.suffix.lower(), "other")
+        cov = coverage.setdefault(lang, {"files": 0, "refs": 0})
+        cov["files"] += 1
         found: List[Tuple[str, str, int]] = []
         for m in _PY_CALL_RE.finditer(text):
             found.append((m.group(1), "file", _line_of(text, m.start())))
@@ -864,6 +927,12 @@ def build_shell_graph(src: Path, script_files: List[Path],
             found.append((m.group(1), "launcher", _line_of(text, m.start())))
         for m in _PY_M_RE.finditer(text):
             found.append((m.group(1), "module", _line_of(text, m.start())))
+        for m in _PS_INVOKE_RE.finditer(text):
+            if m.group(1):
+                found.append((m.group(1), "module", _line_of(text, m.start())))
+            else:
+                found.append((m.group(2), "file", _line_of(text, m.start())))
+        cov["refs"] += len(found)
         for ref, form, line in found:
             forms[form] += 1
             raw = ref.strip().strip("'\"")
@@ -894,9 +963,67 @@ def build_shell_graph(src: Path, script_files: List[Path],
         "Unlike js/html a shell path may be tail-matched, because the launcher "
         "layer was written for a flat layout, and only a UNIQUE match counts")
     out["by_form"] = dict(sorted(forms.items()))
+    out["coverage"] = dict(sorted(coverage.items()))
     out["targets"] = dict(Counter(t for (_, t) in acc["edges"]).most_common(12))
     out["missing_targets"] = dict(missing.most_common(15))
     out["missing_target_count"] = len(missing)
+    return out
+
+
+#: `mod name;` (a declaration, not an inline `mod name { }`) and `use crate::a::b`.
+_RUST_MOD_RE = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+([A-Za-z_]\w*)\s*;", re.M)
+_RUST_USE_RE = re.compile(r"^\s*(?:pub\s+)?use\s+(?:crate|super|self)((?:::[A-Za-z_]\w*)+)", re.M)
+
+
+def build_rust_graph(src: Path, rust_files: List[Path],
+                     root: Optional[Path] = None,
+                     aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
+    """The rust module graph: `mod`/`use crate::` between files.
+
+    Three files and a 326-line tree is a small graph, and building it is still
+    worth the twenty lines: without it the ledger says `rust: counted, not
+    analysed`, which reads as "unknown" when the true finding is "both crates are
+    standalone and every `use` names an external crate". A measured zero and an
+    unmeasured count are not the same statement, and only one of them can be
+    acted on.
+
+    A module path is exact by construction (`crate::a::b` names `a/b.rs`), so
+    `allow_tail` is OFF: rust does not need -- and must not get -- the
+    flattened-layout repair that the launcher layer needed.
+    """
+    acc = _new_acc()
+    external: Counter[str] = Counter()
+    for path in rust_files:
+        text = _read_capped(path)
+        if not text:
+            continue
+        here_file = _rel_posix(src, path, root)
+        here_tree = _tree_of(src, path, root)
+        found: List[Tuple[str, int]] = []
+        for m in _RUST_MOD_RE.finditer(text):
+            found.append((m.group(1), _line_of(text, m.start())))
+        for m in _RUST_USE_RE.finditer(text):
+            # `use crate::a::b::Item` may name an ITEM, not a module, so try the
+            # whole path and then each shorter prefix; the resolver only accepts
+            # a file that exists, so a wrong guess resolves to nothing.
+            parts = [p for p in m.group(1).split("::") if p]
+            for k in range(len(parts), 0, -1):
+                found.append(("/".join(parts[:k]), _line_of(text, m.start())))
+        for m in re.finditer(r"^\s*(?:pub\s+)?use\s+([a-z_]\w*)::", text, re.M):
+            if m.group(1) not in ("crate", "super", "self", "std", "core", "alloc"):
+                external[m.group(1)] += 1
+        for ref, line in found:
+            _record_ref(acc, src, root, here_file, here_tree, path.parent, ref,
+                        suffixes=(".rs",), index_names=("mod.rs",),
+                        allow_tail=False, line=line, aliases=aliases)
+    out = _graph_common(
+        acc, "rust", len(rust_files),
+        "`mod name;` and `use crate::a::b` resolved to a file; an external crate "
+        "is a dependency and is counted separately. Module paths are exact, so "
+        "nothing is tail-matched")
+    out["external_packages"] = dict(external.most_common(12))
+    out["external_statements"] = sum(external.values())
+    out["cycles"] = _graph_cycles(acc["edges"])
     return out
 
 
@@ -1169,7 +1296,8 @@ def _affected_files(target: str,
 def census(src: Path, archive: Optional[Path] = None,
            extras: Optional[List[Path]] = None,
            aliases: Optional["Aliases"] = None,
-           keep_edges: bool = False) -> Dict[str, Any]:
+           keep_edges: bool = False,
+           keep_refs: Optional[bool] = None) -> Dict[str, Any]:
     """Measure one ``src`` tree (and optionally an archive) into a dict.
 
     `extras` are roots OUTSIDE ``src`` that still ship production code --
@@ -1178,6 +1306,9 @@ def census(src: Path, archive: Optional[Path] = None,
     says "0 rust" while the repo holds a Cargo crate is measuring the wrong
     directory and reporting the answer as a fact.
     """
+    global _KEEP_REFS
+    if keep_refs is not None:
+        _KEEP_REFS = bool(keep_refs)
     src = Path(src)
     if not src.is_dir():
         raise FileNotFoundError(f"not a directory: {src}")
@@ -1282,6 +1413,7 @@ def census(src: Path, archive: Optional[Path] = None,
     js_files = [f for f, lg in lang_files if lg in ("javascript", "typescript")]
     shell_files = [f for f, lg in lang_files if lg in ("shell", "batch", "powershell")]
     html_files = [f for f, lg in lang_files if lg == "html"]
+    rust_files = [f for f, lg in lang_files if lg == "rust"]
     # The repo root is a resolution base, not a convenience: a driver at
     # `src/X/y.bat` saying `python scripts/validate_docs.py` means the repo
     # root, and 4 of these references land on real files there. `root=None`
@@ -1294,6 +1426,7 @@ def census(src: Path, archive: Optional[Path] = None,
         "javascript": build_js_graph(src, js_files, repo_root, aliases),
         "shell": build_shell_graph(src, shell_files, repo_root, aliases),
         "html": build_html_graph(src, html_files, repo_root, aliases),
+        "rust": build_rust_graph(src, rust_files, repo_root, aliases),
     }
 
     # Per-tree non-python coupling, so a tree's verdict can carry it. Counts ALL
@@ -1328,6 +1461,13 @@ def census(src: Path, archive: Optional[Path] = None,
         "python": [(a, b, n) for (a, b), n in py_acc["edges"].items()]}
     for gname, g in graphs.items():
         edge_sets[gname] = g.pop("_edges", [])
+    # Every reference with its outcome, per graph -- only when asked for. `detail`
+    # is a sample by design; "name the 67 tail matches" needs the population.
+    ref_rows: Dict[str, List[Dict[str, Any]]] = {}
+    if _KEEP_REFS:
+        ref_rows["python"] = list(py_acc.get("refs") or [])
+        for gname, g in graphs.items():
+            ref_rows[gname] = list(g.pop("refs", []) or [])
     python_graph = _graph_common(
         py_acc, "python", len(files),
         "file -> file, resolved against the src-relative package path that the "
@@ -1634,6 +1774,7 @@ def census(src: Path, archive: Optional[Path] = None,
         "graphs": graphs,
         "python_graph": python_graph,
         "contracts": contracts,
+        **(({"_refs": ref_rows} if _KEEP_REFS else {})),
         **({"_file_edges": edge_sets,
             # The inventory, not only the edge endpoints: a file nobody imports is
             # still a file a question can be asked about, and answering "not in
@@ -1659,7 +1800,7 @@ def census(src: Path, archive: Optional[Path] = None,
             "uninstrumented": dict(sorted(
                 (lg, n) for lg, n in lang_totals.items()
                 if lg not in ("python", "javascript", "typescript", "shell",
-                              "batch", "html"))),
+                              "batch", "powershell", "html", "rust"))),
             "note": ("python, js/ts, shell/batch and html have file-level graphs; "
                      "`uninstrumented` names what is COUNTED but not resolved "
                      "(rust, powershell), so a mixed tree's clean-cut verdict rests "
@@ -2152,12 +2293,59 @@ def selftest() -> int:
             failures.append("shell blockers do not name their graph: %r"
                             % (shell_blocked[0],))
 
+        # --- 28/29/30: a SECOND root, so these fixtures cannot perturb the
+        # counts the controls above assert. Rust modules, a PowerShell launch
+        # through a variable, and a bare name that only its own tree explains.
+        r2 = Path(tmp) / "r2" / "src"
+        (r2 / "RR" / "src").mkdir(parents=True)
+        (r2 / "RR" / "src" / "lib.rs").write_text(
+            "mod util;\nuse rayon::prelude::*;\n", encoding="utf-8")
+        (r2 / "RR" / "src" / "util.rs").write_text("pub fn u() {}\n", encoding="utf-8")
+        (r2 / "PP").mkdir(parents=True)
+        (r2 / "PP" / "helper.py").write_text("x = 1\n", encoding="utf-8")
+        (r2 / "PP" / "run.ps1").write_text(
+            "$py = 'python.exe'\n& $py -m venv $Env\n& $py .\\helper.py\n",
+            encoding="utf-8")
+        (r2 / "AA" / "ml_platforms").mkdir(parents=True)
+        (r2 / "BB" / "ml_platforms").mkdir(parents=True)
+        (r2 / "AA" / "ml_platforms" / "harness.py").write_text("a = 1\n", encoding="utf-8")
+        (r2 / "BB" / "ml_platforms" / "harness.py").write_text("b = 1\n", encoding="utf-8")
+        # `python harness.py` names no directory, and BOTH trees hold one: only
+        # the copy under the driver's own tree is the driver's copy.
+        (r2 / "AA" / "run.bat").write_text("python harness.py\r\n", encoding="utf-8")
+
+        led2 = census(r2)
+        rs = (led2.get("graphs") or {}).get("rust") or {}
+        if rs.get("files") != 2 or rs.get("statements") != 1:
+            failures.append("rust graph = files %r statements %r, expected 2/1 "
+                            "(mod util; in lib.rs)" % (rs.get("files"), rs.get("statements")))
+        if rs.get("external_packages", {}).get("rayon") != 1:
+            failures.append("rust external crate not isolated: %r"
+                            % (rs.get("external_packages"),))
+        sh2 = (led2.get("graphs") or {}).get("shell") or {}
+        ps = (sh2.get("coverage") or {}).get("powershell") or {}
+        if ps.get("files") != 1 or ps.get("refs") != 2:
+            failures.append("powershell coverage = %r, expected 1 file / 2 refs "
+                            "(both launches go through a variable)" % (ps,))
+        if "rust" not in (led2.get("languages") or {}).get("instrumented", []):
+            failures.append("rust still listed as uninstrumented after building its graph")
+        xl2 = (led2.get("cross_language") or {}).get("resolved_by") or {}
+        if xl2.get("nearest") != 1:
+            failures.append("nearest tie-break = %r, expected 1 (AA/run.bat -> "
+                            "AA/harness.py, not BB's)" % (xl2,))
+        near_edge = [(r["from"], r["to"]) for r in (led2.get("cross_language") or {})
+                     .get("detail") or [] if r.get("resolved") == "nearest"]
+        if not near_edge and not any(r.get("via") == "nearest"
+                                     for r in (sh2.get("detail") or [])):
+            failures.append("nearest resolution not visible in any detail row: %r"
+                            % (sh2.get("detail") or [],))
+
     if failures:
         print("SELFTEST FAILED", file=sys.stderr)
         for f in failures:
             print("  - " + f, file=sys.stderr)
         return 3
-    print("SELFTEST OK — 27 controls (tier list, cycle filter, tier B membership, "
+    print("SELFTEST OK — 30 controls (tier list, cycle filter, tier B membership, "
           "loose modules, parse failure, hub silence, stub tier, no stub in tier A, "
           "mixed-language tier, no mixed tree in tier A, cross-language edge, "
           "A-CROSS membership, shell does not evict a tree, shard plan partitions, "
@@ -2166,7 +2354,8 @@ def selftest() -> int:
           "js relative import is never tail-matched, basename match counted, "
           "basename match does not re-tier a tree, declared alias upgrades a weak "
           "edge, unused alias is stale, affected is file-precise, affected refuses "
-          "an unknown file, shell blocker names its graph)")
+          "an unknown file, shell blocker names its graph, rust mod graph, rust "
+          "external crate isolated, powershell launch through a variable counted)")
     return 0
 
 
@@ -2189,6 +2378,9 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help="print everything that must be re-verified when this changes")
     ap.add_argument("--contracts", action="store_true",
                     help="print the checked promises: cycles of any length, shard liftability")
+    ap.add_argument("--refs", nargs="?", const="", default=None, metavar="RESULT",
+                    help="print EVERY reference with its outcome (optionally only "
+                         "one result, e.g. --refs tail); the ledger keeps a 30-row sample")
     args = ap.parse_args(argv)
 
     if args.selftest:
@@ -2207,13 +2399,28 @@ def main(argv: Optional[List[str]] = None) -> int:
         # File-level edges are kept only when a question needs them: a 1,500-row
         # edge list in every ledger is payload, not a deliverable.
         ledger = census(root, archive, extras, aliases,
-                        keep_edges=bool(args.affected))
+                        keep_edges=bool(args.affected),
+                        keep_refs=bool(args.refs is not None))
     except FileNotFoundError as exc:
         print(f"yggdrasil_census: {exc}", file=sys.stderr)
         return 2
 
-    text = json.dumps(ledger, indent=2, sort_keys=False) if args.json else render(ledger)
+    private = {k for k in ledger if k.startswith("_")}
+    text = (json.dumps({k: v for k, v in ledger.items() if k not in private},
+                       indent=2, sort_keys=False) if args.json else render(ledger))
     print(text)
+
+    if args.refs is not None:
+        want = args.refs.strip().lower()
+        rows = [(g, r) for g, rs in (ledger.get("_refs") or {}).items()
+                for r in rs if not want or r["result"].lower() == want]
+        print("\nREFS — %d reference(s)%s" % (len(rows),
+                                          (" with result %r" % want) if want else ""),
+              file=sys.stderr)
+        for gname, r in sorted(rows, key=lambda gr: (gr[1]["result"], gr[1]["from"])):
+            dest = r.get("to") or "-"
+            print("  %-18s %-11s %-46s %s" % (r["from"][:46], r["result"],
+                                            r["ref"][:60], dest), file=sys.stderr)
 
     if args.affected:
         target_arg = args.affected.replace(chr(92), "/").strip("/")

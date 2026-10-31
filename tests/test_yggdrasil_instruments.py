@@ -67,6 +67,29 @@ class AliasTable(unittest.TestCase):
         self.assertIn("deliberately_absent", data)
         self.assertIsInstance(yc.Aliases({}, "empty").stale(), list)
 
+    def test_every_decision_keeps_its_evidence(self):
+        """A choice in the table must carry the measurement that justified it.
+
+        The alias file resolves the ml_platforms duplicate by decision. If the
+        evidence can be dropped, the next session inherits a preference with no
+        reason and no way to overturn it.
+        """
+        data = json.loads((TOOLS / "resolution_aliases.json").read_text(encoding="utf-8"))
+        decisions = data.get("decisions") or {}
+        for name, entry in decisions.items():
+            self.assertTrue(entry.get("choice"), "decision %r states no choice" % name)
+            self.assertTrue(entry.get("evidence"), "decision %r has no evidence" % name)
+        self.assertIn("ml_platforms", json.dumps(decisions),
+                      "the duplicate-directory decision is no longer on record")
+
+    def test_unresolved_baseline_states_a_reason(self):
+        """A ratchet baseline without its `review` note is a suppression."""
+        base = json.loads((TOOLS / "unresolved_baseline.json").read_text(encoding="utf-8"))
+        self.assertIn("counts", base)
+        self.assertIn("total", base)
+        self.assertTrue((base.get("review") or "").strip(),
+                        "baseline records counts but not why they are acceptable")
+
     def test_unused_declaration_is_stale(self):
         yc = _load("yggdrasil_census")
         al = yc.Aliases({"prefixes": {"USED": "CORE", "UNUSED": "CORE"}}, "test")
