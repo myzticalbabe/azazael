@@ -1,0 +1,11 @@
+{
+  "measured": "2026-10-31T15:46:48",
+  "counts": {
+    "ambiguous": 7,
+    "external-module": 11,
+    "outside-root": 4,
+    "target-not-found": 10
+  },
+  "total": 32,
+  "note": "shell/batch references the census cannot place, by reason. Decline only: resolve the reference, or declare an alias in tools/resolution_aliases.json."
+}

@@ -157,6 +157,32 @@ else
 fi
 echo ""
 
+# ─── Check 4b: unresolved cross-language references (ratchet) ───
+# The census can only place what it can resolve. On 2026-10-31 that was 110 of
+# 142 driver references, and the 32 leftovers lived in a JSON file nobody
+# re-reads -- so the next session inherited 32 by default rather than by
+# decision, and the 33rd would arrive unremarked. Same ratchet semantics as the
+# anti-pattern baseline above: the count may fall, never rise. Shell-only on
+# purpose: the js extractor is tree-sitter-or-regex depending on the
+# interpreter, and a gate that flips between two pythons is useless.
+echo "[Refs] Comparing unresolved cross-language references against baseline..."
+if [ -f "$SCRIPT_DIR/tools/unresolved_ratchet.py" ]; then
+    UNRES_OUT=$("$PY" "$SCRIPT_DIR/tools/unresolved_ratchet.py" --check 2>&1)
+    UNRES_EXIT=$?
+    echo "$UNRES_OUT" | tail -12
+    if [ $UNRES_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Refs] A reference the census cannot place was added."
+        echo "[Refs] Resolve it, declare it in tools/resolution_aliases.json, or --"
+        echo "[Refs] for a reviewed, deliberate increase -- re-run:"
+        echo "[Refs]   python tools/unresolved_ratchet.py --baseline"
+        exit 1
+    fi
+else
+    echo "[Refs] gate not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
 # ─── Check 5: mesh wire-or-cut ledger freshness ───
 # NEURAL_MESH_WIRE_OR_CUT.json is GENERATED, and nothing regenerated it when
 # a caller changed -- so it went stale silently. Measured 2026-10-10: the
@@ -206,6 +232,48 @@ else
     echo "[Wire] check not found -- passing loud (check unrunnable)"
 fi
 echo ""
+
+# ─── Check 6b (blocking): evidence gate (2026-10-30) ───
+# Three failures this month had one shape: a statement true when written was
+# repeated after the code moved, and nothing re-derived it -- a `rotate_secret`
+# with no callers that returned success while writing nothing, an
+# `enforce_global_quota` with no caller, and 135 `wired` ledger rows whose only
+# support is a bare token in a file that does not import the module.
+# tools/evidence_gate.py re-derives instead of reading prose: it parses every
+# .py (an unparseable file is invisible to every other AST check), finds
+# control-named functions with no module-linked caller, and asks the mesh probe
+# whether its own ledger is fresh. Legacy debt is recorded in
+# state/evidence_gate_baseline.json and does NOT fail; NEW debt does. A gate
+# that fails on day one is a gate somebody disables.
+# Deliberately NOT wired_claims: Check 6 above already gates wired-row link
+# evidence through tools/wire_evidence_audit.py.
+# Declared override, never silent: ALLOW_EVIDENCE_GATE=1.
+if [ "${ALLOW_EVIDENCE_GATE:-}" = "1" ]; then
+    echo "[Evidence] gate skipped: ALLOW_EVIDENCE_GATE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_EVIDENCE_GATE:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/evidence_gate.py" ]; then
+    echo "[Evidence] Re-deriving control and ledger claims from source..."
+    # Capture first, then print: `cmd | tail` makes $? tail's status, and a gate
+    # that reads the wrong exit code is worse than no gate (3 false passes).
+    EVIDENCE_OUT=$(PYTHONPATH="src:${PYTHONPATH:-}" "$PY" "$SCRIPT_DIR/tools/evidence_gate.py" \
+        --only ast_parse_coverage,dead_control,ledger_freshness 2>&1)
+    EVIDENCE_EXIT=$?
+    echo "$EVIDENCE_OUT" | tail -22
+    if [ $EVIDENCE_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Evidence] BLOCKED: a control or ledger claim no longer re-derives."
+        echo "[Evidence] New debt above is not in state/evidence_gate_baseline.json."
+        echo "[Evidence] Fix the code, or accept it explicitly:"
+        echo "[Evidence]   python tools/evidence_gate.py --update-baseline"
+        echo "[Evidence] Override (declared): ALLOW_EVIDENCE_GATE=1."
+        exit 1
+    fi
+    echo ""
+else
+    echo "[Evidence] gate not found or skipped -- passing loud (check unrunnable)"
+    echo ""
+fi
 
 # ─── Check 7b (blocking): testing-paradigm G1 (Engram #890 item 4) ───
 # Every NEW staged src/ module must be named by at least one tests/ file.
@@ -322,13 +390,21 @@ if [ "${ALLOW_AGENT_ORDERS_DRIFT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/agent_o
     #           targets are host-absolute lane files, so a Kali lane or a fresh
     #           clone would otherwise block every commit over files it cannot
     #           see -- a gate that cannot run here is worse than no gate.
-    ORDERS_OUT=$("$PY" "$SCRIPT_DIR/tools/agent_orders_sync.py" --hook 2>&1)
+    #           --wsl: the Ubuntu and Kali lanes read their orders from the
+    #           Linux tree, and on 2026-10-31 NEITHER carried a single block
+    #           (Ubuntu /root/AGENTS.md 2003 bytes / 0 blocks; Kali
+    #           /root/BCC-REINVESTIGATION/AGENTS.md 14783 / 0). Those blocks are
+    #           host-rewritten (python -> python3, C:/ -> /mnt/c), so they can
+    #           never be checked by looking at Windows files. A host without wsl
+    #           says so and passes; a present distro that drifts blocks.
+    #           3.6 s measured, so it rides along instead of being a separate gate.
+    ORDERS_OUT=$("$PY" "$SCRIPT_DIR/tools/agent_orders_sync.py" --hook --wsl 2>&1)
     ORDERS_EXIT=$?
     echo "$ORDERS_OUT"
     if [ $ORDERS_EXIT -ne 0 ]; then
         echo ""
         echo "[AgentOrders] BLOCKED: a generated block differs from azazael/docs/agent_orders/."
-        echo "[AgentOrders] Fix: $PY $SCRIPT_DIR/tools/agent_orders_sync.py --apply"
+        echo "[AgentOrders] Fix: $PY $SCRIPT_DIR/tools/agent_orders_sync.py --apply --wsl"
         echo "[AgentOrders] Copies are never hand-edited -- edit the source, then regenerate."
         echo "[AgentOrders] Override (declared): ALLOW_AGENT_ORDERS_DRIFT=1."
         exit 1

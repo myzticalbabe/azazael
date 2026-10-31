@@ -176,6 +176,20 @@ GATES: Tuple[Gate, ...] = (
         requires=("logs/anti_pattern_baseline.json",),
     ),
     Gate(
+        name="unresolved-refs-ratchet",
+        argv=("tools/unresolved_ratchet.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="the shell/batch cross-language graph vs tools/unresolved_baseline.json",
+        control_test="tests/test_yggdrasil_instruments.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("tools/unresolved_baseline.json",),
+    ),
+    Gate(
         name="mesh-ledger-freshness",
         argv=("tools/mesh_function_preflight.py", "--check"),
         interpreter="python3",
@@ -321,7 +335,7 @@ GATES: Tuple[Gate, ...] = (
     ),
     Gate(
         name="two-interpreter-suite",
-        argv=("scripts/ci_two_interpreter_gate.py", "--check"),
+        argv=("scripts/ci_two_interpreter_gate.py",),
         interpreter="python3",
         env=(),
         inside_hook=False,
@@ -364,6 +378,28 @@ GATES: Tuple[Gate, ...] = (
             "anti-pattern-ratchet, whose control is executable"
         ),
         requires=("logs/basedpyright_baseline.json",),
+    ),
+    Gate(
+        name="evidence-gate",
+        # wired_claims is NOT in this argv: .githooks/pre-commit Check 6 already
+        # gates wired-row link evidence via tools/wire_evidence_audit.py, and
+        # running the same judgement twice in one commit buys nothing. The
+        # check stays available directly (`--only wired_claims`) and its 135
+        # measured rows are recorded in the baseline rather than re-litigated
+        # on every commit.
+        argv=("tools/evidence_gate.py", "--only",
+              "ast_parse_coverage,dead_control,ledger_freshness"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("every .py under src/tools/scripts/tests (AST), plus the PF16 ledger's "
+               "own evidence and its freshness check"),
+        control_test="tests/test_evidence_gate.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("state/evidence_gate_baseline.json", "NEURAL_MESH_WIRE_OR_CUT.json"),
     ),
 )
 
@@ -513,9 +549,24 @@ def repo_state_hash() -> Optional[str]:
     Returns None when git cannot answer, and None means NO cached pass is
     reused: reusing evidence that cannot be shown to still describe the tree is
     the exact defect this file exists to prevent.
+
+    HEAD IS PART OF THE HASH. The two diffs alone describe the CHANGE, not the
+    tree it lands on: a run recorded on a clean worktree hashes two empty
+    diffs, and so does the same clean worktree one commit later - identical
+    fingerprints across a changed tree, so the later run would reuse a PASS
+    recorded against the earlier commit. Measured 2026-10-31: nothing hashed
+    HEAD, so that collision was reachable. The commit hook still forced real
+    execution during those commits (the staged diff was non-empty), but a
+    `--check` afterwards reported CACHED for a tree no gate had judged.
+
+    NOT hashed: untracked files. `git diff` never sees them, so a cached PASS
+    survives a new untracked file. Named here rather than left implicit;
+    hashing their names would invalidate every cache whenever any tool drops a
+    stray file, which is a different failure.
     """
     digest = hashlib.sha256()
-    for args in (("diff", "--cached", "--binary"), ("diff", "--binary")):
+    for args in (("rev-parse", "HEAD"), ("diff", "--cached", "--binary"),
+                 ("diff", "--binary")):
         try:
             proc = subprocess.run(
                 ["git", *args], cwd=str(REPO), capture_output=True, timeout=GIT_TIMEOUT
