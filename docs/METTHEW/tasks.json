@@ -1,0 +1,152 @@
+{
+  "schema": "metthew.tasks/1",
+  "project": "Metthew",
+  "created": "2026-10-31",
+  "source_of_truth": "docs/METTHEW/METTHEW_PLAN_2026-10-31.md",
+  "status": "planned",
+  "tracks": {
+    "A": { "name": "Contract", "gates": "M-01 -> M-03 -> M-04" },
+    "B": { "name": "Runtime", "gates": "M-05 -> M-06 -> M-07" },
+    "C": { "name": "Circle (no server, no accounts)", "gates": "M-08 -> M-09 -> M-10" },
+    "D": { "name": "Portability and gates", "gates": "M-11 -> M-12" }
+  },
+  "critical_path": ["M-01", "M-03", "M-05", "M-06"],
+  "hardware": {
+    "reference": "one Windows laptop with integrated graphics, the Ubuntu-26.04 WSL host and the Kali host; a 4 GB-RAM machine for M-11",
+    "budget_is_provisional": true,
+    "budget_source": "M-02 replaces every provisional number with a reading or a recorded waiver"
+  },
+  "tasks": [
+    {
+      "id": "M-01",
+      "track": "A",
+      "title": "Shard manifest spec v1 (shard.json + JSON Schema)",
+      "owner": "freebuff",
+      "depends_on": [],
+      "deliverable": "docs/METTHEW/shard.schema.json + prose in the plan: id, version, genre, files, entrypoint, loader, golden_run {input, ticks, state_sha256, token}, hubs[], budget, licence, author_pubkey",
+      "acceptance": "validates the three M-05 shards; rejects 5 named malformed fixtures (missing golden run, undeclared hub, oversize payload, entry outside shard, duplicate id) with the offending field named",
+      "risk": "a schema that only fits one genre will be rewritten by M-05; keep the engine out of the schema"
+    },
+    {
+      "id": "M-02",
+      "track": "A",
+      "title": "Low-end budget bench",
+      "owner": "kilo + windows/ubuntu/kali owners",
+      "depends_on": ["M-01"],
+      "deliverable": "tools/metthew_bench.py + budget.json (load, tick cost, peak RSS, validator wall clock, play fps at 720p)",
+      "acceptance": "three runs per scene, numbers reproducible within 10%; every provisional plan number replaced by a reading or a recorded waiver; the failing numbers are published, not rounded",
+      "risk": "measuring on a fast host and calling it 'low-end' would invalidate every later gate; the box is named in the record"
+    },
+    {
+      "id": "M-03",
+      "track": "A",
+      "title": "Validator tools/metthew_validate.py",
+      "owner": "freebuff",
+      "depends_on": ["M-01", "M-02"],
+      "deliverable": "static liftability check (no reference escapes the shard), hub declaration check, payload budget, golden run, determinism re-run, JSON report, exit codes, --selftest",
+      "acceptance": "pass/block on 3 fixtures in the tests; a shard with one external reference is blocked and the blocker is named with graph + ref count; a shard that fakes its state hash is blocked; exit 0 only when every gate passes",
+      "risk": "an oracle that has never failed is not an oracle -- the negative controls ship in the same change (RULE 0B-C)"
+    },
+    {
+      "id": "M-04",
+      "track": "A",
+      "title": "Minting CLI: metthew mint <name>",
+      "owner": "freebuff",
+      "depends_on": ["M-03"],
+      "deliverable": "scaffold manifest, golden run, self-test, placeholder scene; run the validator; print the exact next command",
+      "acceptance": "mint -> validate -> play in <=10 minutes on the reference box with no toolchain beyond python3; the scaffolded shard is green before it is edited",
+      "risk": "a scaffolder that hides the manifest teaches nothing; the manifest must be the first file a gamer reads"
+    },
+    {
+      "id": "M-05",
+      "track": "B",
+      "title": "Three reference shards, three genres",
+      "owner": "freebuff",
+      "depends_on": ["M-03"],
+      "deliverable": "2-player arena; single-player puzzle; doc+data-only rule set/roster pack; each <=24 files",
+      "acceptance": "all three validate green on Windows/Ubuntu/Kali; arena and puzzle run at 720p/30 on the reference box; the doc-only shard loads with zero code",
+      "risk": "three from one author still share that author's blind spots; M-10's play test is the counterweight"
+    },
+    {
+      "id": "M-06",
+      "track": "B",
+      "title": "Deterministic play ledger and replay verifier",
+      "owner": "freebuff",
+      "depends_on": ["M-05"],
+      "deliverable": "fixed-step sim, input log, per-tick state hash chain, replay verifier, documented numeric policy",
+      "acceptance": "same input log -> identical hash on all three hosts; a flipped input byte diverges at a named tick; 20-minute session replays in <=2 s",
+      "risk": "float and iteration-order drift will look like cheating; a numeric policy (fixed-point or bounded float) is part of the task, not a follow-up"
+    },
+    {
+      "id": "M-07",
+      "track": "B",
+      "title": "Exploit-as-content: antibody shard for game exploits",
+      "owner": "freebuff",
+      "depends_on": ["M-06"],
+      "deliverable": "signature/probe/instances/status shard in the shape of src/SHARDS/antibodies.py, with seeking -> neutralized -> immune tied to recorded seek evidence",
+      "acceptance": "one real exploit demo cloned into a probe that finds it in 3 fixture shards and in none of 3 clean shards (positive and negative control); status cannot advance without the recorded seek",
+      "risk": "an antibody that fires on healthy shards splits a circle faster than cheating does"
+    },
+    {
+      "id": "M-08",
+      "track": "C",
+      "title": "Bundle exchange (USB / LAN / chat)",
+      "owner": "freebuff",
+      "depends_on": ["M-03"],
+      "deliverable": "one-file bundle (payload + manifest + hash), metthew add <bundle>, verify-then-play; the circle's shard list is a local file",
+      "acceptance": "a tampered bundle is refused with the hash mismatch named; a bundle over budget is refused by the budget gate; installing requires no network",
+      "risk": "file exchange does not scale past a circle; M-10 records that boundary rather than papering over it"
+    },
+    {
+      "id": "M-09",
+      "track": "C",
+      "title": "Local reputation: signed result files",
+      "owner": "freebuff",
+      "depends_on": ["M-08"],
+      "deliverable": "signed result file (shard id, version, state hash, score, witnesses) that travels with the bundle",
+      "acceptance": "forged score fails signature; a result whose shard version/hash does not match the installed shard is rejected; no global ranking is implied or stored",
+      "risk": "signature files are not a reputation system; the plan says what they cannot do (Sybil, collusion) in the player-facing text"
+    },
+    {
+      "id": "M-10",
+      "track": "C",
+      "title": "Circle protocol + 3-person play test",
+      "owner": "kilo",
+      "depends_on": ["M-06"],
+      "deliverable": "written procedure: how a circle starts, mints, shares, contests, retires; plus the write-up of a real 3-person run with timings",
+      "acceptance": "mint -> share -> play -> contest -> retire completed with no central service; every step names the command that performed it and how long it took",
+      "risk": "a play test with the author present tests the author; one participant must be the non-author who runs the commands"
+    },
+    {
+      "id": "M-11",
+      "track": "D",
+      "title": "Portability matrix",
+      "owner": "windows / ubuntu / kali owners",
+      "depends_on": ["M-05"],
+      "deliverable": "matrix of validator + one reference shard across Windows 10/11 iGPU, Ubuntu-26.04, Kali, and one 4 GB-RAM host",
+      "acceptance": "one row per host, pass/fail per gate, and the exact failing command for every fail; no host is reported green without a run",
+      "risk": "green on the author's machine is the default outcome; the matrix exists to make that inadmissible"
+    },
+    {
+      "id": "M-12",
+      "track": "D",
+      "title": "Project gates: unplayable ratchet + weekly cold run",
+      "owner": "kilo",
+      "depends_on": ["M-03", "M-11"],
+      "deliverable": "baseline of unplayable shards that may fall and never rise (the unresolved-ratchet pattern) plus a scheduled cold run",
+      "acceptance": "ratchet fails on a newly unplayable shard and passes on a fix; --selftest runs with its negative control; a stale baseline is reported stale rather than trusted",
+      "risk": "a ratchet nobody runs is a comment; the scheduled run is part of the acceptance, not a later convenience"
+    }
+  ],
+  "non_goals": [
+    "storefront", "DRM", "accounts", "cloud saves", "live services", "monetisation",
+    "kernel-level anti-cheat", "GPU compute requirement", "matchmaking service",
+    "forking or rewriting src/SHARDS/*"
+  ],
+  "known_limits": [
+    "discovery is social: a circle works for five friends and fails for five thousand strangers",
+    "determinism across hosts needs a numeric policy or the replay verifier will disagree in ways that look like cheating",
+    "a cheat inside a shard's own golden run is invisible to the validator; only a peer re-run or an antibody shard catches it",
+    "budgets in the plan are commitments to measure, not results"
+  ]
+}
