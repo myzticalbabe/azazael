@@ -194,7 +194,7 @@ validator asserts only that. Genres that cannot declare it are allowed to say so
 
 | # | change | why it cannot wait |
 |---|---|---|
-| 1 | **Sandboxed loader** (WASM or restricted VM; no clock, no RNG, no I/O) | R2 — running a friend's bundle is currently running their code; it is also what makes determinism cheap |
+| 1 | **Sandboxed loader** — now specified in [BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md](BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md) §2 as a **Wasm 3.0 host on the deterministic execution profile, threads and SIMD disabled** | R2 — running a friend's bundle is currently running their code; it is also what makes determinism cheap |
 | 2 | **One-download player** (browser/WASM target) | R1 — everything else is unreachable if step one is "install Python" |
 | 3 | **Hubs as versioned libraries**, declared and counted | R4 — otherwise there is no engine to fix once, and 24 files is not enough to duplicate one |
 | 4 | **`competitive` flag** on determinism | R3 — the hash chain is a tax against strangers, and the circle has none |
