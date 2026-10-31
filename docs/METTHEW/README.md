@@ -15,6 +15,7 @@ and applies it to games.
 | [METTHEW_PLAN_2026-10-31.md](METTHEW_PLAN_2026-10-31.md) | the plan: why, what exists to reuse, what a Shard is, the low-end budget, the four tracks, the explicit non-goals |
 | [tasks.json](tasks.json) | the same 12 tasks machine-readable, with owner, dependencies, deliverable, acceptance and risk. It is the scheduling copy; the markdown is the reasoning copy. |
 | [REJECTION_ANALYSIS_2026-10-31.md](REJECTION_ANALYSIS_2026-10-31.md) | Metthew's contract measured against PICO-8, Doom WADs, Luanti, Factorio, OpenTTD, SMAPI, Minecraft/Fabric, Workshop and Steam Remote Play: 12 ranked reasons players would bounce, and the five contract changes that should land before M-01 freezes. |
+| [BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md](BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md) | what already exists to catch them: 14 dated strands (2024–2026) — Wasm 3.0's deterministic profile, WASM-4 carts, Uxn/permacomputing, iroh 1.0, deterministic simulation testing, GGRS rollback, TAS verification, N64 recompilation, Playdate/Picotron, s&box and Dreams, Nostr catalogues, AI minting, web3's collapse — each mapped to the task it changes. |
 
 ## Separation of tasks in one screen
 
@@ -29,7 +30,9 @@ and applies it to games.
 
 **Before M-01 freezes**, the five changes in the rejection analysis must each be decided
 either way (sandboxed loader, one-download player, versioned hubs, a `competitive`
-flag on determinism, content-addressed ids). They are proposals, not accepted scope.
+flag on determinism, content-addressed ids). They are proposals, not accepted scope; the
+bleeding-edge research has already specified the first one as a Wasm 3.0 deterministic-profile
+host and proposed one candidate task (M-13, the recovery track).
 
 Nothing in tracks B, C or D may claim a task before M-03's validator exists, because
 every other task's acceptance is phrased in terms of something the validator prints.

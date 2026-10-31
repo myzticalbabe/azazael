@@ -142,7 +142,7 @@
     "source": "docs/METTHEW/REJECTION_ANALYSIS_2026-10-31.md",
     "status": "proposed, not accepted; M-01 should not freeze until each is decided either way",
     "items": [
-      { "change": "sandboxed loader (WASM or restricted VM: no clock, no RNG, no filesystem, no network)", "because": "R2 - a shard is currently arbitrary code from a friend's USB; measured: src/INTERPRETERS/* run raw subprocesses with only cwd+timeout", "affects": ["M-01", "M-03", "M-05"] },
+      { "change": "Wasm 3.0 host on the deterministic execution profile, threads and SIMD disabled (supersedes the earlier 'WASM or restricted VM' wording; see bleeding_edge_adaptations S2)", "because": "R2 - a shard is currently arbitrary code from a friend's USB; measured: src/INTERPRETERS/* run raw subprocesses with only cwd+timeout", "affects": ["M-01", "M-03", "M-05", "M-06"] },
       { "change": "one-download player (browser/WASM target) as the distribution unit", "because": "R1 - install-python-first is where a non-author player stops", "affects": ["M-04", "M-08"] },
       { "change": "hubs as versioned shared libraries, declared and counted", "because": "R4 - banning external references forces every shard to duplicate its engine inside 24 files", "affects": ["M-01", "M-03"] },
       { "change": "competitive flag: determinism declared per shard, not required of all", "because": "R3 - the hash chain is a tax against ranked strangers, and a circle has none", "affects": ["M-01", "M-06"] },
@@ -151,6 +151,26 @@
     "deferred": ["federated signed index (R5, M-08)", "relay or streamed transport (R7, M-08)", "per-asset provenance (R9, M-01 field)", "visual identity or raised payload budget (R10, M-02)", "naming (R11)"
     ]
   },
+  "bleeding_edge_adaptations": {
+    "source": "docs/METTHEW/BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md",
+    "status": "research recorded 2026-10-31; one contract refinement and one candidate task, neither accepted",
+    "contract_refinement": "pending change #1 upgrades from 'sandboxed loader (WASM or restricted VM)' to 'Wasm 3.0 host, deterministic execution profile, threads and SIMD disabled' (Wasm 3.0 completed 2025-09-17; spec 3.0 numerics dated 2026-10-27)",
+    "adopted_strands": ["S2 wasm deterministic profile", "S3 WASM-4 cartridge as artifact form", "S5 iroh 1.0 transport ladder", "S6 seed+commit+two-sided desync report", "S8 verifier role", "S12 Nostr NIP-94/96 federated catalogue"],
+    "evaluated_later": ["S7 GGRS rollback (lockstep first)", "S9 recompilation track (legal position first)", "S10 Playdate/Picotron budgets for M-05"],
+    "avoid": ["S14 web3 framing: 93% of blockchain games dead by 2024, Abstract chain shutting 2026-12-15, IMX ~-99% from ATH"]
+  },
+  "candidate_tasks": [
+    {
+      "id": "M-13",
+      "title": "Recovery track: a shard wrapping a clean-room recompiled game",
+      "owner": "unassigned",
+      "depends_on": ["M-03"],
+      "deliverable": "provenance record (raw + sha + url + tier) per artifact; an explicit statement that no original assets ship; one worked example or a recorded decision not to do this",
+      "acceptance": "a written legal position exists before any code; the provenance record validates; the shard runs from the user's own legal copy and ships no original assets",
+      "risk": "legal exposure by jurisdiction; precedents are the N64 recompilation/decompilation scene, which exists in a grey zone",
+      "status": "candidate, not in the ledger"
+    }
+  ],
   "non_goals": [
     "storefront", "DRM", "accounts", "cloud saves", "live services", "monetisation",
     "kernel-level anti-cheat", "GPU compute requirement", "matchmaking service",
