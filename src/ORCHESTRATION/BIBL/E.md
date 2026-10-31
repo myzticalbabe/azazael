@@ -4,12 +4,13 @@ title: BIBL Terms E
 
 # BIBL Terms: E
 
+## e
 
----
-title: BIBL Terms E
----
+**Category:** variable
 
-# BIBL Terms: E
+Variable: e
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
 ## ecosystem_data
 
@@ -17,7 +18,15 @@ title: BIBL Terms E
 
 Variable: ecosystem_data
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## eid
+
+**Category:** variable
+
+Variable: eid
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## elapsed
 
@@ -25,7 +34,39 @@ Variable: ecosystem_data
 
 Variable: elapsed
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
+
+## elapsed_s
+
+**Category:** json_key
+
+JSON key: elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_mistral_verify.json*
+
+## embedded_paths
+
+**Category:** variable
+
+Variable: embedded_paths
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## emitted
+
+**Category:** variable
+
+Variable: emitted
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
+
+## enabled
+
+**Category:** variable
+
+Variable: enabled
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## end
 
@@ -33,7 +74,15 @@ Variable: elapsed
 
 Variable: end
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+
+## end_conversation
+
+**Category:** function
+
+Function: end_conversation
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## enhanced_qlearning.py
 
@@ -41,7 +90,7 @@ Variable: end
 
 Term: enhanced_qlearning.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CHANGELOG.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CHANGELOG.md*
 
 ## entries
 
@@ -49,7 +98,7 @@ Term: enhanced_qlearning.py
 
 Variable: entries
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## entries_html
 
@@ -57,7 +106,15 @@ Variable: entries
 
 Variable: entries_html
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+
+## entries_to_write
+
+**Category:** variable
+
+Variable: entries_to_write
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## entropy
 
@@ -65,7 +122,7 @@ Variable: entries_html
 
 Variable: entropy
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## entry
 
@@ -73,7 +130,15 @@ Variable: entropy
 
 Variable: entry
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## env
+
+**Category:** variable
+
+Variable: env
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## env_path
 
@@ -81,7 +146,7 @@ Variable: entry
 
 Variable: env_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
 ## env_updates
 
@@ -89,7 +154,31 @@ Variable: env_path
 
 Variable: env_updates
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+
+## err
+
+**Category:** variable
+
+Variable: err
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## error
+
+**Category:** variable
+
+Variable: error
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
+
+## errors
+
+**Category:** variable
+
+Variable: errors
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## exec
 
@@ -97,7 +186,7 @@ Variable: env_updates
 
 Term: exec
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## execute_task
 
@@ -105,7 +194,15 @@ Term: exec
 
 Execute a single build task.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
+
+## existing
+
+**Category:** variable
+
+Variable: existing
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## exists
 
@@ -113,7 +210,23 @@ Execute a single build task.
 
 Variable: exists
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+
+## expected
+
+**Category:** variable
+
+Variable: expected
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
+
+## expected_hash
+
+**Category:** variable
+
+Variable: expected_hash
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
 ## export_ecosystem_info
 
@@ -121,7 +234,7 @@ Variable: exists
 
 Export machine-readable ecosystem information.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## export_path
 
@@ -129,7 +242,7 @@ Export machine-readable ecosystem information.
 
 Variable: export_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## export_status
 
@@ -137,7 +250,7 @@ Variable: export_path
 
 Function: export_status
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## ext
 
@@ -145,4 +258,5 @@ Function: export_status
 
 Variable: ext
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
+

@@ -6,8 +6,9 @@ title: BIBL Terms X
 
 ## x
 
-**Category:** documentation
+**Category:** variable
 
-Section: x
+Variable: x
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\X.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
+

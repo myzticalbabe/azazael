@@ -6,91 +6,35 @@ title: BIBL Terms R
 
 ## r
 
-**Category:** documentation
+**Category:** variable
 
-Section: r
+Variable: r
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
-## r = reward (0-1 performance score)
+## radii
 
-**Category:** documentation
+**Category:** variable
 
-Section: r = reward (0-1 performance score)
+Variable: radii
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## r1
-
-**Category:** documentation
-
-Section: r1
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## r2
-
-**Category:** documentation
-
-Section: r2
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
 
 ## radius
 
-**Category:** documentation
+**Category:** variable
 
-Section: radius
+Variable: radius
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## random_emoji
-
-**Category:** documentation
-
-Section: random_emoji
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## ranked
-
-**Category:** documentation
-
-Section: ranked
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## rate_limit_ms
-
-**Category:** documentation
-
-Section: rate_limit_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## rating
-
-**Category:** documentation
-
-Section: rating
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
 
 ## raw
 
-**Category:** documentation
+**Category:** variable
 
-Section: raw
+Variable: raw
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## ray_analysis
-
-**Category:** documentation
-
-Section: ray_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## ray_integration.py
 
@@ -98,119 +42,39 @@ Section: ray_analysis
 
 Term: ray_integration.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\G-L.md*
-
-## ray_utils
-
-**Category:** documentation
-
-Section: ray_utils
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reaction_emoji
-
-**Category:** documentation
-
-Section: reaction_emoji
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reader
-
-**Category:** documentation
-
-Section: reader
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reasoning
-
-**Category:** documentation
-
-Section: reasoning
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reboot
-
-**Category:** documentation
-
-Section: reboot
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\G-L.md*
 
 ## rec
 
-**Category:** documentation
+**Category:** variable
 
-Section: rec
+Variable: rec
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
-## rec_data
+## recall
 
-**Category:** documentation
+**Category:** function
 
-Section: rec_data
+Function: recall
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_FusionCore.py*
 
-## rec_stack
+## recall_result
 
-**Category:** documentation
+**Category:** variable
 
-Section: rec_stack
+Variable: recall_result
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## rec_type
-
-**Category:** documentation
-
-Section: rec_type
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recency_weight
-
-**Category:** documentation
-
-Section: recency_weight
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TotalFusion.py*
 
 ## recent
 
-**Category:** documentation
+**Category:** variable
 
-Section: recent
+Variable: recent
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recent_executions
-
-**Category:** documentation
-
-Section: recent_executions
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recent_failures
-
-**Category:** documentation
-
-Section: recent_failures
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recent_metrics
-
-**Category:** documentation
-
-Section: recent_metrics
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
 ## recommend
 
@@ -218,727 +82,15 @@ Section: recent_metrics
 
 Term: recommend
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\G-L.md*
-
-## recommend_integration
-
-**Category:** documentation
-
-Section: recommend_integration
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendation_buckets
-
-**Category:** documentation
-
-Section: recommendation_buckets
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations
-
-**Category:** documentation
-
-Section: recommendations
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.delete_count
-
-**Category:** documentation
-
-Section: recommendations.delete_count
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.error
-
-**Category:** documentation
-
-Section: recommendations.error
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.error.animation
-
-**Category:** documentation
-
-Section: recommendations.error.animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.error.color
-
-**Category:** documentation
-
-Section: recommendations.error.color
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.info
-
-**Category:** documentation
-
-Section: recommendations.info
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.info.animation
-
-**Category:** documentation
-
-Section: recommendations.info.animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.info.color
-
-**Category:** documentation
-
-Section: recommendations.info.color
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.keep_count
-
-**Category:** documentation
-
-Section: recommendations.keep_count
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.progress
-
-**Category:** documentation
-
-Section: recommendations.progress
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.progress.animation
-
-**Category:** documentation
-
-Section: recommendations.progress.animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.progress.color
-
-**Category:** documentation
-
-Section: recommendations.progress.color
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.review_count
-
-**Category:** documentation
-
-Section: recommendations.review_count
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.success
-
-**Category:** documentation
-
-Section: recommendations.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.success.animation
-
-**Category:** documentation
-
-Section: recommendations.success.animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.success.color
-
-**Category:** documentation
-
-Section: recommendations.success.color
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.warning
-
-**Category:** documentation
-
-Section: recommendations.warning
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.warning.animation
-
-**Category:** documentation
-
-Section: recommendations.warning.animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations.warning.color
-
-**Category:** documentation
-
-Section: recommendations.warning.color
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.jax_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.jax_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.onnx_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.onnx_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.ray_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.ray_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.sklearn_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.sklearn_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.tensorflow_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.tensorflow_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].all_scores.torch_expert
-
-**Category:** documentation
-
-Section: recommendations[0].all_scores.torch_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].confidence
-
-**Category:** documentation
-
-Section: recommendations[0].confidence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].recommended_expert
-
-**Category:** documentation
-
-Section: recommendations[0].recommended_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[0].task
-
-**Category:** documentation
-
-Section: recommendations[0].task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.jax_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.jax_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.onnx_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.onnx_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.ray_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.ray_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.sklearn_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.sklearn_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.tensorflow_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.tensorflow_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].all_scores.torch_expert
-
-**Category:** documentation
-
-Section: recommendations[1].all_scores.torch_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].confidence
-
-**Category:** documentation
-
-Section: recommendations[1].confidence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].recommended_expert
-
-**Category:** documentation
-
-Section: recommendations[1].recommended_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[1].task
-
-**Category:** documentation
-
-Section: recommendations[1].task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.jax_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.jax_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.onnx_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.onnx_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.ray_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.ray_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.sklearn_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.sklearn_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.tensorflow_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.tensorflow_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].all_scores.torch_expert
-
-**Category:** documentation
-
-Section: recommendations[2].all_scores.torch_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].confidence
-
-**Category:** documentation
-
-Section: recommendations[2].confidence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].recommended_expert
-
-**Category:** documentation
-
-Section: recommendations[2].recommended_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[2].task
-
-**Category:** documentation
-
-Section: recommendations[2].task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.jax_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.jax_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.onnx_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.onnx_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.ray_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.ray_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.sklearn_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.sklearn_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.tensorflow_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.tensorflow_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].all_scores.torch_expert
-
-**Category:** documentation
-
-Section: recommendations[3].all_scores.torch_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].confidence
-
-**Category:** documentation
-
-Section: recommendations[3].confidence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].recommended_expert
-
-**Category:** documentation
-
-Section: recommendations[3].recommended_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[3].task
-
-**Category:** documentation
-
-Section: recommendations[3].task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.jax_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.jax_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.onnx_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.onnx_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.ray_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.ray_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.sklearn_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.sklearn_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.tensorflow_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.tensorflow_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].all_scores.torch_expert
-
-**Category:** documentation
-
-Section: recommendations[4].all_scores.torch_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].confidence
-
-**Category:** documentation
-
-Section: recommendations[4].confidence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].recommended_expert
-
-**Category:** documentation
-
-Section: recommendations[4].recommended_expert
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recommendations[4].task
-
-**Category:** documentation
-
-Section: recommendations[4].task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record
-
-**Category:** documentation
-
-Section: record
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_access
-
-**Category:** documentation
-
-Section: record_access
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_event
-
-**Category:** documentation
-
-Section: record_event
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_execution
-
-**Category:** documentation
-
-Section: record_execution
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_history
-
-**Category:** documentation
-
-Section: record_history
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_metric
-
-**Category:** documentation
-
-Section: record_metric
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_metrics
-
-**Category:** documentation
-
-Section: record_metrics
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_module_result
-
-**Category:** documentation
-
-Section: record_module_result
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_run
-
-**Category:** documentation
-
-Section: record_run
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## record_screen
-
-**Category:** documentation
-
-Section: record_screen
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## records
-
-**Category:** documentation
-
-Section: records
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## recovered
-
-**Category:** documentation
-
-Section: recovered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\G-L.md*
 
 ## recs
 
-**Category:** documentation
+**Category:** variable
 
-Section: recs
+Variable: recs
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## rect
-
-**Category:** documentation
-
-Section: rect
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reduction
-
-**Category:** documentation
-
-Section: reduction
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## redundancies
-
-**Category:** documentation
-
-Section: redundancies
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## ref
-
-**Category:** documentation
-
-Section: ref
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## ref_pattern
-
-**Category:** documentation
-
-Section: ref_pattern
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## refresh
-
-**Category:** documentation
-
-Section: refresh
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
 
 ## refresh_all
 
@@ -946,71 +98,7 @@ Section: refresh
 
 Function: refresh_all
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## refs
-
-**Category:** documentation
-
-Section: refs
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register
-
-**Category:** documentation
-
-Section: register
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register_callback
-
-**Category:** documentation
-
-Section: register_callback
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register_command
-
-**Category:** documentation
-
-Section: register_command
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register_framework
-
-**Category:** documentation
-
-Section: register_framework
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register_genome
-
-**Category:** documentation
-
-Section: register_genome
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## register_worm
-
-**Category:** documentation
-
-Section: register_worm
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## registry
-
-**Category:** documentation
-
-Section: registry
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## rel
 
@@ -1018,143 +106,15 @@ Section: registry
 
 Variable: rel
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## rel_path
+## removed
 
-**Category:** documentation
+**Category:** variable
 
-Section: rel_path
+Variable: removed
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## related
-
-**Category:** documentation
-
-Section: related
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## relative_path
-
-**Category:** documentation
-
-Section: relative_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## relevant
-
-**Category:** documentation
-
-Section: relevant
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## relevant_lines
-
-**Category:** documentation
-
-Section: relevant_lines
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remaining
-
-**Category:** documentation
-
-Section: remaining
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remaining_days
-
-**Category:** documentation
-
-Section: remaining_days
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remote
-
-**Category:** documentation
-
-Section: remote
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remote_func
-
-**Category:** documentation
-
-Section: remote_func
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remote_path
-
-**Category:** documentation
-
-Section: remote_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove
-
-**Category:** documentation
-
-Section: remove
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove_alias
-
-**Category:** documentation
-
-Section: remove_alias
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove_bom
-
-**Category:** documentation
-
-Section: remove_bom
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove_container
-
-**Category:** documentation
-
-Section: remove_container
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove_image
-
-**Category:** documentation
-
-Section: remove_image
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## remove_worm
-
-**Category:** documentation
-
-Section: remove_worm
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## renamed
-
-**Category:** documentation
-
-Section: renamed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## render(data: dict, format: str) -> str
 
@@ -1162,15 +122,15 @@ Section: renamed
 
 Section: render(data: dict, format: str) -> str
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
-## render_components_grid
+## render_all
 
-**Category:** documentation
+**Category:** function
 
-Section: render_components_grid
+Function: render_all
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## render_grid
 
@@ -1178,15 +138,15 @@ Section: render_components_grid
 
 Function: render_grid
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## replay
+## render_node
 
-**Category:** documentation
+**Category:** function
 
-Section: replay
+Emit one entry. Every interpolated value has been through _clean().
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## report
 
@@ -1194,39 +154,15 @@ Section: replay
 
 Variable: report
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
-
-## report_data
-
-**Category:** documentation
-
-Section: report_data
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## report_dir
-
-**Category:** documentation
-
-Section: report_dir
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## report_file
 
-**Category:** documentation
+**Category:** variable
 
-Section: report_file
+Variable: report_file
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## report_lines
-
-**Category:** documentation
-
-Section: report_lines
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
 
 ## report_path
 
@@ -1234,111 +170,7 @@ Section: report_lines
 
 Variable: report_path
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
-
-## report_text
-
-**Category:** documentation
-
-Section: report_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reports
-
-**Category:** documentation
-
-Section: reports
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## required_fields
-
-**Category:** documentation
-
-Section: required_fields
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## requirements
-
-**Category:** documentation
-
-Section: requirements
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## requirements.txt
-
-**Category:** inline_code
-
-Term: requirements.txt
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## requirements_wsa.txt
-
-**Category:** inline_code
-
-Term: requirements_wsa.txt
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## requirements_wsl.txt
-
-**Category:** documentation
-
-Section: requirements_wsl.txt
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## res
-
-**Category:** documentation
-
-Section: res
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reset
-
-**Category:** documentation
-
-Section: reset
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reset_animation
-
-**Category:** documentation
-
-Section: reset_animation
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reset_btn
-
-**Category:** documentation
-
-Section: reset_btn
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reset_state
-
-**Category:** documentation
-
-Section: reset_state
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolution
-
-**Category:** documentation
-
-Section: resolution
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## resolutions
 
@@ -1346,87 +178,15 @@ Section: resolution
 
 Variable: resolutions
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
-## resolutions_applied
+## resp
 
-**Category:** documentation
+**Category:** variable
 
-Section: resolutions_applied
+Variable: resp
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolutions_previewed
-
-**Category:** documentation
-
-Section: resolutions_previewed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve
-
-**Category:** documentation
-
-Section: resolve
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve_alias
-
-**Category:** documentation
-
-Section: resolve_alias
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve_conflicts
-
-**Category:** documentation
-
-Section: resolve_conflicts
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve_import_conflicts
-
-**Category:** documentation
-
-Section: resolve_import_conflicts
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve_incompatabilities
-
-**Category:** documentation
-
-Section: resolve_incompatabilities
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolve_python_conflict
-
-**Category:** documentation
-
-Section: resolve_python_conflict
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## resolved
-
-**Category:** documentation
-
-Section: resolved
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## response
-
-**Category:** documentation
-
-Section: response
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## result
 
@@ -1434,7 +194,15 @@ Section: response
 
 Variable: result
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
+
+## result3
+
+**Category:** variable
+
+Variable: result3
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## result_file
 
@@ -1442,15 +210,15 @@ Variable: result
 
 Variable: result_file
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## result_obj
+## result_py
 
-**Category:** documentation
+**Category:** variable
 
-Section: result_obj
+Variable: result_py
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## results
 
@@ -1458,999 +226,39 @@ Section: result_obj
 
 Variable: results
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\AssistantLogProtocol_Enhanced.py*
 
-## results.CHANGEZ
+## retired
 
-**Category:** documentation
+**Category:** inline_code
 
-Section: results.CHANGEZ
+Term: retired
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
-## results.CHANGEZ.duration_ms
-
-**Category:** documentation
-
-Section: results.CHANGEZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.CHANGEZ.files
-
-**Category:** documentation
-
-Section: results.CHANGEZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.CHANGEZ.items
-
-**Category:** documentation
-
-Section: results.CHANGEZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.CHANGEZ.success
-
-**Category:** documentation
-
-Section: results.CHANGEZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEADZ
-
-**Category:** documentation
-
-Section: results.DEADZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEADZ.duration_ms
-
-**Category:** documentation
-
-Section: results.DEADZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEADZ.files
-
-**Category:** documentation
-
-Section: results.DEADZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEADZ.items
-
-**Category:** documentation
-
-Section: results.DEADZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEADZ.success
-
-**Category:** documentation
-
-Section: results.DEADZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEPENDZ
-
-**Category:** documentation
-
-Section: results.DEPENDZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEPENDZ.duration_ms
-
-**Category:** documentation
-
-Section: results.DEPENDZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEPENDZ.files
-
-**Category:** documentation
-
-Section: results.DEPENDZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEPENDZ.items
-
-**Category:** documentation
-
-Section: results.DEPENDZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.DEPENDZ.success
-
-**Category:** documentation
-
-Section: results.DEPENDZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.duration_ms
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.error
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.error
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.components_checked
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.components_checked
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.components_healthy
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.components_healthy
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.HORUS
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.HORUS
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.HYDRA
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.HYDRA
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.KLINK
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.KLINK
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.METAWORMS
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.METAWORMS
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.PERSEPHONE
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.PERSEPHONE
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.POINDEXTER
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.POINDEXTER
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.TARBABY
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.TARBABY
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.TERENCE
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.TERENCE
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.WORMZ
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.info_gathered.integration_status.WORMZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.issues_found
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.issues_found
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.output
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.output
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.resolutions_applied
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.resolutions_applied
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.ECOSYSTEM_INTEGRATION.success
-
-**Category:** documentation
-
-Section: results.ECOSYSTEM_INTEGRATION.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.LOGZ
-
-**Category:** documentation
-
-Section: results.LOGZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.LOGZ.duration_ms
-
-**Category:** documentation
-
-Section: results.LOGZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.LOGZ.files
-
-**Category:** documentation
-
-Section: results.LOGZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.LOGZ.items
-
-**Category:** documentation
-
-Section: results.LOGZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.LOGZ.success
-
-**Category:** documentation
-
-Section: results.LOGZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.duration_ms
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.error
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.error
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.metaworms
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.metaworms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status.ERRORZ
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status.ERRORZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status.HEALTHZ
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status.HEALTHZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status.HYDRAMETA
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status.HYDRAMETA
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status.OPTIMIZ
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status.OPTIMIZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.info_gathered.status.TRIMZ
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.info_gathered.status.TRIMZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.issues_found
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.issues_found
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.output
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.output
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.resolutions_applied
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.resolutions_applied
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAWORMS_SCAN.success
-
-**Category:** documentation
-
-Section: results.METAWORMS_SCAN.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAZ
-
-**Category:** documentation
-
-Section: results.METAZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAZ.duration_ms
-
-**Category:** documentation
-
-Section: results.METAZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAZ.files
-
-**Category:** documentation
-
-Section: results.METAZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAZ.items
-
-**Category:** documentation
-
-Section: results.METAZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METAZ.success
-
-**Category:** documentation
-
-Section: results.METAZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METRICZ
-
-**Category:** documentation
-
-Section: results.METRICZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METRICZ.duration_ms
-
-**Category:** documentation
-
-Section: results.METRICZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METRICZ.files
-
-**Category:** documentation
-
-Section: results.METRICZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METRICZ.items
-
-**Category:** documentation
-
-Section: results.METRICZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.METRICZ.success
-
-**Category:** documentation
-
-Section: results.METRICZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE
-
-**Category:** documentation
-
-Section: results.TERENCE
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.duration_ms
-
-**Category:** documentation
-
-Section: results.TERENCE.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.error
-
-**Category:** documentation
-
-Section: results.TERENCE.error
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.info_gathered
-
-**Category:** documentation
-
-Section: results.TERENCE.info_gathered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.info_gathered.errors_resolved
-
-**Category:** documentation
-
-Section: results.TERENCE.info_gathered.errors_resolved
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.info_gathered.last_scan
-
-**Category:** documentation
-
-Section: results.TERENCE.info_gathered.last_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.info_gathered.patterns_loaded
-
-**Category:** documentation
-
-Section: results.TERENCE.info_gathered.patterns_loaded
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.issues_found
-
-**Category:** documentation
-
-Section: results.TERENCE.issues_found
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.output
-
-**Category:** documentation
-
-Section: results.TERENCE.output
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.resolutions_applied
-
-**Category:** documentation
-
-Section: results.TERENCE.resolutions_applied
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.TERENCE.success
-
-**Category:** documentation
-
-Section: results.TERENCE.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.VALIDZ
-
-**Category:** documentation
-
-Section: results.VALIDZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.VALIDZ.duration_ms
-
-**Category:** documentation
-
-Section: results.VALIDZ.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.VALIDZ.files
-
-**Category:** documentation
-
-Section: results.VALIDZ.files
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.VALIDZ.items
-
-**Category:** documentation
-
-Section: results.VALIDZ.items
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.VALIDZ.success
-
-**Category:** documentation
-
-Section: results.VALIDZ.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.duration_ms
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.duration_ms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.error
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.error
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.active_worms
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.active_worms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.total_worms
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.total_worms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worm_types
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worm_types
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status.CLOCKZ
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status.CLOCKZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status.DISKZ
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status.DISKZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status.NETWORXZ
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status.NETWORXZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status.PROCESSZ
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status.PROCESSZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.info_gathered.worms_status.SYSTEMZ
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.info_gathered.worms_status.SYSTEMZ
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.issues_found
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.issues_found
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.output
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.output
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.resolutions_applied
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.resolutions_applied
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.WORMZ_SCAN.success
-
-**Category:** documentation
-
-Section: results.WORMZ_SCAN.success
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.errors
-
-**Category:** documentation
-
-Section: results.errors
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.files_analyzed
-
-**Category:** documentation
-
-Section: results.files_analyzed
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.files_discovered
-
-**Category:** documentation
-
-Section: results.files_discovered
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.files_optimized
-
-**Category:** documentation
-
-Section: results.files_optimized
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results.files_validated
-
-**Category:** documentation
-
-Section: results.files_validated
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results_file
-
-**Category:** documentation
-
-Section: results_file
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results_frame
-
-**Category:** documentation
-
-Section: results_frame
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results_path
-
-**Category:** documentation
-
-Section: results_path
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## results_text
-
-**Category:** documentation
-
-Section: results_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## retry_attempts
-
-**Category:** documentation
-
-Section: retry_attempts
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## retry_delay
-
-**Category:** documentation
-
-Section: retry_delay
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## retry_result
+## return_code
 
 **Category:** variable
 
-Variable: retry_result
+Variable: return_code
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
-
-## return_value_hash
-
-**Category:** documentation
-
-Section: return_value_hash
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## returns
-
-**Category:** documentation
-
-Section: returns
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reverse_engineer_resolution
-
-**Category:** documentation
-
-Section: reverse_engineer_resolution
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## reward
-
-**Category:** documentation
-
-Section: reward
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## rewards
-
-**Category:** documentation
-
-Section: rewards
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## right
 
-**Category:** documentation
+**Category:** variable
 
-Section: right
+Variable: right
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
-## right_line
+## rng
 
-**Category:** documentation
+**Category:** variable
 
-Section: right_line
+Variable: rng
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## right_line_h
-
-**Category:** documentation
-
-Section: right_line_h
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## right_lines
-
-**Category:** documentation
-
-Section: right_lines
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## right_text
-
-**Category:** documentation
-
-Section: right_text
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## right_x
-
-**Category:** documentation
-
-Section: right_x
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## right_y
-
-**Category:** documentation
-
-Section: right_y
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## risk
-
-**Category:** documentation
-
-Section: risk
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## risk_level
-
-**Category:** documentation
-
-Section: risk_level
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## robocopy Not Found (Windows)
 
@@ -2458,15 +266,7 @@ Section: risk_level
 
 Section: robocopy Not Found (Windows)
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## rollback
-
-**Category:** documentation
-
-Section: rollback
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## root
 
@@ -2474,31 +274,505 @@ Section: rollback
 
 Variable: root
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## root_content
+## root_id
 
-**Category:** documentation
+**Category:** variable
 
-Section: root_content
+Variable: root_id
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
 
-## root_index
+## root_node
 
-**Category:** documentation
+**Category:** variable
 
-Section: root_index
+Variable: root_node
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
 
-## rotated
+## route_rec...
+- **Recent Work Completed** - Section: Recent Work Completed...
+- **Recommendations** - Section: Recommendations...
+- **Recommendations only** - Section: Recommendations only...
+- **Record HTML to MP4** - Section: Record HTML to MP4...
+- **Recording Issues** - Section: Recording Issues...
+- **Recording Script Format** - Section: Recording Script Format...
+- **Recording Tips** - Section: Recording Tips...
+- **Recording to MP4** - Section: Recording to MP4...
+- **Recording to Video** - Section: Recording to Video...
+- **RecoveryEntry** - A single recovery attempt record....
+- **RecoveryTester** - Validates backup integrity and performs dry-run restorations....
+- **RedQueenWorm** - Runs the hostile-adaptive pressure loop against the mesh.
 
-**Category:** documentation
+Safety rails:
+- Defer...
+- **Redis 🟥** - Section: Redis 🟥...
+- **Reduce par...** - Section: Reduce par......
+- **Reduce parallelism** - Section: Reduce parallelism...
+- **References** - Section: References...
+- **RegistryPoller** - Polls container registries for version updates....
+- **Reinforce learning from fixes** - Section: Reinforce learning from fixes...
+- **Reinforcement Learning** - Section: Reinforcement Learning...
+- **Related ADRs** - Section: Related ADRs...
+- **Related Analysis Files** - Section: Related Analysis Files...
+- **Related Documentation** - Section: Related Documentation...
+- **Relationship to Azazael** - Section: Relationship to Azazael...
+- **Relationship to Other Files** - Section: Relationship to Other Files...
+- **Remediation Guidelines** - Section: Remediation Guidelines...
+- **RemediationEnv** - Ordered-pass env over a record stream, with the tabular reward.
 
-Section: rotated
+Implemented wit...
+- **Removed** - Section: Removed...
+- **ReplanConfig** - Configuration for lazy replanning behavior....
+- **ReplanTrigger** - Conditions that trigger a full replan....
+- **Report contains:** - Section: Report contains:...
+- **ReportCompiler** - Compiles structured data into PDF/HTML reports....
+- **Required Sections** - Section: Required Sections...
+- **Requirements** - Section: Requirements...
+- **ResinWorm** - Hive resin: quarantined trace store, never feeds DreamConsolidator....
+- **ResolutionPattern** - A pattern for resolving conflicts....
+- **Resource Specifications** - Section: Resource Specifications...
+- **ResourcePrediction** - Resource usage prediction....
+- **ResourceQuotaWatch** - Watches container resource usage against defined quotas....
+- **Resul...** - Section: Resul......
+- **ResultEntry** - Single result entry....
+- **Results saved to analysis_logs/** - Section: Results saved to analysis_logs/...
+- **Return best individual** - # Return best individual...
+- **Returns: -1 (2.0.0 is older)** - Section: Returns: -1 (2.0.0 is older)...
+- **ReverseEngineeredPattern** - Reverse-engineered pattern from historical conflicts.
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+Extracts resolution patte...
+- **ReverseTools** - Reverse Engineering Tool Manager for Azazael.
+
+Manages Ghidra and radare2 instal...
+- **Review Candidates (Medium Confidence)** - Section: Review Candidates (Medium Confidence)...
+- **Review queue** - Section: Review queue...
+- **RewardConfig** - Configuration for hybrid reward weighting....
+- **RewardShaperMeshWorm** - Multi-provider reward shaper....
+- **RewardSource** - Sources of reward signal for hybrid computation....
+- **RichOutput** - Rich console output formatter....
+- **RichPopup** - Class: RichPopup...
+- **Routing Strategies** - Section: Routing Strategies...
+- **Rules File** - Section: Rules File...
+- **Run** - Section: Run...
+- **Run Analysis Only** - Section: Run Analysis Only...
+- **Run Azazael ...** - Section: Run Azazael ......
+- **Run Azazael CLI** - Section: Run Azazael CLI...
+- **Run DFL merge process** - # Run DFL merge process...
+- **Run Full Verification** - Section: Run Full Verification...
+- **Run HYDRA pr...** - Section: Run HYDRA pr......
+- **Run HYDRA processing** - Section: Run HYDRA processing...
+- **Run POINDEXT...** - Section: Run POINDEXT......
+- **Run POINDEXTER analysis** - Section: Run POINDEXTER analysis...
+- **Run QAnalysis** - Section: Run QAnalysis...
+- **Run WORMZ to update BIBL** - Section: Run WORMZ to update BIBL...
+- **Run WORMZ to...** - Section: Run WORMZ to......
+- **Run a SHORTY shortcut** - Section: Run a SHORTY shortcut...
+- **Run adaptive learning** - Section: Run adaptive learning...
+- **Run all meta worms** - Section: Run all meta worms...
+- **Run all meta...** - Section: Run all meta......
+- **Run all metaworms** - Section: Run all metaworms...
+- **Run commands in WSL** - Section: Run commands in WSL...
+- **Run comprehensive health check** - Section: Run comprehensive health check...
+- **Run framework analysis** - Section: Run framework analysis...
+- **Run from Azazael directory** - Section: Run from Azazael directory...
+- **Run full analysis** - Section: Run full analysis...
+- **Run full convergence analysis** - Section: Run full convergence analysis...
+- **Run full verification** - Section: Run full verification...
+- **Run inference** - Section: Run inference...
+- **Run multiple training epochs in parallel** - Section: Run multiple training epochs in parallel...
+- **Run optimization every Sunday at 3 AM** - Section: Run optimization every Sunday at 3 AM...
+- **Run sequential processing** - Section: Run sequential processing...
+- **Run specific m...** - Section: Run specific m......
+- **Run specific metaworms** - Section: Run specific metaworms...
+- **Run tests** - Section: Run tests...
+- **Run trials in parallel** - Section: Run trials in parallel...
+- **Run with popup** - Section: Run with popup...
+- **Runtime Errors** - Section: Runtime Errors...
+- **S** - Section: S...
+- **S-Z Lexicon** - Section: S-Z Lexicon...
+- **S-Z.md** - Term: S-Z.md...
+- **SAD** - Variable: SAD...
+- **SAFE_SUFFIXES** - Variable: SAFE_SUFFIXES...
+- **SALIENCE_FLOOR** - Variable: SALIENCE_FLOOR...
+- **SAMPLES_DIR** - Variable: SAMPLES_DIR...
+- **SAMPLE_RATE** - Variable: SAMPLE_RATE...
+- **SAMPLE_RATES** - Variable: SAMPLE_RATES...
+- **SB3TrainerV2** - SB3 trainer wrapper with per-worm hook identity.
+
+Wraps stable-baselines3 algori...
+- **SCENE_CLASSES** - Variable: SCENE_CLASSES...
+- **SCENE_TAGS** - Variable: SCENE_TAGS...
+- **SCHEMA_MISMATCH** - Variable: SCHEMA_MISMATCH...
+- **SCOPE_REDUCTION_PATTERNS** - Variable: SCOPE_REDUCTION_PATTERNS...
+- **SCORES_PER_PROVIDER_MAX** - Variable: SCORES_PER_PROVIDER_MAX...
+- **SCOUT_FRACTION** - Variable: SCOUT_FRACTION...
+- **SCRIPT_DIR** - Variable: SCRIPT_DIR...
+- **SCRIPT_MAP** - Variable: SCRIPT_MAP...
+- **SCROLL_SEP** - Variable: SCROLL_SEP...
+- **SCROLL_SEP_THICK** - Variable: SCROLL_SEP_THICK...
+- **SCROLL_SPEED** - Variable: SCROLL_SPEED...
+- **SECTION_FLAGS** - Variable: SECTION_FLAGS...
+- **SECURITY** - Variable: SECURITY...
+- **SECURITY Cluster: PROCESSZ + NETWORXZ** - Section: SECURITY Cluster: PROCESSZ + NETWORXZ...
+- **SELF_DIR** - Variable: SELF_DIR...
+- **SEMANTIC_SEGMENTATION** - Variable: SEMANTIC_SEGMENTATION...
+- **SERIALIZATION_VERSION** - Variable: SERIALIZATION_VERSION...
+- **SESSION_DATE** - Variable: SESSION_DATE...
+- **SESSION_HOURS** - Variable: SESSION_HOURS...
+- **SESSION_START** - Variable: SESSION_START...
+- **SESSION_TEMPLATE** - Term: SESSION_TEMPLATE...
+- **SESSION_TEMPLATE - Visual Documentation System** - Section: SESSION_TEMPLATE - Visual Documentation System...
+- **SESSION_TEMPLATE Documentation** - Section: SESSION_TEMPLATE Documentation...
+- **SESSION_TEMPLATE Index** - Section: SESSION_TEMPLATE Index...
+- **SETTINGS** - Variable: SETTINGS...
+- **SET_PYTHONPATH.bat** - Term: SET_PYTHONPATH.bat...
+- **SEVEN_SINS** - Variable: SEVEN_SINS...
+- **SEVERITIES** - Variable: SEVERITIES...
+- **SHARDS_MAX** - Variable: SHARDS_MAX...
+- **SHARD_PUBLISH_MAX** - Variable: SHARD_PUBLISH_MAX...
+- **SHIM** - Variable: SHIM...
+- **SHORTY** - Variable: SHORTY...
+- **SHORTY - Executable Shortcuts Manager** - Section: SHORTY - Executable Shortcuts Manager...
+- **SHORTY/** - Term: SHORTY/...
+- **SHORTY/*.bat** - Term: SHORTY/*.bat...
+- **SHORT_TERM** - Variable: SHORT_TERM...
+- **SIGNING** - Variable: SIGNING...
+- **SINS** - Variable: SINS...
+- **SKIPPED** - Variable: SKIPPED...
+- **SKIP_DIRS** - Variable: SKIP_DIRS...
+- **SKIP_PATTERNS** - Variable: SKIP_PATTERNS...
+- **SKLEARN** - Variable: SKLEARN...
+- **SKLEARN_AVAILABLE** - Variable: SKLEARN_AVAILABLE...
+- **SLOW_MS** - Variable: SLOW_MS...
+- **SLOW_TOLERANCE** - Variable: SLOW_TOLERANCE...
+- **SMARTAttribute** - SMART attribute value....
+- **SMARTDISK** - SMART-based Disk Health Monitoring & Failure Prediction....
+- **SMARTDISKConfig** - Configuration for SMARTDISK....
+- **SMART_NAMES** - Variable: SMART_NAMES...
+- **SMART_THRESHOLDS** - Variable: SMART_THRESHOLDS...
+- **SNAPSHOT_ENV** - Variable: SNAPSHOT_ENV...
+- **SOURCE_PATTERN** - Variable: SOURCE_PATTERN...
+- **SOURCE_WORM** - Variable: SOURCE_WORM...
+- **SPAN** - Variable: SPAN...
+- **SPAN_H** - Variable: SPAN_H...
+- **SPAN_S** - Variable: SPAN_S...
+- **SPAWN_EVENT** - Variable: SPAWN_EVENT...
+- **SPEECH_RECOGNITION** - Variable: SPEECH_RECOGNITION...
+- **SPEECH_SYNTHESIS** - Variable: SPEECH_SYNTHESIS...
+- **SPELLING_ERROR** - Variable: SPELLING_ERROR...
+- **SPLIT** - Variable: SPLIT...
+- **SPOOFING** - Variable: SPOOFING...
+- **SPOTracker** - SPO persistent global tracker (2025-26 lineage).
+
+Per-prompt grouping degenerate...
+- **SQLite 🟦** - Section: SQLite 🟦...
+- **SRC_DIR** - Variable: SRC_DIR...
+- **SSMSequenceWorm** - Variable: SSMSequenceWorm...
+- **STAGE** - Variable: STAGE...
+- **STAGES** - Variable: STAGES...
+- **STAKE** - Variable: STAKE...
+- **STAKEHOLDERS** - Variable: STAKEHOLDERS...
+- **STAKEHOLDER_IMPACT** - Variable: STAKEHOLDER_IMPACT...
+- **STALE_AFTER_MIN** - Variable: STALE_AFTER_MIN...
+- **STALE_HALF_LIFE_S** - Variable: STALE_HALF_LIFE_S...
+- **START** - Variable: START...
+- **STATE_DELTA** - Variable: STATE_DELTA...
+- **STATE_FILE** - Variable: STATE_FILE...
+- **STATE_KEYS_MAX** - Variable: STATE_KEYS_MAX...
+- **STATE_PATH** - Variable: STATE_PATH...
+- **STATUS_COLORS** - Variable: STATUS_COLORS...
+- **STDPClockWorm** - Spike-timing-dependent plasticity kernel....
+- **STRATEGIES** - Variable: STRATEGIES...
+- **STREAMLIT_AVAILABLE** - Variable: STREAMLIT_AVAILABLE...
+- **STRENGTHEN_W** - Variable: STRENGTHEN_W...
+- **STRUCTURAL_OPS** - Variable: STRUCTURAL_OPS...
+- **STYLES** - Variable: STYLES...
+- **SUBSYSTEMS** - Variable: SUBSYSTEMS...
+- **SUGGEST_KEYWORDS** - Variable: SUGGEST_KEYWORDS...
+- **SUMMARIZATION** - Variable: SUMMARIZATION...
+- **SUPPORTED_ALGOS** - Variable: SUPPORTED_ALGOS...
+- **SURPRISED** - Variable: SURPRISED...
+- **SYMBOL** - Variable: SYMBOL...
+- **SYNTAX** - Variable: SYNTAX...
+- **SYSFS_PATHS** - Variable: SYSFS_PATHS...
+- **SYSTEM** - Variable: SYSTEM...
+- **SYSTEM Cluster: SYSTEMZ + PROCESSZ + DISKZ** - Section: SYSTEM Cluster: SYSTEMZ + PROCESSZ + DISKZ...
+- **SYSTEMS** - Variable: SYSTEMS...
+- **SYSTEMZ - Resource Monitor** - Section: SYSTEMZ - Resource Monitor...
+- **SYSTEMZ Commands** - Section: SYSTEMZ Commands...
+- **SYSTEMZ_ML** - ML-Enhanced System Monitoring with Anomaly Detection....
+- **SYSTEMZ_MLConfig** - Configuration for SYSTEMZ_ML....
+- **SYSTEM_INSTRUCTIONS.md** - Section: SYSTEM_INSTRUCTIONS.md...
+- **SYSTEM_TOOLS** - Variable: SYSTEM_TOOLS...
+- **Safety checking** - Section: Safety checking...
+- **SaltatoryRouterWorm** - Saltatory conduction: 1-hop direct vs multi-hop gossip....
+- **Save to file** - # Save to file...
+- **Scan and generate HTML report** - Section: Scan and generate HTML report...
+- **Scan current directory** - Section: Scan current directory...
+- **Scan for cod...** - Section: Scan for cod......
+- **Scan for code errors** - Section: Scan for code errors...
+- **Scan for errors** - Section: Scan for errors...
+- **Scan specific language** - Section: Scan specific language...
+- **Scan with recursi...** - Section: Scan with recursi......
+- **Scan with recursive and output** - Section: Scan with recursive and output...
+- **Schedule on GPU** - Section: Schedule on GPU...
+- **Schedule system scan every hour** - Section: Schedule system scan every hour...
+- **ScheduleConfig** - Configuration for a scheduled training run....
+- **ScheduledDbMonitorWorm** - Runs DatabaseMonitorWorm on a configurable schedule.
+
+Performs periodic database...
+- **ScheduledTask** - Scheduled task information....
+- **ScheduledTrainingWorm** - Runs the full ML training pipeline on a configurable schedule.
+
+Orchestrates: Da...
+- **Scheduling Capabilities** - Section: Scheduling Capabilities...
+- **SchemaAwareFeatureExtractor** - Extracts typed features from the 
+
+**Category:** inline_code
+
+Term: route_rec...
+- **Recent Work Completed** - Section: Recent Work Completed...
+- **Recommendations** - Section: Recommendations...
+- **Recommendations only** - Section: Recommendations only...
+- **Record HTML to MP4** - Section: Record HTML to MP4...
+- **Recording Issues** - Section: Recording Issues...
+- **Recording Script Format** - Section: Recording Script Format...
+- **Recording Tips** - Section: Recording Tips...
+- **Recording to MP4** - Section: Recording to MP4...
+- **Recording to Video** - Section: Recording to Video...
+- **RecoveryEntry** - A single recovery attempt record....
+- **RecoveryTester** - Validates backup integrity and performs dry-run restorations....
+- **RedQueenWorm** - Runs the hostile-adaptive pressure loop against the mesh.
+
+Safety rails:
+- Defer...
+- **Redis 🟥** - Section: Redis 🟥...
+- **Reduce par...** - Section: Reduce par......
+- **Reduce parallelism** - Section: Reduce parallelism...
+- **References** - Section: References...
+- **RegistryPoller** - Polls container registries for version updates....
+- **Reinforce learning from fixes** - Section: Reinforce learning from fixes...
+- **Reinforcement Learning** - Section: Reinforcement Learning...
+- **Related ADRs** - Section: Related ADRs...
+- **Related Analysis Files** - Section: Related Analysis Files...
+- **Related Documentation** - Section: Related Documentation...
+- **Relationship to Azazael** - Section: Relationship to Azazael...
+- **Relationship to Other Files** - Section: Relationship to Other Files...
+- **Remediation Guidelines** - Section: Remediation Guidelines...
+- **RemediationEnv** - Ordered-pass env over a record stream, with the tabular reward.
+
+Implemented wit...
+- **Removed** - Section: Removed...
+- **ReplanConfig** - Configuration for lazy replanning behavior....
+- **ReplanTrigger** - Conditions that trigger a full replan....
+- **Report contains:** - Section: Report contains:...
+- **ReportCompiler** - Compiles structured data into PDF/HTML reports....
+- **Required Sections** - Section: Required Sections...
+- **Requirements** - Section: Requirements...
+- **ResinWorm** - Hive resin: quarantined trace store, never feeds DreamConsolidator....
+- **ResolutionPattern** - A pattern for resolving conflicts....
+- **Resource Specifications** - Section: Resource Specifications...
+- **ResourcePrediction** - Resource usage prediction....
+- **ResourceQuotaWatch** - Watches container resource usage against defined quotas....
+- **Resul...** - Section: Resul......
+- **ResultEntry** - Single result entry....
+- **Results saved to analysis_logs/** - Section: Results saved to analysis_logs/...
+- **Return best individual** - # Return best individual...
+- **Returns: -1 (2.0.0 is older)** - Section: Returns: -1 (2.0.0 is older)...
+- **ReverseEngineeredPattern** - Reverse-engineered pattern from historical conflicts.
+
+Extracts resolution patte...
+- **ReverseTools** - Reverse Engineering Tool Manager for Azazael.
+
+Manages Ghidra and radare2 instal...
+- **Review Candidates (Medium Confidence)** - Section: Review Candidates (Medium Confidence)...
+- **Review queue** - Section: Review queue...
+- **RewardConfig** - Configuration for hybrid reward weighting....
+- **RewardShaperMeshWorm** - Multi-provider reward shaper....
+- **RewardSource** - Sources of reward signal for hybrid computation....
+- **RichOutput** - Rich console output formatter....
+- **RichPopup** - Class: RichPopup...
+- **Routing Strategies** - Section: Routing Strategies...
+- **Rules File** - Section: Rules File...
+- **Run** - Section: Run...
+- **Run Analysis Only** - Section: Run Analysis Only...
+- **Run Azazael ...** - Section: Run Azazael ......
+- **Run Azazael CLI** - Section: Run Azazael CLI...
+- **Run DFL merge process** - # Run DFL merge process...
+- **Run Full Verification** - Section: Run Full Verification...
+- **Run HYDRA pr...** - Section: Run HYDRA pr......
+- **Run HYDRA processing** - Section: Run HYDRA processing...
+- **Run POINDEXT...** - Section: Run POINDEXT......
+- **Run POINDEXTER analysis** - Section: Run POINDEXTER analysis...
+- **Run QAnalysis** - Section: Run QAnalysis...
+- **Run WORMZ to update BIBL** - Section: Run WORMZ to update BIBL...
+- **Run WORMZ to...** - Section: Run WORMZ to......
+- **Run a SHORTY shortcut** - Section: Run a SHORTY shortcut...
+- **Run adaptive learning** - Section: Run adaptive learning...
+- **Run all meta worms** - Section: Run all meta worms...
+- **Run all meta...** - Section: Run all meta......
+- **Run all metaworms** - Section: Run all metaworms...
+- **Run commands in WSL** - Section: Run commands in WSL...
+- **Run comprehensive health check** - Section: Run comprehensive health check...
+- **Run framework analysis** - Section: Run framework analysis...
+- **Run from Azazael directory** - Section: Run from Azazael directory...
+- **Run full analysis** - Section: Run full analysis...
+- **Run full convergence analysis** - Section: Run full convergence analysis...
+- **Run full verification** - Section: Run full verification...
+- **Run inference** - Section: Run inference...
+- **Run multiple training epochs in parallel** - Section: Run multiple training epochs in parallel...
+- **Run optimization every Sunday at 3 AM** - Section: Run optimization every Sunday at 3 AM...
+- **Run sequential processing** - Section: Run sequential processing...
+- **Run specific m...** - Section: Run specific m......
+- **Run specific metaworms** - Section: Run specific metaworms...
+- **Run tests** - Section: Run tests...
+- **Run trials in parallel** - Section: Run trials in parallel...
+- **Run with popup** - Section: Run with popup...
+- **Runtime Errors** - Section: Runtime Errors...
+- **S** - Section: S...
+- **S-Z Lexicon** - Section: S-Z Lexicon...
+- **S-Z.md** - Term: S-Z.md...
+- **SAD** - Variable: SAD...
+- **SAFE_SUFFIXES** - Variable: SAFE_SUFFIXES...
+- **SALIENCE_FLOOR** - Variable: SALIENCE_FLOOR...
+- **SAMPLES_DIR** - Variable: SAMPLES_DIR...
+- **SAMPLE_RATE** - Variable: SAMPLE_RATE...
+- **SAMPLE_RATES** - Variable: SAMPLE_RATES...
+- **SB3TrainerV2** - SB3 trainer wrapper with per-worm hook identity.
+
+Wraps stable-baselines3 algori...
+- **SCENE_CLASSES** - Variable: SCENE_CLASSES...
+- **SCENE_TAGS** - Variable: SCENE_TAGS...
+- **SCHEMA_MISMATCH** - Variable: SCHEMA_MISMATCH...
+- **SCOPE_REDUCTION_PATTERNS** - Variable: SCOPE_REDUCTION_PATTERNS...
+- **SCORES_PER_PROVIDER_MAX** - Variable: SCORES_PER_PROVIDER_MAX...
+- **SCOUT_FRACTION** - Variable: SCOUT_FRACTION...
+- **SCRIPT_DIR** - Variable: SCRIPT_DIR...
+- **SCRIPT_MAP** - Variable: SCRIPT_MAP...
+- **SCROLL_SEP** - Variable: SCROLL_SEP...
+- **SCROLL_SEP_THICK** - Variable: SCROLL_SEP_THICK...
+- **SCROLL_SPEED** - Variable: SCROLL_SPEED...
+- **SECTION_FLAGS** - Variable: SECTION_FLAGS...
+- **SECURITY** - Variable: SECURITY...
+- **SECURITY Cluster: PROCESSZ + NETWORXZ** - Section: SECURITY Cluster: PROCESSZ + NETWORXZ...
+- **SELF_DIR** - Variable: SELF_DIR...
+- **SEMANTIC_SEGMENTATION** - Variable: SEMANTIC_SEGMENTATION...
+- **SERIALIZATION_VERSION** - Variable: SERIALIZATION_VERSION...
+- **SESSION_DATE** - Variable: SESSION_DATE...
+- **SESSION_HOURS** - Variable: SESSION_HOURS...
+- **SESSION_START** - Variable: SESSION_START...
+- **SESSION_TEMPLATE** - Term: SESSION_TEMPLATE...
+- **SESSION_TEMPLATE - Visual Documentation System** - Section: SESSION_TEMPLATE - Visual Documentation System...
+- **SESSION_TEMPLATE Documentation** - Section: SESSION_TEMPLATE Documentation...
+- **SESSION_TEMPLATE Index** - Section: SESSION_TEMPLATE Index...
+- **SETTINGS** - Variable: SETTINGS...
+- **SET_PYTHONPATH.bat** - Term: SET_PYTHONPATH.bat...
+- **SEVEN_SINS** - Variable: SEVEN_SINS...
+- **SEVERITIES** - Variable: SEVERITIES...
+- **SHARDS_MAX** - Variable: SHARDS_MAX...
+- **SHARD_PUBLISH_MAX** - Variable: SHARD_PUBLISH_MAX...
+- **SHIM** - Variable: SHIM...
+- **SHORTY** - Variable: SHORTY...
+- **SHORTY - Executable Shortcuts Manager** - Section: SHORTY - Executable Shortcuts Manager...
+- **SHORTY/** - Term: SHORTY/...
+- **SHORTY/*.bat** - Term: SHORTY/*.bat...
+- **SHORT_TERM** - Variable: SHORT_TERM...
+- **SIGNING** - Variable: SIGNING...
+- **SINS** - Variable: SINS...
+- **SKIPPED** - Variable: SKIPPED...
+- **SKIP_DIRS** - Variable: SKIP_DIRS...
+- **SKIP_PATTERNS** - Variable: SKIP_PATTERNS...
+- **SKLEARN** - Variable: SKLEARN...
+- **SKLEARN_AVAILABLE** - Variable: SKLEARN_AVAILABLE...
+- **SLOW_MS** - Variable: SLOW_MS...
+- **SLOW_TOLERANCE** - Variable: SLOW_TOLERANCE...
+- **SMARTAttribute** - SMART attribute value....
+- **SMARTDISK** - SMART-based Disk Health Monitoring & Failure Prediction....
+- **SMARTDISKConfig** - Configuration for SMARTDISK....
+- **SMART_NAMES** - Variable: SMART_NAMES...
+- **SMART_THRESHOLDS** - Variable: SMART_THRESHOLDS...
+- **SNAPSHOT_ENV** - Variable: SNAPSHOT_ENV...
+- **SOURCE_PATTERN** - Variable: SOURCE_PATTERN...
+- **SOURCE_WORM** - Variable: SOURCE_WORM...
+- **SPAN** - Variable: SPAN...
+- **SPAN_H** - Variable: SPAN_H...
+- **SPAN_S** - Variable: SPAN_S...
+- **SPAWN_EVENT** - Variable: SPAWN_EVENT...
+- **SPEECH_RECOGNITION** - Variable: SPEECH_RECOGNITION...
+- **SPEECH_SYNTHESIS** - Variable: SPEECH_SYNTHESIS...
+- **SPELLING_ERROR** - Variable: SPELLING_ERROR...
+- **SPLIT** - Variable: SPLIT...
+- **SPOOFING** - Variable: SPOOFING...
+- **SPOTracker** - SPO persistent global tracker (2025-26 lineage).
+
+Per-prompt grouping degenerate...
+- **SQLite 🟦** - Section: SQLite 🟦...
+- **SRC_DIR** - Variable: SRC_DIR...
+- **SSMSequenceWorm** - Variable: SSMSequenceWorm...
+- **STAGE** - Variable: STAGE...
+- **STAGES** - Variable: STAGES...
+- **STAKE** - Variable: STAKE...
+- **STAKEHOLDERS** - Variable: STAKEHOLDERS...
+- **STAKEHOLDER_IMPACT** - Variable: STAKEHOLDER_IMPACT...
+- **STALE_AFTER_MIN** - Variable: STALE_AFTER_MIN...
+- **STALE_HALF_LIFE_S** - Variable: STALE_HALF_LIFE_S...
+- **START** - Variable: START...
+- **STATE_DELTA** - Variable: STATE_DELTA...
+- **STATE_FILE** - Variable: STATE_FILE...
+- **STATE_KEYS_MAX** - Variable: STATE_KEYS_MAX...
+- **STATE_PATH** - Variable: STATE_PATH...
+- **STATUS_COLORS** - Variable: STATUS_COLORS...
+- **STDPClockWorm** - Spike-timing-dependent plasticity kernel....
+- **STRATEGIES** - Variable: STRATEGIES...
+- **STREAMLIT_AVAILABLE** - Variable: STREAMLIT_AVAILABLE...
+- **STRENGTHEN_W** - Variable: STRENGTHEN_W...
+- **STRUCTURAL_OPS** - Variable: STRUCTURAL_OPS...
+- **STYLES** - Variable: STYLES...
+- **SUBSYSTEMS** - Variable: SUBSYSTEMS...
+- **SUGGEST_KEYWORDS** - Variable: SUGGEST_KEYWORDS...
+- **SUMMARIZATION** - Variable: SUMMARIZATION...
+- **SUPPORTED_ALGOS** - Variable: SUPPORTED_ALGOS...
+- **SURPRISED** - Variable: SURPRISED...
+- **SYMBOL** - Variable: SYMBOL...
+- **SYNTAX** - Variable: SYNTAX...
+- **SYSFS_PATHS** - Variable: SYSFS_PATHS...
+- **SYSTEM** - Variable: SYSTEM...
+- **SYSTEM Cluster: SYSTEMZ + PROCESSZ + DISKZ** - Section: SYSTEM Cluster: SYSTEMZ + PROCESSZ + DISKZ...
+- **SYSTEMS** - Variable: SYSTEMS...
+- **SYSTEMZ - Resource Monitor** - Section: SYSTEMZ - Resource Monitor...
+- **SYSTEMZ Commands** - Section: SYSTEMZ Commands...
+- **SYSTEMZ_ML** - ML-Enhanced System Monitoring with Anomaly Detection....
+- **SYSTEMZ_MLConfig** - Configuration for SYSTEMZ_ML....
+- **SYSTEM_INSTRUCTIONS.md** - Section: SYSTEM_INSTRUCTIONS.md...
+- **SYSTEM_TOOLS** - Variable: SYSTEM_TOOLS...
+- **Safety checking** - Section: Safety checking...
+- **SaltatoryRouterWorm** - Saltatory conduction: 1-hop direct vs multi-hop gossip....
+- **Save to file** - # Save to file...
+- **Scan and generate HTML report** - Section: Scan and generate HTML report...
+- **Scan current directory** - Section: Scan current directory...
+- **Scan for cod...** - Section: Scan for cod......
+- **Scan for code errors** - Section: Scan for code errors...
+- **Scan for errors** - Section: Scan for errors...
+- **Scan specific language** - Section: Scan specific language...
+- **Scan with recursi...** - Section: Scan with recursi......
+- **Scan with recursive and output** - Section: Scan with recursive and output...
+- **Schedule on GPU** - Section: Schedule on GPU...
+- **Schedule system scan every hour** - Section: Schedule system scan every hour...
+- **ScheduleConfig** - Configuration for a scheduled training run....
+- **ScheduledDbMonitorWorm** - Runs DatabaseMonitorWorm on a configurable schedule.
+
+Performs periodic database...
+- **ScheduledTask** - Scheduled task information....
+- **ScheduledTrainingWorm** - Runs the full ML training pipeline on a configurable schedule.
+
+Orchestrates: Da...
+- **Scheduling Capabilities** - Section: Scheduling Capabilities...
+- **SchemaAwareFeatureExtractor** - Extracts typed features from the 
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## row
 
@@ -2506,23 +780,15 @@ Section: rotated
 
 Variable: row
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## row_line
-
-**Category:** documentation
-
-Section: row_line
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## rows
 
-**Category:** documentation
+**Category:** inline_code
 
-Section: rows
+Term: rows
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## rsync Not Found (WSL)
 
@@ -2530,7 +796,7 @@ Section: rows
 
 Section: rsync Not Found (WSL)
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## ru...
 
@@ -2538,23 +804,15 @@ Section: rsync Not Found (WSL)
 
 Section: ru...
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## rule_score
-
-**Category:** documentation
-
-Section: rule_score
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run
 
-**Category:** inline_code
+**Category:** function
 
-Term: run
+Function: run
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
 
 ## run_all
 
@@ -2562,7 +820,7 @@ Term: run
 
 Run all scripts and generate optimization report.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## run_all() -> dict
 
@@ -2570,7 +828,7 @@ Run all scripts and generate optimization report.
 
 Section: run_all() -> dict
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_all() -> list
 
@@ -2578,23 +836,7 @@ Section: run_all() -> dict
 
 Section: run_all() -> list
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## run_all_benchmarks
-
-**Category:** documentation
-
-Section: run_all_benchmarks
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_all_components
-
-**Category:** documentation
-
-Section: run_all_components
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_all_crawlers
 
@@ -2602,23 +844,7 @@ Section: run_all_components
 
 Function: run_all_crawlers
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
-
-## run_all_protocols
-
-**Category:** documentation
-
-Section: run_all_protocols
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_all_tests
-
-**Category:** documentation
-
-Section: run_all_tests
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
 ## run_analyze() -> dict
 
@@ -2626,47 +852,15 @@ Section: run_all_tests
 
 Section: run_analyze() -> dict
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
-
-## run_app
-
-**Category:** documentation
-
-Section: run_app
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_btn
-
-**Category:** documentation
-
-Section: run_btn
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_cluster
-
-**Category:** documentation
-
-Section: run_cluster
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_cluster_container
-
-**Category:** documentation
-
-Section: run_cluster_container
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_command
 
-**Category:** documentation
+**Category:** function
 
-Section: run_command
+Function: run_command
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## run_command(cmd: str, args: list) -> int
 
@@ -2674,7 +868,7 @@ Section: run_command
 
 Section: run_command(cmd: str, args: list) -> int
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_component
 
@@ -2682,71 +876,7 @@ Section: run_command(cmd: str, args: list) -> int
 
 Function: run_component
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## run_compose
-
-**Category:** documentation
-
-Section: run_compose
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_comprehensive_scan
-
-**Category:** documentation
-
-Section: run_comprehensive_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_comprehensive_test
-
-**Category:** documentation
-
-Section: run_comprehensive_test
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_container
-
-**Category:** documentation
-
-Section: run_container
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_container_image
-
-**Category:** documentation
-
-Section: run_container_image
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_crawl
-
-**Category:** documentation
-
-Section: run_crawl
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_cross_platform_analysis
-
-**Category:** documentation
-
-Section: run_cross_platform_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_deep_learning_q_analysis
-
-**Category:** documentation
-
-Section: run_deep_learning_q_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## run_dis stages |
 
@@ -2754,7 +884,7 @@ Section: run_deep_learning_q_analysis
 
 Section: run_dis stages |
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_ecosystem_scan
 
@@ -2762,79 +892,21 @@ Section: run_dis stages |
 
 Function: run_ecosystem_scan
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
-## run_env_inspection
+## run_full_pipeline
 
-**Category:** documentation
+**Category:** function
 
-Section: run_env_inspection
+Run the complete HYDRA pipeline with LLM feedback analysis.
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+Args:
+    use_llm: Whether to use InferenceBridge for FEEDBACK analysis
 
-## run_ffmpeg
+Returns:
+    PipelineReport with full execution details
 
-**Category:** documentation
-
-Section: run_ffmpeg
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_file_inspection
-
-**Category:** documentation
-
-Section: run_file_inspection
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_fleet
-
-**Category:** documentation
-
-Section: run_fleet
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_full_analysis
-
-**Category:** documentation
-
-Section: run_full_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_full_benchmark
-
-**Category:** documentation
-
-Section: run_full_benchmark
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_full_ecosystem
-
-**Category:** documentation
-
-Section: run_full_ecosystem
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_full_iteration
-
-**Category:** documentation
-
-Section: run_full_iteration
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_full_scan
-
-**Category:** documentation
-
-Section: run_full_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
 
 ## run_full_test
 
@@ -2842,31 +914,15 @@ Section: run_full_scan
 
 Run full compilation test on discovered Python files.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
 
 ## run_healing
 
-**Category:** documentation
+**Category:** function
 
-Section: run_healing
+Function: run_healing
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_health_check
-
-**Category:** documentation
-
-Section: run_health_check
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_horus
-
-**Category:** documentation
-
-Section: run_horus
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
 
 ## run_hydra
 
@@ -2874,103 +930,7 @@ Section: run_horus
 
 Run HYDRA cluster operations.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
-
-## run_hydra_trial
-
-**Category:** documentation
-
-Section: run_hydra_trial
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_hydra_trials
-
-**Category:** documentation
-
-Section: run_hydra_trials
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_id
-
-**Category:** documentation
-
-Section: run_id
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_import_audit
-
-**Category:** documentation
-
-Section: run_import_audit
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_in_wsl
-
-**Category:** documentation
-
-Section: run_in_wsl
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_inference
-
-**Category:** documentation
-
-Section: run_inference
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_inspection
-
-**Category:** documentation
-
-Section: run_inspection
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_interactive
-
-**Category:** documentation
-
-Section: run_interactive
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_iteration
-
-**Category:** documentation
-
-Section: run_iteration
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_jax_analysis
-
-**Category:** documentation
-
-Section: run_jax_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_loop
-
-**Category:** function
-
-Run tkinter main loop.
-
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## run_metaworm
-
-**Category:** documentation
-
-Section: run_metaworm
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
 
 ## run_metaworm(name: str) -> WormResult
 
@@ -2978,7 +938,7 @@ Section: run_metaworm
 
 Section: run_metaworm(name: str) -> WormResult
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
 
 ## run_metaworm_scan
 
@@ -2986,15 +946,7 @@ Section: run_metaworm(name: str) -> WormResult
 
 Function: run_metaworm_scan
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
-
-## run_metaworms_popup
-
-**Category:** documentation
-
-Section: run_metaworms_popup
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
 ## run_ml_analysis
 
@@ -3005,119 +957,23 @@ Run ML groupings analysis and return results.
 Args:
     cluster: Optional HYDRA cluster for adaptive analysis
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## run_ml_framework_check
+## run_ml_diagnostic
 
-**Category:** documentation
+**Category:** function
 
-Section: run_ml_framework_check
+Function: run_ml_diagnostic
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
 
-## run_ml_optimization
+## run_powershell
 
-**Category:** documentation
+**Category:** function
 
-Section: run_ml_optimization
+Function: run_powershell
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_optimization_trials
-
-**Category:** documentation
-
-Section: run_optimization_trials
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_optimized
-
-**Category:** documentation
-
-Section: run_optimized
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_optimized_worms
-
-**Category:** documentation
-
-Section: run_optimized_worms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_parallel_cluster
-
-**Category:** documentation
-
-Section: run_parallel_cluster
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_path_fix
-
-**Category:** documentation
-
-Section: run_path_fix
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_pip_install
-
-**Category:** documentation
-
-Section: run_pip_install
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_pipeline
-
-**Category:** documentation
-
-Section: run_pipeline
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_poindexter
-
-**Category:** documentation
-
-Section: run_poindexter
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_popup
-
-**Category:** documentation
-
-Section: run_popup
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_property_tests
-
-**Category:** documentation
-
-Section: run_property_tests
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_python_resolution
-
-**Category:** documentation
-
-Section: run_python_resolution
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_qanalysis*.py
-
-**Category:** documentation
-
-Section: run_qanalysis*.py
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## run_qanalysis.py
 
@@ -3125,7 +981,7 @@ Section: run_qanalysis*.py
 
 Term: run_qanalysis.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## run_qanalysis_full.py
 
@@ -3133,7 +989,7 @@ Term: run_qanalysis.py
 
 Term: run_qanalysis_full.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## run_qanalysis_multi.py
 
@@ -3141,31 +997,7 @@ Term: run_qanalysis_full.py
 
 Term: run_qanalysis_multi.py
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
-
-## run_quick_fix
-
-**Category:** documentation
-
-Section: run_quick_fix
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_scan
-
-**Category:** documentation
-
-Section: run_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_scheduler
-
-**Category:** documentation
-
-Section: run_scheduler
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## run_script
 
@@ -3173,103 +1005,23 @@ Section: run_scheduler
 
 Run a script by name using unified optimizer.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## run_sequential
 
 **Category:** function
 
-Run sequential processing through all stages.
+Run sequential processing through all stages with error recovery.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
-
-## run_shortcut
-
-**Category:** documentation
-
-Section: run_shortcut
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_shorty_shortcut
-
-**Category:** documentation
-
-Section: run_shorty_shortcut
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_spelling_fix
-
-**Category:** documentation
-
-Section: run_spelling_fix
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
 
 ## run_stage
 
 **Category:** function
 
-Execute a single processing stage.
+Execute a single processing stage with NSGA-II scoring.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
-
-## run_successive_analysis
-
-**Category:** documentation
-
-Section: run_successive_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_sync
-
-**Category:** documentation
-
-Section: run_sync
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_system_scan
-
-**Category:** documentation
-
-Section: run_system_scan
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_tarbaby_analysis
-
-**Category:** documentation
-
-Section: run_tarbaby_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_task
-
-**Category:** documentation
-
-Section: run_task
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_terence
-
-**Category:** documentation
-
-Section: run_terence
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_terence_analysis
-
-**Category:** documentation
-
-Section: run_terence_analysis
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
 
 ## run_terence_scan
 
@@ -3277,39 +1029,15 @@ Section: run_terence_analysis
 
 Function: run_terence_scan
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
-## run_trial
+## run_tool
 
-**Category:** documentation
+**Category:** function
 
-Section: run_trial
+Function: run_tool
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_trials
-
-**Category:** documentation
-
-Section: run_trials
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_trials_async
-
-**Category:** documentation
-
-Section: run_trials_async
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_trim
-
-**Category:** documentation
-
-Section: run_trim
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## run_with_popup
 
@@ -3317,23 +1045,7 @@ Section: run_trim
 
 Run HORUS with real-time popup window.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
-
-## run_worm
-
-**Category:** documentation
-
-Section: run_worm
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_worm_container
-
-**Category:** documentation
-
-Section: run_worm_container
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## run_worm_scan
 
@@ -3341,36 +1053,5 @@ Section: run_worm_container
 
 Function: run_worm_scan
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
-## run_worms
-
-**Category:** documentation
-
-Section: run_worms
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## run_wormz_popup
-
-**Category:** documentation
-
-Section: run_wormz_popup
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## running
-
-**Category:** documentation
-
-Section: running
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*
-
-## runs
-
-**Category:** documentation
-
-Section: runs
-
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\R.md*

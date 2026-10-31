@@ -10,7 +10,7 @@ title: BIBL Terms P
 
 Variable: p
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
 
 ## pair
 
@@ -18,7 +18,7 @@ Variable: p
 
 Variable: pair
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## parse_entries
 
@@ -26,7 +26,7 @@ Variable: pair
 
 Parse H2 entries with Category, Section, Source fields.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
 
 ## parse_yaml_header
 
@@ -34,7 +34,7 @@ Parse H2 entries with Category, Section, Source fields.
 
 Extract YAML front matter from a BIBL file.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
 
 ## parser
 
@@ -42,7 +42,7 @@ Extract YAML front matter from a BIBL file.
 
 Variable: parser
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## partial
 
@@ -50,7 +50,31 @@ Variable: parser
 
 Variable: partial
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_crawler.py*
+
+## parts
+
+**Category:** variable
+
+Variable: parts
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## path
+
+**Category:** variable
+
+Variable: path
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## path_entries
+
+**Category:** variable
+
+Variable: path_entries
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## path_lower
 
@@ -58,7 +82,39 @@ Variable: partial
 
 Variable: path_lower
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## paths
+
+**Category:** variable
+
+Variable: paths
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## paths_to_check
+
+**Category:** variable
+
+Variable: paths_to_check
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
+
+## patterns
+
+**Category:** variable
+
+Variable: patterns
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
+
+## payload
+
+**Category:** variable
+
+Variable: payload
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
 ## pct
 
@@ -66,7 +122,223 @@ Variable: path_lower
 
 Variable: pct
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+
+## phases
+
+**Category:** json_key
+
+JSON key: phases
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.1_SYNTAX
+
+**Category:** json_key
+
+JSON key: phases.1_SYNTAX
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.1_SYNTAX.detail
+
+**Category:** json_key
+
+JSON key: phases.1_SYNTAX.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.1_SYNTAX.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.1_SYNTAX.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.1_SYNTAX.passed
+
+**Category:** json_key
+
+JSON key: phases.1_SYNTAX.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.2_IMPORTS
+
+**Category:** json_key
+
+JSON key: phases.2_IMPORTS
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.2_IMPORTS.detail
+
+**Category:** json_key
+
+JSON key: phases.2_IMPORTS.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.2_IMPORTS.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.2_IMPORTS.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.2_IMPORTS.passed
+
+**Category:** json_key
+
+JSON key: phases.2_IMPORTS.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.3_THREAD_SAFETY
+
+**Category:** json_key
+
+JSON key: phases.3_THREAD_SAFETY
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.3_THREAD_SAFETY.detail
+
+**Category:** json_key
+
+JSON key: phases.3_THREAD_SAFETY.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.3_THREAD_SAFETY.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.3_THREAD_SAFETY.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.3_THREAD_SAFETY.passed
+
+**Category:** json_key
+
+JSON key: phases.3_THREAD_SAFETY.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.4_NSGA_II
+
+**Category:** json_key
+
+JSON key: phases.4_NSGA_II
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.4_NSGA_II.detail
+
+**Category:** json_key
+
+JSON key: phases.4_NSGA_II.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.4_NSGA_II.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.4_NSGA_II.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.4_NSGA_II.passed
+
+**Category:** json_key
+
+JSON key: phases.4_NSGA_II.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.5_FFMPEG
+
+**Category:** json_key
+
+JSON key: phases.5_FFMPEG
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.5_FFMPEG.detail
+
+**Category:** json_key
+
+JSON key: phases.5_FFMPEG.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.5_FFMPEG.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.5_FFMPEG.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.5_FFMPEG.passed
+
+**Category:** json_key
+
+JSON key: phases.5_FFMPEG.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.6_3_14T_LOCKS
+
+**Category:** json_key
+
+JSON key: phases.6_3_14T_LOCKS
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.6_3_14T_LOCKS.detail
+
+**Category:** json_key
+
+JSON key: phases.6_3_14T_LOCKS.detail
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.6_3_14T_LOCKS.elapsed_s
+
+**Category:** json_key
+
+JSON key: phases.6_3_14T_LOCKS.elapsed_s
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## phases.6_3_14T_LOCKS.passed
+
+**Category:** json_key
+
+JSON key: phases.6_3_14T_LOCKS.passed
+
+*Source: `json_structure` | File: C:\Azazael\azazael\src\ORCHESTRATION\_6phase_compliance_june7.json*
+
+## pid
+
+**Category:** variable
+
+Variable: pid
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## ping_host
+
+**Category:** function
+
+Function: ping_host
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_SystemTools.py*
 
 ## pip-audit
 
@@ -74,7 +346,7 @@ Variable: pct
 
 Section: pip-audit
 
-*Source: `markdown_header` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\B.md*
+*Source: `markdown_header` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\B.md*
 
 ## pipeline
 
@@ -82,7 +354,7 @@ Section: pip-audit
 
 Variable: pipeline
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## platform_files
 
@@ -90,7 +362,7 @@ Variable: pipeline
 
 Variable: platform_files
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
 
 ## platforms
 
@@ -98,7 +370,23 @@ Variable: platform_files
 
 Variable: platforms
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA_ANALYZER.py*
+
+## plural
+
+**Category:** variable
+
+Variable: plural
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
+
+## points
+
+**Category:** variable
+
+Variable: points
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
 
 ## popup
 
@@ -106,39 +394,87 @@ Variable: platforms
 
 Variable: popup
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HORUS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
 
-## powershell
-& "C:\Users\clint\restored_venv\Scripts\python.exe" "C:\Users\clint\Desktop\CODEX\POPUP_DETAILED.py"
-
-
-**Category:** inline_code
-
-Term: powershell
-& "C:\Users\clint\restored_venv\Scripts\python.exe" "C:\Users\clint\Desktop\CODEX\POPUP_DETAILED.py"
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\CHANGELOG.md*
-
-## powershell
-pip install -r requirements_wsl.txt
-
-
-**Category:** inline_code
-
-Term: powershell
-pip install -r requirements_wsl.txt
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
-
-## previous_mode
+## position
 
 **Category:** variable
 
-Variable: previous_mode
+Variable: position
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\META\MetaWormSpawner.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
+
+## powershell
+& "C:\Users\clint\restored_venv\Scripts\python.exe" "C:\Users\clint\Desktop\CODEX\POPUP_DETAILED.py"
+
+
+**Category:** inline_code
+
+Term: powershell
+& "C:\Users\clint\restored_venv\Scripts\python.exe" "C:\Users\clint\Desktop\CODEX\POPUP_DETAILED.py"
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\CHANGELOG.md*
+
+## powershell
+pip install -r requirements_wsl.txt
+
+
+**Category:** inline_code
+
+Term: powershell
+pip install -r requirements_wsl.txt
+
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
+
+## pred
+
+**Category:** variable
+
+Variable: pred
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
+
+## predict
+
+**Category:** function
+
+Function: predict
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ADLP_MLOrchestrator.py*
+
+## predictions
+
+**Category:** variable
+
+Variable: predictions
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
+
+## prefix
+
+**Category:** variable
+
+Variable: prefix
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
+
+## pressure
+
+**Category:** inline_code
+
+Term: pressure
+
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\INDEX.md*
+
+## prev_hash
+
+**Category:** variable
+
+Variable: prev_hash
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
 ## print_status
 
@@ -146,7 +482,7 @@ Variable: previous_mode
 
 Print current status.
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
 
 ## print_summary
 
@@ -154,7 +490,7 @@ Print current status.
 
 Function: print_summary
 
-*Source: `python_function` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_CRAWLER_LAUNCHER.py*
 
 ## priority_order
 
@@ -162,7 +498,31 @@ Function: print_summary
 
 Variable: priority_order
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
+
+## proc_data
+
+**Category:** variable
+
+Variable: proc_data
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## process_queue
+
+**Category:** function
+
+Process queued component results on the main thread.
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\HORUS.py*
+
+## processes
+
+**Category:** variable
+
+Variable: processes
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
 
 ## progress
 
@@ -170,7 +530,31 @@ Variable: priority_order
 
 Variable: progress
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\HYDRA.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\HYDRA.py*
+
+## progress_bar
+
+**Category:** variable
+
+Variable: progress_bar
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
+
+## prompt
+
+**Category:** variable
+
+Variable: prompt
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\hydra_bridge.py*
+
+## proof
+
+**Category:** variable
+
+Variable: proof
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
 
 ## props
 
@@ -178,7 +562,7 @@ Variable: progress
 
 Variable: props
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
 
 ## proto_compat
 
@@ -186,7 +570,23 @@ Variable: props
 
 Variable: proto_compat
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\INTEROPERABILITY_ANALYSIS.py*
+
+## prove
+
+**Category:** function
+
+Function: prove
+
+*Source: `python_function` | File: C:\Azazael\azazael\src\ORCHESTRATION\MathCertainty.py*
+
+## pushed
+
+**Category:** variable
+
+Variable: pushed
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\bibl_map.py*
 
 ## py_results
 
@@ -194,7 +594,23 @@ Variable: proto_compat
 
 Variable: py_results
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\ECOSYSTEM_OPTIMIZER.py*
+
+## py_scroll
+
+**Category:** variable
+
+Variable: py_scroll
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
+
+## py_status
+
+**Category:** variable
+
+Variable: py_status
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## python
 """
@@ -354,7 +770,7 @@ class EducationalVideoGenerator:
             create_docs_video(title=title, sections=sections)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEEPFACELAB_EDUCATIONAL_VIDEOS.md*
 
 ## python
 """
@@ -378,7 +794,7 @@ Location: C:\Users\clint\Desktop\Azazael\ml_platforms
 __version__ = "2.0.0"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
 
 ## python
 """
@@ -442,7 +858,7 @@ import sys
 # Local imports
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 # Add to the imports section
@@ -458,7 +874,7 @@ from universal_converter import UniversalConverter
 from improvements.qlearning_table import AdaptiveExpertLearner
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
 
 ## python
 # CPU only
@@ -506,7 +922,7 @@ def large_mem_task():
     return load_big_data()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 # CPU only
@@ -546,7 +962,7 @@ providers = (
 )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 # Check the path
@@ -568,7 +984,7 @@ config_path = Path(__file__).parent.parent / "ml_platform_config.json"
 print(f"Config file exists: {config_path.exists()}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 # Command mappings
@@ -658,7 +1074,7 @@ COMMANDS = {
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
 
 ## python
 # Converged if:
@@ -678,7 +1094,7 @@ final_std < 0.1  # Standard deviation below threshold
 delta < 0.001   # Change between iterations is negligible
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## python
 # Detect platform and set root
@@ -712,7 +1128,7 @@ def run_python(script: str, args: List[str] = None):
     return result
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
 
 ## python
 # Example code
@@ -724,7 +1140,7 @@ Term: python
 # Example code
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 # Example format
@@ -752,7 +1168,7 @@ def example_function():
     return result
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
 
 ## python
 # Example validation patterns
@@ -776,7 +1192,7 @@ def validate_input(user_input: str) -> bool:
     return bool(pattern.match(user_input))
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
 
 ## python
 # Example: Various forms of dead code
@@ -818,7 +1234,7 @@ def never_called():  # 👻
 result = calculate()  # Result never used 🦴
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## python
 # From diagnostics.py
@@ -840,7 +1256,7 @@ for pkg in config.platforms:
     # Check each package...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 # From health_monitor.py
@@ -876,7 +1292,7 @@ def _check_imports(self) -> HealthCheck:
             errors.append(f"{pkg}: {str(e)[:100]}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 # From launcher.py (conceptual)
@@ -894,7 +1310,7 @@ from diagnostics import check_platform_status, PLATFORMS
 from health_monitor import PlatformHealthMonitor
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\launcher_API.md*
 
 ## python
 # Import the package
@@ -920,7 +1336,7 @@ print(ml_platforms.__version__)
 from ml_platforms import config, diagnostics
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
 
 ## python
 # In Python
@@ -948,7 +1364,7 @@ analyzer = DeepLearningQAnalyzer()
 analyzer.suggest_best_framework("cv", gpu_available=True)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## python
 # In each component's __init__.py or version.py
@@ -1006,7 +1422,7 @@ def increment_build():
     return VERSION_INFO['full']
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 # Inter-worm messaging
@@ -1024,7 +1440,7 @@ cluster.send("DISKZ", {"command": "analyze", "path": "/tmp"})
 cluster.receive("SYSTEMZ", timeout=5)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 # Key import relationships
@@ -1084,7 +1500,7 @@ from METAWORMS.HYDRAMETA import HYDRAMETA
 from WORMZ.WORMZ import WORMZ
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\DEPENDENCY_GRAPH.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\DEPENDENCY_GRAPH.md*
 
 ## python
 # Load Q-table in Python
@@ -1106,7 +1522,7 @@ print("Final Q-table:")
 print(q_table)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## python
 # Log a file
@@ -1140,7 +1556,7 @@ logger.set_tag("dataset", "mnist")
 logger.set_tag("version", "1.0")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 # Package name vs import name
@@ -1158,7 +1574,7 @@ Term: python
 "pillow"         ->  import PIL
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 # Proposed: src/META/InferenceBridge.py
@@ -1198,7 +1614,7 @@ class InferenceBridge:
         """Store inference result in pams and BIBL."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\INCORPORATION_PLAN.md*
 
 ## python
 # PyTorch updates
@@ -1240,7 +1656,7 @@ q_table[2, 2] += alpha * (0.95 - q_table[2, 2])       # Tabular
 q_table[2, 4] += alpha * (0.85 - q_table[2, 4])       # Tabular (scipy)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## python
 # Q-Table State
@@ -1268,7 +1684,7 @@ Term: python
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
 
 ## python
 # Simple function - Complexity: 1
@@ -1302,7 +1718,7 @@ def process(status):
         log("unknown")  # 🟡 YELLOW: Moderate
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\Azazael_Reference.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\Azazael_Reference.md*
 
 ## python
 # Tier 1: Execute individual worms
@@ -1374,7 +1790,7 @@ result = terence.apply_fix(fix)
 terence.reinforce(result)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 # Your code here
@@ -1386,7 +1802,7 @@ Term: python
 # Your code here
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\docs\CONTRIBUTING.md*
 
 ## python
 # health_monitor.py checks critical imports
@@ -1410,7 +1826,7 @@ critical_packages = [
 ]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 #!/usr/bin/env python3
@@ -1560,7 +1976,7 @@ if __name__ == "__main__":
     generator.run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 #!/usr/bin/env python3
@@ -1752,7 +2168,7 @@ if __name__ == "__main__":
     print(results)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 #!/usr/bin/env python3
@@ -1876,7 +2292,7 @@ if __name__ == "__main__":
     print(f"Manifest generated: {len(manifest['files'])} files")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 #!/usr/bin/env python3
@@ -1958,7 +2374,7 @@ if __name__ == "__main__":
     main()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TASK_REGISTRY.md*
 
 ## python
 @dataclass
@@ -1996,7 +2412,7 @@ class Adaptation:
     result: str = "pending"       # Outcome
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 @dataclass
@@ -2038,7 +2454,7 @@ class BIBLEntry:
     checksum: str = ""                # Content hash
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 @dataclass
@@ -2080,7 +2496,7 @@ class ClusterNode:
     adaptations: List[Dict]     # Adaptation records
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 @dataclass
@@ -2114,7 +2530,7 @@ class ComponentInfo:
     last_update: str = ...             # ISO timestamp
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 @dataclass
@@ -2154,7 +2570,7 @@ class CrawlResult:
     duration_ms: float = 0.0         # Execution time
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 @dataclass
@@ -2204,7 +2620,7 @@ class FixStats:
     duration_ms: float = 0.0
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
 
 ## python
 @dataclass
@@ -2230,7 +2646,7 @@ class Fix:
     description: str
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
 
 ## python
 @dataclass
@@ -2258,7 +2674,7 @@ class IntegrationResult:
     timestamp: str = ...       # ISO timestamp
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 @dataclass
@@ -2312,7 +2728,7 @@ class MetaWormConfig:
     }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 @dataclass
@@ -2390,7 +2806,7 @@ class OutputConfig:
         )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 @dataclass
@@ -2428,7 +2844,7 @@ class SequentialStep:
     max_retries: int = 3           # Maximum retries
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 @dataclass
@@ -2466,7 +2882,7 @@ class WormResult:
     errors: List[str] = []      # Error messages
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 @dataclass
@@ -2494,7 +2910,7 @@ class WormResult:
     errors: List[str] = []
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
 
 ## python
 @ray_int.remote(num_cpus=4, num_gpus=0.5, memory=8_000_000_000)
@@ -2524,7 +2940,7 @@ future = my_function.remote(data)
 result = ray.get(future)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 @ray_int.remote(num_gpus=1)
@@ -2552,7 +2968,7 @@ future = train_on_gpu.remote(training_data)
 result = ray.get(future)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 @staticmethod
@@ -2616,7 +3032,7 @@ def detect_framework(model) -> Optional[str]:
     return None
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 ALTERNATING_STRATEGIES = {
@@ -2640,7 +3056,7 @@ ALTERNATING_STRATEGIES = {
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 METAWORMS_REGISTRY = {
@@ -2664,7 +3080,7 @@ METAWORMS_REGISTRY = {
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 TERENCE_STRATEGIES = {
@@ -2690,7 +3106,7 @@ TERENCE_STRATEGIES = {
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 alpha = 0.1  # Initial learning rate
@@ -2724,7 +3140,7 @@ current_alpha = alpha * (alpha_decay ** i)
 # Iteration 99:  alpha = 0.0606
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\run_qanalysis_full_API.md*
 
 ## python
 benchmark = PerformanceBenchmark()
@@ -2738,7 +3154,7 @@ benchmark = PerformanceBenchmark()
 result = benchmark.run_full_benchmark()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## python
 class AnimationEngine:
@@ -2854,7 +3270,7 @@ class AnimationEngine:
         return f'<div class="animation-{animation}"{style}>{element}</div>'
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class AzazaelEcosystem:
@@ -2884,7 +3300,7 @@ class AzazaelEcosystem:
         self.discovery_complete = False
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class AzazaelEcosystem:
@@ -2912,7 +3328,7 @@ class AzazaelEcosystem:
     def components() -> List[ComponentInfo]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class BrowserIntegration:
@@ -3014,7 +3430,7 @@ class BrowserIntegration:
         asyncio.get_event_loop().run_forever()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class CLOCKZ:
@@ -3074,7 +3490,7 @@ class CLOCKZ:
         return timer
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class CLUSTERWORMS:
@@ -3160,7 +3576,7 @@ class CLUSTERWORMS:
         return results
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class CONCURRENCY:
@@ -3224,7 +3640,7 @@ class CONCURRENCY:
         self.executor.shutdown(wait=True)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class ClusterState:
@@ -3250,7 +3666,7 @@ class ClusterState:
         self.last_sync = datetime.now()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class ClusterWORMZ:
@@ -3298,7 +3714,7 @@ class ClusterWORMZ:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class ComponentRegistry:
@@ -3344,7 +3760,7 @@ class ComponentRegistry:
         return list(self.components.values())
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class ComponentStatus(Enum):
@@ -3366,7 +3782,7 @@ class ComponentStatus(Enum):
     DISABLED = "disabled"  # Manually deactivated
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class ConcurrencyManager:
@@ -3406,7 +3822,7 @@ class ConcurrencyManager:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class ConcurrencyManager:
@@ -3466,7 +3882,7 @@ class ConcurrencyManager:
             return self.counters[counter]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class ConsolePrinter:
@@ -3568,7 +3984,7 @@ class ConsolePrinter:
             return f"{prefix}{str(data)}"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class DEADZ:
@@ -3636,7 +4052,7 @@ class DEADZ:
         )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class DEPENDZ:
@@ -3736,7 +4152,7 @@ class DEPENDZ:
                 dependencies["graph"][module].add(imp)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class DISKZ:
@@ -3822,7 +4238,7 @@ class DISKZ:
         }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class DeepLearningQAnalyzer:
@@ -3874,7 +4290,7 @@ class DeepLearningQAnalyzer:
         pass
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## python
 class DistillationEngine:
@@ -3920,7 +4336,7 @@ class DistillationEngine:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class HEALTHZ:
@@ -4004,7 +4420,7 @@ class HEALTHZ:
         )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class HTMLRenderer:
@@ -4188,7 +4604,7 @@ class HTMLRenderer:
         return f'<span class="status-indicator" style="background: {color}">{status}</span>'
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class HYDRACluster:
@@ -4230,7 +4646,7 @@ class HYDRACluster:
         self.config = self._load_config()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 class HYDRACluster:
@@ -4256,7 +4672,7 @@ class HYDRACluster:
     def load_state() -> None
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 class HYDRAMETA:
@@ -4438,7 +4854,7 @@ class HYDRAMETA:
         return offspring
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class HYDRAMETA_UV:
@@ -4546,7 +4962,7 @@ class HYDRAMETA_UV:
             )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class HYDRAOptimizer:
@@ -4592,7 +5008,7 @@ class HYDRAOptimizer:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class JSONEncoder:
@@ -4692,7 +5108,7 @@ class JSONEncoder:
         return str(obj)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class LOGZ:
@@ -4770,7 +5186,7 @@ class LOGZ:
         )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class LiveMonitor:
@@ -4900,7 +5316,7 @@ class LiveMonitor:
         }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class METAZ:
@@ -5008,7 +5424,7 @@ class METAZ:
         }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class METRICZ:
@@ -5102,7 +5518,7 @@ class METRICZ:
         return len(decision_points) + 1
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class MLGroup(Enum):
@@ -5146,7 +5562,7 @@ class MLGroup(Enum):
     IMPROVEMENTS = "Improvements" # Enhancement features
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class MLPlatformConfig:
@@ -5198,7 +5614,7 @@ class MLPlatformConfig:
         """Group platforms by category."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 class MLflowLogger:
@@ -5310,7 +5726,7 @@ class MLflowLogger:
         """Set tag on current run."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 class MessageBus:
@@ -5340,7 +5756,7 @@ class MessageBus:
         """Send request to component."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class MetaWorm:
@@ -5396,7 +5812,7 @@ class MetaWorm:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class NETWORXZ:
@@ -5464,7 +5880,7 @@ class NETWORXZ:
         return [conn._asdict() for conn in psutil.net_connections()]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class ONNXExporter:
@@ -5570,7 +5986,7 @@ class ONNXExporter:
         """Optimize ONNX model."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 class OSCongruency:
@@ -5616,7 +6032,7 @@ class OSCongruency:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class OutputDestination(Enum):
@@ -5646,7 +6062,7 @@ class OutputDestination(Enum):
     ALL = "all"         # Multi-channel delivery
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class OutputFormat(Enum):
@@ -5674,7 +6090,7 @@ class OutputFormat(Enum):
     CONSOLE = "console"  # Terminal output
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-005_HORUS.md*
 
 ## python
 class PROCESSZ:
@@ -5752,7 +6168,7 @@ class PROCESSZ:
             return False
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class PersistenceManager:
@@ -5798,7 +6214,7 @@ class PersistenceManager:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class ProcessingStage(Enum):
@@ -5842,7 +6258,7 @@ class AdaptationType(Enum):
     RETRY = "retry"            # Retry policy
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 class RayIntegration:
@@ -5928,7 +6344,7 @@ class RayIntegration:
         """Create a Ray actor."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 class SHORTYShortcutManager:
@@ -5952,7 +6368,7 @@ class SHORTYShortcutManager:
         self._discover_shortcuts()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 class SYSTEMZ:
@@ -6030,7 +6446,7 @@ class SYSTEMZ:
         }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class TERENCE:
@@ -6182,7 +6598,7 @@ class TERENCE:
         return "\n".join(preview)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
 
 ## python
 class TERENCE:
@@ -6238,7 +6654,7 @@ class TERENCE:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class VALIDZ:
@@ -6342,7 +6758,7 @@ class VALIDZ:
                 })
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-004_METAWORMS.md*
 
 ## python
 class WORMZ:
@@ -6384,7 +6800,7 @@ class WORMZ:
         self._load_bibl()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 class WORM_NAME:
@@ -6414,7 +6830,7 @@ class WORM_NAME:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 class WormKnowledgeGraph:
@@ -6452,7 +6868,7 @@ class WormKnowledgeGraph:
         ...
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 def _detect_framework(self, model: Any) -> str:
@@ -6502,7 +6918,7 @@ def _detect_framework(self, model: Any) -> str:
     return "generic"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 def _load_config(self) -> Dict:
@@ -6538,7 +6954,7 @@ def _load_config(self) -> Dict:
     }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 def _parse_python(self, file_path: Path) -> CrawlResult:
@@ -6616,7 +7032,7 @@ def _parse_python(self, file_path: Path) -> CrawlResult:
     return result
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 def adaptive_learn(self, iterations: int = 100) -> Dict:
@@ -6682,7 +7098,7 @@ def adaptive_learn(self, iterations: int = 100) -> Dict:
     return dict(q_table)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 def check_platform_status() -> tuple[list, list]:
@@ -6710,7 +7126,7 @@ def check_platform_status() -> tuple[list, list]:
     """
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 def cmd_analyze(args)
@@ -6752,7 +7168,7 @@ def cmd_monitor(args)
     """Runs health checks. Uses PlatformHealthMonitor class"""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\harness_API.md*
 
 ## python
 def cmd_status():
@@ -6824,7 +7240,7 @@ def cmd_all():
     subprocess.run(f"{Azazael_ROOT}/Azazael/ECOSYSTEM_TEST.bat", shell=True)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-006_TERENCE_KLINK.md*
 
 ## python
 def crawl_parallel(self, paths: List[Path], max_workers: int = 8) -> List[CrawlResult]:
@@ -6880,7 +7296,7 @@ def crawl_parallel(self, paths: List[Path], max_workers: int = 8) -> List[CrawlR
     return all_results
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-003_WORMZ_EXECUTION.md*
 
 ## python
 def discover_all(self) -> Dict[str, ComponentInfo]:
@@ -6934,7 +7350,7 @@ def discover_all(self) -> Dict[str, ComponentInfo]:
     return self.registry.components
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 def export_to_onnx(model, input_sample, output_path, **kwargs) -> str:
@@ -6954,7 +7370,7 @@ def load_onnx_model(model_path) -> ort.InferenceSession:
     """Shorthand for ONNXExporter.load_onnx_model()."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 def load_config() -> Optional[dict]
@@ -6986,7 +7402,7 @@ def list_workflows() -> list[dict]
     """Get recommended workflows."""
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 def run_all_worms_cotemporaneous(self) -> Dict[str, IntegrationResult]:
@@ -7028,7 +7444,7 @@ def run_all_worms_cotemporaneous(self) -> Dict[str, IntegrationResult]:
     return results
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 def run_sequential(self, stages: List[ProcessingStage] = None) -> Dict:
@@ -7080,7 +7496,7 @@ def run_sequential(self, stages: List[ProcessingStage] = None) -> Dict:
     return results
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-002_HYDRA_CLUSTER.md*
 
 ## python
 from Azazael.Azazael_INTEGRATION import AzazaelEcosystem
@@ -7096,7 +7512,7 @@ ecosystem = AzazaelEcosystem()
 inventory = ecosystem.discover_all()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\API_REFERENCE.md*
 
 ## python
 from DistillationEngine import DistillationEngine
@@ -7114,7 +7530,7 @@ model = distiller.synthesize_model(all_knowledge)
 singularity = distiller.achieve_singularity(model)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\PARADIGM.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\PARADIGM.md*
 
 ## python
 from azazael_integration import AzazaelEcosystem
@@ -7136,7 +7552,7 @@ results = ecosystem.run_full_ecosystem()
 ecosystem.print_status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## python
 from azazael_integration import AzazaelEcosystem
@@ -7166,7 +7582,7 @@ result = ecosystem.run_shorty_shortcut("azazael")
 print(ecosystem.shortcut_names())
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## python
 from azazael_integration import HYDRAClusterIntegration
@@ -7188,61 +7604,7 @@ hydra.run_stage("analysis")
 results = hydra.run_all()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
-
-## python
-from azazael_wsa import WSAClient
-
-# Connect to WSA
-client = WSAClient("127.0.0.1", 5555)
-client.connect()
-
-# Get device info
-info = client.get_device_info()
-print(info)
-
-# Install app
-client.install_app("app.apk")
-
-# Run app
-client.run_app("com.example.app")
-
-# Get performance
-perf = client.get_performance()
-print(f"CPU: {perf.cpu_percent}%")
-
-# Disconnect
-client.disconnect()
-
-
-**Category:** inline_code
-
-Term: python
-from azazael_wsa import WSAClient
-
-# Connect to WSA
-client = WSAClient("127.0.0.1", 5555)
-client.connect()
-
-# Get device info
-info = client.get_device_info()
-print(info)
-
-# Install app
-client.install_app("app.apk")
-
-# Run app
-client.run_app("com.example.app")
-
-# Get performance
-perf = client.get_performance()
-print(f"CPU: {perf.cpu_percent}%")
-
-# Disconnect
-client.disconnect()
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CURRENT_STATE.md*
 
 ## python
 from config import (
@@ -7264,7 +7626,7 @@ from config import (
 )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from config import MLPlatformConfig
@@ -7292,7 +7654,7 @@ for category, packages in by_category.items():
         print(f"  {pkg['name']}: {pkg['version']}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from config import MLPlatformConfig
@@ -7320,7 +7682,7 @@ for env_name in ["python311", "python314"]:
             print(f"  - {pkg['name']} {pkg['version']}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from config import _get_config
@@ -7338,7 +7700,7 @@ config = _get_config()
 platforms = config.platforms
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 from config import list_platforms, get_env_path
@@ -7376,7 +7738,7 @@ path = get_env_path("python314")
 print(f"Python 314 at: {path}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from config import list_workflows
@@ -7400,7 +7762,7 @@ for wf in workflows:
     print(f"  Frameworks: {', '.join(wf['frameworks'])}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from config import load_config
@@ -7418,7 +7780,7 @@ config = load_config()
 environments = config.get("python_environments", {})
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\config_API.md*
 
 ## python
 from diagnostics import PLATFORMS, check_platform_status
@@ -7458,7 +7820,7 @@ for pkg, name in unavailable:
     print(f"  ✗ {name}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 from diagnostics import check_platform_status
@@ -7490,7 +7852,7 @@ if unavailable:
         print(f"  - {name} ({pkg})")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 from diagnostics import check_platform_status
@@ -7504,7 +7866,7 @@ from diagnostics import check_platform_status
 available, unavailable = check_platform_status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## python
 from diagnostics import check_platform_status, PLATFORMS
@@ -7532,7 +7894,7 @@ mod = importlib.import_module("torch")
 print(f"PyTorch version: {torch.__version__}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 from health_monitor import PlatformHealthMonitor
@@ -7548,7 +7910,7 @@ monitor = PlatformHealthMonitor()
 monitor.print_status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## python
 from improvements.mlflow_integration import MLflowLogger
@@ -7606,7 +7968,7 @@ logger.end_run()
 # mlflow ui
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 from improvements.mlflow_integration import MLflowLogger
@@ -7644,7 +8006,7 @@ logger.log_model(model, artifact_path="custom_model")
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 from improvements.mlflow_integration import MLflowLogger
@@ -7694,7 +8056,7 @@ logger.log_metrics({
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 from improvements.onnx_integration import (
@@ -7738,7 +8100,7 @@ outputs = session.run(None, {"input": numpy_array})
 ONNXExporter.optimize_onnx("in.onnx", "out.onnx", level=2)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 from improvements.onnx_integration import ONNXExporter
@@ -7762,7 +8124,7 @@ ONNXExporter.optimize_onnx(
 )
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 from improvements.onnx_integration import ONNXExporter
@@ -7780,7 +8142,7 @@ framework = ONNXExporter.detect_framework(model)
 print(f"Detected: {framework}")  # "pytorch", "tensorflow", etc.
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 from improvements.onnx_integration import load_onnx_model
@@ -7812,7 +8174,7 @@ outputs = session.run(None, inputs)
 print(f"Output: {outputs}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -7850,7 +8212,7 @@ def train_model(data_chunk, lr=0.001):
 result = train_model.remote(training_data, lr=0.01)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -7892,7 +8254,7 @@ result = ray.get(future)
 results = ray_int.parallel_map(func, items)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -7926,7 +8288,7 @@ partitions = ray_int.distribute_data(large_data, num_partitions=4)
 results = ray_int.parallel_map(process_data, partitions)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -7962,7 +8324,7 @@ results = ray_int.parallel_map(process_item, items)
 print(results)  # [2, 4, 6, 8, 10]
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -8016,7 +8378,7 @@ results = ray_int.parallel_map(train_config, configs)
 best = max(results, key=lambda r: r["accuracy"])
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from improvements.ray_integration import RayIntegration
@@ -8064,7 +8426,7 @@ for r in results:
     print(r)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\ray_integration_API.md*
 
 ## python
 from metrics_tracker import MetricsTracker
@@ -8082,7 +8444,7 @@ tracker.record_run(success=True, duration=5.2)
 rate = tracker.get_success_rate()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## python
 from ml_platforms import config
@@ -8102,115 +8464,7 @@ from ml_platforms.diagnostics import check_platform_status
 from ml_platforms import list_platforms  # From config.py
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
-
-## python
-from ml_platforms.improvements.enhanced_qlearning import HyperparameterTuner
-
-# Auto-tune with Optuna
-tuner = HyperparameterTuner(num_trials=50)
-best = tuner.tune()
-print(f"Best: alpha={best['alpha']}, gamma={best['gamma']}")
-
-
-**Category:** inline_code
-
-Term: python
-from ml_platforms.improvements.enhanced_qlearning import HyperparameterTuner
-
-# Auto-tune with Optuna
-tuner = HyperparameterTuner(num_trials=50)
-best = tuner.tune()
-print(f"Best: alpha={best['alpha']}, gamma={best['gamma']}")
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
-
-## python
-from ml_platforms.improvements.enhanced_qlearning import MultiAgentQLearning
-
-# Create 4 agents
-agents = MultiAgentQLearning(num_agents=4, num_states=100, num_actions=30)
-
-# Vote on best action
-action = agents.select_action(state=5, epsilon=0.1)
-
-# Get consensus probabilities
-consensus = agents.get_consensus(5)
-
-
-**Category:** inline_code
-
-Term: python
-from ml_platforms.improvements.enhanced_qlearning import MultiAgentQLearning
-
-# Create 4 agents
-agents = MultiAgentQLearning(num_agents=4, num_states=100, num_actions=30)
-
-# Vote on best action
-action = agents.select_action(state=5, epsilon=0.1)
-
-# Get consensus probabilities
-consensus = agents.get_consensus(5)
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
-
-## python
-from ml_platforms.improvements.enhanced_qlearning import PrioritizedReplay
-
-# O(log N) priority sampling
-replay = PrioritizedReplay(capacity=10000)
-
-# Add transition
-replay.push(state, action, reward, next_state, done)
-
-# Sample batch
-batch, weights, indices = replay.sample(batch_size=32)
-
-
-**Category:** inline_code
-
-Term: python
-from ml_platforms.improvements.enhanced_qlearning import PrioritizedReplay
-
-# O(log N) priority sampling
-replay = PrioritizedReplay(capacity=10000)
-
-# Add transition
-replay.push(state, action, reward, next_state, done)
-
-# Sample batch
-batch, weights, indices = replay.sample(batch_size=32)
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
-
-## python
-from ml_platforms.improvements.enhanced_qlearning import fast_q_update
-
-# Numba-accelerated Q-update
-q, loss = fast_q_update(
-    q_table, target_table,
-    states, actions, rewards, next_states, dones,
-    gamma=0.95, alpha=0.1
-)
-
-
-**Category:** inline_code
-
-Term: python
-from ml_platforms.improvements.enhanced_qlearning import fast_q_update
-
-# Numba-accelerated Q-update
-q, loss = fast_q_update(
-    q_table, target_table,
-    states, actions, rewards, next_states, dones,
-    gamma=0.95, alpha=0.1
-)
-
-
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\Azazael_ENHANCEMENT_PLAN.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\__init__API.md*
 
 ## python
 from mlflow_integration import MLflowLogger
@@ -8240,7 +8494,7 @@ logger.log_metrics({"acc": 0.95, "loss": 0.05})
 logger.log_model(model, artifact_path="model")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## python
 from onnx_integration import export_to_onnx, load_onnx_model
@@ -8266,7 +8520,7 @@ session = load_onnx_model("model.onnx")
 result = session.run(None, {"input": input_data})
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## python
 from pathlib import Path
@@ -8292,7 +8546,7 @@ def safe_resolve(base: Path, user_path: str) -> Path:
     return target
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\SECURITY_AUDIT_CHECKLIST.md*
 
 ## python
 from persephone import Persephone
@@ -8314,7 +8568,7 @@ p = Persephone()
 horus_path = p.azazael.windows_path.replace("Azazael", "HORUS")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8342,7 +8596,7 @@ p.run_in_wsl("python $Azazael_ROOT/scripts/azazael_cli.py status")
 p.run_in_wsl("python $Azazael_ROOT/scripts/run_tests.py")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8364,7 +8618,7 @@ p = Persephone()
 stdout, stderr, code = p.run_in_wsl(f"python {p.azazael.wsl_path}/HYDRA.py --run")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8386,7 +8640,7 @@ p = Persephone()
 stdout, stderr, code = p.run_in_wsl(f"python {p.poindexter.wsl_path}/POINDEXTER.py")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8408,7 +8662,7 @@ p = Persephone()
 stdout, stderr, code = p.run_in_wsl(f"python {p.wormz.wsl_path}/WORMZ.py --all")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8436,7 +8690,7 @@ stdout, stderr, code = p.run_in_wsl(f"python {p.metaworms.wsl_path}/METAWORMS_EN
 stdout, stderr, code = p.run_in_wsl(f"python {p.metaworms.wsl_path}/METAWORMS_POPUP.py")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8464,7 +8718,7 @@ stdout, stderr, code = p.run_in_wsl(f"python {p.metaworms.wsl_path}/ERRORZ.py --
 stdout, stderr, code = p.run_in_wsl(f"python {p.metaworms.wsl_path}/ERRORZ.py --popup")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8488,7 +8742,7 @@ powershell_script = p.setup_environment("powershell")
 print(bash_script)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from persephone import Persephone
@@ -8510,7 +8764,7 @@ p.azazael.windows_path       # C:\Users\clint\Desktop\Azazael
 p.sync_to_wsl(dry_run=True)   # Sync files
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\M-R.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\M-R.md*
 
 ## python
 from persephone import Persephone, PathTranslator
@@ -8558,7 +8812,7 @@ for path in p.pythonpath_extensions:
 stdout, stderr, code = p.run_in_wsl("python --version")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\PERSEPHONE\README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\PERSEPHONE\README.md*
 
 ## python
 from ray_integration import RayIntegration, parallel_map
@@ -8588,7 +8842,7 @@ def train_epoch(data):
 results = parallel_map(train_epoch, all_datasets)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## python
 from run_qanalysis import run_q_analysis
@@ -8602,7 +8856,7 @@ from run_qanalysis import run_q_analysis
 run_q_analysis()  # Check final recommendations
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## python
 from sklearn.ensemble import RandomForestClassifier
@@ -8656,7 +8910,7 @@ logger.log_model(model, artifact_path="rf_model")
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 from tensor_utils import to_tensor, from_tensor
@@ -8686,7 +8940,7 @@ np_array = from_tensor(pt_tensor, framework="numpy")
 framework = detect_framework(tensor)  # "pytorch", "tensorflow", "jax", "numpy"
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## python
 from universal_converter import UniversalConverter
@@ -8726,7 +8980,7 @@ print(f"Output: {result.output_path}")
 result = converter.convert("models/qwen-vl.gguf", "onnx")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## python
 from universal_converter import UniversalConverter
@@ -8742,7 +8996,7 @@ converter = UniversalConverter()
 result = converter.convert("model.gguf", "pytorch")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## python
 from universal_converter import debug_conversion
@@ -8756,7 +9010,7 @@ from universal_converter import debug_conversion
 debug_conversion("model.gguf", "pytorch")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\CONVERTER_README.md*
 
 ## python
 from vectorize_utils import vmap, jit, grad
@@ -8786,7 +9040,7 @@ def loss_fn(params, x, y):
     return mse(forward(params, x), y)
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\improvements\IMPROVEMENTS.md*
 
 ## python
 from verify_moe import DeepLearningQAnalyzer
@@ -8810,7 +9064,7 @@ print(f"Recommended: {suggestion['recommended']}")
 print(f"Confidence: {suggestion['confidence']}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## python
 from verify_moe import run_deep_learning_q_analysis
@@ -8826,7 +9080,7 @@ from verify_moe import run_deep_learning_q_analysis
 results = run_deep_learning_q_analysis()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## python
 from verify_moe import verify_system
@@ -8858,7 +9112,7 @@ report = verify_system()
 # }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\qlearning\verify_moe_API.md*
 
 ## python
 from verify_moe import verify_system
@@ -8872,7 +9126,7 @@ from verify_moe import verify_system
 report = verify_system()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\FILE_EXPLANATIONS.md*
 
 ## python
 from verify_moe import verify_system, DeepLearningQAnalyzer
@@ -8906,7 +9160,7 @@ suggestion = analyzer.suggest_best_framework("computer_vision", gpu_available=Tr
 print(f"Recommended: {suggestion['recommended']}")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\MOE_VERIFICATION_README.md*
 
 ## python
 from version import compare_versions, is_newer
@@ -8934,7 +9188,7 @@ if is_newer("2.1.0", "2.0.0"):
     print("Upgrade available!")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\CHANGELOG.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\CHANGELOG.md*
 
 ## python
 import horus
@@ -8950,7 +9204,7 @@ horus.display_results()
 horus.config_output(format="html", destination="popup")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## python
 import hydra
@@ -8986,7 +9240,7 @@ adaptations = cluster.adaptive_learn()
 status = cluster.get_cluster_status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\HYDRA\DOCUMENTATION\HYDRA.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\HYDRA\DOCUMENTATION\HYDRA.md*
 
 ## python
 import hydra
@@ -9004,7 +9258,7 @@ cluster.run_sequential()
 cluster.adaptive_learn()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A-F.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A-F.md*
 
 ## python
 import importlib
@@ -9030,7 +9284,7 @@ def get_version(pkg_name):
         return None
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\core\diagnostics_API.md*
 
 ## python
 import tensorflow as tf
@@ -9074,7 +9328,7 @@ logger.log_model(model, artifact_path="tf_model")
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 import terence
@@ -9110,7 +9364,7 @@ terence.fix_all(apply=True)
 terence.status()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\UTILITIES\TERENCE\100_USES.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\UTILITIES\TERENCE\100_USES.md*
 
 ## python
 import torch
@@ -9166,7 +9420,7 @@ export_to_onnx(
 print("Model exported!")
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\onnx_integration_API.md*
 
 ## python
 import torch
@@ -9220,7 +9474,7 @@ logger.log_model(model, artifact_path="model")
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 import xgboost as xgb
@@ -9262,7 +9516,7 @@ logger.log_model(model, artifact_path="xgb_model")
 logger.end_run()
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\docs\integration\mlflow_integration_API.md*
 
 ## python
 result = {
@@ -9290,7 +9544,7 @@ result = {
 }
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\CODEX\DOCUMENTATION\TD-001_AZAZAEL_INTEGRATION.md*
 
 ## python
 torch.cuda.OutOfMemoryError: CUDA out of memory
@@ -9302,7 +9556,7 @@ Term: python
 torch.cuda.OutOfMemoryError: CUDA out of memory
 
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\ml_platforms\TROUBLESHOOTING.md*
 
 ## python_assignment
 
@@ -9310,7 +9564,23 @@ torch.cuda.OutOfMemoryError: CUDA out of memory
 
 Term: python_assignment
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A.md*
+
+## python_count
+
+**Category:** variable
+
+Variable: python_count
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## python_data
+
+**Category:** variable
+
+Variable: python_data
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
 
 ## python_files
 
@@ -9318,7 +9588,7 @@ Term: python_assignment
 
 Variable: python_files
 
-*Source: `python_assignment` | File: C:\Users\clint\azazael\src\ORCHESTRATION\TARBABY.py*
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\TARBABY.py*
 
 ## python_function
 
@@ -9326,4 +9596,45 @@ Variable: python_files
 
 Term: python_function
 
-*Source: `markdown_inline` | File: C:\Users\clint\azazael\src\ORCHESTRATION\BIBL\A.md*
+*Source: `markdown_inline` | File: C:\Azazael\azazael\src\ORCHESTRATION\BIBL\A.md*
+
+## python_info
+
+**Category:** variable
+
+Variable: python_info
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SelfImprovingGUI.py*
+
+## python_procs
+
+**Category:** variable
+
+Variable: python_procs
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## python_root
+
+**Category:** variable
+
+Variable: python_root
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManagerGUI.py*
+
+## python_vars
+
+**Category:** variable
+
+Variable: python_vars
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\SystemManager.py*
+
+## pythons
+
+**Category:** variable
+
+Variable: pythons
+
+*Source: `python_assignment` | File: C:\Azazael\azazael\src\ORCHESTRATION\FusionHealer.py*
+
