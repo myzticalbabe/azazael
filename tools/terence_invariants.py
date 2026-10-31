@@ -1442,14 +1442,22 @@ def _control_no_false_import_failure():
 # WHY THIS EXISTS (2026-09-30). The quartet's four environments each have a
 # DECLARED role, and the declarations are already written down --
 # sync-ubuntu.exclude, SYNC.md "Quartet Sync Strategy", CROSS_ENV_MANIFEST.md.
-#   Kali Linux   = CANONICAL SOURCE (owns vermillion_lightfury)
+#   Kali Linux   = CANONICAL SOURCE
 #   Ubuntu-26.04 = ML ACCELERATOR (lean ML subset; HTML->MP4 belongs to Windows)
 #   G: drive     = ARCHIVE / SOURCE OF TRUTH
 #   Windows 11   = active-dev MIRROR
 # Nothing checked them. So Ubuntu accumulated a video/render surface
 # (src/CODEX/VIDEOS, OUTPUT/videos, the CAIN pipeline skills) that its role
-# forbids, plus a Kali-native pillar (vermillion_lightfury) that SYNC.md marks
-# Ubuntu-forbidden -- four environments drift because one role was unasserted.
+# forbids -- four environments drift because one role was unasserted.
+#
+# CORRECTION 2026-10-31 (user-stated): "Vermillion LightFury is the quartet
+# architecture ... it runs in all environments." The contract below used to
+# FORBID vermillion_lightfury on Windows and Ubuntu on the reading that it was
+# a Kali-only pillar. That was wrong twice over: it under-scoped the name to
+# one pillar, and it would have fired a role violation on the CORRECT
+# arrangement the moment the pillar was actually deployed there -- a gate that
+# punishes the desired state. The assertion is now inverted: every live pillar
+# is REQUIRED to carry it as a sibling, and its absence is the fault.
 #
 # This is a SOURCE oracle: it reads the declared contract and the tree and
 # reports the difference. It is deliberately NOT machine-repairable -- "rip the
@@ -1472,17 +1480,24 @@ ENV_CONTRACT = {
             "src/CODEX/VIDEOS", "src/CODEX/OUTPUT/videos", "src/output/videos",
             "templates/video",
         ],
-        # a sibling of the tree: a Kali-native pillar must not sit NEXT TO the ML node
-        "forbidden_base": ["vermillion_lightfury"],
+        # Vermillion LightFury runs in ALL environments, so a sibling copy is
+        # required here, not forbidden. See the CORRECTION note above.
+        "required_base": ["vermillion_lightfury"],
         "why": ("Ubuntu-26.04 is the quartet's ML ACCELERATOR; sync-ubuntu.exclude "
-                "keeps it lean (~400 MB) and HTML->MP4 rendering belongs to Windows"),
+                "keeps it lean (~400 MB) and HTML->MP4 rendering belongs to Windows. "
+                "Vermillion LightFury is required in every pillar."),
     },
     "windows": {
         "forbidden": [],
-        "forbidden_base": ["vermillion_lightfury"],
-        "why": "SYNC.md: vermillion_lightfury is Kali-native, deprecated on Windows",
+        "required_base": ["vermillion_lightfury"],
+        "why": ("the quartet architecture runs in every environment; a missing "
+                "vermillion_lightfury is the fault, not the presence of one"),
     },
-    "kali": {"forbidden": [], "why": "canonical source; owns vermillion_lightfury"},
+    "kali": {"forbidden": [],
+             "required_base": ["vermillion_lightfury"],
+             "why": "canonical source; carries vermillion_lightfury"},
+    # The archive is not a pillar that RUNS anything, so presence is not
+    # asserted here: G: holds whatever the pillars have published.
     "g_drive": {"forbidden": [], "why": "archive / source of truth"},
 }
 
@@ -1546,6 +1561,21 @@ def _contract_violations(root, env, contract, base=None):
     return hits
 
 
+def _contract_missing(root, env, contract, base=None):
+    """PURE: which REQUIRED siblings are absent for `env`.
+
+    The mirror of `_contract_violations`: that one reports paths whose
+    PRESENCE is the fault, this one reports paths whose ABSENCE is. Kept
+    separate and pure so the negative control can drive both from a synthetic
+    fixture instead of the live tree.
+    """
+    spec = contract.get(env) or {}
+    if not base:
+        return []
+    return [rel for rel in spec.get("required_base", ())
+            if not os.path.exists(os.path.join(base, *rel.split("/")))]
+
+
 def _looks_like_project_root(path):
     """PURE: is this an azazael-shaped project TREE, or a directory that merely
     shares a mirror-root NAME?
@@ -1584,6 +1614,14 @@ def oracle_environment_contract():
                 detail="forbidden in the %s environment: %s"
                        % (env, ENV_CONTRACT[env]["why"]),
                 severity="high", remedy=None, verifier=None))
+        for miss in _contract_missing(AZ, env, ENV_CONTRACT, base):
+            faults.append(Fault(
+                fault_id="envrole:%s:missing:%s" % (env, miss),
+                klass="environment_role_violation",
+                subject=os.path.join(base, miss),
+                detail=("REQUIRED in the %s environment but absent: %s"
+                        % (env, ENV_CONTRACT[env]["why"])),
+                severity="high", remedy=None, verifier=None))
     # An ARCHIVE legitimately holds many project trees (G: is the source of
     # truth and carries azazael, azazael-dev, ...). "One canonical tree" is a
     # rule about a live PILLAR, not about an archive, so duplicate_mirrors is
@@ -1604,7 +1642,15 @@ def oracle_environment_contract():
 
 def _control_no_false_environment_contract():
     """A tree matching its role must stay silent; a tree with a forbidden path
-    must fire. Runs the pure detectors on synthetic fixtures, not the live tree."""
+    must fire. Runs the pure detectors on synthetic fixtures, not the live tree.
+
+    UPDATED 2026-10-31 for the inverted Vermillion LightFury contract. The old
+    control asserted that a sibling copy was a VIOLATION -- which is now the
+    required state. A control that still tests the superseded rule fails the
+    oracle while the code is right, and passing it would mean the change never
+    landed. It now asserts both directions: a missing pillar fires, a present
+    one stays silent.
+    """
     import tempfile
     clean = tempfile.mkdtemp(prefix="terence_env_clean_")
     dirty = tempfile.mkdtemp(prefix="terence_env_dirty_")
@@ -1615,10 +1661,18 @@ def _control_no_false_environment_contract():
         os.makedirs(os.path.join(dirty, "build"), exist_ok=True)
         if not _contract_violations(dirty, "ubuntu", ENV_CONTRACT, dirty):
             return False, "missed a forbidden path on a dirty tree"
+        # ABSENT pillar = the fault now.
+        if not _contract_missing(os.path.join(base, "tree"), "ubuntu",
+                                 ENV_CONTRACT, base):
+            return False, "missed a REQUIRED pillar that is absent"
+        # PRESENT pillar = correct, must stay silent in both detectors.
         os.makedirs(os.path.join(base, "vermillion_lightfury"), exist_ok=True)
-        if not _contract_violations(os.path.join(base, "tree"), "ubuntu",
-                                    ENV_CONTRACT, base):
-            return False, "missed a forbidden sibling (base) path"
+        if _contract_missing(os.path.join(base, "tree"), "ubuntu",
+                             ENV_CONTRACT, base):
+            return False, "fired on a REQUIRED pillar that is present"
+        if _contract_violations(os.path.join(base, "tree"), "ubuntu",
+                                ENV_CONTRACT, base):
+            return False, "a present Vermillion LightFury tree is not a violation"
         os.makedirs(os.path.join(base, "azazael", "src"), exist_ok=True)
         if len(_mirror_roots(base)) != 1:
             return False, "one real mirror root must not be a violation"
@@ -1639,8 +1693,9 @@ def _control_no_false_environment_contract():
     finally:
         for d in (clean, dirty, base):
             shutil.rmtree(d, ignore_errors=True)
-    return True, ("clean tree silent; forbidden path, real duplicate mirrors, "
-                  "name-only dirs ignored, every fault env-stamped")
+    return True, ("clean tree silent; forbidden path fires; absent Vermillion "
+                  "pillar fires; present one silent; real duplicate mirrors; "
+                  "name-only dirs ignored; every fault env-stamped")
 
 
 # ── relocation staleness: a moved tree must not be referenced at its OLD path ─
@@ -2424,16 +2479,25 @@ def _env_audit(path):
     if env in ENV_CONTRACT:
         print("  role      : %s" % ENV_CONTRACT[env]["why"])
     hits = _contract_violations(path, env, ENV_CONTRACT, base)
+    # Absence can be the fault too: Vermillion LightFury runs in every pillar,
+    # so a missing sibling is reported here exactly like a forbidden one. This
+    # call is what makes the CLI agree with oracle_environment_contract; without
+    # it the contract change was inert and the tool printed "0 violations" on a
+    # pillar that lacks the pillar it requires.
+    missing = _contract_missing(path, env, ENV_CONTRACT, base)
     # An archive legitimately holds many trees; duplicate_mirrors is a rule for
     # live pillars. Kept identical to oracle_environment_contract so the two can
     # never disagree about the same tree.
     mirrors = _mirror_roots(base) if env != "g_drive" else []
     for h in hits:
-        print("  [VIOLATION] %s  (%s)" % (h["path"], h["abs"]))
+        print("  [VIOLATION] forbidden here: %s  (%s)" % (h["path"], h["abs"]))
+    for m in missing:
+        print("  [VIOLATION] REQUIRED but absent: %s  (%s)"
+              % (m, os.path.join(base, m)))
     if len(mirrors) > 1:
         print("  [VIOLATION] %d divergent project roots under %s: %s"
               % (len(mirrors), base, ", ".join(mirrors)))
-    total = len(hits) + (1 if len(mirrors) > 1 else 0)
+    total = len(hits) + len(missing) + (1 if len(mirrors) > 1 else 0)
     if not total:
         print("  RESULT: matches its declared role (0 violations)")
     else:
