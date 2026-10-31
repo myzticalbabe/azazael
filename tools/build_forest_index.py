@@ -122,6 +122,30 @@ def tier_html(tiers: Dict[str, int]) -> str:
     return "\n".join(out)
 
 
+def graphs_html(census: Dict[str, Any]) -> str:
+    """One row per analysed language: files, resolved edges, external, missing.
+
+    A count of "65 javascript modules" was the whole story before; a row that
+    says 0 internal edges and 127 external packages is a different fact about
+    the same 65 files.
+    """
+    graphs = census.get("graphs") or {}
+    if not graphs:
+        return '<p class="dim">no graphs — run the census</p>'
+    rows = ['<tr><th>graph</th><th>files</th><th>edges</th><th>tree pairs</th>'
+            '<th>external</th><th>unresolved</th></tr>']
+    for lang, g in graphs.items():
+        ext = g.get("external_statements") or g.get("external_assets") or 0
+        unres = g.get("unresolved") or {}
+        rows.append(
+            '<tr><td class="nm">%s</td><td class="num">%d</td>'
+            '<td class="num">%d</td><td class="num">%d</td>'
+            '<td class="num">%d</td><td class="num">%d</td></tr>' % (
+                lang, g.get("files") or 0, g.get("statements") or 0,
+                len(g.get("tree_pairs") or []), ext, sum(unres.values())))
+    return "\n".join(rows)
+
+
 def lang_html(plan: Dict[str, Any]) -> str:
     blocks = (plan.get("languages") or {})
     if not blocks:
@@ -241,9 +265,10 @@ def build(index: Dict[str, Any], census: Dict[str, Any],
         __STRADDLE__ straddling · __WASTED__ slots unused<br>
         *straddle = shards from the naive global 24-chunk that span two trees</p>
       </div>
-      <div class="card"><h2>cross-language · resolved, not asserted</h2>
-        <div class="kv">resolved references <b>__XL__</b><br>
-          unresolved <b>__XLU__</b><br>
+      <div class="card"><h2>language graphs · resolved, not asserted</h2>
+        <table class="plan">__GRAPHS__</table>
+        <div class="kv" style="margin-top:8px">cross-language references
+          <b>__XL__</b> resolved · <b>__XLU__</b> unresolved<br>
           code counted <b>__LANGCHIP__</b></div>
       </div>
     </div>
@@ -292,6 +317,7 @@ window.__draw(0);
    .replace("__ROWS__", rows_html(rows)) \
    .replace("__TIERS__", tier_html(tiers)) \
    .replace("__LANGS__", lang_html(plan)) \
+   .replace("__GRAPHS__", graphs_html(census)) \
    .replace("__TOT_SHARDS__", str(tot.get("shards", 0))) \
    .replace("__STRADDLE__", str(tot.get("straddling_shards", 0))) \
    .replace("__WASTED__", "{:,}".format(tot.get("wasted_slots", 0))) \
@@ -331,7 +357,8 @@ def main() -> int:
 
     # Read the artefact back: a page whose numbers did not render is a template.
     check = out.read_text(encoding="utf-8")
-    problems = [tok for tok in ("__ROWS__", "__TIERS__", "__LANGS__", "__XL__")
+    problems = [tok for tok in ("__ROWS__", "__TIERS__", "__LANGS__", "__GRAPHS__",
+                                "__XL__")
                 if tok in check]
     if problems:
         print("VERIFY FAILED: unsubstituted tokens %r" % problems,
