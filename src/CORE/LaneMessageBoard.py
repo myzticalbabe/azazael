@@ -14,9 +14,16 @@ Topics:
 
 Usage:
     board = LaneMessageBoard()
-    board.post_task("kilo", {"id": 1039, "action": "continue", "detail": "run long test"})
-    board.push_hook("opencode", "freebuff", {"action": "mcp_config_fix"})
+    row = board.post_task("kilo", "continue", "enggram #1039 — run long test",
+                          task_id="1039")
+    row = board.push_hook("freebuff", "mcp_config_fix", "string command → argv ARRAY",
+                          task_id="mcp-001")
     msgs = board.poll_tasks("kilo")
+
+Both post_task and push_hook return the **durable SQLite row id** of the
+delivered task (read back after writing), not the MemoryBus message id.
+The bus id is a per-process counter on the fallback path, so it is not
+citable across sessions; the row id is what pollers cite as Board-<id>.
 
 All messages are durably stored in PAMS (with SQLite fallback), so they
 survive session restarts — unlike message-history.json which is ephemeral chat log.
@@ -25,6 +32,7 @@ survive session restarts — unlike message-history.json which is ephemeral chat
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
 from dataclasses import dataclass, field
@@ -32,6 +40,8 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -72,6 +82,35 @@ class LaneTask:
             status=d.get("status", "pending"),
             metadata=d.get("metadata", {}),
         )
+
+
+def _task_sig(payload: Dict[str, Any]):
+    """Identity of one piece of work: its id AND what it says.
+
+    The duplicate check used `task_id` alone, so a deliberately revised task
+    (same id, new detail) was retired as a duplicate of the row it superseded
+    and the revision was silently lost -- measured 2026-10-31 on Board-46850.
+
+    Values are normalised to a comparable STRING rather than handed to SQLite
+    as bind parameters: `detail` is a dict on legacy rows, and binding a dict
+    raises. The first version of this fix did exactly that and broke
+    `test_a_dict_detail_does_not_crash_the_claim`.
+    """
+    tid = payload.get("task_id")
+    if not tid:
+        return None
+
+    def norm(v: Any) -> str:
+        if v is None:
+            return ""
+        if isinstance(v, str):
+            return v
+        try:
+            return json.dumps(v, sort_keys=True, default=str)
+        except Exception:
+            return str(v)
+
+    return (tid, norm(payload.get("action")), norm(payload.get("detail")))
 
 
 class LaneMessageBoard:
@@ -116,6 +155,100 @@ class LaneMessageBoard:
 
     # -- public API: post ---------------------------------------------------
 
+    def _open_task_row(
+        self,
+        lane: str,
+        task_id: str,
+        action: str,
+        detail: str,
+    ) -> Optional[int]:
+        """board_id of an UNRETIRED row that already says exactly this, else None.
+
+        Measured 2026-10-31: 764 task rows for 370 distinct task_ids. `1039`
+        was posted 75 times and `mcp-001` 76, by an opencode poster firing
+        every ~130 s for six days. Nothing refused a duplicate, so a lane
+        claiming work was handed the same task dozens of times and the queue
+        became mostly copies.
+
+        Only an IDENTICAL re-post is collapsed. A row whose action or detail
+        differs is a changed instruction and must still post -- silently
+        swallowing an update would be worse than the duplicate it prevents.
+        A retired row (done/blocked) never blocks a fresh post.
+        """
+        try:
+            conn = self._state_conn()
+        except Exception as exc:
+            # Not a silent None: the caller reads None as "no duplicate", so an
+            # unlogged failure here would disable the duplicate guard invisibly.
+            _log.warning("_open_task_row: board store unavailable (%s)", exc)
+            return None
+        try:
+            rows = conn.execute(
+                "SELECT q.id, q.content "
+                "FROM memorybus_queue q "
+                "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+                "WHERE q.topic = ? "
+                "  AND json_extract(q.content, '$.task_id') = ? "
+                "  AND (s.state IS NULL OR s.state IN ('open', 'claimed')) "
+                "ORDER BY q.id DESC LIMIT 500",
+                (self._task_topic(lane), task_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        # Compared through _task_sig, the ONE definition of task identity, not
+        # through SQL: a legacy `detail` holding a dict comes back from
+        # json_extract as JSON text, so a string compare would call an identical
+        # row different and post the duplicate this guard exists to prevent.
+        want = _task_sig({"task_id": task_id, "action": action, "detail": detail})
+        for row in rows:
+            try:
+                have = json.loads(row[1] or "{}")
+            except Exception:
+                continue
+            if _task_sig(have) == want:
+                return int(row[0])
+        return None
+
+    def _readback_task_row(
+        self,
+        topic: str,
+        task_id: Optional[str] = None,
+    ) -> Optional[int]:
+        """Return the durable row id of the newest message just written.
+
+        The house rule is "after posting, re-read the row back — a post you
+        cannot read back did not land". `MemoryBus.publish` cannot satisfy it:
+        on the fallback path it returns `next(self._message_counter)`, an
+        in-memory counter that restarts at 1 in every process, and on the PAMS
+        path it returns a PAMS message id. Neither is a `memorybus_queue.id`,
+        so a caller logging the return value as a receipt cites a row that
+        does not exist. This reads the queue back and returns the real id.
+        """
+        try:
+            conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
+        except Exception as exc:
+            _log.warning("readback open failed for %s: %s", topic, exc)
+            return None
+        try:
+            if task_id is None:
+                row = conn.execute(
+                    "SELECT MAX(id) FROM memorybus_queue WHERE topic = ?", (topic,)
+                ).fetchone()
+            else:
+                # json_extract keeps the match on the payload's own task_id so a
+                # concurrent poster to the same topic cannot be mistaken for ours.
+                row = conn.execute(
+                    "SELECT MAX(id) FROM memorybus_queue "
+                    "WHERE topic = ? AND json_extract(content, '$.task_id') = ?",
+                    (topic, task_id),
+                ).fetchone()
+            return int(row[0]) if row and row[0] is not None else None
+        except Exception as exc:
+            _log.warning("readback query failed for %s: %s", topic, exc)
+            return None
+        finally:
+            conn.close()
+
     def post_task(
         self,
         lane: str,
@@ -128,10 +261,18 @@ class LaneMessageBoard:
         """
         Post a task to a lane's task queue.
 
-        Returns the message ID from the bus (PAMS or local fallback).
+        Returns the durable `memorybus_queue.id` of the delivered task, read
+        back after the write — not the MemoryBus message id. Raises
+        RuntimeError if the write cannot be read back.
         """
         if lane not in self.VALID_LANES:
             raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
+        if task_id:
+            existing = self._open_task_row(lane, task_id, action, detail)
+            if existing is not None:
+                _log.info("post_task: %s already open on %s as board %d -- identical "
+                          "re-post collapsed, not duplicated", task_id, lane, existing)
+                return existing
         task = LaneTask(
             lane=lane,
             task_id=task_id,
@@ -140,28 +281,69 @@ class LaneMessageBoard:
             source_lane=source_lane or self.lane,
             metadata=metadata or {},
         )
-        return self._bus.publish(
-            self._task_topic(lane),
+        topic = self._task_topic(lane)
+        self._bus.publish(
+            topic,
             task.to_dict(),
             metadata={"type": "lane_task", "lane": lane, "source": self.lane},
             source=self.lane,
         )
+        row = self._readback_task_row(topic, task_id)
+        if row is None:
+            raise RuntimeError(
+                f"post_task: task for lane {lane!r} (task_id={task_id!r}) was "
+                "published but no durable queue row could be read back — "
+                "treat the task as NOT delivered"
+            )
+        return row
+
+    def _publish_then_read_back(
+        self,
+        topic: str,
+        payload: Dict[str, Any],
+        metadata: Dict[str, Any],
+        what: str,
+    ) -> int:
+        """Publish, then return the durable `memorybus_queue.id` of that write.
+
+        `post_task` was taught this contract on 2026-10-31 and its two sibling
+        posters were not: `post_status` returned 1 — the in-memory bus counter,
+        which restarts at 1 in every process — while the row actually landed at
+        id 46858. A caller logging that number cites a row that does not exist.
+
+        The check is `after > before` on the queue, not `after is not None`:
+        read-back alone would happily return somebody else's older row when our
+        own write failed.
+        """
+        before = self.max_id()
+        self._bus.publish(topic, payload, metadata=metadata, source=self.lane)
+        row = self._readback_task_row(topic)
+        if row is None or row <= before:
+            raise RuntimeError(
+                f"{what}: published to {topic} but no new durable queue row could "
+                f"be read back (max id before={before}, after={row}) — treat this "
+                "post as NOT delivered"
+            )
+        return row
 
     def post_announcement(
         self,
         announcement: str,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> int:
-        """Broadcast an announcement to all lanes."""
-        return self._bus.publish(
+        """Broadcast an announcement to all lanes.
+
+        Returns the durable `memorybus_queue.id`, read back after the write.
+        """
+        return self._publish_then_read_back(
             self._announce_topic(),
             {
                 "announcement": announcement,
                 "source_lane": self.lane,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             },
-            metadata={"type": "announcement", "source": self.lane},
-            source=self.lane,
+            {"type": "announcement", "source": self.lane},
+            "post_announcement",
         )
 
     def post_status(
@@ -170,8 +352,13 @@ class LaneMessageBoard:
         detail: str = "",
         metadata: Optional[Dict[str, Any]] = None,
     ) -> int:
-        """Post a status update from this lane."""
-        return self._bus.publish(
+        """Post a status update from this lane.
+
+        Returns the durable `memorybus_queue.id`, read back after the write —
+        not the MemoryBus counter, which is per-process and starts at 1 in
+        every lane.
+        """
+        return self._publish_then_read_back(
             self._status_topic(self.lane),
             {
                 "lane": self.lane,
@@ -179,8 +366,8 @@ class LaneMessageBoard:
                 "detail": detail,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             },
-            metadata={"type": "lane_status", "lane": self.lane, "source": self.lane},
-            source=self.lane,
+            {"type": "lane_status", "lane": self.lane, "source": self.lane},
+            "post_status",
         )
 
     def push_hook(
@@ -194,14 +381,33 @@ class LaneMessageBoard:
         """
         Push a task from this lane to another lane via the push hook.
 
-        Equivalent to post_task but recorded on a push-specific topic
-        so push-hook traffic can be filtered/audited separately.
+        Equivalent to post_task but recorded on a push-specific topic so
+        push-hook traffic can be filtered/audited separately.
+
+        Ordering is deliberate: the task is **delivered first**, then the
+        audit row is written carrying `delivery_row` — the durable id of the
+        task that actually landed. The audit row therefore records a fact
+        ("this row exists in that lane's queue"), never an intent, and the two
+        rows are always joinable even when `task_id` is None. A failure to
+        write the audit row is logged rather than swallowed, because a hook
+        whose stated purpose is auditability must not lose its audit silently.
+
+        Returns the durable `memorybus_queue.id` of the delivered task.
         """
         if dst_lane not in self.VALID_LANES:
             raise ValueError(
                 f"dst_lane must be one of {self.VALID_LANES}, got {dst_lane!r}"
             )
-        # Audit record on the push-specific topic (separate from delivery).
+        # Delivery record on the destination lane's task queue.
+        delivery_row = self.post_task(
+            lane=dst_lane,
+            action=action,
+            detail=detail,
+            task_id=task_id,
+            source_lane=self.lane,
+            metadata=metadata or {},
+        )
+        # Audit record on the push-specific topic, linked to the delivery.
         try:
             self._bus.publish(
                 self._push_topic(self.lane, dst_lane),
@@ -211,22 +417,21 @@ class LaneMessageBoard:
                     "task_id": task_id,
                     "action": action,
                     "detail": detail,
+                    "delivery_row": delivery_row,
+                    "self_push": dst_lane == self.lane,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                 },
                 metadata={"type": "lane_push", "src": self.lane, "dst": dst_lane},
                 source=self.lane,
             )
-        except Exception:
-            pass
-        # Delivery record on the destination lane's task queue.
-        return self.post_task(
-            lane=dst_lane,
-            action=action,
-            detail=detail,
-            task_id=task_id,
-            source_lane=self.lane,
-            metadata=metadata or {},
-        )
+        except Exception as exc:
+            # Delivered but unlogged: say so loudly instead of passing.
+            _log.error(
+                "push_hook: delivered to %s as row %s but the audit row on %s "
+                "FAILED (%s) — this push is not auditable",
+                dst_lane, delivery_row, self._push_topic(self.lane, dst_lane), exc,
+            )
+        return delivery_row
 
     # -- public API: subscribe ----------------------------------------------
 
@@ -277,6 +482,8 @@ class LaneMessageBoard:
         topic: str,
         since_id: int = 0,
         limit: int = 50,
+        exclude_retired: bool = False,
+        exclude_claimed: bool = False,
     ) -> List[Dict[str, Any]]:
         """
         Read messages directly from the shared persistent SQLite queue.
@@ -288,12 +495,58 @@ class LaneMessageBoard:
         ORDER BY id ASC LIMIT took the OLDEST N rows, so any queue longer
         than `limit` hid every new task from polling lanes. Now takes the
         NEWEST N (DESC) and re-sorts ASC, so a poll always sees live orders.
+
+        FIX 2026-10-31 (reader-blindness): `exclude_retired` joins
+        `lane_task_state`, the queue's other half. Until then the poll path
+        never asked whether a row was retired, while `claim_tasks` and
+        `task_stats` did — measured on the real board, `poll_tasks` returned
+        340 rows for the kilo lane against 25 actionable ones, 313 of them
+        `archived pre-cutover backlog`. The filter is applied IN SQL rather
+        than after the LIMIT on purpose: post-filtering would hand back
+        (limit - retired) rows, so a lane's batch would silently shrink as
+        history grew. 'archived' is in the retired set because
+        `archive_backlog` used to write 'blocked' — the same value that means
+        cannot-proceed — so both spellings must read as retired.
         """
         import sqlite3
 
-        from CORE.MemoryBus import _MEMORYBUS_DB_PATH
-
+        # Read the module-level path, not a fresh import. The inner import
+        # shadowed the global with the real store, so a caller that redirects
+        # `LaneMessageBoard._MEMORYBUS_DB_PATH` (every test fixture does) was
+        # silently ignored here and polled the live board instead.
         results: List[Dict[str, Any]] = []
+        extra = ""
+        extra_args: List[Any] = []
+        if exclude_retired or exclude_claimed:
+            try:
+                # A store that predates the state table would make the NOT
+                # EXISTS below raise, and the outer handler would turn that
+                # into an EMPTY poll — a lane seeing no work at all. Create it
+                # first so the failure mode cannot be "board looks empty".
+                self._state_conn().close()
+            except Exception as exc:
+                _log.warning(
+                    "poll: lane_task_state unavailable (%s); this poll includes "
+                    "retired and claimed rows", exc)
+                exclude_retired = exclude_claimed = False
+        if exclude_retired:
+            extra += (
+                "AND NOT EXISTS (SELECT 1 FROM lane_task_state s "
+                "WHERE s.board_id = memorybus_queue.id "
+                "AND s.state IN ('done', 'blocked', 'archived')) "
+            )
+        if exclude_claimed:
+            # A live lease is work in somebody's hands, not work on offer.
+            # Keeping it here is the same defect as keeping retired rows: on
+            # 2026-10-31 freebuff polled 12 rows against 5 claimable.
+            extra += (
+                "AND NOT EXISTS (SELECT 1 FROM lane_task_state c "
+                "WHERE c.board_id = memorybus_queue.id "
+                "AND c.state = 'claimed' AND c.claimed_at IS NOT NULL "
+                "AND CAST(strftime('%s', c.claimed_at) AS INTEGER) >= ?) "
+            )
+            extra_args.append(
+                int(datetime.now(timezone.utc).timestamp()) - self.CLAIM_LEASE_SECONDS)
         try:
             conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
             conn.row_factory = sqlite3.Row
@@ -302,16 +555,18 @@ class LaneMessageBoard:
                     "SELECT id, topic, content, metadata, source, session_id, timestamp "
                     "FROM memorybus_queue "
                     "WHERE topic LIKE ? AND id > ? "
+                    + extra +
                     "ORDER BY id ASC LIMIT ?",
-                    (topic, since_id, limit),
+                    (topic, since_id, *extra_args, limit),
                 ).fetchall()
             else:
                 rows = conn.execute(
                     "SELECT id, topic, content, metadata, source, session_id, timestamp "
                     "FROM memorybus_queue "
                     "WHERE topic LIKE ? "
+                    + extra +
                     "ORDER BY id DESC LIMIT ?",
-                    (topic, limit),
+                    (topic, *extra_args, limit),
                 ).fetchall()
                 rows = rows[::-1]
             conn.close()
@@ -343,6 +598,8 @@ class LaneMessageBoard:
         lane: str,
         since_id: int = 0,
         limit: int = 50,
+        include_retired: bool = False,
+        include_claimed: bool = False,
     ) -> List[LaneTask]:
         """
         Poll for tasks addressed to a lane.
@@ -352,6 +609,19 @@ class LaneMessageBoard:
         even when PAMS is unavailable.
 
         Returns tasks with message ID > since_id.
+
+        `include_retired=False` (the default) excludes rows the state table
+        marks done/blocked/archived. Before 2026-10-31 this method did not
+        consult that table at all, so every lane instruction that says "poll
+        your queue" showed retired history as live work: kilo 340 rows for 25
+        actionable, freebuff 330 for 7, opencode 99 for 2. Pass
+        `include_retired=True` for the        audit view.
+
+        `include_claimed=False` (the default) also drops rows under a live
+        lease, so what comes back is exactly what `claim_tasks` would hand out.
+        Without it the two still disagreed: freebuff polled 12 against 5
+        claimable. An expired lease is not a claim — that row is available, and
+        `claim_tasks` will hand it back.
         """
         if lane not in self.VALID_LANES:
             raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
@@ -360,11 +630,32 @@ class LaneMessageBoard:
         msgs = self._bus.poll(topic=self._task_topic(lane), since_id=since_id, limit=limit)
 
         # Also read from the shared persistent SQLite queue for cross-instance msgs
-        persistent = self._poll_persistent_queue(self._task_topic(lane), since_id, limit)
+        persistent = self._poll_persistent_queue(
+            self._task_topic(lane), since_id, limit,
+            exclude_retired=not include_retired,
+            # include_retired IS the audit view, so it must show leases too.
+            # Measured 2026-10-31: `--all` returned 328 of freebuff's 335 rows
+            # because the 7 live claims were still being filtered.
+            exclude_claimed=not (include_claimed or include_retired),
+        )
 
         # Merge, deduplicating by id
         seen: set = set()
         tasks: List[LaneTask] = []
+
+        # A same-process post appears twice: once from the live bus (no row id)
+        # and once from the persistent queue (with one). Different id spaces, so
+        # the `seen` set cannot catch it and the lane would be handed the same
+        # work twice. Signature-dedupe the bus copy against the durable copy.
+        durable_sigs = set()
+        for _p in persistent:
+            try:
+                _s = _task_sig(_p["content"] if isinstance(_p["content"], dict)
+                               else json.loads(_p["content"]))
+            except Exception:
+                continue
+            if _s:
+                durable_sigs.add(_s)
 
         for m in msgs:
             mid = m.message_id
@@ -372,9 +663,10 @@ class LaneMessageBoard:
                 continue
             seen.add(mid)
             try:
-                tasks.append(LaneTask.from_dict(
-                    m.content if isinstance(m.content, dict) else json.loads(m.content)
-                ))
+                _content = m.content if isinstance(m.content, dict) else json.loads(m.content)
+                if _task_sig(_content) in durable_sigs:
+                    continue
+                tasks.append(LaneTask.from_dict(_content))
             except Exception:
                 continue
 
@@ -534,6 +826,362 @@ class LaneMessageBoard:
             finally:
                 conn.close()
         return top
+
+    # -- task state: claim / complete (batch-loop support) -------------------
+    #
+    # Until 2026-10-31 nothing recorded that a task had been picked up. The
+    # only `status` field lives INSIDE the content JSON, so a poller could not
+    # filter on it without parsing every row, and every lane re-read its whole
+    # backlog on every poll: lane.freebuff.tasks held 325 rows and
+    # lane.kilo.tasks 321, all permanently `pending`. Driving work in batch
+    # loops off that board made each pass slower, not faster. The state table
+    # below is the missing queue half: `claim` hands out a bounded batch, and
+    # `done`/`block` retire it so later passes see only new work.
+
+    STATE_SCHEMA = """
+        CREATE TABLE IF NOT EXISTS lane_task_state (
+            board_id   INTEGER PRIMARY KEY,
+            lane       TEXT NOT NULL,
+            task_id    TEXT,
+            state      TEXT NOT NULL,          -- claimed | done | blocked | archived
+            claimed_by TEXT,
+            claimed_at TEXT,
+            retired_at TEXT,
+            note       TEXT,
+            attempts   INTEGER NOT NULL DEFAULT 1
+        )
+    """
+    # A claim older than this is reclaimable. Without an expiry a lane that
+    # dies mid-batch strands its tasks forever and the queue silently stalls.
+    CLAIM_LEASE_SECONDS = 1800
+
+    def _state_conn(self):
+        conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute(self.STATE_SCHEMA)
+        return conn
+
+    def claim_tasks(
+        self,
+        lane: str,
+        limit: int = 10,
+        agent: str = "",
+        lease_seconds: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Atomically claim up to `limit` unretired tasks for `lane`.
+
+        Returns dicts: {board_id, task_id, action, detail, source_lane,
+        created_at}. Claims are compare-and-set inside BEGIN IMMEDIATE, so two
+        lanes polling at once cannot both receive the same row. Rows claimed
+        more than `CLAIM_LEASE_SECONDS` ago are treated as abandoned and are
+        handed out again, with `attempts` incremented.
+        """
+        if lane not in self.VALID_LANES:
+            raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
+        lease = self.CLAIM_LEASE_SECONDS if lease_seconds is None else int(lease_seconds)
+        now = datetime.now(timezone.utc)
+        stamp = now.isoformat(timespec="seconds")
+        cutoff = (now.timestamp() - lease)
+
+        conn = self._state_conn()
+        out: List[Dict[str, Any]] = []
+        try:
+            conn.isolation_level = None
+            conn.execute("BEGIN IMMEDIATE")
+            # Candidate rows: on this lane's topic, not done/blocked, and not
+            # claimed by a live claim. Oldest first so a backlog drains in the
+            # order it was posted rather than reverse.
+            rows = conn.execute(
+                "SELECT q.id AS board_id, q.content AS content "
+                "FROM memorybus_queue q "
+                "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+                "WHERE q.topic = ? "
+                "  AND (s.state IS NULL OR s.state = 'claimed') "
+                "  AND (s.claimed_at IS NULL OR "
+                "       CAST(strftime('%s', s.claimed_at) AS INTEGER) < ?) "
+                "ORDER BY q.id ASC LIMIT ?",
+                (self._task_topic(lane), int(cutoff), int(limit)),
+            ).fetchall()
+            # task_ids already live (claimed elsewhere) for this lane. A second
+            # copy of a live task_id is a duplicate: handing it out too means two
+            # agents doing one piece of work.
+            # LIVE claims only. An expired claim is up for grabs, so counting it
+            # as active would make a lease expiry indistinguishable from a
+            # duplicate and the abandoned row could never be reclaimed.
+            # The key is (task_id, action, detail), NOT task_id alone: measured
+            # 2026-10-31, a deliberately revised task (same id, new detail) was
+            # retired as "duplicate of Board-46849" and the revision was lost,
+            # because the id alone cannot tell a re-post from an update.
+            active = set()
+            for _r in conn.execute(
+                "SELECT q.content "
+                "FROM lane_task_state s "
+                "JOIN memorybus_queue q ON q.id = s.board_id "
+                "WHERE s.lane = ? AND s.state = 'claimed' "
+                "AND s.task_id IS NOT NULL AND s.claimed_at IS NOT NULL "
+                "AND CAST(strftime('%s', s.claimed_at) AS INTEGER) >= ?",
+                (lane, int(cutoff)),
+            ).fetchall():
+                try:
+                    _p = json.loads(_r[0] or "{}")
+                except Exception:
+                    continue
+                _s = _task_sig(_p)
+                if _s:
+                    active.add(_s)
+            seen_in_batch: dict[tuple, int] = {}
+            for row in rows:
+                bid = int(row["board_id"])
+                try:
+                    payload = json.loads(row["content"] or "{}")
+                except Exception:
+                    continue
+                # The same task re-posted by several sessions (mcp_config_fix
+                # appears 76 times) must not become 76 pieces of work. A copy is
+                # a duplicate when its CONTENT is already retired, already claimed
+                # elsewhere, or already handed out earlier in this batch.
+                tid = payload.get("task_id")
+                sig = _task_sig(payload)
+                dup_of = None
+                if sig and sig in seen_in_batch:
+                    dup_of = seen_in_batch[sig]
+                elif sig and sig in active:
+                    dup_of = -1          # a live claim elsewhere holds this work
+                elif sig:
+                    for _d in conn.execute(
+                        "SELECT s.board_id, q.content FROM lane_task_state s "
+                        "JOIN memorybus_queue q ON q.id = s.board_id "
+                        "WHERE s.lane = ? AND s.task_id = ? "
+                        "  AND s.state IN ('done','blocked')",
+                        (lane, tid),
+                    ).fetchall():
+                        try:
+                            _dp = json.loads(_d[1] or "{}")
+                        except Exception:
+                            _dp = {}
+                        if _task_sig(_dp) == sig:
+                            dup_of = int(_d[0])
+                            break
+                if dup_of is not None:
+                    conn.execute(
+                        "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
+                        "  retired_at, note, attempts) VALUES (?, ?, ?, 'done', ?, ?, 1) "
+                        "ON CONFLICT(board_id) DO UPDATE SET state='done', "
+                        "  retired_at=excluded.retired_at, note=excluded.note",
+                        (bid, lane, tid, stamp,
+                         f"duplicate of Board-{dup_of}" if dup_of >= 0
+                         else "duplicate: same task_id is already claimed"),
+                    )
+                    continue
+                if sig:
+                    seen_in_batch[sig] = bid
+                conn.execute(
+                    "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
+                    "  claimed_by, claimed_at, attempts) VALUES (?, ?, ?, 'claimed', ?, ?, 1) "
+                    "ON CONFLICT(board_id) DO UPDATE SET "
+                    "  state='claimed', claimed_by=excluded.claimed_by, "
+                    "  claimed_at=excluded.claimed_at, retired_at=NULL, "
+                    "  attempts=lane_task_state.attempts + 1",
+                    (bid, lane, payload.get("task_id"), agent, stamp),
+                )
+                out.append({
+                    "board_id": bid,
+                    "task_id": payload.get("task_id"),
+                    "action": payload.get("action", ""),
+                    "detail": str(payload.get("detail") or "")[:2000],
+                    "source_lane": payload.get("source_lane", ""),
+                    "created_at": payload.get("created_at", ""),
+                })
+            conn.execute("COMMIT")
+        except Exception as exc:
+            try:
+                conn.execute("ROLLBACK")
+            except Exception as rb_exc:
+                # A failed rollback means the transaction state is unknown; the
+                # `pass` this replaces hid exactly that while the outer handler
+                # reported only the original fault.
+                _log.warning("claim_tasks rollback failed for lane %s: %s", lane, rb_exc)
+            _log.warning("claim_tasks failed for lane %s: %s", lane, exc)
+            raise
+        finally:
+            conn.close()
+        return out
+
+    def complete_task(
+        self,
+        board_id: int,
+        state: str = "done",
+        note: str = "",
+    ) -> bool:
+        """Retire a claimed task. state is 'done' or 'blocked'.
+
+        Returns True only when a row moved; False means the id was never
+        claimed (so nothing was retired and the caller must not report it as
+        completed).
+        """
+        if state not in ("done", "blocked"):
+            raise ValueError("state must be 'done' or 'blocked'")
+        stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        conn = self._state_conn()
+        try:
+            cur = conn.execute(
+                "UPDATE lane_task_state SET state=?, retired_at=?, note=? "
+                "WHERE board_id=? AND state='claimed'",
+                (state, stamp, note[:4000], int(board_id)),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+        finally:
+            conn.close()
+
+    def release_task(self, board_id: int) -> bool:
+        """Hand a claimed task back to the queue unretired.
+
+        `complete_task` is for work that is finished or blocked. A lane that
+        claimed a row it cannot do -- wrong tool for the task, or a dispatch
+        that has to go to another lane first -- must be able to put it back
+        without waiting out the 30-minute lease and without pretending it is
+        done. Only a live claim can be released; a retired row is refused so a
+        release can never resurrect completed work.
+        """
+        conn = self._state_conn()
+        try:
+            cur = conn.execute(
+                "DELETE FROM lane_task_state WHERE board_id=? AND state='claimed'",
+                (int(board_id),),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+        finally:
+            conn.close()
+
+    def archive_backlog(
+        self,
+        before_iso: str,
+        lane: Optional[str] = None,
+        dry_run: bool = True,
+        dump_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Retire tasks created before `before_iso` as 'archived', preserving them.
+
+        'archived' is its own state, not 'blocked'. Reusing 'blocked' (the
+        documented cannot-proceed value) meant `stats` reported kilo blocked=313
+        / freebuff blocked=322 and neither number could be read without knowing
+        which producer wrote it.
+
+        A restart should not begin by draining nine days of stale rows in the
+        order they were posted. Rows are NOT deleted and NOT silently dropped:
+        each is written to `dump_path` first, then retired with a note naming
+        this cutover, so the content stays inspectable and the queue starts
+        clean. dry_run (the default) writes the dump and changes nothing.
+        """
+        stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        lanes = [lane] if lane else list(self.VALID_LANES)
+        stamped = []
+        conn = self._state_conn()
+        try:
+            for ln in lanes:
+                rows = conn.execute(
+                    "SELECT q.id AS board_id, q.content AS content "
+                    "FROM memorybus_queue q "
+                    "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+                    "WHERE q.topic = ? "
+                    "  AND (s.state IS NULL OR s.state = 'claimed')",
+                    (self._task_topic(ln),),
+                ).fetchall()
+                for row in rows:
+                    try:
+                        payload = json.loads(row["content"] or "{}")
+                    except Exception:
+                        payload = {}
+                    created = str(payload.get("created_at") or "")
+                    if not created or created >= before_iso:
+                        continue
+                    stamped.append({
+                        "lane": ln,
+                        "board_id": int(row["board_id"]),
+                        "task_id": payload.get("task_id"),
+                        "action": payload.get("action"),
+                        "created_at": created,
+                        # detail is a string in most rows but a dict in a few
+                        # legacy posts; slicing a dict raises KeyError: slice.
+                        "detail": str(payload.get("detail") or "")[:4000],
+                    })
+            if dump_path:
+                with open(dump_path, "w", encoding="utf-8") as fh:
+                    fh.write("lane\tboard_id\ttask_id\taction\tcreated_at\tdetail\n")
+                    for r in stamped:
+                        fh.write("\t".join(str(r[k]).replace("\t", " ").replace("\n", " ")
+                                          for k in ("lane", "board_id", "task_id", "action",
+                                                    "created_at", "detail")) + "\n")
+            if not dry_run:
+                for r in stamped:
+                    conn.execute(
+                        "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
+                        "  retired_at, note, attempts) VALUES (?, ?, ?, 'archived', ?, ?, 1) "
+                        "ON CONFLICT(board_id) DO UPDATE SET state='archived', "
+                        "  retired_at=excluded.retired_at, note=excluded.note",
+                        (r["board_id"], r["lane"], r["task_id"], stamp,
+                         f"archived pre-cutover backlog (< {before_iso}) {stamp}"),
+                    )
+                conn.commit()
+            return {"matched": len(stamped), "retired": 0 if dry_run else len(stamped),
+                    "dry_run": dry_run, "dump_path": dump_path,
+                    "by_lane": {ln: sum(1 for r in stamped if r["lane"] == ln)
+                                for ln in lanes}}
+        finally:
+            conn.close()
+
+    def task_stats(self, lane: Optional[str] = None) -> Dict[str, int]:
+        """Per-state counts, plus the two numbers a batch loop actually needs.
+
+        `available` is what `claim_tasks` can hand out right now;
+        `claimed` is work under a live lease; `retired` rolls up the three
+        end states. Until 2026-10-31 one number, `open`, counted
+        `(state IS NULL OR state='claimed')` — so it included work another
+        agent held a live claim on, while `claim_tasks` correctly excluded it.
+        Measured on the real board the same minute: freebuff reported open=11
+        with claimed=7 and `claim_tasks` yielded 4. A lane sizing its batch
+        off `open` planned work it could not get.
+
+        `open` is kept because the lane instruction files name it, but it now
+        means `available`; `open_incl_claimed` carries the old inclusive
+        figure so nothing silently changes meaning.
+        """
+        conn = self._state_conn()
+        try:
+            where, args = ("WHERE s.lane = ?", (lane,)) if lane else ("", ())
+            rows = conn.execute(
+                "SELECT s.state, COUNT(*) FROM lane_task_state s " + where +
+                " GROUP BY s.state", args,
+            ).fetchall()
+            counts = {r[0]: int(r[1]) for r in rows}
+            for key in ("claimed", "done", "blocked", "archived"):
+                counts.setdefault(key, 0)
+            lanes = [lane] if lane else list(self.VALID_LANES)
+            cutoff = int(datetime.now(timezone.utc).timestamp()) - self.CLAIM_LEASE_SECONDS
+            avail = 0
+            for ln in lanes:
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM memorybus_queue q "
+                    "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+                    "WHERE q.topic = ? "
+                    "  AND (s.state IS NULL "
+                    "       OR (s.state = 'claimed' "
+                    "           AND (s.claimed_at IS NULL "
+                    "                OR CAST(strftime('%s', s.claimed_at) "
+                    "                        AS INTEGER) < ?)))",
+                    (self._task_topic(ln), cutoff),
+                ).fetchone()
+                avail += int(row[0] or 0)
+            counts["available"] = avail
+            counts["open"] = avail
+            counts["open_incl_claimed"] = avail + counts["claimed"]
+            counts["retired"] = (counts["done"] + counts["blocked"]
+                                 + counts["archived"])
+            return counts
+        finally:
+            conn.close()
 
     def poll_and_deliver(self) -> int:
         """Poll all lanes' task topics and deliver to subscribers.
