@@ -859,9 +859,15 @@ def write_index(out: Path, census_path: Optional[Path] = None) -> Dict[str, Any]
             pairs = xl.get("pairs_by_language") or {}
             pair_txt = ", ".join("%s %s" % (k, v) for k, v in pairs.items()) or "none"
             unres_txt = ", ".join("%s %s" % (k, v) for k, v in unres.items()) or "none"
+            by = xl.get("resolved_by") or {}
+            by_txt = ", ".join("%s %s" % (k, v) for k, v in by.items()) or "none"
             lines += ["",
                       "Cross-language references resolved to a tree: **%s** (%s)"
                       % (xl.get("statements", 0), pair_txt),
+                      "Resolution evidence: " + by_txt,
+                      "Of those, by unique filename alone (counted, labelled, and "
+                      "never used to re-tier a tree): %s"
+                      % xl.get("weak_statements", 0),
                       "Unresolved, by reason: " + unres_txt]
         plan = (c.get("shard_plan") or {})
         if plan:

@@ -122,6 +122,31 @@ def tier_html(tiers: Dict[str, int]) -> str:
     return "\n".join(out)
 
 
+def evidence_txt(xl: Dict[str, Any]) -> str:
+    """The resolution evidence, not just the count.
+
+    `exact` is a path; `tail` is a unique trailing-component match (a launcher
+    written for a flat layout); `basename` is a filename with no directory
+    agreement, counted separately because it is the one class that could be a
+    coincidence.
+    """
+    by = xl.get("resolved_by") or {}
+    if not by:
+        return "<span class=\"dim\">none recorded</span>"
+    parts = []
+    for key in ("exact", "variable", "periphery", "tail", "basename"):
+        if by.get(key):
+            parts.append("%s <b>%d</b>" % (key, by[key]))
+    out = " · ".join(parts)
+    weak = xl.get("weak_statements") or 0
+    if weak:
+        out += " · %d of those by filename alone" % weak
+    out_p = xl.get("outside_repo") or {}
+    if out_p:
+        out += " · %d point outside the repo" % sum(out_p.values())
+    return out
+
+
 def graphs_html(census: Dict[str, Any]) -> str:
     """One row per analysed language: files, resolved edges, external, missing.
 
@@ -133,16 +158,18 @@ def graphs_html(census: Dict[str, Any]) -> str:
     if not graphs:
         return '<p class="dim">no graphs — run the census</p>'
     rows = ['<tr><th>graph</th><th>files</th><th>edges</th><th>tree pairs</th>'
-            '<th>external</th><th>unresolved</th></tr>']
+            '<th>external</th><th>unresolved</th><th>weak</th></tr>']
     for lang, g in graphs.items():
         ext = g.get("external_statements") or g.get("external_assets") or 0
         unres = g.get("unresolved") or {}
         rows.append(
             '<tr><td class="nm">%s</td><td class="num">%d</td>'
             '<td class="num">%d</td><td class="num">%d</td>'
-            '<td class="num">%d</td><td class="num">%d</td></tr>' % (
+            '<td class="num">%d</td><td class="num">%d</td>'
+            '<td class="num">%d</td></tr>' % (
                 lang, g.get("files") or 0, g.get("statements") or 0,
-                len(g.get("tree_pairs") or []), ext, sum(unres.values())))
+                len(g.get("tree_pairs") or []), ext, sum(unres.values()),
+                g.get("weak_statements") or 0))
     return "\n".join(rows)
 
 
@@ -269,6 +296,7 @@ def build(index: Dict[str, Any], census: Dict[str, Any],
         <table class="plan">__GRAPHS__</table>
         <div class="kv" style="margin-top:8px">cross-language references
           <b>__XL__</b> resolved · <b>__XLU__</b> unresolved<br>
+          evidence: __XLB__<br>
           code counted <b>__LANGCHIP__</b></div>
       </div>
     </div>
@@ -323,6 +351,7 @@ window.__draw(0);
    .replace("__WASTED__", "{:,}".format(tot.get("wasted_slots", 0))) \
    .replace("__XL__", str(xl.get("statements", 0))) \
    .replace("__XLU__", str(sum((xl.get("unresolved") or {}).values()))) \
+   .replace("__XLB__", evidence_txt(xl)) \
    .replace("__LANGCHIP__", lang_chip) \
    .replace("__DURATION__", str(DURATION_MS))
 

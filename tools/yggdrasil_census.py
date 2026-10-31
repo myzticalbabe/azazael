@@ -145,48 +145,189 @@ _PY_LAUNCHER_RE = re.compile(r"(?:^|[&|(\s])py(?:\.exe)?(?:\s+-[0-9.]+)?\s+['\"]
 #: "target-not-found" into a real edge when the sibling is under src.
 _SHELL_PREFIX_RE = re.compile(r"^(?:%~dp0|%CD%|%cd%|\$PSScriptRoot[\\/]|\.\\)", re.I)
 
+#: A leading `%VAR%`, `$VAR` or `$env:VAR` names a ROOT, not a directory.
+#: Measured 2026-10-31: of the 130 references this scanner could not place, 20
+#: were exactly this shape -- `%Azazael_ROOT%/WORMZ/CONCURRENCY.py`,
+#: `$env:Azazael_ROOT/scripts/azazael_cli.py`. Stripping the variable and
+#: resolving the rest against the script's own directory threw the root away.
+_VAR_RES = (
+    re.compile(r"^\$env:([A-Za-z_]\w*)[\\/]?(.*)$", re.I),
+    re.compile(r"^[%$]([A-Za-z_]\w*)[%$][\\/]?(.*)$"),
+    re.compile(r"^\$([A-Za-z_]\w*)[\\/](.*)$"),
+)
 
-def _resolve_ref(src: Path, base: Path, ref: str,
-                 suffixes: Tuple[str, ...] = _JS_SUFFIXES,
-                 index_names: Tuple[str, ...] = _JS_INDEX) -> Optional[Path]:
-    """Resolve one reference string to a real file under ``src``, or None.
+#: Words a driver puts before the interpreter's argument; not part of a path.
+_BS = chr(92)
 
-    Order matters and is the one every toolchain uses: the literal path first,
-    then the extension candidates, then the directory index. A resolver that
-    guesses (basename matching anywhere in the tree) manufactures edges, so an
-    unresolved reference stays unresolved and is counted as such.
+
+#: Trailing-component index over ``src``: `ml_platforms/harness.py` -> the
+#: files whose path ends that way. Built once per tree and cached, because the
+#: alternative to a tail match is not "no answer", it is a wrong answer.
+_SUFFIX_INDEX: Dict[str, Dict[str, List[Path]]] = {}
+_NAME_INDEX: Dict[str, Dict[str, List[Path]]] = {}
+
+
+def _indices(src: Path) -> Tuple[Dict[str, List[Path]], Dict[str, List[Path]]]:
+    key = str(src)
+    if key not in _SUFFIX_INDEX:
+        suffix: Dict[str, List[Path]] = defaultdict(list)
+        by_name: Dict[str, List[Path]] = defaultdict(list)
+        for f in src.rglob("*"):
+            if not f.is_file() or any(p in SKIP_DIRS for p in f.parts):
+                continue
+            parts = f.relative_to(src).as_posix().split("/")
+            by_name[f.name.lower()].append(f)
+            # 2..4 components: a one-component key is a bare filename, which is
+            # a weaker claim and is indexed separately so it can be counted
+            # separately instead of being blended into "resolved".
+            for k in range(2, min(4, len(parts)) + 1):
+                suffix["/".join(parts[-k:])].append(f)
+        _SUFFIX_INDEX[key] = dict(suffix)
+        _NAME_INDEX[key] = dict(by_name)
+    return _SUFFIX_INDEX[key], _NAME_INDEX[key]
+
+
+def _strip_var(ref: str) -> Tuple[Optional[str], str]:
+    """('Azazael_ROOT', 'WORMZ/X.py') for a leading `%VAR%` / `$VAR` / `$env:VAR`."""
+    for pattern in _VAR_RES:
+        m = pattern.match(ref)
+        if m:
+            return m.group(1), m.group(2)
+    return None, ref
+
+
+def _under(path: Path, root: Optional[Path]) -> Optional[Path]:
+    """The path relative to ``root``, or None.
+
+    A containment TEST, not an error to handle: `is_relative_to` answers it
+    without an exception, so there is no silent `except: pass` here to hide a
+    real failure behind.
     """
-    ref = ref.strip().strip("'\"").replace("\\", "/")
-    if not ref or ref.startswith(("http://", "https://", "data:", "#")):
+    if root is None:
         return None
-    rp = Path(ref)
-    roots: List[Path] = [rp] if rp.is_absolute() else [base / ref, src / ref]
+    p, r = path.resolve(), root.resolve()
+    return p.relative_to(r) if p.is_relative_to(r) else None
+
+
+def _kind(src: Path, path: Path, root: Optional[Path]) -> str:
+    """How strong the landing is: inside the tree, inside the repo, or nowhere."""
+    if _under(path, src) is not None:
+        return "exact"
+    if _under(path, root) is not None:
+        return "periphery"
+    return "external-path"
+
+
+def resolve_ref(src: Path, base: Path, ref: str,
+                root: Optional[Path] = None,
+                suffixes: Tuple[str, ...] = _JS_SUFFIXES,
+                index_names: Tuple[str, ...] = _JS_INDEX,
+                allow_tail: bool = False) -> Tuple[Optional[Path], str]:
+    """Resolve one reference, and return HOW it resolved alongside the file.
+
+    ``(path, how)`` where ``how`` is the evidence, weakest last:
+
+    * ``exact``      -- the literal path / a suffix candidate / a dir index, under
+                        the script's dir or ``src``.
+    * ``variable``   -- a `%VAR%`/`$VAR` prefix was removed and the remainder
+                        resolved (the variable named a root).
+    * ``periphery``  -- a real file under the repo root but outside ``src``: the
+                        driver layer, which is production code the shards do not
+                        own. 4 of them on 2026-10-31.
+    * ``tail``       -- a UNIQUE match on the trailing components. This is the
+                        flattened-layout repair: 78 drivers name
+                        `scripts/validate_docs.py` / `ml_platforms/harness.py`
+                        from a layout where those dirs sat at the root; they now
+                        live under `src/ORCHESTRATION/`. Only accepted when the
+                        tail identifies exactly one file, and only when the
+                        caller says the syntax tolerates it.
+    * ``basename``   -- a UNIQUE filename with no directory agreement at all
+                        (`WORMZ/CONCURRENCY.py` -> `CORE/WORMS/CONCURRENCY.py`).
+                        Real coupling, weak evidence: it is counted, labelled,
+                        and never allowed to re-tier a tree.
+
+    Failure reasons: ``external`` (a URL), ``external-path`` (a real file
+    outside the repo -- the path is returned so the caller can name it),
+    ``ambiguous`` (a tail matched more than one file), ``outside-root`` (an
+    absolute or `../` reference), ``target-not-found``.
+
+    A resolver that guesses manufactures edges, so every guess above is (a)
+    required to be unique and (b) reported with its own label.
+    """
+    raw = ref.strip().strip("'\"")
+    if not raw or raw.startswith(("http://", "https://", "//", "data:", "#")):
+        return None, "external"
+    norm = raw.replace(_BS, "/")
+    # `/C:/x` comes from a git-bash path; a bare leading `/` names the repo root.
+    if re.match(r"^/[A-Za-z]:/", norm):
+        norm = norm[1:]
+    elif norm.startswith("/") and root is not None:
+        norm = norm.lstrip("/")
+
+    stem = _SHELL_PREFIX_RE.sub("", norm)
+    var, tail = _strip_var(stem)
+    if var is None:
+        tail = stem
+
+    was_absolute = Path(tail).is_absolute()
+    if was_absolute:
+        bases = [Path(tail).parent]
+        tail = Path(tail).name
+    elif var is not None:
+        # The variable names a root, so the remainder starts at the root.
+        bases = ([root] if root is not None else []) + [src, base]
+    else:
+        bases = [base, src] + ([root] if root is not None else [])
+
     # The literal path is ALWAYS tried first. Passing `suffixes=(".py",)` for a
     # shell call used to test only `f.py.py`, so `python ../FFF/f.py` resolved to
     # nothing and was reported as outside-src -- a resolver bug wearing the
     # costume of a finding.
     candidates = ("",) + tuple(s for s in suffixes if s)
-    for cand in roots:
+    for b in bases:
+        p = b / tail
         for suffix in candidates:
-            path = Path(str(cand) + suffix)
-            if path.suffix and not path.is_file():
+            cand = Path(str(p) + suffix)
+            if cand.suffix and not cand.is_file():
                 continue
-            if not path.is_file():
+            if not cand.is_file():
                 continue
-            try:
-                path.resolve().relative_to(src.resolve())
-            except (OSError, ValueError):
-                continue
-            return path
+            how = "variable" if var is not None else _kind(src, cand, root)
+            return cand, how
         for index_name in index_names:
-            path = cand / index_name
-            if path.is_file():
-                try:
-                    path.resolve().relative_to(src.resolve())
-                except (OSError, ValueError):
-                    continue
-                return path
-    return None
+            cand = p / index_name
+            if cand.is_file():
+                how = "variable" if var is not None else _kind(src, cand, root)
+                return cand, how
+
+    if allow_tail and not was_absolute:
+        suffix_index, name_index = _indices(src)
+        # `python -m TOOLS.debug_runner` names no extension, so the tail has to
+        # be tried with each candidate suffix too, or a real module reads as
+        # missing purely because its ref has no `.py` in it.
+        variants = [tail] + [tail + s for s in candidates if s]
+        for variant in variants:
+            parts = [q for q in variant.split("/") if q not in ("", ".")]
+            if not parts:
+                continue
+            for k in range(min(4, len(parts)), 1, -1):
+                hits = suffix_index.get("/".join(parts[-k:])) or []
+                if len(hits) == 1:
+                    return hits[0], "tail"
+                if len(hits) > 1:
+                    return None, "ambiguous"
+            hits = name_index.get(parts[-1].lower()) or []
+            if len(hits) == 1:
+                return hits[0], "basename"
+            if len(hits) > 1:
+                return None, "ambiguous"
+
+    if was_absolute or tail.startswith("../"):
+        return None, "outside-root"
+    # A `%VAR%` root that expanded correctly and still found nothing is a
+    # MISSING FILE, not an unresolvable variable: `$AZAZAEL_ROOT/BIBL/bibl.py`
+    # expands to a real directory and names a file that does not exist there.
+    return None, "target-not-found"
 
 
 #: Paths a resolver reached that are not under src. Counted, not swallowed: a
@@ -194,22 +335,35 @@ def _resolve_ref(src: Path, base: Path, ref: str,
 _OUTSIDE_SRC: Counter[str] = Counter()
 
 
-def _tree_of(src: Path, path: Optional[Path]) -> Optional[str]:
+def _tree_of(src: Path, path: Optional[Path], root: Optional[Path] = None) -> Optional[str]:
+    """Which tree owns this file.
+
+    A file under ``src`` belongs to its top-level directory. A file under the
+    repo root but outside ``src`` belongs to a PERIPHERY tree, named with a
+    leading `@` so it can never be mistaken for a shard: `@scripts`,
+    `@tools`. Drivers live there, and a coupling to them is real coupling that
+    the cleave does not carry.
+    """
     if path is None:
         return None
-    try:
-        rel = path.resolve().relative_to(src.resolve())
-    except (OSError, ValueError):
-        _OUTSIDE_SRC[str(path)] += 1
-        return None
-    return rel.parts[0] if len(rel.parts) > 1 else None
+    rel = _under(path, src)
+    if rel is not None:
+        return rel.parts[0] if len(rel.parts) > 1 else None
+    rel = _under(path, root)
+    if rel is not None:
+        return "@" + rel.parts[0] if len(rel.parts) > 1 else "@"
+    _OUTSIDE_SRC[str(path)] += 1
+    return None
 
 
-def _rel_posix(src: Path, path: Path) -> str:
-    try:
-        return path.resolve().relative_to(src.resolve()).as_posix()
-    except (OSError, ValueError):
-        return str(path)
+def _rel_posix(src: Path, path: Path, root: Optional[Path] = None) -> str:
+    rel = _under(path, src)
+    if rel is not None:
+        return rel.as_posix()
+    rel = _under(path, root)
+    if rel is not None:
+        return "@" + rel.as_posix()
+    return str(path)
 
 
 def _read_capped(path: Path, cap: int = 400_000) -> str:
@@ -232,96 +386,184 @@ def _graph_cycles(edges: Iterable[Tuple[str, str]]) -> List[List[str]]:
     return [list(p) for p in sorted(out)]
 
 
-def build_js_graph(src: Path, js_files: List[Path]) -> Dict[str, Any]:
+# --------------------------------------------------------------------------
+# edge recording: ONE place where a reference becomes an edge
+# --------------------------------------------------------------------------
+
+def _new_acc() -> Dict[str, Any]:
+    """Counters one graph accumulates. Shared so the three graphs cannot drift."""
+    return {
+        "edges": Counter(),
+        "tree_pairs": Counter(),
+        "tree_pairs_weak": Counter(),
+        "periphery_pairs": Counter(),
+        "tree_out": Counter(),
+        "tree_in": Counter(),
+        "pairs_by_language": Counter(),
+        "resolved_by": Counter(),
+        "unresolved": Counter(),
+        "samples": [],
+        "detail": [],
+        "external_paths": Counter(),
+    }
+
+
+def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
+                here_file: str, here_tree: Optional[str], base: Path, ref: str,
+                *, suffixes: Tuple[str, ...] = _JS_SUFFIXES,
+                index_names: Tuple[str, ...] = _JS_INDEX,
+                allow_tail: bool = False, line: Optional[int] = None,
+                extra: Optional[Dict[str, Any]] = None) -> str:
+    """Resolve one reference and record it, or record WHY it did not resolve.
+
+    Returns ``how`` so the caller can tag further detail (a shell graph wants to
+    count the file it could not find) without re-deriving the outcome.
+
+    Three outcomes, never two: an edge, a named failure, or a real path outside
+    the repo. The last is not an edge (there is no tree to point at) but it is
+    not a failure either -- calling a launcher that runs a Desktop script
+    "broken" would be wrong, and dropping it silently is how the old ledger got
+    a clean number.
+    """
+    target, how = resolve_ref(src, base, ref, root, suffixes, index_names,
+                             allow_tail)
+    note = dict(extra or {})
+    if target is None:
+        acc["unresolved"][how] += 1
+        if len(acc["samples"]) < 20:
+            acc["samples"].append({"from": here_file, "ref": ref, "reason": how})
+        if len(acc["detail"]) < 30:
+            row = {"from": here_file, "ref": ref, "result": how}
+            if line is not None:
+                row["line"] = line
+            row.update(note)
+            acc["detail"].append(row)
+        return how
+    if how == "external-path":
+        acc["external_paths"][_rel_posix(src, target, root)] += 1
+        return how
+    there_file = _rel_posix(src, target, root)
+    there_tree = _tree_of(src, target, root)
+    acc["edges"][(here_file, there_file)] += 1
+    acc["resolved_by"][how] += 1
+    here_lang = LANGUAGES.get(Path(here_file).suffix.lower(), "other")
+    there_lang = LANGUAGES.get(target.suffix.lower(), "other")
+    acc["pairs_by_language"]["%s->%s" % (here_lang, there_lang)] += 1
+    weak = how == "basename"
+    if here_tree and there_tree and here_tree != there_tree:
+        key = (here_tree, there_tree)
+        if here_tree.startswith("@") or there_tree.startswith("@"):
+            # A `@`-tree is a periphery directory (`@scripts`), not a limb. It is
+            # kept out of tree_pairs so nothing downstream renders it as a tree.
+            acc["periphery_pairs"][key] += 1
+        else:
+            acc["tree_pairs_weak" if weak else "tree_pairs"][key] += 1
+    # A basename guess must not inflate "this tree holds a real module graph".
+    if not weak:
+        if here_tree:
+            acc["tree_out"][here_tree] += 1
+        if there_tree:
+            acc["tree_in"][there_tree] += 1
+    if len(acc["detail"]) < 30:
+        row = {"from": here_file, "to": there_file, "ref": ref, "via": how}
+        if line is not None:
+            row["line"] = line
+        row.update(note)
+        acc["detail"].append(row)
+    return how
+
+
+def _graph_common(acc: Dict[str, Any], language: str, n_files: int,
+                  note: str) -> Dict[str, Any]:
+    return {
+        "language": language,
+        "files": n_files,
+        "statements": sum(acc["edges"].values()),
+        "file_pairs": len(acc["edges"]),
+        "tree_pairs": [{"from": a, "to": b, "refs": n}
+                       for (a, b), n in sorted(acc["tree_pairs"].items())],
+        "tree_pairs_weak": [{"from": a, "to": b, "refs": n}
+                            for (a, b), n in sorted(acc["tree_pairs_weak"].items())],
+        "periphery_pairs": [{"from": a, "to": b, "refs": n}
+                            for (a, b), n in sorted(acc["periphery_pairs"].items())],
+        "per_tree": {t: {"out": acc["tree_out"][t], "in": acc["tree_in"][t]}
+                     for t in sorted(set(acc["tree_out"]) | set(acc["tree_in"]))},
+        "pairs_by_language": dict(sorted(acc["pairs_by_language"].items())),
+        "resolved_by": dict(sorted(acc["resolved_by"].items())),
+        "weak_statements": acc["resolved_by"].get("basename", 0),
+        "unresolved": dict(sorted(acc["unresolved"].items())),
+        "unresolved_samples": acc["samples"],
+        "external_paths": dict(acc["external_paths"].most_common(10)),
+        "detail": acc["detail"],
+        "note": note,
+    }
+
+
+def build_js_graph(src: Path, js_files: List[Path],
+                   root: Optional[Path] = None) -> Dict[str, Any]:
     """The js/ts module graph: file -> file, resolved through import/require.
 
     Counting 62 javascript files and calling it coverage is what this replaces.
     An external package (`require('puppeteer')`) is a dependency, not an edge, and
-    is counted separately; only a specifier that resolves to a file under src is
-    an edge.
+    is counted separately; only a specifier that resolves to a file is an edge.
+
+    A relative specifier is NEVER tail-matched: `./panel` names a file next to
+    the importer, so a same-named file in another tree is not the same file.
     """
-    edges: Counter[Tuple[str, str]] = Counter()
-    tree_pairs: Counter[Tuple[str, str]] = Counter()
-    tree_out: Counter[str] = Counter()
-    tree_in: Counter[str] = Counter()
+    acc = _new_acc()
     external: Counter[str] = Counter()
-    unresolved: Counter[str] = Counter()
-    detail: List[Dict[str, Any]] = []
 
     for path in js_files:
         text = _read_capped(path)
         if not text:
             continue
-        base = path.parent
-        here_file = _rel_posix(src, path)
-        here_tree = _tree_of(src, path)
+        here_file = _rel_posix(src, path, root)
+        here_tree = _tree_of(src, path, root)
         for m in _JS_IMPORT_RE.finditer(text):
             ref = m.group(1)
             if not ref.startswith("."):
                 external[ref.split("/")[0]] += 1
                 continue
-            target = _resolve_ref(src, base, ref)
-            if target is None:
-                unresolved["target-not-found"] += 1
-                if len(detail) < 30:
-                    detail.append({"from": here_file, "line": _line_of(text, m.start()),
-                                   "ref": ref, "result": "unresolved"})
-                continue
-            there_file = _rel_posix(src, target)
-            edges[(here_file, there_file)] += 1
-            there_tree = _tree_of(src, target)
-            if here_tree:
-                tree_out[here_tree] += 1
-            if there_tree:
-                tree_in[there_tree] += 1
-            if here_tree and there_tree and here_tree != there_tree:
-                tree_pairs[(here_tree, there_tree)] += 1
-            if len(detail) < 30:
-                detail.append({"from": here_file, "line": _line_of(text, m.start()),
-                               "to": there_file, "ref": ref})
+            _record_ref(acc, src, root, here_file, here_tree, path.parent, ref,
+                        line=_line_of(text, m.start()))
 
-    return {
-        "language": "javascript",
-        "files": len(js_files),
-        "statements": sum(edges.values()),
-        "file_pairs": len(edges),
-        "tree_pairs": [{"from": a, "to": b, "refs": n}
-                       for (a, b), n in sorted(tree_pairs.items())],
-        "cycles": _graph_cycles(edges),
-        "per_tree": {t: {"out": tree_out[t], "in": tree_in[t]}
-                     for t in sorted(set(tree_out) | set(tree_in))},
-        "external_packages": dict(external.most_common(12)),
-        "external_statements": sum(external.values()),
-        "unresolved": dict(sorted(unresolved.items())),
-        "detail": detail,
-        "note": ("only a specifier resolving to a file under src is an edge; a bare "
-                 "package name is a dependency and is counted separately"),
-    }
+    out = _graph_common(
+        acc, "javascript", len(js_files),
+        "only a specifier resolving to a file is an edge; a bare package name "
+        "is a dependency and is counted separately. A relative specifier is "
+        "resolved against its importer only, never tail-matched")
+    out["cycles"] = _graph_cycles(acc["edges"])
+    out["external_packages"] = dict(external.most_common(12))
+    out["external_statements"] = sum(external.values())
+    return out
 
 
-def build_shell_graph(src: Path, script_files: List[Path]) -> Dict[str, Any]:
+def build_shell_graph(src: Path, script_files: List[Path],
+                      root: Optional[Path] = None) -> Dict[str, Any]:
     """The shell/batch -> python call graph.
 
     This is the join the cleave actually trips on: 58 .bat and 15 .ps1 drive the
-    python tree, and none of them is an import. Three forms are followed --
-    `python <file>`, `python -m <module>` and the `py` launcher -- and each call
-    is resolved to a real file or a module path, never guessed from a name.
+    python tree, and none of them is an import. Four forms are followed --
+    `python <file>`, `python -m <module>`, the `py` launcher, and any of those
+    behind a `%VAR%`/`$VAR` root -- and each is resolved to a real file or
+    counted by reason.
+
+    `allow_tail` is ON here and OFF for js/html, deliberately. The launcher
+    layer was written against a layout where `scripts/` and `ml_platforms/` sat
+    at the repo root; they now live under `src/ORCHESTRATION/`. Matching the
+    trailing components recovers those references exactly, and it is accepted
+    only on a UNIQUE match with at least two components agreeing.
     """
-    calls: Counter[Tuple[str, str]] = Counter()
-    tree_pairs: Counter[Tuple[str, str]] = Counter()
-    tree_out: Counter[str] = Counter()
-    tree_in: Counter[str] = Counter()
+    acc = _new_acc()
     forms: Counter[str] = Counter()
-    unresolved: Counter[str] = Counter()
     missing: Counter[str] = Counter()
-    detail: List[Dict[str, Any]] = []
 
     for path in script_files:
         text = _read_capped(path)
         if not text:
             continue
-        here_file = _rel_posix(src, path)
-        here_tree = _tree_of(src, path)
+        here_file = _rel_posix(src, path, root)
+        here_tree = _tree_of(src, path, root)
         base = path.parent
         found: List[Tuple[str, str, int]] = []
         for m in _PY_CALL_RE.finditer(text):
@@ -332,116 +574,67 @@ def build_shell_graph(src: Path, script_files: List[Path]) -> Dict[str, Any]:
             found.append((m.group(1), "module", _line_of(text, m.start())))
         for ref, form, line in found:
             forms[form] += 1
-            target: Optional[Path] = None
-            stem = _SHELL_PREFIX_RE.sub("", ref)
-            tail = re.sub(r"^[%$][\w]+[%$]?", "", stem) or ref
-            if form == "module":
-                mod_path = tail.replace(".", "/")
-                target = _resolve_ref(src, base, mod_path,
-                                      suffixes=(".py",), index_names=("__init__.py",))
-            else:
-                target = _resolve_ref(src, base, tail,
-                                      suffixes=(".py",), index_names=("__init__.py",))
-            if target is None:
-                reason = ("variable-unresolved" if tail != stem or stem != ref
-                          else "outside-src" if Path(ref).is_absolute()
-                          or ref.replace("\\", "/").startswith("..")
-                          # `python -m pip install ...` names an installed
-                          # package, not a shard: reporting it as a missing file
-                          # put "pip" at the top of the broken-launcher list.
-                          else "external-module" if form == "module"
-                          else "target-not-found")
-                unresolved[reason] += 1
-                if reason == "target-not-found":
-                    # The useful form: WHICH file the driver wanted. A launcher
-                    # pointing at a path that exists nowhere in the repo is a
-                    # broken launcher, not a resolution gap.
-                    missing[ref.strip().strip("'\"").replace("\\", "/")] += 1
-                if len(detail) < 30:
-                    detail.append({"from": here_file, "line": line, "ref": ref,
-                                   "form": form, "result": reason})
+            raw = ref.strip().strip("'\"")
+            if form == "module" and "." not in raw and "/" not in raw:
+                # `python -m pip install ...` names an installed package, not a
+                # shard: reporting it as a missing file once put "pip" at the
+                # top of the broken-launcher list.
+                acc["unresolved"]["external-module"] += 1
+                if len(acc["samples"]) < 20:
+                    acc["samples"].append({"from": here_file, "ref": ref,
+                                           "reason": "external-module"})
                 continue
-            there_file = _rel_posix(src, target)
-            calls[(here_file, there_file)] += 1
-            there_tree = _tree_of(src, target)
-            if here_tree:
-                tree_out[here_tree] += 1
-            if there_tree:
-                tree_in[there_tree] += 1
-            if here_tree and there_tree and here_tree != there_tree:
-                tree_pairs[(here_tree, there_tree)] += 1
-            if len(detail) < 30:
-                detail.append({"from": here_file, "line": line, "to": there_file,
-                               "form": form, "ref": ref})
+            how = _record_ref(acc, src, root, here_file, here_tree, base,
+                              ref.replace(".", "/") if form == "module" else ref,
+                              suffixes=(".py",), index_names=("__init__.py",),
+                              allow_tail=True, line=line, extra={"form": form})
+            if how == "target-not-found":
+                # The useful form: WHICH file the driver wanted. A launcher
+                # pointing at a path that exists nowhere in the repo is a broken
+                # launcher, not a resolution gap.
+                missing[raw.replace(_BS, "/")] += 1
 
-    return {
-        "language": "shell",
-        "files": len(script_files),
-        "statements": sum(calls.values()),
-        "file_pairs": len(calls),
-        "by_form": dict(sorted(forms.items())),
-        "per_tree": {t: {"out": tree_out[t], "in": tree_in[t]}
-                     for t in sorted(set(tree_out) | set(tree_in))},
-        "tree_pairs": [{"from": a, "to": b, "refs": n}
-                       for (a, b), n in sorted(tree_pairs.items())],
-        "targets": dict(Counter(t for (_, t) in calls).most_common(12)),
-        "missing_targets": dict(missing.most_common(15)),
-        "missing_target_count": len(missing),
-        "unresolved": dict(sorted(unresolved.items())),
-        "detail": detail,
-        "note": ("`python <file>`, `python -m <module>` and the `py` launcher; "
-                 "%VAR%/`$VAR` prefixes are stripped before resolution and a call "
-                 "that still does not resolve is counted by reason"),
-    }
+    out = _graph_common(
+        acc, "shell", len(script_files),
+        "`python <file>`, `python -m <module>`, the `py` launcher and a "
+        "`%VAR%`/`$VAR` root; a call that does not resolve is counted by reason. "
+        "Unlike js/html a shell path may be tail-matched, because the launcher "
+        "layer was written for a flat layout, and only a UNIQUE match counts")
+    out["by_form"] = dict(sorted(forms.items()))
+    out["targets"] = dict(Counter(t for (_, t) in acc["edges"]).most_common(12))
+    out["missing_targets"] = dict(missing.most_common(15))
+    out["missing_target_count"] = len(missing)
+    return out
 
 
-def build_html_graph(src: Path, html_files: List[Path]) -> Dict[str, Any]:
+def build_html_graph(src: Path, html_files: List[Path],
+                     root: Optional[Path] = None) -> Dict[str, Any]:
     """html -> asset edges (`<script src>`).
 
     142 html files made html the second-largest language here and none of it was
     analysed: a template that loads a recorder script is a join like any other.
     """
-    edges: Counter[Tuple[str, str]] = Counter()
-    tree_pairs: Counter[Tuple[str, str]] = Counter()
-    tree_out: Counter[str] = Counter()
-    tree_in: Counter[str] = Counter()
-    unresolved: Counter[str] = Counter()
+    acc = _new_acc()
     external: Counter[str] = Counter()
     for path in html_files:
         text = _read_capped(path)
         if not text:
             continue
-        here_file = _rel_posix(src, path)
-        here_tree = _tree_of(src, path)
+        here_file = _rel_posix(src, path, root)
+        here_tree = _tree_of(src, path, root)
         for m in _HTML_SRC_RE.finditer(text):
             ref = m.group(1)
             if re.match(r"^(https?:)?//", ref) or ref.startswith("data:"):
                 external[ref.split("/")[0][:40]] += 1
                 continue
-            target = _resolve_ref(src, path.parent, ref)
-            if target is None:
-                unresolved["target-not-found"] += 1
-                continue
-            there_file = _rel_posix(src, target)
-            edges[(here_file, there_file)] += 1
-            there_tree = _tree_of(src, target)
-            if here_tree:
-                tree_out[here_tree] += 1
-            if there_tree:
-                tree_in[there_tree] += 1
-            if here_tree and there_tree and here_tree != there_tree:
-                tree_pairs[(here_tree, there_tree)] += 1
-    return {
-        "language": "html",
-        "files": len(html_files),
-        "statements": sum(edges.values()),
-        "file_pairs": len(edges),
-        "tree_pairs": [{"from": a, "to": b, "refs": n}
-                       for (a, b), n in sorted(tree_pairs.items())],
-        "external_assets": sum(external.values()),
-        "unresolved": dict(sorted(unresolved.items())),
-        "note": "<script src> only; inline <script> bodies are not parsed",
-    }
+            _record_ref(acc, src, root, here_file, here_tree, path.parent, ref,
+                        line=_line_of(text, m.start()))
+    out = _graph_common(
+        acc, "html", len(html_files),
+        "<script src> only; inline <script> bodies are not parsed. A relative "
+        "src is resolved against the template only, never tail-matched")
+    out["external_assets"] = sum(external.values())
+    return out
 
 
 def census(src: Path, archive: Optional[Path] = None,
@@ -544,110 +737,6 @@ def census(src: Path, archive: Optional[Path] = None,
             bucket.setdefault("langs", {})[lang] = bucket["langs"].get(lang, 0) + 1
         lang_files.append((f, lang))
 
-    # --- cross-language edges, resolved rather than asserted ----------------
-    # `edges_any` can only ever hold python -> python, so a shell driver that
-    # runs ``python src/CODEX/x.py`` and a TS front-end that imports ./panel
-    # were both invisible: the ledger printed "0 cross-language seams", which
-    # reads as "no coupling" when it meant "nothing looked". These are followed
-    # through their real reference syntax (import/require/require(), script src,
-    # ``python <file>``) and resolved to a tree, so the count is a measurement.
-    cross_edges: Counter[Tuple[str, str]] = Counter()
-    cross_pair: Counter[str] = Counter()
-    cross_inbound: Dict[str, Counter] = defaultdict(Counter)
-    cross_detail: List[Dict[str, Any]] = []
-    # A zero that does not name its universe reads as "no coupling". Every
-    # reference that could not be resolved is counted with its reason, so
-    # "0 edges" can be told apart from "0 references looked at".
-    cross_unresolved: Counter[str] = Counter()
-    cross_unresolved_samples: List[Dict[str, str]] = []
-
-    def _note_unresolved(reason: str, rel_from: Path, ref: str, lang: str) -> None:
-        cross_unresolved[reason] += 1
-        if len(cross_unresolved_samples) < 20:
-            cross_unresolved_samples.append(
-                {"from": rel_from.as_posix(), "ref": ref, "lang": lang,
-                 "reason": reason})
-
-    def _map_target(ref: str, base: Path) -> Optional[Tuple[str, str]]:
-        ref = ref.strip().strip("'\"").replace("\\", "/")
-        if not ref or ref.startswith(("http://", "https://", "data:", "#")):
-            return None
-        cands: List[Path] = []
-        rp = Path(ref)
-        if rp.is_absolute():
-            cands.append(rp)
-        else:
-            cands.append((base / ref))
-            cands.append((src / ref))
-        for c in cands:
-            for suffix in ("", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".py"):
-                cand = Path(str(c) + suffix)
-                try:
-                    if not cand.is_file():
-                        continue
-                    rel = cand.resolve().relative_to(src.resolve())
-                except (OSError, ValueError):
-                    continue
-                if len(rel.parts) < 2:
-                    continue
-                return rel.parts[0], cand.suffix.lower()
-        return None
-
-    for f, lang in lang_files:
-        try:
-            text = f.read_text(encoding="utf-8", errors="replace")[:400_000]
-        except OSError:
-            continue
-        base = f.parent
-        refs: List[str] = []
-        if lang in ("javascript", "typescript"):
-            refs += [m.group(1) for m in _JS_IMPORT_RE.finditer(text)]
-        if lang in ("html",):
-            refs += [m.group(1) for m in _HTML_SRC_RE.finditer(text)]
-        if lang in ("shell", "batch"):
-            refs += [m.group(1) for m in _PY_CALL_RE.finditer(text)]
-        try:
-            rel_from = f.relative_to(src)
-        except ValueError:
-            continue
-        for ref in refs:
-            via_var = None
-            hit = _map_target(ref, base)
-            stripped = re.sub(r"^[%$][\w]+[%$]?", "", ref.strip().strip("'\""))
-            if not hit and stripped != ref and stripped:
-                # `%SCRIPT_DIR%run.py` / `$HERE/run.py`: the variable is the
-                # file's own directory in every one of these drivers, so the
-                # tail is resolved relative to it -- and labelled, not hidden.
-                hit = _map_target(stripped, base)
-                via_var = stripped if hit else None
-            if not hit:
-                raw = ref.strip().strip("'\"")
-                if lang in ("javascript", "typescript") and not raw.startswith("."):
-                    # require('puppeteer') / from 'node:fs' name a package, not a
-                    # shard. Counting them as "not found" made 200 real package
-                    # imports look like 200 broken paths.
-                    _note_unresolved("external-package", rel_from, ref, lang)
-                elif re.search(r"[%$][\w]+[%$]?", raw):
-                    _note_unresolved("variable-unresolved", rel_from, ref, lang)
-                elif Path(raw).is_absolute() or raw.replace("\\", "/").startswith(".."):
-                    _note_unresolved("outside-src", rel_from, ref, lang)
-                else:
-                    _note_unresolved("target-not-found", rel_from, ref, lang)
-                continue
-            tree_to, ext = hit
-            tree_from = rel_from.parts[0] if len(rel_from.parts) > 1 else None
-            if tree_from is None:
-                continue
-            to_lang = LANGUAGES.get(ext, "python" if ext == ".py" else "other")
-            cross_edges[(tree_from, tree_to)] += 1
-            cross_pair[f"{lang}->{to_lang}"] += 1
-            if tree_from != tree_to:
-                cross_inbound[tree_to][tree_from] += 1
-            if len(cross_detail) < 40:
-                cross_detail.append({"from": rel_from.as_posix(), "to": hit[0],
-                                    "pair": f"{lang}->{to_lang}", "ref": ref,
-                                    "via_variable": bool(via_var)})
-
     # --- per-language graphs, not per-language counts -----------------------
     # A count says "62 javascript modules". These say which module imports which,
     # which js module is imported by another tree, and which batch driver calls
@@ -655,10 +744,15 @@ def census(src: Path, archive: Optional[Path] = None,
     js_files = [f for f, lg in lang_files if lg in ("javascript", "typescript")]
     shell_files = [f for f, lg in lang_files if lg in ("shell", "batch", "powershell")]
     html_files = [f for f, lg in lang_files if lg == "html"]
+    # The repo root is a resolution base, not a convenience: a driver at
+    # `src/X/y.bat` saying `python scripts/validate_docs.py` means the repo
+    # root, and 4 of these references land on real files there. `root=None`
+    # keeps every reference inside src, which is what a standalone fixture wants.
+    repo_root = src.parent if src.parent != src else None
     graphs = {
-        "javascript": build_js_graph(src, js_files),
-        "shell": build_shell_graph(src, shell_files),
-        "html": build_html_graph(src, html_files),
+        "javascript": build_js_graph(src, js_files, repo_root),
+        "shell": build_shell_graph(src, shell_files, repo_root),
+        "html": build_html_graph(src, html_files, repo_root),
     }
 
     # Per-tree non-python coupling, so a tree's verdict can carry it. Counts ALL
@@ -686,6 +780,51 @@ def census(src: Path, archive: Optional[Path] = None,
             if dst_t in per_tree:
                 per_tree[dst_t].setdefault("nonpython", {}).setdefault(
                     "cross_in", {})[src_t] = n
+
+    # --- the cross-language summary, derived from the graphs above ----------
+    # This used to be a second, independent walk with its own resolver. Two
+    # resolvers meant two answers to one question (258 vs 123 unresolved on the
+    # same corpus), so the summary is now a projection of the graphs and there is
+    # exactly one place a reference is resolved.
+    cross_pair: Counter[str] = Counter()
+    cross_edges: Counter[Tuple[str, str]] = Counter()
+    cross_edges_weak: Counter[Tuple[str, str]] = Counter()
+    cross_inbound: Dict[str, Counter] = defaultdict(Counter)
+    cross_resolved_by: Counter[str] = Counter()
+    cross_unresolved: Counter[str] = Counter()
+    cross_detail: List[Dict[str, Any]] = []
+    cross_samples: List[Dict[str, Any]] = []
+    cross_external_paths: Counter[str] = Counter()
+    cross_periphery: Counter[Tuple[str, str]] = Counter()
+    cross_refs = 0
+    cross_weak_refs = 0
+    for gname, g in graphs.items():
+        cross_refs += int(g.get("statements") or 0)
+        cross_weak_refs += int(g.get("weak_statements") or 0)
+        cross_pair.update(g.get("pairs_by_language") or {})
+        for tp in g.get("tree_pairs") or []:
+            cross_edges[(tp["from"], tp["to"])] += tp["refs"]
+            if tp["from"] != tp["to"]:
+                # STRONG edges only: a unique-basename guess must not re-tier a
+                # tree, or tier A-cross becomes a rumour.
+                cross_inbound[tp["to"]][tp["from"]] += tp["refs"]
+        for tp in g.get("tree_pairs_weak") or []:
+            cross_edges_weak[(tp["from"], tp["to"])] += tp["refs"]
+        for tp in g.get("periphery_pairs") or []:
+            cross_periphery[(tp["from"], tp["to"])] += tp["refs"]
+        cross_resolved_by.update(g.get("resolved_by") or {})
+        cross_unresolved.update(g.get("unresolved") or {})
+        cross_external_paths.update(g.get("external_paths") or {})
+        for row in (g.get("unresolved_samples") or [])[:20]:
+            if len(cross_samples) < 20:
+                item = dict(row)
+                item["graph"] = gname
+                cross_samples.append(item)
+        for row in g.get("detail") or []:
+            if len(cross_detail) < 40:
+                item = dict(row)
+                item["graph"] = gname
+                cross_detail.append(item)
 
     # Seams: native or string-level coupling the AST graph cannot follow.
     for f in src.rglob("*"):
@@ -900,15 +1039,34 @@ def census(src: Path, archive: Optional[Path] = None,
             "pairs_by_language": dict(sorted(cross_pair.items())),
             "tree_pairs": [{"from": a, "to": b, "refs": n}
                            for (a, b), n in sorted(cross_edges.items())],
-            "statements": sum(cross_edges.values()),
+            "tree_pairs_weak": [{"from": a, "to": b, "refs": n}
+                                for (a, b), n in sorted(cross_edges_weak.items())],
+            # statements = every reference that became an edge. `tree_statements`
+            # is the cross-TREE subset; summing tree pairs and calling that the
+            # statement count is how the last version under-reported 43 edges.
+            "statements": cross_refs,
+            "tree_statements": sum(cross_edges.values()),
+            "weak_statements": cross_weak_refs,
             "inbound": {t: dict(sorted(c.items())) for t, c in cross_inbound.items()},
+            # HOW each reference landed. `exact` is a path, `tail` is a unique
+            # trailing-component match (the flattened-layout repair), `basename`
+            # is a filename with no directory agreement. A single "resolved"
+            # count would hide exactly the distinction that matters.
+            "resolved_by": dict(sorted(cross_resolved_by.items())),
+            "outside_repo": dict(cross_external_paths.most_common(10)),
+            # Coupling to code the shards do not own: a driver in src reaching a
+            # real file under the repo root but outside src (`@scripts`).
+            "periphery_pairs": [{"from": a, "to": b, "refs": n}
+                                for (a, b), n in sorted(cross_periphery.items())],
             "detail": cross_detail,
             "unresolved": dict(sorted(cross_unresolved.items())),
-            "unresolved_samples": cross_unresolved_samples,
-            "note": ("shell/batch -> python by `python <file>`, js/ts -> js/ts by "
-                     "import/require, html -> asset by <script src>; resolved to a "
-                     "tree, not guessed from a filename match. `unresolved` counts "
-                     "the references this pass could not place, by reason"),
+            "unresolved_samples": cross_samples,
+            "note": ("derived from the three graphs, not resolved a second time: "
+                     "shell/batch -> python by `python <file>`/`-m`/`py`, js/ts by "
+                     "import/require, html by <script src>. `resolved_by` names the "
+                     "evidence for every edge; `unresolved` and `outside_repo` account "
+                     "for every reference that did not become one, so the totals add "
+                     "up to the references looked at"),
         },
         "graphs": graphs,
         "periphery": periphery,
@@ -974,15 +1132,31 @@ def render(led: Dict[str, Any]) -> str:
         add(f"  {key:<11}{g['files']:>4} file(s) {g['statements']:>5} edge(s) "
             f"{g['file_pairs']:>4} pair(s)  {len(g.get('tree_pairs') or []):>2} tree pair(s)"
             f"  {cycles} cycle(s)  {ext} external"
+            + (f"  weak {g['weak_statements']}" if g.get("weak_statements") else "")
             + (f"  forms {g['by_form']}" if g.get("by_form") else ""))
         unres = g.get("unresolved") or {}
         if unres:
             add("    unresolved: " + ", ".join(f"{k} {v}" for k, v in unres.items()))
     add("")
-    add(f"CROSS-LANGUAGE — {cross.get('statements', 0)} reference(s) between "
-        f"{len(cross.get('tree_pairs') or [])} tree pair(s)")
+    add(f"CROSS-LANGUAGE — {cross.get('statements', 0)} reference(s) resolved, "
+        f"{cross.get('tree_statements', 0)} of them crossing a tree boundary "
+        f"({len(cross.get('tree_pairs') or [])} tree pair(s))")
     for pair, n in (cross.get("pairs_by_language") or {}).items():
         add(f"  {pair:<24}{n:>5}")
+    # The evidence, not just the total: a number that does not say how it was
+    # reached cannot be checked, and `tail`/`basename` are the two classes a
+    # reader needs to see separately.
+    by = cross.get("resolved_by") or {}
+    if by:
+        add("  resolved by: " + ", ".join(f"{k} {v}" for k, v in by.items())
+            + f"  ({cross.get('weak_statements', 0)} by filename alone)")
+    outside = cross.get("outside_repo") or {}
+    if outside:
+        add(f"  outside the repo, not an edge: {sum(outside.values())}")
+    peri = cross.get("periphery_pairs") or []
+    if peri:
+        add("  to periphery code: "
+            + ", ".join(f"{p['from']}->{p['to']} {p['refs']}" for p in peri))
     unres = cross.get("unresolved") or {}
     if unres:
         add("  unresolved (universe for the count above): "
@@ -1184,6 +1358,29 @@ def selftest() -> int:
         (root / "HHH" / "app.js").write_text(
             "const { w } = require('../III/widget.js');\n", encoding="utf-8")
 
+        # The launcher layer, in the shape measured 2026-10-31: a driver written
+        # for a FLAT layout (`scripts/x.py` at the root) after those dirs moved a
+        # level down. A unique trailing-component match must recover it -- and a
+        # js relative import in the same shape must NOT be recovered, because
+        # `./mirror.js` names a file next to the importer, not any file by that name.
+        (root / "CCC" / "scripts").mkdir()
+        (root / "CCC" / "scripts" / "flat.py").write_text("print(1)\n",
+                                                         encoding="utf-8")
+        (root / "KKK").mkdir()
+        (root / "KKK" / "mirror.js").write_text("export const m = 1;\n",
+                                                 encoding="utf-8")
+        (root / "III" / "shot.js").write_text(
+            "import { m } from './mirror.js';\n", encoding="utf-8")
+        # MMM is clean and referenced only by a BASENAME form (`WORMZ\m.py`):
+        # real coupling, weak evidence, so it must not be re-tiered as A-CROSS.
+        (root / "MMM").mkdir()
+        (root / "MMM" / "m.py").write_text("def m():\n    return 1\n", encoding="utf-8")
+        (root / "LLL").mkdir()
+        (root / "LLL" / "flat.bat").write_text("python scripts\\flat.py\r\n",
+                                                encoding="utf-8")
+        (root / "LLL" / "weak.bat").write_text("python WORMZ\\m.py\r\n",
+                                                encoding="utf-8")
+
         led = census(root)
         tiers = led["tiers"]
         b_trees = [r["tree"] for r in tiers["B_needs_shim"]]
@@ -1192,8 +1389,9 @@ def selftest() -> int:
         # CCC at module level by AAA and AAA by BBB from inside a function.
         # BAD is unparseable and DDD is a data stub: neither is a cleave, and
         # BAD must be excluded from the stub tier too (unknown != empty).
-        if tiers["A_cleave_today"] != ["BAD", "FFF"]:
-            failures.append(f"tier A = {tiers['A_cleave_today']!r}, expected ['BAD', 'FFF']")
+        if tiers["A_cleave_today"] != ["BAD", "FFF", "MMM"]:
+            failures.append(f"tier A = {tiers['A_cleave_today']!r}, "
+                            f"expected ['BAD', 'FFF', 'MMM']")
         # The exact error the 2026-10-30 analysis made: a function-local
         # back-import must NOT register as a cycle.
         if led["cycles_real"] != 0:
@@ -1211,12 +1409,34 @@ def selftest() -> int:
             failures.append(f"loose modules = {led['totals']['loose_modules']}, expected 1")
         if led["totals"]["parse_failures"] != 1:
             failures.append(f"parse failures = {led['totals']['parse_failures']}, expected 1")
-        if led["mycelium"]["trees_silent"] != ["BAD", "BBB", "CCC", "DDD", "EEE", "FFF"]:
+        if led["mycelium"]["trees_silent"] != ["BAD", "BBB", "CCC", "DDD", "EEE",
+                                               "FFF", "MMM"]:
             failures.append(f"silent trees = {led['mycelium']['trees_silent']!r}")
         cross = led.get("cross_language") or {}
-        if cross.get("pairs_by_language", {}).get("shell->python") != 1:
+        # TWO now, not one: `python ../FFF/f.py` and `python -m FFF.f` both name
+        # FFF/f.py, and the old cross walk never looked at the `-m` form at all
+        # (only _PY_CALL_RE, which requires a .py in the text).
+        if cross.get("pairs_by_language", {}).get("shell->python") != 2:
             failures.append(f"cross-language shell->python = "
-                            f"{cross.get('pairs_by_language')!r}, expected 1")
+                            f"{cross.get('pairs_by_language')!r}, expected 2 "
+                            f"(file form + -m form)")
+        # The flat-layout repair: `python scripts\flat.py` from LLL finds
+        # CCC/scripts/flat.py by a UNIQUE two-component tail, and says so.
+        if (cross.get("resolved_by") or {}).get("tail") != 1:
+            failures.append("tail resolution = %r, expected 1 (flat-layout driver)"
+                            % (cross.get("resolved_by"),))
+        # ...while the same shape in js must stay unresolved: a relative import
+        # is a sibling reference, not a filename to be hunted for elsewhere.
+        js_u = (led.get("graphs") or {}).get("javascript") or {}
+        if (js_u.get("unresolved") or {}).get("target-not-found") != 1:
+            failures.append("js relative import was tail-matched: %r"
+                            % (js_u.get("unresolved"),))
+        # A basename-only match is counted, labelled, and kept OUT of tiering.
+        if (cross.get("resolved_by") or {}).get("basename") != 1:
+            failures.append("basename match = %r, expected 1"
+                            % (cross.get("resolved_by"),))
+        if "MMM" in [r["tree"] for r in led["tiers"].get("A_cross_language") or []]:
+            failures.append("a basename-only reference re-tiered MMM as A-CROSS")
         across = [r["tree"] for r in led["tiers"].get("A_cross_language") or []]
         if across != ["FFF"]:
             failures.append(f"A-CROSS = {across!r}, expected ['FFF']")
@@ -1236,11 +1456,12 @@ def selftest() -> int:
             failures.append("js cross-tree edge HHH->III missing: %r"
                             % (js.get("tree_pairs"),))
         sh = g.get("shell") or {}
-        if sh.get("by_form") != {"file": 1, "module": 1}:
-            failures.append("shell call forms = %r, expected {'file': 1, 'module': 1}"
+        # Three file-form calls (run.sh, flat.bat, weak.bat) and one -m form.
+        if sh.get("by_form") != {"file": 3, "module": 1}:
+            failures.append("shell call forms = %r, expected {'file': 3, 'module': 1}"
                             % (sh.get("by_form"),))
-        if sh.get("statements") != 2:
-            failures.append("shell graph statements = %r, expected 2" % sh.get("statements"))
+        if sh.get("statements") != 4:
+            failures.append("shell graph statements = %r, expected 4" % sh.get("statements"))
         plan = shard_plan(root)
         for lang, blk in plan["languages"].items():
             flat = [m for s in blk["detail"] for m in s["modules"]]
@@ -1272,12 +1493,14 @@ def selftest() -> int:
         for f in failures:
             print("  - " + f, file=sys.stderr)
         return 3
-    print("SELFTEST OK — 19 controls (tier list, cycle filter, tier B membership, "
+    print("SELFTEST OK — 23 controls (tier list, cycle filter, tier B membership, "
           "loose modules, parse failure, hub silence, stub tier, no stub in tier A, "
           "mixed-language tier, no mixed tree in tier A, cross-language edge, "
           "A-CROSS membership, shell does not evict a tree, shard plan partitions, "
           "js edge count, js external isolation, js cross-tree edge, shell call "
-          "forms, shell statement count)")
+          "forms, shell statement count, tail resolution of a flat-layout driver, "
+          "js relative import is never tail-matched, basename match counted, "
+          "basename match does not re-tier a tree)")
     return 0
 
 
