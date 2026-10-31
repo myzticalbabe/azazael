@@ -138,6 +138,19 @@
       "risk": "a ratchet nobody runs is a comment; the scheduled run is part of the acceptance, not a later convenience"
     }
   ],
+  "contract_changes_pending": {
+    "source": "docs/METTHEW/REJECTION_ANALYSIS_2026-10-31.md",
+    "status": "proposed, not accepted; M-01 should not freeze until each is decided either way",
+    "items": [
+      { "change": "sandboxed loader (WASM or restricted VM: no clock, no RNG, no filesystem, no network)", "because": "R2 - a shard is currently arbitrary code from a friend's USB; measured: src/INTERPRETERS/* run raw subprocesses with only cwd+timeout", "affects": ["M-01", "M-03", "M-05"] },
+      { "change": "one-download player (browser/WASM target) as the distribution unit", "because": "R1 - install-python-first is where a non-author player stops", "affects": ["M-04", "M-08"] },
+      { "change": "hubs as versioned shared libraries, declared and counted", "because": "R4 - banning external references forces every shard to duplicate its engine inside 24 files", "affects": ["M-01", "M-03"] },
+      { "change": "competitive flag: determinism declared per shard, not required of all", "because": "R3 - the hash chain is a tax against ranked strangers, and a circle has none", "affects": ["M-01", "M-06"] },
+      { "change": "content-addressed shard ids (id@hash) with host-version fallback", "because": "R6 - version skew currently reads to players as a broken game", "affects": ["M-01", "M-08", "M-09"] }
+    ],
+    "deferred": ["federated signed index (R5, M-08)", "relay or streamed transport (R7, M-08)", "per-asset provenance (R9, M-01 field)", "visual identity or raised payload budget (R10, M-02)", "naming (R11)"
+    ]
+  },
   "non_goals": [
     "storefront", "DRM", "accounts", "cloud saves", "live services", "monetisation",
     "kernel-level anti-cheat", "GPU compute requirement", "matchmaking service",

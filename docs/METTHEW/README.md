@@ -14,6 +14,7 @@ and applies it to games.
 | --- | --- |
 | [METTHEW_PLAN_2026-10-31.md](METTHEW_PLAN_2026-10-31.md) | the plan: why, what exists to reuse, what a Shard is, the low-end budget, the four tracks, the explicit non-goals |
 | [tasks.json](tasks.json) | the same 12 tasks machine-readable, with owner, dependencies, deliverable, acceptance and risk. It is the scheduling copy; the markdown is the reasoning copy. |
+| [REJECTION_ANALYSIS_2026-10-31.md](REJECTION_ANALYSIS_2026-10-31.md) | Metthew's contract measured against PICO-8, Doom WADs, Luanti, Factorio, OpenTTD, SMAPI, Minecraft/Fabric, Workshop and Steam Remote Play: 12 ranked reasons players would bounce, and the five contract changes that should land before M-01 freezes. |
 
 ## Separation of tasks in one screen
 
@@ -25,6 +26,10 @@ and applies it to games.
 | **D** | Portability and gates | M-11 portability matrix · M-12 unplayable ratchet + weekly cold run | windows/ubuntu/kali owners, kilo | after M-05 / M-03 |
 
 **Critical path:** `M-01 → M-03 → M-05 → M-06`.
+
+**Before M-01 freezes**, the five changes in the rejection analysis must each be decided
+either way (sandboxed loader, one-download player, versioned hubs, a `competitive`
+flag on determinism, content-addressed ids). They are proposals, not accepted scope.
 
 Nothing in tracks B, C or D may claim a task before M-03's validator exists, because
 every other task's acceptance is phrased in terms of something the validator prints.
