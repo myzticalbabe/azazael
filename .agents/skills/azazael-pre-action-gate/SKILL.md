@@ -1,6 +1,6 @@
 ---
 name: azazael-pre-action-gate
-description: PERMANENT PRE-ACTION GATE (RULE 0J/0S) — 13-question mandatory assertion block. MUST be printed before EVERY str_replace, write_file, or spawn_agents call. Never disableable. NOTE: auto_load is inert in this client (body never reaches agent unprompted); load explicitly via skill("azazael-pre-action-gate"). Checks whose agent is UNAVAILABLE per the AVAILABILITY PRE-CHECK resolve to N/A, not HALT.
+description: "PERMANENT PRE-ACTION GATE (RULE 0J/0S) — 13-question mandatory assertion block. MUST be printed before EVERY str_replace, write_file, or spawn_agents call. Never disableable. NOTE: auto_load is inert in this client (body never reaches agent unprompted); load explicitly via skill(\"azazael-pre-action-gate\"). Checks whose agent is UNAVAILABLE per the AVAILABILITY PRE-CHECK resolve to N/A, not HALT."
 metadata:
   category: system
   project: azazael
