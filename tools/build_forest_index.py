@@ -147,6 +147,45 @@ def evidence_txt(xl: Dict[str, Any]) -> str:
     return out
 
 
+def aliases_txt(census: Dict[str, Any]) -> str:
+    """Declared vs used, and a loud mark if a declaration went dead.
+
+    An alias table that no longer matches anything is decoration; the census
+    reports it as `stale_alias` and this line is where a reader sees it.
+    """
+    block = census.get("aliases") or {}
+    declared = int(block.get("declarations") or 0)
+    if not declared:
+        return "<span class=\"dim\">none declared</span>"
+    used = len(block.get("used") or {})
+    stale = block.get("stale_alias") or []
+    txt = "%d declared · %d used" % (declared, used)
+    if stale:
+        txt += " · <b>%d STALE</b>" % len(stale)
+    return txt
+
+
+def lift_txt(census: Dict[str, Any]) -> str:
+    lf = (census.get("contracts") or {}).get("liftability") or {}
+    if not lf:
+        return "<span class=\"dim\">not measured</span>"
+    return "%d/%d (%d blocked)" % (lf.get("liftable", 0), lf.get("shards", 0),
+                                   lf.get("blocked", 0))
+
+
+def budget_txt(census: Dict[str, Any]) -> str:
+    """Current unresolved count against the ratchet's recorded budget."""
+    now = sum((census.get("cross_language") or {}).get("unresolved" or {}).values())
+    base = load(OUT_DIR.parent / "azazael" / "tools" / "unresolved_baseline.json", {})
+    if not base:
+        base = load(Path(__file__).resolve().parent / "unresolved_baseline.json", {})
+    if not base:
+        return "%d now · <span class=\"dim\">no baseline</span>" % now
+    prior = int(base.get("total") or 0)
+    mark = "" if now <= prior else " · <b>OVER</b>"
+    return "%d of %d%s" % (now, prior, mark)
+
+
 def graphs_html(census: Dict[str, Any]) -> str:
     """One row per analysed language: files, resolved edges, external, missing.
 
@@ -159,15 +198,26 @@ def graphs_html(census: Dict[str, Any]) -> str:
         return '<p class="dim">no graphs — run the census</p>'
     rows = ['<tr><th>graph</th><th>files</th><th>edges</th><th>tree pairs</th>'
             '<th>external</th><th>unresolved</th><th>weak</th></tr>']
-    for lang, g in graphs.items():
+    # python first: it is the graph with the most edges, and a table headed
+    # "language graphs" that omits it reads as "python was not analysed".
+    pg = census.get("python_graph") or {}
+    ordered = ([("python", pg)] if pg else []) + list(graphs.items())
+    for lang, g in ordered:
         ext = g.get("external_statements") or g.get("external_assets") or 0
         unres = g.get("unresolved") or {}
+        files, edges = g.get("files") or 0, g.get("statements") or 0
+        # `0 edges` beside `65 files` reads as "not analysed". Where the edges are
+        # genuinely zero and there ARE references, say so on the row -- derived
+        # from the numbers, so it cannot go stale.
+        # A single mark, not a phrase: a wrapping cell pushes the row out of
+        # alignment with every other row, which reads as a rendering fault.
+        note = "†" if (not edges and files and ext) else ""
         rows.append(
             '<tr><td class="nm">%s</td><td class="num">%d</td>'
-            '<td class="num">%d</td><td class="num">%d</td>'
+            '<td class="num">%d%s</td><td class="num">%d</td>'
             '<td class="num">%d</td><td class="num">%d</td>'
             '<td class="num">%d</td></tr>' % (
-                lang, g.get("files") or 0, g.get("statements") or 0,
+                lang, files, edges, note,
                 len(g.get("tree_pairs") or []), ext, sum(unres.values()),
                 g.get("weak_statements") or 0))
     return "\n".join(rows)
@@ -294,10 +344,13 @@ def build(index: Dict[str, Any], census: Dict[str, Any],
       </div>
       <div class="card"><h2>language graphs · resolved, not asserted</h2>
         <table class="plan">__GRAPHS__</table>
-        <div class="kv" style="margin-top:8px">cross-language references
-          <b>__XL__</b> resolved · <b>__XLU__</b> unresolved<br>
-          evidence: __XLB__<br>
-          code counted <b>__LANGCHIP__</b></div>
+        <div class="kv" style="margin-top:8px">cross-language <b>__XL__</b> resolved ·
+          <b>__XLU__</b> unresolved<br>
+          evidence __XLB__<br>
+          † no internal edges: every reference is an external package<br>
+          code counted <b>__LANGCHIP__</b><br>
+          aliases __ALIASES__ · liftable __LIFT__<br>
+          unresolved budget __BUDGET__</div>
       </div>
     </div>
   </div>
@@ -352,6 +405,9 @@ window.__draw(0);
    .replace("__XL__", str(xl.get("statements", 0))) \
    .replace("__XLU__", str(sum((xl.get("unresolved") or {}).values()))) \
    .replace("__XLB__", evidence_txt(xl)) \
+   .replace("__ALIASES__", aliases_txt(census)) \
+   .replace("__LIFT__", lift_txt(census)) \
+   .replace("__BUDGET__", budget_txt(census)) \
    .replace("__LANGCHIP__", lang_chip) \
    .replace("__DURATION__", str(DURATION_MS))
 
@@ -387,7 +443,7 @@ def main() -> int:
     # Read the artefact back: a page whose numbers did not render is a template.
     check = out.read_text(encoding="utf-8")
     problems = [tok for tok in ("__ROWS__", "__TIERS__", "__LANGS__", "__GRAPHS__",
-                                "__XL__")
+                                "__XL__", "__ALIASES__", "__LIFT__", "__BUDGET__")
                 if tok in check]
     if problems:
         print("VERIFY FAILED: unsubstituted tokens %r" % problems,

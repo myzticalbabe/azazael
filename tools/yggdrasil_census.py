@@ -159,6 +159,95 @@ _VAR_RES = (
 #: Words a driver puts before the interpreter's argument; not part of a path.
 _BS = chr(92)
 
+#: Declared resolution aliases. Inference is the LAST resort, not the first:
+#: `WORMZ/` meant `CORE/WORMS/` before the tree moved, and a resolver that
+#: rediscovers that on every run is guessing 25 times a run instead of once.
+#: A declaration that matches no reference is reported as `stale_alias` -- the
+#: import-linter rule that unmatched suppressions are an error, applied here so
+#: the table cannot rot into decoration.
+ALIAS_FILE = Path(__file__).resolve().parent / "resolution_aliases.json"
+
+
+class Aliases:
+    """roots (a variable that names a directory), prefixes, and file aliases."""
+
+    def __init__(self, data: Dict[str, Any], source: str):
+        self.source = source
+        self.roots = {k.upper(): v for k, v in (data.get("roots") or {}).items()}
+        self.prefixes = dict(data.get("prefixes") or {})
+        self.files = dict(data.get("files") or {})
+        self.used: Counter[str] = Counter()
+        self.declared = ([("root", k) for k in self.roots]
+                         + [("prefix", k) for k in self.prefixes]
+                         + [("file", k) for k in self.files])
+
+    @classmethod
+    def load(cls, path: Optional[Path] = None) -> "Aliases":
+        p = Path(path) if path else ALIAS_FILE
+        if not p.is_file():
+            return cls({}, "none")
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            print("[census] unreadable aliases %s: %s" % (p, exc), file=sys.stderr)
+            return cls({}, "unreadable")
+        return cls(data, str(p))
+
+    def rewrites(self, var: Optional[str], tail: str) -> List[Tuple[str, List[str]]]:
+        r"""(candidate path, declarations it exercised).
+
+        Chained on purpose: `%AZAZAEL_ROOT%\WORMZ\X.py` needs BOTH the root
+        and the prefix, and a table that can only apply one of them would leave
+        half these references unresolved while looking complete. The declaration
+        list is what makes staleness detectable -- a rewrite that borrows another
+        declaration must not make the borrowed one look unused.
+        """
+        forms: List[Tuple[str, List[str]]] = []
+        if var and var.upper() in self.roots:
+            key = "root:" + var.upper()
+            root_dir = self.roots[var.upper()].strip("/")
+            expanded = tail if root_dir in ("", ".") else root_dir + "/" + tail
+            forms.append((expanded, [key]))
+        forms.append((tail, []))
+
+        out: List[Tuple[str, List[str]]] = []
+        for form, keys in forms:
+            if keys:
+                out.append((form, keys))
+            head, _, rest = form.partition("/")
+            if head in self.prefixes and rest:
+                out.append((self.prefixes[head].strip("/") + "/" + rest,
+                            keys + ["prefix:" + head]))
+            name = form.rsplit("/", 1)[-1]
+            if name in self.files:
+                out.append((self.files[name], keys + ["file:" + name]))
+            if form in self.files and form != name:
+                out.append((self.files[form], keys + ["file:" + form]))
+        return out
+
+    def stale(self) -> List[str]:
+        return ["%s:%s" % (kind, key) for kind, key in self.declared
+                if not self.used["%s:%s" % (kind, key)]]
+
+
+def _exact_attempt(bases: List[Path], tail: str, suffixes: Tuple[str, ...],
+                   index_names: Tuple[str, ...]) -> Optional[Path]:
+    """The literal path, then each extension, then each directory index."""
+    candidates = ("",) + tuple(s for s in suffixes if s)
+    for b in bases:
+        p = b / tail
+        for suffix in candidates:
+            cand = Path(str(p) + suffix)
+            if cand.suffix and not cand.is_file():
+                continue
+            if cand.is_file():
+                return cand
+        for index_name in index_names:
+            cand = p / index_name
+            if cand.is_file():
+                return cand
+    return None
+
 
 #: Trailing-component index over ``src``: `ml_platforms/harness.py` -> the
 #: files whose path ends that way. Built once per tree and cached, because the
@@ -222,13 +311,17 @@ def resolve_ref(src: Path, base: Path, ref: str,
                 root: Optional[Path] = None,
                 suffixes: Tuple[str, ...] = _JS_SUFFIXES,
                 index_names: Tuple[str, ...] = _JS_INDEX,
-                allow_tail: bool = False) -> Tuple[Optional[Path], str]:
+                allow_tail: bool = False,
+                aliases: Optional["Aliases"] = None) -> Tuple[Optional[Path], str]:
     """Resolve one reference, and return HOW it resolved alongside the file.
 
     ``(path, how)`` where ``how`` is the evidence, weakest last:
 
     * ``exact``      -- the literal path / a suffix candidate / a dir index, under
                         the script's dir or ``src``.
+    * ``alias``      -- a DECLARED rewrite (`WORMZ/` -> `CORE/WORMS/`). Stronger
+                        than inference because a human wrote it down; a
+                        declaration that matches nothing is reported stale.
     * ``variable``   -- a `%VAR%`/`$VAR` prefix was removed and the remainder
                         resolved (the variable named a root).
     * ``periphery``  -- a real file under the repo root but outside ``src``: the
@@ -283,29 +376,27 @@ def resolve_ref(src: Path, base: Path, ref: str,
     # shell call used to test only `f.py.py`, so `python ../FFF/f.py` resolved to
     # nothing and was reported as outside-src -- a resolver bug wearing the
     # costume of a finding.
-    candidates = ("",) + tuple(s for s in suffixes if s)
-    for b in bases:
-        p = b / tail
-        for suffix in candidates:
-            cand = Path(str(p) + suffix)
-            if cand.suffix and not cand.is_file():
-                continue
-            if not cand.is_file():
-                continue
-            how = "variable" if var is not None else _kind(src, cand, root)
-            return cand, how
-        for index_name in index_names:
-            cand = p / index_name
-            if cand.is_file():
-                how = "variable" if var is not None else _kind(src, cand, root)
-                return cand, how
+    hit = _exact_attempt(bases, tail, suffixes, index_names)
+    if hit is not None:
+        return hit, ("variable" if var is not None else _kind(src, hit, root))
+
+    # Declared aliases, before any inference. `WORMZ/CONCURRENCY.py` is a fact
+    # about this repo, not something to rediscover per run.
+    if aliases is not None:
+        alias_bases = [src] + ([root] if root is not None else []) + [base]
+        for rewritten, keys in aliases.rewrites(var, tail):
+            hit = _exact_attempt(alias_bases, rewritten, suffixes, index_names)
+            if hit is not None:
+                for key in keys:
+                    aliases.used[key] += 1
+                return hit, "alias"
 
     if allow_tail and not was_absolute:
         suffix_index, name_index = _indices(src)
         # `python -m TOOLS.debug_runner` names no extension, so the tail has to
         # be tried with each candidate suffix too, or a real module reads as
         # missing purely because its ref has no `.py` in it.
-        variants = [tail] + [tail + s for s in candidates if s]
+        variants = [tail] + [tail + s for s in suffixes if s]
         for variant in variants:
             parts = [q for q in variant.split("/") if q not in ("", ".")]
             if not parts:
@@ -390,6 +481,29 @@ def _graph_cycles(edges: Iterable[Tuple[str, str]]) -> List[List[str]]:
 # edge recording: ONE place where a reference becomes an edge
 # --------------------------------------------------------------------------
 
+def _ambiguity_candidates(src: Path, ref: str, root: Optional[Path],
+                          suffixes: Tuple[str, ...]) -> List[str]:
+    """The files a refused reference could have meant.
+
+    "ambiguous: 8" cannot be acted on; eight launchers each needing one of two
+    files can be. Naming the candidates turns a refusal into a decision someone
+    can make -- and a declaration (`resolution_aliases.json`) someone can record.
+    """
+    raw = ref.strip().strip("'\"")
+    stem = _SHELL_PREFIX_RE.sub("", raw.replace(_BS, "/"))
+    _, tail = _strip_var(stem)
+    parts = [p for p in tail.split("/") if p not in ("", ".")]
+    if not parts:
+        return []
+    suffix_index, name_index = _indices(src)
+    for k in range(min(4, len(parts)), 1, -1):
+        hits = suffix_index.get("/".join(parts[-k:]))
+        if hits:
+            return sorted(h.relative_to(src).as_posix() for h in hits[:4])
+    hits = name_index.get(parts[-1].lower()) or []
+    return sorted(h.relative_to(src).as_posix() for h in hits[:4])
+
+
 def _new_acc() -> Dict[str, Any]:
     """Counters one graph accumulates. Shared so the three graphs cannot drift."""
     return {
@@ -413,7 +527,8 @@ def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
                 *, suffixes: Tuple[str, ...] = _JS_SUFFIXES,
                 index_names: Tuple[str, ...] = _JS_INDEX,
                 allow_tail: bool = False, line: Optional[int] = None,
-                extra: Optional[Dict[str, Any]] = None) -> str:
+                extra: Optional[Dict[str, Any]] = None,
+                aliases: Optional["Aliases"] = None) -> str:
     """Resolve one reference and record it, or record WHY it did not resolve.
 
     Returns ``how`` so the caller can tag further detail (a shell graph wants to
@@ -426,8 +541,10 @@ def _record_ref(acc: Dict[str, Any], src: Path, root: Optional[Path],
     a clean number.
     """
     target, how = resolve_ref(src, base, ref, root, suffixes, index_names,
-                             allow_tail)
+                             allow_tail, aliases)
     note = dict(extra or {})
+    if target is None and how == "ambiguous":
+        note["candidates"] = _ambiguity_candidates(src, ref, root, suffixes)
     if target is None:
         acc["unresolved"][how] += 1
         if len(acc["samples"]) < 20:
@@ -496,11 +613,182 @@ def _graph_common(acc: Dict[str, Any], language: str, n_files: int,
         "external_paths": dict(acc["external_paths"].most_common(10)),
         "detail": acc["detail"],
         "note": note,
+        # Private: popped by census() before serialisation. Contracts need the
+        # file-level pairs, and a summary that keeps only counts cannot answer
+        # "which shard does this edge enter".
+        "_edges": [(a, b, n) for (a, b), n in acc["edges"].items()],
     }
 
 
+# --------------------------------------------------------------------------
+# the python file graph: the instrument shard independence needs
+# --------------------------------------------------------------------------
+
+def _py_import_targets(node: ast.AST) -> Iterable[Tuple[str, Tuple[str, ...], int]]:
+    """(dotted module, imported names, relative level) for one import node."""
+    if isinstance(node, ast.Import):
+        for a in node.names:
+            yield a.name, (), 0
+    elif isinstance(node, ast.ImportFrom):
+        names = tuple(a.name for a in node.names if a.name and a.name != "*")
+        yield (node.module or ""), names, getattr(node, "level", 0) or 0
+
+
+def _py_module_index(src: Path, files: List[Path]) -> Dict[str, Path]:
+    """Dotted-path key -> file, using the src-relative path as the package path.
+
+    `CORE/WORMS/CONCURRENCY.py` is `CORE.WORMS.CONCURRENCY` here because src/ IS
+    the package root -- the same assumption the tree-level graph already makes
+    when it treats a top-level directory as a tree.
+    """
+    index: Dict[str, Path] = {}
+    for f in files:
+        rel = f.relative_to(src)
+        if len(rel.parts) < 2:
+            continue
+        key = rel.with_suffix("").as_posix()
+        index[key] = f
+        if key.endswith("/__init__"):
+            index[key[: -len("/__init__")]] = f
+    return index
+
+
+def _resolve_py_module(here_rel: str, module: str, names: Tuple[str, ...],
+                       level: int, index: Dict[str, Path],
+                       trees: Iterable[str]) -> Tuple[Optional[Path], str, str]:
+    """(file, how, reason). Reason is set only when the file is None."""
+    parts = here_rel.split("/")[:-1]
+    if level:
+        drop = level - 1
+        base = parts[: len(parts) - drop] if drop else parts
+        dotted = ".".join(base + ([module] if module else []))
+        how = "relative"
+    else:
+        dotted = module
+        how = "module"
+    if not dotted:
+        return None, how, "relative-needs-package" if level else "no-module"
+    path = dotted.replace(".", "/")
+    if path in index:
+        return index[path], how, ""
+    for n in names:
+        cand = path + "/" + n
+        if cand in index:
+            return index[cand], how, ""
+    top = dotted.split(".")[0]
+    if top in set(trees):
+        # `from CORE import paths` where CORE/paths.py does not exist: the name
+        # is an attribute, not a module. Not a broken import -- a different fact.
+        return None, how, "name-not-module"
+    return None, how, "external" if not level else "relative-unresolved"
+
+
+def record_python_file(acc: Dict[str, Any], src: Path, here_rel: str,
+                       here_tree: Optional[str], tree: ast.AST,
+                       index: Dict[str, Path], trees: Iterable[str]) -> None:
+    """Follow every import in one file to a real module file, or count why not."""
+    tree_set = set(trees)
+    for node in ast.walk(tree):
+        for module, names, level in _py_import_targets(node):
+            target, how, reason = _resolve_py_module(here_rel, module, names,
+                                                     level, index, tree_set)
+            if target is None:
+                acc["unresolved"][reason] += 1
+                if len(acc["samples"]) < 20:
+                    acc["samples"].append({"from": here_rel, "ref": module or ".",
+                                           "reason": reason})
+                continue
+            there_rel = target.relative_to(src).as_posix()
+            there_tree = there_rel.split("/")[0] if "/" in there_rel else None
+            acc["edges"][(here_rel, there_rel)] += 1
+            acc["resolved_by"][how] += 1
+            acc["pairs_by_language"]["python->python"] += 1
+            if here_tree and there_tree and here_tree != there_tree:
+                acc["tree_pairs"][(here_tree, there_tree)] += 1
+            if here_tree:
+                acc["tree_out"][here_tree] += 1
+            if there_tree:
+                acc["tree_in"][there_tree] += 1
+            if len(acc["detail"]) < 30:
+                acc["detail"].append({"from": here_rel, "to": there_rel,
+                                      "ref": module or ".", "via": how})
+
+
+
+#: tree-sitter parsers, cached per grammar. The regex extractors cannot tell a
+#: commented-out import from a live one, or `"require('./x')"` inside a string
+#: from a real call -- measured on 2026-10-31 with a fixture that contains both.
+_TS_PARSERS: Dict[str, Any] = {}
+
+
+def _ts_parser(kind: str):
+    if kind in _TS_PARSERS:
+        return _TS_PARSERS[kind]
+    parser = None
+    try:
+        import tree_sitter as ts
+        if kind == "typescript":
+            import tree_sitter_typescript as grammar
+            language = ts.Language(grammar.language_typescript())
+        else:
+            import tree_sitter_javascript as grammar
+            language = ts.Language(grammar.language())
+        parser = ts.Parser(language)
+    except (ImportError, AttributeError, TypeError, OSError) as exc:
+        # A designed skip, said out loud: the regex extractor still runs, and the
+        # graph reports which extractor produced its edges.
+        print("[census] tree-sitter %s unavailable (%s); using regex"
+              % (kind, type(exc).__name__), file=sys.stderr)
+        parser = None
+    _TS_PARSERS[kind] = parser
+    return parser
+
+
+def _first_string(node, blob: bytes) -> Optional[str]:
+    stack = [node]
+    while stack:
+        cur = stack.pop()
+        if cur.type == "string":
+            raw = blob[cur.start_byte:cur.end_byte].decode("utf-8", "replace")
+            return raw.strip("'\"`")
+        stack.extend(reversed(cur.children))
+    return None
+
+
+def js_imports(path: Path, text: str) -> Tuple[List[Tuple[str, int]], str]:
+    """(specifier, line) pairs for one js/ts file, and which extractor found them."""
+    kind = "typescript" if path.suffix.lower() in (".ts", ".tsx") else "javascript"
+    parser = _ts_parser(kind)
+    if parser is None:
+        return ([(m.group(1), _line_of(text, m.start()))
+                 for m in _JS_IMPORT_RE.finditer(text)], "regex")
+    blob = text.encode("utf-8", "replace")
+    tree = parser.parse(blob)
+    out: List[Tuple[str, int]] = []
+    stack = [tree.root_node]
+    while stack:
+        node = stack.pop()
+        kind_name = node.type
+        if kind_name in ("import_statement", "export_statement"):
+            ref = _first_string(node, blob)
+            if ref:
+                out.append((ref, node.start_point[0] + 1))
+        elif kind_name == "call_expression":
+            fn = node.child_by_field_name("function")
+            if fn is not None:
+                name = blob[fn.start_byte:fn.end_byte].decode("utf-8", "replace")
+                if name in ("require", "import"):
+                    args = node.child_by_field_name("arguments")
+                    ref = _first_string(args, blob) if args is not None else None
+                    if ref:
+                        out.append((ref, node.start_point[0] + 1))
+        stack.extend(node.children)
+    return out, "tree-sitter"
+
+
 def build_js_graph(src: Path, js_files: List[Path],
-                   root: Optional[Path] = None) -> Dict[str, Any]:
+                   root: Optional[Path] = None,
+                   aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
     """The js/ts module graph: file -> file, resolved through import/require.
 
     Counting 62 javascript files and calling it coverage is what this replaces.
@@ -512,6 +800,7 @@ def build_js_graph(src: Path, js_files: List[Path],
     """
     acc = _new_acc()
     external: Counter[str] = Counter()
+    extractors: Counter[str] = Counter()
 
     for path in js_files:
         text = _read_capped(path)
@@ -519,13 +808,14 @@ def build_js_graph(src: Path, js_files: List[Path],
             continue
         here_file = _rel_posix(src, path, root)
         here_tree = _tree_of(src, path, root)
-        for m in _JS_IMPORT_RE.finditer(text):
-            ref = m.group(1)
+        refs, extractor = js_imports(path, text)
+        extractors[extractor] += 1
+        for ref, line in refs:
             if not ref.startswith("."):
                 external[ref.split("/")[0]] += 1
                 continue
             _record_ref(acc, src, root, here_file, here_tree, path.parent, ref,
-                        line=_line_of(text, m.start()))
+                        line=line, aliases=aliases)
 
     out = _graph_common(
         acc, "javascript", len(js_files),
@@ -535,11 +825,13 @@ def build_js_graph(src: Path, js_files: List[Path],
     out["cycles"] = _graph_cycles(acc["edges"])
     out["external_packages"] = dict(external.most_common(12))
     out["external_statements"] = sum(external.values())
+    out["extractor"] = dict(sorted(extractors.items()))
     return out
 
 
 def build_shell_graph(src: Path, script_files: List[Path],
-                      root: Optional[Path] = None) -> Dict[str, Any]:
+                      root: Optional[Path] = None,
+                      aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
     """The shell/batch -> python call graph.
 
     This is the join the cleave actually trips on: 58 .bat and 15 .ps1 drive the
@@ -587,7 +879,8 @@ def build_shell_graph(src: Path, script_files: List[Path],
             how = _record_ref(acc, src, root, here_file, here_tree, base,
                               ref.replace(".", "/") if form == "module" else ref,
                               suffixes=(".py",), index_names=("__init__.py",),
-                              allow_tail=True, line=line, extra={"form": form})
+                              allow_tail=True, line=line, extra={"form": form},
+                              aliases=aliases)
             if how == "target-not-found":
                 # The useful form: WHICH file the driver wanted. A launcher
                 # pointing at a path that exists nowhere in the repo is a broken
@@ -608,7 +901,8 @@ def build_shell_graph(src: Path, script_files: List[Path],
 
 
 def build_html_graph(src: Path, html_files: List[Path],
-                     root: Optional[Path] = None) -> Dict[str, Any]:
+                     root: Optional[Path] = None,
+                     aliases: Optional["Aliases"] = None) -> Dict[str, Any]:
     """html -> asset edges (`<script src>`).
 
     142 html files made html the second-largest language here and none of it was
@@ -628,7 +922,7 @@ def build_html_graph(src: Path, html_files: List[Path],
                 external[ref.split("/")[0][:40]] += 1
                 continue
             _record_ref(acc, src, root, here_file, here_tree, path.parent, ref,
-                        line=_line_of(text, m.start()))
+                        line=_line_of(text, m.start()), aliases=aliases)
     out = _graph_common(
         acc, "html", len(html_files),
         "<script src> only; inline <script> bodies are not parsed. A relative "
@@ -637,8 +931,245 @@ def build_html_graph(src: Path, html_files: List[Path],
     return out
 
 
+
+# --------------------------------------------------------------------------
+# contracts: the promises the cleave makes, checked
+# --------------------------------------------------------------------------
+
+def transitive_cycles(nodes: Iterable[str],
+                      edges: Iterable[Tuple[str, str]]) -> List[List[str]]:
+    """Mutually-reachable groups of ANY length.
+
+    `cycles_real` only ever found direct pairs (A<->B), and the ledger said so in
+    its own limits. A->B->C->A is the same defect one lap longer, and it is what
+    a 20-tree graph actually produces. Reachability closure at this size (<=30
+    nodes) is exact, cheap, and needs no cleverness.
+    """
+    universe = sorted(set(nodes) | {a for a, _ in edges} | {b for _, b in edges})
+    reach: Dict[str, Set[str]] = {n: set() for n in universe}
+    for a, b in edges:
+        if a in reach and b in reach:
+            reach[a].add(b)
+    changed = True
+    while changed:
+        changed = False
+        for a in universe:
+            new = set(reach[a])
+            for b in tuple(reach[a]):
+                new |= reach[b]
+            if new != reach[a]:
+                reach[a] = new
+                changed = True
+    groups: List[List[str]] = []
+    seen: Set[str] = set()
+    for a in universe:
+        if a in seen:
+            continue
+        group = [b for b in universe
+                 if b == a or (b in reach[a] and a in reach[b])]
+        if len(group) > 1:
+            groups.append(sorted(group))
+            seen.update(group)
+    return groups
+
+
+def _shard_of(plan: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, str]]:
+    """module path -> shard id, and shard id -> language."""
+    member: Dict[str, str] = {}
+    language: Dict[str, str] = {}
+    for lang, blk in (plan.get("languages") or {}).items():
+        for shard in blk.get("detail") or []:
+            language[shard["id"]] = lang
+            for mod in shard.get("modules") or []:
+                member[mod] = shard["id"]
+    return member, language
+
+
+def shard_liftability(plan: Dict[str, Any],
+                      edge_sets: Dict[str, Iterable[Tuple[str, str, int]]],
+                      ) -> Dict[str, Any]:
+    """For each shard: can it be lifted out today?
+
+    A shard lifts out iff no file OUTSIDE it references a file INSIDE it. That is
+    the whole promise, and it is checkable from the file-level graphs -- which is
+    why the python file graph had to exist before this could be an answer rather
+    than an assertion.
+    """
+    member, language = _shard_of(plan)
+    # Keyed by (file, graph): a .bat that calls into a python shard blocks that
+    # shard exactly as a python importer does, but the two need different
+    # remedies, so the graph travels with the blocker instead of being dropped.
+    inbound: Dict[str, Counter] = defaultdict(Counter)
+    unplaced = Counter()
+    for graph, edges in edge_sets.items():
+        for a, b, n in edges:
+            sa, sb = member.get(a), member.get(b)
+            if sb is None:
+                continue
+            if sa is None:
+                unplaced[graph] += n
+                continue
+            if sa != sb:
+                inbound[sb][(a, graph)] += n
+    blocked = []
+    for shard, refs in inbound.items():
+        if not refs:
+            continue
+        blocked.append({"shard": shard, "language": language.get(shard, "?"),
+                        "modules": sum(1 for m, s in member.items() if s == shard),
+                        "external_refs": sum(refs.values()),
+                        "blocked_by_graph": dict(sorted(
+                            Counter(g for (_a, g) in refs).items())),
+                        "blockers": [{"from": a, "graph": g, "refs": v}
+                                     for (a, g), v in refs.most_common(5)]})
+    blocked.sort(key=lambda r: -r["external_refs"])
+    total = len({s for s in member.values()})
+    return {
+        "shards": total,
+        "liftable": total - len(blocked),
+        "blocked": len(blocked),
+        "blocked_detail": blocked[:15],
+        "files_outside_the_plan": dict(unplaced),
+        "note": ("a shard is liftable when no file outside it references a file "
+                 "inside it, in ANY instrumented language -- a .bat driver that "
+                 "calls into a python shard blocks it just as an importer does. "
+                 "Each blocker names its graph so the two remedies stay distinct"),
+    }
+
+
+def affected_trees(led: Dict[str, Any], target: str,
+                   limit: int = 40) -> Dict[str, Any]:
+    """Everything that must be re-verified when `target` changes.
+
+    A file gets a FILE-precise answer in every instrumented language (this is
+    what the python file graph was built for); a limb name gets the limb-level
+    answer, which is the shard unit. The result says which granularity it used
+    instead of implying precision it does not have, and names the graph each
+    hop came from -- a .bat and an importer need different remedies.
+    """
+    raw = target.replace(_BS, "/").strip("/")
+    limbs = sorted({p.split("/")[0] for p in _ledger_paths(led)})
+    tree = raw.split("/")[0] if "/" in raw else raw
+    looks_like_file = "." in raw.rsplit("/", 1)[-1]
+    file_edges = _ledger_file_edges(led)
+
+    if looks_like_file and file_edges:
+        return _affected_files(raw, file_edges, led.get("_files") or (), limit=limit)
+    if tree not in limbs and raw in limbs:
+        tree = raw
+
+    reverse: Dict[str, Counter] = defaultdict(Counter)
+    for g in [led.get("python_graph") or {}] + list((led.get("graphs") or {}).values()):
+        for tp in g.get("tree_pairs") or []:
+            if tp["from"] != tp["to"]:
+                reverse[tp["to"]][tp["from"]] += tp["refs"]
+    rows: List[Dict[str, Any]] = [{"node": tree, "depth": 0, "refs": 0,
+                                   "graph": "-"}]
+    seen = {tree}
+    frontier = [tree]
+    depth = 0
+    while frontier:
+        depth += 1
+        nxt: List[str] = []
+        for node in frontier:
+            for dep, refs in reverse[node].most_common():
+                if dep in seen:
+                    continue
+                seen.add(dep)
+                rows.append({"node": dep, "depth": depth, "refs": refs,
+                             "graph": "limb"})
+                nxt.append(dep)
+        frontier = nxt
+    return {"granularity": "limb", "target": raw, "rows": rows,
+            "affected_limbs": [r["node"] for r in rows[1:]],
+            "affected_files": None}
+
+
+def _ledger_file_edges(led: Dict[str, Any]) -> Dict[str, List[Tuple[str, str, int]]]:
+    """File-level edges per language, from whichever copy the ledger holds."""
+    out: Dict[str, List[Tuple[str, str, int]]] = {}
+    stored = led.get("_file_edges") or {}
+    for gname, edges in stored.items():
+        out.setdefault(gname, [(a, b, n) for a, b, n in edges])
+    pg = (led.get("python_graph") or {}).get("_edges") or []
+    if pg:
+        out["python"] = [(a, b, n) for a, b, n in pg]
+    return out
+
+
+def _ledger_paths(led: Dict[str, Any]) -> List[str]:
+    """Every file path any graph mentions, so a limb name can be recognised."""
+    paths: List[str] = []
+    for edges in _ledger_file_edges(led).values():
+        for a, b, _n in edges:
+            paths.append(a)
+            paths.append(b)
+    for g in (led.get("graphs") or {}).values():
+        for tp in g.get("tree_pairs") or []:
+            paths.append(tp["from"] + "/x")
+    return paths
+
+
+def _affected_files(target: str,
+                    file_edges: Dict[str, List[Tuple[str, str, int]]],
+                    ledger_files: Optional[Iterable[str]] = None,
+                    limit: int = 40) -> Dict[str, Any]:
+    """Reverse BFS over file edges, all languages, with per-hop evidence."""
+    reverse: Dict[str, Counter] = defaultdict(Counter)
+    known: set = set(ledger_files or ())
+    for gname, edges in file_edges.items():
+        for a, b, n in edges:
+            known.add(a)
+            known.add(b)
+            if a != b:
+                reverse[b][(a, gname)] += n
+    if target not in known:
+        # A suffix is enough to name a file unambiguously -- and it has to work
+        # in both directions, because edges are stored relative to `src` while
+        # a caller types `src/CORE/x.py`. Ambiguity is refused, never guessed:
+        # "affected" licenses re-verification.
+        def _suffix(p: str, t: str) -> bool:
+            return p == t or p.endswith("/" + t) or t.endswith("/" + p)
+        hits = sorted(p for p in known if _suffix(p, target))
+        if len(hits) != 1:
+            return {"granularity": "file", "target": target, "rows": [],
+                    "affected_limbs": [], "affected_files": [],
+                    "error": ("not a file in any graph" if not hits
+                              else "ambiguous: %d matches" % len(hits)),
+                    "candidates": hits[:10]}
+        target = hits[0]
+
+    rows: List[Dict[str, Any]] = [{"node": target, "depth": 0, "refs": 0,
+                                   "graph": "-"}]
+    seen = {target}
+    frontier = [target]
+    depth = 0
+    truncated = False
+    while frontier:
+        depth += 1
+        nxt: List[str] = []
+        for node in frontier:
+            for (dep, gname), refs in reverse[node].most_common():
+                if dep in seen:
+                    continue
+                seen.add(dep)
+                if len(rows) > limit:
+                    truncated = True
+                    continue
+                rows.append({"node": dep, "depth": depth, "refs": refs,
+                             "graph": gname})
+                nxt.append(dep)
+        frontier = nxt
+    return {"granularity": "file", "target": target, "rows": rows,
+            "affected_files": [r["node"] for r in rows[1:]],
+            "affected_limbs": sorted({r["node"].split("/")[0] for r in rows[1:]}),
+            "truncated": truncated}
+
+
 def census(src: Path, archive: Optional[Path] = None,
-           extras: Optional[List[Path]] = None) -> Dict[str, Any]:
+           extras: Optional[List[Path]] = None,
+           aliases: Optional["Aliases"] = None,
+           keep_edges: bool = False) -> Dict[str, Any]:
     """Measure one ``src`` tree (and optionally an archive) into a dict.
 
     `extras` are roots OUTSIDE ``src`` that still ship production code --
@@ -664,6 +1195,11 @@ def census(src: Path, archive: Optional[Path] = None,
     }
     loose: Dict[str, Any] = {"py": 0, "lines": 0, "langs": {}}
     parse_failures: List[Dict[str, Any]] = []
+
+    # The python FILE graph. `edges_any`/`edges_mod` can only ever say "CORE
+    # imports WORMS"; a shard is 8 modules, so the shard question needs the file.
+    py_acc = _new_acc()
+    py_index = _py_module_index(src, files)
 
     edges_mod: Counter[Tuple[str, str]] = Counter()
     edges_any: Counter[Tuple[str, str]] = Counter()
@@ -697,6 +1233,8 @@ def census(src: Path, archive: Optional[Path] = None,
                                            ast.ClassDef)))
         if isinstance(bucket, dict) and "exec_units" in bucket:
             bucket["exec_units"] += exec_units
+        record_python_file(py_acc, src, rel.as_posix(), here, tree, py_index,
+                           tree_set)
         if here not in tree_set:
             continue
         for root in _walk_imports(tree, module_level_only=False):
@@ -749,10 +1287,13 @@ def census(src: Path, archive: Optional[Path] = None,
     # root, and 4 of these references land on real files there. `root=None`
     # keeps every reference inside src, which is what a standalone fixture wants.
     repo_root = src.parent if src.parent != src else None
+    plan = None
+    if aliases is None:
+        aliases = Aliases.load()
     graphs = {
-        "javascript": build_js_graph(src, js_files, repo_root),
-        "shell": build_shell_graph(src, shell_files, repo_root),
-        "html": build_html_graph(src, html_files, repo_root),
+        "javascript": build_js_graph(src, js_files, repo_root, aliases),
+        "shell": build_shell_graph(src, shell_files, repo_root, aliases),
+        "html": build_html_graph(src, html_files, repo_root, aliases),
     }
 
     # Per-tree non-python coupling, so a tree's verdict can carry it. Counts ALL
@@ -780,6 +1321,28 @@ def census(src: Path, archive: Optional[Path] = None,
             if dst_t in per_tree:
                 per_tree[dst_t].setdefault("nonpython", {}).setdefault(
                     "cross_in", {})[src_t] = n
+
+    # `_edges` is popped here: contracts need the file-level pairs, the ledger
+    # does not, and a 3,000-row edge list in the JSON is not a deliverable.
+    edge_sets: Dict[str, List[Tuple[str, str, int]]] = {
+        "python": [(a, b, n) for (a, b), n in py_acc["edges"].items()]}
+    for gname, g in graphs.items():
+        edge_sets[gname] = g.pop("_edges", [])
+    python_graph = _graph_common(
+        py_acc, "python", len(files),
+        "file -> file, resolved against the src-relative package path that the "
+        "tree-level graph already assumes; `from X import y` is followed to "
+        "X/y.py, and a name that is not a module is counted separately rather "
+        "than called a broken import")
+    python_graph["cycles"] = _graph_cycles(py_acc["edges"])
+    if plan is None:
+        plan = shard_plan(src)
+    contracts = {
+        "cycles_transitive": transitive_cycles(tree_set, [k for k in edges_mod]),
+        "direct_cycle_pairs": len({(a, b) for (a, b) in edges_mod
+                                    if (b, a) in edges_mod}),
+        "liftability": shard_liftability(plan, edge_sets),
+    }
 
     # --- the cross-language summary, derived from the graphs above ----------
     # This used to be a second, independent walk with its own resolver. Two
@@ -1069,23 +1632,48 @@ def census(src: Path, archive: Optional[Path] = None,
                      "up to the references looked at"),
         },
         "graphs": graphs,
+        "python_graph": python_graph,
+        "contracts": contracts,
+        **({"_file_edges": edge_sets,
+            # The inventory, not only the edge endpoints: a file nobody imports is
+            # still a file a question can be asked about, and answering "not in
+            # any graph" for one would be a false negative, not a refusal.
+            "_files": sorted({_rel_posix(src, p, None)
+                              for p in (list(files) + list(js_files)
+                                        + list(shell_files) + list(html_files))})
+            } if keep_edges else {}),
+        "aliases": {"source": aliases.source,
+                    "declarations": len(aliases.declared),
+                    "used": dict(sorted(aliases.used.items())),
+                    "stale_alias": aliases.stale()},
         "periphery": periphery,
         "languages": {
             "modules": dict(sorted(lang_totals.items())),
             "lines": dict(sorted(lang_lines.items())),
             "python_modules": src_modules,
             "other_modules": sum(lang_totals.values()),
-            "instrumented": ["python"],
-            "note": ("only python is import-analysed; other languages are COUNTED "
-                     "(modules, lines, per tree) but their edges are not resolved, "
-                     "so a mixed tree's clean-cut verdict rests on the python half"),
+            # `instrumented` is now read off the graphs that actually exist, not
+            # written by hand: the old literal said ["python"] while three more
+            # languages already had graphs, and a hard-coded inventory drifts.
+            "instrumented": sorted(["python"] + list(graphs)),
+            "uninstrumented": dict(sorted(
+                (lg, n) for lg, n in lang_totals.items()
+                if lg not in ("python", "javascript", "typescript", "shell",
+                              "batch", "html"))),
+            "note": ("python, js/ts, shell/batch and html have file-level graphs; "
+                     "`uninstrumented` names what is COUNTED but not resolved "
+                     "(rust, powershell), so a mixed tree's clean-cut verdict rests "
+                     "on the instrumented half. Inline <script> bodies are not parsed"),
         },
         "parse_failure_detail": parse_failures[:20],
         "limits": [
             "static scan: importlib/__import__ and string-based plugin loading "
             "(the worm registry) are invisible, so runtime coupling is higher",
-            "cycle detection covers direct mutual pairs only, not A->B->C->A",
+            "cycle detection reports direct mutual pairs per language; the "
+            "transitive closure in `contracts.cycles_transitive` is tree-level only",
             "archive is counted, never import-analysed",
+            "dependencies are package-level for js/ts and html: a bare specifier is "
+            "counted as a package dependency, never an edge",
         ],
     }
 
@@ -1161,6 +1749,32 @@ def render(led: Dict[str, Any]) -> str:
     if unres:
         add("  unresolved (universe for the count above): "
             + ", ".join(f"{k} {v}" for k, v in unres.items()))
+    pg = led.get("python_graph") or {}
+    if pg:
+        add(f"PYTHON FILE GRAPH — {pg['files']} file(s), {pg['statements']} import(s), "
+            f"{pg['file_pairs']} file pair(s), {len(pg.get('tree_pairs') or [])} tree pair(s), "
+            f"{len(pg.get('cycles') or [])} cycle(s)")
+        unres = pg.get("unresolved") or {}
+        if unres:
+            add("  not followed (universe): "
+                + ", ".join(f"{k} {v}" for k, v in unres.items()))
+    con = led.get("contracts") or {}
+    if con:
+        lf = con.get("liftability") or {}
+        add("CONTRACTS — what the cleave promises, checked")
+        add(f"  cycles of any length     {len(con.get('cycles_transitive') or [])} "
+            f"(direct pairs {con.get('direct_cycle_pairs', 0)})")
+        add(f"  shards liftable today    {lf.get('liftable', 0)}/{lf.get('shards', 0)} "
+            f"({lf.get('blocked', 0)} blocked by a reference from outside)")
+        for row in (lf.get("blocked_detail") or [])[:5]:
+            who = ", ".join(f"{b['from']} x{b['refs']} [{b.get('graph', '?')}]"
+                            for b in row["blockers"][:2])
+            add(f"    {row['shard']:<20}{row['external_refs']:>5} ref(s)  {who}")
+    al = led.get("aliases") or {}
+    if al.get("declarations"):
+        stale = al.get("stale_alias") or []
+        add(f"ALIASES — {al['declarations']} declared, "
+            + ("all exercised" if not stale else "STALE: " + ", ".join(stale)))
     add(f"TIER B — needs a shim ({len(led['tiers']['B_needs_shim'])} trees, "
         f"{led['edges']['any_import_pairs']} tree-pairs, "
         f"{led['edges']['any_import_statements']} import statements)")
@@ -1488,19 +2102,71 @@ def selftest() -> int:
         if "EEE" in led["tiers"]["A_cleave_today"]:
             failures.append("mixed tree EEE leaked into tier A")
 
+        # --- 24: a DECLARED alias upgrades a weak edge, and only an unused
+        # declaration is stale. Without this control the alias table can rot:
+        # `weak.bat` says `python WORMZ\m.py`, which is a basename guess until
+        # someone declares that WORMZ means MMM.
+        aliased = Aliases({"prefixes": {"WORMZ": "MMM", "NOSUCH": "CCC"}},
+                          "selftest")
+        led_alias = census(root, aliases=aliased)
+        alias_pairs = {(r["from"], r["to"]): r["refs"]
+                       for r in (led_alias.get("cross_language") or {}).get("tree_pairs") or []}
+        if not alias_pairs.get(("LLL", "MMM")):
+            failures.append("declared alias WORMZ->MMM produced no strong edge "
+                            "(pairs: %r)" % (sorted(alias_pairs),))
+        aliases_blk = led_alias.get("aliases") or {}
+        if "prefix:NOSUCH" not in (aliases_blk.get("stale_alias") or []):
+            failures.append("unused alias NOSUCH not reported stale: %r"
+                            % (aliases_blk.get("stale_alias"),))
+        if "prefix:WORMZ" in (aliases_blk.get("stale_alias") or []):
+            failures.append("a USED alias was reported stale -- the table would "
+                            "look dead while it is doing the resolving")
+
+        # --- 25/26: `--affected` is file-precise, and refuses an unknown file
+        # rather than answering with the whole repo. DDD/d.py imports BBB/b.py
+        # which imports AAA/a.py, so AAA/a.py must reach DDD at depth 2.
+        led_files = census(root, keep_edges=True)
+        aff = affected_trees(led_files, "AAA/a.py")
+        if aff.get("granularity") != "file":
+            failures.append(f"affected granularity = {aff.get('granularity')!r}, "
+                            f"expected 'file'")
+        depth_of = {r["node"]: r["depth"] for r in aff.get("rows") or []}
+        if depth_of.get("BBB/b.py") != 1 or depth_of.get("DDD/d.py") != 2:
+            failures.append(f"affected depths wrong: {depth_of!r}")
+        missing = affected_trees(led_files, "no_such_file.py")
+        if not missing.get("error") or missing.get("rows"):
+            failures.append("unknown file was answered instead of refused: %r"
+                            % (missing,))
+
+        # --- 27: a blocker names its graph. GGG's two shell drivers call into
+        # FFF, so FFF's shard is blocked BY A SHELL EDGE -- the reason a python
+        # import graph alone was never a liftability answer.
+        lf = (led.get("contracts") or {}).get("liftability") or {}
+        shell_blocked = [r for r in lf.get("blocked_detail") or []
+                         if any(b["from"].startswith("GGG/") for b in r["blockers"])]
+        if not shell_blocked:
+            failures.append("no shard reported as blocked by a shell driver: %r"
+                            % ([r["shard"] for r in lf.get("blocked_detail") or []],))
+        elif not all(b.get("graph") == "shell" for b in shell_blocked[0]["blockers"]
+                     if b["from"].startswith("GGG/")):
+            failures.append("shell blockers do not name their graph: %r"
+                            % (shell_blocked[0],))
+
     if failures:
         print("SELFTEST FAILED", file=sys.stderr)
         for f in failures:
             print("  - " + f, file=sys.stderr)
         return 3
-    print("SELFTEST OK — 23 controls (tier list, cycle filter, tier B membership, "
+    print("SELFTEST OK — 27 controls (tier list, cycle filter, tier B membership, "
           "loose modules, parse failure, hub silence, stub tier, no stub in tier A, "
           "mixed-language tier, no mixed tree in tier A, cross-language edge, "
           "A-CROSS membership, shell does not evict a tree, shard plan partitions, "
           "js edge count, js external isolation, js cross-tree edge, shell call "
           "forms, shell statement count, tail resolution of a flat-layout driver, "
           "js relative import is never tail-matched, basename match counted, "
-          "basename match does not re-tier a tree)")
+          "basename match does not re-tier a tree, declared alias upgrades a weak "
+          "edge, unused alias is stale, affected is file-precise, affected refuses "
+          "an unknown file, shell blocker names its graph)")
     return 0
 
 
@@ -1517,6 +2183,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--selftest", action="store_true", help="run scanner controls")
     ap.add_argument("--plan", default=None,
                     help="write the per-language shard plan JSON to this path")
+    ap.add_argument("--aliases", default=None,
+                    help="resolution alias table (default: tools/resolution_aliases.json)")
+    ap.add_argument("--affected", default=None, metavar="PATH_OR_TREE",
+                    help="print everything that must be re-verified when this changes")
+    ap.add_argument("--contracts", action="store_true",
+                    help="print the checked promises: cycles of any length, shard liftability")
     args = ap.parse_args(argv)
 
     if args.selftest:
@@ -1531,13 +2203,54 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not args.extra_root:
             # Default: the two places production code actually lives outside src/.
             extras = [root.parent / "tools", root.parent / "scripts"]
-        ledger = census(root, archive, extras)
+        aliases = Aliases.load(Path(args.aliases)) if args.aliases else None
+        # File-level edges are kept only when a question needs them: a 1,500-row
+        # edge list in every ledger is payload, not a deliverable.
+        ledger = census(root, archive, extras, aliases,
+                        keep_edges=bool(args.affected))
     except FileNotFoundError as exc:
         print(f"yggdrasil_census: {exc}", file=sys.stderr)
         return 2
 
     text = json.dumps(ledger, indent=2, sort_keys=False) if args.json else render(ledger)
     print(text)
+
+    if args.affected:
+        target_arg = args.affected.replace(chr(92), "/").strip("/")
+        res = affected_trees(ledger, target_arg)
+        rows = res["rows"]
+        print(f"\nAFFECTED — {res['target']} ({res['granularity']}-precise)",
+              file=sys.stderr)
+        if res.get("error"):
+            print(f"  {res['error']}", file=sys.stderr)
+            for cand in res.get("candidates") or []:
+                print(f"    {cand}", file=sys.stderr)
+        for row in rows[1:]:
+            print(f"  depth {row['depth']}  {row['node']:<52}"
+                  f"{row['graph']:>8}{row['refs']:>4} ref(s)", file=sys.stderr)
+        if res.get("affected_limbs"):
+            print("  limbs to re-verify: " + ", ".join(res["affected_limbs"]),
+                  file=sys.stderr)
+        elif not res.get("error"):
+            print("  nothing references it", file=sys.stderr)
+        if res.get("truncated"):
+            print("  (list truncated)", file=sys.stderr)
+
+    if args.contracts:
+        con = ledger.get("contracts") or {}
+        lf = con.get("liftability") or {}
+        print(f"\nCONTRACTS", file=sys.stderr)
+        print(f"  cycles of any length  {len(con.get('cycles_transitive') or [])} "
+              f"(direct pairs {con.get('direct_cycle_pairs', 0)})", file=sys.stderr)
+        for group in (con.get("cycles_transitive") or [])[:5]:
+            print("    " + " -> ".join(group) + " -> " + group[0], file=sys.stderr)
+        print(f"  shards liftable       {lf.get('liftable', 0)}/{lf.get('shards', 0)} "
+              f"({lf.get('blocked', 0)} blocked)", file=sys.stderr)
+        for row in (lf.get("blocked_detail") or [])[:8]:
+            who = ", ".join(f"{b['from']} x{b['refs']} [{b.get('graph', '?')}]"
+                            for b in row["blockers"][:2])
+            print(f"    {row['shard']:<20}{row['external_refs']:>5} ref(s)  {who}",
+                  file=sys.stderr)
     if args.plan:
         plan = shard_plan(root)
         Path(args.plan).write_text(json.dumps(plan, indent=1), encoding="utf-8")
