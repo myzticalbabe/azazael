@@ -51,13 +51,53 @@ stance utilities are computed. A crisis verdict ends the turn: no other stance i
 even a candidate. The test for this feeds the loop an input that *would* select a
 skills intervention and asserts that it cannot.
 
+## How certifiable this is
+
+The six requirements in
+[`docs/explanation/live-counselors.md`](docs/explanation/live-counselors.md) are
+the certification surface, and the bar below is computed from them:
+`certification.json` holds every acceptance criterion and the evidence for each
+one marked done, and `tools/certification_bar.py --write` regenerates the block.
+`--check` fails when the README and the data disagree, so the number cannot be
+typed and cannot be remembered.
+
+Two readings, deliberately separate. The **percentage** is weighted progress over
+every criterion, where the weight is what an auditor would refuse to deploy over
+rather than how much work the item was. **Deployable** is a gate: it reads yes only
+when every required requirement is fully met, so 99% with the crisis router open
+still reads no. A certificate actually held (SOC 2, ISO 27001, a HIPAA
+attestation) is recorded in `held`, printed under the bar, and does not move the
+percentage — it audits the process, not the clinical claim.
+
+<!-- CERTIFICATION:START -->
+**Certifiable: 22.6%**  █████░░░░░░░░░░░░░░░
+
+4 of 19 acceptance criteria met  ·  0 of 6 required requirements fully met  ·  deployable as a counselor: **no**
+
+| requirement | weight | criteria | state |
+|---|---|---|---|
+| crisis router recall | 3 | 1/3 | open (required) |
+| construct data | 2 | 1/4 | open (required) |
+| human in the loop | 3 | 1/3 | open (required) |
+| comparator trial | 2 | 0/3 | open (required) |
+| regulatory | 2 | 0/3 | open (required) |
+| scope of practice | 2 | 1/3 | open (required) |
+
+Blocking requirements: `crisis_router_recall`, `construct_data_from_people`, `human_in_the_loop`, `comparator_evidence`, `regulatory_classification`, `scope_of_practice`.
+Certifications held: **none**. A held certificate is evidence of process, not of clinical validity, so it is recorded here and does not move the bar.
+
+_Generated from `certification.json` (`updated` 2026-11-01) by `tools/certification_bar.py --write`. The percentage is progress toward a gate; only the deployable line is a gate._
+<!-- CERTIFICATION:END -->
+
 ## Quickstart
 
 ```bash
-python -m pytest tests/ -q                          # 156 tests, no network, no deps
+python -m pytest tests/ -q                          # 169 tests, no network, no deps
 PYTHONPATH=src python src/PSYCHE/rt_channel.py --demo --turns 3   # three turns, streamed
 PYTHONPATH=src python tools/triage_eval.py          # the crisis-router numbers
 PYTHONPATH=src python tools/psyche_fit_pams.py      # does any store carry state readings?
+python tools/certification_bar.py                   # how certifiable is it, and which rows block it
+python tools/certification_bar.py --check           # fail if the README bar drifted from certification.json
 python tools/elicit.py items                        # the construct battery
 python tools/nurse_ratchet_release_gate.py --check  # is this publishable at all
 ```

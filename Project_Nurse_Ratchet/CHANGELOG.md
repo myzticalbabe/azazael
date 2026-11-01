@@ -12,6 +12,19 @@ a claim that the 0.1.0 text states.
 
 ### Added
 
+- **`certification.json`, `tools/certification_bar.py` -- a computed certification
+  bar.** The six requirements in `docs/explanation/live-counselors.md` are stored
+  as requirements, acceptance criteria and evidence, and the percentage is derived
+  from them: **22.6%** at this commit, 4 of 19 criteria, 0 of 6 required
+  requirements. The README block is generated (`--write`) and the release gate
+  fails when it drifts (`--check`), so the number cannot be typed and cannot be
+  remembered. Two readings stay separate on purpose: the percentage is weighted
+  progress, `deployable` is a gate that stays **no** until every required
+  requirement is fully met. A `done` criterion must cite a path that exists, so
+  the bar cannot outlive the evidence behind it; a misspelled key is refused rather
+  than silently read as "not done". Certificates actually held (SOC 2, ISO 27001,
+  HIPAA attestation) go in `held`: they are printed under the bar and deliberately
+  do not raise it, because they audit the process, not the clinical claim.
 - **Project renamed to Nurse Ratchet.** `Project_ELIZA` → `Project_Nurse_Ratchet`,
   package `eliza` → `nurse_ratchet`, distribution `eliza` → `nurse-ratchet`,
   console script `eliza-psyche` → `nurse-ratchet-psyche`, gate

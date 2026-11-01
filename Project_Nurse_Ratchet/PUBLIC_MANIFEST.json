@@ -219,6 +219,21 @@
    "kind": "instrument"
   },
   {
+   "from": "certification.json",
+   "to": "certification.json",
+   "kind": "data"
+  },
+  {
+   "from": "tools/certification_bar.py",
+   "to": "tools/certification_bar.py",
+   "kind": "instrument"
+  },
+  {
+   "from": "tests/test_certification_bar.py",
+   "to": "tests/test_certification_bar.py",
+   "kind": "test"
+  },
+  {
    "from": "docs/tutorial.md",
    "to": "docs/tutorial.md",
    "kind": "docs"

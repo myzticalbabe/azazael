@@ -61,6 +61,13 @@ one of these is a blocker, not a caveat:
 A reader who takes the thesis and skips this table is being sold something that
 does not exist. That is why the table is in the same document as the thesis.
 
+These six rows are also the data behind the percentage bar in the README:
+`certification.json` stores each row's acceptance criteria and the evidence for
+every one marked done, and `tools/certification_bar.py` derives the number from
+them. Whatever the evidence supports is what the bar reads — it is generated, not
+edited — and the deployment line beside it stays **no** until every required row
+is fully met, however high the percentage climbs.
+
 ## The ladder from here to that role
 
 Each rung is a claim that can fail, which is the only kind worth writing down.
