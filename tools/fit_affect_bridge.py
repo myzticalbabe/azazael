@@ -401,6 +401,137 @@ def write_bridge(report: Dict[str, object]) -> Path:
     return BRIDGE_FILE
 
 
+#: Feature set for a fit against REAL records. No family indicators: a self-report
+#: session has a PAD reading and nothing that says whether the person appraised the
+#: moment as threat or as sadness, and inventing that from text would put the
+#: inference model's assumptions back into the fit it is supposed to be checked
+#: against. The consequence is stated plainly below: these coefficients are not
+#: comparable to W_TRUE, because they describe a different model.
+PEOPLE_FEATURES: Tuple[str, ...] = ("1", "p", "a", "d")
+
+#: Minimum records before a per-person bridge is fitted. Below this the design is
+#: four parameters under-determined by noise, and a fitted line is a line through
+#: whatever the four points happened to be.
+MIN_PEOPLE_RECORDS = 50
+
+
+class Refused(ValueError):
+    """Raised when a fit cannot be justified. The refusal IS the deliverable."""
+
+
+def fit_from_records(rows: Sequence[Dict[str, object]]) -> Dict[str, object]:
+    """Fit the bridge against elicited records: (pad, constructs) pairs from people.
+
+    Refuses loudly and early rather than producing a number that looks like a
+    result: too few records, a constant construct, or a rank-deficient design are
+    all reasons a fit exists numerically and means nothing.
+    """
+    if len(rows) < MIN_PEOPLE_RECORDS:
+        raise Refused("only %d record(s); %d are needed before a four-parameter fit "
+                      "is anything but a line through four points"
+                      % (len(rows), MIN_PEOPLE_RECORDS))
+    instruments = {str(r.get("instrument", "")) for r in rows}
+    if len(instruments) > 1:
+        raise Refused("records come from %d instrument versions (%s); item text or "
+                      "scoring changed, so the constructs are not the same quantity"
+                      % (len(instruments), ", ".join(sorted(instruments))))
+
+    targets = sorted({str(k) for r in rows for k in (r.get("constructs") or {})})
+    design: List[List[float]] = []
+    values: List[List[float]] = []
+    for row in rows:
+        pad = [float(v) for v in (row.get("pad") or [])]  # type: ignore[union-attr]
+        constructs = row.get("constructs") or {}
+        if len(pad) != 3 or not all(t in constructs for t in targets):
+            continue
+        design.append([1.0] + pad)
+        values.append([float(constructs[t]) for t in targets])  # type: ignore[index]
+    if len(design) < MIN_PEOPLE_RECORDS:
+        raise Refused("only %d complete record(s) after dropping incomplete rows"
+                      % len(design))
+
+    spread = {t: max(v[i] for v in values) - min(v[i] for v in values)
+              for i, t in enumerate(targets)}
+    flat = sorted(t for t, s in spread.items() if s < 1e-9)
+    if flat:
+        raise Refused("construct(s) %s never vary across these records: a constant "
+                      "target cannot be regressed on anything" % ", ".join(flat))
+
+    coeffs = ridge_fit(design, values)
+    predicted = predict(coeffs, design)
+    residuals = [[a - p for a, p in zip(actual, pred)]
+                 for actual, pred in zip(values, predicted)]
+    n, k = len(design), len(PEOPLE_FEATURES)
+    sigma = {t: (sum(r[i] ** 2 for r in residuals) / max(1, n - k)) ** 0.5
+             for i, t in enumerate(targets)}
+    ses = standard_errors(design, RIDGE_LAMBDA, 1.0)
+
+    # Leave-one-out is the honest check on a per-person fit: an in-sample R^2 with
+    # four parameters and one person's mornings is guaranteed to look good.
+    loo_errors: List[float] = []
+    for hold in range(len(design)):
+        train_x = [d for i, d in enumerate(design) if i != hold]
+        train_y = [v for i, v in enumerate(values) if i != hold]
+        try:
+            held = ridge_fit(train_x, train_y)
+        except ValueError:
+            continue
+        for i in range(len(targets)):
+            loo_errors.append(abs(sum(c * f for c, f in
+                                      zip(held[i], design[hold])) - values[hold][i]))
+
+    return {
+        "targets": targets,
+        "features": list(PEOPLE_FEATURES),
+        "records": len(design),
+        "coefficients": {t: coeffs[i] for i, t in enumerate(targets)},
+        "residual_sigma": sigma,
+        "standard_error": {f: ses[i] for i, f in enumerate(PEOPLE_FEATURES)},
+        "r2": r_squared(values, predicted),
+        "loo_mae": (sum(loo_errors) / len(loo_errors)) if loo_errors else None,
+        "instrument": instruments.pop() if instruments else "unknown",
+    }
+
+
+PEOPLE_PROVENANCE = (
+    "Fitted by ridge regression against ELICITED SELF-REPORT records, not against "
+    "a synthetic ground truth. Features are [1, pleasure, arousal, dominance]: no "
+    "appraisal-family indicators, because a self-report session does not observe "
+    "one. These coefficients therefore describe a DIFFERENT model from the "
+    "synthetic fit and must not be compared to it coefficient by coefficient. "
+    "They have no psychometric standing beyond the instrument that produced them "
+    "(see src/PSYCHE/elicitation.py, which states the same thing about the items)."
+)
+
+
+def render_people(report: Dict[str, object]) -> str:
+    lines: List[str] = []
+    add = lines.append
+    add("=" * 78)
+    add("AFFECT -> CONSTRUCT BRIDGE, FITTED FROM ELICITED RECORDS")
+    add("=" * 78)
+    add("records %d   instrument %s   features %s"
+        % (report["records"], report["instrument"], ",".join(report["features"])))
+    add("in-sample R^2 %.4f   leave-one-out MAE %.4f"
+        % (report["r2"], report["loo_mae"] if report["loo_mae"] is not None else float("nan")))
+    add("")
+    add("   %-20s %8s %8s %8s %8s" % ("construct", "1", "p", "a", "d"))
+    for target in report["targets"]:
+        row = report["coefficients"][target]
+        add("   %-20s %8.3f %8.3f %8.3f %8.3f" % ((target,) + tuple(row)))
+    add("")
+    add("WHAT THIS IS")
+    add("  A per-person fit from self-report. It says how THIS respondent's stated")
+    add("  constructs moved with their stated affect across %d sessions." % report["records"])
+    add("WHAT THIS IS NOT")
+    add("  Not a population model, not a validation of the instrument, and not")
+    add("  comparable to the synthetic coefficients: the feature set differs by")
+    add("  construction, so a coefficient-by-coefficient comparison is meaningless.")
+    add("  One respondent is one respondent. Leave-one-out MAE is the number to")
+    add("  read first; in-sample R^2 with four parameters is not.")
+    return "\n".join(lines)
+
+
 def render(report: Dict[str, object], div: Dict[str, object],
            down: Dict[str, object]) -> str:
     lines: List[str] = []
@@ -460,7 +591,36 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--check", action="store_true",
                         help="verify the shipped coefficients still recover; write nothing")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--from-records", metavar="PATH",
+                        help="fit against elicited self-report records (JSONL) instead "
+                             "of the synthetic ground truth")
+    parser.add_argument("--out", metavar="PATH",
+                        help="where to write the people-fitted bridge "
+                             "(default: data/affect_bridge_people.json)")
     args = parser.parse_args(list(argv) if argv is not None else None)
+
+    if args.from_records:
+        rows = [json.loads(line) for line in
+                Path(args.from_records).read_text(encoding="utf-8").splitlines()
+                if line.strip()]
+        try:
+            report = fit_from_records(rows)
+        except Refused as exc:
+            print("REFUSED: %s" % exc, file=sys.stderr)
+            print("A refused fit is the correct answer here. Point --from-records at "
+                  "more sessions from the same instrument version.", file=sys.stderr)
+            return 2
+        target = Path(args.out) if args.out else \
+            Path(BRIDGE_FILE).with_name("affect_bridge_people.json")
+        payload = dict(report)
+        payload["provenance"] = PEOPLE_PROVENANCE
+        payload["fitted"] = "2026-11-01"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+        print(json.dumps(payload, indent=1) if args.json else render_people(report))
+        if not args.json:
+            print("\nwrote %s" % target)
+        return 0
 
     report = fit_and_verify(args.samples, args.noise, args.seed)
 

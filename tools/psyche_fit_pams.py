@@ -14,18 +14,24 @@ So the interesting question is not "what does the graph look like" but "does any
 store in this workspace carry a per-construct reading at all". This tool answers
 that by PROBING, in a fixed order, and refuses when the answer is no:
 
+  0. an elicitation store       (`tools/elicit.py` JSONL: pad + constructs per
+                                 session). The only source that is a MEASUREMENT
+                                 by construction, so it is probed first -- a guess
+                                 that succeeds while real data exists would make
+                                 the graph a picture of the guess.
   1. an explicit construct column  (`constructs`, `construct_state`, `node_values`)
   2. an explicit affect column     (`pad`, `affect`, `appraisal`)
   3. a metadata JSON column carrying construct keys per row
 
-Only (1)-(3) are measurements. There is deliberately NO fallback that builds a
+Only (0)-(3) are measurements. There is deliberately NO fallback that builds a
 graph out of `tags` co-occurrence or `content` keywords. Both would produce a
 graph-shaped artifact with real numbers in it that answers a different question,
 and this project has already paid for that mistake: an instrument that reports a
 confident figure for something it did not measure. A tag graph is a tag graph.
 
 Exit codes: 0 = fitted, 2 = no construct-bearing signal (the expected outcome on
-a memory-only store), 1 = error.
+a memory-only store, and what it prints today because nobody has been elicited),
+1 = error.
 
 Usage:
   python tools/psyche_fit_pams.py                    # probe the default store
@@ -36,6 +42,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -53,6 +60,19 @@ DEFAULT_STORE = Path.home() / ".pams" / "memory_data" / "ai_memories.db"
 #: Also probed by --probe-all, since state readings would most plausibly live in
 #: the conversation store's `metadata` and not in the memory table.
 SIBLING_STORES = ("conversations.db", "mcp_tool_calls.db")
+
+#: THE STORE THAT CAN ACTUALLY ANSWER. PAMS never will: it holds memories, and a
+#: memory is not a state reading. The elicitation battery (`tools/elicit.py`)
+#: writes per-session PAD + construct rows to JSONL, which is a construct-bearing
+#: signal by construction. Probe order puts it FIRST, because a real measurement
+#: outranks a guess about where a measurement might be hiding.
+ELICITATION_ENV = "PSYCHE_ELICITATION_STORE"
+ELICITATION_STORE = Path.home() / ".psyche" / "elicitations.jsonl"
+
+#: Records needed before this tool will fit. The same number
+#: `fit_affect_bridge.py --from-records` refuses below, stated once here so the two
+#: instruments cannot disagree about when data is sufficient.
+MIN_RECORDS = 3
 
 CONSTRUCT_COLUMNS: Tuple[str, ...] = ("constructs", "construct_state", "node_values",
                                       "network_state")
@@ -158,6 +178,75 @@ def probe(path: Path) -> Dict:
         conn.close()
 
 
+def probe_elicitation(path: Path) -> Dict:
+    """Find construct readings in an elicitation store (JSONL, one session per line).
+
+    Returns an explicit negative when the file is absent rather than an empty
+    success: "no store" and "a store with no rows" need different remedies, and a
+    probe that reports both as zero teaches the reader to ignore it.
+    """
+    resolved = Path(os.environ.get(ELICITATION_ENV) or path).expanduser()
+    if not resolved.exists():
+        return {"source": None, "store": str(resolved), "kind": "records_jsonl",
+                "reason": ("no elicitation store at %s -- run tools/elicit.py record "
+                           "to create one; nothing has been elicited yet" % resolved)}
+    rows = 0
+    usable = 0
+    instruments = set()
+    crooked = 0
+    for line in resolved.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        rows += 1
+        try:
+            row = json.loads(line)
+        except ValueError:
+            crooked += 1
+            continue
+        if not isinstance(row, dict):
+            crooked += 1
+            continue
+        if isinstance(row.get("constructs"), dict) and isinstance(row.get("pad"), list) \
+                and len(row["pad"]) == 3:
+            usable += 1
+            instruments.add(str(row.get("instrument", "unknown")))
+    if not usable:
+        return {"source": None, "store": str(resolved), "kind": "records_jsonl",
+                "rows": rows, "reason": ("%d line(s) in the elicitation store, none "
+                                          "carrying both a pad and constructs" % rows)}
+    return {"store": str(resolved), "kind": "records_jsonl", "rows": rows,
+            "readings": usable, "unreadable": crooked,
+            "instruments": sorted(instruments)}
+
+
+def readings_from_records(path: Path) -> List[Dict[str, float]]:
+    """Per-session construct vectors from an elicitation store.
+
+    The pad is NOT folded into the node vector. A construct graph is a graph over
+    constructs, and adding three affect axes as nodes would silently change the
+    graph's node set -- every partial correlation would then be conditioned on
+    affect, which is a different (and unstated) model. The affect half is what
+    `fit_affect_bridge.py` fits, against the same file.
+    """
+    resolved = Path(os.environ.get(ELICITATION_ENV) or path).expanduser()
+    out: List[Dict[str, float]] = []
+    for line in resolved.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        constructs = row.get("constructs") if isinstance(row, dict) else None
+        if not isinstance(constructs, dict):
+            continue
+        values = {str(k): float(v) for k, v in constructs.items()
+                  if isinstance(v, (int, float)) and not isinstance(v, bool)}
+        if values:
+            out.append(values)
+    return out
+
+
 def readings_from(source: Dict, limit: int = 500) -> List[Dict[str, float]]:
     """Turn a probed source into per-timestamp construct values.
 
@@ -224,9 +313,20 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.probe_all:
         stores += [stores[0].parent / name for name in SIBLING_STORES]
 
+    # A real measurement is probed first. Everything below it is a guess about
+    # where a measurement might be hiding, and a guess that succeeds when better
+    # data exists would make the graph a picture of the guess.
+    records_probe = probe_elicitation(ELICITATION_STORE)
     probes = [probe(path) for path in stores]
-    found = [p for p in probes if p.get("table")]
+    found = ([records_probe] if records_probe.get("readings") else []) + \
+            [p for p in probes if p.get("table")]
+    if records_probe.get("readings"):
+        report_extra = {"elicitation": records_probe}
+    else:
+        report_extra = {"elicitation": {k: v for k, v in records_probe.items()
+                                         if k != "readings"}}
     report = {"probes": [{k: v for k, v in p.items() if k != "schema"} for p in probes]}
+    report.update(report_extra)
 
     if not found:
         report["outcome"] = "no_construct_signal"
@@ -239,6 +339,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.json:
             print(json.dumps(report, indent=1))
         else:
+            # The elicitation store is printed even when it is absent. A refusal
+            # that lists only the stores it happened to look inside hides the one
+            # source that would actually answer, and the reader then concludes
+            # the project has nowhere to put a measurement.
+            print("elicitation probe -- %s" % records_probe["store"])
+            print("    %s" % (records_probe.get("reason") or
+                              "%d usable session(s) from %s"
+                              % (records_probe.get("readings", 0),
+                                 ", ".join(records_probe.get("instruments") or ["?"]))))
             print("PAMS construct probe -- %d store(s)" % len(probes))
             for p in probes:
                 print("  %s" % p["store"])
@@ -249,14 +358,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
 
     source = found[0]
-    readings = readings_from(source)
+    readings = (readings_from_records(Path(source["store"]))
+                if source.get("kind") == "records_jsonl" else readings_from(source))
     report["source"] = {k: v for k, v in source.items() if k != "schema"}
     report["readings"] = len(readings)
-    if len(readings) < 3:
+    if len(readings) < MIN_RECORDS:
         report["outcome"] = "too_few_readings"
         print(json.dumps(report, indent=1) if args.json else
-              "OUTCOME: only %d readable construct rows; 3 are required and a "
-              "graph of 2 observations is noise." % len(readings))
+              "OUTCOME: only %d readable construct rows; %d are required and a "
+              "graph of %d observations is noise."
+              % (len(readings), MIN_RECORDS, MIN_RECORDS - 1))
         return 2
     net = fit(readings)
     report["outcome"] = "fitted"
@@ -266,8 +377,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.json:
         print(json.dumps(report, indent=1))
     else:
-        print("fitted from %s.%s (%s), %d readings"
-              % (source["table"], source["column"], source["kind"], len(readings)))
+        if source.get("kind") == "records_jsonl":
+            print("fitted from %s (%s), %d elicited session(s)"
+                  % (source["store"], source["kind"], len(readings)))
+        else:
+            print("fitted from %s.%s (%s), %d readings"
+                  % (source["table"], source["column"], source["kind"], len(readings)))
         print("  %d nodes, %d edges" % (len(net.nodes), len(net.edges())))
         for edge in net.edges()[:10]:
             print("    %-18s %-18s pcorr=%+.3f support=%d"

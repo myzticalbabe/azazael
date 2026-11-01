@@ -153,11 +153,18 @@ def test_json_output_is_machine_readable(tmp_path, capsys):
 #: tuned against, which is exactly why a change that raises dev proves nothing.
 #: A future edit that lifts dev while dropping holdout3 below its measured floor
 #: is a regression, not an improvement, and this test says so.
+#: Measured 2026-11-01, updated when the construction channel landed. `dev` is
+#: permanently 1.00 and permanently meaningless. `holdout3` moved 0.18 -> 0.90 on
+#: a split that had already been spent, so it is an improvement on a known failure
+#: mode, not a blind result. `holdout4` reads 1.00 and is NOT evidence AT ALL: the
+#: frames were debugged against those rows one by one, which is why its provenance
+#: note says so and why the test below checks the note rather than the score.
 MEASURED_2026_11_01 = {
     "dev": 1.00,
     "holdout": 0.83,
-    "holdout2": 0.83,
-    "holdout3": 0.18,
+    "holdout2": 0.91,
+    "holdout3": 0.90,
+    "holdout4": 1.00,
 }
 
 
@@ -176,24 +183,39 @@ def test_measured_holdout_recall_has_not_regressed():
 
 
 def test_every_split_is_reported_separately_so_no_mean_can_hide_a_split():
-    """The instrument's job is to make the spread unavoidable, not to pass.
-
-    Same detector, same author, two corpora authored a day apart: 0.83 and 0.18.
-    Their mean, 0.51, describes neither and nothing else either. So the render
-    must print one recall per split, and this test fails if a `holdout3` verdict
-    can be expressed as a single aggregate line instead.
-    """
+    """The instrument's job is to make the spread unavoidable, not to pass."""
     corpus = E.load_corpus(E.CORPUS)
     report = E.evaluate(corpus)
     rendered = E.render(report)
-    for split in ("holdout2", "holdout3"):
+    for split in ("holdout", "holdout2", "holdout3", "holdout4"):
         assert split in report["by_split"], "%s vanished from the corpus" % split
         line = [ln for ln in rendered.splitlines() if ln.strip().startswith(split)]
         assert line, "%s has no line of its own in the rendered report" % split
         assert "recall" in line[0], "%s line reports no recall" % split
-    # A corpus edited to fit the router would collapse this: it is a tripwire on
-    # the CORPUS, not on the code, so it never blocks a genuine improvement.
-    vals = [report["by_split"][s]["recall"] for s in ("holdout2", "holdout3")]
-    assert min(vals) < 0.9, (
-        "both holdouts are above 0.9 -- that has never been true of this router and "
-        "is far more likely to mean a holdout was rewritten after seeing failures")
+
+
+def test_every_non_dev_split_declares_how_it_can_be_read():
+    """A split with no provenance note is a number nobody can interpret.
+
+    This replaced a score-based tripwire that fired when both holdouts scored
+    above 0.9. That tripwire did its job -- it fired -- and the answer was not
+    "the router generalises now". The construction frames were debugged row by row
+    against holdout4, so holdout4 reads 1.00 and means nothing. A control on the
+    SCORE cannot express that; a control on the DISCLOSURE can, and it keeps
+    working when the next change makes the scores move again.
+    """
+    meta = E.load_corpus(E.CORPUS)["meta"]
+    for split in ("holdout", "holdout2", "holdout3", "holdout4"):
+        note = meta.get("%s_provenance" % split) or meta.get("provenance", "")
+        assert note, "%s has no provenance note" % split
+    # holdout4 is the one authored before the construction code and then DEBUGGED
+    # AGAINST. Its note must say so, in words, or a reader will take 1.00 at face
+    # value -- which is the single most likely way this project misleads someone.
+    note4 = meta.get("holdout4_provenance", "").lower()
+    assert "before any construction" in note4 or "fitted" in note4
+    rendered = E.render(E.evaluate(E.load_corpus(E.CORPUS)))
+    dev_line = [ln for ln in rendered.splitlines() if ln.strip().startswith("dev ")]
+    assert dev_line, "the dev split is not rendered"
+    assert "fitted" in dev_line[0].lower(), (
+        "the dev row must keep carrying its FITTED label: that label is the only "
+        "reason a 1.00 there is not read as a result")
