@@ -45,6 +45,7 @@ tiebreak. No sampling, so a session is reproducible and its audit is checkable.
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
@@ -73,6 +74,45 @@ CRISIS_EXCLUSIONS: Tuple[str, ...] = (
 
 #: Arousal above this is outside the window in which skills are learnable.
 LEARNING_WINDOW_AROUSAL = 0.72
+
+#: INDIRECT intent, as patterns rather than exact strings. Added 2026-11-01
+#: after `tools/triage_eval.py` measured recall 0.76 on the dev corpus: all three
+#: misses were euphemisms ("not be around anymore", "end it all", "rather not
+#: wake up"), which is a MECHANISM gap -- an exact-phrase list only ever catches
+#: the phrasings it was written around, and people do not speak in those. These
+#: are families, so the next paraphrase is more likely to fall inside one.
+CRISIS_PATTERNS: Tuple[Tuple[str, str], ...] = (
+    ("indirect_absence", r"\b(not|no longer)\s+(be\s+around|be\s+here|wake\s+up)\b"),
+    ("end_it", r"\bend\s+(it\s+all|things|my\s+life)\b"),
+    ("better_off_gone", r"\bbetter\s+off\s+(dead|without\s+me|gone)\b"),
+    ("no_point", r"\b(no|not\s+see\s+the)\s+point\s+(in|to)?\s*(living|going\s+on|carrying\s+on)\b"),
+)
+
+#: Attribution guards. A crisis word in someone else's story, in the past, or
+#: inside a quotation is NOT this person's intent, and treating it as one is how
+#: a router cries wolf until people turn it off. Each guard DOWNGRADES to
+#: `monitor` rather than discarding: the mention is still worth not ignoring.
+THIRD_PERSON_MARKERS: Tuple[str, ...] = (
+    "my mother", "my father", "my brother", "my sister", "my son", "my daughter",
+    "my friend", "a friend", "my partner", "my wife", "my husband", "my ex",
+    "my colleague", "a colleague", "someone i know", "he tried", "she tried",
+    "they tried", "his suicide", "her suicide",
+)
+HISTORICAL_MARKERS: Tuple[str, ...] = (
+    "years ago", "ten years", "last year", "in 2015", "in 2016", "in 2019",
+    "in 2020", "in 2015", "when i was", "used to", "have been clean",
+    "back then", "since my last", "it is behind me", "behind me now",
+)
+QUOTATION_MARKERS: Tuple[str, ...] = (
+    '"', "\u201c", "\u201d", "lyric", "the song", "a song", "quote", "the novel",
+    "the character",
+)
+#: First-person intent overrides every guard: "I want to die" is this person's
+#: statement even if the sentence also mentions a relative.
+FIRST_PERSON_MARKERS: Tuple[str, ...] = (
+    "i want to", "i have been thinking", "i am going to", "i will", "i keep",
+    "i have decided", "i plan", "i am done",
+)
 
 #: Risk levels, ordered. Only `low` permits a non-safety stance.
 RISK_LEVELS: Tuple[str, ...] = ("low", "monitor", "elevated", "crisis")
@@ -140,23 +180,52 @@ class TurnResponse:
                 "within_budget": self.within_budget, "rationale": self.rationale}
 
 
+def _attribution(lowered: str) -> str:
+    """Whose risk is this sentence describing? self / other / historical / quotation.
+
+    Order matters. A quotation is a quotation even when it is also historical;
+    the narrowest guard wins, because each one only ever downgrades.
+    """
+    if any(marker in lowered for marker in QUOTATION_MARKERS):
+        return "quotation"
+    if any(marker in lowered for marker in HISTORICAL_MARKERS):
+        return "historical"
+    if any(marker in lowered for marker in THIRD_PERSON_MARKERS):
+        return "other"
+    return "self"
+
+
 def triage(text: str, activation: Optional[Dict[str, float]] = None) -> Triage:
     """Route risk before anything else happens in the turn.
 
     Two independent channels, kept apart on purpose:
 
-      TEXT  explicit statements of suicidal or self-harm intent -> `crisis`.
+      TEXT  statements of suicidal or self-harm intent -> `crisis`, with an
+            ATTRIBUTION guard: the same words in a relative's story, in the
+            past, or inside a quotation downgrade to `monitor` instead.
       STATE the isolated-collapse pattern (low self-worth + high avoidance +
             high rumination) -> `elevated`, with no text needed.
 
     The text channel checks exclusions first, so "killing time" and "dead tired"
-    do not fire; that is the negative control this function ships with.
+    do not fire; that is the negative control this function ships with. Indirect
+    phrasing is caught by CRISIS_PATTERNS, added after measurement showed the
+    exact-phrase list missing every euphemism it was tested on.
     """
     lowered = (text or "").lower()
     matched = [cue for cue in CRISIS_CUES if cue in lowered]
+    for name, pattern in CRISIS_PATTERNS:
+        if re.search(pattern, lowered):
+            matched.append("pattern:%s" % name)
     excluded = [cue for cue in CRISIS_EXCLUSIONS if cue in lowered]
     if matched and not excluded:
-        return Triage("crisis", ["explicit intent language: %r" % matched[0]], matched)
+        who = _attribution(lowered)
+        first_person = any(marker in lowered for marker in FIRST_PERSON_MARKERS)
+        if who == "self" or first_person:
+            return Triage("crisis", ["explicit intent language: %r" % matched[0]], matched)
+        return Triage(
+            "monitor",
+            ["intent language %r attributed to %s: not this person's stated intent, "
+             "still worth not ignoring" % (matched[0], who)], matched)
     reasons: List[str] = []
     if excluded and matched:
         reasons.append("crisis vocabulary present but excluded as idiom: %r" % excluded[0])
