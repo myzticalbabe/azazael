@@ -187,6 +187,94 @@ def test_variant_with_source_passes_and_is_counted():
     assert data["_diagnostics"]["variants"] == 1
 
 
+# -- the annotated-edition layer -------------------------------------------
+
+def test_annotation_kind_must_be_declared():
+    _raises(_corpus([_verse(1, annotations=[{"kind": "vibes", "note": "it felt right"}])]),
+            "kind must be one of")
+
+
+def test_annotation_carrying_a_figure_needs_its_own_source():
+    _raises(_corpus([_verse(1, annotations=[{"kind": "historical",
+                                             "note": "this happened in 1983"}])]),
+            "a number needs `source`")
+
+
+def test_annotation_with_a_real_source_passes():
+    data = _corpus([_verse(1, annotations=[
+        {"kind": "textual", "note": "the divergence read 0.001",
+         "source": "Project_Nurse_Ratchet/README.md"}])])
+    B.validate(data, ROOT)          # must not raise
+    assert data["_diagnostics"]["annotations"] == 1
+
+
+def test_a_url_is_not_a_repository_path():
+    _raises(_corpus([_verse(1, text="It was 0.83.",
+                            source="https://example.com/finding.md")]),
+            "names no repository path")
+
+
+def test_section_heading_with_a_digit_is_refused():
+    data = _corpus([_verse(1), _verse(2)])
+    data["books"][0]["chapters"][0]["sections"] = [{"before_verse": 1,
+                                                    "heading": "Of 3 gates"}]
+    _raises(data, "a heading is a label, not a claim")
+
+
+def test_section_before_verse_must_exist_in_the_chapter():
+    data = _corpus([_verse(1)])
+    data["books"][0]["chapters"][0]["sections"] = [{"before_verse": 4,
+                                                    "heading": "Of gates"}]
+    _raises(data, "before_verse must name a verse in this chapter")
+
+
+def test_sections_must_ascend():
+    data = _corpus([_verse(1), _verse(2), _verse(3)])
+    data["books"][0]["chapters"][0]["sections"] = [
+        {"before_verse": 3, "heading": "Later"},
+        {"before_verse": 1, "heading": "Earlier"},
+    ]
+    _raises(data, "sections must ascend")
+
+
+def test_introduction_carrying_a_figure_must_name_its_sources():
+    data = _corpus([_verse(1)])
+    data["books"][0]["introduction"] = {"paragraphs": ["It was written in 1983."]}
+    _raises(data, "the block must name `sources`")
+
+
+def test_introduction_prose_without_figures_passes():
+    data = _corpus([_verse(1)])
+    data["books"][0]["introduction"] = {
+        "paragraphs": ["Why the book exists, and how to read it."], "sources": []}
+    B.validate(data, ROOT)          # must not raise
+    assert data["_diagnostics"]["introductions"] == 1
+
+
+def test_glossary_see_must_resolve():
+    data = _corpus([_verse(1)])
+    data["glossary"] = [{"term": "trunk", "gloss": "the canon.", "see": "genesis 1:7"}]
+    _raises(data, r"glossary\[0\]: see genesis 1:7, which does not exist")
+
+
+def test_glossary_entry_must_carry_term_and_gloss():
+    data = _corpus([_verse(1)])
+    data["glossary"] = [{"term": "trunk", "gloss": ""}]
+    _raises(data, "gloss is empty")
+
+
+def test_unknown_top_level_key_is_refused():
+    data = _corpus([_verse(1)])
+    data["appendices"] = []
+    _raises(data, "unknown top-level key")
+
+
+def test_edition_must_name_both_its_parts():
+    data = _corpus([_verse(1)])
+    data["edition"] = {"name": "The Annotated Book"}
+    _raises(data, "edition.basis is empty")
+
+
 # -- genealogy ------------------------------------------------------------
 
 def _tree(root: Path, files) -> Path:

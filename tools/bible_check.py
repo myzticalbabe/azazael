@@ -88,16 +88,36 @@ REFUSED_SUBSTRINGS = (
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PHONE_RE = re.compile(r"(?<![\d-])\d{3}[-.\s]\d{3}[-.\s]\d{4}(?![\d-])")
 DIGIT_RE = re.compile(r"[0-9]")
-PATH_RE = re.compile(r"(?:tools|scripts|src|tests|docs|logs)/[A-Za-z0-9_./-]+"
+#: Any repository-relative path, not just the six directories this tree happens
+#: to keep tools in: `Project_Nurse_Ratchet/README.md` is the provenance of a
+#: defect recorded in that package, and a checker that could not name it would
+#: push the author to cite the wrong file instead. The lookbehind refuses to
+#: begin inside a URL, so `https://host/x.md` cannot masquerade as a local path.
+PATH_RE = re.compile(r"(?<![\w/:.-])(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
                      r"\.(?:py|json|md|js|ps1|sh|yml|yaml)")
 REF_RE = re.compile(r"^([a-z][a-z0-9_]*)\s+([0-9]+):([0-9]+)$")
 RULE_RE = re.compile(r"\bRULE\s+[0-9][0-9A-Za-z-]*")
 
-BOOK_KEYS = {"id", "name", "subtitle", "genre", "chapters"}
-CHAPTER_KEYS = {"number", "verses"}
-VERSE_KEYS = {"number", "text", "cites", "source", "statute", "variants", "note"}
+#: The annotated-edition layer. An Oxford-style Bible is not a bare text: it
+#: carries a book introduction, pericope headings, footnotes sorted by kind, and a
+#: glossary. The kinds matter because a textual note and a historical note fail
+#: differently -- one is a reading, the other is a claim about the world -- and a
+#: reader is entitled to know which they are reading.
+ANNOTATION_KINDS = ("textual", "historical", "translation", "editorial", "cross")
+
+TOP_KEYS = {"schema", "title", "status", "updated", "limits", "note", "books",
+            "glossary", "edition"}
+BOOK_KEYS = {"id", "name", "subtitle", "genre", "introduction", "chapters"}
+CHAPTER_KEYS = {"number", "sections", "verses"}
+VERSE_KEYS = {"number", "text", "cites", "source", "statute", "variants",
+              "annotations", "note"}
 STATUTE_KEYS = {"rule", "check", "why"}
 VARIANT_KEYS = {"reading", "text", "source"}
+ANNOTATION_KEYS = {"kind", "note", "source"}
+SECTION_KEYS = {"before_verse", "heading"}
+INTRODUCTION_KEYS = {"paragraphs", "sources"}
+GLOSSARY_KEYS = {"term", "gloss", "see", "source"}
+EDITION_KEYS = {"name", "basis"}
 LIMIT_KEYS = {"max_books", "max_verses_per_chapter"}
 
 
@@ -161,6 +181,29 @@ def _text_problems(text, where: str) -> List[str]:
     return problems
 
 
+def _prose_block_problems(paragraphs, sources, where: str, repo: Path) -> List[str]:
+    """An introduction or a gloss is prose, but it still may not assert a figure
+    for free: the moment it carries a digit, the block must name its sources."""
+    problems: List[str] = []
+    if not isinstance(paragraphs, list) or not paragraphs:
+        return ["%s: paragraphs must be a non-empty list" % where]
+    carries_digit = False
+    for index, paragraph in enumerate(paragraphs):
+        problems.extend(_text_problems(paragraph, "%s paragraph %d" % (where, index + 1)))
+        if isinstance(paragraph, str) and DIGIT_RE.search(paragraph):
+            carries_digit = True
+    if sources is not None and not isinstance(sources, list):
+        problems.append("%s: sources must be a list" % where)
+        sources = []
+    if carries_digit:
+        if not sources:
+            problems.append("%s: a paragraph carries a figure, so the block must name "
+                            "`sources` -- or spell the number out" % where)
+        for source in sources or []:
+            problems.extend(_provenance_problems(source, where, repo))
+    return problems
+
+
 def _statute_problems(statute, where: str, repo: Path, canon: Optional[str]) -> List[str]:
     if not isinstance(statute, dict):
         return ["%s: statute must be an object with `rule` and `check`" % where]
@@ -200,6 +243,9 @@ def validate(data: Dict, repo: Path = REPO) -> None:
     canon = MANDATES.read_text(encoding="utf-8", errors="replace") \
         if MANDATES.exists() else None
 
+    unknown = set(data) - TOP_KEYS
+    if unknown:
+        problems.append("unknown top-level key(s) %s" % sorted(unknown))
     if data.get("schema") != SCHEMA:
         problems.append("schema must be %r, found %r" % (SCHEMA, data.get("schema")))
     if not isinstance(data.get("title"), str) or not data.get("title", "").strip():
@@ -225,6 +271,40 @@ def validate(data: Dict, repo: Path = REPO) -> None:
         elif value > ceiling:
             problems.append("limits.%s may not exceed %d; a cap the author can raise "
                             "is not a cap" % (name, ceiling))
+
+    edition = data.get("edition")
+    if edition is not None:
+        if not isinstance(edition, dict):
+            problems.append("edition must be an object")
+        else:
+            unknown = set(edition) - EDITION_KEYS
+            if unknown:
+                problems.append("unknown edition key(s) %s" % sorted(unknown))
+            for key in sorted(EDITION_KEYS):
+                if not isinstance(edition.get(key), str) or not edition.get(key, "").strip():
+                    problems.append("edition.%s is empty" % key)
+
+    glossary = data.get("glossary", [])
+    if not isinstance(glossary, list):
+        problems.append("glossary must be a list")
+        glossary = []
+    for index, entry in enumerate(glossary):
+        where = "glossary[%d]" % index
+        if not isinstance(entry, dict):
+            problems.append("%s: must be an object" % where)
+            continue
+        unknown = set(entry) - GLOSSARY_KEYS
+        if unknown:
+            problems.append("%s: unknown key(s) %s" % (where, sorted(unknown)))
+        for key in ("term", "gloss"):
+            if not isinstance(entry.get(key), str) or not entry.get(key, "").strip():
+                problems.append("%s: %s is empty" % (where, key))
+        problems.extend(_text_problems(entry.get("gloss"), "%s gloss" % where))
+        if isinstance(entry.get("gloss"), str) and DIGIT_RE.search(entry["gloss"]):
+            problems.extend(_provenance_problems(entry.get("source"), where, repo))
+        if "see" in entry and (not isinstance(entry["see"], str)
+                                or not REF_RE.match(entry["see"])):
+            problems.append("%s: see must read \"<book> <chapter>:<verse>\"" % where)
 
     books = data.get("books")
     if not isinstance(books, list) or not books:
@@ -257,6 +337,18 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                 problems.append("%s: %s is empty" % (where, key))
         if book.get("genre") not in GENRES:
             problems.append("%s: genre must be one of %s" % (where, GENRES))
+        introduction = book.get("introduction")
+        if introduction is not None:
+            if not isinstance(introduction, dict):
+                problems.append("%s: introduction must be an object" % where)
+            else:
+                unknown = set(introduction) - INTRODUCTION_KEYS
+                if unknown:
+                    problems.append("%s: unknown introduction key(s) %s"
+                                    % (where, sorted(unknown)))
+                problems.extend(_prose_block_problems(introduction.get("paragraphs"),
+                                                     introduction.get("sources", []),
+                                                     "%s introduction" % where, repo))
         chapters = book.get("chapters")
         if not isinstance(chapters, list) or not chapters:
             problems.append("%s: chapters must be a non-empty list" % where)
@@ -283,6 +375,35 @@ def validate(data: Dict, repo: Path = REPO) -> None:
             if isinstance(max_verses, int) and len(verses) > max_verses:
                 problems.append("%s: %d verses, limit is %d"
                                 % (cwhere, len(verses), max_verses))
+            sections = chapter.get("sections", [])
+            if not isinstance(sections, list):
+                problems.append("%s: sections must be a list" % cwhere)
+                sections = []
+            previous = 0
+            for section_position, section in enumerate(sections):
+                swhere = "%s section %d" % (cwhere, section_position + 1)
+                if not isinstance(section, dict):
+                    problems.append("%s: must be an object" % swhere)
+                    continue
+                unknown = set(section) - SECTION_KEYS
+                if unknown:
+                    problems.append("%s: unknown key(s) %s" % (swhere, sorted(unknown)))
+                start = section.get("before_verse")
+                if not isinstance(start, int) or isinstance(start, bool) or \
+                        not 1 <= start <= len(verses):
+                    problems.append("%s: before_verse must name a verse in this chapter "
+                                    "(1..%d)" % (swhere, len(verses)))
+                elif start <= previous:
+                    problems.append("%s: sections must ascend; %d follows %d"
+                                    % (swhere, start, previous))
+                else:
+                    previous = start
+                heading = section.get("heading")
+                problems.extend(_text_problems(heading, "%s heading" % swhere))
+                if isinstance(heading, str) and DIGIT_RE.search(heading):
+                    problems.append("%s: a heading is a label, not a claim -- a figure "
+                                    "belongs in a verse, where it must name its "
+                                    "command" % swhere)
             index[identifier][number] = {}
             for verse_position, verse in enumerate(verses):
                 vwhere = "%s chapter %d verse %d" % (where, number, verse_position + 1)
@@ -337,6 +458,29 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                         problems.append("%s: a variant must say where its reading comes "
                                         "from; that is the whole point of an apparatus"
                                         % xwhere)
+                annotations = verse.get("annotations", [])
+                if not isinstance(annotations, list):
+                    problems.append("%s: annotations must be a list" % vwhere)
+                    annotations = []
+                for note_position, annotation in enumerate(annotations):
+                    nwhere = "%s annotation %d" % (vwhere, note_position + 1)
+                    if not isinstance(annotation, dict):
+                        problems.append("%s: must be an object" % nwhere)
+                        continue
+                    unknown = set(annotation) - ANNOTATION_KEYS
+                    if unknown:
+                        problems.append("%s: unknown key(s) %s"
+                                        % (nwhere, sorted(unknown)))
+                    if annotation.get("kind") not in ANNOTATION_KINDS:
+                        problems.append("%s: kind must be one of %s -- a reader is "
+                                        "entitled to know whether a note is a reading "
+                                        "or a claim" % (nwhere, ANNOTATION_KINDS))
+                    problems.extend(_text_problems(annotation.get("note"),
+                                                  "%s note" % nwhere))
+                    if isinstance(annotation.get("note"), str) and \
+                            DIGIT_RE.search(annotation["note"]):
+                        problems.extend(_provenance_problems(annotation.get("source"),
+                                                             nwhere, repo))
 
     # Citations are resolved after the whole index exists, so a verse may cite
     # forward -- the canon is read as a whole, not streamed.
@@ -356,20 +500,37 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                         problems.append("%s %d:%d cites %s, which does not exist"
                                         % (identifier, number, verse_number, citation))
 
+    # A glossary entry that points at a verse is a citation like any other, and
+    # the apparatus's own cross-references are the first thing to rot.
+    for position, entry in enumerate(glossary):
+        reference = entry.get("see") if isinstance(entry, dict) else None
+        if not isinstance(reference, str) or not REF_RE.match(reference):
+            continue
+        book_id, chapter_text, verse_text = REF_RE.match(reference).groups()
+        if book_id not in index or int(chapter_text) not in index[book_id] or \
+                int(verse_text) not in index[book_id][int(chapter_text)]:
+            problems.append("glossary[%d]: see %s, which does not exist"
+                            % (position, reference))
+
     if problems:
         raise CorpusError("%s failed %d check(s):\n  - %s"
                           % (CORPUS.name, len(problems), "\n  - ".join(problems)))
+    verses_flat = [verse for book in books for chapter in book["chapters"]
+                   for verse in chapter["verses"]]
     diagnostics = {"books": len(books),
                    "chapters": sum(len(book.get("chapters", [])) for book in books),
                    "verses": verse_total,
                    "citations": sum(len(verse.get("cites", []) or [])
-                                    for book in books for chapter in book["chapters"]
-                                    for verse in chapter["verses"]),
-                   "statutes": sum(1 for book in books for chapter in book["chapters"]
-                                   for verse in chapter["verses"] if "statute" in verse),
+                                    for verse in verses_flat),
+                   "statutes": sum(1 for verse in verses_flat if "statute" in verse),
                    "variants": sum(len(verse.get("variants", []) or [])
-                                   for book in books for chapter in book["chapters"]
-                                   for verse in chapter["verses"])}
+                                   for verse in verses_flat),
+                   "annotations": sum(len(verse.get("annotations", []) or [])
+                                      for verse in verses_flat),
+                   "sections": sum(len(chapter.get("sections", []) or [])
+                                   for book in books for chapter in book["chapters"]),
+                   "glossary": len(glossary),
+                   "introductions": sum(1 for book in books if "introduction" in book)}
     data.setdefault("_diagnostics", diagnostics)
 
 
@@ -513,11 +674,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                           "summary": summary}, indent=1))
         return 0
     print("%s -- %s, %d book(s), %d chapter(s), %d verse(s), %d citation(s), "
-          "%d statute(s), %d variant(s)"
+          "%d statute(s), %d variant(s), %d annotation(s), %d section(s), "
+          "%d gloss(es), %d introduction(s)"
           % (data.get("title"), data.get("status"), summary.get("books", 0),
              summary.get("chapters", 0), summary.get("verses", 0),
              summary.get("citations", 0), summary.get("statutes", 0),
-             summary.get("variants", 0)))
+             summary.get("variants", 0), summary.get("annotations", 0),
+             summary.get("sections", 0), summary.get("glossary", 0),
+             summary.get("introductions", 0)))
     if args.check:
         print("clean")
     return 0
