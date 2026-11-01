@@ -31,6 +31,9 @@ Some documents are governance rather than explanation, and do not fit:
 - [`../SECURITY.md`](../SECURITY.md) — reporting, including behavioural safety.
 - [`../PUBLIC_MANIFEST.json`](../PUBLIC_MANIFEST.json) — the machine-readable
   allowlist that the release gate enforces.
+- [`../certification.json`](../certification.json) — the requirements, acceptance
+  criteria and evidence behind the percentage bar in the README. `tools/certification_bar.py`
+  derives the number from it, and the release gate fails when the two drift.
 
 ## A rule for this directory
 

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import importlib.util
 import json
 import re
 import sys
@@ -68,6 +69,7 @@ REQUIRED_FILES: Tuple[str, ...] = (
 #: required, not encouraged -- see the module docstring.
 README_REQUIRED_HEADINGS: Tuple[str, ...] = (
     "## What this is",
+    "## How certifiable this is",
     "## What this is not",
     "## Limitations",
     "## Negative results and open problems",
@@ -119,6 +121,31 @@ def check_readme_disclosure(project: Path = PROJECT) -> List[str]:
     text = readme.read_text(encoding="utf-8")
     return ["README.md is missing the %r section" % heading
             for heading in README_REQUIRED_HEADINGS if heading not in text]
+
+
+def check_certification_bar(project: Path = PROJECT) -> List[str]:
+    """The percentage a reader sees must be the percentage the data supports.
+
+    The tool is loaded from the tree under test rather than imported as a module:
+    there is no installed package to import it from, and a gate that verified a
+    different copy than the one shipping would be measuring the wrong file.
+    Malformed data raises out of the tool, which is a failure here by design --
+    an unreadable certification file must not pass as "no findings".
+    """
+    tool = project / "tools" / "certification_bar.py"
+    if not tool.exists():
+        return ["tools/certification_bar.py is missing; the bar cannot be verified"]
+    spec = importlib.util.spec_from_file_location("nurse_ratchet_certification_bar",
+                                                  tool)
+    if spec is None or spec.loader is None:
+        return ["tools/certification_bar.py could not be loaded"]
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        ok, message = module.check(project)
+    except Exception as exc:                                   # noqa: BLE001 - reported
+        return ["certification bar could not be verified: %s" % exc]
+    return [] if ok else [message]
 
 
 def check_issue_templates(project: Path = PROJECT) -> List[str]:
@@ -231,6 +258,7 @@ def run_checks(project: Path = PROJECT, manifest_path: Optional[Path] = None) ->
     templates = check_issue_templates(project)
     manifest_problems, denied = check_manifest_paths(manifest, project)
     undeclared = check_undeclared(manifest, project)
+    certification = check_certification_bar(project)
     secrets_found: List[Dict] = []
     for path in sorted(project.rglob("*")):
         if path.is_file() and ".git" not in path.parts:
@@ -242,6 +270,7 @@ def run_checks(project: Path = PROJECT, manifest_path: Optional[Path] = None) ->
         "manifest_paths": manifest_problems,
         "denied_paths": denied,
         "undeclared_files": undeclared,
+        "certification_bar": certification,
         "secrets": secrets_found,
     }
     failures = sum(len(v) for v in checks.values())
