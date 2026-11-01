@@ -138,12 +138,24 @@ fi
 echo ""
 
 # ─── Check 4: repo-wide anti-pattern ratchet ───
-# Fails on any category COUNT increase over the recorded baseline. This is
-# deliberately repo-wide and runs unconditionally: the scanner snapshot in
-# check 2 cannot see the running total, and the backlog is what is ratcheted.
-echo "[Ratchet] Comparing anti-pattern counts against baseline..."
+# Fails on any category COUNT increase over the recorded baseline. This runs
+# unconditionally: the scanner snapshot in check 2 cannot see the running total,
+# and the backlog is what is ratcheted.
+#
+# --tracked-only (added 2026-11-01): the tree-wide scan counts UNTRACKED files,
+# so on 2026-11-01 three `??` modules created by another lane (CODEX/
+# dit_video_pipeline.py, CORE/feast_feature_store.py, CORE/
+# langgraph_integration.py) added 6 import_inside_function and 1
+# except_return_default and blocked a PSYCHE commit that contained none of them.
+# The gate's own --tracked-only help names this case: "gating a commit on the
+# desk drawer blocks reviewed changesets for files no commit contains." Staged
+# additions are still counted, because `git ls-files` reads the INDEX, so new
+# code is measured the moment it is added -- and the untracked files will be
+# counted at the commit that first tracks them, which is the ratchet working as
+# designed rather than as noise.
+echo "[Ratchet] Comparing anti-pattern counts against baseline (tracked files)..."
 if [ -f "$SCRIPT_DIR/tools/anti_pattern_gate.py" ]; then
-    PYTHONPATH="src:${PYTHONPATH:-}" "$PY" "$SCRIPT_DIR/tools/anti_pattern_gate.py" --check 2>&1
+    PYTHONPATH="src:${PYTHONPATH:-}" "$PY" "$SCRIPT_DIR/tools/anti_pattern_gate.py" --check --tracked-only 2>&1
     RATCHET_EXIT=$?
     if [ $RATCHET_EXIT -ne 0 ]; then
         echo ""
