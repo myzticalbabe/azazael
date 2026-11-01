@@ -129,17 +129,28 @@ def test_no_demographic_inputs():
     (parameter and variable names), not prose: documentation MAY discuss
     demographics; code may not branch on them."""
     import ast as _ast
+    import importlib
     import re
     banned = re.compile(
         r"^(gender|sex|female|male|race|ethnicity|age|demographic|"
         r"stereotype)$", re.I)
-    import PSYCHE.affect as _mod
-    import PSYCHE.traits as _tmod
-    import PSYCHE.identify as _imod
-    import PSYCHE.distill as _dmod
-    import PSYCHE.artifact as _amod
-    import PSYCHE.evaluate as _emod
-    for mod in (_mod, _tmod, _imod, _dmod, _amod, _emod):
+    # Discovered, not hard-coded. The fixed list had gone stale: it checked six
+    # modules and missed network/intuition/rt_agent/rt_channel, which were added
+    # later and are exactly where a construct-shaped template would hide. It also
+    # made the test unshippable, because distill/artifact/evaluate are not in the
+    # public manifest and importing them raised ModuleNotFoundError in a public
+    # checkout -- a test that only passes on the author's tree.
+    import pkgutil
+    import PSYCHE as _pkg
+
+    modules = []
+    for info in pkgutil.iter_modules(_pkg.__path__):
+        try:
+            modules.append(importlib.import_module("%s.%s" % (_pkg.__name__, info.name)))
+        except ImportError:  # optional extras are absent on a minimal checkout
+            continue
+    assert modules, "no PSYCHE modules were importable -- the scan is not running"
+    for mod in modules:
         tree = _ast.parse(inspect.getsource(mod))
         for node in _ast.walk(tree):
             if isinstance(node, _ast.arg):
