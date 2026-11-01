@@ -16,6 +16,7 @@ and applies it to games.
 | [tasks.json](tasks.json) | the same 12 tasks machine-readable, with owner, dependencies, deliverable, acceptance and risk. It is the scheduling copy; the markdown is the reasoning copy. |
 | [REJECTION_ANALYSIS_2026-10-31.md](REJECTION_ANALYSIS_2026-10-31.md) | Metthew's contract measured against PICO-8, Doom WADs, Luanti, Factorio, OpenTTD, SMAPI, Minecraft/Fabric, Workshop and Steam Remote Play: 12 ranked reasons players would bounce, and the five contract changes that should land before M-01 freezes. |
 | [BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md](BLEEDING_EDGE_ADAPTATIONS_2026-10-31.md) | what already exists to catch them: 14 dated strands (2024–2026) — Wasm 3.0's deterministic profile, WASM-4 carts, Uxn/permacomputing, iroh 1.0, deterministic simulation testing, GGRS rollback, TAS verification, N64 recompilation, Playdate/Picotron, s&box and Dreams, Nostr catalogues, AI minting, web3's collapse — each mapped to the task it changes. |
+| [DEEPER_DIVE_2026-10-31.md](DEEPER_DIVE_2026-10-31.md) | the verification pass: every figure in the plan re-read from its artefact and confirmed, plus the three things written down nowhere — the executor hands a shard the player's whole environment, the measured tick cost rules four of six languages out of a 30 fps loop, and the 24-file cap is borrowed from a rule that wastes 64% of its own capacity. Proposes three M-01 fields and two M-03 controls. |
 
 ## Separation of tasks in one screen
 
