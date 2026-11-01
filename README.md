@@ -2,6 +2,8 @@
 
 **Version:** 1.0.0 | **Python:** 3.15t (free-threaded, `C:\Azazael\.venvs\py315t`) — 3.14t retired 2026-10-19 | **Platform:** Windows 64-bit | **Status:** Beta
 
+**This repository is the Trunk.** Azazael is the Tree-of-Life the other packages grow from: `Project ELIZA` is the forensic investigation suite, `Project Nurse Ratchet` is the behavioral package, and both are declared in [`docs/AZAZAEL_TREE_OF_LIFE.md`](docs/AZAZAEL_TREE_OF_LIFE.md). The reference build is tuned to **this box** (Intel Core Ultra 9 285H / Arc 140T, Windows, 3.15t) — to fit a different machine, start at [`docs/platforms/README.md`](docs/platforms/README.md) and run `python tools/box_profile.py` before changing anything.
+
 Azazael is an autonomous system administration framework built on a **worm ecosystem** — self-contained, self-registering modules that discover, monitor, analyze, and heal computing environments. Built for free-threaded Python — 3.15t in production, with a same-version GIL sidecar for comparison — Azazael achieves true parallel execution across CPU, GPU, and NPU devices without the Global Interpreter Lock. (3.14t was retired on 2026-10-19; see `SYSTEM_INSTRUCTIONS.md` → INTERPRETER POLICY.)
 
 ---
@@ -245,6 +247,30 @@ python docs/scripts/patch_nuitka_314t.py --apply
 - **📊 Observability** — Real-time web dashboard with Prometheus metrics, health endpoints, structured logging
 - **🤖 ML/AI Integration** — SB3 reinforcement learning agents, OpenVINO async inference, neural pipeline for NLP analysis
 - **🔐 Security** — Thread-safe secrets manager, compliance enforcement, input validation on registry parameters
+
+---
+
+## Testing and CI — read this before waiting for a green check
+
+**There is no hosted CI. No workflow here has ever run and none will until a hosted
+remote is added.** Measured 2026-10-31 and 2026-11-01:
+
+```
+$ git remote -v
+origin  C:\Users\clint\azazael (fetch)     # a local path, not a host
+```
+
+So the gate is `.githooks/pre-commit` (unified registry `tools/preflight_all.py
+--check`, blocking), and that gate does **not** run `tests/`. Nothing does on commit.
+
+| what | command | covers |
+|---|---|---|
+| the real suite | `C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests -x -q` | `tests/` (~5,573 tests) |
+| what the workflows call | `python run_tests.py --skip-slow` | a hardcoded `STANDALONE_OK` list, 24 files / 471 tests — **not** `tests/` |
+| the committed gate | `python tools/preflight_all.py --check` | gates only, no test execution |
+
+A green `run_tests.py` has never meant `tests/` passes. `.github/workflows/*.yml` is kept
+as the correct job definition for the day `origin` becomes a host; its header says so.
 
 ---
 

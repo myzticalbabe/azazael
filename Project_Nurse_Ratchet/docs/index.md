@@ -11,12 +11,14 @@ scaffolding.
 | **Tutorial** — learning | "walk me through it" | *none yet.* The closest artefact is `rt_channel.py --demo`, which runs three real turns end to end, but a tutorial is a separate job and is not written. |
 | **How-to** — task | "how do I do X" | [`../README.md#quickstart`](../README.md#quickstart) — run the tests, run the channel, run the three instruments. Short on purpose. |
 | **Reference** — information | "what exactly does it do" | [`reference/psyche.md`](reference/psyche.md) — module by module: functions, fields, exit codes. |
-| **Explanation** — understanding | "why is it like this" | [`explanation/why-nurse-ratchet.md`](explanation/why-nurse-ratchet.md) — the design decisions and the measurements that forced them. |
+| **Explanation** — understanding | "why is it like this" | [`explanation/why-nurse-ratchet.md`](explanation/why-nurse-ratchet.md) — the design decisions and the measurements that forced them; [`explanation/live-counselors.md`](explanation/live-counselors.md) — the role this package is built for, and the six requirements it does not yet meet. |
 
 ## Reading order for a new contributor
 
 1. [`../README.md`](../README.md) — what it is, and the limitations section first.
-2. [`explanation/why-nurse-ratchet.md`](explanation/why-nurse-ratchet.md) — why the layers are
+2. [`explanation/live-counselors.md`](explanation/live-counselors.md) — what the package
+   claims to replace, and what would have to be true for that claim to hold.
+3. [`explanation/why-nurse-ratchet.md`](explanation/why-nurse-ratchet.md) — why the layers are
    ordered this way, and why the safety branch is structured as it is.
 3. [`reference/psyche.md`](reference/psyche.md) — the surface you will touch.
 4. [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — the negative-control rule.

@@ -3,7 +3,7 @@
  "version": "0.1.0",
  "license": "Apache-2.0",
  "status": "PRE-PUBLICATION",
- "summary": "A therapeutic-agent loop, the psychological network it reasons over, the compiled-inference layer that makes it fast, and the evaluation instruments that grade all three. Published with its limitations, including a measured crisis-router recall that ranges from 0.83 to 0.18 across three self-authored holdouts -- a spread that says the single number does not exist yet.",
+ "summary": "The behavioral package of the Azazael tree: a therapeutic-agent loop, the psychological network it reasons over, the compiled-inference layer that makes it fast, the construct battery that can finally measure a person, and the evaluation instruments that grade all four. Its intended role is the live counselor -- the continuity layer of addiction and mental-health care -- and docs/explanation/live-counselors.md states both that aim and the requirements it does not yet meet. Published with its limitations, including a measured crisis-router recall that ranges from 0.83 to 0.18 across three self-authored holdouts -- a spread that says the single number does not exist yet.",
  "ship_roots": [
   "Project_Nurse_Ratchet"
  ],
@@ -166,6 +166,11 @@
   {
    "from": "docs/explanation/why-nurse-ratchet.md",
    "to": "docs/explanation/why-nurse-ratchet.md",
+   "kind": "docs"
+  },
+  {
+   "from": "docs/explanation/live-counselors.md",
+   "to": "docs/explanation/live-counselors.md",
    "kind": "docs"
   },
   {

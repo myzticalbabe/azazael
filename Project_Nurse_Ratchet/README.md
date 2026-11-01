@@ -1,7 +1,16 @@
 # Project Nurse Ratchet
 
+**The behavioral package of the Azazael tree.** Azazael is the root; the forensic
+investigation suite is **Project ELIZA** and is a separate package with its own
+gate. This repository is the behavioural half: one person's state, modelled and
+graded — not case records, and not a forensic method.
+
 A therapeutic agent that is honest about what it cannot do, plus the instruments
-that prove it.
+that prove it. Its intended role is the **live counselor** — the continuity layer
+of addiction and mental-health care, always available, between the appointments
+where relapse actually decides. [`docs/explanation/live-counselors.md`](docs/explanation/live-counselors.md)
+states that thesis *and* the six requirements it does not yet meet, in the same
+document, because either alone is dishonest.
 
 Named for Nurse Ratched in *One Flew Over the Cuckoo's Nest* — the figure who
 administers care as control, in a register reasonable enough that the coercion is
@@ -59,8 +68,13 @@ checkable and a complaint can name the number that decided.
 
 ## What this is not
 
-- **Not a therapist, and not a substitute for one.** It does not diagnose, does
-  not name a disorder, and on any elevated risk signal it stops being an
+- **Not a therapist yet, and the route from here to that role is written down.**
+  The aim is to replace the continuity layer of counselling, not the clinician.
+  What stands between this build and that claim is enumerated in
+  `docs/explanation/live-counselors.md`: an independent recall floor, construct
+  data from real people, a counselor-extender pilot, a comparator trial, a
+  regulatory classification, and a scope-of-practice model. It does not diagnose,
+  does not name a disorder, and on any elevated risk signal it stops being an
   intervention engine and becomes a router to people.
 - **Not validated.** Every number in this README comes from a corpus written by
   the same author as the code it measures. That is the weakest available form of
