@@ -1,0 +1,166 @@
+{
+ "schema": "azazael/bible@1",
+ "title": "The Book of the Tree",
+ "status": "seed",
+ "updated": "2026-11-01",
+ "limits": {
+  "max_books": 12,
+  "max_verses_per_chapter": 60
+ },
+ "note": "Seed corpus, written so the checker has something to check and the genres are demonstrated; the prose is Kilo's to write. Rules the validator enforces: contiguous chapter and verse numbering; every citation in `cites` must resolve; any digit in a verse body requires `source` naming a repository path that exists; every statute names a RULE present in MANDATES.md and a `check` path that exists, so a law with nothing executing it is refused; no email, phone number or forensic deny token; book and verse caps declared here and enforced. A `variant` is the apparatus: the circulated reading, where it came from, and the body retaining the reading of this codex.",
+ "books": [
+  {
+   "id": "genesis",
+   "name": "Genesis",
+   "subtitle": "The Book of the Trunk",
+   "genre": "etiology",
+   "chapters": [
+    {
+     "number": 1,
+     "verses": [
+      {
+       "number": 1,
+       "text": "In the beginning there was one tree, and the tree had a trunk, and the trunk held the canon.",
+       "cites": []
+      },
+      {
+       "number": 2,
+       "text": "And the trunk put forth branches: the forensic, and the behavioural, and the instruments that grade them.",
+       "cites": ["genesis 1:1"]
+      },
+      {
+       "number": 3,
+       "text": "And the branches were one repository, and no branch was called a package until it could stand alone.",
+       "cites": ["genesis 1:2"]
+      },
+      {
+       "number": 4,
+       "text": "And the name of the tree was Azazael, and the name was not a product, nor a promise, nor a client.",
+       "cites": ["genesis 1:1"]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "leviticus",
+   "name": "Leviticus",
+   "subtitle": "The Book of the Gates",
+   "genre": "law",
+   "chapters": [
+    {
+     "number": 1,
+     "verses": [
+      {
+       "number": 1,
+       "text": "A control shall be exercised before it is called a control, for an unexercised control is a decoration.",
+       "cites": ["genesis 1:2"],
+       "statute": {
+        "rule": "RULE 0B-D",
+        "check": "python tools/preflight_all.py --self-test",
+        "why": "the registry's self-test is the control that proves the registry matches the hook it claims to transcribe"
+       }
+      },
+      {
+       "number": 2,
+       "text": "Every number shall be written with the command that produced it, and a number found without a command shall be struck out rather than trusted.",
+       "cites": [],
+       "statute": {
+        "rule": "RULE 0B-D",
+        "check": "python tools/bible_check.py --check",
+        "why": "the refusal is mechanical: a verse carrying a digit and no source fails before it can be quoted"
+       }
+      },
+      {
+       "number": 3,
+       "text": "A verdict shall name the predicate that fired, and the reader shall ask whether that predicate is the thing they care about.",
+       "cites": [],
+       "statute": {
+        "rule": "RULE 0B-B",
+        "check": "python tools/preflight_all.py --check",
+        "why": "the registry distinguishes BLIND from PASS, because a gate that could not read its input has not judged it"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "the_falls",
+   "name": "The Falls",
+   "subtitle": "The Book of the Instruments That Lied",
+   "genre": "history",
+   "chapters": [
+    {
+     "number": 1,
+     "verses": [
+      {
+       "number": 1,
+       "text": "And the instrument was compared against itself, and the divergence came back small, and small was read as working.",
+       "cites": ["leviticus 1:1"],
+       "variants": [
+        {
+         "reading": "The codex Ratchet, limitation five",
+         "text": "the divergence read 0.001 where the mean difference was 0.135",
+         "source": "Project_Nurse_Ratchet/README.md, negative results"
+        }
+       ]
+      },
+      {
+       "number": 2,
+       "text": "And a probe reported an accelerator that was not in this box, because the reading came from another venv, and the gate was green throughout.",
+       "cites": [],
+       "variants": [
+        {
+         "reading": "The circulated reading",
+         "text": "an accelerator of 7.80 GB reported as available",
+         "source": "the bundled venv of another application, named in AGENTS.md"
+        }
+       ]
+      },
+      {
+       "number": 3,
+       "text": "And the fast path fired never, and the ceiling that sat below the threshold read as caution rather than as silence.",
+       "cites": [],
+       "variants": [
+        {
+         "reading": "The codex Ratchet, negative results",
+         "text": "zero fires in 100 calls at any support",
+         "source": "Project_Nurse_Ratchet/README.md"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "psalms",
+   "name": "Psalms",
+   "subtitle": "The Book of the Long Wait",
+   "genre": "lament",
+   "chapters": [
+    {
+     "number": 1,
+     "verses": [
+      {
+       "number": 1,
+       "text": "How long shall a lane say the suite is green, and the suite not be run?",
+       "cites": []
+      },
+      {
+       "number": 2,
+       "text": "How long shall a row be called closed, when the verb that closed it was not a verb the queue knew?",
+       "cites": []
+      },
+      {
+       "number": 3,
+       "text": "The dead store is not a metaphor. It is a row nobody reads, and it was counted twice, and the count was reported as coverage.",
+       "cites": ["the_falls 1:1"]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

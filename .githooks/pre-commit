@@ -195,6 +195,31 @@ else
 fi
 echo ""
 
+# ─── Check 4c: the canon corpus cites itself honestly ───
+# docs/bible/bible.json is prose that makes claims about this repository: every
+# citation must resolve, every figure must name the command that produced it, and
+# every statute must name both the RULE it comes from and the check that executes
+# it. A canon that contradicts itself is worse than no canon, because it is
+# quotable -- so the corpus is data and this is the apparatus. Absent corpus is
+# "passing loud", the same as a missing gate: the check cannot judge what is not
+# there, and pretending otherwise would make an empty file look clean.
+echo "[Bible] Checking that the canon corpus resolves its own citations..."
+if [ -f "$SCRIPT_DIR/tools/bible_check.py" ]; then
+    BIBLE_OUT=$("$PY" "$SCRIPT_DIR/tools/bible_check.py" --check 2>&1)
+    BIBLE_EXIT=$?
+    echo "$BIBLE_OUT" | tail -20
+    if [ $BIBLE_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Bible] BLOCKED: the corpus contradicts itself (see above)."
+        echo "[Bible] Fix the citation, name the command behind the figure, or bind"
+        echo "[Bible] the statute: python tools/bible_check.py --check"
+        exit 1
+    fi
+else
+    echo "[Bible] gate not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
 # ─── Check 5: mesh wire-or-cut ledger freshness ───
 # NEURAL_MESH_WIRE_OR_CUT.json is GENERATED, and nothing regenerated it when
 # a caller changed -- so it went stale silently. Measured 2026-10-10: the

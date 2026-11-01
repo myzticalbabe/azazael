@@ -318,6 +318,23 @@ GATES: Tuple[Gate, ...] = (
         requires=(),  # transcript stores, not repo paths
     ),
     Gate(
+        name="bible-citations",
+        argv=("tools/bible_check.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="docs/bible/bible.json -- verse numbering, citation targets, the "
+              "command behind every figure, statute rule/check bindings",
+        control_test="tests/test_bible_check.py",
+        control=None,
+        uncontrolled_because=None,
+        # The corpus is the thing judged. Absent, this gate is BLIND rather than
+        # green: an empty file passes every citation check ever written.
+        requires=("docs/bible/bible.json",),
+    ),
+    Gate(
         name="pmb-outcome-observer",
         argv=("tools/pmb_session_observe.py", "--commit-ok", "--quiet"),
         interpreter="pmb-venv",
