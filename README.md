@@ -282,6 +282,8 @@ as the correct job definition for the day `origin` becomes a host; its header sa
 | API Reference | `docs/API_REFERENCE.md` |
 | Installation Guide | `docs/INSTALL_GUIDE.md` |
 | Error Log | `ERROR_LOG.md` (root) |
+| Tree of Life — which project is which | `docs/AZAZAEL_TREE_OF_LIFE.md` |
+| Packaging plan — what ships, what does not | `docs/PACKAGING_PLAN.md` |
 | Session Startup | `SESSION_STARTUP.md` (root) |
 | SOP & Governance | `SOP.md` (root) |
 | Conversion Plans | `docs/RUST_CONVERSION_PLAN.md` |
