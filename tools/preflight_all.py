@@ -163,13 +163,17 @@ GATES: Tuple[Gate, ...] = (
     ),
     Gate(
         name="anti-pattern-ratchet",
-        argv=("tools/anti_pattern_gate.py", "--check"),
+        # --tracked-only, matching .githooks/pre-commit (2026-11-01): the tree
+        # scan counts untracked files, so three `??` modules from another lane
+        # blocked a commit that contained none of them. Staged additions are
+        # still counted -- `git ls-files` reads the index.
+        argv=("tools/anti_pattern_gate.py", "--check", "--tracked-only"),
         interpreter="python3",
         env=("PYTHONPATH=src",),
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="the whole src/ tree vs logs/anti_pattern_baseline.json",
+        reads="git-tracked src/ files vs logs/anti_pattern_baseline.json",
         control_test="tests/test_anti_pattern_gate.py",
         control="anti-pattern-ratchet",
         uncontrolled_because=None,
@@ -355,11 +359,11 @@ GATES: Tuple[Gate, ...] = (
         inside_hook=False,
         blocking=True,
         slow=True,
-        reads="single-process tests/ vs logs/aggregate_suite_baseline.json",
+        reads="single-process tests/ vs logs/aggregate_isolation_baseline.json",
         control_test="tests/test_aggregate_suite_gate.py",
         control=None,
         uncontrolled_because=None,
-        requires=("logs/aggregate_suite_baseline.json",),
+        requires=("logs/aggregate_isolation_baseline.json",),
     ),
     Gate(
         name="type-check",
