@@ -79,3 +79,14 @@ No document in that set may claim a backend that `tools/box_profile.py` does not
 report on the box it describes. `box_profile.py --check` fails a stored profile
 that has drifted from the machine, because a platform document nobody can follow
 is worse than no document.
+
+## What ships with each package
+
+`docs/PACKAGING_PLAN.md` holds the bundle plan — node, person, seam, instruments,
+cognition — with the measured state of each and the gaps that block it. The
+short version, so it is not mistaken for a roadmap: the **node** and
+**instruments** bundles can ship now; the **person** bundle needs portable
+memory; the **seam** (the mesh) cannot honestly ship until peer discovery, an
+authenticated non-loopback path and a written residency rule exist. A mesh that
+binds only loopback is a demonstration of decentralization, not a decentralized
+system.
