@@ -1,0 +1,299 @@
+[
+ {
+  "root": "C:\\Azazael\\azazael",
+  "exists": true,
+  "grade": "BLEEDING",
+  "tracked": 32597,
+  "git": "git version 2.53.0.windows.1",
+  "version": "2.53.0",
+  "capabilities": {
+   "merge-tree --write-tree": true,
+   "replay": true,
+   "backfill": true,
+   "multi-pack-index": true,
+   "commit-graph": true
+  },
+  "checks": [
+   {
+    "check": "commit-graph",
+    "ok": true,
+    "evidence": "present"
+   },
+   {
+    "check": "multi-pack-index",
+    "ok": true,
+    "evidence": "present across 32 packs"
+   },
+   {
+    "check": "fsmonitor",
+    "ok": true,
+    "evidence": "core.fsmonitor=true"
+   },
+   {
+    "check": "untrackedCache",
+    "ok": true,
+    "evidence": "core.untrackedCache=true"
+   },
+   {
+    "check": "index v4",
+    "ok": true,
+    "evidence": "index.version=4"
+   },
+   {
+    "check": "working-tree coverage",
+    "ok": true,
+    "evidence": "32597 tracked, 102 untracked"
+   },
+   {
+    "check": "loose objects",
+    "ok": true,
+    "evidence": "0 loose"
+   },
+   {
+    "check": "pack count",
+    "ok": true,
+    "evidence": "32 pack(s)"
+   },
+   {
+    "check": "maintenance",
+    "ok": false,
+    "evidence": "maintenance.strategy=<unscheduled>",
+    "hard": false
+   },
+   {
+    "check": "ref backend",
+    "ok": true,
+    "evidence": "files, 13 refs",
+    "hard": false
+   },
+   {
+    "check": "history",
+    "ok": true,
+    "evidence": "1227 commits, 32 packs, 0 loose (954.9 MiB packed)",
+    "hard": false
+   }
+  ],
+  "gaps": [],
+  "tasks": [],
+  "hazards": [],
+  "objects": {
+   "packs": 32,
+   "loose": 0,
+   "pack_MiB": 954.9,
+   "loose_MiB": 0.0
+  }
+ },
+ {
+  "root": "C:\\Users\\clint",
+  "exists": true,
+  "grade": "LAGGING",
+  "tracked": 678,
+  "git": "git version 2.53.0.windows.1",
+  "version": "2.53.0",
+  "capabilities": {
+   "merge-tree --write-tree": true,
+   "replay": true,
+   "backfill": true,
+   "multi-pack-index": true,
+   "commit-graph": true
+  },
+  "checks": [
+   {
+    "check": "commit-graph",
+    "ok": true,
+    "evidence": "present"
+   },
+   {
+    "check": "multi-pack-index",
+    "ok": true,
+    "evidence": "single pack -- nothing to unify"
+   },
+   {
+    "check": "fsmonitor",
+    "ok": true,
+    "evidence": "core.fsmonitor=true"
+   },
+   {
+    "check": "untrackedCache",
+    "ok": true,
+    "evidence": "core.untrackedCache=true"
+   },
+   {
+    "check": "index v4",
+    "ok": true,
+    "evidence": "index.version=4"
+   },
+   {
+    "check": "working-tree coverage",
+    "ok": false,
+    "evidence": "678 tracked vs 1006 untracked -- the tree is a copy with a baseline commit, not a tracked history"
+   },
+   {
+    "check": "loose objects",
+    "ok": true,
+    "evidence": "18 loose"
+   },
+   {
+    "check": "pack count",
+    "ok": true,
+    "evidence": "1 pack(s)"
+   },
+   {
+    "check": "maintenance",
+    "ok": false,
+    "evidence": "maintenance.strategy=<unscheduled>",
+    "hard": false
+   },
+   {
+    "check": "ref backend",
+    "ok": true,
+    "evidence": "files, 21 refs",
+    "hard": false
+   },
+   {
+    "check": "history",
+    "ok": true,
+    "evidence": "189 commits, 1 packs, 18 loose (138.1 MiB packed)",
+    "hard": false
+   }
+  ],
+  "gaps": [
+   "tracked content is a minority of the tree (678 tracked vs 1006 untracked -- the tree is a copy with a baseline commit, not a tracked history): a `git init` + baseline commit does not make a copy into a repository"
+  ],
+  "tasks": [
+   "decide per tree: `git add -A` + commit (fork of history, changes nothing on disk) with a .gitignore for the bulk, or declare it an artefact store and exclude it from git work"
+  ],
+  "hazards": [
+   "this repository IS the home directory: every folder beneath it reports it as its toplevel, and `git add -A` here stages the profile"
+  ],
+  "objects": {
+   "packs": 1,
+   "loose": 18,
+   "pack_MiB": 138.1,
+   "loose_MiB": 0.1
+  }
+ },
+ {
+  "root": "C:\\Users\\clint\\edge0-intel",
+  "exists": true,
+  "grade": "NOT-A-REPO",
+  "gaps": [
+   "not its own repository: it sits inside C:/Users/clint"
+  ],
+  "evidence": "rev-parse --show-toplevel -> C:/Users/clint",
+  "tasks": [
+   "decide: `git init` here (a second history) or leave it as part of the enclosing repository at C:/Users/clint -- do NOT run `git config`/`git add` in here expecting it to apply locally; git resolves upward and edits C:/Users/clint"
+  ],
+  "checks": []
+ },
+ {
+  "root": "C:\\Users\\clint\\graph3d",
+  "exists": true,
+  "grade": "NOT-A-REPO",
+  "gaps": [
+   "not its own repository: it sits inside C:/Users/clint"
+  ],
+  "evidence": "rev-parse --show-toplevel -> C:/Users/clint",
+  "tasks": [
+   "decide: `git init` here (a second history) or leave it as part of the enclosing repository at C:/Users/clint -- do NOT run `git config`/`git add` in here expecting it to apply locally; git resolves upward and edits C:/Users/clint"
+  ],
+  "checks": []
+ },
+ {
+  "root": "C:\\Azazael\\pams-source",
+  "exists": true,
+  "grade": "BLEEDING",
+  "tracked": 17,
+  "git": "git version 2.53.0.windows.1",
+  "version": "2.53.0",
+  "capabilities": {
+   "merge-tree --write-tree": true,
+   "replay": true,
+   "backfill": true,
+   "multi-pack-index": true,
+   "commit-graph": true
+  },
+  "checks": [
+   {
+    "check": "commit-graph",
+    "ok": true,
+    "evidence": "present"
+   },
+   {
+    "check": "multi-pack-index",
+    "ok": true,
+    "evidence": "single pack -- nothing to unify"
+   },
+   {
+    "check": "fsmonitor",
+    "ok": true,
+    "evidence": "core.fsmonitor=true"
+   },
+   {
+    "check": "untrackedCache",
+    "ok": true,
+    "evidence": "core.untrackedCache=true"
+   },
+   {
+    "check": "index v4",
+    "ok": true,
+    "evidence": "index.version=4"
+   },
+   {
+    "check": "working-tree coverage",
+    "ok": true,
+    "evidence": "17 tracked, 2 untracked"
+   },
+   {
+    "check": "loose objects",
+    "ok": true,
+    "evidence": "51 loose"
+   },
+   {
+    "check": "pack count",
+    "ok": true,
+    "evidence": "0 pack(s)"
+   },
+   {
+    "check": "maintenance",
+    "ok": false,
+    "evidence": "maintenance.strategy=<unscheduled>",
+    "hard": false
+   },
+   {
+    "check": "ref backend",
+    "ok": true,
+    "evidence": "files, 1 refs",
+    "hard": false
+   },
+   {
+    "check": "history",
+    "ok": true,
+    "evidence": "7 commits, 0 packs, 51 loose (0.0 MiB packed)",
+    "hard": false
+   }
+  ],
+  "gaps": [],
+  "tasks": [],
+  "hazards": [],
+  "objects": {
+   "packs": 0,
+   "loose": 51,
+   "pack_MiB": 0.0,
+   "loose_MiB": 0.9
+  }
+ },
+ {
+  "root": "G:\\azazael",
+  "exists": true,
+  "grade": "NOT-A-REPO",
+  "gaps": [
+   "no usable git repository"
+  ],
+  "evidence": "fatal: not a git repository (or any of the parent directories): .git",
+  "tasks": [
+   "decide: `git init` + initial commit, or declare this tree an artefact store and exclude it from git work"
+  ],
+  "checks": []
+ }
+]
