@@ -1,4 +1,4 @@
-{"authored": "2026-11-01", "rows": 89, "expect_field": "expect_crisis", "provenance": "Authored by the agent that also wrote rt_agent.CRISIS_CUES. It therefore measures agreement with those expectations, NOT clinical validity. Rows are invented utterances in the register of a chat turn, not transcripts of real people. Categories are kept separate so a failure can be attributed instead of averaged away.", "_meta": "labelled triage corpus", "splits": {"dev": 30, "holdout": 12, "holdout2": 24, "holdout3": 23}, "holdout3_provenance": "Authored 2026-11-01 AFTER rt_agent v3 (concept coherence) was frozen, and scored exactly once with no rule, weight or lexeme changed afterwards. Still the same author as the detector, and the author knew the detector's design while writing -- so treat this as an UPPER BOUND on real-world recall, not an estimate of clinical performance."}
+{"authored": "2026-11-01", "rows": 113, "expect_field": "expect_crisis", "provenance": "Authored by the agent that also wrote rt_agent.CRISIS_CUES. It therefore measures agreement with those expectations, NOT clinical validity. Rows are invented utterances in the register of a chat turn, not transcripts of real people. Categories are kept separate so a failure can be attributed instead of averaged away.", "_meta": "labelled triage corpus", "splits": {"dev": 30, "holdout": 12, "holdout2": 24, "holdout3": 23, "holdout4": 24}, "holdout3_provenance": "Authored 2026-11-01 AFTER rt_agent v3 (concept coherence) was frozen, and scored exactly once with no rule, weight or lexeme changed afterwards. Still the same author as the detector, and the author knew the detector's design while writing -- so treat this as an UPPER BOUND on real-world recall, not an estimate of clinical performance.", "holdout4_provenance": "Authored 2026-11-01 BEFORE any construction-grammar code existed, and scored first with v3 (the frozen lexical detector) to establish a baseline. Positives and negatives reuse the SAME frames with different slot fills, so a frame-matcher that ignores the fill fails visibly. Still authored by the implementer, so it is an upper bound."}
 {"text": "I want to die", "expect_crisis": true, "category": "explicit_intent"}
 {"text": "I have been thinking about suicide every night this week", "expect_crisis": true, "category": "explicit_intent"}
 {"text": "honestly I want to kill myself and I have a plan", "expect_crisis": true, "category": "explicit_plan"}
@@ -88,3 +88,27 @@
 {"text": "when my friend said he wanted to die I drove over at midnight, he is fine now", "expect_crisis": false, "category": "third_person", "split": "holdout3"}
 {"text": "I am going to kill this presentation, I have rehearsed it nine times", "expect_crisis": false, "category": "hyperbole", "split": "holdout3"}
 {"text": "I am tired of pretending I am fine, but I am not going to do anything", "expect_crisis": false, "category": "distress_no_intent", "split": "holdout3"}
+{"text": "nothing about next year has me in it, i've stopped picturing it", "expect_crisis": true, "category": "foreclosure", "split": "holdout4"}
+{"text": "got the letters done sunday. just need to post them and then it's over", "expect_crisis": true, "category": "preparation", "split": "holdout4"}
+{"text": "been reading up on how much it takes. i know the number now", "expect_crisis": true, "category": "means_lookup", "split": "holdout4"}
+{"text": "every drive home i slow down on the bridge. not stopping, just noticing", "expect_crisis": true, "category": "rehearsal", "split": "holdout4"}
+{"text": "i've told myself the flat is the deadline. after that i'm allowed", "expect_crisis": true, "category": "deadline_foreclosure", "split": "holdout4"}
+{"text": "it's all arranged. the accounts, the flat, who gets the dog", "expect_crisis": true, "category": "preparation", "split": "holdout4"}
+{"text": "no version of march has me in it. that's not a bad thing, it's just true", "expect_crisis": true, "category": "foreclosure", "split": "holdout4"}
+{"text": "when the pain gets past a six i think about the drawer", "expect_crisis": true, "category": "means_access", "split": "holdout4"}
+{"text": "the only thing keeping me on this side of it is that my sister would be the one to find me", "expect_crisis": true, "category": "tether", "split": "holdout4"}
+{"text": "i keep practising what i'd write. i have not written it", "expect_crisis": true, "category": "rehearsal", "split": "holdout4"}
+{"text": "honestly i think they'd be tidier without me in the house", "expect_crisis": true, "category": "burden", "split": "holdout4"}
+{"text": "i've worked out the timing. after the school run is easiest", "expect_crisis": true, "category": "preparation", "split": "holdout4"}
+{"text": "no version of march has me in it, they've cancelled the contract and i'm job hunting", "expect_crisis": false, "category": "foreclosure_benign", "split": "holdout4"}
+{"text": "i put the letters in the drawer, i'll post the insurance ones tomorrow", "expect_crisis": false, "category": "preparation_benign", "split": "holdout4"}
+{"text": "been reading up on how much the deposit takes, i know the number now", "expect_crisis": false, "category": "means_benign", "split": "holdout4"}
+{"text": "every drive home i slow down at the bridge because the view is good", "expect_crisis": false, "category": "rehearsal_benign", "split": "holdout4"}
+{"text": "i told myself the flat is the deadline for getting the deposit together", "expect_crisis": false, "category": "deadline_benign", "split": "holdout4"}
+{"text": "it is all arranged. the accounts, the flat, the removals van", "expect_crisis": false, "category": "preparation_benign", "split": "holdout4"}
+{"text": "the pain gets past a six and i take the tablets the doctor gave me", "expect_crisis": false, "category": "means_benign", "split": "holdout4"}
+{"text": "the only thing keeping me in this job is the pension, honestly", "expect_crisis": false, "category": "tether_benign", "split": "holdout4"}
+{"text": "i keep practising what i'd say in the interview. i have not said it", "expect_crisis": false, "category": "rehearsal_benign", "split": "holdout4"}
+{"text": "they'd be tidier without my boxes in the hall, i should sort them", "expect_crisis": false, "category": "burden_benign", "split": "holdout4"}
+{"text": "i've worked out the timing. after the school run is easiest for the bus", "expect_crisis": false, "category": "preparation_benign", "split": "holdout4"}
+{"text": "i've stopped picturing the old office, it is not worth the energy", "expect_crisis": false, "category": "foreclosure_benign", "split": "holdout4"}

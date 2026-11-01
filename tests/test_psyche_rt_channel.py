@@ -108,16 +108,25 @@ def test_protocol_streams_through_a_real_subprocess():
     stdio framing.
 
     The script path comes from the imported module, not from `ROOT/src/PSYCHE`: in
-    the public tree the package is `eliza.psyche` and there is no `src`, so a
-    path-built command is a monorepo-only test that ships green here and red
+    the public tree the package is `nurse_ratchet.psyche` and there is no `src`, so
+    a path-built command is a monorepo-only test that ships green here and red
     there. Same defect class as the corpus path in the instruments.
+
+    The PYTHONPATH entry is derived from the TOP-LEVEL package instead of by
+    walking up a fixed number of directories. `script.parent.parent` is right for
+    `src/PSYCHE` (one package level) and wrong for `nurse_ratchet.psyche` (two),
+    which is exactly how the public tree's copy failed while this one passed.
     """
+    import importlib.util
+
     from PSYCHE import rt_channel as C
 
     script = Path(C.__file__).resolve()
     assert script.name == "rt_channel.py", script  # R is rt_agent; naming it wrong
+    top_level = C.__name__.split(".")[0]
+    location = importlib.util.find_spec(top_level).submodule_search_locations[0]
     env = dict(os.environ)                       # runs the wrong script silently
-    env["PYTHONPATH"] = str(script.parent.parent)
+    env["PYTHONPATH"] = str(Path(location).resolve().parent)
     env.pop("AZAZAEL_MEMORY_DIR", None)
     proc = subprocess.run(
         [sys.executable, str(script), "--demo", "--turns", "3"],

@@ -53,6 +53,7 @@ from typing import Dict, List, Optional, Tuple
 from PSYCHE.affect import (appraise_event, clamp, emotion_to_pad, express,
                            pad_blend, pad_decay)
 from PSYCHE.intuition import DEFAULT_THRESHOLD, IntuitionIndex, Reading
+from PSYCHE import constructions
 from PSYCHE.network import PersonNetwork, activation_from_pad, bridge_name
 
 #: Crisis vocabulary. Deliberately explicit and deliberately narrow: this is a
@@ -369,12 +370,47 @@ def triage(text: str, activation: Optional[Dict[str, float]] = None) -> Triage:
     lowered = (text or "").lower()
     matched = [cue for cue in CRISIS_CUES if cue in lowered]
     score, hits = _coherence(lowered)
+    built = constructions.analyse(lowered)
+    # Precedence between the two lexical-ish channels: the one that read the
+    # OBJECT of the sentence wins. "the only thing keeping me in this job" scores
+    # on the coherence family `tether` and cannot see the pension clause; the
+    # construction pass found that clause and recorded why it did not count. Two
+    # mechanisms disagreeing is a real ambiguity, and resolving it toward silence
+    # here is safe only because the construction channel is the more specific one
+    # -- it fires on far fewer sentences and its evidence is auditable.
+    coerced = 0.0
+    if score >= CRISIS_SCORE and built.benign_evidence and not built.fires:
+        # NOT appended to `matched`: that list IS the "something matched" signal, so
+        # recording a suppression in it made the suppression itself fire. Notes go
+        # to `coerced`, which is only ever reported in the reasons.
+        coerced = score
+        score = 0.0
+    # Third channel: constructions. Added because two lexical mechanisms were
+    # measured against fresh holdouts and neither generalised (1.00 -> 0.00, then
+    # 0.83 -> 0.18). The misses had no crisis vocabulary at all -- "no version of
+    # next year that has me in it" -- because the signal is in the FRAME and its
+    # slot fills, not in the tokens. A construction that is about the speaker
+    # escalates directly: its subject was resolved from the frame, which is a
+    # better attribution decision than the blanket guard below.
+    if built.fires:
+        names = sorted({f.name for f in built.frames if f.subject == constructions.SELF})
+        matched.append("construction:%s" % "+".join(names))
+        return Triage("crisis",
+                      ["risk construction %s (score %.1f): %s"
+                       % ("+".join(names), built.score,
+                          "%s=%r" % (built.frames[0].name, built.frames[0].evidence))],
+                      matched)
     for name, pattern in CRISIS_PATTERNS:
         if re.search(pattern, lowered):
             matched.append("pattern:%s" % name)
     if score >= CRISIS_SCORE:
         matched.append("coherence:%.1f" % score)
     excluded = [cue for cue in CRISIS_EXCLUSIONS if cue in lowered]
+    if coerced and not matched:
+        return Triage("low",
+                      ["coherence would have scored %.1f, but the construction pass "
+                       "found a slot fill that makes this text about something else"
+                       % coerced], matched)
     if matched and not excluded:
         who = _attribution(lowered)
         first_person = any(marker in lowered for marker in FIRST_PERSON_MARKERS)
