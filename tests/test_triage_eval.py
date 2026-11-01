@@ -143,3 +143,57 @@ def test_json_output_is_machine_readable(tmp_path, capsys):
     assert E.main(["--corpus", str(path), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["confusion"]["true_positive"] == 1
+
+
+#: Measured 2026-11-01 with rt_agent v3 (concept coherence). The point of pinning
+#: these with a FLOOR is not to celebrate a number -- it is that the interesting
+#: fact here is the SPREAD. v2 (exact phrases + fitted families) scored 1.00 on
+#: dev and 0.00 on a fresh holdout; v3 scores 1.00 on dev, 0.83 on two holdouts
+#: and 0.18 on a third. Dev is always 1.00 because dev is what everything was
+#: tuned against, which is exactly why a change that raises dev proves nothing.
+#: A future edit that lifts dev while dropping holdout3 below its measured floor
+#: is a regression, not an improvement, and this test says so.
+MEASURED_2026_11_01 = {
+    "dev": 1.00,
+    "holdout": 0.83,
+    "holdout2": 0.83,
+    "holdout3": 0.18,
+}
+
+
+def test_measured_holdout_recall_has_not_regressed():
+    corpus = E.load_corpus(E.CORPUS)
+    report = E.evaluate(corpus)
+    by_split = report["by_split"]
+    for split, floor in MEASURED_2026_11_01.items():
+        assert split in by_split, "corpus lost the %s split" % split
+        measured = by_split[split]["recall"]
+        if measured is None:
+            continue
+        assert measured >= floor - 0.01, (
+            "%s recall fell to %.2f, below the measured floor %.2f. Holdout recall "
+            "is the number that matters; dev is fitted." % (split, measured, floor))
+
+
+def test_every_split_is_reported_separately_so_no_mean_can_hide_a_split():
+    """The instrument's job is to make the spread unavoidable, not to pass.
+
+    Same detector, same author, two corpora authored a day apart: 0.83 and 0.18.
+    Their mean, 0.51, describes neither and nothing else either. So the render
+    must print one recall per split, and this test fails if a `holdout3` verdict
+    can be expressed as a single aggregate line instead.
+    """
+    corpus = E.load_corpus(E.CORPUS)
+    report = E.evaluate(corpus)
+    rendered = E.render(report)
+    for split in ("holdout2", "holdout3"):
+        assert split in report["by_split"], "%s vanished from the corpus" % split
+        line = [ln for ln in rendered.splitlines() if ln.strip().startswith(split)]
+        assert line, "%s has no line of its own in the rendered report" % split
+        assert "recall" in line[0], "%s line reports no recall" % split
+    # A corpus edited to fit the router would collapse this: it is a tripwire on
+    # the CORPUS, not on the code, so it never blocks a genuine improvement.
+    vals = [report["by_split"][s]["recall"] for s in ("holdout2", "holdout3")]
+    assert min(vals) < 0.9, (
+        "both holdouts are above 0.9 -- that has never been true of this router and "
+        "is far more likely to mean a holdout was rewritten after seeing failures")

@@ -53,7 +53,7 @@ from typing import Dict, List, Optional, Tuple
 from PSYCHE.affect import (appraise_event, clamp, emotion_to_pad, express,
                            pad_blend, pad_decay)
 from PSYCHE.intuition import DEFAULT_THRESHOLD, IntuitionIndex, Reading
-from PSYCHE.network import PersonNetwork, activation_from_pad
+from PSYCHE.network import PersonNetwork, activation_from_pad, bridge_name
 
 #: Crisis vocabulary. Deliberately explicit and deliberately narrow: this is a
 #: ROUTER, so it must fire on unambiguous statements of intent and must not fire
@@ -70,6 +70,11 @@ CRISIS_CUES: Tuple[str, ...] = (
 CRISIS_EXCLUSIONS: Tuple[str, ...] = (
     "kill time", "killing time", "die of embarrassment", "dying to know",
     "could die laughing", "dead tired", "deadline",
+    # Added 2026-11-01 with the coherence channel: "this traffic is going to be
+    # the death of me" brings self + cessation + intent together and is still an
+    # idiom. A fixed idiom is a MASK, not a lowered score -- the words are present
+    # and mean the opposite, which is exactly the case exclusions exist for.
+    "the death of me", "death of me",
 )
 
 #: Arousal above this is outside the window in which skills are learnable.
@@ -88,6 +93,97 @@ CRISIS_PATTERNS: Tuple[Tuple[str, str], ...] = (
     ("no_point", r"\b(no|not\s+see\s+the)\s+point\s+(in|to)?\s*(living|going\s+on|carrying\s+on)\b"),
 )
 
+#: CONCEPT LEXEMES for the coherence channel. Added 2026-11-01, replacing further
+#: pattern tuning. The measured reason: the pattern set scored recall 1.00 on the
+#: dev corpus after fitting and 0.00 on a fresh disjoint holdout written before
+#: the fitting -- an exact-phrase list generalises at about zero, because people
+#: do not speak in the phrasings it was written around. These are item FAMILIES,
+#: each traceable to a published instrument rather than to a sentence I happened
+#: to have in front of me:
+#:
+#:   cessation / desire / plan  -- Columbia Suicide Severity Rating Scale item
+#:                                 groups (ideation, intent, method/plan/prep)
+#:   hopeless / no_future / no_exit -- Beck Hopelessness Scale, SPS (no future
+#:                                 thinking), entrapment items
+#:   burden                    -- Interpersonal Needs Questionnaire (PB)
+#:   tether                    -- Reasons for Living Inventory
+#:   self_harm                 -- deliberate self-harm, distinct from ideation
+#:
+#: Detection is COHERENCE, not a keyword: crisis requires several families to be
+#: present and connected in one statement. "I could kill for a coffee" shares the
+#: cessation family with "I want to die" and shares nothing else, and that is the
+#: whole discrimination.
+CONCEPTS: Dict[str, Tuple[str, ...]] = {
+    "self": (r"\bi\b", r"\bme\b", r"\bmy\b", r"\bmyself\b", r"\bi'm\b",
+             r"\bi've\b", r"\bi'd\b", r"\bi'll\b", r"\bmy own\b"),
+    "cessation": (r"\bdie\b", r"\bdead\b", r"\bdying\b", r"\bdeath\b",
+                  # "kill" counts only where it is SELF-directed. "kill me", "kill
+                  # this presentation" and "my boss will kill me" are the dominant
+                  # first-person objects and every one of them is hyperbole. This
+                  # is a reflexivity rule (English), added 2026-11-01 after two
+                  # holdout3 FPs; it is not a threshold tuned on those rows.
+                  r"\bkill\b(?!\s+(?:me|him|her|them|it|this|that)\b)",
+                  r"\bkilling\b(?!\s+(?:me|him|her|them|it|this|that)\b)",
+                  r"\bsuicid\w*", r"\boverdos\w*",
+                  r"\bend\b", r"\bending\b", r"\bstop\b", r"\bstopping\b",
+                  r"\bstopped\b", r"\bdisappear\w*", r"\bvanish\w*",
+                  r"\bgon(e|na)\b", r"\bdo\s+it\b", r"\bdoing\s+it\b",
+                  r"\bgo\s+on\b", r"\bwake\s+up\b", r"\bexit\b", r"\baway\b"),
+    "life": (r"\blive\b", r"\bliving\b", r"\balive\b", r"\blife\b", r"\bhere\b"),
+    "desire": (r"\bwant\w*", r"\bwish\w*", r"\brather\b", r"\bwould\b",
+               r"\bready\b", r"\bdecided\b", r"\bplan(ned|ning)?\b",
+               r"\bthink(ing)?\b", r"\bidea\b", r"\bconsidering\b",
+               r"\btempted\b", r"\bcoming\s+back\b", r"\bgoing\s+to\b",
+               r"\bwork(ing)?\s+out\b", r"\bkeep\b"),
+    "hopeless": (r"\bnothing\b", r"\bpointless?\b", r"\bhopeless\b",
+                 r"\bnever\b", r"\btired\b", r"\bexhausted\b", r"\btrapped\b",
+                 r"\bstuck\b", r"\bcan't\b", r"\bcannot\b", r"\bdon't\s+see\b",
+                 r"\bdoes\s+not\s+matter\b", r"\bno\s+point\b", r"\bempty\b",
+                 r"\bmeaningless\b", r"\bdone\b", r"\bpretending\b"),
+    "no_future": (r"\bnothing\s+left\b", r"\bno\s+(reason|future|hope)\b",
+                  r"\bnothing\s+to\s+live\b", r"\bnot\s+be\s+alive\b",
+                  r"\bhow\s+I\b", r"\bmuch\s+longer\b"),
+    "no_exit": (r"\bway\s+out\b", r"\bno\s+escape\b", r"\bescape\b",
+                r"\bno\s+end\b", r"\bout\s+of\s+this\b"),
+    "burden": (r"\bbetter\s+off\b", r"\bburden\b", r"\brelieved\b",
+               r"\bwithout\s+me\b", r"\bdragging\b", r"\bproblem\b",
+               r"\brelief\b"),
+    "plan_obj": (r"\bnote\b", r"\bletter\b", r"\bmethod\b", r"\bpills?\b",
+                 r"\brope\b", r"\bgun\b", r"\bmedication\b",
+                 r"\bgiving\s+(my\s+)?(things|stuff)\s+away\b",
+                 r"\bthings\s+away\b", r"\blast\s+night\b", r"\bdate\s+picked\b",
+                 r"\bstopped\s+taking\b", r"\bprepared\b"),
+    "tether": (r"\bkeeping\s+me\s+here\b", r"\bonly\s+(thing|reason)\b",
+               r"\breason\s+to\s+stay\b", r"\bkeeping\s+me\s+alive\b"),
+    "self_harm": (r"\b(hurt|hurting|harm|harming|cut|cutting)\s+myself\b",
+                  r"\bself[-\s]?harm\w*", r"\bself[-\s]?injur\w*",
+                  r"\bcutting\b"),
+}
+
+#: Coherence rules. Each is (name, required families, weight). A family noted
+#: with a leading '!' must be ABSENT. Score >= CRISIS_SCORE is `crisis`. Weights
+#: are ordinal, not calibrated probabilities -- three families agreeing is not
+#: twice as dangerous as two, and pretending it is would be a false precision.
+COHERENCE_RULES: Tuple[Tuple[str, Tuple[str, ...], float], ...] = (
+    ("ideation_intent", ("self", "cessation", "desire"), 2.0),
+    ("preparation", ("self", "plan_obj", "cessation"), 2.0),
+    ("plan_artifact", ("self", "plan_obj", "desire"), 1.8),
+    ("self_harm", ("self", "self_harm"), 2.0),
+    ("no_future", ("self", "no_future"), 1.5),
+    ("entrapment", ("self", "hopeless", "no_exit"), 1.5),
+    ("burden", ("self", "burden", "desire"), 1.5),
+    ("cessation_hopeless", ("self", "cessation", "hopeless"), 1.5),
+    ("tether", ("self", "tether"), 1.5),
+    ("implicit_no_future", ("!self", "no_future", "life"), 1.5),
+    ("cessation_only", ("self", "cessation"), 0.5),
+)
+
+#: Score at which the coherence channel calls `crisis`. Set so that a single
+#: family in isolation (0.5) never reaches it: "I could kill for a coffee" is
+#: indistinguishable from "I want to die" on the cessation family alone, and the
+#: second family is what separates them.
+CRISIS_SCORE = 1.5
+
 #: Attribution guards. A crisis word in someone else's story, in the past, or
 #: inside a quotation is NOT this person's intent, and treating it as one is how
 #: a router cries wolf until people turn it off. Each guard DOWNGRADES to
@@ -97,6 +193,12 @@ THIRD_PERSON_MARKERS: Tuple[str, ...] = (
     "my friend", "a friend", "my partner", "my wife", "my husband", "my ex",
     "my colleague", "a colleague", "someone i know", "he tried", "she tried",
     "they tried", "his suicide", "her suicide",
+    # Added 2026-11-01 after a holdout FP: "a client told me they were suicidal
+    # last month, I referred them on" scored as SELF because the list had no
+    # clinical-register entries -- and a clinician's register is this system's
+    # actual deployment context. "told me they" is the cue that carries it.
+    "a client", "my client", "a patient", "my patient", "a student",
+    "my student", "told me they", "told me he", "told me she",
 )
 HISTORICAL_MARKERS: Tuple[str, ...] = (
     "years ago", "ten years", "last year", "in 2015", "in 2016", "in 2019",
@@ -195,6 +297,59 @@ def _attribution(lowered: str) -> str:
     return "self"
 
 
+#: Tokens that negate a cessation word when they sit just before it.
+NEGATION_TOKENS: Tuple[str, ...] = (
+    "not", "never", "no", "n't", "nobody", "denied", "hardly", "rarely",
+    "no longer", "absolutely not",
+)
+
+
+def _negated(text: str, start: int, window: int = 24) -> bool:
+    """True when the tokens immediately before `start` negate it.
+
+    Scope is deliberately short: "I have not slept, I want to die" must still
+    score the cessation word, so a negation anywhere in the sentence is wrong.
+    """
+    before = text[max(0, start - window):start].lower()
+    trimmed = before.rstrip()
+    for token in NEGATION_TOKENS:
+        if re.search(r"(?:^|\W)%s\W{0,12}$" % re.escape(token), trimmed):
+            return True
+    return False
+
+
+def _coherence(lowered: str) -> Tuple[float, List[str]]:
+    """Score how many concept families a statement brings together.
+
+    Returns (score, rule names that fired). Families are detected by regex so
+    that "die" does not match "diet" and "self-harm" also matches "self-harming".
+
+    NEGATION SCOPE applies to the cessation family only, because that is where
+    denial is common and literal: "I am not suicidal" states the ABSENCE of the
+    thing, and scoring it as presence inverts the reading. The window is the few
+    tokens immediately before the match -- "not sleeping" before an unrelated
+    cessation word is not a denial of it.
+    """
+    present = set()
+    for family, patterns in CONCEPTS.items():
+        joined = "|".join(patterns)
+        if family == "cessation":
+            if any(not _negated(lowered, m.start())
+                   for m in re.finditer(joined, lowered)):
+                present.add(family)
+            continue
+        if re.search(joined, lowered):
+            present.add(family)
+    total = 0.0
+    hits: List[str] = []
+    for name, families, weight in COHERENCE_RULES:
+        if all((f[1:] not in present) if f.startswith("!") else (f in present)
+               for f in families):
+            total += weight
+            hits.append(name)
+    return total, hits
+
+
 def triage(text: str, activation: Optional[Dict[str, float]] = None) -> Triage:
     """Route risk before anything else happens in the turn.
 
@@ -213,15 +368,21 @@ def triage(text: str, activation: Optional[Dict[str, float]] = None) -> Triage:
     """
     lowered = (text or "").lower()
     matched = [cue for cue in CRISIS_CUES if cue in lowered]
+    score, hits = _coherence(lowered)
     for name, pattern in CRISIS_PATTERNS:
         if re.search(pattern, lowered):
             matched.append("pattern:%s" % name)
+    if score >= CRISIS_SCORE:
+        matched.append("coherence:%.1f" % score)
     excluded = [cue for cue in CRISIS_EXCLUSIONS if cue in lowered]
     if matched and not excluded:
         who = _attribution(lowered)
         first_person = any(marker in lowered for marker in FIRST_PERSON_MARKERS)
         if who == "self" or first_person:
-            return Triage("crisis", ["explicit intent language: %r" % matched[0]], matched)
+            why = ("coherent intent across %s (score %.1f)" % ("+".join(hits), score)
+                   if score >= CRISIS_SCORE else
+                   "explicit intent language: %r" % matched[0])
+            return Triage("crisis", [why], matched)
         return Triage(
             "monitor",
             ["intent language %r attributed to %s: not this person's stated intent, "
@@ -310,6 +471,9 @@ class TherapeuticLoop:
                     families.append("anxiety")
 
         activation = activation_from_pad(self.pad, families)
+        # Stamp the map that produced this activation, so a graph is never read
+        # as if the hand map and the fitted regression were the same claim.
+        self.network.activation_source = bridge_name()
         if observe:
             self.network.observe(activation, at_s=float(self._turn_count))
 

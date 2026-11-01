@@ -104,12 +104,23 @@ def test_blank_lines_are_skipped_without_a_response():
 
 
 def test_protocol_streams_through_a_real_subprocess():
-    env = dict(os.environ)
-    env["PYTHONPATH"] = str(ROOT / "src")
+    """A real subprocess, because a handler called in-process proves nothing about
+    stdio framing.
+
+    The script path comes from the imported module, not from `ROOT/src/PSYCHE`: in
+    the public tree the package is `eliza.psyche` and there is no `src`, so a
+    path-built command is a monorepo-only test that ships green here and red
+    there. Same defect class as the corpus path in the instruments.
+    """
+    from PSYCHE import rt_channel as C
+
+    script = Path(C.__file__).resolve()
+    assert script.name == "rt_channel.py", script  # R is rt_agent; naming it wrong
+    env = dict(os.environ)                       # runs the wrong script silently
+    env["PYTHONPATH"] = str(script.parent.parent)
     env.pop("AZAZAEL_MEMORY_DIR", None)
     proc = subprocess.run(
-        [sys.executable, str(ROOT / "src" / "PSYCHE" / "rt_channel.py"),
-         "--demo", "--turns", "3"],
+        [sys.executable, str(script), "--demo", "--turns", "3"],
         capture_output=True, text=True, timeout=120, env=env, cwd=str(ROOT))
     assert proc.returncode == 0, proc.stderr[-800:]
     records = [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]

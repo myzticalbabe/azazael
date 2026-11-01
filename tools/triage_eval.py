@@ -40,8 +40,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from PSYCHE.rt_agent import triage  # noqa: E402  (path set above, deliberately)
+import PSYCHE as _psyche_pkg  # noqa: E402
 
-CORPUS = ROOT / "src" / "PSYCHE" / "data" / "triage_corpus.jsonl"
+PSYCHE_DATA = Path(_psyche_pkg.__file__).resolve().with_name("data")
+
+#: Resolved from the INSTALLED package, not from the source layout. The first
+#: version of this line was `ROOT / "src" / "PSYCHE" / "data" / ...`, which is
+#: correct in the monorepo and nonexistent in the public tree -- so the instrument
+#: shipped broken while the package imported fine. A path that only exists on the
+#: author's machine is the same class of defect as a test that only passes there.
+CORPUS = Path(PSYCHE_DATA) / "triage_corpus.jsonl"
 
 PROVENANCE = ("corpus and router were written by the same author, so this "
               "measures agreement with those expectations, not clinical validity")
@@ -201,8 +209,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--corpus", default=str(CORPUS))
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--split", default=None, choices=("dev", "holdout"),
-                        help="score only one split (default: all, split out)")
+    parser.add_argument("--split", default=None,
+                        help="score only one split, e.g. dev, holdout, holdout2 "
+                             "(default: all, broken out separately)")
     parser.add_argument("--min-recall", type=float, default=None,
                         help="exit 1 when crisis recall falls below this")
     args = parser.parse_args(argv)

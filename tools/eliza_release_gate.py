@@ -18,7 +18,7 @@ failure modes are all silent, and each one is mechanical enough to check:
 
 And one check exists for a reason that is not mechanical. `--require-disclosure`
 fails when the README has lost its Limitations section. This project's crisis
-router measured **0.33 recall on the holdout split**; a public therapeutic
+router measured **0.18 recall on one holdout and 0.83 on another**; a public therapeutic
 project that hides that number is worse than one that does not exist, because a
 reader would trust it. The gate refuses to let the disclosure be deleted.
 
@@ -37,7 +37,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
-PROJECT = ROOT / "Project_ELIZA"
+#: The gate runs in two layouts: the monorepo, where the public tree is a
+#: subdirectory, and the materialised public tree itself, where it is the root.
+#: Resolving by existence rather than by rewriting keeps one copy of the file
+#: honest in both -- a rewrite applied at copy time is a second version of the
+#: gate that nobody tests.
+PROJECT = ROOT / "Project_ELIZA" if (ROOT / "Project_ELIZA").is_dir() else ROOT
 MANIFEST = PROJECT / "PUBLIC_MANIFEST.json"
 
 #: GitHub's community-profile checklist, plus the four files this project adds
@@ -188,6 +193,12 @@ def check_undeclared(manifest: Dict, project: Path = PROJECT) -> List[str]:
     for entry in manifest.get("ship", []):
         source = (project / entry["from"]).resolve()
         declared.add(source)
+        # The DESTINATION of a declared entry is declared by definition. Leaving
+        # it out made every materialised tree fail its own gate: `publicize.py`
+        # wrote eliza/psyche/affect.py exactly as the manifest said, and the gate
+        # then called it undeclared, because only `from` was collected. The
+        # monorepo looked clean only because nothing had been materialised yet.
+        declared.add((project / str(entry["to"])).resolve())
         if source.exists() and source.is_dir():
             declared.update(p.resolve() for p in source.rglob("*") if p.is_file())
     problems = []
@@ -195,6 +206,14 @@ def check_undeclared(manifest: Dict, project: Path = PROJECT) -> List[str]:
         if not path.is_file():
             continue
         if ".git" in path.parts:
+            continue
+        # Byte-compiled, cached and build output is not content: it is derived
+        # from declared files and differs per interpreter. Demanding it be
+        # declared would produce a manifest that no longer means anything.
+        if any(part in {"__pycache__", ".pytest_cache", ".mypy_cache",
+                        ".ruff_cache", "build", "dist"} for part in path.parts):
+            continue
+        if path.suffix == ".pyc" or ".egg-info" in str(path):
             continue
         if path.stat().st_size < MANIFEST_SIZE_FLOOR:
             continue
