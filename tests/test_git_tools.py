@@ -22,6 +22,7 @@ the tests that need it, and says why, rather than passing silently.
 """
 from __future__ import annotations
 
+import io
 import subprocess
 import sys
 from pathlib import Path
@@ -153,10 +154,233 @@ def test_gate_unknown_branch_is_error_not_conflict(clean_repo):
     assert row["paths"] == []
 
 
+@pytest.fixture()
+def pair_repo(tmp_path):
+    """Two branches that are EACH clean against main and CONFLICT with each other.
+
+    This is the fixture the queue exists for: `gate()` reports two CLEAN branches
+    and is right about each in isolation, while merging both in either order
+    conflicts on the one line they share.
+    """
+    repo = init_repo(tmp_path / "pair")
+    commit(repo, "shared.txt", "base\n", "base")
+    git(repo, "checkout", "-q", "-b", "left")
+    commit(repo, "shared.txt", "left\n", "left edits the shared line")
+    git(repo, "checkout", "-q", "main")
+    git(repo, "checkout", "-q", "-b", "right")
+    commit(repo, "shared.txt", "right\n", "right edits the shared line")
+    git(repo, "checkout", "-q", "main")
+    return repo
+
+
+@needs_merge_tree
+def test_queue_sees_a_conflict_the_independent_gate_cannot(pair_repo):
+    """The whole point: two CLEAN branches, one CONFLICTING queue.
+
+    Without the chain this tool would tell a merge queue to land both and the
+    second one would fail at merge time, on somebody else's turn.
+    """
+    independent = gate.gate(str(pair_repo), "main", ["left", "right"])
+    states = {r["branch"]: r["state"] for r in independent["branches"]}
+    assert states == {"left": "CLEAN", "right": "CLEAN"}, states
+
+    queued = gate.merge_queue(str(pair_repo), "main", ["left", "right"])
+    rows = {r["branch"]: r for r in queued["branches"]}
+    assert rows["left"]["state"] == "CLEAN", rows["left"]
+    assert rows["right"]["state"] == "CONFLICTS", rows["right"]
+    assert "shared.txt" in rows["right"]["paths"], rows["right"]
+    # the second branch was judged against the tree the first produced, not base
+    assert rows["right"]["into"] == rows["left"]["preview"], rows
+
+
+@needs_merge_tree
+def test_queue_stops_at_the_conflict_and_marks_the_rest_unjudged(pair_repo):
+    """Behind a conflict the chain is unknowable -- say so, never CLEAN.
+
+    A queue that reported branch 3 as clean would be describing a tree that
+    cannot exist, because branch 2 never lands.
+    """
+    git(pair_repo, "checkout", "-q", "-b", "third", "main")
+    commit(pair_repo, "third.txt", "third\n", "third branch")
+    git(pair_repo, "checkout", "-q", "main")
+    queued = gate.merge_queue(str(pair_repo), "main", ["left", "right", "third"])
+    states = [r["state"] for r in queued["branches"]]
+    assert states == ["CLEAN", "CONFLICTS", "UNJUDGED"], states
+    assert "not tested" in queued["branches"][2]["evidence"]
+
+
+@needs_merge_tree
+def test_queue_clean_chain_writes_no_refs_and_touches_nothing(clean_repo, tmp_path):
+    """A clean two-branch chain: CLEAN, CLEAN, and no visible mutation."""
+    commit(clean_repo, "feature.txt", "feature\n", "already there")
+    git(clean_repo, "checkout", "-q", "feature")
+    git(clean_repo, "checkout", "-q", "-b", "extra", "feature")
+    commit(clean_repo, "extra.txt", "extra\n", "on top of feature")
+    git(clean_repo, "checkout", "-q", "main")
+
+    refs_before = git(clean_repo, "for-each-ref").stdout
+    head_before = git(clean_repo, "rev-parse", "HEAD").stdout
+    status_before = git(clean_repo, "status", "--porcelain").stdout
+
+    queued = gate.merge_queue(str(clean_repo), "main", ["feature", "extra"])
+    states = [r["state"] for r in queued["branches"]]
+    # `extra` descends from `feature`, so once feature lands there is nothing left
+    # to merge: CLEAN again, and the chain's third merge is still a real one.
+    assert states == ["CLEAN", "CLEAN"], states
+
+    assert git(clean_repo, "for-each-ref").stdout == refs_before, (
+        "the queue moved a ref -- commit-tree is supposed to write only dangling "
+        "objects")
+    assert git(clean_repo, "rev-parse", "HEAD").stdout == head_before
+    assert git(clean_repo, "status", "--porcelain").stdout == status_before
+
+    # ALREADY-IN is a different fact: a branch the queue already contains is not
+    # merged again (merging it would report CLEAN for a no-op).
+    git(clean_repo, "branch", "behind", "main^")
+    contained = gate.merge_queue(str(clean_repo), "main", ["behind"])
+    assert contained["branches"][0]["state"] == "ALREADY-IN", contained["branches"][0]
+
+
+def test_queue_requires_an_explicit_order(clean_repo, capsys):
+    """A queue has a first element; without one there is nothing to judge."""
+    assert gate.main(["--repo", str(clean_repo), "--queue"]) == 2
+    assert "ORDER" in capsys.readouterr().err
+
+
+@needs_merge_tree
+def test_queue_file_supplies_the_order(pair_repo, tmp_path):
+    """A queue file is the same verdict as the flags, in the order written."""
+    landing = tmp_path / "landing.txt"
+    landing.write_text(
+        "# Friday's batch, in the order it was agreed\n\nleft\n  right  \n",
+        encoding="utf-8")
+    listed, err = gate.read_queue_file(landing)
+    assert err == "" and listed == ["left", "right"], (listed, err)
+    assert gate.main(["--repo", str(pair_repo), "--queue", "--base", "main",
+                      "--queue-file", str(landing)]) == 1
+
+
+def test_empty_queue_file_is_an_error_not_an_empty_queue(tmp_path, clean_repo, capsys):
+    """"Nothing to judge" must never read as "nothing conflicts"."""
+    empty = tmp_path / "empty.txt"
+    empty.write_text("# only a comment\n\n", encoding="utf-8")
+    listed, err = gate.read_queue_file(empty)
+    assert listed == [] and "no branches" in err
+    assert gate.main(["--repo", str(clean_repo), "--queue",
+                      "--queue-file", str(empty)]) == 2
+    assert "queue file" in capsys.readouterr().err
+
+
+def test_missing_queue_file_is_reported(tmp_path, clean_repo, capsys):
+    code = gate.main(["--repo", str(clean_repo), "--queue",
+                      "--queue-file", str(tmp_path / "absent.txt")])
+    assert code == 2
+    assert "cannot read the queue file" in capsys.readouterr().err
+
+
+def test_queue_cli_exit_codes(clean_repo, pair_repo):
+    assert gate.main(["--repo", str(clean_repo), "--queue", "--base", "main",
+                      "--branch", "feature"]) == 0
+    assert gate.main(["--repo", str(pair_repo), "--queue", "--base", "main",
+                      "--branch", "left", "--branch", "right"]) == 1
+    assert gate.main(["--repo", str(pair_repo), "--queue", "--base", "no-such-base",
+                      "--branch", "left"]) == 2
+    assert gate.main(["--repo", str(pair_repo), "--queue", "--base", "main",
+                      "--branch", "left", "--branch", "no-such-branch"]) == 2
+
+
 def test_gate_cli_exit_codes(clean_repo, conflict_repo, capsys):
     assert gate.main(["--repo", str(clean_repo), "--base", "main"]) == 0
     assert gate.main(["--repo", str(conflict_repo), "--base", "main"]) == 1
     assert gate.main(["--repo", str(clean_repo), "--base", "no-such-base"]) == 2
+
+
+# ── pre-push mode (the push hook's verdict) ───────────────────────────────────
+def _push_line(local_ref, local_sha, remote_sha, remote_ref="refs/heads/main"):
+    return "%s %s %s %s" % (local_ref, local_sha, remote_ref, remote_sha)
+
+
+def _sha(repo, ref):
+    return git(repo, "rev-parse", ref).stdout.strip()
+
+
+@needs_merge_tree
+def test_pre_push_fast_forward_is_not_merge_tested(clean_repo):
+    """A push that would fast-forward needs no merge, so it must not be tested.
+
+    Negative control for the shortcut: the two tips here are on a line, so the
+    only way to reach CONFLICTS would be to run merge-tree against a commit that
+    is already contained -- i.e. to report the past as a conflict.
+    """
+    rows = gate.push_rows(str(clean_repo), [
+        _push_line("refs/heads/main", _sha(clean_repo, "main"), _sha(clean_repo, "main^"))])
+    assert rows[0]["state"] == "FAST-FORWARD", rows[0]
+    assert rows[0]["paths"] == []
+
+
+@needs_merge_tree
+def test_pre_push_conflict_aborts_with_the_path(conflict_repo):
+    """The defect this mode exists to catch, and it is NOT reachable ff.
+
+    local (feature) and remote (main) both edit shared.txt, and neither tip
+    contains the other, so this is exactly the case the fast-forward shortcut
+    must not swallow.
+    """
+    rows = gate.push_rows(str(conflict_repo), [
+        _push_line("refs/heads/feature", _sha(conflict_repo, "feature"),
+                   _sha(conflict_repo, "main"))])
+    assert rows[0]["state"] == "CONFLICTS", rows[0]
+    assert "shared.txt" in rows[0]["paths"], rows[0]
+    assert gate.pre_push(str(conflict_repo), stream=io.StringIO(
+        _push_line("refs/heads/feature", _sha(conflict_repo, "feature"),
+                   _sha(conflict_repo, "main")))) == 1
+
+
+@needs_merge_tree
+def test_pre_push_clean_diverged_push_passes(clean_repo):
+    """Diverged but non-overlapping edits: judged, CLEAN, exit 0."""
+    rows = gate.push_rows(str(clean_repo), [
+        _push_line("refs/heads/feature", _sha(clean_repo, "feature"),
+                   _sha(clean_repo, "main"))])
+    assert rows[0]["state"] == "CLEAN", rows[0]
+    assert gate.pre_push(str(clean_repo), stream=io.StringIO(
+        _push_line("refs/heads/feature", _sha(clean_repo, "feature"),
+                   _sha(clean_repo, "main")))) == 0
+
+
+def test_pre_push_new_and_deleted_refs_are_judged_without_a_merge(clean_repo):
+    zero = "0" * 40
+    rows = gate.push_rows(str(clean_repo), [
+        _push_line("refs/heads/fresh", _sha(clean_repo, "main"), zero),
+        _push_line("(delete)", zero, _sha(clean_repo, "main"), remote_ref="refs/heads/gone")])
+    assert [r["state"] for r in rows] == ["NEW", "DELETE"], rows
+    assert all(r["paths"] == [] for r in rows)
+
+
+def test_pre_push_unreadable_remote_tip_is_error_not_conflict(clean_repo, capsys):
+    """Measured 2026-11-01 on this very tool: a 40-hex sha absent from the object
+    database made `merge-tree` exit 1 with no paths, which this mode first
+    reported as CONFLICTS -- i.e. the push hook aborted a push over a conflict
+    that did not exist. An unreadable tip is the hook's inability to judge.
+    """
+    code = gate.pre_push(str(clean_repo), stream=io.StringIO(_push_line(
+        "refs/heads/main", _sha(clean_repo, "main"), "1" * 40)))
+    printed = capsys.readouterr().out
+    assert code == 2, printed
+    assert "unreadable here" in printed, printed
+
+
+def test_merge_tree_exit_1_without_paths_is_not_a_conflict(clean_repo):
+    state, paths, evidence = gate.merge_tree(str(clean_repo), "1" * 40,
+                                             _sha(clean_repo, "main"))
+    assert state == "ERROR", (state, evidence)
+    assert paths == []
+
+
+def test_pre_push_with_no_refs_cannot_judge(clean_repo, capsys):
+    """Empty stdin must be exit 2, never 0: a hook that judged nothing is not green."""
+    assert gate.pre_push(str(clean_repo), stream=io.StringIO("")) == 2
+    assert "nothing was judged" in capsys.readouterr().err
 
 
 # ── stack planner ─────────────────────────────────────────────────────────────

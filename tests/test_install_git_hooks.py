@@ -39,13 +39,31 @@ def _git(repo: Path, *args: str) -> str:
     return r.stdout
 
 
+#: A stand-in for the generator, honouring the one contract the installer relies
+#: on: `<python> bible_ship.py --install-hooks <root> --hooks <name>` writes
+#: `<root>/.githooks/<name>`. The installer is what is under test here, not the
+#: generator, so the stub implements the CONTRACT and nothing else.
+_GENERATOR = '''import sys
+from pathlib import Path
+args = sys.argv[1:]
+root = Path(args[args.index("--install-hooks") + 1])
+name = args[args.index("--hooks") + 1]
+path = root / ".githooks" / name
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text("#!/bin/sh\\nexit 0\\n", encoding="utf-8")
+print("  %-14s planted" % name)
+'''
+
+
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
-    """A throwaway git repo with a tracked-style .githooks/pre-commit."""
+    """A throwaway git repo with a tracked-style .githooks/pre-commit + generator."""
     r = tmp_path / "repo"
     (r / ".githooks").mkdir(parents=True)
     (r / ".githooks" / "pre-commit").write_text("#!/bin/sh\nexit 0\n",
                                                 encoding="utf-8")
+    (r / "tools").mkdir()
+    (r / "tools" / "bible_ship.py").write_text(_GENERATOR, encoding="utf-8")
     subprocess.run(["git", "init", "-q"], cwd=str(r), check=True,
                    capture_output=True, text=True, encoding="utf-8", errors="replace")
     monkeypatch.setattr(igh, "ROOT", r)
@@ -81,6 +99,30 @@ class TestInstall:
         (repo / ".githooks" / "pre-commit").unlink()
         assert igh.install() == 1
         assert "missing" in capsys.readouterr().err.lower()
+
+    def test_install_plants_the_generated_push_hook(self, repo, capsys):
+        """A clone has no pre-push: `.githooks/*` is gitignored. Measured
+        2026-11-01, the installer reported INSTALLED while the push hook -- and
+        so both push-time gates -- did not exist. Installing must plant it."""
+        assert not (repo / ".githooks" / "pre-push").exists()
+        assert igh.install() == 0
+        assert (repo / ".githooks" / "pre-push").is_file()
+        capsys.readouterr()
+        assert igh.check() == 0
+
+    def test_install_fails_without_the_generator(self, repo, capsys):
+        """No generator means the push gate cannot be wired -- say so, fail."""
+        (repo / "tools" / "bible_ship.py").unlink()
+        assert igh.install() == 1
+        err = capsys.readouterr().err
+        assert "bible_ship" in err
+        assert not (repo / ".githooks" / "pre-push").exists()
+
+    def test_check_names_the_remedy_for_a_missing_generated_hook(self, repo, capsys):
+        igh.check()
+        out = capsys.readouterr().out
+        assert "NOT INSTALLED" in out
+        assert "--hooks pre-push" in out, out
 
 
 class TestUninstall:

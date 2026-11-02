@@ -43,7 +43,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HOOKS_DIRNAME = ".githooks"
+#: Hooks that are TRACKED: a clone has them and this installer only activates them.
 REQUIRED_HOOKS = ("pre-commit",)
+#: Hooks that are GENERATED: `.githooks/*` is gitignored except the tracked ones, so
+#: a clone has no pre-push and the push-time gates (Bible injection, merge
+#: readiness) are unwired until something plants it. Measured 2026-11-01: the
+#: installer reported INSTALLED on a checkout whose push hook did not exist. The
+#: mapping is hook -> the tool that plants it, run as
+#: `<python> <tool> --install-hooks <root> --hooks <name>`.
+GENERATED_HOOKS = {"pre-push": "tools/bible_ship.py"}
+ALL_HOOKS = REQUIRED_HOOKS + tuple(GENERATED_HOOKS)
 
 
 def _git(*args: str) -> tuple[int, str]:
@@ -63,7 +72,28 @@ def hooks_dir() -> Path:
 
 
 def hook_paths() -> list[Path]:
-    return [hooks_dir() / name for name in REQUIRED_HOOKS]
+    return [hooks_dir() / name for name in ALL_HOOKS]
+
+
+def plant_hook(name: str) -> tuple[bool, str]:
+    """Run the generator for a generated hook. (ok, what happened)."""
+    tool_rel = GENERATED_HOOKS[name]
+    tool = ROOT / tool_rel
+    if not tool.is_file():
+        return False, "%s plants %s and is absent from this checkout" % (tool_rel, name)
+    proc = subprocess.run(
+        [sys.executable, str(tool), "--install-hooks", str(ROOT), "--hooks", name],
+        cwd=str(ROOT), capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=180)
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip().splitlines()
+        return False, "%s failed (rc=%s): %s" % (
+            tool_rel, proc.returncode, detail[-1] if detail else "no output")
+    planted = hooks_dir() / name
+    if not planted.exists():
+        return False, "%s exited 0 but %s was not written" % (tool_rel, name)
+    _make_executable(planted)
+    return True, "planted by %s" % tool_rel
 
 
 def _make_executable(path: Path) -> bool:
@@ -77,12 +107,26 @@ def _make_executable(path: Path) -> bool:
 
 
 def install() -> int:
-    missing = [p for p in hook_paths() if not p.exists()]
+    missing = [p for p in hook_paths()
+               if not p.exists() and p.name in REQUIRED_HOOKS]
     if missing:
         print("FAIL: tracked hook(s) missing: %s"
               % ", ".join(str(p.relative_to(ROOT)) for p in missing),
               file=sys.stderr)
         return 1
+
+    # A generated hook is planted BEFORE the config is touched: installing
+    # core.hooksPath while the push hook is still absent reports a wired tree
+    # that a push would prove is not wired.
+    for name in GENERATED_HOOKS:
+        path = hooks_dir() / name
+        if path.exists():
+            continue
+        ok, note = plant_hook(name)
+        print("  %-24s %s" % (path.relative_to(ROOT), note))
+        if not ok:
+            print("FAIL: cannot install %s -- %s" % (name, note), file=sys.stderr)
+            return 1
 
     for p in hook_paths():
         _make_executable(p)
@@ -114,6 +158,11 @@ def check() -> int:
               % (p.relative_to(ROOT), exists, executable))
         if not exists:
             ok = False
+            tool_rel = GENERATED_HOOKS.get(p.name)
+            if tool_rel:
+                print("      generated hook: plant it with\n"
+                      "        %s %s --install-hooks . --hooks %s"
+                      % (Path(sys.executable).name, tool_rel, p.name))
     print("STATUS: %s" % ("INSTALLED" if ok else "NOT INSTALLED"))
     return 0 if ok else 1
 
