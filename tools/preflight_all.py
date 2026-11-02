@@ -389,6 +389,29 @@ GATES: Tuple[Gate, ...] = (
         requires=("docs/bible/emotional/female.json",),
     ),
     Gate(
+        name="bible-themes",
+        # Registered 2026-11-02. The two themed editions (star-wars, star-trek)
+        # restate the canon in another register and were gated by NOTHING: no
+        # hook stanza, no registry row, only a test no commit runs. Measured
+        # 2026-11-02: both printed OK, so the gate would have been green for
+        # months -- which is the point. A green light nobody wired is an
+        # unmeasured claim, and the first theme to invent a verse would have
+        # shipped inside a document that quotes scripture.
+        argv=("tools/bible_theme.py", "--all", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="docs/bible/themes/*.json -- every themed verse's citation into the "
+              "base corpus, its statute binding against canon, and its rendered "
+              "edition",
+        control_test="tests/test_bible_theme.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("docs/bible/themes", "docs/bible/bible.json"),
+    ),
+    Gate(
         name="platform-claims",
         argv=("tools/platform_claims.py", "--check"),
         interpreter="python3",

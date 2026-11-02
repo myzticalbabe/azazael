@@ -42,6 +42,9 @@ HOOK_SCRIPTS = {
     "tools/anti_pattern_gate.py",
     "tools/at_risk_register.py",
     "tools/bible_check.py",
+    "tools/bible_theme.py",   # --all --check; the themed corpora had no gate at all
+                              # until 2026-11-02, so this list could not have
+                              # named it -- transcribed with the stanza.
     "tools/canon_drift_check.py",
     "tools/evidence_gate.py",
     "tools/failure_evidence_gate.py",
@@ -53,6 +56,10 @@ HOOK_SCRIPTS = {
     "tools/pmb_session_observe.py",
     "tools/preflight_all.py",
     "tools/staged_scanner_gate.py",
+    "tools/span_receipt_guard.py",   # --selftest; landed in the hook 2026-11-01,
+                                     # transcribed here 2026-11-02 (this list went
+                                     # one gate stale, which is the failure the
+                                     # parity check exists to catch).
     "tools/supervisor_mcp.py",
     "tools/test_paradigm_gate.py",
     "tools/transcript_ap5_gate.py",
