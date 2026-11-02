@@ -47,7 +47,7 @@ and applies it to games.
 | **D** | Portability and gates | M-11 portability matrix · M-12 unplayable ratchet + weekly cold run | windows/ubuntu/kali owners, kilo | after M-05 / M-03 |
 | **E** | Sword dissection and render shards | M-13 unit contract · M-14 dissector · M-15 rights gate · M-16 mint · M-17 compose · M-18 3D render shards | freebuff | **M-13**, then M-14 → M-15 → M-16 → M-17 → M-18 |
 | **G** | Revival of discontinued games | M-25 revival classes R0-R4 · M-26 asset lock + null-assets · M-27 behaviour capture · M-28 config extraction · M-29 `sword revive` · M-30 revival ladder + compose | freebuff | **M-25**, then M-26 → M-27 → M-28 → M-29 → M-30 |
-| **H** | Resurrection, right-to-repair framing (Atari 2600 first) | M-31 cartridge intake · M-32 bank-switching model · M-33 raster-kernel capture · M-34 integer sim extraction · M-35 divergence lab · M-36 bleeding-edge presentation · M-37 audio recipe | freebuff | **M-31 + M-32 done**, then M-33 → M-34 → M-35 → M-36 ∥ M-37 |
+| **H** | Resurrection, right-to-repair framing (Atari 2600 first) | M-31 cartridge intake · M-32 bank-switching model · M-33 raster-kernel capture · M-34 integer sim extraction · M-35 divergence lab · M-36 bleeding-edge presentation · M-37 audio recipe · **M-38 Swordline orchestrator** · **M-39 cartridge-source decision** | freebuff | **M-31, M-32, M-38 and M-39 done**, then M-33 → M-34 → M-35 → M-36 ∥ M-37 |
 
 **Critical path:** `M-01 → M-03 → M-05 → M-06`.
 

@@ -35,7 +35,7 @@
     },
     "H": {
       "name": "Resurrection -- the Atari 2600 as the first repairable machine (right-to-repair framing)",
-      "gates": "M-31 -> M-32 -> M-33 -> M-34 -> M-35 -> M-36 -> M-37",
+      "gates": "M-31 -> M-32 -> M-33 -> M-34 -> M-35 -> M-36 -> M-37, with M-38 (orchestrator) usable now and M-39 (cartridge source) decided",
       "source": "docs/METTHEW/RESURRECT_2600_2026-11-01.md",
       "one_line": "the owner already owns the cartridge and the machine is what died, so the repair is the emulator -- which Sony v. Connectix (2000) already held is fair use: implement the hardware, keep the cartridge, never decrypt and never patch, and let the shard carry the rules plus a hash lock to the owner's own image",
       "why_the_2600_first": "1.19 MHz 6507, fixed 76x262 frame, 128 bytes of RAM, 160x192 beam-raced display, integer only -- every 2600 game is ALREADY a deterministic frame-locked simulation, so conversion is separating two things the hardware forced together, not translating into a foreign model"
@@ -554,6 +554,44 @@
       "acceptance": "the same note sequence captured twice gives the same patch table; a capture that cannot resolve a divider is reported as unresolved rather than approximated; the audio is generated from parameters with no audio file in the shard",
       "risk": "sampling the output would be an exact copy of the game's own audio, which is the one thing this whole design exists to avoid. The patch table is lawful because it is the machine's parameters, not the sound",
       "status": "pending"
+    },
+    {
+      "id": "M-38",
+      "track": "H",
+      "title": "Swordline: the fixed-step orchestrator, with rate and acceleration invariance proved",
+      "owner": "freebuff",
+      "depends_on": [],
+      "deliverable": "tools/sword_engine.py (DELIVERED 2026-11-01): exact rational clock over NTSC 60000/1001 Hz, a Session frame pump that never loses a remainder, a tick-exact comparison path, a Machine seam four methods wide (`reset`/`step`/`state_hash`/`snapshot`) that the 2600 sim plugs into at M-34, and `--verify` running the invariance matrix",
+      "acceptance": "DONE 2026-11-01 -- slicing invariance holds (60/120/144/240 fps deliver identical tick counts and identical state hashes at 1x, 2x and 8x); acceleration equivalence holds (the same tick count reached at 1x and 8x gives the same state, in 600 vs 75 frames); no tick served twice and none skipped; the negative control (a clock that assumes every display is 60 Hz, right at 60 fps and 4x too fast at 240 fps) is CAUGHT",
+      "evidence": {
+        "selftest": "SELFTEST OK (9 clock controls, 3 machine controls, 4 schedule controls)",
+        "pytest": "7 passed in 0.42s",
+        "verified_matrix": "599 ticks / identical hash across 60, 120, 144 and 240 fps at 1x; 1198 at 2x; 4795 at 8x; 10 simulated seconds each",
+        "control": "60 Hz-assuming clock: 599 ticks at 60 fps, 2397 at 240 fps -> 2 distinct hashes -> CAUGHT"
+      },
+      "limits": [
+        "the machine it drives is a STAND-IN with the 2600's constraints (integer only, bounded state); what is proved is scheduling invariance, not game fidelity -- the output says so in its own `scope` field",
+        "there is no renderer: presentation is a state projection until M-36 defines tiers",
+        "input is a transcript deterministic in the TICK, which is required for the invariance claim and is also what rollback and replay need"
+      ],
+      "found_by_its_own_control": "the first version of `run_to_ticks` stopped on FRAME boundaries, so at 8x it overshot 299 ticks to 303 and reported a different state -- found by the acceleration test, fixed by adding a tick-exact path",
+      "risk": "an orchestrator that cannot be shown to fail is decoration; the 60 Hz-assuming control is the only reason the VERIFIED line means anything",
+      "status": "completed",
+      "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-39",
+      "track": "H",
+      "title": "End-to-end cartridge source: no third-party ROM enters this tree",
+      "owner": "freebuff",
+      "depends_on": [
+        "M-31"
+      ],
+      "question": "the pipeline needs a real cartridge to exercise end to end; where may it come from?",
+      "decision_2026_11_01": "three lawful sources, and a downloaded commercial ROM is not one of them: (1) the owner's own cartridge, which `--inspect` already accepts and which is the entire premise of the track; (2) the synthetic banked fixtures in tests/test_sword_2600.py, which exercise F8/FE/3F geometry and the wrong-hot-spot control; (3) a homebrew cart whose licence the user can show. Searched for a CC0/public-domain 2600 ROM and found none with an explicit licence statement -- Stella's test tree ships only profile and bezel data (git tree queried 2026-11-01) and 8bitworkshop declares no repo-level licence through the API -- so none was downloaded, and the e2e path stays cartridge-in, bytes-never-out",
+      "acceptance": "an e2e run is demonstrated on a real image the owner supplies (`sword_2600.py --inspect`), and the fixtures cover the geometry; no binary from a third party is committed; a missing fixture causes the tests to construct their own rather than fetch",
+      "status": "completed",
+      "completed_at": "2026-11-01"
     }
   ],
   "contract_changes_decided": {
