@@ -262,6 +262,11 @@ def check_text(text: str, *, repo: Path = REPO,
         line_start = text.rfind("\n", 0, match.start()) + 1
         line_end = text.find("\n", match.end())
         line = text[line_start:line_end if line_end > 0 else len(text)]
+        # The number names its line. A quoted fragment alone is not an address in a
+        # 2,000-line prompt: measured 2026-11-02, the hook blocked a commit with a
+        # P3 defect that named the file and only the text, so the reader had to
+        # search for it. P2 had carried a line number since it was written.
+        line_no = text.count("\n", 0, match.start()) + 1
         # The date belongs to the section, not to every row of its table: a caption
         # reading "measured 2026-10-31" over forty rows is one dating act, and
         # demanding it on each row produces noise that gets the gate switched off.
@@ -284,14 +289,14 @@ def check_text(text: str, *, repo: Path = REPO,
             # a past reading quoted for its lesson rather than a claim about now.
             if _HISTORICAL.search(window):
                 continue
-            problems.append("P3 %r claims %d %ss; the recorded reading is %d%s. Fix "
-                            "the number, or mark the line historical"
-                            % (line.strip()[:70], number, kind, expected,
+            problems.append("P3 line %d: %r claims %d %ss; the recorded reading is %d%s. "
+                            "Fix the number, or mark the line historical"
+                            % (line_no, line.strip()[:70], number, kind, expected,
                                " (dated, but the tree moved past that date)" if dated else ""))
         elif not dated:
-            problems.append("P3 %r quotes %d %ss with no recorded reading to compare "
-                            "against -- measure, or mark it cached"
-                            % (line.strip()[:70], number, kind))
+            problems.append("P3 line %d: %r quotes %d %ss with no recorded reading to "
+                            "compare against -- measure, or mark it cached"
+                            % (line_no, line.strip()[:70], number, kind))
 
     # P4 -- a handoff's commit resolves.
     if "P4" in claims and sha_resolves is not None:
@@ -427,6 +432,14 @@ def selftest() -> int:
     expect("skills stale", good + "1,042 skills remain.\n", want="P3",
            measured={"skills": 204})
     expect("no reading at all", good + "9,999 tests exist.\n", want="P3")
+    # A finding must name its LINE. Measured 2026-11-02: the hook refused a real
+    # commit on a P3 defect that named the file and quoted the offending text but
+    # gave no line number, so the reader had to search a 2,000-line prompt for it.
+    # P2 had carried a line number from the start; P3 had not.
+    numbered = check_text("one\ntwo\n5,380 tests exist.\n",
+                          measured={"collected_tests": 6277})
+    if not [p for p in numbered if p.startswith("P3 line 3:")]:
+        failures.append("a P3 finding does not name its line: %r" % numbered)
 
     # The brief class, both directions. A brief has no start block and no handoff, so
     # judging it as a lane prompt would fail it for being a different document; judged
@@ -466,7 +479,7 @@ def selftest() -> int:
     for failure in failures:
         print("CONTROL FAILED: " + failure)
     print("%s -- %d control(s)" % ("controls pass" if not failures else "controls failed",
-                                   10 + 3 + 3))
+                                   10 + 3 + 3 + 1))
     return 0 if not failures else 1
 
 
