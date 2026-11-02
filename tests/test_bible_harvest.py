@@ -17,6 +17,7 @@ wrong thing, which is worse than recording nothing because a verse then cites it
 from __future__ import annotations
 
 import json
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
@@ -161,7 +162,6 @@ def test_the_committed_blob_is_judged_not_the_worktree(tmp_path, monkeypatch):
 
 
 def test_engram_observation_without_learned_has_no_cause(tmp_path, monkeypatch):
-    import sqlite3
     db = tmp_path / "engram.db"
     connection = sqlite3.connect(db, timeout=5)
     connection.execute("CREATE TABLE observations (id INTEGER PRIMARY KEY, "

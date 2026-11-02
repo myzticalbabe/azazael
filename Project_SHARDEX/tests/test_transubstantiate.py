@@ -14,12 +14,12 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "Project_SHARDEX"))
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent))
 
 import transubstantiate as T  # noqa: E402
 
-ANIMATION = ROOT / "docs" / "YGGDRASIL_CLEAVE.html"
+ANIMATION = ROOT / "fixtures" / "YGGDRASIL_CLEAVE.html"
 
 NO_CLOCK = """<script>
 const GROW=10000;
