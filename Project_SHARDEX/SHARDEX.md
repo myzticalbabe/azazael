@@ -142,7 +142,7 @@ python Project_SHARDEX/transubstantiate.py --extract <animation.html> --out .tra
 python Project_SHARDEX/transubstantiate.py --forge .transub/rules.json --out .transub
 python Project_SHARDEX/transubstantiate.py --bind-shard .transub/shards/<id>/shard.json \
         --forge .transub/rules.json
-NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js .transub 240
+NODE_PATH=$(npm root -g) node tools/capture_transubstantiation.js .transub 240
 python Project_SHARDEX/transubstantiate.py --verify .transub
 python Project_SHARDEX/transubstantiate.py --selftest
 ```
@@ -182,9 +182,9 @@ read, so the honest representation is **sampled data plus a graph that moves**, 
 mutated by operators applied to a scene that is already running.
 
 ```bash
-NODE_PATH=C:/Users/clint/node_modules node tools/sample_image.js --in <image> --out .live/field.json
+NODE_PATH=$(npm root -g) node tools/sample_image.js --in <image> --out .live/field.json
 python Project_SHARDEX/meshscene.py --forge .live/field.json --out .live
-NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js .live 180 \
+NODE_PATH=$(npm root -g) node tools/capture_transubstantiation.js .live 180 \
         --live .live/ops.json
 python Project_SHARDEX/meshscene.py --verify .live
 ```

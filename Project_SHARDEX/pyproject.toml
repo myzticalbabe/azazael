@@ -14,7 +14,7 @@ license = { text = "Apache-2.0" }
 #
 # Three non-pip dependencies are real and not expressible here:
 #   * Node + puppeteer + Chrome, needed by the L2/L3 forge pipeline;
-#   * two harness scripts that live in the monorepo's tools/, not in this project;
+#   * two harness scripts now live in this project's tools/ directory;
 #   * the docstring USAGE block calls `python Project_SHARDEX/shardex.py ...` -- that
 #     prefix is a monorepo convention with no meaning in a standalone clone.
 # The L0/L1 paths (mirror, shatter) are pure Python and work from a wheel.

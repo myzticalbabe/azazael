@@ -70,16 +70,31 @@ from typing import Any, Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
+LOCAL_TOOLS = ROOT / "tools"
 SWORD_TOOLS = REPO / "Project_FLAMING_SWORD" / "tools"
 
 #: The four parts, with the path that must exist for the chain to be whole.
-PARTS = {
-    "defender": SWORD_TOOLS / "defender.py",
-    "sentinel": SWORD_TOOLS / "sentinel.py",
-    "memory": SWORD_TOOLS / "memory_bridge.py",
-    "server": SWORD_TOOLS / "chain_server.py",
-    "sword": SWORD_TOOLS / "sword.py",
-}
+#: Prefers vendored tools in Project_CRADLE/tools/; falls back to external FLAMING_SWORD.
+def _part_path(name: str) -> Path:
+    # Map CRADLE's internal names to actual filenames
+    filename_map = {
+        "defender": "defender.py",
+        "sentinel": "sentinel.py",
+        "memory": "memory_bridge.py",
+        "server": "chain_server.py",
+        "sword": "sword.py",
+    }
+    filename = filename_map.get(name, f"{name}.py")
+    local = LOCAL_TOOLS / filename
+    if local.exists():
+        return local
+    external = SWORD_TOOLS / filename
+    if external.exists():
+        return external
+    return SWORD_TOOLS / f"{name}.py"
+
+PARTS = {name: _part_path(name) for name in
+         ("defender", "sentinel", "memory", "server", "sword")}
 
 #: The true names. A part keeps its file path and gains the name of what it does: the
 #: sentinel REAPS a frame whose claims do not resolve, and the memory keeps the GRIMOIRE
@@ -117,17 +132,15 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
                    "%d.%d.%d (needs >= %d.%d; stdlib only, nothing to pip install)"
                    % (current + MIN_PYTHON)))
 
-    # A standalone install of CRADLE does not contain FLAMING_SWORD: the chain's
-    # parts are another project's files. Absent-and-not-expected is NOT a failure --
-    # it is the normal shape of a standalone install -- but absent-inside-the-monorepo
-    # still is. Three states, because collapsing them either lies (PASS for a part
-    # that is missing) or refuses to run on a correct install (FAIL for a part that
-    # was never going to be there).
-    chain_installed = SWORD_TOOLS.is_dir()
+    # A standalone install of CRADLE contains vendored tools in Project_CRADLE/tools/.
+    # External FLAMING_SWORD is optional and provides updates/alternatives.
+    chain_installed = LOCAL_TOOLS.is_dir()
+    external_available = SWORD_TOOLS.is_dir()
     for name, path in PARTS.items():
         if path.exists():
-            checks.append((name, True, str(path.relative_to(REPO))))
-        elif chain_installed:
+            source = "vendored" if str(path).startswith(str(LOCAL_TOOLS)) else "external"
+            checks.append((name, True, "%s (%s)" % (path.relative_to(REPO), source)))
+        elif chain_installed or external_available:
             checks.append((name, False, "MISSING: %s" % path))
         else:
             checks.append((name, None,
@@ -207,27 +220,34 @@ def _probe_model(model_url: str) -> Tuple[bool, str]:
 
 def demo(json_out: bool = False) -> int:
     """Run the real chain in a throwaway state directory. Exit 1 if any step misbehaved."""
-    for name in ("defender", "memory"):
-        if not PARTS[name].exists():
-            print("CANNOT DEMO: %s is missing (%s)" % (name, PARTS[name]))
-            return 1
+    missing = [name for name, path in PARTS.items() if not path.exists()]
+    if missing:
+        print("CANNOT DEMO: missing part(s): %s" % ", ".join(missing))
+        print("  Install FLAMING_SWORD beside this tree, or ensure vendored tools are present.")
+        return 1
     defender = _load("defender", PARTS["defender"])
     bridge = _load("memory_bridge", PARTS["memory"])
     steps: List[Dict[str, Any]] = []
     failures = 0
 
     with tempfile.TemporaryDirectory() as tmp:
-        target = "Project_FLAMING_SWORD/tools/sword.py"
+        target = str(PARTS["sword"])
+        # Evidence paths: prefer vendored, fall back to external
+        evidence_path = Path("tests/test_defender.py")
+        if not evidence_path.exists():
+            evidence_path = Path("../Project_FLAMING_SWORD/tests/test_defender.py")
+        must_not_break_path = evidence_path
+        
         result = defender.to_aio(
             "refuse a shard whose golden run does not reproduce",
             target=target,
             acceptance="pytest -q exits 0 and prints 98 passed",
-            evidence="Project_FLAMING_SWORD/tests/test_defender.py",
+            evidence=str(evidence_path),
             defends=["the golden run's state_sha256 token"],
-            must_not_break=["Project_FLAMING_SWORD/tests/test_defender.py"],
+            must_not_break=[str(must_not_break_path)],
             control="flip one byte in state_sha256 and require a REFUSAL",
             memory=bridge.probe(),
-            root=str(REPO),
+            root=str(ROOT),
         )
         steps.append({"step": "frame+sentinel+memory -> AIO",
                       "state": result["state"],
@@ -266,10 +286,10 @@ def demo(json_out: bool = False) -> int:
         refused = defender.to_aio("refuse a shard whose golden run does not reproduce",
                                   target="tools/ghost.py",
                                   acceptance="pytest -q exits 0 and prints 98 passed",
-                                  evidence="Project_FLAMING_SWORD/tests/test_defender.py",
+                                  evidence="tests/test_defender.py",
                                   defends=["the golden run's state_sha256 token"],
-                                  must_not_break=["Project_FLAMING_SWORD/tests/test_defender.py"],
-                                  root=str(REPO))
+                                  must_not_break=["tests/test_defender.py"],
+                                  root=str(ROOT))
         steps.append({"step": "a ghost target is BLOCKED and renders no prompt",
                       "state": refused["state"],
                       "ok": refused["state"] == "BLOCKED" and not refused["aio"],
@@ -310,7 +330,7 @@ def grimoire(state_dir: Optional[str] = None, kind: str = "", limit: int = 20,
       unreadable       a line is malformed -- reported by line number, never skipped
     """
     if not PARTS["memory"].exists():
-        print("CANNOT READ THE GRIMOIRE: %s is missing" % PARTS["memory"])
+        print("CANNOT READ THE GRIMOIRE: %s is missing (install FLAMING_SWORD)" % PARTS["memory"])
         return 1
     bridge = _load("memory_bridge", PARTS["memory"])
     directory = Path(state_dir) if state_dir else Path.cwd() / bridge.STATE_DAY_DIR
@@ -368,7 +388,7 @@ def grimoire(state_dir: Optional[str] = None, kind: str = "", limit: int = 20,
 
 def serve(passthrough: List[str]) -> int:
     if not PARTS["server"].exists():
-        print("CANNOT SERVE: %s is missing" % PARTS["server"])
+        print("CANNOT SERVE: %s is missing (install FLAMING_SWORD)" % PARTS["server"])
         return 1
     server = _load("chain_server", PARTS["server"])
     return int(server.main(passthrough))

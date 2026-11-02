@@ -750,7 +750,7 @@ def doctor() -> int:
     checks: List[Tuple[str, bool, str]] = []
     current = sys.version_info[:3]
     checks.append(("python", current >= (3, 9), "%d.%d.%d (stdlib only)" % current))
-    schema = Path(__file__).resolve().parents[1] / "docs" / "METTHEW" / "shard.schema.json"
+    schema = Path(__file__).resolve().parent / "schemas" / "shard.schema.json"
     checks.append(("metthew schema", schema.exists(),
                    str(schema) if schema.exists() else
                    "MISSING: shards cannot be checked against the project's own contract"))

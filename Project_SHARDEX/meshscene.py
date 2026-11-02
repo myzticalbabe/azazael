@@ -25,10 +25,10 @@ the page never logged does not exist; a log the page cannot reproduce is refused
 
 USAGE
 =====
-    NODE_PATH=C:/Users/clint/node_modules node tools/sample_image.js \
+    NODE_PATH=$(npm root -g) node tools/sample_image.js \
         --in <image> --out .live/field.json
     python Project_SHARDEX/meshscene.py --forge .live/field.json --out .live
-    NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js \
+    NODE_PATH=$(npm root -g) node tools/capture_transubstantiation.js \
         .live 180 --live .live/ops.json
     python Project_SHARDEX/meshscene.py --verify .live
 """

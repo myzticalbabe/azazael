@@ -46,8 +46,6 @@ flame-engine = "tools.flame_engine:main"
 packages = ["tools"]
 
 [tool.pytest.ini_options]
-# No testpaths here on purpose: this project ships no tests/ directory of its own
-# (tests/test_flame_engine.py lives in the monorepo), and a testpaths entry naming
-# a missing directory makes `pytest` exit with a usage error. Add it back together
-# with a real tests/ directory -- a standalone clone currently carries no test run.
+# This project now ships its own tests/ directory.
+testpaths = ["tests"]
 pythonpath = [".", "tools"]
