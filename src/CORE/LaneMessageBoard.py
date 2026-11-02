@@ -1193,6 +1193,22 @@ class LaneMessageBoard:
         `open` is kept because the lane instruction files name it, but it now
         means `available`; `open_incl_claimed` carries the old inclusive
         figure so nothing silently changes meaning.
+
+        A lapsed lease was counted twice until 2026-11-02: `claimed` was a raw
+        `state='claimed'` count, so a row whose 30-minute lease had expired was
+        in `claimed` AND in `available` (because `claim_tasks` will hand it out
+        again), and `open_incl_claimed` added both. On the real board that read
+        as work in flight that no lane held. The state is now split by the
+        lease it actually holds — `claimed_live` (someone still has it),
+        `claimed_expired` (lapsed, counted in `available`), `claimed_all` (the
+        raw row count) — and `claimed` means live, so `open_incl_claimed`
+        stays an arithmetic identity: `available + claimed_live`.
+
+        `churned` is the queue's own defect count: unretired rows at
+        `attempts >= 3`, meaning the work has been handed out three times and
+        come back each time. A row there is not waiting on a lane — it is
+        waiting on a decision, so it is named rather than left to inflate
+        `available` forever.
         """
         conn = self._state_conn()
         try:
@@ -1206,6 +1222,26 @@ class LaneMessageBoard:
                 counts.setdefault(key, 0)
             lanes = [lane] if lane else list(self.VALID_LANES)
             cutoff = int(datetime.now(timezone.utc).timestamp()) - self.CLAIM_LEASE_SECONDS
+            claimed_live = 0
+            churned = 0
+            for ln in lanes:
+                live = conn.execute(
+                    "SELECT COUNT(*) FROM lane_task_state s "
+                    "JOIN memorybus_queue q ON q.id = s.board_id "
+                    "WHERE q.topic = ? AND s.state = 'claimed' "
+                    "  AND s.claimed_at IS NOT NULL "
+                    "  AND CAST(strftime('%s', s.claimed_at) AS INTEGER) >= ?",
+                    (self._task_topic(ln), cutoff),
+                ).fetchone()
+                claimed_live += int(live[0] or 0)
+                churn = conn.execute(
+                    "SELECT COUNT(*) FROM lane_task_state s "
+                    "JOIN memorybus_queue q ON q.id = s.board_id "
+                    "WHERE q.topic = ? AND s.attempts >= 3 "
+                    "  AND s.state NOT IN ('done','blocked','archived')",
+                    (self._task_topic(ln),),
+                ).fetchone()
+                churned += int(churn[0] or 0)
             avail = 0
             for ln in lanes:
                 row = conn.execute(
@@ -1220,9 +1256,17 @@ class LaneMessageBoard:
                     (self._task_topic(ln), cutoff),
                 ).fetchone()
                 avail += int(row[0] or 0)
+            claimed_all = counts.get("claimed", 0)
+            counts["claimed_all"] = claimed_all
+            counts["claimed"] = claimed_live
+            counts["claimed_live"] = claimed_live
+            counts["claimed_expired"] = claimed_all - claimed_live
+            counts["churned"] = churned
             counts["available"] = avail
             counts["open"] = avail
-            counts["open_incl_claimed"] = avail + counts["claimed"]
+            # avail already includes lapsed leases, so pairing it with the live
+            # count is the only form that does not double-count them.
+            counts["open_incl_claimed"] = avail + claimed_live
             counts["retired"] = (counts["done"] + counts["blocked"]
                                  + counts["archived"])
             return counts

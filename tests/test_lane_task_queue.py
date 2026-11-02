@@ -399,3 +399,55 @@ def test_post_status_raises_when_the_row_cannot_be_read_back(board, monkeypatch)
     monkeypatch.setattr(b._bus, "publish", lambda *a, **k: 1)
     with pytest.raises(RuntimeError, match="NOT delivered"):
         b.post_status("LOST", "nothing was written")
+
+
+def test_a_lapsed_lease_is_not_counted_as_claimed_and_available(board):
+    """A lapsed lease was in both numbers, so `open_incl_claimed` added it twice.
+
+    `claimed` was a raw `state='claimed'` count while `available` already
+    returned lapsed leases to the pool (that is why a dead lane's work comes
+    back). Measured on the real board 2026-11-02: freebuff claimed=9 of which
+    7 had lapsed, and available already included them.
+    """
+    b, db = board
+    rid = _post(db, "freebuff", "STALE")
+    b.claim_tasks("freebuff", limit=1, agent="deadLane")
+    # Backdate the lease past CLAIM_LEASE_SECONDS without waiting 30 minutes.
+    con = sqlite3.connect(str(db), timeout=5)
+    con.execute(
+        "UPDATE lane_task_state SET claimed_at = ? WHERE board_id = ?",
+        ("2026-10-01T00:00:00+00:00", rid),
+    )
+    con.commit()
+    con.close()
+
+    stats = b.task_stats("freebuff")
+    assert stats["claimed_live"] == 0, "a lapsed lease was reported as held"
+    assert stats["claimed"] == 0, "`claimed` still means the raw state count"
+    assert stats["claimed_expired"] == 1, "the lapsed lease vanished instead of being named"
+    assert stats["claimed_all"] == 1
+    assert stats["available"] == 1, "claim_tasks would hand this out; stats denied it"
+    assert stats["open_incl_claimed"] == 1, "the lapsed lease was counted twice"
+    # And the number agrees with behaviour: the row really is claimable again.
+    assert [t["task_id"] for t in b.claim_tasks("freebuff", limit=5, agent="liveLane")] == ["STALE"]
+
+
+def test_churned_names_rows_handed_out_three_times_and_never_retired(board):
+    """`available` grows forever when the same rows keep coming back.
+
+    A row at attempts>=3 is not waiting on a lane, it is waiting on a decision.
+    Counting it inside `available` makes a stuck queue look like a full one.
+    """
+    b, db = board
+    rid = _post(db, "freebuff", "ANCHOR")
+    for _ in range(3):
+        b.claim_tasks("freebuff", limit=1, agent="laneA")
+        b.release_task(rid)
+
+    stats = b.task_stats("freebuff")
+    assert stats["churned"] == 1, "a thrice-released row was not named as churn"
+    assert stats["available"] == 1
+    # Retiring it clears the count: churn is about unretired work.
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(rid, "done", "retired")
+    assert b.task_stats("freebuff")["churned"] == 0
