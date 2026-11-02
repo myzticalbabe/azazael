@@ -50,6 +50,21 @@ conflicted paths from `merge-tree --write-tree`. Exit 0 clean, 1 conflicts, 2 co
 not run. The state model is the point: **exit > 1 is not a conflict**, and a gate
 that collapses the two reports work that does not exist.
 
+`--queue --branch a --branch b` answers the merge-queue question instead: each
+branch judged against the tree the ones ahead of it produced, not against base.
+Two branches can each be CLEAN against base and still conflict with each other.
+**No runner invokes `--queue`**: this repo has no merge queue (pushes go straight
+to a remote), so the mode is the instrument a queue would call and is run by hand
+before landing a batch. That is stated rather than papered over -- a mode nobody
+executes is a capability, not a gate.
+
+**Wired into `.githooks/pre-push`** (2026-11-01) as `--pre-push`: it reads git's own
+stdin protocol (`local ref, local sha, remote ref, remote sha`) and judges only the
+pushes that need a merge — a fast-forward cannot conflict, so testing one would cost
+a three-way merge on every ordinary push. CONFLICTS aborts the push with the paths;
+ERROR (an unreadable tip, a git too old for `merge-tree`) prints why and passes
+*late and loud*, never green. Bypass: `MERGE_GATE_PUSH_BYPASS=1`.
+
 ### `tools/git_stack_plan.py` — derive the stack, plan the rebase, replay it atomically
 Parent links come from four sources in descending trust: git's own reflog
 ("branch: Created from …"), strict tip ancestry, a fork-point distance test, and —
@@ -171,14 +186,24 @@ re-reading it.
 2. **Trial path-walk repack** (2.51) on the 939 MiB pack set — but note this disk is
    at 98% (18 GB free), so the repack needs headroom; `--repack` is opt-in in the
    doctor for exactly that reason.
-3. **Wire `git_merge_gate.py --base origin/master` into the pre-commit hook** so a
-   branch that cannot merge is known before it is pushed, not after.
+3. ~~Wire `git_merge_gate.py --base origin/master` into the pre-commit hook~~ —
+   **done differently, 2026-11-01**: wired into `.githooks/pre-push` instead. A merge
+   conflict is a property of the pair (branch, remote tip) and moves when the other
+   side moves, so per-commit re-answers the same question while the push is the
+   moment the pair actually meets. Still open from this item: a merge-queue
+   chainwise mode (item 5).
 4. **`git maintenance start`** to schedule commit-graph/MIDX/loose-object refreshes
    instead of relying on `gc --auto` at 6,700 loose objects (currently 7,958 — over
    the threshold, so a gc is already pending).
-5. **Merge queue semantics**: extend the gate from "would it merge" to "would it
-   merge *after* the previous branch in the queue", using `merge-tree` chainwise —
-   the same primitive, one level up.
+5. ~~Merge queue semantics~~ — **done, 2026-11-01**: `--queue --branch a --branch b`
+   judges each branch against the tree the ones ahead of it produced. The chain
+   needs a commit per intermediate tree, so each clean step writes one dangling
+   `git commit-tree` object (no ref, index or worktree touched; `git gc` collects
+   them). It earns its keep on the two-branch fixture where both are CLEAN against
+   the base and CONFLICT with each other, and on this repo's own queue, where
+   `lane-813-recovery` conflicts on 3 paths with HEAD while being nothing special
+   on its own. States: CLEAN / CONFLICTS / ALREADY-IN / ERROR / UNJUDGED — behind
+   a stop, later branches are UNJUDGED, never clean.
 6. **SHA-256 planning**: audit for 40-character assumptions (this repo has 8,372
    Python files, several of which hash strings). Nothing to change today; something
    to know before 3.0.
