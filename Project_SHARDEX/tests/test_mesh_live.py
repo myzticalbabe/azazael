@@ -99,6 +99,52 @@ def test_replay_reproduces_every_intermediate_digest():
     assert len(digests) == len(ops)
 
 
+def test_touch_moves_only_the_picked_neighbourhood():
+    mesh = M.build_mesh(field())
+    table = OPS.sine_table()
+    index = len(mesh["neurons"]) // 2
+    node = mesh["neurons"][index]
+    # radius 2 on a 12x8 field: neighbours sit one cell away, and the falloff at exactly the
+    # rim is zero, so a radius of 1 would be a legal op that moved nothing.
+    touched = OPS.apply_op(mesh, {"kind": "touch", "neuron": index, "radius": 2.0,
+                                 "gain": 0.5}, table)
+    # the pick itself is the centre of the falloff and therefore cannot move
+    assert touched["neurons"][index][:2] == node[:2]
+    moved = [i for i, n in enumerate(touched["neurons"]) if n[:2] != mesh["neurons"][i][:2]]
+    assert moved, "touch displaced nothing -- the radius was too small for this mesh"
+    assert index not in moved
+    assert len(moved) < len(mesh["neurons"]), "touch behaved like a global warp"
+
+
+def test_touch_refuses_a_neuron_that_is_not_there():
+    mesh = M.build_mesh(field())
+    with pytest.raises(OPS.OpError):
+        OPS.apply_op(mesh, {"kind": "touch", "neuron": len(mesh["neurons"]), "radius": 1,
+                            "gain": 0.5}, OPS.sine_table())
+    with pytest.raises(OPS.OpError):
+        OPS.apply_op(mesh, {"kind": "touch", "neuron": 0, "radius": 0, "gain": 0.5},
+                     OPS.sine_table())
+
+
+def test_verify_refuses_a_touch_op_with_no_pick_record(tmp_path):
+    """A hand-typed index replays perfectly. Only picked.json can tell it from a click."""
+    path = tmp_path / "field.json"
+    path.write_text(json.dumps(field()), encoding="utf-8")
+    out = tmp_path / "out"
+    rc, _info = M.forge(path, out)
+    assert rc == M.OK
+    base = json.loads((out / "mesh.json").read_text(encoding="utf-8"))
+    table = OPS.sine_table()
+    op = {"kind": "touch", "neuron": 3, "radius": 0.5, "gain": 0.4}
+    after = OPS.apply_op(base, op, table)
+    record = {"seq": 0, "op": op, "digest": OPS.mesh_digest(after),
+              "neurons": len(after["neurons"]), "synapses": len(after["synapses"])}
+    (out / "applied_ops.jsonl").write_text(json.dumps(record) + "\n", encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PICK-UNPROVENANCED"
+
+
 def test_verify_refuses_a_log_that_does_not_replay(tmp_path):
     fld = field()
     path = tmp_path / "field.json"

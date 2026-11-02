@@ -28,6 +28,16 @@ OPS
     prune    {threshold}          drop synapses below a weight
     palette  {shift}              rotate hue by an integer number of degrees
     extrude  {gain}               scale depth (z) -- the relief becomes volume
+    touch    {neuron, radius,
+              gain}               displace the neighbourhood of ONE picked neuron
+
+A note on `touch`, because it is the one operator whose input comes from a human. The index in
+`touch.neuron` is not computed here; it is what the page resolved from a screen coordinate at
+pick time. So the op is still a pure function of (mesh, op) -- it replays -- and the *provenance*
+of the index is carried beside it in `picked.json` (click, screen point, mesh digest at pick time).
+`meshscene.py --verify` refuses a touch op with no pick record: an index typed by hand and an
+index clicked by a person are indistinguishable in the op alone, and only one of them is what
+"interactive mutation" claims.
 
 The op-log is append-only and hash-chained: op N's id includes op N-1's id, so removing,
 reordering or editing any op breaks every id after it. `chain_hash` is what the golden run
@@ -48,7 +58,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 Q = 1000          # positions and weights are quantised to 1e-3 in the digest
 SINE_ENTRIES = 256
 
-OP_KINDS = ("warp", "sprout", "prune", "palette", "extrude")
+OP_KINDS = ("warp", "sprout", "prune", "palette", "extrude", "touch")
 
 #: fields each op must carry, and nothing else is required -- an op with an unknown key is
 #: refused rather than ignored, because an ignored parameter is a mutation that silently did
@@ -59,6 +69,7 @@ OP_SCHEMA = {
     "prune": {"threshold": (int, float)},
     "palette": {"shift": (int,)},
     "extrude": {"gain": (int, float)},
+    "touch": {"neuron": (int,), "radius": (int, float), "gain": (int, float)},
 }
 
 
@@ -221,6 +232,33 @@ def apply_op(mesh: Dict[str, Any], op: Dict[str, Any], table: Sequence[int]) -> 
         gain = float(op["gain"])
         for node in neurons:
             node[2] = float(node[2]) * gain
+        return _pack(mesh, neurons, synapses)
+
+    if kind == "touch":
+        # The pick is an input, not a computation: `neuron` is what the page resolved from a
+        # click. Everything after this line is arithmetic both languages can reproduce.
+        index = int(op["neuron"])
+        if not 0 <= index < len(neurons):
+            raise OpError("touch.neuron %d is not in this mesh (0..%d)"
+                          % (index, len(neurons) - 1))
+        radius = float(op["radius"])
+        if not radius > 0:
+            raise OpError("touch.radius must be > 0, got %r" % (op["radius"],))
+        tx = float(neurons[index][0])
+        ty = float(neurons[index][1])
+        r2 = radius * radius
+        gain = float(op["gain"])
+        for node in neurons:
+            dx = float(node[0]) - tx
+            dy = float(node[1]) - ty
+            d2 = dx * dx + dy * dy
+            if d2 > r2:
+                continue
+            # falloff is 1 at the pick and 0 at the rim; squared distance only, no sqrt,
+            # so the two implementations cannot disagree in the last bit.
+            falloff = (r2 - d2) / r2
+            node[0] = float(node[0]) + gain * falloff * dx
+            node[1] = float(node[1]) + gain * falloff * dy
         return _pack(mesh, neurons, synapses)
 
     raise OpError("unhandled op %r" % kind)          # unreachable: validate() ran first

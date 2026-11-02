@@ -16,10 +16,18 @@ document" versus "the URL is recorded and the fetch was refused":
 
 Two fetches were refused and are recorded as such rather than paraphrased from memory:
 `bu.edu/clarion/guides/Star_Trek_Writers_Guide.pdf` → **404**, and
-`tvwriting.co.uk/tv_scripts/TV_Bibles/Star_Trek_Writers_Guide.pdf` → **403**. The
-`archive.org` item pages load, but the `_djvu.txt` full-text endpoint returned the reader shell
-in this session, so the TNG bible's text is **P**, not **R**. Nothing in this document quotes a
-bible it did not read.
+`tvwriting.co.uk/tv_scripts/TV_Bibles/Star_Trek_Writers_Guide.pdf` → **403**.
+
+**Corrected 2026-11-02, later the same session.** The earlier note in this file said the
+`archive.org` `_djvu.txt` endpoint returned a reader shell and that no bible prose was quoted.
+That was a defect of the *request*, not of the archive: the filename is not `<id>_djvu.txt`, it
+is the item's own title with spaces (`Star Trek The Next Generation Writers Guide_djvu.txt`).
+The right way to get it is to ask `https://archive.org/metadata/<id>` for the file list and use
+the `name` it returns. Doing that returned **81,641 bytes of text** (md5
+`64f473b0c215ec917aa61e7b196decf8`) for the **Star Trek: The Next Generation Writer/Director's
+Guide, Gene Roddenberry, March 23, 1987**. **§I.5 and §I.6 below quote from it directly, tier
+A, retrieved.** The 1967 third revision is still not in hand: its prose is described, never
+quoted.
 
 ---
 
@@ -102,16 +110,75 @@ interpretation*, **C/U**, not as the guide's own text.
 
 ### I.5 Prose — the register the guide enforces
 
-From the 1967 booklet's documented purpose (a writer's guide for freelancers, **C**) the prose
-rules that follow are editorial rather than literary:
+Quoted from the **1987 TNG Writer/Director's Guide** (**A, R**) unless marked otherwise. This is
+the document's own voice, which is the point: a writer's bible is written in the register it is
+trying to impose, and this one is written in imperatives.
 
-- **present tense, active, camera-facing** — the guide is written as the script will be shot;
-- **technical vocabulary must be consistent**, because inconsistency is what viewers notice
-  first (the same vocabulary discipline any bible imposes on a shared universe);
-- **no irony about the premise**: the show never winks, so the prose never winks;
-- **emotion is stated as behaviour** ("she does not answer"), not as interior narration.
+**The one rule everything else serves:**
 
-That last rule is why the bible reads flat and works: it is a specification, not a story.
+> **BELIEVABILITY IS EVERYTHING. IT IS THE MOST ESSENTIAL ELEMENT OF ANY STAR TREK STORY.**
+
+and it is operationalised as a test any reader can run, which is why the guide is teachable:
+
+> If you're in doubt about a scene, you can apply this simple test: "Would I believe this if it
+> was occurring on the bridge of the battleship Missouri?" If you wouldn't believe it in the
+> twentieth century, then our audience probably won't believe it in the twenty-fourth.
+
+**Prose is specified as a budget, not a flavour.** The guide fixes the container before it
+allows the content: a **teaser and five parts**, teaser 3–5 pages, each part about 10–11 script
+pages, first draft **"not more than 55-56 pages"**, running time **43 minutes**, and "long
+rambling scenes are to be avoided". A rule that can be counted is a rule a room can enforce.
+
+**Two registers are required to coexist, and the guide says which comes first:**
+
+> A good STAR TREK story should have both a science fiction element and a personal element.
+
+The science-fiction element "should be thought-provoking and visual" and "need not be a huge
+galactic event"; the personal element is "a human dilemma". When the two collide, the guide's
+order is explicit: the adventure must capture attention **first**, and the comment about
+humanity comes after ("once the above has captured the audience's attention, we want to
+include our usual comments about the challenges humanity now faces").
+
+**Character is written as behaviour under selection pressure**, not as interiority:
+
+> The crew of the Enterprise are intelligent, witty, thoughtful, compassionate, caring human
+> beings -- but they have human faults and weaknesses too -- although not as many or as
+> severe as in our time. They have been selected for this mission because of their ability to
+> transcend their human failings.
+
+**The negative list is the most useful part of the document**, because it is where a bible
+becomes a gate rather than a mood board. Thirteen items, of which the load-bearing ones are:
+
+- no psionics or "mysterious heavenly powers" — "the explanation must be extrapolated from a
+  generally accepted science theory";
+- no "galaxy policemen" — "We are not in the business of toppling cultures that we do not
+  approve of";
+- "Plots involving a whole civilization rarely work" — deal with specific characters from
+  another culture instead;
+- no jeopardy manufactured by making the crew stupid or the technology fail;
+- no fantasy, no "swords and sorcery", no melodrama — "Melodrama is a writing style which does
+  not require believable people."
+
+**The structural device that carries exposition** is the log: Captain's Log, Medical/Science/
+Supplemental, and Away Logs, "ALWAYS introduced with a stardate", a five-digit number plus one
+decimal (`41254.7`), the leading `4` meaning 24th century. That is a prose rule disguised as a
+formatting rule: exposition is spoken by a character who is writing it down.
+
+**What is inference, not quotation** (the 1967 booklet is still **P**): that the same
+present-tense, active, camera-facing discipline governs the earlier guide, and that
+"no irony about the premise" is a rule rather than a house style. The 1987 text supports the
+first (it is written as the script will be shot) and does not address the second.
+
+That is why the bible reads flat and works: it is a specification, not a story.
+
+### I.6 The self-description that dates it
+
+The 1987 guide opens with a **NOTICE TO WRITERS** that refuses unsolicited submissions except
+from recognised literary agents (**A, R**), and states its position relative to the original
+series in a phrase worth keeping: the new ship is "a vessel of less 'battleship sterility'",
+because 24th-century progress is "centered on improving the quality of life". A bible is also a
+**pitch to the writers it is recruiting**, and this one argues from aesthetics (light, comfort,
+vegetation in the corridors) as much as from plot.
 
 ---
 
@@ -249,7 +316,35 @@ it:
 | prose / register | **`Hol`** — *language* (with `tlhIngan Hol` = the Klingon language) | KLI: `tlhIngan Hol` throughout |
 | completed / in progress | **`… qaStaHvIS`** — *while it happens* (status, not a fact) | marked **unverified composition**: no attested phrase on the KLI page |
 
-Two of those rows are **attested vocabulary in an unattested construction**, and they are
+#### III.3a From gloss to sentences — composed, and labelled as composed
+
+The gloss sheet can be taken one step further without pretending to be a translator: Klingon is
+**object–verb–subject**, marks person on the verb by prefix, and builds aspect and attitude from
+suffix chains, so a short sentence can be assembled from attested roots and checked pattern by
+pattern. Every line below is **my composition**, not a quotation, and the last column says what a
+Klingonist still has to decide. Nothing here is presented as `tlhIngan Hol` prose.
+
+| # | Klingon | literal | what is doing the work | status |
+| --- | --- | --- | --- | --- |
+| 1 | `paq'a' vIlaD` | big-book I-read-it | `vI-` 1sg subject / 3sg object; `laD` *read* | **safe pattern** (canonical OVS + prefix) |
+| 2 | `paq'a' vIlaDnIS` | big-book I-read-it-need | `-nIS` *need to* | **safe pattern**; suffix order after the verb stem |
+| 3 | `tlhIngan Hol vIghoj` | Klingon language I-learn-it | `ghoj` *learn*; the stock self-description of a learner | **safe pattern** |
+| 4 | `mu'tlheghmey vIlaD` | sentences I-read-them | `-mey` plural (non-body-part) | **safe pattern**; `mu'tlhegh` = *sentence* |
+| 5 | `bom vIqon` | song I-compose-it | `qon` *compose/record*, the same root the KLI uses in `qonbogh to'maS` | **safe pattern** |
+| 6 | `paq'a' laDmeH Hol vIghoj` | big-book for-reading language I-learn-it | `-meH` purpose clause before its main clause | **needs a Klingonist** — purpose clauses are correct in shape but this one stacks two objects (`Hol` and the implied book) |
+| 7 | `paq'a' boqonta'` | big-book you-pl-composed-it | `bo-` 2pl subject / 3sg object, `-ta'` *accomplished* | **needs a Klingonist** — `-ta'` asserts completion, which may be the wrong claim about a revision chain |
+| 8 | `paq'a' QaQ` | big-book good | no copula: a noun + adjective is a sentence | **safe pattern**; `QaQ` *be good* |
+
+Read the table as a **fidelity ledger**, which is the whole point of the section. Rows 1–5 and 8
+are grammar a learner can defend; rows 6–7 are the places where a machine writing Klingon
+produces something that *looks* translated. Compare the English: "the guide is a specification,
+not a story" has no Klingon row here at all, because the honest answer is that I cannot render
+it without inventing a metaphor — and inventing one is exactly what the KLV did at scale.
+
+What would close this section: a Klingonist's signature on rows 6–7, or their replacement, plus
+one attested citation for `mu'tlhegh` from a dictionary rather than from memory.
+
+Two of the gloss-sheet rows are **attested vocabulary in an unattested construction**, and they are
 marked as such on purpose. The rule this dossier applies to itself is the rule the Klingon
 Language Version broke: **do not present a gloss as a translation.** A Klingon edition becomes
 real when a Klingonist signs it; until then it is a specification for that work, with every term
@@ -276,7 +371,9 @@ signs the difference. A bible that does not state its own fidelity is a rumour w
 | kli.org RTTP project page | **A** | **R** | full book census, dates, coordinators, Klingon titles |
 | Memory Alpha, *The Star Trek Guide* | C | **R** | 1964 pitch, 1966 second revision, 1967-04-17 Fontana third revision |
 | archive.org TNG Series Bible item | **B** | **R** | Gerrold, 1987-03-27, OCR, 51.5 MB |
-| archive.org TNG Writer/Director's Guide item | **B** | P | catalogue entry seen in search, item not opened |
+| archive.org TNG Writer/Director's Guide item | **B** | **R** | metadata API resolved the file list; `_djvu.txt` fetched, 81,641 bytes, md5 `64f473b0c215ec917aa61e7b196decf8` |
+| **TNG Writer/Director's Guide full text**, Roddenberry, 1987-03-23 | **A** | **R** | quoted in §I.5–I.6: believability test, 13-item negative list, teaser + five parts, stardate format, NOTICE TO WRITERS |
+| archive.org TNG Series Bible item `_djvu.txt` | **B** | P | filename now known (`Star_Trek_-_The_Next_Generation_Bible_djvu.txt`, 84,077 bytes); not fetched this session |
 | Fanlore, *The Star Trek Guide* (1967) | C | P | 31 pp., Norway Productions, Lincoln Enterprises |
 | *The Trek Files* 1-01 (2018) | C | **R** | April 1967 guide; "believability factor" |
 | Salon, Lucas drafts (2014-10-03) | C | P | draft titles and Whills frame |
@@ -285,8 +382,10 @@ signs the difference. A bible that does not state its own fidelity is a rumour w
 | bu.edu Star Trek Writers Guide PDF | — | **404** | fetch refused; no text |
 | tvwriting.co.uk Star Trek Writers Guide PDF | — | **403** | fetch refused; no text |
 
-**Next fetch, if this line of work continues:** the 1967 third revision and the 1987 TNG bible
-full texts. Both are catalogued; the OCR exists; this session's fetches were refused by the
-hosts, not absent from the web. Until they are in hand, every characterisation of the guides'
-*prose* above is inference from their function and from secondary description, marked as such —
-not quotation.
+**Next fetch, if this line of work continues:** the 1967 third revision (no working host found
+yet: bu.edu 404, tvwriting 403 — try the Norway Productions/Lincoln Enterprises scan directly),
+and the 1987 **series bible** text (filename known from the metadata API: 84,077 bytes). The
+1987 **Writer/Director's Guide** is now in hand, so the prose characterisation in §I.5 rests on
+quotation where it says it does and on inference only where it is marked as inference. The 1967
+guide's prose remains undescribed by me, not because it is unavailable in principle but because
+no host has served it to this session yet.
