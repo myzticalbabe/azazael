@@ -38,8 +38,13 @@ keeps paying for: a true-looking claim with nothing behind it. What *is* real:
 - the arena is **derived** from the shard — `arena` from payload bytes, `orbs` from file
   count, `seed` from the content hash — so two shards forge two different arenas;
 - `flame.json` names the shard it came from, and the shell prints that id on screen;
-- the golden run is a number, `1c045e596f950543` for the METTHEW `highend_duel` shard,
-  that Python and Chrome both compute from the same scripted input.
+- the golden run is a number — `1f046312729509fc` for the METTHEW `highend_duel` shard as
+  it stands today — that Python and Chrome both compute from the same scripted input.
+  The figure this page used to quote, `1c045e596f950543`, is the golden of the
+  **tournament-surface config below** (`arena 8.07`, seed `4220286397`), not of this
+  clone: editing `SHARD.md` in `d69d047f` changed its `size_bytes`, which moved the
+  seed, which moved the orbs, which moved the number. Both figures are real; only one
+  of them is this shard.
 
 So the claim SHARDEX makes is: *this shard, at this config, produces this deterministic
 arena, and the artifact you are holding is provably that arena.* It does not claim to be
@@ -60,11 +65,72 @@ the game the code came from.
 - orbs placed by an LCG seeded from the shard, spelled out identically in both languages,
   because `Math.random()` would make every browser a different game.
 
-Measured 2026-11-02 on `docs/METTHEW/reference-shards/highend_duel`:
-`--forge` → golden `1c045e596f950543`; headless Chrome loading the same file printed
-`golden: 1c045e596f950543 OK`; `?play=900` collected all 3 orbs in 900 ticks. The test that
-asserts this is `tests/test_shardex.py::test_the_browser_computes_the_same_golden_hash_and_can_play`,
+Re-measured 2026-11-02 on `docs/METTHEW/reference-shards/highend_duel`:
+`--golden` → **`1f046312729509fc`**, final state `-0.0000,0.0000,0.0000,0.0000,0.0000,4`.
+The earlier reading, `1c045e596f950543`, does not reproduce from this clone in either
+implementation — it is the golden of the `arena 8.07 / seed 4220286397` config, so a
+browser figure recorded against it says nothing about the shard as it is now. Re-forging
+and re-reading the browser hash is outstanding. The test that asserts browser/Python
+agreement is
+`tests/test_shardex.py::test_the_browser_computes_the_same_golden_hash_and_can_play`,
 skipped when no browser is present.
+
+### The golden run, stated completely (SHX-R1, 2026-11-02)
+
+The five bullets above fixed the *shape* of the hash and left the law unwritten. A third
+implementation written against them had to supply **21 constants that appeared nowhere in
+this document** — the simulation itself was the missing part, not the quantisation. They
+are stated here so the next port needs nothing but this page and `shard.json`.
+
+**Tunables, derived from the shard (`_tunables_for`).** Defaults `sim_hz=60, gravity=18.0,
+speed=6.0, jump=7.0, arena=12.0, orbs=6, difficulty=1.0, seed=1`, then overwritten:
+
+| field | law | `highend_duel` |
+| --- | --- | --- |
+| `arena` | `round(8.0 + min(12.0, payload/200000.0), 2)` | 8.06 |
+| `orbs` | `max(3, min(12, len(files)))` | 3 |
+| `seed` | `int(id_sha256[:8], 16) or 1` | 3928471735 |
+| `difficulty` | `round(1.0 + min(2.0, len(files)/24.0), 2)` | 1.08 |
+
+`payload` is `sum(size_bytes)`. **`difficulty` is in the config and in no equation — the
+simulation never reads it**, so for the purposes of the hash it is decoration. Stated
+because an ignored parameter is a mutation that quietly did less than its author believed.
+
+**The tick, in this exact order** (`dt = 1/sim_hz`, ticks `120`, jumps at `10` and `70`;
+`x = y = z = vy = 0.0`, `collected = 0` at tick 0):
+
+1. `ix = +1.0` while `tick < ticks//2`, else `-1.0` — right for 60, left for 60.
+2. if `tick in jumps` **and** `y <= 0.0001`: `vy = jump`. The test comes before the
+   integration, against `y` as it stood at the end of the previous tick.
+3. `x += ix * speed * dt`; `z += 0.0`.
+4. `vy -= gravity * dt`.
+5. `y += vy * dt`.
+6. wall: `if y < 0: y = 0; vy = 0`; then `x` and `z` are **clamped** (not bounced) to
+   `[-arena, +arena]`.
+7. collection, after the move: for each orb not yet taken, with `dx = x-ox`, `dz = z-oz`,
+   collect when `dx*dx + dz*dz < 1.2*1.2` **and** `y < 1.5`. `collected` is a bitmask,
+   orb `i` is bit `i`. An orb is never released once taken.
+
+**Orb placement (LCG, both languages).** `s = seed & 0xFFFFFFFF or 1`; `span = arena*0.8`;
+then per orb **two** draws, `x` first: `s = (s*1664525 + 1013904223) & 0xFFFFFFFF`, and the
+coordinate is `((s/0xFFFFFFFF)*2 - 1)*span`. No `Math.random()`, no re-seeding.
+
+**The hashed string, byte for byte.** `"%.4f,%.4f,%.4f,%.4f,%.4f,%d" % (x, y, z, vy, 0.0,
+collected)` — four decimals, comma with no space, **no trailing separator and no newline**.
+The fifth float is a reserved slot that is always `0.0`; it is in the string, so a port
+that omits it and a port that fills it with something else both disagree. Nothing else
+enters the hash: not the tunables, not `difficulty`, not tick count, not the shard id.
+
+**The digest.** Two 32-bit FNV-1a lanes over the UTF-8 bytes of that string, in order:
+`h1 = 2166136261`, `h2 = 84696351`, each byte `h = (h ^ byte) * 16777619 mod 2^32`. Output
+is `"%08x%08x" % (h1, h2)` — lane 1 then lane 2, eight zero-padded hex digits each, lower
+case. Total 16 characters.
+
+A port that implements exactly this reproduces `1c045e596f950543` for `highend_duel`
+without reading `shardex.py` or the page (proved by `tests/test_third_impl.py`, 2026-11-02).
+What that proves is **sufficiency of the specification, not independence of the authors**:
+the law above was transcribed from the reference, so a misreading shared by all three is
+still possible. Only a stranger writing from this page alone would retire that.
 
 ## The tournament surface (what a champion actually touches)
 
@@ -73,9 +139,22 @@ skipped when no browser is present.
   "arena": 8.07, "orbs": 3, "difficulty": 1.12, "seed": 4220286397 }
 ```
 
-Edit any of those, reload, and the golden hash changes — so a bracket can publish
-"`speed=9, orbs=9` is the grand final config, hash `…`" and anyone can reproduce the
-arena that hash names. `--verify` recomputes independently and refuses a bundle whose
+Those are the tunables that produced `1c045e596f950543`. They are **not** what the clone
+derives today (8.06 / seed 3926918967 / difficulty 1.08), so a champion reading this block
+and a tool reading `flame.json` disagree about the arena. Both readings are recorded; only
+the derived one is traceable to the artifact's own bytes, and only the derived one is what
+`--forge` writes.
+
+**Not every field moves the hash, and the claim used to say every one did.** Measured
+2026-11-02 on the clone: `gravity` 18 → 24 → 32 leaves the digest at `1f046312729509fc`,
+and so does `jump` 7 → 10, because the scripted run ends back at the origin with the
+vertical cancelled. `speed` moves it only once the walk exceeds `arena` and the clamp
+bites (6.0 → `1f046312…`, 9.0 → `7bf3c77f…`). What the clone's hash actually reports is
+**which orb was touched** — the state is `-0.0000,0.0000,0.0000,0.0000,0.0000,<mask>`, so
+the reachable digest space for this artifact is eight values. A bracket may publish a
+config and a hash anyone can reproduce, but the hash is a 3-bit witness, not a fingerprint
+of the arena's physics: `tests/test_third_impl.py` pins that, so it cannot be quietly
+claimed back. `--verify` recomputes independently and refuses a bundle whose
 claimed hash does not recompute, whose shell still carries `__FLAME_JSON__`, or whose
 shell does not name its own shard.
 
