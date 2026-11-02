@@ -65,6 +65,17 @@ jobs:
       # well as in the local pre-commit hook because a fresh clone has no hook
       # installed, and the audit (reports/ERROR_LESSON_AUDIT_2026-10-03.md)
       # found the mechanism built and wired to nothing that blocks.
+      # The gates below were wired into CI and the tests of those gates were
+      # not, so a broken instrument reported OK with nothing contradicting it.
+      # tests/test_anti_pattern_gate.py is deliberately NOT in this step: its
+      # baseline-agreement test fails on the committed tree (measured 2026-11-01
+      # at HEAD in a detached worktree: live 968 vs baseline 953 for
+      # import_inside_function), so running it here would ship a red CI that
+      # nobody can fix with a test. Re-enable it in this list once the baseline
+      # is re-measured deliberately.
+      - name: Tests for the gates this workflow runs
+        run: python -m pytest tests/test_canon_drift_check.py -q
+
       - name: Anti-pattern ratchet (fail on increase over baseline)
         run: python tools/anti_pattern_gate.py --check
 

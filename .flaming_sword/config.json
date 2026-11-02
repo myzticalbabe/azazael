@@ -1,0 +1,8 @@
+{
+  "constants": ["PMB_RECALL_MIN_BEST", "PMB_RECALL_FLOOR"],
+  "claims": {
+    "ledger": "docs/platforms/claims.json",
+    "command": ["python", "tools/platform_claims.py", "--check"]
+  },
+  "note": "The two watchlisted names are env vars, not module constants: the canonical form here is `float(os.environ.get(\"PMB_RECALL_FLOOR\", \"0.70\"))`, and the same default is carried by tools/pmb_floor_proxy.py, tools/supervisor_mcp.py and tools/floor_measure.py under three different local names. The env name is what must agree, which is why the watchlist names the variable. The claims command is the PATH interpreter rather than the 3.15t venv so this file is portable; `python` is what the ledger's own checks were validated under."
+}

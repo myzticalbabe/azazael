@@ -1,0 +1,11 @@
+{
+  "constants": ["PMB_RECALL_MIN_BEST", "PMB_RECALL_FLOOR"],
+  "claims": {
+    "ledger": "docs/platforms/claims.json",
+    "command": ["C:/Azazael/.venvs/py315t/Scripts/python.exe", "tools/platform_claims.py", "--check"]
+  },
+  "detectors": {
+    "disable": []
+  },
+  "note": "The watchlist is the point: a constant is single-sourced because somebody said so, not because two files happen to share a name. The claims command is absolute because the sweep may run under a different interpreter than the ledger expects."
+}
