@@ -2593,3 +2593,26 @@ presented as the mandated check.
 Where a guard exists, ship the test that **removes the guard** and shows the defect
 returning. Precedent: the G6 distinctness assertion passed pre-fix, and only
 reverting the fix exposed that *magnitude*, not distinctness, was the discriminator.
+
+---
+
+## THE NAMES — CRADLE HOLDS, THE GRIMOIRE REMEMBERS, THE REAPER TAKES (2026-11-02)
+
+Bound by user directive 2026-11-01, codified as RULE 0Z-N in `MANDATES.md`. Restated
+here because this file is the primary and a name that lives in one document is folklore.
+
+| name | the part | the claim the name makes |
+|---|---|---|
+| **CRADLE** | `Project_CRADLE/cradle.py` | holds the work, hands it to the user's own model, adds no judgement of its own |
+| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `tools/sentinel.py` | acts on an unresolved frame: takes it out of play, names the failing claim |
+| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: written at the moment of failure, read by the next frame, or UNMEMORED with a reason |
+
+**The names are vocabulary, not paths.** `sentinel.py` and `lessons.jsonl` keep their
+file names because gates, tasks and documents quote those paths; a rename to match a
+story breaks the checks that make the story worth having. The names are exported so
+they cannot drift into prose: `sentinel.NAME`, `memory_bridge.GRIMOIRE` (bound to
+`LESSONS_FILE`), `cradle.NAMES`, and `cradle.py --doctor` printing each part's true
+name. A part that stops doing what its name requires loses the name in the same
+commit as the behaviour.

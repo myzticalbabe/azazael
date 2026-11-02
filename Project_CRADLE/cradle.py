@@ -32,10 +32,11 @@ file and three documents; renaming files to match a product name would break the
 that make the product trustworthy, which is a bad trade. So CRADLE is the front door: one
 file to run, one document to read, and the machinery where the gates already point.
 
-THREE THINGS IT DOES
---------------------
+FOUR THINGS IT DOES
+-------------------
     python cradle.py --doctor                 is this machine ready, and what is missing
     python cradle.py --demo                   prove the loop end to end, no model needed
+    python cradle.py --grimoire               read THE GRIMOIRE back: what it learned
     python cradle.py --serve --model-url ...  serve the chain to your own model
 
 `--doctor` is deliberately boring: it prints a line per requirement and exits 1 on any
@@ -47,6 +48,7 @@ USAGE
 -----
     python cradle.py --doctor
     python cradle.py --demo [--json]
+    python cradle.py --grimoire [--kind failed-verification] [--limit 0]
     python cradle.py --serve --model-url http://127.0.0.1:11434/v1 --model-name llama3.1
 
     # hardware with no local model yet (Ollama serves an OpenAI-compatible API):
@@ -272,6 +274,76 @@ def demo(json_out: bool = False) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# --grimoire: read the book back
+# --------------------------------------------------------------------------- #
+
+def grimoire(state_dir: Optional[str] = None, kind: str = "", limit: int = 20,
+             json_out: bool = False) -> int:
+    """Print THE GRIMOIRE -- the lessons a failed verification authored.
+
+    WHY A READER AND NOT JUST A FILE: a book with a name and no reader is a directory.
+    The ledger exists so the NEXT frame answers better, and the person who has to trust
+    that is the one holding the machine. So this prints what was learned, when, and what
+    made it -- and it distinguishes three states that used to look identical:
+
+      no book yet      nothing has failed in this directory (a fresh install)
+      empty book       the book exists and holds nothing (a writer that never wrote)
+      unreadable       a line is malformed -- reported by line number, never skipped
+    """
+    if not PARTS["memory"].exists():
+        print("CANNOT READ THE GRIMOIRE: %s is missing" % PARTS["memory"])
+        return 1
+    bridge = _load("memory_bridge", PARTS["memory"])
+    directory = Path(state_dir) if state_dir else Path.cwd() / bridge.STATE_DAY_DIR
+    ledger = directory / bridge.GRIMOIRE
+    if not ledger.exists():
+        if json_out:
+            print(json.dumps({"state": "NO-BOOK", "path": str(ledger), "lessons": []},
+                             indent=1))
+        else:
+            print("THE GRIMOIRE: no book yet at %s" % ledger)
+            print("  nothing has failed here, and a lesson is written by a failure --")
+            print("  run `python Project_CRADLE/cradle.py --demo` to see one written")
+        return 0
+
+    records, error = bridge._read_jsonl(ledger)
+    if error:
+        # An unreadable line is a finding, not a line to skip: a book you cannot read
+        # back is the same as no book, except that it lies about having one.
+        print("THE GRIMOIRE IS UNREADABLE: %s" % error)
+        print("  file: %s" % ledger)
+        return 1
+
+    wanted = [record for record in records
+              if not kind or str(record.get("kind") or "") == kind]
+    shown = wanted[-limit:] if limit > 0 else wanted
+    if json_out:
+        print(json.dumps({"state": "BOOK", "path": str(ledger),
+                          "total": len(records), "shown": len(shown),
+                          "lessons": shown}, indent=1))
+        return 0
+
+    print("THE GRIMOIRE %s" % ledger)
+    if not records:
+        print("  the book exists and holds nothing -- a writer that has not written,")
+        print("  which is a finding, not a setting")
+        return 0
+    if kind:
+        print("  %d lesson(s) in the book, %d of kind %r (newest %d shown):"
+              % (len(records), len(wanted), kind, len(shown)))
+    else:
+        print("  %d lesson(s), newest %d:" % (len(records), len(shown)))
+    for record in shown:
+        print("  %s  %-20s %s" % (str(record.get("written_at") or "----------")[:10],
+                                   str(record.get("kind") or "lesson")[:20],
+                                   str(record.get("content") or "")[:110]))
+        trigger = str(record.get("trigger") or "")
+        if trigger:
+            print("              because: %s" % trigger[:100])
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 # --serve: hand the chain to the user's own model
 # --------------------------------------------------------------------------- #
 
@@ -291,6 +363,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     mode.add_argument("--doctor", action="store_true", help="is this machine ready")
     mode.add_argument("--demo", action="store_true", help="prove the loop, no model")
     mode.add_argument("--serve", action="store_true", help="serve the chain to your model")
+    mode.add_argument("--grimoire", action="store_true",
+                      help="read THE GRIMOIRE: the lessons a failed verification wrote")
+    parser.add_argument("--kind", default="", help="with --grimoire: only this kind")
+    parser.add_argument("--limit", type=int, default=20,
+                        help="with --grimoire: how many to show (0 = all)")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--model-url", default="",
                         help="OpenAI-compatible base URL, e.g. "
@@ -313,6 +390,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         return serve(passthrough)
     if args.demo:
         return demo(json_out=args.json)
+    if args.grimoire:
+        return grimoire(state_dir=args.state_dir, kind=args.kind, limit=args.limit,
+                        json_out=args.json)
     # --doctor is the default: a user who runs `python cradle.py` has a question.
     return doctor(model_url=args.model_url, json_out=args.json)
 

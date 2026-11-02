@@ -174,11 +174,19 @@ def ask(payload: Dict[str, Any], state_dir: Optional[str], model_url: str,
     except ModelUnavailable as exc:
         return 503, {"state": "NO-MODEL", "reason": str(exc),
                      "frame_id": body.get("frame_id")}
+    # The instruction that produced this answer, by hash. The sentinel can check a frame;
+    # nothing could check WHICH instruction the model was given until this field existed,
+    # and an answer is only reproducible if the instruction is nameable.
+    import hashlib
+
+    instruction_sha = hashlib.sha256(body["aio"].encode("utf-8")).hexdigest()
     return 200, {"state": "ANSWERED", "frame_id": body.get("frame_id"),
                  "model": model_name or "local", "answer": answer,
+                 "instruction_sha256": instruction_sha,
                  "verified": False,
                  "note": "a model's text is not evidence; POST /verify with the "
-                         "acceptance command to mark this frame verified"}
+                         "acceptance command to mark this frame verified. Check the "
+                         "instruction with tools/inference_sentinel.py"}
 
 
 def verify(payload: Dict[str, Any], state_dir: Optional[str]) -> Tuple[int, Dict[str, Any]]:
@@ -208,6 +216,8 @@ def health(state_dir: Optional[str], model_url: str, model_name: str) -> Dict[st
     return {"ok": True, "shape": SHAPE, "state_dir": str(directory),
             "model": bool(model_url), "model_url": model_url or "",
             "model_name": model_name or "",
+            "instruction": "per-frame: the AIO is the system instruction, and /ask "
+                           "echoes its sha256 so the instruction is nameable",
             "frames": len(frames), "lessons": len(lessons),
             "refuses": ["no model -> 503", "no frame -> 422",
                         "a model's text is never 'verified'"]}
