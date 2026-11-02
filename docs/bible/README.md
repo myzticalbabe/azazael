@@ -19,6 +19,11 @@ python tools/bible_harvest.py --themes             # the vocabulary the ledger s
 
 python tools/bible_theme.py --all --check          # themed editions: exit 1 on any defect
 python tools/bible_theme.py --all --render --write  # regenerate docs/bible/themes/*.md
+
+# the sibling corpora in emotional/ -- same schema, same checker, own editions
+python tools/bible_check.py --check --corpus docs/bible/emotional/emotional.json
+python tools/bible_check.py --check --corpus docs/bible/emotional/female.json
+python tools/bible_check.py --render --write --corpus docs/bible/emotional/female.json
 ```
 
 ## Where the evidence comes from
@@ -195,6 +200,39 @@ harvest holds fewer than three records gets a verse that says so and states the
 shape of its first measurement rather than a history it does not have; `gosp`,
 `shards`, `dev`, `edge0`, `wraith` and `oxman` are in exactly that state today,
 and their books say it in the text.
+
+## Sibling corpora: the felt, and the specialised canon beside it
+
+The canon governs a tree. It does not govern the vocabulary a system uses about a
+person, and it was never meant to: a domain book about `sentinel` has nothing to
+say about whether a label may be assigned to someone else's feeling.
+
+So there are two sibling corpora in [`emotional/`](emotional/), written in this
+same schema and checked by this same tool:
+
+| corpus | subject | relation to this canon |
+|---|---|---|
+| `emotional/emotional.json` | affect, appraisal, granularity, display, chronometry, witness, the safety gate, attunement | a **corpus**, not a theme: it makes claims of its own, which a theme is forbidden to do |
+| `emotional/female.json` | similarity, her authority over her own naming, self-silencing, emotional labour, the double bind, safety, credibility, intersectionality | the conditions under which the general vocabulary is used, kept separate so each can be corrected without the other |
+
+They are validated by `tools/bible_check.py --corpus`, and the tool now derives a
+generated edition from the corpus path: `--render --write` for the canon still
+writes `BOOK_OF_THE_TREE.md`, while a sibling writes `EMOTIONAL_BIBLE.md` or
+`FEMALE_BIBLE.md` beside itself. Before that change a second corpus could not pass
+its own check — every alternate corpus was compared against the canon's edition
+and reported stale — and `--write` would have overwritten the canon with it.
+
+What they inherit is the discipline rather than the content: no digit without a
+command, a citation must resolve inside the corpus that carries it, a statute needs
+a rule in `MANDATES.md` and a check that exists, and the wrong reading is kept in
+`variants` rather than deleted. What they add is a rule this canon did not need —
+**a group finding may not be used as a prior about a person** — and a register,
+`emotional/SOURCES.md`, where every figure lives with the study that produced it
+and the limit that study carries. The corpus prose stays digit-free for exactly
+that reason.
+
+`themes/` is unchanged by this. A theme still restates the canon and still cites
+it; a sibling corpus argues with the world, and is held to a different standard.
 
 ## Shipping it: injection, hooks, plugin
 

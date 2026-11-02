@@ -220,6 +220,33 @@ else
 fi
 echo ""
 
+# ─── Check 4c-bis: the sibling corpora ───
+# The canon governs the tree; the two corpora in docs/bible/emotional/ govern what
+# a system may say about a person's feeling. They are read as separate corpora, so
+# a citation may not cross between them, and each carries its own generated
+# edition. A gate that checks only the canon leaves the two newest documents on
+# the honour system -- which is how a corpus acquires a claim nobody can refuse.
+echo "[Bible] Checking the emotional corpora..."
+if [ -f "$SCRIPT_DIR/tools/bible_check.py" ]; then
+    for CORPUS in docs/bible/emotional/emotional.json docs/bible/emotional/female.json; do
+        if [ -f "$SCRIPT_DIR/$CORPUS" ]; then
+            CORPUS_OUT=$("$PY" "$SCRIPT_DIR/tools/bible_check.py" --check --corpus "$SCRIPT_DIR/$CORPUS" 2>&1)
+            CORPUS_EXIT=$?
+            echo "$CORPUS_OUT" | tail -12
+            if [ $CORPUS_EXIT -ne 0 ]; then
+                echo ""
+                echo "[Bible] BLOCKED: $CORPUS contradicts itself (see above)."
+                echo "[Bible] Fix the citation, name the command behind the figure, or"
+                echo "[Bible] regenerate its edition: python tools/bible_check.py --check --corpus $CORPUS"
+                exit 1
+            fi
+        fi
+    done
+else
+    echo "[Bible] gate not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
 # ─── Check 4d: the platform pages still tell the truth ───
 # docs/platforms/ tells a reader how to fit this tree to another machine, and it
 # had already drifted in three ways nobody caught: a command that did not exist

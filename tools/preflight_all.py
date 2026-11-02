@@ -357,6 +357,38 @@ GATES: Tuple[Gate, ...] = (
         requires=("docs/bible/bible.json",),
     ),
     Gate(
+        name="bible-emotional",
+        argv=("tools/bible_check.py", "--check", "--corpus",
+              "docs/bible/emotional/emotional.json"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="docs/bible/emotional/emotional.json -- the affect corpus: citations, "
+              "digit-free prose, statute bindings, and its own generated edition",
+        control_test="tests/test_bible_corpora.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("docs/bible/emotional/emotional.json",),
+    ),
+    Gate(
+        name="bible-female",
+        argv=("tools/bible_check.py", "--check", "--corpus",
+              "docs/bible/emotional/female.json"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="docs/bible/emotional/female.json -- the specialised corpus: citations, "
+              "corrected readings, refusals, and its own generated edition",
+        control_test="tests/test_bible_corpora.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("docs/bible/emotional/female.json",),
+    ),
+    Gate(
         name="platform-claims",
         argv=("tools/platform_claims.py", "--check"),
         interpreter="python3",
@@ -823,7 +855,15 @@ def hook_parity(gates: Sequence[Gate], hook_text: Optional[str]) -> Tuple[bool, 
             only_hook,
             only_registry,
         )
-    return True, "registry matches the hook (%d gates)" % len(registered)
+    # Two rows can share one script: the canon and its sibling corpora are all
+    # judged by tools/bible_check.py with different --corpus arguments. The
+    # distinct-script set is what the hook text can prove; the row count is what
+    # the registry declares, and a reader comparing the message to the table is
+    # counting rows. Report both rather than letting one silently stand for the
+    # other -- the earlier message said "21 gates" beside a table of 23.
+    rows = sum(1 for gate in gates if gate.inside_hook)
+    return True, "registry matches the hook (%d gates, %d distinct scripts)" % (
+        rows, len(registered))
 
 
 # --------------------------------------------------------------------------- #

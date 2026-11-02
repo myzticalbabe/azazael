@@ -960,13 +960,19 @@ def reference_index(books: Sequence[Dict]) -> Dict[str, List[str]]:
 # The readable edition                                                        #
 # --------------------------------------------------------------------------- #
 
-def render_edition(data: Dict) -> str:
+def render_edition(data: Dict, corpus_label: str = "docs/bible/bible.json") -> str:
     """Deterministic markdown: headings in place, notes beside their verse.
 
     Inline notes rather than markdown footnote ids, because ids collide across
     chapters and a section-scoped marker is what a reader wants. Nothing here is
     timestamped: the edition must be byte-identical on a re-run, or the drift
     check would fail on a clock.
+
+    ``corpus_label`` is the path the edition claims to have been generated from.
+    It is a parameter because the header was hard-coded to the canon, and an
+    edition of a second corpus that names the first corpus as its source is a
+    false provenance line -- the kind of defect a reader cannot detect from the
+    file itself.
     """
     cited_by = reference_index(data.get("books", []))
     lines = ["# %s" % data.get("title", "Untitled")]
@@ -977,9 +983,9 @@ def render_edition(data: Dict) -> str:
     lines.extend(["", "Status: **%s** · updated %s." % (data.get("status"),
                                                        data.get("updated")),
                   "",
-                  "_Generated from `docs/bible/bible.json` by "
+                  "_Generated from `%s` by "
                   "`python tools/bible_check.py --render --write`. Do not edit this "
-                  "file: edit the corpus._"])
+                  "file: edit the corpus._" % corpus_label])
     for book in data.get("books", []):
         lines.extend(["", "## %s" % book.get("name", book.get("id")), ""])
         # An unset subtitle would print a bare "### ", which reads as a defect
@@ -1187,19 +1193,56 @@ def _drift(path: Path, expected: str) -> Optional[str]:
     return None
 
 
-def generated_drift(root: Path, data: Dict) -> List[str]:
+def _label(path: Path) -> str:
+    """The corpus path as a reader would type it, for a provenance line."""
+    try:
+        return Path(path).resolve().relative_to(REPO).as_posix()
+    except ValueError:
+        return Path(path).as_posix()
+
+
+def edition_path(corpus_path: Path) -> Path:
+    """The generated edition that belongs to a corpus.
+
+    A second corpus generated into the first corpus's edition would fail every
+    drift check by construction, and a `--write` would overwrite the canon with
+    it. Deriving the name from the corpus keeps one generated file per corpus,
+    and keeps the canonical path byte-identical to the one every earlier
+    reference names.
+    """
+    corpus_path = Path(corpus_path)
+    if corpus_path.resolve() == Path(CORPUS).resolve():
+        return EDITION
+    return corpus_path.parent / (corpus_path.stem.upper() + "_BIBLE.md")
+
+
+def generated_drift(root: Path, data: Dict,
+                    corpus_path: Optional[Path] = None) -> List[str]:
     """Every generated file compared against what this run would write now.
 
     Split out of check() so the comparison can be exercised without a real
     corpus on disk: a drift check that only runs against HEAD cannot be shown
     to fire, and one that has never fired is unknown rather than working.
+
+    ``corpus_path`` defaults to the canon, because that is the corpus the
+    genealogy and the book edition belong to. When it names a different corpus,
+    only that corpus's own edition is compared: holding an alternate corpus to
+    the canon's generated file compares two different documents and calls the
+    difference staleness.
     """
     problems: List[str] = []
-    for path, expected in (
-            (Path(root) / "docs" / "bible" / "GENEALOGY.md",
-             render_genealogy(*import_graph(Path(root) / "src"))),
-            (Path(root) / "docs" / "bible" / "BOOK_OF_THE_TREE.md",
-             render_edition(data))):
+    canonical = corpus_path is None or \
+        Path(corpus_path).resolve() == Path(CORPUS).resolve()
+    expected_files = [(Path(root) / "docs" / "bible" / "GENEALOGY.md",
+                       render_genealogy(*import_graph(Path(root) / "src")))]
+    if canonical:
+        expected_files.append((Path(root) / "docs" / "bible" / "BOOK_OF_THE_TREE.md",
+                               render_edition(data)))
+    else:
+        label = _label(Path(corpus_path))
+        expected_files.append((edition_path(Path(corpus_path)),
+                               render_edition(data, label)))
+    for path, expected in expected_files:
         problem = _drift(path, expected)
         if problem:
             problems.append(problem)
@@ -1214,7 +1257,7 @@ def check(root: Path = REPO, corpus_path: Path = CORPUS) -> Tuple[bool, List[str
     except CorpusError as exc:
         return False, [str(exc)]
     messages: List[str] = []
-    problems = generated_drift(root, data)
+    problems = generated_drift(root, data, corpus_path)
     # The harvest ledger is generated too. A corpus that cites evidence from a
     # ledger nobody regenerated is the same defect as a stale genealogy: the
     # citations still parse and no longer describe the sources.
@@ -1264,7 +1307,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--corpus", default=str(CORPUS))
     args = parser.parse_args(argv)
 
-    corpus_path = Path(args.corpus)
+    corpus_path = Path(args.corpus).resolve()
     if args.genealogy:
         edges, unreadable = import_graph()
         text = render_genealogy(edges, unreadable)
@@ -1292,11 +1335,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("clean" if ok else "FAILED")
         return 0 if ok else 1
     if args.render:
-        text = render_edition(data)
+        text = render_edition(data, _label(corpus_path))
         if args.write:
-            EDITION.parent.mkdir(parents=True, exist_ok=True)
-            EDITION.write_text(text, encoding="utf-8", newline="\n")
-            print("wrote %s (%d lines)" % (EDITION.relative_to(REPO),
+            target = edition_path(corpus_path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text, encoding="utf-8", newline="\n")
+            print("wrote %s (%d lines)" % (target.relative_to(REPO),
                                            len(text.splitlines())))
             return 0
         sys.stdout.write(text)
