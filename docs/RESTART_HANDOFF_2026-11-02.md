@@ -82,11 +82,14 @@ it to make a tree fit turns a measurement into a preference.
 | 47199 | `djt-iea-rederive` | verify | the 415/945 TWh figures were never fetched from the report body |
 | 47200 | `prose-splitter` | improve | guarded splitter; `--compare` shows all twelve metrics, not five |
 | 47201 | `corpus-2015-arm` | build | 2015 arm via the APP archive (`time.com` → 406) |
-| — | `shx-r1` | prove | third implementation reproduces a golden hash from the artifact alone |
-| — | `shx-r2` | falsify | perturb-and-predict scorer over the 5 extracted rules |
-| — | `shx-r3` | measure | real-tree intake: shard ids byte-identical on a second run |
-| — | `shx-r4` | design | the interaction law between two arenas, hashed and replayable |
-| — | `shx-r5` | reframe | the op log as an addressable program (`shardscript.json`) |
+| 47409 | `shardex-r1` | prove | third implementation reproduces a golden hash from the artifact alone |
+| 47411 | `shardex-r2` | falsify | perturb-and-predict scorer over the 5 extracted rules |
+| 47413 | `shardex-r3` | measure | real-tree intake: shard ids byte-identical on a second run |
+| 47415 | `shardex-r4` | design | the interaction law between two arenas, hashed and replayable |
+| 47417 | `shardex-r5` | reframe | the op log as an addressable program (`shardscript.json`) |
+| 47419 | `promptcheck-blind-fresh-host` | decide | `state/head.json` is gitignored, so a fresh host reaches the prompt gate BLIND (exit 2) |
+| 47421 | `handoff-expiry-and-failures` | add | this file lacks an expiry line and an *attempted and failed* section, which block 0.5 requires |
+| 47423 | `unified-cli-exemption` | resolve | `tools/unified_cli.py:68` carries a standing failure-evidence exemption; implement the bound or date the exemption |
 
 Blocking order is real: `jaeger-001..003` sit behind `jaeger-000`, and `jaeger-003` should not start
 before `g2-receipt`, because an exporter with no receipt discipline produces spans nobody can audit.
