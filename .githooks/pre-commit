@@ -247,6 +247,30 @@ else
 fi
 echo ""
 
+# ─── Check 4c-ter: the themed corpora ───
+# docs/bible/themes/ holds two editions that restate the canon in another
+# register. They were gated by nothing at all: no stanza here, no registry row,
+# only a test nobody's commit runs -- and `bible_check.py --check` cannot see
+# them, because they are not books of the corpus it loads. A themed verse must
+# cite a verse of the base corpus and its statute must land on a rule canon
+# defines; that is precisely the check a derived corpus has to pass, and it was
+# the one check the derived corpora were not subject to.
+echo "[Bible] Checking the themed corpora..."
+if [ -f "$SCRIPT_DIR/tools/bible_theme.py" ]; then
+    THEME_OUT=$("$PY" "$SCRIPT_DIR/tools/bible_theme.py" --all --check 2>&1)
+    THEME_EXIT=$?
+    echo "$THEME_OUT" | tail -20
+    if [ $THEME_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Bible] BLOCKED: a themed corpus is not derived from the base corpus."
+        echo "[Bible] python tools/bible_theme.py --all --check"
+        exit 1
+    fi
+else
+    echo "[Bible] gate not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
 # ─── Check 4d: the platform pages still tell the truth ───
 # docs/platforms/ tells a reader how to fit this tree to another machine, and it
 # had already drifted in three ways nobody caught: a command that did not exist
