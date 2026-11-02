@@ -335,3 +335,13 @@ state/*
 /chromedriver-win64/
 docs/_shard01_frames/
 *.backup2
+
+# scratch from the 2026-11-02 mutation + prose work: every one of these is regenerable from
+# the committed source (meshscene.py --forge, capture_transubstantiation.js, prose_forensics.py)
+# except the encoded mp4, which is a local viewing copy, not evidence -- the evidence is
+# applied_ops.jsonl + picked.json + mesh.json + the digests in the commit message.
+/.live/
+/.live_pick/
+/.prose/
+/.transub/
+/.tmp_mirror/
