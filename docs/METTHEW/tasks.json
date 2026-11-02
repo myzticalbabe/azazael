@@ -561,7 +561,7 @@
       "title": "Swordline: the fixed-step orchestrator, with rate and acceleration invariance proved",
       "owner": "freebuff",
       "depends_on": [],
-      "deliverable": "tools/sword_engine.py (DELIVERED 2026-11-01): exact rational clock over NTSC 60000/1001 Hz, a Session frame pump that never loses a remainder, a tick-exact comparison path, a Machine seam four methods wide (`reset`/`step`/`state_hash`/`snapshot`) that the 2600 sim plugs into at M-34, and `--verify` running the invariance matrix",
+      "deliverable": "Project_FLAME/tools/flame_engine.py (DELIVERED 2026-11-01; the game engine belongs to Project FLAME, not FLAMING SWORD): exact rational clock over NTSC 60000/1001 Hz, a Session frame pump that never loses a remainder, a tick-exact comparison path, a Machine seam four methods wide (`reset`/`step`/`state_hash`/`snapshot`) that the 2600 sim plugs into at M-34, and `--verify` running the invariance matrix",
       "acceptance": "DONE 2026-11-01 -- slicing invariance holds (60/120/144/240 fps deliver identical tick counts and identical state hashes at 1x, 2x and 8x); acceleration equivalence holds (the same tick count reached at 1x and 8x gives the same state, in 600 vs 75 frames); no tick served twice and none skipped; the negative control (a clock that assumes every display is 60 Hz, right at 60 fps and 4x too fast at 240 fps) is CAUGHT",
       "evidence": {
         "selftest": "SELFTEST OK (9 clock controls, 3 machine controls, 4 schedule controls)",

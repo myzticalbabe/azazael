@@ -1,4 +1,4 @@
-"""Controls for the Swordline orchestrator (`tools/sword_engine.py`).
+"""Controls for the Project FLAME orchestrator (`Project_FLAME/tools/flame_engine.py`).
 
 The engine's whole claim is that presentation rate and acceleration change *when*
 simulated time is delivered, never *which* instants. These tests make that claim
@@ -16,11 +16,11 @@ import sys
 import pytest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-TOOL = REPO / "tools" / "sword_engine.py"
+TOOL = REPO / "Project_FLAME" / "tools" / "flame_engine.py"
 
 
 def load_tool():
-    spec = importlib.util.spec_from_file_location("sword_engine", TOOL)
+    spec = importlib.util.spec_from_file_location("flame_engine", TOOL)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # coding: utf-8
-"""sword_engine -- the Swordline: a fixed-step orchestrator for accelerated play.
+"""Project FLAME -- the fixed-step orchestrator for accelerated play.
+
+FLAME is the gaming project: the engine and the shard conversion. FLAMING SWORD is the
+code-fixing project, and the two meet at exactly one seam -- this file's `Machine`
+protocol. FLAME does not care how a `step()` was obtained (dissected by the sword,
+captured from a cartridge at M-34, or written by hand), and the sword does not care what
+schedules it. That seam is why they can be separate projects without either being
+incomplete.
 
 "Bleeding-edge accelerated gameplay" is a claim about SCHEDULING, and scheduling is the
 one part of a game that can be proved rather than felt. This module is the clock and the
@@ -41,9 +48,9 @@ that the SCHEDULER is rate-independent -- not that any particular game is faithf
 
 Usage
 -----
-  python tools/sword_engine.py --verify            # the invariance matrix + control
-  python tools/sword_engine.py --demo              # one run, human readable
-  python tools/sword_engine.py --selftest          # clock and machine controls
+  python Project_FLAME/tools/flame_engine.py --verify     # the invariance matrix + control
+  python Project_FLAME/tools/flame_engine.py --demo       # one run, human readable
+  python Project_FLAME/tools/flame_engine.py --selftest   # clock and machine controls
 
 Exit codes: 0 verified, 1 a control or the matrix failed, 2 unusable arguments.
 """
