@@ -1,0 +1,112 @@
+{
+ "clock": {
+  "hook": "window.__step",
+  "line": 226
+ },
+ "fidelity": "RULES-EXTRACTED: phases, seed, entity table and branch law are read from the source and carry their line numbers. No pixel, colour ramp, sprite or label is carried -- the 3D figure is rebuilt from the rule, not rendered from the source.",
+ "fractal": {
+  "leaf_per_tip": 3,
+  "len_shrink_base": 0.68,
+  "len_shrink_jitter": 0.12,
+  "len_shrink_line": 81,
+  "root_call_line": 86,
+  "root_depth": 4,
+  "root_len": 150,
+  "root_width": 26,
+  "width_shrink": 0.66
+ },
+ "limbs": [
+  {
+   "hue": "#7df9ff",
+   "name": "worms",
+   "side": -1,
+   "spread": 0.34,
+   "src": "CORE/WORMS"
+  },
+  {
+   "hue": "#7df9ff",
+   "name": "orchestration",
+   "side": 1,
+   "spread": 0.3,
+   "src": "ORCHESTRATION"
+  },
+  {
+   "hue": "#00ffa3",
+   "name": "codex",
+   "side": -1,
+   "spread": 0.52,
+   "src": "CODEX"
+  },
+  {
+   "hue": "#00ffa3",
+   "name": "cli",
+   "side": 1,
+   "spread": 0.55,
+   "src": "CLI"
+  },
+  {
+   "hue": "#ffd479",
+   "name": "tools",
+   "side": -1,
+   "spread": 0.7,
+   "src": "TOOLS"
+  },
+  {
+   "hue": "#ffd479",
+   "name": "klink",
+   "side": 1,
+   "spread": 0.72,
+   "src": "UTILITIES/KLINK"
+  },
+  {
+   "hue": "#ff7ad9",
+   "name": "persephone",
+   "side": -1,
+   "spread": 0.88,
+   "src": "UTILITIES/PERSEPHONE"
+  },
+  {
+   "hue": "#ff7ad9",
+   "name": "poindexter",
+   "side": 1,
+   "spread": 0.86,
+   "src": "UTILITIES/POINDEXTER"
+  },
+  {
+   "hue": "#c4b5fd",
+   "name": "tarbaby",
+   "side": -1,
+   "spread": 1.04,
+   "src": "UTILITIES/TARBABY"
+  },
+  {
+   "hue": "#c4b5fd",
+   "name": "terence",
+   "side": 1,
+   "spread": 1.02,
+   "src": "UTILITIES/TERENCE"
+  }
+ ],
+ "phase_lines": {
+  "GROW": 42,
+  "HOLD": 42,
+  "LABEL": 42
+ },
+ "phases": {
+  "GROW": 30000,
+  "HOLD": 7000,
+  "LABEL": 8000,
+  "TOTAL": 45000
+ },
+ "seed": {
+  "fn": "mulberry32",
+  "line": 39,
+  "value": 20261028
+ },
+ "shape": "shardex-2d-rules-v1",
+ "source": {
+  "bytes": 12709,
+  "path": "docs/YGGDRASIL_CLEAVE.html",
+  "sha256": "81e1dabe48223b8756f22e76ca17bcac2dc4ecbf6e4edcfebaf88605b47187ea"
+ }
+}

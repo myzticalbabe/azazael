@@ -130,6 +130,78 @@ dominate the payload, and shards whose entrypoint is a shader or a data file rat
 code. **The low-end ceiling is not raised to make a tree fit** — the ceiling is the
 contract the validator enforces, and moving it turns a measurement into a preference.
 
+## Transubstantiation: a 2D animation becomes a 3D one (SHX-6, narrow slice)
+
+`shardex.py --forge` generates an arena *from* a shard: its own `fidelity` field says the
+original rules are not extracted. `transubstantiate.py` is the other direction and does one
+thing: read a 2D canvas animation, **extract the rules that make it move**, and emit a 3D
+scene obeying the same rules on the same clock.
+
+```bash
+python Project_SHARDEX/transubstantiate.py --extract <animation.html> --out .transub/rules.json
+python Project_SHARDEX/transubstantiate.py --forge .transub/rules.json --out .transub
+python Project_SHARDEX/transubstantiate.py --bind-shard .transub/shards/<id>/shard.json \
+        --forge .transub/rules.json
+NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js .transub 240
+python Project_SHARDEX/transubstantiate.py --verify .transub
+python Project_SHARDEX/transubstantiate.py --selftest
+```
+
+**The extraction contract is five rules, and a missing one is a refusal, not a default.**
+A deterministic clock (`window.__step(ms)` or `draw(p)`), phase constants (`GROW`/`LABEL`/
+`HOLD`), a seed (`mulberry32(<int>)`), an entity table (`LIMBS = [["name", side, spread,
+"#hex", "path"], …]`), and a root `branch(...)` call with a length-shrink expression. Each
+extracted rule records the **line that proves it**. `--selftest` runs a positive fixture, a
+negative control (a source with no clock, which must be REFUSED) and a tamper check.
+
+**What verification actually checks is a differential between two implementations.**
+`golden3d.json` holds a quantised geometry digest and the projected state at three ticks (one
+in GROW, one in LABEL, one in HOLD). `capture_transubstantiation.js` reads `window.__geo()`
+and `window.__state(tick)` from the live page and writes `browser_probe.json`; `--verify`
+refuses when the two disagree. That refusal earned its keep on the first run: the Python port
+of mulberry32 was wrong (476 segments against the browser's 489), then the digest stream was
+wrong (`%.4f` vs `toFixed`, and a `|`-joined list against a `|`-suffixed one). Both were
+found by the cross-check and by nothing else.
+
+Measured on `docs/YGGDRASIL_CLEAVE.html` (sha256 `81e1dabe48223b87…`, 10 limbs, seed
+20261028, 30 000/8 000/7 000 ms): **489 segments, 822 leaves, geometry digest
+`69b9d1ad4c93d173`, browser cross-check MATCH**, 240 frames → 1920×1080 H.264, 3.6 MB, 24 fps,
+decoded and read back. The `*.mp4` and the frames are gitignored local artifacts; regenerate
+with the four commands above.
+
+**Fidelity, stated rather than implied:** phases, seed, entity table and branch law are
+carried with evidence. No pixel, colour ramp, sprite or label is carried. In 3D the limb
+`spread` rule becomes the outward tilt of a ring around the trunk, because the 2D source fans
+limbs across the single axis it has; that mapping is a documented interpretation, not an
+extracted constant.
+
+## A question this pipeline has to answer honestly: images, and mid-flight mutation
+
+> Could a shard be built from a **single image**, and could modifications — morph, mutate,
+transmogrify — be applied **mid-flight** while it renders?
+
+Mirroring an image directory already works (`--mirror` classifies `.png`/`.jpg` as `asset`
+and carries it for provenance, never executes it). Everything after that is unbuilt, and the
+honest answer separates the three parts:
+
+1. **Image → rules.** A new extractor (`shardex-image-rules-v1`), because the current
+   contract is a *clock and a branch law* and an image has neither. It needs a height field
+   (luminance or edge energy on a grid), a palette from quantised hues, and a symmetry axis.
+   No new dependency is required: the capture harness already runs Chromium, so the decoder
+   is `drawImage` + `getImageData` in the page and the field arrives as JSON.
+2. **Mid-flight mutation.** This is the part the current scene *nearly* has and does not:
+   `draw(p)` is a pure function of tick, so a mutation layer would sit between tick and draw
+   as `{at_tick, warp, palette_shift, scale, spin}` and be **golden-hashed like the base
+   scene** — a mutation that cannot be verified is a change nobody can review. Nothing writes
+   into a running scene today; changing the scene means re-forging it offline.
+3. **Fully rendered.** Already true, and measured: the tick clock is driven from outside the
+   page, so 240 frames encode to H.264 and decode back. "Fully rendered mid-flight mutation"
+   is one layer above a renderer that already works.
+
+So: possible, half-built, and the half that exists is the hard half (determinism, golden
+hashes, refusal, cross-language verification). Treat the image extractor and the mutation
+seam as the next increment, not as features.
+
 ## Uninstall
 
 Delete `Project_SHARDEX/` and any `.shardex/` or `flame/` directory you generated. There
