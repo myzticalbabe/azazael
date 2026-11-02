@@ -58,6 +58,12 @@ UNMEMORED = "UNMEMORED"
 STATE_DAY_DIR = ".flaming_sword"
 FRAMES_FILE = "frames.jsonl"
 LESSONS_FILE = "lessons.jsonl"
+VERIFICATIONS_FILE = "verifications.jsonl"
+
+#: Appending the same lesson twice is how a ledger becomes noise: the reader sees
+#: "learned 40 times" and stops believing any of it. Content is hashed and an exact
+#: repeat is skipped (the estate's own dedupe rule, and the reason a count means count).
+import hashlib  # noqa: E402  (kept beside the constant it serves)
 
 _COMMAND_TIMEOUT = 20
 
@@ -190,12 +196,75 @@ def recall(query: str, jsonl: Optional[str] = None, command: Optional[str] = Non
 # Writing
 # --------------------------------------------------------------------------- #
 
+def _append(state_dir: Optional[str], filename: str, entry: Dict[str, Any]) -> Dict[str, Any]:
+    directory = Path(state_dir) if state_dir else Path.cwd() / STATE_DAY_DIR
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / filename
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, sort_keys=True) + "\n")
+    return {"path": str(path), "bytes": path.stat().st_size, "entry": entry}
+
+
+def record_lesson(content: str, kind: str = "lesson", tags: Optional[Sequence[str]] = None,
+                  trigger: str = "", state_dir: Optional[str] = None) -> Dict[str, Any]:
+    """Write a lesson to `.flaming_sword/lessons.jsonl`, which recall reads.
+
+    WHY THIS EXISTS: the bridge could read a ledger and nothing ever wrote one, so every
+    run reported UNMEMORED and the honesty of that report hid an empty pipe. A memory is
+    only a memory when the loop closes -- so the loop closes here, at the moment a
+    verification fails or a task lands, not at the end of a session.
+    """
+    text = (content or "").strip()
+    if len(text) < 24:
+        raise ValueError("a lesson under 24 characters decides nothing: %r" % text)
+    digits = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+    directory = Path(state_dir) if state_dir else Path.cwd() / STATE_DAY_DIR
+    ledger = directory / LESSONS_FILE
+    if ledger.exists():
+        records, _error = _read_jsonl(ledger)
+        for record in records:
+            if record.get("sha") == digits:
+                return {"path": str(ledger), "skipped": "duplicate", "sha": digits,
+                        "entry": record}
+    from datetime import datetime, timezone
+
+    entry = {"sha": digits, "content": text, "kind": kind, "tags": list(tags or []),
+             "trigger": trigger,
+             "written_at": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+    written = _append(state_dir, LESSONS_FILE, entry)
+    written["skipped"] = ""
+    return written
+
+
+def record_verification(frame_id: str, command: str, exit_code: int,
+                        observed: str = "", state_dir: Optional[str] = None) -> Dict[str, Any]:
+    """Record whether the acceptance command was actually run, and with what result.
+
+    A mismatch is written as a LESSON automatically. That is the authorship campaign in
+    one line: the thing that went wrong is stored where the next frame will recall it,
+    without a human remembering to write it down.
+    """
+    verdict = "VERIFIED" if exit_code == 0 else "FAILED"
+    entry = {"frame_id": frame_id, "command": command, "exit_code": int(exit_code),
+             "observed": (observed or "")[:500], "verdict": verdict}
+    written = _append(state_dir, VERIFICATIONS_FILE, entry)
+    written["verdict"] = verdict
+    if verdict == "FAILED":
+        written["lesson"] = record_lesson(
+            "the acceptance command for frame %s exited %d: %s" % (frame_id, exit_code,
+                                                                  command),
+            kind="failed-verification", tags=["verification", "frame"],
+            trigger=command, state_dir=state_dir)
+    return written
+
+
 def record(frame: Dict[str, Any], state_dir: Optional[str] = None) -> Dict[str, Any]:
     """Append one frame to `.flaming_sword/frames.jsonl`. Returns where it landed."""
     directory = Path(state_dir) if state_dir else Path.cwd() / STATE_DAY_DIR
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / FRAMES_FILE
     entry = {
+        "frame_id": frame.get("frame_id"),
         "intent": frame.get("intent"),
         "target": frame.get("target"),
         "defends": frame.get("defends"),
