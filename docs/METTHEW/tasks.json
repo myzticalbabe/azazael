@@ -794,6 +794,43 @@
       "risk": "the command adapter is a shell string and therefore an injection surface; it is only ever fed a command the operator typed, never a prompt-shaped value",
       "status": "completed",
       "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-47",
+      "track": "X",
+      "title": "PROJECT CRADLE: the composition, one launcher, one endpoint for the user's own model",
+      "owner": "freebuff",
+      "depends_on": [
+        "M-41",
+        "M-45",
+        "M-46"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "Project_CRADLE/cradle.py (--doctor, --demo, --serve), Project_CRADLE/CRADLE.md, and Project_FLAMING_SWORD/tools/chain_server.py: GET /health, GET /frames, POST /aio, POST /ask, POST /verify, speaking the OpenAI chat shape every local runtime already implements; frame ids; lessons and verifications written by the chain itself",
+      "acceptance": "`python Project_CRADLE/cradle.py --demo` exits 0 and its five steps include a FAILED verification that writes a recallable lesson and a ghost target BLOCKED with no prompt; `POST /ask` with no --model-url returns HTTP 503 with a reason and no answer field (2 runs, 2 verdicts)",
+      "control": "remove Project_FLAMING_SWORD/tools/sentinel.py and require --doctor to exit 1, then point /ask at nothing and require 503 rather than an echoed prompt",
+      "refusal": "BLOCK /aio and /ask with 422 and no aio field when the frame or the sentinel refuses, and BLOCK /ask with 503 when no model is configured -- a model's text is never stored as verified",
+      "evidence": "Project_CRADLE/tests/test_cradle.py and Project_FLAMING_SWORD/tests/test_chain_server.py, plus the --demo output in the commit's Verified: line",
+      "risk": "the server binds a local port with no authentication and runs the commands it is given; it defaults to 127.0.0.1 and the help text states what --host 0.0.0.0 costs",
+      "status": "completed",
+      "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-48",
+      "track": "X",
+      "title": "A sentinel for the inference, not just the frame",
+      "owner": "deepseek",
+      "depends_on": [
+        "M-47"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "a session-start assertion over the runtime the chain actually talks to: which model answered, which base URL, a hash of the system instruction, the context budget actually granted, and whether the response shape matched the contract",
+      "acceptance": "`python tools/inference_sentinel.py --check` exits 0 with a configured endpoint and prints model, endpoint, instruction sha and context window; pointing it at a model name the endpoint does not serve exits 1 naming the mismatch (2 runs, 2 exits)",
+      "control": "change one character of the served system instruction and require the sha assertion to REFUSE the run rather than warn",
+      "refusal": "BLOCK a run whose model or instruction hash differs from the one recorded for the frame, because 'the model that answered' is part of the claim and today nothing asserts it",
+      "evidence": "tools/inference_sentinel.py --selftest output plus the /health stanza of chain_server.py naming model and endpoint",
+      "risk": "a hash of the system instruction changes whenever the AIO changes, so the assertion must be per-frame rather than global or it will be disabled on the second day",
+      "status": "pending"
     }
   ],
   "contract_changes_decided": {

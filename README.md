@@ -4,6 +4,8 @@
 
 **This repository is the Trunk.** Azazael is the Tree-of-Life the other packages grow from: `Project ELIZA` is the forensic investigation suite, `Project Nurse Ratchet` is the behavioral package, and both are declared in [`docs/AZAZAEL_TREE_OF_LIFE.md`](docs/AZAZAEL_TREE_OF_LIFE.md). The reference build is tuned to **this box** (Intel Core Ultra 9 285H / Arc 140T, Windows, 3.15t) — to fit a different machine, start at [`docs/platforms/README.md`](docs/platforms/README.md) and run `python tools/box_profile.py` before changing anything.
 
+**PROJECT CRADLE** — the cradle that holds a user's work and hands it to the model they already run — ships beside the trunk: FLAMING SWORD (the codebase sweeper), the defender (a user prompt becomes a frame), the sentinel (the frame's claims are stat'ed), and memory (recalled, or reported UNMEMORED with its reason), behind three commands that need no build, no key and no network: `python Project_CRADLE/cradle.py --doctor` / `--demo` / `--serve --model-url <openai-compatible>`. Start at [`Project_CRADLE/CRADLE.md`](Project_CRADLE/CRADLE.md).
+
 Azazael is an autonomous system administration framework built on a **worm ecosystem** — self-contained, self-registering modules that discover, monitor, analyze, and heal computing environments. Built for free-threaded Python — 3.15t in production, with a same-version GIL sidecar for comparison — Azazael achieves true parallel execution across CPU, GPU, and NPU devices without the Global Interpreter Lock. (3.14t was retired on 2026-10-19; see `SYSTEM_INSTRUCTIONS.md` → INTERPRETER POLICY.)
 
 ---
@@ -285,6 +287,7 @@ as the correct job definition for the day `origin` becomes a host; its header sa
 | Tree of Life — which project is which | `docs/AZAZAEL_TREE_OF_LIFE.md` |
 | Packaging plan — what ships, what does not | `docs/PACKAGING_PLAN.md` |
 | The Bible — corpus, checker, generated genealogy | `docs/bible/README.md` |
+| Fitting the tree to another box — per-platform guides and their claim ledger | `docs/platforms/README.md` |
 | Session Startup | `SESSION_STARTUP.md` (root) |
 | SOP & Governance | `SOP.md` (root) |
 | Conversion Plans | `docs/RUST_CONVERSION_PLAN.md` |

@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import re
 import sys
@@ -104,6 +105,11 @@ def frame(intent: str, target: str, evidence: str, defends: Sequence[str],
     """Assemble the frame. Refuses to emit one that cannot bear weight."""
     frame_obj: Dict[str, Any] = {
         "shape": "defensive-v1",
+        # A frame needs an identity or "the sentinel approved this" is unprovable after
+        # the fact: verification, the commit message and the lesson ledger all refer to
+        # this id, and it is derived from the frame's own content so the same frame
+        # written twice is the same id.
+        "frame_id": _frame_id(intent, target, acceptance),
         "intent": intent,
         "target": target,
         "defends": list(defends),
@@ -124,6 +130,11 @@ def frame(intent: str, target: str, evidence: str, defends: Sequence[str],
         return frame_obj
     frame_obj["prompt"] = render(frame_obj)
     return frame_obj
+
+
+def _frame_id(intent: str, target: str, acceptance: str) -> str:
+    blob = "|".join(part.strip() for part in (intent, target, acceptance))
+    return "f-" + hashlib.sha256(blob.encode("utf-8")).hexdigest()[:12]
 
 
 def default_refusal(acceptance: str) -> str:

@@ -645,6 +645,35 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=("Project_FLAMING_SWORD/tools/memory_bridge.py",),
     ),
+    Gate(
+        name="cradle-demo",
+        # PROJECT CRADLE is the composition -- sword + defender + sentinel + memory behind
+        # one command -- and this gate runs its demo, which is the only end-to-end proof
+        # in the tree: a real frame, a real verification that FAILS on purpose, the lesson
+        # that failure writes, the recall of that lesson, and a ghost target BLOCKED with
+        # no prompt rendered. It needs no model, no network and no arguments, so it can
+        # run on every commit.
+        #
+        # The HTTP surface is covered by Project_CRADLE's tests rather than here: a gate
+        # that binds a port on every commit is a gate that collides with itself.
+        argv=("Project_CRADLE/cradle.py", "--demo"),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=True,
+        slow=False,
+        reads=("a temp directory only; it writes frames, verifications and lessons there "
+               "and deletes them"),
+        control_test="Project_CRADLE/tests/test_cradle.py",
+        control=None,
+        uncontrolled_because=(
+            "the demo IS the control run: it requires a deliberate FAILED verification "
+            "to produce a lesson and a ghost target to be BLOCKED, and it exits 1 if "
+            "either stops happening; tests/test_cradle.py adds the broken-installation "
+            "case (a missing part must make --doctor exit 1)"
+        ),
+        requires=("Project_CRADLE/cradle.py",),
+    ),
 )
 
 
