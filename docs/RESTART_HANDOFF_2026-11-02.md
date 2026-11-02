@@ -16,13 +16,86 @@ Written for the next session. **HEAD at handoff is the commit containing this fi
 - `Project_SHARDEX/tests/test_mesh_live.py` — **14 pass**; `tests/test_prose_forensics.py` — **6 pass**.
 - `python Project_SHARDEX/meshscene.py --verify .live_pick` → **VERIFIED**, chain
   `69da083da4268ec8`, final mesh `110df7ea0bb30364` (`.live_pick` is gitignored but present locally).
-- `tools/preflight_all.py` → **24 of 25 PASS**; the one FAIL is `transcript-ap5`, which reports two
-  historical "Want me to…" lines in another session's stored transcript. Not introduced by this
-  work and not blocking — leave it visible rather than suppress it.
+- `tools/preflight_all.py` → **34 gates, 0 failures, 0 blind** (self-test). The "24 of 25" figure
+  this line carried earlier is a count from BEFORE the prompt gate was registered; the registry now
+  holds 34 rows. It is kept here as a warning, not a number to quote: a gate count changes when a
+  gate is added, and quoting the old one is the defect `tools/prompt_check.py` was built to catch.
+  The one FAIL to expect is `transcript-ap5`, which reports two historical "Want me to…" lines in
+  another session's stored transcript — not introduced by this work, not blocking, leave it visible.
+
+### Receipts for the figures above — re-run 2026-11-02 at `b1784556`
+
+| claim | command | what it printed |
+| --- | --- | --- |
+| the two SHARDEX suites pass | `python -m pytest Project_SHARDEX/tests/test_mesh_live.py tests/test_prose_forensics.py -q` | `20 passed in 0.40s` (14 + 6) |
+| the gate registry is healthy | `python tools/preflight_all.py --self-test` | `34 gate(s), 0 failure(s), 0 blind` |
+| the instruction files resolve their claims | `python tools/prompt_check.py` | `clean -- 7 prompt(s), 0 defect(s)` |
+| every generated block matches its source | `python tools/agent_orders_sync.py --check --wsl` | `60 target(s) in sync, 0 problem(s)` |
+| the recorded reading describes this tree | `python tools/head_state.py --check` | `clean -- head b1784556, 6,308 tests, 204 skills` |
+
+The `.live_pick` chain (`69da083da4268ec8`) is **not** re-verified here: the directory is gitignored
+and may have been removed. Treat that line as a claim from the session that produced it, and re-run
+`meshscene.py --verify .live_pick` before relying on it.
+
+## Expiry
+
+The numbers in this file are a reading of the tree at `b1784556` on 2026-11-02. Re-measure before
+quoting any of them if **any** of these is true:
+
+- two or more commits have landed after `b1784556`;
+- `python tools/head_state.py --check` reports a problem;
+- the date is after **2026-11-09**.
+
+Re-measure with `python tools/head_state.py --write`, then re-run the five receipt commands above.
+A figure in this file without a date and a command is a rumour wearing knowledge.
+
+## Attempted and failed — 2026-11-02
+
+Each line is work that did not land, so the next session does not spend the same cycle. The
+replacement is what is in the tree now.
+
+1. **A tracked seed reading for the prompt gate.** Rejected: a seed is stale by construction and
+   would be compared against as if current. Replaced by the gate recording its own reading with
+   `head_state.py --write` when `state/head.json` is absent — 12.0 s cold, once per host.
+2. **`(\d{2,4}(?:,\d{3})*)` for thousand-separated counts.** The engine rejected `6,27` and settled
+   on the tail `277`, so `6,277` read as 277 and every honest count failed while a stale count
+   ending in the recorded digits passed. Caught by the gate's own control, not by review. Fixed by
+   putting the thousands branch first and excluding `,` from the lookbehind.
+3. **A dating window that ended at the matched number.** `"5,380 tests existed (measured
+   2026-10-30)"` failed every time, because the date sits AFTER the count. Fixed by ending the
+   window at end-of-line, and by letting a section heading date the table beneath it.
+4. **`except (OSError, TimeoutExpired): return False` in the git resolver.** The staged scanner
+   refused it, correctly: "the commit does not resolve" and "git could not be asked" are different
+   findings. Now raises `Blind` and the CLI exits 2.
+5. **Four fabricated defaults in `head_state.py`** — `0` skills, `""` digest, `None` count, and a
+   swallowed subprocess failure. A default is indistinguishable from a measurement once written into
+   the state file. All four now raise `ReadingError`, and the CLI reports BLIND.
+6. **First `prompt_check` run reported 46 defects, some of them false.** Paths written relative to
+   `C:/Azazael` (`azazael/MANDATES.md`), bare filenames (`SKILL.md`), output paths under `logs/`, and
+   Kali-only trees were all called dead. A gate that cries on correct instructions is switched off
+   within a day, so the resolver learned four honest rules instead of the gate learning to ignore
+   itself.
+7. **A bulk commit (9 files) was refused by the changeset-focus gate.** Declared
+   `ALLOW_BULK_COMMIT=1` in the message and named why the set could not be split, per canon.
+8. **Both WSL lanes carried none of the new blocks** (Ubuntu `/root/AGENTS.md`, Kali
+   `/root/BCC-REINVESTIGATION/AGENTS.md`). `agent_orders_sync.py --apply --wsl` wrote 8 blocks to
+   each; the pre-commit had been failing on drift that no Windows-only check could see.
+9. **32 unrelated files silently entered the index** before a commit (other lanes' work). `git add`
+   had been run on paths but a previous gate left the index populated. Fixed with `git reset` then
+   staging by path, and `git diff --cached --name-only` is now the check, not `git status | head`.
+10. **Four staged files were swept into another lane's commit** (`b1784556`, "Housekeeping: session
+    end"), so the change landed but its message did not. The index is shared between lanes. Verify
+    `git log --oneline -1` names YOUR commit before claiming a commit landed.
+11. **A board `claim ... 10` claimed seven rows that were not being worked.** Released the seven
+    (`release` returns them to `available`), retired the one. Claim a batch only when the batch is
+    the work.
 - Board: row **47187** (`industry_standards_analysis`) is deliberately **pending** — it must run
   *after* startup so it measures the post-session tree. Row 47189/47190 are announcements.
 
 ## Open items, in the order I would take them
+
+(47419 is retired — the prompt gate records its own reading now. The rows below and the SHARDEX
+rows are claimable on the board; `claim freebuff 10` hands them out oldest-first.)
 
 1. **IMP-2 — `--verify` still trusts its inputs.** `mesh.json`, `field.json` and
    `applied_ops.jsonl` could be edited consistently and verify would pass. Fix: have the page report
