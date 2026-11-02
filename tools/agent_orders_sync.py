@@ -61,8 +61,32 @@ ORDERS = ROOT / "docs" / "agent_orders"   # TRACKED: `state/` is gitignored, and
                                         # cannot be reviewed or reverted either
 HOME = Path.home()
 
+#: Blocks that must sit at the TOP of a file, not where an editor happened to leave
+#: them. A precedence statement appended under 20 KB of canon is a precedence
+#: statement nobody reaches: measured 2026-11-02, the seven canon documents the
+#: session order names total 1.12 MB (~280k tokens), so a zero-shot session that
+#: reads top-down meets the operating contract last or never. For these keys the
+#: sync will INSERT the block when its markers are absent (a missing block is
+#: still reported for every other key, because where those sit is editorial).
+PREPEND = {"start-here"}
+
 #: block key -> (source file name, [target instruction files])
 TARGETS = {
+    # Added 2026-11-02 on user directive: "clear the field for next session ... with
+    # needed zero-shot prompts". The other blocks explain why a rule exists; this one
+    # is the contract a fresh model acts on before reading any of them.
+    "start-here": (
+        "01_start_here.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
     "session-order": (
         "00_session_order.md",
         [
@@ -112,8 +136,44 @@ TARGETS = {
             HOME / ".codebuff/rules.md",
         ],
     ),
+    # Added 2026-11-02 after prompt_check measured the cost of not having it: this
+    # section was hand-copied into six instruction files and existed in NO source,
+    # so its shard counts had no owner and went three days stale with nothing able
+    # to notice. Every block above had a source and a byte-check; this one had
+    # neither and was the only prose in the estate that could rot invisibly.
+    "render-handoff": (
+        "07_render_handoff.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
     "lane-queue": (
         "03_lane_queue.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
+    # Added 2026-11-02 on user directive: "hardcode the best practices we have
+    # developed into authoritative canon". These eight were each paid for by a
+    # measured failure (an import sweep that missed a live NameError, a suite
+    # that wedged instead of finishing, a reading that under-reported its own
+    # count, a gate that would be switched off if it failed when the network was
+    # down). They are the defaults every lane runs, so every lane reads them from
+    # one source: the alternative is eight hard-coded constants per tool and no
+    # one able to say which default is live.
+    "hyper-edge": (
+        "05_hyper_edge_defaults.md",
         [
             HOME / "AGENTS.md",
             Path("C:/Azazael/AGENTS.md"),
@@ -256,7 +316,8 @@ def check_wsl(apply=False):
                                      if have is None else "DRIFT"))
                     continue
                 if have is None:
-                    work = (work.rstrip("\n") + "\n\n" if work.strip() else "") + want
+                    work = (want + "\n" + work.lstrip("\n")) if key in PREPEND \
+                        else (work.rstrip("\n") + "\n\n" if work.strip() else "") + want
                 else:
                     s, e = markers(key)
                     i = work.find(s)
@@ -337,6 +398,13 @@ def check(apply=False, as_json=False, hook_mode=False, wsl=False):
             text = path.read_bytes().decode("utf-8")
             have = extract(text, key)
             if have is None:
+                if apply and key in PREPEND:
+                    nl = "\r\n" if "\r\n" in text else "\n"
+                    block = want.replace("\n", nl).rstrip("\r\n")
+                    new = block + nl + nl + text.lstrip("\r\n")
+                    path.write_bytes(new.encode("utf-8"))
+                    applied.append((key, str(path) + " (prepended)"))
+                    continue
                 problems.append((key, str(path),
                                  "MARKERS ABSENT -- insert %s / %s where the block belongs"
                                  % markers(key)))

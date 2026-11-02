@@ -305,6 +305,30 @@ GATES: Tuple[Gate, ...] = (
         ),
     ),
     Gate(
+        name="prompt-claims",
+        # The companion to `agent-orders`, and registered separately because the two
+        # false-pass in different directions. `agent-orders` compares each GENERATED
+        # block to its source; it cannot see the prose between blocks, and measured
+        # 2026-11-02 that prose claimed 5,380 tests against a live 6,277, named six
+        # paths that no longer existed, and carried a hand-copied RENDER section that
+        # existed in no source at all. The block check was green throughout.
+        argv=("tools/prompt_check.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=(
+            "the seven lane instruction files: backticked paths stat'd, counts "
+            "compared to state/head.json, the newest handoff's commit resolved, "
+            "and the START-HERE contract's offset in the file"
+        ),
+        control_test="tests/test_prompt_check.py",
+        control="prompt-check-controls",
+        uncontrolled_because=None,
+        requires=("state/head.json",),
+    ),
+    Gate(
         name="supervisor-verdict",
         argv=("tools/supervisor_mcp.py", "--verdict"),
         interpreter="python3",
@@ -1178,10 +1202,65 @@ def control_platform_claims(interpreter_path: str) -> Tuple[bool, str]:
     return True, "true claim exits 0, contradicting claim exits 1"
 
 
+def control_prompt_check(interpreter_path: str) -> Tuple[bool, str]:
+    """Drive `tools/prompt_check.py` on fixtures whose verdicts are known.
+
+    The gate judges whatever instruction files are on the host, which is exactly
+    what a control must NOT depend on: on a host with clean prompts it would pass
+    while being unable to fail. So both directions are built in a temp directory
+    and the CLI is run against each:
+
+      stale   -- START-HERE present, a count 16% below the recorded reading and no
+                 date: must exit 1. This is the real 2026-11-02 defect, verbatim.
+      healthy -- the same file with the recorded reading: must exit 0. A gate that
+                 fails everything is as useless as one that never fails.
+      clean   -- the built-in controls (P1-P4 both directions) must exit 0.
+
+    --no-selftest on the first two so a broken control does not masquerade as a
+    stale-prompt finding and send the reader to the wrong file.
+    """
+    import json as _json
+
+    script = REPO / "tools" / "prompt_check.py"
+    if not script.is_file():
+        return False, "tools/prompt_check.py is absent"
+    state = REPO / "state" / "head.json"
+    if not state.is_file():
+        return False, "state/head.json is absent, so no count can be compared (BLIND)"
+    try:
+        measured = _json.loads(state.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return False, "state/head.json unreadable: %s" % exc
+    tests = measured.get("collected_tests")
+    if not isinstance(tests, int) or not tests:
+        return False, "state/head.json carries no collected_tests reading"
+
+    head = "<!-- AO:start-here START -->\n\n"
+    with tempfile.TemporaryDirectory() as tmp:
+        stale = Path(tmp) / "stale.md"
+        healthy = Path(tmp) / "healthy.md"
+        stale.write_text(head + "5,380 tests exist and nothing gates them.\n", encoding="utf-8")
+        healthy.write_text(head + "%s tests exist.\n" % format(tests, ","), encoding="utf-8")
+        base = [interpreter_path, "-X", "utf8", str(script), "--no-selftest"]
+        bad = run_control(base + ["--prompt", str(stale)], env=())
+        if bad.exit_code != 1:
+            return False, ("a stale count exited %s, not 1 -- the gate cannot fail on the "
+                           "defect it was built for: %s" % (bad.exit_code, bad.detail))
+        good = run_control(base + ["--prompt", str(healthy)], env=())
+        if good.exit_code != 0:
+            return False, ("a prompt carrying the recorded reading exited %s: %s"
+                           % (good.exit_code, good.detail))
+        built_in = run_control([interpreter_path, "-X", "utf8", str(script), "--selftest"], env=())
+        if built_in.exit_code != 0:
+            return False, "the gate's own controls failed: %s" % built_in.detail
+    return True, "stale exits 1, recorded reading exits 0, built-in controls pass"
+
+
 CONTROLS = {
     "anti-pattern-ratchet": control_anti_pattern_ratchet,
     "agent-orders-negative-control": control_agent_orders,
     "platform-claims-self-test": control_platform_claims,
+    "prompt-check-controls": control_prompt_check,
 }
 
 

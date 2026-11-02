@@ -17,6 +17,11 @@
 #  10. generated instruction blocks (tools/agent_orders_sync.py --check,
 #       blocking) -- the rule files this session READS are generated from one
 #       source; a commit must not land while a copy disagrees with it
+#  10b. instruction-file PROSE (tools/prompt_check.py, blocking) -- check 10
+#       proves the generated blocks match their source; it cannot see the prose
+#       around them, and on 2026-11-02 that prose claimed 5,380 tests against a
+#       live 6,277 and named six paths that were gone. A block-level check on a
+#       file whose hand-written half is unverified certifies the wrong thing.
 #
 # Why check 3 exists even though check 2 already scans: check 2 is PER-FILE
 # (staged vs HEAD), so it catches an anti-pattern being ADDED but cannot see
@@ -664,6 +669,42 @@ if [ "${ALLOW_AGENT_ORDERS_DRIFT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/agent_o
         echo "[AgentOrders] Fix: $PY $SCRIPT_DIR/tools/agent_orders_sync.py --apply --wsl"
         echo "[AgentOrders] Copies are never hand-edited -- edit the source, then regenerate."
         echo "[AgentOrders] Override (declared): ALLOW_AGENT_ORDERS_DRIFT=1."
+        exit 1
+    fi
+    echo ""
+fi
+
+# ─── Check 10b (blocking): instruction-file prose (tools/prompt_check.py) ───
+# Check 10 above proves every GENERATED block matches its source. It says nothing
+# about the prose between the blocks, and that prose is what a fresh session reads
+# first: measured 2026-11-02, the seven lane prompts claimed 5,380 tests against a
+# live collection of 6,277, cited six paths that no longer existed, and carried a
+# hand-copied RENDER section that lived in no source at all -- so it could rot with
+# nothing able to notice. Every number in this hook's own tree is falsifiable; the
+# instruction files were the last place where a claim cost nothing to make.
+# Cost: seven file reads plus stat calls, no subprocesses. Runs on EVERY commit for
+# the same reason check 10 does -- the targets live outside the repo.
+# Exit 2 means the instrument could not run (no lane prompt on this host); that is
+# reported loud and allowed, exactly as check 10 treats a host with no targets.
+# Declared override, never silent: ALLOW_PROMPT_STALE=1.
+if [ "${ALLOW_PROMPT_STALE:-}" = "1" ]; then
+    echo "[Prompt] skipped: ALLOW_PROMPT_STALE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_PROMPT_STALE:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/prompt_check.py" ]; then
+    echo "[Prompt] Checking instruction-file claims (paths, counts, handoff SHA)..."
+    PROMPT_OUT=$("$PY" "$SCRIPT_DIR/tools/prompt_check.py" 2>&1)
+    PROMPT_EXIT=$?
+    echo "$PROMPT_OUT"
+    if [ $PROMPT_EXIT -eq 2 ]; then
+        echo "[Prompt] gate unrunnable on this host (no lane prompt found) -- passing loud."
+    elif [ $PROMPT_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Prompt] BLOCKED: an instruction file carries a claim that does not resolve."
+        echo "[Prompt] Fix: the DEFECT line names the file and the line number. A count"
+        echo "[Prompt] that moved: correct it, or mark the sentence 'historical' if it is a"
+        echo "[Prompt] past reading quoted for its lesson. A dead path: repoint it or delete it."
+        echo "[Prompt] Override (declared): ALLOW_PROMPT_STALE=1."
         exit 1
     fi
     echo ""
