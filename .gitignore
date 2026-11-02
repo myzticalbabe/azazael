@@ -369,3 +369,4 @@ src/RUST_WASM/pkg*/
 /.prose/
 /.transub/
 /.tmp_mirror/
+.requiem/
