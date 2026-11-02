@@ -799,6 +799,11 @@ def parse_stdin(text):
         "rule_0i_batch": r"RULE\s*0I[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",        "rule_0l_test_failure": r"RULE\s*0L[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0m_concurrent": r"RULE\s*0M[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0q_post_phase": r"RULE\s*0Q-A[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
+        # 0R had a validator with a real False path since before 2026-10-31 and
+        # was never dispatched from execute_validation(), so the rule was
+        # silently skipped by every gate run: a rule with a check that no code
+        # path reaches. Added so 'synced' must cite an audit row under --audit.
+        "rule_0r_sync": r"RULE\s*0R[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "gate_decision": r"GATE\s*DECISION:\s*(.+?)(?=\n|$)",
     }
     for key, pattern in patterns.items():
@@ -865,6 +870,9 @@ class SentinelValidator:
 
         passed, msg = validate_rule_0q_a(data.get("rule_0q_post_phase", ""), audit_filepath)
         self.add_result("RULE 0Q-A (Post-Phase)", passed, msg)
+
+        passed, msg = validate_rule_0r(data.get("rule_0r_sync", ""), audit_filepath)
+        self.add_result("RULE 0R (Skill Sync)", passed, msg)
 
         # RULE 0R — verify sync_skills was run
         if audit_filepath:

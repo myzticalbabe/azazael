@@ -1,0 +1,834 @@
+[
+ {
+  "date": "2026-06-11",
+  "path": "src\\CORE\\inference\\providers.py",
+  "line": 198,
+  "kind": "DEPRECATED",
+  "text": "\"google/gemini-2.0-flash-001\": \"[DEPRECATED] Use google/gemini-2.5-pro or google/gemini-2.5-flash instead\",",
+  "commit": "30836145"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "scripts\\batch_render.py",
+  "line": 67,
+  "kind": "DEPRECATED",
+  "text": "# Template-specific scroll overrides (DEPRECATED \u2014 polling pattern handles this)",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\codebuff_tracker.py",
+  "line": 3,
+  "kind": "DEPRECATED",
+  "text": "codebuff_tracker.py \u2014 DEPRECATED. Use DirectMemory instead.",
+  "commit": "30836145"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\codebuff_tracker.py",
+  "line": 98,
+  "kind": "DEPRECATED",
+  "text": "\"codebuff_tracker.CodebuffTracker is DEPRECATED. \"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 92,
+  "kind": "TODO",
+  "text": "\"\"\"Check 4: Prohibit TODO/FIXME comments in production code.\"\"\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 98,
+  "kind": "TODO",
+  "text": "f\"CODE QUALITY: TODO/FIXME comment found in {filename}:{line_num}\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 173,
+  "kind": "TODO",
+  "text": "# Test 5: TODO comment should fail",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 177,
+  "kind": "TODO",
+  "text": "print(\"Test 5: TODO comment should raise ComplianceError...\")",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 179,
+  "kind": "TODO",
+  "text": "# TODO: fix this later",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\record_session.py",
+  "line": 3,
+  "kind": "DEPRECATED",
+  "text": "record_session.py \u2014 DEPRECATED. Use DirectMemory instead.",
+  "commit": "30836145"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\record_session.py",
+  "line": 48,
+  "kind": "DEPRECATED",
+  "text": "\"record_session.SessionRecorder is DEPRECATED. \"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 28,
+  "kind": "DEPRECATED",
+  "text": "- LifecycleManager: Version-based lifecycle state tracking (DRAFT \u2192 ACTIVE \u2192 DEPRECATED \u2192 RETIRED)",
+  "commit": "558a195b"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 103,
+  "kind": "DEPRECATED",
+  "text": "DEPRECATED = \"deprecated\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 838,
+  "kind": "DEPRECATED",
+  "text": "- DEPRECATED: lifecycle_state in registry is \"deprecated\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 858,
+  "kind": "DEPRECATED",
+  "text": "if explicit_state in (LifecycleState.DEPRECATED, LifecycleState.RETIRED):",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 945,
+  "kind": "DEPRECATED",
+  "text": "LifecycleState.DEPRECATED, LifecycleState.RETIRED,",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 996,
+  "kind": "DEPRECATED",
+  "text": "f\"{state_counts.get(LifecycleState.DEPRECATED, 0)} deprecated, \"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 1005,
+  "kind": "DEPRECATED",
+  "text": "deprecated_count=state_counts.get(LifecycleState.DEPRECATED, 0),",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 1018,
+  "kind": "DEPRECATED",
+  "text": "registry[name][\"lifecycle_state\"] = LifecycleState.DEPRECATED",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\CORE\\worm_governance.py",
+  "line": 1040,
+  "kind": "DEPRECATED",
+  "text": "if state == LifecycleState.DEPRECATED:",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\METAWORMS.py",
+  "line": 3,
+  "kind": "DEPRECATED",
+  "text": "METAWORMS \u2014 DEPRECATED SHIM",
+  "commit": "30836145"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\METAWORMS.py",
+  "line": 5,
+  "kind": "DEPRECATED",
+  "text": "This file is DEPRECATED. All implementations have moved to METAWORMS_ENRICHED.py.",
+  "commit": "0fb52604"
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\ORCHESTRATION\\SystemManager.py",
+  "line": 540,
+  "kind": "TEMP",
+  "text": "os.path.expandvars(r\"%TEMP%\"),",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\ORCHESTRATION\\SystemManagerGUI.py",
+  "line": 593,
+  "kind": "TEMP",
+  "text": "temp = os.path.expandvars(\"%TEMP%\")",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "src\\session_memory.py",
+  "line": 767,
+  "kind": "DEPRECATED",
+  "text": "new_lesson += f\" [DEPRECATED {now[:10]}: {reason}]\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-06-21",
+  "path": "tests\\test_lesson_lifecycle.py",
+  "line": 150,
+  "kind": "DEPRECATED",
+  "text": "assert \"[DEPRECATED\" in dep[0].lesson",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\build_progress_governance_graph.py",
+  "line": 3,
+  "kind": "TODO",
+  "text": "Corpus = azazael/*.md (governance, audit, TODO, milestone, ops docs) + the root-level",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\build_progress_governance_graph.py",
+  "line": 24,
+  "kind": "TODO",
+  "text": "r\"(TODO|AUDIT|MILESTONE|PLAN|COMPLIANCE|CHECKLIST|MANDATES|SOP|RULES|PROTOCOL|\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\fetch_990_series.py",
+  "line": 4,
+  "kind": "DEPRECATED",
+  "text": "* The legacy AWS `irs-form-990` bucket is DEPRECATED (IRS discontinued",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\graphify_node_limit_patch.py",
+  "line": 8,
+  "kind": "BUG",
+  "text": "BUG 1 \u2014 recursion re-applies the cap:",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\graphify_node_limit_patch.py",
+  "line": 14,
+  "kind": "BUG",
+  "text": "BUG 2 \u2014 raised limits produce an unrenderable page:",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\graphify_node_limit_patch.py",
+  "line": 29,
+  "kind": "BUG",
+  "text": "1. exporters/html.py \u2014 recursion node_limit passthrough (BUG 1).",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "scripts\\graphify_node_limit_patch.py",
+  "line": 31,
+  "kind": "BUG",
+  "text": "3. exporters/html.py \u2014 huge-mode renderer (BUG 2): HUGE_MODE_NODES constant,",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-06",
+  "path": "tests\\test_worm_governance_integration.py",
+  "line": 139,
+  "kind": "DEPRECATED",
+  "text": "LifecycleState.DEPRECATED, LifecycleState.RETIRED)",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-10",
+  "path": "src\\UTILITIES\\TERENCE\\terence_enhanced.py",
+  "line": 451,
+  "kind": "TODO",
+  "text": "# (2026-09-10: was a bare TODO emitter \u2014 debt generator. Name the",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-10",
+  "path": "src\\UTILITIES\\TERENCE\\terence_enhanced.py",
+  "line": 452,
+  "kind": "TODO",
+  "text": "# conflict and the needed decision instead of an open TODO.)",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\WORMS\\expansion\\federated.py",
+  "line": 84,
+  "kind": "TODO",
+  "text": "# \u2500\u2500 Robust-aggregation parameters (audit \u00a74 item 8 / TODO P4 item 13) \u2500\u2500",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\dashboard.py",
+  "line": 130,
+  "kind": "TODO",
+  "text": "# The mesh is part of this report now (TODO P2 item 9): `--json`, the",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 236,
+  "kind": "TODO",
+  "text": "# \u2500\u2500 EVIDENCE SHRINKAGE (playing-field TODO G1) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+  "commit": "40a29fd8"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 250,
+  "kind": "TODO",
+  "text": "# \u2500\u2500 FORGETTING CURVE (playing-field TODO G2, fixed 2026-09-16) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+  "commit": "9a4bfa99"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 435,
+  "kind": "TODO",
+  "text": "# \u2500\u2500 ROUTE WEIGHT BOUNDS (playing-field TODO G5) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+  "commit": "033bab73"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 445,
+  "kind": "TODO",
+  "text": "# \u2500\u2500 FIXTURE DECLARATION (playing-field TODO G3) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+  "commit": "1b28e179"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 1872,
+  "kind": "TODO",
+  "text": "The homeostat fallback exists for the migration case (playing-field TODO",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 2120,
+  "kind": "TODO",
+  "text": "Playing-field TODO G2. The brainstem has no forgetting curve, so a penalty",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "src\\CORE\\spine_registry.py",
+  "line": 2281,
+  "kind": "TODO",
+  "text": "Playing-field TODO G3. `tests/conftest.py` reasons correctly about",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tests\\test_federated_robustness.py",
+  "line": 2,
+  "kind": "TODO",
+  "text": "\"\"\"Federated aggregation robustness (audit \u00a74 item 8, TODO P4 item 13).",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 4,
+  "kind": "TODO",
+  "text": "every function, and emits a checkbox TODO so the audit can be worked through one",
+  "commit": "cdc97a00"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 13,
+  "kind": "TODO",
+  "text": "python tools/mesh_function_preflight.py                # write the TODO",
+  "commit": "f984bd57"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 60,
+  "kind": "TODO",
+  "text": "# architecture and is out of scope for this TODO.",
+  "commit": "0525a611"
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 670,
+  "kind": "TODO",
+  "text": "out.append(\"# Neural Mesh Architecture - Per-Function Pre-Flight TODO\")",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 967,
+  "kind": "TODO",
+  "text": "someone already made and wrote down -- the same reason the TODO is",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\monitor_data.py",
+  "line": 14,
+  "kind": "TODO",
+  "text": "THE RULE THIS MODULE ENFORCES (TODO \u00a7\"Rule for this file\")",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\monitor_data.py",
+  "line": 46,
+  "kind": "TODO",
+  "text": "# restructure exists to remove (TODO P3 item 12).",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\monitor_data.py",
+  "line": 518,
+  "kind": "TODO",
+  "text": "information (TODO \u00a71.2). These are read from the classes that own them.",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_ml_rl_monitors.py",
+  "line": 27,
+  "kind": "TODO",
+  "text": "Colours follow \u00a72 of the TODO: ML is a cold cyan/teal (steady unless the gate",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_monitors.py",
+  "line": 42,
+  "kind": "TODO",
+  "text": "# They now live in `monitor_data` (TODO P2 item 8) and the colours in",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_monitors.py",
+  "line": 43,
+  "kind": "TODO",
+  "text": "# `monitor_theme` (TODO P2 item 7), so this module is purely presentation.",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_monitors.py",
+  "line": 66,
+  "kind": "TODO",
+  "text": "#: (TODO P3 item 11).",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_monitors.py",
+  "line": 691,
+  "kind": "TODO",
+  "text": "already changed under it (TODO \u00a71.2). Role is now derived from the live",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-16",
+  "path": "tools\\render_monitors.py",
+  "line": 838,
+  "kind": "TODO",
+  "text": "the moment it was rendered (TODO P3 item 11). A render is a *snapshot*, so",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-19",
+  "path": "src\\CORE\\WORMS\\expansion\\mesh.py",
+  "line": 543,
+  "kind": "TEMP",
+  "text": "# Output goes to TEMP FILES, not pipes. With capture_output=True this",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-22",
+  "path": "src\\CORE\\fs_probe.py",
+  "line": 348,
+  "kind": "TEMP",
+  "text": "stdout/stderr to TEMP FILES removes the pipe entirely, so there is",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-22",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 837,
+  "kind": "TODO",
+  "text": "#: section of the TODO, because that doc is REWRITTEN by every preflight run: a",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-22",
+  "path": "tools\\mesh_function_preflight.py",
+  "line": 1838,
+  "kind": "TODO",
+  "text": "# the TODO file, printed nothing about the backlog, and left a 3-hour-old",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-29",
+  "path": "tests\\test_route_censoring.py",
+  "line": 21,
+  "kind": "TODO",
+  "text": "standing -1 for routes it had never used. That is playing-field TODO G2's",
+  "commit": ""
+ },
+ {
+  "date": "2026-09-29",
+  "path": "tools\\twelve_factor_audit.py",
+  "line": 466,
+  "kind": "TEMP",
+  "text": "r\"TEMP$|TMP$|SYSTEMROOT|WINDIR|COMSPEC|PATHEXT|NUMBER_OF_PROCESSORS|\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-01",
+  "path": "src\\matrix_animation.py",
+  "line": 6,
+  "kind": "DEPRECATED",
+  "text": "DEPRECATED for HTML/MP4 animation work (2026-10-01, operator directive):",
+  "commit": "255752be"
+ },
+ {
+  "date": "2026-10-02",
+  "path": "tests\\test_spine_mesh_telemetry.py",
+  "line": 310,
+  "kind": "TODO",
+  "text": "value (playing-field TODO G1). 2026-09-28: it moved AGAIN to",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "scripts\\clean_windows.py",
+  "line": 57,
+  "kind": "TEMP",
+  "text": "(\"user-temp\", Path(os.environ.get(\"TEMP\", str(local / \"Temp\"))),",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "scripts\\code_evo_pilot.py",
+  "line": 167,
+  "kind": "TEMP",
+  "text": "gate runs its pytest inside a TEMP sandbox with no ini \u2014 so the blocklist",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "scripts\\repo_audit.py",
+  "line": 20,
+  "kind": "TODO",
+  "text": "2. patterns  - risk grep: bare except, TODO/FIXME, shell=True,",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "src\\CORE\\compliance\\scanner.py",
+  "line": 24,
+  "kind": "TODO",
+  "text": "because prints are legitimate here; TODO/assert were rejected as tracked",
+  "commit": "a8793776"
+ },
+ {
+  "date": "2026-10-03",
+  "path": "src\\CORE\\compliance\\scanner.py",
+  "line": 74,
+  "kind": "TODO",
+  "text": "# because prints are legitimate here, and TODO/assert were rejected as",
+  "commit": "2ed0515c"
+ },
+ {
+  "date": "2026-10-03",
+  "path": "src\\SCRIPTS\\generate_tool_skills.py",
+  "line": 115,
+  "kind": "TODO",
+  "text": "\"TODO: replace with verified usage (run the tool first, cite output).\",",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 108,
+  "kind": "TODO",
+  "text": "(\"neural_mesh_function_todo_doc\", \"Neural Mesh \u2014 Per-Function Pre-Flight TODO\", \"document\", \"NEURAL_MESH_FUNCT",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 110,
+  "kind": "TODO",
+  "text": "(\"neural_mesh_brainstem_doc\", \"Neural Mesh Brainstem \u2014 Playing-Field TODO\", \"document\", \"NEURAL_MESH_BRAINSTEM",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 140,
+  "kind": "TODO",
+  "text": "(\"live_monitor_restructure_todo\", \"Live Monitor Restructure \u2014 TODO\", \"document\", \"LIVE_MONITOR_RESTRUCTURE_TOD",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 239,
+  "kind": "TODO",
+  "text": "(\"codebase_audit_todo_doc\", \"Codebase Audit & Production Wiring TODO\", \"document\", \"CODEBASE_AUDIT_TODO.md\",",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 274,
+  "kind": "TODO",
+  "text": "\"Windows 11 primary, WSL2 Ubuntu canonical source, bare-metal Ubuntu and Kali targets, with per-platform TODO ",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 348,
+  "kind": "TODO",
+  "text": "(\"master_capability_todo\", \"Master capability TODO\", \"document\", \"MASTER_CAPABILITY_TODO.md\",",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 349,
+  "kind": "TODO",
+  "text": "\"Consolidates the disclosure whitepaper TODO into six capability sections: worm fleet, core infra, build/deplo",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 371,
+  "kind": "TODO",
+  "text": "(\"production_wiring_todo\", \"Full production wiring TODO\", \"document\", \"TODO_FULL_PRODUCTION_WIRING.md\",",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\graph_semantic\\semantic_layer.py",
+  "line": 521,
+  "kind": "TODO",
+  "text": "(\"docs_codebase_audit_gap\", \"Codebase audit \u2014 gap analysis & TODO\", \"document\", \"docs/CODEBASE_AUDIT_TODO.md\",",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\lesson_liveness.py",
+  "line": 126,
+  "kind": "BUG",
+  "text": "# BUG FOUND BY THE FIRST UNATTENDED RUN (2026-09-30). This used to read",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-03",
+  "path": "tools\\staged_scanner_gate.py",
+  "line": 7,
+  "kind": "TEMP",
+  "text": "`.githooks/pre-commit` check 2 wrote a TEMP SNAPSHOT of the staged `.py` files",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-07",
+  "path": "src\\CODEX\\cain_validate_20260930.py",
+  "line": 77,
+  "kind": "TODO",
+  "text": "placeholders = [\"{{\", \"}}\", \"TODO\", \"FIXME\", \"PLACEHOLDER\", \"undefined\", \"NaN\", \"None</\"]",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-07",
+  "path": "tools\\cain_render_gate.py",
+  "line": 110,
+  "kind": "FIXME",
+  "text": "ck(\"no placeholders\", not any(x in h for x in (\"{{\", \"FIXME\", \"undefined\", \"NaN\")))",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-07",
+  "path": "tools\\vlp_reflect_20260930.py",
+  "line": 129,
+  "kind": "TODO",
+  "text": "\"handoff and the rule-audit TODO\")):",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-09",
+  "path": "tools\\swallow_inventory.py",
+  "line": 29,
+  "kind": "BUG",
+  "text": "FAIL-OPEN IS NOT THE BUG. This repo deliberately fails open at boundaries; a hook",
+  "commit": "8fe06fb5"
+ },
+ {
+  "date": "2026-10-11",
+  "path": "src\\CODEX\\CORE\\azazael_pygame.py",
+  "line": 2,
+  "kind": "DEPRECATED",
+  "text": "\"\"\"DEPRECATED shim \u2014 this is the NON-canonical copy of the `azazael_pygame` pair.",
+  "commit": "5b5b3918"
+ },
+ {
+  "date": "2026-10-15",
+  "path": "tests\\test_tmp_divergence.py",
+  "line": 97,
+  "kind": "TEMP",
+  "text": "os.path.join(\"%TEMP%\", \"x\")):",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-15",
+  "path": "tools\\harvest_kilo_sessions.py",
+  "line": 124,
+  "kind": "TODO",
+  "text": "\"SESSION: %s\\nCOMPLETED TODO: %s\"",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-15",
+  "path": "tools\\tmp_paths.py",
+  "line": 62,
+  "kind": "TEMP",
+  "text": "(a relative name, a ``C:`` path, ``%TEMP%``) is returned UNCHANGED: this is a",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-16",
+  "path": "tests\\test_fault_injection_state.py",
+  "line": 4,
+  "kind": "TEMP",
+  "text": "Engram #784, phase H. Every drill here damages a TEMP COPY, a temp database or a",
+  "commit": "a66e8b8e"
+ },
+ {
+  "date": "2026-10-16",
+  "path": "tests\\test_race_shared_structures.py",
+  "line": 19,
+  "kind": "TEMP",
+  "text": "* ``LocalMemoryStore`` on a TEMP database \u2014 the technique store's substrate.",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-19",
+  "path": "src\\eve_unleashed\\interpreter_bridge.py",
+  "line": 6,
+  "kind": "BUG",
+  "text": "BUG FIX (2026-10-18, eve-verify-land lane):",
+  "commit": "75b6d4fb"
+ },
+ {
+  "date": "2026-10-19",
+  "path": "tests\\test_eve_interpreter_bridge.py",
+  "line": 30,
+  "kind": "TEMP",
+  "text": "_MOCK_MODELS_ROOT = os.path.join(os.environ.get(\"TEMP\", os.sep + \"tmp\"), \"eve_bridge_mocks\")",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-21",
+  "path": "src\\CORE\\WORMS\\expansion\\spine.py",
+  "line": 2416,
+  "kind": "TODO",
+  "text": "# never been used: playing-field TODO G2's self-sustaining penalty,",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-22",
+  "path": "src\\ORCHESTRATION\\SystemManager.py",
+  "line": 567,
+  "kind": "BUG",
+  "text": "# REAL-BUG FIX (slice C): subprocess.run returns a CompletedProcess, not a",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-26",
+  "path": "tools\\TIKTOK_PULL.py",
+  "line": 10,
+  "kind": "TEMP",
+  "text": "Nothing secret is written to the repo: the cookies file lives in %TEMP%",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-29",
+  "path": "src\\CORE\\enforcement_harness.py",
+  "line": 174,
+  "kind": "TODO",
+  "text": "# A3 EXEMPT (2026-09-10 scope, re-verified 2026-10-28): the TODO below is",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-30",
+  "path": "src\\CORE\\compliance\\governance.py",
+  "line": 883,
+  "kind": "DEPRECATED",
+  "text": "\"\"\"DEPRECATED -- unbounded by construction; kept only for diagnostics.",
+  "commit": ""
+ },
+ {
+  "date": "2026-10-31",
+  "path": "tests\\test_bibl_self_index_guard.py",
+  "line": 45,
+  "kind": "TEMP",
+  "text": "# pytest writes tmp_path under %TEMP%, which is inside %LOCALAPPDATA%, and",
+  "commit": ""
+ },
+ {
+  "date": "2026-11-01",
+  "path": "src\\CODEX\\generate_session_cain.py",
+  "line": 3,
+  "kind": "DEPRECATED",
+  "text": "\"\"\"DEPRECATED \u2014 use `inject_session_cain.py`.",
+  "commit": "0fb52604"
+ }
+]

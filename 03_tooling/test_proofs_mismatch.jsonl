@@ -1,0 +1,3 @@
+{"edge_idx": 0, "quote": "CHRISTINE AXFORD CEO & PRESIDENT 40.00 X 140004 0 5428", "quote_basis": "verbatim", "evidence_key": "edge_0", "raw_content": "<PersonNm>CHRISTINE AXFORD</PersonNm><TitleTxt>CEO & PRESIDENT</TitleTxt><PayeeInfo><Nm>CHRISTINE AXFORD CEO & PRESIDENT 40.00 X 140004 0 5428</Nm></PayeeInfo>"}
+{"edge_idx": 1, "quote": "BOARD APPROVED MERGER", "quote_basis": "verbatim", "evidence_key": "edge_1", "raw_content": "<p>The board approved the merger</p>"}
+{"edge_idx": 2, "quote": "The facility lost its license", "quote_basis": "verbatim", "evidence_key": "edge_2", "raw_content": "<div>Facility lost license</div>"}

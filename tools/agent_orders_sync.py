@@ -48,6 +48,10 @@ MARKER SHAPE
   <source body>
   <!-- AO:<key> END -->
 """
+import base64
+import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -87,7 +91,193 @@ TARGETS = {
         "meta_levels_canon.md",
         [HOME / "AGENTS.md", HOME / ".config/kilo/AGENTS.md"],
     ),
+    # Added 2026-10-31 on user directive: every lane drives work in batch loops
+    # off the board, with opencode as the push hook. The protocol is one thing,
+    # so it is one source: seven hand-maintained copies would repeat exactly the
+    # failure this tool was built to end. Targets are every file a client reads
+    # as its instructions, including the beam lane file.
+    # Added 2026-10-31: domain trees (sentinel/cain/eve_rani/hives/gosp/ml/
+    # shards/edge0) are declared in tools/domain_trees.py and drawn by the same
+    # renderer as the environment forests. Every lane may add a domain, so every
+    # lane needs the one rule that keeps them interop: declaration, not a fork.
+    "domain-trees": (
+        "04_domain_trees.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
+    "lane-queue": (
+        "03_lane_queue.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
 }
+
+
+#: The WSL lanes read their orders from the Linux tree, so the Windows block
+#: text cannot be copied in verbatim: `C:/Users/clint/...` is not a path there
+#: and the interpreter is `python3`, not `python`. Measured 2026-10-31: neither
+#: distro carried a single AO block -- Ubuntu-26.04 /root/AGENTS.md was 2003
+#: bytes with 0 blocks, kali-linux /root/BCC-REINVESTIGATION/AGENTS.md was
+#: 14783 bytes with 0 blocks. Both lanes therefore started WITHOUT the
+#: lane-queue/domain-trees protocol while every Windows lane had it, which is
+#: the split-brain this tool exists to end.
+WSL_TARGETS = {
+    "Ubuntu-26.04": ["/root/AGENTS.md"],
+    "kali-linux": ["/root/BCC-REINVESTIGATION/AGENTS.md"],
+}
+
+#: A path command the WSL block depends on. Rewriting a path without checking
+#: the rewrite lands on something real is how a block ships pointing at a file
+#: that does not exist -- the reader then complies with a broken instruction.
+WSL_PROBE = "test -f /mnt/c/Users/clint/_board.py && command -v python3"
+
+
+def rewrite_for_wsl(text):
+    """Translate one block's text to what a Linux lane can actually run.
+
+    Separate from `render_for_wsl` so the translation can be tested on its own
+    -- and so its IDEMPOTENCE is testable, which is the property that matters
+    when an apply is retried after a partial write.
+    """
+    out = []
+    for line in text.split("\n"):
+        line = line.replace("C:/Users/clint", "/mnt/c/Users/clint")
+        line = line.replace("C:/Azazael", "/mnt/c/Azazael")
+        # `python X`/`python C:/...` -> `python3 /mnt/c/...`: the Linux lanes
+        # have no `python` alias on a stock install, so an untranslated
+        # invocation fails with "command not found" and looks like a broken
+        # board rather than a broken block.
+        line = re.sub(r"\bpython3? (?=/mnt/c/)", "python3 ", line)
+        out.append(line)
+    return "\n".join(out)
+
+
+def render_for_wsl(key, source_name):
+    """The Windows block, translated to what the Linux lane can actually run."""
+    return rewrite_for_wsl(render(key, source_name))
+
+
+def _wsl(distro, script, timeout=90, stdin_data=None):
+    """Run a shell script in a distro. Returns (rc, clean output).
+
+    wsl.exe emits NUL-padded UTF-16 on some builds and a benign
+    "Failed to create stream fd" line on stderr; both are stripped so a real
+    failure is not buried under transport noise.
+
+    `stdin_data` exists because a large document CANNOT ride on the command
+    line: writing Kali's 19037-byte AGENTS.md through argv raised
+    FileNotFoundError [WinError 206] "filename or extension is too long" after
+    base64 inflated it past the Windows limit. Content goes on stdin; argv
+    carries only the path.
+
+    STDOUT AND STDERR ARE DECODED SEPARATELY, and that is a repair, not tidying.
+    They used to be concatenated as bytes, so a file whose last line had no
+    trailing newline had stderr's first line glued onto it; that combined line
+    contained the noise string below, was therefore dropped, and the block it
+    carried read as absent. Measured 2026-10-31: Ubuntu's /root/AGENTS.md held
+    both lane-queue markers and the gate still reported "MARKERS ABSENT" --
+    exactly the false-negative that makes a lane distrust a working control.
+    """
+    p = subprocess.run(["wsl", "-d", distro, "-e", "bash", "-lc", script],
+                       capture_output=True, timeout=timeout, input=stdin_data)
+
+    def _decode(raw):
+        txt = (raw.decode("utf-16-le", "ignore") if b"\x00" in raw[:4]
+               else raw.decode("utf-8", "replace"))
+        return txt.replace("\x00", "")
+
+    out = _decode(p.stdout or b"")
+    keep = [ln for ln in _decode(p.stderr or b"").split("\n")
+            if "Failed to create stream fd" not in ln]
+    txt = out + ("\n" + "\n".join(keep) if keep else "")
+    return p.returncode, txt.strip()
+
+
+def check_wsl(apply=False):
+    """Verify (and optionally write) the same blocks inside each WSL distro.
+
+    ONE WRITE PER TARGET. A first version wrote inside the per-block loop and
+    rebuilt every block from the SAME pre-read text, so each write clobbered
+    the one before it: measured 2026-10-31 on Kali, the file held `lane-queue`
+    and nothing else while the other four reported MARKERS ABSENT immediately
+    after a "successful" apply. The document is now assembled in memory across
+    all blocks and written once, and the result is READ BACK -- a write that
+    was not re-read is a claim, not a delivery.
+    """
+    problems, applied, ok = [], [], 0
+    # A host with no WSL is not a drift finding, and a gate that raises on it
+    # would be red forever on such a host. Absent is reported as absent.
+    if shutil.which("wsl") is None:
+        print("        (no wsl on PATH -- WSL targets not verified)")
+        return problems, applied, ok
+    for distro, paths in WSL_TARGETS.items():
+        try:
+            rc, _out = _wsl(distro, WSL_PROBE)
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            problems.append((distro, "<probe>", "PROBE ERROR: %s" % exc))
+            continue
+        if rc != 0:
+            problems.append((distro, "/mnt/c/Users/clint/_board.py",
+                             "PROBE FAILED -- either the distro is not installed here "
+                             "or a rewritten path is unreachable, so the block would "
+                             "be undeliverable"))
+            continue
+        for path in paths:
+            rc, text = _wsl(distro, "cat %s 2>/dev/null" % path)
+            exists = rc == 0 and text.strip() != ""
+            work = normalise(text) if exists else ""
+            changed = False
+            for key, (source_name, _t) in TARGETS.items():
+                if not (ORDERS / source_name).exists():
+                    problems.append((key, "<source>", "SOURCE MISSING: %s" % source_name))
+                    continue
+                want = render_for_wsl(key, source_name)
+                have = extract(work, key) if work else None
+                if have is not None and have.rstrip("\n") == want.rstrip("\n"):
+                    ok += 1
+                    continue
+                if not apply:
+                    problems.append((key, "%s:%s" % (distro, path),
+                                     "MARKERS ABSENT -- block never delivered to this lane"
+                                     if have is None else "DRIFT"))
+                    continue
+                if have is None:
+                    work = (work.rstrip("\n") + "\n\n" if work.strip() else "") + want
+                else:
+                    s, e = markers(key)
+                    i = work.find(s)
+                    j = work.find(e, i) + len(e)
+                    tail = work[j:].lstrip("\n")
+                    work = work[:i] + want + ("\n" + tail if tail else "")
+                changed = True
+            if not (apply and changed):
+                continue
+            b64 = base64.b64encode(work.encode("utf-8", "surrogateescape"))
+            wrc, wout = _wsl(distro, "mkdir -p $(dirname %s) && base64 -d > %s" % (path, path),
+                             stdin_data=b64)
+            _rrc, rtext = _wsl(distro, "cat %s 2>/dev/null" % path)
+            delivered = sum(1 for k in TARGETS if extract(normalise(rtext), k) is not None)
+            if wrc != 0 or delivered != len(TARGETS):
+                problems.append((distro, path,
+                                 "WRITE FAILED: rc=%s, %d/%d block(s) readable after write"
+                                 % (wrc, delivered, len(TARGETS))))
+            else:
+                applied.append(("%d blocks" % delivered, "%s:%s" % (distro, path)))
+    return problems, applied, ok
 
 
 def markers(key):
@@ -125,7 +315,7 @@ def normalise(s):
     return s.replace("\r\n", "\n").replace("\r", "\n")
 
 
-def check(apply=False, as_json=False, hook_mode=False):
+def check(apply=False, as_json=False, hook_mode=False, wsl=False):
     problems = []
     applied = []
     skipped = []
@@ -166,7 +356,12 @@ def check(apply=False, as_json=False, hook_mode=False):
                 applied.append((key, str(path)))
             else:
                 problems.append((key, str(path), "DRIFT"))
-    if hook_mode and seen == 0:
+    wsl_ok = 0
+    if wsl:
+        w_problems, w_applied, wsl_ok = check_wsl(apply=apply)
+        problems.extend(w_problems)
+        applied.extend(w_applied)
+    if hook_mode and seen == 0 and wsl_ok == 0:
         problems.append(("*", "*", "NO TARGETS ON THIS HOST -- nothing was verified"))
     if as_json:
         import json
@@ -181,8 +376,9 @@ def check(apply=False, as_json=False, hook_mode=False):
             print("        %d target(s) present, %d absent on this host%s"
                   % (seen, len(skipped),
                      (" (" + ", ".join(p for _, p in skipped) + ")") if skipped else ""))
-        print("agent-orders: %d target(s) in sync, %d problem(s), %d written"
-              % (ok_count, len(problems), len(applied)))
+        print("agent-orders: %d target(s) in sync, %d problem(s), %d written%s"
+              % (ok_count + wsl_ok, len(problems), len(applied),
+                 (" (incl. %d WSL block(s))" % wsl_ok) if wsl else ""))
     return 1 if problems else 0
 
 
@@ -195,7 +391,7 @@ def main(argv=None):
                 print("    %s" % t)
         return 0
     return check(apply="--apply" in args, as_json="--json" in args,
-                 hook_mode="--hook" in args)
+                 hook_mode="--hook" in args, wsl="--wsl" in args)
 
 
 if __name__ == "__main__":

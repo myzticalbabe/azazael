@@ -686,7 +686,7 @@
 ## ║  ├─ Observability Pillars:           ║                                    ║
 ## ║  │   ├─ Metrics: Prometheus + Grafana ║                                    ║
 ## ║  │   ├─ Logging: ELK/Loki            ║                                    ║
-## ║  │   ├─ Tracing: Jaeger/Zipkin       ║                                    ║
+## ║  │   ├─ Tracing: Jaeger/Zipkin       ║                                    ║  <!-- MOCKUP: display only, not evidence -->
 ## ║  │   └─ Profiling: Py-Spy/Sketchy    ║                                    ║
 ## ║  │                                      ║                                    ║
 ## ║  ═══════════════════════════════════ ║                                    ║

@@ -599,7 +599,7 @@ class SB3Agent(FreeThreadedAgent):
         self.algo_kwargs = algo_kwargs or {}
         if self.algo_name.lower().startswith("morphed_") and HAS_MORPHED:
             try:
-                _entry = resolve_morphed(self.algo_name)
+                _entry = resolve_morphed(self.algo_name) if resolve_morphed is not None else None
             except Exception as exc:
                 note_failure("sb3_agent:morphed-resolve", exc)
                 _entry = None

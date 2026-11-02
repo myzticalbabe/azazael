@@ -77,8 +77,8 @@ class PwshRunner:
 
     def _verify_toolchain(self) -> bool:
         """Prefer pwsh 7; fall back to Windows PowerShell when present."""
-        self.pwsh_bin: Optional[str] = shutil.which("pwsh") or shutil.which("powershell")
-        self.has_pwsh = self.pwsh_bin is not None
+        self.pwsh_bin: str = shutil.which("pwsh") or shutil.which("powershell") or ""
+        self.has_pwsh = bool(self.pwsh_bin)
         self.version = ""
         if not self.has_pwsh:
             print("  [WARN] no PowerShell found. Install: https://aka.ms/powershell")

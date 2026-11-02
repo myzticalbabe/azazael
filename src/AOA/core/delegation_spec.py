@@ -26,7 +26,8 @@ changing its shape. Nothing in ``BaseArm.execute`` changes signature.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+import uuid
+from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Dict, List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -54,31 +55,77 @@ class DelegationSpec:
     model: Optional[str] = None
     reason: str = ""
     degraded: bool = False
+    #: Distributed-tracing identity, additive and optional. All three None
+    #: means "untraced", and an untraced spec serialises exactly as it did
+    #: before tracing existed -- that equality is the compatibility contract,
+    #: not an aspiration. A trace root sets trace_id; every delegation below
+    #: it inherits that trace_id and names its caller in parent_span_id.
+    trace_id: Optional[str] = None
+    span_id: Optional[str] = None
+    parent_span_id: Optional[str] = None
+
+    def _tracing(self) -> Dict[str, str]:
+        """Only the tracing keys that are actually set.
+
+        Present-only rather than always-present-None: an arm that ignores
+        tracing must see byte-identical input, and ``null`` is not identical
+        to absent for any consumer that hashes or compares the envelope.
+        """
+        out: Dict[str, str] = {}
+        if self.trace_id is not None:
+            out["trace_id"] = self.trace_id
+        if self.span_id is not None:
+            out["span_id"] = self.span_id
+        if self.parent_span_id is not None:
+            out["parent_span_id"] = self.parent_span_id
+        return out
 
     def to_payload(self, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Caller payload plus the envelope. Arms that ignore it behave
         exactly as before; arms that read it get the full contract."""
         base = dict(payload or {})
-        base[ENVELOPE_KEY] = {
+        envelope: Dict[str, Any] = {
             "instruction": self.instruction,
             "tools": list(self.tools),
             "model": self.model,
             "reason": self.reason,
             "degraded": bool(self.degraded),
         }
+        envelope.update(self._tracing())
+        base[ENVELOPE_KEY] = envelope
         return base
 
     def attach(self, result: Dict[str, Any]) -> Dict[str, Any]:
         """Stamp provenance onto a routed result dict, in place."""
         if isinstance(result, dict):
-            result["delegation"] = {
+            stamp: Dict[str, Any] = {
                 "instruction": self.instruction,
                 "tools": list(self.tools),
                 "model": self.model,
                 "reason": self.reason,
                 "degraded": bool(self.degraded),
             }
+            stamp.update(self._tracing())
+            result["delegation"] = stamp
         return result
+
+    def spawn_child(self, span_id: Optional[str] = None) -> "DelegationSpec":
+        """The delegation this one causes, as a new spec.
+
+        Inherits ``trace_id`` verbatim, points ``parent_span_id`` at this
+        spec's ``span_id``, and takes a fresh ``span_id`` when one is not
+        supplied. Frozen, so this returns a new instance and never mutates
+        the parent -- the parent is the decision as it was made.
+
+        A parent with no ``span_id`` yields a child with no
+        ``parent_span_id``: the link is reported as absent rather than
+        invented. Seed the root with ``span_id`` to get a full chain.
+        """
+        return replace(
+            self,
+            span_id=span_id or uuid.uuid4().hex,
+            parent_span_id=self.span_id,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

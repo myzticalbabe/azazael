@@ -1,17 +1,18 @@
 {
-  "recorded_at": "2026-10-28T13:14:22+00:00",
+  "recorded_at": "2026-11-02T14:37:55+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 730,
+  "files_scanned": 772,
   "category_counts": {
     "except_return_default": 2,
     "hardcoded_win_path": 14,
-    "import_inside_function": 951,
-    "silent_except_pass": 4,
-    "unicode_emoji": 1260
+    "import_inside_function": 968,
+    "silent_except_pass": 2,
+    "unicode_emoji": 1219
   },
-  "total_findings": 2231,
+  "total_findings": 2205,
+  "tracked_only": true,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -172,8 +173,8 @@
       "import_inside_function": 1,
       "unicode_emoji": 10
     },
-    "CODEX\\inject_session_cain.py": {
-      "unicode_emoji": 41
+    "CODEX\\dit_video_pipeline.py": {
+      "import_inside_function": 3
     },
     "CORE\\Agent.py": {
       "import_inside_function": 1
@@ -187,7 +188,7 @@
     "CORE\\LaneMessageBoard.py": {
       "except_return_default": 2,
       "import_inside_function": 2,
-      "silent_except_pass": 4
+      "silent_except_pass": 2
     },
     "CORE\\MemoryBus.py": {
       "import_inside_function": 3
@@ -518,7 +519,7 @@
       "import_inside_function": 2
     },
     "CORE\\direct_memory.py": {
-      "import_inside_function": 5
+      "import_inside_function": 6
     },
     "CORE\\dispatch_plan.py": {
       "import_inside_function": 2
@@ -540,6 +541,9 @@
     },
     "CORE\\error_triage.py": {
       "unicode_emoji": 3
+    },
+    "CORE\\feast_feature_store.py": {
+      "import_inside_function": 3
     },
     "CORE\\forecast_baselines.py": {
       "import_inside_function": 1
@@ -587,7 +591,7 @@
       "import_inside_function": 1
     },
     "CORE\\local_memory.py": {
-      "import_inside_function": 12
+      "import_inside_function": 14
     },
     "CORE\\logging.py": {
       "import_inside_function": 1
@@ -725,7 +729,7 @@
       "import_inside_function": 5
     },
     "INTERPRETERS\\__init__.py": {
-      "import_inside_function": 5
+      "import_inside_function": 4
     },
     "META\\DebugZ.py": {
       "import_inside_function": 1
@@ -841,6 +845,9 @@
     },
     "ORCHESTRATION\\ml_platforms\\universal_converter.py": {
       "import_inside_function": 11
+    },
+    "ORCHESTRATION\\ray_serve_deployment.py": {
+      "import_inside_function": 9
     },
     "ORCHESTRATION\\scripts\\azazael_cli.py": {
       "import_inside_function": 2

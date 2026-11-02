@@ -66,8 +66,8 @@ class ShRunner:
 
     def _verify_toolchain(self) -> bool:
         """Check that a bash binary is available."""
-        self.bash_bin: Optional[str] = shutil.which("bash")
-        self.has_bash = self.bash_bin is not None
+        self.bash_bin: str = shutil.which("bash") or ""
+        self.has_bash = bool(self.bash_bin)
         self.version = ""
         if not self.has_bash:
             print("  [WARN] bash not found. Install Git Bash or WSL.")

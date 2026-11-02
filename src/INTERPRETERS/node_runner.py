@@ -69,8 +69,8 @@ class NodeRunner:
 
     def _verify_toolchain(self) -> bool:
         """Check that node is available; record version when it is."""
-        self.node_bin: Optional[str] = shutil.which("node")
-        self.has_node = self.node_bin is not None
+        self.node_bin: str = shutil.which("node") or ""
+        self.has_node = bool(self.node_bin)
         self.version = ""
         if not self.has_node:
             print("  [WARN] node not found. Install: https://nodejs.org/")

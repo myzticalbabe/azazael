@@ -289,7 +289,7 @@ class GGUFAnalyzer:
 
             reader = gguf.GGUFReader(f)
 
-            for key, value in reader.metadata.items():
+            for key, value in reader.metadata.items():  # type: ignore[union-attr]
                 metadata[key] = value
 
             self.logger.debug(f"Found {len(metadata)} metadata keys")

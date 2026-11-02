@@ -367,6 +367,7 @@ def _enforce_impl(
             "rule_0l_test_failure": "N/A",
             "rule_0m_concurrent": "N/A",
             "rule_0q_post_phase": "N/A",
+            "rule_0r_sync": "N/A",
             "gate_decision": "PROCEED",
         }
         passed = validator.execute_validation(data)

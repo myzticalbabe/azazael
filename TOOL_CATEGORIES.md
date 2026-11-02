@@ -112,7 +112,7 @@ Key highlights of the 968 package skills:
 - **process (14)** — error-prevention, inference-protocol, ml-platforms, sync-patterns, tools, utilities, catalog-maintenance, shims, dedup
 - **devtools (8)** — devtools-index, console, elements, network, performance, sources, coverage, audit
 - **codex (7)** — codex, cain-pipeline, cain-template, neural-architecture, neural-pipeline, training-pipeline
-- **workflow (6)** — startup, environment, eleven-followups, operating-protocols, parallel-execution
+- **workflow (6)** — startup, environment, hyper-edge-followups, operating-protocols, parallel-execution
 - **fixes (6)** — fix-python-314t, fix-gitbash-paths, fix-file-operations, fix-data-recording, error-index
 - **quality (5)** — audit-infrastructure, error-resolution, session-recording, crossplat-fileops
 - **planning (4)** — deploy, production, desktop-projects, full-wiring

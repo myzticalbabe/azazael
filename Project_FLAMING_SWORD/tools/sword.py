@@ -24,7 +24,7 @@ after seeing:
 
 USAGE
 -----
-    python tools/sword.py --brief                  # the protocol: decision blocks, 12 followups
+    python tools/sword.py --brief                  # the protocol: decision blocks, 13 followups
     python tools/sword.py --scan    [--root DIR] [--json]
     python tools/sword.py --plan                   # findings -> queue, ordered
     python tools/sword.py --status
@@ -52,6 +52,13 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
 
 HERE = Path(__file__).resolve().parent
 SPEC = HERE.parent / "aio" / "flaming_sword.aio.json"
@@ -503,7 +510,8 @@ def detect_untested_ci(root: Path) -> Tuple[List[Dict], bool, str]:
     for workflow in workflows:
         try:
             text = workflow.read_text(encoding="utf-8", errors="replace")
-        except OSError:
+        except OSError as exc:            # an unreadable workflow is not a clean one
+            note_failure("sword:ci_without_tests", exc)
             continue
         if TEST_INVOCATION.search(text):
             continue
@@ -581,6 +589,128 @@ def detect_figure_without_command(root: Path) -> Tuple[List[Dict], bool, str]:
     return findings, True, ""
 
 
+# ============================================================
+# Compliance Matrix Detector
+# ============================================================
+
+COMPLIANCE_MATRIX_REQUIRED = {
+    "license": {
+        "file": "LICENSE",
+        "description": "Project must have a LICENSE file",
+        "severity": "high",
+    },
+    "license-header": {
+        "pattern": r"(?i)(copyright|license|licensed)",
+        "description": "Source files must contain license/copyright headers",
+        "severity": "medium",
+    },
+    "security-policy": {
+        "file": "SECURITY.md",
+        "description": "Project must have a security policy (SECURITY.md)",
+        "severity": "high",
+    },
+    "contributing": {
+        "file": "CONTRIBUTING.md",
+        "description": "Project must have contribution guidelines (CONTRIBUTING.md)",
+        "severity": "medium",
+    },
+    "code-of-conduct": {
+        "file": "CODE_OF_CONDUCT.md",
+        "description": "Project must have a code of conduct (CODE_OF_CONDUCT.md)",
+        "severity": "medium",
+    },
+    "readme": {
+        "file": "README.md",
+        "description": "Project must have a README.md",
+        "severity": "high",
+    },
+    "changelog": {
+        "file": "CHANGELOG.md",
+        "description": "Project must have a changelog (CHANGELOG.md)",
+        "severity": "low",
+    },
+    "ci-config": {
+        "file": ".github/workflows",
+        "description": "Project must have CI configuration",
+        "severity": "high",
+    },
+    "dependabot": {
+        "file": ".github/dependabot.yml",
+        "description": "Project should have dependabot configuration",
+        "severity": "low",
+    },
+    "codeql": {
+        "file": ".github/codeql",
+        "description": "Project should have CodeQL security analysis",
+        "severity": "low",
+    },
+}
+
+
+def detect_compliance_matrix(root: Path) -> Tuple[List[Dict], bool, str]:
+    """Check for required compliance matrix elements in the repository."""
+    config = read_config(root)
+    compliance_config = config.get("compliance", {})
+    required = compliance_config.get("required", list(COMPLIANCE_MATRIX_REQUIRED.keys()))
+    optional = compliance_config.get("optional", [])
+    
+    all_checks = {**COMPLIANCE_MATRIX_REQUIRED}
+    findings: List[Dict] = []
+    
+    # Check each required compliance item
+    for check_name in required:
+        if check_name not in COMPLIANCE_MATRIX_REQUIRED:
+            continue
+        check = COMPLIANCE_MATRIX_REQUIRED[check_name]
+        severity = check["severity"]
+        description = check["description"]
+        
+        if "file" in check:
+            target = root / check["file"]
+            if not target.exists():
+                findings.append(_finding(
+                    "compliance-matrix", root, 0,
+                    f"Missing required compliance element: {check_name}",
+                    severity,
+                    f"Add {check['file']}: {description}",
+                    root=root, detail=check_name))
+        elif "pattern" in check:
+            # Pattern-based check (e.g., license headers)
+            found = False
+            for path in iter_files(root, "*.py", MAX_PYTHON):
+                try:
+                    text = path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                if re.search(check["pattern"], text):
+                    found = True
+                    break
+            if not found:
+                findings.append(_finding(
+                    "compliance-matrix", root, 0,
+                    f"Missing required compliance element: {check_name}",
+                    severity,
+                    f"Ensure {description}",
+                    root=root, detail=check_name))
+    
+    # Check optional items (low severity)
+    for check_name in optional:
+        if check_name not in COMPLIANCE_MATRIX_REQUIRED:
+            continue
+        check = COMPLIANCE_MATRIX_REQUIRED[check_name]
+        if "file" in check:
+            target = root / check["file"]
+            if not target.exists():
+                findings.append(_finding(
+                    "compliance-matrix", root, 0,
+                    f"Optional compliance element missing: {check_name}",
+                    "low",
+                    f"Consider adding {check['file']}: {check['description']}",
+                    root=root, detail=check_name))
+    
+    return findings, True, f"checked {len(required)} required, {len(optional)} optional compliance elements"
+
+
 DETECTORS = (
     ("phantom-reference", detect_phantom_reference),
     ("duplicate-constant", detect_duplicate_constant),
@@ -589,6 +719,7 @@ DETECTORS = (
     ("untested-ci", detect_untested_ci),
     ("stale-claims", detect_stale_claims),
     ("figure-without-command", detect_figure_without_command),
+    ("compliance-matrix", detect_compliance_matrix),
 )
 
 
@@ -981,8 +1112,13 @@ def brief() -> int:
         print("   rule: %s" % block.get("rule", ""))
         print("")
     followups = protocol.get("followups", {})
-    print("-- followups: exactly %d, %s" % (followups.get("count", 12),
-                                            followups.get("shape", "")))
+    print("-- followups: exactly %d (the baker's dozen), %s"
+          % (followups.get("count", 13), followups.get("shape", "")))
+    for slot in followups.get("mandatory", []):
+        print("   slot %-2s %s" % (slot.get("slot", "?"), slot.get("card", "")))
+        print("            %s" % slot.get("prompt", ""))
+    for test in followups.get("hyper_edge_test", []):
+        print("   edge test: %s" % test)
     for forbidden in followups.get("forbidden", []):
         print("   forbidden: %s" % forbidden)
     print("   %s" % followups.get("counting_rule", ""))
@@ -1039,7 +1175,9 @@ def self_test() -> int:
         (broken / STATE_DIR / "config.json").write_text(
             json.dumps({"constants": ["FLOOR"],
                         "claims": {"ledger": "claims.json",
-                                   "command": [sys.executable, "-c", "pass"]}}),
+                                   "command": [sys.executable, "-c", "pass"]},
+                        "compliance": {"required": ["license", "license-header", "security-policy", "contributing", "code-of-conduct", "readme", "changelog", "ci-config"],
+                                       "optional": ["dependabot", "codeql"]}}),
             encoding="utf-8")
         (broken / "claims.json").write_text("{}\n", encoding="utf-8")
         (broken / "tests").mkdir()
@@ -1052,24 +1190,29 @@ def self_test() -> int:
             encoding="utf-8")
         (broken / "README.md").write_text(
             "The tree carries 15 gates and 42 tests.\n", encoding="utf-8")
+        (broken / "LICENSE").write_text("MIT License\n\nCopyright (c) 2024\n", encoding="utf-8")
+        (broken / "SECURITY.md").write_text("# Security Policy\n\nReport security issues to security@example.com\n", encoding="utf-8")
+        (broken / "CONTRIBUTING.md").write_text("# Contributing Guidelines\n\nWelcome!\n", encoding="utf-8")
+        (broken / "CODE_OF_CONDUCT.md").write_text("# Code of Conduct\n\nBe respectful.\n", encoding="utf-8")
+        (broken / "CHANGELOG.md").write_text("# Changelog\n\n## Unreleased\n", encoding="utf-8")
         git(["add", "-A"], broken)
         git(["commit", "-qm", "seed"], broken)
 
         findings, unrun = scan(broken)
         fired = {item["detector"] for item in findings}
         for expected in ("phantom-reference", "duplicate-constant", "hooks-unwired",
-                         "two-interpreters", "untested-ci"):
+                         "two-interpreters", "untested-ci", "compliance-matrix"):
             if expected not in fired:
                 failures.append("%s did not fire on the seeded tree" % expected)
         if not any("UNRUN" in note for note in unrun) and unrun:
             failures.append("an unrun detector was reported without the word UNRUN")
 
-        # -- clean: same shape, no defects
+# -- clean: same shape, no defects
         (clean / ".githooks").mkdir()
         (clean / ".githooks" / "pre-commit").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
         git(["config", "core.hooksPath", ".githooks"], clean)
         (clean / "tools").mkdir()
-        (clean / "tools" / "real.py").write_text("FLOOR = 0.89\n", encoding="utf-8")
+        (clean / "tools" / "real.py").write_text("# Copyright (c) 2024\n# MIT License\n\nFLOOR = 0.89\n", encoding="utf-8")
         (clean / STATE_DIR).mkdir()
         # `claims` is configured on the clean tree because a detector with nothing
         # to run is UNRUN, not clean -- the clean fixture must be a tree where every
@@ -1077,7 +1220,9 @@ def self_test() -> int:
         (clean / STATE_DIR / "config.json").write_text(
             json.dumps({"constants": ["FLOOR"],
                         "claims": {"ledger": "claims.json",
-                                   "command": [sys.executable, "-c", "pass"]}}),
+                                   "command": [sys.executable, "-c", "pass"]},
+                        "compliance": {"required": ["license", "license-header", "security-policy", "contributing", "code-of-conduct", "readme", "changelog", "ci-config"],
+                                       "optional": ["dependabot", "codeql"]}}),
             encoding="utf-8")
         (clean / "claims.json").write_text("{}\n", encoding="utf-8")
         (clean / "docs").mkdir()
@@ -1085,11 +1230,20 @@ def self_test() -> int:
             "# Install\n\n```bash\npython tools/real.py\n```\n", encoding="utf-8")
         (clean / "tests").mkdir()
         (clean / "tests" / "test_x.py").write_text("def test_x():\n    assert True\n",
-                                                   encoding="utf-8")
+                                                    encoding="utf-8")
         (clean / ".github" / "workflows").mkdir(parents=True)
         (clean / ".github" / "workflows" / "ci.yml").write_text(
             "name: ci\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n"
             "    steps:\n      - run: python -m pytest tests/ -q\n", encoding="utf-8")
+        (clean / "LICENSE").write_text("MIT License\n\nCopyright (c) 2024\n", encoding="utf-8")
+        (clean / "SECURITY.md").write_text("# Security Policy\n\nReport security issues to security@example.com\n", encoding="utf-8")
+        (clean / "CONTRIBUTING.md").write_text("# Contributing Guidelines\n\nWelcome!\n", encoding="utf-8")
+        (clean / "CODE_OF_CONDUCT.md").write_text("# Code of Conduct\n\nBe respectful.\n", encoding="utf-8")
+        (clean / "README.md").write_text("# Project\n\nDescription\n", encoding="utf-8")
+        (clean / "CHANGELOG.md").write_text("# Changelog\n\n## Unreleased\n", encoding="utf-8")
+        (clean / ".github" / "dependabot.yml").write_text("version: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: daily\n", encoding="utf-8")
+        (clean / ".github" / "codeql").mkdir(parents=True, exist_ok=True)
+        (clean / ".github" / "codeql" / "codeql-config.yml").write_text("# CodeQL configuration\n", encoding="utf-8")
         git(["add", "-A"], clean)
         git(["commit", "-qm", "seed"], clean)
 

@@ -50,7 +50,7 @@ move when the tree degrades is not a control.
 
 | # | tree | grade | gaps | evidence |
 | --- | --- | --- | --- | --- |
-| 1 | `C:/Azazael/azazael` | **BLEEDING** | 0 | 1,227 commits, 32 packs, 0 loose, 954.9 MiB packed, MIDX+graph present |
+| 1 | `C:/Azazael/azazael` | **BLEEDING** | 0 | 1,229 commits, 32 packs, 0 loose, 954.9 MiB packed, MIDX+graph present (same verdict when re-graded under git 2.56.0) |
 | 2 | `C:/Users/clint` | **LAGGING** | 1 + HAZARD | 189 commits, 1 pack, 18 loose, 138.1 MiB; *coverage*: **678 tracked vs 1,006 untracked** — the tree is a copy with a baseline commit; *hazard*: the repository **is** the home directory |
 | 3 | `C:/Users/clint/edge0-intel` | **NOT-A-REPO** | 1 | `rev-parse --show-toplevel` → `C:/Users/clint` |
 | 4 | `C:/Users/clint/graph3d` | **NOT-A-REPO** | 1 | `rev-parse --show-toplevel` → `C:/Users/clint` |
@@ -150,11 +150,12 @@ section does not read as a wish list.
 | `git maintenance is-needed --task=<t>` | 2.53 | all | **measured unusable here** — §6.4; the audit keeps its own thresholds |
 | `git merge-tree --write-tree` (conflict preflight without a worktree) | 2.38 | `azazael` (1227 commits, one lane per session) | queued — this is the merge-queue primitive: a lane can ask "would these two merge cleanly" without touching an index |
 | `git replay --onto` / `--linearize` | 2.46 / 2.56 | stacked work across lanes | queued — replays commits onto a new base without a checkout; `--linearize` drops merges |
-| `git backfill` (fill a partial clone by batch, path-aware) | 2.51 | a Scalar-style clone of `azazael` | queued — pairs with blob filters below |
-| partial clone + `git repack --drop-filtered` + `promisor.acceptFromServerURL` | 2.56 | `azazael` at 955 MiB packed / 40k objects | queued — the only route that makes a lane clone cheap, and 2.56 is what makes dropping filtered blobs safe |
+| `git backfill` (fill a partial clone by batch, path-aware) | 2.51 | a Scalar-style clone of `azazael` | **measured** — 51 s to fill 27,919 of 27,922 promised blobs (§5b) |
+| partial clone (`--filter=blob:none`) | 2.x | `azazael` at 955 MiB packed / 38.8k objects | **measured** — 1 s / 3 MB vs 64 s / 945 MB (§5b); needs `uploadpack.allowFilter=true` on the source, now set |
+| `git repack --drop-filtered` + `promisor.acceptFromServerURL` | 2.56 | a partial clone of `azazael` | queued — 2.56 is what makes *dropping* filtered blobs safe; not in 2.53, so not trialable here |
 | Scalar (`scalar register`) | 2.38 fully upstream | workstations | queued — sets the same five settings this audit checks plus background maintenance; useful as a cross-check, not as a replacement for measuring |
 | `git refs create/delete/update/rename` + reftable | 2.56 / experimental | lane refs (`lane/<name>/<task>`) | queued — ref plumbing without porcelain; reftable is the Git-3.0 default and worth a scratch trial only |
-| untracked enumeration O(n²) → O(n log n) | 2.56 | the two trees with tens of thousands of untracked paths | upgrade trigger: this is the single change that makes `git status` usable on the home tree, and it is *not* in 2.53 |
+| untracked enumeration O(n²) → O(n log n) | 2.56 | — | **claim withdrawn**: measured 2.56 `git status` is *slower* than 2.53 on this fleet (70 → 94 ms azazael, 72 → 78 ms home). These trees carry ~1k untracked paths, nowhere near the regime the fix addresses (§5b) |
 | `git add --resolved` | 2.56 | conflict-heavy sessions | queued — stages only resolved paths, aborts on leftover markers |
 | `git branch --delete-merged` | 2.56 | `azazael` branch hygiene | queued |
 | `git bisect --reset-when-found` | 2.56 | CI/lane debugging | queued |
@@ -163,9 +164,12 @@ section does not read as a wish list.
 | `git rev-list --missing-only` | 2.56 | partial-clone integrity checks | queued, needed *with* the partial clone |
 | one worktree per lane (`git worktree add`) | 2.5 | all four lanes on `azazael` | queued — four lanes sharing one checkout is why `index.lock` and "your commit is not mine" keep happening |
 
-The two that change the shape of the fleet rather than its speed are the **merge
-queue** (`merge-tree --write-tree` + `replay`, both worktree-free) and the
-**partial clone** (`backfill` + `--drop-filtered`). Everything else is a setting.
+The one that changes the shape of the fleet rather than its speed is the
+**partial clone**, and it is no longer a proposal: 1 s and 3 MB against 64 s and
+945 MB, with `backfill` completing it in 51 s (§5b). The merge queue
+(`merge-tree --write-tree` + `replay`) is still queued. Everything else is a
+setting, and two of those settings were also measured rather than assumed —
+`--path-walk` bought one kilobyte, and 2.56's `git status` is slower here.
 
 ---
 
@@ -176,11 +180,59 @@ queue** (`merge-tree --write-tree` + `replay`, both worktree-free) and the
 | `C:/Azazael/azazael` | `git prune-packed` | 7,958 loose, 46.2 MiB, `prune-packable: 7958` | **0 loose, 0 MiB** (45 MiB reclaimed; 32 packs untouched) |
 | `C:/Azazael/azazael` | `git multi-pack-index write` + `commit-graph write --reachable` | MIDX + graph present | re-written, both present, grade back to BLEEDING |
 | `C:/Users/clint` | `git repack -d` + MIDX + graph | 1,664 loose, 159.5 MiB, 0 packs | **18 loose, 1 pack, 138.1 MiB** (21 MiB reclaimed) |
+| `C:/Azazael/azazael` | `uploadpack.allowFilter true` | a `file://` clone silently ignored `--filter` and copied 945 MB | partial clones honour the filter (1 s / 3 MB, §5a) |
 
-Deliberately **not** done: no `git repack -a` on `azazael` (a single repack would
-need ~1 GB of temporary space on a volume at 98% / 18 GB free — queued as a scratch
-trial with `--path-walk` instead), no `git init` anywhere (each is a decision, §3),
+Deliberately **not** done on the live tree: no `git repack -a` (a single repack
+needs ~1 GB of temporary space on a volume at 98% / 16 GB free — trialled on a
+scratch clone instead, §5a), no `git init` anywhere (each is a decision, §3),
 nothing pushed.
+
+## 5a. Two trials, on a scratch clone (the live tree was never repacked -a)
+
+Disk was at 98% with 18 GB free, so every trial ran on a throwaway bare clone
+under `C:/Azazael/.git-trials` that was deleted afterwards.
+
+| trial | command | result |
+| --- | --- | --- |
+| baseline repack | `git repack -ad --write-midx` | 4 s · 957 → 946 MB · 32 packs → **1 pack + MIDX** · 38,812 → 37,812 objects (unreachable pruned) |
+| path-walk repack | `git repack -ad --write-midx --path-walk` | 3 s · 966,448 KB vs 966,449 KB — **one kilobyte**. No gain: the pack is already delta-dense (HTML/Python text), so there is no locality left to win. Not worth a live repack |
+| partial clone | `git clone --bare --filter=blob:none file:///C:/Azazael/azazael` | **1 s · 3 MB** · 9,890 objects · 27,922 promised blobs (vs 64 s / 945 MB for a full file:// clone of the same repo) |
+| backfill | `git backfill` | **51 s** · 3 MB → 952 MB · filled 27,919 of 27,922 |
+| residual | second `git backfill` + lazy read | 3 blobs stay promised even though they exist in the source; a second backfill does nothing (0 s), and `git cat-file` fetches one on demand (missing 3 → 2). So a partial clone is *usable* without being byte-complete |
+
+Two prerequisites this exposed, both now set: the source needs
+`uploadpack.allowFilter=true` or every `file://` clone silently ignores the
+filter (`warning: filtering not recognized by server, ignoring` and a full
+945 MB transfer), and `--drop-filtered` does not exist before 2.56, so a partial
+clone cannot yet shed blobs it has already fetched.
+
+## 5b. The 2.56 upgrade: installed, measured, and not the win it was sold as
+
+`winget upgrade --id Git.Git` finds 2.56.0.4, downloads it, verifies the hash —
+and the Git for Windows installer **aborts**: `the following processes are using
+files that need to be updated: sh.exe, tail.exe`. bash/sh on this box *are* Git
+for Windows binaries, so the installer cannot run from inside Git Bash, and
+killing those processes kills the session and the MCP children with it.
+
+So 2.56 is installed side-by-side instead: **PortableGit 2.56.0.4** at
+`C:/Azazael/tools/portablegit-2.56` (355 MB, no admin, no process kills),
+verified `git version 2.56.0.windows.4`. The fleet re-grades identically under
+it, so the audit tool is compatible.
+
+What the upgrade does **not** buy, measured 3 runs each (`git status
+--porcelain`):
+
+| tree | 2.53.0.windows.1 | 2.56.0.windows.4 |
+| --- | --- | --- |
+| `C:/Azazael/azazael` | 70 / 68 / 71 ms | 94 / 92 / 94 ms |
+| `C:/Users/clint` | 72 / 67 / 59 ms | 78 / 75 / 74 ms |
+
+2.56 is **slower** on both. The O(n²)→O(n log n) untracked-enumeration fix needs
+tens of thousands of untracked paths to matter and these trees have ~1k, while
+the portable install starts its own fsmonitor state cold. The earlier claim that
+2.56 would make `git status` usable on the home tree is **withdrawn** — the tree
+is already 70 ms; it is untracked *content*, not enumeration cost, that makes it
+a bad repository.
 
 ---
 
@@ -221,8 +273,9 @@ Exercised in two repos: a fresh `git init` + one commit that needs everything, a
 `--task=<gc|commit-graph|loose-objects|pack-refs|prefetch>` printed nothing and
 exited **0** in both. `--schedule` is rejected as an unknown option. So the exit
 status carries no information here and the audit keeps hand-set thresholds, which
-are at least explained. 2.53.0.windows.1 and 2.53.0 both behave this way; re-test
-after upgrading to 2.56.
+are at least explained. Re-tested on **2.56.0.windows.4**: identical silence,
+identical exit 0, in a repo whose commit-graph does not exist. The subcommand is
+a stub on both versions; do not gate maintenance on it.
 
 ---
 
@@ -230,6 +283,8 @@ after upgrading to 2.56.
 
 ```bash
 PY=C:/Azazael/.venvs/py315t/Scripts/python.exe
+G256=/c/Azazael/tools/portablegit-2.56/cmd   # git 2.56 without touching the system install
+PATH=$G256:$PATH $PY tools/git_fleet_audit.py --root <tree>
 
 $PY tools/git_fleet_audit.py --tasks \
   --root C:/Azazael/azazael --root C:/Users/clint --root C:/Users/clint/edge0-intel \

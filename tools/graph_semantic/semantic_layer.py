@@ -51,7 +51,7 @@ NODES: list[tuple[str, str, str, str, str]] = [
      "Independent work is batched into a single spawn call rather than serialized. The measured cost of sequentializing was wall-clock, not correctness."),
     ("mandates_rule_0d_inference", "RULE 0D/0Z-A — Inference Protocol, 12-provider failover", "rationale", "MANDATES.md",
      "Analysis must not depend on one provider being up; the chain fails over automatically. Also mandates multi-API cross-reference for deep analysis rather than a single opinion."),
-    ("mandates_rule_0z_b_followups", "RULE 0Z-B — Exactly 11 followup suggestions per response", "rationale", "MANDATES.md",
+    ("mandates_rule_0z_b_followups", "RULE 0Z-B — Exactly 13 hyper-edge followup suggestions per response", "rationale", "MANDATES.md",
      "A volume mandate, not a quality one; its cost is that a numeric default can be mistaken for a system-reminder override (anti-pattern AP-ZB-1)."),
     ("mandates_no_permission_language", "No permission-seeking language for mandated actions", "rationale", "MANDATES.md",
      "Asking 'shall I proceed?' on a mandated action is itself a process violation: it converts a directive into an option."),

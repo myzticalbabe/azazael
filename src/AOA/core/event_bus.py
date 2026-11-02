@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Callable, Any, Optional
 from datetime import datetime
-from collections import defaultdict
+from collections import defaultdict, deque
 import threading, uuid
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -47,7 +47,11 @@ class AOEventType:
 
 class EventBus:
     def __init__(self, max_history=1000):
-        self._subscribers=defaultdict(list); self._history=[]; self._max_history=max_history; self._lock=threading.Lock()
+        self._subscribers=defaultdict(list); self._sinks=[]; self._history=None; self._max_history=max_history; self._lock=threading.Lock()
+        # Use a bounded ring (deque with maxlen) for O(1) trimming instead of
+        # O(n) list slice. The deque drops the oldest entry automatically when
+        # it exceeds maxlen, so publish never reallocates the backing array.
+        self._history = deque(maxlen=max_history)
         # `publish` used to `except: pass`, so a subscriber that raised was
         # silently never delivered to -- a broken consumer was indistinguishable
         # from one that legitimately did nothing, with 9 arms subscribed.
@@ -57,10 +61,17 @@ class EventBus:
     def publish(self, event):
         with self._lock:
             self._history.append(event)
-            if len(self._history)>self._max_history: self._history=self._history[-self._max_history:]
-        for pattern,cbs in self._subscribers.items():
+        # Invoke sinks OUTSIDE the lock so a slow tracer cannot stall publishers.
+        # Sinks are read-only consumers (tracing, logging, metrics) that observe
+        # events but must not block the publish path.
+        for sink in list(self._sinks):
+            try:
+                sink(event)
+            except Exception as _e:
+                note_failure("event_bus:sink", _e)
+        for pattern,cbs in list(self._subscribers.items()):
             if self._match_pattern(pattern, event.event_type):
-                for cb in cbs:
+                for cb in list(cbs):
                     try: cb(event)
                     except Exception as _e:
                         # Keep the LEAF of the qualname. A long
@@ -85,8 +96,19 @@ class EventBus:
                                 "error": "%s: %s"%(type(_e).__name__,str(_e)[:120]),
                             })
                             self._cb_errors=self._cb_errors[-50:]
-    @property
-    def callback_error_count(self):
+    def subscribe_sink(self, fn):
+        """Register a sink invoked OUTSIDE the lock on every publish.
+
+        Sinks are for tracing, logging, metrics -- read-only consumers that
+        must not stall publishers. A slow sink cannot block publish because
+        it runs after the lock is released.
+        """
+        self._sinks.append(fn)
+        return fn
+    def unsubscribe_sink(self, fn):
+        """Remove a previously registered sink."""
+        if fn in self._sinks:
+            self._sinks.remove(fn)
         """Subscriber deliveries that raised. Non-zero means a consumer is
         broken and its events are being dropped."""
         with self._cb_errors_lock: return self._cb_error_count
@@ -99,12 +121,12 @@ class EventBus:
             if pattern in self._subscribers: self._subscribers[pattern]=[c for c in self._subscribers[pattern] if c!=cb]
     def get_history(self, event_type=None, source_arm=None, limit=100):
         with self._lock:
-            r=self._history
-            if event_type: r=[e for e in r if e.event_type==event_type]
-            if source_arm: r=[e for e in r if e.source_arm==source_arm]
+            r = list(self._history)
+            if event_type: r = [e for e in r if e.event_type == event_type]
+            if source_arm: r = [e for e in r if e.source_arm == source_arm]
             return r[-limit:]
     def get_correlated_events(self, cid):
-        with self._lock: return [e for e in self._history if e.correlation_id==cid]
+        with self._lock: return [e for e in list(self._history) if e.correlation_id == cid]
     def clear_history(self):
         with self._lock: self._history.clear()
     @staticmethod
@@ -117,7 +139,11 @@ class EventBus:
     def subscriber_count(self):
         with self._lock: return sum(len(cbs) for cbs in self._subscribers.values())
     @property
-    def history_count(self):
+    def callback_error_count(self):
+        """Subscriber deliveries that raised. Non-zero means a consumer is
+        broken and its events are being dropped."""
+        with self._cb_errors_lock:
+            return self._cb_error_count
         with self._lock: return len(self._history)
 
 class EventPipeline:

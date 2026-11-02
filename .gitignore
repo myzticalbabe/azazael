@@ -336,6 +336,30 @@ state/*
 docs/_shard01_frames/
 *.backup2
 
+# ── 2026-11-02: generated output that was leaking into `git status` ──────
+# Each line below was measured as untracked output of a documented command, not
+# source. They are ignored by rule rather than deleted, because the rule is what
+# stops the next run from reappearing; the files stay on disk.
+#
+# Timestamped diagnostic/fleet telemetry written by the META report jobs (16
+# files, epoch-keyed names, e.g. diagnostic_1793330764.json). `reports/
+# env_inventory/` above covered one sibling and missed this one.
+src/META/reports/
+# Root-level run artefacts: nature_swarm.py's result file, and the shard-budget
+# measurement (generated_at + python_version headers -- a reading, not config).
+/swarm_results.json
+/tools/budget.json
+# wasm-pack/rust build output. `target/` is already ignored; pkg/, pkg.nosimd/
+# and the dated baseline are the same kind of product. The crate source
+# (Cargo.toml, Cargo.lock, .cargo/config.toml, src/*.rs) is NOT ignored.
+src/RUST_WASM/pkg*/
+# Backup copies whose name does not end in `.bak`: `*.bak` above misses a
+# suffix-style name like supervisor_mcp.py.bak-20261029-freebuff.
+*.bak-*
+# Client-local plugin config, same reasoning as `.claude/` above: the plugin is
+# how THIS host's client is wired, not content of the project.
+.opencode/
+
 # scratch from the 2026-11-02 mutation + prose work: every one of these is regenerable from
 # the committed source (meshscene.py --forge, capture_transubstantiation.js, prose_forensics.py)
 # except the encoded mp4, which is a local viewing copy, not evidence -- the evidence is

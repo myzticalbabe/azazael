@@ -36,7 +36,7 @@ async function recordSession(retryCount = 0) {
     // Forward browser console logs (including progress from scroll callback) to terminal
     page.on('console', msg => console.log(`  [browser] ${msg.text()}`));
 
-    const htmlPath = 'file:///C:/Users/clint/azazael/src/CODEX/CAIN_injected.html';
+    const htmlPath = 'file:///C:/Azazael/azazael/src/CODEX/CAIN_injected.html';
     console.log(`Loading: ${htmlPath}`);
     await page.goto(htmlPath, { waitUntil: 'load', timeout: 120000 });
 

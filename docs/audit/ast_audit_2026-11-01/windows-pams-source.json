@@ -1,0 +1,564 @@
+{
+ "root": "C:/Azazael/pams-source",
+ "python": "3.15.0rc3",
+ "executable": "C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe",
+ "platform": "win32",
+ "files_total": 30,
+ "other_languages": {},
+ "py_files": 14,
+ "py_parsed": 14,
+ "syntax_errors": [],
+ "unreadable": [],
+ "loc": 32995,
+ "classes": 28,
+ "functions": 270,
+ "async_functions": 278,
+ "methods": 433,
+ "mains": 4,
+ "bare_except": [
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 42
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3027
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 6288
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 2269
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 2504
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 7972
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 42
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 171
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1410
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1568
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1250
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1010
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1105
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1043
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1054
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1138
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1149
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1204
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1182
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1193
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1632
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1706
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1718
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1472
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 2319
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 2556
+  },
+  {
+   "path": "persistent_ai_memory\\utils.py",
+   "line": 17
+  }
+ ],
+ "except_pass": [
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 145
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 6638
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 6675
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3042
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3231
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 10360
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 4257
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 7979
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 8132
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3126
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 109
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 117
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 2356
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 1401
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 1410
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 3117
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 3125
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 555
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 5131
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 10207
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 9371
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1410
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1568
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1238
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 1718
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 110
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 118
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 2406
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 1450
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 1459
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 3171
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 3179
+  },
+  {
+   "path": "persistent_ai_memory\\port_manager.py",
+   "line": 149
+  },
+  {
+   "path": "persistent_ai_memory\\port_manager.py",
+   "line": 173
+  },
+  {
+   "path": "persistent_ai_memory\\tag_manager.py",
+   "line": 126
+  }
+ ],
+ "except_continue": [
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 4234
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 10410
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3151
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 3621
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 4436
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 9957
+  }
+ ],
+ "except_return_none": 3,
+ "eval_exec": [],
+ "open_no_encoding": [
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 143,
+   "mode": "a"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 4496,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 6768,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 4422,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_core.py",
+   "line": 6741,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 75,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 1177,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_mcp_server.py",
+   "line": 3177,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_normalization_migration.py",
+   "line": 77,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2579,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2636,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2680,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2709,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2738,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 4886,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6271,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6509,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2498,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 4790,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 4864,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6092,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6172,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6341,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2536,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 4816,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 5902,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2062,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 2157,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\ai_memory_short_term.py",
+   "line": 6584,
+   "mode": "a"
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 407,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 535,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 501,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\core_identity.py",
+   "line": 544,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 2430,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\database_maintenance.py",
+   "line": 2440,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 76,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 3231,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\mcp_server.py",
+   "line": 1225,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\port_manager.py",
+   "line": 349,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\port_manager.py",
+   "line": 381,
+   "mode": "r"
+  },
+  {
+   "path": "persistent_ai_memory\\tag_manager.py",
+   "line": 203,
+   "mode": "w"
+  },
+  {
+   "path": "persistent_ai_memory\\tag_manager.py",
+   "line": 223,
+   "mode": "r"
+  }
+ ],
+ "star_import": [],
+ "type_ignore": 7,
+ "noqa": 0,
+ "markers": [],
+ "markers_total": 0,
+ "markers_by_kind": {},
+ "duplicate_content": [
+  [
+   "persistent_ai_memory\\__init__.py",
+   "persistent_ai_memory\\check_db.py"
+  ]
+ ],
+ "skipped_device_paths": [],
+ "skip_dirs": [
+  ".cache",
+  ".conan",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".kali_staging",
+  ".mypy_cache",
+  ".pams_venv",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".venvs",
+  "__pycache__",
+  "archive",
+  "archived",
+  "build",
+  "dist",
+  "dist-packages",
+  "graphify-out",
+  "node_modules",
+  "sdist",
+  "site-packages",
+  "target",
+  "venv"
+ ],
+ "duplicate_groups": 1,
+ "duplicate_files": 2,
+ "orphan_modules": [
+  "persistent_ai_memory",
+  "persistent_ai_memory.ai_memory_short_term",
+  "persistent_ai_memory.check_db",
+  "persistent_ai_memory.mcp_server",
+  "persistent_ai_memory.settings",
+  "persistent_ai_memory.setup"
+ ],
+ "orphan_count": 6,
+ "skipped_device_count": 0,
+ "label": "windows-pams-source"
+}

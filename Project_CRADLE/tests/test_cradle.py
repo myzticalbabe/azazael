@@ -18,6 +18,22 @@ from pathlib import Path
 
 import pytest
 
+#: The five chain parts (defender, sentinel, memory_bridge, chain_server, sword) ship
+#: with Project_FLAMING_SWORD, which is a SEPARATE project. A standalone clone of
+#: CRADLE therefore has no chain to exercise. Those tests skip rather than fail --
+#: and they keep every assertion, so they still run and still bite wherever the
+#: chain IS installed. Skipping a test whose subject is absent is not the same as
+#: weakening it; failing it would report a packaging fact as a code defect.
+#: tests/ -> Project_CRADLE -> the tree that holds the sibling project.
+#: (parent.parent alone points INSIDE Project_CRADLE and would skip these tests
+#: even in the monorepo, where the chain is present -- measured and fixed
+#: 2026-11-02, the first version of this marker silently hid all eight.)
+CHAIN = Path(__file__).resolve().parent.parent.parent / "Project_FLAMING_SWORD" / "tools"
+needs_chain = pytest.mark.skipif(
+    not CHAIN.is_dir(),
+    reason="needs FLAMING_SWORD (separate project) installed beside this tree",
+)
+
 HERE = Path(__file__).resolve().parents[1]
 CRADLE = HERE / "cradle.py"
 if str(HERE) not in sys.path:
@@ -36,6 +52,7 @@ def _load():
 cradle = _load()
 
 
+@needs_chain
 def test_the_four_parts_are_where_the_launcher_says() -> None:
     for name, path in cradle.PARTS.items():
         assert path.exists(), "%s is missing at %s" % (name, path)
@@ -45,6 +62,7 @@ def test_doctor_reports_ready_on_this_tree() -> None:
     assert cradle.doctor() == 0
 
 
+@needs_chain
 def test_doctor_fails_when_a_part_is_missing(monkeypatch, tmp_path: Path) -> None:
     """The control: a broken installation must NOT report READY."""
     broken = dict(cradle.PARTS)
@@ -58,6 +76,7 @@ def test_doctor_names_the_model_as_absent_rather_than_failing() -> None:
     assert cradle.doctor(model_url="") == 0
 
 
+@needs_chain
 def test_demo_passes_and_shows_the_failure_path(capsys) -> None:
     assert cradle.demo() == 0
     out = capsys.readouterr().out
@@ -66,6 +85,7 @@ def test_demo_passes_and_shows_the_failure_path(capsys) -> None:
     assert "BLOCKED" in out
 
 
+@needs_chain
 def test_demo_json_is_parseable_and_has_every_step(capsys) -> None:
     assert cradle.demo(json_out=True) == 0
     payload = json.loads(capsys.readouterr().out)
@@ -83,6 +103,7 @@ def test_doctor_prints_the_true_names(capsys) -> None:
     assert "GRIMOIRE (memory)" in out, out
 
 
+@needs_chain
 def test_the_names_are_vocabulary_and_not_file_names() -> None:
     """REAPER and GRIMOIRE name the roles; the paths keep their names on purpose.
 
@@ -98,6 +119,7 @@ def test_the_names_are_vocabulary_and_not_file_names() -> None:
     assert cradle.PARTS["sentinel"].name == "sentinel.py"
 
 
+@needs_chain
 def test_grimoire_says_no_book_rather_than_nothing_learned(tmp_path: Path, capsys) -> None:
     """A fresh directory has no book; that is not the same as a book with no lessons."""
     assert cradle.grimoire(state_dir=str(tmp_path)) == 0
@@ -105,6 +127,7 @@ def test_grimoire_says_no_book_rather_than_nothing_learned(tmp_path: Path, capsy
     assert "no book yet" in out, out
 
 
+@needs_chain
 def test_grimoire_prints_what_a_failure_wrote(tmp_path: Path, capsys) -> None:
     bridge = cradle._load("memory_bridge", cradle.PARTS["memory"])
     bridge.record_verification("f-test", "pytest -q", 1, observed="1 failed",
@@ -121,6 +144,7 @@ def test_grimoire_prints_what_a_failure_wrote(tmp_path: Path, capsys) -> None:
     assert "1 of kind 'ruleset'" in filtered, filtered
 
 
+@needs_chain
 def test_an_unreadable_grimoire_is_a_failure_not_a_skip(tmp_path: Path, capsys) -> None:
     """The control: a corrupt line must exit 1 and name the line, never be skipped."""
     ledger = tmp_path / "lessons.jsonl"

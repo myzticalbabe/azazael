@@ -13,6 +13,7 @@ It is not a package beside the others — it is the thing they live inside.
 Azazael  (root: canon, engine, tools, canon docs, all lanes)
 ├── Project ELIZA            forensic investigation — the full suite
 ├── Project Nurse Ratchet    the behavioral package
+├── Project FLAMING SWORD    the sweep — find, fix, prove and land defects in a foreign repo
 └── (declared)               CAIN, EVE, CODEX, AOA … as they are separated
 ```
 
@@ -28,6 +29,7 @@ history, one gate.
 | **Azazael** (root) | canon (`AGENTS.md`, `MANDATES.md`, `SOP.md`), the engine under `src/`, the instruments under `tools/`, the lane board, the gates | a product; a published library |
 | **Project ELIZA** | the **forensic investigation full suite** — flock/tier method, edge proof ledger, identity tie-breaks, negative universes, behavioural inference from public record, and the tooling that executes it | the behavioural package; a repository of case data |
 | **Project Nurse Ratchet** | the **behavioral package** — trait/affect model, construct graph, compiled intuition, the realtime loop, live counselors, the construct battery, and the instruments that grade them | a therapist; a clinical product; the forensic suite |
+| **Project FLAMING SWORD** | the **sweep** — detectors for the defect classes this estate paid for (phantom commands, split constants, unwired hooks, stale claims, untested CI), an ordered queue, mechanical fixes in batches, and a landing rule that refuses without a verification command. Standard library and `git` only, because it is pointed at other people's repositories | a linter with opinions; a CI service; a refactoring engine. It proposes more than it fixes, and it says which is which |
 
 ## The misfiling this document corrects
 

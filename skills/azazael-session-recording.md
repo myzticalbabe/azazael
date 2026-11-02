@@ -1,6 +1,6 @@
 ---
 name: azazael-session-recording
-description: Session recording — DEPRECATED: CodebuffTracker and SessionRecorder are hard-blocked. Use DirectMemory (CORE/direct_memory.py) for ALL session recording.
+description: "Session recording — DEPRECATED: CodebuffTracker and SessionRecorder are hard-blocked. Use DirectMemory (CORE/direct_memory.py) for ALL session recording."
 metadata:
   category: quality
   project: azazael

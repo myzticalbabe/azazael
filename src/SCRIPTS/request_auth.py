@@ -70,6 +70,11 @@ except ImportError as exc:
     gate_passed = None  # type: ignore
     gate_asserted = None  # type: ignore
 
+# RULE 0Z-B v4: thirteen hyper-edge cards plus the zero-shot reasoning card. One
+# number, enforced here and printed into the
+# refusal message, so the mandate in MANDATES.md and the gate cannot drift apart.
+FOLLOWUP_COUNT = 14
+
 # Project root resolution
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
@@ -396,7 +401,7 @@ def validate_action(intent: str, target: str, cite_inference: str = "",
     
     # Determine if this is a modifying action
     MODIFYING_ACTIONS = {"str_replace", "write_file", "spawn_agents"}
-    # RULE 0Z-B: suggest_followups is NOT exempt — must verify 11-count
+    # RULE 0Z-B: suggest_followups is NOT exempt -- must verify the 13-count
     GATED_UI_ACTIONS = {"suggest_followups"}
     READONLY_ACTIONS = {"read_files", "skill", "list_directory", "glob",
                         "read_subtree", "read_url", "gravity_index",
@@ -407,16 +412,17 @@ def validate_action(intent: str, target: str, cite_inference: str = "",
     is_gated_ui = intent in GATED_UI_ACTIONS
     needs_full = is_modifying or is_gated_ui or full_gate
     
-    # RULE 0Z-B: suggest_followups MUST have exactly 11 items (fast check, no full gate needed)
+    # RULE 0Z-B v4: exactly 14 items -- the baker's dozen + the reasoning card (fast check)
     if intent == "suggest_followups":
         followup_count = int(cite_inference or 0) if cite_inference and cite_inference.isdigit() else 0
-        if followup_count == 11:
-            gate_data["checks"]["rule_0z_b"] = {"passed": True, "message": "11 followups verified"}
+        if followup_count == FOLLOWUP_COUNT:
+            gate_data["checks"]["rule_0z_b"] = {"passed": True,
+                                                "message": "%d followups verified" % FOLLOWUP_COUNT}
             gate_data["authorized"] = True
             return True, gate_data
         return False, {"checks": {"rule_0z_b": {
             "passed": False,
-            "message": f"RULE 0Z-B VIOLATION: {followup_count} items (must be exactly 11)"
+            "message": f"RULE 0Z-B VIOLATION: {followup_count} items (must be exactly {FOLLOWUP_COUNT}: 13 hyper-edge cards + zero-shot reasoning)"
         }}}
     
     # Check 1: Inference cache citation (always verified per RULE 0Q-A)
@@ -503,7 +509,7 @@ Examples:
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress non-error output")
     parser.add_argument("--followup-count", type=int, default=0,
-                        help="Number of followup items (RULE 0Z-B requires exactly 11)")
+                        help="Number of followup items (RULE 0Z-B requires exactly 14)")
     
     args = parser.parse_args()
     

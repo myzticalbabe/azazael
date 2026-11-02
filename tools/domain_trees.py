@@ -43,6 +43,57 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
+
+
+#: Generated/vendored trees that must not inflate a language count.
+LANG_SKIP = {"node_modules", "target", ".git", "__pycache__", ".venv", "venv",
+             "dist", "build", "graphify-out", ".mypy_cache", ".pytest_cache",
+             "site-packages", "dist-packages"}
+
+#: Extension -> language, shared with the census so one table decides what a
+#: "module" is. Every atlas counts Python through AST; the other languages are
+#: counted by file, because counting only .py made a Rust extension or a TS
+#: front-end read as an empty tree rather than as untranslated work.
+LANG_EXT = {".py": "python", ".pyi": "python",
+     ".rs": "rust", ".go": "go", ".zig": "zig",
+     ".js": "javascript", ".mjs": "javascript", ".jsx": "javascript",
+     ".ts": "typescript", ".tsx": "typescript",
+     ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".hpp": "cpp",
+     ".cu": "cuda", ".cuh": "cuda",
+     ".java": "java", ".cs": "dotnet", ".jl": "julia", ".rb": "ruby",
+     ".sh": "shell", ".swift": "swift", ".kt": "kotlin",
+}
+
+
+
+#: Suffix -> language name, lower case, because that is what the committed
+#: atlases in ~/yggdrasil_forest already carry (`{'python': 98, 'javascript': 61}`).
+#: This table went missing while the census was being extended and the tool died
+#: with `NameError: LANG_EXT`, which the `--check` run surfaced immediately -- a
+#: census that cannot run is a census nobody can quote.
+LANG_EXT: Dict[str, str] = {
+    ".py": "python", ".pyi": "python", ".pyx": "cython",
+    ".js": "javascript", ".mjs": "javascript", ".cjs": "javascript",
+    ".ts": "typescript", ".tsx": "typescript", ".jsx": "javascript",
+    ".rs": "rust", ".go": "go", ".c": "c", ".h": "c",
+    ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp", ".hpp": "cpp",
+    ".cs": "csharp", ".java": "java", ".kt": "kotlin",
+    ".rb": "ruby", ".php": "php", ".swift": "swift", ".m": "objective-c",
+    ".sh": "shell", ".bash": "shell", ".ps1": "powershell", ".bat": "batch",
+    ".cmd": "batch", ".sql": "sql", ".lua": "lua",
+    ".html": "html", ".htm": "html", ".css": "css", ".scss": "scss",
+    ".md": "markdown", ".json": "json", ".yaml": "yaml", ".yml": "yaml",
+    ".toml": "toml", ".ini": "ini", ".cff": "yaml",
+    ".mmd": "mermaid", ".proto": "protobuf", ".glsl": "glsl", ".wgsl": "wgsl",
+}
+
 ROOT = Path(__file__).resolve().parent.parent          # azazael/
 HOME = Path.home()
 OUT_DIR = HOME / "yggdrasil_forest"
@@ -82,9 +133,9 @@ DOMAINS: Dict[str, Dict[str, Any]] = {
         "palette": {"bg": "#060a10", "trunk": "#7aa2f7", "leaf": "#9ece6a",
                     "text": "#e9f1ff", "dim": "#7b8aa3"},
         "roots": ["src/eve_unleashed"],
-        "files": ["src/ML/gosp.py"],
+        "files": ["src/ML/gosp.py", "C:/Users/clint/RANI_LLM_evidence.json"],
         "canon": [],
-        "note": "RANI evidence lives beside the repo (RANI_LLM_evidence.json); artifacts are counted, not invented",
+        "note": "RANI evidence lives beside the repo (RANI_LLM_evidence.json); artifacts are counted, not invented. GOSP_RANI_INTEGRATION_evidence.json not found on disk.",
     },
     "hives": {
         "label": "SWARM HIVES",
@@ -94,6 +145,14 @@ DOMAINS: Dict[str, Dict[str, Any]] = {
         "roots": ["src/CORE/WORMS"],
         "files": ["src/CORE/worm_registry.py"],
         "canon": [],
+        # The row asked for worm CATEGORIES as limbs and this is the declaration
+        # that delivers it, not a renderer edit: the per-root scan already
+        # aggregates `worms.by_category` (36 categories over 206 worms, measured
+        # 2026-11-01), so the limbs can be built from that instead of from paths.
+        # Path limbs answer "where does the code live"; category limbs answer
+        # "what does the swarm do", and for this domain only the second is the
+        # question. Two path limbs became 36 category limbs with no renderer change.
+        "limb_source": "worms.by_category",
         "note": "one hive per worm category; registry counted separately because registration is not housing",
     },
     "gosp": {
@@ -192,27 +251,143 @@ def _resolve(p: str) -> Path:
     return q if q.is_absolute() else (ROOT / q)
 
 
-#: Extension -> language, shared with the census so one table decides what a
-#: "module" is. Every atlas counts Python through AST; the other languages are
-#: counted by file, because counting only .py made a Rust extension or a TS
-#: front-end read as an empty tree rather than as untranslated work.
-LANG_EXT = {
-    ".py": "python", ".pyi": "python",
-    ".rs": "rust", ".go": "go", ".zig": "zig",
-    ".js": "javascript", ".mjs": "javascript", ".jsx": "javascript",
-    ".ts": "typescript", ".tsx": "typescript",
-    ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".hpp": "cpp",
-    ".cu": "cuda", ".cuh": "cuda",
-    ".java": "java", ".cs": "dotnet", ".jl": "julia", ".rb": "ruby",
-    ".sh": "shell", ".swift": "swift", ".kt": "kotlin",
-}
-
-#: Generated/vendored trees that must not inflate a language count.
-LANG_SKIP = {"node_modules", "target", ".git", "__pycache__", ".venv", "venv",
-             "dist", "build", "graphify-out", ".mypy_cache", ".pytest_cache",
-             "site-packages", "dist-packages"}
-
-
+def _resolve_cross_root_edges(
+    roots: List[Path],
+    domain_trees: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Resolve cross-root edges by scanning all roots together.
+    
+    Currently each root is scanned independently, so edges BETWEEN roots
+    are not counted. This function uses AST analysis to find cross-root
+    imports and calls.
+    
+    Returns:
+        Dict with 'tree_pairs' (number of root pairs with edges),
+        'statements' (import/call statements across roots),
+        'details' (per-pair breakdown).
+    """
+    if len(roots) < 2:
+        return {"tree_pairs": 0, "statements": 0, "details": {}}
+    
+    try:
+        import ast
+        
+        # Collect all Python files from all roots
+        root_files = {}
+        for root in roots:
+            files = []
+            for fp in root.rglob("*.py"):
+                if not any(skip in fp.parts for skip in LANG_SKIP):
+                    files.append(fp)
+            if files:
+                root_files[str(root)] = files
+        
+        if len(root_files) < 2:
+            return {"tree_pairs": 0, "statements": 0, "details": {}}
+        
+        # Parse all files and collect imports
+        root_imports = {}  # root -> {file: set(imported_modules)}
+        for root_str, files in root_files.items():
+            imports = {}
+            for fp in files:
+                try:
+                    text = fp.read_text(encoding="utf-8", errors="replace")
+                    tree = ast.parse(text, filename=str(fp))
+                except (OSError, SyntaxError):
+                    continue
+                
+                file_imports = set()
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        for alias in node.names:
+                            if alias.name:
+                                file_imports.add(alias.name)
+                    elif isinstance(node, ast.ImportFrom):
+                        if node.module and not getattr(node, "level", 0):
+                            file_imports.add(node.module)
+                imports[str(fp)] = file_imports
+            
+            root_imports[root_str] = imports
+        
+        # Build a mapping from root directory to its Python package prefix
+        # This maps each root directory to the Python package prefix used in imports
+        root_to_pkg_prefix = {}
+        for root_str in root_files.keys():
+            root_path = Path(root_str)
+            # Try to find the Python package prefix by looking at the directory structure
+            # relative to the source root
+            try:
+                rel = Path(root_str).relative_to(ROOT)
+                # Convert path to Python package notation
+                pkg_prefix = ".".join(rel.parts)
+                root_to_pkg_prefix[str(root)] = pkg_prefix
+            except ValueError:
+                root_to_pkg_prefix[str(root)] = Path(root_str).name
+        
+        # Find cross-root imports
+        root_names = list(root_files.keys())
+        cross_root_pairs = set()
+        cross_root_statements = 0
+        details = {}
+        
+        for i, root_a in enumerate(root_names):
+            imports_a = root_imports[root_a]
+            pkg_prefix_a = root_to_pkg_prefix.get(root_a, Path(root_a).name)
+            for root_b in root_names[i+1:]:
+                imports_b = root_imports[root_b]
+                pkg_prefix_b = root_to_pkg_prefix.get(root_b, Path(root_b).name)
+                
+                # Check if root_a imports from root_b or vice versa
+                statements = 0
+                pair_details = []
+                
+                # Check if any file in root_a imports from root_b's modules
+                pkg_prefix_b = root_to_pkg_prefix.get(root_b, Path(root_b).name)
+                for file_a, imports_a in root_imports[root_a].items():
+                    for imp in imports_a:
+                        # Check if import matches root_b's package prefix
+                        if imp == pkg_prefix_b or imp.startswith(pkg_prefix_b + "."):
+                            statements += 1
+                            rel_a = str(Path(file_a).relative_to(Path(root_a)))
+                            # Find which file in root_b provides this module
+                            for file_b, imports_b in root_imports[root_b].items():
+                                for imp_b in imports_b:
+                                    if imp_b == pkg_prefix_b or imp_b.startswith(pkg_prefix_b + "."):
+                                        rel_b = str(Path(file_b).relative_to(Path(root_b)))
+                                        pair_details.append(f"{rel_a} -> {rel_b} ({imp_b})")
+                                        break
+                
+                # Check reverse direction: root_b imports from root_a
+                pkg_prefix_a = root_to_pkg_prefix.get(root_a, Path(root_a).name)
+                for file_b, imports_b in root_imports[root_b].items():
+                    for imp in imports_b:
+                        if imp == pkg_prefix_a or imp.startswith(pkg_prefix_a + "."):
+                            statements += 1
+                            rel_b = str(Path(file_b).relative_to(Path(root_b)))
+                            for file_a, imports_a in root_imports[root_a].items():
+                                for imp_a in imports_a:
+                                    if imp_a == pkg_prefix_a or imp_a.startswith(pkg_prefix_a + "."):
+                                        rel_a = str(Path(file_a).relative_to(Path(root_a)))
+                                        pair_details.append(f"{rel_b} -> {rel_a} ({imp_a})")
+                                        break
+                
+                total_statements = statements
+                if total_statements > 0:
+                    root_a_name = Path(root_a).name
+                    root_b_name = Path(root_b).name
+                    pair = tuple(sorted([root_a, root_b]))
+                    cross_root_pairs.add(pair)
+                    cross_root_statements += total_statements
+                    details[f"{Path(root_a).name} <-> {Path(root_b).name}"] = total_statements
+        
+        return {
+            "tree_pairs": len(cross_root_pairs),
+            "statements": cross_root_statements,
+            "details": details,
+        }
+    except Exception as exc:
+        print(f"[domain_trees] cross-root edge resolution failed: {exc}", file=sys.stderr)
+        return {"tree_pairs": 0, "statements": 0, "details": {}, "error": str(exc)}
 def _newest_mtime(paths: List[Path], cap: int = 6000) -> Optional[str]:
     """Newest source mtime under these roots, ISO, or None.
 
@@ -225,6 +400,24 @@ def _newest_mtime(paths: List[Path], cap: int = 6000) -> Optional[str]:
     seen = 0
     unreadable = 0
     for root in paths:
+        # A DECLARED FILE IS A SOURCE TOO. GOSP declares no roots at all -- its
+        # three scripts are `files` entries -- so passing roots alone measured
+        # nothing and the index printed newest_source=None for it on every run.
+        # "Cannot tell whether this is stale" reads as "current" to anyone
+        # scanning the table, which is the opposite of what the field is for.
+        if root.is_file():
+            try:
+                m = root.stat().st_mtime
+            except OSError as exc:
+                unreadable += 1
+                if unreadable <= 3:
+                    print("[domain_trees] stat failed %s: %s" % (root, exc),
+                          file=sys.stderr)
+                continue
+            if m > newest:
+                newest = m
+            seen += 1
+            continue
         if not root.is_dir():
             continue
         for dirpath, dirs, filenames in os.walk(root):
@@ -436,6 +629,12 @@ def build(domain: str, spec: Dict[str, Any]) -> Dict[str, Any]:
             key += "_"
         entry["kind"] = "file"
         atlas["trees"][key] = entry
+        # A file limb carries real classes (gosp.py has 1) but the domain header
+        # reads `classes.total`, which only the per-root merges were adding -- so
+        # GOSP rendered "0 classes · 0 public" above a limb labelled "1 cls".
+        # Two numbers about the same file, disagreeing, in one frame.
+        atlas["classes"]["total"] += entry.get("classes", 0)
+        atlas["classes"]["public"] += entry.get("public_api", 0)
         # A files-only domain (gosp: three named scripts) reported
         # `languages: {}` because only ROOTS were walked, so the index printed
         # "not walked" beside 3 real modules. Count the declared files too.
@@ -472,8 +671,10 @@ def build(domain: str, spec: Dict[str, Any]) -> Dict[str, Any]:
         # `*.py` reported the shard repository as 4 modules and 0 shards.
         key = f"skills_{Path(rel).name}"
         entry = dict(TREE_DEFAULT)
+        # `unit` is declared, so the renderer prints 204 shards rather than
+        # 204//4 = "51 mod": the limb was right and the label was four times off.
         entry.update({"modules": counts["shard_dirs"], "shards": counts["shard_dirs"],
-                      "loose_md": counts["loose_md"], "kind": "shards"})
+                      "loose_md": counts["loose_md"], "kind": "shards", "unit": "shards"})
         atlas["trees"][key] = entry
         totals["shards"] = totals.get("shards", 0) + counts["shard_dirs"]
 
@@ -489,6 +690,68 @@ def build(domain: str, spec: Dict[str, Any]) -> Dict[str, Any]:
         entry = dict(TREE_DEFAULT)
         entry.update({"modules": len(files), "lines": 0, "kind": "evidence"})
         atlas["trees"][key] = entry
+
+    # ---- limb_source: choose what a limb MEANS for this domain -------------
+    # Declared per domain (see `hives`). Applied last, so every count above is
+    # computed from paths as usual and only the limb view is replaced. The path
+    # view is preserved under `paths_trees`: the two answer different questions
+    # (where the code lives vs what the swarm does) and dropping either one would
+    # make the atlas unable to answer a question it could answer yesterday.
+    limb_src = spec.get("limb_source")
+    if limb_src == "worms.by_category":
+        cats = (atlas.get("worms") or {}).get("by_category") or {}
+        if cats:
+            atlas["paths_trees"] = dict(atlas["trees"])
+            new_trees: Dict[str, Any] = {}
+            for cat, n in sorted(cats.items(), key=lambda kv: (-kv[1], kv[0])):
+                entry = dict(TREE_DEFAULT)
+                # `modules` here counts WORMS in the category, not files: the
+                # note below says so, because a limb of 22 that is not 22 files
+                # is exactly the kind of number a reader would take for a count
+                # of code. Classes are NOT attributed per category (the census
+                # attributes them per file), so they are left out rather than
+                # rendered as a 0 that reads as "empty".
+                entry.update({"modules": int(n), "worms": int(n), "kind": "category",
+                              "category": cat, "lines": 0, "classes": None,
+                              "unit": "worms",
+                              "contains": f"{int(n)} worms registered as '{cat}'"})
+                new_trees[str(cat)] = entry
+            atlas["trees"] = new_trees
+            atlas["limbs_from"] = limb_src
+            atlas["notes"].append(
+                "limbs are worm CATEGORIES, not paths: `modules` on a category limb counts "
+                f"worms registered in it ({sum(int(v) for v in cats.values())} total), and "
+                "per-category class counts are not computed. The path view is preserved "
+                "under `paths_trees`.")
+        else:
+            atlas["notes"].append(
+                "limb_source='worms.by_category' was declared but the scan found no "
+                "categories; limbs fall back to paths")
+
+    # ---- Cross-root edge resolution ---------------------------------------
+    # Scan all roots together to find edges BETWEEN roots of this domain.
+    # Current per-root scans only capture edges WITHIN each root.
+    roots_list = [_resolve(rel) for rel in spec.get("roots") or [] if _resolve(rel).is_dir()]
+    if len(roots_list) >= 2:
+        cross_edges = _resolve_cross_root_edges(roots_list, atlas["trees"])
+        if "error" not in cross_edges:
+            atlas["edges"]["tree_pairs"] += cross_edges.get("tree_pairs", 0)
+            atlas["edges"]["statements"] += cross_edges.get("statements", 0)
+            atlas["edges"]["cross_root"] = cross_edges
+            atlas["cross_root_edges_resolved"] = True
+            atlas["notes"].append(
+                f"Cross-root edges resolved: {cross_edges.get('tree_pairs', 0)} root pairs "
+                f"with {cross_edges.get('statements', 0)} cross-root statements"
+            )
+        else:
+            atlas["edges"]["cross_root"] = cross_edges
+            atlas["cross_root_edges_resolved"] = False
+            atlas["notes"].append(
+                f"Cross-root edge resolution failed: {cross_edges.get('error', 'unknown error')}"
+            )
+    else:
+        atlas["cross_root_edges_resolved"] = True
+        atlas["notes"].append("Single root domain; cross_root_edges_resolved=True by default")
 
     atlas["totals"]["trees"] = len(atlas["trees"])
     return atlas
@@ -516,13 +779,15 @@ def _count_package(pkg_dir: Path) -> Dict[str, Any]:
         rec["files_seen"] += 1
         try:
             text = fp.read_text(encoding="utf-8", errors="replace")
-        except OSError:
+        except OSError as exc:            # unreadable file: not a module, but counted
+            note_failure("domain_trees:census_read", exc)
             continue
         rec["modules"] += 1
         rec["lines"] += text.count("\n") + 1
         try:
             tree = ast.parse(text)
-        except SyntaxError:
+        except SyntaxError as exc:        # a file that will not parse has no classes
+            note_failure("domain_trees:census_parse", exc)
             continue
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
@@ -741,8 +1006,11 @@ def write_index(out: Path, census_path: Optional[Path] = None) -> Dict[str, Any]
         malformed = sorted(n for n in clip if n.lower().endswith(".mp4.mp4"))
         clip = sorted({n[:-4] if n.lower().endswith(".mp4.mp4") else n for n in clip})
         decl = DOMAINS[key]
-        roots = [ROOT / r for r in (decl.get("roots") or [])]
-        newest = None if decl.get("kind") == "stacks" else _newest_mtime(roots)
+        # Roots AND declared files: a domain whose sources are files only (gosp)
+        # has no roots, so roots alone reported no newest source at all.
+        sources = ([ROOT / r for r in (decl.get("roots") or [])]
+                   + [ROOT / f for f in (decl.get("files") or [])])
+        newest = None if decl.get("kind") == "stacks" else _newest_mtime(sources)
         gen = a.get("generated_at")
         stale = bool(newest and gen and newest > gen)
         rows.append({

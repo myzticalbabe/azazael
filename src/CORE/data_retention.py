@@ -118,6 +118,13 @@ LOG_ROTATE_KEEP = 5          # Keep this many generations (.1 .. .5)
 # (meta_cognition.py:711) and monitor_learning.py only ages the newest one. So
 # keeping the newest 50 is a 10x margin on every consumer.
 TYPE_CAPS = {
+    # 2026-10-31: the RL step tap had NO cap and held 579 686 of the store's
+    # 595 212 rows (~23/s across processes, ~7 hours of writing). Nothing reads
+    # it back beyond the newest rows -- only trainers_v2 writes it -- so 20000 is
+    # the same 10x margin as the caps below. Measured effect of trimming to this
+    # cap: 771 MB -> 196 MB after VACUUM, with 559 686 rows archived first to
+    # G:/MEMORY_ARCHIVE_2026-10-31 and read back for verification.
+    "episode_complete": 20000,
     "training_complete": 20000,
     "q_table_persisted": 20000,
     "model_registered": 20000,
@@ -370,7 +377,11 @@ def _composite_victims(conn: sqlite3.Connection, victim_type: str,
     for rid, data in rows[:_COMPOSITE_RANK_CAP]:
         try:
             v = _embed_text(str(data or ""))
-        except Exception:
+        except Exception as exc:
+            # An embedding that fails silently makes the row look
+            # non-redundant, so it survives a retention pass it should have
+            # lost. Count the skip.
+            note_failure("data_retention:rank-embed", exc)
             continue
         if v:
             vecs[rid] = v
@@ -385,7 +396,8 @@ def _composite_victims(conn: sqlite3.Connection, victim_type: str,
                 continue
             try:
                 s = _embed_cosine(vecs[a], vecs[b])
-            except Exception:
+            except Exception as exc:
+                note_failure("data_retention:rank-cosine", exc)
                 continue
             if s > best:
                 best = s

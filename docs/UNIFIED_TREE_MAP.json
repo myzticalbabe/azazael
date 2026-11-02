@@ -1,0 +1,1929 @@
+{
+  "schema": "unified_tree_map_v2",
+  "generated_at": "2026-10-31T15:47:37.152186",
+  "root": "C:\\Azazael\\azazael\\src",
+  "environments": {
+    "windows": {
+      "path": "C:/Azazael/azazael",
+      "python": "3.15.0rc3",
+      "status": "primary"
+    },
+    "ubuntu": {
+      "path": "/home/clint/azazael",
+      "python": "3.14.x",
+      "status": "synced"
+    },
+    "kali": {
+      "path": "/root/azazael",
+      "python": "3.14.6",
+      "status": "synced"
+    }
+  },
+  "totals": {
+    "trees": 20,
+    "modules": 716,
+    "lines": 293254,
+    "classes": 1343,
+    "functions": 10189,
+    "connections": 44,
+    "channels": 6
+  },
+  "trees": {
+    "AOA": {
+      "name": "AOA",
+      "path": "C:\\Azazael\\azazael\\src\\AOA",
+      "modules": 30,
+      "classes": 32,
+      "functions": 231,
+      "lines": 7304,
+      "imports_from": {
+        "CORE": 46,
+        "eve_unleashed": 3
+      },
+      "imported_by": {},
+      "exports": [
+        "AOAState",
+        "AOEvent",
+        "AOEventType",
+        "AgentSelectorArm",
+        "ArmCapability",
+        "ArmMetadata",
+        "ArmRegistry",
+        "ArmResult",
+        "AzazaelArm",
+        "BaseArm",
+        "CodexArm",
+        "ContractReport",
+        "CrossArmRouter",
+        "DelegationSpec",
+        "EveArm",
+        "EventBus",
+        "EventPipeline",
+        "EventPriority",
+        "KaliArm",
+        "LibraArm",
+        "LlamaServerArm",
+        "Milestone",
+        "MilestoneStatus",
+        "PamsArm",
+        "PerformanceMonitorArm",
+        "RoutingPolicy",
+        "SessionManager",
+        "SessionState",
+        "StepStatus",
+        "TestArmExports",
+        "WorkflowDAG",
+        "WorkflowStep",
+        "add_step",
+        "age_s",
+        "arms",
+        "attach",
+        "callback_error_count",
+        "capability_index",
+        "check_result",
+        "checked",
+        "clear",
+        "clear_history",
+        "cmd_arms_list",
+        "cmd_arms_status",
+        "cmd_init",
+        "cmd_run",
+        "cmd_session_complete",
+        "cmd_session_milestones",
+        "cmd_session_start",
+        "cmd_workflow_start"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "AZAZAEL_TOOLKIT": {
+      "name": "AZAZAEL_TOOLKIT",
+      "path": "C:\\Azazael\\azazael\\src\\AZAZAEL_TOOLKIT",
+      "modules": 9,
+      "classes": 7,
+      "functions": 98,
+      "lines": 2250,
+      "imports_from": {
+        "CORE": 9
+      },
+      "imported_by": {
+        "TOOLS": 1
+      },
+      "exports": [
+        "BinaryComparator",
+        "ComprehensiveFix",
+        "DynamicLogger",
+        "EnvironmentManager",
+        "LogLevel",
+        "QLearningAnalyzer",
+        "RealFrameworkTest",
+        "analyze",
+        "analyze_solution_quality",
+        "apply",
+        "byte_similarity",
+        "calculate_reward",
+        "choose_action",
+        "create_cross_platform_wrapper",
+        "create_shell_integration",
+        "create_venv_if_missing",
+        "create_vscode_config",
+        "cryptographic_hash",
+        "debug",
+        "define_actions",
+        "define_states",
+        "detect_platform",
+        "detect_platform_real",
+        "diagnose_lsp_errors",
+        "dice_coefficient",
+        "disable_output",
+        "enable_output",
+        "enable_quiet",
+        "entropy",
+        "error",
+        "exact_match",
+        "fix_desktop_shortcuts",
+        "fix_gui_functionality",
+        "fix_python_files",
+        "force_flush",
+        "generate_q_table",
+        "generate_report",
+        "get_history",
+        "get_logger",
+        "hamming_distance",
+        "hybrid_reward",
+        "info",
+        "install_dependencies",
+        "jaccard_similarity",
+        "kgram_hashes",
+        "log",
+        "longest_common_subsequence",
+        "main",
+        "note_failure",
+        "print_best_practices"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "CLI": {
+      "name": "CLI",
+      "path": "C:\\Azazael\\azazael\\src\\CLI",
+      "modules": 2,
+      "classes": 1,
+      "functions": 13,
+      "lines": 255,
+      "imports_from": {
+        "CORE": 2
+      },
+      "imported_by": {},
+      "exports": [
+        "AzazaelCLI",
+        "log",
+        "main",
+        "note_failure",
+        "print_menu",
+        "run_all_checks",
+        "run_bootstrap",
+        "run_health_check",
+        "run_kilo_local",
+        "run_open_interpreter",
+        "run_python_manager",
+        "run_syntax_check",
+        "run_worm"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "CODEX": {
+      "name": "CODEX",
+      "path": "C:\\Azazael\\azazael\\src\\CODEX",
+      "modules": 90,
+      "classes": 41,
+      "functions": 464,
+      "lines": 36174,
+      "imports_from": {
+        "CORE": 96,
+        "CODEX": 1,
+        "ORCHESTRATION": 7,
+        "META": 2,
+        "UTILITIES": 1
+      },
+      "imported_by": {
+        "CODEX": 1
+      },
+      "exports": [
+        "AnimatedCard",
+        "AnimationDef",
+        "AsciiFlowchart",
+        "AutoDownloader",
+        "AzazaelEducationalVideo",
+        "AzazaelPopup",
+        "CARD",
+        "CODEXStudio",
+        "Category",
+        "DashboardCardDataExtractor",
+        "DocumentationGenerator",
+        "DownloadProgress",
+        "DownloadState",
+        "DualPanePopup",
+        "E",
+        "EmojiDef",
+        "EmojiMaker",
+        "Emotion",
+        "FrameworkInfo",
+        "FrameworkPlugin",
+        "FrameworkRegistry",
+        "HTMLSceneExtractor",
+        "HTMLTextExtractor",
+        "InstallationResult",
+        "Mood",
+        "Node",
+        "PIPFrameworkPlugin",
+        "PerformanceBenchmarks",
+        "PersistentState",
+        "RichPopup",
+        "T",
+        "TestFunctionalWorms",
+        "TestHYDRACluster",
+        "TestHYDRADataClasses",
+        "TestHYDRAMETA",
+        "TestKLINKIntegration",
+        "TestMetaWormConfig",
+        "TestMetaWormResult",
+        "TestMetaWormsIntegration",
+        "TestWORMZ",
+        "TestWORMZHydraIntegration",
+        "U",
+        "actor_cards",
+        "add_completed_installation",
+        "add_failed_installation",
+        "animate",
+        "animate_color",
+        "animate_fill",
+        "animate_header",
+        "animate_status"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "CORE": {
+      "name": "CORE",
+      "path": "C:\\Azazael\\azazael\\src\\CORE",
+      "modules": 337,
+      "classes": 727,
+      "functions": 6239,
+      "lines": 165991,
+      "imports_from": {
+        "CORE": 1181,
+        "META": 3,
+        "ML": 1,
+        "SCRIPTS": 2,
+        "UTILITIES": 2,
+        "ORCHESTRATION": 2,
+        "PSYCHE": 1
+      },
+      "imported_by": {
+        "AOA": 46,
+        "AZAZAEL_TOOLKIT": 9,
+        "CLI": 2,
+        "CODEX": 96,
+        "CORE": 1181,
+        "DAEMONS": 4,
+        "eve_unleashed": 30,
+        "HYDRA": 13,
+        "INTERPRETERS": 11,
+        "META": 32,
+        "ML": 9,
+        "ORCHESTRATION": 102,
+        "PSYCHE": 6,
+        "SCRIPTS": 56,
+        "SHARDS": 5,
+        "tests": 33,
+        "TOOLS": 9,
+        "UTILITIES": 18
+      },
+      "exports": [
+        "ABTestRunner",
+        "APIClient",
+        "ASTAntiPatternScanner",
+        "AblationComponent",
+        "AblationConfig",
+        "AblationResult",
+        "AblationStudy",
+        "AblationSummary",
+        "ActivationRouterWorm",
+        "AgentConfig",
+        "AgentHealth",
+        "AgentHealthReporter",
+        "AgentPool",
+        "AgentTask",
+        "AlertEscalator",
+        "AlgorithmLabWorm",
+        "AnalysisResult",
+        "AnchorRetrievalWorm",
+        "Anchors",
+        "AnomalyResult",
+        "AntiPatternResult",
+        "ArchiveSystemWorm",
+        "Arena",
+        "ArenaWorld",
+        "ArousalSwitchWorm",
+        "ArxivIntegration",
+        "AstrocyteWorm",
+        "AtlasFile",
+        "AtlasProject",
+        "AtomicCounter",
+        "AttentionBlock",
+        "AttentionGateWorm",
+        "AttentionRouterWorm",
+        "AttestationWorm",
+        "AuthError",
+        "AutoDownloaderWorm",
+        "AutoencoderAnomalyWorm",
+        "AzazaelConfig",
+        "AzazaelNode",
+        "AzazaelStressTest",
+        "BIBLEntry",
+        "BWoSWorkStealingPool",
+        "BackendBandit",
+        "BackupConfig",
+        "BarePassthroughWorm",
+        "BasePopupMonitor",
+        "BaseWormMixin",
+        "BatchResult",
+        "BehavioralGraphAnalyzer",
+        "BenchmarkResult"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "DAEMONS": {
+      "name": "DAEMONS",
+      "path": "C:\\Azazael\\azazael\\src\\DAEMONS",
+      "modules": 4,
+      "classes": 2,
+      "functions": 29,
+      "lines": 881,
+      "imports_from": {
+        "CORE": 4
+      },
+      "imported_by": {},
+      "exports": [
+        "EventHandler",
+        "ParallaxHandler",
+        "audit_once",
+        "check_daemon_running",
+        "check_startup_installed",
+        "check_status",
+        "dispatch",
+        "get_python_path",
+        "get_script_path",
+        "get_startup_dir",
+        "get_stats",
+        "install",
+        "main",
+        "note_failure",
+        "on_created",
+        "on_modified",
+        "record_violation",
+        "revert_file",
+        "uninstall",
+        "verify_token"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "eve_unleashed": {
+      "name": "eve_unleashed",
+      "path": "C:\\Azazael\\azazael\\src\\eve_unleashed",
+      "modules": 21,
+      "classes": 55,
+      "functions": 304,
+      "lines": 5866,
+      "imports_from": {
+        "CORE": 30,
+        "META": 8,
+        "eve_unleashed": 1,
+        "UTILITIES": 1
+      },
+      "imported_by": {
+        "AOA": 3,
+        "eve_unleashed": 1,
+        "UTILITIES": 2
+      },
+      "exports": [
+        "AutonomousDecisionEngine",
+        "AutonomyLevel",
+        "BatchResult",
+        "CLOCKZ",
+        "ComponentModel",
+        "ConversationalKLINK",
+        "DISKZ",
+        "Decision",
+        "DecisionStatus",
+        "EveConfig",
+        "EveInterpreterBridge",
+        "EveLlamaService",
+        "EvolutionaryWormManager",
+        "FixProposal",
+        "Forecast",
+        "GeneticAlgorithm",
+        "GoalSetting",
+        "HealStats",
+        "ImprovementGoal",
+        "InferenceCache",
+        "InferenceEngine",
+        "InferenceResult",
+        "Intent",
+        "IntentParser",
+        "IntrospectionLoop",
+        "LlamaServerManager",
+        "MemoryImportance",
+        "ModelLoader",
+        "ModelRecord",
+        "ModelRegistry",
+        "ModelRouter",
+        "NETWORXZ",
+        "NarrativeReport",
+        "PROCESSZ",
+        "PamSEvolution",
+        "PredictiveWorm",
+        "ProactiveSuggestions",
+        "Qwen35Attention",
+        "Qwen35DecoderLayer",
+        "Qwen35ForCausalLM",
+        "Qwen35MLP",
+        "Qwen35SSM",
+        "Qwen35SSMConfig",
+        "RMSNorm",
+        "Reflection",
+        "RotaryEmbedding",
+        "RouteDecision",
+        "SYSTEMZ",
+        "SelfModel",
+        "StreamResult"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "HYDRA": {
+      "name": "HYDRA",
+      "path": "C:\\Azazael\\azazael\\src\\HYDRA",
+      "modules": 11,
+      "classes": 13,
+      "functions": 89,
+      "lines": 2692,
+      "imports_from": {
+        "CORE": 13,
+        "ORCHESTRATION": 2
+      },
+      "imported_by": {},
+      "exports": [
+        "ConflictEntry",
+        "ConflictType",
+        "FileChangeHandler",
+        "HydraLauncher",
+        "HydraProtocols",
+        "LexiconUpdater",
+        "MLPlatformConfig",
+        "ModelType",
+        "PIPELINES",
+        "PipelineConfig",
+        "PipelineType",
+        "ProtocolResult",
+        "analyze_only",
+        "auto_discover",
+        "check_for_changes",
+        "cmd_analyze",
+        "cmd_convert",
+        "cmd_models",
+        "cmd_monitor",
+        "cmd_recommend",
+        "cmd_status",
+        "cmd_verify",
+        "compute_file_hash",
+        "data",
+        "debug_all_errors",
+        "discover_modules",
+        "excepthook",
+        "export_report",
+        "fix_old_paths",
+        "fix_spelling_errors",
+        "generate_term_entry",
+        "get_all_pipelines",
+        "get_env_path",
+        "get_environment",
+        "get_module_info",
+        "get_pipeline",
+        "get_status",
+        "get_version",
+        "get_workflows",
+        "list_by_category",
+        "list_platforms",
+        "list_workflows",
+        "load",
+        "load_config",
+        "main",
+        "note_failure",
+        "on_modified",
+        "platforms",
+        "resolve_import_conflicts",
+        "resolve_python_conflict"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "INTERPRETERS": {
+      "name": "INTERPRETERS",
+      "path": "C:\\Azazael\\azazael\\src\\INTERPRETERS",
+      "modules": 6,
+      "classes": 12,
+      "functions": 77,
+      "lines": 2001,
+      "imports_from": {
+        "CORE": 11,
+        "INTERPRETERS": 5
+      },
+      "imported_by": {
+        "INTERPRETERS": 5,
+        "SHARDS": 6
+      },
+      "exports": [
+        "GoResult",
+        "GoRunner",
+        "NodeResult",
+        "NodeRunner",
+        "PwshResult",
+        "PwshRunner",
+        "RunResult",
+        "RustEdition",
+        "RustResult",
+        "RustRunner",
+        "ShResult",
+        "ShRunner",
+        "build_binary",
+        "cargo_build",
+        "cargo_test",
+        "check_syntax",
+        "cross_compile",
+        "format_code",
+        "lint",
+        "main",
+        "mod_init",
+        "new_project",
+        "note_failure",
+        "run_bash",
+        "run_code",
+        "run_command",
+        "run_file",
+        "run_go",
+        "run_javascript",
+        "run_powershell",
+        "run_python",
+        "run_rust",
+        "run_shell_untrusted",
+        "supported_languages",
+        "test",
+        "vet"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "META": {
+      "name": "META",
+      "path": "C:\\Azazael\\azazael\\src\\META",
+      "modules": 20,
+      "classes": 89,
+      "functions": 374,
+      "lines": 10214,
+      "imports_from": {
+        "CORE": 32,
+        "META": 1
+      },
+      "imported_by": {
+        "CODEX": 2,
+        "CORE": 3,
+        "eve_unleashed": 8,
+        "META": 1
+      },
+      "exports": [
+        "ArchetypeRouter",
+        "AuditWriter",
+        "BIBLIntegrator",
+        "BiblEntryRef",
+        "CHANGEZ",
+        "CalibrationUpdater",
+        "CallPath",
+        "ClusterContainerConfig",
+        "Colors",
+        "ComponentStatus",
+        "ContainerExecution",
+        "ContainerInfo",
+        "CostMeter",
+        "CurativePool",
+        "DEADZ",
+        "DEPENDZ",
+        "DOCKERZ",
+        "DOCKERZConfig",
+        "DebugZ",
+        "DiagnosticReport",
+        "DistillZ",
+        "DistillationReport",
+        "ERRORZ",
+        "ERRORZConfig",
+        "EmotionDetector",
+        "ErrorEntry",
+        "ErrorReport",
+        "ExecutionRecord",
+        "FleetDashboard",
+        "FleetZ",
+        "FunctionStats",
+        "HEALTHZ",
+        "HYDRAMETA",
+        "HYDRAMETAConfig",
+        "HYDRAMETA_UV",
+        "HYDRAMETA_UVConfig",
+        "HYDRAOptimizer",
+        "HYDRA_CONTAINER",
+        "HYDRA_CONTAINERConfig",
+        "HealthStatus",
+        "ImageInfo",
+        "InferenceBridge",
+        "Insight",
+        "LOGZ",
+        "LlamaClient",
+        "METAWORMS",
+        "METAZ",
+        "METRICZ",
+        "METRICZConfig",
+        "MemoryBusPublisher"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "ML": {
+      "name": "ML",
+      "path": "C:\\Azazael\\azazael\\src\\ML",
+      "modules": 9,
+      "classes": 9,
+      "functions": 72,
+      "lines": 1188,
+      "imports_from": {
+        "CORE": 9,
+        "ML": 2
+      },
+      "imported_by": {
+        "CORE": 1,
+        "ML": 2,
+        "tests": 8
+      },
+      "exports": [
+        "AgentGenome",
+        "Dual",
+        "EstimatorSpec",
+        "NSGA2",
+        "SessionOutcomeLearner",
+        "SessionSignature",
+        "StepEvent",
+        "StepMonitor",
+        "Verdict",
+        "backprop_grad",
+        "builder",
+        "check",
+        "complex_step_grad",
+        "consolidate",
+        "cos",
+        "crowding_distance",
+        "decode",
+        "describe",
+        "dominates",
+        "dream",
+        "evaluate",
+        "exp",
+        "fit_score",
+        "fitted",
+        "forward_mode_grad",
+        "hvp_finite_difference",
+        "live_run_agent",
+        "load_report_verdicts",
+        "log",
+        "make_estimator",
+        "make_objectives",
+        "minimize",
+        "non_dominated_sort",
+        "note_failure",
+        "objective_error",
+        "objective_time",
+        "polynomial_mutation",
+        "predict",
+        "predict_proba",
+        "render_markdown",
+        "require_torch",
+        "reset",
+        "run",
+        "sbx_crossover",
+        "sin",
+        "summarize_snapshot",
+        "to_numpy",
+        "to_torch",
+        "torch_available",
+        "tune"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "ORCHESTRATION": {
+      "name": "ORCHESTRATION",
+      "path": "C:\\Azazael\\azazael\\src\\ORCHESTRATION",
+      "modules": 84,
+      "classes": 233,
+      "functions": 1378,
+      "lines": 37505,
+      "imports_from": {
+        "CORE": 102,
+        "ORCHESTRATION": 1
+      },
+      "imported_by": {
+        "CODEX": 7,
+        "CORE": 2,
+        "HYDRA": 2,
+        "ORCHESTRATION": 1
+      },
+      "exports": [
+        "ADLPClient",
+        "APIDocGenerator",
+        "AdaptivePlatformSelector",
+        "Alert",
+        "AnomalyDetector",
+        "Answer",
+        "AssistantLogProtocol",
+        "AsyncLogWriter",
+        "AutoDocumentation",
+        "AzazaelCLI",
+        "AzazaelConfig",
+        "AzazaelIntelligence",
+        "AzazaelIntelligenceHardened",
+        "AzazaelOptimizer",
+        "BATImprover",
+        "BatCommand",
+        "BatFile",
+        "BatParser",
+        "BreadcrumbGenerator",
+        "BuildConfig",
+        "BuildFormat",
+        "BuildStatus",
+        "BuildTask",
+        "CertaintyLevel",
+        "ChatMessage",
+        "ClusterConfig",
+        "ClusterNode",
+        "CompInfo",
+        "CompatibilityChecker",
+        "CompatibilityRule",
+        "CompleteModuleAnalyzer",
+        "CompleteModuleFinder",
+        "ConsistencyChecker",
+        "ConsistencyIssue",
+        "ContextAwareScheduler",
+        "ContributorsSection",
+        "ConversationContext",
+        "ConversionLogger",
+        "ConversionResult",
+        "ConversionStep",
+        "CrawlerResult",
+        "DLFramework",
+        "DLQTable",
+        "DLTaskType",
+        "DLTransition",
+        "DeepLearningQAnalyzer",
+        "DeepLearningQLearning",
+        "DependencyAnalyzer",
+        "DirectoryStats",
+        "DiskCrawler"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "PSYCHE": {
+      "name": "PSYCHE",
+      "path": "C:\\Azazael\\azazael\\src\\PSYCHE",
+      "modules": 7,
+      "classes": 2,
+      "functions": 71,
+      "lines": 1561,
+      "imports_from": {
+        "CORE": 6,
+        "PSYCHE": 3
+      },
+      "imported_by": {
+        "CORE": 1,
+        "PSYCHE": 3
+      },
+      "exports": [
+        "PersonArtifact",
+        "TraitVector",
+        "appraise_action",
+        "appraise_event",
+        "appraise_object",
+        "bc_policy",
+        "choice_features",
+        "clamp",
+        "compound_gratitude_anger",
+        "current",
+        "decode_archetype",
+        "default_theta_path",
+        "disagreement",
+        "domain_scores",
+        "domains",
+        "emotion_to_pad",
+        "express",
+        "fidelity_report",
+        "fit_choice_traits",
+        "fit_traits",
+        "from_dict",
+        "from_json",
+        "from_responses",
+        "keying_balance",
+        "make_states",
+        "note_failure",
+        "onpolicy_refine",
+        "pad_blend",
+        "pad_decay",
+        "pad_distance",
+        "pad_normalize",
+        "pearson",
+        "person_utilities",
+        "predict_pad",
+        "preference_step",
+        "reappraise_desirability",
+        "recall_episodic",
+        "recovery_report",
+        "sample_action",
+        "score_responses",
+        "simulate_responses",
+        "situation_pull",
+        "suppress_display",
+        "td_appraisal",
+        "temperament",
+        "to_dict",
+        "to_json",
+        "tone_signature",
+        "validate_artifact",
+        "verbalize"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "RENDERING": {
+      "name": "RENDERING",
+      "path": "C:\\Azazael\\azazael\\src\\RENDERING",
+      "modules": 6,
+      "classes": 0,
+      "functions": 0,
+      "lines": 97,
+      "imports_from": {},
+      "imported_by": {},
+      "exports": [],
+      "channels": []
+    },
+    "SCRIPTS": {
+      "name": "SCRIPTS",
+      "path": "C:\\Azazael\\azazael\\src\\SCRIPTS",
+      "modules": 30,
+      "classes": 13,
+      "functions": 212,
+      "lines": 7897,
+      "imports_from": {
+        "CORE": 56,
+        "SCRIPTS": 1
+      },
+      "imported_by": {
+        "CORE": 2,
+        "SCRIPTS": 1
+      },
+      "exports": [
+        "AzazaelEnvironment",
+        "Conflict",
+        "ConflictType",
+        "EnvironmentStatus",
+        "GateBash",
+        "GateStrReplace",
+        "GateWriteFile",
+        "MLPatternMatcher",
+        "SentinelValidator",
+        "SkillsSync",
+        "SpawnResult",
+        "TestAutoSync",
+        "TestGenerateTelemetry",
+        "add_result",
+        "check_direct_memory",
+        "check_registry_warm",
+        "check_telemetry",
+        "classify",
+        "compute_hashes",
+        "consume_token",
+        "count_events",
+        "covered_tokens",
+        "details",
+        "detect",
+        "detect_changes",
+        "drop_token",
+        "emit_stub",
+        "evolution_flatness",
+        "execute",
+        "execute_cross_ref",
+        "execute_validation",
+        "find_bare_except_lines",
+        "find_delete_target",
+        "find_indented_function",
+        "find_merged_lines_target",
+        "find_syntax_break_target",
+        "fix_all",
+        "fix_file",
+        "fresh_gate",
+        "full_cycle",
+        "gate",
+        "gate_and_execute",
+        "get_gap_report",
+        "get_master_hashes",
+        "get_pillar_state",
+        "get_skill_count",
+        "hash_file",
+        "interactive_mode",
+        "is_token_valid",
+        "json_mode"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "SHARDS": {
+      "name": "SHARDS",
+      "path": "C:\\Azazael\\azazael\\src\\SHARDS",
+      "modules": 4,
+      "classes": 0,
+      "functions": 33,
+      "lines": 1129,
+      "imports_from": {
+        "CORE": 5,
+        "SHARDS": 6,
+        "INTERPRETERS": 6
+      },
+      "imported_by": {
+        "SHARDS": 6
+      },
+      "exports": [
+        "antibody_status",
+        "check_doc_shards",
+        "discover_checkouts",
+        "main",
+        "promote_antibody",
+        "prune_build_dirs",
+        "record_seek",
+        "route_lang",
+        "route_shard",
+        "run_antibody",
+        "run_shard",
+        "seek_all",
+        "seek_box",
+        "self_test",
+        "shard_langs",
+        "supported_shard_langs",
+        "sweep",
+        "sweep_freshness"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "SHORTCUTS": {
+      "name": "SHORTCUTS",
+      "path": "C:\\Azazael\\azazael\\src\\SHORTCUTS",
+      "modules": 1,
+      "classes": 0,
+      "functions": 0,
+      "lines": 2,
+      "imports_from": {},
+      "imported_by": {},
+      "exports": [],
+      "channels": []
+    },
+    "tests": {
+      "name": "tests",
+      "path": "C:\\Azazael\\azazael\\src\\tests",
+      "modules": 13,
+      "classes": 59,
+      "functions": 171,
+      "lines": 2052,
+      "imports_from": {
+        "CORE": 33,
+        "ML": 8
+      },
+      "imported_by": {},
+      "exports": [
+        "BinAnalysis",
+        "ClockSync",
+        "DefaultWorm",
+        "DiagWorm",
+        "DocWorm",
+        "FleetOrch",
+        "HighMonitor",
+        "LowMonitor",
+        "NetDiag",
+        "NoVersionWorm",
+        "SyncWorm",
+        "SysMonitor",
+        "TaggedWorm",
+        "TestAdoptConfidenceGate",
+        "TestAvailability",
+        "TestBackprop",
+        "TestCONCURRENCY",
+        "TestConsolidate",
+        "TestDebugZ",
+        "TestDecode",
+        "TestDiscovery",
+        "TestDistillZ",
+        "TestDominance",
+        "TestEcosystemIntegration",
+        "TestEvidenceRecommendations",
+        "TestFeedState",
+        "TestFleetZ",
+        "TestForward",
+        "TestFunctional",
+        "TestGosp",
+        "TestHVP",
+        "TestImportSafety",
+        "TestInferenceBridge",
+        "TestLearningSplitShim",
+        "TestMetaWormSpawner",
+        "TestMonitor",
+        "TestObjectives",
+        "TestOptimizers",
+        "TestPersistFalseNoWrite",
+        "TestPromotionPath",
+        "TestRegisterWormDecorator",
+        "TestRegistry",
+        "TestRegistryConvenienceFunctions",
+        "TestRewardGradient",
+        "TestRewardModelAccuracy",
+        "TestScanParsing",
+        "TestSpawnDiversityEngine",
+        "TestSpinCapture",
+        "TestStatePersistence",
+        "TestSteeringWiring"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "TOOLS": {
+      "name": "TOOLS",
+      "path": "C:\\Azazael\\azazael\\src\\TOOLS",
+      "modules": 10,
+      "classes": 10,
+      "functions": 116,
+      "lines": 2511,
+      "imports_from": {
+        "CORE": 9,
+        "AZAZAEL_TOOLKIT": 1
+      },
+      "imported_by": {},
+      "exports": [
+        "ArchiveSystem",
+        "ComprehensiveFix",
+        "DebugRunner",
+        "DynamicLogger",
+        "FullSystemPythonMapper",
+        "Handler",
+        "LogLevel",
+        "PythonSystemMapper",
+        "QuickMapper",
+        "TestResult",
+        "analyze_relationships",
+        "archive_backup_files",
+        "archive_large_videos",
+        "archive_ppms",
+        "archive_pyc_files",
+        "archive_pycache",
+        "categorize",
+        "check_conda",
+        "create_cross_platform_wrapper",
+        "debug",
+        "detect_platform",
+        "diagnose_lsp_errors",
+        "disable_output",
+        "do_GET",
+        "do_POST",
+        "enable_output",
+        "enable_quiet",
+        "error",
+        "extract_tool_calls",
+        "fix_desktop_shortcuts",
+        "fix_gui_functionality",
+        "fix_python_files",
+        "force_flush",
+        "generate_cleanup_recommendations",
+        "generate_summary",
+        "get_history",
+        "get_logger",
+        "get_python_version",
+        "get_version",
+        "info",
+        "log",
+        "log_message",
+        "main",
+        "note_failure",
+        "print_report",
+        "progress",
+        "recommend_default",
+        "run",
+        "run_all",
+        "run_cmd"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    },
+    "UTILITIES": {
+      "name": "UTILITIES",
+      "path": "C:\\Azazael\\azazael\\src\\UTILITIES",
+      "modules": 22,
+      "classes": 38,
+      "functions": 218,
+      "lines": 5684,
+      "imports_from": {
+        "CORE": 18,
+        "eve_unleashed": 2
+      },
+      "imported_by": {
+        "CODEX": 1,
+        "CORE": 2,
+        "eve_unleashed": 1
+      },
+      "exports": [
+        "BinaryConflict",
+        "BinaryConverter",
+        "BinaryFormat",
+        "BinaryMetadata",
+        "CompatibilityReport",
+        "ConflictCategory",
+        "ConflictGraph",
+        "ConflictReport",
+        "ConflictResolution",
+        "ConflictSeverity",
+        "ConflictType",
+        "CrossPath",
+        "EnvVar",
+        "EnvironmentManager",
+        "Fix",
+        "FixStats",
+        "Incompatability",
+        "MathematicalMetrics",
+        "MigrationResult",
+        "POINDEXTER",
+        "PathInfo",
+        "PathManager",
+        "PathTranslator",
+        "Persephone",
+        "PersephoneConfig",
+        "Platform",
+        "PythonVersion",
+        "ResolutionPattern",
+        "ReverseEngineeredPattern",
+        "SyncManager",
+        "SyncResult",
+        "SyncStats",
+        "TERENCE",
+        "Tarbaby",
+        "TarbabyEnhanced",
+        "TerenceEnhanced",
+        "VersionManager",
+        "add_edge",
+        "add_node",
+        "add_system",
+        "add_version",
+        "analyze",
+        "analyze_binary_conflicts",
+        "analyze_conflicts",
+        "apply",
+        "apply_all",
+        "build_binary",
+        "build_matrix",
+        "check_prerequisites",
+        "cmd_all"
+      ],
+      "channels": [
+        "direct_import"
+      ]
+    }
+  },
+  "connections": [
+    {
+      "from": "AOA",
+      "to": "CORE",
+      "weight": 46,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "AOA",
+      "to": "eve_unleashed",
+      "weight": 3,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "AZAZAEL_TOOLKIT",
+      "to": "CORE",
+      "weight": 9,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CLI",
+      "to": "CORE",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CODEX",
+      "to": "CORE",
+      "weight": 96,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CODEX",
+      "to": "CODEX",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CODEX",
+      "to": "ORCHESTRATION",
+      "weight": 7,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CODEX",
+      "to": "META",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CODEX",
+      "to": "UTILITIES",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "CORE",
+      "weight": 1181,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "META",
+      "weight": 3,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "ML",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "SCRIPTS",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "UTILITIES",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "ORCHESTRATION",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "CORE",
+      "to": "PSYCHE",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "DAEMONS",
+      "to": "CORE",
+      "weight": 4,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "eve_unleashed",
+      "to": "CORE",
+      "weight": 30,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "eve_unleashed",
+      "to": "META",
+      "weight": 8,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "eve_unleashed",
+      "to": "eve_unleashed",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "eve_unleashed",
+      "to": "UTILITIES",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "HYDRA",
+      "to": "CORE",
+      "weight": 13,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "HYDRA",
+      "to": "ORCHESTRATION",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "INTERPRETERS",
+      "to": "CORE",
+      "weight": 11,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "INTERPRETERS",
+      "to": "INTERPRETERS",
+      "weight": 5,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "META",
+      "to": "CORE",
+      "weight": 32,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "META",
+      "to": "META",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "ML",
+      "to": "CORE",
+      "weight": 9,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "ML",
+      "to": "ML",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "ORCHESTRATION",
+      "to": "CORE",
+      "weight": 102,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "ORCHESTRATION",
+      "to": "ORCHESTRATION",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "PSYCHE",
+      "to": "CORE",
+      "weight": 6,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "PSYCHE",
+      "to": "PSYCHE",
+      "weight": 3,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "SCRIPTS",
+      "to": "CORE",
+      "weight": 56,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "SCRIPTS",
+      "to": "SCRIPTS",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "SHARDS",
+      "to": "CORE",
+      "weight": 5,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "SHARDS",
+      "to": "SHARDS",
+      "weight": 6,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "SHARDS",
+      "to": "INTERPRETERS",
+      "weight": 6,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "tests",
+      "to": "CORE",
+      "weight": 33,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "tests",
+      "to": "ML",
+      "weight": 8,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "TOOLS",
+      "to": "CORE",
+      "weight": 9,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "TOOLS",
+      "to": "AZAZAEL_TOOLKIT",
+      "weight": 1,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "UTILITIES",
+      "to": "CORE",
+      "weight": 18,
+      "type": "direct_import",
+      "channel": "direct_import"
+    },
+    {
+      "from": "UTILITIES",
+      "to": "eve_unleashed",
+      "weight": 2,
+      "type": "direct_import",
+      "channel": "direct_import"
+    }
+  ],
+  "mycelium": {
+    "nodes": [
+      "AOA",
+      "AZAZAEL_TOOLKIT",
+      "CLI",
+      "CODEX",
+      "CORE",
+      "DAEMONS",
+      "eve_unleashed",
+      "HYDRA",
+      "INTERPRETERS",
+      "META",
+      "ML",
+      "ORCHESTRATION",
+      "PSYCHE",
+      "RENDERING",
+      "SCRIPTS",
+      "SHARDS",
+      "SHORTCUTS",
+      "tests",
+      "TOOLS",
+      "UTILITIES"
+    ],
+    "edges": [
+      {
+        "from": "AOA",
+        "to": "CORE",
+        "weight": 46,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "AOA",
+        "to": "eve_unleashed",
+        "weight": 3,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "AZAZAEL_TOOLKIT",
+        "to": "CORE",
+        "weight": 9,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CLI",
+        "to": "CORE",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CODEX",
+        "to": "CORE",
+        "weight": 96,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CODEX",
+        "to": "CODEX",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CODEX",
+        "to": "ORCHESTRATION",
+        "weight": 7,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CODEX",
+        "to": "META",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CODEX",
+        "to": "UTILITIES",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "CORE",
+        "weight": 1181,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "META",
+        "weight": 3,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "ML",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "SCRIPTS",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "UTILITIES",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "ORCHESTRATION",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "CORE",
+        "to": "PSYCHE",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "DAEMONS",
+        "to": "CORE",
+        "weight": 4,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "eve_unleashed",
+        "to": "CORE",
+        "weight": 30,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "eve_unleashed",
+        "to": "META",
+        "weight": 8,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "eve_unleashed",
+        "to": "eve_unleashed",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "eve_unleashed",
+        "to": "UTILITIES",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "HYDRA",
+        "to": "CORE",
+        "weight": 13,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "HYDRA",
+        "to": "ORCHESTRATION",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "INTERPRETERS",
+        "to": "CORE",
+        "weight": 11,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "INTERPRETERS",
+        "to": "INTERPRETERS",
+        "weight": 5,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "META",
+        "to": "CORE",
+        "weight": 32,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "META",
+        "to": "META",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "ML",
+        "to": "CORE",
+        "weight": 9,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "ML",
+        "to": "ML",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "ORCHESTRATION",
+        "to": "CORE",
+        "weight": 102,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "ORCHESTRATION",
+        "to": "ORCHESTRATION",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "PSYCHE",
+        "to": "CORE",
+        "weight": 6,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "PSYCHE",
+        "to": "PSYCHE",
+        "weight": 3,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "SCRIPTS",
+        "to": "CORE",
+        "weight": 56,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "SCRIPTS",
+        "to": "SCRIPTS",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "SHARDS",
+        "to": "CORE",
+        "weight": 5,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "SHARDS",
+        "to": "SHARDS",
+        "weight": 6,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "SHARDS",
+        "to": "INTERPRETERS",
+        "weight": 6,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "tests",
+        "to": "CORE",
+        "weight": 33,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "tests",
+        "to": "ML",
+        "weight": 8,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "TOOLS",
+        "to": "CORE",
+        "weight": 9,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "TOOLS",
+        "to": "AZAZAEL_TOOLKIT",
+        "weight": 1,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "UTILITIES",
+        "to": "CORE",
+        "weight": 18,
+        "type": "direct_import",
+        "channel": "direct_import"
+      },
+      {
+        "from": "UTILITIES",
+        "to": "eve_unleashed",
+        "weight": 2,
+        "type": "direct_import",
+        "channel": "direct_import"
+      }
+    ],
+    "channels": {
+      "direct_import": "Direct Python import (tree A imports from tree B)",
+      "memorybus": "Shared state via memorybus_queue (SQLite)",
+      "event_bus": "Pub/sub event system (AOA/core/event_bus.py)",
+      "graph_traversal": "Codegraph MCP traversal (BFS/DFS)",
+      "shared_state": "Shared files/state on disk",
+      "mcp_tools": "MCP tool calls (engram, pmb, codegraph)"
+    },
+    "hub_trees": [
+      "CORE",
+      "eve_unleashed",
+      "CODEX",
+      "ORCHESTRATION",
+      "META",
+      "UTILITIES",
+      "ML",
+      "SCRIPTS",
+      "PSYCHE",
+      "INTERPRETERS",
+      "SHARDS"
+    ]
+  },
+  "nature_patterns": {
+    "mycelium": "Decentralized data transport via memorybus (shared SQLite)",
+    "neural_network": "Weighted connections via import frequency",
+    "ant_colony": "Stigmergy via shared state files",
+    "slime_mold": "Shortest path via graph traversal (BFS/Dijkstra)",
+    "swarm": "Multi-agent parallel processing (rayon/goroutines)",
+    "neural_plasticity": "Trees adapt connections based on usage frequency",
+    "symbiosis": "Trees share resources (CORE provides paths, logging, inference to all)"
+  },
+  "swarm": {
+    "roles": [
+      "scout",
+      "worker",
+      "forager",
+      "queen",
+      "soldier"
+    ],
+    "patterns": [
+      "mycelium",
+      "stigmergy",
+      "slime_mold",
+      "bee_colony",
+      "neural_network",
+      "ant_colony"
+    ],
+    "environments": [
+      "windows",
+      "ubuntu",
+      "kali"
+    ],
+    "communication": "Hybrid: direct imports + memorybus + event bus + graph traversal + MCP tools"
+  }
+}

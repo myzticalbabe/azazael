@@ -13,6 +13,107 @@
   "max_verses_per_chapter": 60,
   "max_annotations_per_verse": 6
  },
+ "configs": [
+  {
+   "id": "recall-query-floor",
+   "name": "the query floor every recall answer is filtered at (PMB_RECALL_MIN_BEST)",
+   "kind": "text",
+   "scope": "repo",
+   "file": "tools/pmb_floor_proxy.py",
+   "anchor": "PMB_RECALL_MIN_BEST",
+   "value": "0.89",
+   "mirrors": ["tools/supervisor_mcp.py", "tools/floor_measure.py"],
+   "governs": "the value sits in the measured gap between noise and real queries; lower it and nonsense is answered confidently, raise it and a real query loses its tail",
+   "remedy": "re-measure on the current corpus, then change every mirror in the same commit: python tools/floor_measure.py",
+   "detail": "the one setting where a copied constant is worse than no constant, because both copies look correct on their own"
+  },
+  {
+   "id": "recall-row-floor",
+   "name": "the per-row floor that trims a real query's weak tail (PMB_RECALL_FLOOR)",
+   "kind": "text",
+   "scope": "repo",
+   "file": "tools/pmb_floor_proxy.py",
+   "anchor": "PMB_RECALL_FLOOR",
+   "value": "0.70",
+   "mirrors": ["tools/supervisor_mcp.py", "tools/floor_measure.py"],
+   "governs": "a row below this is dropped before the caller sees it; set it to 0 and the proxy forwards noise while still calling itself a floor",
+   "remedy": "python tools/floor_measure.py"
+  },
+  {
+   "id": "floor-proxy-port",
+   "name": "the port the floor proxy binds, and that clients must route pmb through",
+   "kind": "text",
+   "scope": "repo",
+   "file": "tools/pmb_floor_proxy.py",
+   "anchor": "PMB_FLOOR_PORT",
+   "value": "8766",
+   "governs": "a lane wired at the daemon port bypasses filtering entirely and still returns plausible answers, which is the failure mode this whole corpus exists to prevent",
+   "remedy": "python tools/mcp_startup_gate.py --fix"
+  },
+  {
+   "id": "bible-max-books",
+   "name": "the book cap, which forces retirement rather than growth",
+   "kind": "json",
+   "scope": "repo",
+   "file": "docs/bible/bible.json",
+   "key": "limits.max_books",
+   "value": 20,
+   "governs": "an uncapped catalogue is how a skills directory reaches a thousand entries; the cap is checked against a hard ceiling in the same tool",
+   "remedy": "python tools/bible_check.py --check"
+  },
+  {
+   "id": "bible-max-chapters",
+   "name": "chapters per book",
+   "kind": "json",
+   "scope": "repo",
+   "file": "docs/bible/bible.json",
+   "key": "limits.max_chapters_per_book",
+   "value": 12,
+   "governs": "a book that needs more chapters than this is describing an estate, not a domain",
+   "remedy": "python tools/bible_check.py --check"
+  },
+  {
+   "id": "bible-max-verses",
+   "name": "verses per chapter",
+   "kind": "json",
+   "scope": "repo",
+   "file": "docs/bible/bible.json",
+   "key": "limits.max_verses_per_chapter",
+   "value": 60,
+   "governs": "the corpus stays readable and citable; a chapter long enough to be a file is a place claims hide",
+   "remedy": "python tools/bible_check.py --check"
+  },
+  {
+   "id": "harvest-schema",
+   "name": "the harvest ledger's format, which every practice cites into",
+   "kind": "json",
+   "scope": "repo",
+   "file": "docs/bible/harvest.json",
+   "key": "schema",
+   "value": "azazael.harvest/1",
+   "governs": "a practice's evidence ids resolve against this file; change the format without the reader and every citation still parses while pointing at nothing",
+   "remedy": "python tools/bible_harvest.py --write"
+  },
+  {
+   "id": "pytest-root",
+   "name": "the directory the suite collects from",
+   "kind": "text",
+   "scope": "repo",
+   "file": "pytest.ini",
+   "value": "testpaths = tests",
+   "governs": "a wrong root runs zero tests and reports success, which is worse than a failure",
+   "remedy": "python tools/preflight_all.py --check"
+  },
+  {
+   "id": "production-interpreter",
+   "name": "the free-threaded interpreter the suite is judged under",
+   "kind": "path",
+   "scope": "host",
+   "value": "C:/Azazael/.venvs/py315t",
+   "governs": "a hang or a segfault measured under the GIL-enabled interpreter is not evidence about production, and this tree has already spent a session on that confusion",
+   "remedy": "python tools/box_profile.py"
+  }
+ ],
  "note": "Seed corpus, written so the checker has something to check and the genres are demonstrated. Rules the validator enforces: contiguous chapter and verse numbering; every citation in `cites`, and every glossary `see`, must resolve; any digit in a verse body, an annotation, a gloss or an introduction paragraph requires `source` naming a repository path that exists; every statute names a RULE present in MANDATES.md and a `check` path that exists, so a law with nothing executing it is refused; every `practice` names a symptom, a cause, a command that exists and a remedy, and cites at least three records from docs/bible/harvest.json, so instruction cannot be invented in the corpus; a section heading may carry no figure at all, because a heading is a label and not a claim; a book carrying `domain` must name a domain declared in tools/domain_trees.py; no email, phone number or forensic deny token; book and verse caps declared here and enforced. A `variant` is the textual apparatus: the circulated reading, where it came from, and the body retaining the reading of this codex.",
  "glossary": [
   {

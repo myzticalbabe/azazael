@@ -13,7 +13,7 @@ Topics:
   lane.push.<src>-><dst> — push hook: task pushed from src lane to dst lane
 
 Usage:
-    board = LaneMessageBoard()
+    board = LaneMessageBoard(lane="opencode")
     row = board.post_task("kilo", "continue", "enggram #1039 — run long test",
                           task_id="1039")
     row = board.push_hook("freebuff", "mcp_config_fix", "string command → argv ARRAY",
@@ -40,6 +40,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
+from CORE.failure_ledger import note_failure
 
 _log = logging.getLogger(__name__)
 
@@ -127,8 +128,10 @@ class LaneMessageBoard:
         self,
         session_id: Optional[str] = None,
         pams_url: Optional[str] = None,
-        lane: str = "opencode",
+        lane: str = None,
     ):
+        if lane is None:
+            raise ValueError("lane is required - omitting it silently writes as 'opencode' (see dive-laneboard-default-lane). Pass lane explicitly.")
         if lane not in self.VALID_LANES:
             raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
         self.lane = lane
@@ -203,7 +206,11 @@ class LaneMessageBoard:
         for row in rows:
             try:
                 have = json.loads(row[1] or "{}")
-            except Exception:
+            except Exception as exc:
+                # A row whose content is not JSON is skipped, but the skip is
+                # COUNTED: a dedupe guard that silently drops the row it was
+                # asked about reports "no duplicate" for a row it never read.
+                note_failure("LaneMessageBoard:_find_task_row", exc)
                 continue
             if _task_sig(have) == want:
                 return int(row[0])
@@ -458,7 +465,7 @@ class LaneMessageBoard:
 
         with self._lock:
             self._callbacks[lane].append(callback)
-        return self._bus.subscribe(self._task_topic(lane), _adapter)
+        return self._bus.subscribe(self._task_topic(lane), _adapter)  # type: ignore[arg-type]
 
     def subscribe_to_all_tasks(
         self,
@@ -473,7 +480,7 @@ class LaneMessageBoard:
         callback: Callable[[Dict[str, Any]], None],
     ) -> int:
         """Subscribe to all-lane announcements."""
-        return self._bus.subscribe(self._announce_topic(), callback)
+        return self._bus.subscribe(self._announce_topic(), callback)  # type: ignore[arg-type]
 
     # -- public API: poll ---------------------------------------------------
 
@@ -587,7 +594,8 @@ class LaneMessageBoard:
                         "session_id": row["session_id"],
                         "timestamp": row["timestamp"],
                     })
-                except Exception:
+                except Exception as exc:
+                    note_failure("LaneMessageBoard:search_messages", exc)
                     continue
         except Exception:
             pass
@@ -652,7 +660,8 @@ class LaneMessageBoard:
             try:
                 _s = _task_sig(_p["content"] if isinstance(_p["content"], dict)
                                else json.loads(_p["content"]))
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_tasks-durable-sig", exc)
                 continue
             if _s:
                 durable_sigs.add(_s)
@@ -667,7 +676,8 @@ class LaneMessageBoard:
                 if _task_sig(_content) in durable_sigs:
                     continue
                 tasks.append(LaneTask.from_dict(_content))
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_tasks-bus-row", exc)
                 continue
 
         for p in persistent:
@@ -683,7 +693,8 @@ class LaneMessageBoard:
                 if isinstance(task.metadata, dict):
                     task.metadata.setdefault("_row_id", mid)
                 tasks.append(task)
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_tasks-durable-row", exc)
                 continue
 
         # Newest-first when uncursored (see _poll_persistent_queue fix);
@@ -693,13 +704,13 @@ class LaneMessageBoard:
                 rid = (t.metadata or {}).get("_row_id")
                 if rid is not None:
                     return (0, int(rid))
-            except Exception:
-                pass
+            except (TypeError, ValueError) as exc:
+                note_failure("LaneMessageBoard:poll_tasks-order-row_id", exc)
             try:
                 if t.task_id and t.task_id.isdigit():
                     return (1, int(t.task_id))
-            except Exception:
-                pass
+            except (AttributeError, TypeError, ValueError) as exc:
+                note_failure("LaneMessageBoard:poll_tasks-order-task_id", exc)
             return (2, 0)
 
         tasks.sort(key=_order)
@@ -725,7 +736,8 @@ class LaneMessageBoard:
             seen.add(mid)
             try:
                 out.append(m.content if isinstance(m.content, dict) else json.loads(m.content))
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_announces-bus-row", exc)
                 continue
 
         for p in persistent:
@@ -735,7 +747,8 @@ class LaneMessageBoard:
             seen.add(mid)
             try:
                 out.append(p["content"])
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_announces-durable-row", exc)
                 continue
 
         return out[:limit]
@@ -777,7 +790,8 @@ class LaneMessageBoard:
             seen.add(mid)
             try:
                 content = m.content if isinstance(m.content, dict) else json.loads(m.content)
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_status-bus-row", exc)
                 continue
             if isinstance(content, dict):
                 content = dict(content)
@@ -796,7 +810,8 @@ class LaneMessageBoard:
                 content = dict(content)
                 content.setdefault("_row_id", mid)
                 rows.append(content)
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_status-durable-row", exc)
                 continue
 
         def _order(r: Dict[str, Any]):
@@ -843,7 +858,7 @@ class LaneMessageBoard:
             board_id   INTEGER PRIMARY KEY,
             lane       TEXT NOT NULL,
             task_id    TEXT,
-            state      TEXT NOT NULL,          -- claimed | done | blocked | archived
+            state      TEXT NOT NULL,          -- claimed | available | done | blocked | archived
             claimed_by TEXT,
             claimed_at TEXT,
             retired_at TEXT,
@@ -896,7 +911,7 @@ class LaneMessageBoard:
                 "FROM memorybus_queue q "
                 "LEFT JOIN lane_task_state s ON s.board_id = q.id "
                 "WHERE q.topic = ? "
-                "  AND (s.state IS NULL OR s.state = 'claimed') "
+                "  AND (s.state IS NULL OR s.state = 'claimed' OR s.state = 'available') "
                 "  AND (s.claimed_at IS NULL OR "
                 "       CAST(strftime('%s', s.claimed_at) AS INTEGER) < ?) "
                 "ORDER BY q.id ASC LIMIT ?",
@@ -924,7 +939,8 @@ class LaneMessageBoard:
             ).fetchall():
                 try:
                     _p = json.loads(_r[0] or "{}")
-                except Exception:
+                except Exception as exc:
+                    note_failure("LaneMessageBoard:claim-active-scan", exc)
                     continue
                 _s = _task_sig(_p)
                 if _s:
@@ -934,7 +950,8 @@ class LaneMessageBoard:
                 bid = int(row["board_id"])
                 try:
                     payload = json.loads(row["content"] or "{}")
-                except Exception:
+                except Exception as exc:
+                    note_failure("LaneMessageBoard:claim-row-payload", exc)
                     continue
                 # The same task re-posted by several sessions (mcp_config_fix
                 # appears 76 times) must not become 76 pieces of work. A copy is
@@ -1046,14 +1063,43 @@ class LaneMessageBoard:
         """
         conn = self._state_conn()
         try:
-            cur = conn.execute(
-                "DELETE FROM lane_task_state WHERE board_id=? AND state='claimed'",
+            row = conn.execute(
+                "SELECT lane, claimed_by, attempts FROM lane_task_state "
+                "WHERE board_id=? AND state='claimed'",
                 (int(board_id),),
+            ).fetchone()
+            if row is None:
+                return False
+            lane = row["lane"]
+            from_owner = row["claimed_by"]
+            attempts = row["attempts"]
+            # Preserve attempts: null the claim instead of deleting the row, so
+            # the next claim re-uses it with attempts+1 and the history survives.
+            conn.execute(
+                "UPDATE lane_task_state SET state='available', claimed_by=NULL, "
+                "claimed_at=NULL, note=? WHERE board_id=? AND state='claimed'",
+                ("released %s" % datetime.now(timezone.utc).isoformat(), int(board_id)),
             )
             conn.commit()
-            return cur.rowcount > 0
         finally:
             conn.close()
+        # Audit row so a release is reconstructable (it used to delete its own
+        # evidence). Best-effort: a failed audit must not undo the release.
+        try:
+            self._publish_then_read_back(
+                "lane.release.%s" % lane,
+                {
+                    "board_id": int(board_id),
+                    "from": from_owner,
+                    "released_at": datetime.now(timezone.utc).isoformat(),
+                    "attempts": attempts,
+                },
+                {"type": "release", "lane": lane, "source": self.lane},
+                "release_task",
+            )
+        except Exception:
+            pass
+        return True
 
     def archive_backlog(
         self,
@@ -1166,7 +1212,7 @@ class LaneMessageBoard:
                     "SELECT COUNT(*) FROM memorybus_queue q "
                     "LEFT JOIN lane_task_state s ON s.board_id = q.id "
                     "WHERE q.topic = ? "
-                    "  AND (s.state IS NULL "
+                    "  AND (s.state IS NULL OR s.state = 'available' "
                     "       OR (s.state = 'claimed' "
                     "           AND (s.claimed_at IS NULL "
                     "                OR CAST(strftime('%s', s.claimed_at) "

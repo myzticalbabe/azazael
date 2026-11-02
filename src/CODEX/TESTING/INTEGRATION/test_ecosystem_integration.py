@@ -34,8 +34,8 @@ class TestWORMZHydraIntegration:
     def test_wormz_produces_bibl_for_hydra(self):
         """Test WORMZ output can be used by HYDRA."""
         try:
-            from WORMZ.WORMZ import WORMZ
-            from HYDRA.HYDRA import HYDRACluster
+            from CORE.WORMS.WORMZ import WORMZ
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             wormz = WORMZ()
             hydra = HYDRACluster()
@@ -54,7 +54,7 @@ class TestMetaWormsIntegration:
     def test_metaworms_can_analyze_wormz_output(self):
         """Test METAWORMS can analyze WORMZ results."""
         try:
-            from METAWORMS.METAWORMS import WormResult
+            from META.METAWORMS import WormResult
 
             result = WormResult(name="test", success=True, output={})
             assert result.success is True
@@ -70,7 +70,7 @@ class TestKLINKIntegration:
     def test_klink_has_all_commands(self):
         """Test klink has expected commands."""
         try:
-            from KLINK.klink import COMMANDS
+            from UTILITIES.KLINK.klink import COMMANDS
 
             expected = [
                 "status",

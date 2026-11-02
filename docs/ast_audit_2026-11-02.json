@@ -1,0 +1,51 @@
+{
+ "syntax": [],
+ "trunc": [
+  [
+   "C:/Azazael/azazael/src\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AZAZAEL_TOOLKIT\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\CORE\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\compliance\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\BIBL\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\SCRIPTS\\__init__.py",
+   "EMPTY FILE"
+  ],
+  [
+   "C:/Azazael/azazael/src\\UTILITIES\\PERSEPHONE\\bin\\__init__.py",
+   "EMPTY FILE"
+  ]
+ ],
+ "unreadable": [],
+ "dupdef": [
+  [
+   "C:/Azazael/azazael/src\\CORE\\failure_shim.py",
+   "note_failure",
+   [
+    68,
+    74,
+    91,
+    100
+   ]
+  ]
+ ],
+ "total": 1881
+}

@@ -91,7 +91,7 @@ def parent_instruction_file(root: Path) -> Optional[Path]:
 
 #: The number the user fixed for this estate. The corpus does not derive it: it
 #: is a contract about the shape of the reply, not a measurement.
-FOLLOWUP_COUNT = 12
+FOLLOWUP_COUNT = 14
 
 
 def load_corpus(path: Path = CORPUS) -> Dict:
@@ -176,8 +176,11 @@ def render_block(data: Dict, followups: int = FOLLOWUP_COUNT) -> str:
         "### When the turn ends",
         "",
         ("Give exactly **%d** followups: short, goal-oriented, each naming its target,\n"
-         "none of them a chore the agent cannot do itself. Count them before sending —\n"
-         "a reply with %d or %d is a miscount, not a rounding.")
+         "none of them a chore the agent cannot do itself. The thirteenth is always the\n"
+         "abyss card -- `Build, land, in the abyss`, one click that plans, builds, verifies\n"
+         "and commits clean; the fourteenth is zero-shot reasoning over the evidence the\n"
+         "thirteen produced. Count them before sending — a reply with %d or %d is a\n"
+         "miscount, not a rounding.")
         % (followups, followups - 1, followups + 1),
         "",
         "### A claim needs its command",

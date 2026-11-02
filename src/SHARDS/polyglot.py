@@ -136,7 +136,11 @@ def check_doc_shards() -> dict:
                         if re.search(r"(?m)^name\s*:", head):
                             found = True
                             break
-                    except OSError:
+                    except OSError as exc:
+                        # An unreadable SKILL.md is not evidence the skill is
+                        # missing; recording it keeps "unreadable" from being
+                        # reported as "absent".
+                        note_failure("polyglot:skill-head", exc)
                         continue
                 if direct.exists():
                     found = True
@@ -146,7 +150,8 @@ def check_doc_shards() -> dict:
                         if re.search(r"(?m)^name\s*:", md.read_text(encoding="utf-8")[:2000]):
                             found = True
                             break
-                    except OSError:
+                    except OSError as exc:
+                        note_failure("polyglot:skill-glob", exc)
                         continue
                     found = True
                     break

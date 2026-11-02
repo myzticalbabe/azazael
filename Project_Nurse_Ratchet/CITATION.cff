@@ -55,7 +55,8 @@ references:
       - family-names: Weizenbaum
     journal: "Communications of the ACM"
     year: 1966
-    notes: "The cautionary tale the project is named after."
+    notes: "The cautionary effect whose machinery this project grades. The name
+      itself is Nurse Ratched's, not ELIZA's -- see the abstract."
 # repository-code, url and the author's identity are added at publication.
 # They are deliberately absent rather than guessed: a citation file that points
 # at a URL nobody has reserved is worse than one that says it will be added.

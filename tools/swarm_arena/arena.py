@@ -157,7 +157,7 @@ def main():
     try:
         sys.path.insert(0, "C:/Azazael/azazael/src")
         from CORE.LaneMessageBoard import LaneMessageBoard
-        b = LaneMessageBoard()
+        b = LaneMessageBoard(lane="freebuff")
         print(b.post_task(lane="freebuff", task_id="ARENA-SHARD-JUDGE",
                           action="ARENA-SHARD-JUDGE",
                           detail=("arena: %d pairs x %d shards, %d unanimous; "

@@ -79,7 +79,7 @@ is not a safety layer.
 | `0P` | A standing mandate (`0Q`/`0R`) used as permission to reshape the task — the exact inversion `0P` exists to prevent. |
 | `0V` | Edited `sentinel_gate.py`, 4 canon files and 2 tests with no code-reviewer spawn. |
 | `0W` | Near-zero agent utilization for the whole session. |
-| `0Z-B` | Exactly-eleven-followups not produced. |
+| `0Z-B` | Exactly-thirteen-followups not produced (or the abyss card missing). |
 
 ---
 
@@ -142,7 +142,7 @@ and by whether it was violated today.
   `0B-A` the only statement of it (it already is) and retire `0P`, or keep both
   and accept the duplication.
 - [ ] **3.4** `0V` code reviewer pre/post, `0W` 100% agent utilization, `0Z-B`
-  exactly-eleven-followups, `0Z-F` parallel execution. All four are measurable
+  exactly-thirteen-followups, `0Z-F` parallel execution. All four are measurable
   counts. All four were missed today. Each is a candidate for a mechanical
   counter, or for retirement — a count nobody checks is a wish.
 - [ ] **3.5** `0T-A` sentinel self-recording, `0T-B` VLP 15-layer stack, `0Z-C`

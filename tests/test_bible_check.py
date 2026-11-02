@@ -458,3 +458,148 @@ def test_genealogy_rendering_is_deterministic_and_biblical():
     assert "begat" in first
     assert "**psyche**" in first            # the heaviest edge is named first
     assert "begat no other house" in first  # an empty house still speaks
+
+
+# -- the configuration layer ------------------------------------------------
+#
+# A canon of instruction with no configuration is a sermon: every rule that says
+# "run the suite", "filter at the floor" or "cap the books" is only true while a
+# value holds somewhere in the tree. These tests assert that the checker notices
+# when the value stops holding -- and, for the floors specifically, when one of
+# the two copies has drifted from the other while both still look correct.
+
+def _configs(**config):
+    base = {
+        "id": "a-setting",
+        "name": "a setting",
+        "kind": "text",
+        "scope": "repo",
+        "value": "0.89",
+        "anchor": "FLOOR",
+        "governs": "something breaks without it",
+        "remedy": "python tools/bible_check.py --check",
+    }
+    base.update(config)
+    return [_corpus_config(base)]
+
+
+def _corpus_config(config):
+    data = _corpus([_verse()])
+    data["configs"] = [config]
+    return data
+
+
+def test_a_config_value_that_left_the_file_is_refused(tmp_path):
+    target = tmp_path / "proxy.py"
+    target.write_text('FLOOR = float(os.environ.get("FLOOR", "0.60"))\n', encoding="utf-8")
+    with pytest.raises(B.CorpusError, match="drifted from the corpus"):
+        B.validate(_corpus_config({
+            "id": "floor", "name": "floor", "kind": "text", "scope": "repo",
+            "file": str(target), "anchor": "FLOOR", "value": "0.89",
+            "governs": "noise is answered", "remedy": "python tools/bible_check.py",
+        }), ROOT)
+
+
+def test_a_mirror_that_disagrees_is_refused(tmp_path):
+    """The single-source defect: both copies look right, the answers disagree."""
+    primary = tmp_path / "proxy.py"
+    primary.write_text('FLOOR = env("FLOOR", "0.89")\n', encoding="utf-8")
+    mirror = tmp_path / "supervisor.py"
+    mirror.write_text('FLOOR = env("FLOOR", "0.85")\n', encoding="utf-8")
+    with pytest.raises(B.CorpusError, match="mirrors"):
+        B.validate(_corpus_config({
+            "id": "floor", "name": "floor", "kind": "text", "scope": "repo",
+            "file": str(primary), "anchor": "FLOOR", "value": "0.89",
+            "mirrors": [str(mirror)],
+            "governs": "two answers", "remedy": "python tools/bible_check.py",
+        }), ROOT)
+
+
+def test_a_mirror_that_agrees_passes(tmp_path):
+    primary = tmp_path / "proxy.py"
+    primary.write_text('FLOOR = env("FLOOR", "0.89")\n', encoding="utf-8")
+    mirror = tmp_path / "supervisor.py"
+    mirror.write_text('FLOOR = env("FLOOR", "0.89")\n', encoding="utf-8")
+    B.validate(_corpus_config({
+        "id": "floor", "name": "floor", "kind": "text", "scope": "repo",
+        "file": str(primary), "anchor": "FLOOR", "value": "0.89",
+        "mirrors": [str(mirror)],
+        "governs": "one answer", "remedy": "python tools/bible_check.py",
+    }), ROOT)
+
+
+def test_a_json_config_disagreeing_with_the_corpus_is_refused(tmp_path):
+    doc = tmp_path / "conf.json"
+    doc.write_text(json.dumps({"limits": {"max_books": 12}}), encoding="utf-8")
+    with pytest.raises(B.CorpusError, match="the corpus says"):
+        B.validate(_corpus_config({
+            "id": "cap", "name": "cap", "kind": "json", "scope": "repo",
+            "file": str(doc), "key": "limits.max_books", "value": 20,
+            "governs": "growth", "remedy": "python tools/bible_check.py",
+        }), ROOT)
+
+
+def test_json_config_treats_0_70_and_0_7_as_the_same_threshold(tmp_path):
+    doc = tmp_path / "conf.json"
+    doc.write_text(json.dumps({"floor": 0.7}), encoding="utf-8")
+    B.validate(_corpus_config({
+        "id": "floor", "name": "floor", "kind": "json", "scope": "repo",
+        "file": str(doc), "key": "floor", "value": 0.70,
+        "governs": "trimming", "remedy": "python tools/bible_check.py",
+    }), ROOT)
+
+
+def test_a_host_scoped_difference_is_a_warning_not_a_failure():
+    data = _corpus_config({
+        "id": "interpreter", "name": "interpreter", "kind": "path", "scope": "host",
+        "value": "C:/nowhere/this-venv-does-not-exist",
+        "governs": "the suite is judged under it",
+        "remedy": "python tools/box_profile.py",
+    })
+    diagnostics = B.validate(data, ROOT)          # must not raise
+    assert any("HOST-DIFFERS" in w for w in diagnostics["warnings"])
+
+
+def test_a_remedy_naming_a_phantom_command_is_refused():
+    """The defect that started this: `python tools/commgate.py`."""
+    with pytest.raises(B.CorpusError, match="does not exist"):
+        B.validate(_corpus_config({
+            "id": "floor", "name": "floor", "kind": "path", "scope": "repo",
+            "value": "tools/bible_check.py",
+            "governs": "a value",
+            "remedy": "python tools/commgate.py",
+        }), ROOT)
+
+
+def test_a_config_without_consequence_or_repair_is_refused():
+    with pytest.raises(B.CorpusError, match="governs"):
+        B.validate(_corpus_config({
+            "id": "floor", "name": "floor", "kind": "path", "scope": "repo",
+            "value": "tools/bible_check.py", "governs": "", "remedy": "",
+        }), ROOT)
+
+
+def test_duplicate_config_ids_are_refused():
+    data = _corpus([_verse()])
+    entry = {
+        "id": "twice", "name": "twice", "kind": "path", "scope": "repo",
+        "value": "tools/bible_check.py", "governs": "x",
+        "remedy": "python tools/bible_check.py",
+    }
+    data["configs"] = [dict(entry), dict(entry)]
+    with pytest.raises(B.CorpusError, match="duplicate id"):
+        B.validate(data, ROOT)
+
+
+def test_the_shipped_corpus_pins_the_floor_in_every_file_that_holds_it():
+    data = B.load(B.CORPUS)
+    by_id = {c["id"]: c for c in data["configs"]}
+    floor = by_id["recall-query-floor"]
+    assert floor["value"] == "0.89"
+    assert len(floor["mirrors"]) >= 2, "the floor lives in two tools; both must be pinned"
+    assert by_id["floor-proxy-port"]["value"] == "8766"
+
+
+def test_a_corpus_without_configs_warns_rather_than_passing_quietly():
+    diagnostics = B.validate(_corpus([_verse()]), ROOT)
+    assert any("no `configs` section" in w for w in diagnostics["warnings"])

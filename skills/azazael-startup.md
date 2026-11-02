@@ -67,7 +67,7 @@ This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, Dire
 | 22 | azazael-git | conventions | Commit conventions, branching |
 | 23 | azazael-deploy | planning | Docker, CLI packaging, scheduling |
 | 24 | azazael-production | planning | 12-section production roadmap |
-| 25 | azazael-eleven-followups | workflow | RULE 0Z-B: 11 followups mandate |
+| 25 | azazael-hyper-edge-followups | workflow | RULE 0Z-B: 14 followups (13 cards + zero-shot reasoning) |
 | 26 | azazael-sync-wsl | infrastructure | WSL-aware sync_all.py — bidirectional sync from WSL, status/verify |
 
 ## Environment

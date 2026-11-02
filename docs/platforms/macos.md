@@ -38,10 +38,12 @@ x86_64 build running under Rosetta**, or a torch too old to have MPS. Check
 ## MPS is not XPU, and the difference bites
 
 - **No `torch.xpu`.** Code that calls `torch.xpu.*` unconditionally is Intel-only
-  and will raise `AttributeError` here. The tree's resolver
-  (`src/CORE/accelerate`) probes in the order `xpu → cuda → mps → cpu`; on a Mac
-  it must land on `mps`, and `box_profile.py`'s `preferred_accelerator` tells you
-  whether it did.
+  and will raise `AttributeError` here. The ranking this tree uses lives in
+  `tools/box_profile.py` (`accelerators[]`, then `preferred_accelerator`, in the
+  order `xpu → cuda → mps → cpu`); on a Mac it must land on `mps`, and
+  `preferred_accelerator` tells you whether it did. There is no
+  `src/CORE/accelerate` module in this tree — a page that sends you looking for
+  one is the defect this directory's claims file exists to catch.
 - **Some ops fall back silently.** MPS raises for unimplemented operations or
   falls back to CPU per-op; either way the wall-clock is the only honest report.
   A latency figure measured on this box does not transfer, and the docs say so

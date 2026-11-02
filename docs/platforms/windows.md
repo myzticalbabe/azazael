@@ -38,11 +38,14 @@ handles.
 
    ```bash
    git config core.hooksPath .githooks    # enables the commit gates
+   git config core.hooksPath              # prints .githooks when set
    ```
 
-   Without this the pre-commit gate silently does not run: `.git/hooks/pre-commit`
-   is a forwarder to the tracked `.githooks/pre-commit`, and a clone that never
-   runs the config line has no gate at all.
+   The tracked gate is `.githooks/pre-commit`. Without the setting a fresh clone
+   runs whatever sits in `.git/hooks/` instead, which is **not tracked and can be
+   an older copy** — so the clone looks gated while a different rule set runs. The
+   failure is silent in both directions, which is why the setting is a Step-2
+   checklist item and not a footnote.
 
 2. **CPython 3.15t** and a venv at `.venvs/py315t` (see the section above).
 3. **Node** — only needed for the Puppeteer capture path (`src/CODEX/capture_*.js`)
@@ -95,8 +98,13 @@ library is missing rather than the hardware.
 ```bash
 python tools/box_profile.py --write box_profile.json
 C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/ -q
-python tools/commgate.py                  # or: git commit; the gate runs there
+python tools/preflight_all.py --list      # the gate table, and its count
+python tools/preflight_all.py --check     # run the gates it names
 ```
 
-A Windows install is done when the suite passes on the 3.15t interpreter and the
-commit gate prints its 15-gate table — not when `pip install` exited 0.
+A Windows install is done when the suite passes on the 3.15t interpreter and
+`preflight_all.py --check` exits 0 — not when `pip install` exited 0.
+
+There is no separate commit-gate command to memorise: `preflight_all.py --list`
+prints the registry (`N gates: X hook, Y CI-only`) and the count changes as gates
+are added, so quote the command rather than the number.

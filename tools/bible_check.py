@@ -147,7 +147,7 @@ RULE_RE = re.compile(r"\bRULE\s+[0-9][0-9A-Za-z-]*")
 ANNOTATION_KINDS = ("textual", "historical", "translation", "editorial", "cross")
 
 TOP_KEYS = {"schema", "title", "status", "updated", "limits", "note", "books",
-            "glossary", "edition"}
+            "glossary", "edition", "configs"}
 BOOK_KEYS = {"id", "name", "subtitle", "genre", "domain", "introduction",
              "chapters"}
 #: A book may be *about* a declared domain, and then it must name one that
@@ -403,6 +403,161 @@ def _practice_problems(practice, where: str, repo: Path, ids: Optional[set]) -> 
     return problems
 
 
+CONFIG_KINDS = ("text", "json", "path")
+CONFIG_SCOPES = ("repo", "host")
+
+
+def _config_problems(configs, repo: Path) -> Tuple[List[str], List[str]]:
+    """The `configs` layer: the settings the corpus's instructions depend on.
+
+    A canon of instruction with no configuration is a sermon. Every rule in this
+    corpus that says "run the suite", "filter at the floor", "cap the books" is
+    only true while a specific value holds somewhere in the tree, and those
+    values drift silently: the floor threshold lives in two tools, the book cap
+    lives in the corpus and in the checker, and a copied constant that disagrees
+    with its twin produces two correct-looking answers.
+
+    So each entry names a file, a value, and optionally the *other* files that
+    must carry the same value (`mirrors`). A mirror that has drifted is a hard
+    failure: that is the single-source-of-truth defect, caught where it starts
+    rather than after two answers disagree.
+
+    `scope: host` entries describe this machine (an interpreter path) and are
+    reported as warnings elsewhere, the same distinction `box_profile.py` and
+    `tools/platform_claims.py` make between unknown and absent.
+    """
+    problems: List[str] = []
+    warnings: List[str] = []
+    seen = set()
+    for index, config in enumerate(configs):
+        where = "configs[%d]" % index
+        if not isinstance(config, dict):
+            problems.append("%s: must be an object" % where)
+            continue
+        cid = config.get("id")
+        if not isinstance(cid, str) or not re.match(r"^[a-z0-9][a-z0-9-]*$", cid or ""):
+            problems.append("%s: id must be a lowercase slug" % where)
+        elif cid in seen:
+            problems.append("%s: duplicate id %r" % (where, cid))
+        else:
+            seen.add(cid)
+        if isinstance(cid, str) and cid:
+            where = "configs[%s]" % cid
+
+        if not isinstance(config.get("name"), str) or not config.get("name", "").strip():
+            problems.append("%s: name is empty -- say what the setting is for" % where)
+        scope = config.get("scope", "repo")
+        if scope not in CONFIG_SCOPES:
+            problems.append("%s: scope must be one of %s" % (where, CONFIG_SCOPES))
+        kind = config.get("kind")
+        if kind not in CONFIG_KINDS:
+            problems.append("%s: kind must be one of %s" % (where, CONFIG_KINDS))
+            continue
+
+        detail = config.get("detail", "")
+        for text in (config.get("governs"), config.get("remedy")):
+            if not isinstance(text, str) or not text.strip():
+                problems.append("%s: `governs` and `remedy` are both required -- a "
+                                "setting with no consequence and no repair is trivia"
+                                % where)
+                break
+        remedy_problems = _provenance_problems(config.get("remedy"), where + ".remedy", repo)
+        problems.extend(p for p in remedy_problems if "does not exist" in p)
+
+        files = []
+        if config.get("file"):
+            files.append((config["file"], False))
+        for mirror in config.get("mirrors") or []:
+            files.append((mirror, True))
+        if not files and kind != "path":
+            problems.append("%s: names no `file`" % where)
+
+        value = config.get("value")
+        if kind in ("text", "json") and value is None:
+            problems.append("%s: a %s config needs `value`" % (where, kind))
+
+        if kind == "path":
+            # A path config names a thing, not a line in a file: the interpreter,
+            # a directory, a store. Checked once, outside the file loop.
+            text = str(value)
+            if not ((Path(repo) / text).exists() or Path(text).exists()):
+                message = "%s: declared path does not exist here: %s" % (where, text)
+                if scope == "host":
+                    warnings.append("HOST-DIFFERS " + message)
+                else:
+                    problems.append(message)
+            continue
+
+        for rel, is_mirror in files:
+            rel = str(rel)
+            path = Path(repo) / rel
+            label = "%s.mirrors[%s]" % (where, rel) if is_mirror else where
+            if not path.exists():
+                problems.append("%s: file does not exist: %s" % (label, rel))
+                continue
+            try:
+                raw = path.read_text(encoding="utf-8", errors="replace")
+            except OSError as exc:
+                problems.append("%s: unreadable: %s (%s)" % (label, rel, exc))
+                continue
+
+            if kind == "text":
+                anchor = config.get("anchor")
+                needle = str(value)
+                if anchor:
+                    hit = any(needle in line and anchor in line
+                              for line in raw.splitlines())
+                    if not hit:
+                        message = ("%s: no line in %s carries %r with %r -- the value "
+                                   "drifted from the corpus" % (label, rel, needle, anchor))
+                    else:
+                        continue
+                elif needle in raw:
+                    continue
+                else:
+                    message = "%s: %r not found in %s" % (label, needle, rel)
+                if scope == "host":
+                    warnings.append("HOST-DIFFERS " + message)
+                else:
+                    problems.append(message)
+            elif kind == "json":
+                try:
+                    document = json.loads(raw)
+                except json.JSONDecodeError as exc:
+                    problems.append("%s: %s is not JSON (%s)" % (label, rel, exc))
+                    continue
+                key = config.get("key")
+                if not isinstance(key, str) or not key.strip():
+                    problems.append("%s: a json config needs `key`" % label)
+                    continue
+                node = document
+                for part in key.split("."):
+                    if isinstance(node, dict) and part in node:
+                        node = node[part]
+                    else:
+                        node = None
+                        break
+                if node is None:
+                    problems.append("%s: %s has no key %r" % (label, rel, key))
+                elif not _same_scalar(node, value):
+                    problems.append("%s: %s[%s] is %r, the corpus says %r"
+                                    % (label, rel, key, node, value))
+
+        if detail:
+            _text_problems(detail, where + ".detail")
+    return problems, warnings
+
+
+def _same_scalar(left, right) -> bool:
+    """Compare a declared value with what the file holds, numerically when both
+    sides are numbers so that 20 and "20" are the same setting and 0.70 vs 0.7 is
+    the same threshold."""
+    try:
+        return float(left) == float(right)          # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return str(left).strip() == str(right).strip()
+
+
 def validate(data: Dict, repo: Path = REPO) -> Dict:
     """Validate, and RETURN the diagnostics. Never mutate the corpus.
 
@@ -454,6 +609,23 @@ def validate(data: Dict, repo: Path = REPO) -> Dict:
             problems.append("limits.%s may not exceed %d; a cap the author can raise "
                             "is not a cap" % (name, ceiling))
             limits[name] = ceiling
+
+    # The configuration layer. Absent is a warning rather than a failure, because
+    # a corpus can be written before its settings are pinned; present and drifted
+    # is a failure, because the corpus's own instructions then describe a tree
+    # that does not exist.
+    configs = data.get("configs")
+    if configs is None:
+        warnings.append("no `configs` section: this corpus states rules without "
+                        "pinning the settings that make them true")
+        configs = []
+    elif not isinstance(configs, list):
+        problems.append("configs must be a list")
+        configs = []
+    else:
+        config_problems, config_warnings = _config_problems(configs, repo)
+        problems.extend(config_problems)
+        warnings.extend(config_warnings)
 
     edition = data.get("edition")
     if edition is not None:
@@ -752,6 +924,7 @@ def validate(data: Dict, repo: Path = REPO) -> Dict:
                         for book in books for chapter in book.get("chapters", [])),
         "glossary": len(glossary),
         "introductions": sum(1 for book in books if "introduction" in book),
+        "configs": len(configs),
         "orphans": sorted(ref for ref, refs in cited_by.items() if not refs),
         "warnings": warnings,
     }
@@ -1062,14 +1235,15 @@ def check(root: Path = REPO, corpus_path: Path = CORPUS) -> Tuple[bool, List[str
         return False, problems + messages
     messages.insert(0, "%s -- %s: %d book(s), %d chapter(s), %d verse(s), %d "
                        "citation(s), %d statute(s), %d variant(s), %d annotation(s), "
-                       "%d section(s), %d gloss(es), %d introduction(s); generated "
-                       "files current"
+                       "%d section(s), %d gloss(es), %d introduction(s), %d "
+                       "config(s); generated files current"
                        % (data.get("title"), data.get("status"),
                           diagnostics["books"], diagnostics["chapters"],
                           diagnostics["verses"], diagnostics["citations"],
                           diagnostics["statutes"], diagnostics["variants"],
                           diagnostics["annotations"], diagnostics["sections"],
-                          diagnostics["glossary"], diagnostics["introductions"]))
+                          diagnostics["glossary"], diagnostics["introductions"],
+                          diagnostics["configs"]))
     return True, messages
 
 

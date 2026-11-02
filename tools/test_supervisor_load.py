@@ -22,6 +22,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import verify_supervisor_load as guard  # noqa: E402
+import session_start  # noqa: E402  (module level is path constants + stdio
+#                                      reconfigure; nothing executes on import)
 
 OPENCODE_CONNECT = (
     'timestamp=2026-10-18T18:05:32.358Z level=INFO run=5614db05 '
@@ -200,6 +202,22 @@ def main() -> int:
                guard.compute_exit({"ts": 1, "freebuff": ("LOADED", "x"),
                                    "opencode": ("LOADED", "x"),
                                    "kilo": ("BROKEN", "x")}), 2)
+
+        # --- --strict gating on the guard's exit (session_start) -----------
+        # The control that matters: exit=1 (restart pending) is the COMMON
+        # state and must stay non-blocking, or --strict would fail every
+        # session that has not restarted its client yet.
+        broken = session_start._load_config_broken
+        expect("strict: guard exit=2 (broken config) gates",
+               broken("exit=2"), True)
+        expect("strict: guard exit=1 (restart pending) does NOT gate",
+               broken("exit=1"), False)
+        expect("strict: guard exit=0 does not gate", broken("exit=0"), False)
+        expect("strict: unrunnable guard does not gate",
+               broken("unrunnable"), False)
+        expect("strict: missing guard does not gate",
+               broken("guard-missing"), False)
+        expect("strict: whitespace-tolerant", broken(" exit=2\n"), True)
 
     print()
     if failures:

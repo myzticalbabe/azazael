@@ -30,6 +30,12 @@ OPS
     extrude  {gain}               scale depth (z) -- the relief becomes volume
     touch    {neuron, radius,
               gain}               displace the neighbourhood of ONE picked neuron
+    ripple   {cx, cy, amp,
+              freq, decay}         wave propagation from a center point
+    attract  {cx, cy, strength,
+              radius}             gravity well pulling neurons toward center
+    twist    {cx, cy, angle,
+              radius}             rotational displacement around center
 
 A note on `touch`, because it is the one operator whose input comes from a human. The index in
 `touch.neuron` is not computed here; it is what the page resolved from a screen coordinate at
@@ -58,7 +64,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 Q = 1000          # positions and weights are quantised to 1e-3 in the digest
 SINE_ENTRIES = 256
 
-OP_KINDS = ("warp", "sprout", "prune", "palette", "extrude", "touch")
+OP_KINDS = ("warp", "sprout", "prune", "palette", "extrude", "touch",
+            "ripple", "attract", "twist")
 
 #: fields each op must carry, and nothing else is required -- an op with an unknown key is
 #: refused rather than ignored, because an ignored parameter is a mutation that silently did
@@ -70,6 +77,12 @@ OP_SCHEMA = {
     "palette": {"shift": (int,)},
     "extrude": {"gain": (int, float)},
     "touch": {"neuron": (int,), "radius": (int, float), "gain": (int, float)},
+    "ripple": {"cx": (int, float), "cy": (int, float), "amp": (int, float),
+               "freq": (int, float), "decay": (int, float)},
+    "attract": {"cx": (int, float), "cy": (int, float), "strength": (int, float),
+                "radius": (int, float)},
+    "twist": {"cx": (int, float), "cy": (int, float), "angle": (int, float),
+              "radius": (int, float)},
 }
 
 
@@ -259,6 +272,66 @@ def apply_op(mesh: Dict[str, Any], op: Dict[str, Any], table: Sequence[int]) -> 
             falloff = (r2 - d2) / r2
             node[0] = float(node[0]) + gain * falloff * dx
             node[1] = float(node[1]) + gain * falloff * dy
+        return _pack(mesh, neurons, synapses)
+
+    if kind == "ripple":
+        cx = float(op["cx"])
+        cy = float(op["cy"])
+        amp = float(op["amp"])
+        freq = float(op["freq"])
+        decay = float(op["decay"])
+        for node in neurons:
+            dx = float(node[0]) - cx
+            dy = float(node[1]) - cy
+            dist = (dx * dx + dy * dy) ** 0.5
+            if dist < 1e-9:
+                continue
+            # Wave propagation: sine wave radiating outward, decaying with distance
+            turn = (dist * freq) % 1.0
+            wave = table[int(turn * SINE_ENTRIES) % SINE_ENTRIES] / 32767.0
+            falloff = 1.0 / (1.0 + decay * dist)
+            node[2] = float(node[2]) + amp * wave * falloff
+        return _pack(mesh, neurons, synapses)
+
+    if kind == "attract":
+        cx = float(op["cx"])
+        cy = float(op["cy"])
+        strength = float(op["strength"])
+        radius = float(op["radius"])
+        r2 = radius * radius
+        for node in neurons:
+            dx = cx - float(node[0])
+            dy = cy - float(node[1])
+            d2 = dx * dx + dy * dy
+            if d2 > r2 or d2 < 1e-9:
+                continue
+            # Gravity well: pull toward center, stronger when closer
+            force = strength / (1.0 + d2)
+            node[0] = float(node[0]) + force * dx
+            node[1] = float(node[1]) + force * dy
+        return _pack(mesh, neurons, synapses)
+
+    if kind == "twist":
+        cx = float(op["cx"])
+        cy = float(op["cy"])
+        angle = float(op["angle"])
+        radius = float(op["radius"])
+        r2 = radius * radius
+        import math as _math
+        cos_a = _math.cos(angle)
+        sin_a = _math.sin(angle)
+        for node in neurons:
+            dx = float(node[0]) - cx
+            dy = float(node[1]) - cy
+            d2 = dx * dx + dy * dy
+            if d2 > r2:
+                continue
+            # Rotate around center, falloff with distance
+            falloff = 1.0 - (d2 / r2)
+            new_x = cx + dx * cos_a * falloff - dy * sin_a * falloff
+            new_y = cy + dx * sin_a * falloff + dy * cos_a * falloff
+            node[0] = new_x
+            node[1] = new_y
         return _pack(mesh, neurons, synapses)
 
     raise OpError("unhandled op %r" % kind)          # unreachable: validate() ran first

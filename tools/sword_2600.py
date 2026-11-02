@@ -366,8 +366,16 @@ def scan(data: bytes, entry: int, base: int = 0, limit: int = 8192,
     writes: Dict[str, int] = {}
     switch_events: List[Dict] = []
     unresolved: List[Dict] = []
+    #: Where the walk met a byte that is not a documented instruction. The COUNT is the
+    #: alarm; the ADDRESSES are the diagnosis, because on a real cartridge this usually
+    #: means the walk wandered into data and everything after it is mislabelled.
+    illegal_sites: List[str] = []
+    #: Targets an indirect jump actually resolved, so a followed jump table is visible
+    #: rather than inferred from a sudden jump in the instruction count.
+    indirect: List[str] = []
     illegal = 0
     decoded = 0
+    truncated = False
     while queue and decoded < limit:
         pc = queue.pop()
         last_imm: Optional[int] = None
@@ -379,11 +387,16 @@ def scan(data: bytes, entry: int, base: int = 0, limit: int = 8192,
             entry_table = OPCODES.get(opcode)
             if entry_table is None:
                 illegal += 1
+                illegal_sites.append({"pc": "%#06x" % pc,
+                                      "site": "%#06x (opcode %#04x, undocumented)"
+                                              % (pc, opcode)})
                 break
             mnemonic, mode = entry_table
             length = 1 + MODE_LEN[mode]
             if offset + length > len(data):
                 illegal += 1
+                illegal_sites.append({"pc": "%#06x" % pc,
+                                      "site": "%#06x (runs past the end)" % pc})
                 break
             for index in range(length):
                 code.add(offset + index)
@@ -411,6 +424,20 @@ def scan(data: bytes, entry: int, base: int = 0, limit: int = 8192,
                 target = pc + 2 + (operand - 256 if operand > 127 else operand)
             elif mnemonic == "JMP" and mode == "abs":
                 target = absolute
+            elif mnemonic == "JMP" and mode == "ind":
+                # A jump table. Following it is the difference between scanning a game and
+                # stopping at its first dispatch, which most 2600 games have.
+                pointer = absolute
+                if pointer is not None and base <= pointer and pointer + 1 < end:
+                    target = data[pointer - base] | (data[pointer - base + 1] << 8)
+                    indirect.append("%#06x -> %#06x" % (pointer, target))
+                else:
+                    unresolved.append({
+                        "pc": "%#06x" % pc,
+                        "address": None if pointer is None else "%#06x" % pointer,
+                        "why": "indirect jump through a pointer outside this window; the "
+                               "dispatch target is unknown, not absent",
+                    })
             elif mnemonic == "JSR":
                 target = absolute
                 queue.append(pc + 3)
@@ -451,12 +478,23 @@ def scan(data: bytes, entry: int, base: int = 0, limit: int = 8192,
             if mnemonic == "JMP":
                 break
             pc += length
+    # Anything still queued was queued and never walked: a switch ended this linear walk
+    # before its JSR return sites were reached. Dropping them silently loses code that the
+    # report would then call data, so they go back to the caller, which knows the bank.
+    pending = sorted({address for address in queue if base <= address < end})
+    if decoded >= limit and (queue or pending):
+        truncated = True
     return {
         "entry": entry,
         "instructions": decoded,
         "code_bytes": len(code) - start_code,
         "data_bytes": len(data) - (len(code) - start_code),
         "illegal_or_unreached_stop": illegal,
+        "illegal_sites": illegal_sites,
+        "indirect_jumps": indirect,
+        "pending": pending,
+        "truncated": truncated,
+        "limit": limit,
         "histogram": dict(sorted(histogram.items(), key=lambda kv: -kv[1])),
         "reads": dict(sorted(reads.items())),
         "writes": dict(sorted(writes.items())),
@@ -487,6 +525,10 @@ def scan_banked(data: bytes, mapper: MapperSpec, entry: int, limit: int = 8192) 
     code_sets = [set() for _ in range(mapper.bank_count)]
     instructions = [0] * mapper.bank_count
     illegal = [0] * mapper.bank_count
+    truncated_banks: List[int] = []
+    illegal_sites: List[Dict] = []
+    indirect_jumps: List[Dict] = []
+    deferred: List[Dict] = []
     histogram_total: Dict[str, int] = {}
     reads_total: Dict[str, int] = {}
     writes_total: Dict[str, int] = {}
@@ -508,6 +550,15 @@ def scan_banked(data: bytes, mapper: MapperSpec, entry: int, limit: int = 8192) 
                       code_out=code_sets[bank], mapper=mapper)
         instructions[bank] += report["instructions"]
         illegal[bank] += report["illegal_or_unreached_stop"]
+        if report["truncated"]:
+            truncated_banks.append(bank)
+        illegal_sites.extend(dict(site, bank=bank) for site in report["illegal_sites"])
+        indirect_jumps.extend(report["indirect_jumps"])
+        # A return site queued before a bank switch belongs to THIS bank. Handing it back
+        # to this bank is what stops a JSR-then-switch routine from erasing its caller.
+        for address in report["pending"]:
+            deferred.append({"bank": bank, "address": "%#06x" % address})
+            queue.append((bank, address - mapper.base))
         for name, count in report["histogram"].items():
             histogram_total[name] = histogram_total.get(name, 0) + count
         for name, count in report["reads"].items():
@@ -533,6 +584,7 @@ def scan_banked(data: bytes, mapper: MapperSpec, entry: int, limit: int = 8192) 
             "code_bytes": code_bytes,
             "data_bytes": window - code_bytes,
             "illegal_or_unreached_stop": illegal[bank],
+            "truncated": bank in truncated_banks,
         })
 
     return {
@@ -543,6 +595,11 @@ def scan_banked(data: bytes, mapper: MapperSpec, entry: int, limit: int = 8192) 
         "unreached_banks": sorted(bank for bank in range(mapper.bank_count) if bank not in reached),
         "switches": switches,
         "unresolved": unresolved,
+        "truncated_banks": truncated_banks,
+        "illegal_sites": illegal_sites,
+        "indirect_jumps": indirect_jumps,
+        "deferred_returns": deferred,
+        "limit": limit,
         "aggregate": {
             "instructions": sum(instructions),
             "code_bytes": sum(len(entry) for entry in code_sets),
@@ -723,6 +780,18 @@ def verdict(result: Dict) -> List[str]:
         lines.append("bank(s) %s were NOT reached from the entry point; the bytes there are "
                      "reported as data because nothing reached them, not because they are empty"
                      % ", ".join(str(bank) for bank in unreached))
+    if result.get("truncated_banks"):
+        lines.append("bank(s) %s hit the %d-instruction scan cap, so this report is TRUNCATED "
+                     "and says nothing about what follows the cut -- raise the limit before "
+                     "trusting the data-byte counts"
+                     % (", ".join(str(bank) for bank in result["truncated_banks"]),
+                        result.get("scan_limit", 0)))
+    if result.get("illegal_sites"):
+        first = result["illegal_sites"][0]
+        lines.append("%d walk(s) met a byte that is not a documented instruction, first at %s "
+                     "in bank %d; that usually means the walk wandered into data, so code "
+                     "after it is UNMEASURED"
+                     % (len(result["illegal_sites"]), first["site"], first["bank"]))
     if not lines:
         lines.append("every bank was reached, so the switch map is complete for %s"
                      % mapper["name"])
@@ -757,6 +826,11 @@ def inspect(path: Path, mapper_name: str = "auto") -> Dict:
     result["unreached_banks"] = scanned["unreached_banks"]
     result["switches"] = scanned["switches"]
     result["unresolved"] = scanned["unresolved"]
+    result["truncated_banks"] = scanned["truncated_banks"]
+    result["illegal_sites"] = scanned["illegal_sites"]
+    result["indirect_jumps"] = scanned["indirect_jumps"]
+    result["deferred_returns"] = scanned["deferred_returns"]
+    result["scan_limit"] = scanned.get("limit", 0)
     aggregate = scanned["aggregate"]
     result["scan"] = {
         "instructions": aggregate["instructions"],
@@ -1059,6 +1133,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     for missing in report["unresolved"]:
         print("   unresolved %s at %s: %s"
               % (missing["address"], missing["pc"], missing["why"]))
+    for site in report["illegal_sites"][:3]:
+        print("   stopped   bank %d at %s" % (site["bank"], site["site"]))
+    if len(report["illegal_sites"]) > 3:
+        print("             ... %d more" % (len(report["illegal_sites"]) - 3))
+    if report["indirect_jumps"]:
+        print("   indirect  %d jump table(s) followed: %s"
+              % (len(report["indirect_jumps"]), ", ".join(report["indirect_jumps"][:3])))
+    if report["deferred_returns"]:
+        print("   deferred  %d return site(s) requeued in their own bank: %s"
+              % (len(report["deferred_returns"]),
+                 ", ".join("%s (bank %d)" % (entry["address"], entry["bank"])
+                           for entry in report["deferred_returns"][:3])))
     print("   code      %d instructions, %d bytes code / %d bytes data"
           % (scan_info["instructions"], scan_info["code_bytes"], scan_info["data_bytes"]))
     print("   top       %s" % ", ".join("%s x%d" % (name, count)

@@ -1,35 +1,17 @@
 {
-  "recorded_at": "2026-10-28T21:05:00+00:00",
+  "recorded_at": "2026-10-31T08:43:56+00:00",
   "checker": "basedpyright",
   "summary": {
-    "filesAnalyzed": 718,
-    "errorCount": 11,
-    "warningCount": 1,
+    "filesAnalyzed": 735,
+    "errorCount": 0,
+    "warningCount": 0,
     "informationCount": 0
   },
   "severity_counts": {
-    "error": 11,
-    "warning": 1,
+    "error": 0,
+    "warning": 0,
     "information": 0
   },
-  "top_rules": {
-    "reportArgumentType": 6,
-    "reportReturnType": 3,
-    "reportCallIssue": 2,
-    "reportOptionalMemberAccess": 1
-  },
-  "diagnostic_ids": [
-    "src/CORE/LaneMessageBoard.py:reportArgumentType:return self._bus.subscribe(self._announce_topic(), callback)",
-    "src/CORE/LaneMessageBoard.py:reportReturnType:return self._bus.publish(",
-    "src/CORE/LaneMessageBoard.py:reportReturnType:return self._bus.publish(#2",
-    "src/CORE/LaneMessageBoard.py:reportReturnType:return self._bus.publish(#3",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportArgumentType:def create_trainer(task_type: str, worm_id: str, task_id: str = None,",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportArgumentType:return max(policy, key=policy.get)",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportArgumentType:return max(q_vals, key=q_vals.get)",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportArgumentType:session_id: str = None, **kwargs) -> HookAwareTrainer:",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportArgumentType:severity: str = \"info\", extra_tags: List[str] = None) -> int:",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportCallIssue:return max(policy, key=policy.get)",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportCallIssue:return max(q_vals, key=q_vals.get)",
-    "src/CORE/WORMS/expansion/trainers_v2.py:reportOptionalMemberAccess:action, _ = self._model.predict(obs, deterministic=True)"
-  ]
+  "top_rules": {},
+  "diagnostic_ids": []
 }

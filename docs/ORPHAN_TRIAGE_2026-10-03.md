@@ -73,7 +73,7 @@ are another session's active debris; deletion races live work.
 - tools/cain_female.py
 - tools/cain_figures.py
 - tools/cain_final_clean.py
-- tools/cain_fix_checks.py
+- tools/cain_fix_checks.py  — RETIRED 2026-11-01 (rewrote the retired gate; archive/retired-tools-20261101/)
 - tools/cain_fix_two.py
 - tools/cain_full_audit.py
 - tools/cain_last3.py
@@ -86,7 +86,7 @@ are another session's active debris; deletion races live work.
 - tools/cain_reanalyze.py
 - tools/cain_recalc.py
 - tools/cain_reconcile.py
-- tools/cain_render_gate.py
+- tools/cain_render_gate.py  — RETIRED 2026-11-01 (target document dashboard/CAIN_20260930.html is gone; archive/retired-tools-20261101/)
 - tools/cain_restore_words.py
 - tools/cain_serpent.py
 - tools/cain_sin_words.py

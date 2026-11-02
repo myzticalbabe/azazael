@@ -43,7 +43,7 @@ _LAZY = {
               "ledger_for"),
 }
 
-__all__ = sorted(name for names in _LAZY.values() for name in names)
+__all__ = sorted(name for names in _LAZY.values() for name in names)  # type: ignore[reportUnsupportedDunderAll]
 
 
 def __getattr__(name: str) -> Any:

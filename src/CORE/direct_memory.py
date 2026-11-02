@@ -715,6 +715,19 @@ class DirectMemory:
                source: str = "Codebuff") -> int:
         """Record a single event. Returns the row ID."""
         severity = self._validate(event_type, severity, source)
+
+        # Recorder guard (2026-10-31): this is the SECOND INSERT path into
+        # `memories`, and the guard living only on LocalMemoryStore.record_event
+        # would leave every DirectMemory caller — including the RL trainers —
+        # unthrottled. Same bucket, same exemptions (errors/criticals pass, so
+        # does evolution_result and the rest of the audited types). Fail open.
+        try:
+            from CORE.recorder_guard import allow as _guard_allow
+            if not _guard_allow(event_type, severity):
+                return 0
+        except Exception as exc:                  # noqa: BLE001 -- guard is advisory
+            _note_failure("direct_memory:recorder-guard", exc)
+
         now = datetime.now(timezone.utc).isoformat()
         data_str = json.dumps(data if data is not None else {}, ensure_ascii=False, default=str)
         all_tags = list(tags or [])

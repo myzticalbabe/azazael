@@ -96,14 +96,39 @@ def call_tool(name: str, arguments: dict) -> object:
 
     import httpx2
     from mcp import ClientSession
-    from mcp.client.streamable_http import streamable_http_client
+    #: The MCP SDK renamed this symbol between releases: `streamablehttp_client`
+    #: (older) vs `streamable_http_client` (newer). Measured 2026-10-30 —
+    #: py315t ships the former, .pmb-venv the latter. Importing one fixed name
+    #: made this CLI die with ImportError on the other interpreter, and the
+    #: supervisor read that death as empty stdout: a fallback that fails
+    #: silently instead of falling back.
+    try:
+        from mcp.client.streamable_http import streamable_http_client
+    except ImportError:
+        from mcp.client.streamable_http import (
+            streamablehttp_client as streamable_http_client,
+        )
 
     url, token = discover_endpoint(), read_token()
 
     async def go():
-        client = httpx2.AsyncClient(
-            headers={"Authorization": "Bearer %s" % token}, timeout=120.0)
-        async with streamable_http_client(url, http_client=client) as streams:
+        import inspect
+        auth = {"Authorization": "Bearer %s" % token}
+        client = httpx2.AsyncClient(headers=auth, timeout=120.0)
+        #: Same rename carries a signature change: the newer client takes a
+        #: prebuilt `http_client`, the older one takes `headers`/`timeout` and
+        #: rejects the keyword outright (`TypeError: got an unexpected keyword
+        #: argument 'http_client'`, measured on py315t 2026-10-30). Pick the
+        #: form the installed SDK actually accepts instead of pinning one.
+        try:
+            params = inspect.signature(streamable_http_client).parameters
+        except (TypeError, ValueError):
+            params = {}
+        if "http_client" in params:
+            ctx = streamable_http_client(url, http_client=client)
+        else:
+            ctx = streamable_http_client(url, headers=auth, timeout=120.0)
+        async with ctx as streams:
             async with ClientSession(streams[0], streams[1]) as session:
                 await session.initialize()
                 result = await session.call_tool(name, arguments)
@@ -170,6 +195,13 @@ def main() -> int:
     p_call = sub.add_parser("call")
     p_call.add_argument("tool")
     p_call.add_argument("args", nargs="?", default="{}")
+    #: Machine-readable payload. The summary printer is for humans and drops
+    #: every numeric field, so a caller that needs to filter by score (the
+    #: supervisor's relevance floor) has nothing to read. Printing the parsed
+    #: payload is the difference between a floorable and an unfloorable
+    #: fallback.
+    p_call.add_argument("--json", action="store_true",
+                        help="print the raw JSON payload, not a summary")
 
     sub.add_parser("status")
 
@@ -198,7 +230,10 @@ def main() -> int:
     else:
         payload = call_tool(args.tool, json.loads(args.args))
 
-    _print_summary(payload)
+    if getattr(args, "json", False) and isinstance(payload, (dict, list)):
+        print(json.dumps(payload, default=str))
+    else:
+        _print_summary(payload)
     return 0
 
 

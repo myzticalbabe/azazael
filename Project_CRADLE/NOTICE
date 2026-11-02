@@ -1,0 +1,41 @@
+PROJECT CRADLE
+Copyright 2026 the Project CRADLE contributors
+
+This product is licensed under the Apache License, Version 2.0 (the "License").
+You may not use the files in this project except in compliance with the License.
+A copy of the License is in the file LICENSE.
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+--------------------------------------------------------------------------
+Attribution notes
+
+No third-party runtime dependency is bundled. CRADLE.md states that the tree is
+stdlib-only and that this is reported as a printed PASS by `--doctor` rather
+than left as an omission; there is no requirements.txt, pyproject.toml or
+setup.py, by design.
+
+CRADLE orchestrates four parts that live in a sibling project, named in
+CRADLE.md and NOT redistributed here: Project_FLAMING_SWORD, providing
+`tools/sword.py` (FLAMING SWORD), `tools/defender.py` (defender),
+`tools/sentinel.py` (THE REAPER) and `tools/memory_bridge.py` (THE GRIMOIRE).
+Project_FLAMING_SWORD is licensed separately (Apache-2.0) and its own NOTICE
+governs those files. `--doctor` exists precisely so a missing sibling is
+reported rather than assumed.
+
+The local model runtimes CRADLE can point at (Ollama, llama.cpp, LM Studio,
+vLLM) are external services. CRADLE bundles none of them, holds no weights,
+requires no API key, and is not affiliated with, endorsed by, or acting on
+behalf of any of them. The table in CRADLE.md lists default local endpoints as
+public information.
+
+`--serve` binds `127.0.0.1` and has no authentication. `--host 0.0.0.0` would
+publish it to a network; that is stated in the help text and is the operator's
+decision, not a supported configuration.
+
+Uninstall: delete `Project_CRADLE/` and `Project_FLAMING_SWORD/`, and remove
+`.flaming_sword/` from whichever directory was served. There is no service, no
+registry entry, no `site-packages` copy and nothing outside those paths.

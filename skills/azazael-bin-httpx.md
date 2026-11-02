@@ -1,6 +1,6 @@
 ---
 name: azazael-bin-httpx
-description: Callable skill for httpx — Fast HTTP probe tool (ProjectDiscovery Go) — discover working HTTP hosts. NOTE: system `httpx` is the Python CLI, not this tool.
+description: "Callable skill for httpx — Fast HTTP probe tool (ProjectDiscovery Go) — discover working HTTP hosts. NOTE: system 'httpx' is the Python CLI, not this tool."
 metadata:
   category: recon
   project: azazael

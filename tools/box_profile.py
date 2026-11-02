@@ -80,7 +80,9 @@ def _run(cmd: Sequence[str], timeout: float = 5.0) -> Optional[str]:
     """
     output: Optional[str] = None
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(cmd, capture_output=True, text=True,
+                                encoding="utf-8", errors="replace",
+                                timeout=timeout)
         if result.returncode == 0:
             output = result.stdout.strip()
         else:
