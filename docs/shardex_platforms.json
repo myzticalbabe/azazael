@@ -1,14 +1,29 @@
 {
  "title": "Gaming platform matrix for SHARDEX forging",
  "read_at": "2026-11-02",
- "rule": "No row is present without the URL it came from. A platform with no verified numbers is listed in gaps[], not filled from memory.",
+ "rule": "No row is present without the URL it came from. A platform with no verified numbers is listed in gaps[], not filled from memory. Clocks are quoted from the MAME driver declaration (a driver that is 2x wrong does not run at the right speed); polygon rates and collaboration history come from prose sources; the two are never blended into one number.",
  "sources": {
   "W": "https://en.wikipedia.org/wiki/History_of_video_game_consoles",
+  "WS": "https://en.wikipedia.org/wiki/List_of_Sega_arcade_system_boards",
+  "M_model2": "https://github.com/mamedev/mame/blob/master/src/mame/sega/model2.cpp",
+  "M_cps1": "https://github.com/mamedev/mame/blob/master/src/mame/capcom/cps1.cpp",
+  "M_cps2": "https://github.com/mamedev/mame/blob/master/src/mame/capcom/cps2.cpp",
+  "M_neogeo": "https://github.com/mamedev/mame/blob/master/src/mame/snk/neogeo.cpp",
+  "M_neogeo_h": "https://github.com/mamedev/mame/blob/master/src/mame/snk/neogeo.h",
   "S_model3": "https://www.system16.com/hardware.php?id=720",
   "S_model3b": "https://segaretro.org/Sega_Model_3",
   "S_naomi": "https://www.coinopexpress.com/products/pcbs/naomi-i-ii-rom-board/Sega-Naomi-Arcade-Motherboard-%C2%A0-885.html/1000",
   "S_naomi_rom": "https://newastrocity.wordpress.com/2013/01/04/sega-naomi/",
-  "S_model2": "https://sega.fandom.com/wiki/Sega_Model_2"
+  "P_gb": "https://en.wikipedia.org/wiki/Game_Boy",
+  "P_gbc": "https://en.wikipedia.org/wiki/Game_Boy_Color",
+  "P_gba": "https://en.wikipedia.org/wiki/Game_Boy_Advance",
+  "P_nds": "https://en.wikipedia.org/wiki/Nintendo_DS",
+  "P_3ds": "https://en.wikipedia.org/wiki/Nintendo_3DS",
+  "P_psp": "https://en.wikipedia.org/wiki/PlayStation_Portable",
+  "P_vita": "https://en.wikipedia.org/wiki/PlayStation_Vita",
+  "P_switch": "https://en.wikipedia.org/wiki/Nintendo_Switch",
+  "P_switchbrew": "https://switchbrew.org/wiki/Hardware",
+  "P_steamdeck": "https://www.steamdeck.com/en/tech"
  },
  "generations": [
   {"gen": 1, "period": "1972-1983", "consoles": ["Magnavox Odyssey", "Home Pong", "Coleco Telstar", "Color TV-Game"], "cpu": "discrete diode-transistor / transistor-transistor logic", "gpu": null, "ram_bytes": null, "media": ["custom PCB"], "source": "W", "shardable": false},
@@ -22,23 +37,67 @@
   {"gen": 9, "period": "2020-present", "consoles": ["Xbox Series X/S", "PlayStation 5"], "cpu_ghz": {"min": 3.5, "max": 3.9}, "gpu_mhz": {"min": 1565, "max": 2350}, "ram_bytes": {"min": 10737418240, "max": 17179869184}, "media": ["digital", "SSD streaming"], "source": "W", "shardable": true}
  ],
  "arcade_boards": [
-  {"board": "Sega Model 2", "era": 1993, "cpu": null, "video": null, "ram_bytes_total": {"approx": 65011712, "caveat": "secondhand: 62 MB split across main/video/audio/other"}, "source": "S_model2", "verified": "partial"},
+  {"board": "Sega Model 2", "era": 1993,
+   "cpu": {"chip": "Intel i960KB", "mhz": 25, "derivation": "50 MHz XTAL / 2", "source": "M_model2"},
+   "coprocessor": {"chip": "Fujitsu MB86234 (TGP)", "mhz": 50, "variant_note": "Model 2C-class machines declare MB86235 @ 20 MHz plus an ADSP-21062 @ 32 MHz", "source": "M_model2"},
+   "video": {"description": "GE Aerospace/Lockheed Martin 3D rasteriser with texture filtering and texture anti-aliasing; 300,000 textured polygons per second at 60 fps", "source": "WS"},
+   "memory": {"work_ram_bytes": 1048576, "buffer_ram_bytes": 131072, "texture_ram_bytes": 4194304, "backup_sram_bytes": 16384, "basis": "MAME address-map decode: work RAM 0x00500000-0x005FFFFF, buffer RAM 0x00900000-0x0091FFFF, two 2 MiB texture banks, backup SRAM 0x01D00000-0x01D03FFF", "source": "M_model2"},
+   "sound_cpu": {"chip": "Motorola 68000", "mhz": 11.2896, "derivation": "45.1584 MHz XTAL / 4", "source": "M_model2"},
+   "sound_dsp": {"chip": "SCSP", "mhz": 22.5792, "derivation": "45.1584 MHz XTAL / 2", "source": "M_model2"},
+   "units_sold_by_1996": 130000,
+   "source": "M_model2",
+   "verified": "yes",
+   "withdrawn": {"ram_bytes_total": {"approx": 65011712, "caveat": "previously quoted as '62 MB across main/video/audio/other' from a secondhand source; withdrawn 2026-11-02 because it counts ROM boards and undecoded address space as RAM"}}},
+  {"board": "Capcom CPS-1", "era": 1988,
+   "cpu": {"chip": "Motorola 68000", "mhz": 10, "later_revision_mhz": 12, "basis": "XTAL(10'000'000) with 'verified on pcb' in the driver; cps1_12MHz() re-clocks to 12 MHz for later games", "source": "M_cps1"},
+   "video": {"description": "CPS-A/B graphics processors; pixel clock from a 16 MHz source, 384x224 output", "source": "M_cps1"},
+   "memory": {"main_ram_bytes": 65536, "graphics_ram_bytes": 196608, "audio_ram_bytes": 2048, "basis": "MAME address map: main RAM 0xFF0000-0xFFFFFF, gfx RAM 0x900000-0x92FFFF, Z80 RAM 0xD000-0xD7FF", "source": "M_cps1"},
+   "sound": {"z80_mhz": 3.579545, "ym2151_mhz": 3.579545, "oki6295_khz": 1000, "source": "M_cps1"},
+   "source": "M_cps1", "verified": "yes"},
+  {"board": "Capcom CPS-2", "era": 1993,
+   "cpu": {"chip": "Motorola 68000", "mhz": 16, "basis": "16_MHz_XTAL in cps2_state::cps2()", "source": "M_cps2"},
+   "video": {"description": "same CPS-A/B graphics silicon as CPS-1 at a higher main clock", "source": "M_cps2"},
+   "memory": {"main_ram_bytes": 65536, "graphics_ram_bytes": 196608, "highscore_ram_bytes": 16384, "basis": "MAME address map: main RAM 0xFF0000-0xFFFFFF, gfx RAM 0x900000-0x92FFFF, optional 0x660000-0x663FFF", "source": "M_cps2"},
+   "sound": {"z80_mhz": 8, "note": "Kabuki-encrypted Z80 on some boards (DL-030P), plain Z0840008PSC on others; ~250 Hz IRQ", "qsound": "DL-1425 CAPCOM-Q1", "source": "M_cps2"},
+   "source": "M_cps2", "verified": "yes"},
+  {"board": "SNK Neo Geo MVS", "era": 1990,
+   "cpu": {"chip": "Motorola 68000", "mhz": 12, "derivation": "24 MHz master / 2", "source": "M_neogeo_h"},
+   "video": {"description": "LSPC-A0/A2; pixel clock 6 MHz (24 MHz / 4)", "source": "M_neogeo_h"},
+   "memory": {"work_ram_bytes": 65536, "z80_ram_bytes": 2048, "save_ram_bytes": 65536, "basis": "MAME address map: work RAM 0x100000-0x10FFFF, Z80 RAM 0xF800-0xFFFF, battery-backed save RAM 0xD00000-0xD0FFFF", "source": "M_neogeo"},
+   "sound": {"z80_mhz": 4, "ym2610_mhz": 8, "source": "M_neogeo_h"},
+   "source": "M_neogeo", "verified": "yes"},
   {"board": "Sega Model 3", "era": 1996, "cpu": "PowerPC 603ev @ 166 MHz (498 MIPS, 332 MFLOPS)", "video": "2x Lockheed Martin Real3D/PRO-1000", "work_ram_bytes": 8388608, "sound_cpu": "68EC000 @ 11.3 MHz", "source": "S_model3", "verified": "yes"},
   {"board": "Sega NAOMI", "era": 1998, "cpu": "Hitachi SH-4 64-bit RISC @ 200 MHz (360 MIPS / 1.4 GFLOPS)", "video": "PowerVR PVR2DC", "main_ram_bytes": 33554432, "rom_bytes_max": 176160768, "source": "S_naomi", "verified": "yes"}
  ],
+ "handhelds": [
+  {"platform": "Game Boy", "year": 1989, "cpu": "Sharp SM83", "cpu_mhz": 4.194304, "cpu_mhz_stated": 4.2, "ram_bytes": 8192, "vram_bytes": 8192, "panel": {"w": 160, "h": 144, "colors_on_screen": 4, "type": "STN LCD"}, "source": "P_gb", "tier": "lowend"},
+  {"platform": "Game Boy Color", "year": 1998, "cpu": "Sharp SM83", "cpu_mhz": 4.194, "cpu_mhz_double_speed": 8.388, "ram_bytes": 32768, "vram_bytes": 16384, "panel": {"w": 160, "h": 144, "colors_on_screen": 56}, "source": "P_gbc", "tier": "lowend"},
+  {"platform": "Game Boy Advance", "year": 2001, "cpu": "ARM7TDMI", "cpu_mhz": 16.78, "compat_cpu": {"chip": "Sharp SM83", "mhz": [4.19, 8.38]}, "ram_bytes": 294912, "vram_bytes": 100352, "panel": {"w": 240, "h": 160}, "source": "P_gba", "tier": "lowend"},
+  {"platform": "Nintendo DS", "year": 2004, "cpu": "ARM946E-S + ARM7TDMI", "cpu_mhz": [67, 33], "ram_bytes": 4194304, "vram_bytes": null, "panel": {"screens": 2, "w": 256, "h": 192, "touch": "lower"}, "source": "P_nds", "tier": "lowend-midend"},
+  {"platform": "PlayStation Portable", "year": 2004, "cpu": "MIPS32 R4000-based", "cpu_mhz": [222, 333], "ram_bytes": 33554432, "ram_bytes_later_models": 67108864, "vram_bytes": 2097152, "panel": {"w": 480, "h": 272, "inches": 4.3}, "source": "P_psp", "tier": "midend"},
+  {"platform": "Nintendo 3DS", "year": 2011, "cpu": "2x ARM11 MPCore + ARM9", "cpu_mhz": 268, "gpu": {"chip": "DMP PICA200", "mhz": 268}, "ram_bytes": 134217728, "vram_bytes": 6291456, "panel": {"upper": [800, 240], "upper_per_eye": [400, 240], "lower": [320, 240], "autostereoscopic": true}, "source": "P_3ds", "tier": "midend", "note": "original 3DS clocks; the 2014 New 3DS revision raises the ARM11 and is NOT verified in this pass"},
+  {"platform": "PlayStation Vita", "year": 2011, "cpu": "Quad-core ARM Cortex-A9", "cpu_mhz": null, "cpu_mhz_note": "the cited page names the core, not the clock", "gpu": "PowerVR SGX543MP4+", "ram_bytes": 536870912, "vram_bytes": 134217728, "panel": {"w": 960, "h": 544, "inches": 5}, "source": "P_vita", "tier": "midend"},
+  {"platform": "Nintendo Switch", "year": 2017, "cpu": "4x ARM Cortex-A57", "cpu_mhz": 1020, "cpu_mhz_peak_loading": 1785, "cpu_cores_reserved_for_os": 1, "gpu_mhz": {"docked": 768, "handheld": [307.2, 384, 460]}, "ram_bytes": 4294967296, "ram_mhz": {"docked": 1600, "handheld": 1331.2}, "panel": {"handheld": [1280, 720], "docked_max": [1920, 1080]}, "source": "P_switch", "board_source": "P_switchbrew", "tier": "midend-handheld / highend-docked", "note": "the same console is two rows: the mode is part of the measurement"},
+  {"platform": "Steam Deck (OLED)", "year": 2022, "cpu": "Zen 2 4c/8t", "cpu_ghz": [2.4, 3.5], "gpu": {"arch": "8 RDNA 2 CUs", "ghz": 1.6}, "apu_power_w": [4, 15], "ram_bytes": 17179869184, "ram_type": "LPDDR5 6400 MT/s, quad 32-bit channels", "panel": {"w": 1280, "h": 800, "inches": 7.4, "max_hz": 90, "type": "HDR OLED"}, "battery_wh": 50, "source": "P_steamdeck", "tier": "highend", "note": "the thermal envelope, not the RAM, is the binding constraint"}
+ ],
  "shardex_tiers": [
-  {"tier": "lowend", "target": "gen 3-5 console or a phone", "payload_bytes": 2097152, "max_files": 24, "orbs": [3, 5], "sim_hz": 30, "tick_p99_ms": 33.3, "basis": "ENGINEERING DECISION derived from the table, not a hardware specification"},
-  {"tier": "midend", "target": "gen 6-7 console, Sega Model 3 class", "payload_bytes": 8388608, "max_files": 96, "orbs": [6, 8], "sim_hz": 60, "tick_p99_ms": 16.7, "basis": "ENGINEERING DECISION"},
-  {"tier": "highend", "target": "gen 8-9, PC, Steam Deck class", "payload_bytes": null, "max_files": 1024, "orbs": [9, 12], "sim_hz": 120, "tick_p99_ms": 8.33, "basis": "ENGINEERING DECISION; payload ceiling is the METTHEW schema's 8 GiB"}
+  {"tier": "lowend", "target": "gen 3-5 console, Game Boy to GBA, or a phone", "payload_bytes": 2097152, "max_files": 24, "orbs": [3, 5], "sim_hz": 30, "tick_p99_ms": 33.3, "basis": "ENGINEERING DECISION derived from the table, not a hardware specification"},
+  {"tier": "midend", "target": "gen 6-7 console, DS/3DS/Vita, Sega Model 3 class", "payload_bytes": 8388608, "max_files": 96, "orbs": [6, 8], "sim_hz": 60, "tick_p99_ms": 16.7, "basis": "ENGINEERING DECISION"},
+  {"tier": "highend", "target": "gen 8-9, PC, Switch docked, Steam Deck class", "payload_bytes": null, "max_files": 1024, "orbs": [9, 12], "sim_hz": 120, "tick_p99_ms": 8.33, "basis": "ENGINEERING DECISION; payload ceiling is the METTHEW schema's 8 GiB"}
  ],
  "invariant": "The golden hash covers simulation state at sim_hz and nothing else. Resolution, upscaling, frame generation and lighting are presentation and are outside the hash by construction.",
- "gaps": [
+ "closed_2026_11_02": [
   "Sega Model 2 CPU and video chip identities and clocks",
   "CPS-1 / CPS-2 / Neo Geo MVS clocks and RAM",
   "Game Boy, GBA, DS, 3DS, PSP, Vita clocks, RAM and panel resolution",
-  "Switch and Switch 2 clocks per docked/handheld mode",
-  "Steam Deck and ROG Ally class TDP envelopes per performance profile",
-  "lifetime unit sales per platform",
-  "a per-platform shipped-game inventory (genre, ruleset) -- the games half of this matrix, not attempted in this pass"
+  "Switch clocks per docked/handheld mode",
+  "Steam Deck APU power envelope per performance profile (4-15 W, Valve spec sheet)"
+ ],
+ "gaps": [
+  "lifetime unit sales per platform (not read for sales; an incidentally-seen infobox figure is not a quoted figure here)",
+  "a per-platform shipped-game inventory (genre, ruleset) -- the games half of this matrix, not attempted in this pass",
+  "PlayStation Vita CPU clock (core named, clock not stated in the cited page)",
+  "New Nintendo 3DS clock (2014 revision raises the ARM11 above 268 MHz; not verified)",
+  "Nintendo Switch 2 (2025) -- no specification column at all; left empty rather than extrapolated from Switch"
  ]
 }
