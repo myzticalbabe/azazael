@@ -175,6 +175,57 @@ carried with evidence. No pixel, colour ramp, sprite or label is carried. In 3D 
 limbs across the single axis it has; that mapping is a documented interpretation, not an
 extracted constant.
 
+## Live mutation: an image becomes a mesh, and the mesh changes while it renders
+
+`transubstantiate.py` translates a program whose rules are readable. An image has no rules to
+read, so the honest representation is **sampled data plus a graph that moves**, and the graph is
+mutated by operators applied to a scene that is already running.
+
+```bash
+NODE_PATH=C:/Users/clint/node_modules node tools/sample_image.js --in <image> --out .live/field.json
+python Project_SHARDEX/meshscene.py --forge .live/field.json --out .live
+NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js .live 180 \
+        --live .live/ops.json
+python Project_SHARDEX/meshscene.py --verify .live
+```
+
+**Pipeline.** Image → field (`96x54` luma/hue/Sobel, sha256 of the source, plus a 256-entry Q15
+sine table) → mesh (`576` neurons, `1201` synapses for a 640×480 photograph) → scene with one
+mutation entry point, `window.__mutate(op)`.
+
+**The operators** (`ops.py`): `warp`, `sprout`, `prune`, `palette`, `extrude`. Each is a pure
+function of (mesh, op); each exists twice, in Python and in the page; each op's digest is
+recorded by the page *after* it applies, and `--verify` replays the log and must reproduce every
+digest. Measured on 2026-11-02, applied between frames 30/60/90/120/150 of a 180-frame render:
+
+| seq | op | mesh digest | neurons/synapses |
+| --- | --- | --- | --- |
+| 0 | warp amp 3.0 | `51fdace00bdd1bfe` | 576 / 1201 |
+| 1 | extrude ×3 | `9c89b09f0553e46d` | 576 / 1201 |
+| 2 | palette +120° | `b799871e7759a070` | 576 / 1201 |
+| 3 | sprout 300 | `a37949c2ead7f094` | 576 / 1501 |
+| 4 | prune <0.6 | `1894f7d8c9908126` | 576 / 1108 |
+
+`--verify` → VERIFIED, op chain `d23155c2cf6a8324…`, all five digests reproduced in Python, base
+mesh and three projected golden states matching the page exactly.
+
+**Three defects came out of this build, all of the same shape** — a measurement that disagreed
+while the thing being measured was correct. The projection quantised at 1e-2, then at 1e-4, while
+the page used 1e-3; the base mesh digest matched all along, so only the states failed and only
+three of them. The lesson is written into the code: when a digest compares two implementations,
+the ruler is part of the contract.
+
+**Two gates, both measured.** `FLAT-FIELD` refuses a field whose *mean edge energy* is under 6.0
+(the first gate used `std(luma) >= 40` and refused every dark UI panel in this tree while
+accepting a solid fill); a solid fill measures 0.0, panels 8.2–17.3, a photograph 32.6. And
+`OP-INVALID` refuses an operator carrying a field it does not use, because an ignored parameter
+is a mutation that quietly did less than its author believed.
+
+**Fidelity.** The mesh is a *representation of the sampled field*, not a reconstruction of the
+image: no pixel is drawn, and the neurons sit on a block lattice. What is carried is structure
+(where edge energy was), colour (sampled hue per cell) and relief (luma as depth) — and what is
+verified is that both implementations agree about every one of those after each mutation.
+
 ## A question this pipeline has to answer honestly: images, and mid-flight mutation
 
 > Could a shard be built from a **single image**, and could modifications — morph, mutate,
