@@ -98,6 +98,39 @@ def test_the_names_are_vocabulary_and_not_file_names() -> None:
     assert cradle.PARTS["sentinel"].name == "sentinel.py"
 
 
+def test_grimoire_says_no_book_rather_than_nothing_learned(tmp_path: Path, capsys) -> None:
+    """A fresh directory has no book; that is not the same as a book with no lessons."""
+    assert cradle.grimoire(state_dir=str(tmp_path)) == 0
+    out = capsys.readouterr().out
+    assert "no book yet" in out, out
+
+
+def test_grimoire_prints_what_a_failure_wrote(tmp_path: Path, capsys) -> None:
+    bridge = cradle._load("memory_bridge", cradle.PARTS["memory"])
+    bridge.record_verification("f-test", "pytest -q", 1, observed="1 failed",
+                               state_dir=str(tmp_path))
+    bridge.record_lesson("a shard whose golden run does not reproduce cannot land",
+                         kind="ruleset", trigger="metthew_validate",
+                         state_dir=str(tmp_path))
+    assert cradle.grimoire(state_dir=str(tmp_path)) == 0
+    out = capsys.readouterr().out
+    assert "2 lesson(s)" in out, out
+    assert "failed-verification" in out and "because: metthew_validate" in out, out
+    assert cradle.grimoire(state_dir=str(tmp_path), kind="ruleset") == 0
+    filtered = capsys.readouterr().out
+    assert "1 of kind 'ruleset'" in filtered, filtered
+
+
+def test_an_unreadable_grimoire_is_a_failure_not_a_skip(tmp_path: Path, capsys) -> None:
+    """The control: a corrupt line must exit 1 and name the line, never be skipped."""
+    ledger = tmp_path / "lessons.jsonl"
+    ledger.write_text('{"content": "a real lesson about landing"}\nnot json\n',
+                      encoding="utf-8")
+    assert cradle.grimoire(state_dir=str(tmp_path)) == 1
+    out = capsys.readouterr().out
+    assert "UNREADABLE" in out and "line 2" in out, out
+
+
 def test_the_launcher_defaults_to_doctor(monkeypatch) -> None:
     """Running the file with no arguments answers the question a new user has."""
     called = {}

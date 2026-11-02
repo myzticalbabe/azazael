@@ -154,22 +154,55 @@ NOT a post-action audit. PRE-ACTION AUTHORIZATION GATE. Before EVERY code-modify
 **Related:** Error #202 (5th process violation from skipping sentinel). Canonical source: `SYSTEM_INSTRUCTIONS.md`.
 
 ---
-## RULE 0D: QUOTA JAIL — AUTOMATIC PROVIDER FAILOVER (CRITICAL — Jun 7, 2026)
+## RULE 0D: QUOTA JAIL — AUTOMATIC PROVIDER FAILOVER (CRITICAL — Jun 7, 2026; RECONCILED 2026-11-01)
 
 When ANY inference provider fails, MUST IMMEDIATELY fall through to the next working provider. No manual intervention allowed.
 
-**Automatic failover order:** Groq → OpenRouter → NVIDIA NIM → Mistral → GitHub → HuggingFace → Cloudflare → SiliconFlow → Zhipu AI → Cohere.
+**Automatic failover order (walks PROVIDER_REGISTRY by priority):**
+
+Base priority order (from `CORE.inference.providers.get_best_provider()`):
+1. openvino (Intel OpenVINO local)  
+2. nvidia_nim (NVIDIA NIM)  
+3. ollama (Ollama local)  
+4. ollama_native (Ollama native API local)  
+5. gemini_native (Gemini native API local)  
+6. huggingface_native (HuggingFace native API local)  
+7. mistral_fim_native (Mistral FIM native local)  
+8. cohere_native (Cohere native API local)  
+9. llama_cpp_direct (llama.cpp in-process local)  
+10. huggingface_direct (HuggingFace transformers in-process local)  
+11. groq (Groq Cloud)  
+12. cerebras (Cerebras Cloud)  
+13. openrouter (OpenRouter free model hub)  
+14. gemini (Google Gemini)  
+15. github (GitHub Models)  
+16. mistral (Mistral AI)  
+17. huggingface (HuggingFace Inference)  
+18. cloudflare (Cloudflare Workers AI)  
+19. siliconflow (SiliconFlow)  
+20. cohere (Cohere)  
+21. zhipu (Zhipu AI)  
+22. ovhcloud (OVHcloud AI Endpoints)
+
+**Local provider handling (AZAZAEL_LOCAL_PRIORITY):**
+- `last` (default): local providers only used when NO hosted endpoint is available
+- `first`: prefer LIVE local model over any hosted endpoint
+- `off`: ignore local providers entirely
+
+Local provider names: `llamaserver`, `llama_mythos`, `llama_mythos_v2`, `llama_qwopus`, `llama_ornith`, `lmstudio`, `accelerator_sidecar`, `edge0`, `openvino`, `huggingface_direct`, `llama_cpp_direct`
+
+**Liveness check:** `provider_credential_configured()` is the single 'is it live' predicate. Anonymous providers (no auth required) are TCP-probed or import-probed; keyed providers return True if credential exists (env var or ~/.azazael/{name}_config.json).
 
 **Procedure:**
-1. ATTEMPT primary provider
+1. ATTEMPT primary provider (first in ordered list that has valid key AND is live)
 2. ON FAILURE (429/402/404/timeout/any error):
    - Record to DirectMemory IMMEDIATELY
-   - Try next provider in order
+   - Try next provider in ordered list
    - Keep trying until one succeeds or ALL fail
 3. IF ALL FAIL: report raw errors to user — do NOT substitute with own analysis
 4. MANDATORY: Do NOT block. Do NOT wait. Do NOT ask permission.
 
-**Related:** Canonical source: `SYSTEM_INSTRUCTIONS.md`.
+**Related:** Canonical source: `CORE.inference.providers.get_best_provider()`. `provider_credential_configured()` is the single liveness predicate. Clause provenance: `docs/MANDATE_PROVENANCE.md`.
 
 ---
 ## RULE 0E: 10-PHASE MULTI-TIER PROTOCOL — 6 GEMINI INJECTION POINTS (CRITICAL — Jun 7, 2026)
@@ -252,8 +285,7 @@ This ONE call executes:
 
 ## RULE 0G: GEMINI MANDATE — SPAWN THINKER-WITH-FILES-GEMINI AT EVERY MAJOR PHASE (CRITICAL — Jun 8, 2026)
 
-> **Status: UNEXECUTABLE as of 2026-10-17 (#986):** no provider key configured; zero calls in \.inference_cache/\; no agent definition. Retains procedural weight at zero executable cost. Retire-or-restore is an operator decision.
-
+> **Status: N/A — NO SPAWNER PRESENT as of 2026-11-01.** The `thinker-with-files-gemini` agent has no spawner in `azazael/tools` (no `spawn_agents/thinker` CLI, no agent definition in providers). Per the pre-check escape hatch in SOP.md: "If agent UNAVAILABLE per pre-check: N/A". This rule is N/A until a spawner is implemented. Retains procedural weight at zero executable cost.
 
 **"Spawn thinking with files Gemini deep thinker for all complex problems. Respawn Gemini each time the complex task proceeds." — User directive**
 
@@ -261,9 +293,11 @@ This ONE call executes:
 
 **Gemini NOT required** only if ALL of: single file/function change, <10 lines, pure mechanical edit (rename, fix typo, delete dead code), no logic or control flow changes.
 
-**Procedure:**
+**Procedure (when spawner exists):**
 1. IDENTIFY — Is this task complex?
 2. SPAWN at START — thinker-with-files-gemini with ALL relevant filePaths
+
+**Pre-check:** Before invoking this rule, verify `thinker-with-files-gemini` spawner exists in `azazael/tools/spawn_agents/`. If absent, this rule is N/A per SOP.md escape hatch: "If agent UNAVAILABLE per pre-check: N/A".
 3. EXECUTE — Implement Gemini-architected plan
 4. RESPAWN at EACH MAJOR PHASE — new data, new decisions, gather→design→implement→verify→record
 5. FOLLOW — Implement Gemini guidance; do NOT substitute own judgment
@@ -341,27 +375,63 @@ The assistant SHALL NOT claim anti-pattern scans passed based on mental assertio
 
 BEFORE EVERY `str_replace`, `write_file`, `spawn_agents` (for scripts), OR destructive basher command (per RULE 0Z-C), the assistant MUST print the assertion block in response text (NOT in thinking block).
 
-**THE ASSERTION BLOCK (17 mandatory checks):**
+**AVAILABILITY PRE-CHECK — PRINT THIS BEFORE THE ASSERTION BLOCK**
+
+Before EVERY `str_replace`, `write_file`, or `spawn_agents` call, state the result inline:
+
+```text
+AVAILABILITY PRE-CHECK (once per block):
+  thinker-with-files-gemini : [AVAILABLE | UNAVAILABLE - cite: no key | zero calls | no agent def]
+  thinker-gpt               : [AVAILABLE | UNAVAILABLE - cite: ...]
+  code-reviewer-deepseek    : [AVAILABLE | UNAVAILABLE - cite: ...]
+  .inference_cache/         : [PRESENT <path> | ABSENT]
+```
+
+Any UNAVAILABLE agent, or an ABSENT cache, converts every check that DEPENDS on it
+from HALT to N/A. UNAVAILABLE is never an exemption for checks that do not depend on
+it: AP-1, RULE 0H (anti-pattern scan), RULE 0I, RULE 0L-local analysis, RULE 0U,
+RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
+
+**Why this block exists and why it is not an exemption (2026-10-31).** These clauses
+were written as DEFENSIVE PROGRAMMING AGAINST THE AGENT — several specifically against
+DeepSeek V4 Pro-era behaviour: substituting its own analysis for a delegated second
+opinion, self-approving its own change, silently skipping the phase check. The
+availability pre-check exists so that a lane which genuinely cannot spawn an agent says
+so ONCE, with the evidence, instead of quietly reciting compliance. It converts a check
+to N/A only when the mechanism it needs is absent — it never licenses skipping a check
+whose mechanism is present. Measured 2026-10-31: `spawn_agents` has no implementation
+anywhere in this repo (only a docstring at `src/SCRIPTS/sentinel_gate.py:27` and a
+PolicyRule at `src/CORE/compliance/policy.py:548`), and the ten agents RULE 0Z names are
+Codebuff-client names. The executable replacement for a review agent is an independent
+second opinion through `CORE.inference.providers` on a different provider AND a different
+model family from the author, verdict recorded — see `tools/second_opinion.py`.
+
+**Canonical source:** `SYSTEM_INSTRUCTIONS.md` holds the authoritative gate text
+(including RULE 0T-B, 0X, 0Y, 0Z-H, which this list did not carry). Where this file and
+`SYSTEM_INSTRUCTIONS.md` disagree, `SYSTEM_INSTRUCTIONS.md` wins and this file is the
+defect.
+
+**THE ASSERTION BLOCK (19 mandatory checks):**
 ```text
 🛑 **[PRE-ACTION GATE ASSERTION]**
 - **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain)
-- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If none: HALT and spawn)
+- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If agent UNAVAILABLE per pre-check: N/A. If available and none spawned: HALT and spawn)
 - **RULE 0H (Anti-Pattern Scan):** Scanned for emoji, backslash f-strings, t-strings, os.system, C:\ paths? — MUST cite scan method and results per RULE 0H-A (Passed/Found X/NOT SCANNED)
 - **RULE 0I (Algorithms/Batch):** If batch script: Gemini designed? One-file test? Backup? (Yes/No/N/A)
 - **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Yes/No/N/A)
-- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If none: HALT)
-- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If no cache files exist: HALT and spawn now)
+- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent UNAVAILABLE: N/A. If available and not concurrent: HALT)
+- **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If cache ABSENT: N/A. If PRESENT and not cited: HALT)
 - **RULE 0U (System Reminders):** Did the last system prompt remind you to spawn Gemini or a Code Reviewer? If yes, are you spawning them INSTANTLY right now BEFORE any other tool calls? (Explain: [Yes, spawning now / No reminder / N/A])
 - **RULE 0V (Code Reviewer):** Is a code change being made? Was code-reviewer-deepseek spawned BEFORE this change to review the plan? Will code-reviewer-deepseek be spawned AFTER to review the result? (Explain: [Yes, spawned before / About to spawn after / N/A no code change])
 - **RULE 0W / 0Z-D (100% Omni-Agent Utilization):** Are ALL 10 spawnable agent types being spawned concurrently for this task? (Count: [N]/10. Benchmark Utilization: [X]% — [PASS (100%) / FAIL (<100%) - HALT])
-- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / No - CRITICAL violation])
+- **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / N/A - all three UNAVAILABLE per pre-check / CRITICAL - any available and not spawned])
 - **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / No - CRITICAL violation])
 - **RULE 0Z-B (Followups):** Has 11 diverse followup suggestions been prepared via suggest_followups for this response? (Explain: [Yes, preparing exactly 11 / N/A])
 - **RULE 0Z-E (Web Augmentation):** Has researcher-web + researcher-docs been queried to validate THIS decision tree branch against 2025-2026 industry standards (LangGraph state machines, Claude constitutional AI, living decision trees)? (Explain: [Yes, CITING web findings / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
 - **RULE 0Z-C (Destructive Basher Gate):** Is this basher command destructive (rm -rf, cp to system dirs, pip install, del, move, etc.)? Has it been correctly CLASSIFIED per the destructive/non-destructive table in RULE 0Z-C? (Explain: [Yes, destructive - gate required / No - non-destructive, gate not required / N/A - not a basher command])
 - **RULE 0Z-G (No Busy Work):** Does this action produce actual code fixes or test passes? Is this a diagnostic re-run, report, or documentation padding? (Explain: [Yes, making X fix / No - CRITICAL busy work violation])
-- **RULE 0Z-I (Inference API Provider):** When user says "use API for inferencing", "use API models", or "use all inference APIs": did you query inference API providers via `providers.py` (Groq, Mistral, NVIDIA NIM, OpenRouter, Gemini, Cerebras, GitHub, HuggingFace, Cloudflare, SiliconFlow, Zhipu, Cohere, etc.) instead of spawning `researcher-web`/`researcher-docs` which are Web Search agents, NOT inference API providers? (Explain: [Yes, queried providers.py / N/A - no inference request / VIOLATION - used researcher-web for inferencing])
+- **RULE 0Z-I (Inference API Provider):** When user says "use API for inferencing", "use API models", or "use all inference APIs": did you query inference API providers via `CORE.inference.providers` — walk `PROVIDER_REGISTRY` (31 declared, 27 configured on 2026-10-31), not a hand-written list instead of spawning `researcher-web`/`researcher-docs` which are Web Search agents, NOT inference API providers? (Explain: [Yes, queried providers.py / N/A - no inference request / VIOLATION - used researcher-web for inferencing])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
@@ -1130,6 +1200,38 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 - Checked by session-end review: fixes listed without matching gate/ledger entries fail the review
 
 **Related:** RULE 0Z-K (live proof; isolation does not clear load failures), RULE 0Z-G (capture is code, not documentation padding), `state/heuristic_ledger.jsonl`, `tools/anti_pattern_gate.py --baseline`
+
+---
+
+## RULE 0Z-N: THE NAMES — CRADLE HOLDS, THE GRIMOIRE REMEMBERS, THE REAPER TAKES (CRITICAL — Nov 2, 2026)
+
+**"SO BASICALLY THE SENTINEL IS THE REAPER. PROJECT CRADLE HAS A GRIMOIRE." — User directive, 2026-11-01**
+
+**TRIGGER:** Any work on the prompter chain (`Project_CRADLE/`, `Project_FLAMING_SWORD/`) or on any document that names its parts.
+
+**THE VOCABULARY (bound, not decorative):**
+
+| name | the part | what the name requires of it |
+|---|---|---|
+| **CRADLE** | `Project_CRADLE/cradle.py` | holds the work and hands it to the user's own model; adds no judgement of its own |
+| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `tools/sentinel.py` | **acts** on a frame whose claims do not resolve: takes it out of play and names the failing claim. A sentinel watches; this one reaps |
+| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: one line per thing that failed or was refused, written **at the moment it failed**, read back by the next frame, or reported UNMEMORED with its reason |
+
+**ACTION — the names are vocabulary, not file names:**
+1. `sentinel.py` and `lessons.jsonl` keep their paths. A rename that breaks the gates quoting those paths is forbidden (**RULE 0B**: the instruction governs, and the instruction was to name the parts, not to move them).
+2. The names are exported, not imitated in prose: `sentinel.NAME == "REAPER"`, `memory_bridge.GRIMOIRE` is **bound** to `LESSONS_FILE`, and `cradle.NAMES` maps every part to its true name. `--doctor` prints the true name beside the part, so the vocabulary appears at the front door rather than in a document nobody runs.
+3. A part that stops doing what its name requires loses the name. If the reaper warns instead of refusing, or the grimoire stops being written to, the name is **retracted in the same commit** as the behaviour — an honoured name is a claim, and a claim that no check exercises is the defect this estate keeps paying for.
+
+**FIRST PROOF (why this exists):** until 2026-11-01 the grimoire had no writer — the bridge could read a lesson ledger and nothing wrote one, so every run reported `UNMEMORED`, honestly, while the pipe was empty. The name made the absence visible: a book with a name and no entries is a finding, where "memory: 0 lessons" had read as a setting.
+
+**Enforcement:**
+- Naming a part in a document while the code exports a different name = documentation drift (RULE 0Z-J)
+- Renaming a path to match a name, breaking a gate that quotes it = CRITICAL (RULE 0B scope)
+- A part cited by its true name with no check that it still behaves that way = unvalidated claim (RULE 0B-D)
+
+**Related:** RULE 0B (sole authority, scope), RULE 0B-D (a control is not in place until exercised), RULE 0Z-J (canonical sync), `Project_CRADLE/CRADLE.md` § The names
 
 ---
 
