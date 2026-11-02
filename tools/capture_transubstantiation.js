@@ -1,27 +1,46 @@
-// Capture a forged 3D transubstantiation scene to frames, and probe it from inside the page.
+// Capture a forged 3D scene to frames, probe it from inside the page, and — with --live —
+// MUTATE IT WHILE IT RENDERS.
 //
 // Two jobs, and the second is the one that matters:
 //   1. drive window.__step(tick) and screenshot each tick -> frames/frame_%04d.png
-//   2. call the page's own __geo() and __state(tick) and write browser_probe.json, so
-//      transubstantiate.py --verify can compare the browser's digest against Python's.
-//      A golden run that only the Python side can produce proves the Python side agrees
-//      with itself; the cross-language probe proves the two builds are the same tree.
+//   2. probe the page's own state and write browser_probe.json, so Python can compare the
+//      browser's digest against its own. A golden run only Python can produce proves Python
+//      agrees with itself; the probe proves the two builds are the same thing.
+//
+// --live <ops.json> sends each operator through window.__mutate(op) BETWEEN FRAMES, from
+// outside the page. That is the whole point of this harness: the mutation lands in a scene
+// that is already running, and every applied op comes back with the digest the page computed
+// AFTER applying it. meshscene.py --verify replays that log and must reproduce every digest;
+// a mutation nobody can replay is a session, not an artifact.
 //
 // Frame index comes from the loop counter, never from the clock (YGGDRASIL_RENDER_PLAYBOOK).
-// Run: NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js <dir> [frames]
+// Run: NODE_PATH=C:/Users/clint/node_modules node tools/capture_transubstantiation.js <dir> [frames] [--live ops.json]
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 
 (async () => {
-  const dir = process.argv[2];
-  const FRAMES = parseInt(process.argv[3] || '240', 10);
-  if (!dir) { console.error('usage: capture_transubstantiation.js <scene-dir> [frames]'); process.exit(2); }
-  const scene = path.resolve(dir, 'flame3d.html');
-  if (!fs.existsSync(scene)) { console.error('no scene at ' + scene); process.exit(2); }
+  const argv = process.argv.slice(2);
+  const liveIndex = argv.indexOf('--live');
+  const liveOps = liveIndex >= 0 ? argv[liveIndex + 1] : null;
+  const positional = argv.filter((a, i) => !a.startsWith('--') && i !== liveIndex + 1 || (i === 0));
+  const dir = positional[0];
+  const FRAMES = parseInt(positional[1] || '240', 10);
+  if (!dir) { console.error('usage: capture_transubstantiation.js <scene-dir> [frames] [--live ops.json]'); process.exit(2); }
+
+  const sceneMesh = path.resolve(dir, 'meshscene.html');
+  const sceneFlame = path.resolve(dir, 'flame3d.html');
+  const scene = fs.existsSync(sceneMesh) ? sceneMesh : sceneFlame;
+  if (!fs.existsSync(scene)) { console.error('no scene at ' + sceneMesh + ' or ' + sceneFlame); process.exit(2); }
+  const isMesh = scene === sceneMesh;
   const framesDir = path.resolve(dir, 'frames');
   fs.mkdirSync(framesDir, { recursive: true });
+
+  const ops = liveOps ? JSON.parse(fs.readFileSync(path.resolve(liveOps), 'utf-8')) : [];
+  // evenly spaced inside the run, so the first op lands after the scene is legible and the
+  // last one still has frames left to show its effect
+  const opFrame = (i) => Math.floor(FRAMES * (i + 1) / (ops.length + 1));
 
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -38,28 +57,50 @@ const { pathToFileURL } = require('url');
     await page.waitForFunction('typeof window.__step === "function"', { timeout: 20000 });
 
     const total = await page.evaluate(() => window.__TOTAL);
-    const geo = await page.evaluate(() => window.__geo());
     const probeStates = {};
-    // the same three fractions transubstantiate.py hashes, read back from golden3d.json so
-    // the probe cannot drift from the golden definition
-    const golden = JSON.parse(fs.readFileSync(path.resolve(dir, 'golden3d.json'), 'utf-8'));
+    const goldenFile = path.resolve(dir, isMesh ? 'golden_live.json' : 'golden3d.json');
+    const golden = JSON.parse(fs.readFileSync(goldenFile, 'utf-8'));
+    if (isMesh) {
+      const baseDigits = await page.evaluate(() => window.__digest());
+      console.log('probe: base mesh ' + baseDigits + ' (golden ' + golden.mesh_digest + ')');
+    } else {
+      const geo = await page.evaluate(() => window.__geo());
+      console.log('probe: segments=' + geo.segments + ' leaves=' + geo.leaves +
+                  ' digest=' + geo.digest);
+    }
     for (const key of Object.keys(golden.states)) {
       probeStates[key] = await page.evaluate((t) => window.__state(t), parseInt(key.slice(1), 10));
     }
-    const probe = { geometry_sha256: geo.digest, segments: geo.segments, leaves: geo.leaves,
-                    states: probeStates, total: total, errors: errors };
-    fs.writeFileSync(path.resolve(dir, 'browser_probe.json'), JSON.stringify(probe, null, 1));
-    console.log('probe: segments=' + geo.segments + ' leaves=' + geo.leaves +
-                ' digest=' + geo.digest + ' errors=' + errors.length);
 
+    let sent = 0;
     for (let i = 0; i < FRAMES; i++) {
       const tick = Math.round((total * i) / FRAMES);
       const name = path.join(framesDir, 'frame_' + String(i).padStart(4, '0') + '.png');
       await page.evaluate((t) => window.__step(t), tick);
+      if (isMesh && sent < ops.length && i === opFrame(sent)) {
+        const record = await page.evaluate((op) => window.__mutate(op), ops[sent]);
+        console.log('MUTATE frame ' + i + ' seq ' + record.seq + ' ' + record.op.kind +
+                    ' -> ' + record.digest + ' (' + record.neurons + 'n/' +
+                    record.synapses + 's)');
+        sent += 1;
+      }
       await page.screenshot({ path: name, type: 'png', captureBeyondViewport: false });
       if (i % 40 === 0) console.log('frame ' + i + '/' + FRAMES + ' tick=' + tick);
     }
-    console.log('captured ' + FRAMES + ' frames -> ' + framesDir);
+
+    const probe = { scene: path.basename(scene), total: total, states: probeStates,
+                    errors: errors };
+    if (isMesh) {
+      const applied = await page.evaluate(() => window.__applied());
+      probe.mesh_digest = await page.evaluate(() => window.__digest());
+      probe.applied = applied.length;
+      fs.writeFileSync(path.resolve(dir, 'applied_ops.jsonl'),
+                       applied.map((r) => JSON.stringify(r)).join('\n') + (applied.length ? '\n' : ''));
+      console.log('applied ' + applied.length + ' live op(s); final mesh ' + probe.mesh_digest);
+    }
+    fs.writeFileSync(path.resolve(dir, 'browser_probe.json'), JSON.stringify(probe, null, 1));
+    console.log('captured ' + FRAMES + ' frames -> ' + framesDir +
+                ' (errors: ' + errors.length + ')');
     if (errors.length) { console.error('CONSOLE ERRORS: ' + errors.slice(0, 5).join(' | ')); process.exitCode = 1; }
   } finally {
     await browser.close();
