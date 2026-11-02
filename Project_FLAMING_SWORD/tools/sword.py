@@ -77,6 +77,41 @@ def _sibling(name: str):
 housekeep = _sibling("housekeep")
 disposition = _sibling("disposition")
 defender = _sibling("defender")
+memory_bridge = _sibling("memory_bridge")
+
+
+def cmd_aio(user_prompt: str, target: str, acceptance: str, evidence: str,
+            defends: Sequence[str], preserve: bool, jsonl: Optional[str],
+            as_json: bool) -> int:
+    """The whole product in one call: prompt -> frame -> sentinel -> memory -> AIO.
+
+    Three checks, in this order, because each catches what the previous one cannot:
+    the frame refuses a prompt with no finish line, the sentinel refuses a frame whose
+    paths do not resolve, and the memory says whether anything was learned before (and
+    says UNMEMORED when it could not ask). No AIO is printed unless all three pass, so a
+    model is never handed an instruction object built on a hole.
+    """
+    memory = memory_bridge.recall(user_prompt, jsonl=jsonl) if jsonl else \
+        memory_bridge.probe()
+    result = defender.to_aio(
+        user_prompt, target=target, acceptance=acceptance, evidence=evidence,
+        preserve=preserve,
+        defends=defends,
+        must_not_break=defender.default_break_list(target or "it"),
+        control=defender.default_control(user_prompt), memory=memory)
+    if as_json:
+        print(json.dumps(result, indent=1, sort_keys=True))
+        return 0 if result["state"].startswith("READY") else 1
+    if result.get("problems"):
+        print("%s: the prompt cannot become an instruction object." % result["state"])
+        for problem in result["problems"]:
+            print("     %s" % problem)
+        print("")
+        print("  the frame is where a repair stops being a removal; fill it, do not")
+        print("  work around it")
+        return 1
+    print(result["aio"])
+    return 0
 
 
 def cmd_defend(intent: str, target: str, evidence: str, preserve: bool,
@@ -1304,6 +1339,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--record-research", metavar="JSONL",
                         help="validate research records and queue them as proposals")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--aio", metavar="PROMPT", default=None,
+                        help="turn a user prompt into an AIO instruction object "
+                             "(frame + sentinel + memory); refuses with reasons and "
+                             "renders nothing when any of them fails")
+    parser.add_argument("--jsonl", default=None,
+                        help="with --aio: a lesson ledger to recall from")
+    parser.add_argument("--acceptance", default="",
+                        help="with --aio: the command and outcome that ends the task")
+    parser.add_argument("--defends", action="append", default=[],
+                        help="with --aio: a test, claim or gate that survives "
+                             "(repeatable; a placeholder is refused)")
     parser.add_argument("--defend", metavar="INTENT", default=None,
                         help="print the defensive frame for a change, and refuse a "
                              "frame that cannot name what it defends")
@@ -1335,6 +1381,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return self_test()
     if args.brief:
         return brief()
+    if args.aio is not None:
+        return cmd_aio(args.aio, args.target, args.acceptance, args.evidence,
+                       args.defends, args.preserve, args.jsonl, args.json)
     if args.defend is not None:
         return cmd_defend(args.defend, args.target, args.evidence, args.preserve,
                           args.json)

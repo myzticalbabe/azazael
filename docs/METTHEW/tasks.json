@@ -758,6 +758,42 @@
       "evidence": "tools/retraction_ledger.py --selftest output plus the ledger file it writes in a temp directory",
       "risk": "easy to turn into a diary; the gate only counts, and a retraction with no materialised trigger is refused the same way a lesson without a decision class is",
       "status": "pending"
+    },
+    {
+      "id": "M-45",
+      "track": "X",
+      "title": "The prompter ships with a sentinel (S1..S7, every assertion stats a path)",
+      "owner": "freebuff",
+      "depends_on": [
+        "M-41"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "Project_FLAMING_SWORD/tools/sentinel.py: a pre-action check over the frame -- intent from a closed act vocabulary, target exists or is declared new:<path>, every must_not_break path stat'ed, placeholder defences refused, posture delegated to the defender so there is one answer to what a valid posture is",
+      "acceptance": "`python Project_FLAMING_SWORD/tools/sentinel.py --selftest` exits 0 with 12 controls; a frame naming `tools/ghost.py` is BLOCKED with 'does not exist' and a frame whose defence is the placeholder `<name what survives>` is BLOCKED (2 verdicts, 2 reasons)",
+      "control": "point the target at a file that does not exist and require S2 to BLOCK, then declare `new:` on a file that already exists and require the same refusal",
+      "refusal": "BLOCK the action when any path in the frame does not resolve, because a break list that cannot be stat'ed decides nothing",
+      "evidence": "Project_FLAMING_SWORD/tests/test_sentinel_memory.py + the --selftest output",
+      "risk": "a sentinel that resolves paths can still be aimed at the wrong tree; S3 proves a file exists, not that it is the file the claim is about",
+      "status": "completed",
+      "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-46",
+      "track": "X",
+      "title": "The prompter ships with memory: two adapters, and UNMEMORED is never 'no lessons'",
+      "owner": "freebuff",
+      "depends_on": [
+        "M-41"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "Project_FLAMING_SWORD/tools/memory_bridge.py (jsonl and command adapters, probe/recall/record, append-only .flaming_sword/frames.jsonl) plus defender.to_aio, which renders the AIO instruction object only when frame, sentinel and memory all answer",
+      "acceptance": "`python Project_FLAMING_SWORD/tools/memory_bridge.py --selftest` exits 0 with 9 controls; `sword.py --aio '<prompt>' --target <missing file>` exits 1 and prints BLOCKED with no AIO, while the same call on a real target with a named defence exits 0 and prints 'AIO  defensive-aio-v1' (2 runs, 2 verdicts)",
+      "control": "point the bridge at a command that exits 3 and require UNMEMORED naming the code, then at a command printing 'not json' and require UNMEMORED naming the parse failure -- neither may report zero lessons",
+      "refusal": "BLOCK the AIO when the frame or the sentinel fails, and mark the prompt UNMEMORED when no backend answered rather than implying nothing was ever learned",
+      "evidence": "the --selftest output plus the two --aio runs quoted in the commit's Verified: line",
+      "risk": "the command adapter is a shell string and therefore an injection surface; it is only ever fed a command the operator typed, never a prompt-shaped value",
+      "status": "completed",
+      "completed_at": "2026-11-01"
     }
   ],
   "contract_changes_decided": {

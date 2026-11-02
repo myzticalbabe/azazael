@@ -6364,14 +6364,36 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "A frame alone has two blind spots, and both are the kind a model slides into.",
+   "title": "The companions it ships with: sentinel and memory"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L99",
+   "kind": "limitation",
+   "line": 99,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "sword.py --aio \"<the user's prompt>\" --target <artefact> \\\\ --acceptance \"<command + outcome>\" --evidence <path> \\\\ --defends \"<the test, claim or gate that survives>\" [--preserve] [--jsonl <ledger>]",
+   "title": "One object out: the AIO prompt"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L114",
+   "kind": "limitation",
+   "line": 114,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
    "symptom": "scan -> plan -> run (batch) -> verify -> land",
    "title": "The loop, and its three refusals"
   },
   {
    "cause": "",
-   "id": "project-flaming-sword-readme-md-L97",
+   "id": "project-flaming-sword-readme-md-L132",
    "kind": "limitation",
-   "line": 97,
+   "line": 132,
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
@@ -6380,9 +6402,9 @@
   },
   {
    "cause": "",
-   "id": "project-flaming-sword-readme-md-L129",
+   "id": "project-flaming-sword-readme-md-L164",
    "kind": "limitation",
-   "line": 129,
+   "line": 164,
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
@@ -6391,9 +6413,9 @@
   },
   {
    "cause": "",
-   "id": "project-flaming-sword-readme-md-L140",
+   "id": "project-flaming-sword-readme-md-L175",
    "kind": "limitation",
-   "line": 140,
+   "line": 175,
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
@@ -6402,9 +6424,9 @@
   },
   {
    "cause": "",
-   "id": "project-flaming-sword-readme-md-L161",
+   "id": "project-flaming-sword-readme-md-L196",
    "kind": "limitation",
-   "line": 161,
+   "line": 196,
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
@@ -6413,9 +6435,9 @@
   },
   {
    "cause": "",
-   "id": "project-flaming-sword-readme-md-L170",
+   "id": "project-flaming-sword-readme-md-L205",
    "kind": "limitation",
-   "line": 170,
+   "line": 205,
    "rationale": "",
    "remedy": "",
    "surface": "Project_FLAMING_SWORD/README.md",
@@ -20824,8 +20846,8 @@
   },
   {
    "path": "Project_FLAMING_SWORD/README.md",
-   "records": 8,
-   "sha": "e8279ba2dcbefc8d948dc8aca2a40b369f2af4ec87f4d47fbf909f4e2f1ee8ec"
+   "records": 10,
+   "sha": "931a85afc689542a6cfb19a50c6af79ee27355f2312769103c1a648da0ce3387"
   }
  ],
  "totals": {
@@ -20840,12 +20862,12 @@
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 23,
+   "limitation": 25,
    "measurement": 24,
    "memory": 67,
    "practice": 30
   },
-  "records": 1733,
+  "records": 1735,
   "surfaces": 10
  }
 }

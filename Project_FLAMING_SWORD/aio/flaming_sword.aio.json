@@ -21,6 +21,27 @@
         "a refused frame renders NO prompt, so nothing downstream can act on it"
       ],
       "default_landing": "tools/sword.py --defend '<intent>' --target <artefact> [--preserve] (exit 1 when the frame is refused)",
+      "companions": {
+        "sentinel": {
+          "module": "tools/sentinel.py",
+          "why": "the defender writes the frame; the sentinel refuses to let it be ACTED ON when its claims do not resolve -- a prompter can describe files that do not exist, tests that were never written and an evidence command nobody has, and the frame reads as rigour either way",
+          "checks": ["S1 intent-scoped (closed act vocabulary)", "S2 target-resolves (exists, or new:<path>)", "S3 break-resolves (every path stat'ed)", "S4 defence-named (a placeholder is refused)", "S5 landing-stated", "S6 no-wishes", "S7 posture-intact (delegated to the defender)"],
+          "lands": "SENTINEL OK / SENTINEL BLOCKED, exit 1; 12 controls"
+        },
+        "memory": {
+          "module": "tools/memory_bridge.py",
+          "why": "a prompter that cannot ask what was learned re-learns the same defect every session, and one that imports the estate's memory libraries stops working on a machine that has none",
+          "adapters": ["jsonl (a lesson ledger, one object per line)", "command (any command printing JSON lines -- this is how PMB/Engram/the board are reached without teaching this file their schemas)"],
+          "rule": "an absent, failing or unparseable backend is UNMEMORED WITH ITS REASON, never 'no lessons found': the first is a fact about the run, the second is a fact about the world, and confusing them is the defect this whole project exists for",
+          "writes": ".flaming_sword/frames.jsonl (append-only; M-42's sweep requires a frame per queued id)"
+        },
+        "aio": {
+          "shape": "defensive-aio-v1",
+          "what": "user prompt -> frame -> sentinel -> memory -> ONE instruction object, or a refusal that renders NOTHING",
+          "why": "a model handed a prompt built on a hole fills the hole with prose; all three checks must pass before a prompt exists",
+          "entry": "sword.py --aio '<prompt>' --target <artefact> --acceptance '<cmd + outcome>' --evidence <path> --defends '<what survives>' [--preserve] [--jsonl ledger]"
+        }
+      },
       "does_not_decide": "whether the work is lawful; it refuses to frame work that has not said whose copy it is, which is the part a prompter can enforce"
     },
     "decision_blocks": [

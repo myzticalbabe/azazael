@@ -600,6 +600,51 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=("Project_FLAMING_SWORD/tools/defender.py",),
     ),
+    Gate(
+        name="flaming-sword-sentinel",
+        # The defender writes the frame; this refuses to let a frame be ACTED ON when
+        # its claims do not resolve. Every assertion stats a path or checks a closed
+        # vocabulary -- S3 is the one that earns its keep, because "don't break the
+        # tests" is unfalsifiable while "tests/test_defender.py must pass" is a file.
+        argv=("Project_FLAMING_SWORD/tools/sentinel.py", "--selftest"),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=True,
+        slow=False,
+        reads=("the working tree: every must_not_break path is stat'ed, and the target "
+               "must exist or be declared new:"),
+        control_test="Project_FLAMING_SWORD/tests/test_sentinel_memory.py",
+        control=None,
+        uncontrolled_because=(
+            "the gate IS the control run (`--selftest`, 12 controls), so a second "
+            "artifact would duplicate it; the pytest file adds the ghost-target and "
+            "placeholder-defence cases directly"
+        ),
+        requires=("Project_FLAMING_SWORD/tools/sentinel.py",),
+    ),
+    Gate(
+        name="flaming-sword-memory",
+        # The prompter's memory bridge. Its gate exists for one distinction: an absent
+        # backend must report UNMEMORED with a reason, never "no lessons found" -- the
+        # estate's most expensive recurring defect is a recall that returns nothing
+        # because the store was unreachable reading as evidence nothing was learned.
+        argv=("Project_FLAMING_SWORD/tools/memory_bridge.py", "--selftest"),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=True,
+        slow=False,
+        reads=("a temp directory: the selftest builds ledgers, malformed lines and "
+               "failing commands, then removes them"),
+        control_test="Project_FLAMING_SWORD/tests/test_sentinel_memory.py",
+        control=None,
+        uncontrolled_because=(
+            "the gate IS the control run (`--selftest`, 9 controls covering missing "
+            "ledger, no backend, exit 3, unparseable stdout, malformed line and append)"
+        ),
+        requires=("Project_FLAMING_SWORD/tools/memory_bridge.py",),
+    ),
 )
 
 
