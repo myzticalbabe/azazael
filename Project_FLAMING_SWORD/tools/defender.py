@@ -52,6 +52,7 @@ import copy
 import json
 import re
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 MIN_PROSE = 40
@@ -272,6 +273,148 @@ def render(frame_obj: Dict[str, Any]) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# The AIO prompt: user prompt -> frame + sentinel + memory, in one instruction object
+# --------------------------------------------------------------------------- #
+
+def _sibling(name: str):
+    """Load a sibling module by path, so this file works run OR imported."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / ("%s.py" % name)
+    spec = importlib.util.spec_from_file_location("flaming_sword_%s" % name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError("cannot load %s" % path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def to_aio(user_prompt: str, target: str = "", acceptance: str = "", evidence: str = "",
+           defends: Optional[Sequence[str]] = None,
+           must_not_break: Optional[Sequence[str]] = None,
+           control: str = "", refusal: str = "", preserve: bool = False,
+           memory: Optional[Dict[str, Any]] = None,
+           root: Optional[str] = None) -> Dict[str, Any]:
+    """Turn a user prompt into an AIO instruction object, or refuse with reasons.
+
+    The frame answers "what must be true"; the sentinel answers "does any of it
+    resolve"; the memory answers "has this been learned before". All three are needed,
+    because each one alone has a blind spot a model slides into: a frame without a
+    sentinel describes files that do not exist, and a sentinel without memory re-learns
+    the same defect every session.
+
+    Refusal is a first-class result: no prompt is rendered when the frame or the sentinel
+    fails, so the model cannot be handed an instruction object built on a hole.
+    """
+    frame_obj = frame(
+        intent=user_prompt,
+        target=target or "",
+        evidence=evidence,
+        defends=list(defends or []),
+        must_not_break=list(must_not_break or []),
+        acceptance=acceptance,
+        control=control or default_control(user_prompt),
+        refusal=refusal or None,
+        preserve=preserve,
+        posture=default_posture() if preserve else None,
+    )
+    result: Dict[str, Any] = {"shape": "defensive-aio-v1", "user_prompt": user_prompt,
+                              "frame": frame_obj, "aio": ""}
+    if frame_obj.get("problems"):
+        result["state"] = "REFUSED"
+        result["problems"] = ["frame: " + p for p in frame_obj["problems"]]
+        return result
+
+    try:
+        sentinel = _sibling("sentinel")
+    except ImportError as exc:
+        result["state"] = "REFUSED"
+        result["problems"] = ["sentinel: could not be loaded (%s), so the frame is "
+                              "unchecked" % exc]
+        return result
+
+    verdict = sentinel.check(
+        intent=user_prompt,
+        target=target,
+        must_not_break=frame_obj["must_not_break"],
+        defends=frame_obj["defends"],
+        refusal=frame_obj["refusal"],
+        acceptance=acceptance,
+        evidence=evidence,
+        preserve=preserve,
+        posture=frame_obj.get("posture"),
+        root=Path(root) if root else None,
+    )
+    result["sentinel"] = verdict
+    if verdict["problems"]:
+        result["state"] = "BLOCKED"
+        result["problems"] = ["sentinel: " + p for p in verdict["problems"]]
+        return result
+
+    memory = memory or {"state": "UNMEMORED", "backend": "none",
+                        "reason": "no memory backend was consulted for this prompt"}
+    result["memory"] = memory
+    result["state"] = "READY" if memory.get("state") == "MEMORY" else "READY-UNMEMORED"
+    result["aio"] = render_aio(result)
+    return result
+
+
+def render_aio(result: Dict[str, Any]) -> str:
+    """The instruction object itself: prompt, frame, what resolved, what was learned."""
+    frame_obj = result["frame"]
+    verdict = result.get("sentinel") or {}
+    memory = result.get("memory") or {}
+    lines = [
+        "AIO  defensive-aio-v1",
+        "",
+        "USER PROMPT (verbatim, and it governs):",
+        "  %s" % result["user_prompt"],
+        "",
+        "FRAME -- satisfied, not restated:",
+    ]
+    lines.extend("  survives:     %s" % item for item in frame_obj["defends"])
+    lines.extend("  must pass:    %s" % item for item in frame_obj["must_not_break"])
+    lines += [
+        "  finish line:  %s" % frame_obj["acceptance"],
+        "  must REFUSE:  %s" % frame_obj["control"],
+        "  landing:      %s" % frame_obj["refusal"],
+        "  evidence:     %s" % frame_obj["evidence"],
+        "",
+        "SENTINEL -- %s (%d path(s) resolved)"
+        % (verdict.get("verdict", "NOT RUN"), len(verdict.get("resolved") or [])),
+    ]
+    lines.extend("  ok: %s" % path for path in (verdict.get("resolved") or [])[:6])
+    lines += [
+        "",
+        "MEMORY -- %s" % memory.get("state", "UNMEMORED"),
+    ]
+    if memory.get("state") == "MEMORY":
+        for match in (memory.get("matches") or [])[:5]:
+            lines.append("  [%s] %s" % (match.get("backend"), match.get("content", "")[:200]))
+    else:
+        lines.append("  NOT an absence of lessons: %s" % memory.get(
+            "reason", "no backend answered"))
+        lines.append("  proceed on judgement, and record what you learned so the next"
+                     " run is not UNMEMORED")
+    posture = frame_obj.get("posture") or {}
+    if frame_obj.get("preserve") and posture:
+        lines += ["", "POSTURE", "  whose copy:            %s" % posture.get("whose_copy"),
+                  "  bytes of the original: %s" % posture.get("bytes_of_original"),
+                  "  lawful route:          %s" % posture.get("lawful_route"),
+                  "  authority:             %s" % posture.get("authority"),
+                  "  never carried:         %s" % posture.get("what_must_not_be_carried")]
+    lines += [
+        "",
+        "WHAT ENDS THIS TURN",
+        "  the acceptance command run, and its output quoted. Nothing else.",
+        "  if it cannot run: say which field failed and stop -- a frame report is a"
+        "  finished turn; a summary is not.",
+    ]
+    return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
 # Defaults that make the prompter usable without a wall of arguments
 # --------------------------------------------------------------------------- #
 
@@ -477,6 +620,64 @@ def selftest() -> Tuple[int, List[str]]:
         lines.append("PASS the strict checker refuses the same draft (%d reason(s))"
                      % len(strict))
 
+    # AIO: a complete prompt becomes an instruction object; an incomplete one does not,
+    # and an unresolvable one is BLOCKED before a model ever sees it.
+    aio_kwargs = dict(
+        target="tools/sword.py",
+        acceptance="pytest -q exits 0 and prints 76 passed",
+        evidence="tests/test_defender.py",
+        defends=["the golden run's state_sha256 token"],
+        must_not_break=["tests/test_defender.py"],
+        control="flip one byte in state_sha256 and require the gate to REFUSE it",
+    )
+    aio = to_aio("refuse a shard whose golden run does not reproduce", **aio_kwargs)
+    if aio["state"] == "READY-UNMEMORED" and "AIO  defensive-aio-v1" in aio["aio"]:
+        lines.append("PASS aio: a complete prompt becomes an instruction object "
+                     "(%d chars)" % len(aio["aio"]))
+    else:
+        failures += 1
+        lines.append("FAIL aio: complete prompt reported %s / %s"
+                     % (aio["state"], aio.get("problems")))
+    if "USER PROMPT (verbatim, and it governs)" in aio.get("aio", ""):
+        lines.append("PASS aio: the user's words are carried verbatim above the frame")
+    else:
+        failures += 1
+        lines.append("FAIL aio: the user prompt is not carried verbatim")
+    if "NOT an absence of lessons" in aio.get("aio", ""):
+        lines.append("PASS aio: UNMEMORED is stated as a run fact, not as no lessons")
+    else:
+        failures += 1
+        lines.append("FAIL aio: UNMEMORED was not distinguished from no lessons")
+
+    blocked = to_aio("refuse a shard whose golden run does not reproduce",
+                     **{**aio_kwargs, "target": "tools/ghost_file.py"})
+    if blocked["state"] == "BLOCKED" and not blocked["aio"]:
+        lines.append("PASS aio: an unresolvable target is BLOCKED and no prompt is "
+                     "rendered")
+    else:
+        failures += 1
+        lines.append("FAIL aio: a ghost target reported %s" % blocked["state"])
+
+    refused = to_aio("refuse a shard whose golden run does not reproduce",
+                     **{**aio_kwargs, "acceptance": ""})
+    if refused["state"] == "REFUSED" and not refused["aio"]:
+        lines.append("PASS aio: no finish line is REFUSED and no prompt is rendered")
+    else:
+        failures += 1
+        lines.append("FAIL aio: a missing acceptance reported %s" % refused["state"])
+
+    remembered = to_aio(
+        "refuse a shard whose golden run does not reproduce",
+        memory={"state": "MEMORY", "backend": "jsonl",
+                "matches": [{"backend": "jsonl", "score": 2,
+                              "content": "a stale state_sha256 must be refused"}]},
+        **aio_kwargs)
+    if remembered["state"] == "READY" and "stale state_sha256" in remembered["aio"]:
+        lines.append("PASS aio: a recalled lesson reaches the instruction object")
+    else:
+        failures += 1
+        lines.append("FAIL aio: a recalled lesson did not reach the prompt")
+
     # A refusal must never be silently repaired: the bad frame reports its problems and
     # renders NO prompt, so nothing downstream can act on it.
     bad = frame(intent="do the thing", target="", evidence="", defends=[],
@@ -516,6 +717,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--draft", action="store_true",
                         help="emit the skeleton with every unfilled field marked, "
                              "labelled DRAFT -- NOT A FRAME")
+    parser.add_argument("--aio", action="store_true",
+                        help="convert the user prompt into an AIO instruction object "
+                             "(frame + sentinel + memory), or refuse with reasons")
+    parser.add_argument("--jsonl", default=None,
+                        help="with --aio: a lesson ledger to recall from")
+    parser.add_argument("--command", dest="recall_command", default=None,
+                        help="with --aio: a command printing JSON lines to recall from")
+    parser.add_argument("--root", default=None,
+                        help="with --aio: directory the sentinel resolves paths against")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args(argv)
@@ -534,6 +744,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if not args.intent:
         parser.error("--intent is required (or --selftest)")
+
+    if args.aio:
+        bridge = _sibling("memory_bridge")
+        memory = bridge.recall(args.intent, jsonl=args.jsonl,
+                               command=args.recall_command)
+        result = to_aio(
+            args.intent, target=args.target, acceptance=args.acceptance,
+            evidence=args.evidence, defends=args.defends,
+            must_not_break=args.must_not_break, control=args.control,
+            refusal=args.refusal, preserve=args.preserve, memory=memory,
+            root=args.root)
+        if args.json:
+            print(json.dumps(result, indent=1, sort_keys=True))
+        elif result.get("problems"):
+            print("%s: the prompt cannot become an instruction object."
+                  % result["state"])
+            for problem in result["problems"]:
+                print("     %s" % problem)
+            print("")
+            print("  no AIO was rendered: a model handed a prompt built on a hole will")
+            print("  fill the hole with prose")
+        else:
+            print(result["aio"])
+        return 0 if result["state"].startswith("READY") else 1
 
     if args.draft:
         skeleton = draft(args.intent, args.target, preserve=args.preserve)

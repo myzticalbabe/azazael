@@ -76,6 +76,41 @@ downstream can act on it. `python tools/defender.py --selftest` runs 12 controls
 A prompter does not make work lawful. It makes work say whose copy it is, which is the
 part a prompter can enforce.
 
+### The companions it ships with: sentinel and memory
+
+A frame alone has two blind spots, and both are the kind a model slides into.
+
+**`tools/sentinel.py`** refuses to let a frame be *acted on* when its claims do not
+resolve. Every assertion stats something or checks a closed vocabulary, so none of them
+can be satisfied by better prose: the target must exist (or be declared `new:<path>`),
+every `must_not_break` entry must name a path that EXISTS, a placeholder defence
+(`<name what survives>`) is refused, and the intent must open with an act from a closed
+list — a topic is not a task. `SENTINEL OK (2 paths resolved)` or `SENTINEL BLOCKED` with
+one line per reason. 12 controls.
+
+**`tools/memory_bridge.py`** is the memory, with its absence stated instead of implied.
+Two adapters — a `jsonl` lesson ledger, or a `command` printing JSON lines, which is how
+PMB, Engram or the board are reached without teaching this file their schemas — and one
+rule: a backend that is absent, fails, times out or prints unparseable output is
+**UNMEMORED with its reason**, never "no lessons found". The first is a fact about the
+run; the second is a fact about the world. The bridge also appends each frame to
+`.flaming_sword/frames.jsonl`, append-only. 9 controls.
+
+### One object out: the AIO prompt
+
+```
+sword.py --aio "<the user's prompt>" --target <artefact> \\
+    --acceptance "<command + outcome>" --evidence <path> \\
+    --defends "<the test, claim or gate that survives>" [--preserve] [--jsonl <ledger>]
+```
+
+User prompt in, instruction object out: the prompt **verbatim** at the top (it governs),
+then the frame, then the sentinel's verdict with the paths it resolved, then the memory —
+recalled lessons, or UNMEMORED with the reason and an instruction to record what was
+learned. If the frame refuses, or the sentinel blocks, **no prompt is rendered at all**.
+That is the product: a model cannot be handed a prompt built on a hole, so the cheapest
+satisfying output stops being a summary that claims success.
+
 ## The loop, and its three refusals
 
 ```
