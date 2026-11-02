@@ -41,6 +41,27 @@ Written for the next session. **HEAD at handoff is the commit containing this fi
 6. **Corpus arm 2** — the 2015 announcement. Time returns **406**; `presidency.ucsb.edu` served the
    campaign release fine, so use the APP spoken-address archive.
 
+## The queue, with ids (posted 2026-11-02, all `pending`)
+
+`python C:/Users/clint/_board.py claim freebuff 10` hands these out oldest-first; retire each with
+`done <id> "<command + result>"`. Row 47187 predates this list.
+
+| board | task_id | action | one line |
+| --- | --- | --- | --- |
+| 47192 | `jaeger-000` | decide | what Project Jaeger *is* before any code — tracer of this tree vs an OTLP client |
+| 47193 | `jaeger-001` | scaffold | `Project_JAEGER/` to `Project_CRADLE`'s shape |
+| 47194 | `jaeger-002` | aoa-arm | `BaseArm` + `@register_arm` + **`_ARM_MODULES`** entry, with the negative control |
+| 47195 | `jaeger-003` | export | the transport AOA does not have; the trace-correlation field `DelegationSpec` lacks |
+| 47196 | `imp2-verify-inputs` | harden | `--verify` must check the base digest and field sha, not trust its inputs |
+| 47197 | `g1-claim-trailer` | build | a claim carries `Task: Board-<n>` or is refused |
+| 47198 | `g2-receipt` | build | a completion carries `command / exit_code / stdout_sha256` or is refused |
+| 47199 | `djt-iea-rederive` | verify | the 415/945 TWh figures were never fetched from the report body |
+| 47200 | `prose-splitter` | improve | guarded splitter; `--compare` shows all twelve metrics, not five |
+| 47201 | `corpus-2015-arm` | build | 2015 arm via the APP archive (`time.com` → 406) |
+
+Blocking order is real: `jaeger-001..003` sit behind `jaeger-000`, and `jaeger-003` should not start
+before `g2-receipt`, because an exporter with no receipt discipline produces spans nobody can audit.
+
 ## First commands at startup (canon order — do not skip)
 
 ```bash
