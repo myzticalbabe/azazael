@@ -183,6 +183,25 @@ GATES: Tuple[Gate, ...] = (
         requires=("logs/anti_pattern_baseline.json",),
     ),
     Gate(
+        name="span-receipt",
+        # --selftest, not a live check, and the reason is in the hook comment:
+        # a commit has no route, so "no span since HEAD" is true for every doc
+        # edit. What the commit can prove is that the guard still refuses an
+        # untraced route AND still accepts a traced one; the live form is
+        # `tools/span_receipt_guard.py --result <route_result.json>`.
+        argv=("tools/span_receipt_guard.py", "--selftest"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads="a temporary otel_spans table (written and read back in-process)",
+        control_test="tests/test_span_receipt_guard.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=(),  # builds its own database; reads nothing in the tree
+    ),
+    Gate(
         name="unresolved-refs-ratchet",
         argv=("tools/unresolved_ratchet.py", "--check"),
         interpreter="python3",

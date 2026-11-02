@@ -279,6 +279,37 @@ else
 fi
 echo ""
 
+# ─── Check 5b (blocking): span receipt guard still refuses untraced routes ───
+# AOA's router writes one span per routed call and never fails a route for
+# telemetry, so a route that left no row is invisible in its own result.  The
+# guard (tools/span_receipt_guard.py) opens otel_spans READ-ONLY and refuses a
+# route whose trace_id+span_id no row carries.
+#
+# WHY THIS RUNS --selftest AND NOT A LIVE CHECK.  A commit has no route: "no
+# span was written since HEAD" is true for every doc edit, so a live check here
+# would block all of them and be switched off within a day.  What belongs at the
+# commit is proof that the guard still refuses an untraced route and still
+# accepts a traced one -- a guard nobody runs rots, and a rotten guard reads
+# exactly like a green one.  The live form is `--result <route_result.json>`,
+# for a caller claiming a route was traced.
+echo "[SpanReceipt] Proving the span receipt guard still refuses an untraced route..."
+if [ -f "$SCRIPT_DIR/tools/span_receipt_guard.py" ]; then
+    # Capture-then-print, same as [Mesh]: `| tail` would make $? tail's status.
+    SPANREc_OUT=$("$PY" "$SCRIPT_DIR/tools/span_receipt_guard.py" --selftest 2>&1)
+    SPANREC_EXIT=$?
+    echo "$SPANREc_OUT" | tail -6
+    if [ $SPANREC_EXIT -ne 0 ]; then
+        echo ""
+        echo "[SpanReceipt] The guard no longer refuses an untraced route, or no"
+        echo "[SpanReceipt] longer accepts a traced one. Either way it has stopped"
+        echo "[SpanReceipt] being evidence. Inspect: python tools/span_receipt_guard.py --selftest"
+        exit 1
+    fi
+else
+    echo "[SpanReceipt] guard not found -- passing loud (check unrunnable)"
+fi
+echo ""
+
 # ─── Check 6: wire evidence on every `wired` declaration ───
 # The mesh check above compares the ledger's KEY SET. It passed 2026-10-19
 # while 136 of 137 `wired` rows carried `module-linked: no` in their own
