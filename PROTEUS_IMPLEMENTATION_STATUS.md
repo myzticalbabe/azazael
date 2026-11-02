@@ -275,7 +275,7 @@ one.
 ## 8. Reproduce
 
 ```bash
-python -m pytest tests/test_proteus_organs.py tests/test_proteus_hooks.py -q
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests/test_proteus_organs.py tests/test_proteus_hooks.py -q
 python scripts/verify_proteus.py
 C:/Azazael/.venvs/py315t/Scripts/python.exe scripts/verify_proteus.py
 
