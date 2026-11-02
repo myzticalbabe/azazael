@@ -223,6 +223,14 @@ document:
    §2; it is an argument from the same text, offered as such.
 5. **No claim about frequency in the population.** "7.38 intensifiers per 1,000" is a property of
    one transcript, not of a speaker across a decade.
+6. **The sentence splitter is abbreviation-naive, and the size of that error is now measured.**
+   Splitting on `[.!?]` breaks on `U.S.`, `D.C.`, and initials. Re-splitting with those guarded
+   and lowercase fragments rejoined gives 2025 **17.01** words per sentence (was 16.66) and 2017
+   **16.78** (was 16.25): both means move up by about **2%**, and the gap between them stays
+   **0.23 words**. The flatness claim survives its own repair; the absolute figures in §1 should
+   be read with a ±2% instrument band. A guarded splitter is a listed improvement, not a
+   retrospective edit, because changing the instrument after publishing a number is how numbers
+   stop being comparable.
 
 **Next arms, in order of value:** (a) 6–10 rally transcripts to test whether the 2025 person-shift
 holds outside the inaugural genre; (b) a 2017 message against the 2025 message to separate
