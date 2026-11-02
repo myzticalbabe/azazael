@@ -356,6 +356,48 @@ if [ -f "$root/tools/bible_check.py" ]; then
         exit 1
     }
 fi
+# -- Evidence tier (2026-11-02 split) --
+# The whole-tree half of the commit gate lives in tools/evidence_tier.sh: the
+# canon corpora, the platform claims, the anti-pattern and reference ratchets,
+# the mesh/wire/evidence ledgers, the span-receipt selftest, the METTHEW
+# catalogue, the at-risk register, the gate registry. Those checks moved OUT of
+# pre-commit because one run cost 182.2 s (measured 2026-11-02) and every one of
+# them answers a question about the TREE, which cannot change between two
+# commits. They run HERE, unchanged, before anything leaves the machine.
+#
+# IT LIVES IN tools/ AND IS CALLED BY ABSOLUTE ROOT PATH. The first version of
+# this stanza called `.githooks/lib/evidence.sh`, which `.gitignore`'s
+# `.githooks/*` rule excludes: the gate ran on the host that wrote it and every
+# clone this template generates a hook for would have called a file it does not
+# have. The path below is tracked, and this template is the thing that makes the
+# push hook exist, so the two cannot drift apart again without this paragraph
+# going stale.
+#
+# A push is the last moment this tree is still ours: a stale ledger or a corpus
+# that contradicts itself is cheap to fix now and other people's instruction
+# file once it lands. Failing closed is therefore correct here in a way it was
+# not at every commit. An absent tier file PASSES LOUD with its reason, because
+# a host that cannot run it must not be blocked forever by a gate it cannot see.
+# Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ...
+if [ "${EVIDENCE_TIER_BYPASS:-}" = "1" ]; then
+    echo "[Evidence] tier bypassed at push: EVIDENCE_TIER_BYPASS=1 declared."
+    echo "[Evidence] the tree is leaving this machine with its evidence unread."
+elif [ -f "$root/tools/evidence_tier.sh" ]; then
+    ev_t0=$(date +%s)
+    sh "$root/tools/evidence_tier.sh"
+    ev_rc=$?
+    echo "[Evidence] tier exit=$ev_rc wall=$(( $(date +%s) - ev_t0 ))s"
+    if [ $ev_rc -ne 0 ]; then
+        echo ""
+        echo "[Evidence] PUSH ABORTED: the tree does not pass its whole-tree evidence tier."
+        echo "[Evidence] The refusal above names the gate. Run it alone to iterate:"
+        echo "[Evidence]   sh tools/evidence_tier.sh"
+        echo "[Evidence] Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ..."
+        exit 1
+    fi
+else
+    echo "[Evidence] tools/evidence_tier.sh absent -- evidence tier NOT run (passing loud)."
+fi
 exit 0
 """
 

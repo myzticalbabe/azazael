@@ -64,6 +64,18 @@ TOP_WINDOW = 4000
 #: a collection number, and a gate that fails on ±1 gets switched off within a day.
 TOLERANCE = 0.10
 START_MARKER = "<!-- AO:start-here START -->"
+#: Briefs are a second class of prompt, discovered the same way and judged on the
+#: claims they can carry. Measured 2026-11-02: `docs/ZERO_SHOT_PROMPTS_2026-11-02.md`
+#: sat outside the gate's seven lane files, so a stale count written into the sheet a
+#: fresh model is handed passed every check in the estate. It is not a lane prompt --
+#: no START-HERE block (P1 is the lane contract, not a brief's), no handoff (P4) --
+#: but its addresses and its counts are exactly as falsifiable as the lane files'.
+BRIEF_GLOB = "docs/*SHOT_PROMPTS*.md"
+#: Which checks apply to which class. A brief judged against P1 would fail for being
+#: a different kind of document, and a gate that fails for that reason teaches the
+#: next session to delete it.
+LANE_CLAIMS: Tuple[str, ...] = ("P1", "P2", "P3", "P4")
+BRIEF_CLAIMS: Tuple[str, ...] = ("P2", "P3")
 
 _PATH = re.compile(r"`([\w][\w./\\:-]*\.(?:py|md|json|jsonl|ya?ml|cmd|vbs|toml|txt))`")
 # The thousands branch must come FIRST and the lookbehind must exclude `,`: with
@@ -211,19 +223,26 @@ def _section_start(text: str, pos: int) -> int:
 
 def check_text(text: str, *, repo: Path = REPO,
                measured: Optional[Dict[str, object]] = None,
-               sha_resolves: Optional[Callable[[str], bool]] = None) -> List[str]:
-    """Every defect in one prompt. Pure: no disk writes, no globals."""
+               sha_resolves: Optional[Callable[[str], bool]] = None,
+               claims: Tuple[str, ...] = LANE_CLAIMS) -> List[str]:
+    """Every defect in one prompt. Pure: no disk writes, no globals.
+
+    `claims` is the class of document being judged: a brief carries P2 and P3, a lane
+    prompt all four. Selecting the claims is the caller's job and is stated here so a
+    brief cannot pass by being measured against the wrong contract.
+    """
     problems: List[str] = []
     measured = measured or {}
 
     # P1 -- the contract is present, and near the top.
-    index = text.find(START_MARKER)
-    if index < 0:
-        problems.append("P1 START-HERE block absent (%s)" % START_MARKER)
-    elif index > TOP_WINDOW:
-        problems.append("P1 START-HERE block starts at char %d, past the %d-char "
-                        "window: the contract is below the canon it exists to replace"
-                        % (index, TOP_WINDOW))
+    if "P1" in claims:
+        index = text.find(START_MARKER)
+        if index < 0:
+            problems.append("P1 START-HERE block absent (%s)" % START_MARKER)
+        elif index > TOP_WINDOW:
+            problems.append("P1 START-HERE block starts at char %d, past the %d-char "
+                            "window: the contract is below the canon it exists to replace"
+                            % (index, TOP_WINDOW))
 
     # P2 -- every backticked path that is an address resolves.
     for match in _PATH.finditer(text):
@@ -275,7 +294,7 @@ def check_text(text: str, *, repo: Path = REPO,
                             % (line.strip()[:70], number, kind))
 
     # P4 -- a handoff's commit resolves.
-    if sha_resolves is not None:
+    if "P4" in claims and sha_resolves is not None:
         handoffs = sorted(repo.glob("docs/*HANDOFF*.md"), key=lambda p: p.stat().st_mtime,
                           reverse=True)
         if handoffs:
@@ -301,6 +320,16 @@ def lane_prompts() -> List[Path]:
                   home / ".config/opencode/AGENTS.md", home / ".claude/CLAUDE.md",
                   home / ".codebuff/rules.md"]
     return [path for path in candidates if path.is_file()]
+
+
+def brief_prompts(repo: Path = REPO) -> List[Path]:
+    """The sheets a fresh model is actually pasted from.
+
+    A single brief is pasted alone, so the sheet is not read like a lane prompt --
+    but every command it carries and every count it quotes is a claim, and those two
+    are the checks that transfer.
+    """
+    return sorted(repo.glob(BRIEF_GLOB))
 
 
 def git_resolver(repo: Path = REPO) -> Callable[[str], bool]:
@@ -331,12 +360,16 @@ def live(json_out: bool = False, explicit: Optional[Sequence[str]] = None) -> in
     prompts = [Path(p) for p in explicit] if explicit else lane_prompts()
     if not prompts:
         raise Blind("no lane prompt found on this host -- nothing was verified")
+    # An explicit --prompt is judged as a lane prompt: it exists for the executable
+    # control, which must see P1 fail on a fixture with no start block.
+    briefs = [] if explicit else brief_prompts(REPO)
     measured = readings(REPO)
     resolver = git_resolver()
     findings: List[Tuple[str, str]] = []
-    for path in prompts:
+    for path, claims in [(p, LANE_CLAIMS) for p in prompts] + [(p, BRIEF_CLAIMS) for p in briefs]:
         text = path.read_text(encoding="utf-8", errors="replace")
-        for problem in check_text(text, measured=measured, sha_resolves=resolver):
+        for problem in check_text(text, measured=measured, sha_resolves=resolver,
+                                  claims=claims):
             findings.append((str(path), problem))
     if json_out:
         print(json.dumps({"ok": not findings, "prompts": [str(p) for p in prompts],
@@ -349,9 +382,9 @@ def live(json_out: bool = False, explicit: Optional[Sequence[str]] = None) -> in
             per_file[str(path)] = per_file.get(str(path), 0) + 1
         for path, count in sorted(per_file.items(), key=lambda kv: -kv[1]):
             print("%-64s %3d defect(s)" % (path, count))
-        print("%s -- %d prompt(s), %d defect(s)"
+        print("%s -- %d lane prompt(s) + %d brief(s), %d defect(s)"
               % ("clean" if not findings else "%d defects" % len(findings),
-                 len(prompts), len(findings)))
+                 len(prompts), len(briefs), len(findings)))
     return 0 if not findings else 1
 
 
@@ -395,6 +428,24 @@ def selftest() -> int:
            measured={"skills": 204})
     expect("no reading at all", good + "9,999 tests exist.\n", want="P3")
 
+    # The brief class, both directions. A brief has no start block and no handoff, so
+    # judging it as a lane prompt would fail it for being a different document; judged
+    # on its own claims, its addresses and its counts are as falsifiable as any lane
+    # file's. Measured 2026-11-02: the sheet carrying these briefs sat outside the
+    # discovered set entirely, so a stale count in it passed every gate here.
+    brief = "## 1.1\n**EVIDENCE** `python tools/golden_arrow.py`\n"
+    if check_text(brief, measured={}, claims=BRIEF_CLAIMS):
+        failures.append("clean brief was refused: %r"
+                        % check_text(brief, measured={}, claims=BRIEF_CLAIMS))
+    brief_stale = brief + "5,380 tests exist.\n"
+    if not [p for p in check_text(brief_stale, measured={"collected_tests": 6277},
+                                   claims=BRIEF_CLAIMS) if p.startswith("P3")]:
+        failures.append("stale count in a brief was accepted")
+    brief_dead = brief + "`tools/does_not_exist.py`\n"
+    if not [p for p in check_text(brief_dead, measured={}, claims=BRIEF_CLAIMS)
+            if p.startswith("P2")]:
+        failures.append("dead address in a brief was accepted")
+
     # P4 needs a handoff file; build one in a scratch repo.
     with tempfile.TemporaryDirectory() as scratch:
         root = Path(scratch)
@@ -415,7 +466,7 @@ def selftest() -> int:
     for failure in failures:
         print("CONTROL FAILED: " + failure)
     print("%s -- %d control(s)" % ("controls pass" if not failures else "controls failed",
-                                   10 + 3))
+                                   10 + 3 + 3))
     return 0 if not failures else 1
 
 

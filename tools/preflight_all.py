@@ -61,6 +61,18 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple
 
 REPO = Path(__file__).resolve().parent.parent
 HOOK = REPO / ".githooks" / "pre-commit"
+#: The commit gate is TWO files since the 2026-11-02 tier split: `pre-commit`
+#: holds the checks about what a commit IS, `tools/evidence_tier.sh` holds the
+#: whole-tree re-derivations that the push hook runs before anything leaves the
+#: machine. Parity is a question about the GATE SET, not about one file, so it
+#: reads both -- reading only `pre-commit` reported fourteen gates as
+#: registered-but-not-run on a tree where they ran, from a copy of the file that
+#: is no longer the whole hook.
+#:
+#: The evidence tier is in `tools/`, not `.githooks/lib/`, because `.gitignore`
+#: excludes `.githooks/*` apart from `pre-commit`: a parity check that reads an
+#: ignored path reads whatever this host happens to have and calls it the gate.
+HOOK_TIER_FILES = (HOOK, REPO / "tools" / "evidence_tier.sh")
 #: Generated and gitignored (`.githooks/*`), planted by tools/bible_ship.py; it
 #: carries the push-time gates, which no other check can reach.
 PUSH_HOOK = REPO / ".githooks" / "pre-push"
@@ -894,7 +906,8 @@ def hook_gate_scripts(hook_text: str) -> List[str]:
 def hook_parity(gates: Sequence[Gate], hook_text: Optional[str]) -> Tuple[bool, str]:
     """Return (ok, message). Absence of the hook is MISSING EVIDENCE, not a pass."""
     if hook_text is None:
-        return False, "MISSING_EVIDENCE: %s not readable -- cannot verify the registry" % HOOK
+        return False, ("MISSING_EVIDENCE: %s not readable -- cannot verify the registry"
+                       % " + ".join(str(p.relative_to(REPO)) for p in HOOK_TIER_FILES))
     ran = set(hook_gate_scripts(hook_text))
     # The runner cannot register itself: --check would then execute --check on
     # itself, one level deeper per commit. It is the backstop, not a gate.
@@ -1377,16 +1390,26 @@ def is_blocking(gates: Sequence[Gate], name: str) -> bool:
 
 
 def read_hook() -> Optional[str]:
-    try:
-        return HOOK.read_text(encoding="utf-8", errors="replace")
-    except OSError as exc:
-        # Two statements on purpose: a lone `return None` here is the shape the
-        # compliance scanner flags as `except_return_default`, and it IS a real
-        # swallow -- the caller cannot tell "unreadable hook" from "empty hook"
-        # unless this says so. `hook_parity` turns the None into MISSING_EVIDENCE.
-        print("[preflight] hook unreadable (%s: %s) -- parity cannot be verified"
-              % (type(exc).__name__, exc))
+    """The gate text of every tier file that is present, or None if none is."""
+    parts: List[str] = []
+    errors: List[str] = []
+    for path in HOOK_TIER_FILES:
+        try:
+            parts.append(path.read_text(encoding="utf-8", errors="replace"))
+        except OSError as exc:
+            # Two statements on purpose: a lone `return None` here is the shape the
+            # compliance scanner flags as `except_return_default`, and it IS a real
+            # swallow -- the caller cannot tell "unreadable hook" from "empty hook"
+            # unless this says so. `hook_parity` turns the None into MISSING_EVIDENCE.
+            # A tier file that is ABSENT is not an error: a clone may only carry
+            # one tier. It is only an error when NOTHING is readable, because then
+            # parity has no hook to be about.
+            errors.append("%s: %s" % (path.name, type(exc).__name__))
+    if not parts:
+        print("[preflight] hook unreadable (%s) -- parity cannot be verified"
+              % "; ".join(errors))
         return None
+    return "\n".join(parts)
 
 
 class HookRead(NamedTuple):
