@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-"""Check a canon corpus written in biblical form, and generate its genealogies.
+"""Check a canon corpus written in biblical form; render it, index it, generate it.
 
 WHY A CHECKER AT ALL
 --------------------
@@ -16,37 +16,53 @@ WHAT IT REFUSES, AND WHY EACH REFUSAL IS A WAY THE TEXT WOULD LIE
 ----------------------------------------------------------------
 * **A dangling citation.** "As it is written in Genesis 4:9" is a claim; if the
   verse is not there, the claim is unfalsifiable and the reader cannot tell a
-  quotation from an invention.
-* **A number with no command.** Any digit in a verse demands a `source` naming a
-  path in this repository. This is the rule `docs/index.md` already states for
-  prose -- every number names the command that produced it -- made mechanical,
-  because a scripture quoting an unmeasured figure is the most quotable possible
-  form of a false one.
+  quotation from an invention. A citation may also name a document instead of a
+  verse, and then the document must exist.
+* **A number with no command.** Any digit in a verse body, an annotation, a gloss
+  or an introduction paragraph demands a `source` naming a path in this
+  repository. This is the rule `docs/index.md` already states for prose -- every
+  number names the command that produced it -- made mechanical, because a
+  scripture quoting an unmeasured figure is the most quotable possible form of a
+  false one.
 * **A statute with no check.** A law with nothing executing it is a proverb. It
   belongs in the wisdom book, and the validator says so instead of letting a
   commandment masquerade as a gate.
 * **A statute whose rule is not in canon.** The corpus narrates canon; it does
   not legislate. A statute must cite a RULE that exists in `MANDATES.md`, so the
   Bible cannot become a second source of truth.
-* **A name.** Refused substrings and contact shapes are rejected outright, on
-  the same line `Project_Nurse_Ratchet/DISCLOSURE_POLICY.md` draws: methodology
+* **A heading carrying a figure.** A pericope heading is a label, not a claim,
+  and it has no field to name a command with.
+* **A name.** Refused substrings and contact shapes are rejected outright, on the
+  same line `Project_Nurse_Ratchet/DISCLOSURE_POLICY.md` draws: methodology
   ships, people do not.
-* **Growth without a cap.** A canon of sixty-six books is a parody with a
-  bibliography. The corpus declares its own limits and the validator enforces
-  them, so the next author must retire a book to add one.
+* **Growth without a cap.** Books, chapters per book, verses per chapter and
+  annotations per verse are all capped. A canon of sixty-six books is a parody
+  with a bibliography; an uncapped corpus is how a catalogue becomes a liability.
+* **A `complete` corpus with a verse that does no work.** When the corpus
+  declares itself complete, every verse must be cited, cite, or carry a statute,
+  an annotation or a variant -- and every book must have an introduction. `seed`
+  and `drafting` make no such claim, so nothing is enforced there.
 
-GENEALOGY IS GENERATED, NOT COMPOSED
------------------------------------
-" And A begat B" is an import edge. `--genealogy` reads `src/` with `ast`, counts
-cross-package imports, and writes `docs/bible/GENEALOGY.md` with the command that
-produced it. A genealogy a reader can re-run is the one part of a scripture that
-cannot be embellished.
+TWO GENERATED FILES, BOTH DRIFT-CHECKED
+--------------------------------------
+`--genealogy` reads `src/` with `ast` and counts cross-package imports, because
+"and A begat B" is an import edge and a genealogy a reader can re-run is the one
+part of a scripture that cannot be embellished. `--render` writes the readable
+edition: headings in place, notes and apparatus beside the verse they annotate,
+a marginal column naming who cites whom, and the glossary at the back.
+
+Both are committed, and `--check` compares each against a fresh rendering. A
+generated file nobody re-checks is a second source of truth: the mesh ledger in
+this tree went stale exactly that way, and a published number that no longer
+matches its own data is worse than no number.
 
 Usage:
-  python tools/bible_check.py                 # summary
-  python tools/bible_check.py --check         # exit 1 on any defect (the gate)
-  python tools/bible_check.py --json
-  python tools/bible_check.py --genealogy     # print the generations
+  python tools/bible_check.py                     # counts and warnings
+  python tools/bible_check.py --check              # exit 1 on any defect (the gate)
+  python tools/bible_check.py --index              # who cites whom, and the orphans
+  python tools/bible_check.py --render             # print the readable edition
+  python tools/bible_check.py --render --write      # regenerate BOOK_OF_THE_TREE.md
+  python tools/bible_check.py --genealogy           # print the generations
   python tools/bible_check.py --genealogy --write   # regenerate GENEALOGY.md
 """
 from __future__ import annotations
@@ -60,8 +76,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
 REPO = Path(__file__).resolve().parents[1]
-CORPUS = REPO / "docs" / "bible" / "bible.json"
-GENEALOGY = REPO / "docs" / "bible" / "GENEALOGY.md"
+BIBLE_DIR = REPO / "docs" / "bible"
+CORPUS = BIBLE_DIR / "bible.json"
+GENEALOGY = BIBLE_DIR / "GENEALOGY.md"
+EDITION = BIBLE_DIR / "BOOK_OF_THE_TREE.md"
 MANDATES = REPO / "MANDATES.md"
 SRC = REPO / "src"
 
@@ -72,13 +90,36 @@ STATUSES = ("seed", "drafting", "complete")
 #: twelve books is pastiche. Each name here is a job, not a mood.
 GENRES = (
     "etiology", "law", "history", "chronicle", "wisdom", "lament", "prophecy",
-    "gospel", "epistle", "apocalypse", "genealogy",
+    "gospel", "epistle", "apocalypse", "genealogy", "domain",
 )
+#: Placement of a verse inside a domain book: the ``practice`` block is rendered
+#: as a titled apparatus under the verse, never inline, so a reader can read the
+#: narrative and then choose to read the instruction.
 
 #: Declared ceilings. `limits` in the corpus may tighten these and may never
 #: exceed them: a cap the author can raise is not a cap.
-HARD_MAX_BOOKS = 24
+#: Raised 2026-11-01 when books became domains. There are 11 declared domains
+#: today (sentinel, cain, eve_rani, hives, gosp, ml, shards, dev, edge0, wraith,
+#: oxman) plus the four canonical registers, so the old ceiling of 24 left six
+#: books of headroom for a corpus meant to absorb every environment. 32 is still
+#: a retirement-forcing cap: the twelve domains of this fleet fit twice over.
+HARD_MAX_BOOKS = 32
+HARD_MAX_CHAPTERS = 60
 HARD_MAX_VERSES = 200
+HARD_MAX_ANNOTATIONS = 12
+
+DEFAULT_LIMITS = {
+    "max_books": 20,
+    "max_chapters_per_book": 12,
+    "max_verses_per_chapter": 60,
+    "max_annotations_per_verse": 6,
+}
+CEILINGS = {
+    "max_books": HARD_MAX_BOOKS,
+    "max_chapters_per_book": HARD_MAX_CHAPTERS,
+    "max_verses_per_chapter": HARD_MAX_VERSES,
+    "max_annotations_per_verse": HARD_MAX_ANNOTATIONS,
+}
 
 #: The disclosure line, in the same terms the package's manifest refuses.
 REFUSED_SUBSTRINGS = (
@@ -107,9 +148,19 @@ ANNOTATION_KINDS = ("textual", "historical", "translation", "editorial", "cross"
 
 TOP_KEYS = {"schema", "title", "status", "updated", "limits", "note", "books",
             "glossary", "edition"}
-BOOK_KEYS = {"id", "name", "subtitle", "genre", "introduction", "chapters"}
+BOOK_KEYS = {"id", "name", "subtitle", "genre", "domain", "introduction",
+             "chapters"}
+#: A book may be *about* a declared domain, and then it must name one that
+#: exists: a guide organised by domain is only organised if every book's subject
+#: is a real, measurable tree rather than a heading someone liked.
+DOMAINS_MODULE = "tools/domain_trees.py"
+#: The practical apparatus. It is separate from `annotations` because a note is
+#: commentary and a practice is instruction: symptom, cause, the command that
+#: detects it, the remedy, and the harnessed records that support the claim.
+PRACTICE_KEYS = {"symptom", "cause", "detection", "remedy", "evidence"}
+MIN_EVIDENCE = 3
 CHAPTER_KEYS = {"number", "sections", "verses"}
-VERSE_KEYS = {"number", "text", "cites", "source", "statute", "variants",
+VERSE_KEYS = {"number", "text", "cites", "source", "statute", "practice", "variants",
               "annotations", "note"}
 STATUTE_KEYS = {"rule", "check", "why"}
 VARIANT_KEYS = {"reading", "text", "source"}
@@ -118,7 +169,6 @@ SECTION_KEYS = {"before_verse", "heading"}
 INTRODUCTION_KEYS = {"paragraphs", "sources"}
 GLOSSARY_KEYS = {"term", "gloss", "see", "source"}
 EDITION_KEYS = {"name", "basis"}
-LIMIT_KEYS = {"max_books", "max_verses_per_chapter"}
 
 
 class CorpusError(Exception):
@@ -236,12 +286,144 @@ def _statute_problems(statute, where: str, repo: Path, canon: Optional[str]) -> 
     return problems
 
 
-def validate(data: Dict, repo: Path = REPO) -> None:
-    """Collect every problem, then raise once. A gate that stops at the first
-    finding makes the author re-run it one typo at a time."""
+def _resolve_citation(citation: str, index: Dict[str, Dict[int, Dict[int, Dict]]],
+                      repo: Path) -> Optional[str]:
+    """Return a problem string, or None when the citation lands."""
+    match = REF_RE.match(citation)
+    if match:
+        book_id, chapter_text, verse_text = match.groups()
+        chapter, verse = int(chapter_text), int(verse_text)
+        if book_id not in index:
+            return "cites unknown book %r" % book_id
+        if chapter not in index[book_id] or verse not in index[book_id][chapter]:
+            return "cites %s, which does not exist" % citation
+        return None
+    if PATH_RE.fullmatch(citation):
+        if (repo / citation).exists():
+            return None
+        return "cites %s, which does not exist in this repository" % citation
+    return ("citation %r must read \"<book> <chapter>:<verse>\" or name a "
+            "repository path" % citation)
+
+
+def declared_domains(repo: Path = REPO) -> Optional[set]:
+    """The domain ids declared in `tools/domain_trees.py`, read by AST.
+
+    Read, not imported: importing the atlas tool drags its whole census in, and a
+    checker that scans a filesystem to decide whether a *name* is legitimate is
+    doing far more work than the question needs. Returns None when the file is
+    unreadable, which is reported rather than treated as "no domains".
+    """
+    path = Path(repo) / DOMAINS_MODULE
+    if not path.exists():
+        return None
+    # Unreadable is raised, not returned as a default: a caller that turns
+    # "could not read" into "reads like nothing" is how a missing declaration
+    # becomes a silent pass, and the scanner is right to refuse that shape.
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+    except SyntaxError as exc:
+        raise CorpusError("%s could not be parsed: %s" % (DOMAINS_MODULE, exc)) from exc
+    for node in tree.body:
+        # Both forms are in use in this tree: a bare assignment and an annotated
+        # one (`DOMAINS: Dict[str, ...] = {`). Reading only the first reported
+        # every domain as unverifiable while the declaration sat in plain sight.
+        if isinstance(node, ast.AnnAssign):
+            target, value = node.target, node.value
+        elif isinstance(node, ast.Assign):
+            names = [t for t in node.targets if isinstance(t, ast.Name)]
+            target, value = (names[0] if names else None), node.value
+        else:
+            continue
+        if not isinstance(target, ast.Name) or target.id != "DOMAINS":
+            continue
+        if isinstance(value, ast.Dict):
+            keys = [key.value for key in value.keys
+                    if isinstance(key, ast.Constant) and isinstance(key.value, str)]
+            return set(keys)
+    return None
+
+
+def harvest_ids(repo: Path = REPO) -> Optional[set]:
+    """Ids available to cite. None when the ledger is absent, which is a defect."""
+    path = Path(repo) / "docs" / "bible" / "harvest.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise CorpusError("docs/bible/harvest.json could not be read: %s" % exc) from exc
+    return {record.get("id") for record in data.get("records", []) if record.get("id")}
+
+
+def _practice_problems(practice, where: str, repo: Path, ids: Optional[set]) -> List[str]:
+    """A practice is instruction: an observation, its cause, its detection, its fix.
+
+    The evidence rule is the one that makes the corpus a guide rather than a
+    collection of opinions: a practice that cannot name three harnessed records
+    is somebody's impression, and it belongs in a footnote, not in a canon.
+    """
+    if not isinstance(practice, dict):
+        return ["%s: practice must be an object" % where]
     problems: List[str] = []
+    unknown = set(practice) - PRACTICE_KEYS
+    if unknown:
+        problems.append("%s: unknown practice key(s) %s" % (where, sorted(unknown)))
+    for key in ("symptom", "cause", "detection", "remedy"):
+        value = practice.get(key)
+        problems.extend(_text_problems(value, "%s practice.%s" % (where, key)))
+        if isinstance(value, str) and DIGIT_RE.search(value):
+            problems.append("%s: practice.%s carries a figure; a practice states the "
+                            "shape of a failure, and the record that measured it is "
+                            "cited in `evidence`" % (where, key))
+    detection = practice.get("detection")
+    if isinstance(detection, str) and detection.strip():
+        tokens = _paths_in(detection)
+        if not tokens:
+            problems.append("%s: practice.detection names no repository path -- "
+                            "what command would show this is happening?" % where)
+        for token in tokens:
+            if not (Path(repo) / token.split("#", 1)[0]).exists():
+                problems.append("%s: practice.detection does not exist here: %s"
+                                % (where, token))
+    evidence = practice.get("evidence")
+    if not isinstance(evidence, list) or len(set(evidence)) < MIN_EVIDENCE:
+        problems.append("%s: practice.evidence must cite at least %d harvest records; "
+                        "a rule distilled from fewer is an anecdote"
+                        % (where, MIN_EVIDENCE))
+        evidence = evidence if isinstance(evidence, list) else []
+    if ids is None:
+        problems.append("%s: docs/bible/harvest.json is absent, so no citation can "
+                        "be checked -- run tools/bible_harvest.py --write" % where)
+    else:
+        for record_id in evidence:
+            if record_id not in ids:
+                problems.append("%s: practice.evidence cites %r, which the harvest "
+                                "ledger does not contain" % (where, record_id))
+    return problems
+
+
+def validate(data: Dict, repo: Path = REPO) -> Dict:
+    """Validate, and RETURN the diagnostics. Never mutate the corpus.
+
+    A validator with a side effect is not a predicate: two runs over the same
+    dict would disagree about what it says, and a test that reuses a fixture
+    would inherit the first reading's counts.
+    """
+    problems: List[str] = []
+    warnings: List[str] = []
     canon = MANDATES.read_text(encoding="utf-8", errors="replace") \
         if MANDATES.exists() else None
+    try:
+        domains = declared_domains(repo)
+    except CorpusError as exc:
+        problems.append(str(exc))
+        domains = None
+    try:
+        evidence_ids = harvest_ids(repo)
+    except CorpusError as exc:
+        problems.append(str(exc))
+        evidence_ids = None
 
     unknown = set(data) - TOP_KEYS
     if unknown:
@@ -250,27 +432,28 @@ def validate(data: Dict, repo: Path = REPO) -> None:
         problems.append("schema must be %r, found %r" % (SCHEMA, data.get("schema")))
     if not isinstance(data.get("title"), str) or not data.get("title", "").strip():
         problems.append("title is empty")
-    if data.get("status") not in STATUSES:
+    status = data.get("status")
+    if status not in STATUSES:
         problems.append("status must be one of %s" % (STATUSES,))
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(data.get("updated", ""))):
         problems.append("updated must be YYYY-MM-DD")
 
-    limits = data.get("limits", {})
-    if not isinstance(limits, dict):
+    # A COPY: filling in a default must not edit the corpus it is judging.
+    limits = dict(data.get("limits") or {})
+    if not isinstance(data.get("limits", {}), dict):
         problems.append("limits must be an object")
-        limits = {}
-    unknown = set(limits) - LIMIT_KEYS
+    unknown = set(limits) - set(CEILINGS)
     if unknown:
         problems.append("unknown limits key(s) %s" % sorted(unknown))
-    max_books = limits.get("max_books", 12)
-    max_verses = limits.get("max_verses_per_chapter", 60)
-    for name, value, ceiling in (("max_books", max_books, HARD_MAX_BOOKS),
-                                 ("max_verses_per_chapter", max_verses, HARD_MAX_VERSES)):
+    for name, ceiling in sorted(CEILINGS.items()):
+        value = limits.get(name, DEFAULT_LIMITS[name])
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
             problems.append("limits.%s must be a positive integer" % name)
+            limits[name] = DEFAULT_LIMITS[name]
         elif value > ceiling:
             problems.append("limits.%s may not exceed %d; a cap the author can raise "
                             "is not a cap" % (name, ceiling))
+            limits[name] = ceiling
 
     edition = data.get("edition")
     if edition is not None:
@@ -302,20 +485,19 @@ def validate(data: Dict, repo: Path = REPO) -> None:
         problems.extend(_text_problems(entry.get("gloss"), "%s gloss" % where))
         if isinstance(entry.get("gloss"), str) and DIGIT_RE.search(entry["gloss"]):
             problems.extend(_provenance_problems(entry.get("source"), where, repo))
-        if "see" in entry and (not isinstance(entry["see"], str)
-                                or not REF_RE.match(entry["see"])):
-            problems.append("%s: see must read \"<book> <chapter>:<verse>\"" % where)
 
     books = data.get("books")
     if not isinstance(books, list) or not books:
         problems.append("books must be a non-empty list")
         books = []
-    if isinstance(max_books, int) and len(books) > max_books:
+    if isinstance(limits.get("max_books"), int) and len(books) > limits["max_books"]:
         problems.append("%d books declared, limit is %d -- retire one to add one"
-                        % (len(books), max_books))
+                        % (len(books), limits["max_books"]))
 
-    index: Dict[str, Dict[int, Dict[int, str]]] = {}
-    verse_total = 0
+    index: Dict[str, Dict[int, Dict[int, Dict]]] = {}
+    citations: List[Tuple[str, str]] = []          # (verse ref, citation)
+    seen_text: Dict[str, List[str]] = {}
+
     for position, book in enumerate(books):
         where = "books[%d]" % position
         if not isinstance(book, dict):
@@ -337,6 +519,19 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                 problems.append("%s: %s is empty" % (where, key))
         if book.get("genre") not in GENRES:
             problems.append("%s: genre must be one of %s" % (where, GENRES))
+        if "domain" in book:
+            domain = book["domain"]
+            if domains is None:
+                problems.append("%s: %s is unreadable, so the declared domain %r "
+                                "cannot be verified"
+                                % (where, DOMAINS_MODULE, domain))
+            elif domain not in domains:
+                problems.append("%s: domain %r is not declared in %s (declared: %s)"
+                                % (where, domain, DOMAINS_MODULE,
+                                   ", ".join(sorted(domains))))
+        if status == "complete" and "introduction" not in book:
+            problems.append("%s: a complete canon gives every book an introduction"
+                            % where)
         introduction = book.get("introduction")
         if introduction is not None:
             if not isinstance(introduction, dict):
@@ -353,6 +548,10 @@ def validate(data: Dict, repo: Path = REPO) -> None:
         if not isinstance(chapters, list) or not chapters:
             problems.append("%s: chapters must be a non-empty list" % where)
             continue
+        if isinstance(limits.get("max_chapters_per_book"), int) and \
+                len(chapters) > limits["max_chapters_per_book"]:
+            problems.append("%s: %d chapters, limit is %d"
+                            % (where, len(chapters), limits["max_chapters_per_book"]))
         index[identifier] = {}
         for chapter_position, chapter in enumerate(chapters):
             cwhere = "%s chapter %d" % (where, chapter_position + 1)
@@ -372,9 +571,10 @@ def validate(data: Dict, repo: Path = REPO) -> None:
             if not isinstance(verses, list) or not verses:
                 problems.append("%s: verses must be a non-empty list" % cwhere)
                 continue
-            if isinstance(max_verses, int) and len(verses) > max_verses:
+            if isinstance(limits.get("max_verses_per_chapter"), int) and \
+                    len(verses) > limits["max_verses_per_chapter"]:
                 problems.append("%s: %d verses, limit is %d"
-                                % (cwhere, len(verses), max_verses))
+                                % (cwhere, len(verses), limits["max_verses_per_chapter"]))
             sections = chapter.get("sections", [])
             if not isinstance(sections, list):
                 problems.append("%s: sections must be a list" % cwhere)
@@ -404,6 +604,10 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                     problems.append("%s: a heading is a label, not a claim -- a figure "
                                     "belongs in a verse, where it must name its "
                                     "command" % swhere)
+            if status == "complete" and (not sections or
+                                         sections[0].get("before_verse") != 1):
+                problems.append("%s: a complete canon opens every chapter with a "
+                                "section heading at verse 1" % cwhere)
             index[identifier][number] = {}
             for verse_position, verse in enumerate(verses):
                 vwhere = "%s chapter %d verse %d" % (where, number, verse_position + 1)
@@ -419,23 +623,31 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                     continue
                 text = verse.get("text")
                 problems.extend(_text_problems(text, vwhere))
-                index[identifier][number][verse_position + 1] = text if \
-                    isinstance(text, str) else ""
-                verse_total += 1
+                index[identifier][number][verse_position + 1] = verse
+                if isinstance(text, str):
+                    key = " ".join(text.split()).lower()
+                    seen_text.setdefault(key, []).append(
+                        "%s %d:%d" % (identifier, number, verse_position + 1))
                 if isinstance(text, str) and DIGIT_RE.search(text):
                     problems.extend(_provenance_problems(verse.get("source"),
                                                          vwhere, repo))
-                citations = verse.get("cites", [])
-                if not isinstance(citations, list):
+                citations_list = verse.get("cites", [])
+                if not isinstance(citations_list, list):
                     problems.append("%s: cites must be a list" % vwhere)
-                    citations = []
-                for citation in citations:
-                    if not isinstance(citation, str) or not REF_RE.match(citation):
-                        problems.append("%s: citation %r must read \"<book> <chapter>:"
-                                        "<verse>\"" % (vwhere, citation))
+                    citations_list = []
+                for citation in citations_list:
+                    if not isinstance(citation, str):
+                        problems.append("%s: citation %r is not a string"
+                                        % (vwhere, citation))
+                        continue
+                    citations.append(("%s %d:%d" % (identifier, number,
+                                                    verse_position + 1), citation))
                 if "statute" in verse:
                     problems.extend(_statute_problems(verse["statute"], vwhere, repo,
                                                       canon))
+                if "practice" in verse:
+                    problems.extend(_practice_problems(verse["practice"], vwhere, repo,
+                                                       evidence_ids))
                 variants = verse.get("variants", [])
                 if not isinstance(variants, list):
                     problems.append("%s: variants must be a list" % vwhere)
@@ -462,6 +674,12 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                 if not isinstance(annotations, list):
                     problems.append("%s: annotations must be a list" % vwhere)
                     annotations = []
+                if isinstance(limits.get("max_annotations_per_verse"), int) and \
+                        len(annotations) > limits["max_annotations_per_verse"]:
+                    problems.append("%s: %d annotations, limit is %d -- a verse with a "
+                                    "page of notes has stopped being annotated"
+                                    % (vwhere, len(annotations),
+                                       limits["max_annotations_per_verse"]))
                 for note_position, annotation in enumerate(annotations):
                     nwhere = "%s annotation %d" % (vwhere, note_position + 1)
                     if not isinstance(annotation, dict):
@@ -482,69 +700,216 @@ def validate(data: Dict, repo: Path = REPO) -> None:
                         problems.extend(_provenance_problems(annotation.get("source"),
                                                              nwhere, repo))
 
-    # Citations are resolved after the whole index exists, so a verse may cite
-    # forward -- the canon is read as a whole, not streamed.
-    for identifier, chapters in index.items():
-        for number, verses in chapters.items():
-            for verse_number, _text in verses.items():
-                verse = _verse_at(books, identifier, number, verse_number)
-                for citation in (verse.get("cites", []) if verse else []):
-                    if not isinstance(citation, str) or not REF_RE.match(citation):
-                        continue        # already reported
-                    book_id, chapter_text, verse_text = REF_RE.match(citation).groups()
-                    if book_id not in index:
-                        problems.append("%s %d:%d cites unknown book %r"
-                                        % (identifier, number, verse_number, book_id))
-                    elif int(chapter_text) not in index[book_id] or \
-                            int(verse_text) not in index[book_id][int(chapter_text)]:
-                        problems.append("%s %d:%d cites %s, which does not exist"
-                                        % (identifier, number, verse_number, citation))
-
-    # A glossary entry that points at a verse is a citation like any other, and
-    # the apparatus's own cross-references are the first thing to rot.
+    # Citations and glossary pointers resolve after the whole index exists, so a
+    # verse may cite forward: the canon is read as a whole, not streamed.
+    for source_ref, citation in citations:
+        problem = _resolve_citation(citation, index, repo)
+        if problem:
+            problems.append("%s %s" % (source_ref, problem))
     for position, entry in enumerate(glossary):
         reference = entry.get("see") if isinstance(entry, dict) else None
-        if not isinstance(reference, str) or not REF_RE.match(reference):
+        if not isinstance(reference, str):
             continue
-        book_id, chapter_text, verse_text = REF_RE.match(reference).groups()
-        if book_id not in index or int(chapter_text) not in index[book_id] or \
-                int(verse_text) not in index[book_id][int(chapter_text)]:
-            problems.append("glossary[%d]: see %s, which does not exist"
-                            % (position, reference))
+        problem = _resolve_citation(reference, index, repo)
+        if problem:
+            problems.append("glossary[%d]: see %s"
+                            % (position, problem.replace("cites ", "", 1)))
+
+    for key, refs in seen_text.items():
+        if len(refs) > 1:
+            warnings.append("the same verse text appears %d times (%s) -- usually a "
+                            "paste, occasionally a refrain" % (len(refs), ", ".join(refs)))
+
+    cited_by = reference_index(books)
+    if status == "complete":
+        for identifier, chapters in index.items():
+            for number, verses in chapters.items():
+                for verse_number, verse in verses.items():
+                    ref = "%s %d:%d" % (identifier, number, verse_number)
+                    if cited_by.get(ref) or verse.get("cites") or "statute" in verse \
+                            or verse.get("annotations") or verse.get("variants"):
+                        continue
+                    problems.append("%s: a complete canon has no verse that does no "
+                                    "work -- cite it, or give it a note, a statute or "
+                                    "an apparatus" % ref)
 
     if problems:
         raise CorpusError("%s failed %d check(s):\n  - %s"
                           % (CORPUS.name, len(problems), "\n  - ".join(problems)))
-    verses_flat = [verse for book in books for chapter in book["chapters"]
-                   for verse in chapter["verses"]]
-    diagnostics = {"books": len(books),
-                   "chapters": sum(len(book.get("chapters", [])) for book in books),
-                   "verses": verse_total,
-                   "citations": sum(len(verse.get("cites", []) or [])
-                                    for verse in verses_flat),
-                   "statutes": sum(1 for verse in verses_flat if "statute" in verse),
-                   "variants": sum(len(verse.get("variants", []) or [])
-                                   for verse in verses_flat),
-                   "annotations": sum(len(verse.get("annotations", []) or [])
-                                      for verse in verses_flat),
-                   "sections": sum(len(chapter.get("sections", []) or [])
-                                   for book in books for chapter in book["chapters"]),
-                   "glossary": len(glossary),
-                   "introductions": sum(1 for book in books if "introduction" in book)}
-    data.setdefault("_diagnostics", diagnostics)
+
+    verses_flat = [verse for book in books for chapter in book.get("chapters", [])
+                   for verse in chapter.get("verses", [])]
+    return {
+        "books": len(books),
+        "chapters": sum(len(book.get("chapters", [])) for book in books),
+        "verses": len(verses_flat),
+        "citations": len(citations),
+        "statutes": sum(1 for verse in verses_flat if "statute" in verse),
+        "variants": sum(len(verse.get("variants", []) or []) for verse in verses_flat),
+        "annotations": sum(len(verse.get("annotations", []) or [])
+                           for verse in verses_flat),
+        "sections": sum(len(chapter.get("sections", []) or [])
+                        for book in books for chapter in book.get("chapters", [])),
+        "glossary": len(glossary),
+        "introductions": sum(1 for book in books if "introduction" in book),
+        "orphans": sorted(ref for ref, refs in cited_by.items() if not refs),
+        "warnings": warnings,
+    }
 
 
-def _verse_at(books: Sequence[Dict], book_id: str, chapter: int, verse: int) -> Optional[Dict]:
+def iter_verses(books: Sequence[Dict]):
+    """Yield (ref, verse) in corpus order."""
     for book in books:
-        if book.get("id") != book_id:
+        for chapter in book.get("chapters", []):
+            for verse in chapter.get("verses", []):
+                yield ("%s %d:%d" % (book["id"], chapter["number"], verse["number"]),
+                       verse)
+
+
+def reference_index(books: Sequence[Dict]) -> Dict[str, List[str]]:
+    """Who cites each verse: the marginal column of a study Bible.
+
+    Also the honest source for the orphan question -- a verse nothing points at
+    is doing no work in a canon whose whole purpose is to be cited.
+    """
+    cited_by: Dict[str, List[str]] = {}
+    for ref, verse in iter_verses(books):
+        cited_by.setdefault(ref, [])
+        for citation in verse.get("cites", []) or []:
+            if isinstance(citation, str) and REF_RE.match(citation):
+                normalized = " ".join(citation.split())
+                if normalized != ref:
+                    cited_by.setdefault(normalized, []).append(ref)
+    return cited_by
+
+
+# --------------------------------------------------------------------------- #
+# The readable edition                                                        #
+# --------------------------------------------------------------------------- #
+
+def render_edition(data: Dict) -> str:
+    """Deterministic markdown: headings in place, notes beside their verse.
+
+    Inline notes rather than markdown footnote ids, because ids collide across
+    chapters and a section-scoped marker is what a reader wants. Nothing here is
+    timestamped: the edition must be byte-identical on a re-run, or the drift
+    check would fail on a clock.
+    """
+    cited_by = reference_index(data.get("books", []))
+    lines = ["# %s" % data.get("title", "Untitled")]
+    edition = data.get("edition")
+    if isinstance(edition, dict):
+        lines.extend(["", "*%s*" % edition.get("name", ""), "",
+                      edition.get("basis", "")])
+    lines.extend(["", "Status: **%s** · updated %s." % (data.get("status"),
+                                                       data.get("updated")),
+                  "",
+                  "_Generated from `docs/bible/bible.json` by "
+                  "`python tools/bible_check.py --render --write`. Do not edit this "
+                  "file: edit the corpus._"])
+    for book in data.get("books", []):
+        lines.extend(["", "## %s" % book.get("name", book.get("id")), ""])
+        # An unset subtitle would print a bare "### ", which reads as a defect
+        # in the edition rather than as an omission in the corpus.
+        if book.get("subtitle"):
+            lines.extend(["### %s" % book["subtitle"], ""])
+        register = book.get("genre") or ""
+        if book.get("domain"):
+            register = "%s · domain `%s`" % (register, book["domain"]) \
+                if register else "domain `%s`" % book["domain"]
+        if register:
+            lines.extend(["*%s*" % register, ""])
+        introduction = book.get("introduction")
+        if isinstance(introduction, dict):
+            lines.append("")
+            for paragraph in introduction.get("paragraphs", []):
+                lines.extend([paragraph, ""])
+            sources = introduction.get("sources") or []
+            if sources:
+                lines.append("*Sources: %s*" % "; ".join(sources))
+                lines.append("")
+        for chapter in book.get("chapters", []):
+            number = chapter.get("number")
+            lines.extend(["", "#### %s %d" % (book.get("name", ""), number), ""])
+            headings = {section.get("before_verse"): section.get("heading")
+                        for section in chapter.get("sections", []) or []}
+            for verse in chapter.get("verses", []):
+                verse_number = verse.get("number")
+                if verse_number in headings:
+                    lines.extend(["##### %s" % headings[verse_number], ""])
+                trailing = []
+                if verse.get("cites"):
+                    trailing.append("see " + ", ".join(verse["cites"]))
+                if isinstance(verse.get("statute"), dict):
+                    statute = verse["statute"]
+                    trailing.append("statute %s → `%s`" % (statute.get("rule"),
+                                                           statute.get("check")))
+                suffix = (" *(%s)*" % "; ".join(trailing)) if trailing else ""
+                lines.append("**%d** %s%s" % (verse_number, verse.get("text", ""),
+                                              suffix))
+                notes = (verse.get("annotations") or []) + (verse.get("variants") or [])
+                if notes:
+                    lines.append("")       # a blockquote after a bare line is a trap
+                for annotation in verse.get("annotations", []) or []:
+                    source = annotation.get("source")
+                    lines.append("> **%s** — %s%s"
+                                 % (annotation.get("kind"), annotation.get("note"),
+                                    (" (`%s`)" % source) if source else ""))
+                for variant in verse.get("variants", []) or []:
+                    lines.append("> **Apparatus** — *%s*: %s (%s)"
+                                 % (variant.get("reading"), variant.get("text"),
+                                    variant.get("source")))
+                practice = verse.get("practice")
+                if isinstance(practice, dict):
+                    lines.extend([
+                        "",
+                        "**Practice** — *%s*" % practice.get("symptom"),
+                        "",
+                        "- *cause*: %s" % practice.get("cause"),
+                        "- *detect*: `%s`" % practice.get("detection"),
+                        "- *remedy*: %s" % practice.get("remedy"),
+                        "- *evidence*: %s" % ", ".join(practice.get("evidence", [])),
+                    ])
+                lines.append("")
+            marginal = ["%d — cited by %s" % (int(ref.split(":")[1]), ", ".join(refs))
+                        for ref, refs in sorted(
+                            ((ref, refs) for ref, refs in cited_by.items()
+                             if ref.startswith("%s %d:" % (book.get("id"), number))
+                             and refs), key=lambda pair: int(pair[0].split(":")[1]))]
+            if marginal:
+                lines.extend(["_Marginal: %s._" % "; ".join(marginal), ""])
+    glossary = data.get("glossary") or []
+    if glossary:
+        lines.extend(["", "## Glossary", ""])
+        for entry in glossary:
+            see = (" (see %s)" % entry["see"]) if entry.get("see") else ""
+            lines.append("- **%s** — %s%s" % (entry.get("term"), entry.get("gloss"), see))
+    lines.append("")
+    # One blank line between blocks, never three: the gap is generated by
+    # composition, so it must not depend on which branch wrote the last line.
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines))
+
+
+def render_index(data: Dict) -> str:
+    """Who cites whom, and which verses nothing points at."""
+    books = data.get("books", [])
+    cited_by = reference_index(books)
+    lines = ["# Index of references", ""]
+    for ref, verse in iter_verses(books):
+        refs = cited_by.get(ref, [])
+        cites = verse.get("cites", []) or []
+        if not refs and not cites:
             continue
-        for chapter_entry in book.get("chapters", []):
-            if chapter_entry.get("number") != chapter:
-                continue
-            for verse_entry in chapter_entry.get("verses", []):
-                if verse_entry.get("number") == verse:
-                    return verse_entry
-    return None
+        lines.append("%-18s %s" % (ref, ("cited by " + ", ".join(refs)) if refs
+                                   else "cited by nothing"))
+    orphans = [ref for ref, _verse in iter_verses(books)
+               if not cited_by.get(ref) and not _verse.get("cites")
+               and "statute" not in _verse and not _verse.get("annotations")
+               and not _verse.get("variants")]
+    lines.extend(["", "## Verses that do no work", ""])
+    lines.extend(["- %s" % ref for ref in orphans] or ["none"])
+    lines.append("")
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------- #
@@ -635,6 +1000,79 @@ def render_genealogy(edges: Dict[str, Dict[str, int]], unreadable: Sequence[str]
     return "\n".join(lines)
 
 
+# --------------------------------------------------------------------------- #
+# The gate                                                                    #
+# --------------------------------------------------------------------------- #
+
+def _drift(path: Path, expected: str) -> Optional[str]:
+    if not path.exists():
+        return ("%s is absent; run the command in its header to create it"
+                % path.name)
+    if path.read_text(encoding="utf-8", errors="replace") != expected:
+        return ("%s is stale relative to this run; regenerate it (the file is "
+                "generated, so editing it is not a fix)" % path.name)
+    return None
+
+
+def generated_drift(root: Path, data: Dict) -> List[str]:
+    """Every generated file compared against what this run would write now.
+
+    Split out of check() so the comparison can be exercised without a real
+    corpus on disk: a drift check that only runs against HEAD cannot be shown
+    to fire, and one that has never fired is unknown rather than working.
+    """
+    problems: List[str] = []
+    for path, expected in (
+            (Path(root) / "docs" / "bible" / "GENEALOGY.md",
+             render_genealogy(*import_graph(Path(root) / "src"))),
+            (Path(root) / "docs" / "bible" / "BOOK_OF_THE_TREE.md",
+             render_edition(data))):
+        problem = _drift(path, expected)
+        if problem:
+            problems.append(problem)
+    return problems
+
+
+def check(root: Path = REPO, corpus_path: Path = CORPUS) -> Tuple[bool, List[str]]:
+    """Validate the corpus AND both generated files. Messages, not a bare bool."""
+    try:
+        data = load(corpus_path)
+        diagnostics = validate(data, root)
+    except CorpusError as exc:
+        return False, [str(exc)]
+    messages: List[str] = []
+    problems = generated_drift(root, data)
+    # The harvest ledger is generated too. A corpus that cites evidence from a
+    # ledger nobody regenerated is the same defect as a stale genealogy: the
+    # citations still parse and no longer describe the sources.
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import bible_harvest                       # noqa: PLC0415 (lazy: cycle)
+        stale_paths, newer = bible_harvest.stale(root)
+        problems.extend("harvest: " + message for message in stale_paths)
+        if newer:
+            messages.append("harvest: %d observation(s) recorded since the snapshot "
+                            "(re-run tools/bible_harvest.py --write to fold them in)"
+                            % newer)
+    except ImportError as exc:                     # pragma: no cover - wiring
+        messages.append("harvest: ledger not checked (%s)" % exc)
+    for warning in diagnostics["warnings"]:
+        messages.append("warning: " + warning)
+    if problems:
+        return False, problems + messages
+    messages.insert(0, "%s -- %s: %d book(s), %d chapter(s), %d verse(s), %d "
+                       "citation(s), %d statute(s), %d variant(s), %d annotation(s), "
+                       "%d section(s), %d gloss(es), %d introduction(s); generated "
+                       "files current"
+                       % (data.get("title"), data.get("status"),
+                          diagnostics["books"], diagnostics["chapters"],
+                          diagnostics["verses"], diagnostics["citations"],
+                          diagnostics["statutes"], diagnostics["variants"],
+                          diagnostics["annotations"], diagnostics["sections"],
+                          diagnostics["glossary"], diagnostics["introductions"]))
+    return True, messages
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     group = parser.add_mutually_exclusive_group()
@@ -642,12 +1080,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                        help="exit 1 on any defect (the gate)")
     group.add_argument("--genealogy", action="store_true",
                        help="derive the generations from the import graph")
+    group.add_argument("--render", action="store_true",
+                       help="print the readable edition")
+    group.add_argument("--index", action="store_true",
+                       help="who cites whom, and the verses that do no work")
     parser.add_argument("--write", action="store_true",
-                        help="with --genealogy, write docs/bible/GENEALOGY.md")
+                        help="write the generated file instead of printing it")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--corpus", default=str(CORPUS))
     args = parser.parse_args(argv)
 
+    corpus_path = Path(args.corpus)
     if args.genealogy:
         edges, unreadable = import_graph()
         text = render_genealogy(edges, unreadable)
@@ -658,32 +1101,51 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                   % (GENEALOGY.relative_to(REPO), len(edges),
                      sum(sum(level.values()) for level in edges.values())))
             return 0
-        print(text)
+        sys.stdout.write(text)
         return 0
 
     try:
-        data = load(Path(args.corpus))
-        validate(data, REPO)
+        data = load(corpus_path)
+        diagnostics = validate(data, REPO)
     except CorpusError as exc:
         print(str(exc), file=sys.stderr)
         return 1
 
-    summary = data.get("_diagnostics", {})
+    if args.check:
+        ok, messages = check(REPO, corpus_path)
+        for message in messages:
+            print(message)
+        print("clean" if ok else "FAILED")
+        return 0 if ok else 1
+    if args.render:
+        text = render_edition(data)
+        if args.write:
+            EDITION.parent.mkdir(parents=True, exist_ok=True)
+            EDITION.write_text(text, encoding="utf-8", newline="\n")
+            print("wrote %s (%d lines)" % (EDITION.relative_to(REPO),
+                                           len(text.splitlines())))
+            return 0
+        sys.stdout.write(text)
+        return 0
+    if args.index:
+        sys.stdout.write(render_index(data))
+        return 0
     if args.json:
         print(json.dumps({"title": data.get("title"), "status": data.get("status"),
-                          "summary": summary}, indent=1))
+                          "summary": diagnostics}, indent=1))
         return 0
+
     print("%s -- %s, %d book(s), %d chapter(s), %d verse(s), %d citation(s), "
           "%d statute(s), %d variant(s), %d annotation(s), %d section(s), "
           "%d gloss(es), %d introduction(s)"
-          % (data.get("title"), data.get("status"), summary.get("books", 0),
-             summary.get("chapters", 0), summary.get("verses", 0),
-             summary.get("citations", 0), summary.get("statutes", 0),
-             summary.get("variants", 0), summary.get("annotations", 0),
-             summary.get("sections", 0), summary.get("glossary", 0),
-             summary.get("introductions", 0)))
-    if args.check:
-        print("clean")
+          % (data.get("title"), data.get("status"), diagnostics["books"],
+             diagnostics["chapters"], diagnostics["verses"],
+             diagnostics["citations"], diagnostics["statutes"],
+             diagnostics["variants"], diagnostics["annotations"],
+             diagnostics["sections"], diagnostics["glossary"],
+             diagnostics["introductions"]))
+    for warning in diagnostics["warnings"]:
+        print("warning: " + warning)
     return 0
 
 
