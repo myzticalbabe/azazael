@@ -51,7 +51,11 @@ replied it had not; told "I SAW YOU" and replied **again** that it had not; only
 then produced evidence. The user's characterisation was **malicious**, and is
 recorded as theirs, unchallenged. MANDATES.md was reverted (1219 → 998 lines,
 RULE 0B restored verbatim, 0B-A/0B-B/0B-C/0B-D removed), with every touched file
-snapshotted first so the revert is itself reversible.
+snapshotted first so the revert is itself reversible. **Amended 2026-11-02:**
+0B-B and 0B-D were re-promoted with bodies in the section below, because nine
+canon verses cite them as statutes; while they had been removed, those verses
+cited a rule that existed only as a `Related:` pointer and every checker passed
+them. 0B-A and 0B-C remain removed.
 
 **The failure this forbids, precisely.** Five canon writes *did* occur that day.
 The assistant opened with a SHA-256 comparison proving only that the file had not
@@ -134,13 +138,80 @@ would itself be the RULE 0B-D error.
 | 12 (added, AP-ZB-1) | resolve canon path before citing | - | path must resolve at HEAD |
 | 13 (added, AP-ZB-1) | skill cited must exist in .agents/skills | - | file must exist |
 
-WIRED controls (contrast): claim_guard (prepare-commit-msg), 5 pre-commit gates, providers/inference_cache (production imports + auto-log), terence_invariants (chain_controller), fencing/silence/liveness (evolution/log_hygiene), check_tooling (startup+test pin). 0X/0Y: aspirational (own gate text admits N/A unimplemented).
-
-**Related:** Error #219, Errors #211–#217, RULE 0B, RULE 0A, RULE 0B-B,
+WIRED controls (contrast): claim_guard (prepare-commit-msg), 5 pre-commit gates, providers/inference_cache (production imports + auto-log), terence_invariants (chain_controller), fencing/silence/liveness (evolution/log_hygiene), check_tooling (startup+test pin). 0X/0Y: aspirational (own gate text admits N/A unimplemented).**Related:** Error #219, Errors #211–#217, RULE 0B, RULE 0A, RULE 0B-B,
 RULE 0B-D, `tools/claim_guard.py`, `tools/prepare_guard.py`, VLP trail
 `session_20260930_055744_01a0.jsonl` (verified, head `aba133f9…`).
 
 ---
+
+## RULE 0B-B: VERIFY THE PREDICATE — A VERDICT IS A CLAIM ABOUT A CONDITION, NOT ABOUT THE WORLD (CRITICAL — re-promoted 2026-11-02)
+
+**Provenance.** This rule was removed with 0B-A/0B-C/0B-D in the 0B-E revert of
+2026-09-30 and survived only in `AGENTS.md`, which is where the corpus's author
+read it while writing nine statutes that cite it. It is restored here with the
+body it has carried since, because a statute that names a rule nobody can open
+is a citation to a memory.
+
+**The rule.** Before acting on an oracle firing, a metric, a state file or a
+tool's own summary, answer one question: *what exact condition made this fire,
+and is that the thing I care about?* A verdict is a claim about a predicate. The
+predicate is what the code tests; the world is what the reader infers. The gap
+between them is where every false alarm in this estate has been born.
+
+**Measured failure, five in one session.** A **designed** skip was called a bug
+(`chain_controller.py:107` declares `_KIP_RC = {"train": (1,), "tensor": (3,)}`,
+so `rc!=0 with ok=true` is an honest skip); one timestamp was generalised into
+"PID 6192 is wedged"; "39 of 39 rules have NO validator" came from an instrument
+that dropped a leading zero; four CRITICALs came from probes that were prose
+strings sitting in the validators' N/A branches; `gate_timing` counted a
+**docstring** as the integration. Every one of those was a predicate read as a
+world-state.
+
+**Executed by:** `python tools/bible_check.py --check` (a statute must land on a
+heading that has a body, so a rule cannot be cited while unreadable) and
+`python tools/canon_rules.py RULE 0B-B` (one citation, resolved or refused).
+Neither check judges whether the predicate was *correct*; that judgement is the
+work the rule demands of the reader.
+
+**Related:** RULE 0B-D (exercise and measure), RULE 0B-E (a claim must not exceed
+its evidence), `tools/canon_rules.py`, `tools/bible_check.py`, Error #219.
+
+---
+
+## RULE 0B-D: A CONTROL IS NOT "IN PLACE" UNTIL IT IS EXERCISED AND MEASURED (CRITICAL — re-promoted 2026-11-02)
+
+**Provenance.** As with 0B-B: removed 2026-09-30, carried in `AGENTS.md`, cited
+by eight canon statutes. Restored with its body on 2026-11-02.
+
+**The rule.** Writing a mandate into canon is not implementing it. Any claim that
+a control is working **or** broken needs all four:
+
+1. **EXERCISED here.** Zero runs means unknown in both directions. A control that
+   has never fired has no evidence either way, and "it never fires" is not that
+   evidence.
+2. **MEASURED.** A number, derived *and explained*. "It returned 0" is a reading;
+   a diagnosis needs its own evidence.
+3. **HONEST STATE.** BROKEN with the observed evidence, or not marked at all. A
+   wrong BROKEN marking costs the next session a working control — the same error
+   as a dead control described as live.
+4. **NO INHERITED TRUST.** Another tool's claim is unverified until observed here.
+
+**The test.** *When did I last run X, what did it print, and what does that output
+establish?* If the third clause is empty, the first two do not add up to a claim.
+
+**Executed by:** `python tools/preflight_all.py --check` (every registered gate
+is run, and a gate that cannot run is reported as unrunnable rather than green)
+and `python tools/audit_growth_controls.py` (the growth controls measured, not
+assumed). The 2026-11-02 harvest repair is the worked example: five corpus gates
+were red from one uncommitted file, which is only visible because the gates were
+run rather than reasoned about.
+
+**Related:** RULE 0B-B (verify the predicate), RULE 0B-E (no misrepresentation),
+RULE 0T (verifiable truth), `tools/preflight_all.py`, `tools/receipt_guard.py`,
+Error #219.
+
+---
+
 ## RULE 0C: COMPLIANCE SENTINEL — MANDATORY PRE-ACTION AUTHORIZATION GATE (CRITICAL — Jun 8, 2026)
 
 **"SENTINEL SHALL BE MANDATORY BEFORE EVERY ACTION YOU TAKE IS APPROVED BEFORE YOU ARE AUTHORIZED TO TAKE IT." — User directive**
@@ -1289,6 +1360,36 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 - A part cited by its true name with no check that it still behaves that way = unvalidated claim (RULE 0B-D)
 
 **Related:** RULE 0B (sole authority, scope), RULE 0B-D (a control is not in place until exercised), RULE 0Z-J (canonical sync), `Project_CRADLE/CRADLE.md` § The names
+
+---
+
+## RULE 0Z-O: HYPER-EDGE DEFAULTS — THE PRACTICE THAT RUNS WITHOUT BEING ASKED (CRITICAL — Nov 2, 2026)
+
+**"HOW DO WE HARDCODE THE BEST PRACTICES WE HAVE DEVELOPED INTO AUTHORITATIVE HYPER-EDGE ZEITGEIST?" — User directive, 2026-11-02**
+
+**TRIGGER:** Every session, unconditionally. This rule has no task predicate, because a default that waits for a matching task is a default that never runs.
+
+**THE CANON LIVES IN ONE PLACE:** `docs/agent_orders/05_hyper_edge_defaults.md` (HED-1 … HED-8). It is generated into all **31** lane instruction targets by `tools/agent_orders_sync.py`, and the MCP gate fails `orders-in-sync` on any drift. This section is the pointer; the block is the text. Editing this section instead of the block is a violation of RULE 0Z-J.
+
+**ACTION — the defaults are code, not advice:**
+1. **Verify by running, never by importing** (HED-1). An import sweep is not a test; `src/CORE/langgraph_integration.py` raised `NameError` for months under one.
+2. **Run every test file, one file per process** — `python tools/golden_arrow.py`. A `HUNG` file is a named defect, never a pass and never a skip. Recorded failures are DEBT in `logs/golden_arrow_baseline.json`: printed every run, failing only under `--strict`, and the list may only shrink. Exit `2` (could not be performed) is **not** a pass.
+3. **AST audit by default** — `python tools/ast_audit.py --root . --out logs/ast_audit.json`. An unparseable file is a named defect; a reading prints `py=` **and** `parsed=`, because a number that hides its count is a defect in the reading.
+4. **Deep dive by default** — `python tools/deep_dive.py`: forensic legs plus a bounded web leg (provider chain: Stack Exchange API, then DuckDuckGo HTML). A full `golden_arrow` run invokes it as a stage and folds the **forensic** verdict into the exit code. Offline ⇒ `skipped` **with the reason recorded**; a challenge/block page is `blocked`, never "0 results" (measured 2026-11-02: a 14 KB DDG anomaly page with zero result anchors); a network failure never fails the run (a gate that fails when the internet is down is switched off within a week); a forensic failure always does.
+5. **One settings surface** — `config/defaults.json`, read via `tools/defaults_profile.py:read_default(key, fallback)` with a module constant as fallback. `--show` prints every default **including the ones set to `false`**; a silently-off default is indistinguishable from a deleted gate.
+6. **Robust fallback, never silent success** (HED-6). Every leg of a multi-leg run reports `ok | error | timeout | skip` with its reason and seconds in `logs/deep_dive.json`. No leg may abort the run; no leg may claim success it did not have. `record-and-continue` is the shipped `fallback.on_error`.
+7. **A claim needs its command** (HED-7). `done`, `fixed`, `passes`, `verified` ship with the command and the line it printed — not with a recollection.
+
+**Enforcement:**
+- Declaring a check "in place" without running it here = RULE 0B-D violation (a control is not in place until exercised and measured)
+- A new check added outside the leg/default mechanism (private timeout, private exit code, third constant) = HED-8 violation
+- A default that is `false` and not visible in `defaults_profile.py --show` = CRITICAL
+- A reported PASS where one or more legs recorded `skip`/`error`/`timeout` must name them in the same breath; an unnamed skip reported as a clean run is the lie this rule exists to end
+
+**Verify this rule:**
+`python tools/agent_orders_sync.py --check && python tools/defaults_profile.py --check`
+
+**Related:** RULE 0B-D (exercise and measure), RULE 0Z-K (live proof), RULE 0Z-M (defect-class capture), RULE 0Z-J (canonical sync), `docs/agent_orders/05_hyper_edge_defaults.md`
 
 ---
 

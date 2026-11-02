@@ -56,6 +56,12 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+#: Shared with `bible_check.py`: a rule exists when canon gives it a heading and a
+#: body. The regex this replaces matched `RULE 0B-D` inside a `Related:` pointer,
+#: so a theme could cite a repealed statute and read clean.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import canon_rules  # noqa: E402  (after the path insertion, by necessity)
+
 REPO = Path(__file__).resolve().parents[1]
 BIBLE_DIR = REPO / "docs" / "bible"
 THEMES = BIBLE_DIR / "themes"
@@ -146,13 +152,13 @@ def load_theme(name: str, directory: Optional[Path] = None) -> Tuple[Path, Dict]
 # Validation
 # --------------------------------------------------------------------------- #
 
-def _canon_rules(repo: Path = REPO) -> Optional[List[str]]:
-    """RULE identifiers present in MANDATES.md, or None if it cannot be read."""
+def _canon_rules(repo: Path = REPO) -> Tuple[Optional[Dict[str, Dict]], Optional[str]]:
+    """(rules `MANDATES.md` defines, its text), or (None, None) when unreadable."""
     path = Path(repo) / MANDATES.relative_to(REPO)
     if not path.is_file():
-        return None
+        return None, None
     text = path.read_text(encoding="utf-8", errors="replace")
-    return sorted(set(re.findall(r"RULE 0[A-Z](?:-[A-Z]){0,2}", text)))
+    return canon_rules.rule_blocks(text), text
 
 
 def _text_problems(value, where: str) -> List[str]:
@@ -202,7 +208,7 @@ def validate(data: Dict, base: Dict[str, Dict[int, Dict[int, Dict]]],
             else:
                 problems.append("limits.%s must be a positive integer" % key)
 
-    rules = _canon_rules(repo)
+    rules, canon_text = _canon_rules(repo)
     if rules is None:
         problems.append("MANDATES.md is unreadable, so a statute's RULE cannot be verified")
 
@@ -294,7 +300,7 @@ def validate(data: Dict, base: Dict[str, Dict[int, Dict[int, Dict]]],
                 summary["verses"] += 1
                 theme_refs.add("%s %d:%d" % (book_id, chapter_position, verse_position))
                 problems.extend(_verse_problems(verse, verse_where, base, rules,
-                                                Path(repo), summary))
+                                                canon_text, Path(repo), summary))
 
             problems.extend(_section_problems(chapter.get("sections"), numbers,
                                               chapter_where))
@@ -305,7 +311,8 @@ def validate(data: Dict, base: Dict[str, Dict[int, Dict[int, Dict]]],
 
 def _verse_problems(verse: Dict, where: str,
                     base: Dict[str, Dict[int, Dict[int, Dict]]],
-                    rules: Optional[List[str]], repo: Path, summary: Dict) -> List[str]:
+                    rules: Optional[Dict[str, Dict]], canon_text: Optional[str],
+                    repo: Path, summary: Dict) -> List[str]:
     problems = _text_problems(verse.get("text"), "%s text" % where)
 
     cites = verse.get("cites")
@@ -335,9 +342,12 @@ def _verse_problems(verse: Dict, where: str,
             problems.append("%s statute must be an object" % where)
         else:
             rule = statute.get("rule")
-            if not isinstance(rule, str) or (rules is not None and rule not in rules):
-                problems.append("%s statute names %r, which is not a RULE in MANDATES.md"
-                                % (where, rule))
+            if not isinstance(rule, str) or not rule.strip():
+                problems.append("%s statute must name a RULE" % where)
+            elif rules is not None:
+                defect = canon_rules.rule_problem(rule, rules, canon_text)
+                if defect:
+                    problems.append("%s statute %s" % (where, defect))
             check = statute.get("check")
             if not isinstance(check, str) or not check.strip():
                 problems.append("%s statute names no check command" % where)

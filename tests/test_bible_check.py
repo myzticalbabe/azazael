@@ -142,6 +142,20 @@ def test_statute_bound_to_canon_and_a_real_check_passes():
     B.validate(data, ROOT)          # must not raise
 
 
+def test_a_rule_that_is_only_mentioned_does_not_accept_a_statute():
+    """The defect this replaced the substring test for.
+
+    `RULE 0B-D` sat in a `Related:` pointer while its section had been removed,
+    and nine verses cited it. A mention is a memory of a law, not the law.
+    """
+    canon_text = ("## RULE 0B-E: NO MISREPRESENTATION\n\nA claim must not exceed "
+                  "its evidence.\n\n**Related:** RULE 0B-D, `tools/x.py`.\n")
+    problems = B._statute_problems(
+        {"rule": "RULE 0B-D", "check": "python tools/preflight_all.py"},
+        "verse 1:1", ROOT, B.canon_rules.rule_blocks(canon_text), canon_text)
+    assert any("has no section" in problem for problem in problems), problems
+
+
 # -- disclosure ------------------------------------------------------------
 
 @pytest.mark.parametrize("text", [
