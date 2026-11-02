@@ -48,9 +48,10 @@ route.
   repository rendered empty while holding real code.
 - **Canon limbs report `kind: "canon"` with `rules` and `lines`, and 0 classes by
   design.** "0 cls" on `MANDATES` is not an empty file — it is text, and its size
-  is 66 rules.
+  is 66 rules (measured 2026-10-31).
 - **A skill is a directory holding `SKILL.md`, not a `*.md` file.** `.agents/skills`
-  is 204 shard dirs + 37 loose md; counting markdown alone read the repository as
+  is 204 shard dirs + 37 loose md (measured 2026-10-31); counting markdown alone
+  read the repository as
   37 items.
 - `classes.total` can exceed the sum shown across limbs when a root carries classes
   in subpackages that never became top-level trees. Both numbers are real; they
