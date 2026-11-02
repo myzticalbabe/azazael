@@ -29,19 +29,34 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import preflight_all as pf  # noqa: E402
 
+#: The hook's inventory, transcribed from `.githooks/pre-commit` on 2026-11-01.
+#: This list is meant to be UPDATED when the hook changes -- it is a transcription
+#: check, and the failure it exists to catch is the hook gaining a gate that the
+#: registry never learns about. It went stale silently for six gates (bible_check,
+#: platform_claims, evidence_gate, agent_orders_sync, unresolved_ratchet, and
+#: failure_evidence_gate when it landed), so it is now the list the hook actually
+#: runs rather than the list it ran when the file was written.
 HOOK_SCRIPTS = {
     "scripts/commit_gate.py",
-    "tools/index_drift_check.py",
-    "tools/staged_scanner_gate.py",
-    "tools/canon_drift_check.py",
+    "tools/agent_orders_sync.py",
     "tools/anti_pattern_gate.py",
+    "tools/at_risk_register.py",
+    "tools/bible_check.py",
+    "tools/canon_drift_check.py",
+    "tools/evidence_gate.py",
+    "tools/failure_evidence_gate.py",
+    "tools/index_drift_check.py",
     "tools/mesh_function_preflight.py",
+    "tools/metthew_families.py",
     "tools/paradigm_gate.py",
+    "tools/platform_claims.py",
     "tools/pmb_session_observe.py",
-    "tools/transcript_ap5_gate.py",
-    "tools/test_paradigm_gate.py",
-    "tools/supervisor_mcp.py",
     "tools/preflight_all.py",
+    "tools/staged_scanner_gate.py",
+    "tools/supervisor_mcp.py",
+    "tools/test_paradigm_gate.py",
+    "tools/transcript_ap5_gate.py",
+    "tools/unresolved_ratchet.py",
     "tools/wire_evidence_audit.py",
 }
 
@@ -66,7 +81,11 @@ class TestHookParity:
     def test_registry_and_hook_agree(self):
         ok, message = pf.hook_parity(pf.GATES, pf.read_hook())
         assert ok, message
-        assert "12 gates" in message
+        # The count is asserted against the registry's own inside_hook rows rather
+        # than a number typed here: a hardcoded "12 gates" outlived the registry it
+        # described and turned a correct message into a failure.
+        inside_hook = sum(1 for gate in pf.GATES if gate.inside_hook)
+        assert "%d gates" % inside_hook in message, message
 
     def test_an_unreadable_hook_is_missing_evidence_not_a_pass(self):
         ok, message = pf.hook_parity(pf.GATES, None)
@@ -176,6 +195,32 @@ class TestFingerprint:
 
     def test_the_real_repo_state_resolves_inside_a_repo(self):
         assert pf.repo_state_hash() is not None
+
+    def test_head_is_part_of_the_state_hash(self, monkeypatch):
+        """Two CLEAN worktrees differ only by HEAD - the hash must notice.
+
+        Before 2026-10-31 it did not: the two diffs were the whole input, so a
+        run on a clean worktree hashed two empty diffs, and so did the same
+        worktree one commit later. A cached PASS recorded at the earlier commit
+        was therefore reused for a tree no gate had judged. This pins the fix
+        without moving the real HEAD: only the rev-parse call is faked, every
+        other git call still runs against the real repo.
+        """
+        import subprocess as _sp
+        real_run = _sp.run
+
+        def _with_head(sha):
+            def fake(argv, *a, **kw):
+                if list(argv)[:3] == ["git", "rev-parse", "HEAD"]:
+                    return _sp.CompletedProcess(argv, 0, stdout=sha, stderr=b"")
+                return real_run(argv, *a, **kw)
+            return fake
+
+        monkeypatch.setattr(pf.subprocess, "run", _with_head(b"deadbeef\n"))
+        first = pf.repo_state_hash()
+        monkeypatch.setattr(pf.subprocess, "run", _with_head(b"cafebabe\n"))
+        second = pf.repo_state_hash()
+        assert first and second and first != second
 
     def test_repo_state_is_none_outside_a_repo(self, tmp_path, monkeypatch):
         """`GIT_CEILING_DIRECTORIES` stops git walking up out of `tmp_path`.

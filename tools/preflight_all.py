@@ -520,6 +520,33 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=("docs/METTHEW/highend_families.json",),
     ),
+    Gate(
+        name="at-risk-register",
+        # Registered 2026-11-01. docs/METTHEW/AT_RISK_SYSTEMS.json is the guardian's
+        # register of game systems under threat; without a checker it was an essay.
+        # E4 is the load-bearing one: every dying entry must carry BOTH a next act and
+        # a gate, because "raise awareness" is a wish with no number in it. E8 keeps
+        # the register honest about its own edge -- the cohorts it has NOT counted are
+        # named, each with a next sweep, so "all the systems threatened with
+        # extinction" stays a sample with a stated boundary instead of a claim.
+        argv=("tools/at_risk_register.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("docs/METTHEW/AT_RISK_SYSTEMS.json (E1..E8), plus the register at HEAD "
+               "for E6's append-only comparison"),
+        control_test="tests/test_at_risk_register.py",
+        control=None,
+        uncontrolled_because=(
+            "the controls ship inside the gate (`--selftest` mutates the real register "
+            "fifteen ways and requires each named refusal, then requires a tombstoned "
+            "retirement to be ACCEPTED), and preflight has no subcommand that runs "
+            "them; tests/test_at_risk_register.py drives both directions"
+        ),
+        requires=("docs/METTHEW/AT_RISK_SYSTEMS.json",),
+    ),
 )
 
 
