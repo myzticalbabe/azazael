@@ -39,7 +39,7 @@ the requirement the validator enforces (V10) can actually be exercised.
 |---|---|
 | identical hash on repeat | the command run 3 times in 3 processes, and 5 times in one (`--repeat 5`) |
 | a different input gives a different hash | `ffe…766` vs `000…009`: `a3b14fdc…` vs `93de6107…` |
-| tick cost | `duel.run(600, raw)` timed 20 times: p50 0.0007 ms, p99 0.0008 ms per tick, **on the author box** (Python 3.15t, this machine) |
+| tick cost | `python tools/metthew_validate.py --manifest docs/METTHEW/reference-shards/highend_duel/shard.json --measure` (2026-11-01): 5 x 360 ticks, p50 0.00074 ms, p99 0.00078 ms per tick, **on the author box** (Python 3.15t, this machine). Re-basing is now mechanical: V13 refuses a declared p50 more than 4x away from a fresh measurement. |
 | no float in the authoritative state | `main.py` imports `argparse`, `hashlib`, `json`, `sys` only; positions, velocities and damage are `int` |
 
 The tick figures are an **author-box** reading, not a GPU target measurement. The
