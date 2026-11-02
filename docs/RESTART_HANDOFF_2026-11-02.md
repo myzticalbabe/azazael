@@ -41,6 +41,30 @@ Written for the next session. **HEAD at handoff is the commit containing this fi
 6. **Corpus arm 2** — the 2015 announcement. Time returns **406**; `presidency.ucsb.edu` served the
    campaign release fine, so use the APP spoken-address archive.
 
+## SHARDEX capability reasoning — recorded 2026-11-02 (late), for the restart
+
+Not features. Each row is a **reasoning question with a falsifying test**, because every capability
+in SHARDEX today is verified by two implementations written by the same author, and a shared
+misreading passes both. Measured state these rows assume: L0-L4 built; `meshscene` 576 neurons /
+1,201 synapses, 5 pure ops, per-op digests replayed after the page applies them; `transubstantiate`
+489 segments / 822 leaves, browser MATCH; `launch.py --bracket` ranks each entry's **golden hash**
+(`run_round` computes hashes) -- so two shards' arenas have never shared a space.
+
+| id | question | falsifying test | evidence command | blocked by |
+| --- | --- | --- | --- | --- |
+| `shx-r1` | Is any golden hash reproducible from the **artifact alone**? | An implementation that never reads `shardex.py` or the page JS reproduces `1c045e596f950543` for `highend_duel` | `pytest Project_SHARDEX/tests -q -k third_impl` | nothing -- do this first; it redefines "verified" for every row below |
+| `shx-r2` | Is an extracted rule the rule that made the source move? | Perturb each of the 5 extracted constants, **predict** the observable change, then measure it in the original animation; score < 3/5 is REFUSED | `transubstantiate.py --predict .transub/rules.json` | `shx-r1` |
+| `shx-r3` | Where does the pipeline actually break on a real tree? | Second `--shatter` run must produce byte-identical shard ids; every refusal named with its byte count | `shardex.py --mirror <tree>` + `--shatter` twice, diff the ids | nothing -- measurement, runs alongside |
+| `shx-r4` | What is the law when two arenas share a space? | A round whose hash depends on **both** golden hashes, replayed from the input log alone | `launch.py --bracket <a> <b> --compose` | `shx-r1`, `shx-r3` (needs ≥2 real shards) |
+| `shx-r5` | Is the op log an addressable program? | `shardscript.json` replays every digest for a third party; a hand-edited op is REFUSED | `meshscene.py --verify-program shardscript.json` | `shx-r2` |
+
+**Traps, named so they are not re-derived.** Rendering polish, more arena knobs and more operators
+are all linear -- none raises a ceiling, and each needs a second port. The golden hash proves
+self-consistency, never fidelity: FLAME's own text says the original rules are not extracted, and
+`transubstantiate` records the *line* that proves a rule, which is evidence of presence, not of
+causation. And the 24-file / 2 MiB low-end ceiling is the contract the validator enforces -- moving
+it to make a tree fit turns a measurement into a preference.
+
 ## The queue, with ids (posted 2026-11-02, all `pending`)
 
 `python C:/Users/clint/_board.py claim freebuff 10` hands these out oldest-first; retire each with
@@ -58,6 +82,11 @@ Written for the next session. **HEAD at handoff is the commit containing this fi
 | 47199 | `djt-iea-rederive` | verify | the 415/945 TWh figures were never fetched from the report body |
 | 47200 | `prose-splitter` | improve | guarded splitter; `--compare` shows all twelve metrics, not five |
 | 47201 | `corpus-2015-arm` | build | 2015 arm via the APP archive (`time.com` → 406) |
+| — | `shx-r1` | prove | third implementation reproduces a golden hash from the artifact alone |
+| — | `shx-r2` | falsify | perturb-and-predict scorer over the 5 extracted rules |
+| — | `shx-r3` | measure | real-tree intake: shard ids byte-identical on a second run |
+| — | `shx-r4` | design | the interaction law between two arenas, hashed and replayable |
+| — | `shx-r5` | reframe | the op log as an addressable program (`shardscript.json`) |
 
 Blocking order is real: `jaeger-001..003` sit behind `jaeger-000`, and `jaeger-003` should not start
 before `g2-receipt`, because an exporter with no receipt discipline produces spans nobody can audit.
