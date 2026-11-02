@@ -1,0 +1,26 @@
+{
+ "fit": {
+  "cx": -94.2525,
+  "cy": 284.488,
+  "cz": 7.5652,
+  "scale": 0.6387
+ },
+ "focal": 1400.0,
+ "geometry_sha256": "69b9d1ad4c93d173",
+ "leaves": 822,
+ "orbit_ticks": 720,
+ "phases": {
+  "GROW": 30000,
+  "HOLD": 7000,
+  "LABEL": 8000,
+  "TOTAL": 45000
+ },
+ "rules_sha256": "8d9ca2a89e79cd92",
+ "segments": 489,
+ "shape": "flame-3d-v1",
+ "states": {
+  "t11250": "30a4c1d4bca0dcae",
+  "t33750": "c08ff8e73743a055",
+  "t44100": "09eb6369ba63827b"
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "author_pubkey": "",
+ "budget": {
+  "payload_bytes_max": 2097152,
+  "tick_budget_ms": {
+   "p50": 0.0,
+   "p99": 0.0,
+   "scene": "unmeasured: not forged"
+  }
+ },
+ "capabilities": [],
+ "competitive": false,
+ "entrypoint": "YGGDRASIL_CLEAVE.html",
+ "env_allowlist": [],
+ "execution_model": "resident_host",
+ "files": [
+  {
+   "path": "yggdrasil_cleave.html",
+   "role": "data",
+   "sha256": "81e1dabe48223b8756f22e76ca17bcac2dc4ecbf6e4edcfebaf88605b47187ea",
+   "size_bytes": 12709
+  }
+ ],
+ "genre": "canvas-animation",
+ "golden_run": {
+  "headless": true,
+  "input": "",
+  "state_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "ticks": 0,
+  "token": "AZAZAEL-GOLDEN-OK"
+ },
+ "hubs": [],
+ "id": "2d-source@sha256:5ab7263455db1f1b29580e5b6bd60412a4c2adc5fa83aa3de6bd6b071c01d4d5",
+ "licence": "UNKNOWN -- per-file provenance in provenance[]",
+ "loader": "wasm3-det",
+ "provenance": [
+  {
+   "file": "yggdrasil_cleave.html",
+   "origin": "mirror:.transub\\2d_source",
+   "sha256": "81e1dabe48223b8756f22e76ca17bcac2dc4ecbf6e4edcfebaf88605b47187ea",
+   "tier": "A"
+  }
+ ],
+ "shardex": {
+  "forged": false,
+  "group": "2d-source",
+  "mirror_sha256": "0576f8a15f930618d50396787d287e201692806abafa12d44b2afdc482eff8dd",
+  "note": "a slice is not a game: --forge it to get a golden run",
+  "state": "SLICE"
+ },
+ "sim_hz": 60,
+ "tick_budget": {
+  "p50_ms": 0.0,
+  "p99_ms": 0.0,
+  "scene": "unmeasured: not forged"
+ },
+ "tier": "lowend",
+ "transubstantiation": {
+  "clock": {
+   "hook": "window.__step",
+   "line": 226
+  },
+  "entrypoint": "YGGDRASIL_CLEAVE.html",
+  "fidelity": "RULES-EXTRACTED: phases, seed, entity table and branch law are read from the source and carry their line numbers. No pixel, colour ramp, sprite or label is carried -- the 3D figure is rebuilt from the rule, not rendered from the source.",
+  "geometry_sha256": "69b9d1ad4c93d173",
+  "leaves": 822,
+  "phases": {
+   "GROW": 30000,
+   "HOLD": 7000,
+   "LABEL": 8000,
+   "TOTAL": 45000
+  },
+  "rules_sha256": "b57b82bdccdc029e3b5e1ea098d26aa264283e5e73295e0be94ecdd7fb240bd1",
+  "scene_shape": "flame-3d-v1",
+  "segments": 489,
+  "shape": "shardex-2d-rules-v1",
+  "source_sha256": "81e1dabe48223b8756f22e76ca17bcac2dc4ecbf6e4edcfebaf88605b47187ea",
+  "states": {
+   "t11250": "30a4c1d4bca0dcae",
+   "t33750": "c08ff8e73743a055",
+   "t44100": "09eb6369ba63827b"
+  }
+ },
+ "version": "1.0.0"
+}
