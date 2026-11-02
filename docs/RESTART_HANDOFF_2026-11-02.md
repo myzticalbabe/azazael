@@ -167,6 +167,11 @@ it to make a tree fit turns a measurement into a preference.
 | ~~47419~~ | ~~`promptcheck-blind-fresh-host`~~ | **RETIRED 2026-11-02** | fixed: the gate records its own reading via `head_state.py --write` when `state/head.json` is absent; measured 12.0 s on a cold tree, once |
 | 47421 | `handoff-expiry-and-failures` | add | this file lacks an expiry line and an *attempted and failed* section, which block 0.5 requires |
 | 47423 | `unified-cli-exemption` | resolve | `tools/unified_cli.py:68` carries a standing failure-evidence exemption; implement the bound or date the exemption |
+| 47440 | `promptcheck-blocks-proof` | prove | a stale count must make the pre-commit refuse a real commit, not just the fixture |
+
+Every row above also has a paste-ready brief in `docs/ZERO_SHOT_PROMPTS_2026-11-02.md`
+(§1 SHARDEX capability, §2 gate honesty, §3 claim discipline, §4 evidence, §5 cold start),
+so a fresh model needs one block and no canon.
 
 Blocking order is real: `jaeger-001..003` sit behind `jaeger-000`, and `jaeger-003` should not start
 before `g2-receipt`, because an exporter with no receipt discipline produces spans nobody can audit.

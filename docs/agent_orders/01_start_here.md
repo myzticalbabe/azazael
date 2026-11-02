@@ -80,6 +80,7 @@ Read by question, and `grep -n` anything over ~50 KB instead of reading it whole
 | why the defaults are like this | `docs/agent_orders/05_hyper_edge_defaults.md` | generated block below |
 | what is portable already | `docs/KERNELS_2026-11-02.md` | kernel index |
 | last session's open work | newest `docs/*HANDOFF*.md` + the board | read whole (small) |
+| a task to hand a fresh model | `docs/ZERO_SHOT_PROMPTS_2026-11-02.md` | paste one brief, whole |
 
 Reading all seven canon documents costs ~1.12 MB (≈280k tokens, measured
 2026-11-02) and buys less than one `grep` against the symptom in front of you.
