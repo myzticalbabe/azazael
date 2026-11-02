@@ -75,6 +75,68 @@ def _sibling(name: str):
 
 
 housekeep = _sibling("housekeep")
+disposition = _sibling("disposition")
+defender = _sibling("defender")
+
+
+def cmd_defend(intent: str, target: str, evidence: str, preserve: bool,
+               as_json: bool) -> int:
+    """Print the defensive frame for a change; refuse a frame that is not one.
+
+    This is the prompter, and it runs BEFORE the change so the frame cannot become a
+    rationalisation of work already done. It never fills a missing field in: a frame
+    that cannot name what it defends is the shape in which a repair turns into a
+    removal, so it is reported as REFUSED and the exit code says so.
+    """
+    # No evidence and no acceptance means the frame does not exist yet: emit the DRAFT
+    # with every hole marked rather than a strict frame that would be refused for
+    # being empty. The two paths cannot be confused -- one says DRAFT -- NOT A FRAME.
+    if not evidence:
+        skeleton = defender.draft(intent, target, preserve=preserve)
+        if as_json:
+            print(json.dumps(skeleton, indent=1, sort_keys=True))
+        else:
+            print(skeleton["prompt"])
+        return 0
+    frame = defender.frame(
+        intent=intent,
+        target=target or "<target not named>",
+        evidence=evidence,
+        defends=["<name what survives: a test, a claim, a gate>"],
+        must_not_break=defender.default_break_list(target or "it"),
+        acceptance="",
+        control=defender.default_control(intent),
+        preserve=preserve,
+        posture=defender.default_posture() if preserve else None,
+    )
+    if as_json:
+        print(json.dumps(frame, indent=1, sort_keys=True))
+        return 0 if not frame.get("problems") else 1
+    if frame.get("problems"):
+        print("REFUSED: this is not a frame yet.")
+        for problem in frame["problems"]:
+            print("     %s" % problem)
+        print("")
+        print("  pass --defend with a named defence, an acceptance command and an")
+        print("  evidence path; the frame is the thing the sweep is judged against")
+        return 1
+    print(frame["prompt"])
+    return 0
+
+
+def record_error(root: Path, stage: str, kind: str, subject: str, what: str,
+                 evidence: str = "", remedy: str = "") -> Optional[Dict]:
+    """Turn one error into one task, the moment it is found.
+
+    A ledger that cannot be written must not take the sweep down with it, and it
+    must not fail silently either: the warning is printed and the row is missing,
+    which the reader can see. `suppress` keeps the anti-pattern scanner honest
+    about what this actually is -- a report path, not an error swallow.
+    """
+    with contextlib.suppress(OSError):
+        return disposition.record(root, stage, kind, subject, what, evidence, remedy)
+    print("  WARNING: could not record this error in %s/%s" % (STATE_DIR, disposition.LEDGER))
+    return None
 STATE_DIR = ".flaming_sword"
 
 #: Directories a sweep does not edit. Archives are history and vendored code is
@@ -437,7 +499,12 @@ def detect_stale_claims(root: Path) -> Tuple[List[Dict], bool, str]:
     command = claims.get("command")
     ledger = claims.get("ledger")
     if not command:
-        return [], True, "no claims.command configured"
+        # NOT `ran=True`. A detector with nothing to run has found nothing, and
+        # "0 findings" from a detector that could not run is the exact sentence
+        # this project exists to prevent -- it was reporting itself clean here
+        # until 2026-11-01.
+        return [], False, ("no claims.command configured: nothing was run, so this "
+                           "is unknown, not clean")
     if ledger and not (root / ledger).exists():
         return [], False, "claims ledger %s is absent" % ledger
     try:
@@ -541,9 +608,18 @@ def scan(root: Path, disabled: Sequence[str] = ()) -> Tuple[List[Dict], List[str
             produced, ran, note = detector(root)
         except Exception as exc:                     # noqa: BLE001 - reported, never swallowed
             unrun.append("%s: UNRUN (%s: %s)" % (name, type(exc).__name__, exc))
+            record_error(root, "scan", "detector-crashed", name,
+                         "%s raised %s: %s" % (name, type(exc).__name__, exc),
+                         evidence=repr(exc),
+                         remedy="fix the detector, or disable it explicitly in config")
             continue
         if not ran:
             unrun.append("%s: UNRUN (%s)" % (name, note or "no reason given"))
+            record_error(root, "scan", "detector-unrun", name,
+                         "%s could not run: %s" % (name, note or "no reason given"),
+                         remedy="supply what %s needs in %s/config.json, or say why it "
+                                "is off: %s"
+                                % (name, STATE_DIR, note or "no reason given"))
             continue
         findings.extend(produced)
     findings.sort(key=lambda f: (SEVERITY_ORDER.get(f["severity"], 9), f["detector"],
@@ -644,6 +720,10 @@ def run_batch(root: Path, size: int, test_command: Optional[str],
                 touched.append(touched_path)
         else:
             failed.append(item)
+            record_error(root, "fix", "fix-failed", item["id"], note,
+                         evidence="%s:%d %s" % (item["path"], item["line"],
+                                                item["detector"]),
+                         remedy=item.get("remedy", ""))
 
     if dry_run:
         return 0
@@ -663,6 +743,10 @@ def run_batch(root: Path, size: int, test_command: Optional[str],
     if regressed:
         print("\n  FAILED: %d fixed item(s) still fire after the fix: %s"
               % (len(regressed), ", ".join(regressed)))
+        for item_id in regressed:
+            record_error(root, "fix", "fix-ineffective", item_id,
+                         "the detector still fires after its own fix",
+                         remedy="the fix was cosmetic: re-open it and look again")
         return 1
     if unrun:
         print("\n  UNRUN (not clean, just unknown):")
@@ -695,14 +779,23 @@ def land(root: Path, test_command: Optional[str]) -> int:
     if not test_command:
         print("REFUSED: no --test command. A commit that fixes things without a")
         print("command that says the project still works is a claim, not a landing.")
+        record_error(root, "land", "refused", "no-test-command",
+                     "a landing was attempted with no verification command",
+                     remedy="pass --test with the project's own command")
         return 1
     batches = read_jsonl(state_dir(root) / "batches.jsonl")
     if not batches:
         print("REFUSED: no batch recorded. Run --run first.")
+        record_error(root, "land", "refused", "no-batch",
+                     "a landing was attempted with no batch on record",
+                     remedy="run --run to apply and record a batch first")
         return 1
     batch = batches[-1]
     if batch.get("landed"):
         print("REFUSED: batch already landed at %s" % batch["landed"])
+        record_error(root, "land", "refused", "already-landed",
+                     "the same batch was offered twice (landed at %s)" % batch["landed"],
+                     remedy="nothing to do: the batch is in history")
         return 1
     touched = batch.get("touched") or []
     if not touched:
@@ -710,6 +803,9 @@ def land(root: Path, test_command: Optional[str]) -> int:
         print("What it changed was local git configuration (hooksPath), which no")
         print("commit records. Either re-run --scan so a file fix joins the batch,")
         print("or record the config change in the run report and land nothing.")
+        record_error(root, "land", "refused", "nothing-touched",
+                     "the batch changed only local git configuration",
+                     remedy="run a batch that edits a file, or record the config change")
         return 1
 
     print("verifying: %s" % test_command)
@@ -727,6 +823,10 @@ def land(root: Path, test_command: Optional[str]) -> int:
     if completed.returncode != 0:
         print("\nREFUSED: the verification command failed. The batch is NOT landed.")
         print("Roll back or fix, then re-run. A red suite never lands.")
+        record_error(root, "land", "verification-red", "batch-%d" % len(batches),
+                     "the project's own command failed: %s" % summary.strip()[:200],
+                     evidence="%s -> exit %d" % (test_command, completed.returncode),
+                     remedy="roll back, or fix the cause; never land on red")
         return 1
 
     batch_index = len(batches)
@@ -739,6 +839,9 @@ def land(root: Path, test_command: Optional[str]) -> int:
                             capture_output=True, text=True, timeout=120)
     if staged.returncode != 0:
         print("REFUSED: git add failed: %s" % (staged.stderr or "").strip()[:200])
+        record_error(root, "land", "git-add-failed", "batch-%d" % len(batches),
+                     "git add refused the batch's touched paths",
+                     evidence=(staged.stderr or "").strip()[:300])
         return 1
     # The pathspec is not decoration: a plain `git commit` carries every staged
     # file, so an unrelated change somebody staged before the sweep would land
@@ -852,6 +955,12 @@ def brief() -> int:
     print("-- stages: %s" % " -> ".join(stage["id"] for stage in
                                         sorted(spec.get("stages", []),
                                                key=lambda s: s["order"])))
+    ledger = protocol.get("disposition", {})
+    print("-- errors: %s" % ledger.get("rule", ""))
+    print("   captured: %s" % ", ".join(ledger.get("captured", [])[:3]) + " ...")
+    print("   --tasks to read them, --dispose <id> --as <%s> to close one"
+          % "|".join(ledger.get("dispositions", disposition.DISPOSITIONS)))
+    print("")
     house = next((stage for stage in spec.get("stages", [])
                   if stage.get("id") == "housekeep"), None)
     print("-- housekeep: dry run unless --apply; %s"
@@ -893,7 +1002,11 @@ def self_test() -> int:
         (broken / "tools" / "b.py").write_text("FLOOR = 0.70\n", encoding="utf-8")
         (broken / STATE_DIR).mkdir()
         (broken / STATE_DIR / "config.json").write_text(
-            json.dumps({"constants": ["FLOOR"]}), encoding="utf-8")
+            json.dumps({"constants": ["FLOOR"],
+                        "claims": {"ledger": "claims.json",
+                                   "command": [sys.executable, "-c", "pass"]}}),
+            encoding="utf-8")
+        (broken / "claims.json").write_text("{}\n", encoding="utf-8")
         (broken / "tests").mkdir()
         (broken / "tests" / "test_x.py").write_text("def test_x():\n    assert True\n",
                                                     encoding="utf-8")
@@ -923,8 +1036,15 @@ def self_test() -> int:
         (clean / "tools").mkdir()
         (clean / "tools" / "real.py").write_text("FLOOR = 0.89\n", encoding="utf-8")
         (clean / STATE_DIR).mkdir()
+        # `claims` is configured on the clean tree because a detector with nothing
+        # to run is UNRUN, not clean -- the clean fixture must be a tree where every
+        # detector actually ran, or it proves only that unconfigured is quiet.
         (clean / STATE_DIR / "config.json").write_text(
-            json.dumps({"constants": ["FLOOR"]}), encoding="utf-8")
+            json.dumps({"constants": ["FLOOR"],
+                        "claims": {"ledger": "claims.json",
+                                   "command": [sys.executable, "-c", "pass"]}}),
+            encoding="utf-8")
+        (clean / "claims.json").write_text("{}\n", encoding="utf-8")
         (clean / "docs").mkdir()
         (clean / "docs" / "install.md").write_text(
             "# Install\n\n```bash\npython tools/real.py\n```\n", encoding="utf-8")
@@ -1063,6 +1183,10 @@ def cmd_scan(root: Path, as_json: bool) -> int:
             print("\nUNRUN -- not clean, unknown:")
             for note in unrun:
                 print("  - %s" % note)
+        waiting = disposition.tasks(root)
+        if waiting:
+            print("\n%d error task(s) open for disposition (--tasks to read, "
+                  "--dispose <id> --as <decision> to close one)" % len(waiting))
     return 0
 
 
@@ -1116,7 +1240,48 @@ def cmd_housekeep(root: Path, act: bool, as_json: bool, state_days: int,
             print("removed %d item(s), %s freed" % (removed, housekeep.human(freed)))
         for failure in failures:
             print("  REFUSED %s" % failure)
+    for failure in failures:
+        record_error(root, "housekeep", "refused", failure.split(":")[0], failure,
+                     remedy="look at the path: it moved, became a symlink, or is owned "
+                            "by something this tool will not touch")
     return 1 if failures else 0
+
+
+def cmd_tasks(root: Path, include_disposed: bool) -> int:
+    rows = disposition.tasks(root, include_disposed=include_disposed)
+    if not rows:
+        print("no %stask(s) recorded" % ("/all " if include_disposed else "open "))
+        return 0
+    for row in rows:
+        state = row["status"] if row["status"] == "open" else row.get("disposition") or "closed"
+        print("  %-7s %-5s %-16s %-24s %s"
+              % (row["id"], state, row["stage"], row["subject"][:24], row["what"][:96]))
+        if row["seen"] > 1:
+            print("  %-7s %s, seen %d time(s), last %s"
+                  % ("", "" , row["seen"], row.get("last_seen", "")))
+        if row.get("note"):
+            print("  %-7s note: %s" % ("", row["note"][:110]))
+    counts = disposition.summary(root)
+    print("\n%d task(s): %s" % (len(rows), ", ".join("%s %d" % (key, value)
+                                                for key, value in sorted(counts.items()))))
+    return 0
+
+
+def cmd_dispose(root: Path, task_id: str, as_what: Optional[str], note: str) -> int:
+    if not as_what:
+        print("REFUSED: --dispose needs --as <%s>. A task closed without a reason is "
+              "a task deleted." % "|".join(disposition.DISPOSITIONS))
+        return 2
+    try:
+        row = disposition.dispose(root, task_id, as_what, note)
+    except ValueError as exc:
+        print("REFUSED: %s" % exc)
+        return 2
+    if row is None:
+        print("REFUSED: no task %s in %s/%s" % (task_id, STATE_DIR, disposition.LEDGER))
+        return 2
+    print("disposed %s as %s%s" % (task_id, as_what, ": %s" % note if note else ""))
+    return 0
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -1139,17 +1304,40 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--record-research", metavar="JSONL",
                         help="validate research records and queue them as proposals")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--defend", metavar="INTENT", default=None,
+                        help="print the defensive frame for a change, and refuse a "
+                             "frame that cannot name what it defends")
+    parser.add_argument("--target", default="", help="with --defend: the artefact")
+    parser.add_argument("--evidence", default="", help="with --defend: command or path")
+    parser.add_argument("--preserve", action="store_true",
+                        help="with --defend: preservation work (posture becomes "
+                             "mandatory)")
     parser.add_argument("--batch", type=int, default=5)
     parser.add_argument("--test", dest="test_command", default=None,
                         help="the project's own verification command")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--tasks", action="store_true",
+                        help="read the disposition ledger: every error the sweep met, "
+                             "one task per error, waiting for a decision")
+    parser.add_argument("--all", action="store_true",
+                        help="with --tasks: include disposed tasks")
+    parser.add_argument("--dispose", metavar="TASK",
+                        help="close one task with --as, after deciding what it is")
+    parser.add_argument("--as", dest="as_what", metavar="DISPOSITION",
+                        choices=list(disposition.DISPOSITIONS),
+                        help="how the task was closed: %s"
+                             % "|".join(disposition.DISPOSITIONS))
+    parser.add_argument("--note", default="", help="with --dispose: why, in one line")
     args = parser.parse_args(argv)
 
     if args.self_test:
         return self_test()
     if args.brief:
         return brief()
+    if args.defend is not None:
+        return cmd_defend(args.defend, args.target, args.evidence, args.preserve,
+                          args.json)
     root = Path(args.root).resolve()
     if args.record_research:
         return record_research(root, Path(args.record_research))
@@ -1158,6 +1346,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
     if args.scan:
         return cmd_scan(root, args.json)
+    if args.tasks:
+        return cmd_tasks(root, args.all)
+    if args.dispose:
+        return cmd_dispose(root, args.dispose, args.as_what, args.note or "")
     if args.housekeep:
         return cmd_housekeep(root, args.apply, args.json, args.state_days, args.max_mb)
     if args.apply:

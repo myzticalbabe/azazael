@@ -5,6 +5,24 @@
   "purpose": "Find every defect of the classes below in an unfamiliar codebase, queue them, fix what can be fixed mechanically in batches, prove each batch with the project's own test command, and land it — in one pass, with the decision trail written down.",
   "why_it_exists": "Every failure this estate paid for had the same shape: a document or a claim that was true once and drifted, and nobody re-running it. A human reviewer cannot re-run a hundred claims, and an agent will not unless told, so the sword exists to make the re-running the first step instead of the last.",
   "protocol": {
+    "defender": {
+      "id": "defender",
+      "module": "tools/defender.py",
+      "emit_when": "before any change whose removal-of-something is the point (a test, a gate, a claim, a branch, a detector), and before any preservation work",
+      "why": "a change described only as 'fix X' cannot be told from a removal, because nothing stated what X defended; the frame states it first, so the cheapest satisfying output stops being a summary",
+      "fields": ["defends", "must_not_break", "acceptance", "control", "refusal", "evidence", "posture"],
+      "rules": [
+        "defends names an artefact that survives; an empty list is REFUSED, not defaulted",
+        "must_not_break names tests or paths, never 'don't break anything'",
+        "acceptance is a command plus an observable outcome; an adjective refuses the frame",
+        "control is a mutation that MUST be refused (RULE 0B-C); a second happy path is refused as a control",
+        "posture is mandatory for --preserve: whose copy, bytes_of_original (integer, must be 0), lawful_route, authority, what_must_not_be_carried",
+        "authority is one of the registered claims -- sony-v-connectix, sega-v-accolade, owner-holds-copy, eu-declined-to-legislate, us-exemption-declined, no-authority-claimed -- because an unverifiable authority is worse than none",
+        "a refused frame renders NO prompt, so nothing downstream can act on it"
+      ],
+      "default_landing": "tools/sword.py --defend '<intent>' --target <artefact> [--preserve] (exit 1 when the frame is refused)",
+      "does_not_decide": "whether the work is lawful; it refuses to frame work that has not said whose copy it is, which is the part a prompter can enforce"
+    },
     "decision_blocks": [
       {
         "id": "before-write",
@@ -26,6 +44,14 @@
       "shape": "one sentence, goal-oriented, names its target, achieves something rather than describing a step",
       "forbidden": ["a chore the agent cannot do itself", "Commit these changes", "ask a human to verify"],
       "counting_rule": "count them before sending; 11 or 13 is a miscount, not a rounding"
+    },
+    "disposition": {
+      "rule": "every error is recorded as its own task the moment it is found, never at the end of the session",
+      "captured": ["a detector that raised", "a detector that could not run", "a fix that failed", "a fix whose own detector still fires", "a landing refused for any reason", "a deletion housekeeping could not make"],
+      "identity": "stage + kind + subject, never the message: a count inside a message changes while the defect does not",
+      "repeat": "a re-encounter increments seen and moves last_seen rather than adding a twin; a recurrence after a disposition is a NEW task",
+      "dispositions": ["fixed", "wontfix", "duplicate", "deferred", "external"],
+      "ledger": ".flaming_sword/tasks.jsonl, one json object per line"
     },
     "claims": {
       "rule": "done / fixed / passes / verified / landed are claims and are worth what the command beside them is worth",
@@ -124,7 +150,7 @@
       "severity": "high",
       "auto": false,
       "detects": "a claims ledger whose declared command no longer produces the declared output",
-      "requires": "claims.command in .flaming_sword/config.json",
+      "requires": "claims.command in .flaming_sword/config.json; with no command this detector is UNRUN, not clean (fixed 2026-11-01, when it reported itself clean)",
       "remedy": "fix the page or the code; never delete the claim to make the run green"
     },
     {
