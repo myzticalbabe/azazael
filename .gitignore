@@ -322,6 +322,13 @@ state/*
 # not task state". Keep on disk, hidden from status.
 /NEURAL_MESH_FUNCTION_TODO.md
 
+# Project FLAMING SWORD sweep state, written beside whatever tree is swept.
+# The generated files are disposable (deleting them re-derives everything from a
+# fresh scan); config.json is NOT -- it holds the constants watchlist and the
+# claims command, which are policy, so it is tracked while its neighbours are not.
+/.flaming_sword/*
+!/.flaming_sword/config.json
+
 # coordinator churn cleanup 2026-10-29: binaries + render frames + backups
 # are local artifacts, never repo content (194MB frames, 24MB driver).
 /chromedriver.exe

@@ -1,0 +1,181 @@
+{
+  "schema": "flaming-sword/aio@1",
+  "name": "Project FLAMING SWORD",
+  "version": "0.1.0",
+  "purpose": "Find every defect of the classes below in an unfamiliar codebase, queue them, fix what can be fixed mechanically in batches, prove each batch with the project's own test command, and land it — in one pass, with the decision trail written down.",
+  "why_it_exists": "Every failure this estate paid for had the same shape: a document or a claim that was true once and drifted, and nobody re-running it. A human reviewer cannot re-run a hundred claims, and an agent will not unless told, so the sword exists to make the re-running the first step instead of the last.",
+  "protocol": {
+    "decision_blocks": [
+      {
+        "id": "before-write",
+        "emit_when": "before any action that changes a file, a git config, a dependency or a service",
+        "fields": ["target", "evidence", "blast", "verify", "rollback"],
+        "template": "DECISION  <one line>\n  target:    <files/services touched>\n  evidence:  <command run and what it printed>\n  blast:     <what breaks if wrong, who notices>\n  verify:    <command that proves it worked>\n  rollback:  <how to undo>",
+        "rule": "evidence: none yet is legal once, for a read-only probe. It is illegal before a write."
+      },
+      {
+        "id": "before-land",
+        "emit_when": "before committing or pushing a batch",
+        "fields": ["batch", "test", "not_fixed", "rollback"],
+        "template": "DECISION  land batch <n>\n  batch:     <n> of <m>  (<ids>)\n  test:      <command> -> <result>\n  not_fixed: <items left open and why>\n  rollback:  git revert <sha>",
+        "rule": "a land block with no test line is a claim, not a landing; not_fixed may be empty but may not be omitted"
+      }
+    ],
+    "followups": {
+      "count": 12,
+      "shape": "one sentence, goal-oriented, names its target, achieves something rather than describing a step",
+      "forbidden": ["a chore the agent cannot do itself", "Commit these changes", "ask a human to verify"],
+      "counting_rule": "count them before sending; 11 or 13 is a miscount, not a rounding"
+    },
+    "claims": {
+      "rule": "done / fixed / passes / verified / landed are claims and are worth what the command beside them is worth",
+      "commit_requirement": "a commit message that claims completion carries a line starting with `Verified:` naming the command and its result"
+    }
+  },
+  "stages": [
+    {
+      "id": "scan",
+      "order": 1,
+      "does": "runs every detector, writes findings to .flaming_sword/findings.jsonl",
+      "changes_nothing": true,
+      "exit": "0 when the scan completed (even with findings); 1 when a detector could not run"
+    },
+    {
+      "id": "plan",
+      "order": 2,
+      "does": "turns findings into an ordered queue (.flaming_sword/queue.jsonl), mechanical fixes first, then proposals",
+      "ordering": ["high severity first", "auto-fixable before propose-only", "one item per file per batch unless the fix is the same edit"],
+      "changes_nothing": true
+    },
+    {
+      "id": "fix",
+      "order": 3,
+      "does": "applies the auto fixes of one batch, then re-runs the detectors affected by that batch",
+      "constraints": ["never fix an item the queue does not name", "never widen a fix to a neighbouring defect", "propose-only items are printed, never applied"]
+    },
+    {
+      "id": "verify",
+      "order": 4,
+      "does": "runs the project's own test command, then the detectors again",
+      "rule": "a fix whose detector still fires after the fix is a failed fix, whatever the test suite says"
+    },
+    {
+      "id": "land",
+      "order": 5,
+      "does": "one commit per verified batch, message naming the ids and carrying a Verified: line",
+      "rollback": "the batch id and the pre-batch sha are recorded before the commit",
+      "constraint": "no push. Landing is local by default; pushing is a separate, declared act."
+    },
+    {
+      "id": "housekeep",
+      "order": 6,
+      "does": "plans (and only with --apply, removes) what accumulated: bytecode and tool caches, editor leftovers, empty directories, disposable sweep state; reports unlanded batches and oversized untracked files as hazards a human decides on",
+      "changes_nothing": "by default -- dry run unless --apply is typed",
+      "refuses": ["any path git tracks, and the whole directory containing one", "any symlink, and anything reached through one", "anything that resolves outside the root", "its own .flaming_sword state directory", "batches.jsonl: the landing record is history, not garbage", "every non-cache deletion when git is unreadable, because content cannot then be told from by-product"],
+      "writes": ".flaming_sword/housekeep.jsonl, one line per deletion, so 'what reclaimed the disk' has an answer tomorrow"
+    },
+    {
+      "id": "research",
+      "order": 0,
+      "does": "deep-dive web research for cutting-edge replacements, recorded as proposals, never auto-applied",
+      "runs": "before scan when the pass is a 'improve, do not just repair' sweep"
+    }
+  ],
+  "detectors": [
+    {
+      "id": "phantom-reference",
+      "severity": "high",
+      "auto": false,
+      "detects": "a path named inside a fenced code block that does not exist in the tree — the command a reader will copy and find missing",
+      "precision_note": "fenced blocks only: a path in prose may be an example, a path in a block is an instruction",
+      "remedy": "replace the reference with a command that exists, or delete the block"
+    },
+    {
+      "id": "duplicate-constant",
+      "severity": "high",
+      "auto": false,
+      "detects": "the same watchlisted setting pinned to two different numeric values in two python files, in either form: `NAME = 0.89` or `os.environ.get(\"NAME\", \"0.89\")` -- the env default is the canonical form here, and was invisible to this detector before 2026-11-01",
+      "precision_note": "literal assignments only; a computed value is not a copy",
+      "remedy": "pick the source, import it in the other file, and re-run whatever measured it"
+    },
+    {
+      "id": "hooks-unwired",
+      "severity": "high",
+      "auto": true,
+      "detects": "a .githooks directory with no core.hooksPath pointing at it, so the tracked gates never run",
+      "remedy": "git config core.hooksPath .githooks (local, reversible)"
+    },
+    {
+      "id": "two-interpreters",
+      "severity": "medium",
+      "auto": false,
+      "detects": "documents whose fenced blocks run a bare `python -m pytest` while the same tree names an explicit interpreter path elsewhere",
+      "remedy": "use the declared interpreter in the docs, or declare that the bare one is the target"
+    },
+    {
+      "id": "untested-ci",
+      "severity": "medium",
+      "auto": false,
+      "detects": "a CI workflow and a test suite that no workflow step runs",
+      "remedy": "add the step, or delete the workflow — a green CI that runs nothing is worse than no CI"
+    },
+    {
+      "id": "stale-claims",
+      "severity": "high",
+      "auto": false,
+      "detects": "a claims ledger whose declared command no longer produces the declared output",
+      "requires": "claims.command in .flaming_sword/config.json",
+      "remedy": "fix the page or the code; never delete the claim to make the run green"
+    },
+    {
+      "id": "figure-without-command",
+      "severity": "low",
+      "auto": false,
+      "detects": "a count in a document ('15 gates', '5,380 tests') with no command anywhere in the same section",
+      "precision_note": "advisory: a figure may be a quotation. Reported so a human can decide, never auto-edited",
+      "remedy": "cite the command, or drop the number"
+    }
+  ],
+  "research": {
+    "mode": "deep web search, agent-executed",
+    "why_agent_executed": "the runner has no network client and no API key; pretending to research would be the exact defect this project exists to find. The runner validates and queues what the agent records.",
+    "queries_per_theme": 3,
+    "themes": [
+      "the defect class itself (what the industry calls it, and how mature tools detect it)",
+      "the replacement technology for the component that keeps failing",
+      "the adjacent practice that removes the failure instead of detecting it"
+    ],
+    "tiers": {
+      "A": "primary documentation, source, or a reproducible benchmark — adoptable",
+      "B": "official index or changelog — identity only, not a capability claim",
+      "C": "credible secondary write-up — adopt only when it matches an A source",
+      "D": "blog, thread, snippet — a pointer, never a basis"
+    },
+    "adaptation_rules": [
+      "adopt only what replaces a component this repo already has; a new component must remove one",
+      "no dependency without a licence check and a measured before/after on the same input",
+      "a proposed change that cannot name its verification command is not a proposal, it is a wish",
+      "tier D evidence never licenses a change to code that currently works"
+    ],
+    "record_format": {
+      "path": ".flaming_sword/research.jsonl",
+      "fields": ["theme", "query", "url", "tier", "finding", "adaptation", "removes", "verify_command", "measured"]
+    }
+  },
+  "limits": {
+    "max_batch": 10,
+    "max_files_scanned": 20000,
+    "max_findings_per_detector": 500,
+    "forbidden": [
+      "deleting a claim, a gate or a test to make a run green",
+      "rebaselining a threshold without re-measuring it",
+      "pushing without being asked",
+      "editing a file outside the queue",
+      "reporting a detector as passing when it could not run"
+    ]
+  },
+  "reporting": {
+    "per_run": ["detectors run", "detectors that could not run (named, never counted as clean)", "findings by severity", "items fixed, failed, proposed, open"],
+    "honesty_rule": "a detector that could not run is UNRUN with its reason. UNRUN is not zero findings."
+  }
+}

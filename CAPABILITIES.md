@@ -147,7 +147,7 @@ cd C:\Users\clint\azazael
 python tools\terence_invariants.py --self-test          # negative controls
 python tools\terence_invariants.py --coverage           # the gap list
 python tools\terence_invariants.py --autonomous --dry-run
-python -m pytest tests\test_rule_0b_a_edict.py -q       # 9 passed
+C:\Azazael\.venvs\py315t\Scripts\python.exe -m pytest tests\test_rule_0b_a_edict.py -q   # 9 passed
 ```
 
 - **RULE 0B-A** — `sentinel_gate.py::validate_rule_0b_a()` fails a gate on
