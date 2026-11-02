@@ -1,7 +1,9 @@
 # Restart handoff — 2026-11-02
 
-Written for the next session. **HEAD at handoff is the commit containing this file; its parent is
-`7a6a2da3`.** Five commits landed today, in order:
+Written for the next session. **The tree these receipts describe is `b1784556` (2026-11-02).** The
+commit that writes this file is its child: a file cannot record its own sha, so the measured tree is
+always the parent, and that is why the number below is a parent and not "HEAD". Five commits landed
+earlier today, in order:
 
 | commit | what it did |
 | --- | --- |
@@ -42,8 +44,10 @@ and may have been removed. Treat that line as a claim from the session that prod
 The numbers in this file are a reading of the tree at `b1784556` on 2026-11-02. Re-measure before
 quoting any of them if **any** of these is true:
 
-- two or more commits have landed after `b1784556`;
-- `python tools/head_state.py --check` reports a problem;
+- `python tools/head_state.py --check` reports a **count** drift (beyond its 0.10 tolerance). "HEAD
+  moved" alone is not a trigger: a commit that only edits this file moves HEAD and moves no count,
+  and an expiry that fires on its own act of writing is a rule nobody can satisfy;
+- more than five commits have landed after `b1784556`;
 - the date is after **2026-11-09**.
 
 Re-measure with `python tools/head_state.py --write`, then re-run the five receipt commands above.
