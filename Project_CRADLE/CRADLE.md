@@ -4,15 +4,27 @@ The cradle holds the work, and hands it to whatever model you already run.
 
 Four parts that existed and did not know about each other, behind one command:
 
-| part | what it guards | where it lives |
-| --- | --- | --- |
-| **FLAMING SWORD** | the codebase — find, queue, fix, prove, land | `Project_FLAMING_SWORD/tools/sword.py` |
-| **defender** | the user's intent — a prompt becomes a frame that can be satisfied or refused | `Project_FLAMING_SWORD/tools/defender.py` |
-| **sentinel** | the frame's claims — every path stat'ed, every act from a closed vocabulary | `Project_FLAMING_SWORD/tools/sentinel.py` |
-| **memory** | what was learned — recalled, or reported UNMEMORED with its reason | `Project_FLAMING_SWORD/tools/memory_bridge.py` |
+| name | part | what it does | where it lives |
+| --- | --- | --- | --- |
+| **FLAMING SWORD** | sword | the codebase — find, queue, fix, prove, land | `Project_FLAMING_SWORD/tools/sword.py` |
+| **defender** | defender | the user's intent — a prompt becomes a frame that can be satisfied or refused | `Project_FLAMING_SWORD/tools/defender.py` |
+| **THE REAPER** | sentinel | the frame's claims — every path stat'ed, every act from a closed vocabulary, and a frame that does not resolve is taken out of play | `Project_FLAMING_SWORD/tools/sentinel.py` |
+| **THE GRIMOIRE** | memory | what was learned — the book a failed verification writes, recalled by the next frame, or reported UNMEMORED with its reason | `Project_FLAMING_SWORD/tools/memory_bridge.py` |
 
 CRADLE adds no judgement of its own. It launches them, in the order that makes each
 answer meaningful, and it serves the result to the model the user already has.
+
+### The names
+
+A **cradle** holds the work. A **grimoire** is the book kept in it — one line per thing
+that failed or was refused, written at the moment it failed rather than reconstructed at
+the end. A **reaper** is what takes what does not hold: the sentinel does not watch a bad
+frame, it removes it from play and names the claim that failed.
+
+The names are vocabulary, not paths. `sentinel.py` and `lessons.jsonl` keep their file
+names, because five gates, a task file and three documents quote those paths, and renaming
+a path to match a story breaks the gates that make the story worth telling. `--doctor`
+prints the true name beside the part, so the vocabulary is visible rather than folklore.
 
 ## Three commands
 

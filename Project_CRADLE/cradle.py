@@ -7,12 +7,23 @@ Four parts that already existed and did not know about each other:
 
     FLAMING SWORD   sweeps a codebase: find -> queue -> fix -> prove -> land
     defender        takes a user prompt and writes the frame it must satisfy
-    sentinel        refuses to let a frame be acted on when its claims do not resolve
-    memory          recalls what was learned, and says UNMEMORED when it could not ask
+    REAPER          (sentinel) reaps a frame whose claims do not resolve -- it refuses to
+                    let the act happen, and it shows the claim that failed
+    GRIMOIRE        (memory)   the written book: every lesson a failed verification
+                    authored, recalled by the next frame, or reported UNMEMORED
 
 CRADLE is the name for the composition, the launcher, and the one endpoint a user can
 point their own model at. It adds no judgement of its own: every check it runs is one of
 those four, called in the order that makes each answer meaningful.
+
+THE NAMES, AND WHY THEY ARE NOT FILE NAMES
+------------------------------------------
+A cradle holds; a grimoire is the book kept in it; a reaper is what takes what does not
+hold. Those are the true names, and they are vocabulary rather than paths: `sentinel.py`
+and `lessons.jsonl` keep their file names because five gates, a task file and three
+documents quote those paths, and renaming a path to match a story breaks the gates that
+make the story worth telling. So the tool says REAPER where it means the reaper, and
+GRIMOIRE where it means the book, and the disk says what it always said.
 
 WHY A LAUNCHER AND NOT A RENAME
 -------------------------------
@@ -66,6 +77,17 @@ PARTS = {
     "memory": SWORD_TOOLS / "memory_bridge.py",
     "server": SWORD_TOOLS / "chain_server.py",
     "sword": SWORD_TOOLS / "sword.py",
+}
+
+#: The true names. A part keeps its file path and gains the name of what it does: the
+#: sentinel REAPS a frame whose claims do not resolve, and the memory keeps the GRIMOIRE
+#: -- the written book of lessons, one line per thing that failed or was refused.
+NAMES = {
+    "sword": ("FLAMING SWORD", "sweeps the codebase: find -> queue -> fix -> prove -> land"),
+    "defender": ("defender", "a prompt becomes a frame that can be satisfied or refused"),
+    "sentinel": ("REAPER", "reaps a frame whose claims do not resolve; shows the claim"),
+    "memory": ("GRIMOIRE", "the written book of lessons; recalls, or says UNMEMORED"),
+    "server": ("server", "one endpoint, in the shape your own model already speaks"),
 }
 
 MIN_PYTHON = (3, 9)
@@ -128,7 +150,9 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
     else:
         print("CRADLE doctor")
         for name, ok, detail in checks:
-            print("  %-16s %-6s %s" % (name, "PASS" if ok else "FAIL", detail))
+            true_name, _role = NAMES.get(name, (name, ""))
+            label = true_name if true_name == name else "%s (%s)" % (true_name, name)
+            print("  %-24s %-6s %s" % (label, "PASS" if ok else "FAIL", detail))
         print("")
         if failures:
             print("NOT READY: %d check(s) failed (%s)" % (len(failures),

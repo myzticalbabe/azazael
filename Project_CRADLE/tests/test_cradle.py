@@ -75,6 +75,29 @@ def test_demo_json_is_parseable_and_has_every_step(capsys) -> None:
     assert any("lesson" in step for step in steps), steps
 
 
+def test_doctor_prints_the_true_names(capsys) -> None:
+    """The vocabulary is visible at the front door, not folklore in a document."""
+    assert cradle.doctor() == 0
+    out = capsys.readouterr().out
+    assert "REAPER (sentinel)" in out, out
+    assert "GRIMOIRE (memory)" in out, out
+
+
+def test_the_names_are_vocabulary_and_not_file_names() -> None:
+    """REAPER and GRIMOIRE name the roles; the paths keep their names on purpose.
+
+    Five gates, a task file and three documents quote `sentinel.py` and `lessons.jsonl`.
+    A rename to match a story would break the checks that make the story worth telling,
+    so the names live in the vocabulary and the disk says what it always said.
+    """
+    sentinel = cradle._load("sentinel", cradle.PARTS["sentinel"])
+    bridge = cradle._load("memory_bridge", cradle.PARTS["memory"])
+    assert sentinel.NAME == "REAPER"
+    assert bridge.GRIMOIRE_NAME == "GRIMOIRE"
+    assert bridge.GRIMOIRE == bridge.LESSONS_FILE == "lessons.jsonl"
+    assert cradle.PARTS["sentinel"].name == "sentinel.py"
+
+
 def test_the_launcher_defaults_to_doctor(monkeypatch) -> None:
     """Running the file with no arguments answers the question a new user has."""
     called = {}

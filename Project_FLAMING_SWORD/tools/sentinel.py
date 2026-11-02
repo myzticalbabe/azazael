@@ -1,9 +1,16 @@
 # coding: utf-8
-"""sentinel -- the pre-action check that runs before a framed change is acted on.
+"""sentinel -- THE REAPER. The pre-action check that runs before a framed change is acted on.
+
+WHY THE NAME
+------------
+A sentinel stands and watches. This does something less polite: when a frame's own claims
+do not resolve, it TAKES the frame out of play and names the claim that failed. That is
+reaping, so the launcher calls it the REAPER and this file keeps the name `sentinel.py`,
+because five gates and three documents quote that path.
 
 WHY IT SHIPS WITH THE DEFENDER
 ------------------------------
-The defender writes the frame; the sentinel refuses to let a frame be ACTED ON when the
+The defender writes the frame; the reaper refuses to let a frame be ACTED ON when the
 frame's own claims do not resolve. That distinction is the whole point: a prompter can
 produce a beautiful frame about a file that does not exist, defended tests that were
 never written, and an evidence command nobody has. The frame reads as rigour; the check
@@ -46,6 +53,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+
+#: The true name of this part. The file is `sentinel.py` and stays that way; the role is
+#: to reap a frame whose claims do not resolve, not to watch it.
+NAME = "REAPER"
 
 #: The closed act vocabulary. An intent that opens with none of these is a topic, not a
 #: task, and the difference is the whole reason this file exists.

@@ -60,6 +60,14 @@ FRAMES_FILE = "frames.jsonl"
 LESSONS_FILE = "lessons.jsonl"
 VERIFICATIONS_FILE = "verifications.jsonl"
 
+#: The lessons ledger is THE GRIMOIRE: the book the cradle keeps. One line per thing
+#: that failed or was refused, written at the moment it failed, because a reconstruction
+#: at session end keeps whatever is still salient and loses the rest. The FILE NAME stays
+#: `lessons.jsonl` -- ledgers already on disk are that name, and a book you have to
+#: migrate to read is a book you stop reading.
+GRIMOIRE = LESSONS_FILE
+GRIMOIRE_NAME = "GRIMOIRE"
+
 #: Appending the same lesson twice is how a ledger becomes noise: the reader sees
 #: "learned 40 times" and stops believing any of it. Content is hashed and an exact
 #: repeat is skipped (the estate's own dedupe rule, and the reason a count means count).
