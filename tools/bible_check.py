@@ -75,6 +75,12 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+#: The rule-resolution predicate is shared with `bible_theme.py`, so the two
+#: gates cannot disagree about whether a rule exists. A tool loaded by path has
+#: no sibling on `sys.path` unless it puts its own directory there.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import canon_rules  # noqa: E402  (after the path insertion, by necessity)
+
 REPO = Path(__file__).resolve().parents[1]
 BIBLE_DIR = REPO / "docs" / "bible"
 CORPUS = BIBLE_DIR / "bible.json"
@@ -254,7 +260,8 @@ def _prose_block_problems(paragraphs, sources, where: str, repo: Path) -> List[s
     return problems
 
 
-def _statute_problems(statute, where: str, repo: Path, canon: Optional[str]) -> List[str]:
+def _statute_problems(statute, where: str, repo: Path, canon: Optional[Dict[str, Dict]],
+                      canon_text: Optional[str] = None) -> List[str]:
     if not isinstance(statute, dict):
         return ["%s: statute must be an object with `rule` and `check`" % where]
     problems: List[str] = []
@@ -267,9 +274,13 @@ def _statute_problems(statute, where: str, repo: Path, canon: Optional[str]) -> 
     elif canon is None:
         problems.append("%s: MANDATES.md is unreadable -- the rule %r cannot be "
                         "verified against canon" % (where, rule))
-    elif RULE_RE.search(rule).group(0) not in canon:
-        problems.append("%s: %r is not in MANDATES.md; the corpus narrates canon, "
-                        "it does not legislate" % (where, rule))
+    else:
+        # A heading with a body, not a mention anywhere in the file: `RULE 0B-D`
+        # appears in two `Related:` lines, and that is what the substring test
+        # was reading as a law.
+        defect = canon_rules.rule_problem(rule, canon, canon_text)
+        if defect:
+            problems.append("%s: %s" % (where, defect))
     check = statute.get("check")
     if not isinstance(check, str) or not check.strip():
         problems.append("%s: statute.check is empty -- a law with nothing executing "
@@ -567,8 +578,9 @@ def validate(data: Dict, repo: Path = REPO) -> Dict:
     """
     problems: List[str] = []
     warnings: List[str] = []
-    canon = MANDATES.read_text(encoding="utf-8", errors="replace") \
+    canon_text = MANDATES.read_text(encoding="utf-8", errors="replace") \
         if MANDATES.exists() else None
+    canon = canon_rules.rule_blocks(canon_text) if canon_text is not None else None
     try:
         domains = declared_domains(repo)
     except CorpusError as exc:
@@ -816,7 +828,7 @@ def validate(data: Dict, repo: Path = REPO) -> Dict:
                                                     verse_position + 1), citation))
                 if "statute" in verse:
                     problems.extend(_statute_problems(verse["statute"], vwhere, repo,
-                                                      canon))
+                                                      canon, canon_text))
                 if "practice" in verse:
                     problems.extend(_practice_problems(verse["practice"], vwhere, repo,
                                                        evidence_ids))

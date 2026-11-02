@@ -175,7 +175,18 @@ def test_out_of_order_sections_are_refused():
 
 def test_a_statute_naming_an_unknown_rule_is_refused():
     verse = _verse(statute={"rule": "RULE 0ZZZ", "check": "python tools/preflight_all.py"})
-    assert "not a RULE in MANDATES.md" in " ".join(_problems(_corpus(verses=[verse])))
+    assert "is not in MANDATES.md" in " ".join(_problems(_corpus(verses=[verse])))
+
+
+def test_a_rule_themed_canon_only_mentions_is_refused(tmp_path):
+    """`RULE 0B-D` inside a `Related:` pointer satisfied the old regex."""
+    (tmp_path / "MANDATES.md").write_text(
+        "## RULE 0B-E: NO MISREPRESENTATION\n\nA claim must not exceed its "
+        "evidence.\n\n**Related:** RULE 0B-D.\n", encoding="utf-8")
+    blocks, text = theme_tool._canon_rules(tmp_path)
+    assert "0B-D" not in blocks
+    problem = theme_tool.canon_rules.rule_problem("RULE 0B-D", blocks, text)
+    assert problem and "has no section" in problem
 
 
 def test_a_statute_whose_check_names_no_path_is_refused():
