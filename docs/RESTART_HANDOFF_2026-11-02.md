@@ -87,7 +87,7 @@ it to make a tree fit turns a measurement into a preference.
 | 47413 | `shardex-r3` | measure | real-tree intake: shard ids byte-identical on a second run |
 | 47415 | `shardex-r4` | design | the interaction law between two arenas, hashed and replayable |
 | 47417 | `shardex-r5` | reframe | the op log as an addressable program (`shardscript.json`) |
-| 47419 | `promptcheck-blind-fresh-host` | decide | `state/head.json` is gitignored, so a fresh host reaches the prompt gate BLIND (exit 2) |
+| ~~47419~~ | ~~`promptcheck-blind-fresh-host`~~ | **RETIRED 2026-11-02** | fixed: the gate records its own reading via `head_state.py --write` when `state/head.json` is absent; measured 12.0 s on a cold tree, once |
 | 47421 | `handoff-expiry-and-failures` | add | this file lacks an expiry line and an *attempted and failed* section, which block 0.5 requires |
 | 47423 | `unified-cli-exemption` | resolve | `tools/unified_cli.py:68` carries a standing failure-evidence exemption; implement the bound or date the exemption |
 
