@@ -220,6 +220,40 @@ else
 fi
 echo ""
 
+# ─── Check 4d: the platform pages still tell the truth ───
+# docs/platforms/ tells a reader how to fit this tree to another machine, and it
+# had already drifted in three ways nobody caught: a command that did not exist
+# (tools/commgate.py), a resolver that was never built (src/CORE/accelerate), and
+# a gate count quoted as prose (15, while the registry said 19). All three were
+# true once. The fix is not diligence, it is re-running: every claim in
+# docs/platforms/claims.json names the command that settles it, and this stanza
+# runs them. A claim that cannot run (no Apple hardware) is UNVERIFIABLE with a
+# reason, and that is reported, never counted as a pass.
+#
+# 5.1 s measured 2026-11-01 (11 claims, two of them subprocess probes). The gate
+# also appears in the registry, so preflight re-runs it; that duplication is the
+# same arrangement the Bible stanza uses, and it costs the same again.
+echo "[Claims] Re-running the claims docs/platforms makes about this tree..."
+if [ "${ALLOW_PLATFORM_CLAIMS:-}" = "1" ]; then
+    echo "[Claims] skipped: ALLOW_PLATFORM_CLAIMS=1 declared."
+    echo ""
+elif [ -f "$SCRIPT_DIR/tools/platform_claims.py" ]; then
+    # Status captured before any filtering: piping into tail makes $? tail's.
+    CLAIMS_OUT=$("$PY" "$SCRIPT_DIR/tools/platform_claims.py" --check 2>&1)
+    CLAIMS_EXIT=$?
+    echo "$CLAIMS_OUT" | tail -15
+    if [ $CLAIMS_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Claims] BLOCKED: a platform page and the tree disagree (see above)."
+        echo "[Claims] Fix the page or the code, then: $PY $SCRIPT_DIR/tools/platform_claims.py"
+        echo "[Claims] Override (declared): ALLOW_PLATFORM_CLAIMS=1."
+        exit 1
+    fi
+else
+    echo "[Claims] gate not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
 # ─── Check 5: mesh wire-or-cut ledger freshness ───
 # NEURAL_MESH_WIRE_OR_CUT.json is GENERATED, and nothing regenerated it when
 # a caller changed -- so it went stale silently. Measured 2026-10-10: the
@@ -309,6 +343,79 @@ if [ "${ALLOW_EVIDENCE_GATE:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/evidence_gat
     echo ""
 else
     echo "[Evidence] gate not found or skipped -- passing loud (check unrunnable)"
+    echo ""
+fi
+
+# ─── Check 6c (blocking): failure-evidence ratchet (2026-11-01) ───
+# The REVIVE-RUNNER lane fixed five sites where a runner DROPPED the evidence of
+# its own failure. Two of the three defect classes are statically visible: an
+# unbounded `subprocess.run/call/check_output/check_call` (a wait that can outlive
+# the thing that started it) and a text-mode call with no `encoding=` (on Windows
+# the platform codec decodes the output, a non-ASCII byte raises inside
+# subprocess's reader thread where it never reaches the caller, and the call looks
+# SUCCESSFUL while yielding EMPTY stdout). The ratchet that catches both,
+# tools/anti_pattern_gate.py, is src/-scoped, so every subprocess call in tools/
+# and scripts/ was invisible to it. Measured on wiring day: 29 sites across 10
+# files -> 0, 550 files, and the one remaining unbounded wait is declared exempt
+# in-call (tools/unified_cli.py, a foreground dispatcher on inherited stdio).
+# Baseline is per (file, category) and NEW debt fails; legacy debt does not.
+# Declared override, never silent: ALLOW_FAILURE_EVIDENCE=1.
+if [ "${ALLOW_FAILURE_EVIDENCE:-}" = "1" ]; then
+    echo "[FailureEvidence] gate skipped: ALLOW_FAILURE_EVIDENCE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_FAILURE_EVIDENCE:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/failure_evidence_gate.py" ]; then
+    echo "[FailureEvidence] Re-deriving waits and encodings from the AST..."
+    # Capture first, then print: `cmd | tail` makes $? tail's status.
+    FE_OUT=$("$PY" "$SCRIPT_DIR/tools/failure_evidence_gate.py" --check 2>&1)
+    FE_EXIT=$?
+    echo "$FE_OUT" | tail -16
+    if [ $FE_EXIT -ne 0 ]; then
+        echo ""
+        echo "[FailureEvidence] BLOCKED: a new call cannot report its own failure."
+        echo "[FailureEvidence] Add timeout= to the wait, encoding=utf-8 to the decode."
+        echo "[FailureEvidence] Accept legacy debt explicitly instead of by accident:"
+        echo "[FailureEvidence]   $PY tools/failure_evidence_gate.py --baseline"
+        echo "[FailureEvidence] Override (declared): ALLOW_FAILURE_EVIDENCE=1."
+        exit 1
+    fi
+    echo ""
+else
+    echo "[FailureEvidence] gate not found or skipped -- passing loud (check unrunnable)"
+    echo ""
+fi
+
+# ─── Check 6d (blocking): the METTHEW family catalogue (2026-11-01) ───
+# docs/METTHEW/highend_families.json used to describe itself as governed while its
+# enforcement block read `"status": "pending"`: the vocabulary rule, the
+# affects/determinism partition and "no claim without a gate" were checked only by
+# pytest, and a file cannot tell whether pytest ran. tools/metthew_families.py is
+# that checker (F1..F7), and F7 now refuses the catalogue if the block goes back to
+# claiming a gate that does not run. It also refuses, by name, the two defect classes
+# this project keeps finding in prose: a dated claim with no source tier (F4) and a
+# byte figure nobody measured (F5) -- the eight payload_bytes_estimate values were
+# arithmetic about files that do not exist and are now gone.
+# Declared override, never silent: ALLOW_METTHEW_CATALOGUE=1.
+if [ "${ALLOW_METTHEW_CATALOGUE:-}" = "1" ]; then
+    echo "[Metthew] catalogue gate skipped: ALLOW_METTHEW_CATALOGUE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_METTHEW_CATALOGUE:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/metthew_families.py" ]; then
+    echo "[Metthew] Judging the high-end family catalogue (F1..F7)..."
+    MC_OUT=$("$PY" "$SCRIPT_DIR/tools/metthew_families.py" --check 2>&1)
+    MC_EXIT=$?
+    echo "$MC_OUT" | tail -8
+    if [ $MC_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Metthew] BLOCKED: the catalogue makes a claim its own gate refuses."
+        echo "[Metthew] Every lineage entry needs source_tier (A/B/C/D) and, above D, a url."
+        echo "[Metthew] A payload is measured (bytes + command + measured_on) or unmeasured."
+        echo "[Metthew] Override (declared): ALLOW_METTHEW_CATALOGUE=1."
+        exit 1
+    fi
+    echo ""
+else
+    echo "[Metthew] no verdict: the checker is absent, or this run was declared skipped."
     echo ""
 fi
 

@@ -64,6 +64,19 @@ _GUARD_RE = re.compile(r"^\s*(?:(?:if|elif|while|until)\s+)?\[\[?\s*!?\s*-[fx]\s
 #:                            wrong place. It must not silently grow.
 #: kind="hardcoded-root"   -> judges a different tree than this repo, so wiring
 #:                            it would enforce a verdict about another checkout.
+#:                            (No entry uses it today: cain_render_gate.py was
+#:                            repointed at this repo and then RETIRED with its
+#:                            document on 2026-11-01. The kind is kept so the
+#:                            next gate that judges another tree has a name.)
+#: kind="runtime-startup"  -> its subject only exists in a live session (a
+#:                            daemon, a floor proxy, stdio children), so it runs
+#:                            at session start. Verified against the runner:
+#:                            the path constant, a command list built from it
+#:                            and the ``subprocess.run`` that executes it must
+#:                            all be present, so deleting the run breaks this.
+#: kind="wired-elsewhere"  -> a third element names the file that executes it;
+#:                            verified with the same invocation-line matcher the
+#:                            hook uses, on THAT file.
 KNOWN_UNWIRED = {
     "aggregate_suite_gate.py": (
         "registered-slow",
@@ -75,19 +88,66 @@ KNOWN_UNWIRED = {
         "basedpyright over the tree, measured at ~64s (module docstring); "
         "slow=True in the preflight_all.py registry",
     ),
-    "failure_evidence_gate.py": (
-        "unregistered",
-        "baseline ratchet over unbounded waits / unnamed encodings in scripts/ "
-        "and tools/; it appears in NO preflight_all.py Gate row -- wiring or "
-        "registering it is an open decision, not an oversight to paper over",
+    # tools/failure_evidence_gate.py is no longer allowlisted: it was "unregistered
+    # and RED" (29 sites, 10 files) until 2026-11-01, when the findings reached 0
+    # and it was wired into pre-commit as Check 6c and registered here as
+    # failure-evidence-ratchet. An allowlist entry would now be a false statement.
+    "anchor_runtime_gate.py": (
+        "registered-slow",
+        "registered 2026-11-01 as preflight_all.py 'anchor-runtime' with "
+        "inside_hook=False: its subject is a LIVE worm registry and memory store "
+        "-- it discovered 257 worms, executed AnchorRetrievalWorm and read "
+        "query_memories() evidence back (7/7 PASS in 5.1s) -- so a bare commit "
+        "hook cannot judge it",
     ),
-    "cain_render_gate.py": (
-        "hardcoded-root",
-        "a module-level root constant points at a different checkout than this "
-        "repo, so a commit here would be judged against another tree; it must "
-        "be repointed before it can be wired",
+    "git_merge_gate.py": (
+        "wired-elsewhere",
+        "2026-11-01: moved from 'unregistered' to the PUSH hook, because a merge "
+        "conflict is a property of the pair (this branch, the remote tip) and "
+        "changes when the other side moves, not when you type. --pre-push reads "
+        "git's own stdin protocol and tests only the pushes that need a merge; "
+        "a per-commit merge simulation was the wrong cost",
+        ".githooks/pre-push",
     ),
+    "mcp_startup_gate.py": (
+        "runtime-startup",
+        "runs at SESSION START, not at commit time: tools/session_start.py "
+        "executes it with --quiet --fix because its subject -- a live daemon, the "
+        "floor proxy and the client's stdio children -- does not exist in a "
+        "commit hook",
+    ),
+    "nurse_ratchet_release_gate.py": (
+        "wired-elsewhere",
+        "executed by the published project's CI, which runs it after "
+        "tools/publicize.py; the trunk copy is the source that CI's "
+        "PUBLIC_MANIFEST.json instrument is materialised from",
+        "Project_Nurse_Ratchet/.github/workflows/ci.yml",
+    ),
+    # tools/cain_render_gate.py is no longer allowlisted because it is no
+    # longer here: RETIRED 2026-11-01 with its own target document, archived
+    # under archive/retired-tools-20261101/. test_retired_tools_stay_retired
+    # holds the retirement in place.
 }
+
+#: Scripts retired from ``tools/`` with the reason and the archive that holds
+#: them. A retirement is a decision, so it is asserted rather than remembered.
+RETIRED_TOOLS = {
+    "cain_render_gate.py": "archive/retired-tools-20261101/RETIREMENT.md",
+    "cain_fix_checks.py": "archive/retired-tools-20261101/RETIREMENT.md",
+}
+
+
+def _kind(name):
+    return KNOWN_UNWIRED[name][0]
+
+
+def _reason(name):
+    return KNOWN_UNWIRED[name][1]
+
+
+def _runner(name):
+    entry = KNOWN_UNWIRED[name]
+    return entry[2] if len(entry) > 2 else None
 
 
 # --------------------------------------------------------------------------- #
@@ -291,8 +351,8 @@ def test_allowlist_entries_still_describe_real_files():
 def test_registered_slow_reasons_match_the_registry():
     """``registered-slow`` is a claim about preflight_all.py; verify it there."""
     text = _preflight_text()
-    for name, (kind, _reason) in sorted(KNOWN_UNWIRED.items()):
-        if kind != "registered-slow":
+    for name in sorted(KNOWN_UNWIRED):
+        if _kind(name) != "registered-slow":
             continue
         path = "tools/%s" % name
         blocks = _gate_blocks_containing(text, path)
@@ -313,12 +373,12 @@ def test_unregistered_gap_is_named_and_does_not_grow():
     new unregistered gate, or someone quietly registering this one, fails here
     so the decision is re-made rather than assumed.
     """
-    declared = {n for n, (kind, _r) in KNOWN_UNWIRED.items() if kind == "unregistered"}
+    declared = {n for n in KNOWN_UNWIRED if _kind(n) == "unregistered"}
     text = _preflight_text()
     observed = {
         name
-        for name, (kind, _r) in KNOWN_UNWIRED.items()
-        if kind == "unregistered"
+        for name in KNOWN_UNWIRED
+        if _kind(name) == "unregistered"
         and not _gate_blocks_containing(text, "tools/%s" % name)
     }
     assert observed == declared, (
@@ -326,21 +386,188 @@ def test_unregistered_gap_is_named_and_does_not_grow():
     )
 
 
-def test_hardcoded_root_reason_is_still_true():
-    """The moment the root is repointed at this repo, re-adjudicate the entry.
+def test_runtime_startup_entries_are_executed_by_their_runner():
+    """``runtime-startup`` claims a runner runs it; verify the chain, not the name.
 
-    The path is read out of the file rather than copied into this assertion:
-    embedding it would add a second copy of the same defect the entry is about,
-    and a fixed file would keep matching its own stale quote.
+    A mention is not an invocation (that is the whole point of this file), so the
+    check demands all three links: the path constant, a command list built from
+    that constant, and the ``subprocess.run`` that consumes the list. Delete the
+    run and the entry fails instead of quietly describing a dead gate.
     """
-    text = (TOOLS / "cain_render_gate.py").read_text(encoding="utf-8", errors="replace")
-    match = re.search(r'AZ\s*=\s*r"([^"]+)"', text)
-    assert match, (
-        "no AZ root constant found in cain_render_gate.py -- its shape changed, "
-        "re-check whether it can now be wired"
+    text = (TOOLS / "session_start.py").read_text(encoding="utf-8", errors="replace")
+    checked = 0
+    for name in sorted(KNOWN_UNWIRED):
+        if _kind(name) != "runtime-startup":
+            continue
+        checked += 1
+        constant = re.search(r"^(\w+)\s*=\s*Path\(\"([^\"]*%s)\"\)" % re.escape(name),
+                             text, re.M)
+        assert constant, (
+            "%s is allowlisted as runtime-startup, but tools/session_start.py has "
+            "no `NAME = Path(\"...%s\")` constant" % (name, name)
+        )
+        var = constant.group(1)
+        assert re.search(r"cmd\s*=\s*\[[^\]]*str\(%s\)" % var, text, re.S), (
+            "%s is allowlisted as runtime-startup, but session_start.py never puts "
+            "str(%s) into a command list -- the constant is decoration" % (name, var)
+        )
+        assert "subprocess.run(cmd" in text, (
+            "%s is allowlisted as runtime-startup, but the command list it builds "
+            "is never executed" % name
+        )
+    assert checked, "no runtime-startup entries to verify -- the allowlist lost mcp_startup_gate.py"
+
+
+def test_wired_elsewhere_entries_are_invoked_by_the_named_runner():
+    """Same matcher as the hook, against the runner each entry names.
+
+    The runner is a third element in the allowlist entry; an entry without one
+    fails here, so "wired elsewhere" cannot be asserted without saying where.
+    """
+    for name in sorted(KNOWN_UNWIRED):
+        if _kind(name) != "wired-elsewhere":
+            continue
+        runner = _runner(name)
+        assert runner, (
+            "%s is allowlisted as wired-elsewhere but names no runner file" % name
+        )
+        path = REPO / runner
+        assert path.is_file(), "runner not found for %s: %s" % (name, path)
+        invoked = _invoked_scripts(path.read_text(encoding="utf-8", errors="replace"))
+        assert "tools/%s" % name in invoked, (
+            "%s is allowlisted as wired-elsewhere, but no executed line of %s "
+            "names tools/%s (found %r)" % (name, runner, name, invoked)
+        )
+
+
+def test_retired_tools_stay_retired():
+    """A retired tool must be gone from tools/, archived, and documented.
+
+    Retiring is a decision (2026-11-01: cain_render_gate.py's target document was
+    deleted, so it could not judge anything). Asserting all three halves stops
+    the file reappearing as an "orphan" that a future inventory has to
+    re-adjudicate from scratch -- and stops the archive from being emptied
+    while the docs still point at it.
+    """
+    for name, record in sorted(RETIRED_TOOLS.items()):
+        assert not (TOOLS / name).exists(), (
+            "%s was retired and is back in tools/ -- restore it only by "
+            "answering the reason in %s" % (name, record)
+        )
+        archived = REPO / record.replace("RETIREMENT.md", name)
+        assert archived.is_file(), (
+            "%s was retired but its archived copy is missing: %s" % (name, archived)
+        )
+        assert (REPO / record).is_file(), (
+            "%s has no retirement record at %s -- a retirement with no reason "
+            "on disk is an unexplained deletion" % (name, record)
+        )
+    for name in RETIRED_TOOLS:
+        assert name not in KNOWN_UNWIRED, (
+            "%s is retired, so an allowlist entry describes a file that is gone"
+            % name
+        )
+
+
+# --------------------------------------------------------------------------- #
+# The PUSH hook: a second artefact, planted separately, judged separately
+# --------------------------------------------------------------------------- #
+#
+# `.githooks/pre-push` is generated by `tools/bible_ship.py --install-hooks` and
+# gitignored, so on a fresh clone it does not exist at all -- and until 2026-11-02
+# nothing asserted that it did. The commit hook could be perfectly wired while
+# every push left the machine unjudged, which is the one state no gate in the
+# commit path can see: the merge gate runs at PUSH time and nowhere else.
+#
+# So the status is three-valued and the middle value is the defect:
+#   OK      the hook exists and an executed line runs the merge gate
+#   ABSENT  no hook (a clone that never ran the installer) -- a warning, because
+#           nothing is half-wired: there is also no core.hooksPath
+#   STALE   a hook exists and does not run the merge gate -- a FAILURE, because
+#           this is what a template edit or a stale regeneration leaves behind,
+#           and it is silent at push time
+
+
+def _load_preflight():
+    """Import ``tools/preflight_all.py`` by path (it is a script, not a package)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("preflight_all_under_test", PREFLIGHT)
+    assert spec and spec.loader, "preflight_all.py could not be loaded from %s" % PREFLIGHT
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_planted_push_hook_runs_the_merge_gate():
+    """The hook on THIS disk must run the merge gate, not merely mention it.
+
+    Read as text and matched with the same rules the commit-hook matcher uses,
+    because that is the pair of instruments that must agree: a matcher that
+    accepts a comment would pass a hook whose gate had been deleted.
+    """
+    preflight = _load_preflight()
+    state, message = preflight.push_hook_status(preflight.read_push_hook())
+    assert state == "OK", "push hook is %s: %s" % (state, message)
+    invoked = _invoked_scripts((REPO / ".githooks" / "pre-push").read_text(
+        encoding="utf-8", errors="replace"))
+    assert "tools/git_merge_gate.py" in invoked, invoked
+
+
+def test_a_push_hook_that_only_mentions_the_gate_is_stale():
+    """Negative control: the shape that gets shipped by accident must fail."""
+    preflight = _load_preflight()
+    mentions_only = (
+        "#!/bin/sh\n"
+        "# tools/git_merge_gate.py --pre-push -- prose, not an invocation\n"
+        'echo "run tools/git_merge_gate.py --pre-push to judge this push"\n'
+        "exit 0\n"
     )
-    hardcoded = Path(match.group(1))
-    assert hardcoded.is_absolute() and hardcoded != REPO, (
-        "cain_render_gate.py no longer points its AZ constant at another tree -- "
-        "re-check whether it can now be wired, then drop the allowlist entry"
+    state, message = preflight.push_hook_status(mentions_only)
+    assert state == "STALE", (state, message)
+    assert "--install-hooks" in message, message
+
+
+def test_a_push_hook_naming_the_gate_without_the_push_mode_is_stale():
+    """`--pre-push` is not decoration: without it the gate ignores git's stdin."""
+    preflight = _load_preflight()
+    wrong_mode = "#!/bin/sh\npython tools/git_merge_gate.py --base origin/master\n"
+    state, _message = preflight.push_hook_status(wrong_mode)
+    assert state == "STALE", state
+
+
+def test_a_missing_push_hook_is_absent_and_not_a_failure():
+    """A clone with no hook has nothing half-wired; the remedy is named."""
+    preflight = _load_preflight()
+    state, message = preflight.push_hook_status(None)
+    assert state == "ABSENT", (state, message)
+    assert "--install-hooks" in message, message
+    assert "pre-push" in message, message
+
+
+def test_an_unreadable_push_hook_is_not_reported_as_absent(tmp_path, monkeypatch):
+    """The state a bare `except OSError: return None` could not express.
+
+    A directory where the hook should be makes read_text raise IsADirectoryError (an
+    OSError). That used to come back as None, which the caller renders as ABSENT -- a
+    warning about a fresh clone -- when the truth is that a hook is present and cannot
+    be judged. The staged scanner flagged the shape as `except_return_default` while
+    this commit was landing, so the defect is fixed and pinned here.
+    """
+    preflight = _load_preflight()
+    blocked = tmp_path / "pre-push"
+    blocked.mkdir()
+    monkeypatch.setattr(preflight, "PUSH_HOOK", blocked)
+    read = preflight.read_push_hook()
+    assert read.text is None and read.error, read
+    state, message = preflight.push_hook_status(read)
+    assert state == "UNREADABLE", (state, message)
+    assert "cannot be read" in message, message
+
+
+def test_preflight_check_reports_the_push_hook():
+    """The check has to be CALLED, not merely defined -- the whole point."""
+    source = PREFLIGHT.read_text(encoding="utf-8", errors="replace")
+    assert source.count("push_hook_status(read_push_hook())") >= 2, (
+        "push_hook_status is not consulted by both --check and --self-test"
     )

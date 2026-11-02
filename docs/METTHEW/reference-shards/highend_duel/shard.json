@@ -1,5 +1,5 @@
 {
-  "id": "highend-duel@sha256:397c3d157e7d648997589e0ff43d7460609aecbedf91806bcb6a845e947bbf54",
+  "id": "highend-duel@sha256:ea100737aa98196ecd0430bf56bbb1fb17d21d3db2134f9af3cfc49d678e3e14",
   "version": "0.1.0",
   "genre": "arena",
   "tier": "highend",
@@ -13,9 +13,9 @@
     },
     {
       "path": "SHARD.md",
-      "sha256": "9573530687df487e68a14b5589e9ededf30ea82d4c98586a4807b8be3405782a",
+      "sha256": "cdac5495bf49c996271f08d2da560c1217f156395c1f8dd13d5de8a6dcdc0319",
       "role": "data",
-      "size_bytes": 3647
+      "size_bytes": 3852
     }
   ],
   "entrypoint": "main.py",
@@ -63,9 +63,9 @@
   "budget": {
     "payload_bytes_max": 1048576,
     "tick_budget_ms": {
-      "p50": 0.0007,
-      "p99": 0.0008,
-      "scene": "duel-1v1 integer sim, py3.15t author box"
+      "p50": 0.00074,
+      "p99": 0.00078,
+      "scene": "duel-1v1 integer sim, py3.15t author box (re-based 2026-11-01: 5 x 360 ticks)"
     }
   },
   "licence": "MIT",
@@ -73,9 +73,9 @@
   "execution_model": "resident_host",
   "env_allowlist": [],
   "tick_budget": {
-    "p50_ms": 0.0007,
-    "p99_ms": 0.0008,
-    "scene": "duel-1v1 integer sim, py3.15t author box"
+    "p50_ms": 0.00074,
+    "p99_ms": 0.00078,
+    "scene": "duel-1v1 integer sim, py3.15t author box (re-based 2026-11-01: 5 x 360 ticks)"
   },
   "competitive": false,
   "provenance": []

@@ -61,6 +61,9 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple
 
 REPO = Path(__file__).resolve().parent.parent
 HOOK = REPO / ".githooks" / "pre-commit"
+#: Generated and gitignored (`.githooks/*`), planted by tools/bible_ship.py; it
+#: carries the push-time gates, which no other check can reach.
+PUSH_HOOK = REPO / ".githooks" / "pre-push"
 EVIDENCE = REPO / "logs" / "preflight_all_evidence.json"
 
 #: A gate that hangs must not hang the gate runner. The suite gates are the long
@@ -335,6 +338,25 @@ GATES: Tuple[Gate, ...] = (
         requires=("docs/bible/bible.json",),
     ),
     Gate(
+        name="platform-claims",
+        argv=("tools/platform_claims.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=(
+            "docs/platforms/claims.json -- every claim a platform page makes, "
+            "re-run: the documented command, its output substring and its exit code"
+        ),
+        control_test="tests/test_platform_claims.py",
+        control="platform-claims-self-test",
+        uncontrolled_because=None,
+        # The ledger is the thing judged; absent, the check would pass on an
+        # empty claim list, which is how a guide stops being checked quietly.
+        requires=("docs/platforms/claims.json",),
+    ),
+    Gate(
         name="pmb-outcome-observer",
         argv=("tools/pmb_session_observe.py", "--commit-ok", "--quiet"),
         interpreter="pmb-venv",
@@ -383,6 +405,56 @@ GATES: Tuple[Gate, ...] = (
         requires=("logs/aggregate_isolation_baseline.json",),
     ),
     Gate(
+        # Registered 2026-11-01 after the wiring control named this gate as
+        # unwired-but-present. What decides it is the SUBJECT: the gate needs a
+        # live worm registry and a live memory store (it discovered 257 worms,
+        # executed AnchorRetrievalWorm and read query_memories() evidence back),
+        # so a bare commit hook -- which may run with neither -- cannot judge it.
+        # inside_hook=False is therefore the honest placement, and `--check`
+        # still runs it as part of the measurement instead of leaving a gate that
+        # nothing executes. Measured the same day: 7/7 PASS in 5.1s.
+        name="anchor-runtime",
+        argv=("tools/anchor_runtime_gate.py",),
+        interpreter="python3",
+        env=("PYTHONPATH=src",),
+        inside_hook=False,
+        blocking=True,
+        slow=True,
+        reads=("the live worm registry (discover_worms), one executed "
+               "AnchorRetrievalWorm run, and query_memories(source='technique-link') "
+               "evidence rows -- no baseline file"),
+        control_test=None,  # its controls are internal; see uncontrolled_because
+        control=None,
+        uncontrolled_because=(
+            "no separate control artifact: the gate runs its own negative "
+            "controls on every invocation (N1 a bogus worm name must NOT resolve "
+            "through discover_worms, N2 a bogus subject must match ZERO evidence "
+            "rows). Those are demonstrated in the gate's own output rather than "
+            "by a test file, so this row is reported UNCONTROLLED, never green"),
+        requires=(),  # reads live processes/store, not a file this runner can hash
+    ),
+    Gate(
+        # Registered 2026-11-01, the day its 29 findings across 10 files reached
+        # 0 (7 of them in tools/mcp_startup_gate.py, the one this lane had to be
+        # able to trust before wiring it). The reason it was NOT registered
+        # before is the reason it could be registered now: it was RED, and a gate
+        # that fails on day one is a gate somebody disables.
+        name="failure-evidence-ratchet",
+        argv=("tools/failure_evidence_gate.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("every subprocess.run/call/check_output/check_call under tools/ and "
+               "scripts/ (AST, 550 files): an unbounded wait, or a text-mode call "
+               "with no encoding= -- vs logs/failure_evidence_baseline.json"),
+        control_test="tests/test_failure_evidence_gate.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("logs/failure_evidence_baseline.json",),
+    ),
+    Gate(
         name="type-check",
         argv=("tools/type_check_gate.py", "--check"),
         interpreter="python3",
@@ -421,6 +493,32 @@ GATES: Tuple[Gate, ...] = (
         control=None,
         uncontrolled_because=None,
         requires=("state/evidence_gate_baseline.json", "NEURAL_MESH_WIRE_OR_CUT.json"),
+    ),
+    Gate(
+        name="metthew-catalogue",
+        # Registered 2026-11-01 with the checker it names. Before this the
+        # catalogue carried `"status": "pending"` and nothing ran it: the gate
+        # existed only as a promise inside the file it was supposed to judge.
+        # It also walks each family's reference shard through metthew_validate
+        # (V15 included), so a shard whose files drifted from its hashes is
+        # refused here as well as in the shard gate.
+        argv=("tools/metthew_families.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("docs/METTHEW/highend_families.json (F1..F7) plus every manifest a "
+               "family lists in reference_shards[]"),
+        control_test="tests/test_metthew_families.py",
+        control=None,
+        uncontrolled_because=(
+            "the controls ship inside the gate (`--selftest` applies ten mutations to the "
+            "real catalogue, requires each named refusal, and requires two healthy "
+            "claims to be ACCEPTED), and preflight has no subcommand that runs them; "
+            "tests/test_metthew_families.py drives both directions"
+        ),
+        requires=("docs/METTHEW/highend_families.json",),
     ),
 )
 
@@ -804,9 +902,50 @@ sys.exit(0)
     return False, "control failed (exit %s): %s" % (record.exit_code, record.detail)
 
 
+def control_platform_claims(interpreter_path: str) -> Tuple[bool, str]:
+    """Drive the claims CLI both ways: a true claim passes, a false one goes STALE.
+
+    The gate's whole job is to make a page's claims falsifiable, so the control
+    asserts exit 1 on a ledger that contradicts the tree, not merely that the
+    healthy path exits 0. `--no-page-coverage` is passed because a two-claim
+    fixture cannot cite every page; coverage is asserted by the real run.
+    """
+    import json as _json
+    import tempfile as _tempfile
+
+    claims = REPO / "tools" / "platform_claims.py"
+    if not claims.is_file():
+        return False, "tools/platform_claims.py is absent, so there is nothing to control"
+    with _tempfile.TemporaryDirectory() as tmp:
+        good = Path(tmp) / "healthy.json"
+        bad = Path(tmp) / "stale.json"
+        doc = "docs/platforms/windows.md"
+        if not (REPO / doc).is_file():
+            return False, "no docs/platforms/windows.md to cite in the fixture"
+        good.write_text(_json.dumps({
+            "schema": "platform-claims/1",
+            "claims": [{"id": "h", "doc": doc, "claim": "gate exists", "kind": "path",
+                        "scope": "repo", "path": "tools/platform_claims.py"}],
+        }), encoding="utf-8")
+        bad.write_text(_json.dumps({
+            "schema": "platform-claims/1",
+            "claims": [{"id": "s", "doc": doc, "claim": "gate is absent", "kind": "absent",
+                        "scope": "repo", "path": "tools/platform_claims.py"}],
+        }), encoding="utf-8")
+        base = [interpreter_path, "-X", "utf8", str(claims), "--check", "--no-page-coverage", "--ledger"]
+        healthy = run_control(base + [str(good)], env=())
+        if healthy.exit_code != 0:
+            return False, "a true claim was rejected (exit %s): %s" % (healthy.exit_code, healthy.detail)
+        stale = run_control(base + [str(bad)], env=())
+        if stale.exit_code == 0:
+            return False, "a claim that contradicts the tree passed -- the oracle cannot fail"
+    return True, "true claim exits 0, contradicting claim exits 1"
+
+
 CONTROLS = {
     "anti-pattern-ratchet": control_anti_pattern_ratchet,
     "agent-orders-negative-control": control_agent_orders,
+    "platform-claims-self-test": control_platform_claims,
 }
 
 
@@ -851,6 +990,13 @@ def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
     ok, message = hook_parity(gates, read_hook())
     print("[preflight] hook parity: %s" % message)
     if not ok:
+        return 1
+
+    # An installed push hook that lost its merge gate is a regression, and one
+    # thing no other gate can see: nothing runs at push time until a push.
+    push_state, push_message = push_hook_status(read_push_hook())
+    print("[preflight] push hook: %s -- %s" % (push_state, push_message))
+    if push_state in ("STALE", "UNREADABLE"):
         return 1
 
     evidence = load_evidence()
@@ -923,6 +1069,84 @@ def read_hook() -> Optional[str]:
         return None
 
 
+class HookRead(NamedTuple):
+    """What reading the push hook produced: its text, or the reason there is none.
+
+    A bare ``Optional[str]`` conflated two states that need different severities:
+    ABSENT (no hook on a fresh clone, a warning) and UNREADABLE (a hook that is
+    there and cannot be judged). The second is a real defect and was reported as
+    the first -- the `except_return_default` shape the staged scanner flags, caught
+    here on 2026-11-01 while landing the catalogue gate.
+    """
+
+    text: Optional[str]
+    error: Optional[str] = None
+
+
+def read_push_hook() -> HookRead:
+    try:
+        return HookRead(PUSH_HOOK.read_text(encoding="utf-8", errors="replace"))
+    except FileNotFoundError:
+        # Absence is a normal state (`.githooks/*` is gitignored and the hook is
+        # planted by the installer), so this says so rather than pretending the
+        # hook exists and is empty. `push_hook_status` turns it into ABSENT.
+        return HookRead(None)
+    except OSError as exc:
+        # Present but unjudgeable: a directory, a permission error, a locked file.
+        # It is NOT absence, and calling it absence would hide a broken hook.
+        print("[preflight] push hook unreadable (%s: %s) -- parity cannot be verified"
+              % (type(exc).__name__, exc))
+        return HookRead(None, "%s: %s" % (type(exc).__name__, exc))
+
+
+def push_hook_status(text) -> Tuple[str, str]:
+    """(state, message) for the PUSH-time hook, in that hook's own terms.
+
+    States:
+      OK      the hook exists AND runs the merge gate with --pre-push.
+      ABSENT  no hook at all -- a clone that has not run the installer. A
+              warning with the remedy, never a failure: the clone has no
+              core.hooksPath either, so nothing here is half-wired.
+      STALE   a hook exists and DOES NOT run the merge gate. This is the real
+              defect: it is the state an edit or a stale template leaves behind,
+              and it is silent at push time (the push just goes).
+      UNREADABLE
+              a hook exists and cannot be read at all, so none of the above can
+              be established. A failure, not a warning: "cannot tell" is not
+              "fine".
+
+    Accepts a `HookRead` (the normal path) or a bare string/None (the old shape,
+    still used by callers that hand in fixture text).
+
+    A mention is not an invocation, so comments and `echo` hints are skipped by
+    the same rule `hook_gate_scripts` uses for the commit hook.
+    """
+    if isinstance(text, HookRead):
+        if text.error:
+            return "UNREADABLE", ("the push hook exists but cannot be read (%s); "
+                                  "whether it runs the merge gate is unknown. Fix or "
+                                  "remove %s." % (text.error, PUSH_HOOK.name))
+        text = text.text
+    if text is None:
+        return "ABSENT", ("push hook not installed -- plant it with: "
+                          "python tools/bible_ship.py --install-hooks . --hooks pre-push")
+    runs_gate = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or line.startswith("echo "):
+            continue
+        if "tools/git_merge_gate.py" in line and "--pre-push" in line:
+            runs_gate = True
+            break
+    if not runs_gate:
+        return "STALE", ("the push hook exists but does not run "
+                         "tools/git_merge_gate.py --pre-push, so a branch that "
+                         "cannot merge is only discovered after the push. "
+                         "Re-plant it: python tools/bible_ship.py "
+                         "--install-hooks . --hooks pre-push")
+    return "OK", "the push hook runs the merge gate (tools/git_merge_gate.py --pre-push)"
+
+
 def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
                   strict: bool = False, allow_blind: Sequence[str] = ()) -> int:
     """Prove fail-ability. A check that passes on nothing has proved nothing.
@@ -942,6 +1166,14 @@ def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
     print("   %s: %s" % ("OK" if parity_ok else "FAIL", parity_message))
     if not parity_ok:
         failures.append("hook parity: %s" % parity_message)
+
+    # The PUSH hook is a second, separately-generated artefact: the commit hook
+    # can be perfectly wired while every push leaves the machine ungated.
+    push_state, push_message = push_hook_status(read_push_hook())
+    print("   %s: %s" % ({"OK": "OK", "ABSENT": "WARN", "STALE": "FAIL",
+                          "UNREADABLE": "FAIL"}[push_state], push_message))
+    if push_state == "STALE":
+        failures.append("push hook: %s" % push_message)
 
     print("\n== 2. interpreters actually execute (%d distinct) ==" % len({g.interpreter for g in gates}))
     # A missing interpreter is a failure only for a gate that is supposed to
