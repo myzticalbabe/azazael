@@ -178,6 +178,58 @@ def test_handoff_naming_no_commit_is_refused(tmp_path):
 # The gate's own controls, as the registry runs them
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# The fresh-host path: a reading is RECORDED, never assumed and never waived
+# --------------------------------------------------------------------------- #
+
+FAKE_TOOL = '''\nimport json, pathlib, sys\nroot = pathlib.Path(__file__).resolve().parents[1]\nstate = root / "state"\nstate.mkdir(exist_ok=True)\nif %r:\n    print("BLIND: collection could not run", file=sys.stderr)\n    sys.exit(2)\n(state / "head.json").write_text(json.dumps({"schema": "head-state/1",\n    "collected_tests": %d, "skills": %d, "head": "deadbee", "short": "deadbee"}),\n    encoding="utf-8")\nprint("wrote state/head.json")\n'''
+
+
+def _scratch_repo(tmp_path, *, fail: bool, tests: int = 4242, skills: int = 7):
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "head_state.py").write_text(
+        FAKE_TOOL % (fail, tests, skills), encoding="utf-8")
+    return tmp_path
+
+
+def test_missing_reading_is_recorded_then_used(tmp_path):
+    # THE 2026-11-02 finding: state/head.json is gitignored, so a fresh host was
+    # Blind at exit 2 and the commit stanza passed it loud. The gate now records a
+    # reading through the tool that owns the format.
+    repo = _scratch_repo(tmp_path, fail=False)
+    measured = prompt_check.readings(repo)
+    assert measured["collected_tests"] == 4242
+    assert (repo / "state" / "head.json").is_file()
+
+
+def test_a_recorded_reading_is_judged_against_immediately(tmp_path):
+    repo = _scratch_repo(tmp_path, fail=False, tests=4242)
+    measured = prompt_check.readings(repo)
+    assert prompt_check.check_text(HEAD + "4,242 tests exist.\n", repo=repo,
+                                   measured=measured) == []
+    assert prompt_check.check_text(HEAD + "5,380 tests exist.\n", repo=repo,
+                                   measured=measured)
+
+
+def test_recording_failure_is_blind_not_a_pass(tmp_path):
+    repo = _scratch_repo(tmp_path, fail=True)
+    with pytest.raises(prompt_check.Blind):
+        prompt_check.readings(repo)
+
+
+def test_no_recorder_and_no_reading_is_blind(tmp_path):
+    (tmp_path / "tools").mkdir()
+    with pytest.raises(prompt_check.Blind):
+        prompt_check.readings(tmp_path)
+
+
+def test_unreadable_reading_is_blind_not_empty(tmp_path):
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "head.json").write_text("{not json", encoding="utf-8")
+    with pytest.raises(prompt_check.Blind):
+        prompt_check.readings(tmp_path)
+
+
 def test_built_in_controls_pass():
     """`prompt-check-controls`: the registry executes this via preflight_all."""
     assert prompt_check.selftest() == 0

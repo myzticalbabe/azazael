@@ -326,7 +326,12 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_prompt_check.py",
         control="prompt-check-controls",
         uncontrolled_because=None,
-        requires=("state/head.json",),
+        # `requires` names an artifact whose ABSENCE makes the gate blind. This one
+        # is different: `state/head.json` is gitignored by design, and the gate now
+        # records it on demand (head_state.py --write) before judging, so a missing
+        # reading is a condition it repairs, not a blindness. If the recording
+        # itself fails the gate exits 2 -- a failed gate, not a BLIND registration.
+        requires=(),
     ),
     Gate(
         name="supervisor-verdict",

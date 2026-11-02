@@ -21,6 +21,10 @@ recorded reading; none can be satisfied by better prose.
   P3 numbers-dated         every count ("N tests", "N skills", "N rules") matches
                            state/head.json within tolerance, or carries "measured
                            <date>" / "cached" / "historical" on the same line.
+                           When the reading is ABSENT the gate records one by
+                           running tools/head_state.py --write, because that file
+                           is gitignored by design and a fresh host would
+                           otherwise be Blind on every commit.
                            A number with no date is a rumour wearing knowledge.
   P4 handoff-resolves      the newest docs/*HANDOFF*.md names a commit that
                            resolves. A handoff citing a SHA nobody can check is a
@@ -47,7 +51,10 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 REPO = Path(__file__).resolve().parents[1]
-STATE = REPO / "state" / "head.json"
+#: The recorded reading, relative to whichever tree the gate is judging. It is
+#: deliberately derived from `repo` and not pinned to this file's location: the
+#: controls build a scratch tree and must be able to point the gate at it.
+STATE_REL = Path("state") / "head.json"
 #: The contract must be reachable at the top. 4,000 characters is roughly the first
 #: screen and a half; a block below that competes with the canon it is meant to
 #: replace, and the measurement behind the number is that the canon it would sit
@@ -144,12 +151,52 @@ def resolve(path: str, repo: Path = REPO) -> Optional[bool]:
     return any((root / cleaned).exists() for root in _roots(repo))
 
 
-def readings(repo: Path = REPO) -> Dict[str, object]:
+def _load_state(path: Path) -> Dict[str, object]:
     try:
-        return json.loads(STATE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        raise Blind("no %s -- the counts in the prompt cannot be compared to a "
-                    "recording; run tools/head_state.py --write" % STATE)
+        return json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise Blind("cannot read %s: %s" % (path, exc)) from exc
+    except json.JSONDecodeError as exc:
+        raise Blind("%s is not valid JSON: %s" % (path, exc)) from exc
+
+
+def record_reading(repo: Path = REPO, timeout: float = 900.0) -> Dict[str, object]:
+    """Record a reading for this tree, by running the tool that owns the recording.
+
+    This is the fresh-host path. `state/head.json` is gitignored on purpose -- it
+    describes ONE working tree, not a claim that travels with the repository -- so
+    a clone or a new machine has no reading and the gate used to answer BLIND
+    (exit 2), which the commit stanza then passed loud. A gate that is unrunnable
+    on every host but the one that wrote it is the same defect as one that cannot
+    fail: measured 2026-11-02, the only host that could judge the instruction files
+    was the one already carrying a state file.
+
+    The remedy is NOT a tracked seed (a seed is stale by construction and would be
+    compared against as if current) and NOT a loosened comparison. The gate records
+    what it needs, from the tool that owns the format, and then judges against
+    that. A failure to record is Blind -- never a pass.
+    """
+    script = repo / "tools" / "head_state.py"
+    if not script.is_file():
+        raise Blind("no %s and no head_state.py to record one with" % (repo / STATE_REL))
+    try:
+        done = subprocess.run([sys.executable, "-X", "utf8", str(script), "--write"],
+                              cwd=str(repo), capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise Blind("could not run %s --write: %s" % (script, exc)) from exc
+    if done.returncode != 0:
+        detail = (done.stdout + done.stderr).strip().replace("\n", " ")[:400]
+        raise Blind("%s --write exited %s: %s" % (script, done.returncode, detail))
+    print("reading: %s --write recorded %s" % (script.name, done.stdout.strip()[:160]))
+    return _load_state(repo / STATE_REL)
+
+
+def readings(repo: Path = REPO) -> Dict[str, object]:
+    path = repo / STATE_REL
+    if path.is_file():
+        return _load_state(path)
+    return record_reading(repo)
 
 
 def _section_start(text: str, pos: int) -> int:
@@ -284,7 +331,7 @@ def live(json_out: bool = False, explicit: Optional[Sequence[str]] = None) -> in
     prompts = [Path(p) for p in explicit] if explicit else lane_prompts()
     if not prompts:
         raise Blind("no lane prompt found on this host -- nothing was verified")
-    measured = readings()
+    measured = readings(REPO)
     resolver = git_resolver()
     findings: List[Tuple[str, str]] = []
     for path in prompts:
