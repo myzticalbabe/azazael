@@ -88,6 +88,8 @@ shard exemption.
 | load time | ≤ 3 s cold, ≤ 1 s warm | M-02 |
 | determinism | state hash identical across Windows / Ubuntu / Kali for the same input log | M-06 |
 | no-network play | LAN only; zero outbound sockets during play | M-06 |
+| tick budget p99 | < 33.3 ms (720p/30) | M-02 bench, per scene |
+| env isolation | zero undeclared env reads | M-03 validator |
 
 Reference low-end box (to be named in M-02 from what is actually available —
 `PCMARK`-style claims are not measurements): one Windows laptop with integrated
@@ -146,9 +148,10 @@ anti-cheat, no monetisation, no GPU compute requirement, no rewrite of
   friends and fails for 5,000 strangers. M-10 documents that boundary instead of
   pretending a file-exchange protocol scales.
 - **Determinism across hosts is harder than it looks**: float math, iteration
-  order, libm differences. M-06 must fix a numeric policy (fixed-point or a
-  bounded-float discipline) or the replay verifier will disagree across the
-  three environments in ways that look like cheating.
+  order, libm differences. M-06 must fix a numeric policy (Wasm 3.0 deterministic
+  profile makes this a host property, not an author burden) or the replay
+  verifier will disagree across the three environments in ways that look like
+  cheating.
 - **A cheat inside the golden run is invisible to the validator.** Only a peer
   re-running it, or an antibody shard, catches it. This is a limit of local
   trust, and it must be stated in the player-facing docs, not buried.
@@ -156,11 +159,33 @@ anti-cheat, no monetisation, no GPU compute requirement, no rewrite of
   not results; if the reference box cannot hit 720p/30, the plan's genre list
   changes rather than the number quietly moving.
 
-## 7. First three things to do (in order, each shippable alone)
+## 7. Contract decisions (all five resolved before M-01 freeze)
 
-1. **M-01** — the manifest spec. Without it, M-03 has nothing to validate and
-   M-05 is three ad-hoc demos.
-2. **M-03** — the validator, with its negative controls. This is the whole
-   trust story: liftable, budgeted, deterministic, or refused.
-3. **M-05** — one genre, one shard, played by two people on one laptop. If that
-   is not fun, no amount of contract work fixes it.
+| # | change | decision | rationale |
+|---|---|---|---|
+| 1 | **Wasm 3.0 host, deterministic profile, threads+SIMD off** | **ACCEPTED** | Replaces sandbox + determinism + numeric policy with one standard; Wasm 3.0 completed Sep 2025, spec numerics Oct 2026 |
+| 2 | **One-download player** (browser/WASM target) | **ACCEPTED** | Install-Python-first is where players stop; browser target also gives sandbox for free |
+| 3 | **Hubs as versioned libraries**, declared and counted | **ACCEPTED** | Banning external refs forces engine duplication inside 24 files; census already models hubs as "mycelium" |
+| 4 | **`competitive` flag** on determinism | **ACCEPTED** | Hash chain is tax vs strangers; circle has none. Solo/puzzle/doc-only shards opt out. |
+| 5 | **Content-addressed shard IDs** + host-version fallback | **ACCEPTED** | Version skew reads as "broken game"; `arena@sha256:...` allows coexistence |
+
+Deferred (still real): federated index (R5, M-08), relay/stream transport (R7, M-08),
+asset provenance (R9, M-01 field), visual identity or budget change (R10, M-02),
+naming (R11, now or never).
+
+## 8. Manifest spec additions (from deeper dive, added to M-01)
+
+Three fields the contract cannot be validated without, all consequences of
+measured defects:
+
+| field | type | default | why |
+|---|---|---|---|
+| `execution_model` | `resident_host \| one_shot` | required | `resident_host` required for 720p/30; `one_shot` only fits Python/JS (call-per-tick exceeds tick budget) |
+| `env_allowlist` | `string[]` | `[]` (empty) | Current polyglot path hands over player's entire environment (API tokens, PMB bearer tokens). Validator blocks undeclared reads. |
+| `tick_budget` | `{p50_ms, p99_ms, scene}` | required | M-02 measurement; p99 < 33.3 ms for 720p/30. Rules out Rust/Go/PowerShell/Bash in call-per-tick model. |
+
+## 9. First three things to do (in order, each shippable alone)
+
+1. **M-01** — the manifest spec (with the three fields above and five contract decisions frozen). Without it, M-03 has nothing to validate and M-05 is three ad-hoc demos.
+2. **M-03** — the validator, with its negative controls including two new ones: a fixture reading a secret from `os.environ` (blocked by `env_allowlist`), and a fixture exceeding its declared `tick_budget` (blocked on measurement). This is the whole trust story: liftable, budgeted, deterministic, or refused.
+3. **M-05** — one genre, one shard, played by two people on one laptop. If that is not fun, no amount of contract work fixes it.
