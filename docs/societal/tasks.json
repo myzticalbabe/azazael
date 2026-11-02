@@ -1,0 +1,147 @@
+{
+  "schema": "azazael.societal.tasks/1",
+  "project": "GRAFT",
+  "created": "2026-11-01",
+  "source_of_truth": "docs/societal/PROBLEMS_2026-11-01.md",
+  "status": "recorded",
+  "note": "depends_on may name tasks in docs/METTHEW/tasks.json (M-xx) or a sibling here (S-xx). Nothing in this file is built; every entry is a recorded goal with the gate that would decide it is real.",
+  "tracks": {
+    "F": {
+      "name": "GRAFT -- social problems answered by sharing shards",
+      "gates": "S-01 -> S-06 are independent; S-01 first",
+      "source": "docs/societal/PROBLEMS_2026-11-01.md",
+      "one_line": "ship the piece, not the platform: content-addressed, offline, deterministic, provenance-carrying units that a school, a tenant, a small charity or a creator can run without an account"
+    }
+  },
+  "tasks": [
+    {
+      "id": "S-01",
+      "track": "F",
+      "title": "Second-life device kit: three offline shards that run on hardware already owned",
+      "problem": "device divide: 21M US students lack home internet (tier D, 2026-04-09) while 62 Mt of e-waste is generated a year with 22.3% properly recycled (tier C, 2025-02-26)",
+      "evidence": [
+        {"claim": "21 million students lack home internet access", "source": "https://www.evelynlearning.com/blog/the-digital-divide-crisis-how-cloud-based-learning-platforms-bridge-the-21-million-student-internet-gap", "date": "2026-04-09", "tier": "D"},
+        {"claim": "62 Mt e-waste 2022, 22.3% properly recycled", "source": "https://excessithardware.com/understanding-the-global-e-waste-crisis/", "date": "2025-02-26", "tier": "C"}
+      ],
+      "grafts": [
+        {"piece": "ladder presentation tiers", "path": "docs/METTHEW/highend_families.json"},
+        {"piece": "low-end ceiling 2 MiB / 24 files", "path": "tools/metthew_validate.py"},
+        {"piece": "a runnable shard whose tiers prove one hash", "path": "docs/METTHEW/reference-shards/highend_ladder"}
+      ],
+      "owner": "freebuff",
+      "depends_on": ["M-03", "M-05"],
+      "deliverable": "three shard bundles (a reader, a maths drill, an offline reference) each declaring tier 0 as handheld, plus one run-anywhere page and a cold-start measurement",
+      "acceptance": "each bundle is <= 2097152 bytes and <= 24 files, passes tools/metthew_validate.py, and a cold start on the weakest available machine is measured and recorded rather than estimated",
+      "risk": "software that fits the hardware still needs a human to hand it over; without a school or library partner this is a shelf artefact",
+      "status": "pending"
+    },
+    {
+      "id": "S-02",
+      "track": "F",
+      "title": "Tenant answer packet: deterministic form assembly, never advice",
+      "problem": "civil justice gap: 92% of low-income Americans received no or insufficient help for civil legal problems (LSC, tier B); working precedents assemble forms rather than advise (MADE 2025-10-15, tier B)",
+      "evidence": [
+        {"claim": "92% of low-income Americans did not receive any or enough legal help for civil legal problems", "source": "https://justicegap.lsc.gov/", "date": "2026", "tier": "B"},
+        {"claim": "MADE helps self-represented Massachusetts tenants prepare the seven forms they need", "source": "https://www.mdaccesstojustice.org/news-insights/technologies-are-helping-bridge-the-access-to-justice-gap/", "date": "2025-10-15", "tier": "B"},
+        {"claim": "Tenant Power Toolkit fills eviction responses", "source": "https://evictioninnovation.org/innovations/legal-services-initiatives/", "date": "2026", "tier": "B"}
+      ],
+      "grafts": [
+        {"piece": "shard golden run + headless proof", "path": "docs/METTHEW/shard.schema.json"},
+        {"piece": "refusal discipline for a stale declaration", "path": "tools/metthew_validate.py"},
+        {"piece": "provenance and author key fields", "path": "docs/METTHEW/shard.schema.json"}
+      ],
+      "owner": "freebuff",
+      "depends_on": ["M-03", "M-06"],
+      "deliverable": "one county's answer packet: 12 questions, a dated rules table (rules_version), generated forms with computed filing dates, and a sha256 of the produced packet",
+      "acceptance": "the packet hash is identical on two hosts; a rules_version older than a declared horizon is REFUSED rather than answered; a legal-aid reviewer signs off that the output is forms, not advice",
+      "risk": "stale law is worse than no tool; the horizon check is the whole safety property and it must be the first thing built",
+      "status": "pending"
+    },
+    {
+      "id": "S-03",
+      "track": "F",
+      "title": "Companion safety kernel: on-device persona, enumerated intents, crisis protocol, local record",
+      "problem": "AI companions now face statute before substrate: California signed 13 youth-facing AI bills on 2026-09-10 (tier A) and New York required a self-harm detection protocol from 2025-11-05 (tier C); UNICEF and the European Parliament both published 2026 briefs (tier A)",
+      "evidence": [
+        {"claim": "13 bills targeting online and AI-related risks to children, incl. companion chatbots and K-12 pupil data", "source": "https://www.gov.ca.gov/2026/09/10/governor-newsom-signs-the-strongest-child-safety-chatbot-and-social-media-laws-in-the-nation/", "date": "2026-09-10", "tier": "A"},
+        {"claim": "New York operators must implement a reasonable self-harm detection protocol from 2025-11-05", "source": "https://www.davispolk.com/insights/client-update/california-and-new-york-launch-ai-companion-safety-laws", "date": "2025-10-30", "tier": "C"},
+        {"claim": "six-jurisdiction policy brief on AI companions and children's rights", "source": "https://www.unicef.org/media/181131/file/UNICEF-When-AI-becomes-friend-policy-brief-2026.pdf", "date": "2026", "tier": "A"},
+        {"claim": "European Parliament briefing on AI companions", "source": "https://www.europarl.europa.eu/RegData/etudes/BRIE/2026/789299/EPRS_BRI(2026)789299_EN.pdf", "date": "2026", "tier": "A"}
+      ],
+      "grafts": [
+        {"piece": "persona-card + intent-enum (model proposes, sim disposes)", "path": "docs/METTHEW/highend_families.json"},
+        {"piece": "bounded affect modelling", "path": "src/PSYCHE/affect.py"},
+        {"piece": "hash-chained record of what was said, when", "path": ".audit/anchors.jsonl"}
+      ],
+      "owner": "freebuff",
+      "depends_on": ["M-13", "M-18"],
+      "deliverable": "a persona card schema, an enumerated intent set, a crisis-protocol state machine with a named human escalation target, local-only logging, and an evidence pack mapping each control to the bill that asks for it",
+      "acceptance": "a test proves the model cannot emit an intent outside the enum; the crisis path is exercised end to end with a recorded escalation; no network egress occurs during a session (proved by a negative control that fails if any egress is attempted)",
+      "risk": "crisis handling is clinical and legal work; shipping it without a named human escalation partner is worse than shipping nothing, and the evidence pack is not legal advice",
+      "status": "pending"
+    },
+    {
+      "id": "S-04",
+      "track": "F",
+      "title": "Records backlog bench: triage, redaction review, appeal skeleton, hash-chained log",
+      "problem": "public-records backlog: about 340,000 overdue FOIA requests at federal agencies as of 2025-09-30 (NYT 2026-07-30, tier C); GAO has documented the pattern (tier A/B)",
+      "evidence": [
+        {"claim": "federal agencies accumulated a backlog of nearly 340,000 overdue requests as of 2025-09-30", "source": "https://www.nytimes.com/2026/07/29/us/politics/foia-public-document-requests.html", "date": "2026-07-30", "tier": "C"},
+        {"claim": "FOIA backlogs hinder transparency and accountability", "source": "https://www.gao.gov/blog/foia-backlogs-hinder-government-transparency-and-accountability", "date": "2024-03-14", "tier": "A"}
+      ],
+      "grafts": [
+        {"piece": "compliance scanner and governance ledger", "path": "src/CORE/compliance"},
+        {"piece": "evidence gate", "path": "tools/evidence_gate.py"},
+        {"piece": "hash-chained audit trail", "path": ".audit/anchors.jsonl"}
+      ],
+      "owner": "freebuff",
+      "depends_on": ["M-06"],
+      "deliverable": "ingest of one agency's response set, deterministic triage queue, redaction review UI, appeal-letter skeleton with statutory dates computed from a dated table, and a hash-chained action log",
+      "acceptance": "on a seeded 200-page set, redaction recall and precision are both measured, with a clean-page control that must not be redacted; the appeal dates are checked against the statute table for 3 worked examples",
+      "outside_repo": [".bcc_audit/03_tooling/behavior_trace.py and process_corpus.py live in C:/Users/clint, NOT in this repo; the bench would import that discipline, so it is a real external dependency rather than a graftable path"],
+      "risk": "a redaction false negative is an irreversible disclosure; the tool must be review-first and must publish its measured false-negative rate, not just its accuracy",
+      "status": "pending"
+    },
+    {
+      "id": "S-05",
+      "track": "F",
+      "title": "Small-org evidence pack: the artefact an insurer asks for, run quarterly",
+      "problem": "small organisations are the ransomware economy's main customer: 32% of surveyed charities faced an attack and over 2 in 5 report limited or no preparation (tier D, 2026); 17 registered nonprofit ransomware victims in January 2026 alone (tier C)",
+      "evidence": [
+        {"claim": "17 registered ransomware victims in January 2026 alone", "source": "https://www.citsolutions.net/non-profits-are-ransomware-targets-utilize-lean-budget/", "date": "2026-06-26", "tier": "C"},
+        {"claim": "32% of charities faced a cyber attack; over 2 in 5 report limited or no preparation", "source": "https://www.facebook.com/gambitinsurance/posts/-over-2-in-5-charities-report-limited-or-no-preparation-for-a-cyber-attacknew-re/122236047734564728/", "date": "2026", "tier": "D"}
+      ],
+      "grafts": [
+        {"piece": "staged scanner gate", "path": "tools/staged_scanner_gate.py"},
+        {"piece": "scan comparison across runs", "path": "tools/compare_scans.py"},
+        {"piece": "failure evidence gate", "path": "tools/failure_evidence_gate.py"},
+        {"piece": "hash-chained receipts", "path": ".audit/anchors.jsonl"}
+      ],
+      "owner": "freebuff",
+      "depends_on": [],
+      "deliverable": "one pack script plus a report template: secret scan, dependency scan, backup integrity check, access-review checklist, each with a hash-chained receipt and a non-empty 'what we could not check' section",
+      "acceptance": "the pack runs twice on the same machine and the receipts chain; the report refuses to print a clean bill when a component was skipped (the skipped component is named); a fixture repo with a planted secret is caught",
+      "risk": "an evidence pack describes a machine's state, not the absence of an attacker; presenting it as assurance is the failure mode to avoid",
+      "status": "pending"
+    },
+    {
+      "id": "S-06",
+      "track": "F",
+      "title": "Provenance stamp for creators: content-addressed lineage, verifiable offline",
+      "problem": "attribution: AI-generated material competes with human work and a creator's only defence is provable lineage; platforms are not obliged to provide it",
+      "evidence": [],
+      "evidence_gap": "no external statistic was recorded for this one in the 2026-11-01 searches; the problem statement (AI material competes with human work and platforms owe creators no lineage) is qualitative here. Re-search before this task is scheduled, and treat the local manifest fields as the ANSWER, not as evidence of the problem.",
+      "grafts": [
+        {"piece": "author_pubkey + provenance fields", "path": "docs/METTHEW/shard.schema.json"},
+        {"piece": "bundle fingerprint discipline", "path": "tools/metthew_validate.py"},
+        {"piece": "licence gate recorded as M-15", "path": "docs/METTHEW/tasks.json"}
+      ],
+      "owner": "freebuff",
+      "depends_on": ["M-15"],
+      "deliverable": "stamp <file> --author <key> and verify <file>, both offline: a sidecar lineage record naming the inputs by hash and the author by public key",
+      "acceptance": "stamp then verify round-trips with no network; a file whose bytes are altered fails verification; a sidecar whose lineage names a missing input is refused",
+      "risk": "a stamp proves lineage, not authorship of an idea; it cannot stop a plagiarist and must not be marketed as if it could",
+      "status": "pending"
+    }
+  ]
+}
