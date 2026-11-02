@@ -19,7 +19,9 @@ sys.path.insert(0, str(ROOT.parent))
 
 import transubstantiate as T  # noqa: E402
 
-ANIMATION = ROOT / "fixtures" / "YGGDRASIL_CLEAVE.html"
+# The fixture lives beside the tool, not inside tests/. Pointing at tests/fixtures made
+# every real-animation test skip forever with a reason ("not in this tree") that was false.
+ANIMATION = ROOT.parent / "fixtures" / "YGGDRASIL_CLEAVE.html"
 
 NO_CLOCK = """<script>
 const GROW=10000;
@@ -149,3 +151,51 @@ def test_selftest_reports_pass():
     rc, lines = T.selftest()
     assert rc == 0, "\n".join(lines)
     assert any("negative control refused" in line for line in lines)
+
+
+def _rules_from(source, out):
+    """Extract and write, returning the rules path. `extract` returns the dict, not a code."""
+    rules = T.extract(Path(source))
+    out.write_text(json.dumps(rules, indent=1), encoding="utf-8")
+    return out
+
+
+def _predict(rules_path):
+    rc, doc = T.predict(rules_path)
+    return rc, doc, {f["rule"]: f for f in doc.get("rules", [])}
+
+
+def test_predict_scores_the_real_animation(tmp_path):
+    rules = _rules_from(ANIMATION, tmp_path / "rules.json")
+    rc, doc, by_name = _predict(rules)
+    assert rc == T.OK, json.dumps(doc, indent=1)
+    assert doc["verified"] >= 3
+    for name in ("clock", "seed", "entities"):
+        assert by_name[name]["state"] == "VERIFIED", by_name[name]["observed"]
+
+
+def test_predict_falsifies_a_literal_phase_boundary(tmp_path):
+    """The measured source hardcodes `p<9000` inside a 30000 ms GROW window."""
+    rules = _rules_from(ANIMATION, tmp_path / "rules.json")
+    _, _, by_name = _predict(rules)
+    assert by_name["phases"]["state"] == "FALSIFIED"
+    assert "9000" in by_name["phases"]["observed"] and "line 220" in by_name["phases"]["observed"]
+
+
+def test_predict_control_refuses_a_hook_that_never_draws(tmp_path):
+    """Negative control: the clock is set but never reaches draw(), so the run REFUSES.
+
+    A predictor that only ever emits VERIFIED is not evidence. This source still passes
+    extraction -- the hook and its argument are there -- and the use site is what fails.
+    """
+    src = tmp_path / "nodraw.html"
+    text = ANIMATION.read_text(encoding="utf-8")
+    mutated = text.replace("VCLOCK=ms; draw(ms);", "VCLOCK=ms;")
+    assert mutated != text, "fixture no longer contains the draw(ms) call the control removes"
+    src.write_text(mutated, encoding="utf-8")
+    rules = _rules_from(src, tmp_path / "rules.json")
+    rc, doc, by_name = _predict(rules)
+    assert rc == T.REFUSED, json.dumps(doc, indent=1)
+    assert by_name["clock"]["state"] == "FALSIFIED"
+    assert "NOT drawn" in by_name["clock"]["observed"]
+    assert doc["state"] == "REFUSED"

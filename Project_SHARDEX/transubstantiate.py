@@ -615,6 +615,258 @@ def verify(out_dir: Path) -> Tuple[int, Dict[str, Any]]:
 
 
 # --------------------------------------------------------------------------- #
+# L3 -- predict: a rule that cannot be wrong is a label, not a finding
+# --------------------------------------------------------------------------- #
+#
+# Extraction records the LINE that proves a rule is present. Presence is not causation:
+# a constant can be declared, cited and never read by the motion. `--predict` closes that
+# gap the only way it can be closed without executing the page -- it perturbs the rule,
+# states the observable change the ORIGINAL animation must show, and then measures that
+# observable at the rule's **use site** in the source, re-derived from the source's own
+# declarations rather than from the extracted JSON.
+#
+# Three outcomes, and the middle one is not a pass:
+#   VERIFIED                  the use site carries the value, and perturbing it moves the
+#                             observable by the predicted amount
+#   FALSIFIED                 the source contradicts the rule (hardcoded value, fixed loop
+#                             bound, seed never consumed)
+#   PRESENT-BUT-UNFALSIFIED   no observable exists in the source to be measured, so the
+#                             rule is scored as neither verified nor false, and named
+
+PREDICT_SHAPE = "shardex-predict-v1"
+
+_CONSTS_RE = re.compile(r"\b([A-Z][A-Z0-9_]*)\s*=\s*(\d[\d\s+]*?)\s*(?=[,;])")
+_TABLE_RE = re.compile(r"\bLIMBS\s*=\s*\[(.*?)\];", re.S)
+_ROW_RE = re.compile(r'\[\s*"[^"]+"\s*,\s*-?1\s*,\s*[\d.]+\s*,\s*"#[0-9a-fA-F]{3,8}"\s*,')
+_HOOK_RE = re.compile(r"window\.__step\s*=\s*function\s*\(\s*(\w+)\s*\)")
+_BOUND_RE = re.compile(
+    r"\bp\s*<\s*(\d+(?:\s*\+\s*\d+)*|[A-Z][A-Z0-9_]*(?:\s*\+\s*(?:[A-Z][A-Z0-9_]*|\d+))*)")
+
+
+def _consts(text: str) -> Dict[str, int]:
+    """All-integer constants declared by the source, resolved against each other.
+
+    Read from the SOURCE, never from the rules dict: a measurement that borrows the value
+    it is testing cannot disagree with it.
+    """
+    raw = {m.group(1): m.group(2) for m in _CONSTS_RE.finditer(text)}
+    out: Dict[str, int] = {}
+
+    def resolve(name: str, seen: frozenset) -> Optional[int]:
+        if name in out:
+            return out[name]
+        if name in seen or name not in raw:
+            return None
+        total, parts = 0, [p.strip() for p in raw[name].split("+")]
+        for part in parts:
+            if part.isdigit():
+                total += int(part)
+                continue
+            value = resolve(part, seen | {name})
+            if value is None:
+                return None
+            total += value
+        out[name] = total
+        return total
+
+    for name in raw:
+        resolve(name, frozenset())
+    return out
+
+
+def _eval(expr: str, consts: Dict[str, int]) -> Optional[int]:
+    total = 0
+    for part in (p.strip() for p in expr.split("+")):
+        if part.isdigit():
+            total += int(part)
+        elif part in consts:
+            total += consts[part]
+        else:
+            return None
+    return total
+
+
+def _boundaries(text: str, consts: Dict[str, int]) -> List[Tuple[int, str, int]]:
+    """Every `p < X` threshold the phase branch tests, as (value, expression, line).
+
+    The expression is kept, not just its value: a boundary written `GROW` is governed by
+    the constant and will move when it is perturbed, while a boundary written `9000` is a
+    literal that only LOOKS like a phase. Collapsing both to an int destroys the very
+    distinction the prediction is about.
+    """
+    seen, out = set(), []
+    for m in _BOUND_RE.finditer(text):
+        expr = " ".join(m.group(1).split())
+        value = _eval(expr, consts)
+        if value is None or (value, expr) in seen:
+            continue
+        seen.add((value, expr))
+        out.append((value, expr, text[:m.start()].count("\n") + 1))
+    return sorted(out)
+
+
+def predict(rules_path: Path, source_override: Optional[Path] = None
+            ) -> Tuple[int, Dict[str, Any]]:
+    """Score each extracted rule against the source's use sites. Exit below 3/5."""
+    rules = json.loads(Path(rules_path).read_text(encoding="utf-8"))
+    declared = Path(rules["source"]["path"])
+    path = Path(source_override) if source_override else declared
+    if not path.is_absolute() and not path.exists():
+        path = HERE.parent / declared
+    if not path.exists():
+        return COULD_NOT_RUN, {"state": "NO-SOURCE",
+                               "reason": "%s is not on disk -- predictions are measured at "
+                                         "use sites in the source, so the source is required" % path}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    consts = _consts(text)
+    findings: List[Dict[str, Any]] = []
+
+    # 1. clock -- does the hook's argument reach the frame, or is the hook a stub? ----
+    hook = _HOOK_RE.search(text)
+    if not hook:
+        findings.append({"rule": "clock", "state": "FALSIFIED",
+                         "perturb": "freeze the clock at t=0",
+                         "predicted": "every frame shows phase GROW",
+                         "observed": "no `window.__step(arg)` in the source -- the extracted "
+                                     "hook is not the one the page uses"})
+    else:
+        arg = hook.group(1)
+        body = text[hook.end():hook.end() + 400]
+        drives = re.search(r"\b\w+\s*=\s*%s\b" % re.escape(arg), body) is not None
+        draws = re.search(r"\bdraw\s*\(\s*%s\b" % re.escape(arg), body) is not None
+        bounds = _boundaries(text, consts)
+        states = sum(1 for b, _, _ in bounds if b > 0) + 1
+        findings.append({
+            "rule": "clock", "perturb": "pin the hook argument to 0 (freeze the frame)",
+            "predicted": "the phase never leaves GROW: 1 of the %d phase state(s) reachable" % states,
+            "observed": "%s is assigned into the clock: %s; passed to draw(): %s; %d phase "
+                        "boundar%s reachable" % (arg, "set" if drives else "NOT set",
+                                                 "drawn" if draws else "NOT drawn", states,
+                                                 "y" if states == 1 else "ies"),
+            "state": "VERIFIED" if drives and draws and states > 1 else "FALSIFIED"})
+
+    # 2. phases -- perturb GROW, and measure the caption boundary move by that much ----
+    src_grow = consts.get("GROW")
+    bounds = _boundaries(text, consts)
+    if src_grow is None or not bounds:
+        findings.append({"rule": "phases", "state": "FALSIFIED", "perturb": "GROW += 1000",
+                         "predicted": "every caption boundary written in terms of GROW moves +1000 ms",
+                         "observed": "the source declares no GROW and tests no `p <` threshold"})
+    else:
+        delta = 1000
+        # Who is governed by the constant, and who only looks like it? Non-GROW names in
+        # an expression are held fixed, so the perturbation isolates GROW's influence.
+        governed = [b for b in bounds if re.search(r"\bGROW\b", b[1])]
+        literal = [b for b in bounds if not re.search(r"\bGROW\b", b[1])]
+        shifted = {(e, ln): v for v, e, ln in _boundaries(text, dict(consts, GROW=src_grow + delta))}
+        moved = [shifted[(e, ln)] - v for v, e, ln in governed]
+        all_moved = bool(governed) and all(d == delta for d in moved)
+        # A literal threshold inside the GROW window means the caption ladder stops
+        # tracking the animation: the constant governs the motion and not the words.
+        shadow = [b for b in literal if 0 < b[0] < src_grow]
+        agrees = src_grow == int(rules["phases"].get("GROW", -1))
+        detail = "source GROW=%d; governed %s move %s; extracted GROW=%s" % (
+            src_grow, [(v, e) for v, e, _ in governed], moved, rules["phases"].get("GROW"))
+        if shadow:
+            detail += ("; LITERAL %s shadow%s a phase constant -- `%s` at line %d is a hardcoded "
+                       "boundary inside the GROW window, so the caption ladder does not follow "
+                       "the animation" % ([b[0] for b in shadow], "s" if len(shadow) == 1 else "",
+                                          shadow[0][1], shadow[0][2]))
+        findings.append({
+            "rule": "phases", "perturb": "GROW += %d" % delta,
+            "predicted": "every boundary written in terms of GROW moves +%d ms; a literal "
+                         "boundary does not move, and while it sits inside the GROW window "
+                         "the phases do not govern the caption ladder" % delta,
+            "observed": detail,
+            "state": "VERIFIED" if agrees and all_moved and not shadow else "FALSIFIED"})
+
+    # 3. seed -- the literal must be consumed inside the branch, not merely declared ----
+    src_seed = None
+    seedm = re.search(r"mulberry32\s*\(\s*(\d+)\s*\)", text) or re.search(r"seed\s*=\s*(\d+)", text)
+    if seedm:
+        src_seed = int(seedm.group(1))
+    branch_at = text.find("function branch(")
+    branch_body = text[branch_at:branch_at + 800] if branch_at >= 0 else ""
+    consumes = re.search(r"\bR\s*\(\s*\)", branch_body) is not None
+    if src_seed is None:
+        findings.append({"rule": "seed", "state": "FALSIFIED", "perturb": "seed += 1",
+                         "predicted": "every branch bearing changes",
+                         "observed": "no seed literal reaches an RNG constructor"})
+    elif not consumes:
+        findings.append({"rule": "seed", "state": "PRESENT-BUT-UNFALSIFIED",
+                         "perturb": "seed += 1",
+                         "predicted": "every branch bearing changes",
+                         "observed": "mulberry32(%d) exists but R() is never called inside "
+                                     "branch(), so no bearing is shown to depend on it" % src_seed})
+    else:
+        rnd_a = mulberry32(src_seed)
+        rnd_b = mulberry32(src_seed + 1)
+        first_a, first_b = rnd_a(), rnd_b()
+        agrees = src_seed == int(rules["seed"]["value"])
+        findings.append({
+            "rule": "seed", "perturb": "seed += 1",
+            "predicted": "the first draw -- and so every branch bearing -- changes",
+            "observed": "mulberry32(%d) first draw %.9f vs %.9f at %d (%s); R() is consumed "
+                        "inside branch()" % (src_seed, first_a, first_b, src_seed + 1,
+                                             "differs" if first_a != first_b else "IDENTICAL"),
+            "state": "VERIFIED" if agrees and first_a != first_b else "FALSIFIED"})
+
+    # 4. entities -- drop a row; exactly one fewer limb must reach the render ---------
+    table = _TABLE_RE.search(text)
+    rows = len(_ROW_RE.findall(table.group(1))) if table else 0
+    loop = re.search(r"LIMBS\s*\.\s*forEach|i\s*<\s*LIMBS\s*\.\s*length", text) is not None
+    if not table or not rows:
+        findings.append({"rule": "entities", "state": "FALSIFIED", "perturb": "drop one row",
+                         "predicted": "the rendered limb count drops by 1",
+                         "observed": "no LIMBS table in the source"})
+    else:
+        findings.append({
+            "rule": "entities", "perturb": "drop one row from LIMBS",
+            "predicted": "%d limbs rendered instead of %d" % (rows - 1, rows),
+            "observed": "source table holds %d row(s); render loop %s; extracted table holds %d"
+                        % (rows, "iterates the table" if loop else "does NOT iterate the table",
+                           len(rules.get("limbs") or [])),
+            "state": "VERIFIED" if loop and rows == len(rules.get("limbs") or []) else "FALSIFIED"})
+
+    # 5. branch law -- recursion and shrink are visible; the leaf COUNT is a runtime fact
+    recursive = bool(branch_at >= 0 and re.search(r"\bbranch\s*\(", branch_body[20:]))
+    shrink = re.search(r"len\s*\*\s*\(\s*\.\d+\s*\+\s*R\(\)\s*\*\s*\.\d+\s*\)", branch_body)
+    if not (recursive and shrink):
+        findings.append({"rule": "branch", "state": "FALSIFIED", "perturb": "depth += 1",
+                         "predicted": "the drawn segment count grows with the extra level",
+                         "observed": "branch() is %s recursive and %s a length-shrink expression"
+                                     % ("" if recursive else "NOT", "carries" if shrink else "has no")})
+    else:
+        findings.append({
+            "rule": "branch", "state": "PRESENT-BUT-UNFALSIFIED", "perturb": "depth += 1",
+            "predicted": "the drawn segment count grows with the extra level",
+            "observed": "branch() recurses with `len*(.68+R()*.12)` -- the law is present, but "
+                        "the segment count is produced by canvas calls at runtime and no "
+                        "number in the source states it, so there is nothing to measure "
+                        "without executing the page"})
+
+    verified = sum(1 for f in findings if f["state"] == "VERIFIED")
+    doc = {"shape": PREDICT_SHAPE, "source": str(path).replace("\\", "/"),
+           "source_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+           "rules_sha256": hashlib.sha256(Path(rules_path).read_bytes()).hexdigest(),
+           "rules": findings, "verified": verified, "total": len(findings),
+           "state": "SCORED" if verified >= 3 else "REFUSED"}
+    return (OK if verified >= 3 else REFUSED), doc
+
+
+def _print_predict(doc: Dict[str, Any]) -> int:
+    for f in doc["rules"]:
+        print("%-11s %-24s %s" % (f["rule"], f["state"], f["perturb"]))
+        print("            predicted: %s" % f["predicted"])
+        print("            observed : %s" % f["observed"])
+    print("verified %d/%d" % (doc["verified"], doc["total"]))
+    if doc["state"] == "REFUSED":
+        print("REFUSED: fewer than 3 of 5 rules are falsifiable in this source -- the "
+              "extraction is a reading, not a result")
+    return OK if doc["state"] == "SCORED" else REFUSED
+
+
+# --------------------------------------------------------------------------- #
 # selftest: one that must pass, one that must be refused
 # --------------------------------------------------------------------------- #
 
@@ -749,6 +1001,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--forge", default="", help="a rules.json to build a 3D scene from")
     ap.add_argument("--verify", default="", help="a forged scene directory")
     ap.add_argument("--bind-shard", default="", help="a shard.json to bind rules into")
+    ap.add_argument("--predict", default="", help="a rules.json: score each rule at its use site")
+    ap.add_argument("--source", default="", help="override the source a --predict run measures")
     ap.add_argument("--out", default="", help="output directory or rules path")
     ap.add_argument("--title", default="")
     ap.add_argument("--selftest", action="store_true")
@@ -786,6 +1040,13 @@ def main(argv: Optional[List[str]] = None) -> int:
               % (rules["fractal"].get("root_depth"), rules["fractal"].get("root_len"),
                  rules["fractal"].get("root_width")))
         return OK
+
+    if args.predict:
+        rc, doc = predict(Path(args.predict), Path(args.source) if args.source else None)
+        if rc == COULD_NOT_RUN:
+            print("COULD NOT RUN: %s" % doc.get("reason"))
+            return rc
+        return _print_predict(doc)
 
     if args.bind_shard:
         if not args.forge:

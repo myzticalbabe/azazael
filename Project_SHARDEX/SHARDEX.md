@@ -221,6 +221,7 @@ python Project_SHARDEX/transubstantiate.py --extract <animation.html> --out .tra
 python Project_SHARDEX/transubstantiate.py --forge .transub/rules.json --out .transub
 python Project_SHARDEX/transubstantiate.py --bind-shard .transub/shards/<id>/shard.json \
         --forge .transub/rules.json
+python Project_SHARDEX/transubstantiate.py --predict .transub/rules.json
 NODE_PATH=$(npm root -g) node tools/capture_transubstantiation.js .transub 240
 python Project_SHARDEX/transubstantiate.py --verify .transub
 python Project_SHARDEX/transubstantiate.py --selftest
@@ -253,6 +254,50 @@ carried with evidence. No pixel, colour ramp, sprite or label is carried. In 3D 
 `spread` rule becomes the outward tilt of a ring around the trunk, because the 2D source fans
 limbs across the single axis it has; that mapping is a documented interpretation, not an
 extracted constant.
+
+### L3 — a rule that cannot be wrong is a label, not a finding
+
+Extraction records the **line that proves a rule is present**. Presence is not causation: a
+constant can be declared, cited, and never read by the motion. `--predict` closes that gap
+without executing the page — it perturbs the rule, states the observable change the original
+animation must show, and measures that observable at the rule's **use site** in the source,
+re-derived from the source's own declarations rather than from the extracted JSON (a
+measurement that borrows the value it tests cannot disagree with it).
+
+```bash
+python Project_SHARDEX/transubstantiate.py --predict .transub/rules.json
+```
+
+Three outcomes, and the middle one is deliberately not a pass: **VERIFIED** (the use site
+carries the value and the perturbation moves the observable by the predicted amount),
+**FALSIFIED** (the source contradicts the rule), **PRESENT-BUT-UNFALSIFIED** (there is no
+observable in the source to measure, so the rule is scored as neither). Fewer than 3 of 5
+verified is a REFUSED run.
+
+Measured on `docs/YGGDRASIL_CLEAVE.html` (sha256 `81e1dabe48223b87…`): **3/5 verified**,
+and the two non-passes are the interesting part.
+
+- `phases` — **FALSIFIED, and it found a defect in the animation.** `GROW += 1000` moves the
+  governed boundaries `p<GROW` and `p<GROW+LABEL` by exactly +1000 ms, so the constant is
+  live in the motion. But line 220 tests `p<9000` — a literal inside the 30 000 ms GROW
+  window — so "growing the trunk…" ends at 9 s while the trunk is still growing for another
+  21 s, and the branch text at line 221 fires for the rest of the growth. The caption ladder
+  does not follow the clock it is captioning. (Left unfixed here: it is the evidence that
+  the oracle can fail. The one-line repair is `p<GROW`.)
+- `branch` — **PRESENT-BUT-UNFALSIFIED.** `branch()` recurses with `len*(.68+R()*.12)`; the
+  law is present, but the segment count is produced by canvas calls at runtime and no number
+  in the source states it, so there is nothing to measure without executing the page. Scored
+  as neither rather than counted as a pass.
+- `clock`, `seed`, `entities` — VERIFIED. `ms` reaches `draw()`; `mulberry32(20261028)` first
+  draw is `0.064762334` against `0.850172859` at seed+1, so a bearing change is predicted and
+  `R()` is shown consumed inside `branch()`; the source `LIMBS` table holds 10 rows and the
+  render loop iterates it, matching the extracted table.
+
+**The oracle has a control.** The same source with `draw(ms)` removed from `window.__step`
+(so the hook sets the clock and never paints) scores **2/5 and REFUSES**, with `clock`
+FALSIFIED naming `set / NOT drawn` ("assigned into the clock: set; passed to draw(): NOT
+drawn"). A predictor that only ever emits VERIFIED is not
+evidence, so this control runs alongside the positive one.
 
 ## Live mutation: an image becomes a mesh, and the mesh changes while it renders
 
