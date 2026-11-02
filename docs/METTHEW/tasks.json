@@ -4,6 +4,83 @@
   "created": "2026-10-31",
   "source_of_truth": "docs/METTHEW/METTHEW_PLAN_2026-10-31.md",
   "status": "planned",
+  "execution_contract": {
+    "shape": "defensive-v1",
+    "written_at": "2026-11-01",
+    "executor": "a fallible model -- after the 2026-11-01 restart that is DeepSeek, and the shape is written so a different model does not invalidate it",
+    "written_because": "a task written for a careful reader fails differently under a model that would rather produce a paragraph than a command: 'implement X' has no predicate, so every output satisfies it and the cheapest satisfying output is a summary claiming success. The shape moves the refusal into the task, so the executor cannot satisfy it by describing it.",
+    "required_fields": [
+      "acceptance",
+      "control",
+      "refusal",
+      "evidence"
+    ],
+    "known_failure_modes": [
+      {
+        "id": "DKM-1",
+        "mode": "declares success in prose (\"this passes\", \"done\", \"looks right\") without running anything",
+        "caught_by": "acceptance",
+        "check_that_fires": "T2 predicate-runnable + T5 no-acceptance in tools/task_shape_check.py"
+      },
+      {
+        "id": "DKM-2",
+        "mode": "satisfies the letter: implements the happy path, never exercises the refusal, so a broken gate reads as working",
+        "caught_by": "control",
+        "check_that_fires": "T3 control-present (a control that is not something REFUSED is itself refused)"
+      },
+      {
+        "id": "DKM-3",
+        "mode": "deletes the obstacle -- a test, a claim, a gate, a detector -- to make the run green",
+        "caught_by": "defends + must_not_break (the defensive frame)",
+        "check_that_fires": "defender D2 defends-something, D3 break-list"
+      },
+      {
+        "id": "DKM-4",
+        "mode": "re-scopes the task to something easier and reports the easier thing as the task",
+        "caught_by": "deliverable + refusal",
+        "check_that_fires": "T1 shape-complete (deliverable) + the frame's rule 4 (do not narrow, widen or improve the intent)"
+      },
+      {
+        "id": "DKM-5",
+        "mode": "answers a question instead of doing the work, at length",
+        "caught_by": "acceptance (a command, not a discussion)",
+        "check_that_fires": "T2 predicate-runnable; a task whose acceptance cannot be run is not shipped as a task"
+      },
+      {
+        "id": "DKM-6",
+        "mode": "reports a detector that could not run as zero findings",
+        "caught_by": "evidence",
+        "check_that_fires": "T4 evidence-lands (a path or command, never a promise) + FLAMING SWORD's UNRUN rule"
+      },
+      {
+        "id": "DKM-7",
+        "mode": "claims a control is in place without exercising it (RULE 0B-D)",
+        "caught_by": "evidence + control",
+        "check_that_fires": "the tool's own --selftest, which must be the evidence named"
+      },
+      {
+        "id": "DKM-8",
+        "mode": "over-generalises one incident into a universal rule that decides nothing",
+        "caught_by": "refusal (a named materialised trigger)",
+        "check_that_fires": "META-LEVELS-CANON Heaven tests: name the decision class and three trajectories, or drop the rule"
+      }
+    ],
+    "how_the_shape_defends": [
+      "the finish line is a command and an outcome, so \"describe the result\" and \"produce the result\" stop looking alike",
+      "the control is a mutation that MUST be refused, so a happy path cannot masquerade as a test",
+      "the refusal is written before the work, so the executor cannot choose the landing condition after seeing what it built",
+      "the evidence field names where the proof lands, so a claim with nowhere to land is visible as empty",
+      "legacy tasks are counted and printed, not failed: a gate that retroactively fails finished work teaches routing-around, not rigor"
+    ],
+    "gate": "python tools/task_shape_check.py --check (pre-commit, through tools/preflight_all.py)",
+    "ritual": [
+      "1. read the task's four fields before writing code; if any is missing, the task is not ready and that is a finding, not an obstacle",
+      "2. run the control FIRST: introduce the defect, watch the predicate fail",
+      "3. do the work; never delete a test, claim or gate -- if one must go, name what it defended in the commit",
+      "4. run the acceptance command and quote its output in the commit body (the `Verified:` line)",
+      "5. if the acceptance cannot be run, STOP and report which field failed; a frame report is a finished turn, a summary is not"
+    ]
+  },
   "tracks": {
     "A": {
       "name": "Contract",
@@ -39,6 +116,12 @@
       "source": "docs/METTHEW/RESURRECT_2600_2026-11-01.md",
       "one_line": "the owner already owns the cartridge and the machine is what died, so the repair is the emulator -- which Sony v. Connectix (2000) already held is fair use: implement the hardware, keep the cartridge, never decrypt and never patch, and let the shard carry the rules plus a hash lock to the owner's own image",
       "why_the_2600_first": "1.19 MHz 6507, fixed 76x262 frame, 128 bytes of RAM, 160x192 beam-raced display, integer only -- every 2600 game is ALREADY a deterministic frame-locked simulation, so conversion is separating two things the hardware forced together, not translating into a foreign model"
+    },
+    "X": {
+      "name": "Defensive execution -- tasks written to survive a fallible model",
+      "gates": "M-40 -> M-41 -> M-42 -> M-43",
+      "source": "docs/METTHEW/DEEPSEEK_DEFENSIVE_TASK_SHAPE_2026-11-01.md",
+      "one_line": "a task is a predicate plus a refusal, not a sentence: the gate in the task file (M-40) and the defender prompter in FLAMING SWORD (M-41) exist so the executor cannot satisfy a task by describing it, and the sweep loop refuses a batch with no frame (M-42)"
     }
   },
   "critical_path": [
@@ -592,6 +675,89 @@
       "acceptance": "an e2e run is demonstrated on a real image the owner supplies (`sword_2600.py --inspect`), and the fixtures cover the geometry; no binary from a third party is committed; a missing fixture causes the tests to construct their own rather than fetch",
       "status": "completed",
       "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-40",
+      "track": "X",
+      "title": "The task file has a gate (tools/task_shape_check.py, T1..T5)",
+      "owner": "freebuff",
+      "depends_on": [],
+      "shape": "defensive-v1",
+      "deliverable": "tools/task_shape_check.py: T1 shape-complete, T2 predicate-runnable, T3 control-present, T4 evidence-lands, T5 no-acceptance-language; planted in tools/preflight_all.py as the `task-shape` gate so the hook runs it",
+      "acceptance": "`python tools/task_shape_check.py --check` exits 0 and prints the shaped count; `--selftest` refuses 7 named mutations and accepts a correctly shaped task it adds itself",
+      "control": "set a shaped task's acceptance to the adjective 'good enough' and require T5 to REFUSE it, then blank the command and require T2 to REFUSE that too",
+      "refusal": "BLOCK when a shaped task's acceptance names no command or no observable outcome, when its control describes nothing refused, or when its evidence is a promise like TBD",
+      "evidence": "stdout of tools/task_shape_check.py --selftest; tests/test_task_shape_check.py drives both directions",
+      "risk": "a shape gate that fails legacy tasks retroactively teaches the executor to route around it; legacy tasks are therefore counted and printed, never failed",
+      "status": "completed",
+      "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-41",
+      "track": "X",
+      "title": "FLAMING SWORD has a defender prompter (frame before the change, DRAFT when it is still empty)",
+      "owner": "freebuff",
+      "depends_on": [
+        "M-40"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "Project_FLAMING_SWORD/tools/defender.py (D1..D9, render, draft) + `sword.py --defend` + the `protocol.defender` block in aio/flaming_sword.aio.json",
+      "acceptance": "`python Project_FLAMING_SWORD/tools/defender.py --selftest` exits 0 with 12 controls; `sword.py --defend '<intent>'` with no evidence prints a DRAFT and exits 0, and the same frame with a named defence but no acceptance command exits 1",
+      "control": "set bytes_of_original to 1024 in an otherwise valid posture and require D9 to REFUSE the frame, then cite authority 'vibes' and require the same refusal",
+      "refusal": "BLOCK a frame that names no defence, no refused mutation, or no posture on preservation work; a refused frame renders no prompt at all",
+      "evidence": "Project_FLAMING_SWORD/tests/test_defender.py plus the --selftest output",
+      "risk": "a prompter is not a guarantee: it cannot make the work lawful, only make it state whose copy it is; the frame's own rule 3 (quote the command) is what stops a summary from closing a task",
+      "status": "completed",
+      "completed_at": "2026-11-01"
+    },
+    {
+      "id": "M-42",
+      "track": "X",
+      "title": "The sweep refuses a batch whose items carry no frame",
+      "owner": "deepseek",
+      "depends_on": [
+        "M-41"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "sword.py --run reads .flaming_sword/frames.jsonl (one frame per queue id, written by --defend) and refuses a batch where any id has none; the frame is printed in the before-land decision block",
+      "acceptance": "`python Project_FLAMING_SWORD/tools/sword.py --run --batch 1 --test \"python -m pytest -q\" --dry-run` on a queued id with no frame prints REFUSED and exits 1, and re-running after `--defend` writes that frame makes it proceed (2 runs, 2 verdicts)",
+      "control": "delete the frame line for one id in a copy of frames.jsonl and require the runner to REFUSE that batch rather than fill the gap in",
+      "refusal": "BLOCK the batch when any id lacks a frame, or when its frame is still a DRAFT with sentinels left in it",
+      "evidence": ".flaming_sword/frames.jsonl plus the two dry-run outputs quoted in the commit's Verified: line",
+      "risk": "an extra file to keep in step with the queue; the frame is keyed by queue id and a missing key is refused, so drift shows up as a refusal rather than a silent default",
+      "status": "pending"
+    },
+    {
+      "id": "M-43",
+      "track": "X",
+      "title": "The lane board carries the same four fields",
+      "owner": "deepseek",
+      "depends_on": [
+        "M-40"
+      ],
+      "shape": "defensive-v1",
+      "deliverable": "a `--board` mode in tools/task_shape_check.py that reads C:/Users/clint/.azazael/telemetry_store.db and reports rows lacking acceptance/control/refusal/evidence, plus a post helper that writes all four",
+      "acceptance": "`python tools/task_shape_check.py --board --json` exits 0 and prints the count of rows lacking the four fields; after the backfill it prints 0 of N, and a probe row posted without them is REFUSED locally (1 probe, 1 refusal)",
+      "control": "post a probe row carrying only a title and require the checker to count it as unshaped, then require the post helper to REFUSE the same row",
+      "refusal": "BLOCK a post that carries no acceptance command, so the first turn cannot claim work the row never defined",
+      "evidence": "stdout of tools/task_shape_check.py --board --json before and after the backfill, quoted in lane.freebuff.status",
+      "risk": "the board is shared with other lanes and writes go through _board.py; this task must not fork the store or set AZAZAEL_MEMORY_DIR, and it reads first",
+      "status": "pending"
+    },
+    {
+      "id": "M-44",
+      "track": "X",
+      "title": "A retraction is recorded when it happens, not reconstructed at the end",
+      "owner": "deepseek",
+      "depends_on": [],
+      "shape": "defensive-v1",
+      "deliverable": "tools/retraction_ledger.py: append-only JSONL (claim, why it was wrong, what replaced it, command that showed it), with `--check` refusing an open retraction older than one turn",
+      "acceptance": "`python tools/retraction_ledger.py --check` exits 0 on an empty ledger and glaringly reports 1 open retraction after a planted one; the planted record is REFUSED when its command field is empty (2 verdicts, 2 exits)",
+      "control": "append a retraction with no command and require --check to REFUSE it, then add the command and require it to be accepted",
+      "refusal": "BLOCK a retracted claim that names no replacement, because a retraction with no successor leaves the wrong claim standing",
+      "evidence": "tools/retraction_ledger.py --selftest output plus the ledger file it writes in a temp directory",
+      "risk": "easy to turn into a diary; the gate only counts, and a retraction with no materialised trigger is refused the same way a lesson without a decision class is",
+      "status": "pending"
     }
   ],
   "contract_changes_decided": {

@@ -6127,9 +6127,9 @@
   },
   {
    "cause": "",
-   "id": "docs-azazael-tree-of-life-md-L32",
+   "id": "docs-azazael-tree-of-life-md-L34",
    "kind": "measurement",
-   "line": 32,
+   "line": 34,
    "rationale": "",
    "remedy": "",
    "surface": "docs/AZAZAEL_TREE_OF_LIFE.md",
@@ -6138,9 +6138,9 @@
   },
   {
    "cause": "",
-   "id": "docs-azazael-tree-of-life-md-L45",
+   "id": "docs-azazael-tree-of-life-md-L47",
    "kind": "measurement",
-   "line": 45,
+   "line": 47,
    "rationale": "",
    "remedy": "",
    "surface": "docs/AZAZAEL_TREE_OF_LIFE.md",
@@ -6149,9 +6149,9 @@
   },
   {
    "cause": "",
-   "id": "docs-azazael-tree-of-life-md-L60",
+   "id": "docs-azazael-tree-of-life-md-L62",
    "kind": "measurement",
-   "line": 60,
+   "line": 62,
    "rationale": "",
    "remedy": "",
    "surface": "docs/AZAZAEL_TREE_OF_LIFE.md",
@@ -6160,9 +6160,9 @@
   },
   {
    "cause": "",
-   "id": "docs-azazael-tree-of-life-md-L83",
+   "id": "docs-azazael-tree-of-life-md-L85",
    "kind": "measurement",
-   "line": 83,
+   "line": 85,
    "rationale": "",
    "remedy": "",
    "surface": "docs/AZAZAEL_TREE_OF_LIFE.md",
@@ -6278,6 +6278,149 @@
    "surface": "Project_Nurse_Ratchet/README.md",
    "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
    "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "class Machine(Protocol): def reset(self) -> None: ... def step(self, input_mask: int) -> None: ... def state_hash(self) -> str: ... def snapshot(self) -> dict: ...",
+   "title": "The one interface both sides depend on"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L33",
+   "kind": "limitation",
+   "line": 33,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "Verified 2026-11-01 on `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3 free-threading):",
+   "title": "What is here now"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L56",
+   "kind": "limitation",
+   "line": 56,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "The machine it drives today is a stand-in with the 2600's constraints (integer only, bounded state). What is proved is that the scheduler is rate-independent, not that a game is faithful; the output carries that in its own `scope` field. The 2600 sim arrives at M-34 through the same seam and the proof moves with it.",
+   "title": "What FLAME does *not* claim, and the line it draws"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L80",
+   "kind": "limitation",
+   "line": 80,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "Three lawful sources, and a downloaded commercial ROM is not one of them:",
+   "title": "Cartridge sources (M-39)"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L93",
+   "kind": "limitation",
+   "line": 93,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "No renderer, no shader, no asset pipeline, and no networking. Presentation tiers are M-36 and they are gated on one state hash across tiers, so a tier that cannot prove it left the sim alone is not a tier.",
+   "title": "Deliberately not here"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "Every expensive failure in the estate it came from had one shape: a statement that was true once and drifted, where nothing re-read it. A page told a reader to run `tools/commgate.py`; that file had not existed for weeks. A page told an agent to consume `src/CORE/accelerate`; that module was never built. A document quoted \"15 gates\" while the registry printed a different count, and a floor threshold was copied into two tools that could disagree while both looked correct.",
+   "title": "Why it exists"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L49",
+   "kind": "limitation",
+   "line": 49,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "A sweep that only scans finds what is wrong. It cannot tell a repair from a removal, because nothing has stated what the thing being removed was defending: the test that proved the old behaviour is \"dead code\", the gate that refused the bad state is \"simplified\", and the run goes green. The defender is that statement, and it is emitted *before* the change so it cannot become a rationalisation of work already done.",
+   "title": "The defender, which frames a change before it happens"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L79",
+   "kind": "limitation",
+   "line": 79,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "scan -> plan -> run (batch) -> verify -> land",
+   "title": "The loop, and its three refusals"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L97",
+   "kind": "limitation",
+   "line": 97,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "An error that is seen and not written is an error nobody disposes of. The sweep writes a row to `.flaming_sword/tasks.jsonl` the instant it meets one: a detector that raised, a detector that could not run, a fix that failed, a fix whose own detector still fires, a landing refused (no command / red / nothing touched / already landed), a deletion housekeeping could not make.",
+   "title": "Every error becomes a task, at the moment it is seen"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L129",
+   "kind": "limitation",
+   "line": 129,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "`aio/flaming_sword.aio.json` is the instruction object; `--brief` prints it in the form an agent can follow:",
+   "title": "The protocol it carries"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L140",
+   "kind": "limitation",
+   "line": 140,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "The sweep can also be an *improvement* pass, not only a repair. The runner has no network client and no API key, so it does not pretend to browse: the agent runs the deep search, and `--record-research` validates and queues what it finds as proposals that are never auto-applied.",
+   "title": "Research stage: deep, and recorded rather than pretended"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L161",
+   "kind": "limitation",
+   "line": 161,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "except through the verification command you give it.",
+   "title": "Limits"
+  },
+  {
+   "cause": "",
+   "id": "project-flaming-sword-readme-md-L170",
+   "kind": "limitation",
+   "line": 170,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "`0.1.0` — seven detectors, two fixers, the loop, the research contract and a self-test that seeds five defects into a throwaway repository and asserts the clean one stays silent.",
+   "title": "Status"
   },
   {
    "cause": "",
@@ -20667,12 +20810,22 @@
   {
    "path": "docs/AZAZAEL_TREE_OF_LIFE.md",
    "records": 5,
-   "sha": "01c43178792a28b1cae0e60009fa0a404f716be2552f73957ad5b270d8ca6215"
+   "sha": "9b78704e94fd4eac7dd2f6a04fb50069280ced78f2f67ccfe73c03ce64a140f4"
   },
   {
    "path": "Project_Nurse_Ratchet/README.md",
    "records": 10,
    "sha": "d0fa8e75cb152cec39e730ee5b4c438edff7cf5218e622927886251a0b366e59"
+  },
+  {
+   "path": "Project_FLAME/README.md",
+   "records": 5,
+   "sha": "71c2adbf0ccace9a256e760c051acace0af5cbd0382ce222cb5d8acf2c2f3622"
+  },
+  {
+   "path": "Project_FLAMING_SWORD/README.md",
+   "records": 8,
+   "sha": "e8279ba2dcbefc8d948dc8aca2a40b369f2af4ec87f4d47fbf909f4e2f1ee8ec"
   }
  ],
  "totals": {
@@ -20687,12 +20840,12 @@
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 10,
+   "limitation": 23,
    "measurement": 24,
    "memory": 67,
    "practice": 30
   },
-  "records": 1720,
-  "surfaces": 8
+  "records": 1733,
+  "surfaces": 10
  }
 }

@@ -547,6 +547,59 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=("docs/METTHEW/AT_RISK_SYSTEMS.json",),
     ),
+    Gate(
+        name="task-shape",
+        # Registered 2026-11-01 with the executor change. docs/METTHEW/tasks.json is the
+        # queue a model works through, and a task whose finish line is an adjective is
+        # satisfied by any output that looks like an attempt. T2 requires a command and
+        # an outcome, T3 a mutation that must be refused, T5 refuses acceptance language.
+        # Legacy tasks are COUNTED not failed (13% shaped on the day it landed): a gate
+        # that retroactively fails finished work teaches routing around it.
+        #
+        # inside_hook=False, deliberately: it runs through this file, which the hook runs
+        # as Check 9, and hook_parity compares only gates the hook names directly. Marking
+        # it True would claim a stanza it does not have.
+        argv=("tools/task_shape_check.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=True,
+        slow=False,
+        reads=("docs/METTHEW/tasks.json: every task carrying shape=defensive-v1, plus "
+               "execution_contract.known_failure_modes"),
+        control_test="tests/test_task_shape_check.py",
+        control=None,
+        uncontrolled_because=(
+            "the controls ship inside the gate (`--selftest` mutates the real task file "
+            "eleven ways and requires each named refusal, then requires a correctly "
+            "shaped task to be ACCEPTED), and preflight has no subcommand that runs "
+            "them; tests/test_task_shape_check.py drives both directions"
+        ),
+        requires=("docs/METTHEW/tasks.json",),
+    ),
+    Gate(
+        name="flaming-sword-defender",
+        # The defender prompter in Project_FLAMING_SWORD frames a change before it is
+        # made (what survives, what must still pass, the mutation that must be refused,
+        # and the posture for preservation work). Its selftest is the gate: 12 controls,
+        # both directions, including that a DRAFT is refused by the strict checker.
+        # inside_hook=False for the same reason as task-shape: it runs via this file.
+        argv=("Project_FLAMING_SWORD/tools/defender.py", "--selftest"),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=True,
+        slow=False,
+        reads=("nothing on disk: the selftest builds frames in memory and mutates them"),
+        control_test="Project_FLAMING_SWORD/tests/test_defender.py",
+        control=None,
+        uncontrolled_because=(
+            "the gate IS the control run (`--selftest`), so a separate artifact would "
+            "duplicate it; tests/test_defender.py additionally drives the CLI's two "
+            "exit codes"
+        ),
+        requires=("Project_FLAMING_SWORD/tools/defender.py",),
+    ),
 )
 
 

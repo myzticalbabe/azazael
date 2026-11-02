@@ -46,6 +46,36 @@ configuration is reported as UNRUN with the reason. This is the single most
 important line in the project: "0 findings" from a detector that could not run is
 the sentence that licenses a destructive remedy.
 
+## The defender, which frames a change before it happens
+
+A sweep that only scans finds what is wrong. It cannot tell a repair from a removal,
+because nothing has stated what the thing being removed was defending: the test that
+proved the old behaviour is "dead code", the gate that refused the bad state is
+"simplified", and the run goes green. The defender is that statement, and it is
+emitted *before* the change so it cannot become a rationalisation of work already done.
+
+```
+python tools/defender.py --intent "delete the dead duplicate-constant detector" \
+    --target tools/sword.py                 # DRAFT: every hole marked <<FILL: ...>>
+python tools/sword.py --defend "<intent>" --target <artefact> [--preserve]
+```
+
+It refuses a frame that cannot name **what survives** (`defends`), **what must still
+pass** (`must_not_break`), **the finish line** (a command plus an outcome), **a mutation
+that must be refused** (`control`), **what blocks the landing** (`refusal`) and **where
+the proof lands** (`evidence`). `--preserve` adds posture, and posture is mandatory
+rather than assumed: whose copy, `bytes_of_original` (an integer, and it must be 0), the
+lawful route, the authority (`sony-v-connectix`, `owner-holds-copy`, and the rest of the
+registered claims — an unverifiable authority is refused), and what is never carried.
+
+Two modes, and the difference is visible instead of remembered: a **DRAFT** marks every
+hole and says `--check` refuses it as it stands; a **frame** is accepted only when every
+field bears weight, and a refused frame renders **no prompt at all**, so nothing
+downstream can act on it. `python tools/defender.py --selftest` runs 12 controls.
+
+A prompter does not make work lawful. It makes work say whose copy it is, which is the
+part a prompter can enforce.
+
 ## The loop, and its three refusals
 
 ```
@@ -63,6 +93,38 @@ scan -> plan -> run (batch) -> verify -> land
 A batch also re-runs the detectors that produced it. **A fix whose own detector
 still fires is a failed fix**, even when the test suite is green — that is how
 "fixed" and "passes" become the same word by accident.
+
+## Every error becomes a task, at the moment it is seen
+
+An error that is seen and not written is an error nobody disposes of. The sweep
+writes a row to `.flaming_sword/tasks.jsonl` the instant it meets one: a detector
+that raised, a detector that could not run, a fix that failed, a fix whose own
+detector still fires, a landing refused (no command / red / nothing touched /
+already landed), a deletion housekeeping could not make.
+
+```bash
+python tools/sword.py --root <repo> --tasks            # what is waiting for a decision
+python tools/sword.py --root <repo> --tasks --all      # including closed ones
+python tools/sword.py --root <repo> --dispose t-0003 --as fixed --note "added the ledger"
+```
+
+Dispositions are `fixed`, `wontfix`, `duplicate`, `deferred`, `external`, and a
+task cannot be closed twice into two different stories. The rule the ledger exists
+for is *encounter time*: the detail — which command, which exit code, which file —
+is gone by the end of a session, and reconstructing it over-weights whatever is
+still salient.
+
+**One error, one row — with one deliberate exception.** Identity is
+`stage + kind + subject`, not the message, so a count inside a message ("3 item(s)
+failed") does not fork the row. A re-encounter increments `seen` and moves
+`last_seen` instead of adding a twin, because a scan every minute would otherwise
+produce a thousand identical rows and the queue stops being readable — which is how
+a queue dies. A recurrence **after** a disposition is a new row: the error came
+back, so it is a new fact about the tree, not a reopened opinion.
+
+The class of defect this caught immediately: `stale-claims` returned `ran=True,
+0 findings` when no `claims.command` was configured — a guard that never ran,
+reporting itself clean. It is now UNRUN, and that UNRUN is a task.
 
 ## The protocol it carries
 
