@@ -121,6 +121,21 @@ class Gate(NamedTuple):
 #: gate that actually runs.
 GATES: Tuple[Gate, ...] = (
     Gate(
+        name="disk-floor",
+        argv=("tools/disk_floor_gate.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("free space on the repo's volume (and any --path), against "
+               "preflight.disk_floor_gb"),
+        control_test="tests/test_disk_floor_gate.py",
+        control="disk-floor",
+        uncontrolled_because=None,
+        requires=(),  # reads the filesystem itself, no artifact
+    ),
+    Gate(
         name="changeset-focus",
         argv=("scripts/commit_gate.py", "--hook"),
         interpreter="python3",
@@ -1274,7 +1289,59 @@ def control_prompt_check(interpreter_path: str) -> Tuple[bool, str]:
     return True, "stale exits 1, recorded reading exits 0, built-in controls pass"
 
 
+def _unmeasurable_path() -> str:
+    """A path the floor gate CANNOT measure, discovered rather than assumed.
+
+    A nonexistent DIRECTORY on a live volume is still measurable (measured
+    2026-11-02: `--path C:/.../no-such-dir-xyz` reported C:'s free space), so the
+    fixture has to name a volume that is not mounted: on Windows the first letter
+    with no root, on POSIX a path under a directory that cannot be a mount.
+    """
+    if sys.platform == "win32":
+        for letter in "QRSTUVWXYZ":
+            if not os.path.exists(letter + ":/"):
+                return letter + ":/no-such-volume"
+        return r"\\.\no-such-volume"
+    return "/nonexistent-mount-%d/x" % os.getpid()
+
+
+def control_disk_floor(interpreter_path: str) -> Tuple[bool, str]:
+    """Drive the floor into all three states it must distinguish.
+
+    One direction is not a control. A gate that fails everywhere would "pass" a
+    bare must-fail test, so this also demands that the SAME gate stays green on a
+    volume it should accept, and that an unmeasurable volume is neither the pass
+    nor the below-floor code -- exit 2 exists precisely because "could not read"
+    must not be squeezed into either answer.
+    """
+    script = REPO / "tools" / "disk_floor_gate.py"
+    base = [interpreter_path, "-X", "utf8", str(script)]
+    try:
+        free_gb = shutil.disk_usage(str(REPO)).free / (1024.0 ** 3)
+    except OSError as exc:
+        return False, "control cannot read its own fixture's free space: %s" % exc
+
+    healthy = run_control(base + ["--threshold-gb", "0.001"], env=())
+    if healthy.exit_code != 0:
+        return False, ("a volume with 0.0 GB required exited %s -- the gate fires on a "
+                       "healthy fixture: %s" % (healthy.exit_code, healthy.detail))
+
+    floor = "%.3f" % (free_gb * 4 + 1024)
+    low = run_control(base, env=("AZ_DISK_FLOOR_GB=" + floor,))
+    if low.exit_code != 1:
+        return False, ("a %.0f GB floor against %.1f GB free exited %s, not 1: %s"
+                       % (float(floor), free_gb, low.exit_code, low.detail))
+
+    absent = run_control(base + ["--path", _unmeasurable_path()], env=())
+    if absent.exit_code != 2:
+        return False, ("an unreadable path exited %s, not 2 (unmeasurable must not read as "
+                       "a pass or as below-floor): %s" % (absent.exit_code, absent.detail))
+    return True, ("healthy exits 0, %.0f GB floor against %.1f GB free exits 1, "
+                  "unreadable path exits 2" % (float(floor), free_gb))
+
+
 CONTROLS = {
+    "disk-floor": control_disk_floor,
     "anti-pattern-ratchet": control_anti_pattern_ratchet,
     "agent-orders-negative-control": control_agent_orders,
     "platform-claims-self-test": control_platform_claims,

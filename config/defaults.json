@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "ast_audit": true,
+  "golden_arrow": {
+    "enabled": true,
+    "strict": false,
+    "timeout_s": 180,
+    "workers": 6
+  },
+  "deep_dive": {
+    "enabled": true,
+    "forensics": true,
+    "web_search": true,
+    "web_timeout_s": 20,
+    "max_queries": 3
+  },
+  "fallback": {
+    "on_error": "record-and-continue",
+    "record": "logs/deep_dive.json"
+  },
+  "preflight": {
+    "disk_floor_gb": 10.0
+  }
+}
