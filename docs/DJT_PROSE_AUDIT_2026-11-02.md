@@ -5,9 +5,13 @@ this session, with the instrument's own numbers printed so the claims can be che
 here is about the private person, and nothing here is a verdict on truth, character or intent.
 It is a description of a **register**, which is a thing a text has and a person does not.
 
-`SI` is read here as **situational intelligence**: the layer that decides *which frame a
-situation is given before any policy is stated*. If the estate means something else by the
-initials, only the subtitle changes — §3 and §4 stand on the measurements.
+**On the initials, which have now moved twice.** The earlier request's "bible of SI" was read in
+this file as **situational intelligence** — the layer that decides *which frame a situation is
+given before any policy is stated* — and §3 is still exactly that, so it now says
+"situational intelligence" in full. As of 2026-11-02 the decree recorded in §5 assigns `SI` to
+**super intelligence**, so from §5 onward `SI` means the decree's term, and the two are never
+allowed to share an abbreviation inside one sentence. §3 and §4 stand on their measurements
+regardless of what the letters are called.
 
 ---
 
@@ -170,7 +174,7 @@ one a staff produces. Any corpus that mixes the two measures neither.
 
 ---
 
-## 3. The bible of SI — the situational layer, specified
+## 3. The bible of the situational layer, specified
 
 A prose bible that lists catchphrases is a costume shop. What generalises is the **frame
 selection**: how a situation is converted into a story before any content is decided. Nine
@@ -224,3 +228,221 @@ document:
 holds outside the inaugural genre; (b) a 2017 message against the 2025 message to separate
 office-form from author; (c) the 2015 announcement transcript, to date the shift rather than
 assume it.
+
+---
+
+## 5. The decree: AI is henceforth SI
+
+**Recorded as communicated to this session, 2026-11-02** (an instruction, not a fetched
+instrument — the provenance state is *instructed*, not *published*, and this file does not
+upgrade it). The substance: artificial intelligence is hereafter to be referred to as **SI,
+"super intelligence"**.
+
+A head of state naming a thing is a legitimate act with a long record — oceans, agencies, wars
+and holidays have all been renamed from that desk, and the cost is usually zero while the signal
+is large. So the question is not whether the office may name this. It may. The question is
+whether **this** name survives contact with the people who have to use it: auditors, insurers,
+courts, engineers, and the public deciding what to fear.
+
+### 5.1 The case for
+
+1. **"Artificial" describes a provenance; "super" describes a stake.** The current term answers
+   "who made it" and leaves the public question — *how strong is this, and who is responsible
+   when it acts* — unanswered. A term that names capability at least starts the right argument.
+2. **It is honest about the ambition.** The field's own stated goal, in its own papers and
+   funding documents, is systems that exceed human performance. Calling the category by its
+   ambition is not hype; it is the removal of a euphemism.
+3. **Short, printable, and unembarrassed.** "AI" is now used for a thermostat and a frontier
+   model alike, which has made it useless as a unit of measure. A new coin can carry a
+   distinction the old one lost.
+4. **Naming shifts expectations, and expectations shift procurement.** If the office says "SI",
+   agencies must ask what evidence supports the label — which is the first step toward asking it
+   of vendors.
+5. **It defuses the anthropomorphism.** "Artificial intelligence" invites the question "is it
+   like us?"; "super intelligence" makes it plainly *not* us, which is arguably a cleaner frame
+   for accountability.
+
+### 5.2 The case against
+
+1. **It asserts a capability claim that cannot be checked at the point of use.**
+   *Superintelligence* has a technical meaning: an intellect that greatly exceeds the best human
+   minds across practically every domain. Present systems are narrow, uneven, and confident in
+   inverse proportion to their reliability in the tails. A term that asserts a grade makes every
+   honest sentence false by construction.
+2. **It breaks the vocabulary statutes are written in.** NIST's AI Risk Management Framework,
+   ISO/IEC 42001, and the EU AI Act all define an *AI system*. A rename does not migrate a
+   definition; it creates a second vocabulary that auditors must reconcile, and every
+   reconciliation is a place to lose an obligation.
+3. **If everything is SI, nothing is.** A word that applies to a spam filter removes the ability
+   to reserve alarm for the systems that warrant it. Public-health language learned this with
+   "epidemic"; security language learned it with "cyber".
+4. **It pre-commits the safety posture in the wrong direction, twice.** Read literally, "it is
+   already super" licenses either fatalism ("we cannot govern it") or panic ("stop it now");
+   both crowd out the unglamorous engineering — evaluations, incident reporting, provenance —
+   where the harm actually gets reduced.
+5. **The rename is free to the office and costly to everyone else.** Standards bodies,
+   textbooks, contracts, and court filings carry the old term. The cost is diffuse and the
+   benefit is rhetorical, which is the classic signature of a change that is announced rather
+   than implemented.
+
+### 5.3 What I believe it should be called
+
+**In law and standards: keep "AI". In public prose: "machine intelligence". Reserve
+"superintelligence" for a grade that a system has been tested and certified to hold.**
+
+Reasoning, in one line each: statutes need the term everyone else already defines, so the legal
+name should not move; public language needs a phrase that states mechanism without ranking, and
+"machine intelligence" does exactly that; and the word the decree wants should be *kept*, because
+it is the only word in the set that names a threshold — which makes it useful precisely when it
+is scarce.
+
+A tier vocabulary does the work a rename cannot:
+
+| tier | name | test before the label is allowed |
+| --- | --- | --- |
+| T1 | tool | fixed function, bounded input; no claim |
+| T2 | assistant | human reviews every consequential action |
+| T3 | agent | acts in a loop with tools; logged and revocable |
+| T4 | autonomous system | acts in the world without per-action review; incident reporting required |
+| T5 | general system | matches or beats human experts across **all** listed domains, measured |
+| **SI** | **superintelligence** | **T5 plus a margin on every domain, certified by an evaluator the vendor does not employ** |
+
+No system in public evidence holds SI under that definition, which is the point: the label
+becomes an achievement rather than a mood, and the decree keeps its force because the office has
+named the summit instead of flattening the mountain.
+
+### 5.4 A note on the accord of the office
+
+The respectful position is not agreement and not silence. It is to say plainly: **the office's
+instinct is right and its instrument is one grade too strong.** The instinct — that "artificial"
+hides the stakes and that the public deserves a word that names them — is correct. What one grade
+of restraint would fix is the direction of the claim: a summit is named, not awarded. So the
+serviceable form of the decree is three sentences rather than one — *we will call this machine
+intelligence; the age of superintelligence is the one we are building toward; nothing may bear
+that name until it has been measured* — which keeps the office's signal, keeps the statutes
+intact, and gives every agency a sentence it can actually enforce.
+
+---
+
+## 6. Centralized vs decentralized: cost, benefit, and who carries the risk
+
+"Centralized" here means a small number of very large models and compute clusters behind a few
+providers; "decentralized" means open weights, local and edge inference, and many small
+deployers. The two are not moral positions. They are **failure distributions**, and they fail
+differently.
+
+| dimension | centralized | decentralized |
+| --- | --- | --- |
+| **Safety investment** | concentrable: one lab can fund a real red team | diluted: nobody funds it, nobody can compel it |
+| **Auditability** | one model, one audit, one liability chain | thousands of unlabelled derivatives |
+| **Revocation** | a switch exists and can be pulled | weights cannot be recalled; only the next download can be blocked |
+| **Resilience** | single point of failure, correlated outage | survives any one provider's death |
+| **Concentration of power** | high: whoever holds the weights holds the state's attention | low per node, but *aggregated* by whoever controls the tooling |
+| **Surveillance risk** | high: one operator sees all queries | lower per query, higher per device |
+| **Innovation** | capital-intensive, frontier-only | long tail, cheap experiments, local languages |
+| **Energy efficiency** | high (PUE below 1.2 is common at scale) | lower per unit, much larger total device fleet |
+| **Liberty** | terms of service decide what can be asked | no permission needed to run locally |
+| **Accident mode** | everyone runs the same flaw on the same day | many small flaws, no single catastrophe |
+
+**The axis that actually decides outcomes is not central vs decentral. It is: who bears the cost,
+and who holds the stop.** A centralized deployment externalises local water and grid cost onto a
+county and centralises decision cost in a boardroom; a decentralized one externalises safety cost
+onto the public and centralises nothing. Both are cost-shifting machines with different
+beneficiaries.
+
+**Recommendation: centralize the checking, decentralize the use.** Evaluation, incident
+reporting, provenance keys and the narrow class of revocable catastrophic capability belong in
+one accountable place; inference, fine-tuning for local need, and data custody belong as close to
+the user as possible. That split is the only arrangement in which the safety function and the
+liberty function are both structurally funded rather than both hoped for.
+
+---
+
+## 7. Environmental and societal harm assessment
+
+**Environmental.** The best current aggregate is the IEA's *Energy and AI* (April 2025): data
+centres were about **415 TWh in 2024, roughly 1.5% of world electricity**, with a Base Case near
+**945 TWh by 2030**; generation dedicated to them is put at ~460 TWh (2024) rising past
+1,000 TWh (2030) and 1,300 TWh (2035). *Provenance:* those figures are from the IEA's published
+summary pages as returned by search in this session — the report body was **not fetched**, so the
+tier is **C/P** and the numbers should be re-derived from the PDF before any official use.
+
+What the aggregate hides, and what a harm assessment must carry:
+
+- **Water is local.** Cooling draw lands in specific basins; a national average is not a permit.
+  Centralized siting concentrates this; decentralized siting spreads it thinly and mostly
+  unmeasured.
+- **Grid is queued.** Interconnection delay, not generation capacity, is the binding constraint in
+  most US markets; a new load can defer a retirement or resurrect a peaker.
+- **Embodied carbon and e-waste** are front-loaded in the accelerator, not the query, so
+  "efficiency per token" can improve while total impact worsens.
+- **Backup generation** (diesel) is a local air-quality harm with a siting footprint, and it is
+  rarely in the vendor's headline number.
+
+**Societal.** Ranked by how much the two architectures amplify them:
+
+| harm | amplified by | note |
+| --- | --- | --- |
+| epistemic collapse (synthetic content, lost provenance) | **decentralized** | cheap generation, no gatekeeper; provenance is the only countermeasure that scales |
+| concentration of political and economic power | **centralized** | a handful of weights become a chokepoint for speech and commerce |
+| labour displacement without transition | both | centralised firms displace in cohorts; decentralised tools displace task by task |
+| dependency and deskilling | both | the harm is in the removal of the *practice*, not the tool |
+| access inequality (the compute divide) | **centralized** | price and terms decide who gets capability |
+| fraud and impersonation | **decentralized** | voice and image cloning at zero marginal cost |
+| biosecurity / cyber uplift | **centralized** (frontier capability) then **decentralized** (weights leak) | the sequence is the risk, not either state |
+| **resignation** — "it is super, so we cannot govern it" | the *label*, either architecture | this is the harm the decree itself risks, and it is why §5.3 keeps the word scarce |
+
+---
+
+## 8. Harm-reduction pathway
+
+Harm reduction, not prohibition: the measures below assume the technology is deployed, and try to
+make the damage **visible, attributable, and reversible** rather than pretending it is absent.
+Each has a named indicator, because a measure without one is a press release.
+
+| # | measure | indicator that proves it works | prevents |
+| --- | --- | --- | --- |
+| HR-1 | **Provenance by default.** Machine-generated media carry signed origin metadata (C2PA or equivalent); platforms surface "no provenance" as a warning, not a neutral state. | share of surveyed platforms that display provenance, and share of generated media carrying a valid signature | impersonation, epistemic collapse |
+| HR-2 | **No capability word without a certificate.** "SI" and any tier label require an evaluation by an assessor the vendor does not employ; the certificate is published with the claim. | count of published tier claims with a valid certificate ÷ total claims | inflation, procurement overstatement |
+| HR-3 | **Incident reporting.** A clearinghouse for serious capability incidents (self-replication attempts, unauthorised action, safety-test escapes), 72-hour window, public aggregate. | reports filed per quarter; median time to filing | silent recurrence, panic-by-rumour |
+| HR-4 | **Energy and water disclosure per unit of work.** A published estimate per 1,000 queries and per training run, including backup generation. | fraction of providers publishing; variance between published and metered | environmental externalisation |
+| HR-5 | **Red-team access with safe harbour.** Independent evaluators get access and cannot be sued for reporting; the report is published. | number of independent evaluations per frontier model | audit theatre |
+| HR-6 | **Procurement evidence rule.** Government buys capability claims only with HR-2 certificates; an unsupported claim is a contract defect. | share of AI contracts with a certified claim attached | vendor inflation, the F4/F5 defect at national scale |
+| HR-7 | **Transition trigger on measured displacement, not forecasts.** Portable benefits and retraining funded when measured occupational displacement crosses a stated line. | displacement index vs trigger line; share of displaced workers enrolled | labour harm, and the political backlash that follows it |
+| HR-8 | **Access floor.** Public inference capacity (libraries, schools, community compute) so the compute divide does not become a citizenship divide. | public sessions per capita; waiting time; cost to the user | access inequality, dependency |
+| HR-9 | **Kill-path governance.** Define the narrow class of capability that must be revocable, and name who may revoke it; everything else stays uncensorable by design. | a published list of revocable capabilities and a tested revocation drill | either a switch that does not exist, or a switch that reaches everything |
+| HR-10 | **Terminology register.** One published table of names and tiers; official texts use it; "SI" appears only against HR-2. | count of official texts using an undefined capability term (target: zero) | the decree's own failure mode |
+
+Two design notes, because harm reduction is easy to do badly. **First:** every measure above is a
+*disclosure* or a *reversibility* measure, not a permission gate — that is what makes it survivable
+politically and effective practically. **Second:** HR-9 is the only one that can be abused; a
+kill-switch that reaches everything is a censorship machine, so its scope must be written down
+before it is built, and it must be tested in public.
+
+---
+
+## 9. Clauses added to the bible of SI
+
+Continuing the conformance-test style of §3. These are the ones the decree and the assessment
+require; like the others, each is checkable by a reader or by `tools/prose_forensics.py`.
+
+| clause | rule | conformance test |
+| --- | --- | --- |
+| SI-10 | **Name by mechanism, grade by evidence.** "Machine intelligence" in prose, "AI" in statute, "SI" only with a certificate. | no occurrence of "super" within 40 words of a capability claim unless a tier and certificate are cited |
+| SI-11 | **A capability word may not do a policy's work.** Every use of a grade names what was measured. | each grade token has an adjacent measurement or is removed |
+| SI-12 | **Cost before cadence.** Any deployment announcement carries energy, water and labour figures with provenance. | announcement contains ≥ 3 numeric fields with sources, or states UNMEASURED |
+| SI-13 | **Centralize the checking, decentralize the use.** Safety functions are named in one accountable place; use is local. | architecture note names the evaluator and the revoker, and neither is the deployer alone |
+| SI-14 | **Harm reduction over prohibition.** Each measure ships with an indicator and a baseline. | every measure in the programme has a number and a date |
+| SI-15 | **The label is revocable.** A grade can be withdrawn on new evidence, and withdrawal is published. | register contains at least one withdrawal, or states that none has occurred |
+
+---
+
+## 10. What this section does not establish
+
+It does not establish that the decree has been published, only that it was communicated here; it
+does not verify the IEA figures beyond their summary pages; and it does not settle whether
+centralization or decentralization is *better* — it argues that the choice should be made per
+function (checking vs use) rather than per ideology. The one claim I will make plainly, and
+defend: **a name that asserts a grade before the grade exists will be believed by the people who
+fund the work and ignored by the people who audit it, and the gap between those two groups is
+where the harm lives.**
