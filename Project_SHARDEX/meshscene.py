@@ -243,10 +243,26 @@ const OPS = {
   palette(m,op){ const s=((Math.floor(op.shift)%%360)+360)%%360;
     for(const n of m.neurons) n[4]=(n[4]+s)%%360; return m; },
   extrude(m,op){ for(const n of m.neurons) n[2]=n[2]*op.gain; return m; },
+  touch(m,op){
+    const index=Math.floor(op.neuron);
+    if(index<0||index>=m.neurons.length)
+      throw new Error('touch.neuron '+index+' is not in this mesh');
+    const radius=op.radius;
+    if(!(radius>0)) throw new Error('touch.radius must be > 0');
+    const tx=m.neurons[index][0], ty=m.neurons[index][1];
+    const r2=radius*radius, gain=op.gain;
+    for(const n of m.neurons){
+      const dx=n[0]-tx, dy=n[1]-ty, d2=dx*dx+dy*dy;
+      if(d2>r2) continue;
+      const f=(r2-d2)/r2;
+      n[0]=n[0]+gain*f*dx; n[1]=n[1]+gain*f*dy;
+    } return m;
+  },
 };
 const NEED={warp:['amp','freq','phase'],sprout:['n','min_gap'],prune:['threshold'],
-            palette:['shift'],extrude:['gain']};
+            palette:['shift'],extrude:['gain'],touch:['neuron','radius','gain']};
 const applied=[];
+let LASTPROJ=[];
 window.__mutate=function(op){
   if(!op||!OPS[op.kind]) throw new Error('unknown op kind: '+(op&&op.kind));
   for(const key of NEED[op.kind]) if(!(key in op)) throw new Error(op.kind+' missing '+key);
@@ -261,6 +277,22 @@ window.__mutate=function(op){
 };
 window.__applied=function(){ return applied; };
 window.__digest=digest;
+// The pick is the one input that does not come from arithmetic. Resolve a screen point to the
+// neuron nearest it *in the current projection*, and say where that neuron is in world units --
+// so the choice can be checked later against a replay instead of being taken on faith.
+window.__pickNeuron=function(x,y){
+  if(!LASTPROJ.length) throw new Error('nothing drawn yet: no projection to pick from');
+  let best=-1, bestD=Infinity;
+  for(let i=0;i<LASTPROJ.length;i++){
+    const p=LASTPROJ[i], dx=p.x-x, dy=p.y-y, d2=dx*dx+dy*dy;
+    if(d2<bestD){ bestD=d2; best=i; }
+  }
+  const p=LASTPROJ[best];
+  return {index:best, screen:[Qf(p.x),Qf(p.y)],
+          world:[Qf(p.n[0]),Qf(p.n[1]),Qf(p.n[2])],
+          distance_px:Math.round(Math.sqrt(bestD)*100)/100, digest:digest(),
+          seq:applied.length};
+};
 
 // ---------- camera + draw ----------
 const FIT=GOLDEN.fit, TOTAL=GOLDEN.total;
@@ -285,6 +317,7 @@ function draw(p){
   ctx.fillStyle=g; ctx.fillRect(0,0,1920,1080);
   const proj=MESH.neurons.map(n=>{const t=xf(n[0],n[1],n[2],yaw);
     return {x:960+t.x*t.sc, y:540+t.y*t.sc, z:t.z, sc:t.sc, n:n};});
+  LASTPROJ=proj;
   const edges=MESH.synapses.map(e=>{
     const a=proj[e[0]], b=proj[e[1]];
     return {a:a,b:b,z:(a.z+b.z)/2,w:e[2]};
@@ -319,7 +352,7 @@ function hud(){
     applied.length+'</b>'+(applied.length?' · last: '+applied[applied.length-1].op.kind:'')+
     ' · field '+FIELD.source.sha256.slice(0,10);
   cap.textContent='live mutation · window.__mutate(op) is the only way this scene can change · '+
-    'input '+FIELD.source.path.split('/').pop();
+    'pick with window.__pickNeuron(x,y) · input '+FIELD.source.path.split('/').pop();
 }
 const ORBIT_TICKS_TOTAL=%(orbit)s;
 window.__draw=draw; window.__TOTAL=TOTAL;
@@ -451,6 +484,39 @@ def verify(out_dir: Path) -> Tuple[int, Dict[str, Any]]:
                              "seq %s (%s): page %s, python %s"
                              % (record.get("seq"), record["op"]["kind"],
                                 record["digest"], ours)}
+    picked_note = "absent"
+    picked_path = out_dir / "picked.json"
+    if any(record["op"]["kind"] == "touch" for record in records):
+        if not picked_path.exists():
+            return REFUSED, {"state": "PICK-UNPROVENANCED", "reason":
+                             "the op log contains a touch op but there is no picked.json: an "
+                             "index typed by hand and an index clicked by a person look "
+                             "identical inside the op, so the provenance is required"}
+        picked = json.loads(picked_path.read_text(encoding="utf-8"))
+        used = [record["op"]["neuron"] for record in records
+                if record["op"]["kind"] == "touch"]
+        if picked.get("index") not in used:
+            return REFUSED, {"state": "PICK-UNPROVENANCED", "reason":
+                             "picked neuron %r appears in no touch op (touch ops used %s)"
+                             % (picked.get("index"), used)}
+        seq = int(picked.get("seq") or 0)
+        at_pick = base
+        for record in records[:seq]:
+            at_pick = OPS.apply_op(at_pick, record["op"], table)
+        if OPS.mesh_digest(at_pick) != picked.get("digest"):
+            return REFUSED, {"state": "PICK-MISMATCH", "reason":
+                             "picked.json says the mesh was %s at pick time; replaying to seq "
+                             "%d gives %s" % (picked.get("digest"), seq,
+                                              OPS.mesh_digest(at_pick))}
+        node = at_pick["neurons"][int(picked["index"])]
+        here = [int(math.floor(float(node[k]) * OPS.Q + 0.5)) for k in (0, 1, 2)]
+        if here != [int(v) for v in (picked.get("world") or [])]:
+            return REFUSED, {"state": "PICK-MISMATCH", "reason":
+                             "neuron %d was at %s when picked; replay puts it at %s"
+                             % (picked["index"], picked.get("world"), here)}
+        picked_note = "neuron %d from click %s, %.2f px from the cursor" % (
+            int(picked["index"]), picked.get("click"), float(picked.get("distance_px") or 0.0))
+
     final = OPS.mesh_digest(current)
     chain = OPS.chain_hash([record["op"] for record in records])
     probe = {}
@@ -464,6 +530,7 @@ def verify(out_dir: Path) -> Tuple[int, Dict[str, Any]]:
                 "final_mesh_digest": final,
                 "neurons": len(current["neurons"]), "synapses": len(current["synapses"]),
                 "per_op": [record["digest"] for record in records],
+                "picked": picked_note,
                 "browser_probe": probe.get("states") or "absent"}
 
 
@@ -497,7 +564,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.verify:
         rc, info = verify(Path(args.verify))
         print("%s" % info.get("state"))
-        for key in ("reason", "ops", "op_chain", "final_mesh_digest", "neurons", "synapses"):
+        for key in ("reason", "ops", "op_chain", "final_mesh_digest", "neurons", "synapses",
+                    "picked"):
             if key in info:
                 print("  %s: %s" % (key, info[key]))
         if info.get("per_op"):

@@ -24,7 +24,10 @@ const { pathToFileURL } = require('url');
   const argv = process.argv.slice(2);
   const liveIndex = argv.indexOf('--live');
   const liveOps = liveIndex >= 0 ? argv[liveIndex + 1] : null;
-  const positional = argv.filter((a, i) => !a.startsWith('--') && i !== liveIndex + 1 || (i === 0));
+  const pickIndex = argv.indexOf('--pick');
+  const pickArg = pickIndex >= 0 ? argv[pickIndex + 1] : null;
+  const positional = argv.filter((a, i) => (!a.startsWith('--') &&
+    i !== liveIndex + 1 && i !== pickIndex + 1) || i === 0);
   const dir = positional[0];
   const FRAMES = parseInt(positional[1] || '240', 10);
   if (!dir) { console.error('usage: capture_transubstantiation.js <scene-dir> [frames] [--live ops.json]'); process.exit(2); }
@@ -60,6 +63,22 @@ const { pathToFileURL } = require('url');
     const probeStates = {};
     const goldenFile = path.resolve(dir, isMesh ? 'golden_live.json' : 'golden3d.json');
     const golden = JSON.parse(fs.readFileSync(goldenFile, 'utf-8'));
+    // A pick is a human input, so it is captured before any op runs and written beside the op
+    // log: the click, the neuron it resolved to, that neuron's world position, and the mesh
+    // digest at that moment. --verify re-derives all of it from the base mesh.
+    let picked = null;
+    if (isMesh && pickArg) {
+      const xy = pickArg.split(',').map(Number);
+      if (xy.length !== 2 || !isFinite(xy[0]) || !isFinite(xy[1])) {
+        console.error('--pick wants a screen point as x,y'); process.exit(2);
+      }
+      await page.evaluate(() => window.__step(0));
+      picked = await page.evaluate((x, y) => window.__pickNeuron(x, y), xy[0], xy[1]);
+      picked.click = xy;
+      fs.writeFileSync(path.resolve(dir, 'picked.json'), JSON.stringify(picked, null, 1));
+      console.log('PICK click ' + xy[0] + ',' + xy[1] + ' -> neuron ' + picked.index +
+                  ' at ' + picked.screen.join(',') + ' (' + picked.distance_px + ' px from cursor)');
+    }
     if (isMesh) {
       const baseDigits = await page.evaluate(() => window.__digest());
       console.log('probe: base mesh ' + baseDigits + ' (golden ' + golden.mesh_digest + ')');
@@ -78,7 +97,12 @@ const { pathToFileURL } = require('url');
       const name = path.join(framesDir, 'frame_' + String(i).padStart(4, '0') + '.png');
       await page.evaluate((t) => window.__step(t), tick);
       if (isMesh && sent < ops.length && i === opFrame(sent)) {
-        const record = await page.evaluate((op) => window.__mutate(op), ops[sent]);
+        let op = ops[sent];
+        if (op.neuron === 'pick') {
+          if (!picked) { console.error('op ' + sent + ' wants the picked neuron but --pick was not given'); process.exit(2); }
+          op = Object.assign({}, op, { neuron: picked.index });
+        }
+        const record = await page.evaluate((o) => window.__mutate(o), op);
         console.log('MUTATE frame ' + i + ' seq ' + record.seq + ' ' + record.op.kind +
                     ' -> ' + record.digest + ' (' + record.neurons + 'n/' +
                     record.synapses + 's)');
