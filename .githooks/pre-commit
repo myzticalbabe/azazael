@@ -37,6 +37,8 @@
 # refuses nothing.
 #
 # FAST tier checks, in order:
+#   0.   disk floor                   (tools/disk_floor_gate.py) -- a full disk
+#        fails as a locked database or corrupt object, not as "disk full"
 #   1.   bulk-diff focus gate         (scripts/commit_gate.py)
 #   1b.  stale-index guard            (tools/index_drift_check.py) -- the staged
 #        scanner reads the INDEX, so with a stale index it certifies a version
@@ -75,6 +77,28 @@ if [ ! -x "$PY" ]; then
         [ -n "$cand" ] && [ -x "$cand" ] && { PY="$cand"; break; }
     done
 fi
+
+# ─── Check 0: disk floor ───
+# Runs BEFORE anything else because a full disk does not fail as "disk full":
+# measured 2026-11-02 on this box (5.0 GB free, 100% used) the symptoms were a
+# locked SQLite database, a corrupt git object and a truncated PNG. Every check
+# below writes something -- a temp snapshot, an evidence file -- and a write that
+# truncates produces a gate whose verdict is about a half file.
+# Threshold: preflight.disk_floor_gb in config/defaults.json (10.0).
+echo "[Disk] Checking free space against the floor..."
+if [ -f "$SCRIPT_DIR/tools/disk_floor_gate.py" ]; then
+    DISK_OUT=$("$PY" "$SCRIPT_DIR/tools/disk_floor_gate.py" 2>&1)
+    DISK_EXIT=$?
+    echo "$DISK_OUT" | tail -12
+    if [ $DISK_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Disk] Refusing to work on a volume below the floor (exit $DISK_EXIT)."
+        exit 1
+    fi
+else
+    echo "[Disk] gate not found -- passing loud (check unrunnable)"
+fi
+echo ""
 
 # ─── Check 1: bulk-diff focus gate ───
 # Runs FIRST, on every commit, because the scanner below skips when no .py
