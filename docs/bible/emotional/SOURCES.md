@@ -48,12 +48,22 @@ valence — larger with unfamiliar adults, smaller with parents.
 - Limit: observational coding of children; the moderators matter more than the
   main effect, which is the point the verse makes.
 
-**Hall, J. A., et al. (2025). Gender and accuracy in decoding affect cues: a
-meta-analysis. _Journal of Intelligence_.**
-Women score slightly higher on average at decoding affect cues. The review also
-finds that the proportion of male authors is associated with a smaller reported
-difference — a publication and design effect worth naming whenever the finding is
-quoted as a fact about nature.
+**Hall, J. A., Gunnery, S. D., & Schlegel, K. (2025). Gender and accuracy in
+decoding affect cues: a meta-analysis. _Journal of Intelligence_, 13(3), 38.
+doi:10.3390/jintelligence13030038. PMID 40137070.**
+1,188 effect sizes from 1,011 studies, total N = 837,637. Girls and women score
+higher on decoding accuracy, and the difference is **small but extremely
+consistent**: r = 0.12, d = 0.24. Evidence of publication bias was weak, and of
+the moderators examined only the health status of the sample produced subgroups
+without a significant difference. The authors also report that a higher
+proportion of male authors was associated with a smaller reported difference — a
+design and reporting effect worth naming whenever the finding is quoted as a fact
+about nature.
+
+- Limit: decoding accuracy on laboratory tasks is not empathy in a relationship,
+  and a small mean difference with this many studies says nothing about a given
+  pair. The citation was previously unfindable because it named no journal
+  volume; it is now the full record above, and the figures are the abstract's.
 
 - Limit: decoding accuracy on laboratory tasks is not empathy in a relationship,
   and a small mean difference says nothing about a given pair.
@@ -87,9 +97,11 @@ Establishes the construct and its validity: granularity is the precision with wh
 affective experience is differentiated, it is measurable, and it is associated with
 better regulation.
 
-**Hoemann, K., et al. (2023). Emotional granularity is associated with daily
-experiential... (affective science).** Granularity tracks with how experience is
-constructed and reported day to day; it is not a fixed trait.
+**Hoemann, K., Lee, Y., Kuppens, P., Gendron, M., & Boyd, R. L. (2023). Emotional
+granularity is associated with daily experiential diversity. _Affective Science_,
+4, 291–306.** Granularity tracks with the diversity of what a person actually
+experiences day to day, so it behaves like a measure of the situation as much as
+of the person; it is not a fixed trait.
 
 - Used by: `emotional.json` → `granularity 1:2`, `2:2`; `female.json` → `many_names 1:3`.
 - Limit: mostly self-report and experience sampling; causation is not established by
@@ -221,11 +233,25 @@ sedation rather than analgesia.
 
 ## 7. Violence and coercive control
 
-**CDC, National Intimate Partner and Sexual Violence Survey (NISVS), 2023/2024
-data brief.** Lifetime contact sexual violence, physical violence, and/or stalking
-by an intimate partner, with at least one related impact: roughly **30% of women**
-and **17% of men**. State-level estimates for women ranged from about **21% to
-48%** in the brief. Rape: about **1 in 4 women** and **1 in 26 men**.
+**CDC, _About Intimate Partner Violence_ (cdc.gov/intimate-partner-violence/
+about/index.html, read 2026-11-02), drawing on the National Intimate Partner and
+Sexual Violence Survey (NISVS).** The page states the two measures separately,
+and they must be quoted separately:
+
+- lifetime contact sexual violence, physical violence, or stalking by an intimate
+  partner **with at least one related impact**: nearly **1 in 3 women** and about
+  **1 in 8 men**;
+- the same acts **without** the impact condition: **1 in 3 women** and **1 in 6
+  men**.
+
+Rape: about **1 in 4 women** and **1 in 26 men**.
+
+This entry replaces an earlier one that gave "roughly 30% of women and 17% of
+men" as a single measure — the women's figure from the impact condition, the
+men's from the unconditional one, inflating the male side by a third. It also
+drops a state-level range (21–48%) that had been attributed to a "2023/2024 data
+brief" no one could name and that could not be re-derived from the page; a figure
+the register cannot re-derive is a figure the register may not print.
 
 - Used by: `female.json` → `locked_door 1:1`.
 - Limit: acts alone are closer to symmetric than impact; fear, injury, stalking, and

@@ -17,6 +17,7 @@ wrong thing, which is worse than recording nothing because a verse then cites it
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -110,6 +111,53 @@ def test_a_moved_surface_is_stale(tmp_path, monkeypatch):
     _write(tmp_path, "ERROR_LOG.md", ERROR_DOC + "\n## Error #13 — Another\n\n**Cause:** x.\n")
     problems, _newer = H.stale(tmp_path, ledger)
     assert any("moved since the harvest" in problem for problem in problems)
+
+
+def _git(repo: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(repo), "-c", "user.email=gate@local",
+                    "-c", "user.name=gate", *args],
+                   check=True, capture_output=True, timeout=60)
+
+
+def test_the_committed_blob_is_judged_not_the_worktree(tmp_path, monkeypatch):
+    """One uncommitted file failed five gates on 2026-11-02, three of them
+    corpus gates that have nothing to do with the harvest.
+
+    A check that fires on work in progress teaches the author to commit
+    half-finished edits for a green light. What the gate judges is the changeset:
+    a worktree-only edit is noted and does not gate, while a staged change must
+    fail until the ledger is regenerated -- that second half is what makes
+    judging the INDEX rather than HEAD the whole answer.
+    """
+    _write(tmp_path, "ERROR_LOG.md", ERROR_DOC)
+    monkeypatch.setattr(H, "SURFACES", (("ERROR_LOG.md", "error", "numbered"),))
+    monkeypatch.setattr(H, "README_GLOB", "no_such_glob_*")
+    ledger = tmp_path / "harvest.json"
+    ledger.write_text(H.render(H.harvest(tmp_path, db=tmp_path / "absent.db")),
+                      encoding="utf-8")
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "add", "ERROR_LOG.md", "harvest.json")
+    _git(tmp_path, "commit", "-q", "-m", "seed")
+
+    # Uncommitted edit: reported, not gating.
+    _write(tmp_path, "ERROR_LOG.md", ERROR_DOC + "\n## Error #13 — Another\n\n**Cause:** x.\n")
+    notes = []
+    problems, _newer = H.stale(tmp_path, ledger, notes=notes)
+    assert problems == [], problems
+    assert any("differs from the commit under review" in note for note in notes), notes
+
+    # The same edit STAGED: the ledger no longer describes what will be committed.
+    _git(tmp_path, "add", "ERROR_LOG.md")
+    problems, _newer = H.stale(tmp_path, ledger)
+    assert any("moved since the harvest" in problem for problem in problems), problems
+    _git(tmp_path, "reset", "-q", "--", "ERROR_LOG.md")
+    assert H.stale(tmp_path, ledger)[0] == []
+
+    # And committed: still stale, because HEAD is not the ledger either.
+    _git(tmp_path, "add", "ERROR_LOG.md")
+    _git(tmp_path, "commit", "-q", "-m", "second")
+    problems, _newer = H.stale(tmp_path, ledger)
+    assert any("moved since the harvest" in problem for problem in problems), problems
 
 
 def test_engram_observation_without_learned_has_no_cause(tmp_path, monkeypatch):

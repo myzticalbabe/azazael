@@ -6314,9 +6314,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L15",
+   "id": "project-eliza-readme-md-L17",
    "kind": "limitation",
-   "line": 15,
+   "line": 17,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6325,20 +6325,64 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L40",
+   "id": "project-eliza-readme-md-L50",
    "kind": "limitation",
-   "line": 40,
+   "line": 50,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
-   "symptom": "python -m pytest tests/ -q # 111 tests, no network, no deps PYTHONPATH=src python src/PSYCHE/rt_channel.py --demo --turns 3 # three turns, streamed PYTHONPATH=src python tools/triage_eval.py # the crisis-router numbers PYTHONPATH=src python tools/psyche_fit_pams.py # does any store carry state readings? python tools/eliza_release_gate.py --check # is this publishable at all",
+   "symptom": "python -m pytest tests/ -q PYTHONPATH=src python src/PSYCHE/rt_channel.py --demo --turns 3 # three turns, streamed PYTHONPATH=src python tools/triage_eval.py # the crisis-router numbers PYTHONPATH=src python tools/psyche_fit_pams.py # does any store carry state readings? python tools/eliza_release_gate.py --check # is this publishable at all",
    "title": "Quickstart"
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L54",
+   "id": "project-eliza-readme-md-L71",
    "kind": "limitation",
-   "line": 54,
+   "line": 71,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
+   "symptom": "pip install -e . eliza-psyche --demo # 3-turn demo via console script eliza-psyche --demo --turns 5 # 5-turn demo",
+   "title": "Install as Package"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L81",
+   "kind": "limitation",
+   "line": 81,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
+   "symptom": "Operator-authorized bypass chain for public-records investigation:",
+   "title": "Engineered Web Bypass (`tools/bcc_bypass.py`)"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L109",
+   "kind": "limitation",
+   "line": 109,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
+   "symptom": "Canonical tutorial for FLOCK-CANON-v1.3 ultra-loose posture:",
+   "title": "Ultra-Loose Source Tutorial (`tools/ultra_loose.py`)"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L123",
+   "kind": "limitation",
+   "line": 123,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
+   "symptom": "Full guide for running ELIZA on Windows with WSL2 Ubuntu and Kali workers:",
+   "title": "Windows/WSL/Kali Concurrent Execution (`WINDOWS_WSL_CONCURRENT.md`)"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L137",
+   "kind": "limitation",
+   "line": 137,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6347,9 +6391,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L68",
+   "id": "project-eliza-readme-md-L151",
    "kind": "limitation",
-   "line": 68,
+   "line": 151,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6358,9 +6402,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L116",
+   "id": "project-eliza-readme-md-L199",
    "kind": "limitation",
-   "line": 116,
+   "line": 199,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6369,9 +6413,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L152",
+   "id": "project-eliza-readme-md-L235",
    "kind": "limitation",
-   "line": 152,
+   "line": 235,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6380,9 +6424,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L166",
+   "id": "project-eliza-readme-md-L249",
    "kind": "limitation",
-   "line": 166,
+   "line": 249,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6391,9 +6435,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L178",
+   "id": "project-eliza-readme-md-L261",
    "kind": "limitation",
-   "line": 178,
+   "line": 261,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6402,9 +6446,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L182",
+   "id": "project-eliza-readme-md-L265",
    "kind": "limitation",
-   "line": 182,
+   "line": 265,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -20991,22 +21035,22 @@
   {
    "path": "ERROR_LOG.md",
    "records": 276,
-   "sha": "1adffbee5296166b2413c5f20f5f7bd5f16a7b0fbc5a630a6c70f34c0127e412"
+   "sha": "901526c0e1e6d21e6b0fd8b7dab1abed3a7ef7920b9b61c17a469d8f01b61168"
   },
   {
    "path": "LESSONS_MASTER.md",
    "records": 117,
-   "sha": "53402c53305041a729164b7e868803a49b1d5204d536c701f86b602d0cf032df"
+   "sha": "b66b7380b1a0d665edc8c5be254c7778ca47592b3a8b52e1877d28d8431942fb"
   },
   {
    "path": "MEMORIES.md",
    "records": 67,
-   "sha": "c955e34f69d590552f07b6fe8f4ec1b72f40208b586611c974a63eb921757d7e"
+   "sha": "a9d83ee6eebc8083ba8ab7f1721a10a785861dd63832b203e113e5fe78db39a7"
   },
   {
    "path": "SESSION_STARTUP.md",
    "records": 30,
-   "sha": "83ac7d6b3ec5cd11b69e66e479614e2b378f20bf5444f4ed1202a787132619f9"
+   "sha": "dd2c45efce92db5294ba634e9e3f915dcf420a79e7f46b8a7d9ceafacff97398"
   },
   {
    "path": "docs/GIT_FLEET_BLEEDING_EDGE_2026-11-01.md",
@@ -21035,8 +21079,8 @@
   },
   {
    "path": "Project_ELIZA/README.md",
-   "records": 9,
-   "sha": "6ed59078783ea2ad751d442c1ae0ecfa0a48f0a4eabce0abc7971aa24a210fea"
+   "records": 13,
+   "sha": "951fa527c000798991214dd75e4c1bd0dc39f453a8290b8b591a4bc62ea93689"
   },
   {
    "path": "Project_FLAME/README.md",
@@ -21066,12 +21110,12 @@
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 40,
+   "limitation": 44,
    "measurement": 24,
    "memory": 67,
    "practice": 30
   },
-  "records": 1752,
+  "records": 1756,
   "surfaces": 13
  }
 }

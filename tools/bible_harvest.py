@@ -34,6 +34,7 @@ import hashlib
 import json
 import re
 import sqlite3
+import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -103,8 +104,20 @@ def _slug(path: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", path.lower()).strip("-")
 
 
+def _sha_bytes(data: bytes) -> str:
+    """Content hash, line endings normalised.
+
+    Windows `core.autocrlf` stores LF in the blob and CRLF in the worktree, so a
+    raw byte comparison between the two reports every surface as moved on a
+    perfectly clean tree. Measured 2026-11-02: the first version of the HEAD
+    comparison read five surfaces stale on a tree where git had recorded no
+    change at all. The question is whether the *content* moved.
+    """
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+
+
 def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return _sha_bytes(path.read_bytes())
 
 
 def _blocks(lines: List[str]) -> Iterable[Tuple[int, str, List[str]]]:
@@ -356,8 +369,41 @@ def render(data: Dict) -> str:
     return json.dumps(data, indent=1, ensure_ascii=False, sort_keys=True) + "\n"
 
 
-def stale(root: Path = REPO, ledger_path: Path = LEDGER) -> Tuple[List[str], int]:
-    """(stale file surfaces, observations newer than the snapshot)."""
+def _sha_committed(root: Path, relative: str) -> Optional[str]:
+    """The sha of the blob that will be in the commit: the index, then HEAD.
+
+    Neither the worktree nor HEAD alone is right. Judging the worktree made one
+    uncommitted edit (`Project_ELIZA/README.md`, 2026-11-02) fail five gates at
+    once, three of them corpus gates with nothing to do with the harvest; and
+    judging HEAD alone deadlocks, because the regenerated ledger and the file it
+    describes cannot both be committed -- the first commit's hook still reads the
+    old HEAD. The index is the changeset under review, so it is the first thing
+    asked; HEAD is the fallback for a file this commit is not touching.
+    """
+    answer: Optional[str] = None
+    for ref in (":" + relative, "HEAD:" + relative):
+        try:
+            completed = subprocess.run(
+                ["git", "-C", str(root), "show", ref],
+                capture_output=True, timeout=20)
+        except (OSError, subprocess.SubprocessError):   # no git, or too slow
+            break
+        if completed.returncode == 0:
+            answer = _sha_bytes(completed.stdout)
+            break
+    if answer is None:                                 # untracked, or no repository
+        return None
+    return answer
+
+
+def stale(root: Path = REPO, ledger_path: Path = LEDGER,
+          notes: Optional[List[str]] = None) -> Tuple[List[str], int]:
+    """(stale file surfaces, observations newer than the snapshot).
+
+    `notes` collects what is *not* a failure but changes how a reading should be
+    taken -- chiefly that the worktree differs from the committed blob the harvest
+    actually describes. Optional, so the two-value contract callers rely on holds.
+    """
     if not ledger_path.exists():
         return ["docs/bible/harvest.json is absent; run --write"], 0
     data = json.loads(ledger_path.read_text(encoding="utf-8"))
@@ -366,8 +412,17 @@ def stale(root: Path = REPO, ledger_path: Path = LEDGER) -> Tuple[List[str], int
         path = Path(root) / surface["path"]
         if not path.exists():
             stale_paths.append("%s is gone; the ledger still cites it" % surface["path"])
-        elif _sha(path) != surface.get("sha"):
-            stale_paths.append("%s moved since the harvest" % surface["path"])
+            continue
+        committed = _sha_committed(root, surface["path"])
+        judged = committed if committed is not None else _sha(path)
+        if judged != surface.get("sha"):
+            stale_paths.append("%s moved since the harvest%s"
+                               % (surface["path"],
+                                  " (committed blob)" if committed else ""))
+        elif notes is not None and _sha(path) != committed:
+            notes.append("%s differs from the commit under review: worktree-only "
+                         "edit, not gating; stage it with a regenerated ledger"
+                         % surface["path"])
     newest = data.get("engram", {}).get("as_of_id", 0)
     _, live = engram_records(ENGRAM_DB)
     return stale_paths, max(0, live - newest)
@@ -406,7 +461,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     if args.check:
-        stale_paths, newer = stale()
+        notes: List[str] = []
+        stale_paths, newer = stale(notes=notes)
+        for note in notes:
+            print("note: " + note)
         for problem in stale_paths:
             print("STALE: " + problem)
         if newer:
