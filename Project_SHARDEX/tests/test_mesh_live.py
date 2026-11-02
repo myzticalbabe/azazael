@@ -145,6 +145,63 @@ def test_verify_refuses_a_touch_op_with_no_pick_record(tmp_path):
     assert info["state"] == "PICK-UNPROVENANCED"
 
 
+def _forged_with_touch(tmp_path, neurons):
+    """Forge a scene, then write an op log for the given touch targets, computing real digests."""
+    path = tmp_path / "field.json"
+    path.write_text(json.dumps(field()), encoding="utf-8")
+    out = tmp_path / "out"
+    rc, _info = M.forge(path, out)
+    assert rc == M.OK
+    base = json.loads((out / "mesh.json").read_text(encoding="utf-8"))
+    table = OPS.sine_table()
+    current, records = base, []
+    for seq, target in enumerate(neurons):
+        op = {"kind": "touch", "neuron": target, "radius": 2.0, "gain": 0.4}
+        current = OPS.apply_op(current, op, table)
+        records.append({"seq": seq, "op": op, "digest": OPS.mesh_digest(current),
+                        "neurons": len(current["neurons"]),
+                        "synapses": len(current["synapses"])})
+    (out / "applied_ops.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in records) + "\n", encoding="utf-8")
+    return out, base
+
+
+def _pick_record(base, index, seq=0, digest=None):
+    node = base["neurons"][index]
+    return {"index": index, "seq": seq, "click": [960, 540], "distance_px": 12.0,
+            "world": [int(node[k] * OPS.Q) for k in (0, 1, 2)],
+            "digest": digest or OPS.mesh_digest(base)}
+
+
+def test_verify_covers_every_touch_op_not_just_one(tmp_path):
+    """A genuine pick plus a hand-typed second target must not pass on the first's record."""
+    out, base = _forged_with_touch(tmp_path, [3, 7])
+    (out / "picked.json").write_text(json.dumps(_pick_record(base, 3)), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PICK-UNPROVENANCED"
+    assert "7" in info["reason"]
+
+
+def test_verify_refuses_an_unreadable_pick_record(tmp_path):
+    out, _base = _forged_with_touch(tmp_path, [3])
+    (out / "picked.json").write_text('{"index": 3}', encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PICK-UNPROVENANCED"
+    assert "usable" in info["reason"]
+
+
+def test_verify_refuses_a_pick_index_outside_the_mesh(tmp_path):
+    out, base = _forged_with_touch(tmp_path, [3])
+    bogus = _pick_record(base, 3)
+    bogus["index"] = 10 ** 6
+    (out / "picked.json").write_text(json.dumps(bogus), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] in ("PICK-MISMATCH", "PICK-UNPROVENANCED")
+
+
 def test_verify_refuses_a_log_that_does_not_replay(tmp_path):
     fld = field()
     path = tmp_path / "field.json"

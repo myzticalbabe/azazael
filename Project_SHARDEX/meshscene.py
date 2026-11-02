@@ -492,30 +492,50 @@ def verify(out_dir: Path) -> Tuple[int, Dict[str, Any]]:
                              "the op log contains a touch op but there is no picked.json: an "
                              "index typed by hand and an index clicked by a person look "
                              "identical inside the op, so the provenance is required"}
-        picked = json.loads(picked_path.read_text(encoding="utf-8"))
-        used = [record["op"]["neuron"] for record in records
-                if record["op"]["kind"] == "touch"]
-        if picked.get("index") not in used:
+        try:
+            picked = json.loads(picked_path.read_text(encoding="utf-8"))
+            index = int(picked["index"])
+            seq = int(picked.get("seq") or 0)
+            world = [int(v) for v in picked["world"]]
+            digest_at_pick = str(picked["digest"])
+        except (ValueError, TypeError, KeyError) as exc:
+            # A hand-edited provenance file is a refusal, not a traceback: the whole point of
+            # this block is that the record can be checked, so an unreadable record fails the
+            # check rather than crashing past it.
             return REFUSED, {"state": "PICK-UNPROVENANCED", "reason":
-                             "picked neuron %r appears in no touch op (touch ops used %s)"
-                             % (picked.get("index"), used)}
-        seq = int(picked.get("seq") or 0)
+                             "picked.json is not a usable pick record (%s: %s)"
+                             % (type(exc).__name__, exc)}
+        used = [int(record["op"]["neuron"]) for record in records
+                if record["op"]["kind"] == "touch"]
+        # EVERY touch op must be covered, not merely one of them. The first version checked
+        # `index in used`, so a log with a genuine touch plus a hand-typed second touch passed;
+        # the harness emits one pick per run, so the honest statement is exact equality.
+        uncovered = [n for n in used if n != index]
+        if uncovered:
+            return REFUSED, {"state": "PICK-UNPROVENANCED", "reason":
+                             "touch op(s) used neuron(s) %s with no pick record for them "
+                             "(the pick was neuron %d; the harness emits one pick per run, so a "
+                             "second target needs its own record, not a hand-typed index)"
+                             % (uncovered, index)}
         at_pick = base
         for record in records[:seq]:
             at_pick = OPS.apply_op(at_pick, record["op"], table)
-        if OPS.mesh_digest(at_pick) != picked.get("digest"):
+        if OPS.mesh_digest(at_pick) != digest_at_pick:
             return REFUSED, {"state": "PICK-MISMATCH", "reason":
                              "picked.json says the mesh was %s at pick time; replaying to seq "
-                             "%d gives %s" % (picked.get("digest"), seq,
-                                              OPS.mesh_digest(at_pick))}
-        node = at_pick["neurons"][int(picked["index"])]
+                             "%d gives %s" % (digest_at_pick, seq, OPS.mesh_digest(at_pick))}
+        if not 0 <= index < len(at_pick["neurons"]):
+            return REFUSED, {"state": "PICK-MISMATCH", "reason":
+                             "picked neuron %d is outside this mesh (0..%d)"
+                             % (index, len(at_pick["neurons"]) - 1)}
+        node = at_pick["neurons"][index]
         here = [int(math.floor(float(node[k]) * OPS.Q + 0.5)) for k in (0, 1, 2)]
-        if here != [int(v) for v in (picked.get("world") or [])]:
+        if here != world:
             return REFUSED, {"state": "PICK-MISMATCH", "reason":
                              "neuron %d was at %s when picked; replay puts it at %s"
-                             % (picked["index"], picked.get("world"), here)}
+                             % (index, world, here)}
         picked_note = "neuron %d from click %s, %.2f px from the cursor" % (
-            int(picked["index"]), picked.get("click"), float(picked.get("distance_px") or 0.0))
+            index, picked.get("click"), float(picked.get("distance_px") or 0.0))
 
     final = OPS.mesh_digest(current)
     chain = OPS.chain_hash([record["op"] for record in records])
