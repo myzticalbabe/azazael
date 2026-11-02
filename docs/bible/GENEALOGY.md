@@ -7,7 +7,7 @@ reading `src/` with `ast`. Re-run it and the numbers must be the same.
 python tools/bible_check.py --genealogy --write
 ```
 
-20 houses, 547 edges between them.
+20 houses, 542 edges between them.
 
 And **CORE** begat **META**, **ORCHESTRATION**, **SCRIPTS**, and of the rest there were 3.
 And **CODEX** begat **CORE**, **ORCHESTRATION**, **META**, and of the rest there were 1.
@@ -43,7 +43,7 @@ And **SHORTCUTS** begat no other house.
 | META | CORE | 32 |
 | ML | CORE | 9 |
 | ORCHESTRATION | CORE, CODEX | 112 |
-| PSYCHE | CORE | 9 |
+| PSYCHE | CORE | 4 |
 | RENDERING | -- | 0 |
 | SCRIPTS | CORE | 56 |
 | SHARDS | INTERPRETERS, CORE | 11 |
