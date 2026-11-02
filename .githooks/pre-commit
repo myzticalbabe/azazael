@@ -419,6 +419,37 @@ else
     echo ""
 fi
 
+# ─── Check 6e (blocking): the register of dying game systems (2026-11-01) ───
+# docs/METTHEW/AT_RISK_SYSTEMS.json is the guardian's register of systems threatened
+# with extinction, and like the family catalogue it used to describe itself as
+# governed while nothing ran it. tools/at_risk_register.py is that checker (E1..E8).
+# E4 refuses an entry with no next act or no gate; E8 refuses a register that hides
+# its own edge -- the cohorts it has NOT counted must be named, each with a next
+# sweep, so "all the systems threatened" never reads as a finished count.
+# Declared override, never silent: ALLOW_AT_RISK_REGISTER=1.
+if [ "${ALLOW_AT_RISK_REGISTER:-}" = "1" ]; then
+    echo "[AtRisk] register gate skipped: ALLOW_AT_RISK_REGISTER=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_AT_RISK_REGISTER:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/at_risk_register.py" ]; then
+    echo "[AtRisk] Judging the register of dying systems (E1..E8)..."
+    AR_OUT=$("$PY" "$SCRIPT_DIR/tools/at_risk_register.py" --check 2>&1)
+    AR_EXIT=$?
+    echo "$AR_OUT" | tail -8
+    if [ $AR_EXIT -ne 0 ]; then
+        echo ""
+        echo "[AtRisk] BLOCKED: the register makes a claim its own gate refuses."
+        echo "[AtRisk] Every dying entry needs a guardian (next act) AND a gate (the number)."
+        echo "[AtRisk] Every uncounted cohort needs a next_sweep beginning with a verb."
+        echo "[AtRisk] Override (declared): ALLOW_AT_RISK_REGISTER=1."
+        exit 1
+    fi
+    echo ""
+else
+    echo "[AtRisk] no verdict: the checker is absent, or this run was declared skipped."
+    echo ""
+fi
+
 # ─── Check 7b (blocking): testing-paradigm G1 (Engram #890 item 4) ───
 # Every NEW staged src/ module must be named by at least one tests/ file.
 # Narrow by design (Added-only, name-presence only) so it cannot
