@@ -65,7 +65,10 @@ def main():
     # unbounded: with shell=True a bound kills only the SHELL, so it would
     # orphan the long-lived server children (api -> uvicorn --reload,
     # dashboard -> flask_dashboard) while reporting a timeout.
-    subprocess.run(full_cmd, shell=True)  # gate:allow-no-timeout: foreground dispatcher on inherited stdio; a bound cannot kill the server's process group and would orphan it
+    # Exemption reviewed 2026-11-02 and kept: the bound cannot be expressed here
+    # without changing dispatcher semantics for every caller (see
+    # docs/ZERO_SHOT_PROMPTS_2026-11-02.md §2.3). Re-review 2027-02-02.
+    subprocess.run(full_cmd, shell=True)  # gate:allow-no-timeout: foreground dispatcher on inherited stdio; a bound cannot kill the server's process group and would orphan it (reviewed 2026-11-02, re-review 2027-02-02)
 
 
 if __name__ == "__main__":

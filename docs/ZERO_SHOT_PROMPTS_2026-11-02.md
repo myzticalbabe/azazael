@@ -258,3 +258,47 @@ Three cases, and none of them is "push through":
 3. **The work needs a different design than the brief implies.** Do not redesign
    silently: state the two readings, their difference in size, and ask. That is the
    one case where more work is the wrong answer.
+
+---
+
+## §7 Status — what was run, on 2026-11-02
+
+Every row below is a reading taken in this tree with the interpreter
+`C:/Azazael/.venvs/py315t/Scripts/python.exe`, not a recollection. Three verdicts
+only: **CONFIRMED** (the EVIDENCE command ran and printed the line), **BRIEF
+WRONG** (the command named in the brief does not produce the evidence; the estate
+is ahead of the brief), **UNTESTABLE HERE** (the obstacle is named). No row is
+marked done for work that was not done.
+
+| brief | what the tree actually holds | command | printed | verdict |
+| --- | --- | --- | --- | --- |
+| 1.1 third implementation | a spec-only port with its own tests | `pytest Project_SHARDEX/tests -q -k third_impl` | `6 passed, 50 deselected in 0.29s` | CONFIRMED |
+| 1.2 perturb-and-predict | `--predict RULES` scores each rule at its use site | `transubstantiate.py --predict docs/transubstantiation/rules.json` | `verified 3/5`, and the branch law reports `PRESENT-BUT-UNFALSIFIED` instead of scoring | CONFIRMED |
+| 1.3 intake on a real tree | ceilings in code; no real-tree run recorded here | — | — | UNTESTABLE HERE: needs an external game tree; no tree in this repo is large enough to reach 24 files / 2 MiB |
+| 1.4 compose two arenas | `--compose` exists and refuses unresolved disagreement | `launch.py --bracket duel ladder --compose --resolve sim_hz=120 --resolve ticks=120 --resolve seed=3512582836` | `COMPOSED 2 shards into one space ... composed 43c4611fd0599e9f`, identical on a second run; without `--resolve` it prints `REFUSED: UNRESOLVED-DISAGREEMENT` naming `sim_hz/ticks/seed` | CONFIRMED |
+| 1.5 addressable op log | `--export-program` and `--verify-program` | `meshscene.py --export-program <dir>` then `--verify-program <dir>/shardscript.json` | `3 ops, chain 0bdf3e499a69a826042b4cc02473a51c`; verify prints `chain`, `base_mesh_digest`, `field_sha256`, `final_mesh_digest`, per-op digests `fc8f28b1, 1e1fee30, 7fccdf89`, exit 0 | CONFIRMED |
+| 2.1 prompt gate blocks a commit | the gate **refuses a prompt it is handed**; the discovered set is the 7 lane files | `prompt_check.py --no-selftest --prompt <copy with a false count>` | `DEFECT ... P3 '...claims 99999 tests; the recorded reading is 6308'`, exit 1 | CONFIRMED with a boundary: `--json` lists the 7 prompts as `C:\Users\clint\AGENTS.md`, `C:\Azazael\AGENTS.md`, kilo ×2, opencode, `CLAUDE.md`, `.codebuff/rules.md`. **This sheet is not one of them**, so editing *this file* is ungated — that is the gap, not the gate's refusal logic |
+| 2.2 verify must distrust consistent edits | verify-inputs tests exist | `pytest Project_SHARDEX/tests -q -k verify` | `11 passed, 45 deselected in 0.36s` | CONFIRMED at test level; the hand-edited-fixture two-run demonstration was not repeated in this pass |
+| 2.3 stdio exemption | the exemption could not be lifted without changing dispatcher semantics for every caller | `failure_evidence_gate.py --check` before / after | after: `EXEMPT ... tools\unified_cli.py:71 foreground dispatcher ... (reviewed 2026-11-02, re-review 2027-02-02)` and `OK: no failure-evidence regressions (baseline 0, now 0)` | CONFIRMED — the deliverable was the dated reason, added in this pass |
+| 3.1 claim names its task | `tools/g1_claim_trailer.py` exists and carries its own controls | `g1_claim_trailer.py --self-test` | `G1 self-test: PASS (7/7 controls)`, exit 0 | CONFIRMED; **BRIEF WRONG** on the command: `pytest tests -q -k claim_trailer` selects `1 skipped` — the guard lives in `tools/`, its tests are not named that |
+| 3.2 completion carries a receipt | `tools/g2_receipt.py` | `g2_receipt.py --self-test` | `G2 self-test: PASS (10/10 controls)`, exit 0 | CONFIRMED, same brief defect: `-k receipt` collects 41 passing tests that are `SpanReceipt`-related, so it is not evidence for G2 either |
+| 4.1 re-derive 415/945 TWh | still tier C/P; body never fetched | — | — | UNTESTABLE HERE: the fetch needs the report PDF from the network, and a paywall or a rewritten URL would silently substitute a secondary source. Left `gated-unverified`; no number in the audit was changed |
+| 4.2 instrument reports all twelve | twelve families, `--compare` prints them all, stage-strip is explicit | `prose_forensics.py --file <doc> --out a.json`, `--strip-stage --out b.json`, `--compare a.json b.json` | `12 metric families printed: lexical, length, person, negation, intensifier, deixis, modals, superlatives, sentence_initial, imperatives, punctuation, readability`; stripping stage cues moved `punctuation.parentheses` 45 → 44, so a deliberate split difference does change a metric | CONFIRMED |
+
+**Two defects the run found in the estate, not in the briefs.**
+
+1. `tools/prompt_check.py` judges the seven lane instruction files and nothing else.
+   A stale count written into this sheet passes every gate, which is why §2.1's
+   evidence is a hand-run `--prompt` and not a blocked commit. The fix is to add
+   `docs/*SHOT_PROMPTS*.md` to the discovered set — not implemented here.
+2. Commit `28911db3` carries the subject `probe: bulk+agent-orders drift overridden
+   (declared) so the prompt gate can speak`. It contains one real change
+   (`Project_SHARDEX/meshscene.py`, 186 lines, the fixture fix) and a misleading
+   message. The content is what was verified; the subject is wrong and is recorded
+   here rather than rewritten, because rewriting history to tidy a message is a
+   bigger act than the defect.
+
+A `--resolve` is a value one input already states, printed in the run: the composed
+space above says so (`resolved seed 3512582836 (declared; inputs said {...3512582836
+... 245048625})`). A resolver that averaged would report a third world neither author
+signed, which is the refusal §1.4 asks for.
