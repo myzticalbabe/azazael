@@ -16,7 +16,7 @@
   `C` credible secondary (VERIFIED only paired with A/B, else LEAD); `D` snippet/social/hearsay (LEAD-only, still log).
 - Proof: raw+sha (`FETCH_LOG`|`FETCH_LOG-missing/direct`|`beam1-new`+url/fetched/tier) + granular quote
   (amount+date+names) + 2 identity keys (persons) / EIN-objectID (orgs), name-only=LEAD + universe label
-  on every negative (universe-free=CUT). `edge_idx` 0-107 is identity; `flock` required on every edge.
+  on every negative (universe-free=CUT). `edge_idx` 0-117 is identity; `flock` required on every edge.
 - New-fetch rules: save to `00_raw/<beam>_<slug>.<ext>`, never overwrite; cite
   `{"raw","sha","sha_source","url","fetched","tier"}` (+transcribe screenshots); URL-only caps at LEAD
   `unsaved-browser-view-<date>`; gated-only=LEAD `gated-unverified` after free-mirror try; log all in

@@ -2,7 +2,8 @@
 
 > *Effective: June 8, 2026 — Updated: June 11, 2026 (RULE 0H-A + RULE 0Q + RULE 0Q-A + RULE 0R + RULE 0T v3.2.0 + RULE 0U + RULE 0V + RULE 0W codified)*
 > *Applies to: All Codebuff / Azazael development sessions*
-> *Canonical source: `SOP.md` — readable via `read_files(["SOP.md"])`*
+> *Canonical source: `SYSTEM_INSTRUCTIONS.md` (the precedence chain in AGENTS.md).
+> This file mirrors it and is the operative SOP; where they disagree, SYSTEM_INSTRUCTIONS wins.*
 > *Skill mirror: `skill("azazael-sop")` loads identical content from `.agents/skills/azazael-sop/SKILL.md`*
 
 ---
@@ -29,11 +30,11 @@ analysis, RULE 0U, RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
 ```text
 🛑 **[PRE-ACTION GATE ASSERTION]**
 - **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain)
-- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If agent UNAVAILABLE per pre-check: N/A. If available and none spawned: HALT and spawn)
+- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? MUST CITE specific plan/verdict Gemini provided. (If agent **UNAVAILABLE per pre-check: N/A** — no spawner in `azazael/tools/spawn_agents/`. If available and none spawned: **HALT and spawn**)
 - **RULE 0H (Anti-Pattern Scan):** Scanned for emoji, backslash f-strings, t-strings, os.system, C:\ paths? — MUST cite scan method and results per RULE 0H-A (Passed/Found X/NOT SCANNED)
 - **RULE 0I (Algorithms/Batch):** If batch script: Gemini designed? One-file test? Backup? (Yes/No/N/A)
-- **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Yes/No/N/A)
-- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent UNAVAILABLE: N/A. If available and not concurrent: HALT)
+- **RULE 0L (Test Failure):** Did a test just fail? If so, was thinker-with-files-gemini spawned to analyze the failure BEFORE this fix attempt? (Yes/No/**N/A** — agent unavailable per pre-check)
+- **RULE 0M (Concurrent Inference):** If thinker-with-files-gemini was spawned, were ALL other inference agents spawned CONCURRENTLY? MUST CITE exactly which agents + their verdicts. (If agent **UNAVAILABLE per pre-check: N/A** — no spawner in `azazael/tools/spawn_agents/`. If available and not concurrent: **HALT**)
 - **RULE 0Q-A (Post-Phase Verification):** Was the LAST phase verified via free inference? MUST CITE inference cache filepaths (e.g., .inference_cache/20260611_120000_gemini.log). (If cache ABSENT: N/A. If PRESENT and not cited: HALT)
 - **RULE 0T-B (VLP Hardening):** Are all 15 VLP verification layers active? If --audit mode: have mandatory layers 11-13 (non-canonical sig, replay prevention, cross-session chain) been verified? (Explain: [Yes, all 15 / N/A not in --audit mode])
 - **RULE 0U (System Reminders):** Did the last system prompt remind you to spawn Gemini or a Code Reviewer? If yes, are you spawning them INSTANTLY right now BEFORE any other tool calls? (Explain: [Yes, spawning now / No reminder / N/A])
@@ -182,10 +183,11 @@ task — NOT just once at the beginning.
 3. **EXECUTE** — Implement the Gemini-architected plan
 4. **RESPAWN at EACH MAJOR PHASE** — New data, new decisions, gather→design→implement→verify→record
 5. **FOLLOW** — Implement Gemini guidance; don't substitute your own judgment
-6. **FALLBACK** — If Gemini unavailable: query ALL inference models via providers.py (NEVER skip)
+6. **FALLBACK** — If Gemini unavailable (no spawner in `azazael/tools/spawn_agents/`): this rule is N/A; query ALL inference models via providers.py (NEVER skip)
 
 ### Enforcement
-- Skipping Gemini for complex task = CRITICAL process violation
+- Skipping Gemini for complex task = CRITICAL process violation (only when spawner AVAILABLE)
+- If spawner UNAVAILABLE: rule is N/A per pre-check escape hatch (SOP.md lines 18-27)
 - Failing to respawn at new phase = CRITICAL process violation
 - "I already spawned Gemini earlier" is NOT valid
 
@@ -273,7 +275,7 @@ spawn_agents([
 
 ### Related
 - **RULE 0M** in `SYSTEM_INSTRUCTIONS.md` — canonical mandate
-- **RULE 0G (Gemini Mandate)** — Gemini must be spawned for complex tasks
+- **RULE 0G (Gemini Mandate)** — Gemini must be spawned for complex tasks (N/A if `thinker-with-files-gemini` spawner unavailable — no spawner in `azazael/tools/spawn_agents/`)
 - **Error #156** — Catalyst: sequential inference pattern documented
 
 ---
@@ -284,8 +286,11 @@ spawn_agents([
 
 After completing ANY complex phase, sub-task, fix, or codification, the assistant MUST spawn `thinker-with-files-gemini` + ALL concurrent free inference APIs to verify the work BEFORE executing the next action.
 
+**N/A Condition:** If `thinker-with-files-gemini` spawner is unavailable (no spawner in `azazael/tools/spawn_agents/`), this rule is N/A per pre-check escape hatch (SOP.md lines 18-27). The assistant MUST still query ALL free inference APIs via `providers.py` and cite `.inference_cache/` filepaths.
+
 **Enforcement:**
-- Spawning Gemini for the initial task but executing follow-up fixes or reviews alone = **CRITICAL process violation**
+- Spawning Gemini for the initial task but executing follow-up fixes or reviews alone = **CRITICAL process violation** (only when spawner AVAILABLE)
+- If spawner UNAVAILABLE: rule is N/A per pre-check escape hatch
 - If a pre-action gate reveals the *last* phase lacked inference validation, the assistant MUST HALT and immediately spawn them to back-verify before proceeding
 - "The fix is small" is NOT a valid reason to skip
 - "I already spawned Gemini for this task" is NOT a valid reason to skip for follow-ups
@@ -299,8 +304,8 @@ After completing ANY complex phase, sub-task, fix, or codification, the assistan
 | Error recorded, ready to proceed | Spawn Gemini + web + docs to verify recording BEFORE next action |
 
 ### Related
-- RULE 0G (Gemini Mandate) — Gemini at every major phase
-- RULE 0M (Concurrent Inference) — All agents concurrently with Gemini
+- RULE 0G (Gemini Mandate) — Gemini at every major phase (N/A if spawner unavailable)
+- RULE 0M (Concurrent Inference) — All agents concurrently with Gemini (N/A if spawner unavailable)
 - RULE 0Q-A (Inference Verification Sub-Mandate) — MUST CITE proof, not assert
 - 12-Provider Inference Protocol — Exhaust all free endpoints
 - Error #159 — Failed to use free inference + Gemini for complex phase

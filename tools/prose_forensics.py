@@ -21,7 +21,7 @@ USAGE
     python tools/prose_forensics.py --url https://www.whitehouse.gov/remarks/2025/01/the-inaugural-address/ \
         --label inaugural_2025 --out .prose/inaugural_2025.json
     python tools/prose_forensics.py --file .prose/text.txt --label x --out .prose/x.json
-    python tools/prose_forensics.py --compare .prose/a.json .prose/b.json
+    python tools/prose_forensics.py --compare .prose/a.json .prose/b.json   # all twelve metric families
 
 Network access is urllib + stdlib only: this tree has been burned by a dependency before, and a
 measurement tool that cannot run offline on saved text is not a tool, it is an outage.
@@ -129,13 +129,122 @@ def strip_stage(text: str) -> Tuple[str, int]:
     return text, removed
 
 
+# ---------------------------------------------------------------------------
+# Sentence splitting
+#
+# A regex cannot express the rule that matters here. `(?<=[.!?])\s+` splits
+# "Dr. Smith", "U.S. officials" and "John F. Kennedy" into extra sentences, and
+# every downstream statistic -- mean length, the <=8-word share, sentence-initial
+# runs -- inherits the error in the same direction. So the guards are written as
+# two named predicates that can be read and tested on their own.
+# ---------------------------------------------------------------------------
+
+# A closed list, not a language model: this tool measures, it does not guess.
+# "no" is deliberately absent -- it is both an abbreviation for "number" and an
+# ordinary word, and "said no. It rained" must stay two sentences.
+ABBREVIATIONS = {
+    "mr", "mrs", "ms", "dr", "prof", "rev", "hon", "st", "jr", "sr", "vs", "etc",
+    "eg", "ie", "cf", "al", "inc", "ltd", "co", "corp", "vol", "fig", "ch", "sec",
+    "pp", "gen", "sen", "rep", "gov", "pres", "lt", "col", "sgt", "capt", "maj",
+    "adm", "u.s", "u.k", "u.n", "a.m", "p.m", "d.c", "b.c", "a.d",
+}
+TERMINALS = ".!?"
+
+
+def _token_before(text: str, index: int) -> str:
+    """The word ending at `index` (exclusive of it), lowercased.
+
+    Walks back over letters, digits, dots and ampersands so a dotted initialism
+    such as "U.S." comes back as "u.s" and can be matched whole.
+    """
+    start = index
+    while start > 0 and (text[start - 1].isalnum() or text[start - 1] in ".&'"):
+        start -= 1
+    return text[start:index].lower()
+
+
+def _is_abbreviation_break(text: str, index: int) -> bool:
+    """Guard A: the terminal closes a declared abbreviation, not a sentence."""
+    token = _token_before(text, index)
+    if not token:
+        return False
+    if token in ABBREVIATIONS:
+        return True
+    # a single letter is an initial ("John F. Kennedy"), not a sentence end
+    if len(token) == 1 and token.isalpha():
+        return True
+    return False
+
+
+def _is_false_lowercase_join(text: str, index: int, next_index: int) -> bool:
+    """Guard B: the prose resumes in lower case, so the split was a false terminal.
+
+    A real sentence start in English prose is capitalised, so a lower-case
+    continuation rejoins ("U.S. officials", "etc. and"). A line break is still
+    honoured: a paragraph resumed in lower case is a new block, not a
+    continuation of the old one.
+    """
+    if "\n" in text[index + 1:next_index]:
+        return False
+    for char in text[next_index:]:
+        if char.isspace():
+            continue
+        return char.islower()
+    return False
+
+
+def split_sentences(text: str) -> List[str]:
+    """Split prose into sentences, applying the abbreviation and lowercase-rejoin guards."""
+    sentences: List[str] = []
+    start = 0
+    index = 0
+    length = len(text)
+    while index < length:
+        if text[index] not in TERMINALS:
+            index += 1
+            continue
+        # collapse a run of terminals ("?!", "...") into one boundary
+        end = index
+        while end + 1 < length and text[end + 1] in TERMINALS:
+            end += 1
+        # A terminal ends a sentence only when whitespace (or end of text)
+        # follows it. Without this guard "(Applause.)" splits into
+        # "(Applause." + ")" -- a close paren is not a sentence break, and
+        # re.split(r"(?<=[.!?])\s+") never did that, so this restores the
+        # behaviour the count assertions in the tests were written against.
+        if end + 1 < length and text[end + 1] not in " \t\n":
+            index = end + 1
+            continue
+        next_index = end + 1
+        while next_index < length and text[next_index] in " \t":
+            next_index += 1
+        if next_index >= length:
+            break
+        boundary = True
+        if text[index] == ".":
+            if _is_abbreviation_break(text, index):
+                boundary = False
+            elif _is_false_lowercase_join(text, index, next_index):
+                boundary = False
+        if boundary:
+            chunk = text[start:end + 1].strip()
+            if chunk:
+                sentences.append(chunk)
+            start = next_index
+        index = end + 1
+    tail = text[start:].strip()
+    if tail:
+        sentences.append(tail)
+    return sentences
+
+
 def measure(text: str, label: str = "", strip_cues: bool = False) -> Dict[str, Any]:
     text = text.replace("\u2019", "'").replace("\u2018", "'")
     cues = 0
     if strip_cues:
         text, cues = strip_stage(text)
     text = text.replace("\u201c", '"').replace("\u201d", '"')
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    sentences = split_sentences(text)
     words = re.findall(r"[A-Za-z][A-Za-z'-]*", text)
     lower = [w.lower() for w in words]
     per_1000 = 1000.0 / max(len(words), 1)
@@ -245,6 +354,127 @@ def show(result: Dict[str, Any]) -> None:
              ", ".join("%s(%d)" % (w, c) for w, c in result["top_content_words"][:8])))
 
 
+# ---------------------------------------------------------------------------
+# The comparison table
+#
+# The instrument computes twelve metric families. Printing five of them made the
+# other seven invisible in the one view a reader actually looks at, and a metric
+# that is computed and hidden is the same defect as one that is not measured.
+# ---------------------------------------------------------------------------
+
+METRIC_FAMILIES = ("lexical", "length", "person", "negation", "intensifier", "deixis",
+                   "modals", "superlatives", "sentence_initial", "imperatives",
+                   "punctuation", "readability")
+
+
+def _g(mapping: Any, key: str, default: Any = 0) -> Any:
+    """Read a nested key without assuming the JSON was written by this version."""
+    if not isinstance(mapping, dict):
+        return default
+    return mapping.get(key, default)
+
+
+def _fmt(value: Any) -> str:
+    if isinstance(value, float):
+        return "%.2f" % value if abs(value) >= 10 else "%.3f" % value
+    return str(value)
+
+
+def metric_rows(result: Dict[str, Any]) -> List[Tuple[str, str, Any]]:
+    """Every computed number as (family, field, value), in a fixed order."""
+    length = _g(result, "sentence_len", {})
+    person = _g(result, "pronouns_per_1000", {})
+    sup = _g(result, "superlatives", {})
+    head = _g(result, "sentence_initial", {})
+    imp = _g(result, "imperatives", {})
+    punc = _g(result, "punctuation", {})
+    return [
+        ("lexical", "unique_words", _g(result, "unique_words")),
+        ("lexical", "type_token_ratio", _g(result, "type_token_ratio")),
+        ("lexical", "hapax_ratio", _g(result, "hapax_ratio")),
+        ("length", "mean", _g(length, "mean")),
+        ("length", "median", _g(length, "median")),
+        ("length", "p90", _g(length, "p90")),
+        ("length", "max", _g(length, "max")),
+        ("length", "pct_under_9", _g(length, "pct_under_9")),
+        ("length", "pct_over_39", _g(length, "pct_over_39")),
+        ("person", "first_singular", _g(person, "first_singular")),
+        ("person", "first_plural", _g(person, "first_plural")),
+        ("person", "second", _g(person, "second")),
+        ("person", "third_plural", _g(person, "third_plural")),
+        ("negation", "per_1000", _g(result, "negation_per_1000")),
+        ("intensifier", "per_1000", _g(result, "intensifier_per_1000")),
+        ("intensifier", "very_count", _g(result, "very_count")),
+        ("deixis", "per_1000", _g(result, "deixis_per_1000")),
+        ("modals", "per_1000", _g(result, "modals_per_1000")),
+        ("superlatives", "most", _g(sup, "most")),
+        ("superlatives", "greatest", _g(sup, "greatest")),
+        ("superlatives", "best", _g(sup, "best")),
+        ("superlatives", "ever", _g(sup, "ever")),
+        ("sentence_initial", "and", _g(head, "and")),
+        ("sentence_initial", "but", _g(head, "but")),
+        ("sentence_initial", "but_pct", _g(head, "but_pct")),
+        ("sentence_initial", "longest_same_starter_run", _g(head, "longest_same_starter_run")),
+        ("imperatives", "count", _g(imp, "count")),
+        ("imperatives", "share_pct", _g(imp, "share_pct")),
+        ("punctuation", "em_dash", _g(punc, "em_dash")),
+        ("punctuation", "hyphen_dash", _g(punc, "hyphen_dash")),
+        ("punctuation", "parentheses", _g(punc, "parentheses")),
+        ("punctuation", "questions", _g(punc, "questions")),
+        ("punctuation", "exclamations", _g(punc, "exclamations")),
+        ("readability", "flesch_reading_ease", _g(result, "flesch_reading_ease")),
+    ]
+
+
+def show_compare(results: List[Dict[str, Any]]) -> None:
+    """Print every metric the instrument computes, side by side, for each text.
+
+    Previously this showed five columns (mean length, we, I, negation,
+    intensifiers, Flesch and word count). Everything else the tool computed --
+    the length tail, second and third person, deixis, modals, superlatives,
+    sentence-initial runs, imperatives, punctuation, lexical diversity -- was
+    measured and then thrown away at the only step a reader sees.
+    """
+    if not results:
+        print("REFUSED: --compare needs at least one measured JSON file")
+        return
+    labels = [str(_g(r, "label", "unnamed")) for r in results]
+    widths = [max(10, min(len(label), 22)) for label in labels]
+    name_width = 32
+    rule = "-" * (name_width + sum(width + 1 for width in widths))
+
+    def row(cells: List[str], first: str) -> str:
+        line = first.ljust(name_width)
+        for cell, width in zip(cells, widths):
+            line += " " + cell.rjust(width)
+        return line
+
+    print(row([label[:width] for label, width in zip(labels, widths)],
+              "metric (%d families)" % len(METRIC_FAMILIES)))
+    print()
+    print(rule)
+    for field, title in (("words", "corpus.words"),
+                         ("sentences", "corpus.sentences"),
+                         ("stage_directions_removed", "corpus.stage_directions_removed")):
+        print(row([_fmt(_g(result, field)) for result in results], "  " + title))
+    print(rule)
+
+    per_result = [{(family, field): value for family, field, value in metric_rows(result)}
+                  for result in results]
+    last_family = ""
+    for family, field, _value in metric_rows(results[0]):
+        if family != last_family:
+            print("  [%s]" % family)
+            last_family = family
+        cells = [_fmt(table.get((family, field), "")) for table in per_result]
+        print(row(cells, "    %s.%s" % (family, field)))
+
+    print(rule)
+    print("%d metric families printed: %s" % (len(METRIC_FAMILIES), ", ".join(METRIC_FAMILIES)))
+    print("Not in this table: top_content_words, top_trigrams, first/last sentence -- "
+          "qualitative detail, kept in the JSON.")
+
+
 def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Measure the prose of a public text.")
     parser.add_argument("--url", default="")
@@ -263,15 +493,7 @@ def main(argv: List[str] | None = None) -> int:
 
     if args.compare:
         loaded = [json.loads(Path(p).read_text(encoding="utf-8")) for p in args.compare]
-        print("%-22s %6s %6s %6s %6s %6s %6s %6s" % ("text", "words", "mean", "we", "i",
-                                                     "not", "intens", "flesch"))
-        for result in loaded:
-            print("%-22s %6d %6.2f %6.1f %6.1f %6.1f %6.1f %6.1f"
-                  % (result["label"], result["words"], result["sentence_len"]["mean"],
-                     result["pronouns_per_1000"]["first_plural"],
-                     result["pronouns_per_1000"]["first_singular"],
-                     result["negation_per_1000"], result["intensifier_per_1000"],
-                     result["flesch_reading_ease"]))
+        show_compare(loaded)
         return 0
 
     if args.file:

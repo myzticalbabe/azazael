@@ -67,17 +67,25 @@ jobs:
       # found the mechanism built and wired to nothing that blocks.
       # The gates below were wired into CI and the tests of those gates were
       # not, so a broken instrument reported OK with nothing contradicting it.
-      # tests/test_anti_pattern_gate.py is deliberately NOT in this step: its
-      # baseline-agreement test fails on the committed tree (measured 2026-11-01
-      # at HEAD in a detached worktree: live 968 vs baseline 953 for
-      # import_inside_function), so running it here would ship a red CI that
-      # nobody can fix with a test. Re-enable it in this list once the baseline
-      # is re-measured deliberately.
+      # tests/test_anti_pattern_gate.py was excluded from this step until
+      # 2026-11-01 because its baseline-agreement test failed on the committed
+      # tree (live 968 vs baseline 953 for import_inside_function). The cause was
+      # not the tree: the test compared a WORKTREE scan against a baseline while
+      # the gate enforces a TRACKED-ONLY one, and the 15 extra findings were all
+      # in untracked scratch. `--baseline --tracked-only` was also redirected to
+      # a `.partial` file the check never read. Both are fixed, the baseline is
+      # re-recorded under the tracked-only predicate (and TIGHTER: silent_except
+      # 5 -> 4), so the gate's own control now runs here.
       - name: Tests for the gates this workflow runs
-        run: python -m pytest tests/test_canon_drift_check.py -q
+        run: |
+          python -m pytest tests/test_canon_drift_check.py -q
+          python -m pytest tests/test_anti_pattern_gate.py -q
 
+      # --tracked-only, the same predicate the pre-commit hook uses: in CI every
+      # file is tracked, so the two scopes agree, and a baseline recorded under
+      # one predicate is refused (exit 2) under the other rather than diffed.
       - name: Anti-pattern ratchet (fail on increase over baseline)
-        run: python tools/anti_pattern_gate.py --check
+        run: python tools/anti_pattern_gate.py --check --tracked-only
 
       - name: Canon drift (skills/ vs .agents/skills/)
         run: python tools/canon_drift_check.py --check

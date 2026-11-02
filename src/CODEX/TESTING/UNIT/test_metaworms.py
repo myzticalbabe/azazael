@@ -69,34 +69,35 @@ class TestHYDRAMETA:
     def test_hydrometa_initialization(self):
         """Test HYDRAMETA initializes with defaults."""
         try:
-            from CORE.WORMS import WORMZ_ML as _wormz_ml
-
-            HYDRAMETA = getattr(_wormz_ml, "HYDRAMETA", None)
-            if HYDRAMETA is None:
-                raise ImportError("HYDRAMETA not implemented in CORE.WORMS.WORMZ_ML")
+            from HYDRAMETA import HYDRAMETA
 
             optimizer = HYDRAMETA()
-            assert optimizer.population_size == 50
-            assert optimizer.generations == 100
+            # The GA knobs are per-call (evolve(num_generations=...)), not
+            # constructor attributes: population_size/generations were never
+            # real attributes, so the old assertions could only ever skip.
+            ga = optimizer.optimizer
+            assert type(ga).__name__ == "HYDRAOptimizer"
+            assert callable(ga.initialize_population)
+            assert callable(ga.evolve)
+            assert callable(ga.run_trial)
         except ImportError as exc:
             note_failure("test_metaworms:L67", exc)
-            pytest.skip("HYDRAMETA not implemented")
+            pytest.skip("HYDRAMETA not importable")
 
     def test_hydrometa_has_optimize_method(self):
         """Test HYDRAMETA has optimize method."""
         try:
-            from CORE.WORMS import WORMZ_ML as _wormz_ml
-
-            HYDRAMETA = getattr(_wormz_ml, "HYDRAMETA", None)
-            if HYDRAMETA is None:
-                raise ImportError("HYDRAMETA not implemented in CORE.WORMS.WORMZ_ML")
+            from HYDRAMETA import HYDRAMETA
 
             optimizer = HYDRAMETA()
-            assert hasattr(optimizer, "optimize")
-            assert callable(optimizer.optimize)
+            # The optimization entry point is run_optimized (and run_trials),
+            # not optimize(); asserting the retired name guaranteed a skip.
+            assert hasattr(optimizer, "run_optimized")
+            assert callable(optimizer.run_optimized)
+            assert callable(optimizer.run_trials)
         except ImportError as exc:
             note_failure("test_metaworms:L78", exc)
-            pytest.skip("HYDRAMETA not implemented")
+            pytest.skip("HYDRAMETA not importable")
 
 
 if __name__ == "__main__":

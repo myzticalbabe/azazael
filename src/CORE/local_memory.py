@@ -702,6 +702,19 @@ class LocalMemoryStore:
         """
         severity = self._validate_event_args(source, event_type, data, severity, tags)
 
+        # Recorder guard (2026-10-31): `trainers_v2` emits one `episode_complete`
+        # per episode, and evolution ran 5 sessions at ~62 rows/s each until this
+        # store reached 6.41 GB / 4.7M rows. The guard is a per-event-type token
+        # bucket; errors, criticals and low-volume meaningful types bypass it.
+        # Fail OPEN: if the guard itself cannot import, the write proceeds — a
+        # broken guard must never become a broken store.
+        try:
+            from CORE.recorder_guard import allow as _guard_allow
+            if not _guard_allow(event_type, severity):
+                return 0
+        except Exception as exc:                  # noqa: BLE001 -- guard is advisory
+            _note_failure("local_memory:recorder-guard", exc)
+
         sid = session_id or self._session_id
         data_str = json.dumps(data if data is not None else {}, ensure_ascii=False)
         tags_str = json.dumps(tags or [], ensure_ascii=False)
@@ -3302,7 +3315,55 @@ def get_memory_store(db_path: Optional[str] = None) -> LocalMemoryStore:
         with _store_lock:
             if _global_store is None:
                 _global_store = LocalMemoryStore(db_path=db_path)
+                _maybe_run_retention(_global_store)
     return _global_store
+
+
+# -- size-triggered retention (2026-10-31) ----------------------------------
+# `CORE/data_retention.py` has been able to enforce TTL, per-type caps and a
+# global quota since it was written; `run_maintenance()` is called only by
+# `scripts/nightly_maintenance.py`, and **no scheduled task runs that script**.
+# The store therefore reached 6.41 GB while a correct control sat unused. The
+# fix is not another limit — it is a caller. This runs the cheap enforcers once
+# per process, only when the file is already over quota, in a daemon thread so
+# store construction never blocks on a delete.
+_RETENTION_ATTEMPTED = False
+_RETENTION_OFF = (os.environ.get("RECORDER_RETENTION_OFF", "") == "1")
+
+
+def _maybe_run_retention(store: "LocalMemoryStore") -> None:
+    """Kick one quota enforcement if the store file is over the quota."""
+    global _RETENTION_ATTEMPTED
+    if _RETENTION_OFF or _RETENTION_ATTEMPTED:
+        return
+    _RETENTION_ATTEMPTED = True
+    try:
+        path = getattr(store, "db_path", None)
+        if not path or not os.path.exists(path):
+            return
+        size_mb = os.path.getsize(path) / (1024.0 * 1024.0)
+        from CORE.data_retention import DB_SIZE_QUOTA_MB
+        if size_mb <= float(DB_SIZE_QUOTA_MB):
+            return
+    except Exception as exc:                      # noqa: BLE001 -- advisory
+        _note_failure("local_memory:retention-precheck", exc)
+        return
+
+    def _run() -> None:
+        try:
+            from CORE.data_retention import enforce_type_caps, enforce_global_quota
+            # db_path is explicit: without it the enforcers resolve
+            # direct_memory.DB_PATH, i.e. they would trim a *different* store
+            # than the one that tripped the quota check.
+            caps = enforce_type_caps(db_path=path)
+            quota = enforce_global_quota(db_path=path)
+            print(f"[retention] store was {size_mb:.1f} MB against a "
+                  f"{DB_SIZE_QUOTA_MB} MB quota -> caps={caps} quota={quota}",
+                  file=sys.stderr, flush=True)
+        except Exception as exc:                  # noqa: BLE001 -- never break the caller
+            _note_failure("local_memory:retention-run", exc)
+
+    threading.Thread(target=_run, name="memory-retention", daemon=True).start()
 
 
 # -- EP463 semiring conflict resolution (pure function, no store needed) -----

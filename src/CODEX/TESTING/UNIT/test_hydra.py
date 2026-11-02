@@ -33,7 +33,7 @@ class TestHYDRACluster:
     def test_cluster_initialization(self):
         """Test HYDRACluster initializes."""
         try:
-            from HYDRA.HYDRA import HYDRACluster
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             cluster = HYDRACluster()
             assert cluster is not None
@@ -42,24 +42,33 @@ class TestHYDRACluster:
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_discover(self):
-        """Test HYDRACluster has run_discover method."""
+        """Test HYDRACluster exposes node discovery.
+
+        The method was renamed run_discover -> discover_nodes in the HYDRA
+        split; asserting the retired name only ever produced a green skip.
+        """
         try:
-            from HYDRA.HYDRA import HYDRACluster
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             cluster = HYDRACluster()
-            assert hasattr(cluster, "run_discover")
+            assert hasattr(cluster, "discover_nodes")
+            assert callable(cluster.discover_nodes)
         except ImportError as exc:
             note_failure("test_hydra:L40", exc)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_all(self):
-        """Test HYDRACluster has run_all method."""
+        """Test HYDRACluster exposes the full-sequence runner.
+
+        run_all was replaced by run_sequential; the old name made this test a
+        permanent skip rather than a check.
+        """
         try:
-            from HYDRA.HYDRA import HYDRACluster
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             cluster = HYDRACluster()
-            assert hasattr(cluster, "run_all")
-            assert callable(cluster.run_all)
+            assert hasattr(cluster, "run_sequential")
+            assert callable(cluster.run_sequential)
         except ImportError as exc:
             note_failure("test_hydra:L51", exc)
             pytest.skip("HYDRACluster not implemented")
@@ -67,7 +76,7 @@ class TestHYDRACluster:
     def test_cluster_has_stages(self):
         """Test HYDRACluster has expected stages."""
         try:
-            from HYDRA.HYDRA import HYDRACluster
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             expected_stages = [
                 "discover",
@@ -90,12 +99,26 @@ class TestHYDRADataClasses:
     """Unit tests for HYDRA data classes."""
 
     def test_processing_stage_creation(self):
-        """Test ProcessingStage dataclass."""
-        try:
-            from HYDRA.HYDRA import ProcessingStage
+        """Test the ProcessingStage enum and the StageResult carrier.
 
-            stage = ProcessingStage(name="test_stage", enabled=True, duration_ms=100.0)
-            assert stage.name == "test_stage"
+        ProcessingStage is an Enum of six stages, not the keyword dataclass
+        this test once assumed (name/enabled/duration_ms); that shape belongs
+        to StageResult(stage, success, ...). Both are asserted here.
+        """
+        try:
+            import dataclasses
+
+            from ORCHESTRATION.HYDRA import ProcessingStage, StageResult
+
+            members = [m.name for m in ProcessingStage]
+            assert members == ["DISCOVERY", "ANALYSIS", "OPTIMIZATION",
+                               "VALIDATION", "DEPLOYMENT", "FEEDBACK"]
+            assert dataclasses.is_dataclass(StageResult)
+            fields = {f.name for f in dataclasses.fields(StageResult)}
+            assert {"stage", "success", "modules_processed", "duration"} <= fields
+            row = StageResult(stage=ProcessingStage.DISCOVERY, success=True,
+                              modules_processed=1, duration=0.5)
+            assert row.stage is ProcessingStage.DISCOVERY
         except ImportError as exc:
             note_failure("test_hydra:L85", exc)
             pytest.skip("ProcessingStage not implemented")

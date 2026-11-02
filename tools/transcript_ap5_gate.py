@@ -90,6 +90,7 @@ import os
 import sqlite3
 import sys
 from dataclasses import asdict, dataclass, field, replace
+from datetime import datetime, timezone
 from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -114,6 +115,61 @@ DEFAULT_MANICODE_ROOT = os.path.expandvars(
 #: run to ~11 MB; a 1.2 GB sibling exists in the sibling `log.jsonl` tree, so
 #: an unbounded read is a real hazard rather than a hypothetical one.
 DEFAULT_MAX_STORE_BYTES = 64 * 1024 * 1024
+
+#: Where acknowledged emissions live. The gate has no history of its own, so a
+#: single sentence emitted once by any client failed the pre-commit path forever
+#: -- and the only ways to pass were to edit a transcript or delete the finding,
+#: both dishonest. An acknowledgement is the same shape as every other ratchet
+#: in this tree: what is already known is RECORDED and still printed, what is
+#: new fails. It is per-emission (source|session|message|part|rule|line|match),
+#: never per-rule, so acknowledging one sentence cannot whitelist the rule.
+ACK_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "logs", "transcript_ap5_ack.json",
+)
+
+
+def load_acks(path: str | None = None) -> dict:
+    """key -> ack record. A missing or unreadable ledger is EMPTY, never a pass.
+
+    Reporting this as "0 acknowledged" and an unreadable file as "0
+    acknowledged" are the same number but not the same fact, so the caller is
+    told which one it got.
+
+    ``path=None`` resolves to ACK_PATH at CALL time. A `path: str = ACK_PATH`
+    default binds at import, so a test (or any caller) that redirects ACK_PATH
+    would still write the repository ledger -- measured 2026-11-02, and it is
+    the kind of quiet "the setting did nothing" that a test needs to catch.
+    """
+    path = path or ACK_PATH
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except FileNotFoundError:
+        return {}
+    except (OSError, ValueError):
+        return {}
+    rows = data.get("acknowledged") if isinstance(data, dict) else None
+    if not isinstance(rows, list):
+        return {}
+    return {r["key"]: r for r in rows if isinstance(r, dict) and r.get("key")}
+
+
+def save_acks(acks: dict, path: str | None = None) -> str:
+    """Write the ledger sorted by key, so a re-run is a byte-identical file."""
+    path = path or ACK_PATH
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    body = {
+        "why": "Emissions that already happened and cannot be un-said. New "
+               "ones still fail the gate.",
+        "acknowledged": [acks[k] for k in sorted(acks)],
+    }
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(body, handle, indent=1)
+        handle.write("\n")
+    return path
 
 #: Per-store statuses. Kept as plain strings so they survive JSON round-trips
 #: and read the same in the human output.
@@ -211,6 +267,19 @@ class Finding:
     match: str
     excerpt: str
     source: str = "opencode"
+
+
+def finding_key(f: "Finding") -> str:
+    """Identity of one emission. Stable, because the emission is frozen.
+
+    A finding is a property of a transcript that already exists, so its key can
+    include the line and the matched text: an EDIT to that part changes the key
+    and the old acknowledgement stops covering it, which is the property an
+    acknowledgement needs. A key that survived editing would silence the
+    rewritten sentence too.
+    """
+    return "|".join((f.source, f.session_id, f.message_id, f.part_id,
+                     f.rule, str(f.line), f.match))
 
 
 @dataclass
@@ -747,6 +816,14 @@ def main(argv: list[str] | None = None) -> int:
         help="print the source registry (name / state / scanner / locator) "
              "and exit",
     )
+    ap.add_argument(
+        "--ack",
+        metavar="WHY",
+        help="record the CURRENT findings in the acknowledgement ledger and "
+             "exit 0. Acknowledged findings keep printing on every run; only "
+             "NEW ones fail. Use it for prose that was already emitted and "
+             "cannot be un-said -- not to quiet a rule.",
+    )
     args = ap.parse_args(argv)
 
     if args.list_sources:
@@ -776,6 +853,36 @@ def main(argv: list[str] | None = None) -> int:
     report = _merge(results)
     scannable = [r for r in results if r.status == SCANNED]
 
+    acks = load_acks()
+    acked = [f for f in report.findings if finding_key(f) in acks]
+    fresh = [f for f in report.findings if finding_key(f) not in acks]
+
+    if args.ack:
+        now = datetime.now(timezone.utc).isoformat()
+        for f in report.findings:
+            key = finding_key(f)
+            acks[key] = {
+                "key": key,
+                "source": f.source,
+                "session": f.session_id,
+                "message": f.message_id,
+                "part": f.part_id,
+                "rule": f.rule,
+                "line": f.line,
+                "match": f.match,
+                "excerpt": f.excerpt,
+                "why": args.ack,
+                "acked_at": now,
+            }
+        path = save_acks(acks)
+        print("acknowledged %d new emission(s); ledger: %s"
+              % (len(report.findings), path))
+        for f in report.findings:
+            print("  [%s] %s %s msg=%s line=%d %r"
+                  % (f.rule, f.source, f.session_id, f.message_id, f.line,
+                     f.match))
+        return 0
+
     if args.json:
         print(
             json.dumps(
@@ -789,6 +896,8 @@ def main(argv: list[str] | None = None) -> int:
                     "scanned_parts": report.scanned_parts,
                     "scanned_sessions": sorted(report.scanned_sessions),
                     "findings": [asdict(f) for f in report.findings],
+                    "new_findings": [asdict(f) for f in fresh],
+                    "acknowledged_count": len(acked),
                     # Reported, never counted: the exit code below reads
                     # `findings` only, so an announcement cannot fail a run.
                     "announcements": [asdict(f) for f in report.announcements],
@@ -812,7 +921,7 @@ def main(argv: list[str] | None = None) -> int:
                 indent=2,
             )
         )
-        if report.findings:
+        if fresh:
             return 1
         return 0 if scannable else 2
 
@@ -840,15 +949,27 @@ def main(argv: list[str] | None = None) -> int:
         print("        This is not a clean result. Nothing was audited.")
         return 2
 
+    if acked:
+        print("  acknowledged: %d prior emission(s) (recorded in %s; "
+              "reported on every run, not gating)"
+              % (len(acked), ACK_PATH))
+
     if not report.findings:
         print("")
         print("  AP-5: clean (%d part(s) scanned across %d store(s))"
               % (report.scanned_parts, len(scannable)))
         return 0
 
+    if not fresh:
+        print("")
+        print("  AP-5: no NEW finding (%d already-acknowledged emission(s) "
+              "remain on record)" % len(acked))
+        return 0
+
     print("")
-    print("  AP-5: %d finding(s)" % len(report.findings))
-    for f in report.findings:
+    print("  AP-5: %d new finding(s), %d acknowledged"
+          % (len(fresh), len(acked)))
+    for f in fresh:
         # Full ids: 12-char truncations are not lookup keys (2026-10-22
         # lane-B #9 — a truncated id reproduces to "not found").
         print("  [%s] %s %s msg=%s line=%d %r" % (

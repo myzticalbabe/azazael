@@ -106,25 +106,26 @@ def file_lock(lock_path: Path | str, where: str):
     thread_lock.acquire()
     try:
         fh = open(str(lock), "ab")  # noqa: PTH123 -- lock handle, binary needs no encoding
+        lock_kind = "none"
         try:
             if fcntl is not None:
                 fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
-                fh._lock_kind = "flock"
+                lock_kind = "flock"
             elif msvcrt is not None:
                 try:
                     fh.seek(0)
                     msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
-                    fh._lock_kind = "msvcrt"
+                    lock_kind = "msvcrt"
                 except OSError as e:
                     note_failure(where + ":msvcrt-lock", e)
-                    fh._lock_kind = "none"
+                    lock_kind = "none"
             else:
                 note_failure(where + ":no-lock-primitive", None)
-                fh._lock_kind = "none"
+                lock_kind = "none"
             yield lock
         finally:
             try:
-                kind = getattr(fh, "_lock_kind", "none")
+                kind = lock_kind
                 if kind == "flock" and fcntl is not None:
                     fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
                 elif kind == "msvcrt" and msvcrt is not None:

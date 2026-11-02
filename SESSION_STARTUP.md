@@ -400,7 +400,7 @@ dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
 
 **Changes this session:**
 - RULE 0Z-G (No Busy Work) codified in MANDATES.md
-- RULE 0Z-B bridged to 0Z-G — 11 followups must be actionable fixes
+- RULE 0Z-B bridged to 0Z-G — 14 followups must be actionable fixes: 13 hyper-edge cards (one is "Build, land, in the abyss") then zero-shot reasoning over their evidence
 - PRE-ACTION GATE now includes RULE 0Z-G check
 - Agent inventory clarified: 10 spawnable + 1 auto-managed
 - Gate check counts corrected: 14→17, 17→18

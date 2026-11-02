@@ -10,7 +10,10 @@ both memory stores instead of PMB alone. It then prints ONE summary line
 stating how many characters each store actually delivered.
 Runs under ANY interpreter. Exit 0 by default -- context is best-effort and a
 session must never be blocked by a memory daemon. `--strict` is the opt-in
-gate: it exits 1 when any store delivered nothing.
+gate: it exits 1 when any store delivered nothing, when the MCP gate reports
+FAIL/BLOCKED, or when the supervisor load guard reports a BROKEN client config
+(its exit=2). A guard exit=1 deliberately does NOT gate -- it means "client not
+yet restarted", a remedy a running session cannot perform.
 
 Why this file no longer just "continues without context" -- measured 2026-10-14
 -----------------------------------------------------------------------------
@@ -215,6 +218,43 @@ def pams_capture_start(topic: str) -> "tuple[int, str]":
     return (0, note[:80] or ("rc=%s" % r.returncode))
 
 
+MCP_GATE = Path("C:/Azazael/azazael/tools/mcp_startup_gate.py")
+
+
+def mcp_gate(fix: bool = True) -> str:
+    """Run the standing MCP gate. Returns a one-word status for the summary line.
+
+    This is the FIRST thing a session does, before any task work, because the
+    failures it catches are silent: a stale stdio child serving old code, a
+    duplicate floor proxy splitting traffic across two thresholds, or a lane
+    wired straight at the daemon so its recall has no floor at all. None of
+    those raise an error anywhere -- they just make answers wrong.
+
+    `--fix` repairs what is safe to repair (daemon, proxy, duplicates). It never
+    touches pams or supervisor: those are the client's stdio children, and
+    killing one breaks the live session. A stale child is reported as BLOCKED
+    with the only remedy that works, restarting the client.
+    """
+    if not MCP_GATE.exists():
+        _emit("gate: MISSING %s" % MCP_GATE)
+        return "gate=missing"
+    cmd = [sys.executable, str(MCP_GATE), "--quiet"]
+    if fix:
+        cmd.append("--fix")
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=240)
+    except Exception as exc:  # never block startup on the gate itself
+        _emit("gate: could not run (%s: %s)" % (type(exc).__name__, exc))
+        return "gate=error"
+    for line in (proc.stdout or "").strip().splitlines():
+        _emit(line)
+    for line in (proc.stderr or "").strip().splitlines():
+        _emit("gate-stderr: " + line)
+    tail = [l for l in (proc.stdout or "").splitlines() if l.startswith("gate:")]
+    return (tail[-1] if tail else "gate=no-summary")
+
+
 def supervisor_status() -> str:
     """Unified verdict at session open (advisory here; enforcement is downstream).
 
@@ -272,6 +312,25 @@ def supervisor_load() -> str:
     return "exit=%s" % r.returncode
 
 
+def _load_config_broken(load_status: str) -> bool:
+    """True only when the load guard reported a BROKEN config (its exit 2).
+
+    The guard's exit contract splits two states that must never be fused:
+
+      exit=1  config healthy, load not yet observed -- almost always "the
+              client has not been restarted". The remedy is a client restart,
+              which a RUNNING session cannot perform, so gating on it would
+              stop work for a reason the session cannot clear.
+      exit=2  a client config is missing the supervisor entry or is
+              unreadable. That is hard misconfiguration -- the same class the
+              MCP gate's FAIL/BLOCKED already fails --strict on.
+
+    Anything else ("exit=0", "unrunnable", "guard-missing") is not evidence
+    of a broken config, so it must not gate either.
+    """
+    return load_status.strip() == "exit=2"
+
+
 def main(argv=None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     strict = "--strict" in args
@@ -282,6 +341,12 @@ def main(argv=None) -> int:
         _emit("session_start: stdout left un-reconfigured (%s); payloads now "
               "degrade to the console codec instead of failing" % _RECONFIGURE_ERROR)
 
+    _emit("=== MCP STARTUP GATE (standing order: before any task work) ===")
+    gate_status = mcp_gate(fix="--no-fix" not in args)
+    _emit("")
+    if "FAIL=" in gate_status or "BLOCKED=" in gate_status:
+        _emit("session_start: the MCP stack is NOT clean -- see the gate lines "
+              "above and fix them before trusting any recall or tool answer")
     _emit("=== PMB ===")
     pmb_chars, pmb_status = pmb_context(topic)
     _emit("")
@@ -302,9 +367,9 @@ def main(argv=None) -> int:
 
     # The whole point of the summary line: a reader can tell "delivered
     # everything" from "delivered nothing" without parsing the payload.
-    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s pams_capture=%s"
+    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s pams_capture=%s %s"
           % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status,
-             sup_status, load_status, pams_status))
+             sup_status, load_status, pams_status, gate_status))
 
     absent = [name for name, chars in (("PMB", pmb_chars), ("engram", eng_chars))
               if chars == 0]
@@ -312,6 +377,14 @@ def main(argv=None) -> int:
         _emit("session_start: NO CONTEXT from %s -- do not treat this session as "
               "memory-loaded" % ", ".join(absent))
     if strict and absent:
+        return 1
+    if strict and ("FAIL=" in gate_status or "BLOCKED=" in gate_status):
+        return 1
+    if strict and _load_config_broken(load_status):
+        _emit("session_start: STRICT -- the supervisor load guard reports a "
+              "broken client config (%s): a client is missing the supervisor "
+              "entry or its config is unreadable. Fix that config, then "
+              "restart the client." % load_status)
         return 1
     return 0
 

@@ -1,6 +1,6 @@
 ---
 name: azazael-operating-protocols
-description: Operating protocols for Codebuff/AI agents working on Azazael — 11 followups mandate, max parallel agent execution, proactive skill creation, full tool arsenal usage, create skills on-the-fly
+description: Operating protocols for Codebuff/AI agents working on Azazael — 14 followups mandate (13 hyper-edge cards + zero-shot reasoning), max parallel agent execution, proactive skill creation, full tool arsenal usage, create skills on-the-fly
 metadata:
   category: workflow
   project: azazael
@@ -20,7 +20,7 @@ metadata:
 
 ## 1. 11 Followups Mandate
 
-After EVERY assistant response that completes a task, provide exactly **11 followup suggestions** using the `suggest_followups` tool.
+After EVERY assistant response that completes a task, provide exactly **14 followup suggestions** (thirteen hyper-edge cards, then zero-shot reasoning) using the `suggest_followups` tool.
 
 - **Do not** provide fewer than 11 unless the tool rejects it
 - **Do not** provide more than 11
@@ -162,7 +162,7 @@ Before ANY `str_replace` or `write_file`:
 
 | Anti-Pattern | Why It Fails | Fix |
 |---|---|---|
-| **Providing < 11 followups** | User explicitly mandated 11 — fewer violates RULE 0Z-B | Always count to 11; if stuck, add diagnostic, audit, or skill-creation suggestions |
+| **Providing < 14 followups** | User explicitly mandated 14 — fewer violates RULE 0Z-B | Always count to 14, include the "Build, land, in the abyss" card, and end with zero-shot reasoning over the other thirteen |
 | **Running agents sequentially** | Wastes parallel capacity — increases wall-clock time by 2-5x | Identify independent tasks and batch them in a single `spawn_agents` call |
 | **Editing without reading first** | Guarantees wrong context — str_replace will fail on mismatched whitespace | Always `read_files` or `list_directory` before any edit |
 | **Not creating a skill when needed** | Knowledge is lost between sessions — forces re-researching | Create a skill if you: researched something, found a pattern, fixed a bug, or learned an API |
@@ -184,7 +184,7 @@ Every session must:
 
 ## Related Skills
 
-- `azazael-eleven-followups` — RULE 0Z-B 11 followups mandate
+- `azazael-hyper-edge-followups` — RULE 0Z-B 14 followups mandate (13 cards + zero-shot reasoning)
 - `azazael-error-prevention` — Anti-pattern catalog
 - `azazael-sop` — Standard operating procedures
 - `azazael-mandates` — All 36 RULE mandates

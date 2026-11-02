@@ -16,6 +16,9 @@ python tools/bible_check.py --genealogy --write    # regenerate GENEALOGY.md
 python tools/bible_check.py --json                 # machine-readable summary
 python tools/bible_harvest.py --write              # regenerate docs/bible/harvest.json
 python tools/bible_harvest.py --themes             # the vocabulary the ledger speaks
+
+python tools/bible_theme.py --all --check          # themed editions: exit 1 on any defect
+python tools/bible_theme.py --all --render --write  # regenerate docs/bible/themes/*.md
 ```
 
 ## Where the evidence comes from
@@ -38,6 +41,16 @@ gets switched off.
 stanza "Bible") and in the gate registry, so a corpus that contradicts itself
 cannot be committed.
 
+## Themed editions
+
+The canon can be restated, and it cannot be extended. `docs/bible/themes/` holds
+editions in another register -- `star-trek.json` in the Vulcan doctrinal voice,
+`star-wars.json` in the Jedi one -- and the validator refuses any themed verse
+that does not cite a verse of `bible.json`. A theme is a register over the canon:
+the rule that keeps it there is the citation, not the reviewer's taste. The
+contract is in `docs/bible/themes/README.md`; `tests/test_bible_theme.py` holds
+both shipped themes and their rendered files.
+
 ## The annotated edition
 
 A study Bible is not a bare text. The corpus carries the four pieces that make an
@@ -49,6 +62,7 @@ Oxford-style edition, and each has a job:
 | `introduction` | per book | `paragraphs` plus `sources`. The paragraphs may carry no figure unless the block names its sources — an introduction that asserts a date without a command is the same defect as a verse that does. |
 | `sections` | per chapter | `before_verse` and `heading`: pericope headings, ascending, each naming a verse that exists. **A heading may carry no figure at all** — it is a label, not a claim. |
 | `practice` | per verse | `symptom`, `cause`, `detection`, `remedy`, `evidence`. `detection` must name a command whose path exists; `evidence` must cite at least three ids from the harvest ledger; none of the four prose fields may carry a figure. |
+| `configs` | top level | the settings the corpus's own instructions depend on: a `file`, a `value`, and `mirrors` for the other files that must carry the same value. `governs` says what breaks if it drifts, `remedy` must name a command that exists. |
 | `domain` | per book | when a book is about one declared domain it must name one declared in `tools/domain_trees.py`, so "organised by domain" is checked rather than asserted. |
 | `annotations` | per verse | `kind` (`textual`, `historical`, `translation`, `editorial`, `cross`), `note`, and `source` when the note carries a digit. |
 | `glossary` | top level | `term`, `gloss`, optional `see` pointing at a verse that must resolve. |
@@ -59,6 +73,45 @@ manuscript says, a *historical* note asserts something about the world, a
 judgement, and a *cross* note points elsewhere. Only the first and the last can be
 settled by reading the corpus; the rest make claims, which is why a figure in one
 of them needs its command written beside it.
+
+## The configuration layer
+
+A canon of instruction with no configuration is a sermon. Every rule that says
+"run the suite", "filter at the floor" or "cap the books" is only true while a
+value holds somewhere in the tree, and those values drift silently: the recall
+floor lives in **two** tools, the book cap lives here *and* in the checker, and a
+copied constant that disagrees with its twin produces two correct-looking answers.
+
+`configs` pins them. Each entry names a `file`, a `value` (optionally `anchor`, the
+line that must carry it), and `mirrors` — the other files that must carry the same
+value:
+
+```json
+{
+  "id": "recall-query-floor",
+  "name": "the query floor every recall answer is filtered at",
+  "kind": "text",
+  "scope": "repo",
+  "file": "tools/pmb_floor_proxy.py",
+  "anchor": "PMB_RECALL_MIN_BEST",
+  "value": "0.89",
+  "mirrors": ["tools/supervisor_mcp.py", "tools/floor_measure.py"],
+  "governs": "lower it and nonsense is answered confidently; raise it and a real query loses its tail",
+  "remedy": "python tools/floor_measure.py"
+}
+```
+
+| field | obliges |
+|---|---|
+| `kind` | `text` (a line carrying anchor + value), `json` (a dotted `key` equal to `value`, numerically compared so `0.70` and `0.7` agree), or `path` |
+| `mirrors` | a mirror holding a different value is a **hard failure**: that is the single-source defect, caught where it starts instead of after two answers disagree |
+| `governs` | what breaks if the value drifts. A setting with no consequence is trivia |
+| `remedy` | must name a repository path that exists, which is how `python tools/commgate.py` would have been refused before it reached a page |
+| `scope` | `repo` failures are fatal; `host` failures (an interpreter path that only exists on this machine) are reported as `HOST-DIFFERS` |
+
+Nine settings are pinned today: both recall floors with their two mirrors, the
+floor-proxy port, the three Bible caps, the harvest schema, the suite's collection
+root, and the production interpreter.
 
 ## The shape of a verse
 
@@ -142,6 +195,35 @@ harvest holds fewer than three records gets a verse that says so and states the
 shape of its first measurement rather than a history it does not have; `gosp`,
 `shards`, `dev`, `edge0`, `wraith` and `oxman` are in exactly that state today,
 and their books say it in the text.
+
+## Shipping it: injection, hooks, plugin
+
+The corpus is worth nothing to an agent that never opens it, and this client
+discards the MCP `instructions` field, so the canon travels as a **managed block in
+the instruction file** — a channel the client cannot drop, because dropping it is
+dropping the file.
+
+```bash
+python tools/bible_ship.py --render                       # what the block says
+python tools/bible_ship.py --inject                       # write/refresh it
+python tools/bible_ship.py --check                        # stale block = exit 1
+python tools/bible_ship.py --install-hooks .              # hooks + plugin
+python tools/bible_ship.py --verify . --hooks pre-push    # wired, current, parsed
+python tools/bible_ship.py --self-test                    # negative controls
+```
+
+The block carries the statutes with their checks, the pinned configuration, the
+decision-block contract, and the followup count. It never restates the corpus: a
+second copy is a second source of truth, and the first thing that happens to one
+is drift.
+
+Three hooks ship (`pre-commit`, `pre-push`, `commit-msg`) and one plugin. The
+installer **refuses to overwrite a hook it did not write**, and — measured the
+hard way — refuses to create a repo-local `AGENTS.md` when a parent directory
+already owns the repository's instructions, because the nearest file wins and the
+inherited obligations would silently stop applying. See
+[`PUSH_INJECTION.md`](PUSH_INJECTION.md) for the channel, the reasons, and the two
+bugs found in the hooks themselves.
 
 ## Generations are generated
 

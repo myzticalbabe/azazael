@@ -21,13 +21,49 @@
 # Run `python -c "import sys; print('GIL:', sys._is_gil_enabled())"` to
 # verify whether free-threading is active.
 
+# ============================================================================
+# CI IS LOCAL-ONLY. NOTHING HERE FIRES TODAY. Read this before debugging a
+# "missing" run (measured 2026-10-31, re-measured 2026-11-01):
+#
+#   $ git remote -v
+#   origin  C:\Users\clint\azazael (fetch)   <-- a LOCAL PATH, not a host
+#
+# A workflow runs when a hosted runner receives a push. `origin` is a directory
+# on this machine, so no runner is ever told about a push, and no amount of
+# trigger tuning changes that. This file is kept because it is the correct
+# definition of the job for the day a hosted remote is added -- not because it
+# is the gate.
+#
+# **The gate is `.githooks/pre-commit`** (unified registry:
+# `tools/preflight_all.py --check`, blocking). That is what actually refuses a
+# commit. It does not run the 5,573 tests in `tests/`; nothing does on commit.
+# To run them by hand, use the interpreter they were measured on:
+#   C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests -x -q
+# `run_tests.py` is not the aggregate suite: it covers a hardcoded
+# STANDALONE_OK list (24 files / 471 tests), which is why a green run there has
+# never meant the tests/ tree passes.
+#
+# Triggers below name the branches that actually exist and get pushed
+# (`git branch`: deepseek-engram-813, lane-813-recovery,
+# migration/baseline-20261001). They previously said `main`, which exists
+# nowhere in this repo -- a second reason this file could not have run.
+# ============================================================================
+
 name: Test (3.15+)
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main                      # kept for the day a hosted remote exists
+      - deepseek-engram-813
+      - lane-813-recovery
+      - migration/baseline-20261001
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - deepseek-engram-813
+      - "lane-813-recovery"
+      - migration/baseline-20261001
   workflow_dispatch:
 
 jobs:
@@ -118,5 +154,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: *.log
+          # Was `path: *.log`, which is not a glob to YAML -- a leading `*` is an
+          # alias. The file failed to parse at all (yaml.safe_load -> "expected
+          # alphabetic or numeric character, but found '.'"), so this workflow
+          # had two independent reasons never to run: no hosted remote, and a
+          # document that is not valid YAML. Measured 2026-11-01.
+          path: "*.log"
           retention-days: 7

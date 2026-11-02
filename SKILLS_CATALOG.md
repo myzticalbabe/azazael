@@ -173,9 +173,9 @@
 | 147 | `azazael-chrome-url-download` | tools | Capture the active Chrome tab URL (UI Automation, no DevTools needed) or the clipboard URL, then download i... |
 | 148 | `azazael-youtube-digest` | tools | Fetch YouTube transcripts and turn videos into structured digests (TL;DR, key theses, timestamped timeline,... |
 | 149 | `azazael-stale-artifact-self-audit` | verification | Two defect classes that made this architecture report success while wrong — confidently-incomplete artifact... |
-| 150 | `azazael-eleven-followups` | workflow | RULE 0Z-B — Mandates exactly 11 followup suggestions at the end of EVERY assistant response. Permanent, nev... |
+| 150 | `azazael-hyper-edge-followups` | workflow | RULE 0Z-B — Mandates exactly 14 followup suggestions at the end of EVERY assistant response: thirteen hyper-edge cards including the one-click "Build, land, in the abyss", then zero-shot reasoning. Permanent, nev... |
 | 151 | `azazael-environment` | workflow | Azazael environment setup — Python 3.15t requirements, dependency installation, project path configur... |
-| 152 | `azazael-operating-protocols` | workflow | Operating protocols for Codebuff/AI agents working on Azazael — 11 followups mandate, max parallel agent ex... |
+| 152 | `azazael-operating-protocols` | workflow | Operating protocols for Codebuff/AI agents working on Azazael — 14 followups (13 cards + zero-shot reasoning), max parallel agent ex... |
 | 153 | `azazael-parallel-execution` | workflow | RULE 0Z-F — Parallel Agent Execution Mandate. Maximum concurrency, batch all independent work into single s... |
 | 154 | `azazael-parallel-execution-quickref` | workflow | Quick-reference cheat sheet for RULE 0Z-F Parallel Agent Execution — anti-pattern table, agent spawn patter... |
 | 155 | `azazael-production-reach` | workflow | Prove a capability executes in production runtime, not just imports or registers — the 5-rung reach ladder,... |
@@ -1404,7 +1404,7 @@
 
 | Skill | Path | Purpose | Priority |
 |-------|------|---------|----------|
-| `azazael-operating-protocols` | `skills/azazael-operating-protocols.md` | Operating protocols codification: 11 followups mandate, max parallel agent execution, proactive skill creation, full tool arsenal, on-the-fly skill creation. `auto_load: true`. | ✅ Created |
+| `azazael-operating-protocols` | `skills/azazael-operating-protocols.md` | Operating protocols codification: 14 followups mandate, max parallel agent execution, proactive skill creation, full tool arsenal, on-the-fly skill creation. `auto_load: true`. | ✅ Created |
 | `azazael-audit-infrastructure` | `skills/azazael-audit-infrastructure.md` | VLP 15-layer audit trail system: .audit/ JSONL hash-chained sessions, DirectMemory dual-ledger cross-validation, anchors/Merkle proofs, audit review procedures. `auto_load: true`. | ✅ Created |
 | `azazael-dedup` | `skills/azazael-dedup.md` | Deduplication procedures: MD5 hash comparison, duplicate file detection, deprecation shim creation, cleanup patterns. `auto_load: false`. | ✅ Created |
 | `azazael-shims` | `skills/azazael-shims.md` | Deprecation shim pattern: FutureWarning, re-export, testing lifecycle, cleanup. `auto_load: false`. | ✅ Created |
@@ -1433,7 +1433,7 @@
 | Skill | Path | Purpose | Priority |
 |-------|------|---------|----------|
 | `azazael-mandates` | `skills/azazael-mandates.md` | Complete codification of all 36 active mandates (30 RULEs 0A-0Z-B + enforcement + promoted RULEs 0B-0F). Created as mirrored skill from canonical MANDATES.md with `auto_load: true` for session-start availability. | ✅ Created |
-| `azazael-eleven-followups` | `skills/azazael-eleven-followups.md` | RULE 0Z-B — Mandates exactly 11 followup suggestions at the end of EVERY assistant response. Permanent, never disableable. `auto_load: true`. | ✅ Created |
+| `azazael-hyper-edge-followups` | `skills/azazael-hyper-edge-followups.md` | RULE 0Z-B v4 — Mandates exactly 14 followup suggestions at the end of EVERY assistant response: 13 hyper-edge cards (including "Build, land, in the abyss") then "Zero-shot reasoning" over their evidence. Permanent, never disableable. `auto_load: true`. | ✅ Created |
 ## New Skills — Created June 7, 2026
 
 | Skill | Path | Purpose | Priority |

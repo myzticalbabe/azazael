@@ -1,5 +1,5 @@
 """
-trainers_v2.py — New trainer architecture with per-worm hook identity.
+trainers_v2.py -- New trainer architecture with per-worm hook identity.
 
 Design principles:
 - Every trainer carries a worm_id (the worm it acts on behalf of)
@@ -88,7 +88,7 @@ class HookAwareTrainer:
         return self._memory_store
 
     def _record(self, event_type: str, data: Dict[str, Any],
-                severity: str = "info", extra_tags: List[str] = None) -> int:
+                severity: str = "info", extra_tags: Optional[List[str]] = None) -> int:
         """Record event with worm identity propagated."""
         store = self.memory_store
         if not store:
@@ -125,7 +125,7 @@ class HookAwareTrainer:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# NEW RLTrainLoop v2 — Q-learning with worm identity
+# NEW RLTrainLoop v2 -- Q-learning with worm identity
 # ════════════════════════════════════════════════════════════════════════════
 
 class RLTrainLoopV2(HookAwareTrainer):
@@ -211,19 +211,34 @@ class RLTrainLoopV2(HookAwareTrainer):
         q_vals = self._q_table[state]
         if not q_vals:
             return 0
-        return max(q_vals, key=q_vals.get)
+        return max(q_vals, key=lambda k: q_vals[k])
 
     def _compute_reward(self, record: Dict, action: int) -> float:
         data = record.get("data", {}) if isinstance(record.get("data"), dict) else {}
-        ok = data.get("ok", False)
-        severity = record.get("severity", "info")
 
-        base = 1.0 if ok else -1.0
-        if severity == "warning":
-            base *= 0.5
-        elif severity == "error":
-            base *= -2.0
-        return base
+        # Check explicit success field first (used by alert/health events)
+        success = data.get("success")
+        if success is not None:
+            # Explicit success/failure - use it directly
+            return 1.0 if success else -1.0
+
+        # Check ok field (used by technique outcomes)
+        ok = data.get("ok")
+        if ok is not None:
+            # Technique outcome - reward for success
+            return 1.0 if ok else -1.0
+
+        # Check severity for explicit failure signals
+        severity = record.get("severity", "info")
+        if severity == "error" or severity == "critical":
+            # Explicit error/critical = failure
+            return -1.0
+        elif severity == "warning":
+            # Warning = mild penalty
+            return -0.5
+
+        # No clear signal = neutral (informational)
+        return 0.0
 
     def _update_q(self, state: str, action: int, reward: float, next_state: str):
         current = self._q_table[state][action]
@@ -265,7 +280,7 @@ class RLTrainLoopV2(HookAwareTrainer):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# NEW GRPOTrainer v2 — Group Relative Policy Optimization with worm identity
+# NEW GRPOTrainer v2 -- Group Relative Policy Optimization with worm identity
 # ═════════════════════════════════════════════════════════════════════════════
 
 class GRPOTrainerV2(HookAwareTrainer):
@@ -315,11 +330,11 @@ class GRPOTrainerV2(HookAwareTrainer):
         policy = self._policy.get(context_key, {})
         if not policy:
             return None
-        return max(policy, key=policy.get)
+        return max(policy, key=lambda k: policy[k])
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# NEW SB3Trainer v2 — Stable Baselines 3 wrapper with worm identity
+# NEW SB3Trainer v2 -- Stable Baselines 3 wrapper with worm identity
 # ═════════════════════════════════════════════════════════════════════════════
 
 class SB3TrainerV2(HookAwareTrainer):
@@ -409,7 +424,7 @@ class SB3TrainerV2(HookAwareTrainer):
             done = False
             ep_reward = 0
             while not done:
-                action, _ = self._model.predict(obs, deterministic=True)
+                action, _ = self._model.predict(obs, deterministic=True)  # type: ignore[union-attr]
                 out = env.step(action)
                 if len(out) == 5:  # gymnasium>=0.26
                     obs, reward, terminated, truncated, _ = out
@@ -425,8 +440,8 @@ class SB3TrainerV2(HookAwareTrainer):
 # Factory for creating trainers with worm identity
 # ═════════════════════════════════════════════════════════════════════════════
 
-def create_trainer(task_type: str, worm_id: str, task_id: str = None,
-                   session_id: str = None, **kwargs) -> HookAwareTrainer:
+def create_trainer(task_type: str, worm_id: str, task_id: Optional[str] = None,
+                   session_id: Optional[str] = None, **kwargs) -> HookAwareTrainer:
     """Factory to create appropriate trainer for a task type with worm identity."""
     if task_id is None:
         task_id = f"{task_type}_{worm_id}_{int(time.time())}"

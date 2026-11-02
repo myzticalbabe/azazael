@@ -907,7 +907,11 @@ def snapshot_log_ratios(store=None, limit: int = 10) -> dict[str, Any]:
             if not isinstance(policy, dict) or not policy:
                 continue
             snaps.append({"id": (r or {}).get("id"), "policy": policy})
-        except Exception:
+        except Exception as exc:
+            # A snapshot skipped here is missing from the delta AND from the
+            # count the verdict is computed from, so "no change" could mean
+            # "unreadable row". Count it.
+            note_failure("learning_grpo:snapshots", exc)
             continue
     out["n_snapshots"] = len(snaps)
     if len(snaps) < 2:
@@ -925,7 +929,8 @@ def snapshot_log_ratios(store=None, limit: int = 10) -> dict[str, Any]:
             try:
                 new_vals = [float(new_worms[k]) for k in keys]
                 old_vals = [float(old_worms[k]) for k in keys]
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("learning_grpo:pair-values", exc)
                 continue
             if not keys:
                 continue
@@ -992,7 +997,11 @@ def snapshot_concentration(store=None, limit: int = 10) -> dict[str, Any]:
             if not isinstance(policy, dict) or not policy:
                 continue
             snaps.append({"id": (r or {}).get("id"), "policy": policy})
-        except Exception:
+        except Exception as exc:
+            # A snapshot skipped here is missing from the delta AND from the
+            # count the verdict is computed from, so "no change" could mean
+            # "unreadable row". Count it.
+            note_failure("learning_grpo:snapshots", exc)
             continue
     out["n_snapshots"] = len(snaps)
     if len(snaps) < 2:
@@ -1011,7 +1020,8 @@ def snapshot_concentration(store=None, limit: int = 10) -> dict[str, Any]:
             keys = [k for k in new_worms if k in old_worms]
             try:
                 new_vals = [float(new_worms[k]) for k in keys]
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("learning_grpo:entropy-values", exc)
                 continue
             if not keys:
                 continue

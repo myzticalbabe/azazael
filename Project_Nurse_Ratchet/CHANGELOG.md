@@ -25,14 +25,17 @@ a claim that the 0.1.0 text states.
   than silently read as "not done". Certificates actually held (SOC 2, ISO 27001,
   HIPAA attestation) go in `held`: they are printed under the bar and deliberately
   do not raise it, because they audit the process, not the clinical claim.
-- **Project renamed to Nurse Ratchet.** `Project_ELIZA` → `Project_Nurse_Ratchet`,
-  package `eliza` → `nurse_ratchet`, distribution `eliza` → `nurse-ratchet`,
-  console script `eliza-psyche` → `nurse-ratchet-psyche`, gate
+- **Package renamed `eliza` → `nurse_ratchet`.** Distribution `eliza` →
+  `nurse-ratchet`, console script `eliza-psyche` → `nurse-ratchet-psyche`, gate
   `eliza_release_gate.py` → `nurse_ratchet_release_gate.py`, doc `why-eliza.md` →
-  `why-nurse-ratchet.md`. The README's naming paragraph was rewritten rather than
-  replaced: it asserted a lineage that no longer matched the name. References to
-  Weizenbaum's 1966 ELIZA stay where they are factual — it is a real citation and
-  a real demonstration of the effect this project is built around.
+  `why-nurse-ratchet.md`. **Correction (2026-11-02): the directory rename
+  `Project_ELIZA` → `Project_Nurse_Ratchet` that accompanied this was an agent
+  error.** ELIZA and Nurse Ratchet are two different projects — ELIZA is the
+  forensic investigation suite, Nurse Ratchet is the therapeutic health agent —
+  and the rename wrongly merged them. `Project_ELIZA` is restored as its own tree;
+  only the package rename above was correct. References to Weizenbaum's 1966 ELIZA
+  stay where they are factual: it is a real citation and a real demonstration of
+  the effect this project is built around.
 - `src/PSYCHE/elicitation.py`, `tools/elicit.py` — the construct battery, and the
   instrument that administers it. Ten constructs, three items each, one
   reverse-scored item per construct so acquiescence is detectable instead of

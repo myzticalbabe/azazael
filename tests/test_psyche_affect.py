@@ -144,11 +144,19 @@ def test_no_demographic_inputs():
     import PSYCHE as _pkg
 
     modules = []
+    unscanned = []
     for info in pkgutil.iter_modules(_pkg.__path__):
         try:
             modules.append(importlib.import_module("%s.%s" % (_pkg.__name__, info.name)))
-        except ImportError:  # optional extras are absent on a minimal checkout
-            continue
+        except ImportError as exc:
+            # A module that will not import is UNSCANNED source, and this test's
+            # whole claim is "no module branches on demographics" -- so a skip
+            # here is a hole in the claim, not an optional extra. Measured
+            # 2026-11-02: all twelve modules import cleanly, so this is an
+            # assertion that holds today and names the defect if it stops.
+            unscanned.append("%s (%s)" % (info.name, exc))
+    assert not unscanned, (
+        "modules the invariance check would silently skip: %s" % unscanned)
     assert modules, "no PSYCHE modules were importable -- the scan is not running"
     for mod in modules:
         tree = _ast.parse(inspect.getsource(mod))

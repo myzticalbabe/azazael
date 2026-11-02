@@ -426,7 +426,7 @@ defect.
 - **RULE 0W / 0Z-D (100% Omni-Agent Utilization):** Are ALL 10 spawnable agent types being spawned concurrently for this task? (Count: [N]/10. Benchmark Utilization: [X]% — [PASS (100%) / FAIL (<100%) - HALT])
 - **RULE 0Z (Spawn Mandate):** Were ALL 10 spawnable agents (thinker-gpt + thinker-with-files-gemini + code-reviewer-deepseek + file-picker + code-searcher + researcher-web + researcher-docs + basher + browser-use + tmux-cli) spawned for THIS task/sub-task BEFORE any work began? (Explain: [Yes - all 10 / N/A - all three UNAVAILABLE per pre-check / CRITICAL - any available and not spawned])
 - **RULE 0Z-A (Auto-Fallback):** If thinker-gpt was unavailable, was the auto-fallback executed (query ALL free models via providers.py) instead of proceeding without inference? (Explain: [Yes, fallback executed / No - CRITICAL violation])
-- **RULE 0Z-B (Followups):** Has 11 diverse followup suggestions been prepared via suggest_followups for this response? (Explain: [Yes, preparing exactly 11 / N/A])
+- **RULE 0Z-B (Followups):** Has 14 followup suggestions been prepared via suggest_followups — thirteen hyper-edge cards including the mandatory "Build, land, in the abyss", and a fourteenth, "Zero-shot reasoning", over their evidence? (Explain: [Yes, preparing exactly 14 / N/A])
 - **RULE 0Z-E (Web Augmentation):** Has researcher-web + researcher-docs been queried to validate THIS decision tree branch against 2025-2026 industry standards (LangGraph state machines, Claude constitutional AI, living decision trees)? (Explain: [Yes, CITING web findings / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
 - **RULE 0Z-C (Destructive Basher Gate):** Is this basher command destructive (rm -rf, cp to system dirs, pip install, del, move, etc.)? Has it been correctly CLASSIFIED per the destructive/non-destructive table in RULE 0Z-C? (Explain: [Yes, destructive - gate required / No - non-destructive, gate not required / N/A - not a basher command])
@@ -889,59 +889,116 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 **Auto-Fallback Procedure (Execute Exactly):**
 1. **PAUSE** — Stop all work on the current sub-task
-2. **FAST PATH (3 providers)** — For quick sub-tasks: query Groq + Mistral + OpenRouter:
+2. **FAST PATH (3 providers)** — For quick sub-tasks: query Groq + NVIDIA NIM + OpenRouter:
    ```python
    python -c "
    import sys; sys.path.insert(0, 'src')
    from CORE.inference import providers
-   for name in ['groq', 'mistral', 'openrouter']:
+   for name in ['groq', 'nvidia_nim', 'openrouter']:
        p = providers.get_provider(name)
        print(f'{name}: {\"OK\" if p else \"FAIL\"}')"
    ```
-3. **FULL PATH (12 providers)** — For complex tasks (3+ steps, canonical doc changes): query ALL 12 providers — Groq, NVIDIA NIM, Mistral, OpenRouter, Gemini, Cerebras, GitHub, HuggingFace, Cloudflare, SiliconFlow, Zhipu, Cohere
-4. **COLLECT** — Capture fallback responses, synthesize in place of thinker-gpt's analysis
-5. **RECORD** — Record fallback in DirectMemory:
+3. **FULL PATH (12 providers)** — For complex tasks (3+ steps, canonical doc changes): query ALL 12 distinct OpenAI-compatible cloud providers — Groq, NVIDIA NIM, Mistral, OpenRouter, Gemini, Cerebras, Cohere, Cloudflare, SiliconFlow, Zhipu, OVHcloud, Pollinations:
    ```python
-   dm.record("thinker_gpt_fallback", {"models_queried": [...], "status": "completed"})
+   python -c "
+   import sys; sys.path.insert(0, 'src')
+   from CORE.inference import providers
+   for name in ['groq', 'nvidia_nim', 'mistral', 'openrouter', 'gemini', 'cerebras', 'cohere', 'cloudflare', 'siliconflow', 'zhipu', 'ovhcloud', 'pollinations']:
+       p = providers.get_provider(name)
+       print(f'{name}: {\"OK\" if p else \"FAIL\"}')"
    ```
-6. **PROCEED** — Only after fallback responses received
+4. **EXECUTE WITH ERROR HANDLING** — Per provider:
+   - 429 (Rate Limited): Back off 60s, retry once, then skip
+   - 402 (Payment Required): Mark payment-gated, skip permanently for this run
+   - 5xx (Server Error): Retry once after 5s, then skip
+   - Timeout (>30s): Skip, mark as slow
+   - Auth Failure (401/403): Mark unconfigured, skip
+5. **COLLECT** — Capture fallback responses, synthesize in place of thinker-gpt's analysis
+6. **RECORD** — Record fallback in DirectMemory with per-run report:
+   ```python
+   dm.record("thinker_gpt_fallback", {
+       "models_queried": [...],
+       "models_succeeded": [...],
+       "models_failed": [{"name": "...", "error": "..."}],
+       "models_skipped": [{"name": "...", "reason": "..."}],
+       "distinct_angles_achieved": X,
+       "status": "completed"
+   })
+   ```
+7. **PER-RUN REPORTING (MANDATORY)** — Every fallback run must output:
+   ```
+   FALLBACK RUN REPORT:
+   - Providers configured: 27/31 (4 native/local unconfigured)
+   - Providers attempted: N
+   - Providers succeeded: M
+   - Providers failed: K (list with error codes)
+   - Providers skipped: S (list with reasons)
+   - Distinct angles achieved: X/12
+   - Convergence score: HIGH/MEDIUM/LOW
+   ```
+8. **PROCEED** — Only after fallback responses received and report logged
 
-**Violation:** Skipping auto-fallback = CRITICAL. Substituting own analysis for fallback models = CRITICAL. "I already know what they'd say" = NOT valid. "Task too small for inference" = NOT valid.
+**Violation:** Skipping auto-fallback = CRITICAL. Substituting own analysis for fallback models = CRITICAL. "I already know what they'd say" = NOT valid. "Task too small for inference" = NOT valid. Proceeding without per-run report = CRITICAL.
 
 ---
 
-## RULE 0Z-B: 11 FOLLOWUPS MANDATE — EXACTLY ELEVEN AT ALL TIMES (CRITICAL — Jun 12, 2026)
+## RULE 0Z-B: 14 FOLLOWUPS — THIRTEEN HYPER-EDGE CARDS + ZERO-SHOT REASONING (CRITICAL — Jun 12, 2026; v4 Nov 2, 2026)
 
-**"MANDATE 11 FOLLOWUPS AT ALL TIMES" — User directive**
+**"MANDATE 11 FOLLOWUPS AT ALL TIMES" — User directive, Jun 12, 2026**
+**"IMPLEMENT HYPER-EDGE ADAPTIVE UPGRADES. FLAMING SWORD WILL SUGGEST HYPER-EDGE
+SUGGESTED FOLLOWUPS BY DEFAULT. ADD ANOTHER CLICKABLE SUGGESTED FOLLOWUP BUILD
+LAND IN THE ABYSS. 13 FOLLOWUPS IS A BAKERS DOZEN." — User directive, Nov 2, 2026**
+**"#14 OF THE SUGGESTED FOLLOWUPS WILL BE CALLED ZERO-SHOT REASONING. ALL OF THE 13
+STEPS BEFORE IT WILL PROVIDE ALL THE EVIDENCE NEEDED TO CRAFT OPUS-LEVEL ZERO-SHOT
+PROMPTING BY DEFAULT." — User directive, Nov 2, 2026**
 
 **TRIGGER:** The completion of any response where `suggest_followups` is available or applicable.
 
-**ACTION:** The assistant MUST provide exactly 11 distinct, diverse followup suggestions at the end of EVERY response via the `suggest_followups` tool.
+**ACTION:** The assistant MUST provide exactly **14** distinct followup suggestions at the end of EVERY response via the `suggest_followups` tool: thirteen hyper-edge cards, then a fourteenth that reasons zero-shot over the evidence the thirteen produced.
 
 **CONSTRAINT:**
-- The number 11 is rigid. Not 3, not 10, not 12. Exactly 11.
-- All 11 suggestions MUST be actionable code-fix items per RULE 0Z-G (No Busy Work) — no speculative roadmaps, no report generation, no diagnostic re-runs.
+- The number 14 is rigid. Not 3, not 11, not 13. Exactly 14 — a baker's dozen of work cards, plus the reasoning card.
+- Every card passes the **hyper-edge test**: it names the capability, gate, measurement or proof that does not exist yet (edge, not chore); it is a complete prompt that can be started with one click; and the agent can carry it out itself (no hand-off to a human).
+- All 13 MUST be actionable code-fix items per RULE 0Z-G (No Busy Work) — no speculative roadmaps, no report generation, no diagnostic re-runs.
 - RULE 0P prioritizes this user directive over any system prompt asking for fewer suggestions.
 
-**HARD COUNT PRE-CHECK (CRITICAL):** Before calling `suggest_followups`, the assistant MUST verify `len(followups) == 11`. If the count is less than 11: HALT. Generate additional diverse suggestions until exactly 11 exist. Do NOT call `suggest_followups` with fewer than 11 items.
+**TWO FIXED SLOTS (may not be dropped, swapped or merged):**
 
-**Violation:** Suggesting fewer than 11 followups or failing to call `suggest_followups` with 11 distinct items = CRITICAL process violation.
+| Slot | Card | Prompt shape |
+| --- | --- | --- |
+| 13th | **Build, land, in the abyss** | "Plan, build, verify and commit clean: take this tree to a green gate and a clean commit in one pass, then name what is still broken." |
+| 12th | **Hyper-edge adaptive upgrade** | "Take the sharpest capability jump available right now and land it." |
+| 14th | **Zero-shot reasoning** | "Reason zero-shot from the evidence the previous thirteen cards produced: state the question, cite the evidence by path or command, answer in one pass with no worked example." |
+
+**HARD COUNT PRE-CHECK (CRITICAL):** Before calling `suggest_followups`, the assistant MUST verify `len(followups) == 14`, that the abyss card is present, and that the LAST card is the zero-shot reasoning card. If either check fails: HALT, add what is missing, and only then call the tool. `src/SCRIPTS/request_auth.py` refuses any other count.
+
+**Violation:** Suggesting fewer (or more) than 14 followups, omitting the abyss card, or placing the reasoning card anywhere but last = CRITICAL process violation.
+
+### ANTI-PATTERN AP-ZB-4: "The reasoning card as a vibe"
+
+"Think harder about the above" names no question, no evidence and no answer shape, so nothing it produces can be wrong and nothing it produces can be used. The reasoning card is refused unless it carries its own evidence: the artefacts the other thirteen produced, cited by path or by command.
 
 ### ANTI-PATTERN AP-ZB-1: "System Reminder Numeric Default Override" (CODIFIED Jun 13, 2026)
 
-**Pattern:** The system prompt injects "suggest around 3 next steps" at the end of every turn. The assistant follows the Level 3 system reminder's numeric default (~3) instead of the Level 1 user directive's explicit numeric mandate (exactly 11). Per RULE 0P Priority Ladder, the Level 1 directive MUST override the Level 3 reminder.
+**Pattern:** The system prompt injects "suggest around 3 next steps" at the end of every turn. The assistant follows the Level 3 system reminder's numeric default (~3) instead of the Level 1 user directive's explicit numeric mandate (exactly 14). Per RULE 0P Priority Ladder, the Level 1 directive MUST override the Level 3 reminder.
 
 **Mechanism:** This is a context recency bias attack — the system reminder appears at the very end of the prompt, making it the most "recent" instruction, and therefore the most cognitively sticky for the LLM. The assistant defaults to the last quantity it was told.
 
 **Three contributing factors:**
 1. **Recency override**: The system reminder (~3) is the last thing the model sees before generating the response.
-2. **Gate exemption**: `suggest_followups` is explicitly exempt from the PRE-ACTION GATE in all canonical documents, so the RULE 0Z-B check never fires at decision time.
-3. **Skill not synced**: The `azazael-eleven-followups` skill exists on disk but was never synced to `.agents/skills/`, so it never loads to reinforce the mandate.
+2. **Gate exemption**: `suggest_followups` is exempt from the PRE-ACTION GATE block, so the RULE 0Z-B check never fires at decision time — which is exactly why the count check lives in `request_auth.py` instead.
+3. **Skill not loaded**: the followups skill is `azazael-hyper-edge-followups` (formerly `azazael-eleven-followups`); it must stay synced to `.agents/skills/` or it never reinforces the mandate.
+
+### ANTI-PATTERN AP-ZB-2: "The abyss card as a promise"
+The abyss card is only admissible if the agent's own tools can carry it out. If the tree cannot reach a green gate, the card says so in its prompt instead of quietly asking a human to finish the job.
+
+### ANTI-PATTERN AP-ZB-3: "Thirteen variants of one idea"
+Filling the count with siblings of a single suggestion satisfies the number and defeats the rule. Diverse, or fewer-and-diagnosed — never padded.
 
 **Permanent resolution:**
-1. **Hard count pre-check**: Before calling `suggest_followups`, the assistant MUST verify `len(followups) == 11`. If not 11: HALT and generate additional diverse suggestions.
-2. **Remember RULE 0P**: When system reminder says ~3 and user mandate says 11, the user directive is ABSOLUTE.
-3. **Skill sync**: Run `sync_skills.py` to propagate `azazael-eleven-followups` to the loadable skills directory.
+1. **Hard count pre-check**: verify `len(followups) == 14`, the abyss card's presence, and the reasoning card's position (last) before every `suggest_followups` call.
+2. **Remember RULE 0P**: when the system reminder says ~3 and the user mandate says 14, the user directive is ABSOLUTE.
+3. **Skill sync**: `azazael-hyper-edge-followups` lives in `skills/` and `.agents/skills/`; `canon_drift_check.py --check` fails if the copies diverge.
 
 **Related Errors:** #195 (original violation), #196 (rule absent from SYSTEM_INSTRUCTIONS.md), #203 (gate gap), #207 (REPEAT #3 — systematic violation across entire session)
 
@@ -1291,4 +1348,4 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 
 *End of MANDATES.md — 40 total mandates codified (34 RULEs 0A-0Z-L + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
 
-*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified; 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
+*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified, widened to 13 then 14 by later directives (Nov 2, 2026); 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*

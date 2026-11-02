@@ -1,0 +1,4233 @@
+{
+ "items": 555,
+ "docs": 33,
+ "resolved": [
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 112,
+   "text": "Exported from `__init__.py`",
+   "paths": [
+    "__init__.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 954,
+   "text": "All heavyweight imports at MODULE level (not in `__init__` or function bodies called from threads)",
+   "paths": [],
+   "idents": [
+    "__init__"
+   ],
+   "missing": [],
+   "idents_present": [
+    "__init__"
+   ]
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 112,
+   "text": "Unit tests for `CLUSTERWORMS.py` dynamic resolution (strategy 1/2/3)",
+   "paths": [
+    "CLUSTERWORMS.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 114,
+   "text": "Unit tests for `METACLUSTER.py` routing engine",
+   "paths": [
+    "METACLUSTER.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 138,
+   "text": "Environment variable validation in `paths.py`",
+   "paths": [
+    "paths.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 237,
+   "text": "**NEW** `eval` usage in `wsl2_cleanup.sh` \u2014 refactor to array-based dispatch",
+   "paths": [
+    "wsl2_cleanup.sh"
+   ],
+   "idents": [
+    "eval"
+   ],
+   "missing": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 425,
+   "text": "**GRPO Trainer** \u2014 New class in `expansion/learning.py` for group-relative optimization",
+   "paths": [
+    "expansion/learning.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 436,
+   "text": "**Dashboard Integration** \u2014 Visualize evolution progress in `dashboard.py`",
+   "paths": [
+    "dashboard.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 105,
+   "text": "**1.1** Write `tools/rule_enforcement_audit.py`. It parses every",
+   "paths": [
+    "tools/rule_enforcement_audit.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 113,
+   "text": "**1.3** Add `tools/rule_enforcement_audit.py` to the pre-commit hook and",
+   "paths": [
+    "tools/rule_enforcement_audit.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 172,
+   "text": "**5.1** Re-run `tools/rule_enforcement_audit.py`; it must pass with zero",
+   "paths": [
+    "tools/rule_enforcement_audit.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 175,
+   "text": "**5.3** Record the outcome in `ERROR_LOG.md` and PMB, and update",
+   "paths": [
+    "ERROR_LOG.md"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1092,
+   "text": "All errors recorded in `ERROR_LOG.md`",
+   "paths": [
+    "ERROR_LOG.md"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1094,
+   "text": "`session_end` event recorded via `dm.end()`",
+   "paths": [],
+   "idents": [
+    "session_end"
+   ],
+   "missing": [],
+   "idents_present": [
+    "session_end"
+   ]
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2269,
+   "text": "All errors recorded in `ERROR_LOG.md`",
+   "paths": [
+    "ERROR_LOG.md"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 154,
+   "text": "Fix `QL_FILE_OPTIMIZER.py` hardcoded DESKTOP_PATH constant",
+   "paths": [
+    "QL_FILE_OPTIMIZER.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 125,
+   "text": "Write unit tests for `CORE/circuit_breaker.py`",
+   "paths": [
+    "CORE/circuit_breaker.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 131,
+   "text": "Write unit tests for `CORE/local_memory.py`",
+   "paths": [
+    "CORE/local_memory.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 418,
+   "text": "All 9 CLI commands functional (`scan`, `harvest`, `search`, `serve`, `api`, `tui`, `train`, `dream`, `thesis`)",
+   "paths": [],
+   "idents": [
+    "dream",
+    "harvest",
+    "scan",
+    "search",
+    "serve",
+    "thesis",
+    "train"
+   ],
+   "missing": [],
+   "idents_present": [
+    "train"
+   ]
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 494,
+   "text": "`HYDRA.py`",
+   "paths": [
+    "HYDRA.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 129,
+   "text": "Implement `BlockWorkStealingQueue` in `CORE/parallel/work_stealing.py`",
+   "paths": [
+    "CORE/parallel/work_stealing.py"
+   ],
+   "idents": [
+    "BlockWorkStealingQueue"
+   ],
+   "missing": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 139,
+   "text": "Add `workload_aware_score()` to `PamsRecorder`",
+   "paths": [],
+   "idents": [
+    "PamsRecorder"
+   ],
+   "missing": [],
+   "idents_present": [
+    "PamsRecorder"
+   ]
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 494,
+   "text": "`HYDRA.py`",
+   "paths": [
+    "HYDRA.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 74,
+   "text": "L-5 Un-blind the instruments: `evolution_progress`, `fitness_arm_liveness`,",
+   "paths": [],
+   "idents": [
+    "evolution_progress",
+    "fitness_arm_liveness"
+   ],
+   "missing": [],
+   "idents_present": [
+    "evolution_progress",
+    "fitness_arm_liveness"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 191,
+   "text": "S-1 HYDRA: `src/HYDRA/*` + `ORCHESTRATION/HYDRA.py` + `hydra_bridge.py` \u2014 zero",
+   "paths": [
+    "ORCHESTRATION/HYDRA.py",
+    "hydra_bridge.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 206,
+   "text": "S-2 META-4 (`InferenceBridge`, `DebugZ`, `DistillZ`, `MetaWormSpawner`): built at",
+   "paths": [],
+   "idents": [
+    "DebugZ",
+    "DistillZ",
+    "InferenceBridge",
+    "MetaWormSpawner"
+   ],
+   "missing": [],
+   "idents_present": [
+    "DebugZ",
+    "DistillZ",
+    "InferenceBridge",
+    "MetaWormSpawner"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 217,
+   "text": "S-3 CODEX `unified_generator.py` (5.5k lines): sole caller is dead-end",
+   "paths": [
+    "unified_generator.py"
+   ],
+   "idents": [],
+   "missing": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 335,
+   "text": "M-2 Repoint stale constants: `PamsRecorder` default `site-packages/memory_data`,",
+   "paths": [],
+   "idents": [
+    "PamsRecorder"
+   ],
+   "missing": [],
+   "idents_present": [
+    "PamsRecorder"
+   ]
+  }
+ ],
+ "absent": [
+  {
+   "doc": "LIVE_MONITOR_RESTRUCTURE_TODO.md",
+   "line": 180,
+   "text": "**14.** Safe path from `morph_policy.json` / `state/proteus_morph.jsonl` into a",
+   "paths": [
+    "morph_policy.json",
+    "state/proteus_morph.jsonl"
+   ],
+   "idents": [],
+   "missing": [
+    "morph_policy.json"
+   ]
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 113,
+   "text": "Unit tests for `NATURE_CLUSTERS.py` category discovery",
+   "paths": [
+    "NATURE_CLUSTERS.py"
+   ],
+   "idents": [],
+   "missing": [
+    "NATURE_CLUSTERS.py"
+   ]
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 123,
+   "text": "Add `regenerate_bats.py` call to `build_all.py` as post-build step",
+   "paths": [
+    "build_all.py",
+    "regenerate_bats.py"
+   ],
+   "idents": [],
+   "missing": [
+    "build_all.py",
+    "regenerate_bats.py"
+   ]
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1095,
+   "text": "All temp files removed (`_test_*.py`, `_trace_*.py`, `_tmp.py`, `G:/test_*.png`)",
+   "paths": [
+    "_tmp.py"
+   ],
+   "idents": [],
+   "missing": [
+    "_tmp.py"
+   ]
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 304,
+   "text": "`test_minimal.py` compiles to EXE successfully",
+   "paths": [
+    "test_minimal.py"
+   ],
+   "idents": [],
+   "missing": [
+    "test_minimal.py"
+   ]
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 306,
+   "text": "`vault_server.py` compiles to EXE successfully",
+   "paths": [
+    "vault_server.py"
+   ],
+   "idents": [],
+   "missing": [
+    "vault_server.py"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 69,
+   "text": "L-3 Schedule `tools/run_technique_exercises.py` (register the `techniques` job its",
+   "paths": [
+    "tools/run_technique_exercises.py"
+   ],
+   "idents": [
+    "techniques"
+   ],
+   "missing": [
+    "tools/run_technique_exercises.py"
+   ]
+  }
+ ],
+ "unchecked": [
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 204,
+   "text": "Integration tests for parallel execution (FreeThreadPool, work-stealing)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 205,
+   "text": "Integration tests for cross-nature orchestration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 206,
+   "text": "Mock tests for PAMS/MemoryBus event recording",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 207,
+   "text": "Regression tests for all 226 worms (import + register + basic smoke)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 208,
+   "text": "Test coverage reporting (pytest-cov, target: 60%+)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 214,
+   "text": "Timeout handling: daemon threads must be joined or killed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 215,
+   "text": "Partial failure handling: should cluster continue or abort?",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 216,
+   "text": "Circuit breaker: stop if error rate exceeds threshold (90%+ in 10s)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 217,
+   "text": "Retry with exponential backoff (replacing fixed 0.1s sleep)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 218,
+   "text": "Dead letter queue for failed executions (circuit_breaker.py exists but untested)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 224,
+   "text": "Centralized config file (YAML/TOML) \u2014 azazael.yaml at project root",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 225,
+   "text": "Environment variable validation in paths.py (G_DRIVE, DESKTOP, etc.)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 226,
+   "text": "Per-nature config overrides (security vs network timeout policies)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 232,
+   "text": "Run autoflake on all 1,622 .py files to remove unused imports",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 233,
+   "text": "Verify 0 remaining imports to META/, CODEX/CORE/, HYDRA/ml_platforms shims",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 234,
+   "text": "Delete all 14 deprecation shim files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 235,
+   "text": "Clean up MEMORIES.md shim table",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 236,
+   "text": "Standardize error handling \u2014 remove bare `except:` clauses",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 243,
+   "text": "Profile parallel execution bottleneck (cProfile on 100-worm cluster run)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 244,
+   "text": "Consider ThreadPoolExecutor instead of raw threading.Thread",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 245,
+   "text": "Cache worm registry lookups (currently O(n) scan per query)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 246,
+   "text": "Lazy-load worm modules (all 77 import at startup)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 247,
+   "text": "Cache Mermaid graph output (regenerated every call)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 248,
+   "text": "Batch PAMS events (individual writes currently)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 254,
+   "text": "Module-level docstrings for all new cluster files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 255,
+   "text": "Architecture diagram in root README (can auto-generate from Mermaid)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 256,
+   "text": "API reference for ClusterWORMZ, MetaCluster",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 257,
+   "text": "Usage examples with CLI output",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 258,
+   "text": "Troubleshooting guide (common errors + fixes from ERROR_LOG.md)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 259,
+   "text": "Structured logging (JSON) for cluster operations",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 260,
+   "text": "Metrics: execution count, duration, success rate per cluster type",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 261,
+   "text": "Health check endpoint / CLI command",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 262,
+   "text": "Alert on worm registration drift (count changes)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 267,
+   "text": "Validate registry at startup (detect missing deps, circular imports)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 268,
+   "text": "Registry versioning (detect when worms change)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 269,
+   "text": "Worm dependency graph visualization",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 270,
+   "text": "Worm health scoring (import success, config validity, test coverage)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 271,
+   "text": "Standard workflow templates (security scan \u2192 vulnerability report \u2192 auto-fix)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 272,
+   "text": "Workflow DSL for defining multi-step orchestration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 273,
+   "text": "Conditional routing (if error_rate > X, escalate to MetaCluster)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 274,
+   "text": "Workflow history and replay (PAMS audit trail)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 288,
+   "text": "Progress bar for video generation (tqdm)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 306,
+   "text": "Docker container for reproducible builds",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 307,
+   "text": "Scheduled cluster runs (cron / Windows Task Scheduler)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 308,
+   "text": "Git hook integration (pre-commit worm check)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 309,
+   "text": "Pre-build validation script: check Python 3.14t, run patch script, verify source, check tkinter/CORE.* imports",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 310,
+   "text": "Build output verification in build_all.py: run `./EXE --help` after build",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 315,
+   "text": "Real-time Mermaid rendering in browser",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 316,
+   "text": "CLI `azazael cluster status --live`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 317,
+   "text": "Web dashboard for remote inferencing",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 318,
+   "text": "Multi-model comparison mode (Eve Unleashed)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 319,
+   "text": "PAMS server startup and health check automation",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 346,
+   "text": "~~**Run**: `python azazael/docs/scripts/patch_nuitka_314t.py --apply` (patches Nuitka 4.1.2 for 3.14t)~~ \u2014 **SUSPENDED**: Nuitka broken on 3.14.5t (CompiledFrameType.c _PyStackRef error)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 347,
+   "text": "**Test psutil**: `python -c \"import psutil; print(psutil.cpu_count())\"` (may need `--force-reinstall`)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 348,
+   "text": "**Confirm Python**: `python -c \"import sys; print(sys.version); print('Free-threaded:', not sys._is_gil_enabled())\"`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 110,
+   "text": "Convenience method added to DirectMemory",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 111,
+   "text": "Audit function added to audit_trail.py",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 113,
+   "text": "Tests written and passing",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 114,
+   "text": "Docstrings added",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 115,
+   "text": "CHANGELOG.md updated",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 110,
+   "text": "`DirectMemory()` initialized at session start",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 111,
+   "text": "All file reads recorded via `dm.file_read()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 112,
+   "text": "All file edits/creates/deletes recorded",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 113,
+   "text": "All skill loads recorded via `dm.skill_loaded()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 114,
+   "text": "All code reviews recorded via `dm.code_review()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 115,
+   "text": "All test runs recorded via `dm.test_run()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 116,
+   "text": "All milestones recorded via `dm.milestone()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "DIRECT_MEMORY_INSTRUCTIONS.md",
+   "line": 117,
+   "text": "`dm.end()` called with summary data",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 790,
+   "text": "Lazy singletons pre-initialized on main thread before thread pool entry",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 791,
+   "text": "No `__import__()` calls in callbacks, lambdas, or thread targets",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 792,
+   "text": "Use `sys.modules.get()` for module lookups in threaded code (never `__import__()`)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 793,
+   "text": "`FreeThreadPool.shutdown(wait=False, cancel_futures=True)` to avoid hang on stuck workers",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 794,
+   "text": "Test both with GIL and without (`PYTHON_GIL=0`)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 955,
+   "text": "Lazy inits use double-checked locking with import AFTER lock release",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 956,
+   "text": "Singletons that import singletons checked for circular chains",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 957,
+   "text": "Test under free-threading: `PYTHON_GIL=0 python -c \"from CORE.PamsRecorder import PamsRecorder; p=PamsRecorder(); p.record_event('test',{'x':1})\"`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1110,
+   "text": "Every lazy init MUST use double-checked locking",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1111,
+   "text": "File must `import threading` before the lock variable declaration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1113,
+   "text": "Import inside lock is acceptable for simple utility modules (no circular dependency risk)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1114,
+   "text": "For complex imports (may trigger circular chains), move import AFTER lock release (set flag under lock, then import)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1115,
+   "text": "Test under free-threading: `PYTHON_GIL=0 python -c \"from core.module import get_var; print(get_var())\"`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1116,
+   "text": "Review during code review: all `if _var is None:` patterns should have corresponding locks",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1256,
+   "text": "Is it a C-extension package? Check `pip show` for compiled extensions",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1257,
+   "text": "Is it pure-Python? Run `python -m toolname --version` directly",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1258,
+   "text": "Does the basher/subprocess command have nested quotes? (Anti-pattern #1)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1259,
+   "text": "Did prior sessions use this tool successfully? Check session docs",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1260,
+   "text": "Test with the simplest possible command: `python -c \"import subprocess; ...\"`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1261,
+   "text": "Check exit codes: 0 = clean, 1 = found issues (NOT a crash!)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1660,
+   "text": "WER registry configured for the executable name",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1661,
+   "text": "ProcDump available at known path",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1662,
+   "text": "Auto-monitor launch script created and tested",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1663,
+   "text": "Crash dump location documented and accessible",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1664,
+   "text": "WinDbg installed for dump analysis",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1665,
+   "text": "Dump analysis workflow documented",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2278,
+   "text": "Prevention step 1",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2279,
+   "text": "Prevention step 2",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2431,
+   "text": "**TOC**: Add entry to the By Domain table at the top",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2432,
+   "text": "**Tag index**: Add lesson number to relevant tags",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2433,
+   "text": "**Session markers**: Add marker line after the `---` block below the TOC",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2434,
+   "text": "**State Snapshot**: Update lesson count in CODEBASE_AUDIT_TODO.md",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 2435,
+   "text": "**Related skills**: Create or update skill file if lesson documents a reusable methodology",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 119,
+   "text": "**G1.1** Add `q_effective(nature, worm)` + a bulk `get_q_effective()` that shrinks by pull count.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 120,
+   "text": "**G1.2** Rank `q_order()` on the shrunk value; keep the raw value readable and *documented as raw*.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 121,
+   "text": "**G1.3** Make `get_route_usage()[\"effective_weight\"]` derive from the shrunk value so the telemetry",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 123,
+   "text": "**G1.4** Regression test: a 4-pull \u22121.0 key must rank **above** a 40-pull \u22120.9 key. Pre-fix both",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 181,
+   "text": "**G2.1** `invalidate_q(key, reason)` \u2014 halves a key's evidence and returns toward neutral,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 186,
+   "text": "**G2.3** Test: after invalidation, a route at \u22120.27 on 60 pulls must outrank its own pre-fix self,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 268,
+   "text": "**G6.1** `record_outcome(..., delta=)` \u2192 `q += alpha * delta`, clamped, same lock discipline.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 269,
+   "text": "**G6.2** `SynapseWeightWorm.update()` passes `delta=self._lr * td_error` (textbook TD) and stops",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 271,
+   "text": "**G6.3** Test: 20 diverse TD updates must leave 20 **distinct** edge weights; pre-fix they collapse",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 273,
+   "text": "**G6.4** Test: a positive-mean TD sequence must drive the edge weight *up monotonically*, not toward `lr\u00b7\u03b4`.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 367,
+   "text": "**G3.3** Test: a store seeded with `mesh:W0` + a real worm must report exactly one fabricated key",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 415,
+   "text": "**G4.1** Bump the state schema version and add `_migrate_state(payload) -> (payload, report)`.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 419,
+   "text": "**G4.3** Test: a v1 payload with the six countless keys must migrate to `count == successes + failures`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 456,
+   "text": "**G5.2** Correct the docstrings to state the reachable range.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 158,
+   "text": "88 worms discovered in <10s",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 159,
+   "text": "37/37 CurativePool tests passing",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 160,
+   "text": "All neural advancements functional",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 161,
+   "text": "HydraBridge v2.0.0 pipeline runs end-to-end",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 162,
+   "text": "Nuitka .exe builds for all standalone tools",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 165,
+   "text": "88 worms discovered in <5s (Linux FS perf advantage)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 166,
+   "text": "Test suite passes identically to Windows",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 167,
+   "text": "llama.cpp built and serving models",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 168,
+   "text": "G: drive accessible for shared state",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 171,
+   "text": "Python 3.14.5t free-threading confirmed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 172,
+   "text": "88 worms discovered, all tests pass",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 173,
+   "text": "Performance benchmarks show native Linux advantage",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 174,
+   "text": "Systemd service auto-starts AZAZAEL",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 177,
+   "text": "88 worms discovered",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 178,
+   "text": "Security worms (VulnScanner, PortAuditor, FirewallAudit) validated",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 179,
+   "text": "Network analysis worms functional",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PLATFORM_DEPLOYMENT.md",
+   "line": 180,
+   "text": "Penetration testing integration demonstrated",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 115,
+   "text": "Integration tests for parallel execution path",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 116,
+   "text": "Integration tests for cross-nature orchestration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 117,
+   "text": "Mock tests for PAMS/MemoryBus recording",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 128,
+   "text": "Timeout handling: daemon threads still run after timeout \u2014 add Thread.stop() or cancellation token",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 129,
+   "text": "Partial failure: if 3/5 worms fail, should cluster continue or abort?",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 137,
+   "text": "Centralized config file (YAML/TOML) for cluster timeouts, retry counts, parallelism",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 139,
+   "text": "Per-nature config overrides (e.g., security worms need longer timeout)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 147,
+   "text": "Profile parallel execution bottleneck (thread creation overhead)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 148,
+   "text": "Consider `concurrent.futures.ThreadPoolExecutor` instead of raw threads",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 149,
+   "text": "Cache worm registry lookups (currently re-importing on each resolution)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 150,
+   "text": "Lazy-load worm modules (import only when needed)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 151,
+   "text": "Mermaid graph generation: cache output, only regenerate on change",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 152,
+   "text": "Batch PAMS events (currently one event per action)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 153,
+   "text": "**NEW** GPU inference: blocked by Intel oneAPI compiler bug (see [#34](LESSONS_MASTER.md)) \u2014 re-evaluate after 2026.1+ release",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 156,
+   "text": "Module-level docstrings for all new files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 157,
+   "text": "Architecture diagram (Mermaid) in root README",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 158,
+   "text": "API reference for `ClusterWORMZ.build_from_nature()`, `MetaCluster.discover_all()`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 159,
+   "text": "Usage examples for common workflows",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 160,
+   "text": "Troubleshooting guide for common errors",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 161,
+   "text": "**NEW** GPU Acceleration section: document SYCL limitations and Intel Arc compatibility",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 165,
+   "text": "Structured logging (JSON format) for all cluster operations",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 166,
+   "text": "Metrics export: execution count, duration, success rate per nature",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 167,
+   "text": "Health check endpoint for cluster/meta-cluster status",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 168,
+   "text": "Alert on worm registration drift (worms added/removed)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 170,
+   "text": "**NEW** Disk usage monitoring: alert at 80%",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 183,
+   "text": "Validate registry at startup (check all registered worms are importable)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 184,
+   "text": "Registry versioning: detect when worms are added/removed between sessions",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 185,
+   "text": "Worm dependency graph (e.g., PROCESSZ depends on SYSTEMZ)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 186,
+   "text": "Worm health scoring based on execution history",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 189,
+   "text": "Define standard workflow templates (e.g., \"audit\" = security + diagnostic + reporting)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 190,
+   "text": "Workflow DSL for composing nature pipelines",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 191,
+   "text": "Conditional routing: if security scan fails \u2192 escalate to diagnostic",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 192,
+   "text": "Workflow history and replay",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 198,
+   "text": "Add progress bar to video generation",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 219,
+   "text": "Automated rebuild pipeline (benchmark_data.json -> HTML -> MP4 -> distribute)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 220,
+   "text": "CI/CD trigger on worm registry changes",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 231,
+   "text": "Standardize error handling across all worms (some use bare except)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 240,
+   "text": "Web dashboard for cluster status (replacing/tkinter supplementing)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 241,
+   "text": "Real-time Mermaid graph rendering in browser",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 242,
+   "text": "CLI `azazael cluster status` command",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 243,
+   "text": "CLI `azazael cluster run --nature security` command",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 248,
+   "text": "Docker container with all dependencies",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 249,
+   "text": "Scheduled cluster runs (cron/task scheduler integration) \u2014 see [#7](LESSONS_MASTER.md)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 250,
+   "text": "Git hook integration (run diagnostics on commit)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 430,
+   "text": "**Worm Evolution Engine** \u2014 Genetic algorithm for worm config optimization",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 431,
+   "text": "**MorphingWorm v2** \u2014 Learn from evolved genomes, not just error patterns",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 432,
+   "text": "**Meta-Learning** \u2014 Agents that learn how to learn (MAML-style)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 437,
+   "text": "**PAMS Insights** \u2014 Auto-generate insights from training runs",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "ROADMAP.md",
+   "line": 111,
+   "text": "4.2 Next five files by risk x size from audit_summary.json testmap.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "ROADMAP.md",
+   "line": 137,
+   "text": "5.2 Stale producers: mutation_summary age_h, checkpoint restore drill,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "ROADMAP.md",
+   "line": 144,
+   "text": "5.3 Doc drift: milestone/skill counts regenerated monthly, not by hand.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 110,
+   "text": "**1.2** The audit must FAIL when it finds a validator that cannot return",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 117,
+   "text": "**2.1** `RULE 0I`: give the validator a False path, or retire the rule.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 120,
+   "text": "**2.2** Finding 1: decide where the pre-action gate runs. Either wire it",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 124,
+   "text": "**2.3** Merge `0E-1` into `0E`; merge `0S` into `0J`. Leave a one-line",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 132,
+   "text": "**3.1** `0A` never claim completion without verification. **Highest",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 136,
+   "text": "**3.2** `0K` canonical reading order + `0F` session startup. Both are",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 140,
+   "text": "**3.3** `0P` rule priority chain. Its text explicitly subordinates other",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 144,
+   "text": "**3.4** `0V` code reviewer pre/post, `0W` 100% agent utilization, `0Z-B`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 148,
+   "text": "**3.5** `0T-A` sentinel self-recording, `0T-B` VLP 15-layer stack, `0Z-C`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 151,
+   "text": "**3.6** `0N` worm execution runtime-truth-only, `0Z` / `0Z-A` / `0Z-I`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 155,
+   "text": "**3.7** `0D` quota jail, `0Q` post-phase inference check, `0R-A` auto-sync",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 160,
+   "text": "**4.1** 39 rules at full verbosity is a document nobody finishes, which is",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 164,
+   "text": "**4.2** Every rule gets an `ENFORCED BY:` line naming the validator and",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 167,
+   "text": "**4.3** Cross-check the skill copies (`azazael/skills/*.md`,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 174,
+   "text": "**5.2** Re-run the full test suite: `python -m pytest tests/ -q`.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 118,
+   "text": "Rebuild POPUP_Immersive_314t.exe from fixed source",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 119,
+   "text": "Rebuild Auto_Doc_Gen_314t.exe from fixed source",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 120,
+   "text": "Verify both rebuilt EXEs pass audit",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 124,
+   "text": "Add EXE audit as CI step in GitHub Actions",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 125,
+   "text": "Consider removing bare `except:` clauses from POPUP code",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SESSION_INSIGHTS_2026-05-29_PHASE11.md",
+   "line": 126,
+   "text": "Add `.get()` guards to all dict key accesses in codebase",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1093,
+   "text": "All session actions recorded (Rule 5)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1096,
+   "text": "No Unicode emoji in any modified files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1097,
+   "text": "All imports at top of files (no function-body imports)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1098,
+   "text": "Syntax check: all files, 0 failures",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1099,
+   "text": "Integration test passed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1100,
+   "text": "Code review completed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SOP.md",
+   "line": 1101,
+   "text": "Summary statistics updated in ERROR_LOG.md",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYNC.md",
+   "line": 73,
+   "text": "Ensure no active IDE processes (VSCode, PyCharm) are locking files on target",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYNC.md",
+   "line": 74,
+   "text": "Validate `SCRIPTS \u2192 scripts` symlink resolves on Kali: `ls -ld /root/azazael/src/SCRIPTS`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYNC.md",
+   "line": 75,
+   "text": "Check VF worms import cleanly: `cd /root/vermillion_lightfury && python3 -c \"from worms import *\"`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2270,
+   "text": "All temp files cleaned up (`_test_*.py`, `G:/test_*.png`, etc.)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2271,
+   "text": "All Unicode emoji replaced with ASCII",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2272,
+   "text": "All imports at top of files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2273,
+   "text": "Syntax check passed (256+ files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2274,
+   "text": "Integration test passed (registry, clusters, meta, memory)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "SYSTEM_INSTRUCTIONS.md",
+   "line": 2275,
+   "text": "Code review completed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 42,
+   "text": "Unit tests for CLUSTERWORMS.py dynamic resolution (3 strategies)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 43,
+   "text": "Unit tests for NATURE_CLUSTERS.py category discovery",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 44,
+   "text": "Unit tests for METACLUSTER.py routing engine (70 routes, 594 paths)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 45,
+   "text": "Integration tests for parallel execution (FreeThreadPool, work-stealing)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 46,
+   "text": "Integration tests for cross-nature orchestration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 47,
+   "text": "Mock tests for PAMS/MemoryBus event recording",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 48,
+   "text": "Regression tests for all 226 worms (import + register + basic smoke)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 49,
+   "text": "Test coverage reporting (pytest-cov, target: 60%+)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 53,
+   "text": "Timeout handling: daemon threads must be joined or killed",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 54,
+   "text": "Partial failure handling: should cluster continue or abort?",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 55,
+   "text": "Circuit breaker: stop if error rate exceeds threshold (90%+ in 10s)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 56,
+   "text": "Retry with exponential backoff (replacing fixed 0.1s sleep)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 57,
+   "text": "Dead letter queue for failed executions (circuit_breaker.py exists but untested)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 61,
+   "text": "Centralized config file (YAML/TOML) \u2014 azazael.yaml at project root",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 62,
+   "text": "Environment variable validation in paths.py (G_DRIVE, DESKTOP, etc.)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 63,
+   "text": "Per-nature config overrides (security vs network timeout policies)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 70,
+   "text": "Build CLUSTERWORMS_314t.exe (source: CORE/WORMS/CLUSTERWORMS.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 71,
+   "text": "Build CONCURRENCY_314t.exe (source: CORE/WORMS/CONCURRENCY.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 72,
+   "text": "Build METACLUSTER_314t.exe (source: CORE/WORMS/METACLUSTER.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 73,
+   "text": "Build NATURE_Clusters_314t.exe (source: CORE/WORMS/NATURE_CLUSTERS.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 74,
+   "text": "Build SMARTDISK_314t.exe (source: CORE/WORMS/SMARTDISK.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 75,
+   "text": "Build Create_Video_314t.exe (source: CODEX/VIDEOS/create_video.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 76,
+   "text": "Build Matrix_Video_314t.exe (source: CODEX/VIDEOS/generate_matrix_video.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 77,
+   "text": "Build Compress_Video_314t.exe (source: CODEX/VIDEOS/compress_video.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 78,
+   "text": "Build Video_Popup_314t.exe (source: CODEX/VIDEOS/video_popup.py)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 82,
+   "text": "Profile parallel execution bottleneck (cProfile on 100-worm cluster run)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 83,
+   "text": "Consider ThreadPoolExecutor instead of raw threading.Thread",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 84,
+   "text": "Cache worm registry lookups (currently O(n) scan per query)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 85,
+   "text": "Lazy-load worm modules (all 77 import at startup)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 86,
+   "text": "Cache Mermaid graph output (regenerated every call)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 87,
+   "text": "Batch PAMS events (individual writes currently)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 90,
+   "text": "Module-level docstrings for all new cluster files",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 91,
+   "text": "Architecture diagram in root README (can auto-generate from Mermaid)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 92,
+   "text": "API reference for ClusterWORMZ, MetaCluster",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 93,
+   "text": "Usage examples with CLI output",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 94,
+   "text": "Troubleshooting guide (common errors + fixes from ERROR_LOG.md)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 98,
+   "text": "Structured logging (JSON) for cluster operations",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 99,
+   "text": "Metrics: execution count, duration, success rate per cluster type",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 100,
+   "text": "Health check endpoint / CLI command",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 101,
+   "text": "Alert on worm registration drift (count changes)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 108,
+   "text": "Validate registry at startup (detect missing deps, circular imports)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 109,
+   "text": "Registry versioning (detect when worms change)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 110,
+   "text": "Worm dependency graph visualization",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 111,
+   "text": "Worm health scoring (import success, config validity, test coverage)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 114,
+   "text": "Standard workflow templates (security scan \u2192 vulnerability report \u2192 auto-fix)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 115,
+   "text": "Workflow DSL for defining multi-step orchestration",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 116,
+   "text": "Conditional routing (if error_rate > X, escalate to MetaCluster)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 117,
+   "text": "Workflow history and replay (PAMS audit trail)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 120,
+   "text": "Install ffmpeg on build machine",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 121,
+   "text": "Test full HTML \u2192 MP4 generation",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 122,
+   "text": "Progress bar for video generation (tqdm)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 123,
+   "text": "Multiple output formats (MP4, WebM, GIF)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 124,
+   "text": "Batch generation from template directory",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 132,
+   "text": "Standardize error handling \u2014 remove bare `except:` clauses",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 134,
+   "text": "Consolidate hardcoded paths (still ~10 in QL_FILE_OPTIMIZER, CODEX files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 137,
+   "text": "Web dashboard for cluster status (Flask/React)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 138,
+   "text": "Real-time Mermaid rendering in browser",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 139,
+   "text": "CLI `azazael cluster status --live`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 144,
+   "text": "Docker container for reproducible builds",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 145,
+   "text": "Scheduled cluster runs (cron / Windows Task Scheduler) \u2014 see [#7](LESSONS_MASTER.md)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 146,
+   "text": "Git hook integration (pre-commit worm check)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 153,
+   "text": "Eliminate remaining 10+ hardcoded `C:/Users/clint/Desktop` paths",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 157,
+   "text": "Verify all 14 deprecation shims have valid canonical sources",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 158,
+   "text": "Rebuild 4 shim-sourced EXEs from canonical files directly (File_Manifest, Changelog_Gen, Matrix_Animation, QL_Optimizer)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "azazael-production.md",
+   "line": 103,
+   "text": "Scheduled cluster runs",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 349,
+   "text": "Fix remaining LSP warnings",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 350,
+   "text": "Add more WSA app examples",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 351,
+   "text": "Create WSA plugin for CLI",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 354,
+   "text": "Add WSA backup/restore",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 355,
+   "text": "WSA multi-device support",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 356,
+   "text": "Performance history tracking",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 359,
+   "text": "WSA voice commands",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 360,
+   "text": "GUI for WSA management",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 361,
+   "text": "WSA app recommendations",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 450,
+   "text": "Configuration file (`~/.azazaelrc`)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 451,
+   "text": "Plugin system for custom commands",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 452,
+   "text": "Tab auto-completion",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 455,
+   "text": "Multi-agent Q-learning",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 456,
+   "text": "JIT-compiled updates (Numba)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 457,
+   "text": "Sum-tree prioritized replay",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 458,
+   "text": "Hyperparameter auto-tuning",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 461,
+   "text": "Property-based testing (Hypothesis)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 462,
+   "text": "Fuzz testing for CLI",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 463,
+   "text": "CI/CD pipeline (GitHub Actions)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 466,
+   "text": "Colored output (Colorama)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 467,
+   "text": "Progress bars (Rich)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 468,
+   "text": "Web dashboard (Streamlit)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 17,
+   "text": "**P1 \u2014 Same commit**: each lane reports `git log --oneline -1` for azazael",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 19,
+   "text": "**P2 \u2014 Reinstruction read**: each lane confirms reading BEAM_AGENTS.md",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 24,
+   "text": "**P4 \u2014 Store sync**: re-run tracked-vs-enriched consistency (expect 62/66,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 26,
+   "text": "**P5 \u2014 Verifier baseline**: confirm FAIL scope = 82 redaction timestamps",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 28,
+   "text": "**P6 \u2014 Queue ownership**: 59/81 UNPROOFED, 79 quote repair, DOS re-source",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 30,
+   "text": "**P7 \u2014 BEAM_AGENTS.md commit decision**: operator decides include/leave.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 31,
+   "text": "**P8 \u2014 Record-first**: every lane demonstrates one Engram mem_save +",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 33,
+   "text": "**P9 \u2014 Memory live-fire** (operator 2026-10-28): every lane proves it can",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 126,
+   "text": "Add path traversal protection to all Vault endpoints",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 127,
+   "text": "Implement structured error logging",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 130,
+   "text": "Add retry + dead letter queue to WORM execution pipeline",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 132,
+   "text": "Add centralized YAML config system",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 133,
+   "text": "Verify Nuitka builds for Python 3.14 free-threading",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 136,
+   "text": "Add type hints to `CORE/WORMS/*.py` (70+ worms)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 137,
+   "text": "Create user guide documentation",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 138,
+   "text": "Implement rate limiting on API servers",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 139,
+   "text": "Profile and optimize Vault graph loading",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 142,
+   "text": "Docker images for all server components",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 143,
+   "text": "MSI installer for Desktop apps",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 144,
+   "text": "HTTPS/TLS for all servers",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/CODEBASE_AUDIT_TODO.md",
+   "line": 145,
+   "text": "Auto-updater mechanism",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/ENVIRONMENT_ALIGNMENT.md",
+   "line": 152,
+   "text": "Run `sync_all.py --verify`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/ENVIRONMENT_ALIGNMENT.md",
+   "line": 153,
+   "text": "Run `sync_all.py --sync-all` (or specific targets)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/ENVIRONMENT_ALIGNMENT.md",
+   "line": 154,
+   "text": "Verify Nuitka: `build_all_concurrent.py --verify`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/ENVIRONMENT_ALIGNMENT.md",
+   "line": 155,
+   "text": "Update this document if new environments are added",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 34,
+   "text": "**Falsifiability**: Every field testable against \u22653 trajectories",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 35,
+   "text": "**Boundedness**: L2 boundary explicitly lists what's NOT covered",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 36,
+   "text": "**Evidence-linkage**: Every field maps to specific evidence source",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 37,
+   "text": "**Actionability**: Schema changes a CLASS of decisions via filter",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 38,
+   "text": "**No Heaven**: No maximal schema, no L3+ rungs",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/METADATA_SCHEMAS_INDEX.md",
+   "line": 39,
+   "text": "**Stop rule**: Instance \u2192 rule \u2192 applicability \u2192 STOP",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 305,
+   "text": "EXE runs and produces correct output",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 307,
+   "text": "Vault EXE starts on port 6000",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 308,
+   "text": "Vault EXE responds to API calls",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 309,
+   "text": "Graph rendering works (vis-network loads in browser)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 310,
+   "text": "Search/timeline/diff endpoints respond",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 311,
+   "text": "File editing returns results correctly",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 312,
+   "text": "GIL is confirmed disabled inside EXE: `sys._is_gil_enabled() == False`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/NUITKA_3_14T_SKILL.md",
+   "line": 313,
+   "text": "Free-threading features work (ThreadPoolExecutor, parallel ops)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 382,
+   "text": "`get_project_root()` matches Python `get_project_root()` output",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 383,
+   "text": "`get_g_drive()` resolves G:/ correctly",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 384,
+   "text": "All path functions return canonicalized paths",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 387,
+   "text": "`#[register_worm]` proc macro registers into global HashMap",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 388,
+   "text": "`discover_worms()` finds all 88+ worms in <1s (vs ~10s Python)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 389,
+   "text": "`SpawnDiversityEngine::pick_next_spawn()` returns valid spawn with correct cooldown enforcement",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 390,
+   "text": "Category rotation never spawns same category consecutively",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 391,
+   "text": "Staleness bonus increases priority for never-spawned worms",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 394,
+   "text": "`record_event()` + `query_memories()` round-trip correctly",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 395,
+   "text": "`search_memories()` tantivy index returns BM25-scored results",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 396,
+   "text": "`get_stats()` matches LocalMemoryStore stats within 1% tolerance",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 397,
+   "text": "Connection pool handles 100 concurrent readers without deadlock",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 401,
+   "text": "Parallel execution achieves >=5x throughput vs Python sequential",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 402,
+   "text": "Mermaid graph output matches Python output node-for-node",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 405,
+   "text": "All 6 pipeline stages execute in correct order",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 406,
+   "text": "CurativePool governance gates at each stage",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 407,
+   "text": "MetaCognitionWorm observation fires after each stage",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 408,
+   "text": "Evolution optimization runs post-pipeline",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 409,
+   "text": "Dreaming cycle runs post-pipeline",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 412,
+   "text": "MetaCognitionEngine OBSERVE\u2192ANALYZE\u2192ADAPT\u2192VALIDATE loop matches Python behavior",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 413,
+   "text": "EvolutionEngine tournament selection + crossover + mutation matches Python genetics",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 414,
+   "text": "DreamingModule RECALL\u2192SIMULATE\u2192EVALUATE\u2192INTEGRATE pipeline matches Python output",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 415,
+   "text": "Parallel fitness evaluation achieves >=8x throughput vs Python sequential",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 419,
+   "text": "TUI renders ratatui interface with all 5 original commands",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 420,
+   "text": "HTTP server mode responds to queries on configurable port",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 423,
+   "text": "All crates have `#[cfg(test)]` unit tests with >80% line coverage",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 424,
+   "text": "CI pipeline builds all crates and runs tests on G: drive",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 425,
+   "text": "`cargo build --release` produces binaries under 8 MB each",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_TRACKER.md",
+   "line": 113,
+   "text": "Created: [file] ([+N lines]) \u2014 [description]",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_TRACKER.md",
+   "line": 114,
+   "text": "Modified: [file] ([+N/-M lines]) \u2014 [description]",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_TRACKER.md",
+   "line": 115,
+   "text": "Tests: [N/N passing] \u2014 [file]",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_TRACKER.md",
+   "line": 118,
+   "text": "[crate]: [status change] \u2014 [notes]",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_TRACKER.md",
+   "line": 121,
+   "text": "[file] \u2014 [changes]",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 52,
+   "text": "File renames completed:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 56,
+   "text": "Python imports updated in:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 65,
+   "text": "Documentation updated:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 465,
+   "text": "Private methods prefixed with `_`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 493,
+   "text": "`Azazael/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 495,
+   "text": "`WORMZ/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 496,
+   "text": "`METAWORMS/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 497,
+   "text": "`CODEX/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 131,
+   "text": "Add `steal_block()` for bulk operations",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 135,
+   "text": "Wire `InferenceLoadBalancerWorm.migrate_kv_cache(src, dst)`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 144,
+   "text": "Compose: `FanOut(ClusterWORMZ) \u2192 Pipeline \u2192 SelfReflection`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 146,
+   "text": "Export blueprint YAML for reproducibility",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 703,
+   "text": "Fix `get_recorder()` singleton \u2014 currently creates new instance on every call",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 706,
+   "text": "Standardize session_id format across all 4 components",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 716,
+   "text": "Build automated JSONL \u2194 SQLite cross-validation script",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 724,
+   "text": "Schedule VACUUM during low-activity windows",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 725,
+   "text": "Implement periodic Merkle root comparison (JSONL \u2194 SQLite)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 786,
+   "text": "Fix `get_recorder()` singleton in PamsRecorder \u2014 creates new instance on every call (Domain 14.2)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 799,
+   "text": "Build automated JSONL \u2194 SQLite cross-validation script: `python -m CORE.verify_dual_ledger --cross-ref` (Domain 14.6)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 800,
+   "text": "Audit all C-extension dependencies for 3.14t thread safety (Domain 1)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 801,
+   "text": "Implement hybrid Ed25519 + ML-DSA signatures via `liboqs-python` (Domain 2)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 802,
+   "text": "Deploy Casbin RBAC policies for tool call authorization (Domain 3)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 803,
+   "text": "Wrap code-modifying tools with `@wrapt.decorator` enforcement layer (Domain 3)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 805,
+   "text": "Encode PRE-ACTION GATE constraints as Z3 SMT variables (Domain 3)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 806,
+   "text": "Instrument all agent actions with OpenTelemetry spans (Domain 4)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 807,
+   "text": "Implement directed action graph for behavioral anomaly detection (Domain 4)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 808,
+   "text": "Deploy Worker-Verifier-Judge pipeline with 2/3 consensus (Domain 5)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 809,
+   "text": "Automate dual-ledger cross-validation (JSONL \u2194 SQLite) \u2014 see Domain 14.6 (Domain 5, 8)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 817,
+   "text": "Schedule VACUUM during low-activity windows (Domain 14.5)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 818,
+   "text": "Implement periodic Merkle root comparison (JSONL \u2194 SQLite) per RFC 9162 (Domain 14.6)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 819,
+   "text": "Build AST-based Worm Registry cache to eliminate 38s cold start (Domain 13)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 820,
+   "text": "Split SYSTEM_INSTRUCTIONS.md into modular markdown includes (Domain 11)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 821,
+   "text": "Lock Python 3.14t multi-stage Dockerfile (Domain 6)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 822,
+   "text": "Configure pytest with `pytest-xdist` and audit shared-state fixtures (Domain 15)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/bcc_analysis/bcc_geospatial_coordinates.md",
+   "line": 104,
+   "text": "Cross-reference with Berks County GIS parcel data (PIN lookup)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/bcc_analysis/bcc_geospatial_coordinates.md",
+   "line": 105,
+   "text": "Cross-reference with Eagle mapping / property records",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/bcc_analysis/bcc_geospatial_coordinates.md",
+   "line": 106,
+   "text": "Add to BCC network graph (nodes.csv/edges.csv) as geospatial attributes",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "research/bcc_analysis/bcc_geospatial_coordinates.md",
+   "line": 107,
+   "text": "Feed into Gephi visualization for spatial layout",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 52,
+   "text": "File renames completed:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 56,
+   "text": "Python imports updated in:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 65,
+   "text": "Documentation updated:",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 465,
+   "text": "Private methods prefixed with `_`",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 493,
+   "text": "`Azazael/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 495,
+   "text": "`WORMZ/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 496,
+   "text": "`METAWORMS/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 497,
+   "text": "`CODEX/*.py` (all files)",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/ORCHESTRATION/docs/CONTRIBUTING.md",
+   "line": 27,
+   "text": "Check if the issue has already been reported",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "src/ORCHESTRATION/docs/CONTRIBUTING.md",
+   "line": 28,
+   "text": "Verify the issue exists in the latest version",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 14,
+   "text": "G-0a Snapshot the dirty tree (31 modified + 211 untracked at audit time): commit or `stash -u`.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 16,
+   "text": "G-0b Record a green 262-file suite run under `py -V:3.15t` (venv exe).",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 18,
+   "text": "G-0c Rebuild codegraph at HEAD (was built at `79f048a` vs HEAD `52b7b453`).",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 23,
+   "text": "H-1 T-13 absorption: move each PARTIAL delta into its named host per",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 27,
+   "text": "H-2 T-15 instrument swap: production-call-sites-per-technique; exercise-only = 0.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 54,
+   "text": "H-5 Dispose the 19 dangling adapters: 11 no-host (EP11,14,38,39,52,68,226,245,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 58,
+   "text": "H-6 7/10 blueprint promises still paper-only (P1 ATP capsules hook, P4 skill",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 65,
+   "text": "L-1 T-1: enable `Azazael-Chain` on the CORRECT tree (`C:/Azazael/azazael`,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 67,
+   "text": "L-2 T-2: close the meta-evolution loop (log fired once manually 10/09, stale",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 134,
+   "text": "D-4 Triage orphan tools/scripts (**counts in this row are wrong by ~7-11x** \u2014",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 327,
+   "text": "S-8 PAMS recorder contract: migrate the 12 `_pams = PamsRecorder()` import-time",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 338,
+   "text": "M-3 Diff the 5 skill copies (`azazael/skills`, `.agents/skills`,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 346,
+   "text": "E-1 Resolve the 7 lockfile-missing packages: install (`mygrad, greenlet,",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "tools/graph_semantic/patches/UPSTREAM_SUBMISSION.md",
+   "line": 61,
+   "text": "`--emit-patch` regenerated against the current installed graphify and the",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "tools/graph_semantic/patches/UPSTREAM_SUBMISSION.md",
+   "line": 63,
+   "text": "The four tests pass in graphify's own suite (ported to its test layout).",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "tools/graph_semantic/patches/UPSTREAM_SUBMISSION.md",
+   "line": 64,
+   "text": "A note added to graphify's changelog referencing the corpus that motivated it.",
+   "paths": [],
+   "idents": []
+  },
+  {
+   "doc": "tools/graph_semantic/patches/UPSTREAM_SUBMISSION.md",
+   "line": 65,
+   "text": "PR opened; PR URL recorded back on the PMB goal.",
+   "paths": [],
+   "idents": []
+  }
+ ],
+ "unchecked_ident": [
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 237,
+   "text": "Add `__all__` to all module exports (77 worm files + 20 cluster files)",
+   "paths": [],
+   "idents": [
+    "__all__"
+   ]
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 305,
+   "text": "Single-entry `azazael` CLI (merge azazael-core into main CLI)",
+   "paths": [],
+   "idents": [
+    "azazael"
+   ]
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 349,
+   "text": "**Python 3.13 is NOT used.** Never reference `Python313`, `python313`, or `Python 3.13`.",
+   "paths": [],
+   "idents": [
+    "Python313",
+    "python313"
+   ]
+  },
+  {
+   "doc": "CODEBASE_AUDIT_TODO.md",
+   "line": 350,
+   "text": "**All build commands use `python`** (no full path to Python313/python.exe)",
+   "paths": [],
+   "idents": [
+    "python"
+   ]
+  },
+  {
+   "doc": "CONTRIBUTING.md",
+   "line": 109,
+   "text": "New event types added to BOTH `_V` (DM) and `EVENT_VOCAB` (AJ)",
+   "paths": [],
+   "idents": [
+    "EVENT_VOCAB"
+   ]
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 789,
+   "text": "All `import`/`from ... import` statements at TOP of file (module level)",
+   "paths": [],
+   "idents": [
+    "import"
+   ]
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 958,
+   "text": "`_local_store_init_attempted` flag prevents infinite retry on failed imports (degradation, not crash)",
+   "paths": [],
+   "idents": [
+    "_local_store_init_attempted"
+   ]
+  },
+  {
+   "doc": "LESSONS_MASTER.md",
+   "line": 1112,
+   "text": "Sentinel value (`False`) prevents infinite retry on transient failures",
+   "paths": [],
+   "idents": [
+    "False"
+   ]
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 184,
+   "text": "**G2.2** Call it from the one real site this session created: the `sync_wsl_to_kali` fix, so the",
+   "paths": [],
+   "idents": [
+    "sync_wsl_to_kali"
+   ]
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 363,
+   "text": "**G3.1** Declare a fixture namespace (`TEST_WORMS` / `TEST_WORM_TAG`) and a `purge_fixtures()`",
+   "paths": [],
+   "idents": [
+    "TEST_WORMS",
+    "TEST_WORM_TAG"
+   ]
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 365,
+   "text": "**G3.2** `audit_state()` \u2014 classify every key as `measured` / `unmeasured` / `fabricated`, so the",
+   "paths": [],
+   "idents": [
+    "fabricated",
+    "measured",
+    "unmeasured"
+   ]
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 416,
+   "text": "**G4.2** Backfill: a key with a weight and no count is `unknown`, **not** zero \u2014 record it as",
+   "paths": [],
+   "idents": [
+    "unknown"
+   ]
+  },
+  {
+   "doc": "NEURAL_MESH_BRAINSTEM_TODO.md",
+   "line": 454,
+   "text": "**G5.1** Derive the bound from `_Q_MIN/_Q_MAX` and `base_w` instead of hardcoding `5.0`, so the",
+   "paths": [],
+   "idents": [
+    "base_w"
+   ]
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 236,
+   "text": "Add `__all__` to all module exports",
+   "paths": [],
+   "idents": [
+    "__all__"
+   ]
+  },
+  {
+   "doc": "PRODUCTION_TODO.md",
+   "line": 247,
+   "text": "Single-entry `azazael` CLI command (consolidate all worm CLIs)",
+   "paths": [],
+   "idents": [
+    "azazael"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 420,
+   "text": "**Experience Replay Buffer** \u2014 Extend `DataPipelineWorm` with `PrioritizedReplayBuffer`",
+   "paths": [],
+   "idents": [
+    "DataPipelineWorm",
+    "PrioritizedReplayBuffer"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 421,
+   "text": "**Cross-Agent Knowledge Graph** \u2014 Add `agent_patterns` table to LocalMemoryStore",
+   "paths": [],
+   "idents": [
+    "agent_patterns"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 422,
+   "text": "**DPO Preference Collection** \u2014 Add preference recording to `ABTestRunner`",
+   "paths": [],
+   "idents": [
+    "ABTestRunner"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 426,
+   "text": "**Curiosity Module** \u2014 RND-based intrinsic motivation in `RLTrainLoop`",
+   "paths": [],
+   "idents": [
+    "RLTrainLoop"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 427,
+   "text": "**Curriculum Manager** \u2014 Adaptive difficulty in `ScheduledTrainingWorm`",
+   "paths": [],
+   "idents": [
+    "ScheduledTrainingWorm"
+   ]
+  },
+  {
+   "doc": "RESEARCH_AI_ML_RL_PROTOCOL_EVOLUTION.md",
+   "line": 435,
+   "text": "**Unified Training Pipeline** \u2014 Wire all components into `ScheduledTrainingWorm`",
+   "paths": [],
+   "idents": [
+    "ScheduledTrainingWorm"
+   ]
+  },
+  {
+   "doc": "RULE_AUDIT_TODO.md",
+   "line": 100,
+   "text": "**0.5** Still open: `gate_timing` is deliberately UNVALIDATED \u2014 its control",
+   "paths": [],
+   "idents": [
+    "gate_timing"
+   ]
+  },
+  {
+   "doc": "SYNC.md",
+   "line": 72,
+   "text": "Verify no `__pycache__`/`.pyc` files are in the sync source (rsync `--exclude` handles this)",
+   "paths": [],
+   "idents": [
+    "__pycache__"
+   ]
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 133,
+   "text": "Add `__all__` to all module exports (77 worm files + 20 cluster files)",
+   "paths": [],
+   "idents": [
+    "__all__"
+   ]
+  },
+  {
+   "doc": "TODO_FULL_PRODUCTION_WIRING.md",
+   "line": 143,
+   "text": "Single-entry `azazael` CLI (merge azazael-core into main CLI)",
+   "paths": [],
+   "idents": [
+    "azazael"
+   ]
+  },
+  {
+   "doc": "docs/Azazael_ENHANCEMENT_PLAN.md",
+   "line": 449,
+   "text": "Command aliases (`q` \u2192 `analyze`, `h` \u2192 `help`)",
+   "paths": [],
+   "idents": [
+    "analyze",
+    "help"
+   ]
+  },
+  {
+   "doc": "docs/BCC_PREFLIGHT_GATE_2026-10-28.md",
+   "line": 21,
+   "text": "**P3 \u2014 Writer audit**: the concurrent `selenium_status` writes to",
+   "paths": [],
+   "idents": [
+    "selenium_status"
+   ]
+  },
+  {
+   "doc": "docs/RUST_CONVERSION_PLAN.md",
+   "line": 400,
+   "text": "`MetaCluster` routes correctly across all 70 routes / 594 paths",
+   "paths": [],
+   "idents": [
+    "MetaCluster"
+   ]
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 463,
+   "text": "All public functions use `snake_case`",
+   "paths": [],
+   "idents": [
+    "snake_case"
+   ]
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 464,
+   "text": "All methods use `snake_case`",
+   "paths": [],
+   "idents": [
+    "snake_case"
+   ]
+  },
+  {
+   "doc": "docs/TASK_REGISTRY.md",
+   "line": 466,
+   "text": "Constants use `UPPER_SNAKE_CASE`",
+   "paths": [],
+   "idents": [
+    "UPPER_SNAKE_CASE"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 130,
+   "text": "Benchmark against current `WorkStealingQueue` (target: 2-5x throughput)",
+   "paths": [],
+   "idents": [
+    "WorkStealingQueue"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 134,
+   "text": "Add `SessionAffinityPool` with `IDLE_THRESHOLD_MS=100`, `LOAD_RATIO_MAX=2.0`",
+   "paths": [],
+   "idents": [
+    "SessionAffinityPool"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 136,
+   "text": "Integrate with `MetaCluster` dispatch",
+   "paths": [],
+   "idents": [
+    "MetaCluster"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 140,
+   "text": "Build `AgentExecutionGraph` from worm registry DAG",
+   "paths": [],
+   "idents": [
+    "AgentExecutionGraph"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 141,
+   "text": "Connect eviction \u2192 `InferenceLoadBalancerWorm` proactive migration",
+   "paths": [],
+   "idents": [
+    "InferenceLoadBalancerWorm"
+   ]
+  },
+  {
+   "doc": "docs/web_research_synthesis.md",
+   "line": 145,
+   "text": "Add `PatternAdvisor` worm: selects pattern from task description",
+   "paths": [],
+   "idents": [
+    "PatternAdvisor"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 704,
+   "text": "Fix `message_id` generation in MemoryBus \u2014 use atomic counter, not `len(local_queue) + 1`",
+   "paths": [],
+   "idents": [
+    "message_id"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 705,
+   "text": "Fix `_QueryTimer` race in `query_memories()` and `search_memories()` \u2014 add lock or separate performance lock",
+   "paths": [],
+   "idents": [
+    "_QueryTimer"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 707,
+   "text": "Add `correlation_id` field to `memorybus_queue`",
+   "paths": [],
+   "idents": [
+    "correlation_id",
+    "memorybus_queue"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 710,
+   "text": "Protect `_pams_unreachable` / `_pams_last_attempt` reads with class lock",
+   "paths": [],
+   "idents": [
+    "_pams_last_attempt",
+    "_pams_unreachable"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 711,
+   "text": "Protect `event_count` increment in PamsRecorder with lock",
+   "paths": [],
+   "idents": [
+    "event_count"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 712,
+   "text": "Protect `_persisted_ids` with lock in MemoryBus",
+   "paths": [],
+   "idents": [
+    "_persisted_ids"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 713,
+   "text": "Protect `_files_changed` read in DirectMemory.end() with lock",
+   "paths": [],
+   "idents": [
+    "_files_changed"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 714,
+   "text": "Protect `_size_warning_issued` and `_config_applied` flags properly",
+   "paths": [],
+   "idents": [
+    "_config_applied",
+    "_size_warning_issued"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 715,
+   "text": "Add `SQLITE_BUSY` retry logic to MemoryBus `_persist_to_queue()`",
+   "paths": [],
+   "idents": [
+    "SQLITE_BUSY"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 719,
+   "text": "Add `_pams_unreachable` hysteresis (N failures before flag set)",
+   "paths": [],
+   "idents": [
+    "_pams_unreachable"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 720,
+   "text": "Add `flushed_at` timestamp to `memorybus_queue`",
+   "paths": [],
+   "idents": [
+    "flushed_at",
+    "memorybus_queue"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 721,
+   "text": "Add composite index `idx_memories_source_timestamp` on `memories(source, timestamp)`",
+   "paths": [],
+   "idents": [
+    "idx_memories_source_timestamp"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 722,
+   "text": "Add composite index `idx_mbqueue_session_flushed` on `memorybus_queue(session_id, flushed, id)`",
+   "paths": [],
+   "idents": [
+    "idx_mbqueue_session_flushed"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 723,
+   "text": "Add `audit_hash` column to `memories` for JSONL cross-referencing",
+   "paths": [],
+   "idents": [
+    "audit_hash",
+    "memories"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 787,
+   "text": "Fix `message_id` atomicity in MemoryBus \u2014 use atomic counter, not `len(local_queue) + 1` (Domain 14.4)",
+   "paths": [],
+   "idents": [
+    "message_id"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 788,
+   "text": "Fix `_QueryTimer` race in `query_memories()` / `search_memories()` \u2014 add lock around stat updates (Domain 14.5)",
+   "paths": [],
+   "idents": [
+    "_QueryTimer"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 789,
+   "text": "Standardize `session_id` format across all 4 memory components to `codebuff_YYYYMMDD_HHMMSS` (Domain 14.6)",
+   "paths": [],
+   "idents": [
+    "codebuff_YYYYMMDD_HHMMSS",
+    "session_id"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 790,
+   "text": "Add `correlation_id` field to `memorybus_queue` for dual-ledger linking (Domain 14.6)",
+   "paths": [],
+   "idents": [
+    "correlation_id",
+    "memorybus_queue"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 793,
+   "text": "Protect `_pams_unreachable` / `_pams_last_attempt` reads with class lock in PamsRecorder (Domain 14.2)",
+   "paths": [],
+   "idents": [
+    "_pams_last_attempt",
+    "_pams_unreachable"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 794,
+   "text": "Protect `event_count` increment in PamsRecorder with lock (Domain 14.2)",
+   "paths": [],
+   "idents": [
+    "event_count"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 795,
+   "text": "Protect `_persisted_ids` with lock in MemoryBus (Domain 14.4)",
+   "paths": [],
+   "idents": [
+    "_persisted_ids"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 796,
+   "text": "Protect `_files_changed` read in DirectMemory.end() with lock (Domain 14.3)",
+   "paths": [],
+   "idents": [
+    "_files_changed"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 797,
+   "text": "Protect `_size_warning_issued` and `_config_applied` flags properly in LocalMemoryStore (Domain 14.5)",
+   "paths": [],
+   "idents": [
+    "_config_applied",
+    "_size_warning_issued"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 798,
+   "text": "Add `SQLITE_BUSY` retry logic to MemoryBus `_persist_to_queue()` (Domain 14.4)",
+   "paths": [],
+   "idents": [
+    "SQLITE_BUSY"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 804,
+   "text": "Model agent lifecycle as `transitions` HierarchicalMachine (Domain 3)",
+   "paths": [],
+   "idents": [
+    "transitions"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 812,
+   "text": "Add `_pams_unreachable` hysteresis \u2014 N consecutive failures before flag set (Domain 14.2)",
+   "paths": [],
+   "idents": [
+    "_pams_unreachable"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 813,
+   "text": "Add `flushed_at` timestamp to `memorybus_queue` for flush latency monitoring (Domain 14.4)",
+   "paths": [],
+   "idents": [
+    "flushed_at",
+    "memorybus_queue"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 814,
+   "text": "Add composite index `idx_memories_source_timestamp` on `memories(source, timestamp)` (Domain 14.5)",
+   "paths": [],
+   "idents": [
+    "idx_memories_source_timestamp"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 815,
+   "text": "Add composite index `idx_mbqueue_session_flushed` on `memorybus_queue(session_id, flushed, id)` (Domain 14.4)",
+   "paths": [],
+   "idents": [
+    "idx_mbqueue_session_flushed"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 816,
+   "text": "Add `audit_hash` column to `memories` for JSONL cross-referencing (Domain 14.6)",
+   "paths": [],
+   "idents": [
+    "audit_hash",
+    "memories"
+   ]
+  },
+  {
+   "doc": "research/RESEARCH_RECORD.md",
+   "line": 823,
+   "text": "Implement GRPO via `verl` library for RL training (Domain 12)",
+   "paths": [],
+   "idents": [
+    "verl"
+   ]
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 463,
+   "text": "All public functions use `snake_case`",
+   "paths": [],
+   "idents": [
+    "snake_case"
+   ]
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 464,
+   "text": "All methods use `snake_case`",
+   "paths": [],
+   "idents": [
+    "snake_case"
+   ]
+  },
+  {
+   "doc": "src/CODEX/DOCUMENTATION/TASK_REGISTRY.md",
+   "line": 466,
+   "text": "Constants use `UPPER_SNAKE_CASE`",
+   "paths": [],
+   "idents": [
+    "UPPER_SNAKE_CASE"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 51,
+   "text": "H-4 Rows\u2192live-config promotion: `ModelVersioner` rows \u2192 consumed weights/config;",
+   "paths": [],
+   "idents": [
+    "ModelVersioner"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 72,
+   "text": "L-4 Aggregate the 2 unaggregated exercises (`ep44_react_loop`, `ep370_epistemic`)",
+   "paths": [],
+   "idents": [
+    "ep370_epistemic",
+    "ep44_react_loop"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 333,
+   "text": "M-1 Fix `pams daemon_health` malformed `CallToolResult` (20 pydantic errors;",
+   "paths": [],
+   "idents": [
+    "CallToolResult"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 341,
+   "text": "M-4 De-venv-pin MCP servers (`py315t`/`Python314` absolute paths) or document the",
+   "paths": [],
+   "idents": [
+    "Python314",
+    "py315t"
+   ]
+  },
+  {
+   "doc": "state/ACTION_REGISTRY_2026-10-10.md",
+   "line": 350,
+   "text": "E-2 Reconcile `MarkupSafe` 2.1.5 vs pinned 3.0.4 and `pydantic_core` 2.46.5 vs",
+   "paths": [],
+   "idents": [
+    "MarkupSafe",
+    "pydantic_core"
+   ]
+  }
+ ]
+}

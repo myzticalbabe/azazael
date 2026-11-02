@@ -75,6 +75,7 @@ FINDING_SEVERITIES = {
     # tracked-elsewhere / noisy.
     "shell_true": "error",            # 11 hits -- the sanctioned os.system "fix"
     "silent_except_pass": "warning",  # 842 -- the exact class behind the PMB dead loop
+    "silent_except_continue": "warning",  # 21 -- skipped row indistinguishable from never there
     "except_return_default": "warning",  # 692 -- a metric that reads success on error
     "subprocess_no_timeout": "warning",  # 244 -- hangs (documented in pytest.ini)
     "open_no_encoding": "warning",    # 228 -- cp1252 mojibake (documented in pmb)
@@ -112,6 +113,7 @@ FIX_SUGGESTIONS = {
     "cls_new_factory": "Use @classmethod or factory function",
     "shell_true": "Pass an argument list without shell=True",
     "silent_except_pass": "Log or record the exception; never swallow it silently",
+    "silent_except_continue": "Log or record the exception; a skipped row is indistinguishable from a row that was never there",
     "except_return_default": "Re-raise or return an explicit failure, not a success-shaped default",
     "subprocess_no_timeout": "Pass timeout=<seconds>",
     "open_no_encoding": "Pass encoding='utf-8' (or open in binary mode)",
@@ -132,6 +134,7 @@ FINDING_EXPLANATIONS = {
     "import_inside_function": "Import inside functions slows performance and confuses static analysis.",
     "shell_true": "shell=True runs the command through a shell, so any interpolated value is a command-injection vector -- the same class os.system() is banned for. Pass an argument list instead.",
     "silent_except_pass": "`except Exception: pass` discards the failure. A swallowed error is indistinguishable from success: this is the defect class that let PMB's lesson_impact report a clean zero while its input table was never written.",
+    "silent_except_continue": "`except Exception: continue` discards the failure AND skips the iteration. In a claim loop the task is simply never handed out and nothing says so -- the same defect class as silent_except_pass.",
     "except_return_default": "`except: return <default>` turns an error into a normal-looking success value, so every caller reads a well-formed result and the fault is invisible.",
     "subprocess_no_timeout": "A subprocess without a timeout can hang forever; the suite already documents files that hung past a 90s budget.",
     "open_no_encoding": "open() without encoding= uses the platform default (cp1252 on Windows), which mojibakes non-ASCII and crashes on characters it cannot decode.",
@@ -603,6 +606,9 @@ class ASTAntiPatternScanner:
                     if isinstance(stmt, ast.Pass):
                         findings.append((stmt.lineno, "silent_except_pass",
                                          "except: pass"))
+                    elif isinstance(stmt, ast.Continue):
+                        findings.append((stmt.lineno, "silent_except_continue",
+                                         "except: continue"))
                     elif isinstance(stmt, ast.Return):
                         # Only a SUCCESS-SHAPED default: a bare return, or a
                         # constant (None/False/0/""). A constructed failure

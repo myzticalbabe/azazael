@@ -58,6 +58,7 @@ import time
 import urllib.error
 import urllib.request
 from datetime import datetime
+from typing import Dict, List
 from pathlib import Path
 
 HOME = Path.home()
@@ -113,7 +114,7 @@ def _ps_json(script):
     try:
         out = subprocess.run(
             ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
-            capture_output=True, text=True, timeout=120).stdout.strip()
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120).stdout.strip()
     except Exception:
         return []
     if not out:
@@ -313,7 +314,7 @@ def floor_start_via_startup():
         return "missing %s" % PROXY_STARTUP
     try:
         subprocess.run(["cscript.exe", "//nologo", str(PROXY_STARTUP)],
-                       capture_output=True, text=True, timeout=60)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
     except Exception as exc:
         return "startup item failed: %s" % exc
     for _ in range(40):
@@ -354,7 +355,8 @@ def start_daemon():
         return "missing %s" % PMB_EXE
     try:
         subprocess.run([str(PMB_EXE), "daemon", "start"], capture_output=True,
-                       text=True, timeout=90)
+                       text=True, encoding="utf-8", errors="replace",
+                       timeout=90)
     except Exception as exc:
         return "start failed: %s" % exc
     for _ in range(40):
@@ -368,7 +370,7 @@ def kill(pid):
     try:
         subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                         "Stop-Process -Id %d -Force" % int(pid)],
-                       capture_output=True, text=True, timeout=30)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         return True
     except Exception as exc:
         _note("kill(%s) failed (%s)" % (pid, exc))
@@ -711,7 +713,7 @@ def check_agent_orders(fix):
         # lane its orders are current when they are absent from two environments.
         proc = subprocess.run([sys.executable, "-X", "utf8", str(ORDERS_SYNC),
                                "--check", "--wsl"],
-                              capture_output=True, text=True, timeout=120)
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
     except Exception as exc:                       # recorded, not swallowed
         return WARN, "could not run sync check: %s" % exc, ""
     out = (proc.stdout or "") + (proc.stderr or "")
@@ -721,24 +723,61 @@ def check_agent_orders(fix):
     detail = "; ".join(ln.strip() for ln in out.splitlines() if ln.startswith("DRIFT")) or out.strip()[:200]
     if fix:
         subprocess.run([sys.executable, "-X", "utf8", str(ORDERS_SYNC), "--apply", "--wsl"],
-                       capture_output=True, text=True, timeout=180)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
         again = subprocess.run([sys.executable, "-X", "utf8", str(ORDERS_SYNC),
                                 "--check", "--wsl"],
-                               capture_output=True, text=True, timeout=120)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
         if again.returncode == 0:
             return FIXED, "drift rewritten from source", ""
     return FAIL, detail, "python C:/Azazael/azazael/tools/agent_orders_sync.py --apply --wsl"
 
 
 def check_context_servers(procs):
-    found = []
-    for name, needle in (("engram", "engram.exe"), ("codegraph", "codegraph_mcp.py"),
-                         ("barta", "barta_scrape_mcp.py")):
-        if any(needle.lower() in p["cmd"].lower() for p in procs):
-            found.append(name)
-    if not found:
-        return WARN, "none of engram/codegraph/barta running in this lane", ""
-    return PASS, "running: " + ", ".join(found), ""
+    """Every server the lane CONFIGURES must resolve, not three names that are up.
+
+    Measured 2026-11-01: the previous version reported "running: engram,
+    codegraph, barta" -- three of the eight entries in kilo.jsonc, chosen by
+    hand. scrapling, pams, supervisor and both pmb endpoints were never
+    examined, so an entry pointing at an executable that does not exist (the
+    state a restart turns into a dead server) passed this gate untouched.
+    The check now reads the lane's own config through mcp_eight_verify in
+    --fast mode: no process is spawned here, and an enabled entry whose
+    command does not resolve, or whose endpoint is closed or aimed at the raw
+    daemon on :%d, is a FAIL with the path named.
+    """ % DAEMON_PORT
+    try:
+        import mcp_eight_verify as eight
+    except Exception as exc:                       # recorded, not swallowed
+        return WARN, "mcp_eight_verify.py unavailable (%s)" % exc, ""
+    lanes = [(KILO_CONF, "kilo"), (FREEBUFF_CONF, "freebuff"),
+             (OPENCODE_CONF, "opencode"), (OPENCODE_KILO_CONF, "opencode-kilo")]
+    rows = []
+    for path, label in lanes:
+        if not path.exists():
+            continue
+        rows.extend((label, row) for row in eight.status_for(path, procs=procs, fast=True))
+    if not rows:
+        return WARN, "no lane config found to read", ""
+    bad = [(label, row) for label, row in rows if row.state == eight.FAIL]
+    if bad:
+        label, row = bad[0]
+        detail = "%s/%s: %s" % (label, row.name, row.detail)
+        if len(bad) > 1:
+            detail += " (+%d more)" % (len(bad) - 1)
+        return FAIL, detail, row.remedy or "fix the entry in the lane config"
+    per_lane: Dict[str, List[str]] = {}
+    for label, row in rows:
+        per_lane.setdefault(label, []).append(row.state)
+    parts = []
+    for label in sorted(per_lane):
+        states = per_lane[label]
+        counts: Dict[str, int] = {}
+        for state in states:
+            counts[state] = counts.get(state, 0) + 1
+        parts.append("%s %d entr%s (%s)" % (
+            label, len(states), "y" if len(states) == 1 else "ies",
+            ", ".join("%s %d" % (state.lower(), n) for state, n in sorted(counts.items()))))
+    return PASS, "; ".join(parts), ""
 
 
 # --------------------------------------------------------------------------

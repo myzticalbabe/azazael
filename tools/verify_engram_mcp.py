@@ -30,7 +30,9 @@ WHAT IT DOES
     2. REPAIRS the engram entry if it is missing, malformed, or the file is
        invalid JSON - backing up the previous copy first. This runs at session
        start, so the file is guaranteed healthy before the NEXT client start.
-    3. Reads the client's newest session log and reports what actually loaded.
+    3. Reads the client's newest session log - merged across EVERY project dir
+       holding that session id, because two dirs can share one start and only
+       one of them carries the load event - and reports what actually loaded.
     4. Appends a durable record - including every error - to
        azazael/state/engram_mcp_restart_log.jsonl.
     5. NAMES ANY INTERPRETER PIN. An entry whose command/args point at a venv
@@ -375,6 +377,65 @@ def newest_sessions(limit=8):
     return out[:limit]
 
 
+def session_logs(sess, root=None):
+    """(mtime, path, proj) for ONE session id, across every project dir.
+
+    The client writes one log.jsonl per project dir, and two dirs can share a
+    session id: measured 2026-10-31, projects/clint and projects/Desktop both
+    held 2026-10-31T08-23-08.778Z while only Desktop logged the load event.
+    Newest first.
+    """
+    root = Path(root) if root is not None else (HOME / ".config" / "manicode" / "projects")
+    out = []
+    if not root.is_dir():
+        return out
+    for proj in root.iterdir():
+        f = proj / "chats" / sess / "log.jsonl"
+        if f.is_file():
+            try:
+                out.append((f.stat().st_mtime, f, proj.name))
+            except OSError as e:
+                _note("session_logs/stat", e)
+    out.sort(reverse=True, key=lambda x: x[0])
+    return out
+
+
+def newest_session(logs, root=None, reader=None):
+    """The newest SESSION's load evidence, merged across project dirs.
+
+    `logs` is newest_sessions() output ((mtime, path, proj, sess), newest
+    first). Scoping by the newest FILE is wrong: two project dirs can share a
+    session id, and the dir whose log happens to be newer is not necessarily
+    the dir that logged the load event. Measured 2026-10-31, that reported a
+    loaded stack (six servers answering that session) as "no servers loaded"
+    on 29 of 573 runs, each persisting for the whole session.
+
+    Returns the evidence dir's own values so classify_restart compares the
+    start that actually loaded, plus `log_dirs` naming every dir holding a log
+    for that session id. `servers` stays None only when NO dir logged an event
+    - the one case the caller may call a failure. None when there are no logs.
+    """
+    if not logs:
+        return None
+    reader = reader or read_load_event
+    sess = logs[0][3]
+    siblings = session_logs(sess, root=root) or [logs[0][:3]]
+    dirs = []
+    for _m, _p, proj in siblings:
+        if proj not in dirs:
+            dirs.append(proj)
+    for _mtime, path, proj in siblings:
+        servers, source, started, pid = reader(path)
+        if servers is not None:
+            return {"proj": proj, "sess": sess, "path": str(path),
+                    "servers": servers, "source": source,
+                    "started": started, "pid": pid,
+                    "lines": count_log_lines(path), "log_dirs": dirs}
+    return {"proj": siblings[0][2], "sess": sess, "path": str(siblings[0][1]),
+            "servers": None, "source": None, "started": None, "pid": None,
+            "lines": count_log_lines(siblings[0][1]), "log_dirs": dirs}
+
+
 def read_load_event(path):
     """(servers, source, started, pid) or (None,None,None,None) when absent.
 
@@ -646,15 +707,11 @@ def main():
         errors.append("no session log found")
         ok = False
 
-    newest = None
+    newest = newest_session(logs)
+    newest_sess = newest["sess"] if newest else None
     for mtime, path, proj, sess in logs:
         servers, source, started, pid = read_load_event(path)
-        is_newest = newest is None
-        if is_newest:
-            newest = {"proj": proj, "sess": sess, "path": str(path),
-                      "servers": servers, "source": source,
-                      "started": started, "pid": pid,
-                      "lines": count_log_lines(path)}
+        is_newest = sess == newest_sess
         loaded = bool(servers) and SERVER in [s.lower() for s in servers]
         stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(started)) if started else "?"
         print("  [%s] %s" % (proj, sess))
@@ -668,13 +725,26 @@ def main():
             print("      source      : %s" % source)
             print("      servers     : %s" % servers)
         print("      engram?     : %s" % ("YES" if loaded else "NO"))
-        if is_newest and servers is None:
-            # The newest start logged no load event at all: the client loaded no
-            # servers. That is a real failure, not merely "restart pending".
+        if is_newest and servers is None and newest.get("servers") is not None:
+            # A silent log in ONE dir is not a dead stack: the same session id
+            # logged its load event in another project dir. Say which.
+            print("      ^ this dir logged no load event; the same session id "
+                  "logged one in [%s]" % newest["proj"])
+        print()
+
+    if newest is not None:
+        # The verdict belongs to the SESSION, not to one dir's file: a load
+        # event anywhere for that session id means the servers loaded.
+        dirs = [d for d in (newest.get("log_dirs") or [])]
+        if len(dirs) > 1:
+            print("  newest session %s spans %d project-dir log(s): %s"
+                  % (newest["sess"], len(dirs), ", ".join(dirs)))
+        if newest.get("servers") is None:
             errors.append(
-                "the newest session (%s / %s) logged NO MCP load event at all - "
-                "no servers loaded at that start" % (proj, sess))
-        if is_newest and not loaded:
+                "no project-dir log for the newest session (%s) logged an MCP "
+                "load event - no servers loaded at that start (dirs checked: "
+                "%s)" % (newest["sess"], ", ".join(dirs) or "<none>"))
+        elif SERVER not in [str(s).lower() for s in newest["servers"]]:
             ok = False
         print()
 

@@ -550,6 +550,10 @@ class CrossArmRouter:
             flat = result.to_dict()
             flat["routed_by"] = "aoa.router"
             flat["arm_id"] = selected
+            # Outcome: was this delegation the right choice? Recorded here so a
+            # tracer can answer "was this arm the right choice for this capability"
+            # from the ledger instead of from memory. Computed after success is
+            # determined (below) and attached to flat before return.
             if _spec is not None:
                 try:
                     _spec.attach(flat)
@@ -569,6 +573,17 @@ class CrossArmRouter:
                          "status": flat.get("status"),
                          "is_stale": flat.get("is_stale")}))
             success = flat.get("status") == "ok"
+            # Attach outcome now that success is known.
+            _outcome = "accepted" if success else "rejected"
+            if success and flat.get("is_stale") is True:
+                _outcome = "unverified"
+            flat["outcome"] = {
+                "verdict": _outcome,
+                "judged_by": "aoa.router",
+                "success": bool(success),
+                "duration_ms": round(duration_ms, 3),
+                "contract_violations": list(violations),
+            }
             # Record the outcome for PINNED calls too. The Q table models
             # (capability, Arm) reliability, and a pinned execution is a real
             # observation of that pair -- discarding it is the same silent
@@ -579,6 +594,20 @@ class CrossArmRouter:
             stored = self._write_back(capability, selected, success, duration_ms)
             self._record_decision(capability, selected, decision, success,
                                   duration_ms, stored, violations)
+            # Durable outcome: the verdict above otherwise lives only in a bounded
+            # deque and dies with the process, so "was this arm the right choice"
+            # is unanswerable from a ledger. Written after the answer exists and
+            # never allowed to fail the route.
+            _trace_ref = None
+            try:
+                from .delegation_tracer import emit_delegation
+                _trace_ref = emit_delegation(
+                    flat, capability=capability, arm_id=selected,
+                    spec=_spec, duration_ms=duration_ms)
+            except Exception as exc:
+                note_failure("router:L-outcome-trace", exc)
+            if _trace_ref:
+                flat["trace"] = dict(_trace_ref)
             return flat
         except Exception as e:
             note_failure("router:L562", e)
@@ -597,8 +626,25 @@ class CrossArmRouter:
                                   duration_ms, stored,
                                   ["exception"] if not censored
                                   else ["exception", "censored:infra"])
-            return {"status": "error", "error": str(e), "arm_id": selected,
-                    "capability": capability, "produced_at": now_iso()}
+            _failed = {"status": "error", "error": str(e), "arm_id": selected,
+                       "capability": capability, "produced_at": now_iso(),
+                       "outcome": {"verdict": "rejected", "judged_by": "aoa.router",
+                                   "success": False, "duration_ms": round(duration_ms, 3),
+                                   "contract_violations": ["exception"] if not censored
+                                   else ["exception", "censored:infra"]}}
+            # A failed execution is evidence too: record it, or the trace holds
+            # only the calls that worked and an arm that always throws looks
+            # untried.
+            try:
+                from .delegation_tracer import emit_delegation
+                _trace_ref = emit_delegation(
+                    _failed, capability=capability, arm_id=selected,
+                    spec=_spec, duration_ms=duration_ms)
+                if _trace_ref:
+                    _failed["trace"] = dict(_trace_ref)
+            except Exception as exc:
+                note_failure("router:L-error-trace", exc)
+            return _failed
 
     def _record_decision(self, capability: str, arm_id: str,
                          decision: Optional[dict], success: bool,
@@ -614,6 +660,7 @@ class CrossArmRouter:
             "read_ms": (decision or {}).get("read_ms"),
             "degraded": (decision or {}).get("degraded"),
             "success": bool(success),
+            "outcome": "accepted" if success else "rejected",
             "duration_ms": round(duration_ms, 3),
             "outcome_recorded": bool(stored),
             "contract_violations": list(violations),

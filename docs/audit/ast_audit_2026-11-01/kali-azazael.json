@@ -1,0 +1,7770 @@
+{
+ "root": "/root/azazael",
+ "python": "3.14.6",
+ "executable": "/usr/bin/python3",
+ "platform": "linux",
+ "files_total": 4454,
+ "other_languages": {
+  "shell": 37,
+  "javascript": 71,
+  "c": 63
+ },
+ "py_files": 1502,
+ "py_parsed": 1502,
+ "syntax_errors": [],
+ "unreadable": [],
+ "loc": 468983,
+ "classes": 2339,
+ "functions": 19029,
+ "async_functions": 31,
+ "methods": 10292,
+ "mains": 822,
+ "bare_except": [
+  {
+   "path": "src/AOA/core/event_bus.py",
+   "line": 50
+  },
+  {
+   "path": "scripts/pattern_catalog.py",
+   "line": 182
+  }
+ ],
+ "except_pass": [
+  {
+   "path": "demo_core.py",
+   "line": 37
+  },
+  {
+   "path": "demo_core.py",
+   "line": 129
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 259
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 281
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 296
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 320
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 1149
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 1652
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 1715
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 200
+  },
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 1369
+  },
+  {
+   "path": "src/matrix_animation.py",
+   "line": 256
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 276
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 307
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 337
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 370
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 415
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 577
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 632
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 708
+  },
+  {
+   "path": "src/REAL_FRAMEWORK_TEST.py",
+   "line": 381
+  },
+  {
+   "path": "src/REAL_FRAMEWORK_TEST.py",
+   "line": 58
+  },
+  {
+   "path": "src/HYDRA_CONTAINER.py",
+   "line": 225
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 505
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 533
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 543
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 563
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 327
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 532
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 147
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 235
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 252
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 483
+  },
+  {
+   "path": "src/MISSING_TOOLS.py",
+   "line": 547
+  },
+  {
+   "path": "src/HYDRAMETA.py",
+   "line": 326
+  },
+  {
+   "path": "src/HYDRAMETA.py",
+   "line": 343
+  },
+  {
+   "path": "src/HYDRAMETA.py",
+   "line": 435
+  },
+  {
+   "path": "src/TRIMZ.py",
+   "line": 244
+  },
+  {
+   "path": "src/CHANGELOG_GENERATOR.py",
+   "line": 55
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 199
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 259
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 405
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 343
+  },
+  {
+   "path": "src/HYDRAMETA_UV.py",
+   "line": 222
+  },
+  {
+   "path": "src/memory_status.py",
+   "line": 165
+  },
+  {
+   "path": "src/session_memory.py",
+   "line": 437
+  },
+  {
+   "path": "src/HEALTHZ.py",
+   "line": 79
+  },
+  {
+   "path": "src/HEALTHZ.py",
+   "line": 88
+  },
+  {
+   "path": "src/UTILITIES/AzazaelDynamicLogger.py",
+   "line": 51
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 409
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 788
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 849
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 407
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 755
+  },
+  {
+   "path": "src/UTILITIES/KLINK/klink.py",
+   "line": 517
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 79
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 158
+  },
+  {
+   "path": "src/TOOLS/AzazaelDynamicLogger.py",
+   "line": 51
+  },
+  {
+   "path": "src/TOOLS/AzazaelDynamicLogger.py",
+   "line": 84
+  },
+  {
+   "path": "src/TOOLS/AzazaelDynamicLogger.py",
+   "line": 69
+  },
+  {
+   "path": "src/TOOLS/COMPREHENSIVE_FIX.py",
+   "line": 215
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "line": 51
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "line": 84
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "line": 69
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py",
+   "line": 59
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py",
+   "line": 33
+  },
+  {
+   "path": "src/HYDRA/ml_platforms/PERMANENT_LOAD.py",
+   "line": 43
+  },
+  {
+   "path": "src/CODEX/inject_session_cain.py",
+   "line": 22
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 400
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 1373
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 420
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 441
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 521
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 308
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 316
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 339
+  },
+  {
+   "path": "src/CODEX/CODEX_Studio.py",
+   "line": 1097
+  },
+  {
+   "path": "src/CODEX/build_bcc_cain_alternate.py",
+   "line": 24
+  },
+  {
+   "path": "src/CODEX/POPUPS/POPUP_RICH.py",
+   "line": 258
+  },
+  {
+   "path": "src/CODEX/POPUPS/POPUP_RICH.py",
+   "line": 250
+  },
+  {
+   "path": "src/CODEX/POPUPS/POPUP_BUGFREE.py",
+   "line": 78
+  },
+  {
+   "path": "src/CODEX/CORE/CAIN_ANALYZER.py",
+   "line": 71
+  },
+  {
+   "path": "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+   "line": 249
+  },
+  {
+   "path": "src/CODEX/VIDEOS/compress_video.py",
+   "line": 169
+  },
+  {
+   "path": "src/CODEX/VIDEOS/compress_video.py",
+   "line": 318
+  },
+  {
+   "path": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "line": 1021
+  },
+  {
+   "path": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "line": 453
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_scrolling_video.py",
+   "line": 921
+  },
+  {
+   "path": "src/CODEX/VIDEOS/progress_bar.py",
+   "line": 194
+  },
+  {
+   "path": "src/SCRIPTS/gate_bash.py",
+   "line": 272
+  },
+  {
+   "path": "src/SCRIPTS/gated_edit.py",
+   "line": 49
+  },
+  {
+   "path": "src/SCRIPTS/gated_edit.py",
+   "line": 113
+  },
+  {
+   "path": "src/SCRIPTS/session_start_check.py",
+   "line": 96
+  },
+  {
+   "path": "src/SCRIPTS/sentinel_gate.py",
+   "line": 641
+  },
+  {
+   "path": "src/SCRIPTS/sentinel_gate.py",
+   "line": 677
+  },
+  {
+   "path": "src/SCRIPTS/sentinel_gate.py",
+   "line": 1098
+  },
+  {
+   "path": "src/SCRIPTS/sentinel_gate.py",
+   "line": 1096
+  },
+  {
+   "path": "src/SCRIPTS/gate_str_replace.py",
+   "line": 174
+  },
+  {
+   "path": "src/CORE/NeuralPipeline.py",
+   "line": 680
+  },
+  {
+   "path": "src/CORE/NeuralPipeline.py",
+   "line": 202
+  },
+  {
+   "path": "src/CORE/NeuralPipeline.py",
+   "line": 541
+  },
+  {
+   "path": "src/CORE/NeuralPipeline.py",
+   "line": 644
+  },
+  {
+   "path": "src/CORE/fs_probe.py",
+   "line": 436
+  },
+  {
+   "path": "src/CORE/fs_probe.py",
+   "line": 364
+  },
+  {
+   "path": "src/CORE/fs_probe.py",
+   "line": 368
+  },
+  {
+   "path": "src/CORE/mesh_transport.py",
+   "line": 114
+  },
+  {
+   "path": "src/CORE/mesh_transport.py",
+   "line": 68
+  },
+  {
+   "path": "src/CORE/mesh_transport.py",
+   "line": 259
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 91
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 103
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 352
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 413
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 1762
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 1791
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 89
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 667
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 746
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 1674
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 1746
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 785
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 913
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 1283
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 775
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 626
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 645
+  },
+  {
+   "path": "src/CORE/local_memory.py",
+   "line": 652
+  },
+  {
+   "path": "src/CORE/record_session.py",
+   "line": 321
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 141
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 322
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 642
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 756
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 738
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 851
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 881
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 726
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 219
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 337
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 404
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 409
+  },
+  {
+   "path": "src/CORE/embedding_backend.py",
+   "line": 354
+  },
+  {
+   "path": "src/CORE/embedding_backend.py",
+   "line": 137
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 402
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 146
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1223
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1269
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1044
+  },
+  {
+   "path": "src/CORE/postgres_memory.py",
+   "line": 849
+  },
+  {
+   "path": "src/CORE/postgres_memory.py",
+   "line": 341
+  },
+  {
+   "path": "src/CORE/postgres_memory.py",
+   "line": 421
+  },
+  {
+   "path": "src/CORE/postgres_memory.py",
+   "line": 507
+  },
+  {
+   "path": "src/CORE/postgres_memory.py",
+   "line": 662
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 334
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 390
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1059
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1065
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1070
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1867
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1883
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1990
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 2103
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 288
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 720
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 746
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1686
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1213
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1215
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1293
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 743
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1225
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1346
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1510
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1599
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 1367
+  },
+  {
+   "path": "src/CORE/sentinel_enforcer.py",
+   "line": 330
+  },
+  {
+   "path": "src/CORE/sentinel_enforcer.py",
+   "line": 611
+  },
+  {
+   "path": "src/CORE/WORM_FLEET.py",
+   "line": 69
+  },
+  {
+   "path": "src/CORE/WORM_FLEET.py",
+   "line": 84
+  },
+  {
+   "path": "src/CORE/WORM_FLEET.py",
+   "line": 100
+  },
+  {
+   "path": "src/CORE/WORM_FLEET.py",
+   "line": 123
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 452
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 946
+  },
+  {
+   "path": "src/CORE/cascade.py",
+   "line": 37
+  },
+  {
+   "path": "src/CORE/logging.py",
+   "line": 118
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 285
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 261
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 487
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 594
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 921
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 967
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 450
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 459
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 464
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 473
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 620
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 692
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 724
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 1475
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 1389
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 1993
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 2013
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 1583
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 643
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 510
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 162
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 183
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 217
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 334
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 521
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 697
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 463
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 516
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 586
+  },
+  {
+   "path": "src/CORE/startup_warm.py",
+   "line": 627
+  },
+  {
+   "path": "src/CORE/startup_warm.py",
+   "line": 525
+  },
+  {
+   "path": "src/CORE/startup_warm.py",
+   "line": 293
+  },
+  {
+   "path": "src/CORE/safe_file_ops.py",
+   "line": 589
+  },
+  {
+   "path": "src/CORE/safe_file_ops.py",
+   "line": 471
+  },
+  {
+   "path": "src/CORE/safe_file_ops.py",
+   "line": 596
+  },
+  {
+   "path": "src/CORE/safe_file_ops.py",
+   "line": 501
+  },
+  {
+   "path": "src/CORE/safe_file_ops.py",
+   "line": 580
+  },
+  {
+   "path": "src/CORE/cluster_route.py",
+   "line": 21
+  },
+  {
+   "path": "src/CORE/cluster_route.py",
+   "line": 29
+  },
+  {
+   "path": "src/CORE/cluster_route.py",
+   "line": 79
+  },
+  {
+   "path": "src/CORE/web_search.py",
+   "line": 114
+  },
+  {
+   "path": "src/CORE/web_search.py",
+   "line": 130
+  },
+  {
+   "path": "src/CORE/device.py",
+   "line": 108
+  },
+  {
+   "path": "src/CORE/device.py",
+   "line": 115
+  },
+  {
+   "path": "src/CORE/device.py",
+   "line": 157
+  },
+  {
+   "path": "src/CORE/device.py",
+   "line": 170
+  },
+  {
+   "path": "src/CORE/workflow.py",
+   "line": 909
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 632
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 202
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 211
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 668
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 750
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 350
+  },
+  {
+   "path": "src/CORE/worm_registry_cache.py",
+   "line": 137
+  },
+  {
+   "path": "src/CORE/worm_registry_cache.py",
+   "line": 385
+  },
+  {
+   "path": "src/CORE/inference_pool.py",
+   "line": 293
+  },
+  {
+   "path": "src/CORE/inference_pool.py",
+   "line": 166
+  },
+  {
+   "path": "src/CORE/inference_pool.py",
+   "line": 301
+  },
+  {
+   "path": "src/CORE/freethreading.py",
+   "line": 791
+  },
+  {
+   "path": "src/CORE/freethreading.py",
+   "line": 71
+  },
+  {
+   "path": "src/CORE/freethreading.py",
+   "line": 97
+  },
+  {
+   "path": "src/CORE/config.py",
+   "line": 436
+  },
+  {
+   "path": "src/CORE/PamsBusBridge.py",
+   "line": 133
+  },
+  {
+   "path": "src/CORE/backup.py",
+   "line": 123
+  },
+  {
+   "path": "src/CORE/l1_wiring_audit.py",
+   "line": 220
+  },
+  {
+   "path": "src/CORE/backend_bandit.py",
+   "line": 71
+  },
+  {
+   "path": "src/CORE/cli_memory.py",
+   "line": 42
+  },
+  {
+   "path": "src/CORE/dream_policy_bridge.py",
+   "line": 121
+  },
+  {
+   "path": "src/CORE/dream_policy_bridge.py",
+   "line": 109
+  },
+  {
+   "path": "src/CORE/STRESS_TEST.py",
+   "line": 235
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 410
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 731
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1250
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1571
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2116
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2123
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2169
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2175
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2326
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3313
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3471
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1277
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2410
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2524
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3017
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3696
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1528
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1538
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2802
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3736
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1183
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1217
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1226
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1237
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2843
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2853
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2862
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2873
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2882
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2921
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1196
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1210
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1562
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1569
+  },
+  {
+   "path": "src/CORE/AgentPool.py",
+   "line": 199
+  },
+  {
+   "path": "src/CORE/AgentPool.py",
+   "line": 456
+  },
+  {
+   "path": "src/CORE/cd3_exporter.py",
+   "line": 332
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 119
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 110
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 140
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 211
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 263
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 282
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 310
+  },
+  {
+   "path": "src/CORE/doctor.py",
+   "line": 70
+  },
+  {
+   "path": "src/CORE/doctor.py",
+   "line": 165
+  },
+  {
+   "path": "src/CORE/doctor.py",
+   "line": 104
+  },
+  {
+   "path": "src/CORE/doctor.py",
+   "line": 132
+  },
+  {
+   "path": "src/CORE/doctor.py",
+   "line": 173
+  },
+  {
+   "path": "src/CORE/codebuff_tracker.py",
+   "line": 251
+  },
+  {
+   "path": "src/CORE/codebuff_tracker.py",
+   "line": 478
+  },
+  {
+   "path": "src/CORE/codebuff_tracker.py",
+   "line": 324
+  },
+  {
+   "path": "src/CORE/cd4_pipeline.py",
+   "line": 72
+  },
+  {
+   "path": "src/CORE/cd4_pipeline.py",
+   "line": 122
+  },
+  {
+   "path": "src/CORE/cd4_pipeline.py",
+   "line": 400
+  },
+  {
+   "path": "src/CORE/cd2_verifier.py",
+   "line": 73
+  },
+  {
+   "path": "src/CORE/league.py",
+   "line": 130
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 174
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 188
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 202
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 214
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 235
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 256
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 264
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 526
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 328
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 950
+  },
+  {
+   "path": "src/CORE/neural_loop.py",
+   "line": 355
+  },
+  {
+   "path": "src/CORE/neural_loop.py",
+   "line": 555
+  },
+  {
+   "path": "src/CORE/neural_loop.py",
+   "line": 1104
+  },
+  {
+   "path": "src/CORE/neural_loop.py",
+   "line": 623
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 55
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 103
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 129
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 145
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 201
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 258
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 219
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 241
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 529
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 622
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 709
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 717
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 741
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 757
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 771
+  },
+  {
+   "path": "src/CORE/Agent.py",
+   "line": 278
+  },
+  {
+   "path": "src/CORE/azazael_ctl.py",
+   "line": 68
+  },
+  {
+   "path": "src/CORE/azazael_ctl.py",
+   "line": 434
+  },
+  {
+   "path": "src/CORE/worm_health.py",
+   "line": 130
+  },
+  {
+   "path": "src/CORE/worm_health.py",
+   "line": 138
+  },
+  {
+   "path": "src/CORE/worm_health.py",
+   "line": 198
+  },
+  {
+   "path": "src/CORE/worm_health.py",
+   "line": 248
+  },
+  {
+   "path": "src/CORE/web_dashboard.py",
+   "line": 1253
+  },
+  {
+   "path": "src/CORE/azazael_logging.py",
+   "line": 79
+  },
+  {
+   "path": "src/CORE/azazael_logging.py",
+   "line": 215
+  },
+  {
+   "path": "src/CORE/hlc.py",
+   "line": 147
+  },
+  {
+   "path": "src/CORE/hlc.py",
+   "line": 168
+  },
+  {
+   "path": "src/CORE/secrets_manager.py",
+   "line": 174
+  },
+  {
+   "path": "src/CORE/secrets_manager.py",
+   "line": 187
+  },
+  {
+   "path": "src/CORE/sb3_agent.py",
+   "line": 193
+  },
+  {
+   "path": "src/CORE/sb3_agent.py",
+   "line": 207
+  },
+  {
+   "path": "src/CORE/sb3_agent.py",
+   "line": 450
+  },
+  {
+   "path": "src/CORE/sb3_agent.py",
+   "line": 690
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 2223
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 2329
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 998
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 2151
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 2968
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 1015
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 1035
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 2147
+  },
+  {
+   "path": "src/CORE/inference/bus_utils.py",
+   "line": 48
+  },
+  {
+   "path": "src/CORE/inference/inference_cache.py",
+   "line": 114
+  },
+  {
+   "path": "src/CORE/inference/inference_cache.py",
+   "line": 121
+  },
+  {
+   "path": "src/CORE/inference/api_client.py",
+   "line": 84
+  },
+  {
+   "path": "src/CORE/inference/cloud_tab.py",
+   "line": 268
+  },
+  {
+   "path": "src/CORE/inference/cloud_tab.py",
+   "line": 76
+  },
+  {
+   "path": "src/CORE/inference/cloud_tab.py",
+   "line": 153
+  },
+  {
+   "path": "src/CORE/inference/cloud_tab.py",
+   "line": 236
+  },
+  {
+   "path": "src/CORE/inference/cloud_tab.py",
+   "line": 251
+  },
+  {
+   "path": "src/CORE/inference/nim_client.py",
+   "line": 139
+  },
+  {
+   "path": "src/CORE/Widgets/BasePopupMonitor.py",
+   "line": 236
+  },
+  {
+   "path": "src/CORE/Widgets/BasePopupMonitor.py",
+   "line": 299
+  },
+  {
+   "path": "src/CORE/Widgets/BasePopupMonitor.py",
+   "line": 198
+  },
+  {
+   "path": "src/CORE/WORMS/OMNI_WORM_V2.py",
+   "line": 98
+  },
+  {
+   "path": "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+   "line": 61
+  },
+  {
+   "path": "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+   "line": 125
+  },
+  {
+   "path": "src/CORE/WORMS/OMNI_WORM.py",
+   "line": 43
+  },
+  {
+   "path": "src/CORE/WORMS/OMNI_WORM.py",
+   "line": 78
+  },
+  {
+   "path": "src/CORE/WORMS/OMNI_WORM.py",
+   "line": 124
+  },
+  {
+   "path": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "line": 88
+  },
+  {
+   "path": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "line": 255
+  },
+  {
+   "path": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "line": 281
+  },
+  {
+   "path": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "line": 98
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 76
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 92
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 106
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 119
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 149
+  },
+  {
+   "path": "src/CORE/WORMS/dead_letter_queue.py",
+   "line": 121
+  },
+  {
+   "path": "src/CORE/WORMS/dead_letter_queue.py",
+   "line": 140
+  },
+  {
+   "path": "src/CORE/WORMS/dead_letter_queue.py",
+   "line": 114
+  },
+  {
+   "path": "src/CORE/WORMS/CAIN_DATA.py",
+   "line": 215
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 295
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 330
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 450
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 474
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 482
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 508
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 536
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 394
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 418
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 183
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 235
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 293
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 328
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 448
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 506
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 534
+  },
+  {
+   "path": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "line": 392
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_FLEET.py",
+   "line": 66
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_FLEET.py",
+   "line": 81
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_FLEET.py",
+   "line": 97
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_FLEET.py",
+   "line": 120
+  },
+  {
+   "path": "src/CORE/WORMS/PROCESSZ.py",
+   "line": 115
+  },
+  {
+   "path": "src/CORE/WORMS/PROCESSZ.py",
+   "line": 165
+  },
+  {
+   "path": "src/CORE/WORMS/PROCESSZ.py",
+   "line": 190
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS.py",
+   "line": 84
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 577
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 587
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 300
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 244
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 250
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "line": 156
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "line": 138
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "line": 287
+  },
+  {
+   "path": "src/CORE/WORMS/SYSTEMZ_ML.py",
+   "line": 470
+  },
+  {
+   "path": "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+   "line": 127
+  },
+  {
+   "path": "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+   "line": 134
+  },
+  {
+   "path": "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+   "line": 309
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 443
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 482
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 220
+  },
+  {
+   "path": "src/CORE/WORMS/DISKZ.py",
+   "line": 169
+  },
+  {
+   "path": "src/CORE/WORMS/DISKZ.py",
+   "line": 210
+  },
+  {
+   "path": "src/CORE/WORMS/DISKZ.py",
+   "line": 167
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM_V2.py",
+   "line": 56
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM_V2.py",
+   "line": 124
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 272
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 331
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 141
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 223
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 234
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 288
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 303
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 368
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 449
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 458
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 467
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 489
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 498
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 544
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 560
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 629
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 316
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 697
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 702
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 195
+  },
+  {
+   "path": "src/CORE/WORMS/SYSTEMZ.py",
+   "line": 116
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 186
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 319
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 160
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 205
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 264
+  },
+  {
+   "path": "src/CORE/WORMS/DEPENDZ.py",
+   "line": 289
+  },
+  {
+   "path": "src/CORE/WORMS/METAZ.py",
+   "line": 74
+  },
+  {
+   "path": "src/CORE/WORMS/METAZ.py",
+   "line": 76
+  },
+  {
+   "path": "src/CORE/WORMS/CONCURRENCY.py",
+   "line": 357
+  },
+  {
+   "path": "src/CORE/WORMS/CAIN_WORM.py",
+   "line": 239
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 235
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 319
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 332
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 42
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 104
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 126
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "line": 179
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 112
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 163
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 202
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 308
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 43
+  },
+  {
+   "path": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "line": 304
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 642
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 449
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 639
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 606
+  },
+  {
+   "path": "src/CORE/compliance/broker.py",
+   "line": 297
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 412
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 461
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 383
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 470
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 544
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 902
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 627
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 122
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 130
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 497
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 623
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 751
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 199
+  },
+  {
+   "path": "src/CORE/compliance/pre_action_gate.py",
+   "line": 207
+  },
+  {
+   "path": "src/CORE/compliance/telemetry.py",
+   "line": 120
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 159
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 190
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1668
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1156
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1566
+  },
+  {
+   "path": "src/AOA/build_disclosure.py",
+   "line": 51
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 90
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 94
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 720
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 726
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 163
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 169
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 186
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 234
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 407
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 412
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 421
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 200
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 219
+  },
+  {
+   "path": "src/AOA/aoa_monitor.py",
+   "line": 184
+  },
+  {
+   "path": "src/AOA/build.py",
+   "line": 35
+  },
+  {
+   "path": "src/AOA/core/event_bus.py",
+   "line": 50
+  },
+  {
+   "path": "src/AOA/core/arm_registry.py",
+   "line": 193
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 79
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 83
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 87
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 91
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 95
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 99
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 130
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 134
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 138
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 142
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 146
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 150
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 185
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 189
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 193
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 197
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 201
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 205
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 226
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 230
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 234
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 238
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 242
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 246
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 345
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 349
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 353
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 357
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 361
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 365
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 140
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 151
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 266
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 284
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 293
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 318
+  },
+  {
+   "path": "src/eve_unleashed/streaming.py",
+   "line": 148
+  },
+  {
+   "path": "src/eve_unleashed/cache.py",
+   "line": 29
+  },
+  {
+   "path": "src/eve_unleashed/engine.py",
+   "line": 202
+  },
+  {
+   "path": "src/eve_unleashed/engine.py",
+   "line": 550
+  },
+  {
+   "path": "src/eve_unleashed/engine.py",
+   "line": 534
+  },
+  {
+   "path": "src/eve_unleashed/model_registry.py",
+   "line": 110
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 252
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 283
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 313
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 346
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 391
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 562
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 620
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 699
+  },
+  {
+   "path": "src/META/HYDRA_CONTAINER.py",
+   "line": 222
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 488
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 516
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 526
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 546
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 310
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 181
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 223
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 275
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 342
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 386
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 125
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 431
+  },
+  {
+   "path": "src/META/HYDRAMETA.py",
+   "line": 271
+  },
+  {
+   "path": "src/META/HYDRAMETA.py",
+   "line": 288
+  },
+  {
+   "path": "src/META/TRIMZ.py",
+   "line": 226
+  },
+  {
+   "path": "src/META/HEALTHZ.py",
+   "line": 60
+  },
+  {
+   "path": "src/META/HEALTHZ.py",
+   "line": 69
+  },
+  {
+   "path": "src/scripts/gate_bash.py",
+   "line": 272
+  },
+  {
+   "path": "src/scripts/gated_edit.py",
+   "line": 49
+  },
+  {
+   "path": "src/scripts/gated_edit.py",
+   "line": 113
+  },
+  {
+   "path": "src/scripts/sentinel_gate.py",
+   "line": 470
+  },
+  {
+   "path": "src/scripts/sentinel_gate.py",
+   "line": 506
+  },
+  {
+   "path": "src/scripts/sentinel_gate.py",
+   "line": 916
+  },
+  {
+   "path": "src/scripts/sentinel_gate.py",
+   "line": 914
+  },
+  {
+   "path": "src/scripts/gate_str_replace.py",
+   "line": 174
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManager.py",
+   "line": 545
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 226
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 589
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 602
+  },
+  {
+   "path": "src/ORCHESTRATION/TARBABY.py",
+   "line": 274
+  },
+  {
+   "path": "src/ORCHESTRATION/TARBABY.py",
+   "line": 261
+  },
+  {
+   "path": "src/ORCHESTRATION/HYDRA.py",
+   "line": 378
+  },
+  {
+   "path": "src/ORCHESTRATION/HYDRA_ANALYZER.py",
+   "line": 93
+  },
+  {
+   "path": "src/ORCHESTRATION/SelfImprovingGUI.py",
+   "line": 399
+  },
+  {
+   "path": "src/ORCHESTRATION/HORUS.py",
+   "line": 1265
+  },
+  {
+   "path": "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py",
+   "line": 79
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 73
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 79
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 85
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 91
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 97
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/lm_studio_client.py",
+   "line": 331
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 66
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 81
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 94
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 105
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 115
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "line": 158
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "line": 174
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "line": 302
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "line": 311
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/installation_debug.py",
+   "line": 62
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/installation_debug.py",
+   "line": 69
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/installation_debug.py",
+   "line": 321
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/install_manager.py",
+   "line": 171
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/framework_activator.py",
+   "line": 879
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py",
+   "line": 144
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py",
+   "line": 107
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py",
+   "line": 283
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/validate_docs.py",
+   "line": 148
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/test_enhancements.py",
+   "line": 211
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/test_enhancements.py",
+   "line": 233
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/test_enhancements.py",
+   "line": 255
+  },
+  {
+   "path": "src/ORCHESTRATION/BIBL/bibl_crawler.py",
+   "line": 170
+  },
+  {
+   "path": "src/ORCHESTRATION/BIBL/bibl_map.py",
+   "line": 267
+  },
+  {
+   "path": "src/tests/test_learning_loop.py",
+   "line": 261
+  },
+  {
+   "path": "src/tests/test_learning_loop.py",
+   "line": 266
+  },
+  {
+   "path": "src/tests/test_learning_loop.py",
+   "line": 60
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 330
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 333
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 336
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 339
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 342
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 345
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 348
+  },
+  {
+   "path": "src/tests/test_evolution_accuracy.py",
+   "line": 193
+  },
+  {
+   "path": "src/tests/test_evolution_accuracy.py",
+   "line": 198
+  },
+  {
+   "path": "src/tests/test_evolution_accuracy.py",
+   "line": 51
+  },
+  {
+   "path": "src/INTERPRETERS/__init__.py",
+   "line": 172
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 587
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 181
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 524
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 325
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 437
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worm_registry.py",
+   "line": 346
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/__init__.py",
+   "line": 82
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/__init__.py",
+   "line": 88
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/freethreading.py",
+   "line": 331
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/security.py",
+   "line": 70
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/security.py",
+   "line": 156
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/security.py",
+   "line": 195
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/security.py",
+   "line": 235
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/backup.py",
+   "line": 100
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/telemetry.py",
+   "line": 186
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/container.py",
+   "line": 81
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/container.py",
+   "line": 217
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/communication.py",
+   "line": 216
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/communication.py",
+   "line": 72
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/migration.py",
+   "line": 120
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/profiling.py",
+   "line": 82
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/CLUSTERWORMS.py",
+   "line": 276
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/CLUSTERWORMS.py",
+   "line": 515
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/CLUSTERWORMS.py",
+   "line": 601
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/CLUSTERWORMS.py",
+   "line": 815
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py",
+   "line": 803
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py",
+   "line": 409
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py",
+   "line": 249
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/NATURE_CLUSTERS.py",
+   "line": 486
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/NATURE_CLUSTERS.py",
+   "line": 839
+  },
+  {
+   "path": "docs/scripts/patch_nuitka_314t.py",
+   "line": 32
+  },
+  {
+   "path": "docs/scripts/patch_nuitka_315t.py",
+   "line": 38
+  },
+  {
+   "path": "scripts/bcc_part7_officers.py",
+   "line": 91
+  },
+  {
+   "path": "scripts/bcc_part7_officers.py",
+   "line": 94
+  },
+  {
+   "path": "scripts/exmachina_health_alert.py",
+   "line": 53
+  },
+  {
+   "path": "scripts/exmachina_health_alert.py",
+   "line": 60
+  },
+  {
+   "path": "scripts/exmachina_health_alert.py",
+   "line": 68
+  },
+  {
+   "path": "scripts/run_azazael_chain.py",
+   "line": 82
+  },
+  {
+   "path": "scripts/run_azazael_chain.py",
+   "line": 99
+  },
+  {
+   "path": "scripts/run_azazael_chain.py",
+   "line": 127
+  },
+  {
+   "path": "scripts/run_azazael_chain.py",
+   "line": 137
+  },
+  {
+   "path": "scripts/run_azazael_chain.py",
+   "line": 294
+  },
+  {
+   "path": "scripts/dmarc_check.py",
+   "line": 32
+  },
+  {
+   "path": "scripts/dmarc_check.py",
+   "line": 45
+  },
+  {
+   "path": "scripts/db_health.py",
+   "line": 133
+  },
+  {
+   "path": "scripts/db_health.py",
+   "line": 344
+  },
+  {
+   "path": "scripts/pattern_catalog.py",
+   "line": 182
+  },
+  {
+   "path": "scripts/night_shift.py",
+   "line": 44
+  },
+  {
+   "path": "scripts/night_shift.py",
+   "line": 125
+  },
+  {
+   "path": "scripts/chain_watchdog.py",
+   "line": 64
+  },
+  {
+   "path": "scripts/predict_patch_success.py",
+   "line": 40
+  },
+  {
+   "path": "scripts/live_monitor_web.py",
+   "line": 275
+  },
+  {
+   "path": "scripts/benchmark_wal_docker.py",
+   "line": 78
+  },
+  {
+   "path": "scripts/benchmark_wal_docker.py",
+   "line": 148
+  },
+  {
+   "path": "scripts/observation_coverage.py",
+   "line": 120
+  },
+  {
+   "path": "scripts/generate_dashboard.py",
+   "line": 49
+  },
+  {
+   "path": "scripts/benchmark_evolution.py",
+   "line": 80
+  },
+  {
+   "path": "scripts/track_monitor.py",
+   "line": 53
+  },
+  {
+   "path": "scripts/track_monitor.py",
+   "line": 406
+  },
+  {
+   "path": "scripts/build_all_concurrent.py",
+   "line": 36
+  },
+  {
+   "path": "scripts/check_tooling.py",
+   "line": 351
+  },
+  {
+   "path": "scripts/ecosystem_graph.py",
+   "line": 45
+  },
+  {
+   "path": "scripts/ecosystem_graph.py",
+   "line": 225
+  },
+  {
+   "path": "scripts/ecosystem_graph.py",
+   "line": 255
+  },
+  {
+   "path": "scripts/ecosystem_graph.py",
+   "line": 236
+  },
+  {
+   "path": "scripts/clean_windows.py",
+   "line": 191
+  },
+  {
+   "path": "scripts/clean_windows.py",
+   "line": 148
+  },
+  {
+   "path": "scripts/close_audit_sessions.py",
+   "line": 110
+  },
+  {
+   "path": "scripts/metacog_cycle.py",
+   "line": 34
+  },
+  {
+   "path": "scripts/metacog_cycle.py",
+   "line": 73
+  },
+  {
+   "path": "scripts/wiring_cycle.py",
+   "line": 213
+  },
+  {
+   "path": "scripts/wiring_cycle.py",
+   "line": 249
+  },
+  {
+   "path": "scripts/wiring_cycle.py",
+   "line": 373
+  },
+  {
+   "path": "scripts/wiring_cycle.py",
+   "line": 889
+  },
+  {
+   "path": "scripts/sync_all.py",
+   "line": 37
+  },
+  {
+   "path": "scripts/sync_all.py",
+   "line": 539
+  },
+  {
+   "path": "scripts/export_graph_formats.py",
+   "line": 13
+  },
+  {
+   "path": "scripts/graph_refresh_no_llm.py",
+   "line": 193
+  },
+  {
+   "path": "scripts/graph_refresh_no_llm.py",
+   "line": 221
+  },
+  {
+   "path": "scripts/learning_loop_graph.py",
+   "line": 45
+  },
+  {
+   "path": "scripts/learning_loop_graph.py",
+   "line": 193
+  },
+  {
+   "path": "scripts/hyperopt_cycle.py",
+   "line": 107
+  },
+  {
+   "path": "scripts/hyperopt_cycle.py",
+   "line": 156
+  },
+  {
+   "path": "scripts/hyperopt_cycle.py",
+   "line": 339
+  },
+  {
+   "path": "scripts/code_evo_pilot.py",
+   "line": 244
+  },
+  {
+   "path": "scripts/triage_test_backlog.py",
+   "line": 87
+  },
+  {
+   "path": "scripts/triage_test_backlog.py",
+   "line": 74
+  },
+  {
+   "path": "scripts/run_full_pass.py",
+   "line": 54
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 426
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 653
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 674
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 880
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 909
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 936
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 962
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 979
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 997
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1013
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1048
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1065
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1088
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1149
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1166
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1214
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1247
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 2508
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 2513
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 411
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 424
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 878
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 955
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1245
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 1808
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 2243
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 976
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 462
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1093
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2045
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1387
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2734
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 3598
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1259
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1767
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1775
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 283
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 340
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 482
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 209
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 257
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 320
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 338
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 270
+  },
+  {
+   "path": "scripts/lilith_live_monitor.py",
+   "line": 281
+  },
+  {
+   "path": "scripts/gossip_export.py",
+   "line": 24
+  },
+  {
+   "path": "scripts/run_training_cycles.py",
+   "line": 235
+  },
+  {
+   "path": "scripts/meta_reflect.py",
+   "line": 54
+  },
+  {
+   "path": "scripts/meta_reflect.py",
+   "line": 185
+  },
+  {
+   "path": "scripts/evolve_loop.py",
+   "line": 80
+  },
+  {
+   "path": "scripts/audit_loop_liveness.py",
+   "line": 654
+  },
+  {
+   "path": "scripts/verify_aoa_cdp.py",
+   "line": 135
+  },
+  {
+   "path": "scripts/promotion_signals.py",
+   "line": 55
+  },
+  {
+   "path": "scripts/promotion_signals.py",
+   "line": 151
+  },
+  {
+   "path": "scripts/train_tensor_model.py",
+   "line": 261
+  },
+  {
+   "path": "scripts/train_tensor_model.py",
+   "line": 159
+  },
+  {
+   "path": "scripts/pa_dos_entity_selenium.py",
+   "line": 152
+  },
+  {
+   "path": "scripts/watch_evolution.py",
+   "line": 106
+  },
+  {
+   "path": "scripts/watch_evolution.py",
+   "line": 151
+  },
+  {
+   "path": "scripts/watch_evolution.py",
+   "line": 168
+  },
+  {
+   "path": "scripts/gossip_round.py",
+   "line": 68
+  },
+  {
+   "path": "scripts/stack_phase0.py",
+   "line": 148
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 307
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 491
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 576
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 597
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 699
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 711
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 739
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 1363
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 1397
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 1402
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 1430
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 473
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 623
+  },
+  {
+   "path": "scripts/run_full_suite.py",
+   "line": 119
+  },
+  {
+   "path": "scripts/mesh_trusted_key.py",
+   "line": 100
+  },
+  {
+   "path": "scripts/nightly_maintenance.py",
+   "line": 46
+  },
+  {
+   "path": "scripts/nightly_maintenance.py",
+   "line": 58
+  },
+  {
+   "path": "scripts/nightly_maintenance.py",
+   "line": 197
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 339
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 328
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 213
+  },
+  {
+   "path": "scripts/verify_lead_links_cdp.py",
+   "line": 88
+  },
+  {
+   "path": "scripts/debate_patch.py",
+   "line": 85
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 100
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 117
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 141
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 155
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 282
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 286
+  },
+  {
+   "path": "scripts/run_mesh_cycle.py",
+   "line": 135
+  },
+  {
+   "path": "scripts/_exmachina_freeze.py",
+   "line": 211
+  },
+  {
+   "path": "scripts/trace_adaptation.py",
+   "line": 312
+  },
+  {
+   "path": "scripts/env_drift_alarm.py",
+   "line": 47
+  },
+  {
+   "path": "scripts/check_315t_compat.py",
+   "line": 149
+  },
+  {
+   "path": "scripts/mesh_listener.py",
+   "line": 201
+  },
+  {
+   "path": "scripts/video_frame_generator.py",
+   "line": 388
+  },
+  {
+   "path": "scripts/analyze_evolution_runs.py",
+   "line": 88
+  },
+  {
+   "path": "scripts/analyze_evolution_runs.py",
+   "line": 104
+  },
+  {
+   "path": "scripts/analyze_evolution_runs.py",
+   "line": 121
+  },
+  {
+   "path": "scripts/analyze_evolution_runs.py",
+   "line": 126
+  },
+  {
+   "path": "scripts/worm_census.py",
+   "line": 79
+  },
+  {
+   "path": "scripts/rani_llm_test.py",
+   "line": 171
+  },
+  {
+   "path": "scripts/dream_cycle.py",
+   "line": 45
+  },
+  {
+   "path": "scripts/dream_cycle.py",
+   "line": 55
+  },
+  {
+   "path": "scripts/dream_cycle.py",
+   "line": 89
+  },
+  {
+   "path": "scripts/sync_g_drive.py",
+   "line": 40
+  },
+  {
+   "path": "scripts/sync_g_drive.py",
+   "line": 147
+  },
+  {
+   "path": "scripts/train_fleet.py",
+   "line": 166
+  },
+  {
+   "path": "scripts/train_fleet.py",
+   "line": 140
+  },
+  {
+   "path": "scripts/train_fitness_oracle.py",
+   "line": 80
+  },
+  {
+   "path": "scripts/repo_audit.py",
+   "line": 109
+  },
+  {
+   "path": "scripts/budget_policy.py",
+   "line": 133
+  },
+  {
+   "path": "scripts/run_db_monitor.py",
+   "line": 39
+  },
+  {
+   "path": "scripts/run_db_monitor.py",
+   "line": 86
+  },
+  {
+   "path": "scripts/train_today.py",
+   "line": 103
+  },
+  {
+   "path": "scripts/desktop_projects_reference_check.py",
+   "line": 42
+  },
+  {
+   "path": "scripts/emoji_demo.py",
+   "line": 11
+  },
+  {
+   "path": "scripts/check_314t_compat.py",
+   "line": 147
+  },
+  {
+   "path": "scripts/spine_cycle_apply.py",
+   "line": 94
+  },
+  {
+   "path": "scripts/spine_cycle_apply.py",
+   "line": 422
+  },
+  {
+   "path": "scripts/spine_cycle_apply.py",
+   "line": 338
+  },
+  {
+   "path": "scripts/spine_cycle_apply.py",
+   "line": 352
+  },
+  {
+   "path": "scripts/spine_cycle_apply.py",
+   "line": 387
+  },
+  {
+   "path": "scripts/meta_director.py",
+   "line": 74
+  },
+  {
+   "path": "scripts/meta_director.py",
+   "line": 131
+  },
+  {
+   "path": "scripts/meta_director.py",
+   "line": 62
+  },
+  {
+   "path": "scripts/reencode_large_videos.py",
+   "line": 130
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 102
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 213
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 958
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 146
+  },
+  {
+   "path": "scripts/bcc_chroma_index.py",
+   "line": 60
+  },
+  {
+   "path": "scripts/meta_evolution_cycle.py",
+   "line": 286
+  },
+  {
+   "path": "scripts/meta_evolution_cycle.py",
+   "line": 556
+  },
+  {
+   "path": "scripts/meta_evolution_cycle.py",
+   "line": 774
+  },
+  {
+   "path": "scripts/gephi_headless/run_headless.py",
+   "line": 190
+  },
+  {
+   "path": "tools/monitor_data.py",
+   "line": 548
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 1119
+  },
+  {
+   "path": "tools/dead_function_check.py",
+   "line": 143
+  },
+  {
+   "path": "tools/monitor_theme.py",
+   "line": 71
+  },
+  {
+   "path": "tools/shadowed_module_check.py",
+   "line": 84
+  },
+  {
+   "path": "tools/aggregate_suite_gate.py",
+   "line": 306
+  },
+  {
+   "path": "tools/aggregate_suite_gate.py",
+   "line": 354
+  },
+  {
+   "path": "tools/aggregate_suite_gate.py",
+   "line": 370
+  },
+  {
+   "path": "tools/yggdrasil_atlas.py",
+   "line": 549
+  },
+  {
+   "path": "tools/sync_codex_to_g.py",
+   "line": 78
+  },
+  {
+   "path": "tools/pytest_fixture_watch.py",
+   "line": 59
+  },
+  {
+   "path": "tools/pytest_fixture_watch.py",
+   "line": 118
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 1960
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 2035
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 2054
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 2335
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 1065
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 2086
+  },
+  {
+   "path": "tools/verify_hashes.py",
+   "line": 18
+  },
+  {
+   "path": "tools/graph_rebuild.py",
+   "line": 98
+  },
+  {
+   "path": "tools/scope_coverage.py",
+   "line": 69
+  },
+  {
+   "path": "tools/self_modify.py",
+   "line": 170
+  },
+  {
+   "path": "tools/torch_state_watch.py",
+   "line": 123
+  },
+  {
+   "path": "tools/torch_state_watch.py",
+   "line": 131
+  },
+  {
+   "path": "tools/torch_state_watch.py",
+   "line": 152
+  },
+  {
+   "path": "tools/torch_state_watch.py",
+   "line": 92
+  },
+  {
+   "path": "tests/test_session_operations.py",
+   "line": 82
+  },
+  {
+   "path": "tests/test_aoa_delegation_spec.py",
+   "line": 100
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 207
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 211
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 325
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 329
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 438
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 442
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 582
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 586
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 691
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 695
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 217
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 334
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 447
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 591
+  },
+  {
+   "path": "tests/test_learning_evolution.py",
+   "line": 700
+  },
+  {
+   "path": "tests/test_cli.py",
+   "line": 31
+  },
+  {
+   "path": "tests/test_postgres_memory.py",
+   "line": 78
+  },
+  {
+   "path": "tests/test_fuzz.py",
+   "line": 39
+  },
+  {
+   "path": "tests/test_perf.py",
+   "line": 26
+  },
+  {
+   "path": "tests/test_worm_regression_smoke.py",
+   "line": 163
+  },
+  {
+   "path": "tests/test_worm_regression_smoke.py",
+   "line": 203
+  },
+  {
+   "path": "tests/test_eve_unleashed.py",
+   "line": 143
+  },
+  {
+   "path": "tests/test_eve_unleashed.py",
+   "line": 168
+  },
+  {
+   "path": "tests/test_eve_unleashed.py",
+   "line": 176
+  },
+  {
+   "path": "tests/test_worm_telemetry.py",
+   "line": 293
+  },
+  {
+   "path": "tests/test_provider_failover.py",
+   "line": 90
+  },
+  {
+   "path": "tests/test_property_based.py",
+   "line": 44
+  },
+  {
+   "path": "tests/test_evolution_helpers.py",
+   "line": 107
+  },
+  {
+   "path": "tests/test_doctor.py",
+   "line": 29
+  },
+  {
+   "path": "tests/test_worm_lifecycle.py",
+   "line": 255
+  },
+  {
+   "path": "tests/test_terence_thought_recording.py",
+   "line": 63
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 50
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 69
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 88
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 161
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 60
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 79
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 98
+  },
+  {
+   "path": "tests/test_memorybus_persistent.py",
+   "line": 55
+  },
+  {
+   "path": "tests/test_mesh_transport_hardening.py",
+   "line": 75
+  },
+  {
+   "path": "tests/test_concurrency_200.py",
+   "line": 34
+  },
+  {
+   "path": "tests/test_compliance_auditor.py",
+   "line": 40
+  },
+  {
+   "path": "tests/test_compliance_auditor.py",
+   "line": 45
+  },
+  {
+   "path": "tests/test_cancellation_integration.py",
+   "line": 144
+  },
+  {
+   "path": "tests/test_cross_domain_integration.py",
+   "line": 821
+  },
+  {
+   "path": "tests/test_cross_domain_integration.py",
+   "line": 826
+  },
+  {
+   "path": "tests/test_pool.py",
+   "line": 219
+  },
+  {
+   "path": "tests/test_pool.py",
+   "line": 185
+  },
+  {
+   "path": "tests/_timer_utils.py",
+   "line": 120
+  },
+  {
+   "path": "tests/test_db_monitor_worm.py",
+   "line": 46
+  },
+  {
+   "path": "tests/test_db_monitor_worm.py",
+   "line": 303
+  },
+  {
+   "path": "tests/test_perf_threshold.py",
+   "line": 34
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 49
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 62
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 67
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 73
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 95
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 117
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 261
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 285
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 44
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 88
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 111
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 154
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 173
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 194
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 202
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 223
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 309
+  },
+  {
+   "path": "tests/test_circuit_breaker_integration.py",
+   "line": 330
+  },
+  {
+   "path": "tests/conftest.py",
+   "line": 31
+  },
+  {
+   "path": "tests/conftest.py",
+   "line": 263
+  },
+  {
+   "path": "tests/conftest.py",
+   "line": 268
+  },
+  {
+   "path": "tests/conftest.py",
+   "line": 343
+  },
+  {
+   "path": "tests/test_validation.py",
+   "line": 28
+  },
+  {
+   "path": "tests/test_validation.py",
+   "line": 41
+  },
+  {
+   "path": "tests/test_validation.py",
+   "line": 57
+  },
+  {
+   "path": "tests/test_validation.py",
+   "line": 73
+  },
+  {
+   "path": "tests/test_validation.py",
+   "line": 89
+  },
+  {
+   "path": "tests/test_lesson_lifecycle.py",
+   "line": 32
+  },
+  {
+   "path": "tests/test_lesson_lifecycle.py",
+   "line": 235
+  }
+ ],
+ "except_continue": [
+  {
+   "path": "src/AZAZAEL_Inference_Studio.py",
+   "line": 1130
+  },
+  {
+   "path": "src/AzazaelDynamicLogger.py",
+   "line": 57
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 291
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 293
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 257
+  },
+  {
+   "path": "src/UTILITIES/AzazaelDynamicLogger.py",
+   "line": 41
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 483
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 489
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 589
+  },
+  {
+   "path": "src/UTILITIES/TARBABY/tarbaby_enhanced.py",
+   "line": 593
+  },
+  {
+   "path": "src/TOOLS/AzazaelDynamicLogger.py",
+   "line": 67
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "line": 67
+  },
+  {
+   "path": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "line": 448
+  },
+  {
+   "path": "src/SCRIPTS/auto_sync.py",
+   "line": 50
+  },
+  {
+   "path": "src/CORE/mesh_transport.py",
+   "line": 193
+  },
+  {
+   "path": "src/CORE/MemoryBus.py",
+   "line": 115
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 378
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 394
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 436
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 446
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 488
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 507
+  },
+  {
+   "path": "src/CORE/LaneMessageBoard.py",
+   "line": 335
+  },
+  {
+   "path": "src/CORE/embedding_backend.py",
+   "line": 413
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 461
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 488
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 671
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 763
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 802
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1070
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1077
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1233
+  },
+  {
+   "path": "src/CORE/audit_trail.py",
+   "line": 1279
+  },
+  {
+   "path": "src/CORE/project_atlas.py",
+   "line": 98
+  },
+  {
+   "path": "src/CORE/worm_registry.py",
+   "line": 332
+  },
+  {
+   "path": "src/CORE/qd_bridge.py",
+   "line": 25
+  },
+  {
+   "path": "src/CORE/rollback.py",
+   "line": 119
+  },
+  {
+   "path": "src/CORE/direct_memory.py",
+   "line": 883
+  },
+  {
+   "path": "src/CORE/compliance_auditor.py",
+   "line": 571
+  },
+  {
+   "path": "src/CORE/full_scan.py",
+   "line": 52
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 189
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 232
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 533
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 546
+  },
+  {
+   "path": "src/CORE/data_retention.py",
+   "line": 575
+  },
+  {
+   "path": "src/CORE/worm_registry_cache.py",
+   "line": 169
+  },
+  {
+   "path": "src/CORE/config.py",
+   "line": 453
+  },
+  {
+   "path": "src/CORE/backup.py",
+   "line": 94
+  },
+  {
+   "path": "src/CORE/pattern_memory.py",
+   "line": 84
+  },
+  {
+   "path": "src/CORE/l1_wiring_audit.py",
+   "line": 358
+  },
+  {
+   "path": "src/CORE/l1_wiring_audit.py",
+   "line": 75
+  },
+  {
+   "path": "src/CORE/backend_bandit.py",
+   "line": 36
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1131
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2367
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3318
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 4000
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 3851
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2927
+  },
+  {
+   "path": "src/CORE/xref_auto_link.py",
+   "line": 48
+  },
+  {
+   "path": "src/CORE/neural_loop.py",
+   "line": 250
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 189
+  },
+  {
+   "path": "src/CORE/health_server.py",
+   "line": 245
+  },
+  {
+   "path": "src/CORE/meta_evolution.py",
+   "line": 353
+  },
+  {
+   "path": "src/CORE/meta_evolution.py",
+   "line": 397
+  },
+  {
+   "path": "src/CORE/sb3_agent.py",
+   "line": 259
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 3172
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 1420
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "line": 216
+  },
+  {
+   "path": "src/CORE/WORMS/DISKZ.py",
+   "line": 212
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 564
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "line": 910
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "line": 995
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "line": 928
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "line": 1014
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/oracle.py",
+   "line": 627
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 608
+  },
+  {
+   "path": "src/CORE/compliance/governance.py",
+   "line": 743
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1707
+  },
+  {
+   "path": "src/AOA/core/arm_registry.py",
+   "line": 184
+  },
+  {
+   "path": "src/AOA/core/arm_registry.py",
+   "line": 200
+  },
+  {
+   "path": "src/AOA/core/arm_registry.py",
+   "line": 210
+  },
+  {
+   "path": "src/scripts/auto_sync.py",
+   "line": 50
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/comprehensive_analysis.py",
+   "line": 151
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/fix_syntax_errors.py",
+   "line": 33
+  },
+  {
+   "path": "src/ORCHESTRATION/BIBL/bibl_map.py",
+   "line": 318
+  },
+  {
+   "path": "src/ORCHESTRATION/BIBL/bibl_map.py",
+   "line": 177
+  },
+  {
+   "path": "scripts/diagnose_margin_gate.py",
+   "line": 86
+  },
+  {
+   "path": "scripts/make_launcher_icons.py",
+   "line": 42
+  },
+  {
+   "path": "scripts/plot_evolution_rewards.py",
+   "line": 88
+  },
+  {
+   "path": "scripts/plot_evolution_rewards.py",
+   "line": 111
+  },
+  {
+   "path": "scripts/dmarc_check.py",
+   "line": 61
+  },
+  {
+   "path": "scripts/graph_shard_refresh.py",
+   "line": 53
+  },
+  {
+   "path": "scripts/predict_patch_success.py",
+   "line": 38
+  },
+  {
+   "path": "scripts/bcc_semantic_index.py",
+   "line": 35
+  },
+  {
+   "path": "scripts/benchmark_evolution.py",
+   "line": 93
+  },
+  {
+   "path": "scripts/benchmark_evolution.py",
+   "line": 64
+  },
+  {
+   "path": "scripts/track_monitor.py",
+   "line": 152
+  },
+  {
+   "path": "scripts/track_monitor.py",
+   "line": 366
+  },
+  {
+   "path": "scripts/ecosystem_graph.py",
+   "line": 293
+  },
+  {
+   "path": "scripts/audit_stale_refs.py",
+   "line": 169
+  },
+  {
+   "path": "scripts/clean_windows.py",
+   "line": 40
+  },
+  {
+   "path": "scripts/clean_windows.py",
+   "line": 112
+  },
+  {
+   "path": "scripts/_ex_timing.py",
+   "line": 33
+  },
+  {
+   "path": "scripts/metacog_cycle.py",
+   "line": 86
+  },
+  {
+   "path": "scripts/wiring_cycle.py",
+   "line": 496
+  },
+  {
+   "path": "scripts/learning_loop_graph.py",
+   "line": 212
+  },
+  {
+   "path": "scripts/learning_loop_graph.py",
+   "line": 224
+  },
+  {
+   "path": "scripts/stack_router.py",
+   "line": 119
+  },
+  {
+   "path": "scripts/stack_router.py",
+   "line": 135
+  },
+  {
+   "path": "scripts/gosp_learner_train.py",
+   "line": 30
+  },
+  {
+   "path": "scripts/gosp_learner_train.py",
+   "line": 41
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 190
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 661
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 744
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 833
+  },
+  {
+   "path": "scripts/live_monitor.py",
+   "line": 788
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 328
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 804
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 930
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2555
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1473
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1705
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2742
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1451
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1642
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1738
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1745
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2588
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 1758
+  },
+  {
+   "path": "scripts/evolution_cycle.py",
+   "line": 2803
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 232
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 267
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 89
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 114
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 146
+  },
+  {
+   "path": "scripts/pa_courts_pacfile_selenium.py",
+   "line": 198
+  },
+  {
+   "path": "scripts/meta_reflect.py",
+   "line": 72
+  },
+  {
+   "path": "scripts/meta_reflect.py",
+   "line": 52
+  },
+  {
+   "path": "scripts/meta_reflect.py",
+   "line": 91
+  },
+  {
+   "path": "scripts/verify_aoa_cdp.py",
+   "line": 188
+  },
+  {
+   "path": "scripts/train_tensor_model.py",
+   "line": 85
+  },
+  {
+   "path": "scripts/train_tensor_model.py",
+   "line": 73
+  },
+  {
+   "path": "scripts/pa_dos_entity_selenium.py",
+   "line": 92
+  },
+  {
+   "path": "scripts/pa_dos_entity_selenium.py",
+   "line": 117
+  },
+  {
+   "path": "scripts/pa_dos_entity_selenium.py",
+   "line": 164
+  },
+  {
+   "path": "scripts/pa_dos_entity_selenium.py",
+   "line": 188
+  },
+  {
+   "path": "scripts/gossip_round.py",
+   "line": 62
+  },
+  {
+   "path": "scripts/stack_phase0.py",
+   "line": 141
+  },
+  {
+   "path": "scripts/stack_phase0.py",
+   "line": 70
+  },
+  {
+   "path": "scripts/stack_phase0.py",
+   "line": 94
+  },
+  {
+   "path": "scripts/compare_training.py",
+   "line": 47
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 487
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 339
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 655
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 674
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 691
+  },
+  {
+   "path": "scripts/exmachina_live_monitor.py",
+   "line": 593
+  },
+  {
+   "path": "scripts/bcc_open_tasks_join.py",
+   "line": 346
+  },
+  {
+   "path": "scripts/gosp_learner_divergence.py",
+   "line": 79
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 292
+  },
+  {
+   "path": "scripts/bcc_lead_inference.py",
+   "line": 443
+  },
+  {
+   "path": "scripts/_cranium_reality_check.py",
+   "line": 40
+  },
+  {
+   "path": "scripts/_cranium_reality_check.py",
+   "line": 36
+  },
+  {
+   "path": "scripts/build_gap_index.py",
+   "line": 183
+  },
+  {
+   "path": "scripts/verify_lead_links_cdp.py",
+   "line": 122
+  },
+  {
+   "path": "scripts/verify_lead_links_cdp.py",
+   "line": 164
+  },
+  {
+   "path": "scripts/verify_lead_links_cdp.py",
+   "line": 198
+  },
+  {
+   "path": "scripts/audit_wiring.py",
+   "line": 138
+  },
+  {
+   "path": "scripts/false_zero_audit.py",
+   "line": 224
+  },
+  {
+   "path": "scripts/false_zero_audit.py",
+   "line": 232
+  },
+  {
+   "path": "scripts/build_progress_governance_graph.py",
+   "line": 55
+  },
+  {
+   "path": "scripts/_exmachina_freeze.py",
+   "line": 186
+  },
+  {
+   "path": "scripts/_exmachina_freeze.py",
+   "line": 152
+  },
+  {
+   "path": "scripts/ingest_bcc_ops_logs.py",
+   "line": 182
+  },
+  {
+   "path": "scripts/tensor_gate_ab.py",
+   "line": 102
+  },
+  {
+   "path": "scripts/mesh_listener.py",
+   "line": 256
+  },
+  {
+   "path": "scripts/analyze_evolution_runs.py",
+   "line": 216
+  },
+  {
+   "path": "scripts/worm_census.py",
+   "line": 41
+  },
+  {
+   "path": "scripts/worm_census.py",
+   "line": 92
+  },
+  {
+   "path": "scripts/worm_census.py",
+   "line": 118
+  },
+  {
+   "path": "scripts/learning_loop_temporal.py",
+   "line": 159
+  },
+  {
+   "path": "scripts/rani_llm_test.py",
+   "line": 123
+  },
+  {
+   "path": "scripts/train_fitness_oracle.py",
+   "line": 60
+  },
+  {
+   "path": "scripts/train_fitness_oracle.py",
+   "line": 53
+  },
+  {
+   "path": "scripts/dream_on_bcc.py",
+   "line": 51
+  },
+  {
+   "path": "scripts/budget_policy.py",
+   "line": 97
+  },
+  {
+   "path": "scripts/desktop_projects_reference_check.py",
+   "line": 182
+  },
+  {
+   "path": "scripts/ddap_portal_selenium.py",
+   "line": 94
+  },
+  {
+   "path": "scripts/ddap_portal_selenium.py",
+   "line": 120
+  },
+  {
+   "path": "scripts/ddap_portal_selenium.py",
+   "line": 159
+  },
+  {
+   "path": "scripts/ddap_portal_selenium.py",
+   "line": 175
+  },
+  {
+   "path": "scripts/ddap_portal_selenium.py",
+   "line": 223
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 720
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 182
+  },
+  {
+   "path": "scripts/run_training_orchestrator.py",
+   "line": 168
+  },
+  {
+   "path": "scripts/verify_exmachina.py",
+   "line": 262
+  },
+  {
+   "path": "scripts/bcc_chroma_index.py",
+   "line": 38
+  },
+  {
+   "path": "scripts/meta_evolution_cycle.py",
+   "line": 799
+  },
+  {
+   "path": "scripts/meta_evolution_cycle.py",
+   "line": 174
+  },
+  {
+   "path": "tools/silent_failure_audit.py",
+   "line": 103
+  },
+  {
+   "path": "tools/mutation_proposals.py",
+   "line": 183
+  },
+  {
+   "path": "tools/monitor_data.py",
+   "line": 76
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 513
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 1137
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 276
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 810
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 975
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 1076
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 1198
+  },
+  {
+   "path": "tools/dead_function_check.py",
+   "line": 112
+  },
+  {
+   "path": "tools/shadowed_module_check.py",
+   "line": 92
+  },
+  {
+   "path": "tools/shadowed_module_check.py",
+   "line": 170
+  },
+  {
+   "path": "tools/cap_patch_gen.py",
+   "line": 43
+  },
+  {
+   "path": "tools/refresh_all.py",
+   "line": 73
+  },
+  {
+   "path": "tools/twelve_factor_audit.py",
+   "line": 145
+  },
+  {
+   "path": "tools/twelve_factor_audit.py",
+   "line": 273
+  },
+  {
+   "path": "tools/twelve_factor_audit.py",
+   "line": 476
+  },
+  {
+   "path": "tools/twelve_factor_audit.py",
+   "line": 227
+  },
+  {
+   "path": "tools/nature_integration_map.py",
+   "line": 86
+  },
+  {
+   "path": "tools/local_inference.py",
+   "line": 153
+  },
+  {
+   "path": "tools/audit_parseable_files.py",
+   "line": 147
+  },
+  {
+   "path": "tools/yggdrasil_atlas.py",
+   "line": 578
+  },
+  {
+   "path": "tools/yggdrasil_atlas.py",
+   "line": 584
+  },
+  {
+   "path": "tools/dict_key_contract.py",
+   "line": 266
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 869
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 233
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 449
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 853
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 1738
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 241
+  },
+  {
+   "path": "tools/evolution_chain_audit.py",
+   "line": 72
+  },
+  {
+   "path": "tools/graph_rebuild.py",
+   "line": 115
+  },
+  {
+   "path": "tests/test_brainstem_playing_field.py",
+   "line": 206
+  },
+  {
+   "path": "tests/test_memory_db_module_teardown.py",
+   "line": 111
+  },
+  {
+   "path": "tests/test_worm_lifecycle.py",
+   "line": 206
+  },
+  {
+   "path": "tests/test_shell_path_escaping.py",
+   "line": 233
+  },
+  {
+   "path": "tests/test_no_stale_root_fallback.py",
+   "line": 161
+  },
+  {
+   "path": "tests/test_no_untracked_imported_module.py",
+   "line": 93
+  },
+  {
+   "path": "skills_staging/generate_bin_skills.py",
+   "line": 78
+  },
+  {
+   "path": "skills_staging/test_skill_gaps.py",
+   "line": 167
+  },
+  {
+   "path": "skills_staging/test_skill_gaps.py",
+   "line": 205
+  }
+ ],
+ "except_return_none": 78,
+ "eval_exec": [
+  {
+   "path": "src/CORE/cd2_verifier.py",
+   "line": 125,
+   "call": "eval"
+  },
+  {
+   "path": "src/CORE/WORMS/CONCURRENCY.py",
+   "line": 268,
+   "call": "exec"
+  },
+  {
+   "path": "src/CORE/WORMS/CONCURRENCY.py",
+   "line": 308,
+   "call": "exec"
+  },
+  {
+   "path": "src/CORE/WORMS/CONCURRENCY.py",
+   "line": 309,
+   "call": "exec"
+  },
+  {
+   "path": "src/eve_unleashed/core.py",
+   "line": 162,
+   "call": "eval"
+  },
+  {
+   "path": "src/eve_unleashed/engine.py",
+   "line": 360,
+   "call": "eval"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/lm_studio_server.py",
+   "line": 206,
+   "call": "exec"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/azazael_cli.py",
+   "line": 550,
+   "call": "exec"
+  },
+  {
+   "path": "src/INTERPRETERS/__init__.py",
+   "line": 52,
+   "call": "exec"
+  },
+  {
+   "path": "scripts/motif_census.py",
+   "line": 98,
+   "call": "eval"
+  },
+  {
+   "path": "scripts/train_tensor_model.py",
+   "line": 183,
+   "call": "eval"
+  },
+  {
+   "path": "scripts/pre_build_check.py",
+   "line": 94,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_config_and_breaker.py",
+   "line": 19,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_worm_registry.py",
+   "line": 385,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_worm_registry_integration.py",
+   "line": 35,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_metacluster_unit.py",
+   "line": 21,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_worm_governance_integration.py",
+   "line": 40,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_inference.py",
+   "line": 66,
+   "call": "eval"
+  },
+  {
+   "path": "tests/test_nature_clusters_unit.py",
+   "line": 27,
+   "call": "exec"
+  },
+  {
+   "path": "tests/test_worm_execute_all_integration.py",
+   "line": 39,
+   "call": "exec"
+  }
+ ],
+ "open_no_encoding": [
+  {
+   "path": "_run_all_tests.py",
+   "line": 150,
+   "mode": "w"
+  },
+  {
+   "path": "src/matrix_animation.py",
+   "line": 224,
+   "mode": "w"
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 577,
+   "mode": "w"
+  },
+  {
+   "path": "src/chain_of_action.py",
+   "line": 24,
+   "mode": "a"
+  },
+  {
+   "path": "src/chain_of_action.py",
+   "line": 31,
+   "mode": "a"
+  },
+  {
+   "path": "src/chain_of_action.py",
+   "line": 59,
+   "mode": "a"
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 843,
+   "mode": "w"
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 940,
+   "mode": "w"
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 874,
+   "mode": "w"
+  },
+  {
+   "path": "src/REAL_FRAMEWORK_TEST.py",
+   "line": 56,
+   "mode": "r"
+  },
+  {
+   "path": "src/DOCKERZ.py",
+   "line": 366,
+   "mode": "w"
+  },
+  {
+   "path": "src/DOCKERZ.py",
+   "line": 418,
+   "mode": "w"
+  },
+  {
+   "path": "src/HYDRA_CONTAINER.py",
+   "line": 397,
+   "mode": "w"
+  },
+  {
+   "path": "src/HYDRA_CONTAINER.py",
+   "line": 500,
+   "mode": "w"
+  },
+  {
+   "path": "src/HYDRA_CONTAINER.py",
+   "line": 507,
+   "mode": "w"
+  },
+  {
+   "path": "src/HYDRA_CONTAINER.py",
+   "line": 515,
+   "mode": "r"
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 478,
+   "mode": "w"
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 490,
+   "mode": "w"
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 513,
+   "mode": "w"
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 541,
+   "mode": "w"
+  },
+  {
+   "path": "src/METRICZ.py",
+   "line": 551,
+   "mode": "r"
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 594,
+   "mode": "w"
+  },
+  {
+   "path": "src/performance_monitor.py",
+   "line": 599,
+   "mode": "r"
+  },
+  {
+   "path": "src/memory_status.py",
+   "line": 193,
+   "mode": "r"
+  },
+  {
+   "path": "src/TELEMETRYZ.py",
+   "line": 346,
+   "mode": "w"
+  },
+  {
+   "path": "src/TELEMETRYZ.py",
+   "line": 412,
+   "mode": "w"
+  },
+  {
+   "path": "src/TELEMETRYZ.py",
+   "line": 430,
+   "mode": "r"
+  },
+  {
+   "path": "src/FILE_MANIFEST_GENERATOR.py",
+   "line": 141,
+   "mode": "w"
+  },
+  {
+   "path": "src/QL_FILE_OPTIMIZER.py",
+   "line": 383,
+   "mode": "w"
+  },
+  {
+   "path": "src/QL_FILE_OPTIMIZER.py",
+   "line": 453,
+   "mode": "w"
+  },
+  {
+   "path": "src/QL_FILE_OPTIMIZER.py",
+   "line": 227,
+   "mode": "w"
+  },
+  {
+   "path": "src/QL_FILE_OPTIMIZER.py",
+   "line": 233,
+   "mode": "r"
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 731,
+   "mode": "w"
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 804,
+   "mode": "r"
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 817,
+   "mode": "w"
+  },
+  {
+   "path": "src/UTILITIES/POINDEXTER/POINDEXTER.py",
+   "line": 344,
+   "mode": "w"
+  },
+  {
+   "path": "src/UTILITIES/PERSEPHONE/persephone.py",
+   "line": 120,
+   "mode": "w"
+  },
+  {
+   "path": "src/UTILITIES/PERSEPHONE/persephone.py",
+   "line": 109,
+   "mode": "r"
+  },
+  {
+   "path": "src/UTILITIES/PERSEPHONE/lib/sync_manager.py",
+   "line": 343,
+   "mode": "a"
+  },
+  {
+   "path": "src/UTILITIES/PERSEPHONE/lib/sync_manager.py",
+   "line": 354,
+   "mode": "r"
+  },
+  {
+   "path": "src/UTILITIES/TARBABY/tarbaby_enhanced.py",
+   "line": 286,
+   "mode": "r"
+  },
+  {
+   "path": "src/UTILITIES/TARBABY/TARBABY.py",
+   "line": 305,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/UTILITIES/TARBABY/TARBABY.py",
+   "line": 323,
+   "mode": "r:gz"
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 69,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 101,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 148,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 180,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/TOOLS/archive_system.py",
+   "line": 202,
+   "mode": "w:gz"
+  },
+  {
+   "path": "src/TOOLS/PythonSystemMapper_Full.py",
+   "line": 465,
+   "mode": "w"
+  },
+  {
+   "path": "src/TOOLS/PythonMapper_Quick.py",
+   "line": 166,
+   "mode": "w"
+  },
+  {
+   "path": "src/TOOLS/PythonSystemMapper.py",
+   "line": 357,
+   "mode": "w"
+  },
+  {
+   "path": "src/TOOLS/COMPREHENSIVE_FIX.py",
+   "line": 28,
+   "mode": "a"
+  },
+  {
+   "path": "src/TOOLS/COMPREHENSIVE_FIX.py",
+   "line": 45,
+   "mode": "r"
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py",
+   "line": 57,
+   "mode": "r"
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py",
+   "line": 31,
+   "mode": "a"
+  },
+  {
+   "path": "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py",
+   "line": 45,
+   "mode": "r"
+  },
+  {
+   "path": "src/HYDRA/pipeline_specs.py",
+   "line": 158,
+   "mode": "w"
+  },
+  {
+   "path": "src/HYDRA/ml_platforms/PERMANENT_LOAD.py",
+   "line": 40,
+   "mode": "a"
+  },
+  {
+   "path": "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py",
+   "line": 92,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+   "line": 156,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+   "line": 143,
+   "mode": "r"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_azazael_educational_video.py",
+   "line": 363,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/generate_matrix_video.py",
+   "line": 66,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_reference_video.py",
+   "line": 697,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_dual_pane_video.py",
+   "line": 665,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "line": 999,
+   "mode": "w"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_dual_pane_popup.py",
+   "line": 36,
+   "mode": "r"
+  },
+  {
+   "path": "src/CODEX/VIDEOS/create_video.py",
+   "line": 191,
+   "mode": "w"
+  },
+  {
+   "path": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "line": 34,
+   "mode": "w"
+  },
+  {
+   "path": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "line": 67,
+   "mode": "w"
+  },
+  {
+   "path": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "line": 41,
+   "mode": "r"
+  },
+  {
+   "path": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "line": 73,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/ERROR_SCAN_WORM.py",
+   "line": 187,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/audit_compress.py",
+   "line": 18,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/env_id.py",
+   "line": 49,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/env_id.py",
+   "line": 152,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/sentinel_enforcer.py",
+   "line": 534,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/sentinel_enforcer.py",
+   "line": 582,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORM_FLEET.py",
+   "line": 179,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/PYTHON_MANAGER.py",
+   "line": 235,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/full_scan.py",
+   "line": 23,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/STRESS_TEST.py",
+   "line": 415,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/STRESS_TEST.py",
+   "line": 126,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/STRESS_TEST.py",
+   "line": 129,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/NODE.py",
+   "line": 168,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 117,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/PamsRecorder.py",
+   "line": 108,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/azazael_ctl.py",
+   "line": 48,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/meta_evolution.py",
+   "line": 151,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+   "line": 185,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+   "line": 265,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/MORPHING_WORM.py",
+   "line": 290,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/WORM_FLEET.py",
+   "line": 176,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 558,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/SMARTDISK.py",
+   "line": 565,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+   "line": 487,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/SYSTEMZ_ML.py",
+   "line": 404,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/SYSTEMZ_ML.py",
+   "line": 425,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 381,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 449,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 456,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/WORMZ_ML.py",
+   "line": 468,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 423,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 581,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "line": 190,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/spine.py",
+   "line": 2923,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 1051,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/compliance/heuristic_recorder.py",
+   "line": 1063,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1413,
+   "mode": "w"
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1057,
+   "mode": "r"
+  },
+  {
+   "path": "src/CORE/compliance/scanner.py",
+   "line": 1063,
+   "mode": "r"
+  },
+  {
+   "path": "src/AOA/test_benchmark_workflow.py",
+   "line": 18,
+   "mode": "r"
+  },
+  {
+   "path": "src/AOA/core/session_manager.py",
+   "line": 156,
+   "mode": "w"
+  },
+  {
+   "path": "src/AOA/core/session_manager.py",
+   "line": 164,
+   "mode": "r"
+  },
+  {
+   "path": "src/AOA/arms/libra_arm.py",
+   "line": 96,
+   "mode": "r"
+  },
+  {
+   "path": "src/AOA/cli/aoa_cli.py",
+   "line": 375,
+   "mode": "r"
+  },
+  {
+   "path": "src/eve_unleashed/config.py",
+   "line": 50,
+   "mode": "r"
+  },
+  {
+   "path": "src/eve_unleashed/config.py",
+   "line": 61,
+   "mode": "w"
+  },
+  {
+   "path": "src/eve_unleashed/engine.py",
+   "line": 300,
+   "mode": "r"
+  },
+  {
+   "path": "src/eve_unleashed/models/qwen35_ssm.py",
+   "line": 71,
+   "mode": "r"
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 553,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 822,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 919,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 853,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/DOCKERZ.py",
+   "line": 351,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/DOCKERZ.py",
+   "line": 403,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRA_CONTAINER.py",
+   "line": 394,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRA_CONTAINER.py",
+   "line": 491,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRA_CONTAINER.py",
+   "line": 498,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRA_CONTAINER.py",
+   "line": 506,
+   "mode": "r"
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 461,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 473,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 496,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 524,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METRICZ.py",
+   "line": 534,
+   "mode": "r"
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 531,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/METAWORMS.py",
+   "line": 514,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRAMETA_UV.py",
+   "line": 159,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRAMETA_UV.py",
+   "line": 347,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/HYDRAMETA_UV.py",
+   "line": 150,
+   "mode": "r"
+  },
+  {
+   "path": "src/META/TELEMETRYZ.py",
+   "line": 334,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/TELEMETRYZ.py",
+   "line": 400,
+   "mode": "w"
+  },
+  {
+   "path": "src/META/TELEMETRYZ.py",
+   "line": 418,
+   "mode": "r"
+  },
+  {
+   "path": "src/scripts/test_rule_0zf_integration.py",
+   "line": 34,
+   "mode": "w"
+  },
+  {
+   "path": "src/scripts/test_rule_0zf_integration.py",
+   "line": 67,
+   "mode": "w"
+  },
+  {
+   "path": "src/scripts/test_rule_0zf_integration.py",
+   "line": 41,
+   "mode": "r"
+  },
+  {
+   "path": "src/scripts/test_rule_0zf_integration.py",
+   "line": 73,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/FusionHealer.py",
+   "line": 42,
+   "mode": "a"
+  },
+  {
+   "path": "src/ORCHESTRATION/FusionHealer.py",
+   "line": 152,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManager.py",
+   "line": 508,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/TotalFusion.py",
+   "line": 61,
+   "mode": "a"
+  },
+  {
+   "path": "src/ORCHESTRATION/TotalFusion.py",
+   "line": 301,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 64,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 58,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ADLP_SystemTools.py",
+   "line": 401,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ADLP_SystemTools.py",
+   "line": 414,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py",
+   "line": 175,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py",
+   "line": 186,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/TARBABY.py",
+   "line": 554,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/AssistantLogProtocol.py",
+   "line": 120,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/AssistantLogProtocol.py",
+   "line": 110,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py",
+   "line": 551,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/HYDRA.py",
+   "line": 553,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/HYDRA.py",
+   "line": 562,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ADLP_FusionCore.py",
+   "line": 62,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ADLP_FusionCore.py",
+   "line": 67,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/HORUS.py",
+   "line": 734,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/HORUS.py",
+   "line": 423,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py",
+   "line": 69,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "line": 297,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/verify_moe.py",
+   "line": 223,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/verify_moe.py",
+   "line": 319,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/verify_moe.py",
+   "line": 473,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "line": 184,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "line": 805,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "line": 907,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "line": 857,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "line": 432,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "line": 229,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/run_qanalysis.py",
+   "line": 259,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "line": 461,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/framework_activator.py",
+   "line": 148,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/framework_activator.py",
+   "line": 133,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 431,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 436,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 539,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 863,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 868,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py",
+   "line": 76,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py",
+   "line": 61,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "line": 400,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "line": 405,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "line": 651,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "line": 656,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py",
+   "line": 173,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py",
+   "line": 177,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py",
+   "line": 1158,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/comprehensive_analysis.py",
+   "line": 684,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/comprehensive_analysis.py",
+   "line": 691,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/run_tests.py",
+   "line": 192,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/run_tests.py",
+   "line": 223,
+   "mode": "w"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/web_dashboard.py",
+   "line": 54,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/web_dashboard.py",
+   "line": 67,
+   "mode": "r"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/web_dashboard.py",
+   "line": 416,
+   "mode": "r"
+  },
+  {
+   "path": "src/tests/test_ecosystem.py",
+   "line": 147,
+   "mode": "r"
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/expansion/container.py",
+   "line": 120,
+   "mode": "r"
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py",
+   "line": 777,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/check_dmarc.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/test_d_grade_enrichment.py",
+   "line": 4,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/test_d_grade_enrichment.py",
+   "line": 28,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/check_priorities.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_final.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_gaps.py",
+   "line": 3,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_priorities_by_type.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/run_motif_census_bcc.py",
+   "line": 7,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/bcc_pdfplumber_extract.py",
+   "line": 27,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/read_new_sources.py",
+   "line": 4,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/read_new_sources.py",
+   "line": 11,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/test_gap_metadata.py",
+   "line": 6,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_propublica.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_master_catalog.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_motif_results.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/run_full_pass.py",
+   "line": 81,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/evolve_loop.py",
+   "line": 76,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/evolve_loop.py",
+   "line": 31,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/check_runtime_baseline.py",
+   "line": 102,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 318,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/chain_controller.py",
+   "line": 330,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_all_priorities.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/apply_runtime_baseline.py",
+   "line": 47,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 295,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 298,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 301,
+   "mode": "w"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 29,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 34,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/process_new_sources.py",
+   "line": 39,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/run_final_filters.py",
+   "line": 8,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/run_final_filters.py",
+   "line": 10,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/run_final_filters.py",
+   "line": 12,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/check_landing.py",
+   "line": 2,
+   "mode": "r"
+  },
+  {
+   "path": "scripts/train_today.py",
+   "line": 48,
+   "mode": "w"
+  },
+  {
+   "path": "tools/audit_parseable_files.py",
+   "line": 105,
+   "mode": "r"
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 1779,
+   "mode": "w"
+  },
+  {
+   "path": "tools/terence_invariants.py",
+   "line": 1783,
+   "mode": "w"
+  },
+  {
+   "path": "tools/backup_to_g.py",
+   "line": 17,
+   "mode": "a"
+  },
+  {
+   "path": "tests/test_metacluster.py",
+   "line": 359,
+   "mode": "r"
+  },
+  {
+   "path": "tests/test_audit_advanced.py",
+   "line": 61,
+   "mode": "rt"
+  },
+  {
+   "path": "tests/test_metacluster_unit.py",
+   "line": 436,
+   "mode": "r"
+  },
+  {
+   "path": "tests/test_metacluster_unit.py",
+   "line": 488,
+   "mode": "r"
+  },
+  {
+   "path": "tests/test_metacluster_unit.py",
+   "line": 552,
+   "mode": "r"
+  }
+ ],
+ "star_import": [
+  {
+   "path": "src/CODEX/CORE/HORUS_INTEGRATION.py",
+   "line": 40,
+   "module": "HORUS_INTEGRATION"
+  },
+  {
+   "path": "src/CODEX/CORE/matrix_animation.py",
+   "line": 36,
+   "module": "matrix_animation"
+  },
+  {
+   "path": "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py",
+   "line": 39,
+   "module": "ECOSYSTEM_HEALTH_CHECK"
+  },
+  {
+   "path": "src/CODEX/CORE/enrichment_display.py",
+   "line": 39,
+   "module": "enrichment_display"
+  },
+  {
+   "path": "src/CODEX/CORE/CHANGELOG_GENERATOR.py",
+   "line": 38,
+   "module": "CHANGELOG_GENERATOR"
+  },
+  {
+   "path": "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py",
+   "line": 38,
+   "module": "FILE_MANIFEST_GENERATOR"
+  },
+  {
+   "path": "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
+   "line": 36,
+   "module": "QL_FILE_OPTIMIZER"
+  },
+  {
+   "path": "src/CODEX/CORE/ANIMATION_PROTOCOLS.py",
+   "line": 36,
+   "module": "ANIMATION_PROTOCOLS"
+  },
+  {
+   "path": "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py",
+   "line": 33,
+   "module": "CORE.WORMS.expansion"
+  },
+  {
+   "path": "packages/azazael-core/src/azazael_core/worms/__init__.py",
+   "line": 9,
+   "module": "expansion"
+  }
+ ],
+ "type_ignore": 144,
+ "noqa": 660,
+ "markers": [
+  {
+   "path": "src/matrix_animation.py",
+   "line": 6,
+   "kind": "DEPRECATED",
+   "text": "DEPRECATED for HTML/MP4 animation work (2026-10-01, operator directive):"
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 147,
+   "kind": "TODO",
+   "text": "(r\"^\\s*#\\s*TODO\", \"TODO comment\", \"info\"),"
+  },
+  {
+   "path": "src/ERRORZ.py",
+   "line": 148,
+   "kind": "FIXME",
+   "text": "(r\"^\\s*#\\s*FIXME\", \"FIXME comment\", \"info\"),"
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 471,
+   "kind": "TODO",
+   "text": "if \"# TODO\" in stripped:"
+  },
+  {
+   "path": "src/METAWORMS_ENRICHED.py",
+   "line": 476,
+   "kind": "FIXME",
+   "text": "if \"# FIXME\" in stripped or \"# BUG\" in stripped:"
+  },
+  {
+   "path": "src/METAWORMS.py",
+   "line": 3,
+   "kind": "DEPRECATED",
+   "text": "METAWORMS \u2014 DEPRECATED SHIM"
+  },
+  {
+   "path": "src/METAWORMS.py",
+   "line": 5,
+   "kind": "DEPRECATED",
+   "text": "This file is DEPRECATED. All implementations have moved to METAWORMS_ENRICHED.py."
+  },
+  {
+   "path": "src/session_memory.py",
+   "line": 752,
+   "kind": "DEPRECATED",
+   "text": "new_lesson += f\" [DEPRECATED {now[:10]}: {reason}]\""
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/terence_enhanced.py",
+   "line": 439,
+   "kind": "TODO",
+   "text": "# (2026-09-10: was a bare TODO emitter \u2014 debt generator. Name the"
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/terence_enhanced.py",
+   "line": 440,
+   "kind": "TODO",
+   "text": "# conflict and the needed decision instead of an open TODO.)"
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 100,
+   "kind": "TODO",
+   "text": "\"fix\": \"# return  # TODO: Move to function\","
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 107,
+   "kind": "TODO",
+   "text": "\"fix\": \"# TODO: Move to loop\","
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 116,
+   "kind": "TODO",
+   "text": "\"fix\": \"try:\\n    # TODO: handle expected errors narrowly\\nexcept Exception as e:\\n    print(f\\\"unhandled: {e}\\\")\","
+  },
+  {
+   "path": "src/UTILITIES/TERENCE/TERENCE.py",
+   "line": 242,
+   "kind": "TODO",
+   "text": "\"fix\": \"# 1000  # TODO: Replace magic number\","
+  },
+  {
+   "path": "src/CORE/fs_probe.py",
+   "line": 334,
+   "kind": "TEMP",
+   "text": "stdout/stderr to TEMP FILES removes the pipe entirely, so there is"
+  },
+  {
+   "path": "src/CORE/record_session.py",
+   "line": 3,
+   "kind": "DEPRECATED",
+   "text": "record_session.py \u2014 DEPRECATED. Use DirectMemory instead."
+  },
+  {
+   "path": "src/CORE/record_session.py",
+   "line": 39,
+   "kind": "DEPRECATED",
+   "text": "\"record_session.SessionRecorder is DEPRECATED. \""
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 28,
+   "kind": "DEPRECATED",
+   "text": "- LifecycleManager: Version-based lifecycle state tracking (DRAFT \u2192 ACTIVE \u2192 DEPRECATED \u2192 RETIRED)"
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 94,
+   "kind": "DEPRECATED",
+   "text": "DEPRECATED = \"deprecated\""
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 826,
+   "kind": "DEPRECATED",
+   "text": "- DEPRECATED: lifecycle_state in registry is \"deprecated\""
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 846,
+   "kind": "DEPRECATED",
+   "text": "if explicit_state in (LifecycleState.DEPRECATED, LifecycleState.RETIRED):"
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 932,
+   "kind": "DEPRECATED",
+   "text": "LifecycleState.DEPRECATED, LifecycleState.RETIRED,"
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 983,
+   "kind": "DEPRECATED",
+   "text": "f\"{state_counts.get(LifecycleState.DEPRECATED, 0)} deprecated, \""
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 992,
+   "kind": "DEPRECATED",
+   "text": "deprecated_count=state_counts.get(LifecycleState.DEPRECATED, 0),"
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 1005,
+   "kind": "DEPRECATED",
+   "text": "registry[name][\"lifecycle_state\"] = LifecycleState.DEPRECATED"
+  },
+  {
+   "path": "src/CORE/worm_governance.py",
+   "line": 1027,
+   "kind": "DEPRECATED",
+   "text": "if state == LifecycleState.DEPRECATED:"
+  },
+  {
+   "path": "src/CORE/enforcement_harness.py",
+   "line": 82,
+   "kind": "TODO",
+   "text": "\"\"\"Check 4: Prohibit TODO/FIXME comments in production code.\"\"\""
+  },
+  {
+   "path": "src/CORE/enforcement_harness.py",
+   "line": 88,
+   "kind": "TODO",
+   "text": "f\"CODE QUALITY: TODO/FIXME comment found in {filename}:{line_num}\""
+  },
+  {
+   "path": "src/CORE/enforcement_harness.py",
+   "line": 163,
+   "kind": "TODO",
+   "text": "# Test 5: TODO comment should fail"
+  },
+  {
+   "path": "src/CORE/enforcement_harness.py",
+   "line": 164,
+   "kind": "TODO",
+   "text": "print(\"Test 5: TODO comment should raise ComplianceError...\")"
+  },
+  {
+   "path": "src/CORE/enforcement_harness.py",
+   "line": 166,
+   "kind": "TODO",
+   "text": "# TODO: fix this later"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 227,
+   "kind": "TODO",
+   "text": "# \u2500\u2500 EVIDENCE SHRINKAGE (playing-field TODO G1) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 241,
+   "kind": "TODO",
+   "text": "# \u2500\u2500 FORGETTING CURVE (playing-field TODO G2, fixed 2026-09-16) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 423,
+   "kind": "TODO",
+   "text": "# \u2500\u2500 ROUTE WEIGHT BOUNDS (playing-field TODO G5) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 433,
+   "kind": "TODO",
+   "text": "# \u2500\u2500 FIXTURE DECLARATION (playing-field TODO G3) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 1831,
+   "kind": "TODO",
+   "text": "The homeostat fallback exists for the migration case (playing-field TODO"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2065,
+   "kind": "TODO",
+   "text": "Playing-field TODO G2. The brainstem has no forgetting curve, so a penalty"
+  },
+  {
+   "path": "src/CORE/spine_registry.py",
+   "line": 2221,
+   "kind": "TODO",
+   "text": "Playing-field TODO G3. `tests/conftest.py` reasons correctly about"
+  },
+  {
+   "path": "src/CORE/codebuff_tracker.py",
+   "line": 3,
+   "kind": "DEPRECATED",
+   "text": "codebuff_tracker.py \u2014 DEPRECATED. Use DirectMemory instead."
+  },
+  {
+   "path": "src/CORE/codebuff_tracker.py",
+   "line": 52,
+   "kind": "DEPRECATED",
+   "text": "\"codebuff_tracker.CodebuffTracker is DEPRECATED. \""
+  },
+  {
+   "path": "src/CORE/dashboard.py",
+   "line": 119,
+   "kind": "TODO",
+   "text": "# The mesh is part of this report now (TODO P2 item 9): `--json`, the"
+  },
+  {
+   "path": "src/CORE/inference/providers.py",
+   "line": 186,
+   "kind": "DEPRECATED",
+   "text": "\"google/gemini-2.0-flash-001\": \"[DEPRECATED] Use google/gemini-2.5-pro or google/gemini-2.5-flash instead\","
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/spine.py",
+   "line": 2416,
+   "kind": "TODO",
+   "text": "# never been used: playing-field TODO G2's self-sustaining penalty,"
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/mesh.py",
+   "line": 543,
+   "kind": "TEMP",
+   "text": "# Output goes to TEMP FILES, not pipes. With capture_output=True this"
+  },
+  {
+   "path": "src/CORE/WORMS/expansion/federated.py",
+   "line": 84,
+   "kind": "TODO",
+   "text": "# \u2500\u2500 Robust-aggregation parameters (audit \u00a74 item 8 / TODO P4 item 13) \u2500\u2500"
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 124,
+   "kind": "TODO",
+   "text": "(r\"^\\s*#\\s*TODO\", \"TODO comment\", \"info\"),"
+  },
+  {
+   "path": "src/META/ERRORZ.py",
+   "line": 125,
+   "kind": "FIXME",
+   "text": "(r\"^\\s*#\\s*FIXME\", \"FIXME comment\", \"info\"),"
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 453,
+   "kind": "TODO",
+   "text": "if \"# TODO\" in stripped:"
+  },
+  {
+   "path": "src/META/METAWORMS_ENRICHED.py",
+   "line": 458,
+   "kind": "FIXME",
+   "text": "if \"# FIXME\" in stripped or \"# BUG\" in stripped:"
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManager.py",
+   "line": 528,
+   "kind": "TEMP",
+   "text": "os.path.expandvars(r\"%TEMP%\"),"
+  },
+  {
+   "path": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "line": 580,
+   "kind": "TEMP",
+   "text": "temp = os.path.expandvars(\"%TEMP%\")"
+  },
+  {
+   "path": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "line": 962,
+   "kind": "TODO",
+   "text": "r\"\\[([^\\]]+)\\]\\(\\s*#\\s*\\)\", r\"**\\1** (TODO: add link)\", content"
+  },
+  {
+   "path": "src/ORCHESTRATION/scripts/validate_docs.py",
+   "line": 66,
+   "kind": "DEPRECATED",
+   "text": "VALID_STATUSES = [\"DRAFT\", \"REVIEW\", \"APPROVED\", \"DEPRECATED\"]"
+  },
+  {
+   "path": "packages/azazael-core/cli.onefile-build/scons-debug.py",
+   "line": 9,
+   "kind": "TEMP",
+   "text": "env={'ALLUSERSPROFILE': 'C:\\\\ProgramData','APPDATA': 'C:\\\\Users\\\\clint\\\\AppData\\\\Roaming','CODEBUFF_RG_PATH': 'C:\\\\Users\\\\clint\\\\.config\\\\manicode\\\\rg.exe','COMMONPROGRAMFILES': 'C:\\\\Program Files\\\\Co"
+  },
+  {
+   "path": "packages/azazael-core/cli.build/scons-debug.py",
+   "line": 9,
+   "kind": "TEMP",
+   "text": "env={'ALLUSERSPROFILE': 'C:\\\\ProgramData','APPDATA': 'C:\\\\Users\\\\clint\\\\AppData\\\\Roaming','CODEBUFF_RG_PATH': 'C:\\\\Users\\\\clint\\\\.config\\\\manicode\\\\rg.exe','COMMONPROGRAMFILES': 'C:\\\\Program Files\\\\Co"
+  },
+  {
+   "path": "scripts/audit_stale_refs.py",
+   "line": 81,
+   "kind": "DEPRECATED",
+   "text": "CENSUS_CONSTANT_RX = re.compile(r\"^\\s*(RETIRED|LEGACY|DEPRECATED)_[A-Z_0-9]+\\s*=\")"
+  },
+  {
+   "path": "scripts/clean_windows.py",
+   "line": 57,
+   "kind": "TEMP",
+   "text": "(\"user-temp\", Path(os.environ.get(\"TEMP\", str(local / \"Temp\"))),"
+  },
+  {
+   "path": "scripts/fetch_990_series.py",
+   "line": 4,
+   "kind": "DEPRECATED",
+   "text": "* The legacy AWS `irs-form-990` bucket is DEPRECATED (IRS discontinued"
+  },
+  {
+   "path": "scripts/batch_render.py",
+   "line": 67,
+   "kind": "DEPRECATED",
+   "text": "# Template-specific scroll overrides (DEPRECATED \u2014 polling pattern handles this)"
+  },
+  {
+   "path": "scripts/code_evo_pilot.py",
+   "line": 167,
+   "kind": "TEMP",
+   "text": "gate runs its pytest inside a TEMP sandbox with no ini \u2014 so the blocklist"
+  },
+  {
+   "path": "scripts/build_progress_governance_graph.py",
+   "line": 3,
+   "kind": "TODO",
+   "text": "Corpus = azazael/*.md (governance, audit, TODO, milestone, ops docs) + the root-level"
+  },
+  {
+   "path": "scripts/build_progress_governance_graph.py",
+   "line": 24,
+   "kind": "TODO",
+   "text": "r\"(TODO|AUDIT|MILESTONE|PLAN|COMPLIANCE|CHECKLIST|MANDATES|SOP|RULES|PROTOCOL|\""
+  },
+  {
+   "path": "scripts/graphify_node_limit_patch.py",
+   "line": 8,
+   "kind": "BUG",
+   "text": "BUG 1 \u2014 recursion re-applies the cap:"
+  },
+  {
+   "path": "scripts/graphify_node_limit_patch.py",
+   "line": 14,
+   "kind": "BUG",
+   "text": "BUG 2 \u2014 raised limits produce an unrenderable page:"
+  },
+  {
+   "path": "scripts/graphify_node_limit_patch.py",
+   "line": 29,
+   "kind": "BUG",
+   "text": "1. exporters/html.py \u2014 recursion node_limit passthrough (BUG 1)."
+  },
+  {
+   "path": "scripts/graphify_node_limit_patch.py",
+   "line": 31,
+   "kind": "BUG",
+   "text": "3. exporters/html.py \u2014 huge-mode renderer (BUG 2): HUGE_MODE_NODES constant,"
+  },
+  {
+   "path": "scripts/repo_audit.py",
+   "line": 20,
+   "kind": "TODO",
+   "text": "2. patterns  - risk grep: bare except, TODO/FIXME, shell=True,"
+  },
+  {
+   "path": "scripts/repo_audit.py",
+   "line": 51,
+   "kind": "TODO",
+   "text": "\"todo\": re.compile(r\"\\b(TODO|FIXME|XXX|HACK|HACKFIX)\\b\"),"
+  },
+  {
+   "path": "tools/monitor_data.py",
+   "line": 14,
+   "kind": "TODO",
+   "text": "THE RULE THIS MODULE ENFORCES (TODO \u00a7\"Rule for this file\")"
+  },
+  {
+   "path": "tools/monitor_data.py",
+   "line": 46,
+   "kind": "TODO",
+   "text": "# restructure exists to remove (TODO P3 item 12)."
+  },
+  {
+   "path": "tools/monitor_data.py",
+   "line": 518,
+   "kind": "TODO",
+   "text": "information (TODO \u00a71.2). These are read from the classes that own them."
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 4,
+   "kind": "TODO",
+   "text": "every function, and emits a checkbox TODO so the audit can be worked through one"
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 13,
+   "kind": "TODO",
+   "text": "python tools/mesh_function_preflight.py                # write the TODO"
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 47,
+   "kind": "TODO",
+   "text": "# architecture and is out of scope for this TODO."
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 539,
+   "kind": "TODO",
+   "text": "out.append(\"# Neural Mesh Architecture - Per-Function Pre-Flight TODO\")"
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 706,
+   "kind": "TODO",
+   "text": "#: section of the TODO, because that doc is REWRITTEN by every preflight run: a"
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 836,
+   "kind": "TODO",
+   "text": "someone already made and wrote down -- the same reason the TODO is"
+  },
+  {
+   "path": "tools/mesh_function_preflight.py",
+   "line": 1418,
+   "kind": "TODO",
+   "text": "# the TODO file, printed nothing about the backlog, and left a 3-hour-old"
+  },
+  {
+   "path": "tools/render_ml_rl_monitors.py",
+   "line": 27,
+   "kind": "TODO",
+   "text": "Colours follow \u00a72 of the TODO: ML is a cold cyan/teal (steady unless the gate"
+  },
+  {
+   "path": "tools/twelve_factor_audit.py",
+   "line": 466,
+   "kind": "TEMP",
+   "text": "r\"TEMP$|TMP$|SYSTEMROOT|WINDIR|COMSPEC|PATHEXT|NUMBER_OF_PROCESSORS|\""
+  },
+  {
+   "path": "tools/render_monitors.py",
+   "line": 42,
+   "kind": "TODO",
+   "text": "# They now live in `monitor_data` (TODO P2 item 8) and the colours in"
+  },
+  {
+   "path": "tools/render_monitors.py",
+   "line": 43,
+   "kind": "TODO",
+   "text": "# `monitor_theme` (TODO P2 item 7), so this module is purely presentation."
+  },
+  {
+   "path": "tools/render_monitors.py",
+   "line": 65,
+   "kind": "TODO",
+   "text": "#: (TODO P3 item 11)."
+  },
+  {
+   "path": "tools/render_monitors.py",
+   "line": 690,
+   "kind": "TODO",
+   "text": "already changed under it (TODO \u00a71.2). Role is now derived from the live"
+  },
+  {
+   "path": "tools/render_monitors.py",
+   "line": 837,
+   "kind": "TODO",
+   "text": "the moment it was rendered (TODO P3 item 11). A render is a *snapshot*, so"
+  },
+  {
+   "path": "tests/test_race_shared_structures.py",
+   "line": 19,
+   "kind": "TEMP",
+   "text": "* ``LocalMemoryStore`` on a TEMP database \u2014 the technique store's substrate."
+  },
+  {
+   "path": "tests/test_spine_mesh_telemetry.py",
+   "line": 310,
+   "kind": "TODO",
+   "text": "value (playing-field TODO G1). 2026-09-28: it moved AGAIN to"
+  },
+  {
+   "path": "tests/test_tmp_divergence.py",
+   "line": 97,
+   "kind": "TEMP",
+   "text": "os.path.join(\"%TEMP%\", \"x\")):"
+  },
+  {
+   "path": "tests/test_route_censoring.py",
+   "line": 21,
+   "kind": "TODO",
+   "text": "standing -1 for routes it had never used. That is playing-field TODO G2's"
+  },
+  {
+   "path": "tests/test_worm_governance_integration.py",
+   "line": 139,
+   "kind": "DEPRECATED",
+   "text": "LifecycleState.DEPRECATED, LifecycleState.RETIRED)"
+  },
+  {
+   "path": "tests/test_fault_injection_state.py",
+   "line": 4,
+   "kind": "TEMP",
+   "text": "Engram #784, phase H. Every drill here damages a TEMP COPY, a temp database or a"
+  },
+  {
+   "path": "tests/test_federated_robustness.py",
+   "line": 2,
+   "kind": "TODO",
+   "text": "\"\"\"Federated aggregation robustness (audit \u00a74 item 8, TODO P4 item 13)."
+  },
+  {
+   "path": "tests/test_bibl_self_index_guard.py",
+   "line": 45,
+   "kind": "TEMP",
+   "text": "# pytest writes tmp_path under %TEMP%, which is inside %LOCALAPPDATA%, and"
+  },
+  {
+   "path": "tests/test_eve_interpreter_bridge.py",
+   "line": 30,
+   "kind": "TEMP",
+   "text": "_MOCK_MODELS_ROOT = os.path.join(os.environ.get(\"TEMP\", os.sep + \"tmp\"), \"eve_bridge_mocks\")"
+  },
+  {
+   "path": "tests/test_lesson_lifecycle.py",
+   "line": 150,
+   "kind": "DEPRECATED",
+   "text": "assert \"[DEPRECATED\" in dep[0].lesson"
+  }
+ ],
+ "markers_total": 95,
+ "markers_by_kind": {
+  "DEPRECATED": 24,
+  "TODO": 49,
+  "FIXME": 4,
+  "TEMP": 14,
+  "BUG": 4
+ },
+ "duplicate_content": [
+  [
+   "src/AZAZAEL_TOOLKIT/__init__.py",
+   "src/CODEX/CORE/__init__.py",
+   "src/META/__init__.py",
+   "src/ORCHESTRATION/BIBL/__init__.py",
+   "src/SCRIPTS/__init__.py",
+   "src/UTILITIES/PERSEPHONE/bin/__init__.py",
+   "src/__init__.py",
+   "src/scripts/__init__.py"
+  ],
+  [
+   "src/CODEX/DOCUMENTATION/__init__.py",
+   "src/CODEX/TESTING/INTEGRATION/__init__.py",
+   "src/CODEX/TESTING/PERFORMANCE/__init__.py",
+   "src/CODEX/TESTING/UNIT/__init__.py",
+   "src/CODEX/TESTING/__init__.py",
+   "src/ORCHESTRATION/TEST/__init__.py",
+   "src/ORCHESTRATION/scripts/__init__.py"
+  ],
+  [
+   ".nox/lint/Scripts/activate_this.py",
+   ".nox/quick-314/Scripts/activate_this.py",
+   ".nox/quick-314t/Scripts/activate_this.py"
+  ],
+  [
+   "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "src/TOOLS/AzazaelDynamicLogger.py"
+  ],
+  [
+   "src/META/UVZ.py",
+   "src/UVZ.py"
+  ],
+  [
+   "src/SCRIPTS/environ_updater.py",
+   "src/scripts/environ_updater.py"
+  ],
+  [
+   "src/SCRIPTS/test_rule_0zf_consistency.py",
+   "src/scripts/test_rule_0zf_consistency.py"
+  ],
+  [
+   "src/SCRIPTS/test_rule_0zf_integration.py",
+   "src/scripts/test_rule_0zf_integration.py"
+  ]
+ ],
+ "skipped_device_paths": [
+  "/root/azazael/nul"
+ ],
+ "skip_dirs": [
+  ".cache",
+  ".conan",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".kali_staging",
+  ".mypy_cache",
+  ".pams_venv",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".venvs",
+  "__pycache__",
+  "archive",
+  "archived",
+  "build",
+  "dist",
+  "dist-packages",
+  "graphify-out",
+  "node_modules",
+  "sdist",
+  "site-packages",
+  "target",
+  "venv"
+ ],
+ "duplicate_groups": 8,
+ "duplicate_files": 28,
+ "orphan_modules": [
+  ".nox.lint.Scripts.activate_this",
+  ".nox.quick-314.Scripts.activate_this",
+  ".nox.quick-314t.Scripts.activate_this",
+  "_run_all_tests",
+  "algorithms.algorithm_templates.SAFE_BATCH_PATTERN",
+  "cli_observability",
+  "demo_core",
+  "docker.entrypoint",
+  "docs.scripts.patch_nuitka_314t",
+  "docs.scripts.patch_nuitka_315t",
+  "noxfile",
+  "packages.azazael-core.cli.build.scons-debug",
+  "packages.azazael-core.cli.onefile-build.scons-debug",
+  "packages.azazael-core.run_tests",
+  "packages.azazael-core.src.azazael_core.cli",
+  "packages.azazael-core.src.azazael_core.worms.clusters",
+  "packages.azazael-core.tests",
+  "run_tests",
+  "scripts._compages_study",
+  "scripts._cranium_degeneracy_probe",
+  "scripts._cranium_reality_check",
+  "scripts._db_rows",
+  "scripts._db_shape",
+  "scripts._emoji_mood_probe",
+  "scripts._evo_graph_build",
+  "scripts._ex_timing",
+  "scripts._glyph_widths",
+  "scripts._morph_polymorphy_probe",
+  "scripts.analyze_ddap",
+  "scripts.analyze_evolution_runs",
+  "scripts.apply_runtime_baseline",
+  "scripts.ascii_demo",
+  "scripts.ascii_video",
+  "scripts.audit_links_refined",
+  "scripts.audit_loop_budgets",
+  "scripts.audit_stale_refs",
+  "scripts.audit_wiring",
+  "scripts.autoflake_314t",
+  "scripts.autoflake_315t",
+  "scripts.bai_perron_breakpoints",
+  "scripts.batch_render",
+  "scripts.bcc_chroma_index",
+  "scripts.bcc_cosmos_build",
+  "scripts.bcc_embed_link_sna",
+  "scripts.bcc_embed_tfidf_diff",
+  "scripts.bcc_gephi_launcher",
+  "scripts.bcc_kuzu_temporal_persist",
+  "scripts.bcc_kuzu_timeline",
+  "scripts.bcc_lead_inference",
+  "scripts.bcc_oneshot",
+  "scripts.bcc_open_tasks_join",
+  "scripts.bcc_part7_officers",
+  "scripts.bcc_pdfplumber_extract",
+  "scripts.bcc_political_court_layer",
+  "scripts.bcc_pyvis_network",
+  "scripts.bcc_record_linkage",
+  "scripts.bcc_semantic_index",
+  "scripts.bcc_splink_linkage",
+  "scripts.bcc_vault_sna",
+  "scripts.bench_rustworkx_vs_networkx",
+  "scripts.benchmark_wal_docker",
+  "scripts.berks_monitor",
+  "scripts.build_all_concurrent",
+  "scripts.build_gap_index",
+  "scripts.build_obsidian_vault",
+  "scripts.build_progress_governance_graph",
+  "scripts.build_runtime_baseline",
+  "scripts.cain_video_pipeline_demo",
+  "scripts.chain_watchdog",
+  "scripts.check_314t_compat",
+  "scripts.check_315t_compat",
+  "scripts.check_all_priorities",
+  "scripts.check_dmarc",
+  "scripts.check_final",
+  "scripts.check_gaps",
+  "scripts.check_landing",
+  "scripts.check_master_catalog",
+  "scripts.check_motif_results",
+  "scripts.check_no_catch_alls",
+  "scripts.check_priorities",
+  "scripts.check_priorities_by_type",
+  "scripts.check_propublica",
+  "scripts.check_tooling",
+  "scripts.check_tree_parity",
+  "scripts.close_audit_sessions",
+  "scripts.compare_training",
+  "scripts.compliance_ratchet",
+  "scripts.convert_to_wmv",
+  "scripts.cosmos_export",
+  "scripts.cosmos_inline_viewer",
+  "scripts.cosmos_singlefile",
+  "scripts.db_health",
+  "scripts.ddap_portal_enum",
+  "scripts.ddap_portal_selenium",
+  "scripts.diagnose_fitness_gradient",
+  "scripts.diagnose_margin_gate",
+  "scripts.dlq_burndown",
+  "scripts.dlq_watch",
+  "scripts.dmarc_check",
+  "scripts.dream_cycle",
+  "scripts.dream_on_bcc",
+  "scripts.ecosystem_gephi_launcher",
+  "scripts.ecosystem_graph",
+  "scripts.embedding_dashboard",
+  "scripts.emoji_demo",
+  "scripts.env_drift_alarm",
+  "scripts.evolve_loop",
+  "scripts.export_graph_formats",
+  "scripts.false_zero_audit",
+  "scripts.fetch_990_series",
+  "scripts.finalize_whitepaper",
+  "scripts.fix_poindexter_indent",
+  "scripts.foundation_hcup_teds",
+  "scripts.generate_capability_templates",
+  "scripts.generate_dashboard",
+  "scripts.genome_adaptation_audit",
+  "scripts.gephi_headless.run_headless",
+  "scripts.gosp_learner_divergence",
+  "scripts.gosp_learner_train",
+  "scripts.gosp_parity_check",
+  "scripts.gosp_rani_integration",
+  "scripts.gossip_export",
+  "scripts.gossip_round",
+  "scripts.graphify_huge_mode",
+  "scripts.graphify_node_limit_patch",
+  "scripts.graphify_refresh",
+  "scripts.hyperopt_cycle",
+  "scripts.ingest_bcc_ops_logs",
+  "scripts.inject_alert_drill",
+  "scripts.irs_bmf_bulk",
+  "scripts.jev_advise",
+  "scripts.land_all_results",
+  "scripts.launch_live_windows",
+  "scripts.learning_loop_gephi_launcher",
+  "scripts.learning_loop_graph",
+  "scripts.learning_loop_temporal",
+  "scripts.lilith_live_monitor",
+  "scripts.make_launcher_icons",
+  "scripts.make_task_xml_utf16",
+  "scripts.master_catalog",
+  "scripts.master_generate",
+  "scripts.mesh_gossip_cycle",
+  "scripts.mesh_listener",
+  "scripts.metacog_cycle",
+  "scripts.modernize_types",
+  "scripts.motif_census_relations",
+  "scripts.mutate",
+  "scripts.neural_loop",
+  "scripts.neural_loop_monitor",
+  "scripts.night_shift",
+  "scripts.nightly_maintenance",
+  "scripts.observation_coverage",
+  "scripts.opensecrets_fec",
+  "scripts.origin_freshness_check",
+  "scripts.pa_courts_pacfile",
+  "scripts.pa_courts_pacfile_selenium",
+  "scripts.pa_doh_licensing",
+  "scripts.pa_dos_entity",
+  "scripts.pa_dos_entity_selenium",
+  "scripts.pattern_catalog",
+  "scripts.plot_evolution_rewards",
+  "scripts.pre_build_check",
+  "scripts.predict_patch_success",
+  "scripts.process_new_sources",
+  "scripts.profile_clusterworms_parallel",
+  "scripts.promotion_signals",
+  "scripts.propublica_refresh",
+  "scripts.prune_tensor_genome",
+  "scripts.rate_promotion",
+  "scripts.read_new_sources",
+  "scripts.record_thought",
+  "scripts.reencode_large_videos",
+  "scripts.regen_config_trace",
+  "scripts.render_bcc_lead_findings",
+  "scripts.render_graph_svg",
+  "scripts.repo_audit",
+  "scripts.rollover_archive",
+  "scripts.rtkl_automation",
+  "scripts.run_db_monitor",
+  "scripts.run_evolution_n",
+  "scripts.run_final_filters",
+  "scripts.run_full_pass",
+  "scripts.run_motif_census_bcc",
+  "scripts.run_training_cycles",
+  "scripts.scan_secrets",
+  "scripts.scenario_a_full_pipeline",
+  "scripts.scenario_b_compressed_pipeline",
+  "scripts.scenario_c_distillation_pipeline",
+  "scripts.scenario_d_nas_pipeline",
+  "scripts.scrub_probe_telemetry",
+  "scripts.self_image_refresh",
+  "scripts.sna_communities_410k",
+  "scripts.spec_audit",
+  "scripts.stack_phase0",
+  "scripts.sync_all",
+  "scripts.sync_training_rows",
+  "scripts.tensor_gate_ab",
+  "scripts.threat_monitor",
+  "scripts.timesfm_pilot_314t",
+  "scripts.timesfm_pilot_315t",
+  "scripts.trace_adaptation",
+  "scripts.track_backfill",
+  "scripts.train_fitness_oracle",
+  "scripts.train_fleet",
+  "scripts.train_gosp_curative",
+  "scripts.train_tensor_model",
+  "scripts.train_thought_reward",
+  "scripts.train_today",
+  "scripts.update_ddap_selenium_status",
+  "scripts.update_header_and_render",
+  "scripts.verify_aoa_cdp",
+  "scripts.verify_exmachina",
+  "scripts.verify_exmachina_panel",
+  "scripts.verify_lead_links_cdp",
+  "scripts.verify_oracle_parity",
+  "scripts.verify_proteus",
+  "scripts.watch_evolution",
+  "scripts.watch_training_day",
+  "scripts.wire_or_cut_queue",
+  "scripts.wiring_cycle",
+  "scripts.worm_census",
+  "scripts.write_harvest",
+  "skills",
+  "skills_staging.generate_bin_skills",
+  "skills_staging.generate_kali_pkg_skills",
+  "skills_staging.regenerate_catalog",
+  "src",
+  "src.AOA.build",
+  "src.AOA.build_disclosure",
+  "src.AOA.build_final",
+  "src.AOA.cli",
+  "src.AOA.core.contracts",
+  "src.AOA.core.delegation_spec",
+  "src.AOA.gen_html",
+  "src.AOA.inject",
+  "src.AOA.rebuild_html",
+  "src.AUTO_DOC_GENERATOR",
+  "src.AZAZAEL_Inference_Studio",
+  "src.AZAZAEL_TOOLKIT.REAL_FRAMEWORK_TEST",
+  "src.CLI",
+  "src.CLI.azazael_cli",
+  "src.CODEX.CODEX_Studio",
+  "src.CODEX.CORE.AUTO_DOC_GENERATOR",
+  "src.CODEX.CORE.ascii_flowchart",
+  "src.CODEX.DOCUMENTATION",
+  "src.CODEX.POPUPS.POPUP_ALL_11",
+  "src.CODEX.POPUPS.POPUP_BUGFREE",
+  "src.CODEX.POPUPS.POPUP_CLICKABLE",
+  "src.CODEX.POPUPS.POPUP_DETAILED",
+  "src.CODEX.POPUPS.POPUP_DISPLAY",
+  "src.CODEX.POPUPS.POPUP_IMMERSIVE",
+  "src.CODEX.POPUPS.POPUP_RICH",
+  "src.CODEX.POPUPS.POPUP_SIMPLE",
+  "src.CODEX.POPUPS.POPUP_WORKING",
+  "src.CODEX.SESSION_TEMPLATE.generators.batch_generator",
+  "src.CODEX.SESSION_TEMPLATE.generators.batch_recorder",
+  "src.CODEX.SESSION_TEMPLATE.generators.generate_failure_report",
+  "src.CODEX.SESSION_TEMPLATE.generators.generate_session_report",
+  "src.CODEX.SESSION_TEMPLATE.generators.unified_generator",
+  "src.CODEX.TESTING",
+  "src.CODEX.TESTING.INTEGRATION",
+  "src.CODEX.TESTING.PERFORMANCE",
+  "src.CODEX.TESTING.UNIT",
+  "src.CODEX.VIDEOS",
+  "src.CODEX.VIDEOS.create_azazael_educational_video",
+  "src.CODEX.VIDEOS.create_dual_pane_popup",
+  "src.CODEX.VIDEOS.create_dual_pane_video",
+  "src.CODEX.VIDEOS.create_reference_video",
+  "src.CODEX.VIDEOS.create_scrolling_video",
+  "src.CODEX.VIDEOS.create_video",
+  "src.CODEX.VIDEOS.generate_dashboard_video",
+  "src.CODEX.VIDEOS.generate_matrix_video",
+  "src.CODEX.VIDEOS.generate_video",
+  "src.CODEX.VIDEOS.generate_video_v2",
+  "src.CODEX.VIDEOS.make_video",
+  "src.CODEX.VIDEOS.make_video_docs",
+  "src.CODEX.VIDEOS.make_video_quad",
+  "src.CODEX.VIDEOS.make_video_v2",
+  "src.CODEX.VIDEOS.make_video_v3",
+  "src.CODEX.VIDEOS.make_video_vibrant",
+  "src.CODEX.VIDEOS.make_video_zip",
+  "src.CODEX.VIDEOS.make_video_zipper",
+  "src.CODEX.VIDEOS.progress_bar",
+  "src.CODEX.VIDEOS.video_popup",
+  "src.CODEX.build_bcc_cain_alternate",
+  "src.CODEX.cain_rebuild_final",
+  "src.CODEX.comprehensive.COMPLETE_SYSTEMS_ANALYSIS",
+  "src.CODEX.comprehensive.FULL_ECOSYSTEM_ANALYSIS",
+  "src.CODEX.comprehensive.GENERATE_ALL_11",
+  "src.CODEX.comprehensive.GENERATE_HTML",
+  "src.CODEX.comprehensive.GENERATE_RICH_HTML",
+  "src.CODEX.comprehensive.TWITLER_ANALYSIS",
+  "src.CODEX.generate_session_cain",
+  "src.CODEX.inject_session_cain",
+  "src.CORE.Agent",
+  "src.CORE.AgentPool",
+  "src.CORE.ERROR_SCAN_WORM",
+  "src.CORE.FREETHREAD_UPGRADE",
+  "src.CORE.FreeThreadedAgent",
+  "src.CORE.LOCAL_DEV",
+  "src.CORE.LaneMessageBoard",
+  "src.CORE.MemoryBus",
+  "src.CORE.NODE",
+  "src.CORE.NeuralPipeline",
+  "src.CORE.PYTHON_MANAGER",
+  "src.CORE.PamsBusBridge",
+  "src.CORE.PamsRecorder",
+  "src.CORE.STRESS_TEST",
+  "src.CORE.STRUCTURE",
+  "src.CORE.WORMS",
+  "src.CORE.WORMS.BENCHMARK_WORM",
+  "src.CORE.WORMS.BINARY_ANALYSIS",
+  "src.CORE.WORMS.BINARY_ANALYSIS_CLI",
+  "src.CORE.WORMS.BINARY_ANALYSIS_PARSE",
+  "src.CORE.WORMS.BINARY_ANALYSIS_TOOLS",
+  "src.CORE.WORMS.BINARY_ANALYSIS_TYPES",
+  "src.CORE.WORMS.CAIN_DATA",
+  "src.CORE.WORMS.CAIN_WORM",
+  "src.CORE.WORMS.CLAWBOT",
+  "src.CORE.WORMS.CLUSTER_INSPECTOR",
+  "src.CORE.WORMS.CODEX_TOOLS",
+  "src.CORE.WORMS.DEPENDZ",
+  "src.CORE.WORMS.DIAGNOSTIC_WORM",
+  "src.CORE.WORMS.DNSWORM",
+  "src.CORE.WORMS.ECOSYSTEM_EXPANSION",
+  "src.CORE.WORMS.ERROR_SCAN_WORM",
+  "src.CORE.WORMS.HEALING_WORM",
+  "src.CORE.WORMS.INFERENCE_SUBSCRIBER",
+  "src.CORE.WORMS.INFERENCE_WORM",
+  "src.CORE.WORMS.KALIWORMS",
+  "src.CORE.WORMS.METAZ",
+  "src.CORE.WORMS.MORPHING_WORM",
+  "src.CORE.WORMS.MORPHING_WORM_V2",
+  "src.CORE.WORMS.NETWORK_DIAG",
+  "src.CORE.WORMS.NIM_INFERENCE",
+  "src.CORE.WORMS.OMNI_WORM",
+  "src.CORE.WORMS.OMNI_WORM_V2",
+  "src.CORE.WORMS.OS_CONGRUENCY",
+  "src.CORE.WORMS.PARALLEL_INFERENCE_WORM",
+  "src.CORE.WORMS.REVERSE_TOOLS",
+  "src.CORE.WORMS.SMARTDISK",
+  "src.CORE.WORMS.SYSTEMZ_ML",
+  "src.CORE.WORMS.VIDEO_ANALYZER_WORM",
+  "src.CORE.WORMS.WORMZ_ML",
+  "src.CORE.WORMS.WORMZ_POPUP",
+  "src.CORE.WORMS.WORM_FLEET",
+  "src.CORE.WORMS.WORM_SELECTOR",
+  "src.CORE.WORMS.WSL_RECOVERY_WORM",
+  "src.CORE.WORMS.dead_letter_queue",
+  "src.CORE.WORMS.expansion.ablation_study",
+  "src.CORE.WORMS.expansion.algorithm_observers",
+  "src.CORE.WORMS.expansion.anchor_retrieval",
+  "src.CORE.WORMS.expansion.arena",
+  "src.CORE.WORMS.expansion.axon",
+  "src.CORE.WORMS.expansion.berks",
+  "src.CORE.WORMS.expansion.chaos",
+  "src.CORE.WORMS.expansion.chorus",
+  "src.CORE.WORMS.expansion.code_audit",
+  "src.CORE.WORMS.expansion.consolidation",
+  "src.CORE.WORMS.expansion.cppn",
+  "src.CORE.WORMS.expansion.cutting_edge_model",
+  "src.CORE.WORMS.expansion.delegation",
+  "src.CORE.WORMS.expansion.dendrite",
+  "src.CORE.WORMS.expansion.diversity",
+  "src.CORE.WORMS.expansion.driver",
+  "src.CORE.WORMS.expansion.envmesh",
+  "src.CORE.WORMS.expansion.evolution_audit",
+  "src.CORE.WORMS.expansion.fabric_state",
+  "src.CORE.WORMS.expansion.fencing",
+  "src.CORE.WORMS.expansion.generated",
+  "src.CORE.WORMS.expansion.generated._staging.gen_windows_mesh_unknown",
+  "src.CORE.WORMS.expansion.glia",
+  "src.CORE.WORMS.expansion.hybrid_rewards",
+  "src.CORE.WORMS.expansion.hyperopt",
+  "src.CORE.WORMS.expansion.jev_advisor",
+  "src.CORE.WORMS.expansion.lazy_replan",
+  "src.CORE.WORMS.expansion.learning_ab",
+  "src.CORE.WORMS.expansion.learning_features",
+  "src.CORE.WORMS.expansion.learning_grpo",
+  "src.CORE.WORMS.expansion.learning_pipeline",
+  "src.CORE.WORMS.expansion.learning_rl",
+  "src.CORE.WORMS.expansion.learning_versioner",
+  "src.CORE.WORMS.expansion.liveness",
+  "src.CORE.WORMS.expansion.loom",
+  "src.CORE.WORMS.expansion.mars_claims",
+  "src.CORE.WORMS.expansion.metabolic",
+  "src.CORE.WORMS.expansion.nerve",
+  "src.CORE.WORMS.expansion.nuclei",
+  "src.CORE.WORMS.expansion.oracle",
+  "src.CORE.WORMS.expansion.plasticity",
+  "src.CORE.WORMS.expansion.policy_optimization",
+  "src.CORE.WORMS.expansion.queens",
+  "src.CORE.WORMS.expansion.rcpd_early_exit",
+  "src.CORE.WORMS.expansion.reflexion",
+  "src.CORE.WORMS.expansion.remediation_env",
+  "src.CORE.WORMS.expansion.rl_gene_bounds",
+  "src.CORE.WORMS.expansion.schema_instruction_channel",
+  "src.CORE.WORMS.expansion.session_state",
+  "src.CORE.WORMS.expansion.silence",
+  "src.CORE.WORMS.expansion.spawn_credit",
+  "src.CORE.WORMS.expansion.tensorgene",
+  "src.CORE.WORMS.expansion.thalamus",
+  "src.CORE.WORMS.expansion.threatmon",
+  "src.CORE.WORMS.expansion.trainers_v2",
+  "src.CORE.WORMS.expansion.utility_guided_orchestration",
+  "src.CORE.WORMS.expansion.wiring_audit",
+  "src.CORE.WORMS.expansion.wiring_genome",
+  "src.CORE.WORMS.expansion.xmemory_decouple_aggregate",
+  "src.CORE.WORMS.worm_telemetry",
+  "src.CORE.WORM_FLEET",
+  "src.CORE.Widgets",
+  "src.CORE.Widgets.BasePopupMonitor",
+  "src.CORE._logging_shim",
+  "src.CORE.active_learn",
+  "src.CORE.agent_registry",
+  "src.CORE.algorithm_qualification",
+  "src.CORE.archive_store",
+  "src.CORE.audit_compress",
+  "src.CORE.audit_export_html",
+  "src.CORE.audit_merge",
+  "src.CORE.audit_repair",
+  "src.CORE.audit_trail",
+  "src.CORE.audit_watch",
+  "src.CORE.azazael_ctl",
+  "src.CORE.azazael_logging",
+  "src.CORE.backend_bandit",
+  "src.CORE.cascade",
+  "src.CORE.cd2_verifier",
+  "src.CORE.cd3_exporter",
+  "src.CORE.cd4_pipeline",
+  "src.CORE.circuit_breaker",
+  "src.CORE.cli_audit",
+  "src.CORE.cli_completion",
+  "src.CORE.cli_crossref",
+  "src.CORE.cli_memory",
+  "src.CORE.cluster_route",
+  "src.CORE.codebase_graph",
+  "src.CORE.codebuff_tracker",
+  "src.CORE.compliance",
+  "src.CORE.compliance.broker",
+  "src.CORE.compliance.dashboard_api",
+  "src.CORE.compliance.governance",
+  "src.CORE.compliance.heuristic_recorder",
+  "src.CORE.compliance.orchestrator",
+  "src.CORE.compliance.policy",
+  "src.CORE.compliance.pre_action_gate",
+  "src.CORE.compliance.scanner",
+  "src.CORE.compliance.scanner_db",
+  "src.CORE.compliance.state_machine",
+  "src.CORE.compliance.validating",
+  "src.CORE.compliance_auditor",
+  "src.CORE.dashboard",
+  "src.CORE.data_retention",
+  "src.CORE.device",
+  "src.CORE.direct_memory",
+  "src.CORE.doctor",
+  "src.CORE.dpo_losses",
+  "src.CORE.dream_arena",
+  "src.CORE.dream_policy_bridge",
+  "src.CORE.embedding_backend",
+  "src.CORE.enforcement_harness",
+  "src.CORE.env_id",
+  "src.CORE.error_triage",
+  "src.CORE.escalation_sft",
+  "src.CORE.eval_utils",
+  "src.CORE.forecast_baselines",
+  "src.CORE.fs_probe",
+  "src.CORE.full_scan",
+  "src.CORE.gguf_census",
+  "src.CORE.graph_artifacts",
+  "src.CORE.graph_drift",
+  "src.CORE.graph_learn",
+  "src.CORE.health_server",
+  "src.CORE.hlc",
+  "src.CORE.inference",
+  "src.CORE.inference.api_client",
+  "src.CORE.inference.bus_utils",
+  "src.CORE.inference.cloud_tab",
+  "src.CORE.inference.hyper_optimizer",
+  "src.CORE.inference.inference_cache",
+  "src.CORE.inference.nim_client",
+  "src.CORE.inference.parallel",
+  "src.CORE.inference.query_loop",
+  "src.CORE.inference.threaded",
+  "src.CORE.inference_pool",
+  "src.CORE.l1_wiring_audit",
+  "src.CORE.layerwise",
+  "src.CORE.league",
+  "src.CORE.local_memory",
+  "src.CORE.log_hygiene",
+  "src.CORE.logging_config",
+  "src.CORE.memory_diagnostic",
+  "src.CORE.mesh_transport",
+  "src.CORE.meta_evolution",
+  "src.CORE.metrics",
+  "src.CORE.neural_loop",
+  "src.CORE.notifier",
+  "src.CORE.pattern_memory",
+  "src.CORE.postgres_memory",
+  "src.CORE.prm",
+  "src.CORE.project_atlas",
+  "src.CORE.qd_bridge",
+  "src.CORE.record_session",
+  "src.CORE.redteam",
+  "src.CORE.robust",
+  "src.CORE.rollback",
+  "src.CORE.safe_file_ops",
+  "src.CORE.safe_sql",
+  "src.CORE.sb3_agent",
+  "src.CORE.secrets_manager",
+  "src.CORE.sentinel_enforcer",
+  "src.CORE.spine_registry",
+  "src.CORE.startup_warm",
+  "src.CORE.threading_utils",
+  "src.CORE.tstrings",
+  "src.CORE.ttcompute",
+  "src.CORE.uuid7",
+  "src.CORE.vocab_migration",
+  "src.CORE.web_dashboard",
+  "src.CORE.web_search",
+  "src.CORE.workflow",
+  "src.CORE.worm_governance",
+  "src.CORE.worm_health",
+  "src.CORE.worm_registry_cache",
+  "src.CORE.xref_auto_link",
+  "src.CORE.xref_dashboard",
+  "src.CORE.xref_webhook",
+  "src.DAEMONS.check_parallax",
+  "src.DAEMONS.install_parallax_startup",
+  "src.DAEMONS.parallax_validator",
+  "src.ERRORZ",
+  "src.HYDRA.hydra_launcher",
+  "src.HYDRA.ml_platforms.PERMANENT_LOAD",
+  "src.HYDRA.pipeline_specs",
+  "src.HYDRAMETA_UV",
+  "src.HYDRA_CONTAINER",
+  "src.INTERPRETERS.go_runner",
+  "src.INTERPRETERS.rust_runner",
+  "src.META.ERRORZ",
+  "src.META.HYDRAMETA_UV",
+  "src.META.HYDRA_CONTAINER",
+  "src.META.METAWORMS_POPUP",
+  "src.META.TRIMZ",
+  "src.META.UVZ",
+  "src.METAWORMS_POPUP",
+  "src.MISSING_TOOLS",
+  "src.ML.autodiff",
+  "src.ML.estimators",
+  "src.ML.gosp",
+  "src.ML.nsga",
+  "src.ML.torch_bridge",
+  "src.ORCHESTRATION.ADLP_SystemTools",
+  "src.ORCHESTRATION.AssistantLogProtocol_Enhanced",
+  "src.ORCHESTRATION.BIBL",
+  "src.ORCHESTRATION.BIBL.bibl_crawler",
+  "src.ORCHESTRATION.BIBL.bibl_map",
+  "src.ORCHESTRATION.ECOSYSTEM_CRAWLER_LAUNCHER",
+  "src.ORCHESTRATION.ECOSYSTEM_OPTIMIZER",
+  "src.ORCHESTRATION.HORUS_LIVE_MONITOR",
+  "src.ORCHESTRATION.HYDRA_ANALYZER",
+  "src.ORCHESTRATION.HYDRA_ANALYZER_V2",
+  "src.ORCHESTRATION.INTEROPERABILITY_ANALYSIS",
+  "src.ORCHESTRATION.MathCertainty",
+  "src.ORCHESTRATION.SelfImprovingGUI",
+  "src.ORCHESTRATION.SystemManager",
+  "src.ORCHESTRATION.SystemManagerGUI",
+  "src.ORCHESTRATION.TARBABY",
+  "src.ORCHESTRATION.TEST",
+  "src.ORCHESTRATION.TEST.ECOSYSTEM_TEST",
+  "src.ORCHESTRATION.TotalFusion",
+  "src.ORCHESTRATION.hydra_bridge",
+  "src.ORCHESTRATION.ml_platforms.auto_install",
+  "src.ORCHESTRATION.ml_platforms.autoload",
+  "src.ORCHESTRATION.ml_platforms.changelog",
+  "src.ORCHESTRATION.ml_platforms.cross_platform_analysis",
+  "src.ORCHESTRATION.ml_platforms.framework_activator",
+  "src.ORCHESTRATION.ml_platforms.improvements.deep_learning_qlearning",
+  "src.ORCHESTRATION.ml_platforms.improvements.metrics_tracker",
+  "src.ORCHESTRATION.ml_platforms.improvements.ml_integration",
+  "src.ORCHESTRATION.ml_platforms.improvements.mlflow_integration",
+  "src.ORCHESTRATION.ml_platforms.improvements.onnx_integration",
+  "src.ORCHESTRATION.ml_platforms.improvements.qlearning_table",
+  "src.ORCHESTRATION.ml_platforms.improvements.qualitative_improvements",
+  "src.ORCHESTRATION.ml_platforms.improvements.ray_integration",
+  "src.ORCHESTRATION.ml_platforms.improvements.strategic_intelligence",
+  "src.ORCHESTRATION.ml_platforms.improvements.vectorize_utils",
+  "src.ORCHESTRATION.ml_platforms.improvements.weakness_testing",
+  "src.ORCHESTRATION.ml_platforms.install_improvements",
+  "src.ORCHESTRATION.ml_platforms.install_light",
+  "src.ORCHESTRATION.ml_platforms.install_manager",
+  "src.ORCHESTRATION.ml_platforms.installation_debug",
+  "src.ORCHESTRATION.ml_platforms.jax_analysis",
+  "src.ORCHESTRATION.ml_platforms.lm_studio_autoload",
+  "src.ORCHESTRATION.ml_platforms.lm_studio_client",
+  "src.ORCHESTRATION.ml_platforms.lm_studio_server",
+  "src.ORCHESTRATION.ml_platforms.openinterpreter_startup",
+  "src.ORCHESTRATION.ml_platforms.run_qanalysis_full",
+  "src.ORCHESTRATION.ml_platforms.run_qanalysis_multi",
+  "src.ORCHESTRATION.ml_platforms.unified_analysis",
+  "src.ORCHESTRATION.scripts.azazael_cli",
+  "src.ORCHESTRATION.scripts.azazael_wsa",
+  "src.ORCHESTRATION.scripts.bat_analysis",
+  "src.ORCHESTRATION.scripts.check_links",
+  "src.ORCHESTRATION.scripts.complete_module_analysis",
+  "src.ORCHESTRATION.scripts.comprehensive_analysis",
+  "src.ORCHESTRATION.scripts.consistency_checker",
+  "src.ORCHESTRATION.scripts.fix_syntax_errors",
+  "src.ORCHESTRATION.scripts.generate_docs_index",
+  "src.ORCHESTRATION.scripts.generate_docstrings",
+  "src.ORCHESTRATION.scripts.improve_bat_files",
+  "src.ORCHESTRATION.scripts.run_tests",
+  "src.ORCHESTRATION.scripts.validate_docs",
+  "src.ORCHESTRATION.scripts.web_dashboard",
+  "src.REAL_FRAMEWORK_TEST",
+  "src.SCRIPTS._reconstruct_error214",
+  "src.SCRIPTS.bootstrap",
+  "src.SCRIPTS.enforce_pre_action_gate",
+  "src.SCRIPTS.environ_updater",
+  "src.SCRIPTS.fix_bare_excepts",
+  "src.SCRIPTS.gate_bash",
+  "src.SCRIPTS.gate_str_replace",
+  "src.SCRIPTS.gate_write_file",
+  "src.SCRIPTS.gated_edit",
+  "src.SCRIPTS.lsp_diagnosis",
+  "src.SCRIPTS.parallel_compliance_scanner",
+  "src.SCRIPTS.request_auth",
+  "src.SCRIPTS.run_test_generate_telemetry",
+  "src.SCRIPTS.sentinel_gate",
+  "src.SCRIPTS.session_start",
+  "src.SCRIPTS.session_start_check",
+  "src.SCRIPTS.sync_canonical_docs",
+  "src.SHORTCUTS",
+  "src.TOOLS",
+  "src.TOOLS.PythonMapper_Quick",
+  "src.TOOLS.PythonSystemMapper",
+  "src.TOOLS.PythonSystemMapper_Full",
+  "src.TOOLS.archive_system",
+  "src.TOOLS.debug_runner",
+  "src.TRIMZ",
+  "src.UTILITIES.Loggers",
+  "src.UTILITIES.PERSEPHONE",
+  "src.UTILITIES.PERSEPHONE.bin",
+  "src.UTILITIES.PERSEPHONE.bin.persephone_cli",
+  "src.UTILITIES.PERSEPHONE.bin.setup_wizard",
+  "src.UTILITIES.PERSEPHONE.persephone",
+  "src.UTILITIES.POINDEXTER",
+  "src.UTILITIES.POINDEXTER.POINDEXTER",
+  "src.UTILITIES.TARBABY",
+  "src.UTILITIES.TARBABY.TARBABY",
+  "src.UVZ",
+  "src.chain_of_action",
+  "src.eve_unleashed.cli",
+  "src.eve_unleashed.models",
+  "src.memory_status",
+  "src.persistent_memory",
+  "src.scripts._reconstruct_error214",
+  "src.scripts.bootstrap",
+  "src.scripts.enforce_pre_action_gate",
+  "src.scripts.environ_updater",
+  "src.scripts.fix_bare_excepts",
+  "src.scripts.gate_bash",
+  "src.scripts.gate_str_replace",
+  "src.scripts.gate_write_file",
+  "src.scripts.gated_edit",
+  "src.scripts.lsp_diagnosis",
+  "src.scripts.parallel_compliance_scanner",
+  "src.scripts.run_test_generate_telemetry",
+  "src.scripts.sentinel_gate",
+  "src.tests",
+  "src.tmp_verify",
+  "src.verify_all",
+  "temp.audit_skill_dirs",
+  "temp.audit_synced_skills",
+  "temp.body_ref_audit",
+  "temp.check_greedy_regex_headers",
+  "temp.full_cross_doc_audit",
+  "temp.investigate_mirror_bug",
+  "temp.normalize_titles",
+  "temp.rule_0e_audit",
+  "temp.show_title_mismatches",
+  "temp.sync_diff_audit",
+  "tests.ADLP_Test",
+  "tests.ML_GUI_Test",
+  "tests._binary_deps",
+  "tests.autodiff_skills_check",
+  "tests.benchmark_autodiff_modes",
+  "tools.audit_parseable_files",
+  "tools.backup_to_g",
+  "tools.benchmark_frameworks",
+  "tools.cap_patch_gen",
+  "tools.capability_liveness",
+  "tools.compare_scans",
+  "tools.evolution_chain_audit",
+  "tools.flask_dashboard",
+  "tools.fs_hygiene",
+  "tools.health_check_azazael",
+  "tools.hydra_api",
+  "tools.hydra_client",
+  "tools.hydra_graph",
+  "tools.hydra_json_status",
+  "tools.hydra_verbose",
+  "tools.local_inference",
+  "tools.memory_profile",
+  "tools.monotone_reduction_check",
+  "tools.mutation_proposals",
+  "tools.nature_integration_map",
+  "tools.pytest_fixture_watch",
+  "tools.refresh_all",
+  "tools.render_ml_rl_monitors",
+  "tools.run_suite_chunked",
+  "tools.silent_failure_audit",
+  "tools.streamlit_dashboard",
+  "tools.sync_codex_to_g",
+  "tools.torch_state_watch",
+  "tools.twelve_factor_audit",
+  "tools.unified_cli",
+  "tools.verify_hashes",
+  "tools.verify_pipeline",
+  "tools.visualize_ner",
+  "tools.wsl_revision_diff",
+  "tools.yggdrasil_atlas"
+ ],
+ "orphan_count": 721,
+ "skipped_device_count": 1,
+ "label": "kali-azazael"
+}

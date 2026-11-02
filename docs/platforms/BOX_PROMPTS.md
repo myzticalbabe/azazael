@@ -71,9 +71,12 @@ different claims, and this tree has shipped the first while the second was false
 Port <module> to <backend> on this box, without changing its public behaviour.
 
 Rules:
-- the backend probe must be a single resolver (src/CORE/accelerate), not an
-  if-chain inside the module; if the resolver already ranks xpu → cuda → mps →
-  cpu, use it and do not add a branch.
+- the backend probe must be one function, not an if-chain spread through the module.
+  The ranking already exists as data: `tools/box_profile.py --json` reports
+  `accelerators[]` and `preferred_accelerator`, ordered xpu → cuda → mps → cpu.
+  Consume that, or port its ranking into one helper — there is no
+  `src/CORE/accelerate` resolver in this tree today, so do not ask an agent to
+  "use" one it will not find.
 - device-specific constants (dtype, memory cap, thread count) go in one table
   with the platform named per entry, so the next port edits a row, not a code path.
 - add one test that fails on the reference box and passes on the target, and

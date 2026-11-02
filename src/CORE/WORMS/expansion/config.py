@@ -5,12 +5,19 @@ ConfigLinter, EnvValidator, DotfileSync, SecretRotator, FeatureFlagCtrl
 """
 
 import json
+import os
+import shutil
 import time
 import hashlib
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, List
+
+# Top-level, not per-call: secrets_manager touches no WORMS module, so there is
+# no cycle to dodge, and an import inside the function is the shape that makes
+# a missing dependency fail at USE time instead of at load time.
+from CORE.secrets_manager import SecretsManager
 from collections import defaultdict
 import string
 import sysconfig
@@ -156,15 +163,187 @@ class SecretRotator:
     def __init__(self):
         self._rotation_log: list[dict] = []
 
-    def rotate_secret(self, name: str = "default", generator: (Callable[[], str] | None) = None, backup_path: str = "") -> dict[str, Any]:
-        if generator is None:
-            generator = self.generate_password
-        """Rotate a secret: backup old, generate new, validate."""
+    @staticmethod
+    def _write_env_key(env: Path, name: str, value: str) -> None:
+        """Set `name` in `env`, preserving every other line. Atomic replace."""
+        lines = []
+        if env.exists():
+            lines = env.read_text(encoding="utf-8", errors="replace").splitlines()
+        replaced = False
+        out = []
+        for line in lines:
+            s = line.strip()
+            if s and not s.startswith("#") and s.partition("=")[0].strip() == name:
+                out.append("%s=%s" % (name, value))
+                replaced = True
+            else:
+                out.append(line)
+        if not replaced:
+            out.append("%s=%s" % (name, value))
+        env.parent.mkdir(parents=True, exist_ok=True)
+        tmp = env.with_name(env.name + ".rot.tmp")
+        tmp.write_text("\n".join(out).strip() + "\n", encoding="utf-8")
+        tmp.replace(env)
+
+    @staticmethod
+    def _audit_path() -> Path:
+        p = os.environ.get("AZAZAEL_SECRET_ROTATION_LOG")
+        return Path(p) if p else Path.home() / ".azazael" / "secret_rotations.jsonl"
+
+    def rotate_secret(self, name: str = "", generator: (Callable[[], str] | None) = None,
+                      backup_path: str = "", create: bool = False,
+                      env_path: (str | None) = None) -> dict[str, Any]:
+        """Rotate a key in ~/.env, with backup and read-back verification.
+
+        Contract (2026-10-30 rewrite). The previous body generated a password,
+        recorded its checksum, and returned `success: True` while writing the
+        value nowhere, ignoring `backup_path`, and never re-reading anything —
+        a control whose success signal was independent of the thing it claimed
+        to do. It had zero call sites, and wiring THAT would have produced
+        scheduled "rotations" that changed no credential and logged success
+        every time.
+
+        So the success flag is now derived, not asserted: `success` is True only
+        when the key is present on disk afterwards, its value equals the new
+        secret, and its checksum differs from the previous one. Every failure
+        path returns success=False with a `reason`; nothing is ever reported as
+        rotated on the strength of having run.
+
+        Rotation targets the real store (SecretsManager -> ~/.env) rather than
+        an in-memory value, and refuses an unknown key unless `create=True`, so
+        a typo cannot silently append a credential nobody reads.
+        """
+        generator = generator or self.generate_password
+        env = Path(env_path) if env_path else (Path.home() / ".env")
+        result: dict[str, Any] = {"name": name, "success": False, "verified": False,
+                                  "changed": False, "backup": "", "reason": ""}
+        if not name:
+            result["reason"] = "no_name -- pass the env key to rotate (refusing to invent one)"
+            return result
+
+        def _read(p: Path) -> (str | None):
+            if not p.exists():
+                return None
+            for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                s = line.strip()
+                if s and not s.startswith("#") and s.partition("=")[0].strip() == name:
+                    return s.partition("=")[2].strip().strip('"').strip("'")
+            return None
+
+        previous = _read(env)
+        if previous is None and not create:
+            result["reason"] = "unknown_secret -- %s has no %s; pass create=True to add it" % (env, name)
+            return result
+
         new_secret = generator()
-        log_entry = {"name": name, "rotated_at": datetime.now().isoformat(),
-                     "checksum": hashlib.sha256(new_secret.encode()).hexdigest()[:12]}
-        self._rotation_log.append(log_entry)
-        return {"name": name, "success": True, "checksum_preview": log_entry["checksum"]}
+        if not new_secret:
+            result["reason"] = "generator returned an empty value"
+            return result
+        prev_sum = hashlib.sha256(previous.encode()).hexdigest()[:12] if previous else ""
+        new_sum = hashlib.sha256(new_secret.encode()).hexdigest()[:12]
+        if previous is not None and new_sum == prev_sum:
+            result["reason"] = "generator produced the existing value -- nothing would rotate"
+            return result
+
+        # backup BEFORE mutation; verified to exist and to contain the key.
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup = Path(backup_path) if backup_path else env.with_name(env.name + ".bak." + stamp)
+        try:
+            if env.exists():
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(env, backup)
+                result["backup"] = str(backup)
+                if _read(backup) != previous:
+                    result["reason"] = "backup does not reproduce the previous value -- aborting before write"
+                    return result
+        except OSError as exc:
+            result["reason"] = "backup failed (%s: %s) -- not writing" % (type(exc).__name__, exc)
+            return result
+
+        # Write to THIS path. `SecretsManager.add_to_env` targets its singleton's
+        # `_env_path`, fixed at first construction, so calling it after reading
+        # `env` could mutate a different file than the one about to be verified
+        # -- which is exactly how a rotation reports success on a file it never
+        # touched. The write is local and atomic for that reason.
+        try:
+            self._write_env_key(env, name, new_secret)
+        except OSError as exc:
+            result["reason"] = "write failed (%s: %s)" % (type(exc).__name__, exc)
+            return result
+
+        # Keep the shared cache honest when the default store was rotated. A
+        # failure here is REPORTED rather than swallowed: the rotation stands,
+        # but a stale cache is a fact the caller needs, and `pass` would have
+        # made it invisible (and trips the silent-except ratchet).
+        if env.resolve() == (Path.home() / ".env").resolve():
+            try:
+                SecretsManager().reload()
+            except Exception as exc:  # noqa: BLE001 -- cache refresh is not the rotation
+                result["cache_reload_error"] = f"{type(exc).__name__}: {exc}"
+
+        # verification is a fresh read of the file, not a belief about the write
+        on_disk = _read(env)
+        result["changed"] = bool(on_disk and on_disk != previous)
+        result["verified"] = bool(on_disk == new_secret)
+        result["success"] = bool(result["verified"] and result["changed"])
+        if not result["success"]:
+            result["reason"] = ("read-back mismatch: on-disk value %s"
+                                % ("absent" if on_disk is None else "differs from the new secret"))
+
+        entry = {"name": name, "rotated_at": datetime.now(timezone.utc).isoformat(),
+                 "previous_checksum": prev_sum, "checksum": new_sum,
+                 "verified": result["verified"], "backup": result["backup"],
+                 "env": str(env), "success": result["success"]}
+        self._rotation_log.append(entry)
+        try:
+            audit = self._audit_path()
+            audit.parent.mkdir(parents=True, exist_ok=True)
+            with audit.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+        except OSError as exc:
+            # The rotation stands; the trail is best-effort. Reported, not lost:
+            # a rotation nobody can audit is a rotation nobody can review.
+            result["audit_write_error"] = f"{type(exc).__name__}: {exc}"
+        result["checksum_preview"] = new_sum
+        return result
+
+    def rotation_status(self, max_age_days: int = 90) -> dict[str, Any]:
+        """Age of the last successful rotation per key, from the audit log.
+
+        This is the part a schedule may run unattended: it reads the trail and
+        reports, and never mutates a credential. A rotation that is never
+        performed is indistinguishable from one that always succeeds unless
+        something measures the age, which is what this exists for.
+        """
+        audit = self._audit_path()
+        latest: dict[str, dict] = {}
+        if audit.exists():
+            for line in audit.read_text(encoding="utf-8", errors="replace").splitlines():
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    # A corrupt audit line is exactly the record that would show
+                    # a rotation happening; skipping it silently makes the
+                    # staleness reading optimistic.
+                    note_failure("config:rotation-audit-line", exc)
+                    continue
+                if not rec.get("success"):
+                    continue
+                name = rec.get("name")
+                if name and (name not in latest or rec["rotated_at"] > latest[name]["rotated_at"]):
+                    latest[name] = rec
+        now = datetime.now(timezone.utc)
+        stale = []
+        for name, rec in latest.items():
+            try:
+                age = (now - datetime.fromisoformat(rec["rotated_at"])).days
+            except (ValueError, TypeError):
+                stale.append({"name": name, "age_days": None, "rotated_at": rec.get("rotated_at")})
+                continue
+            if age >= max_age_days:
+                stale.append({"name": name, "age_days": age, "rotated_at": rec["rotated_at"]})
+        return {"audit": str(audit), "keys_rotated": len(latest),
+                "max_age_days": max_age_days, "stale": stale}
 
     def generate_password(self, length: int = 32) -> str:
         """Generate a strong random password."""

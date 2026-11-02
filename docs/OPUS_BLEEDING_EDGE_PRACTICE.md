@@ -11,10 +11,10 @@ how the wrong ones got in.
 **Provenance convention.** A claim tagged *(measured)* was re-derived while writing this
 document — the command and its output are in Appendix C. **Everything untagged is
 *canon-recorded***: quoted from `AGENTS.md`, `MANDATES.md` or a source's own printed output,
-and *not* re-derived here. That distinction is not legalism. Two of the canon-recorded
-claims checked for this pass turned out to be **wrong in their identifiers while right in
-their substance** (§I), which is exactly the class of error a convention like this one exists
-to make visible.
+and *not* re-derived here. That distinction is not legalism. Of the seven canon-recorded
+claims re-checked for this pass, **three were wrong in their identifiers and one was simply
+out of date** (§I, §V, §VII) — which is exactly the class of error a convention like this
+exists to make visible.
 
 **The standing warning.** These are not principles. Principles are what you write before
 you know. These are **receipts**: the residue of doing it wrong, in production, for long
@@ -181,8 +181,9 @@ old, with `mcp_config_fix` posted **75 times**, because `status` lived inside ea
 JSON — so a poller re-read its entire backlog every pass, and nothing recorded that any row
 had ever been *picked up*. A "batch loop" built on that board gets **slower** every
 iteration. The repair was `claim`/`done`/`block`: compare-and-set inside `BEGIN IMMEDIATE`,
-oldest first, a 30-minute lease (`CLAIM_LEASE_SECONDS`) so a dead lane cannot strand work,
-and retirement so retired rows leave the query.
+oldest first, a 30-minute lease (`CLAIM_LEASE_SECONDS = 1800` at
+`src/CORE/LaneMessageBoard.py:858` — the constant is **not** in `_board.py`, which only calls
+into it), and retirement so retired rows leave the query.
 
 **The footgun the repair introduced, recorded rather than hidden.** `release` *deletes* the
 claim row — which also erases `attempts`. A row claimed and released four times still reads
@@ -238,12 +239,14 @@ request**. Nothing was wrong with them individually. The catalogue was the bug. 
 `find skills.pkg-archive -name SKILL.md | wc -l` → **1042**; the directory list alone shows
 only `load/` and `source/`, so a shallow `ls` reads this archive as two items.)*
 
-**Wall clock (measured).** **5,380 tests exist and nothing gates them.** Before concluding
-"the suite is slow", check that it is not *stuck*: two tests wedged an entire run for
-months because the compliance gate under test read a **5.4 GB** store on every `check_all()`.
-After the fix: **0.09 s**, measured. The lesson is not "write faster tests" — it is *an
-unbounded read inside a gate converts a fast suite into an infinite one, and the report
-looks like "tests are slow" forever*.
+**Wall clock (measured).** The suite is **6,102 tests** — `pytest --collect-only -q` on
+2026-11-02, **31.79 s** to collect, against a canon figure of 5,380 that has since gone
+stale — **and nothing gates them.** `.githooks/pre-commit:392` mentions pytest only inside a
+comment; no stanza runs it. Before concluding "the suite is slow", check that it is not
+*stuck*: two tests wedged an entire run for months because the compliance gate under test
+read a **5.4 GB** store on every `check_all()`. After the fix: **0.09 s**, measured. The
+lesson is not "write faster tests" — it is *an unbounded read inside a gate converts a fast
+suite into an infinite one, and the report looks like "tests are slow" forever*.
 
 **Interpreter (measured).** The production interpreter is **3.15t free-threaded**
 (`C:/Azazael/.venvs/py315t/Scripts/python.exe`, `sys._is_gil_enabled()` is False). `python`
@@ -471,6 +474,12 @@ today and which are inherited.
 |---|---|---|
 | the skip is designed, not a bug | `sed -n '100,112p' scripts/chain_controller.py`; `grep -n "KIP_RC\|kip"` | `_SKIP_RC` at line **161**, `{"train": (1,), "tensor": (3,), …}` — canon's `_KIP_RC:107` is wrong on both name and line |
 | the package archive is real and its size | `find skills.pkg-archive -name SKILL.md \| wc -l` | **1042** (canon's figure confirmed) |
+| the floor thresholds and their lineage | `grep -n "PMB_RECALL_MIN_BEST\|PMB_RECALL_FLOOR" tools/pmb_floor_proxy.py` | **0.89 / 0.70** confirmed, and the file carries the gap itself: *"midpoint of the measured gap (0.836 .. 0.949)"* |
+| `PMB_UPSTREAM_WAIT` really defaults to 30 s | `grep -n PMB_UPSTREAM_WAIT tools/pmb_floor_proxy.py` | line 96: `UPSTREAM_WAIT = float(os.environ.get("PMB_UPSTREAM_WAIT", "30"))` |
+| the board lease is 30 minutes | `grep -rn CLAIM_LEASE src/CORE/LaneMessageBoard.py` | **1800 s at line 858** — and *not* in `_board.py`, where canon implies it lives |
+| the interpreter is free-threaded | `C:/Azazael/.venvs/py315t/Scripts/python.exe -c "…_is_gil_enabled()"` | **3.15.0rc3, gil_enabled=False** |
+| the suite's size, and whether anything runs it | `pytest --collect-only -q`; `grep -n pytest .githooks/pre-commit` | **6,102 collected in 31.79 s** (canon's 5,380 is stale); the hook mentions pytest **only in a comment** at line 392 |
+| how much disk a model install would cost | `df -B1 /c` | **6,390,525,952 bytes free, 100% used** — which is why the model pull was cancelled rather than attempted |
 | the local-model harness state | `/v1/models` on `:8087`, `:11435`, `:11434`; `/v1/chat/completions` with a tools array | two endpoints refused; 4 of 5 declared models absent; `eve-v2u` "does not support chat"; `olmoe` "does not support tools" |
 | the agent's own output, gated | commit `ab6be175`'s pipeline | 25 checks run, 1 non-blocking failure, `[AP5]` **2 findings** in assistant prose |
 | a plausible number kept alive by being plausible | driver read + address-map decode | Model 2 = 1 MiB work + 4 MiB texture + 128 KiB buffer; the "62 MB" total **withdrawn** |

@@ -117,10 +117,22 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
                    "%d.%d.%d (needs >= %d.%d; stdlib only, nothing to pip install)"
                    % (current + MIN_PYTHON)))
 
+    # A standalone install of CRADLE does not contain FLAMING_SWORD: the chain's
+    # parts are another project's files. Absent-and-not-expected is NOT a failure --
+    # it is the normal shape of a standalone install -- but absent-inside-the-monorepo
+    # still is. Three states, because collapsing them either lies (PASS for a part
+    # that is missing) or refuses to run on a correct install (FAIL for a part that
+    # was never going to be there).
+    chain_installed = SWORD_TOOLS.is_dir()
     for name, path in PARTS.items():
-        checks.append((name, path.exists(),
-                       str(path.relative_to(REPO)) if path.exists()
-                       else "MISSING: %s" % path))
+        if path.exists():
+            checks.append((name, True, str(path.relative_to(REPO))))
+        elif chain_installed:
+            checks.append((name, False, "MISSING: %s" % path))
+        else:
+            checks.append((name, None,
+                           "not installed: FLAMING_SWORD is a separate project "
+                           "(install it beside this tree to enable the chain)"))
 
     # The state directory is where frames, lessons and verifications land. A chain that
     # cannot write there is a chain that reports success and remembers nothing.
@@ -144,7 +156,7 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
         checks.append(("model", True, "none configured -- --serve still works, /ask "
                                        "answers 503 with that reason"))
 
-    failures = [name for name, ok, _detail in checks if not ok]
+    failures = [name for name, ok, _detail in checks if ok is False]
     if json_out:
         print(json.dumps({"ok": not failures, "failures": failures,
                           "checks": [{"name": n, "ok": ok, "detail": d}
@@ -154,7 +166,8 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
         for name, ok, detail in checks:
             true_name, _role = NAMES.get(name, (name, ""))
             label = true_name if true_name == name else "%s (%s)" % (true_name, name)
-            print("  %-24s %-6s %s" % (label, "PASS" if ok else "FAIL", detail))
+            verdict = "PASS" if ok else ("N/A" if ok is None else "FAIL")
+            print("  %-24s %-6s %s" % (label, verdict, detail))
         print("")
         if failures:
             print("NOT READY: %d check(s) failed (%s)" % (len(failures),
@@ -162,7 +175,13 @@ def doctor(model_url: str = "", json_out: bool = False) -> int:
             print("  each one is a real absence; none of them is fixed by reading "
                   "further")
         else:
-            print("READY. next: python cradle.py --demo")
+            absent = [n for n, ok, _d in checks if ok is None]
+            if absent:
+                print("READY (standalone): %d chain part(s) not installed (%s)."
+                      % (len(absent), ", ".join(absent)))
+                print("  --demo needs them: install FLAMING_SWORD beside this tree first.")
+            else:
+                print("READY. next: python cradle.py --demo")
     return 0 if not failures else 1
 
 

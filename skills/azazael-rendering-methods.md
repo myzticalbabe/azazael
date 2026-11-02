@@ -1,12 +1,12 @@
 ---
 name: azazael-rendering-methods
-description: **[OBSOLETE MATH]** CAIN video rendering method comparison — see `azazael/CAIN_DELIVERABLE_MATH_2026-06-05.md` for corrected file-size data. The technical codec and pipeline guidance below is still valid.
+description: "**[OBSOLETE MATH]** CAIN video rendering method comparison — see `azazael/CAIN_DELIVERABLE_MATH_2026-06-05.md` for corrected file-size data. The technical codec and pipeline guidance below is still valid."
 metadata:
   category: codex
   project: azazael
   priority: low
-deprecated: true
-superseded_by: azazael/CAIN_DELIVERABLE_MATH_2026-06-05.md
+  deprecated: true
+  superseded_by: azazael/CAIN_DELIVERABLE_MATH_2026-06-05.md
 ---
 
 # CAIN Rendering Methods — File Size Comparison & Codec Guide

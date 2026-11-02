@@ -51,10 +51,10 @@ class PerformanceBenchmarks:
         """Benchmark WORMZ crawl performance."""
         start = time.time()
         try:
-            from WORMZ.WORMZ import WORMZ
+            from CORE.WORMS.WORMZ import WORMZ
 
             wormz = WORMZ()
-            result = wormz.crawl(path)
+            result = wormz.crawl(path)  # type: ignore[attr-defined]
             elapsed = time.time() - start
             self.results.append(
                 {
@@ -74,7 +74,7 @@ class PerformanceBenchmarks:
         """Benchmark METAWORMS analysis performance."""
         start = time.time()
         try:
-            from METAWORMS.METAWORMS import METAWORMS
+            from META.METAWORMS import METAWORMS
 
             mw = METAWORMS()
             results = mw.run_all()
@@ -95,10 +95,10 @@ class PerformanceBenchmarks:
         """Benchmark HYDRA pipeline performance."""
         start = time.time()
         try:
-            from HYDRA.HYDRA import HYDRACluster
+            from ORCHESTRATION.HYDRA import HYDRACluster
 
             hydra = HYDRACluster()
-            hydra.run_all()
+            hydra.run_all()  # type: ignore[attr-defined]
             elapsed = time.time() - start
             self.results.append(
                 {"test": "hydra_pipeline", "elapsed_ms": elapsed * 1000}

@@ -15,7 +15,7 @@ Purpose: Every environment must know what every other environment contains and c
 
 | Project | Path | Size | Files | Last Modified | Status |
 |---------|------|------|-------|---------------|--------|
-| **AOA** | `Desktop/AOA/` | 11 MB | 54 | July 2, 2026 | ✅ Active |
+| **AOA** | `Desktop/AOA/` (MISSING) | - | - | archived 2026-10-21 | archived - lives only in azazael.archived-20261021 (src/AOA, archive/restored/AOA); not an active standalone dev tree on this box |
 | **Azazael** | `Users/clint/azazael/` | 50 GB | 5,277 | Active | ✅ Active |
 | **Libra** | `Desktop/Libra/` | 1.8 MB | 181 | June 30, 2026 | ✅ Active |
 | **EveUnleashed** | `Desktop/EveUnleashed_Selector/` | 23 MB | 172 | Active | ✅ Active |

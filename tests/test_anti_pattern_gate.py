@@ -149,6 +149,59 @@ class TestBaselineIntegrity:
         assert rc == 2
         assert "identity_scheme" in capsys.readouterr().err
 
+    def test_tracked_only_baseline_is_not_redirected(self):
+        """`--tracked-only` is a PREDICATE, not a narrowing.
+
+        Measured 2026-11-01: it was treated as narrowed, so `--baseline
+        --tracked-only` wrote `anti_pattern_baseline.partial.json` while
+        `--check --tracked-only` (what the hook runs) read
+        `anti_pattern_baseline.json` -- the file nothing updated. The ratchet then
+        diffed tracked counts against a worktree baseline and went red on
+        untracked scratch from another lane. Only `--dir` may redirect.
+        """
+        # narrowed is False for tracked-only now; the redirect must therefore
+        # resolve to the path the check reads.
+        assert gate._resolve_out(None, narrowed=False, kind="baseline") == gate.BASELINE
+        assert gate._resolve_out(None, narrowed=False, kind="baseline").name == \
+            "anti_pattern_baseline.json"
+
+    def test_predicate_mismatch_is_refused_not_diffed(self, base_file, monkeypatch,
+                                                      capsys):
+        """A worktree baseline diffed against a tracked scan is not comparable.
+
+        The negative control for the fix above: if this ever passes silently, the
+        gate is back to measuring one tree and reporting on another.
+        """
+        _write_baseline(base_file, {"unicode_emoji": 5})  # recorded tracked_only=False
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 5}))
+        rc = gate.cmd_check("src", base_file, tracked_only=True)
+        assert rc == 2
+        err = capsys.readouterr().err
+        assert "not comparable" in err and "--tracked-only" in err
+
+    def test_matching_predicate_is_compared(self, base_file, monkeypatch):
+        """And the same pair WITH matching predicates still gates normally."""
+        data = {"identity_scheme": gate.IDENTITY_SCHEME, "target": "src",
+                "tracked_only": True, "files_scanned": 1,
+                "category_counts": {"unicode_emoji": 5}, "total_findings": 5}
+        base_file.write_text(json.dumps(data), encoding="utf-8")
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 5}))
+        assert gate.cmd_check("src", base_file, tracked_only=True) == 0
+
+    def test_each_predicate_has_its_own_baseline_file(self):
+        """Two scopes, two sets of counts, two files -- and one reader each.
+
+        The earlier shape kept one file and REFUSED the other predicate, which
+        made a plain `--check` unrunnable rather than useful: a diagnostic flag
+        that can only ever exit 2 is not a diagnostic.
+        """
+        tracked, worktree = gate.baseline_path(True), gate.baseline_path(False)
+        assert tracked.name == "anti_pattern_baseline.json"
+        assert worktree.name == "anti_pattern_baseline.worktree.json"
+        assert tracked != worktree
+
     def test_narrowed_baseline_redirected_to_partial(self, tmp_path):
         """`--baseline --dir src/CORE` must not overwrite the whole-tree file."""
         out = gate._resolve_out(None, narrowed=True, kind="baseline")
@@ -177,21 +230,57 @@ class TestCommittedBaseline:
         assert data["identity_scheme"] == gate.IDENTITY_SCHEME
         assert data["target"] == "src"
         assert data["category_counts"], "baseline recorded no categories"
+        # The predicate the hook enforces. Absent this key the check cannot tell
+        # a tracked scan from a worktree one, which is how the ratchet came to
+        # diff one against the other (2026-11-01).
+        assert data.get("tracked_only") is True, (
+            "the baseline must record the scan predicate the hook uses; re-record "
+            "with: python tools/anti_pattern_gate.py --baseline --tracked-only")
+
+    def test_worktree_baseline_is_a_separate_scope(self):
+        """The other predicate is recorded beside it, not instead of it.
+
+        Skipped when this host has not recorded one: the worktree baseline counts
+        untracked scratch, which is a property of a working copy rather than of a
+        commit, so its absence is "not recorded here" and never "zero findings".
+        """
+        if not gate.WORKTREE_BASELINE.exists():
+            pytest.skip("no worktree-scope baseline recorded on this host; "
+                        "record it with: python tools/anti_pattern_gate.py --baseline")
+        worktree = json.loads(gate.WORKTREE_BASELINE.read_text(encoding="utf-8"))
+        tracked = json.loads(gate.BASELINE.read_text(encoding="utf-8"))
+        assert worktree["identity_scheme"] == gate.IDENTITY_SCHEME
+        assert worktree.get("tracked_only") is False, worktree.get("tracked_only")
+        assert tracked.get("tracked_only") is True
+        # Two different scopes cannot be the same measurement of the same tree.
+        assert worktree["category_counts"] != tracked["category_counts"] or \
+            worktree["files_scanned"] != tracked["files_scanned"]
 
     def test_baseline_agrees_with_a_live_scan(self):
-        """The committed baseline must equal a real scan of the live src/ tree.
+        """The committed baseline must equal a real scan of the tracked src/ tree.
 
         This is the positive/negative control for every injected-scanner test
         above: it proves the instrument the gate wraps actually produces the
         numbers the baseline claims. If this fails, the tree grew or shrank and
         `--baseline` must be re-run deliberately.
+
+        TRACKED-ONLY, matching what the hook enforces (2026-11-01). The gate's
+        default scan walks the worktree and counts untracked scratch -- session
+        probes, dated one-shots, another lane's `??` modules -- so a full-scan
+        comparison made this control fail on files no commit contains: measured
+        that day, 968 vs 953 `import_inside_function` and 968 files, entirely
+        from untracked paths. That is the same defect the `--tracked-only` flag
+        was added for on 2026-10-04; the control had simply kept comparing a
+        different tree than the gate judges.
         """
         data = json.loads(gate.BASELINE.read_text(encoding="utf-8"))
-        live, files = gate.scan("src")
+        live, files = gate.scan("src", tracked_only=True)
         assert dict(sorted(live.items())) == data["category_counts"], (
             "live anti-pattern counts differ from logs/anti_pattern_baseline.json; "
-            "re-run: python tools/anti_pattern_gate.py --baseline")
-        assert files == data["files_scanned"]
+            "re-run: python tools/anti_pattern_gate.py --baseline --tracked-only")
+        assert files == data["files_scanned"], (
+            "the baseline describes %s file(s) but a tracked scan covers %s -- "
+            "re-record it with --tracked-only" % (data["files_scanned"], files))
 
 
 # ── the scanner itself (positive + negative control) ─────────────────────

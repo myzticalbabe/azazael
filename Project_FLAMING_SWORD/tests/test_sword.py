@@ -57,7 +57,10 @@ def test_scan_persists_what_it_prints_and_clears_a_stale_unrun_list(repo, capsys
     left over from a blind detector reports that detector blind after it started
     seeing, which teaches the reader to skip the section.
     """
-    _configure(repo, constants=["FLOOR"])
+    _configure(repo, constants=["FLOOR"],
+               claims={"ledger": "claims.json",
+                       "command": [sys.executable, "-c", "pass"]})
+    (repo / "claims.json").write_text("{}\n", encoding="utf-8")
     (repo / sword.STATE_DIR / "unrun.txt").write_text("duplicate-constant: UNRUN\n",
                                                        encoding="utf-8")
     _md(repo, "docs/install.md", "# Install\n\n```bash\npython tools/commgate.py\n```\n")
@@ -71,9 +74,27 @@ def test_scan_persists_what_it_prints_and_clears_a_stale_unrun_list(repo, capsys
 
 
 def test_clean_repository_produces_no_findings(repo):
-    _configure(repo, constants=["FLOOR"])
+    # Every detector must actually RUN on the clean fixture: an unconfigured
+    # detector reports UNRUN, and a clean tree that cannot run its instruments
+    # proves nothing about a clean tree.
+    _configure(repo, constants=["FLOOR"],
+               claims={"ledger": "claims.json",
+                       "command": [sys.executable, "-c", "pass"]},
+               compliance={"required": ["license", "license-header", "security-policy", "contributing", "code-of-conduct", "readme", "changelog", "ci-config"],
+                           "optional": ["dependabot", "codeql"]})
+    (repo / "claims.json").write_text("{}\n", encoding="utf-8")
     (repo / "tools").mkdir()
-    (repo / "tools" / "real.py").write_text("FLOOR = 0.89\n", encoding="utf-8")
+    (repo / "tools" / "real.py").write_text("# Copyright (c) 2024\n# MIT License\n\nFLOOR = 0.89\n", encoding="utf-8")
+    (repo / "LICENSE").write_text("MIT License\n\nCopyright (c) 2024\n", encoding="utf-8")
+    (repo / "SECURITY.md").write_text("# Security Policy\n\nReport security issues to security@example.com\n", encoding="utf-8")
+    (repo / "CONTRIBUTING.md").write_text("# Contributing Guidelines\n\nWelcome!\n", encoding="utf-8")
+    (repo / "CODE_OF_CONDUCT.md").write_text("# Code of Conduct\n\nBe respectful.\n", encoding="utf-8")
+    (repo / "README.md").write_text("# Project\n\nDescription\n", encoding="utf-8")
+    (repo / "CHANGELOG.md").write_text("# Changelog\n\n## Unreleased\n", encoding="utf-8")
+    (repo / ".github" / "workflows").mkdir(parents=True, exist_ok=True)
+    (repo / ".github" / "dependabot.yml").write_text("version: 2\nupdates:\n  - package-ecosystem: pip\n    directory: /\n    schedule:\n      interval: daily\n", encoding="utf-8")
+    (repo / ".github" / "codeql").mkdir(parents=True, exist_ok=True)
+    (repo / ".github" / "codeql" / "codeql-config.yml").write_text("# CodeQL configuration\n", encoding="utf-8")
     _md(repo, "docs/run.md", "# Run\n\n```bash\npython tools/real.py\n```\n")
     findings, unrun = sword.scan(repo)
     assert findings == []
@@ -178,6 +199,16 @@ def test_constant_detector_ignores_names_outside_the_watchlist(repo):
     (repo / "b.py").write_text("BLACK = 30\nFLOOR = 0.89\n", encoding="utf-8")
     findings, _ran, _ = sword.detect_duplicate_constant(repo)
     assert findings == []
+
+
+def test_stale_claims_is_unrun_rather_than_clean_without_a_command(repo):
+    """Found 2026-11-01: with no `claims.command` the detector returned
+    `ran=True, 0 findings`, so a guard that never ran read as clean."""
+    _configure(repo, constants=["FLOOR"])
+    findings, ran, note = sword.detect_stale_claims(repo)
+    assert findings == []
+    assert ran is False
+    assert "nothing was run" in note
 
 
 # -- hooks and interpreters -------------------------------------------------
@@ -349,10 +380,16 @@ def test_research_record_with_an_invented_tier_is_refused(repo):
 
 # -- the spec the brief prints ---------------------------------------------
 
-def test_brief_prints_twelve_followups_and_both_decision_blocks(capsys):
+def test_brief_prints_thirteen_followups_and_both_decision_blocks(capsys):
     assert sword.brief() == 0
     out = capsys.readouterr().out
-    assert "exactly 12" in out
+    assert "exactly 14" in out
+    # The baker's dozen has two fixed cards. A brief that prints the count but
+    # not the cards leaves the abyss slot to the agent's memory -- which is how
+    # the slot gets dropped while the count still reads correct.
+    assert "Build, land, in the abyss" in out
+    assert "Hyper-edge adaptive upgrade" in out
+    assert "Zero-shot reasoning" in out
     assert "before-write" in out
     assert "before-land" in out
     assert "rollback" in out

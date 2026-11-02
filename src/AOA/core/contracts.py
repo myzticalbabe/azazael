@@ -65,6 +65,99 @@ FUTURE_TOLERANCE_S = 5.0
 PROVENANCE_DECLARED = "arm_declared"
 PROVENANCE_OBSERVED = "router_observed"
 
+#: Verdicts an Arm is allowed to claim about ITS OWN answer.
+#:
+#: Why this exists at all: ``status`` says what came back ("ok"), and the
+#: router's outcome says whether the call was accepted. Neither says whether the
+#: answer was RIGHT, and only the Arm is in a position to know -- it holds the
+#: input, the computation and whatever it computed against. A search arm that
+#: finds nothing returns "ok"; a lookup that resolves to the wrong record returns
+#: "ok". Without this field a span can distinguish a crash from a success and
+#: nothing else.
+#:
+#: The claim is recorded, never trusted: it is labelled ``judged_by: arm:<id>``
+#: so it can not be read as the router's finding, and it never overrides
+#: ``outcome.verdict`` -- a disagreement is the interesting reading, and collapsing
+#: the two would destroy it.
+ARM_VERDICTS = ("correct", "incorrect", "undetermined")
+
+
+def normalize_arm_verdict(raw: Any, arm_id: str = "") -> Optional[Dict[str, Any]]:
+    """Normalise an Arm's self-assessment, or return None if it is unusable.
+
+    Accepts a bare string (``"incorrect"``) or a dict with ``verdict`` plus
+    optional ``confidence`` (0.0-1.0) and ``evidence``. Anything else yields
+    None -- an unfalsifiable or unrecognised claim is dropped rather than
+    coerced, because a claim the reader cannot interpret is worse than no claim.
+
+    ``judged_by`` is SET HERE from the arm id, never taken from the input: an arm
+    that could name its own judge could impersonate the router.
+    """
+    if raw is None:
+        return None
+    claimed: Any = raw
+    if isinstance(claimed, str):
+        claimed = {"verdict": claimed}
+    if not isinstance(claimed, dict):
+        note_failure("contracts:arm_verdict:shape",
+                     TypeError("arm_verdict must be str or dict, got %s"
+                               % type(raw).__name__))
+        return None
+
+    verdict = str(claimed.get("verdict") or "").strip().lower()
+    if verdict not in ARM_VERDICTS:
+        note_failure("contracts:arm_verdict:enum",
+                     ValueError("unknown arm_verdict %r; expected one of %s"
+                                % (raw if isinstance(raw, str) else verdict,
+                                   ", ".join(ARM_VERDICTS))))
+        return None
+
+    out: Dict[str, Any] = {"verdict": verdict,
+                           "judged_by": "arm:%s" % (arm_id or "?")}
+
+    confidence = claimed.get("confidence")
+    if confidence is not None:
+        try:
+            value = float(confidence)
+        except (TypeError, ValueError) as exc:
+            note_failure("contracts:arm_verdict:confidence", exc)
+            value = None
+        if value is not None and 0.0 <= value <= 1.0:
+            out["confidence"] = value
+        elif value is not None:
+            # Out of range is dropped, not clamped: 1.7 means the arm and this
+            # reader disagree about what confidence is, and a clamped 1.0 would
+            # hide that behind a plausible number.
+            note_failure("contracts:arm_verdict:confidence-range",
+                         ValueError("confidence %r outside 0.0-1.0" % (confidence,)))
+
+    evidence = claimed.get("evidence")
+    if evidence:
+        out["evidence"] = evidence
+    return out
+
+
+def verdict_agreement(router_verdict: Optional[str],
+                      arm_verdict: Optional[Dict[str, Any]]) -> str:
+    """Compare the router's outcome with the Arm's own claim.
+
+    Returns ``agree`` / ``disagree`` / ``unknown``. ``unknown`` covers: the arm
+    said nothing, it said ``undetermined``, or the router returned
+    ``unverified`` (a stale answer is not evidence either way).
+
+    This is the reading a span exists to make possible: an arm that returns
+    ``ok`` while claiming ``incorrect`` is the case no status code can express.
+    """
+    claimed = (arm_verdict or {}).get("verdict") if isinstance(arm_verdict, dict) else None
+    router = str(router_verdict or "").strip().lower()
+    if claimed not in ("correct", "incorrect") or not router:
+        return "unknown"
+    if router == "accepted":
+        return "agree" if claimed == "correct" else "disagree"
+    if router == "rejected":
+        return "agree" if claimed == "incorrect" else "disagree"
+    return "unknown"
+
 
 def now_local() -> datetime:
     """Current naive local time (the AOA layer's convention)."""
@@ -116,6 +209,10 @@ class ArmResult:
     stale_after_s: Optional[float] = None
     provenance: str = PROVENANCE_OBSERVED
     metadata: Dict[str, Any] = field(default_factory=dict)
+    #: The Arm's own claim about whether its answer was right, normalised by
+    #: ``normalize_arm_verdict``. None means the Arm said nothing, and an Arm that
+    #: says nothing behaves exactly as it did before this field existed.
+    arm_verdict: Optional[Dict[str, Any]] = None
 
     def age_s(self, at: Optional[datetime] = None) -> Optional[float]:
         """Seconds since ``produced_at``. None when it cannot be parsed."""
@@ -169,6 +266,8 @@ class ArmResult:
             out["is_stale"] = stale
         if self.metadata:
             out["metadata"] = dict(self.metadata)
+        if self.arm_verdict:
+            out["arm_verdict"] = dict(self.arm_verdict)
         return out
 
     @classmethod
@@ -184,6 +283,8 @@ class ArmResult:
             stale_after_s=raw.get("stale_after_s"),
             provenance=str(raw.get("provenance") or PROVENANCE_OBSERVED),
             metadata=dict(raw.get("metadata") or {}),
+            arm_verdict=normalize_arm_verdict(
+                raw.get("arm_verdict"), str(raw.get("arm_id") or "")),
         )
 
     @classmethod
@@ -226,6 +327,12 @@ class ArmResult:
                 produced_at=now_iso(),
                 stale_after_s=stale_after_s,
                 provenance=PROVENANCE_OBSERVED,
+                # Read from the Arm's own output before it is thrown away: the
+                # plain-dict path discards every key it does not name, and this
+                # is the one key only the Arm can supply.
+                arm_verdict=normalize_arm_verdict(
+                    payload.get("arm_verdict"),
+                    str(payload.get("arm_id") or arm_id)),
             )
         # An Arm returned something that is not a dict at all: an upstream
         # contract break. Report it as an error rather than coercing it into

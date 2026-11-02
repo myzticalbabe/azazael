@@ -1,0 +1,592 @@
+{
+ "root": "C:/Users/clint/edge0-intel",
+ "python": "3.15.0rc3",
+ "executable": "C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe",
+ "platform": "win32",
+ "files_total": 1199,
+ "other_languages": {
+  "javascript": 3
+ },
+ "py_files": 161,
+ "py_parsed": 161,
+ "syntax_errors": [],
+ "unreadable": [],
+ "loc": 30963,
+ "classes": 145,
+ "functions": 1211,
+ "async_functions": 0,
+ "methods": 447,
+ "mains": 57,
+ "bare_except": [],
+ "except_pass": [
+  {
+   "path": "scripts\\attribute.py",
+   "line": 35
+  },
+  {
+   "path": "scripts\\build_az_eval.py",
+   "line": 44
+  },
+  {
+   "path": "scripts\\controls.py",
+   "line": 158
+  },
+  {
+   "path": "scripts\\eval_full.py",
+   "line": 135
+  },
+  {
+   "path": "scripts\\eval_full.py",
+   "line": 187
+  },
+  {
+   "path": "scripts\\judge_calibrate.py",
+   "line": 51
+  },
+  {
+   "path": "scripts\\obligations.py",
+   "line": 60
+  },
+  {
+   "path": "scripts\\obligations.py",
+   "line": 46
+  },
+  {
+   "path": "scripts\\prereg.py",
+   "line": 74
+  },
+  {
+   "path": "scripts\\repaird.py",
+   "line": 134
+  },
+  {
+   "path": "scripts\\rules_pool.py",
+   "line": 41
+  },
+  {
+   "path": "scripts\\svi.py",
+   "line": 177
+  },
+  {
+   "path": "scripts\\svi.py",
+   "line": 60
+  },
+  {
+   "path": "scripts\\sweep_ling_layers.py",
+   "line": 48
+  },
+  {
+   "path": "scripts\\sweep_ling_layers.py",
+   "line": 57
+  },
+  {
+   "path": "scripts\\sweep_ling_layers.py",
+   "line": 181
+  },
+  {
+   "path": "scripts\\sweep_ling_layers.py",
+   "line": 72
+  },
+  {
+   "path": "scripts\\sweep_ling_layers.py",
+   "line": 290
+  },
+  {
+   "path": "src\\edge0\\backends\\intel\\core.py",
+   "line": 108
+  },
+  {
+   "path": "src\\edge0\\backends\\intel\\io.py",
+   "line": 105
+  },
+  {
+   "path": "_upstream\\src\\edge0\\registry.py",
+   "line": 77
+  },
+  {
+   "path": "_upstream\\src\\edge0\\backends\\intel\\core.py",
+   "line": 108
+  },
+  {
+   "path": "_upstream\\src\\edge0\\backends\\intel\\io.py",
+   "line": 105
+  },
+  {
+   "path": "_upstream\\src\\edge0\\backends\\mlx\\io.py",
+   "line": 143
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\base.py",
+   "line": 176
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\base.py",
+   "line": 165
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\ling.py",
+   "line": 188
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\ling.py",
+   "line": 196
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\ling.py",
+   "line": 149
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\qwen.py",
+   "line": 139
+  },
+  {
+   "path": "_upstream\\src\\edge0\\server\\app.py",
+   "line": 219
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 920
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 755
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 1448
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\mmap.py",
+   "line": 49
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\mmap.py",
+   "line": 76
+  }
+ ],
+ "except_continue": [
+  {
+   "path": "scripts\\arch_manifest.py",
+   "line": 39
+  },
+  {
+   "path": "scripts\\atlas_map.py",
+   "line": 55
+  },
+  {
+   "path": "scripts\\controls.py",
+   "line": 102
+  },
+  {
+   "path": "scripts\\dequant_8b.py",
+   "line": 51
+  },
+  {
+   "path": "scripts\\judge_calibrate.py",
+   "line": 68
+  },
+  {
+   "path": "scripts\\make_shardfoundry.py",
+   "line": 126
+  },
+  {
+   "path": "scripts\\prereg.py",
+   "line": 117
+  },
+  {
+   "path": "scripts\\provenance.py",
+   "line": 173
+  },
+  {
+   "path": "scripts\\provenance.py",
+   "line": 240
+  },
+  {
+   "path": "scripts\\repaird.py",
+   "line": 107
+  },
+  {
+   "path": "scripts\\replay.py",
+   "line": 39
+  },
+  {
+   "path": "scripts\\select_confirm.py",
+   "line": 82
+  },
+  {
+   "path": "scripts\\select_confirm.py",
+   "line": 134
+  },
+  {
+   "path": "_upstream\\src\\edge0\\prerouter\\install.py",
+   "line": 45
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 408
+  }
+ ],
+ "except_return_none": 8,
+ "eval_exec": [
+  {
+   "path": "scripts\\collect_clean.py",
+   "line": 49,
+   "call": "eval"
+  },
+  {
+   "path": "scripts\\collect_edge8b_dir.py",
+   "line": 41,
+   "call": "eval"
+  },
+  {
+   "path": "scripts\\collect_gemma2.py",
+   "line": 184,
+   "call": "eval"
+  },
+  {
+   "path": "scripts\\collect_gemma_dir.py",
+   "line": 184,
+   "call": "eval"
+  },
+  {
+   "path": "scripts\\collect_gemma_trunc.py",
+   "line": 64,
+   "call": "eval"
+  },
+  {
+   "path": "scripts\\softskill_train.py",
+   "line": 64,
+   "call": "eval"
+  },
+  {
+   "path": "tests\\test_surgery.py",
+   "line": 108,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\scripts\\verify_alignment.py",
+   "line": 75,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\scripts\\verify_alignment.py",
+   "line": 125,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\ling.py",
+   "line": 221,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\engine\\qwen.py",
+   "line": 178,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\prerouter\\stager.py",
+   "line": 137,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\prerouter\\stager.py",
+   "line": 193,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 616,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 699,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 1272,
+   "call": "eval"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\streaming\\layer.py",
+   "line": 612,
+   "call": "eval"
+  }
+ ],
+ "open_no_encoding": [
+  {
+   "path": "scripts\\controls.py",
+   "line": 147,
+   "mode": "r"
+  },
+  {
+   "path": "scripts\\eval_full.py",
+   "line": 176,
+   "mode": "r"
+  },
+  {
+   "path": "scripts\\judge_calibrate.py",
+   "line": 40,
+   "mode": "r"
+  },
+  {
+   "path": "scripts\\ports_lock.py",
+   "line": 75,
+   "mode": "r"
+  },
+  {
+   "path": "scripts\\prereg.py",
+   "line": 63,
+   "mode": "r"
+  },
+  {
+   "path": "tests\\test_ports_lock.py",
+   "line": 69,
+   "mode": "w"
+  },
+  {
+   "path": "_upstream\\scripts\\strip_vision_weights.py",
+   "line": 36,
+   "mode": "r"
+  },
+  {
+   "path": "_upstream\\scripts\\strip_vision_weights.py",
+   "line": 87,
+   "mode": "w"
+  },
+  {
+   "path": "_upstream\\scripts\\verify_alignment.py",
+   "line": 42,
+   "mode": "w"
+  },
+  {
+   "path": "_upstream\\scripts\\verify_alignment.py",
+   "line": 39,
+   "mode": "r"
+  },
+  {
+   "path": "_upstream\\src\\edge0\\registry.py",
+   "line": 68,
+   "mode": "r"
+  }
+ ],
+ "star_import": [],
+ "type_ignore": 1,
+ "noqa": 78,
+ "markers": [
+  {
+   "path": "models\\edge0-8b\\modeling_bailing_moe_v3.py",
+   "line": 1253,
+   "kind": "TODO",
+   "text": "TODO let's just use the original freqcis computation to not have the view"
+  },
+  {
+   "path": "models\\edge0-8b-abl-s1.0\\modeling_bailing_moe_v3.py",
+   "line": 1253,
+   "kind": "TODO",
+   "text": "TODO let's just use the original freqcis computation to not have the view"
+  },
+  {
+   "path": "models\\edge0-8b-fp16\\modeling_bailing_moe_v3.py",
+   "line": 1253,
+   "kind": "TODO",
+   "text": "TODO let's just use the original freqcis computation to not have the view"
+  },
+  {
+   "path": "scripts\\repaird.py",
+   "line": 7,
+   "kind": "TEMP",
+   "text": "R4 temp cruft           : %TEMP% older than 7 days -> delete (bounded)"
+  }
+ ],
+ "markers_total": 4,
+ "markers_by_kind": {
+  "TODO": 3,
+  "TEMP": 1
+ },
+ "duplicate_content": [
+  [
+   "models\\edge0-8b-abl-s1.0\\configuration_bailing_moe_v3.py",
+   "models\\edge0-8b-fp16\\configuration_bailing_moe_v3.py",
+   "models\\edge0-8b\\configuration_bailing_moe_v3.py"
+  ],
+  [
+   "models\\edge0-8b-abl-s1.0\\modeling_bailing_moe_v3.py",
+   "models\\edge0-8b-fp16\\modeling_bailing_moe_v3.py",
+   "models\\edge0-8b\\modeling_bailing_moe_v3.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\__init__.py",
+   "src\\edge0\\backends\\intel\\__init__.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\backend.py",
+   "src\\edge0\\backends\\intel\\backend.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\core.py",
+   "src\\edge0\\backends\\intel\\core.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\device.py",
+   "src\\edge0\\backends\\intel\\device.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\io.py",
+   "src\\edge0\\backends\\intel\\io.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\nn.py",
+   "src\\edge0\\backends\\intel\\nn.py"
+  ],
+  [
+   "_upstream\\src\\edge0\\backends\\intel\\quant.py",
+   "src\\edge0\\backends\\intel\\quant.py"
+  ]
+ ],
+ "skipped_device_paths": [],
+ "skip_dirs": [
+  ".cache",
+  ".conan",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".kali_staging",
+  ".mypy_cache",
+  ".pams_venv",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".venvs",
+  "__pycache__",
+  "archive",
+  "archived",
+  "build",
+  "dist",
+  "dist-packages",
+  "graphify-out",
+  "node_modules",
+  "sdist",
+  "site-packages",
+  "target",
+  "venv"
+ ],
+ "duplicate_groups": 9,
+ "duplicate_files": 20,
+ "orphan_modules": [
+  "_upstream.examples.bench",
+  "_upstream.examples.demo",
+  "_upstream.scripts.convert_adapters_legacy",
+  "_upstream.scripts.e2e_smoke",
+  "_upstream.scripts.fetch_models",
+  "_upstream.scripts.generate_example",
+  "_upstream.scripts.strip_vision_weights",
+  "_upstream.scripts.upload_hf",
+  "_upstream.scripts.verify_alignment",
+  "_upstream.src.edge0.adapters",
+  "_upstream.src.edge0.adapters.lora",
+  "_upstream.src.edge0.attention.spec",
+  "_upstream.src.edge0.backends",
+  "_upstream.src.edge0.backends.base",
+  "_upstream.src.edge0.backends.intel",
+  "_upstream.src.edge0.backends.intel.backend",
+  "_upstream.src.edge0.backends.intel.core",
+  "_upstream.src.edge0.backends.intel.io",
+  "_upstream.src.edge0.backends.intel.nn",
+  "_upstream.src.edge0.backends.intel.quant",
+  "_upstream.src.edge0.backends.mlx._impl",
+  "_upstream.src.edge0.backends.mlx._impl.bailing_hybrid",
+  "_upstream.src.edge0.backends.mlx._impl.qwen3_5",
+  "_upstream.src.edge0.backends.mlx._impl.qwen3_5_moe",
+  "_upstream.src.edge0.backends.mlx._impl.qwen3_next",
+  "_upstream.src.edge0.backends.mlx.backend",
+  "_upstream.src.edge0.backends.mlx.io",
+  "_upstream.src.edge0.backends.mlx.quant",
+  "_upstream.src.edge0.cli",
+  "_upstream.src.edge0.config",
+  "_upstream.src.edge0.engine",
+  "_upstream.src.edge0.engine.base",
+  "_upstream.src.edge0.engine.hooks",
+  "_upstream.src.edge0.engine.ling",
+  "_upstream.src.edge0.engine.qwen",
+  "_upstream.src.edge0.models",
+  "_upstream.src.edge0.models.base",
+  "_upstream.src.edge0.models.edge0_35b",
+  "_upstream.src.edge0.models.edge0_8b",
+  "_upstream.src.edge0.moe",
+  "_upstream.src.edge0.moe.routing",
+  "_upstream.src.edge0.moe.spec",
+  "_upstream.src.edge0.prerouter",
+  "_upstream.src.edge0.prerouter.heads",
+  "_upstream.src.edge0.prerouter.install",
+  "_upstream.src.edge0.prerouter.spec",
+  "_upstream.src.edge0.prerouter.stager",
+  "_upstream.src.edge0.prerouter.state",
+  "_upstream.src.edge0.registry",
+  "_upstream.src.edge0.sampling",
+  "_upstream.src.edge0.server.app",
+  "_upstream.src.edge0.server.chat",
+  "_upstream.src.edge0.streaming",
+  "_upstream.src.edge0.streaming.cache",
+  "_upstream.src.edge0.streaming.install",
+  "_upstream.src.edge0.streaming.layer",
+  "_upstream.src.edge0.streaming.options",
+  "models.edge0-8b-abl-s1.0.modeling_bailing_moe_v3",
+  "models.edge0-8b-fp16.modeling_bailing_moe_v3",
+  "models.edge0-8b.modeling_bailing_moe_v3",
+  "scripts._patch_light",
+  "scripts.arch_manifest",
+  "scripts.atlas_map",
+  "scripts.attribute",
+  "scripts.backfill_sidecars",
+  "scripts.build_az_eval",
+  "scripts.build_fp16_index",
+  "scripts.check_intel_gpu",
+  "scripts.check_vocab",
+  "scripts.check_vocab2",
+  "scripts.collect_clean",
+  "scripts.collect_edge8b_dir",
+  "scripts.collect_gemma2",
+  "scripts.collect_gemma_dir",
+  "scripts.collect_gemma_trunc",
+  "scripts.collect_refusal_dir",
+  "scripts.dequant_8b",
+  "scripts.dl_8b",
+  "scripts.dl_gemma",
+  "scripts.install_intel_backend",
+  "scripts.integrity",
+  "scripts.layer_swap",
+  "scripts.make_pebbles_bambam",
+  "scripts.make_shardfoundry",
+  "scripts.obligations",
+  "scripts.probe_gemma_load",
+  "scripts.probe_gguf",
+  "scripts.probe_grammar",
+  "scripts.probe_keys",
+  "scripts.probe_map",
+  "scripts.probe_meta",
+  "scripts.probe_parts",
+  "scripts.probe_shared",
+  "scripts.probe_spark_mesh",
+  "scripts.probe_stratum",
+  "scripts.probe_thinkflag",
+  "scripts.repaird",
+  "scripts.replay",
+  "scripts.rules_pool",
+  "scripts.sweep_ling_layers",
+  "scripts.try_8b",
+  "scripts.try_fp16",
+  "src.edge0.backends.intel",
+  "src.edge0.backends.intel.backend",
+  "src.edge0.backends.intel.core",
+  "src.edge0.backends.intel.io",
+  "src.edge0.backends.intel.nn",
+  "src.edge0.backends.intel.quant"
+ ],
+ "orphan_count": 108,
+ "skipped_device_count": 0,
+ "label": "windows-edge0"
+}

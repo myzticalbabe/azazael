@@ -2,7 +2,6 @@
 # Committing it would create a second copy of the source that drifts silently:
 # a fix applied to the copy passes local tests and disappears on the next
 # materialise. The CI workflow materialises before installing.
-/nurse_ratchet/
 
 __pycache__/
 *.py[cod]

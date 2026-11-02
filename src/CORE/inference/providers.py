@@ -359,6 +359,9 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         "key_prefix": "",
         "env_var": "GITHUB_TOKEN",
         "signup_url": "https://github.com/settings/tokens",
+        "retired": True,
+        "retired_date": "2026-07-30",
+        "retired_reason": "GitHub Models playground, catalog and inference API shut down",
         "free_models": {
             "gpt-4o-mini": "GPT-4o Mini (OpenAI, fast)",
             "gpt-4o": "GPT-4o (OpenAI, frontier)",
@@ -971,7 +974,7 @@ class OpenAIProvider:
         Returns:
             Dict with 'content', 'model', 'usage', 'finish_reason', 'elapsed_ms'.
             On error: 'error' key with error message.
-        """
+"""
         if not self.has_valid_key():
             return {
                 "error": (
@@ -980,7 +983,22 @@ class OpenAIProvider:
                     f"Get a free key at: {self.config.signup_url}"
                 )
             }
-
+        
+        # Check if provider is retired
+        provider_info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        if provider_info.get("retired", False):
+            retired_date = provider_info.get("retired_date", "unknown")
+            retired_reason = provider_info.get("retired_reason", "Provider retired")
+            return {
+                "error": (
+                    f"Provider '{self.provider_name}' is retired as of {retired_date}: "
+                    f"{retired_reason}. This provider is no longer available."
+                ),
+                "elapsed_ms": 0,
+                "provider": self.provider_name,
+                "retired": True,
+            }
+        
         # -- Circuit breaker check --
         breaker = _global_breaker
         if not breaker.allow_request(self.provider_name):
@@ -1018,6 +1036,20 @@ class OpenAIProvider:
             response = client.chat.completions.create(**kwargs)
 
             elapsed_ms = int((time.time() - start) * 1000)
+
+            # Validate response structure — some providers (e.g., GitHub Models)
+            # may return error strings instead of proper response objects
+            if not hasattr(response, 'choices') or not response.choices:
+                error_msg = f"Invalid response from {self.provider_name}: {response}"
+                note_failure(f"providers:invalid-response:{self.provider_name}", 
+                             Exception(error_msg))
+                breaker.record_failure(self.provider_name, error_msg)
+                return {
+                    "error": error_msg,
+                    "elapsed_ms": elapsed_ms,
+                    "provider": self.provider_name,
+                }
+
             choice = response.choices[0]
 
             result: Dict[str, Any] = {

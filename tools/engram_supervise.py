@@ -58,6 +58,11 @@ def run(args, stdin_data=None, timeout=60):
             encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         return r.stdout or ""
+    except subprocess.TimeoutExpired:
+        # Tagged, not plain: a timeout means the store was busy enough to
+        # overrun the budget, which is a different fact from a binary that
+        # cannot be launched. Consumers still test the __ERR__ prefix.
+        return f"__ERR__ timeout: engram did not answer within {timeout:g}s"
     except Exception as e:
         return f"__ERR__ {e}"
 
@@ -80,6 +85,12 @@ def strip_banner(text):
 def check_doctor(timeout=60):
     text = strip_banner(run(["doctor"], timeout=timeout))
     if text.startswith("__ERR__"):
+        if "timeout:" in text.splitlines()[0]:
+            return "unknown", [
+                "doctor SLOW, not unreachable: " + text,
+                "  a store busy with writes overruns this budget; re-run before "
+                "treating it as a fault",
+            ]
         return "unknown", ["doctor unreachable: " + text]
     head = text.splitlines()[0] if text else ""
     blocked = errors = 0

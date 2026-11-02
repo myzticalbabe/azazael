@@ -30,7 +30,10 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import engram_supervise as sup  # noqa: E402
-from mcp.server.fastmcp import FastMCP  # noqa: E402
+try:
+    from mcp.server import MCPServer as FastMCP  # mcp 2.x
+except ImportError:
+    from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
 import datetime
 import subprocess
 import urllib.request
@@ -58,6 +61,14 @@ _OPEN_DATES: dict[str, str] = {}
 #: names. With this bound an abandoned leg's child is already dead (or
 #: dying inside its own run() timeout) when the verdict returns.
 LEG_LIMIT_S = 20.0
+
+#: The doctor leg gets a longer leash than the others because `engram doctor`
+#: reads the whole store and measured 7.07s idle on 2026-10-31 -- roughly a
+#: third of LEG_LIMIT_S. While 47 relation judgments were landing the same
+#: call overran 20s and the verdict printed "doctor unreachable", which reads
+#: as a dead store rather than a busy one. 26s still leaves the child dead
+#: before BUDGET (30s), keeping the no-ghost invariant LEG_LIMIT_S exists for.
+DOCTOR_LIMIT_S = 26.0
 
 
 def _item_age_days(date_str):
@@ -289,7 +300,7 @@ def verdict() -> str:
     leg_errors = {}
     ex = ThreadPoolExecutor(max_workers=6)
     try:
-        legs["doctor"] = ex.submit(sup.check_doctor, LEG_LIMIT_S)
+        legs["doctor"] = ex.submit(sup.check_doctor, DOCTOR_LIMIT_S)
         legs["conflicts"] = ex.submit(sup.check_conflicts, LEG_LIMIT_S)
         legs["hook"] = ex.submit(sup.check_hook, LEG_LIMIT_S)
         legs["pams"] = ex.submit(_pams_honest)
@@ -476,7 +487,11 @@ def _run_cli_bounded(cmd, timeout=LEG_LIMIT_S, cwd=None, env=None):
             p.communicate(timeout=5)
         except Exception:  # best-effort drain after tree-kill; tree already gone
             pass  # scanner:ignore silent_except_pass (deliberate best-effort drain)
-        return None, ("KILLED after %.0fs: taskkill /T (launcher pair)" % timeout), 0
+        #: rc=-9, not 0. A killed child did NOT succeed, and a caller that
+        #: reads rc==0 as success would turn a timeout into a pass. Today's
+        #: callers all test `out is None` first, but the sentinel is what the
+        #: next caller will trust.
+        return None, ("KILLED after %.0fs: taskkill /T (launcher pair)" % timeout), -9
 
 
 def _pmb_endpoint():
@@ -807,16 +822,42 @@ def mint_tool(name: str, purpose: str, body: str) -> str:
 
 
 @server.tool()
+def _outcome_topic_key(kind: str, title: str) -> str:
+    """Stable topic key so the SAME outcome upserts instead of duplicating.
+
+    Without this, an outcome written twice (a retry, or a caller that also calls
+    `engram mem_save` with the same title) becomes two observations that then
+    have to be judged apart by hand — measured 2026-10-30: #1957 and #1958 were
+    one event stored twice, and only the conflict report revealed it.
+    """
+    slug = "".join(ch if ch.isalnum() else "-" for ch in title.lower())
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return "outcome/%s/%s" % (kind, slug.strip("-")[:60])
+
+
 def record_outcome(title: str, body: str, kind: str = "lesson") -> str:
     """Write-through outcome: engram save + JSONL outbox row for PMB pickup.
+
+    THIS IS THE ONLY WRITER FOR OUTCOMES. Do not pair it with a direct
+    `engram mem_save` / `mem_save` tool call for the same event: that is what
+    produces an immediate duplicate pair. Memory that is not an outcome (a
+    decision record, a discovery mid-task) is not this tool's business; the
+    outcome goes here, once.
+
+    The save carries a deterministic `--topic` derived from kind+title, so a
+    repeated write of the same outcome UPDATES the observation instead of
+    appending a second one.
 
     Returns per-store status so a half-write is loud, never silent.
     """
     title = title[:120]
     results = []
+    topic = _outcome_topic_key(kind, title)
     saved = sup.strip_banner(sup.run(
         ["save", title, body[:4000], "--type", kind,
-         "--project", sup.PROJECT]))
+         "--project", sup.PROJECT, "--topic", topic]))
+    results.append("topic: %s" % topic)
     results.append("engram: %s" % (saved[:200] if saved else "empty response"))
     row = {"ts": int(time.time()), "title": title,
            "body": body[:4000], "kind": kind}
@@ -874,6 +915,71 @@ PMB_VENV_PY = r"C:/Users/clint/.pmb-venv/Scripts/python.exe"
 PAMS_BASE = os.path.expanduser("~/.pams/memory_data")
 
 
+#: pmb recall returns its nearest rows even when nothing matches, so a
+#: nonsense query comes back wearing the shape of an answer. `confidence` does
+#: NOT separate the two (0.539 nonsense against 0.72-0.89 real), so the floor
+#: reads `score`.
+#:
+#: TWO tiers, measured on the live daemon 2026-10-30 after the contaminated
+#: test records were purged (n=15 noise, 8 real):
+#:   noise BEST score  0.836 max, 0.722 p90, 0.645 mean
+#:   real  BEST score  0.949 min, 1.167 mean
+#:   real  ROW scores  0.600 min, 0.640 p10, 0.850 p25, 0.937 median
+#: The best row separates the populations by a measured gap of 0.113; the
+#: individual rows do not, because a genuine query's tail reaches 0.600. One
+#: row floor is therefore wrong both ways: 0.62 lets noise answer as a match
+#: (measured 0.644), and 0.89 cuts a real query's tail. So the query floor is
+#: the gap midpoint and decides whether ANYTHING matched; the row floor trims
+#: the tail afterwards. Override with PMB_RECALL_FLOOR / PMB_RECALL_MIN_BEST;
+#: 0 disables filtering. Re-run the sweep when the corpus changes a lot.
+PMB_RECALL_FLOOR = float(os.environ.get("PMB_RECALL_FLOOR", "0.70"))
+PMB_RECALL_MIN_BEST = float(os.environ.get("PMB_RECALL_MIN_BEST", "0.89"))
+
+
+def _apply_score_floor(payload):
+    """Apply both tiers to a recall payload. Returns (payload, note).
+
+    Loud by construction: the note names how many rows were dropped and the
+    best score seen, so a filtered answer can never be mistaken for an
+    empty store or a working hit. An empty `results` list is the signal the
+    callers use to fall through to the next memory layer.
+    """
+    if not isinstance(payload, dict) or PMB_RECALL_FLOOR <= 0:
+        return payload, ""
+    rows = payload.get("results")
+    if not isinstance(rows, list) or not rows:
+        return payload, ""
+    scored, best = [], 0.0
+    for row in rows:
+        try:
+            score = float(row.get("score") or 0.0)
+        except (TypeError, ValueError, AttributeError):
+            score = 0.0
+        scored.append((row, score))
+        best = max(best, score)
+
+    trimmed = dict(payload)
+    # Tier 1: nothing here is close enough to be an answer.
+    if best < PMB_RECALL_MIN_BEST:
+        trimmed["results"] = []
+        trimmed["n_results"] = 0
+        return trimmed, (" no row reached the query relevance floor %.2f "
+                         "(best %.2f; %d nearest row(s) dropped -- semantic "
+                         "recall always returns nearest rows, so this is a "
+                         "relevance miss, not an outage)"
+                         % (PMB_RECALL_MIN_BEST, best, len(rows)))
+
+    # Tier 2: some rows matched; trim the weak tail.
+    kept = [row for row, score in scored if score >= PMB_RECALL_FLOOR]
+    dropped = len(rows) - len(kept)
+    if not dropped:
+        return payload, ""
+    trimmed["results"] = kept
+    trimmed["n_results"] = len(kept)
+    return trimmed, (" %d row(s) below relevance floor %.2f dropped (best %.2f)"
+                     % (dropped, PMB_RECALL_FLOOR, best))
+
+
 def _pmb_recall(query, top_k=5):
     """Recall leg for fanout_search: HTTP-primary, bounded-CLI fallback.
 
@@ -885,25 +991,51 @@ def _pmb_recall(query, top_k=5):
     """
     try:
         payload = _pmb_http_call("recall", {"query": query, "top_k": top_k})
+        payload, floor_note = _apply_score_floor(payload)
         out = _payload_summary(payload)
-        return out[:3000] if out else "pmb: empty response"
+        if not (isinstance(payload, dict) and payload.get("results")):
+            return "pmb:" + (floor_note or " no results")
+        return (out[:3000] + "\n[pmb:" + floor_note + "]") if floor_note else out[:3000]
     except Exception as exc:
         env = dict(os.environ)
         env["PYTHONIOENCODING"] = "utf-8"
         try:
+            #: `call recall` prints the raw JSON payload; the `recall`
+            #: subcommand prints a rendered summary with no scores, which
+            #: made this fallback impossible to floor. Same daemon, same
+            #: tool, parseable answer.
             out, err, rc = _run_cli_bounded(
-                [PMB_VENV_PY, str(HERE / "pmb_client.py"), "recall", query,
-                 "--top-k", str(top_k)],
+                [PMB_VENV_PY, str(HERE / "pmb_client.py"), "call", "recall",
+                 json.dumps({"query": query, "top_k": top_k}), "--json"],
                 timeout=LEG_LIMIT_S, cwd=str(HERE.parent), env=env)
         except Exception as exc2:
             return "pmb: UNREACHABLE (http %s: %s; cli %s: %s)" % (
                 type(exc).__name__, str(exc)[:100],
                 type(exc2).__name__, str(exc2)[:100])
         if out is None:
-            return ("pmb: UNREACHABLE via CLI (hung >%ds, tree-killed -- no "
-                    "child survives; http said %s: %s)"
-                    % (LEG_LIMIT_S, type(exc).__name__, str(exc)[:100]))
-        return (out or "").strip()[:3000] or "pmb: empty response"
+            return ("pmb: UNREACHABLE via CLI (hung >%ds (rc=%d), tree-killed "
+                    "-- no child survives; http said %s: %s)"
+                    % (LEG_LIMIT_S, rc, type(exc).__name__, str(exc)[:100]))
+        raw = (out or "").strip()
+        if not raw:
+            return "pmb: empty response"
+        import ast as _ast
+        payload = None
+        for parse in (json.loads, _ast.literal_eval):
+            try:
+                payload = parse(raw)
+                break
+            except Exception:
+                payload = None
+        if isinstance(payload, dict) and payload.get("results") is not None:
+            payload, floor_note = _apply_score_floor(payload)
+            summary = _payload_summary(payload)
+            if not payload.get("results"):
+                return "pmb:" + (floor_note or " no results")
+            return ((summary[:3000] + "\n[pmb:" + floor_note + "]")
+                    if floor_note else summary[:3000])
+        return ("pmb: UNFLOORED CLI text -- no scores to filter (http said %s: %s)"
+                "\n%s" % (type(exc).__name__, str(exc)[:100], raw[:2500]))
 
 
 def _pams_search(query, top_k=5):
@@ -925,6 +1057,100 @@ def _pams_search(query, top_k=5):
         return "\n".join("[%s|%s] %s" % r for r in rows)[:3000]
     except Exception as exc:
         return "pams: UNREADABLE (%s: %s)" % (type(exc).__name__, exc)
+
+
+#: Words that carry no retrieval signal here. Dropping them is what turns
+#: the token leg into an ANY search instead of a second AND search.
+_SEARCH_STOPWORDS = frozenset((
+    "the", "and", "for", "with", "that", "this", "from", "into", "when",
+    "what", "why", "how", "does", "did", "was", "were", "are", "not",
+    "have", "has", "had", "but", "all", "any", "our", "its", "about",
+    "never", "after", "before", "they", "them", "there", "then", "than",
+))
+
+
+def _engram_hits(query: str, limit: int = 20):
+    """One engram search leg -> (text, has_hits).
+
+    has_hits is parsed from engram's own "Found N memories" header rather
+    than inferred from text length: a sentinel-plus-prose answer is not a
+    hit, and treating it as one would defeat the whole fallback.
+    """
+    import re as _re
+    raw = sup.strip_banner(sup.run(
+        ["search", query, "--project", sup.PROJECT, "--limit", str(limit)]))
+    if not raw or raw.startswith("__ERR__"):
+        return (raw or "", False)
+    m = _re.search(r"Found\s+(\d+)\s+memor", raw)
+    if m:
+        return raw, int(m.group(1)) > 0
+    low = raw.lower()
+    if "no memories found" in low:
+        return raw, False
+    return raw, len(raw.strip()) > 40
+
+
+def _memory_search_block(layer, body, steps):
+    tried = "; ".join("%s=%s" % (name, "hit" if ok else "empty")
+                     for name, ok in steps)
+    return ("[memory_search: answered by %s]\n"
+            "[layers tried in order: %s]\n\n%s" % (layer, tried, body))
+
+
+@server.tool()
+def memory_search(query: str, top_k: int = 10) -> str:
+    """Search every memory store, falling through when a layer finds nothing.
+
+    Engram's default match is ALL tokens (FTS5 AND). Measured over 8 months
+    of kilo.db history: 160 of 348 `mem_search` calls (46%) came back "No
+    memories found" on phrasings that have matches under OR. The missing
+    piece was never a better index -- it was a caller that retries.
+
+    Order: engram exact (AND) -> engram OR over de-stopworded tokens ->
+    PMB recall -> PAMS curated LIKE. Stops at the first layer that answers
+    and names it, so an empty result is a fact about all four stores rather
+    than a quirk of one. Every leg is bounded by LEG_LIMIT_S.
+    """
+    import re as _re
+    steps = []
+
+    raw, hit = _engram_hits(query, top_k)
+    steps.append(("engram-exact", hit))
+    if hit:
+        return _memory_search_block("engram (exact, all tokens)", raw[:6000], steps)
+
+    tokens = [t for t in _re.split(r"[^A-Za-z0-9_]+", query)
+              if len(t) > 3 and t.lower() not in _SEARCH_STOPWORDS][:3]
+    merged = []
+    for tok in tokens:
+        sub, subhit = _engram_hits(tok, top_k)
+        steps.append(("engram-token:%s" % tok, subhit))
+        if subhit:
+            merged.append("--- token %r ---\n%s" % (tok, sub[:2500]))
+    if merged:
+        return _memory_search_block(
+            "engram (OR over %d token(s))" % len(tokens),
+            "\n".join(merged)[:8000], steps)
+
+    pmb = _pmb_recall(query, top_k=top_k)
+    pmb_hit = not (pmb.startswith("pmb: ") or "UNREACHABLE" in pmb
+                   or "empty response" in pmb)
+    steps.append(("pmb", pmb_hit))
+    if pmb_hit:
+        return _memory_search_block("pmb recall", pmb[:6000], steps)
+
+    pams = _pams_search(query, top_k=top_k)
+    pams_hit = not (pams.startswith("pams: ") or "no hits" in pams
+                    or "UNREADABLE" in pams)
+    steps.append(("pams", pams_hit))
+    if pams_hit:
+        return _memory_search_block("pams curated LIKE", pams[:6000], steps)
+
+    return _memory_search_block(
+        "NOTHING",
+        "query %r returned no hits from engram (exact or token OR), pmb, "
+        "or pams. That is a coverage finding about the question, not a "
+        "tool failure." % query[:120], steps)
 
 
 @server.tool()

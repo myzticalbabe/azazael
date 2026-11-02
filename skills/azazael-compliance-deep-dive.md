@@ -1,6 +1,6 @@
 ---
 name: azazael-compliance-deep-dive
-description: Deep diagnostic of ComplianceOrchestrator self_test — 0X: 8/8 pass, 0Y: 4/5 pass (dual_ledger by-design failure), state machine startup wiring needed
+description: "Deep diagnostic of ComplianceOrchestrator self_test — 0X: 8/8 pass, 0Y: 4/5 pass (dual_ledger by-design failure), state machine startup wiring needed"
 metadata:
   category: architecture
   project: azazael

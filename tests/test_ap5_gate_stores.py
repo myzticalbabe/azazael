@@ -308,3 +308,64 @@ def test_json_reports_status_and_scanned_flag(tmp_path, capsys):
     assert payload["stores"][0]["status"] == gate.ABSENT
     assert payload["stores"][0]["scanned"] is False
     assert payload["findings"] == []
+
+
+# ─── acknowledgement ledger: records what happened, still fails on NEW ─────
+#
+# The gate had no history, so one sentence emitted once failed the commit path
+# forever and the only ways to pass were to edit a transcript or delete the
+# finding. These three tests are the whole contract: acking REPORTS (test 1),
+# a different emission still FAILS (test 2, the negative control), and the ack
+# is bound to the line it was granted for (test 3).
+
+
+def _ack_roots(tmp_path, monkeypatch):
+    ledger = tmp_path / "ack.json"
+    monkeypatch.setattr(gate, "ACK_PATH", str(ledger))
+    argv = ["--source", "manicode", "--manicode-root", str(tmp_path)]
+    return ledger, argv
+
+
+def test_acknowledged_finding_is_reported_but_does_not_gate(
+        tmp_path, monkeypatch, capsys):
+    ledger, argv = _ack_roots(tmp_path, monkeypatch)
+    _write_session(tmp_path, "s1", [_ai("m2", _text(VIOLATION))])
+
+    assert gate.main(argv + ["--ack", "already emitted, cannot be un-said"]) == 0
+    assert len(json.loads(ledger.read_text(encoding="utf-8"))["acknowledged"]) == 1
+
+    capsys.readouterr()
+    assert gate.main(argv) == 0
+    out = capsys.readouterr().out
+    assert "no NEW finding" in out
+    # Reported, not hidden: the emission is still named on every run.
+    assert "already-acknowledged" in out
+
+
+def test_a_different_emission_still_fails_after_an_ack(tmp_path, monkeypatch,
+                                                      capsys):
+    """Negative control: an ack must not whitelist the RULE."""
+    _ledger, argv = _ack_roots(tmp_path, monkeypatch)
+    _write_session(tmp_path, "s1", [_ai("m2", _text(VIOLATION))])
+    assert gate.main(argv + ["--ack", "s1 recorded"]) == 0
+
+    _write_session(tmp_path, "s2", [_ai("m9", _text("Want me to restart it?"))])
+    capsys.readouterr()
+    assert gate.main(argv) == 1
+    out = capsys.readouterr().out
+    assert "new finding" in out and "s2" in out
+
+
+def test_ack_is_bound_to_the_line_it_was_granted_for(tmp_path, monkeypatch):
+    """An ack for line 1 must not cover a sentence that moved to line 2.
+
+    This is what makes the ledger an acknowledgement rather than a permanent
+    hole: an edited part produces a different key, so the rewritten sentence
+    is evaluated on its own.
+    """
+    _ledger, argv = _ack_roots(tmp_path, monkeypatch)
+    _write_session(tmp_path, "s1", [_ai("m2", _text(VIOLATION))])
+    assert gate.main(argv + ["--ack", "line 1 recorded"]) == 0
+
+    _write_session(tmp_path, "s1", [_ai("m2", _text("\n" + VIOLATION))])
+    assert gate.main(argv) == 1

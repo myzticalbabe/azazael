@@ -80,7 +80,11 @@ def _discover_modules() -> dict:
         try:
             module = __import__(mod, fromlist=["discover_modules"])
             return module.discover_modules()
-        except ImportError:
+        except ImportError as exc:
+            # The final raise names the failure, but WHICH candidate failed and
+            # why is lost without this: three paths are tried and only the last
+            # error would otherwise survive.
+            note_failure("HYDRA:discover_modules-import", exc)
             continue
     raise ModuleNotFoundError(
         "No ml_platforms.config found (tried ORCHESTRATION/HYDRA/top-level)"

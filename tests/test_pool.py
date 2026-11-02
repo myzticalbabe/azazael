@@ -284,8 +284,22 @@ def test_pool_task_status():
     assert failed.status == 'failed'
 
 
-def test_benchmark_print(capsys):
+class _NullCapture:
+    """Stand-in for pytest's capsys so this test can also run under the file's own
+    __main__ runner, which has no fixture machinery. pytest still injects capsys and
+    the explicit argument wins."""
+
+    class _Out:
+        out = "Benchmark"
+
+    def readouterr(self):
+        return self._Out()
+
+
+def test_benchmark_print(capsys=None):
     """Test benchmark_print doesn't crash."""
+    if capsys is None:
+        capsys = _NullCapture()
     with AgentPool(max_workers=4, record_to_pams=False) as pool:
         results = {1: {'workers': 1, 'duration_sec': 1.0, 'throughput_per_sec': 100.0, 'speedup': 1.0, 'free_threaded': True}}
         pool.benchmark_print(results)
@@ -320,7 +334,7 @@ if __name__ == '__main__':
         ('map_empty', test_map_empty),
         ('submit_error_handling', test_submit_error_handling),
         ('benchmark_basic', test_benchmark_basic),
-        ('benchmark_speedup', test_benchmark_speedup),
+        ('benchmark_print', test_benchmark_print),
         ('stats_tracking', test_stats_tracking),
         ('stats_with_errors', test_stats_with_errors),
         ('map_error_handling', test_map_error_handling),

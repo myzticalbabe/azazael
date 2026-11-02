@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flaming-sword"
+version = "0.1.0"
+description = "Find, queue, fix, prove and land a sweep of one codebase."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+# No Python runtime dependencies: the sweep is stdlib-only.
+#
+# One non-pip dependency is real and invisible to `dependencies`: the `git`
+# EXECUTABLE. tools/sword.py's own docstring states it "depends on nothing but the
+# standard library and git". pip cannot install a system binary, so this belongs in
+# the install section of README.md, not in this file.
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+]
+# Author identity is deliberately absent, matching the sibling projects.
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+# Six tools, six mains. tools/ held seven modules with no __init__.py, so every one
+# of these was dead at install time; tools/__init__.py now exists.
+flaming-sword = "tools.sword:main"
+flaming-sword-defender = "tools.defender:main"
+flaming-sword-sentinel = "tools.sentinel:main"
+flaming-sword-memory = "tools.memory_bridge:main"
+flaming-sword-chain = "tools.chain_server:main"
+flaming-sword-housekeep = "tools.housekeep:main"
+# tools/disposition.py is the seventh module and has no main(): it is the ledger the
+# others record into. It ships inside the package and is not a command.
+
+[project.urls]
+# No repository URL: the public repository does not exist yet.
+
+[tool.setuptools]
+# A package, not seven py-modules: sword.py loads its siblings by path at import
+# time (sword.py:59 `_sibling()` via spec_from_file_location), which works because
+# all seven land in one directory either way.
+packages = ["tools"]
+include-package-data = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tools"]

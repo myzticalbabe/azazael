@@ -275,8 +275,29 @@ def create_bracket(shard_paths: List[Path], fmt: str = "single-elimination") -> 
         entries=entries,
         created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     )
-    # Create first round
-    bracket.rounds.append(Round(round_num=0, entries=list(entries)))
+
+    if fmt == "round-robin":
+        # Round-robin: each entry plays against every other entry exactly once
+        # For n entries, there are n*(n-1)/2 unique pairs
+        pairs = []
+        for i in range(len(entries)):
+            for j in range(i + 1, len(entries)):
+                pairs.append((entries[i], entries[j]))
+        
+        # Organize pairs into rounds: max 2 matches per round (4 entries = 2 simultaneous matches)
+        max_matches_per_round = max(1, len(entries) // 2)
+        round_num = 0
+        for i in range(0, len(pairs), max_matches_per_round):
+            round_pairs = pairs[i:i + max_matches_per_round]
+            round_entries = []
+            for e1, e2 in round_pairs:
+                round_entries.extend([e1, e2])
+            bracket.rounds.append(Round(round_num=round_num, entries=round_entries))
+            round_num += 1
+    else:
+        # Single-elimination: first round contains all entries
+        bracket.rounds.append(Round(round_num=0, entries=list(entries)))
+
     return bracket
 
 

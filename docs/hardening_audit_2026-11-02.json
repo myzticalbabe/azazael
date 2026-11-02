@@ -1,0 +1,2400 @@
+{
+ "unresolved": [
+  [
+   "C:/Azazael/azazael/tools\\gephi_mesh_pipeline.py",
+   123,
+   "CORE.WORMS.NATURE_CLUSTERS"
+  ]
+ ],
+ "silent": [
+  [
+   "C:/Azazael/azazael/src\\CORE\\LaneMessageBoard.py",
+   594
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\LaneMessageBoard.py",
+   1085
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\LaneMessageBoard.py",
+   698
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\LaneMessageBoard.py",
+   703
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\recorder_guard.py",
+   159
+  ],
+  [
+   "C:/Azazael/azazael/tools\\aggregate_suite_gate.py",
+   314
+  ],
+  [
+   "C:/Azazael/azazael/tools\\aggregate_suite_gate.py",
+   362
+  ],
+  [
+   "C:/Azazael/azazael/tools\\ast_drift.py",
+   40
+  ],
+  [
+   "C:/Azazael/azazael/tools\\converge_315.py",
+   259
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cpg_joern_integration.py",
+   70
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cpg_joern_integration.py",
+   188
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cpg_lite.py",
+   243
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dead_function_check.py",
+   143
+  ],
+  [
+   "C:/Azazael/azazael/tools\\docs_index.py",
+   28
+  ],
+  [
+   "C:/Azazael/azazael/tools\\gephi_mesh_pipeline.py",
+   147
+  ],
+  [
+   "C:/Azazael/azazael/tools\\gephi_mesh_pipeline.py",
+   651
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_rebuild.py",
+   99
+  ],
+  [
+   "C:/Azazael/azazael/tools\\install_dual_abi.py",
+   241
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   89
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   201
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   417
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   331
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   373
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   379
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_eight_verify.py",
+   614
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mesh_repaird.py",
+   111
+  ],
+  [
+   "C:/Azazael/azazael/tools\\metthew_bench.py",
+   237
+  ],
+  [
+   "C:/Azazael/azazael/tools\\monitor_data.py",
+   548
+  ],
+  [
+   "C:/Azazael/azazael/tools\\monitor_theme.py",
+   71
+  ],
+  [
+   "C:/Azazael/azazael/tools\\openvino_worker.py",
+   122
+  ],
+  [
+   "C:/Azazael/azazael/tools\\openvino_worker.py",
+   130
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_floor_proxy.py",
+   389
+  ],
+  [
+   "C:/Azazael/azazael/tools\\prepare_guard.py",
+   157
+  ],
+  [
+   "C:/Azazael/azazael/tools\\psyche_live_fit.py",
+   93
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pytest_fixture_watch.py",
+   118
+  ],
+  [
+   "C:/Azazael/azazael/tools\\scope_coverage.py",
+   69
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_mcp.py",
+   488
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sync_codex_to_g.py",
+   78
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   2083
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   2363
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   1073
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   2115
+  ],
+  [
+   "C:/Azazael/azazael/tools\\torch_state_watch.py",
+   123
+  ],
+  [
+   "C:/Azazael/azazael/tools\\torch_state_watch.py",
+   131
+  ],
+  [
+   "C:/Azazael/azazael/tools\\unified_tree_map.py",
+   132
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_hashes.py",
+   18
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_mesh_html.py",
+   157
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_python_stack.py",
+   142
+  ],
+  [
+   "C:/Azazael/azazael/tools\\yggdrasil_atlas.py",
+   549
+  ]
+ ],
+ "bare": [
+  [
+   "C:/Azazael/azazael/tools\\cpg_joern_integration.py",
+   188
+  ]
+ ],
+ "hardpaths": [
+  [
+   "C:/Azazael/azazael/src\\DOCKERZ.py",
+   21,
+   ">>> dz.build_image(\"C:/Users/clint/Desktop\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   75,
+   "\"C:/Users/clint/Desktop/Azazael\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   76,
+   "\"C:/Users/clint/Desktop/HYDRA.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   77,
+   "\"C:/Users/clint/Desktop/HORUS.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   78,
+   "\"C:/Users/clint/Desktop/TARBABY.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   79,
+   "\"C:/Users/clint/Desktop/POINDEXTER\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   80,
+   "\"C:/Users/clint/Desktop/PERSEPHONE\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   81,
+   "\"C:/Users/clint/Desktop/WORMZ\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   82,
+   "\"C:/Users/clint/Desktop/METAWORMS\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   83,
+   "\"C:/Users/clint/Desktop/TERENCE\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRAMETA.py",
+   87,
+   "# C:/Users/clint/Desktop/METAWORMS tree never existed on this ma"
+  ],
+  [
+   "C:/Azazael/azazael/src\\_read_freebuff.py",
+   3,
+   "sys.path.insert(0, \"C:/Azazael/azazael/src\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AOA\\rebuild_html.py",
+   13,
+   "with open('C:/Users/clint/Desktop/AOA/benchmark_data.json', enco"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AOA\\rebuild_html.py",
+   204,
+   "with open('C:/Users/clint/Desktop/AOA/AOA_STRUCTURE_REBUILT.html"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AOA\\rebuild_html.py",
+   206,
+   "print('Wrote C:/Users/clint/Desktop/AOA/AOA_STRUCTURE_REBUILT.ht"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AOA\\arms\\codex_arm.py",
+   21,
+   "_PRODUCTION_PYTHON = Path(\"C:/Azazael/.venvs/py315t/Scripts/pyth"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AZAZAEL_TOOLKIT\\update_docs_paths.py",
+   3,
+   "Documentation Updater - Updates all paths for C:\\\\Azazael migrat"
+  ],
+  [
+   "C:/Azazael/azazael/src\\AZAZAEL_TOOLKIT\\update_docs_paths.py",
+   21,
+   "(Path.home() / \"Desktop\" / \"Azazael_UNIFIED\", \"C:/Azazael\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_apply_emoji_20260930.py",
+   19,
+   "OUT = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_apply_emoji_20260930.py",
+   20,
+   "TPL = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templates\\"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_archetypes_all_20260930.py",
+   24,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_fill_all_20260930.py",
+   14,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_fill_all_20260930.py",
+   17,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_fill_sections_20260930.py",
+   18,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_fill_sections_20260930.py",
+   21,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_house_style_20260930.py",
+   26,
+   "OUT = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_meta_reflect_20260930.py",
+   20,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_pecuniary_20260930.py",
+   29,
+   "sys.path.insert(0, r\"C:\\Azazael\\azazael\\src\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_pecuniary_20260930.py",
+   32,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_pecuniary_20260930.py",
+   33,
+   "TEMPLATE = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templ"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_pecuniary_20260930.py",
+   34,
+   "OUT = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_precheck_20260930.py",
+   18,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_precheck_20260930.py",
+   20,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_rebuild_final.py",
+   20,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_rebuild_final.py",
+   24,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_redo.py",
+   22,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_render_20260930.py",
+   21,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_render_20260930.py",
+   25,
+   "EDGE = r\"C:\\Users\\clint\\edge0-intel\\scripts\\scroll_video.js\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_validate_20260930.py",
+   19,
+   "P = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\cain_validate_20260930.py",
+   108,
+   "json.dump(report, open(r\"C:\\Azazael\\azazael\\dashboard\\CAIN_valid"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\CODEX_Studio.py",
+   86,
+   "r\"C:\\Users\\clint\\AppData\\Local\\Microsoft\\WinGet\\Links\\ffmpeg.exe"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\inject_cain_20260930.py",
+   19,
+   "sys.path.insert(0, r\"C:\\Azazael\\azazael\\src\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\inject_cain_20260930.py",
+   32,
+   "TEMPLATE = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templ"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\inject_cain_20260930.py",
+   33,
+   "OUT = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\inject_cain_20260930.py",
+   34,
+   "MODELS = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground\\r"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\test_inject_session_cain.py",
+   25,
+   "Run: C:/Azazael/.venvs/py315t/Scripts/python.exe test_inject_ses"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   27,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/HY"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   50,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/HO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   63,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/TA"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   75,
+   "\"path\": \"C:/Users/clint/Desktop/SHORTY/\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   95,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UN"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   106,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UN"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   117,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UN"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   176,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UN"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py",
+   244,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UN"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   29,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/BI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   73,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/do"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   97,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/ml"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   141,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/sc"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   152,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/.g"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py",
+   172,
+   "\"path\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/.v"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\GENERATE_ALL_11.py",
+   399,
+   "CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\\\\comprehensive\\\\"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\GENERATE_HTML.py",
+   405,
+   "CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\\\\comprehensive\\\\"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\GENERATE_RICH_HTML.py",
+   479,
+   "CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\\\\comprehensive\\\\"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\comprehensive\\TWITLER_ANALYSIS.py",
+   15,
+   "\"path\": \"C:/Users/clint/Desktop/TWITLER/\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\CORE\\AUTO_DOC_GENERATOR.py",
+   171,
+   "\"C:/Users/clint/Desktop\", \"C:/Users/clint/Desktop/CODEX/DOCUMENT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_CLICKABLE.py",
+   227,
+   "text=\"CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_DETAILED.py",
+   359,
+   "text=\"CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_IMMERSIVE.py",
+   319,
+   "<p style=\"color: #888; margin-top: 10px;\">CODEX: C:\\\\Users\\\\clin"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_IMMERSIVE.py",
+   389,
+   "CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   71,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\SHORTY\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   85,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\POINDEXTER\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   98,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\PERSEPHONE\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   111,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\TWITLER\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   125,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\WORMZ\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   142,
+   "\"Location: C:\\\\Users\\\\clint\\\\Desktop\\\\METAWORMS\\\\\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CODEX\\POPUPS\\POPUP_WORKING.py",
+   444,
+   "text=\"CODEX: C:\\\\Users\\\\clint\\\\Desktop\\\\CODEX\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\azazael_ctl.py",
+   331,
+   "\"azazael\": Path(\"C:/Azazael/azazael\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\azazael_ctl.py",
+   336,
+   "\"vermillion_lightfury\": Path(\"C:/Users/clint/.kali_staging/vermi"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\azazael_ctl.py",
+   337,
+   "\"tigger\": Path(\"C:/Users/clint/tigger\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\backend_bandit.py",
+   24,
+   "BENCH = Path(r\"C:\\Users\\clint\\AppData\\Local\\Temp\\opencode\\bench_"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\cd3_exporter.py",
+   80,
+   "# (C:/Azazael/.venvs/py315t): only the bare `opentelemetry` name"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\device.py",
+   11,
+   "torch` failed; the 3.15t production venv (C:/Azazael/.venvs/py31"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\feast_feature_store.py",
+   89,
+   "self.repo_path = repo_path or Path(\"C:/Azazael/azazael/src/CORE/"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\feast_feature_store.py",
+   92,
+   "self.offline_store_path = offline_store_path or Path(\"C:/Azazael"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\python_env.py",
+   40,
+   "PRIMARY = Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\python_env.py",
+   41,
+   "GIL_SIDECAR = Path(\"C:/Azazael/.venvs/py315/Scripts/python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\python_env.py",
+   43,
+   "RETIRED_314T = Path(\"C:/Users/clint/venv-314t/Scripts/python.exe"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\python_env.py",
+   45,
+   "FALLBACK_314 = Path(\"C:/Azazael/.venvs/py314m/Scripts/python.exe"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   47,
+   "PRODUCTION_VENV = \"C:/Azazael/.venvs/py315t/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   51,
+   "\"C:/Azazael/.venvs/py315t/Scripts/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   56,
+   "\"C:/Azazael/.venvs/py315/Scripts/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   60,
+   "\"C:/Azazael/.venvs/py314m/Scripts/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   74,
+   "\"C:/Users/clint/anaconda3/python.exe\": {\"ver\": \"3.13.9\", \"cat\": "
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   75,
+   "\"C:/Users/clint/anaconda3/envs/df-env/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   79,
+   "\"C:/Users/clint/.venv/Scripts/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   83,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/.venv/Scripts/python.exe"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   88,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/CODEX/.venv/Scripts/pyth"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   93,
+   "\"C:/Users/clint/Desktop/Azazael_BACKUP_20260212_060745/CODEX/.ve"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   97,
+   "\"C:/Users/clint/.local/bin/python3.11.exe\": {\"ver\": \"3.11.14\", \""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   98,
+   "\"C:/Users/clint/AppData/Roaming/uv/python/cpython-3.11.14-window"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   102,
+   "\"C:/Users/clint/AppData/Roaming/uv/python/cpython-3.11-windows-x"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   106,
+   "\"C:/Users/clint/AppData/Roaming/uv/python/.temp/.tmpraG7Kw/pytho"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   110,
+   "\"C:/Users/clint/restored_venv/Scripts/python.exe\": {"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   114,
+   "\"C:/Users/clint/AppData/Local/Programs/AI Playground/resources/O"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   118,
+   "\"C:/Users/clint/.lmstudio/extensions/backends/vendor/_amphibian/"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   122,
+   "\"C:/Users/clint/.lmstudio/extensions/backends/vendor/_amphibian/"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\PYTHON_MANAGER.py",
+   126,
+   "\"C:/Users/clint/Downloads/DeepFaceLab/DeepFaceLab_DirectX12/_int"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\sb3_agent.py",
+   247,
+   "sidecar = Path(\"C:/Azazael/.venvs/py315/Scripts/python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\STRESS_TEST.py",
+   357,
+   "\"C:/Azazael/.venvs/py315t/Scripts/python.exe\", \"3.15.0rc3\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\STRESS_TEST.py",
+   362,
+   "\"C:/Azazael/.venvs/py314m/Scripts/python.exe\", \"3.14.5\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\worm_registry_cache.py",
+   86,
+   "test_no_worm_name_collisions failing in C:\\\\Azazael with C:\\\\Use"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\inference\\providers.py",
+   2120,
+   "\"llama3.2:1b\": \"C:/Users/clint/.ollama/models/blobs/sha256-74701"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\inference\\providers.py",
+   2121,
+   "\"llama3.2-1b\": \"C:/Users/clint/.ollama/models/blobs/sha256-74701"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\inference\\providers.py",
+   2122,
+   "\"gemma2:2b\": \"C:/Users/clint/.ollama/models/blobs/sha256-7462734"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\inference\\providers.py",
+   2123,
+   "\"gemma2-2b\": \"C:/Users/clint/.ollama/models/blobs/sha256-7462734"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\paths\\internal.py",
+   73,
+   "DIFFERENT, stale checkout from the one the module ships in (``C:"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLAWBOT.py",
+   43,
+   "Path(\"C:/Users/clint/Desktop/Libra\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLAWBOT.py",
+   71,
+   "\"hint\": \"cd C:/Users/clint/Desktop/Libra && python clawbot.py --"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLUSTER_INSPECTOR.py",
+   104,
+   "\"C:/Azazael/.venvs/py315t/Scripts\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLUSTER_INSPECTOR.py",
+   139,
+   "# (C:/Users/clint/venv-314t) was retired and archived 2026-10-19"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLUSTER_INSPECTOR.py",
+   143,
+   "\"C:/Azazael/.venvs/py315t/Scripts/python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLUSTER_INSPECTOR.py",
+   144,
+   "\"C:/Azazael/.venvs/py315/Scripts/python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CLUSTER_INSPECTOR.py",
+   145,
+   "\"C:/Azazael/.venvs/py314m/Scripts/python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\CONCURRENCY.py",
+   47,
+   "# which names a DIFFERENT, stale checkout from this repo (C:/Aza"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\HEALING_WORM.py",
+   38,
+   "Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\HEALING_WORM.py",
+   39,
+   "Path(\"C:/Azazael/.venvs/py315/Scripts/python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\HEALING_WORM.py",
+   40,
+   "Path(\"C:/Azazael/.venvs/py314m/Scripts/python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\METACLUSTER.py",
+   58,
+   "#: (`C:/Azazael/azazael`), so `export_state()` with no filepath "
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\WORMZ.py",
+   50,
+   "#: (`C:/Azazael/azazael`), so with the env vars unset the crawle"
+  ],
+  [
+   "C:/Azazael/azazael/src\\CORE\\WORMS\\expansion\\immune.py",
+   82,
+   "\"C:/Azazael/azazael/output/bcc_baseline.json\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\DAEMONS\\install_parallax_startup.py",
+   37,
+   "_WORKSPACE = _PROJECT_ROOT.parent  # C:/Users/clint/"
+  ],
+  [
+   "C:/Azazael/azazael/src\\DAEMONS\\parallax_validator.py",
+   61,
+   "_WORKSPACE = _PROJECT_ROOT.parent  # C:/Users/clint/"
+  ],
+  [
+   "C:/Azazael/azazael/src\\eve_unleashed\\model_router.py",
+   122,
+   "base = Path(os.environ.get(\"AZAZAEL_ROOT\", r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\eve_unleashed\\service_manager.py",
+   39,
+   "base = Path(os.environ.get(\"AZAZAEL_ROOT\", r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\eve_unleashed\\service_manager.py",
+   107,
+   "base = Path(os.environ.get(\"AZAZAEL_ROOT\", r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRA\\hydra_protocols.py",
+   269,
+   "'C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION'"
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRA\\ml_platforms\\harness.py",
+   25,
+   "Location: C:\\Users\\clint\\Desktop\\Azazael\\ml_platforms\\harness.py"
+  ],
+  [
+   "C:/Azazael/azazael/src\\HYDRA\\ml_platforms\\harness.py",
+   298,
+   "Location: C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION/m"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\DOCKERZ.py",
+   21,
+   ">>> dz.build_image(\"C:/Users/clint/Desktop\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\DOCKERZ.py",
+   70,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\DOCKERZ.py",
+   71,
+   "DOCKERFILE_TEMPLATE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/OR"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\DOCKERZ.py",
+   73,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\DOCKERZ.py",
+   79,
+   "WORKSPACE_PATH = \"C:/Users/clint/Desktop\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\ERRORZ.py",
+   51,
+   "# instead of hardcoded C:/Users/clint/Desktop absolute paths. Th"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HEALTHZ.py",
+   59,
+   "STATE_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   74,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   75,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   76,
+   "\"C:/Users/clint/Desktop/HORUS.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   77,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   78,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   79,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   80,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/CO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   81,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   82,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   85,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   86,
+   "STATE_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA.py",
+   87,
+   "TRIALS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   80,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   81,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   82,
+   "\"C:/Users/clint/Desktop/HORUS.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   83,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   84,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   85,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   86,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/CO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   87,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   88,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   91,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   92,
+   "STATE_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   93,
+   "TRIALS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   94,
+   "CACHE_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   225,
+   "\"SYSTEMZ\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   226,
+   "\"PROCESSZ\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATIO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   227,
+   "\"DISKZ\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_U"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   228,
+   "\"NETWORXZ\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATIO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRAMETA_UV.py",
+   229,
+   "\"CLOCKZ\": \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRA_CONTAINER.py",
+   84,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRA_CONTAINER.py",
+   85,
+   "TRIALS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRA_CONTAINER.py",
+   86,
+   "STATE_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\HYDRA_CONTAINER.py",
+   88,
+   "WORKSPACE_PATH = \"C:/Users/clint/Desktop\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   71,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   72,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   73,
+   "\"C:/Users/clint/Desktop/HORUS.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   74,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   75,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   76,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   77,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/CO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   78,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS.py",
+   81,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   102,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   103,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   104,
+   "\"C:/Users/clint/Desktop/HORUS.py\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   105,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   106,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   107,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   108,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/CO"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   109,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   112,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_ENRICHED.py",
+   113,
+   "REPORTS_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRA"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METAWORMS_POPUP.py",
+   79,
+   "cmd = [sys.executable, \"C:/Users/clint/Desktop/Azazael_UNIFIED/O"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METRICZ.py",
+   96,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METRICZ.py",
+   97,
+   "METRICS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRA"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METRICZ.py",
+   98,
+   "EXECUTIONS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHES"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\METRICZ.py",
+   99,
+   "ALERTS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\TELEMETRYZ.py",
+   87,
+   "OUTPUT_PATH = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRAT"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\TELEMETRYZ.py",
+   88,
+   "TRACE_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATI"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\TELEMETRYZ.py",
+   90,
+   "\"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/ME"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\TELEMETRYZ.py",
+   92,
+   "HOTPATHS_FILE = \"C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTR"
+  ],
+  [
+   "C:/Azazael/azazael/src\\META\\TRIMZ.py",
+   49,
+   "# of hardcoded C:/Users/clint/Desktop absolute paths. This files"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol.py",
+   276,
+   "r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol.py",
+   277,
+   "r\"C:\\Azazael\\.venvs\\py315\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol.py",
+   278,
+   "r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol.py",
+   280,
+   "r\"C:\\Users\\clint\\anaconda3\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol.py",
+   372,
+   "{\"path\": \"C:\\\\Users\\\\clint\\\\anaconda3\\\\python.exe\", \"version\": \""
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol_Enhanced.py",
+   469,
+   "r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol_Enhanced.py",
+   470,
+   "r\"C:\\Azazael\\.venvs\\py315\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol_Enhanced.py",
+   471,
+   "r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol_Enhanced.py",
+   473,
+   "r\"C:\\Users\\clint\\anaconda3\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\AssistantLogProtocol_Enhanced.py",
+   637,
+   "{\"path\": \"C:\\\\Users\\\\clint\\\\anaconda3\\\\python.exe\", \"version\": \""
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   40,
+   "self.az_root = Path(r\"C:\\Users\\clint\\Desktop\\Azazael_UNIFIED\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   87,
+   "(r\"C:\\Users\\clint\\Desktop\\SystemManager.py\", \"SystemManager\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   88,
+   "(r\"C:\\Users\\clint\\Desktop\\SystemManagerGUI.py\", \"SystemManagerGU"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   89,
+   "(r\"C:\\Users\\clint\\Desktop\\ADLP_FusionCore.py\", \"ADLP_FusionCore\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   90,
+   "(r\"C:\\Users\\clint\\Desktop\\ADLP_SystemTools.py\", \"ADLP_SystemTool"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   91,
+   "(r\"C:\\Users\\clint\\Desktop\\PythonMapper_Quick.py\", \"PythonMapper\""
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   92,
+   "(r\"C:\\Users\\clint\\Desktop\\AssistantLogProtocol.py\", \"AssistantLo"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   118,
+   "r\"C:\\Users\\clint\\Desktop\\Azazael_UNIFIED\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   119,
+   "r\"C:\\Azazael\\.venvs\\py315t\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   132,
+   "r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\FusionHealer.py",
+   133,
+   "r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\HORUS.py",
+   79,
+   "from this repo (``C:/Azazael/azazael``). On a host where neither"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\HYDRA.py",
+   44,
+   "#: checkout from this repo (C:/Azazael/azazael) -- so with AZAZA"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\HYDRA_ANALYZER.py",
+   66,
+   "\"test_results\": load_json(Path(\"C:/Users/clint/restored_test_res"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\hydra_bridge.py",
+   44,
+   "#: (C:/Azazael/azazael) -- so with AZAZAEL_ROOT unset this modul"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   88,
+   "r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   89,
+   "r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   91,
+   "r\"C:\\Users\\clint\\anaconda3\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   92,
+   "r\"C:\\Users\\clint\\.local\\bin\\python3.11.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   119,
+   "r\"C:\\Users\\clint\\.lmstudio\\extensions\\backends\\vendor\\_amphibian"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManager.py",
+   120,
+   "r\"C:\\Users\\clint\\Desktop\\Azazael_UNIFIED\\.venv\\Scripts\\python.ex"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   506,
+   "(r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\", \"venv\", \"3.15.0"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   507,
+   "(r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\", \"venv\", \"3.14.5"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   509,
+   "(r\"C:\\Users\\clint\\anaconda3\\python.exe\", \"conda\", \"3.13.9\"),"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   510,
+   "(r\"C:\\Users\\clint\\.local\\bin\\python3.11.exe\", \"standalone\", \"3.1"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   525,
+   "r\"C:\\Users\\clint\\.lmstudio\\extensions\\backends\\vendor\\_amphibian"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\SystemManagerGUI.py",
+   531,
+   "r\"C:\\Users\\clint\\Desktop\\Azazael_UNIFIED\\.venv\\Scripts\\python.ex"
+  ],
+  [
+   "C:/Azazael/azazael/src\\ORCHESTRATION\\ml_platforms\\improvements\\onnx_integration.py",
+   108,
+   "\"C:/Azazael/.venvs/py315t/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\SCRIPTS\\sync_canonical_docs.py",
+   9,
+   "W11 (C:/Azazael/azazael/) is the SOLE authoritative source (mast"
+  ],
+  [
+   "C:/Azazael/azazael/src\\SCRIPTS\\sync_canonical_docs.py",
+   59,
+   "MASTER_ROOT = Path(\"C:/Azazael/azazael\")"
+  ],
+  [
+   "C:/Azazael/azazael/src\\SCRIPTS\\sync_skills.py",
+   52,
+   "_PROJECT_ROOT = _SCRIPT_DIR.parent.parent.parent  # C:/Users/cli"
+  ],
+  [
+   "C:/Azazael/azazael/src\\tests\\test_ecosystem.py",
+   30,
+   "# in, never the origin clone at C:/Users/clint/azazael."
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   85,
+   "r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   86,
+   "r\"C:\\Azazael\\.venvs\\py314m\\Scripts\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   89,
+   "r\"C:\\Users\\clint\\anaconda3\\python.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   90,
+   "r\"C:\\Users\\clint\\.local\\bin\\python3.11.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   92,
+   "r\"C:\\Users\\clint\\.lmstudio\\extensions\\backends\\vendor\\_amphibian"
+  ],
+  [
+   "C:/Azazael/azazael/src\\TOOLS\\PythonMapper_Quick.py",
+   93,
+   "r\"C:\\Users\\clint\\Desktop\\Azazael_UNIFIED\\.venv\\Scripts\\python.ex"
+  ],
+  [
+   "C:/Azazael/azazael/src\\UTILITIES\\KLINK\\klink.py",
+   558,
+   "\"C:/Users/clint/temp_llama_cpp_build/llama.cpp/build_server_mult"
+  ],
+  [
+   "C:/Azazael/azazael/src\\UTILITIES\\KLINK\\klink.py",
+   573,
+   "\"C:/Users/clint/llama-server/models\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\absent_triage.py",
+   37,
+   "MAP = Path(\"C:/Azazael/state/sota_batches/batch06/technique_code"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\absent_triage.py",
+   38,
+   "RECHECK_DIR = Path(\"C:/Azazael/state/sota_batches/batch06\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\accelerator_preflight.py",
+   14,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe   3.15.0rc3   torch "
+  ],
+  [
+   "C:/Azazael/azazael/tools\\accelerator_preflight.py",
+   87,
+   "AZ = os.path.dirname(ROOT)                          # the projec"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\accelerator_sidecar.py",
+   55,
+   "LLAMA_HOME = Path(os.environ.get(\"LLAMA_SERVER_HOME\", r\"C:\\Users"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\accelerator_sidecar.py",
+   88,
+   "\"binary\": Path(os.environ.get(\"SYSTEM_PYTHON\", r\"C:\\Users\\clint\\"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\adoption_census.py",
+   79,
+   "technique-map.json lives at C:/Azazael/state/sota_batches/)."
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_board.py",
+   54,
+   "NPM = \"C:/Users/clint/AppData/Roaming/npm\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   7,
+   "(`~/AGENTS.md`, `C:/Azazael/AGENTS.md`, `~/.config/kilo/AGENTS.m"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   32,
+   "claude paths, `C:/Azazael/AGENTS.md`, `~/.codebuff/rules.md`). A"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   70,
+   "Path(\"C:/Azazael/AGENTS.md\"),           # every client whose cwd"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   88,
+   "[HOME / \"AGENTS.md\", Path(\"C:/Azazael/AGENTS.md\")],"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   107,
+   "Path(\"C:/Azazael/AGENTS.md\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   119,
+   "Path(\"C:/Azazael/AGENTS.md\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   131,
+   "#: text cannot be copied in verbatim: `C:/Users/clint/...` is no"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   158,
+   "line = line.replace(\"C:/Users/clint\", \"/mnt/c/Users/clint\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\agent_orders_sync.py",
+   159,
+   "line = line.replace(\"C:/Azazael\", \"/mnt/c/Azazael\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\apply_fixes.py",
+   18,
+   "REPO = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\ast_drift.py",
+   18,
+   "BASE = r\"C:/Users/clint/ast_audit\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\atlas_to_graph3d.py",
+   4,
+   "graph3d already exists at `C:/Users/clint/graph3d` and its one i"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\audit_append_stress.py",
+   35,
+   "UNIFIED = r\"C:/Users/clint/llama-server/unified\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\batch_render_flux.py",
+   27,
+   "VENV_PY = Path(r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playgr"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\boundary_policy.py",
+   18,
+   "python tools/boundary_policy.py --census C:/Users/clint/yggdrasi"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\build_tree_network_3d.py",
+   13,
+   "unified = json.load(open(\"C:/Azazael/azazael/docs/UNIFIED_TREE_M"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\build_tree_network_3d.py",
+   65,
+   "out_path = \"C:/Users/clint/Desktop/YGGDRASIL_RENDERS_NEW/tree_ne"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_basis.py",
+   54,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_coherence.py",
+   11,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_complete.py",
+   10,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_complete2.py",
+   9,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_cost_blocks.py",
+   8,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_culpable.py",
+   14,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_emo_map.py",
+   14,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_female.py",
+   24,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_figures.py",
+   11,
+   "AZ = r\"C:\\Azazael\\azazael\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_final_clean.py",
+   2,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_fix_two.py",
+   8,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_full_audit.py",
+   9,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_full_audit.py",
+   10,
+   "TPL = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templates\\"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_last3.py",
+   3,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_last_figs.py",
+   3,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_law.py",
+   12,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_legal_all.py",
+   16,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_legal_cells.py",
+   4,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_legal_final.py",
+   2,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_legal_last.py",
+   4,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_reanalyze.py",
+   7,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_reanalyze.py",
+   8,
+   "TPL = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templates\\"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_recalc.py",
+   10,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_recalc.py",
+   77,
+   "open(r\"C:\\Azazael\\azazael\\dashboard\\cain_financials.json\", \"w\", "
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_reconcile.py",
+   4,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_restore_words.py",
+   14,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_restore_words.py",
+   15,
+   "TPL = r\"C:\\Azazael\\azazael\\src\\CODEX\\SESSION_TEMPLATE\\templates\\"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_serpent.py",
+   8,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_sin_words.py",
+   2,
+   "p = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_societal.py",
+   3,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_stale_by_section.py",
+   8,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_strip_advocacy.py",
+   13,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_the_analysis.py",
+   62,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_value.py",
+   30,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_verify_analysis.py",
+   4,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cain_words_next_to_marks.py",
+   12,
+   "DOC = r\"C:\\Azazael\\azazael\\dashboard\\CAIN_20260930.html\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\comfyui_flux_headless.py",
+   32,
+   "APP = Path(r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playground"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\comfyui_flux_headless.py",
+   35,
+   "OUT = Path(r\"C:\\Azazael\\azazael\\renders\\comfyui\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\comfyui_flux_headless.py",
+   214,
+   "for dest in (Path(r\"C:\\Azazael\\azazael\\renders\\flux\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\commit_scope_check.py",
+   110,
+   "# under it resolves to C:/Users/clint/.git and looks like a repo"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\converge_315.py",
+   32,
+   "\"gil\": Path(r\"C:\\Azazael\\.venvs\\py315\\Scripts\\python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\converge_315.py",
+   33,
+   "\"ft\": Path(r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\cpg_joern_integration.py",
+   428,
+   "parser.add_argument(\"--src\", type=Path, default=Path(\"C:/Azazael"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dep_gap_315t.py",
+   8,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/tools/dep_ga"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   74,
+   "r\"C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/sit"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   75,
+   "r\"C:/Azazael/.venvs/py315t/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   76,
+   "r\"C:/Azazael/.venvs/py315/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   77,
+   "r\"C:/Azazael/.venvs/py314m/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   78,
+   "r\"C:/Azazael/.venvs/build315t/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   79,
+   "r\"C:/Azazael/.venvs/bccpipe/Lib/site-packages\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\dev_stack_census.py",
+   80,
+   "r\"C:/Users/clint/AppData/Local/Programs/AI Playground/resources/"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\domain_trees.py",
+   129,
+   "\"files\": [\"src/ML/gosp.py\", \"C:/Users/clint/RANI_LLM_evidence.js"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\domain_trees.py",
+   159,
+   "\"evidence_dirs\": [\"C:/Users/clint/gosp_cli_run\", \"C:/Users/clint"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\domain_trees.py",
+   194,
+   "\"stacks\": \"C:/Users/clint/yggdrasil_forest/dev_stack_census.json"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\domain_trees.py",
+   209,
+   "\"roots\": [\"C:/Users/clint/edge0-intel\"],"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\flux_dash.py",
+   20,
+   "BASE = Path(r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playgroun"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\git_fleet_audit.py",
+   11,
+   "* `C:/Azazael/azazael` -- a repository (commit-graph, now a MIDX"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\git_fleet_audit.py",
+   46,
+   "python tools/git_fleet_audit.py --root C:/Azazael/azazael --root"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\gnn_tree_boundary.py",
+   24,
+   "python tools/gnn_tree_boundary.py --src C:/Azazael/azazael/src -"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\gnn_tree_boundary.py",
+   642,
+   "parser.add_argument(\"--src\", type=Path, default=Path(\"C:/Azazael"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graphify_interpreter.py",
+   51,
+   "r\"C:\\Users\\clint\\AppData\\Local\\Programs\\Python\\Python314\\python."
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graphify_interpreter.py",
+   63,
+   "Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graphify_interpreter.py",
+   64,
+   "Path(\"C:/Azazael/.venvs/py315/Scripts/python.exe\"),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graphrag_integration.py",
+   508,
+   "parser.add_argument(\"--src\", type=Path, default=Path(\"C:/Azazael"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\harvest_bake_errors.py",
+   119,
+   "ap.add_argument(\"--export\", default=\"C:/Users/clint/AppData/Loca"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\harvest_kilo_sessions.py",
+   28,
+   "SNAP_DB = Path(\"C:/Users/clint/AppData/Local/Temp/opencode/kilo_"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\install_dual_abi.py",
+   14,
+   "``C:/Azazael/.venvs/py315t`` venv and the GIL sidecar is"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\install_dual_abi.py",
+   15,
+   "``C:/Azazael/.venvs/py315`` \u2014 separate directories, so this tool"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\install_pams_315t.py",
+   54,
+   "r\"C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/sit"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\install_pams_315t.py",
+   55,
+   "DEFAULT_TARGET = Path(r\"C:/Azazael/.venvs/py315t/Lib/site-packag"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\klein_download.py",
+   7,
+   "MODELS = Path(r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playgro"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\lesson_liveness.py",
+   81,
+   "r\"C:\\Users\\clint\\.pmb\\workspaces\\04a151a73354\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\live_record_probe_315t.py",
+   22,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/tools/live_r"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_startup_gate.py",
+   66,
+   "PMB_VENV_PY = Path(\"C:/Users/clint/.pmb-venv/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_startup_gate.py",
+   68,
+   "PROXY_SCRIPT = Path(\"C:/Azazael/azazael/tools/pmb_floor_proxy.py"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_startup_gate.py",
+   69,
+   "SUPERVISOR_SCRIPT = Path(\"C:/Azazael/azazael/tools/supervisor_mc"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_startup_gate.py",
+   75,
+   "ORDERS_SYNC = Path(\"C:/Azazael/azazael/tools/agent_orders_sync.p"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\mcp_startup_gate.py",
+   732,
+   "return FAIL, detail, \"python C:/Azazael/azazael/tools/agent_orde"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\memory_backup.py",
+   63,
+   "DEST_ROOT = Path(\"C:/Azazael/backups/memory\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_capture.py",
+   16,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_capture.py"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_client.py",
+   36,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_client.py "
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_e2e_check.py",
+   8,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_e2e_check."
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_floor_proxy.py",
+   68,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe C:/Azazael/azazael/t"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_observe_transcript.py",
+   23,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_observe_tr"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_outbox_pickup.py",
+   8,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_outbox_pic"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\pmb_session_observe.py",
+   38,
+   "C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_session_ob"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\precompute_force_layout.py",
+   24,
+   "parser.add_argument(\"--input\", default=\"C:/Users/clint/AppData/L"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\precompute_force_layout.py",
+   25,
+   "parser.add_argument(\"--output\", default=\"C:/Users/clint/Desktop/"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\prepare_guard.py",
+   38,
+   "AZ = Path(r\"C:\\Users\\clint\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\prepare_guard.py",
+   61,
+   "PMB_TOKEN = Path(r\"C:\\Users\\clint\\.pmb\\daemon.token\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   34,
+   "PY315T = r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\"  # singl"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   38,
+   "SYSTEM_315T = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\Python\\Pyt"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   39,
+   "PY314T = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\Python\\Python31"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   40,
+   "PY314 = r\"C:\\Users\\clint\\AppData\\Local\\Programs\\Python\\Python314"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   41,
+   "PAMS_SITE = \"C:/Users/clint/AppData/Local/Programs/Python/Python"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   42,
+   "PAMS_CANONICAL = \"C:/Users/clint/.pams/memory_data\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   103,
+   "'python_path: \"C:/Users/clint/AppData/Local/Programs/Python/Pyth"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\repoint_315t.py",
+   104,
+   "'python_path: \"C:/Azazael/.venvs/py315t/Scripts/python.exe\"', 1,"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\restart_tasks_index.py",
+   26,
+   "DEFAULT_SRC = Path(r\"C:\\Azazael\\azazael\\RESTART_TASKS_2026-10-31"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\restart_tasks_index.py",
+   27,
+   "DEFAULT_OUT = Path(r\"C:\\Azazael\\azazael\\RESTART_TASKS_INDEX.md\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\session_end.py",
+   44,
+   "PY315T = Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\session_end.py",
+   141,
+   "print(\"   C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\session_start.py",
+   61,
+   "PAMS_PY315T = Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\session_start.py",
+   221,
+   "MCP_GATE = Path(\"C:/Azazael/azazael/tools/mcp_startup_gate.py\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\session_start.py",
+   265,
+   "py315t = Path(\"C:/Azazael/.venvs/py315t/Scripts/python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\solar_pro4_sweep.py",
+   16,
+   "# Project root C:\\Azazael has a state/ with bench/ etc.; the cod"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch05_manifest.py",
+   6,
+   "b = \"C:/Azazael/state/sota_batches/batch05\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_consolidate.py",
+   11,
+   "B = Path(r\"C:\\Azazael\\state\\sota_batches\\batch06\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_ingest.py",
+   20,
+   "ENGRAM = os.environ.get(\"ENGRAM_BIN\", r\"C:\\Users\\clint\\go\\bin\\en"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_ingest.py",
+   21,
+   "ENGRAM_DB = os.environ.get(\"ENGRAM_DB\", r\"C:\\Users\\clint\\.engram"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_ingest.py",
+   64,
+   "\"**Where**: C:/Azazael/state/sota_batches/batch06/TECHNIQUES.md\\"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_reextract.py",
+   47,
+   "REPO = HERE.parents[1]                      # C:/Azazael/azazael"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\sota_batch06_reextract.py",
+   48,
+   "CANDIDATES = (REPO.parent / \"state\" / \"sota_batches\",   # C:/Aza"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_doctor.py",
+   11,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_doc"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_doctor.py",
+   25,
+   "PY315T = r\"C:/Azazael/.venvs/py315t/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_doctor.py",
+   26,
+   "PMB_PY = r\"C:/Users/clint/.pmb-venv/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_doctor.py",
+   44,
+   "code, out = run([r\"C:/Users/clint/go/bin/engram.exe\", \"doctor\"])"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_doctor.py",
+   48,
+   "code, out = run([r\"C:/Users/clint/go/bin/engram.exe\", \"conflicts"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_mcp.py",
+   18,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_mcp.py",
+   810,
+   "[\"C:/Azazael/.venvs/py315t/Scripts/python.exe\", str(target)],"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_mcp.py",
+   914,
+   "PMB_VENV_PY = r\"C:/Users/clint/.pmb-venv/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\supervisor_mcp.py",
+   1248,
+   "C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\technique_exercise_only_audit.py",
+   58,
+   "\"Run this from the repository root (C:/Azazael/azazael). cwd=%s\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_env_digest.py",
+   29,
+   "r\"C:\\Users\\clint\\.pmb\\workspaces\\04a151a73354\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   68,
+   "\"PMB_WORKSPACE_DIR\", r\"C:\\Users\\clint\\.pmb\\workspaces\\04a151a733"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   1715,
+   "(\"C:/Users/clint/vermillion_lightfury\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_invariants.py",
+   1716,
+   "\"C:/Users/clint/.kali_staging/vermillion_lightfury\", ()),"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\terence_watch.py",
+   53,
+   "\"PMB_WORKSPACE_DIR\", r\"C:\\Users\\clint\\.pmb\\workspaces\\04a151a733"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_supervisor_contract.py",
+   13,
+   "Run: C:/Azazael/.venvs/py315t/Scripts/python.exe tools/test_supe"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_supervisor_contract.py",
+   21,
+   "PY = r\"C:/Azazael/.venvs/py315t/Scripts/python.exe\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_supervisor_load.py",
+   14,
+   "Run: C:/Azazael/.venvs/py315t/Scripts/python.exe tools/test_supe"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_supervisor_load.py",
+   46,
+   "r'\"pmb\",\"engram\"],\"source\":\"C:\\\\Users\\\\clint\\\\.agents\\\\mcp.json\""
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_supervisor_load.py",
+   54,
+   "\"data\": {\"path\": \"C:/Azazael/AGENTS.md\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_verify_engram_mcp_siblings.py",
+   29,
+   "Run: C:/Azazael/.venvs/py315t/Scripts/python.exe tools/test_veri"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_verify_engram_mcp_siblings.py",
+   48,
+   "\"source\": \"C:/Users/clint/.agents/mcp.json\"},"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\test_verify_engram_mcp_siblings.py",
+   54,
+   "\"data\": {\"path\": \"C:/Azazael/AGENTS.md\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\tmp_paths.py",
+   10,
+   "(`C:\\Users\\clint\\AppData\\Local\\Temp`);"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\tmp_paths.py",
+   51,
+   "(``C:\\Users\\clint\\AppData\\Local\\Temp``), which is *why* that fun"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\unified_tree_map.py",
+   165,
+   "\"windows\": {\"path\": \"C:/Azazael/azazael\", \"python\": \"3.15.0rc3\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\unified_tree_map.py",
+   221,
+   "parser.add_argument(\"--root\", default=\"C:/Azazael/azazael\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\unified_tree_map.py",
+   222,
+   "parser.add_argument(\"--output\", default=\"C:/Azazael/azazael/docs"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_engram_mcp.py",
+   82,
+   "CWD = Path(__file__).resolve().parent.parent.parent          # C"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_engram_mcp.py",
+   95,
+   "\"command\": \"C:/Users/clint/go/bin/engram.exe\","
+  ],
+  [
+   "C:/Azazael/azazael/tools\\verify_p9_drill.py",
+   46,
+   "r\"C:\\Users\\clint\\.pmb\\workspaces\\04a151a73354\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\watchdog_5min.py",
+   17,
+   "PY = Path(r\"C:\\Azazael\\.venvs\\py315t\\Scripts\\python.exe\")"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\yggdrasil_census.py",
+   684,
+   "# absolute path made every file under `C:/Users/clint/AppData/.."
+  ],
+  [
+   "C:/Azazael/azazael/tools\\z_auto.py",
+   22,
+   "VENV_PY = Path(r\"C:\\Users\\clint\\AppData\\Local\\Programs\\AI Playgr"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_semantic\\god_nodes.py",
+   38,
+   "_PRODUCTION_SP = Path(\"C:/Azazael/.venvs/py315t/Lib/site-package"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_semantic\\run_extraction.py",
+   100,
+   "pmb_py = os.environ.get(\"PMB_PYTHON\", r\"C:\\Users\\clint\\.pmb-venv"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_semantic\\semantic_layer.py",
+   1004,
+   "\"The 2026-10-04..06 commit wave made 3.15t the production runtim"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_semantic\\semantic_layer.py",
+   1010,
+   "\"Supersedes the 2026-10-02 forensic. Headline: the Oct-2 diverge"
+  ],
+  [
+   "C:/Azazael/azazael/tools\\graph_semantic\\semantic_layer.py",
+   1013,
+   "\"No prebuilt cp315t wheel exists for lancedb, so it is compiled "
+  ],
+  [
+   "C:/Azazael/azazael/tools\\swarm_arena\\arena.py",
+   158,
+   "sys.path.insert(0, \"C:/Azazael/azazael/src\")"
+  ]
+ ]
+}

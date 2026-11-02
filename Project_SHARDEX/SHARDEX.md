@@ -24,7 +24,7 @@ Stdlib only. No key, no build, no network.
 | **L1 SHATTER** | cuts the mirror into self-contained, content-addressed shards (`name@sha256:<64>`), one per top-level group, bounded by the 24-file / 2 MiB low-end ceilings | **BUILT** |
 | **L2 FORGE** | transubstantiates one shard into `flame.json` + `flame.html`: a 3D arena whose size, orb count and seed come from that shard's own content hash, with a golden run computed in Python and in the browser | **BUILT** |
 | **L3 TUNE** | a champion edits `flame.json` (or forges with `--tune k=v`); the golden hash moves with the config, so every bracket has a hash it must agree on | **BUILT** |
-| **L4 LAUNCH** | brackets, signed result files, replay verification, entry fees, a spectator view | **NOT BUILT** |
+| **L4 LAUNCH** | brackets, signed result files, replay verification, entry fees, a spectator view | **BUILT** |
 
 ## The honest boundary — read this before the marketing writes itself
 

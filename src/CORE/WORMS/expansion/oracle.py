@@ -624,7 +624,11 @@ class FitnessOracle:
                 mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)
                 for j, hi in enumerate(sorted(hold_idx)):
                     errors.append(abs(mean[j] - hold_y[j]))
-            except Exception:
+            except Exception as exc:
+                # A hold that failed here is dropped from BOTH the error list
+                # and its length, so the holdout variance reads tighter than
+                # the ensemble actually was. Count the drop.
+                note_failure("oracle:holdout-fit", exc)
                 continue
         if not errors:
             return {"holds": [], "holdout_var": 0.0, "mean_abs_error": 0.0,

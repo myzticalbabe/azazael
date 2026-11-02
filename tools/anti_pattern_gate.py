@@ -46,6 +46,22 @@ A narrowed run writes somewhere else (same rule as type_check_gate.py)
 `--dir` selects a SUBSET, so its counts are not the whole-`src/` baseline's
 counts. A narrowed `--baseline` with no explicit `--baseline-file` is redirected
 to a `.partial` sibling and says so; an explicit path is obeyed as written.
+
+Two scan predicates, two baseline files (2026-11-01)
+---------------------------------------------------
+`--tracked-only` is not a subset: it is the same directory under a different
+FILE predicate, and it is the one the pre-commit hook enforces. So there are two
+baselines, each read by exactly the run that shares its scope:
+
+    logs/anti_pattern_baseline.json           --check --tracked-only  (the hook)
+    logs/anti_pattern_baseline.worktree.json  --check                  (worktree)
+
+Before this, one file held whichever predicate was recorded last while the check
+always read it: a tracked scan diffed untracked scratch (968 vs 953
+`import_inside_function`, none of it in any commit), and `--baseline
+--tracked-only` wrote a `.partial` file nothing read. A baseline still records
+its predicate, so an explicit `--baseline-file` from the other scope is REFUSED
+(exit 2) rather than diffed.
 """
 from __future__ import annotations
 
@@ -65,7 +81,14 @@ sys.path.insert(0, str(ROOT / "src"))
 IDENTITY_SCHEME = "category-counts-v1"
 
 DEFAULT_DIR = "src"
+#: The baseline the COMMIT-time gate enforces: `--check --tracked-only`, the same
+#: predicate the pre-commit hook runs.
 BASELINE = ROOT / "logs" / "anti_pattern_baseline.json"
+#: The baseline for the OTHER predicate -- every `.py` under the directory,
+#: untracked scratch included. Two predicates mean two sets of counts, so they get
+#: two files; keeping one file and refusing the mismatch made a plain `--check`
+#: unrunnable by design, which is not a state a diagnostic flag should be in.
+WORKTREE_BASELINE = ROOT / "logs" / "anti_pattern_baseline.worktree.json"
 
 #: How many files the failure output names per regressed category. A cap keeps a
 #: widely-repeated class (an emoji in 400 files) from burying the one that
@@ -277,7 +300,8 @@ def _print_attribution(categories: list[str], per_file: dict[str, Counter],
 
 
 def baseline_payload(counts: Counter, files: int, target: str,
-                     file_counts: dict[str, Counter] | None = None) -> dict:
+                     file_counts: dict[str, Counter] | None = None,
+                     tracked_only: bool = False) -> dict:
     """The baseline document. `file_counts` is additive and optional.
 
     Every existing key keeps its name and meaning, so a baseline recorded
@@ -293,6 +317,14 @@ def baseline_payload(counts: Counter, files: int, target: str,
         "files_scanned": files,
         "category_counts": dict(sorted(counts.items())),
         "total_findings": sum(counts.values()),
+        #: The SCAN PREDICATE, recorded so `--check` can refuse a comparison it
+        #: cannot make. Measured 2026-11-01: `--baseline --tracked-only` was
+        #: redirected to a `.partial` file that `--check --tracked-only` never
+        #: read, while the check compared TRACKED counts against a WORKTREE
+        #: baseline -- so the ratchet went red on untracked scratch from another
+        #: lane (968 vs 953 import_inside_function, all of it untracked). A
+        #: baseline is only comparable to a scan with the same scope.
+        "tracked_only": tracked_only,
     }
     if file_counts:
         payload["file_counts"] = {
@@ -313,13 +345,19 @@ def load_baseline(path: Path) -> dict:
         raise SystemExit(2)
 
 
-def _resolve_out(path_arg: str | None, narrowed: bool, kind: str) -> Path:
+def baseline_path(tracked_only: bool) -> Path:
+    """The baseline file for a scan predicate. One reader per file, always."""
+    return BASELINE if tracked_only else WORKTREE_BASELINE
+
+
+def _resolve_out(path_arg: str | None, narrowed: bool, kind: str,
+                 tracked_only: bool = True) -> Path:
     """Obey an explicit path; redirect a narrowed run to a `.partial` sibling."""
     if path_arg:
         return Path(path_arg).resolve()
     if narrowed:
         return BASELINE.with_name(BASELINE.stem + ".partial" + BASELINE.suffix)
-    return BASELINE
+    return baseline_path(tracked_only)
 
 
 def cmd_baseline(target: str, out: Path, narrowed: bool,
@@ -327,9 +365,12 @@ def cmd_baseline(target: str, out: Path, narrowed: bool,
     counts, files, per_file = scan_with_files(target, tracked_only)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
-        json.dumps(baseline_payload(counts, files, target, per_file), indent=2),
+        json.dumps(baseline_payload(counts, files, target, per_file, tracked_only),
+                   indent=2),
         encoding="utf-8")
     print("baseline written: %s" % out)
+    print("  scope: %s" % ("git-tracked files only" if tracked_only
+                            else "every .py under the directory (worktree)"))
     if narrowed:
         print("  (narrowed to %r -- whole-tree --check will not read this file)"
               % target)
@@ -358,6 +399,22 @@ def cmd_check(target: str, baseline_path: Path,
               file=sys.stderr)
         return 2
 
+    # The PREDICATE, not just the scheme. A worktree baseline counts untracked
+    # scratch a commit never contains, and a tracked baseline does not; diffing
+    # one against the other reports regressions that belong to no changeset (and
+    # passes ones that do). Old baselines have no key -- they were worktree
+    # scans, which is what the key defaults to.
+    if bool(base.get("tracked_only", False)) != tracked_only:
+        print("baseline %s was recorded %s but this run scans %s -- not comparable. "
+              "Re-record it with the same flag:\n    python tools/anti_pattern_gate.py "
+              "--baseline%s"
+              % (baseline_path,
+                 "tracked-files-only" if base.get("tracked_only") else "over the whole worktree",
+                 "tracked files only" if tracked_only else "the whole worktree",
+                 " --tracked-only" if tracked_only else ""),
+              file=sys.stderr)
+        return 2
+
     recorded: dict = base.get("category_counts") or {}
     current, files, per_file = scan_with_files(target, tracked_only)
 
@@ -380,6 +437,8 @@ def cmd_check(target: str, baseline_path: Path,
     total_was = sum(recorded.values())
 
     print("anti-pattern gate -- %s" % (ROOT / target))
+    print("  scope:    %s" % ("git-tracked files only" if tracked_only
+                              else "every .py under the directory (worktree)"))
     print("  now:      %d finding(s) in %d file(s)" % (total_now, files))
     print("  baseline: %d finding(s) (%s)"
           % (total_was, base.get("recorded_at", "?")))
@@ -444,15 +503,21 @@ def main(argv: list[str] | None = None) -> int:
     target = args.dir.replace("\\", "/")
     narrowed = target.strip("/") != DEFAULT_DIR
     tracked = bool(args.tracked_only)
-    if tracked and not narrowed:
-        narrowed = True  # a subset scan must not overwrite the whole-tree file
+    # `--tracked-only` is NOT a narrowing: it selects the same directory under a
+    # different file predicate, and it is the predicate `--check --tracked-only`
+    # (the hook) reads. Treating it as narrowed wrote a `.partial` file nothing
+    # consumed while the check diffed against the worktree baseline -- measured
+    # 2026-11-01. Only `--dir` redirects.
 
     if args.baseline:
-        out = _resolve_out(args.baseline_file, narrowed, "baseline")
+        out = _resolve_out(args.baseline_file, narrowed, "baseline", tracked)
         return cmd_baseline(target, out, narrowed, tracked)
     if args.report:
         return cmd_report(target, tracked)
-    path = Path(args.baseline_file).resolve() if args.baseline_file else BASELINE
+    # The check reads the baseline recorded under the SAME predicate, so the two
+    # scopes can each be gated instead of one refusing.
+    path = (Path(args.baseline_file).resolve() if args.baseline_file
+            else baseline_path(tracked))
     return cmd_check(target, path, tracked)
 
 

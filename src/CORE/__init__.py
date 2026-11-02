@@ -43,16 +43,30 @@ from CORE.audit_trail import (
     get_anchored_files,
     verify_completeness,
 )
-from typing import List
+from typing import List, Optional, Dict, Any, overload
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
 try:
-    from CORE.failure_ledger import note_failure
+    from CORE.failure_shim import (
+        note_failure,
+        note_failure_v2,
+        failure_notes,
+        reset_notes,
+        FailureRecord,
+    )
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+    def note_failure_v2(record) -> None:
+        pass
+    def failure_notes() -> dict:
+        return {}
+    def reset_notes() -> None:
+        pass
+    class FailureRecord:
+        pass
 
 # EVENT_VOCAB / EVENT_VOCAB_REVERSE — not yet defined in audit_trail.py.
 # Fall back to empty dicts to avoid blocking all CORE imports.
@@ -63,14 +77,16 @@ try:
 
     _EVENT_VOCAB = getattr(_audit_trail_mod, "EVENT_VOCAB", None)
     _EVENT_VOCAB_REVERSE = getattr(_audit_trail_mod, "EVENT_VOCAB_REVERSE", None)
-    if _EVENT_VOCAB is None or _EVENT_VOCAB_REVERSE is None:
-        raise ImportError("EVENT_VOCAB pair missing in CORE.audit_trail")
-except ImportError as exc:
-    note_failure("__init__:L51", exc)
+except (ImportError, AttributeError):
     _EVENT_VOCAB = None
     _EVENT_VOCAB_REVERSE = None
-EVENT_VOCAB: dict = _EVENT_VOCAB if _EVENT_VOCAB is not None else {}
-EVENT_VOCAB_REVERSE: dict = _EVENT_VOCAB_REVERSE if _EVENT_VOCAB_REVERSE is not None else {}
+
+if _EVENT_VOCAB is None or _EVENT_VOCAB_REVERSE is None:
+    EVENT_VOCAB: dict = {}
+    EVENT_VOCAB_REVERSE: dict = {}
+else:
+    EVENT_VOCAB: dict = _EVENT_VOCAB
+    EVENT_VOCAB_REVERSE: dict = _EVENT_VOCAB_REVERSE
 
 # InferencePool is optional (requires CORE.freethreading)
 try:
@@ -115,4 +131,10 @@ __all__ = [
     "get_anchored_files",
     "verify_completeness",
     "_has_inference_pool",
+    # Enhanced failure ledger
+    "note_failure",
+    "note_failure_v2",
+    "failure_notes",
+    "reset_notes",
+    "FailureRecord",
 ]

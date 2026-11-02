@@ -41,11 +41,45 @@ Steps 0–2 are unconditional; step 3 is demand-driven.
   filtering wherever the thresholds sit.
 - `proxy-singleton` — exactly one proxy **instance** (one healthy instance is two
   processes: the interpreter re-execs itself).
+- `floor-origin` — the live proxy was started by a **durable** starter, not by a
+  client session. A stack a previous session left running passes every
+  behavioural check above and still dies at the next reboot; the starter declares
+  itself in `PMB_FLOOR_ORIGIN`, the proxy stamps origin+pid on bind, and a
+  session-scoped one is a FAIL with the remedy named.
 - `supervisor-fresh` / `pams-running` — child start time vs script mtime.
 - `lane-config` — kilo, freebuff and opencode all route `pmb` through :8766.
 - `orders-in-sync` — every generated block in this section and the two canon
   blocks is byte-identical to its source.
-- `lane-context` — engram / codegraph / barta presence (warn only).
+- `lane-context` — **every server the lane configures must resolve.** The check
+  reads kilo/freebuff/opencode through `tools/mcp_eight_verify.py --fast`, so an
+  enabled entry whose command does not exist, whose endpoint is closed, or which
+  points at the raw :8765 daemon is a FAIL. Measured 2026-11-01: the old version
+  matched three hard-coded names (engram, codegraph, barta) and read green while
+  the Kilo lane configured **eight** servers — scrapling, pams, supervisor and
+  both pmb endpoints were never examined, so a path that a restart turns into a
+  dead server passed untouched. Full proof (spawn + `initialize` + `tools/list`,
+  with a negative control) is `python tools/mcp_eight_verify.py`.
+
+### Cold start is a client deadline, not a bootstrap detail
+
+opencode's remote MCP client gives an unreachable endpoint **three attempts in
+1.65 s** (measured 2026-10-31: 0.39 s, 0.65 s, 1.65 s) and then marks the server
+failed for the whole session. pams is spawned at the same millisecond and used to
+reach its old floor-proxy spawn site ~2.5 s in, so every cold start lost the race
+— daemon at 2.5 s, :8766 at 3.0 s, `pmb` dead until the next restart, with a
+green gate throughout.
+
+Two rules follow, both enforced:
+
+- **:8766 must exist before the client.** `Startup\pmb-floor-proxy.vbs` starts it
+  hidden at logon (`PMB_FLOOR_ORIGIN=logon`). pams still spawns one when the port
+  is free and declares it `origin=pams`; that state is `floor-origin` FAIL, not a
+  working stack. pams also starts its watcher before its heavy imports (bind
+  measured 1.34 s vs 2.9 s) as a second line of defence, not as the guarantee.
+- **The proxy waits for its own upstream.** The daemon loads an embedding model,
+  so a request that arrives during a cold start is answered by waiting up to
+  `PMB_UPSTREAM_WAIT` (default 30 s) instead of 502. A 502 during a cold start is
+  indistinguishable to the client from a dead stack.
 
 ### Floor thresholds (a property of the store, not of the software)
 

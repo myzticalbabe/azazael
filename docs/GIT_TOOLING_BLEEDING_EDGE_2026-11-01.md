@@ -190,8 +190,13 @@ re-reading it.
    **done differently, 2026-11-01**: wired into `.githooks/pre-push` instead. A merge
    conflict is a property of the pair (branch, remote tip) and moves when the other
    side moves, so per-commit re-answers the same question while the push is the
-   moment the pair actually meets. Still open from this item: a merge-queue
-   chainwise mode (item 5).
+   moment the pair actually meets. The merge-queue chainwise mode that was
+   still open here is done in item 5. The hook itself is generated and
+   gitignored, so its PRESENCE is now checked too: `tools/preflight_all.py`
+   reports OK / ABSENT / STALE for `.githooks/pre-push` in both `--check` and
+   `--self-test`, and only STALE is a failure -- a doctored hook that mentions
+   `tools/git_merge_gate.py --pre-push` in a comment failed `--check` with
+   rc 1 (exercised 2026-11-02, hook restored byte-identically).
 4. **`git maintenance start`** to schedule commit-graph/MIDX/loose-object refreshes
    instead of relying on `gc --auto` at 6,700 loose objects (currently 7,958 — over
    the threshold, so a gc is already pending).

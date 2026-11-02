@@ -170,8 +170,7 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
     """
     _extra = _trainer_extra_kwargs(genes)
     # Use new trainer with worm identity for evolution cycle
-    ctx = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_{genome_seed(genes)}")
-    loop = RLTrainLoopV2(ctx)
+    loop = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_{genome_seed(genes)}")
     info_stats = loop.train_from_memory(
         **_extra,
         n_episodes=N_EPISODES, max_steps=50,
@@ -183,8 +182,7 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
         records=info_pool,
         persist=False,
         rng=rng)
-    ctx2 = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_alert_{genome_seed(genes)}")
-    loop2 = RLTrainLoopV2(ctx2)
+    loop2 = create_trainer(task_type="offline", worm_id="evolution_cycle", task_id=f"eval_alert_{genome_seed(genes)}")
     alert_stats = loop2.train_from_memory(
         **_extra,
         n_episodes=N_EPISODES, max_steps=50,

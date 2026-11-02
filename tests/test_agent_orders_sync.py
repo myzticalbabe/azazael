@@ -151,3 +151,40 @@ def test_hook_mode_with_no_targets_is_not_a_pass(tmp_path, monkeypatch, capsys):
 
     assert orders.check(hook_mode=True) == 1
     assert "NO TARGETS ON THIS HOST" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# render_for_wsl -- the translation layer that had NO control until 2026-10-31
+# --------------------------------------------------------------------------
+def test_wsl_block_has_no_windows_paths_and_no_bare_python():
+    """The Linux lanes cannot run a Windows block.
+
+    Measured before this control existed: neither WSL distro carried a single
+    AO block, so both lanes started without the protocol every Windows lane
+    had. Copying the block verbatim would have been worse than leaving it out --
+    `C:/Users/clint/_board.py` does not resolve there and a stock Kali has no
+    `python` alias, so the lane would run a command that fails and read the
+    failure as a broken board.
+    """
+    text = orders.render_for_wsl("lane-queue", "03_lane_queue.md")
+
+    assert "C:/" not in text, "a Windows drive path survived the rewrite"
+    assert "/mnt/c/Users/clint" in text, "the rewritten path is missing entirely"
+    assert "python C:/" not in text and "python /mnt/c" not in text, \
+        "a bare `python` invocation survived -- the Linux lanes have no such alias"
+    assert "python3 /mnt/c/Users/clint/_board.py" in text
+
+
+def test_wsl_rewrite_is_idempotent():
+    """Rewriting an already-rewritten block must be a no-op.
+
+    This matters because an apply that is retried after a partial write feeds
+    the rewritten text back through the same rules. A rule that is not
+    idempotent turns a retry into `/mnt/mnt/c/...` or `python33`, which reads
+    as a broken board rather than a broken rewrite.
+    """
+    once = orders.render_for_wsl("lane-queue", "03_lane_queue.md")
+    twice = orders.rewrite_for_wsl(once)
+
+    assert once == twice, "a second rewrite changed the block -- not idempotent"
+    assert "mnt/mnt" not in twice and "python33" not in twice

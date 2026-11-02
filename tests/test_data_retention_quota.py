@@ -60,6 +60,13 @@ def _run_maintenance_isolated(tmp_path):
     env = dict(os.environ)
     env["AZAZAEL_MEMORY_DIR"] = str(tmp_path)
     env["PYTHONPATH"] = SRC + os.pathsep + env.get("PYTHONPATH", "")
+    # The seed below is a BULK write (900 rows back to back), and the recorder
+    # guard added 2026-10-31 intentionally throttles per-tick emitters to
+    # RECORDER_GUARD_RATE. Without the documented kill switch the seed lands
+    # ~25 rows, `before_mb` never exceeds the quota, and this test would pass
+    # or fail on the guard rather than on retention. The assertions below are
+    # unchanged: they still require the seed to exceed the quota.
+    env["RECORDER_GUARD_OFF"] = "1"
     proc = subprocess.run([sys.executable, "-c", _CHILD], env=env,
                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     assert proc.returncode == 0, (

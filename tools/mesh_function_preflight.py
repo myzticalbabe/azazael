@@ -627,6 +627,28 @@ def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
             # `prod_used` here is what makes `wired` mean "a production caller
             # exists" rather than "something somewhere mentions it".
             fn.failures = _run_probes(fn, prod_used, test_used)
+            # ...but `prod_used` is a FLAT name set, so a generic token anywhere
+            # in src/tools/scripts counts as a caller. That is the documented
+            # Error #472/#682/#719 class, and it produced a live contradiction:
+            # this same module's carry path requires an import link
+            # (_module_qualified_hit) while the finding path did not, so
+            # `config:FeatureFlagCtrl.is_enabled` was "reached" by Selenium's
+            # WebElement.is_enabled() and 135 ledger rows claimed `wired` on
+            # bare tokens ('__init__' in 25 files, 'execute' in 117).
+            # A name that is only mentioned in files which do not import the
+            # defining module is not a caller, so it stays a PF16 finding.
+            # Protocol methods are exempt BY NAME in `_run_probes` because no
+            # explicit reference can satisfy them (`bool(_torch)` calls
+            # `__bool__`; `_LazyTorch.__getattr__` serves every attribute). This
+            # post-filter must inherit that exemption, not route around it --
+            # otherwise the calibration tests find `__bool__`/`__getattr__`
+            # reported again, which is the false positive the exemption exists
+            # to stop.
+            _bare = fn.qualname.rsplit(".", 1)[-1]
+            if ("PF16" not in fn.failures
+                    and _bare not in PROTOCOL_METHODS
+                    and not _module_qualified_hit(fn, _file_refs, _file_imports)):
+                fn.failures = [*fn.failures, "PF16"]
             fn.prior = _prioritise(fn)
             funcs.append(fn)
     counts = Counter()

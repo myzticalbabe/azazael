@@ -59,6 +59,7 @@ __all__ = [
     "SQLiteSpanExporter",
     "configure_otel_tracing",
     "get_exporter",
+    "record_span",
     "purge_old_spans",
     "query_trace_by_id",
     "query_unified_trace",
@@ -339,6 +340,91 @@ class SQLiteSpanExporter:
 # ====================================================================
 
 _default_exporter: (SQLiteSpanExporter | None) = None
+
+#: Databases whose schema this process has already created. Keyed by resolved
+#: path so a test that redirects the path still gets its own schema, and so the
+#: hot path does not run ``executescript`` on every span.
+_schema_ready: set[str] = set()
+
+
+def record_span(
+    *,
+    trace_id: str,
+    span_id: str,
+    name: str,
+    start_time: int,
+    end_time: int,
+    parent_span_id: (str | None) = None,
+    kind: str = "INTERNAL",
+    status_code: int = 0,
+    attributes: (Dict[str, Any] | None) = None,
+    correlation_id: (str | None) = None,
+    session_id: (str | None) = None,
+    db_path: (str | None) = None,
+) -> bool:
+    """Write ONE span without the OpenTelemetry SDK.
+
+    ``SQLiteSpanExporter.export()`` takes ``ReadableSpan`` objects, and only the
+    SDK produces those. Measured 2026-11-02 on the production interpreter
+    (``C:/Azazael/.venvs/py315t``): ``from opentelemetry.sdk.trace import
+    TracerProvider`` raises ``ModuleNotFoundError: No module named
+    'opentelemetry.sdk'``, so on that interpreter ``export()`` can be called but
+    nothing can ever hand it a span -- the table stayed empty (0 rows in the live
+    ``telemetry_store.db``) while the exporter looked wired.
+
+    This module already persists spans to SQLite itself; the SDK was only ever
+    naming types. So a caller that HAS span data and no SDK writes through here,
+    into the same table, which is what keeps ``query_trace_by_id``,
+    ``query_unified_trace`` and ``purge_old_spans`` working for both sources.
+
+    Timestamps are **nanoseconds since the epoch** -- the unit ``export()`` writes
+    from ``span.start_time`` and the unit ``purge_old_spans`` compares against.
+
+    Never raises: a telemetry write must not fail the operation it measures. A
+    rejected argument records a failure and returns False.
+    """
+    tid = str(trace_id or "").strip()
+    sid = str(span_id or "").strip()
+    if not tid or not sid or not name:
+        note_failure("cd3_exporter:record_span:ids",
+                     ValueError("trace_id, span_id and name are required"))
+        return False
+
+    path = db_path or str(TELEMETRY_DB_PATH)
+    try:
+        if path not in _schema_ready:
+            SQLiteSpanExporter(db_path=path)._init_schema()
+            _schema_ready.add(path)
+        attrs = dict(attributes or {})
+        conn = sqlite3.connect(path, timeout=5)
+        try:
+            conn.execute(
+                "INSERT OR REPLACE INTO otel_spans "
+                "(trace_id, span_id, parent_span_id, name, kind, "
+                " start_time, end_time, status_code, attributes, "
+                " correlation_id, session_id) "
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    tid,
+                    sid,
+                    parent_span_id,
+                    str(name),
+                    str(kind),
+                    int(start_time),
+                    int(end_time),
+                    int(status_code),
+                    json.dumps(attrs, default=str),
+                    correlation_id or attrs.get("correlation_id"),
+                    session_id or attrs.get("session_id"),
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return True
+    except Exception as exc:
+        note_failure("cd3_exporter:record_span", exc)
+        return False
 
 
 def get_exporter(db_path: (str | None) = None) -> SQLiteSpanExporter:
