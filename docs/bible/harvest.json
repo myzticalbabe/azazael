@@ -6386,14 +6386,25 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
+   "symptom": "1,183 shards covering all 1,274 classes the Kali lane's atlas counts — 1,131 named units plus 52 residuals for the modules whose class list the atlas truncates — addressable here and none of them running. Each is a generated stub that carries its provenance and refuses:",
+   "title": "The Kali shard surface"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L158",
+   "kind": "limitation",
+   "line": 158,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
    "symptom": "not name a disorder, and on any elevated risk signal it stops being an intervention engine and becomes a router to people.",
    "title": "What this is not"
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L151",
+   "id": "project-eliza-readme-md-L172",
    "kind": "limitation",
-   "line": 151,
+   "line": 172,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6402,9 +6413,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L199",
+   "id": "project-eliza-readme-md-L220",
    "kind": "limitation",
-   "line": 199,
+   "line": 220,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6413,9 +6424,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L235",
+   "id": "project-eliza-readme-md-L256",
    "kind": "limitation",
-   "line": 235,
+   "line": 256,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6424,9 +6435,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L249",
+   "id": "project-eliza-readme-md-L270",
    "kind": "limitation",
-   "line": 249,
+   "line": 270,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6435,9 +6446,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L261",
+   "id": "project-eliza-readme-md-L282",
    "kind": "limitation",
-   "line": 261,
+   "line": 282,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6446,9 +6457,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L265",
+   "id": "project-eliza-readme-md-L286",
    "kind": "limitation",
-   "line": 265,
+   "line": 286,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -21079,8 +21090,8 @@
   },
   {
    "path": "Project_ELIZA/README.md",
-   "records": 13,
-   "sha": "951fa527c000798991214dd75e4c1bd0dc39f453a8290b8b591a4bc62ea93689"
+   "records": 14,
+   "sha": "fc7335b9b08f9fb9491d5d3dc074543c7e53839ffad3a6745d6333fb0e59ecb4"
   },
   {
    "path": "Project_FLAME/README.md",
@@ -21110,12 +21121,12 @@
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 44,
+   "limitation": 45,
    "measurement": 24,
    "memory": 67,
    "practice": 30
   },
-  "records": 1756,
+  "records": 1757,
   "surfaces": 13
  }
 }
