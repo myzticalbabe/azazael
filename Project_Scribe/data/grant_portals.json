@@ -1,0 +1,171 @@
+{
+  "_meta": {
+    "schema": "scribe/portal-registry@1",
+    "written": "2026-11-03",
+    "purpose": "The set of portals Scribe must be able to drive before it can be used by an academic or an individual applicant, by category. This file records only what an applicant can be told: who the money is for and where the door is. It deliberately does NOT record what kind of form each door has -- that is measured by tools/portal_census.py on the day it is run, because a hand-written guess about a funder's HTML is stale the moment they redesign it.",
+    "verification": "url_checked is the census state observed on the last run (see data/portal_census.json). 'notes' flags anything that is the author's belief rather than a measurement, and every such flag says so.",
+    "audience_values": [
+      "individual",
+      "academic",
+      "nonprofit",
+      "any"
+    ],
+    "role_values": {
+      "apply": "the URL is expected to be an application form",
+      "index": "the URL lists opportunities; one more hop is needed to reach a form",
+      "guidance": "process documentation, not a form"
+    }
+  },
+  "portals": [
+    {
+      "id": "grants_gov_search",
+      "name": "Grants.gov — Search Grants",
+      "category": "academic_federal",
+      "audience": ["academic", "nonprofit"],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.grants.gov/search-grants",
+      "notes": "Federal index: every discretionary US grant is listed here. Submission is not here — it is Grants.gov Workspace, which requires a registered account and, for research grants, an institutional Authorized Organizational Representative. Individual applicants therefore read this index and cannot submit from it."
+    },
+    {
+      "id": "nsf_funding",
+      "name": "NSF — Funding Search",
+      "category": "academic_federal",
+      "audience": ["academic"],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.nsf.gov/funding/",
+      "notes": "Index of NSF solicitations. Proposals are submitted through Research.gov by an AOR; an individual cannot submit a standard research proposal."
+    },
+    {
+      "id": "research_gov",
+      "name": "Research.gov (NSF submission)",
+      "category": "academic_federal",
+      "audience": ["academic"],
+      "region": "US",
+      "role": "apply",
+      "url": "https://www.research.gov/",
+      "notes": "Submission portal, account-gated. Expected to be AUTH_WALL; that is a credential wall, not a Scribe defect."
+    },
+    {
+      "id": "nih_grants",
+      "name": "NIH — Find a Funding Opportunity",
+      "category": "academic_federal",
+      "audience": ["academic"],
+      "region": "US",
+      "role": "index",
+      "url": "https://grants.nih.gov/funding/index.htm",
+      "notes": "Index of NIH notices and FOAs. Individual fellowships (F30/F31/F32) exist and are still submitted by the applicant's institution through ASSIST. URL corrected 2026-11-03: find-a-funding-opportunity.htm and funding-opportunities both return 404, index.htm returns 200."
+    },
+    {
+      "id": "nsf_grfp",
+      "name": "NSF Graduate Research Fellowship Program",
+      "category": "academic_federal",
+      "audience": ["individual", "academic"],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.nsfgrfp.org/",
+      "notes": "The clearest federal money aimed at an individual rather than an organisation, and it is still submitted through the applicant's institution's GRFP coordinator. This host could not open nsfgrfp.org at all on 2026-11-03 (status 0 at a 15 s timeout, 0 bytes); the census record carries the exact exception, and the error is about this host until a second host disagrees."
+    },
+    {
+      "id": "ukri_funding",
+      "name": "UK Research and Innovation — Funding Finder",
+      "category": "academic_international",
+      "audience": ["academic"],
+      "region": "UK",
+      "role": "index",
+      "url": "https://www.ukri.org/opportunity/",
+      "notes": "Index. Applications go through the UKRI Funding Service, which requires an organisation account. URL corrected 2026-11-03: ukri.org/funding/ returns 404, ukri.org/opportunity/ returns 200."
+    },
+    {
+      "id": "eu_funding_tenders",
+      "name": "EU Funding & Tenders Portal",
+      "category": "academic_international",
+      "audience": ["academic", "nonprofit"],
+      "region": "EU",
+      "role": "index",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/home",
+      "notes": "Index. Calls require a PIC-registered organisation; a natural person is generally not an eligible applicant." 
+    },
+    {
+      "id": "wellcome",
+      "name": "Wellcome Trust — Funding schemes",
+      "category": "academic_private",
+      "audience": ["academic"],
+      "region": "UK/global",
+      "role": "index",
+      "url": "https://wellcome.org/grant-funding",
+      "notes": "Index, and a good example of why the census measures instead of guessing: the page carries a five-field newsletter signup (first name, last name, email, research area) that a field-count test scores as an application form. Grant Tracker is the submission system and is account-gated. URL corrected 2026-11-03: grant-funding/funding-schemes returns 404."
+    },
+    {
+      "id": "gates_grantseekers",
+      "name": "Gates Foundation — Committed grants",
+      "category": "academic_private",
+      "audience": ["nonprofit", "academic"],
+      "region": "global",
+      "role": "index",
+      "url": "https://www.gatesfoundation.org/about/committed-grants",
+      "notes": "Author belief, not a measurement: the foundation largely does not accept unsolicited proposals, and this URL is a grants database rather than a door. Included because a census that silently omits the largest foundations is not a census."
+    },
+    {
+      "id": "sloan_apply",
+      "name": "Alfred P. Sloan Foundation — Apply",
+      "category": "academic_private",
+      "audience": ["academic"],
+      "region": "US",
+      "role": "apply",
+      "url": "https://sloan.org/grants/apply",
+      "notes": "Sloan runs open calls with letter-of-inquiry forms; the letter-of-inquiry stage is the part an individual researcher can drive without an institution."
+    },
+    {
+      "id": "emergent_ventures",
+      "name": "Emergent Ventures (Mercatus) — Grant application",
+      "category": "individual_entrepreneur",
+      "audience": ["individual"],
+      "region": "global",
+      "role": "apply",
+      "url": "https://mercatus.tfaforms.net/5099527",
+      "notes": "13+, rolling, $1k-$50k, no topic carve-out. mercatus.org returns 403 to this host; this TFA form URL is the application itself and served its 18 fields in the HTML on 2026-11-03 despite being JavaScript-heavy, so it is drivable without a browser. Field names are opaque (tfa_1115...), so Scribe can fill only the few whose names it can resolve."
+    },
+    {
+      "id": "awesome_foundation",
+      "name": "Awesome Foundation — Submit a chapter application",
+      "category": "individual_entrepreneur",
+      "audience": ["individual"],
+      "region": "global",
+      "role": "apply",
+      "url": "https://www.awesomefoundation.org/en/submissions/new",
+      "notes": "$1,000 micro-grants, no strings, decided by local chapters. Small enough to be real for an individual and small enough not to fund equipment."
+    },
+    {
+      "id": "pollination_project",
+      "name": "The Pollination Project — Seed grants",
+      "category": "individual_entrepreneur",
+      "audience": ["individual"],
+      "region": "global",
+      "role": "index",
+      "url": "https://thepollinationproject.org/grants/",
+      "notes": "$1,000 seed grants to individuals; daily rolling deadline stated on the page. Expected to be an index with the form one hop away."
+    },
+    {
+      "id": "otf_iff",
+      "name": "OTF — Internet Freedom Fund",
+      "category": "nonprofit_oss",
+      "audience": ["individual", "nonprofit"],
+      "region": "global (US-based funder)",
+      "role": "index",
+      "url": "https://www.opentech.fund/funds/internet-freedom-fund/",
+      "notes": "Measured 2026-11-03: individuals eligible, pays USD, $10k-$900k rolling. Mandate is internet freedom, so a mental-health tool fits poorly even though it is eligible."
+    },
+    {
+      "id": "nlnet_propose",
+      "name": "NLnet — Propose a project",
+      "category": "nonprofit_oss",
+      "audience": ["individual", "nonprofit", "academic"],
+      "region": "EU (Horizon Europe 60% rule)",
+      "role": "apply",
+      "url": "https://nlnet.nl/propose/",
+      "notes": "The one form Scribe has already been driven on end to end. Kept in the registry as the positive control: its census state must be FORM_STATIC, otherwise the classifier has broken and every other row is untrustworthy."
+    }
+  ]
+}

@@ -205,6 +205,70 @@ PROGRAMS: Dict[str, GrantProgram] = {
     ),
 }
 
+# ── Measured programs (evolution) ───────────────────────────────────────
+
+def load_discovered_programs(path: Path = None) -> int:
+    """Merge forms measured by tools/portal_census.py into the registry.
+
+    The census reads a live page and writes the field list it actually saw.
+    Without this merge that measurement is a report a human has to act on; with
+    it, the next dry run opens the form the census found. Existing keys are never
+    replaced -- a measurement cannot overwrite a hand-tuned entry, so this can
+    add capability but never silently remove it.
+
+    Field keys stay as the form names them. ProjectProfile.get_field already
+    bridges project_name->project, contact_email->email and the rest through
+    FIELD_ALIASES, so a discovered form is not a second vocabulary problem.
+    """
+    path = path or (DATA_DIR / "discovered_programs.json")
+    if not path.exists():
+        return 0
+    try:
+        blob = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"  [EVOLVE] {path.name} unreadable ({exc!r}); "
+              f"using the hand-written registry only")
+        return 0
+    added = 0
+    skipped = 0
+    # A portal Scribe already knows is NOT re-registered from a measurement. The
+    # census can read a form; it cannot read the funder's rules. Letting a
+    # discovered entry shadow nlnet would drop eligible_regions=('horizon_europe',)
+    # and fill a US applicant into a fund that excludes them -- the census would
+    # have quietly deleted a guard it has no way to re-derive. Hand-tuned wins.
+    known_urls = {p.url for p in PROGRAMS.values()}
+    for entry in blob.get("programs", []):
+        key = entry.get("key", "")
+        fields = dict(entry.get("fields") or {})
+        if not key or key in PROGRAMS or not fields:
+            continue
+        if entry.get("url") in known_urls:
+            skipped += 1
+            continue
+        PROGRAMS[key] = GrantProgram(
+            key=key,
+            name=entry.get("name", key),
+            url=entry.get("url", ""),
+            description=entry.get("description", "measured by tools/portal_census.py"),
+            fields=fields,
+            required_docs=[],
+            bypass_config={},
+            submit_selector=entry.get("submit_selector", "input[type='submit']"),
+            success_indicators=entry.get("success_indicators", ["submitted", "received"]),
+            form_available=True,
+            application_method="web_form",
+        )
+        added += 1
+    if added:
+        print(f"  [EVOLVE] {added} measured program(s) merged from {path.name}")
+    if skipped:
+        print(f"  [EVOLVE] {skipped} measured program(s) not merged: URL already registered "
+              f"by hand (a measurement cannot inherit funder eligibility rules)")
+    return added
+
+
+DISCOVERED_PROGRAMS = load_discovered_programs()
+
 # ── Profile Schema ──────────────────────────────────────────────────────
 
 @dataclass
@@ -251,19 +315,67 @@ class ProjectProfile:
         known["extra"] = extra
         return cls(**known)
 
-    def get_field(self, key: str, program_key: str = "") -> str:
+    def get_field(self, key: str, program_key: str = "", label: str = "") -> str:
         """Resolve a form field name to a value.
 
-        Order: per-program override, verbatim profile key (known or extra), then
-        the FIELD_ALIASES bridge, because profiles say project_name/contact_email
-        while forms say project/email.
+        Order: per-program override, verbatim profile key (known or extra), the
+        FIELD_ALIASES bridge (profiles say project_name/contact_email while forms
+        say project/email), then FIELD_SYNONYMS over the field's own words and the
+        page's label -- because a form Scribe has never seen names its inputs
+        after its framework (tfa_1115) or its own nesting (project[about_project]).
+
+        `label` is the human text the page shows next to the input. It is the only
+        semantic available for an opaque id, and it is passed in rather than read
+        here so this method stays pure and testable without a browser.
         """
         if program_key and program_key in self.overrides and key in self.overrides[program_key]:
             return self.overrides[program_key][key]
         for candidate in [key] + FIELD_ALIASES.get(key, []):
             for holder in (getattr(self, candidate, ""), self.extra.get(candidate, "")):
-                if holder not in ("", None) and not isinstance(holder, (dict, list)):
-                    return str(holder)
+                if holder in ("", None) or isinstance(holder, (dict, list)):
+                    continue
+                # `budget` in a real profile is a path to a spreadsheet, not a
+                # number. Skipping it lets the next candidate answer the field;
+                # returning it would blank a field that had a usable answer.
+                if _LOCAL_PATH_RE.search(str(holder)) and not re.match(r"^https?://", str(holder)):
+                    continue
+                return _text_safe(key, label, str(holder))
+
+        tokens = field_tokens(key, label)
+        # A personal-bio box is not a project blurb. "about_me" carries the word
+        # "about", so without this guard the synonym pass would stuff the project
+        # description into a field asking who the applicant is -- a wrong answer
+        # is worse than a blank one, and a blank is what a human would fill.
+        if _PERSONAL_FIELD_WORDS & set(tokens):
+            return ""
+        for trigger, profile_key in FIELD_SYNONYMS:
+            if trigger not in tokens:
+                continue
+            if trigger in _EXCLUSIVE_TRIGGERS:
+                # "Multimedia URL" must not accept the project homepage because the
+                # video is only a local file: a wrong link is worse than a blank.
+                return _text_safe(key, label, self._resolve_profile_key(profile_key))
+            value = self._resolve_profile_key(profile_key)
+            if value:
+                return _text_safe(key, label, value)
+        return ""
+
+    def _resolve_profile_key(self, profile_key: str) -> str:
+        """Value for a vocabulary key, including the ones a profile never stores."""
+        for candidate in [profile_key] + FIELD_ALIASES.get(profile_key, []):
+            holder = getattr(self, candidate, "") or self.extra.get(candidate, "")
+            if holder in ("", None) or isinstance(holder, (dict, list)):
+                continue
+            if _LOCAL_PATH_RE.search(str(holder)) and not re.match(r"^https?://", str(holder)):
+                continue
+            return str(holder)
+        name = (self.contact_name or "").strip()
+        if profile_key == "first_name" and name:
+            return name.split()[0]
+        if profile_key == "last_name" and len(name.split()) > 1:
+            return name.split()[-1]
+        if profile_key == "organization":
+            return self.project_name or ""
         return ""
 
 
@@ -277,7 +389,121 @@ FIELD_ALIASES: Dict[str, List[str]] = {
     "email": ["contact_email"],
     "amount": ["funding_amount"],
     "abstract": ["project_description"],
+    # "Estimated Budget" asks for a number, so a one-line funding amount is the
+    # right answer before the essay-shaped breakdown.
+    "budget": ["funding_amount", "budget_breakdown"],
 }
+
+# A form's own words -> the profile key whose value belongs in that field.
+# ORDER IS THE ALGORITHM: the first trigger found in the field's words wins, so a
+# specific ask ("about", "email") must precede the generic ones ("name").
+FIELD_SYNONYMS: List[Tuple[str, str]] = [
+    ("about", "project_description"),
+    ("describe", "project_description"),
+    ("description", "project_description"),
+    ("summary", "project_description"),
+    ("abstract", "project_description"),
+    ("pitch", "project_description"),
+    ("proposal", "proposal"),
+    # Measured 2026-11-03 on Mercatus TFA: "Estimated Budget" (tfa_3019) and
+    # "Breakdown of Expenses" (tfa_3021) were the two required fields left blank.
+    ("expense", "budget_breakdown"),
+    ("breakdown", "budget_breakdown"),
+    ("money", "budget_breakdown"),
+    ("budget", "budget"),
+    ("multimedia", "prototype_video"),
+    ("video", "prototype_video"),
+    ("amount", "funding_amount"),
+    ("request", "funding_amount"),
+    # "funding" used to map here and put '$100,000' into Mercatus's "Dedicated
+    # Funding Areas" (tfa_3022) -- a list of subjects, not a sum. Measured
+    # 2026-11-03: a broad word is a wrong answer waiting for a form to ask.
+    ("email", "contact_email"),
+    ("country", "country"),
+    ("nation", "country"),
+    ("city", "city"),
+    ("town", "city"),
+    ("province", "state"),
+    ("state", "state"),
+    ("zip", "postal_code"),
+    ("postal", "postal_code"),
+    ("phone", "contact_phone"),
+    ("mobile", "contact_phone"),
+    ("firstname", "first_name"),
+    ("first", "first_name"),
+    ("given", "first_name"),
+    ("lastname", "last_name"),
+    ("last", "last_name"),
+    ("surname", "last_name"),
+    ("family", "last_name"),
+    ("organization", "organization"),
+    ("organisation", "organization"),
+    ("company", "organization"),
+    ("employer", "organization"),
+    ("institution", "organization"),
+    ("website", "project_url"),
+    ("url", "project_url"),
+    ("link", "project_url"),
+    ("github", "github_url"),
+    ("title", "project_name"),
+    ("name", "contact_name"),
+]
+
+# Words that mark a field as being about the person, not the project.
+_PERSONAL_FIELD_WORDS = {"me", "myself", "bio", "biography", "yourself"}
+
+# Words that mark a field as wanting an address, not a path.
+_URL_FIELD_WORDS = {"url", "uri", "link", "website", "webpage", "hyperlink", "homepage"}
+
+# A trigger that only one profile key may answer. Falling through to a generic
+# key here would answer "link to your video" with the project homepage.
+_EXCLUSIVE_TRIGGERS = {"multimedia": "prototype_video", "video": "prototype_video"}
+
+
+_LOCAL_PATH_RE = re.compile(
+    r"^(?:[A-Za-z]:[\\/]|\\.{0,2}/|\\\\|profiles[\\/])"          # a path
+    r"|\.(?:xlsx?|pdf|mp4|mov|png|jpe?g|zip|docx?|csv|json|md)$",  # or a filename
+    re.I,
+)
+
+
+def _text_safe(name: str, label: str, value: str) -> str:
+    """Blank a value the funder's form cannot use.
+
+    Measured 2026-11-03, two wrong answers the page itself cannot catch:
+    "Multimedia URL" (tfa_37) received 'profiles/nurse_ratchet_demo.mp4', and
+    "Estimated Budget" (tfa_3019) received 'profiles/nurse_ratchet_budget.xlsx' --
+    both are local attachments in the profile, not something a reviewer can open.
+    A blank field a human finishes beats a filled field that is wrong.
+    """
+    if not value:
+        return ""
+    tokens = set(field_tokens(name, label))
+    if _URL_FIELD_WORDS & tokens and not re.match(r"^https?://", value):
+        print(f"  [GAP] {name}: form asks for a URL, value {value[:40]!r} is not one; left blank")
+        return ""
+    if _LOCAL_PATH_RE.search(value) and not re.match(r"^https?://", value):
+        print(f"  [GAP] {name}: {value[:40]!r} is a local path, not a value the funder can read; left blank")
+        return ""
+    return value
+
+
+def field_tokens(*texts: str) -> List[str]:
+    """Split a form field's name and label into the words a person would read.
+
+    `subscriberFirstName` -> ['subscriber', 'first', 'name'];
+    `project[about_project]` -> ['project', 'about', 'project']. A framework id
+    (`tfa_1115`) yields no meaningful words, which is the point: it resolves to
+    nothing and the label is the only thing that can save that field.
+    """
+    words: List[str] = []
+    for text in texts:
+        if not text:
+            continue
+        spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", str(text))
+        words.extend(w.lower() for w in re.split(r"[^A-Za-z0-9]+", spaced) if w)
+    return words
+
 
 # Input types that are never fillable from a profile string.
 UNFILLABLE_TYPES = {"submit", "button", "file", "hidden", "checkbox", "radio", "reset", "image"}
@@ -298,20 +524,36 @@ def parse_form_schema(html: str) -> Dict[str, Dict[str, Any]]:
         raw = a.get("maxlength", "")
         return int(raw) if raw.isdigit() else 0
 
+    def required(a: Dict[str, str]) -> bool:
+        """Is this field required, in any of the ways pages actually say it.
+
+        Measured 2026-11-03: the Mercatus TFA form marks six required fields and
+        sets neither `required` nor `aria-required` on any of them -- it does it in
+        JavaScript. Reading only the attribute let a dry run print "Form would be
+        accepted" with required fields empty, which is the exact false acceptance
+        this audit exists to prevent. A class or data-attribute marker is a weaker
+        signal than the attribute, but a missed required field is worse.
+        """
+        if "required" in a or a.get("aria-required", "").lower() == "true":
+            return True
+        if a.get("data-required", "").lower() in ("true", "1", "required"):
+            return True
+        return "required" in a.get("class", "").lower().split()
+
     for m in re.finditer(r"<input([^>]*)>", html, re.I):
         a = attrs(m.group(1))
         name = a.get("name", "").strip()
         if not name:
             continue
         schema[name] = {"tag": "input", "type": a.get("type", "text").lower(),
-                        "required": "required" in a, "maxlength": maxlen(a), "options": []}
+                        "required": required(a), "maxlength": maxlen(a), "options": []}
 
     for m in re.finditer(r"<select([^>]*)>(.*?)</select>", html, re.I | re.S):
         a = attrs(m.group(1))
         name = a.get("name", "").strip()
         if not name:
             continue
-        schema[name] = {"tag": "select", "type": "select", "required": "required" in a,
+        schema[name] = {"tag": "select", "type": "select", "required": required(a),
                         "maxlength": 0,
                         "options": [o for o in re.findall(r'<option[^>]*value="([^"]*)"', m.group(2)) if o]}
 
@@ -320,7 +562,7 @@ def parse_form_schema(html: str) -> Dict[str, Dict[str, Any]]:
         name = a.get("name", "").strip()
         if not name:
             continue
-        schema[name] = {"tag": "textarea", "type": "textarea", "required": "required" in a,
+        schema[name] = {"tag": "textarea", "type": "textarea", "required": required(a),
                         "maxlength": maxlen(a), "options": []}
 
     return schema
@@ -360,7 +602,10 @@ def load_page_feedback(program_key: str) -> Optional[Dict[str, Any]]:
     if not path.exists():
         return None
     try:
-        return json.loads(path.read_text())
+        # utf-8 on both sides: write_text/read_text default to the locale codec on
+        # Windows, so a feedback file was written cp1252 and read back as cp1252,
+        # which round-trips until a field name is not representable in it.
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
         print(f"  [WARN] page feedback unreadable at {path}: {exc!r}; "
               f"starting with no prior verdict")
@@ -480,10 +725,17 @@ class ScribeSession:
         self.attempted = {}
         print(f"  [PAGE] {len(self.schema)} named fields on the live form")
 
+        # A form Scribe has never seen names its inputs after its framework
+        # (tfa_1115). The label is the only semantic that survives that, so it
+        # is read once, for every field, before any value is resolved.
+        labels = await self._read_labels(list(self.schema.keys()))
+        if labels:
+            print(f"  [LABEL] read {sum(1 for v in labels.values() if v)} label(s) from the page")
+
         for name, meta in self.schema.items():
             if meta["type"] in UNFILLABLE_TYPES:
                 continue
-            value = profile.get_field(name, self.program.key)
+            value = profile.get_field(name, self.program.key, label=labels.get(name, ""))
             if not value:
                 continue
 
@@ -495,7 +747,12 @@ class ScribeSession:
             selector = f"{meta['tag']}[name='{name}']"
             try:
                 if meta["tag"] == "select":
-                    await self.page.select_option(selector, value=value)
+                    # Country/state selects encode values as codes ('US'), so the
+                    # value is tried first and the visible label second.
+                    try:
+                        await self.page.select_option(selector, value=value)
+                    except Exception:
+                        await self.page.select_option(selector, label=value)
                     await asyncio.sleep(random.uniform(0.2, 0.5))
                 elif len(value) > 200:
                     await self.page.fill(selector, value)
@@ -510,9 +767,70 @@ class ScribeSession:
                 self.attempted[name] = value
                 print(f"  [FILL] {name} <- {value[:50]!r}")
             except Exception as exc:
-                print(f"  [WARN] {name}: {type(exc).__name__} (value resolved, fill failed)")
+                # Measured 2026-11-03: two required TFA inputs (tfa_3019,
+                # tfa_3022) timed out for 5s each -- present in the DOM, not
+                # interactable until another field is answered. Setting the value
+                # through the DOM and firing the events a framework listens for
+                # gets the value in; the run says so instead of pretending it
+                # typed.
+                if await self._fill_via_dom(name, meta, value):
+                    self.attempted[name] = value
+                    print(f"  [FILL*] {name} <- {value[:50]!r} (js fallback: {type(exc).__name__})")
+                else:
+                    print(f"  [WARN] {name}: {type(exc).__name__} (value resolved, fill failed)")
 
         return True
+
+    async def _fill_via_dom(self, name: str, meta: Dict[str, Any], value: str) -> bool:
+        """Last resort for a field the page lists but will not let Playwright drive."""
+        try:
+            return bool(await self.page.evaluate(
+                """([sel, value]) => {
+                    const el = document.querySelector(sel);
+                    if (!el) return false;
+                    const setter = Object.getOwnPropertyDescriptor(
+                        el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype :
+                        el.tagName === 'SELECT' ? HTMLSelectElement.prototype :
+                        HTMLInputElement.prototype, 'value').set;
+                    setter.call(el, value);
+                    el.dispatchEvent(new Event('input', {bubbles: true}));
+                    el.dispatchEvent(new Event('change', {bubbles: true}));
+                    el.dispatchEvent(new Event('blur', {bubbles: true}));
+                    return true;
+                }""", [f"{meta['tag']}[name='{name}']", value]))
+        except Exception as exc:
+            print(f"  [WARN] {name}: js fallback failed ({exc!r})")
+            return False
+
+    async def _read_labels(self, names: List[str]) -> Dict[str, str]:
+        """The visible text beside each input: <label for>, wrapping label, aria, placeholder.
+
+        Returns {} rather than raising when the page refuses the evaluation -- a
+        label is a bonus, and losing it must not lose the fill.
+        """
+        if not self.page:
+            return {}
+        try:
+            return await self.page.evaluate(
+                """(names) => {
+                    const out = {};
+                    for (const n of names) {
+                        const el = document.querySelector(`[name="${CSS.escape(n)}"]`);
+                        if (!el) continue;
+                        let text = '';
+                        if (el.id) {
+                            const lab = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+                            if (lab) text = lab.innerText;
+                        }
+                        if (!text && el.closest('label')) text = el.closest('label').innerText;
+                        if (!text) text = el.getAttribute('aria-label') || el.getAttribute('placeholder') || '';
+                        out[n] = (text || '').replace(/\\s+/g, ' ').trim().slice(0, 200);
+                    }
+                    return out;
+                }""", names)
+        except Exception as exc:
+            print(f"  [WARN] labels unreadable: {exc!r}")
+            return {}
 
     async def audit(self) -> Dict[str, Any]:
         """Re-read the live form after filling and report what submit would reject."""
@@ -528,7 +846,7 @@ class ScribeSession:
     def save_page_feedback(self, audit: Dict[str, Any]) -> Path:
         """Persist this run's page verdict where the next run will read it."""
         path = EVIDENCE_DIR / f"{self.program.key}_page_feedback.json"
-        path.write_text(json.dumps(audit, indent=2))
+        path.write_text(json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"  [ADAPT] wrote {path}")
         return path
 
@@ -696,10 +1014,16 @@ class ScribeApp:
         self.profile: Optional[ProjectProfile] = None
         self.program: Optional[GrantProgram] = None
 
-    def load_profile(self, path: str) -> ProjectProfile:
+    def load_profile(self, path: str, country: Optional[str] = None) -> ProjectProfile:
         p = resolve_profile_path(path)
         data = json.loads(p.read_text())
         self.profile = ProjectProfile.from_dict(data)
+        # The applicant's country is a run-time argument, not profile data. A form
+        # that asks (Country / State / City are required on the Mercatus form)
+        # could never be filled from a profile that does not carry it, so the
+        # argument is seeded into the vocabulary the filler reads.
+        if country and not self.profile.extra.get("country"):
+            self.profile.extra["country"] = country
         return self.profile
 
     def create_profile_template(self, path: str):
@@ -733,7 +1057,7 @@ class ScribeApp:
         self.program = PROGRAMS[program_key]
         # Before the browser opens: the funder's rules outrank what the form accepts.
         check_eligibility(self.program, country)
-        self.load_profile(profile_path)
+        self.load_profile(profile_path, country=country)
 
         print(f"\n{'='*60}")
         print(f"SCRIBE — Grant Application Agent")
@@ -980,6 +1304,66 @@ async def dry_run_all(profile_path: str, headless: bool = True,
         log_file.close()
 
 
+def selftest_fields() -> int:
+    """Prove field resolution without a browser, with the negatives that matter.
+
+    Each row is a form field Scribe has never been hand-coded for. The blank
+    expectations are the controls: an opaque framework id and a personal-bio box
+    must resolve to nothing, because a wrong value in a grant form is worse than
+    a blank one a human finishes.
+    """
+    profile = ProjectProfile.from_dict({
+        "project_name": "Project Nurse Ratchet",
+        "project_description": "A local-first clinical decision journal.",
+        "project_url": "https://example.invalid/nurse-ratchet",
+        "github_url": "https://github.com/example/nurse-ratchet",
+        "team_size": 1,
+        "funding_amount": "$10,000",
+        "contact_name": "Clint Oxford",
+        "contact_email": "clinton@example.invalid",
+        "budget_breakdown": "Two laptops and one clinical advisor.",
+        # The real profile carries attachment paths in these two keys. They must
+        # never be typed into a text field, and must not shadow a usable answer.
+        "budget": "profiles/nurse_ratchet_budget.xlsx",
+        "prototype_video": "profiles/nurse_ratchet_demo.mp4",
+        "country": "United States",
+    })
+    checks = [
+        ("project[about_project]", "", "A local-first clinical decision journal.",
+         "nested name, synonym"),
+        ("project[title]", "", "Project Nurse Ratchet", "nested name, title"),
+        ("subscriberEmail", "", "clinton@example.invalid", "camelCase name, email"),
+        ("amount", "", "$10,000", "hand-tuned alias still resolves"),
+        ("tfa_1115", "What is your first name?", "Clint", "opaque id resolved by label"),
+        ("tfa_3021", "Describe the problem you are solving in one paragraph",
+         "A local-first clinical decision journal.", "opaque id + description label"),
+        ("tfa_1115", "", "", "CONTROL: opaque id with no label invents nothing"),
+        ("project[about_me]", "Tell us about yourself", "",
+         "CONTROL: a bio box never receives the project blurb"),
+        ("tfa_3019", "Estimated Budget", "$10,000", "measured: number, not the essay"),
+        ("tfa_3021", "Breakdown of Expenses", "Two laptops and one clinical advisor.",
+         "measured: expenses map to the breakdown"),
+        ("tfa_37", "Multimedia URL", "",
+         "CONTROL: a local .mp4 path is not a URL the funder can open, and the "
+         "project homepage is not a substitute"),
+        ("tfa_22", "Country", "United States", "argument-seeded country fills a select"),
+        ("tfa_3022", "Dedicated Funding Areas", "",
+         "CONTROL: 'funding areas' is a list of subjects, not a sum"),
+        ("subscriberResearch", "", "", "CONTROL: an unknown word invents nothing"),
+        ("project_photos_attributes_0_caption", "Add an optional caption", "",
+         "CONTROL: an optional caption is not a profile field"),
+    ]
+    failures = 0
+    for name, label, expected, why in checks:
+        got = profile.get_field(name, "", label=label)
+        ok = got == expected
+        failures += 0 if ok else 1
+        print(f"  [selftest] {name!r} {('-> ' + repr(got)) if got else '-> (blank)'} "
+              f"{'ok' if ok else 'FAIL expected ' + repr(expected)}  ({why})")
+    print(f"  [selftest] {len(checks) - failures}/{len(checks)} field-resolution controls ok")
+    return 1 if failures else 0
+
+
 async def main():
     parser = argparse.ArgumentParser(
         prog="scribe",
@@ -997,8 +1381,13 @@ async def main():
     parser.add_argument("--country",
                         help="Applicant's country of residence, for funder eligibility rules "
                              "the form does not enforce (e.g. NLnet requires Horizon Europe)")
+    parser.add_argument("--selftest-fields", action="store_true",
+                        help="Check field resolution against measured form shapes (no network)")
 
     args = parser.parse_args()
+
+    if args.selftest_fields:
+        return selftest_fields()
 
     app = ScribeApp()
 
