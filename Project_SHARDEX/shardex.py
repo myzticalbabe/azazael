@@ -138,8 +138,31 @@ def mirror(root: str, out_dir: Optional[str] = None,
 
     entries: List[Dict[str, Any]] = []
     skipped: List[str] = []
+    # A pruned directory is not a file that failed to stat: it is a subtree the mirror
+    # decided not to take. Reported only as an absence, it is indistinguishable from a
+    # tree that never held those files -- measured 2026-11-02 on tools/swarm_arena, where
+    # 13 files and 98.7% of the bytes vanished behind `skipped: []`.
+    pruned: List[Dict[str, Any]] = []
     total_bytes = 0
     for current, dirnames, filenames in os.walk(base):
+        for name in sorted(dirnames):
+            if name not in SKIP_DIRS:
+                continue
+            path = Path(current) / name
+            files, size, unreadable = 0, 0, 0
+            for sub in path.rglob("*"):
+                try:
+                    if sub.is_file():
+                        files += 1
+                        size += sub.stat().st_size
+                except OSError:
+                    # A subtree entry that cannot be stat'ed is not zero bytes. Skipping it
+                    # quietly made `pruned` report a pruner that took less than it did,
+                    # which is the same defect as reporting a pruned tree as absent.
+                    unreadable += 1
+            pruned.append({"path": str(path.relative_to(base)).replace("\\", "/"),
+                           "reason": "SKIP_DIRS", "files": files, "bytes": size,
+                           "unreadable": unreadable})
         dirnames[:] = sorted(name for name in dirnames if name not in SKIP_DIRS)
         for name in sorted(filenames):
             path = Path(current) / name
@@ -171,6 +194,8 @@ def mirror(root: str, out_dir: Optional[str] = None,
     doc = {
         "state": "MIRRORED",
         "source": str(base),
+        # absolute, so `--shatter` can copy the payload from wherever it is invoked
+        "source_root": str(base.resolve()),
         "mirrored_at_sha256": sha256_text(json.dumps(
             [[entry["path"], entry["sha256"]] for entry in entries], sort_keys=True)),
         "totals": {"files": len(entries), "bytes": total_bytes,
@@ -179,6 +204,11 @@ def mirror(root: str, out_dir: Optional[str] = None,
                    "data": sum(1 for e in entries if e["role"] == "data"),
                    "by_kind": dict(sorted(kinds.items()))},
         "skipped": skipped[:50],
+        "pruned": pruned,
+        "not_mirrored": {"dirs": len(pruned),
+                         "files": sum(p["files"] for p in pruned),
+                         "bytes": sum(p["bytes"] for p in pruned),
+                         "unreadable": sum(p["unreadable"] for p in pruned)},
         "files": entries,
     }
     directory = Path(out_dir) if out_dir else Path.cwd() / STATE
@@ -288,6 +318,35 @@ def shatter(mirror_path: Optional[str] = None, out_dir: Optional[str] = None,
             }
             target = shards_dir / name
             target.mkdir(parents=True, exist_ok=True)
+            # A manifest without its payload is a table of digests pointing at files the
+            # shard does not contain. Measured 2026-11-02: every shard this tool wrote held
+            # exactly one file, `shard.json`, while declaring 3 files / 6 984 bytes -- and
+            # the first consumer to recompute identity from disk (launch.py --compose)
+            # reported all three payloads 'bytes unreadable'. Copy first, then write the
+            # manifest, so a shard either carries what it names or is refused with a count.
+            unreadable: List[str] = []
+            dishonest: List[str] = []
+            root = Path(str(doc.get("source_root") or doc.get("source") or "."))
+            for entry in chunk:
+                src = root / entry["path"]
+                try:
+                    data = src.read_bytes()
+                except OSError:
+                    unreadable.append(entry["path"])
+                    continue
+                got = hashlib.sha256(data).hexdigest()
+                if got != entry["sha256"]:
+                    dishonest.append("%s: mirror said %s, bytes %s"
+                                     % (entry["path"], entry["sha256"][:16], got[:16]))
+                    continue
+                (target / entry["path"].split("/")[-1]).write_bytes(data)
+            if unreadable or dishonest:
+                shutil.rmtree(target, ignore_errors=True)
+                refused.append({"group": group, "shard": name, "payload_bytes": payload,
+                                "reason": "payload not carried: %s"
+                                          % ("; ".join((["unreadable " + ", ".join(unreadable)]
+                                                       if unreadable else []) + dishonest))})
+                continue
             (target / SHARD_FILE).write_text(json.dumps(manifest, indent=1),
                                              encoding="utf-8")
             written.append({"shard": name, "id": entry_id, "files": len(chunk),
@@ -464,6 +523,7 @@ def forge(shard_dir: str, out_dir: str, overrides: Optional[Dict[str, Any]] = No
         "golden": {"state_sha256": run["state_sha256"], "ticks": run["ticks"],
                    "token": run["token"], "headless": True},
         "controls": {"move": "A/D or left/right", "jump": "space or W",
+                     "click": "click or drag the arena: walk there (the click also hops)",
                      "restart": "R", "tune": "edit tunables in flame.json, reload"},
         "for_tournaments": {
             "deterministic": "fixed-step sim at sim_hz; the golden hash covers sim state "
@@ -664,6 +724,45 @@ const dot = (a,b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const cross = (a,b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 const norm = a => { const m = Math.hypot(a[0],a[1],a[2]) || 1; return [a[0]/m,a[1]/m,a[2]/m]; };
 
+/* ---- clicks: the second input, and the one that needs no instruction ----
+   A click is unprojected onto the ground plane through the SAME camera draw() uses,
+   so the cube walks to the patch of floor that was clicked. Nothing here touches the
+   golden hash: that hash is a function of the scripted input alone, which is what lets
+   a bracket agree on an arena a human has been playing in. */
+let target = null, hop = false, clicks = 0;
+function goldenEl(){ return document.getElementById("golden"); }
+function eyeOf(player){ return [player.x * 0.35, 7.5, 18 - Math.min(6, T.arena * 0.2)]; }
+function pick(sx, sy, player){
+  const eye = eyeOf(player);
+  const fwd = norm([-eye[0], 1.2 - eye[1], -eye[2]]);
+  const right = norm(cross(fwd, [0, 1, 0]));
+  const up = cross(right, fwd);
+  const u = (sx - W / 2) / 900, v = (H / 2 - sy) / 900;
+  const d = [fwd[0] + u*right[0] + v*up[0], fwd[1] + u*right[1] + v*up[1],
+             fwd[2] + u*right[2] + v*up[2]];
+  if (!(d[1] < -0.001)) return null;          /* the ray is at or above the horizon */
+  const t = -eye[1] / d[1];
+  const x = eye[0] + t * d[0], z = eye[2] + t * d[2];
+  return [Math.max(-T.arena, Math.min(T.arena, x)),
+          Math.max(-T.arena, Math.min(T.arena, z))];
+}
+function clickAt(cssX, cssY){
+  clicks++;
+  hop = true;
+  const p = pick(cssX * devicePixelRatio, cssY * devicePixelRatio, player);
+  const el = goldenEl();
+  el.dataset.clicks = String(clicks);
+  if (p){
+    target = p;
+    el.dataset.target = p[0].toFixed(2) + "," + p[1].toFixed(2);
+  }
+  return p;
+}
+canvas.style.cursor = "crosshair";
+canvas.addEventListener("pointerdown", e => { clickAt(e.clientX, e.clientY); });
+canvas.addEventListener("pointerup", () => { target = null; });
+canvas.addEventListener("pointermove", e => { if (e.buttons) clickAt(e.clientX, e.clientY); });
+
 function draw(){
   ctx.fillStyle = "#05070c"; ctx.fillRect(0, 0, W, H);
   const eye = [player.x * 0.35, 7.5, 18 - Math.min(6, T.arena * 0.2)];
@@ -715,15 +814,27 @@ function draw(){
            ctx.ellipse(sh[0], sh[1], 300/sh[2], 120/sh[2], 0, 0, 7); ctx.fill(); }
 }
 
+function inputVector(st){
+  let ix = (KEYS["a"] || KEYS["arrowleft"] ? -1 : 0) + (KEYS["d"] || KEYS["arrowright"] ? 1 : 0);
+  let iz = (KEYS["w"] || KEYS["arrowup"] ? -1 : 0) + (KEYS["s"] || KEYS["arrowdown"] ? 1 : 0);
+  if (target){
+    const dx = target[0] - st.x, dz = target[1] - st.z;
+    ix = Math.abs(dx) > 0.25 ? (dx > 0 ? 1 : -1) : 0;
+    iz = Math.abs(dz) > 0.25 ? (dz > 0 ? 1 : -1) : 0;
+    if (Math.abs(dx) <= 0.25 && Math.abs(dz) <= 0.25) target = null;
+  }
+  return [ix, iz];
+}
+
 function frame(now){
   const dt = 1 / T.sim_hz;
   if (!last) last = now;
   accumulator += Math.min(0.25, (now - last) / 1000);
   last = now;
   while (accumulator >= dt){
-    const ix = (KEYS["a"] || KEYS["arrowleft"] ? -1 : 0) + (KEYS["d"] || KEYS["arrowright"] ? 1 : 0);
-    const iz = (KEYS["w"] || KEYS["arrowup"] ? -1 : 0) + (KEYS["s"] || KEYS["arrowdown"] ? 1 : 0);
-    step(player, ix * T.difficulty, iz * T.difficulty, KEYS[" "]);
+    const v = inputVector(player);
+    const jumpNow = KEYS[" "] || hop; hop = false;
+    step(player, v[0] * T.difficulty, v[1] * T.difficulty, jumpNow);
     accumulator -= dt;
   }
   draw();
@@ -734,10 +845,43 @@ function frame(now){
     "<b>" + T.orbs + "</b> orbs &nbsp; collected <b>" +
     popcount(player.collected) + "/" + T.orbs + "</b><br>" +
     "shard " + FLAME.shard.slice(0, 19) + "… &nbsp; " + T.sim_hz + " Hz";
+  goldenEl().dataset.pos = player.x.toFixed(2) + "," + player.z.toFixed(2);
   requestAnimationFrame(frame);
 }
 function popcount(v){ let n = 0; while (v){ n += v & 1; v >>>= 1; } return n; }
 requestAnimationFrame(frame);
+
+/* ---- ?probe=clicks: dispatch REAL PointerEvents at the canvas and publish whether a
+   click mutated play state WITHOUT moving the golden hash. Same idea as ?play=N: an
+   affordance for a headless check, not a second way to play. */
+(function(){
+  if (!/[?&]probe=clicks/.test(location.search || "")) return;
+  const el = goldenEl(), box = canvas.getBoundingClientRect();
+  const hashAtClick = el.dataset.hash || "";
+  el.dataset.probeHashBefore = hashAtClick;
+  el.dataset.probePosBefore = player.x.toFixed(2) + "," + player.z.toFixed(2);
+  const fire = (type, x, y) => canvas.dispatchEvent(new PointerEvent(type, {
+    clientX: x, clientY: y, buttons: type === "pointerup" ? 0 : 1, pointerId: 1,
+    bubbles: true, cancelable: true }));
+  fire("pointerdown", box.width * 0.82, box.height * 0.72);
+  const targetAfter = el.dataset.target || "";
+  /* --dump-dom does not advance requestAnimationFrame, so fast-forward 120 ticks of the
+     SAME inputVector() + step() the frame loop calls. A copy of the arithmetic here
+     would prove nothing about the handler. */
+  for (let t = 0; t < 120; t++){
+    const v = inputVector(player);
+    step(player, v[0] * T.difficulty, v[1] * T.difficulty, t === 0);
+  }
+  setTimeout(function(){
+    fire("pointermove", box.width * 0.78, box.height * 0.70);
+    const posNow = player.x.toFixed(2) + "," + player.z.toFixed(2);
+    el.dataset.probeTarget = targetAfter;
+    el.dataset.probePosAfter = posNow;
+    el.dataset.probeClicks = el.dataset.clicks || "0";
+    el.dataset.probe = (targetAfter && posNow !== el.dataset.probePosBefore &&
+                        (el.dataset.hash || "") === hashAtClick) ? "PASS" : "FAIL";
+  }, 1500);
+})();
 </script></body></html>
 """
 
@@ -892,6 +1036,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--shatter", action="store_true", help="L1: cut the mirror up")
     parser.add_argument("--forge", default="", help="L2: a shard directory to forge")
     parser.add_argument("--golden", default="", help="print the golden run for a shard")
+    parser.add_argument("--compose", nargs="+", default=[], metavar="MESH_DIR",
+                        help="L5: two or more forged mesh dirs (or mesh.json paths) -> one "
+                             "arena, its composition hash and its merged mesh digest")
     parser.add_argument("--verify", default="", help="check a forged FLAME directory")
     parser.add_argument("--doctor", action="store_true")
     parser.add_argument("--selftest", action="store_true")
@@ -932,6 +1079,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("  %d files, %d bytes -- %d code, %d asset, %d data"
               % (totals["files"], totals["bytes"], totals["code"], totals["asset"],
                  totals["data"]))
+        not_mirrored = doc["not_mirrored"]
+        if not_mirrored["dirs"]:
+            print("  NOT MIRRORED: %d dir(s), %d file(s), %d bytes (%s)"
+                  % (not_mirrored["dirs"], not_mirrored["files"], not_mirrored["bytes"],
+                     ", ".join(p["path"] for p in doc["pruned"][:6])))
         print("  %s" % doc["written"])
         return OK
 
@@ -967,6 +1119,52 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                              doc["golden"]["ticks"]))
         print("  fidelity: ARENA-FROM-SHARD -- the original game's rules are not "
               "extracted (SHARDEX.md L4)")
+        return OK
+
+    if args.compose:
+        # Lazy: shardex.py must stay runnable on its own, and ops.py is the module that
+        # owns the operator arithmetic -- a composition is arithmetic over two meshes.
+        try:
+            from ops import OpError as OpsError, compose as compose_meshes
+        except ImportError as exc:
+            print("COULD NOT RUN: ops.py is not importable beside shardex.py (%s)" % exc)
+            return COULD_NOT_RUN
+        meshes = []
+        sources = []
+        for raw in args.compose:
+            here = Path(raw)
+            mesh_path = here / "mesh.json" if here.is_dir() else here
+            if not mesh_path.exists():
+                print("COULD NOT RUN: no mesh at %s (--compose reads a forged mesh.json)"
+                      % mesh_path)
+                return COULD_NOT_RUN
+            meshes.append(json.loads(mesh_path.read_text(encoding="utf-8")))
+            sources.append(str(mesh_path))
+        try:
+            result = compose_meshes(meshes)
+        except OpsError as exc:
+            print("REFUSED: NOT-A-COMPOSITION\n  %s" % exc)
+            return REFUSED
+        print("COMPOSED %d meshes into one arena" % len(meshes))
+        for lane in result["lanes"]:
+            print("  lane %d  %s  %d neurons, %d synapses  offset %d"
+                  % (lane["lane"], lane["digest"], lane["neurons"], lane["synapses"],
+                     lane["offset"]))
+        counts = result["mesh"]["counts"]
+        print("  merged       %d neurons, %d synapses, grid %dx%d"
+              % (counts["neurons"], counts["synapses"], result["mesh"]["grid_w"],
+                 result["mesh"]["grid_h"]))
+        print("  mesh digest  %s" % result["mesh_digest"])
+        print("  composition  %s" % result["composition_hash"])
+        if args.out:
+            target = Path(args.out)
+            target.mkdir(parents=True, exist_ok=True)
+            merged_path = target / "mesh.json"
+            merged_path.write_text(json.dumps(result["mesh"]), encoding="utf-8")
+            (target / "composition.json").write_text(json.dumps(
+                {k: v for k, v in result.items() if k != "mesh"}, indent=2),
+                encoding="utf-8")
+            print("  written      %s" % merged_path)
         return OK
 
     if args.golden:

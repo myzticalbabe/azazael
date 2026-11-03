@@ -18,6 +18,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { pathToFileURL } = require('url');
 
 (async () => {
@@ -87,6 +88,16 @@ const { pathToFileURL } = require('url');
       console.log('probe: segments=' + geo.segments + ' leaves=' + geo.leaves +
                   ' digest=' + geo.digest);
     }
+    // Capture BASE mesh digest and field sha256 BEFORE any live ops are applied
+    // so that --verify can confirm the inputs match what the browser actually used
+    let baseMeshDigest = null;
+    let fieldSha256 = null;
+    if (isMesh) {
+      baseMeshDigest = golden.mesh_digest;  // this is the base mesh before live ops
+      const fieldPath = path.resolve(dir, 'field.json');
+      fieldSha256 = crypto.createHash('sha256').update(fs.readFileSync(fieldPath)).digest('hex');
+      console.log('probe: base mesh ' + baseMeshDigest + ', field sha256 ' + fieldSha256);
+    }
     for (const key of Object.keys(golden.states)) {
       probeStates[key] = await page.evaluate((t) => window.__state(t), parseInt(key.slice(1), 10));
     }
@@ -118,6 +129,16 @@ const { pathToFileURL } = require('url');
       const applied = await page.evaluate(() => window.__applied());
       probe.mesh_digest = await page.evaluate(() => window.__digest());
       probe.applied = applied.length;
+      // Capture base mesh and field hash BEFORE live ops
+      probe.base_mesh_digest = baseMeshDigest;
+      probe.field_sha256 = fieldSha256;
+      // Provenance, not decoration: meshscene.py --verify compares this against the page and
+      // the op log on disk, so editing either after the capture turns the probe into a refusal
+      // instead of evidence for a scene nobody rendered.
+      const prov = await page.evaluate(() => window.__scene_provenance());
+      probe.provenance = Object.assign({
+        html_sha: crypto.createHash('sha256').update(fs.readFileSync(scene)).digest('hex'),
+      }, prov);
       fs.writeFileSync(path.resolve(dir, 'applied_ops.jsonl'),
                        applied.map((r) => JSON.stringify(r)).join('\n') + (applied.length ? '\n' : ''));
       console.log('applied ' + applied.length + ' live op(s); final mesh ' + probe.mesh_digest);

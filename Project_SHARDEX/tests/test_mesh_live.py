@@ -218,3 +218,148 @@ def test_verify_refuses_a_log_that_does_not_replay(tmp_path):
     assert rc == M.REFUSED
     assert info["state"] == "DIGEST-DIVERGENCE"
     assert mesh["field_sha256"] == fld["source"]["sha256"]
+
+
+def _forged_with_probe(tmp_path):
+    """Forge, log one live op, and write a probe that names the page it came from.
+
+    The probe is what the browser writes. It is a claim about a specific page file, so the
+    honest fixture computes the page hash from that file rather than inventing one.
+    """
+    import hashlib
+
+    path = tmp_path / "field.json"
+    path.write_text(json.dumps(field()), encoding="utf-8")
+    out = tmp_path / "out"
+    rc, _info = M.forge(path, out)
+    assert rc == M.OK
+    base = json.loads((out / "mesh.json").read_text(encoding="utf-8"))
+    op = {"kind": "palette", "shift": 40}
+    after = OPS.apply_op(base, op, OPS.sine_table())
+    record = {"seq": 0, "op": op, "digest": OPS.mesh_digest(after),
+              "neurons": len(after["neurons"]), "synapses": len(after["synapses"])}
+    (out / "applied_ops.jsonl").write_text(json.dumps(record) + "\n", encoding="utf-8")
+    probe = {"scene": "meshscene.html", "total": 10, "states": {},
+             "mesh_digest": record["digest"], "applied": 1,
+             # The browser writes these two before it applies anything, so the honest
+             # fixture computes them from the files the page was actually handed.
+             "base_mesh_digest": OPS.mesh_digest(base),
+             "field_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+             "provenance": {
+                 "html_sha": hashlib.sha256((out / "meshscene.html").read_bytes()).hexdigest(),
+                 "prov": {"scene_shape": M.SCENE_SHAPE},
+                 "applied_ops": [op]}}
+    (out / "browser_probe.json").write_text(json.dumps(probe), encoding="utf-8")
+    return out
+
+
+def test_verify_is_not_blind_when_the_probe_names_no_inputs(tmp_path):
+    """The defect this closed: two checks that ran only if the keys happened to be there.
+
+    Measured 2026-11-02 on .live: its probe carries neither hash, so `if probe.get(...)`
+    skipped both comparisons and a field.json edited by one digit still verified. A probe
+    that cannot name the mesh and field it rendered must be refused, not accommodated.
+    """
+    out = _forged_with_probe(tmp_path)
+    probe = json.loads((out / "browser_probe.json").read_text(encoding="utf-8"))
+    for key in ("base_mesh_digest", "field_sha256"):
+        del probe[key]
+    (out / "browser_probe.json").write_text(json.dumps(probe), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-UNPROVENANCED"
+    assert "base_mesh_digest" in info["reason"] and "field_sha256" in info["reason"]
+
+
+def test_verify_refuses_a_field_edited_after_the_capture(tmp_path):
+    """The sine table is an input to every op: edit one entry and the probe's hash must fire."""
+    out = _forged_with_probe(tmp_path)
+    # The page and the verifier both read the copy forge() placed next to the mesh.
+    field_path = out / "field.json"
+    assert field_path.exists(), "forge is expected to ship field.json beside the mesh"
+    fld = json.loads(field_path.read_text(encoding="utf-8"))
+    fld["sine_q15"][0] += 1
+    field_path.write_text(json.dumps(fld), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-FIELD-MISMATCH"
+
+
+def test_verify_refuses_a_mesh_edited_consistently_with_its_log(tmp_path):
+    """The hard case: edit mesh.json AND rewrite the log's digests so replay agrees.
+
+    Every digest check passes, because the editor recomputed them. The probe's record of
+    the base mesh is the only thing left that was written before the edit.
+    """
+    out = _forged_with_probe(tmp_path)
+    mesh_path = out / "mesh.json"
+    base = json.loads(mesh_path.read_text(encoding="utf-8"))
+    base["neurons"][0][0] = float(base["neurons"][0][0]) + 0.01
+    mesh_path.write_text(json.dumps(base), encoding="utf-8")
+    rows = [json.loads(line) for line in
+            (out / "applied_ops.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    current = base
+    for record in rows:
+        current = OPS.apply_op(current, record["op"], OPS.sine_table())
+        record["digest"] = OPS.mesh_digest(current)
+        record["neurons"] = len(current["neurons"])
+        record["synapses"] = len(current["synapses"])
+    (out / "applied_ops.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    probe = json.loads((out / "browser_probe.json").read_text(encoding="utf-8"))
+    probe["mesh_digest"] = rows[-1]["digest"]
+    (out / "browser_probe.json").write_text(json.dumps(probe), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-BASE-MISMATCH"
+
+
+def test_verify_refuses_a_probe_that_names_no_page(tmp_path):
+    """Without provenance the probe is an unfalsifiable claim about an unnamed artifact."""
+    out = _forged_with_probe(tmp_path)
+    probe = json.loads((out / "browser_probe.json").read_text(encoding="utf-8"))
+    del probe["provenance"]
+    (out / "browser_probe.json").write_text(json.dumps(probe), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-UNPROVENANCED"
+
+
+def test_verify_refuses_a_page_edited_after_the_capture(tmp_path):
+    """The defect: edit page AND golden together, and the old probe still "proves" the run.
+
+    The digests cannot catch it, because the editor fixed them. The page hash can, because it
+    names the bytes that were actually rendered.
+    """
+    out = _forged_with_probe(tmp_path)
+    scene = out / "meshscene.html"
+    scene.write_text(scene.read_text(encoding="utf-8").replace("mesh-live-v1", "mesh-live-v1 "),
+                     encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-STALE-PAGE"
+
+
+def test_verify_refuses_an_op_log_edited_after_the_page_ran(tmp_path):
+    out = _forged_with_probe(tmp_path)
+    rows = (out / "applied_ops.jsonl").read_text(encoding="utf-8").splitlines()
+    extra = json.loads(rows[0])
+    extra["seq"] = 1
+    extra["op"] = {"kind": "palette", "shift": 41}
+    # the appended row replays cleanly from the state AFTER the first op, so the only thing
+    # that can catch it is the page's own record of what it was told to do
+    after = OPS.apply_op(json.loads((out / "mesh.json").read_text(encoding="utf-8")),
+                         json.loads(rows[0])["op"], OPS.sine_table())
+    after = OPS.apply_op(after, extra["op"], OPS.sine_table())
+    extra["digest"] = OPS.mesh_digest(after)
+    (out / "applied_ops.jsonl").write_text("\n".join(rows + [json.dumps(extra)]) + "\n",
+                                            encoding="utf-8")
+    # and the probe's final digest is updated to match, so the digest checks all pass and the
+    # only surviving evidence is the page's list of what it applied
+    probe = json.loads((out / "browser_probe.json").read_text(encoding="utf-8"))
+    probe["mesh_digest"] = extra["digest"]
+    probe["applied"] = 2
+    (out / "browser_probe.json").write_text(json.dumps(probe), encoding="utf-8")
+    rc, info = M.verify(out)
+    assert rc == M.REFUSED
+    assert info["state"] == "PROBE-STALE-OPS"
