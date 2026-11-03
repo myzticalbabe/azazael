@@ -6633,6 +6633,94 @@
   },
   {
    "cause": "",
+   "id": "project-jaeger-readme-md-L9",
+   "kind": "limitation",
+   "line": 9,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "> Accepted: Jaeger as the tree's own tracer — consumes AOA's `DelegationSpec` + `ArmResult` → spans within AOA. > Rejected: Jaeger as thin OTLP client (duplicates OSS, no defect hit, would contribute to software not built against).",
+   "title": "Decision (jaeger-000): Tracer of This Tree ✅"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L26",
+   "kind": "limitation",
+   "line": 26,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "┌─────────────────────────────────────────────────────────────┐ │ AOA Kernel │ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │ │ │ Delegation │───►│ Jaeger │───►│ Span Store │ │ │ │ Spec │ │ Tracer │ │ (JSONL/OTLP)│ │ │ └──────────────┘ └──────────────┘ └──────────────┘ │ │ │ │ │ │ │ ▼ ▼ ▼ │ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │ │ │ ArmResult │ │ Jaeger │ │ OTLP/JSONL │ │ │ │ (provenance) │ │ Exporter │ │ Export │ │ │ └──────────────┘ └──────────────┘ └──────────────┘ │ └─────────────────────────────────────────────────────────────┘",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L71",
+   "kind": "limitation",
+   "line": 71,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "pip install -e ./Project_JAEGER",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L86",
+   "kind": "limitation",
+   "line": 86,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "tracer: service_name: \"azazael-jaeger\" sample_rate: 1.0",
+   "title": "Configuration"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L107",
+   "kind": "limitation",
+   "line": 107,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "{ \"trace_id\": \"0af2e3c4d5f6a7b8\", \"span_id\": \"1a2b3c4d5e6f7890\", \"parent_span_id\": null, \"name\": \"delegation.execute\", \"kind\": \"INTERNAL\", \"start_time\": \"2026-11-03T03:15:22.123Z\", \"end_time\": \"2026-11-03T03:15:22.456Z\", \"attributes\": { \"delegation.id\": \"del-abc123\", \"delegation.instruction\": \"analyze user intent\", \"delegation.context\": \"user said: help me sleep\", \"delegation.tools\": [\"triage\", \"psyche_fit\"], \"delegation.model\": \"gpt-4\", \"arm.id\": \"arm-psyche-triage\", \"arm.capability\": \"crisis_detection\", \"arm.provenance\": \"arm_declared\", \"arm.result\": \"crisis\", \"arm.stale_after_s\": 300, \"azazael.delegation_spec\": true, \"azazael.arm_result\": true }, \"events\": [ {\"name\": \"delegation.received…",
+   "title": "Span Format"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L143",
+   "kind": "limitation",
+   "line": 143,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "The Grimorie is Jaeger's spellbook — the definitive reference for every incantation (API), ward (validation), and ritual (workflow).",
+   "title": "Grimorie (Spellbook)"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L151",
+   "kind": "limitation",
+   "line": 151,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "Project_JAEGER/ ├── pyproject.toml ├── README.md ├── CHANGELOG.md ├── CONFIGURATION.md ├── grimorie/ │ ├── INDEX.md # Master index │ ├── INCANTATIONS.md # API reference │ ├── WARDS.md # Validation rules │ ├── RITUALS.md # Workflows │ ├── WARDS.md # Protection spells │ └── RUNES.md # Configuration runes ├── src/ │ └── jaeger/ │ ├── __init__.py │ ├── tracer.py # Core tracer │ ├── span.py # Span types │ ├── exporter.py # OTLP/JSONL export │ ├── context.py # DelegationSpec + ArmResult │ └── config.py # Configuration ├── tests/ │ ├── test_tracer.py │ ├── test_span.py │ └── test_exporter.py ├── tools/ │ ├── jaeger_trace.py # CLI tracer │ └── jaeger_export.py # CLI exporter └── grimorie/ # The Spe…",
+   "title": "Project Structure"
+  },
+  {
+   "cause": "",
+   "id": "project-jaeger-readme-md-L186",
+   "kind": "limitation",
+   "line": 186,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_JAEGER/README.md",
+   "symptom": "CDDL-1.1 — see `LICENSE`.",
+   "title": "License"
+  },
+  {
+   "cause": "",
    "id": "project-shardex-readme-md-L20",
    "kind": "limitation",
    "line": 20,
@@ -21104,6 +21192,11 @@
    "sha": "931a85afc689542a6cfb19a50c6af79ee27355f2312769103c1a648da0ce3387"
   },
   {
+   "path": "Project_JAEGER/README.md",
+   "records": 8,
+   "sha": "2fc45e5b0fcca01dd6374440dfd4bc712101dbfe5dc54a11dfeca12723a9ae04"
+  },
+  {
    "path": "Project_SHARDEX/README.md",
    "records": 3,
    "sha": "9019617d2d79c00b5192c99690721cdbbc8b7db5cdb856ad4a8b92e783c1e9d6"
@@ -21121,12 +21214,12 @@
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 45,
+   "limitation": 53,
    "measurement": 24,
    "memory": 67,
    "practice": 30
   },
-  "records": 1757,
-  "surfaces": 13
+  "records": 1765,
+  "surfaces": 14
  }
 }
