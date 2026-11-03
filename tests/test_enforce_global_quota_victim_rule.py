@@ -31,6 +31,15 @@ a tmp dir, so it can never reach `~/.azazael/memory_store.db`. `quota_mb=` is
 passed explicitly rather than lowering `DB_SIZE_QUOTA_MB`, because these tests
 pin *who is chosen*, not call-time resolution of the constant (that separate
 contract is already covered by `tests/test_data_retention_quota.py`).
+
+Seeding turns `src/CORE/recorder_guard.py` OFF for the child, via its own
+documented kill switch. Measured 2026-11-02: the guard's default bucket for an
+unlisted type is 8 rows/s with a burst of 200, and it DROPS what exceeds that,
+so `seed(..., 300, ...)` produced 206-208 rows and every count assertion below
+compared against a number the fixture never wrote. Turning the switch off is
+the fixture controlling its premise, not a weakened assertion -- the row counts
+asserted here are the same 300/400/50 they always were, and the guard's own
+behaviour stays covered by tests/test_recorder_guard.py.
 """
 import json
 import os
@@ -92,6 +101,9 @@ def _run(tmp_path, body):
     """Run `_PREAMBLE + body` in an isolated subprocess; return its JSON."""
     env = dict(os.environ)
     env["AZAZAEL_MEMORY_DIR"] = str(tmp_path)
+    # See the module docstring: without this the guard drops ~1/3 of a 300-row
+    # import, so the counts these tests assert are never written.
+    env["RECORDER_GUARD_OFF"] = "1"
     env["PYTHONPATH"] = SRC + os.pathsep + env.get("PYTHONPATH", "")
     env["PYTHONIOENCODING"] = "utf-8"
     proc = subprocess.run([sys.executable, "-c", _PREAMBLE + body], env=env,
