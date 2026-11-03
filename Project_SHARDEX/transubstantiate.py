@@ -79,6 +79,11 @@ def _line_of(text: str, match: "re.Match[str]") -> int:
     return text.count("\n", 0, match.start()) + 1
 
 
+def _at(text: str, offset: int) -> "re.Match[str]":
+    """A zero-width match at an offset, so `_line_of` works on a raw position too."""
+    return re.compile(r"").search(text, offset)
+
+
 def _find(pattern: str, text: str, flags: int = 0) -> Optional["re.Match[str]"]:
     return re.search(pattern, text, flags)
 
@@ -97,6 +102,7 @@ def extract(path: Path) -> Dict[str, Any]:
     text = path.read_text(encoding="utf-8", errors="replace")
     missing: List[str] = []
     found: Dict[str, Any] = {}
+    needles: Dict[str, str] = {}
 
     # 1. clock hook -----------------------------------------------------------
     clock = _find(r"window\.__step\s*=\s*function|\bdraw\s*=\s*function\s*\(\s*p\s*\)", text)
@@ -106,15 +112,25 @@ def extract(path: Path) -> Dict[str, Any]:
     else:
         found["clock"] = {"hook": "window.__step" if "window.__step" in text else "draw(p)",
                           "line": _line_of(text, clock)}
+        needles["clock.hook"] = found["clock"]["hook"]
 
     # 2. phases ---------------------------------------------------------------
     phases: Dict[str, int] = {}
     phase_lines: Dict[str, int] = {}
+    phase_derived: List[str] = []
     for name in ("GROW", "LABEL", "HOLD", "TOTAL"):
-        m = _find(r"\b%s\s*=\s*(\d+)" % name, text)
+        decl = _find(r"\b%s\s*=" % name, text)
+        m = _find(r"\b%s\s*=\s*(\d+)\b" % name, text)
         if m:
             phases[name] = int(m.group(1))
             phase_lines[name] = _line_of(text, m)
+            needles["phases." + name] = m.group(1)
+        elif decl:
+            # `TOTAL=GROW+LABEL+HOLD` is declared, not literal: the line still proves
+            # where the rule comes from, but the number on it is an expression.
+            phase_lines[name] = _line_of(text, decl)
+            phase_derived.append(name)
+            needles["phases." + name] = name
     if "GROW" not in phases:
         missing.append("phases: no `GROW=<ms>` constant -- the growth phase is the animation")
     for name in ("LABEL", "HOLD"):
@@ -122,6 +138,12 @@ def extract(path: Path) -> Dict[str, Any]:
             missing.append("phases: no `%s=<ms>` constant" % name)
     if phases and "TOTAL" not in phases:
         phases["TOTAL"] = sum(phases.get(k, 0) for k in ("GROW", "LABEL", "HOLD"))
+        # Not declared anywhere: the total is derived, and the line that proves it is the
+        # line that declares the three phases it sums.
+        if "GROW" in phase_lines:
+            phase_lines["TOTAL"] = phase_lines["GROW"]
+            phase_derived.append("TOTAL")
+            needles["phases.TOTAL"] = "GROW"
 
     # 3. seed -----------------------------------------------------------------
     seedm = _find(r"mulberry32\s*\(\s*(\d+)\s*\)", text) or _find(r"seed\s*=\s*(\d+)", text)
@@ -131,6 +153,7 @@ def extract(path: Path) -> Dict[str, Any]:
     else:
         found["seed"] = {"fn": "mulberry32" if "mulberry32" in text else "literal",
                          "value": int(seedm.group(1)), "line": _line_of(text, seedm)}
+        needles["seed.value"] = seedm.group(1)
 
     # 4. limb table -----------------------------------------------------------
     limbs: List[Dict[str, Any]] = []
@@ -141,9 +164,14 @@ def extract(path: Path) -> Dict[str, Any]:
         for row in re.finditer(
                 r'\[\s*"([^"]+)"\s*,\s*(-?1)\s*,\s*([0-9.]+)\s*,\s*"(#[0-9a-fA-F]{3,8})"\s*,'
                 r'\s*"([^"]*)"\s*\]', lm.group(1)):
+            # The row's own line, not the table's: ten entities share one `LIMBS = [`
+            # line, so a table-level line number proves nothing about any single row.
+            # `lm.start(1)` is the offset of the captured body, so the sum is absolute.
+            row_line = _line_of(text, _at(text, lm.start(1) + row.start()))
             limbs.append({"name": row.group(1), "side": int(row.group(2)),
                           "spread": float(row.group(3)), "hue": row.group(4),
-                          "src": row.group(5)})
+                          "src": row.group(5), "line": row_line})
+            needles["limbs.%s" % row.group(1)] = row.group(5)
     if not limbs:
         missing.append("entities: no `LIMBS = [[\"name\", side, spread, \"#hex\", \"path\"], …]` "
                        "table -- there is nothing to place in space")
@@ -157,6 +185,8 @@ def extract(path: Path) -> Dict[str, Any]:
         fractal["root_width"] = int(bm.group(2))
         fractal["root_depth"] = int(bm.group(3))
         fractal["root_call_line"] = _line_of(text, bm)
+        for key, grp in (("root_len", 1), ("root_width", 2), ("root_depth", 3)):
+            needles["fractal." + key] = bm.group(grp)
     else:
         missing.append("fractal: no root `branch(x, y, -Math.PI/2, len, width, depth)` call")
 
@@ -165,26 +195,57 @@ def extract(path: Path) -> Dict[str, Any]:
         fractal["len_shrink_base"] = float("0." + shrink.group(1))
         fractal["len_shrink_jitter"] = float("0." + shrink.group(2))
         fractal["len_shrink_line"] = _line_of(text, shrink)
+        # The needle is the literal as the source writes it: `.68`, not `0.68`.
+        needles["fractal.len_shrink_base"] = "." + shrink.group(1)
+        needles["fractal.len_shrink_jitter"] = "." + shrink.group(2)
     else:
         missing.append("fractal: no `len * (.<base> + R() * .<jitter>)` length-shrink expression")
 
     wshrink = _find(r"w\s*\*\s*\.(\d+)", text)
     if wshrink:
         fractal["width_shrink"] = float("0." + wshrink.group(1))
+        fractal["width_shrink_line"] = _line_of(text, wshrink)
+        needles["fractal.width_shrink"] = "." + wshrink.group(1)
 
     leaf = _find(r"arc\([^)]*?,\s*(\d+(?:\.\d+)?)\s*,\s*0\s*,\s*7\s*\)", text)
     if leaf:
         fractal["leaf_radius"] = float(leaf.group(1))
+        fractal["leaf_radius_line"] = _line_of(text, leaf)
+        needles["fractal.leaf_radius"] = leaf.group(1)
 
     leafn = _find(r"for\s*\(\s*let\s+i\s*=\s*0\s*;\s*i\s*<\s*(\d+)\s*;", text)
     if leafn:
         fractal["leaf_per_tip"] = int(leafn.group(1))
+        fractal["leaf_per_tip_line"] = _line_of(text, leafn)
+        needles["fractal.leaf_per_tip"] = leafn.group(1)
 
     if missing:
         raise ExtractError(missing)
 
+    # 6. evidence -------------------------------------------------------------
+    # One table, written into rules.json, so a reader can point at the source for every
+    # rule without re-running extraction. `needle` is the literal as the SOURCE writes
+    # it (`.68`, not `0.68`), which is what makes a cited line checkable rather than
+    # merely present.
+    line_key = dict(FRACTAL_LINE_KEYS)
+    evidence: Dict[str, Dict[str, Any]] = {}
+    for name, needle in needles.items():
+        section, _, rest = name.partition(".")
+        if section == "clock":
+            line = found["clock"]["line"]
+        elif section == "seed":
+            line = found["seed"]["line"]
+        elif section == "phases":
+            line = phase_lines.get(rest, 0)
+        elif section == "limbs":
+            line = next((l["line"] for l in limbs if l["name"] == rest), 0)
+        else:
+            line = fractal.get(line_key.get(rest, ""), 0)
+        evidence[name] = {"line": int(line), "needle": needle}
+
     return {
         "shape": RULES_SHAPE,
+        "evidence": evidence,
         "source": {"path": str(path).replace("\\", "/"),
                    "bytes": len(text.encode("utf-8")),
                    "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()},
@@ -192,6 +253,7 @@ def extract(path: Path) -> Dict[str, Any]:
         "seed": found["seed"],
         "phases": phases,
         "phase_lines": phase_lines,
+        "phase_derived": phase_derived,
         "limbs": limbs,
         "fractal": fractal,
         "fidelity": ("RULES-EXTRACTED: phases, seed, entity table and branch law are read from "
@@ -199,6 +261,123 @@ def extract(path: Path) -> Dict[str, Any]:
                      "label is carried -- the 3D figure is rebuilt from the rule, not rendered "
                      "from the source."),
     }
+
+
+# --------------------------------------------------------------------------- #
+# evidence: every rule names the line that proves it
+# --------------------------------------------------------------------------- #
+
+#: rule -> the fractal key holding its line. A rule with no line cannot be proved,
+#: so `rule_evidence` raises rather than returning a short table.
+FRACTAL_LINE_KEYS = (
+    ("root_len", "root_call_line"),
+    ("root_width", "root_call_line"),
+    ("root_depth", "root_call_line"),
+    ("len_shrink_base", "len_shrink_line"),
+    ("len_shrink_jitter", "len_shrink_line"),
+    ("width_shrink", "width_shrink_line"),
+    ("leaf_radius", "leaf_radius_line"),
+    ("leaf_per_tip", "leaf_per_tip_line"),
+)
+
+
+def expected_evidence(rules: Dict[str, Any]) -> List[str]:
+    """The rule names that MUST be in the evidence table, derived from the rules."""
+    names = ["clock.hook", "seed.value"]
+    names += ["phases." + p for p in ("GROW", "LABEL", "HOLD", "TOTAL")
+              if p in rules.get("phases", {})]
+    names += ["limbs.%s" % l.get("name") for l in rules.get("limbs", [])]
+    fr = rules.get("fractal", {})
+    names += ["fractal." + k for k, _ in FRACTAL_LINE_KEYS if k in fr]
+    return names
+
+
+def rule_evidence(rules: Dict[str, Any]) -> List[Tuple[str, int, str]]:
+    """(rule name, source line, the text that must appear on it) for EVERY rule.
+
+    Ten entities used to share the single `LIMBS = [` line, and three fractal rules
+    carried no line at all, so "the rules are extracted from the source" was true of
+    the table and false of nine rows and three coefficients. This raises instead: a
+    rule with no line is a rule this tool cannot point at.
+
+    The third field is the needle, not the value: a derived phase (`TOTAL=GROW+…`)
+    is proved by its identifier, a literal one by the number the source writes.
+    """
+    table = rules.get("evidence") or {}
+    missing = [name for name in expected_evidence(rules) if name not in table]
+    for name, row in table.items():
+        if not isinstance(row.get("line"), int) or row["line"] <= 0:
+            missing.append(name)
+    if missing:
+        raise ExtractError(["evidence: %s carries no line number -- a rule this tool "
+                            "cannot point at is not extracted from anything" % name
+                            for name in sorted(set(missing))])
+    return [(name, int(table[name]["line"]), str(table[name].get("needle", "")))
+            for name in sorted(table)]
+
+
+def prove(path: Path) -> Tuple[int, List[str]]:
+    """Cite each rule's line AND check the cited line actually says it.
+
+    A line number that exists is not the same as a line number that proves anything:
+    the value must appear on the line being cited. Limb rows are checked for their
+    `src` path, because that is the string unique to the row.
+    """
+    text = path.read_text(encoding="utf-8", errors="replace")
+    src_lines = text.splitlines()
+    rules = extract(path)
+    evidence = rule_evidence(rules)
+    out: List[str] = []
+    failures = 0
+    for name, line, needle in evidence:
+        if line > len(src_lines):
+            failures += 1
+            out.append("[FAIL] %-24s line %d is past the end of the source (%d lines)"
+                       % (name, line, len(src_lines)))
+            continue
+        cited = src_lines[line - 1]
+        if needle and needle not in cited:
+            failures += 1
+            out.append("[FAIL] %-24s line %d does not contain %r: %s"
+                       % (name, line, needle, cited.strip()[:70]))
+        else:
+            out.append("[PASS] %-24s line %-4d %s" % (name, line, cited.strip()[:78]))
+    out.append("%d rule(s), %d proved, %d unproved" % (len(evidence),
+                                                       len(evidence) - failures, failures))
+    return (0 if failures == 0 else 1), out
+
+
+def shift_probe(path: Path, n: int = 7) -> Tuple[int, List[str]]:
+    """PERTURB the source and show every recorded line moves by exactly n.
+
+    A hardcoded or cached line number survives a perturbation, so the perturbation is
+    the only thing that distinguishes "line numbers are measured" from "line numbers
+    were measured once". Blank lines are inserted after the first line, which shifts
+    every later line without changing a single rule value -- so the values must be
+    identical and every line must differ by exactly n.
+    """
+    import tempfile
+    text = path.read_text(encoding="utf-8", errors="replace")
+    src = text.splitlines(keepends=True)
+    shifted_text = "".join(src[:1] + ["\n"] * n + src[1:])
+    with tempfile.TemporaryDirectory() as td:
+        shifted = Path(td) / path.name
+        shifted.write_text(shifted_text, encoding="utf-8")
+        before = dict((name, line) for name, line, _ in rule_evidence(extract(path)))
+        after = dict((name, line) for name, line, _ in rule_evidence(extract(shifted)))
+
+    out: List[str] = []
+    failures = 0
+    for name in sorted(before):
+        moved = after.get(name, 0) - before[name]
+        if moved != n:
+            failures += 1
+            out.append("[FAIL] %-24s moved %+d, expected %+d (before %d, after %s)"
+                       % (name, moved, n, before[name], after.get(name)))
+    out.append("[%s] perturbation (+%d blank lines): %d/%d lines moved by exactly %+d"
+               % ("PASS" if failures == 0 else "FAIL", n, len(before) - failures,
+                  len(before), n))
+    return (0 if failures == 0 else 1), out
 
 
 # --------------------------------------------------------------------------- #
@@ -948,6 +1127,21 @@ def selftest() -> Tuple[int, List[str]]:
             lines.append("[PASS] positive fixture extracted: %d limbs, seed %d, phases %s"
                          % (len(rules["limbs"]), rules["seed"]["value"],
                             rules["phases"]))
+            # every rule must cite a line, and the cited line must say it
+            evidence = rule_evidence(rules)
+            lines.append("[PASS] every rule cites a line: %d rule(s), %d distinct line(s)"
+                         % (len(evidence), len({ln for _, ln, _ in evidence})))
+            rc_proof, proof_lines = prove(ok_path)
+            if rc_proof != OK:
+                failures += 1
+                lines.extend(proof_lines[-4:])
+            else:
+                lines.append("[PASS] every cited line contains its rule: %s"
+                             % proof_lines[-1])
+            rc_shift, shift_lines = shift_probe(ok_path, n=7)
+            if rc_shift != OK:
+                failures += 1
+            lines.extend(shift_lines)
             geo = build_geometry(rules)
             gold = golden(rules, geo)
             lines.append("[PASS] geometry built: %d segments, %d leaves, digest %s"
@@ -1005,8 +1199,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--source", default="", help="override the source a --predict run measures")
     ap.add_argument("--out", default="", help="output directory or rules path")
     ap.add_argument("--title", default="")
+    ap.add_argument("--lines", default="", help="cite the source line behind every extracted rule")
+    ap.add_argument("--shift-probe", default="", help="perturb the source and show every line moves")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args(argv)
+
+    if args.lines:
+        try:
+            rc, lines = prove(Path(args.lines))
+        except ExtractError as exc:
+            print("REFUSED  not transubstantiable from this source:")
+            for reason in exc.missing:
+                print("  - %s" % reason)
+            return REFUSED
+        for line in lines:
+            print(line)
+        return rc
+
+    if args.shift_probe:
+        try:
+            rc, lines = shift_probe(Path(args.shift_probe))
+        except ExtractError as exc:
+            print("REFUSED  %s" % "; ".join(exc.missing)[:200])
+            return REFUSED
+        for line in lines:
+            print(line)
+        return rc
 
     if args.selftest:
         code, lines = selftest()

@@ -556,6 +556,30 @@ def verify(out_dir: Path) -> Tuple[int, Dict[str, Any]]:
             return REFUSED, {"state": "PROBE-MISMATCH", "reason":
                              "page reported final %s, replay produced %s"
                              % (probe["mesh_digest"], final)}
+        # BASE MESH + FIELD INTEGRITY, and REQUIRED rather than opportunistic. The probe
+        # carries the base mesh digest and field sha256 the browser saw BEFORE any live op.
+        # Measured 2026-11-02: both checks were written as `if probe.get(key)`, so a capture
+        # taken before the keys existed (.live) skipped them in silence -- editing one number
+        # in field.json then left `--verify` printing VERIFIED, exit 0, with the guard present
+        # in the code and doing nothing. A probe that does not name its inputs is not evidence
+        # about them: absence is a refusal here, not an exemption.
+        absent = [key for key in ("base_mesh_digest", "field_sha256") if not probe.get(key)]
+        if absent:
+            return REFUSED, {"state": "PROBE-UNPROVENANCED", "reason":
+                             "browser_probe.json names no %s: this capture predates the "
+                             "input hashes, so nothing in it can prove which mesh and field "
+                             "the page rendered. Re-capture rather than trust it."
+                             % " or ".join(absent)}
+        base_digest = OPS.mesh_digest(json.loads(mesh_path.read_text(encoding="utf-8")))
+        if probe["base_mesh_digest"] != base_digest:
+            return REFUSED, {"state": "PROBE-BASE-MISMATCH", "reason":
+                             "probe base mesh %s does not match mesh.json %s"
+                             % (probe["base_mesh_digest"][:16], base_digest[:16])}
+        field_sha = _field_sha256(field_path)
+        if probe["field_sha256"] != field_sha:
+            return REFUSED, {"state": "PROBE-FIELD-MISMATCH", "reason":
+                             "probe field sha256 %s does not match field.json %s"
+                             % (probe["field_sha256"][:16], field_sha[:16])}
         # PAGE PROVENANCE. A probe says "the page that produced these frames computed X". Without
         # the page's identity that is unfalsifiable: edit the scene (or the ops file) after the
         # capture and the probe still reads as evidence for edits nobody ever rendered. The html

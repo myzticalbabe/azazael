@@ -345,6 +345,70 @@ def _pack(mesh: Dict[str, Any], neurons: List[List[float]],
     return out
 
 
+# --------------------------------------------------------------------------- #
+# composition -- two meshes, one space
+# --------------------------------------------------------------------------- #
+
+def compose(meshes: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Merge 2+ meshes into one arena, deterministically, and name the result.
+
+    Each input contributes its neurons and synapses; inputs are placed in LANES in the
+    order of their own digest, not the order they were passed, so the same pair of meshes
+    composes to the same space whichever way round a caller lists them. Synapse indices
+    are rebased, because an index that still pointed at the first mesh's neuron 7 would
+    describe a link between two different games.
+
+    `composition_hash` is the hash of the sorted input digests -- the composition's name,
+    independent of how the merge is laid out. `mesh_digest` is the merged mesh's own
+    digest, so a third party can replay the layout and compare.
+
+    Refusals: fewer than two inputs (nothing is being composed), a duplicate digest (two
+    copies of one mesh are not two games), and a mesh with no neurons (an empty lane
+    changes the hash without adding a game).
+    """
+    if len(meshes) < 2:
+        raise OpError("compose needs at least two meshes, got %d" % len(meshes))
+    rows: List[Tuple[str, Dict[str, Any]]] = []
+    for mesh in meshes:
+        if not mesh.get("neurons"):
+            raise OpError("a mesh with no neurons composes to a lane of nothing")
+        rows.append((mesh_digest(mesh), mesh))
+    rows.sort(key=lambda row: row[0])
+    digests = [digest for digest, _ in rows]
+    if len(set(digests)) != len(digests):
+        dupes = sorted({d for d in digests if digests.count(d) > 1})
+        raise OpError("duplicate mesh digest %s: two copies of one mesh are not a "
+                      "composition" % ", ".join(dupes))
+
+    lane_w = max(int(mesh.get("grid_w") or 96) for _, mesh in rows)
+    height = max(int(mesh.get("grid_h") or 54) for _, mesh in rows)
+    step = max(int(mesh.get("step") or 3) for _, mesh in rows)
+    neurons: List[List[float]] = []
+    synapses: List[List[float]] = []
+    lanes: List[Dict[str, Any]] = []
+    for lane, (digest, mesh) in enumerate(rows):
+        first = len(neurons)
+        offset = lane * lane_w
+        for node in mesh["neurons"]:
+            neurons.append([float(node[0]) + offset, float(node[1]), float(node[2]),
+                            int(node[3]), int(node[4]), float(node[5])])
+        for edge in mesh["synapses"]:
+            synapses.append([int(edge[0]) + first, int(edge[1]) + first, float(edge[2])])
+        lanes.append({"lane": lane, "digest": digest, "neurons": len(mesh["neurons"]),
+                      "synapses": len(mesh["synapses"]), "offset": offset})
+
+    merged = {"shape": rows[0][1].get("shape") or "shardex-mesh-v1",
+              "grid_w": lane_w * len(rows), "grid_h": height, "step": step,
+              "neurons": neurons, "synapses": synapses,
+              "counts": {"neurons": len(neurons), "synapses": len(synapses)}}
+    return {"mesh": merged,
+            "mesh_digest": mesh_digest(merged),
+            "composition_hash": hashlib.sha256(
+                "\n".join(digests).encode("utf-8")).hexdigest()[:16],
+            "inputs": [{"digest": digest} for digest in digests],
+            "lanes": lanes}
+
+
 def replay(mesh: Dict[str, Any], ops: Sequence[Dict[str, Any]],
            table: Sequence[int]) -> Tuple[Dict[str, Any], List[str]]:
     """Apply ops in order, returning the final mesh and the digest after each op."""

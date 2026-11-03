@@ -65,15 +65,37 @@ the game the code came from.
 - orbs placed by an LCG seeded from the shard, spelled out identically in both languages,
   because `Math.random()` would make every browser a different game.
 
+- **it is a reading, not an identity.** Measured 2026-11-02 at the default tunables:
+  seeds `999` and `424242` both produce `1b045cc66e9503b0`, because the scripted sweep
+  only crosses the orbs that happen to lie on its path. So a bracket compares
+  `(golden, shard id)` and never the hash alone — SHX-R4 inherits this caveat rather
+  than a cleared premise.
+
+### Plays in one file, with clicks (SHARDEX-BROWSER-PLAY, 2026-11-02)
+
+`flame.html` references nothing: no `script src`, no stylesheet, no font, no image — the
+whole arena is one file and a browser, so "zero install" is a property of the artifact
+and not of the machine. Input is keys (`A/D`, arrows, space) *and* the pointer: a click
+is unprojected onto the ground plane through the same camera `draw()` uses, so the cube
+walks to the patch of floor that was clicked, and hops once. Nothing in the pointer path
+touches the golden run, which is why a human can play in the arena a bracket still agrees
+on. `?probe=clicks` dispatches real `PointerEvent`s and publishes `data-probe="PASS"`
+only when a click moved the player *and* left `data-hash` unchanged;
+`tests/test_shardex.py::test_the_arena_is_one_file_and_a_click_moves_the_player` runs it
+under headless Chrome.
+
 Re-measured 2026-11-02 on `docs/METTHEW/reference-shards/highend_duel`:
 `--golden` → **`1f046312729509fc`**, final state `-0.0000,0.0000,0.0000,0.0000,0.0000,4`.
 The earlier reading, `1c045e596f950543`, does not reproduce from this clone in either
 implementation — it is the golden of the `arena 8.07 / seed 4220286397` config, so a
-browser figure recorded against it says nothing about the shard as it is now. Re-forging
-and re-reading the browser hash is outstanding. The test that asserts browser/Python
-agreement is
+browser figure recorded against it says nothing about the shard as it is now.
+
+Re-forged and re-read in a browser the same day: `--forge` wrote `build/tmp/refgold`, and
+headless Chrome's dump of that page carries `data-hash="1f046312729509fc"`,
+`data-expected="1f046312729509fc"` and `golden: 1f046312729509fc OK` — Python and the page
+agree on this shard, not only on a fixture. The standing test for that agreement is
 `tests/test_shardex.py::test_the_browser_computes_the_same_golden_hash_and_can_play`,
-skipped when no browser is present.
+which forges a shard from the fixture game and is skipped when no browser is present.
 
 ### The golden run, stated completely (SHX-R1, 2026-11-02)
 
@@ -89,7 +111,7 @@ speed=6.0, jump=7.0, arena=12.0, orbs=6, difficulty=1.0, seed=1`, then overwritt
 | --- | --- | --- |
 | `arena` | `round(8.0 + min(12.0, payload/200000.0), 2)` | 8.06 |
 | `orbs` | `max(3, min(12, len(files)))` | 3 |
-| `seed` | `int(id_sha256[:8], 16) or 1` | 3928471735 |
+| `seed` | `int(id_sha256[:8], 16) or 1` | 3926918967 |
 | `difficulty` | `round(1.0 + min(2.0, len(files)/24.0), 2)` | 1.08 |
 
 `payload` is `sum(size_bytes)`. **`difficulty` is in the config and in no equation — the
@@ -126,8 +148,10 @@ enters the hash: not the tunables, not `difficulty`, not tick count, not the sha
 is `"%08x%08x" % (h1, h2)` — lane 1 then lane 2, eight zero-padded hex digits each, lower
 case. Total 16 characters.
 
-A port that implements exactly this reproduces `1c045e596f950543` for `highend_duel`
+A port that implements exactly this reproduces `1f046312729509fc` for `highend_duel`
 without reading `shardex.py` or the page (proved by `tests/test_third_impl.py`, 2026-11-02).
+`1c045e596f950543` needs one more input: the tournament-surface config below, not the
+shard. The test pins both so neither number can be quoted as the other.
 What that proves is **sufficiency of the specification, not independence of the authors**:
 the law above was transcribed from the reference, so a misreading shared by all three is
 still possible. Only a stranger writing from this page alone would retire that.
@@ -208,6 +232,34 @@ symlink loops, duplicate basenames collapsing inside one shard, asset directorie
 dominate the payload, and shards whose entrypoint is a shader or a data file rather than
 code. **The low-end ceiling is not raised to make a tree fit** — the ceiling is the
 contract the validator enforces, and moving it turns a measurement into a preference.
+
+**First real-tree run (2026-11-02, `tools/swarm_arena`, 25 files / 4.5 MB on disk).** The
+measured numbers, and the one defect the run found:
+
+| reading | value |
+| --- | --- |
+| files mirrored | 12 (3 063 947 bytes; 4 code, 0 asset, 8 data) |
+| files silently not mirrored | **13 files, 3 024 915 bytes — 98.7% of the tree's bytes** |
+| `skipped` field | `[]` |
+| groups → shards | 4 groups; `swarm-arena` (4 files, 10 269 B), `judge-rs` (3, 6 984 B), `out` (2, 12 609 B) |
+| refused | `judge-go`, payload 3 034 085 > cap 2 097 152 — the ceiling working as declared |
+| determinism | two `--shatter` runs produced an identical shard set (same 3 ids, same hashes) |
+
+The defect is the third row. `SKIP_DIRS` pruned `judge_rs/target` — correct, it is build
+output — but the mirror recorded the prune nowhere: `skipped` only ever held files that
+failed `stat`, so the document claimed nothing was skipped while 13 files were gone. A
+reader comparing 12 against the tree's 25 could not tell a deliberate exclusion from a
+walk that died. The mirror now carries `pruned` (path, reason, files, bytes, `unreadable`) and
+`not_mirrored` totals, and prints them. `unreadable` is there because a subtree entry that
+cannot be `stat`ed was skipped from the count without a word, which let `pruned` report a
+pruner that took less than it did — the same defect one level down:
+
+```
+  NOT MIRRORED: 1 dir(s), 13 file(s), 3024915 bytes (judge_rs/target)
+```
+
+So the intake now answers the question in numbers without a second walk, and the
+`--shatter` determinism test below is unchanged because the exclusion is still stable.
 
 ## Transubstantiation: a 2D animation becomes a 3D one (SHX-6, narrow slice)
 

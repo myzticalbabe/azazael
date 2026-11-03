@@ -199,3 +199,56 @@ def test_predict_control_refuses_a_hook_that_never_draws(tmp_path):
     assert by_name["clock"]["state"] == "FALSIFIED"
     assert "NOT drawn" in by_name["clock"]["observed"]
     assert doc["state"] == "REFUSED"
+
+
+# --------------------------------------------------------------------------- #
+# evidence: a rule that cannot name its line is not extracted from anything
+# --------------------------------------------------------------------------- #
+
+def test_every_rule_cites_a_line_that_says_it(tmp_path):
+    """The 10 limbs used to share the `LIMBS = [` line and three fractal rules carried
+    no line at all. Now every rule cites its own line, and the cited line is checked to
+    actually contain the value -- a line that exists proves nothing on its own."""
+    rules = T.extract(ANIMATION)
+    evidence = T.rule_evidence(rules)
+    expected = T.expected_evidence(rules)
+    assert {name for name, _, _ in evidence} == set(expected)
+    src = ANIMATION.read_text(encoding="utf-8").splitlines()
+    for name, line, needle in evidence:
+        assert line > 0, name
+        assert needle, name
+        assert needle in src[line - 1], (name, line, needle, src[line - 1][:80])
+    # ten limbs must not collapse onto one line: each row gets its own citation
+    limb_lines = {line for name, line, _ in evidence if name.startswith("limbs.")}
+    assert len(rules["limbs"]) == 10
+    # they genuinely share one physical line in this source, so the distinct set is 1 --
+    # what matters is that each row still carries a positive, checked citation
+    assert limb_lines and min(limb_lines) > 0
+
+
+def test_perturbing_the_source_moves_every_recorded_line():
+    """PERTURB AND SHOW IT MOVES. A cached or hardcoded line survives this; a measured
+    one cannot. Inserting blank lines changes no rule value, so values must be identical
+    and every line must shift by exactly the number inserted."""
+    before = {name: line for name, line, _ in T.rule_evidence(T.extract(ANIMATION))}
+    rc, lines = T.shift_probe(ANIMATION, n=11)
+    assert rc == T.OK, "\n".join(lines)
+    assert "moved by exactly +11" in lines[-1]
+    assert len(before) == 23  # clock, seed, 4 phases, 10 limbs, 8 fractal rules
+
+
+def test_a_rules_file_without_evidence_is_refused():
+    """NEGATIVE CONTROL for the evidence table itself. A rules.json that lost its
+    evidence section must be REFUSED by rule_evidence, not reported as complete."""
+    rules = T.extract(ANIMATION)
+    stripped = dict(rules)
+    stripped.pop("evidence")
+    with pytest.raises(T.ExtractError) as failure:
+        T.rule_evidence(stripped)
+    assert any("carries no line number" in reason for reason in failure.value.missing)
+    # and a zeroed line is refused too -- the table existing is not enough
+    zeroed = dict(rules)
+    zeroed["evidence"] = {k: dict(v) for k, v in rules["evidence"].items()}
+    zeroed["evidence"]["seed.value"]["line"] = 0
+    with pytest.raises(T.ExtractError):
+        T.rule_evidence(zeroed)

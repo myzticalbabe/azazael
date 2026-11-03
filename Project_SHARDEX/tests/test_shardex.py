@@ -94,6 +94,27 @@ def test_an_empty_source_is_refused_rather_than_reported_as_zero_files(
     assert "0 files is a finding" in doc["reason"]
 
 
+def test_a_pruned_directory_is_reported_rather_than_silently_absent(tmp_path: Path) -> None:
+    """Measured 2026-11-02 on tools/swarm_arena: 13 of 25 files and 98.7% of the bytes
+    never reached the mirror, and `skipped` was empty -- an absence with no reason."""
+    tree = tmp_path / "game"
+    (tree / "src").mkdir(parents=True)
+    (tree / "src" / "main.lua").write_text("function main() end\n", encoding="utf-8")
+    build = tree / "target" / "release"
+    build.mkdir(parents=True)
+    (build / "game.exe").write_bytes(b"\0" * 4096)
+    code, doc = shardex.mirror(str(tree), out_dir=str(tmp_path / "w"))
+    assert code == shardex.OK
+    assert doc["totals"]["files"] == 1, "the build tree must still be excluded"
+    assert doc["not_mirrored"] == {"dirs": 1, "files": 1, "bytes": 4096, "unreadable": 0}
+    assert doc["pruned"][0]["path"] == "target"
+    # A subtree entry that cannot be stat'ed used to be dropped from the count without a
+    # word, so `pruned` could report less than the pruner took. The field is the record
+    # that the count is now complete-or-qualified rather than quietly short.
+    assert doc["pruned"][0]["unreadable"] == 0
+    assert doc["skipped"] == [], "pruning is not a stat failure and must not be cited as one"
+
+
 def test_the_shard_id_changes_when_a_file_changes(game: Path, tmp_path: Path) -> None:
     """Content-addressed or it cannot report drift."""
     work = tmp_path / "work"
@@ -246,6 +267,45 @@ def test_the_browser_computes_the_same_golden_hash_and_can_play(game: Path,
     assert collected and int(collected.group(1)) > 0, \
         "900 ticks of the chase policy must collect at least one orb: the sim runs"
     assert "arena" in played, "the HUD renders, so the frame loop ran without throwing"
+
+
+@pytest.mark.skipif(not _chrome(), reason="no Chrome/Chromium on this box")
+def test_the_arena_is_one_file_and_a_click_moves_the_player(game: Path,
+                                                            tmp_path: Path) -> None:
+    """BROWSER-PLAY: zero install means no external reference at all, and 'playable with
+    clicks' means a real PointerEvent changes play state while the golden hash -- the
+    only thing a bracket agrees on -- does not move."""
+    import re
+
+    work = tmp_path / "work"
+    shardex.mirror(str(game), out_dir=str(work))
+    _code, shards = shardex.shatter(str(work / shardex.MIRROR_FILE), out_dir=str(work))
+    shard = next(name for name in (s["shard"] for s in shards["shards"])
+                 if name.startswith("src"))
+    code, forged = shardex.forge(str(work / shardex.SHARDS_DIR / shard),
+                                 str(tmp_path / "flame"))
+    assert code == 0, forged
+    html = (tmp_path / "flame" / shardex.FLAME_HTML).read_text(encoding="utf-8")
+    assert "http://" not in html and "https://" not in html, \
+        "zero install: the shell may not reach the network for anything"
+    assert not re.search(r"<(script|link|img)[^>]+(src|href)=", html), \
+        "zero install: no external script, stylesheet or image"
+
+    url = "file:///" + (tmp_path / "flame" / shardex.FLAME_HTML).resolve().as_posix()
+    result = subprocess.run(  # noqa: S603 -- a fixed argv, no shell
+        [_chrome(), "--headless=new", "--disable-gpu", "--no-sandbox",
+         "--virtual-time-budget=4000", "--dump-dom", url + "?probe=clicks"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+    assert result.returncode == 0, result.stderr[-400:]
+    dom = result.stdout
+    assert 'data-probe="PASS"' in dom, dom[:400]
+    assert 'data-probe-pos-after' in dom and 'data-target' in dom
+    before = re.search(r'data-probe-pos-before="([^"]*)"', dom)
+    after = re.search(r'data-probe-pos-after="([^"]*)"', dom)
+    assert before and after and before.group(1) != after.group(1), \
+        "a click must move the cube, or the pointer handler is decoration"
+    assert 'data-probe-hash-before="%s"' % forged["golden"]["state_sha256"] in dom, \
+        "the click must leave the golden hash alone: it is scripted-input only"
 
 
 if __name__ == "__main__":
