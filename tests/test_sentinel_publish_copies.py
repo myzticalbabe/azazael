@@ -23,10 +23,21 @@ names is the same one command -- re-stage the repos.
 Copy paths outside the repo root are SKIPPED when absent (a fresh clone or a
 different checkout shape), so this gate never blocks a host that never had the
 copies; on this host, where they exist, it holds.
+
+NAMED DRIFT (2026-11-03): the sentinel filename also belongs to copies that are
+NOT the reaper and must never be silently unified with it -- an earlier
+generation in publish_clean/, a different project's sentinel in Project_CRADLE,
+and the pre-remedy staging snapshot in publish_repos/. Their state and reasons
+live in tests/fixtures/sentinel_copy_manifest.json, and the second test here
+asserts each entry is still at its recorded hash and still different from the
+live file: an unmanifested change to either side (a copy drifted, or someone
+"helpfully" copied the reaper over a non-reaper sentinel) now fails with the
+manifest named as the thing to update in the same change.
 """
 from __future__ import annotations
 
 import hashlib
+import json
 import pathlib
 
 import pytest
@@ -54,3 +65,38 @@ def test_canonical_copies_are_byte_identical_to_the_live_file():
         assert _sha256(copy) == live_hash, (
             "%s drifted from the live sentinel -- re-run "
             "tools/stage_publish_repos.py in the same change" % copy)
+
+
+# --------------------------------------------------------------------------- #
+# Named drift: same filename, different sentinel -- never silently unified
+# --------------------------------------------------------------------------- #
+
+MANIFEST = pathlib.Path(__file__).resolve().parent / "fixtures" / \
+    "sentinel_copy_manifest.json"
+
+
+def test_named_drift_copies_stay_at_their_recorded_hash_and_never_unify():
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    base = AZAZAEL_ROOT                # manifest paths are AZAZAEL-root relative,
+                                       # same convention as CANONICAL_COPIES above
+    live_hash = _sha256(LIVE)
+    assert manifest["named_drift"], "the lsit asserts nothing -- that IS the defect"
+    entries = manifest["named_drift"]
+    for entry in entries:
+        assert entry.get("reason"), (
+            "a named-drift entry without a reason is an "
+            "ungated copy: %r" % entry.get("path"))
+        assert entry.get("sha256"), (
+            "a named-drift entry without a hash pauses "
+            "nothing: %r" % entry.get("path"))
+        copy = base / entry["path"]
+        if not copy.exists():
+            pytest.skip("named-drift copy absent on this host: %s" % entry["path"])
+        seen = _sha256(copy)
+        assert seen == entry["sha256"], (
+            "%s changed without its manifest entry update -- update "
+            "tests/fixtures/sentinel_copy_manifest.json in the same change, "
+            "with the new sha and a fresh date" % entry["path"])
+        assert seen != live_hash, (
+            "%s now equals the live sentinel -- if this was intentional, remove "
+            "it from named_drift and gate it as canonical instead" % entry["path"])
