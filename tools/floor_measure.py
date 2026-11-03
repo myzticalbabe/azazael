@@ -60,6 +60,23 @@ REAL = [
     "how do domain trees avoid forking the renderer",
 ]
 
+#: ADJACENT probes: the project's own vocabulary, asked about something the
+#: store does NOT contain. This is the realistic false-positive class - an
+#: off-topic question shares no terms with the corpus and a nonce shares none
+#: at all, so both understate recall. An adjacent probe is what a user types
+#: when they half-remember a subsystem name, and lexical overlap alone can
+#: lift it into the real band.
+ADJACENT = [
+    "how does the pmb floor proxy shard its redis cache across regions",
+    "what does the kilo lane scheduler do with gpu kernel fusion",
+    "which kubernetes operator manages the worm registry autoscaler",
+    "how does the lane queue protocol handle byzantine lane faults",
+    "what grpc streaming mode does the memorybus use for video frames",
+    "how do domain trees compile their descriptors to wasm",
+    "what is the opencode plugin's oauth refresh strategy for mcp",
+    "how does the anti-pattern ratchet sign its baselines with ed25519",
+]
+
 #: NOISE probes: off-topic, plus random nonces. Both classes matter - a nonce
 #: can score high by accident (measured 2026-10-30: 1 nonce in 15 reached
 #: 0.836), and an ordinary off-topic question is the realistic failure.
@@ -108,6 +125,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--noise", type=int, default=len(NOISE))
     ap.add_argument("--real", type=int, default=len(REAL))
+    ap.add_argument("--adjacent", type=int, default=len(ADJACENT))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
@@ -116,6 +134,7 @@ def main(argv=None):
     noise += ["zzq" + secrets.token_hex(6) for _ in range(extra)]
     noise = noise[:args.noise]
     real = (REAL * 2)[:args.real]
+    adjacent = ADJACENT[:args.adjacent]
 
     client = gate.Mcp("http://127.0.0.1:%d/mcp" % gate.DAEMON_PORT)
     ok, info = client.initialize()
@@ -124,33 +143,49 @@ def main(argv=None):
         return 2
 
     nscores = _probe(client, noise, "noise")
+    ascores = _probe(client, adjacent, "adjacent") if adjacent else []
     rscores = _probe(client, real, "real")
-    if nscores is None or rscores is None:
+    if nscores is None or ascores is None or rscores is None:
         return 2
 
     n, r = _stats(nscores), _stats(rscores)
-    gap = r["min"] - n["max"]
-    query_ok = n["max"] < QUERY_FLOOR <= r["min"]
-    row_ok = n["max"] < ROW_FLOOR <= r["min"]
+    # The gap is measured against the WORST noise class: a floor that separates
+    # off-topic questions but not domain-adjacent ones is not separating.
+    noise_max = max([n["max"]] + ([max(s for _q, s in ascores)] if ascores else []))
+    gap = r["min"] - noise_max
+    query_ok = noise_max < QUERY_FLOOR <= r["min"]
+    row_ok = noise_max < ROW_FLOOR <= r["min"]
 
     if args.json:
-        print(json.dumps({"noise": n, "real": r, "gap": gap,
+        print(json.dumps({"noise": n,
+                          "adjacent": _stats(ascores) if ascores else None,
+                          "real": r, "gap": gap, "noise_max": noise_max,
                           "query_floor": QUERY_FLOOR, "row_floor": ROW_FLOOR,
                           "query_floor_inside_gap": query_ok,
                           "row_floor_inside_gap": row_ok,
                           "noise_scores": sorted(nscores, key=lambda x: -x[1]),
+                          "adjacent_scores": sorted(ascores, key=lambda x: -x[1]),
                           "real_scores": sorted(rscores, key=lambda x: x[1])},
                          indent=2, ensure_ascii=False))
     else:
         print("noise  n=%d  max %.3f  mean %.3f  min %.3f"
               % (n["n"], n["max"], n["mean"], n["min"]))
+        if ascores:
+            a = _stats(ascores)
+            print("adjc   n=%d  max %.3f  mean %.3f  min %.3f"
+                  % (a["n"], a["max"], a["mean"], a["min"]))
         print("real   n=%d  max %.3f  mean %.3f  min %.3f"
               % (r["n"], r["max"], r["mean"], r["min"]))
-        print("gap (real min - noise max): %+.3f" % gap)
+        print("gap (real min - noise max): %+.3f  [noise max = %.3f]"
+              % (gap, noise_max))
         print()
         print("highest-scoring noise probes:")
         for q, s in sorted(nscores, key=lambda x: -x[1])[:3]:
             print("  %.3f  %s" % (s, q[:64]))
+        if ascores:
+            print("highest-scoring ADJACENT probes:")
+            for q, s in sorted(ascores, key=lambda x: -x[1])[:3]:
+                print("  %.3f  %s" % (s, q[:64]))
         print("lowest-scoring real probes:")
         for q, s in sorted(rscores, key=lambda x: x[1])[:3]:
             print("  %.3f  %s" % (s, q[:64]))
