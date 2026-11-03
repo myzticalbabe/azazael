@@ -559,6 +559,13 @@ class TestRunControls:
         assert "NOT a demonstrated one" not in out
         assert "demonstrated for THIS run" in out
 
+    # The global per-test bound is 120 s (pytest.ini, and golden_arrow passes 120
+    # on the command line). Measured 2026-11-02: 59.9 s alone, 119.8 s with six
+    # test files running in parallel -- i.e. the harness killed this test at the
+    # boundary and reported a failure/error for a suite that had not asserted
+    # anything yet. The budget is stated here rather than raising the global bound,
+    # so one genuinely wedged test cannot hold the other 500 files for 5 minutes.
+    @pytest.mark.timeout(300)
     def test_every_real_control_artifact_executes_green(self):
         """The whole point of item 2: fail-ability DEMONSTRATED, not declared.
 

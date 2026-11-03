@@ -91,7 +91,7 @@ BASELINE = ROOT / "logs" / "golden_arrow_baseline.json"
 ROOTS = ("tests", "Project_ELIZA/tests", "Project_Nurse_Ratchet/tests",
          "Project_FLAMING_SWORD/tests", "Project_CRADLE/tests",
          "Project_SHARDEX/tests")
-DEFAULT_TIMEOUT = 180.0
+DEFAULT_TIMEOUT = 360.0
 DEFAULT_WORKERS = min(8, (os.cpu_count() or 4))
 
 
@@ -169,6 +169,15 @@ def run_one(path: Path, timeout: float, py: str) -> dict:
         m = re.search(r"(\d+) %s\b" % word, out)
         if m:
             counts[word] = int(m.group(1))
+
+    # A file that exits non-zero WITHOUT a summary line never reached a verdict:
+    # pytest-timeout's thread method aborts the process (rc=1, a faulthandler
+    # dump and no "N passed"), and so does a segfault. Calling that a test FAIL
+    # sends the reader hunting an assertion that was never evaluated -- measured
+    # 2026-11-02 on tests/test_bible_ship.py, where the real cause was a per-test
+    # bound, not a defect the test found.
+    no_verdict = (not hung and rc not in (0, 5)
+                  and not ({"passed", "failed", "error", "errors", "skipped"} & set(counts)))
     try:
         rel = path.resolve().relative_to(ROOT)
     except ValueError:                       # outside the tree: report as given
@@ -177,6 +186,7 @@ def run_one(path: Path, timeout: float, py: str) -> dict:
         "file": str(rel).replace("\\", "/"),
         "rc": rc,
         "hung": hung,
+        "no_verdict": no_verdict,
         "seconds": seconds,
         "counts": counts,
         "tail": out.strip().splitlines()[-6:] if out.strip() else [],
@@ -186,6 +196,7 @@ def run_one(path: Path, timeout: float, py: str) -> dict:
 def summarise(rows: list, elapsed: float, argv) -> dict:
     failed = [r for r in rows if r["rc"] not in (0, 5) and not r["hung"]]
     hung = [r for r in rows if r["hung"]]
+    killed = [r for r in rows if r.get("no_verdict")]
     passed = [r for r in rows if r["rc"] in (0, 5)]
     return {
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -199,6 +210,7 @@ def summarise(rows: list, elapsed: float, argv) -> dict:
             "passed_files": len(passed),
             "failed_files": len(failed),
             "hung_files": len(hung),
+            "killed_files": len(killed),
             "tests_passed": sum(r["counts"].get("passed", 0) for r in rows),
             "tests_failed": sum(r["counts"].get("failed", 0) for r in rows),
             "tests_error": sum(r["counts"].get("error", r["counts"].get("errors", 0))
@@ -268,7 +280,9 @@ def split_debt(rep: dict, known: dict) -> tuple:
     """
     new, debt = [], []
     for row in list(rep["failed"]) + list(rep["hung"]):
-        if row["hung"] or row["file"] not in known:
+        # A killed file is never known debt, for the same reason a hung one is
+        # not: "it died yesterday too" is an argument to fix it, not to record it.
+        if row["hung"] or row.get("no_verdict") or row["file"] not in known:
             new.append(row)
         else:
             debt.append(row)
@@ -282,14 +296,17 @@ def print_report(rep: dict, verbose: bool, known: dict = None, strict: bool = Fa
     print("GOLDEN ARROW -- %s run, %d file(s) in %ss on %s"
           % (rep["mode"], t["files"], rep["elapsed_s"],
              Path(rep["interpreter"]).name))
-    print("  files:  %d passed, %d failed, %d HUNG"
-          % (t["passed_files"], t["failed_files"], t["hung_files"]))
+    print("  files:  %d passed, %d failed, %d HUNG, %d KILLED (no verdict)"
+          % (t["passed_files"], t["failed_files"], t["hung_files"],
+             t.get("killed_files", 0)))
     print("  tests:  %d passed, %d failed, %d error(s)"
           % (t["tests_passed"], t["tests_failed"], t["tests_error"]))
     for row in new:
-        mark = "HUNG" if row["hung"] else "FAIL"
-        print("  %s  %s (rc=%s, %ss) -- NOT in the baseline"
-              % (mark, row["file"], row["rc"], row["seconds"]))
+        mark = "HUNG" if row["hung"] else ("KILLED" if row.get("no_verdict") else "FAIL")
+        reason = " -- no summary line: killed or aborted, NOT a test verdict" \
+            if row.get("no_verdict") else " -- NOT in the baseline"
+        print("  %s  %s (rc=%s, %ss)%s"
+              % (mark, row["file"], row["rc"], row["seconds"], reason))
         for line in (row["tail"][-3:] if not row["hung"] else []):
             print("        %s" % line)
     if debt:
@@ -361,7 +378,9 @@ def main(argv=None) -> int:
         for job in futures.as_completed(jobs):
             row = job.result()
             rows.append(row)
-            mark = "HUNG" if row["hung"] else ("ok" if row["rc"] in (0, 5) else "FAIL")
+            mark = ("HUNG" if row["hung"] else
+                    ("KILLED" if row.get("no_verdict") else
+                     ("ok" if row["rc"] in (0, 5) else "FAIL")))
             print("  %-4s %-58s %6ss" % (mark, row["file"], row["seconds"]), flush=True)
     rows.sort(key=lambda r: r["file"])
     rep = summarise(rows, time.monotonic() - started, args)
