@@ -15,6 +15,20 @@ import pytest
 from CORE.local_memory import DB_PATH, LocalMemoryStore
 
 
+@pytest.fixture(autouse=True)
+# start of the recorder guard release
+#
+# The checkpoint proof writes 400 rows; the recorder guard throttles to 8/s with
+# a burst of 200 and its bucket is process-wide, so record_event() returns 0 for
+# the rows past the burst and the loop's `> 0` assertion fails on the throttle
+# rather than on the checkpoint. Released here: this file measures WAL growth,
+# not write admission.
+def _recorder_guard_released(monkeypatch):
+    from CORE import recorder_guard
+    monkeypatch.setattr(recorder_guard, "_DISABLED", True, raising=False)
+    recorder_guard.guard().reset()
+
+
 def _tmp_store(tmp_path):
     return LocalMemoryStore(db_path=str(tmp_path / "proof.db"))
 

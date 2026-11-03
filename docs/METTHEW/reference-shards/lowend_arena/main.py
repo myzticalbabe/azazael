@@ -29,8 +29,10 @@ import math
 from pathlib import Path
 from typing import Tuple, List
 
+from PIL import Image, ImageDraw
+
 # ── Constants ──────────────────────────────────────────────────────────────
-TOKEN = "AZAZAEL-LOWEND-OK"
+TOKEN = "AZAZAEL-GOLDEN-OK"
 SCREEN_W, SCREEN_H = 1280, 720          # 720p
 ARENA_W, ARENA_H = 1200, 680            # playable area with margin
 PLAYER_RADIUS = 16

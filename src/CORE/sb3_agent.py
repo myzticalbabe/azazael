@@ -591,7 +591,13 @@ class SB3Agent(FreeThreadedAgent):
         # .upper() previously turned "MaskablePPO" into MASKABLEPPO, which
         # matches no key in SUPPORTED_ALGOS and made it report "unsupported".
         _canon = next((k for k in SUPPORTED_ALGOS if str(k).lower() == str(algo).lower()), None)
-        self.algo_name = _canon or (algo if HAS_SB3 else "PPO")
+        # The `else "PPO"` fallback used to rewrite EVERY name on a host without
+        # stable-baselines3, including `morphed_ppo_g1` -- so the morphed branch
+        # below could never match and a resolved registry entry arrived with no
+        # params. A morphed name is kept as asked; it is resolved to its base
+        # algo two blocks down, which is where the fallback belongs.
+        _keep_as_asked = HAS_SB3 or str(algo).lower().startswith("morphed_")
+        self.algo_name = _canon or (algo if _keep_as_asked else "PPO")
         # Morphed resolution (outer-loop closure): morphed_<algo>_g<gen>
         # names resolve to their base algo with Pareto params merged into
         # algo_kwargs. The name is preserved on worm_id for lineage.

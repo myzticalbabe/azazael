@@ -58,9 +58,19 @@ def test_module_imported_by_an_uncollected_test_is_not_dead():
 
 
 def test_every_ml_module_with_a_src_tests_file_is_out_of_the_dead_list():
-    """All three rows named in the fix, not just the one that was spot-checked."""
-    for mod in ("ML.nsga", "ML.estimators", "ML.nsga_tuner"):
+    """All three rows named in the fix, not just the one that was spot-checked.
+
+    The intent is that none of them reads as DEAD. Two are TEST-INERT (only
+    `src/tests/`, which pytest does not collect) and one moved on: measured
+    2026-11-02, `ML.estimators` is imported by `tests/test_intake_estimator_arm.py`
+    -- a COLLECTED test -- so TEST-ONLY is now the true class and asserting
+    TEST-INERT here would demand a wrong answer. Both classes are live.
+    """
+    for mod in ("ML.nsga", "ML.nsga_tuner"):
         assert ROWS[mod][0] == "TEST-INERT", (mod, ROWS[mod])
+    cls, ev = ROWS["ML.estimators"]
+    assert cls == "TEST-ONLY", ROWS["ML.estimators"]
+    assert "tests/test_intake_estimator_arm.py" in ev, ev
 
 
 def test_collected_and_uncollected_importers_do_not_share_a_class():

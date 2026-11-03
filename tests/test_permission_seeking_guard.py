@@ -176,5 +176,16 @@ def _run() -> int:
     return 0
 
 
+def test_guard_self_check_passes():
+    """Every control in this file, reachable by pytest.
+
+    The controls were only reachable through `python tests/test_permission_
+    seeking_guard.py`: no function name starts with `test_`, so pytest collected
+    zero tests and exited 5, and the gate reported a red file for a guard whose
+    own harness was green. Same assertions, one wrapper.
+    """
+    assert _run() == 0
+
+
 if __name__ == "__main__":
     raise SystemExit(_run())

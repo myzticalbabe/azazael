@@ -79,6 +79,48 @@
       "affects": "sim",
       "determinism": "exact",
       "note": "the authoritative tick runs at sim_hz regardless of the presented frame rate"
+    },
+    {
+      "id": "720p-render",
+      "affects": "presentation",
+      "determinism": "exact",
+      "note": "a 1280x720 frame drawn from the integer state; a --headless run changes nothing in the hash"
+    },
+    {
+      "id": "integer-sim",
+      "affects": "sim",
+      "determinism": "exact",
+      "note": "positions, velocities and hit tests are integer; no float reaches the authoritative state"
+    },
+    {
+      "id": "procedural-sprites",
+      "affects": "presentation",
+      "determinism": "exact",
+      "note": "sprites are generated at run time from the integer state; no external image assets in the payload"
+    },
+    {
+      "id": "procedural-audio",
+      "affects": "presentation",
+      "determinism": "exact",
+      "note": "PCM tones are generated at run time; no external audio files in the payload"
+    },
+    {
+      "id": "single-level",
+      "affects": "sim",
+      "determinism": "exact",
+      "note": "one arena and its obstacles are encoded in the shard; no external level data"
+    },
+    {
+      "id": "deterministic-input",
+      "affects": "sim",
+      "determinism": "exact",
+      "note": "a fixed hex input log is decoded by a branchless rule; no clock, no ambient entropy"
+    },
+    {
+      "id": "canonical-hash",
+      "affects": "sim",
+      "determinism": "exact",
+      "note": "sha256 over one hand-written canonical string; dict and set order are never used"
     }
   ],
   "families": [

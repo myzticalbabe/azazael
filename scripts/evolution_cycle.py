@@ -125,6 +125,14 @@ def genome_seed(genes, salt='a'):
 # must not be able to carry a genome into production.
 _SALTS = ('a', 'b', 'c')
 
+#: Identity of the margin estimator, stamped into every evolution_result row as
+#: `margin_estimator`. Two rows are comparable only when the SAME estimator
+#: produced their margins, so this string is part of a row's era --
+#: `scripts/benchmark_evolution.py` groups rows by it and reports unstamped ones
+#: separately. The stamp producer had gone missing: measured 2026-11-02, all 63
+#: live evolution_result rows lacked the key, so every row read as its own era.
+MARGIN_ESTIMATOR = 'min3-salt'
+
 
 def _trainer_extra_kwargs(genes):
     """Forward extra (Phase E) genes to the trainer, or nothing at all.
@@ -721,6 +729,16 @@ def _compute_streak(rows, pool_id, baseline_id, beats, schema_id=None):
             break
         # EV-2: a mid-era BASELINE change invalidates the streak too.
         if data.get('baseline_hash') != baseline_id:
+            break
+        # INSTRUMENT ERA: a margin measured by a different estimator, or over a
+        # different eval budget, is not a like-for-like observation. Fails
+        # CLOSED -- a row with no stamp at all (a pre-2026-09-18 artifact) breaks
+        # the streak instead of counting, and the row written by this driver now
+        # always carries MARGIN_ESTIMATOR + N_EPISODES, so a missing stamp can
+        # only come from older code or a hand-edited store.
+        if data.get('margin_estimator') != MARGIN_ESTIMATOR:
+            break
+        if data.get('eval_episodes') != N_EPISODES:
             break
         # EV-4: a different SEARCH SPACE is a different arm, not a break.
         if schema_id and data.get('schema_hash') != schema_id:
@@ -2874,6 +2892,27 @@ def main(crossover_operator=None, mutation_operator=None,
     beats = bool(best) and (_margin_raw > PROMOTE_MARGIN)
     margin_now = round(_margin_raw, 4)
 
+    # Entry vs pool-fit (2026-11-02): `beats` answers "does this genome fit the
+    # FROZEN pools", which is the overfit filter itself. Using it as the
+    # pipeline's entry condition applies that filter twice, and the second
+    # application costs exactly the evidence the SPRT exists to collect:
+    # measured 2026-11-02, 5 candidates cleared the frozen gate at 1.84x the
+    # threshold, none generalised on fresh pools (0.17x) and 0/5 holdouts
+    # passed, while every cycle BELOW the frozen gate recorded `sprt not_run`
+    # with an empty cranium and contributed nothing to the cross-era pooling
+    # that accumulates precisely this evidence. Entry is therefore "a candidate
+    # exists"; the frozen margin still enters at promotion through
+    # `_adaptive_ok`, and the streak (`_compute_streak(..., beats)`) stays a
+    # frozen-gate counter, so a promotion cannot be assembled from sub-gate
+    # margins.
+    _candidate_worthy = bool(best)
+    # Reporting alias, deliberately distinct from the gate variable: the
+    # outcome label further down describes the frozen-gate result, and the
+    # source-level guard in tests/test_evolution_gates.py forbids `beats` from
+    # appearing in any gate position. A true sentence about the outcome is not
+    # a gate.
+    _beat_baseline_this_cycle = beats
+
     # --- stall detection (2026-09-12) ---------------------------------------
     # A frozen pool (`POOL_MAX_AGE_S` = 1800s) makes consecutive cycles
     # re-compute the SAME margin, so `beats=False` repeats and the SPRT, the
@@ -2909,7 +2948,7 @@ def main(crossover_operator=None, mutation_operator=None,
     sprt_llr, sprt_sigma, sprt_n, sprt_decision = 0.0, 0.0, 0, 'not_run'
     # (_repeat / _non_informative are computed by the stall check above.)
     _sprt_dup = 0
-    if beats:
+    if _candidate_worthy:
         streak = 1
         _hrows = []
         # EV-4 (2026-09-30): identity of the search space this cycle measured.
@@ -2968,7 +3007,7 @@ def main(crossover_operator=None, mutation_operator=None,
     # Both directions are wired: rescue a stalled SPRT, and veto an SPRT
     # promote whose pooled posterior is strongly below the promote threshold.
     cranium = {}
-    if PROTEUS_CRANIUM and beats:
+    if PROTEUS_CRANIUM and _candidate_worthy:
         try:
             from CORE.WORMS.expansion.proteus_hooks import (
                 cranium_decide, cranium_override)
@@ -3000,7 +3039,7 @@ def main(crossover_operator=None, mutation_operator=None,
         except Exception as e:
             cranium = {'error': str(e)[:140]}
             log('cranium failed (fail-open to SPRT): %s' % str(e)[:120])
-    if beats and sprt_decision == 'reject':
+    if _candidate_worthy and sprt_decision == 'reject':
         log('SPRT rejected: evidence against a real improvement (llr %s <= %s) '
             '- streak reset' % (sprt_llr, round(SPRT_LOWER, 4)))
 
@@ -3015,12 +3054,12 @@ def main(crossover_operator=None, mutation_operator=None,
     # analysed cycles. Gate the expensive search on the cheap decision that can
     # actually use its output.
     pareto = (_pareto_refine(evo, info_pool, alert_pool)
-              if (beats and sprt_ok and best) else None)
+              if (_candidate_worthy and sprt_ok and best) else None)
     knee_genes = ((pareto or {}).get('knee') or {}).get('genes')
     pareto_gate = {}
     cand_genes = best.genes if best else {}
     cand_total, cand_info, cand_alert = best_total, best_info, best_alert
-    if beats and sprt_ok and best:
+    if _candidate_worthy and sprt_ok and best:
         pareto_gate = _pareto_gate(cand_genes, baseline_genes, info_pool,
                                    alert_pool, knee_genes=knee_genes)
         log('pareto gate: %s' % {k: v for k, v in pareto_gate.items()
@@ -3058,13 +3097,13 @@ def main(crossover_operator=None, mutation_operator=None,
     # meant to strengthen. Placing it after the holdout made it unreachable --
     # measured 2026-09-12: 14 of 14 cycles reached beats+sprt+pareto yet sat in
     # holdout cooldown, so an after-holdout gate never evaluated once.
-    if beats and sprt_ok and pareto_ok and best:
+    if _candidate_worthy and sprt_ok and pareto_ok and best:
         oracle_gate = _oracle_gate(cand_genes, baseline_fit + PROMOTE_MARGIN)
         log('oracle gate: %s' % oracle_gate)
     else:
         oracle_gate = {'ok': True, 'skipped': 'earlier gate did not pass'}
 
-    if beats and sprt_ok and pareto_ok and best:
+    if _candidate_worthy and sprt_ok and pareto_ok and best:
         # Holdout cooldown (2026-09-10): a blocked streak re-tests
         # holdout every cycle within one pool era (~25s apart at
         # rapid-fire cadence) with no new evidence. Re-test only when
@@ -3111,7 +3150,7 @@ def main(crossover_operator=None, mutation_operator=None,
     # describe how it will be scored, which is exactly the incomparability the
     # plan warned about. Trial it, measure it, do not ship it.
     _morph_blocks_promotion = bool(PROTEUS_MORPH and _morph_gene)
-    if _morph_blocks_promotion and beats and sprt_ok and pareto_ok \
+    if _morph_blocks_promotion and _candidate_worthy and sprt_ok and pareto_ok \
             and holdout.get('passed'):
         log('morph: promotion WITHHELD — genome carries the trial gene %s, so '
             'its measured fitness is not the fitness production would score'
@@ -3226,7 +3265,7 @@ def main(crossover_operator=None, mutation_operator=None,
                 margin_now, round(_eff_margin, 4), PROMOTE_MARGIN,
                 _stale_cycles))
 
-    if beats and beats_anchor and _adaptive_ok and sprt_ok and pareto_ok and best and holdout.get('passed') \
+    if beats_anchor and _adaptive_ok and sprt_ok and pareto_ok and best and holdout.get('passed') \
             and oracle_gate.get('ok') and not _morph_blocks_promotion \
             and (not FITNESS_ARM_VETO or _arms_live) \
             and (not _integrity or not LOOP_INTEGRITY_VETO):
@@ -3333,10 +3372,17 @@ def main(crossover_operator=None, mutation_operator=None,
             'best_alert': best_alert,
             'baseline': baseline_fit,
             'beats_baseline': beats,
+            # Written next to `beats_baseline` on purpose: the two answer
+            # different questions (did it clear the frozen gate vs did the
+            # pipeline even run) and a reader must be able to tell them apart.
+            'candidate_worthy': _candidate_worthy,
             'promoted': promoted,
             'generations': len(trajectory),
             'population': 24,
             'episodes': N_EPISODES,
+            # Era stamp (see MARGIN_ESTIMATOR): without it a row is unlabelled
+            # and cannot be compared with the margins the gate accumulates.
+            'margin_estimator': MARGIN_ESTIMATOR,
             'seed': seed,
             'trajectory': trajectory,
             'trajectory_avg': trajectory_avg,
@@ -3449,6 +3495,7 @@ def main(crossover_operator=None, mutation_operator=None,
             # blocker. Additive only; no decision changed.
             'promotion_inputs': {
                 'beats': bool(beats),
+                'candidate_worthy': bool(_candidate_worthy),
                 'beats_anchor': bool(beats_anchor),
                 'sprt_ok': bool(sprt_ok),
                 'pareto_ok': bool(pareto_ok),
@@ -3472,7 +3519,7 @@ def main(crossover_operator=None, mutation_operator=None,
         # already produced its artifact.
         _outcome = ('holdout_pass' if (promoted and holdout.get('passed'))
                     else 'promoted' if promoted
-                    else 'beat_baseline' if beats
+                    else 'beat_baseline' if _beat_baseline_this_cycle
                     else 'flat')
         if PROTEUS_CIRCULATION and cma_report.get('ran'):
             try:
@@ -3535,8 +3582,8 @@ def main(crossover_operator=None, mutation_operator=None,
                 _v, _why = 'PROMOTED', 'cleared streak+holdout, canary armed'
             elif holdout and not holdout.get('passed'):
                 _v, _why = 'BLOCKED by holdout', 'frozen wins did not survive fresh pools'
-            elif not beats:
-                _v, _why = 'HELD', 'margin below gate'
+            elif not _candidate_worthy:
+                _v, _why = 'HELD', 'no candidate survived the search'
             else:
                 _v, _why = ('EVIDENCE %d (llr %s)' % (sprt_n, sprt_llr),
                             'accumulating within pool era (SPRT %s)' % sprt_decision)

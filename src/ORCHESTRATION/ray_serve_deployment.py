@@ -208,7 +208,8 @@ class AsyncWormRegistryDeployment:
         if not self._initialized:
             await self.initialize()
         
-        worm_id = await self.registry.spawn_async(worm_type, params)
+        from CORE.async_core import spawn_worm_async
+        worm_id = await spawn_worm_async(worm_type, params)
         return {"success": True, "worm_id": worm_id}
     
     async def execute_stream(

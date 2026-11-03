@@ -14,6 +14,20 @@ from pathlib import Path
 sys.path.insert(0, "src")
 
 
+@pytest.fixture(autouse=True)
+# start of the recorder guard release
+#
+# 200 threads writing at once is exactly the shape the recorder guard throttles,
+# and it is process-wide, so a previous test's burst leaves the bucket empty and
+# this file's writes are dropped -- the store then reports fewer rows than the
+# test wrote and the count assertion fails on the guard, not on a lost update.
+# The thread-safety claim is what this file tests; released for each test.
+def _recorder_guard_released(monkeypatch):
+    from CORE import recorder_guard
+    monkeypatch.setattr(recorder_guard, "_DISABLED", True, raising=False)
+    recorder_guard.guard().reset()
+
+
 def _setup_temp_db():
     old_env = os.environ.get("AZAZAEL_MEMORY_DIR", "")
     tmpdir = Path(tempfile.mkdtemp())

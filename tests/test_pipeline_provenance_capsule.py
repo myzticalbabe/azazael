@@ -117,7 +117,11 @@ def test_persisted_payload_carries_capsule_bound_to_head(monkeypatch, tmp_path):
 
     cap = metrics["capsule"]
     # Additive: every pre-existing key is written exactly as before.
-    assert {k: v for k, v in metrics.items() if k != "capsule"} == before
+    # Two keys are added by this path, both deliberately: `capsule` (the signed
+    # delta) and `capsule_chain` (verify_capsule_chain's verdict over the chain,
+    # NeuralPipeline._persist_run). The equality below covers everything else.
+    assert {k: v for k, v in metrics.items()
+            if k not in ("capsule", "capsule_chain")} == before
     # The capsule rides in the payload handed to the store, not a side copy.
     assert FakeStore.events[0]["data"] is metrics
     assert FakeStore.events[0]["data"]["capsule"] is cap
