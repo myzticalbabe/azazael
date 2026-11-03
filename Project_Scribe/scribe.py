@@ -20,7 +20,7 @@ Usage:
 import json, os, re, sys, time, argparse, asyncio, random
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 try:
     from playwright.async_api import async_playwright, Browser, BrowserContext, Page
@@ -33,6 +33,7 @@ PROFILES_DIR = BASE_DIR / "profiles"
 SESSIONS_DIR = BASE_DIR / "sessions"
 EVIDENCE_DIR = BASE_DIR / "evidence"
 LOGS_DIR = BASE_DIR / "logs"
+DATA_DIR = BASE_DIR / "data"
 
 for d in (PROFILES_DIR, SESSIONS_DIR, EVIDENCE_DIR, LOGS_DIR):
     d.mkdir(parents=True, exist_ok=True)
@@ -57,6 +58,13 @@ class GrantProgram:
     # enforce with min/max. A value outside them is rejected server-side, which
     # reads back as an unlabelled failure, so check it before submitting.
     bounds: Dict[str, Any] = field(default_factory=dict)
+    # Eligibility regions the funder states in prose and the form does NOT
+    # enforce. NLnet's page offers all 251 ISO countries and every one of them
+    # can be selected and submitted; its Guide for Applicants requires 60% of
+    # the funds to reach people from a Horizon Europe-eligible country, and the
+    # United States is not on that list. Filling the form for an ineligible
+    # applicant is the same defect as submitting one the page would reject.
+    eligible_regions: Tuple[str, ...] = ()
 
 PROGRAMS: Dict[str, GrantProgram] = {
     "epic_megagrants": GrantProgram(
@@ -116,6 +124,7 @@ PROGRAMS: Dict[str, GrantProgram] = {
         submit_selector="input[type='submit']",
         success_indicators=["submitted", "thank you", "reference number", "received", "success"],
         bounds={"amount": (5000, 50000)},
+        eligible_regions=("horizon_europe",),
     ),
     "github_secure_oss": GrantProgram(
         key="github_secure_oss",
@@ -192,6 +201,7 @@ PROGRAMS: Dict[str, GrantProgram] = {
         form_available=True,
         application_method="web_form",
         bounds={"amount": (5000, 50000)},
+        eligible_regions=("horizon_europe",),
     ),
 }
 
@@ -607,7 +617,79 @@ class ScribeSession:
         if self.playwright:
             await self.playwright.stop()
 
+# ── Funder eligibility (rules the form does not enforce) ────────────────
+
+ELIGIBLE_COUNTRIES_PATH = DATA_DIR / "eligible_countries.json"
+
+
+class Ineligible(Exception):
+    """The funder's own rules exclude this applicant, whatever the form allows."""
+
+
+def load_eligible_countries(region: str) -> Optional[set]:
+    """Lowercased country names for one eligibility region, or None if unknown."""
+    if not ELIGIBLE_COUNTRIES_PATH.exists():
+        return None
+    try:
+        data = json.loads(ELIGIBLE_COUNTRIES_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"  [WARN] eligibility list unreadable: {exc!r}")
+        return None
+    names = data.get(region)
+    if not isinstance(names, list):
+        return None
+    return {str(n).casefold() for n in names}
+
+
+def check_eligibility(program: "GrantProgram", country: Optional[str]) -> None:
+    """Raise Ineligible when the funder excludes this country.
+
+    An absent country, or an absent list, cannot be checked -- and an
+    unchecked eligibility claim is not a pass, so it is reported as such
+    rather than assumed fine.
+    """
+    if not program.eligible_regions:
+        return
+    if not country:
+        regions = "/".join(program.eligible_regions)
+        raise Ineligible(f"{program.name} requires {regions} eligibility; "
+                         f"no country given (--country) so it cannot be checked")
+    for region in program.eligible_regions:
+        allowed = load_eligible_countries(region)
+        if allowed is None:
+            raise Ineligible(f"{program.name} requires {region} eligibility; "
+                             f"{ELIGIBLE_COUNTRIES_PATH.name} is missing or has no "
+                             f"{region!r} key, so it cannot be checked")
+        if country.casefold() not in allowed:
+            raise Ineligible(f"{country} is not on the funder's {region} list "
+                             f"({len(allowed)} countries in "
+                             f"{ELIGIBLE_COUNTRIES_PATH.name}); {program.name} "
+                             f"cannot be applied for from there")
+
+
 # ── Main Application ────────────────────────────────────────────────────
+
+def resolve_profile_path(path: str) -> Path:
+    """Find a profile from the caller's cwd or from this project's directory.
+
+    Measured 2026-11-03: every documented invocation writes the profile path
+    relative to Project_Scribe (``--profile profiles/x.json``), but the path was
+    resolved against the caller's cwd alone, so the same run from the repo root
+    returned five FileNotFoundError results in 0.0 s each -- an error that names
+    the path it wanted and not the one it looked for. Candidates are tried in
+    order and every one of them is named if none exists.
+    """
+    raw = Path(path)
+    candidates = [raw]
+    if not raw.is_absolute():
+        candidates.append(BASE_DIR / raw)
+        candidates.append(BASE_DIR / "profiles" / raw.name)
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    tried = ", ".join(str(c) for c in candidates)
+    raise FileNotFoundError(f"Profile not found: {path} (tried: {tried})")
+
 
 class ScribeApp:
     def __init__(self):
@@ -615,9 +697,7 @@ class ScribeApp:
         self.program: Optional[GrantProgram] = None
 
     def load_profile(self, path: str) -> ProjectProfile:
-        p = Path(path)
-        if not p.exists():
-            raise FileNotFoundError(f"Profile not found: {path}")
+        p = resolve_profile_path(path)
         data = json.loads(p.read_text())
         self.profile = ProjectProfile.from_dict(data)
         return self.profile
@@ -646,11 +726,13 @@ class ScribeApp:
             print()
 
     async def apply(self, program_key: str, profile_path: str, headless: bool = True,
-                    dry_run: bool = False) -> bool:
+                    dry_run: bool = False, country: Optional[str] = None) -> bool:
         if program_key not in PROGRAMS:
             raise ValueError(f"Unknown program: {program_key}. Available: {list(PROGRAMS.keys())}")
 
         self.program = PROGRAMS[program_key]
+        # Before the browser opens: the funder's rules outrank what the form accepts.
+        check_eligibility(self.program, country)
         self.load_profile(profile_path)
 
         print(f"\n{'='*60}")
@@ -808,7 +890,8 @@ class ScribeApp:
         print(f"Submit via: {self.program.application_method}")
         return True
 
-async def dry_run_all(profile_path: str, headless: bool = True) -> int:
+async def dry_run_all(profile_path: str, headless: bool = True,
+                      country: Optional[str] = None) -> int:
     """Dry-run every registered program, streaming one live log.
 
     Nothing is submitted. Each program's outcome is classified OK / BLOCKED /
@@ -844,9 +927,22 @@ async def dry_run_all(profile_path: str, headless: bool = True) -> int:
             print(f"\n=== {key} | {program.application_method} | {program.url}", flush=True)
             started = time.time()
             try:
-                ok = await app.apply(key, profile_path, headless=headless, dry_run=True)
-                state = "OK" if ok else "BLOCKED"
-                detail = ""
+                ok = await app.apply(key, profile_path, headless=headless, dry_run=True,
+                                     country=country)
+                if program.application_method != "web_form":
+                    # Nothing was loaded, typed into or checked: an "ok" here would be
+                    # a claim about a page that was never opened.
+                    state = "UNEXERCISED"
+                    detail = f"{program.application_method}: no form page to dry-run"
+                else:
+                    state = "OK" if ok else "BLOCKED"
+                    detail = ""
+            except Ineligible as exc:
+                # Not a failure and not a pass: the funder excludes this applicant,
+                # so no field-filling would ever have made the row green.
+                state = "SKIPPED"
+                detail = str(exc)
+                print(f"[SKIP] {detail}", flush=True)
             except Exception as exc:
                 state = "ERROR"
                 detail = f"{type(exc).__name__}: {exc}"
@@ -863,9 +959,16 @@ async def dry_run_all(profile_path: str, headless: bool = True) -> int:
             print(f"{key:24s} {r['method']:13s} {r['state']:9s} {r['seconds']}")
         errors = [k for k, r in results.items() if r["state"] == "ERROR"]
         blocked = [k for k, r in results.items() if r["state"] == "BLOCKED"]
+        skipped = [k for k, r in results.items() if r["state"] == "SKIPPED"]
+        unexercised = [k for k, r in results.items() if r["state"] == "UNEXERCISED"]
         clean = [k for k, r in results.items() if r["state"] == "OK"]
         print(f"{'-'*66}")
-        print(f"{len(clean)} ok | {len(blocked)} blocked | {len(errors)} error")
+        print(f"{len(clean)} ok | {len(unexercised)} unexercised | {len(skipped)} skipped | "
+              f"{len(blocked)} blocked | {len(errors)} error")
+        for key in unexercised:
+            print(f"unexercised: {key} — {results[key]['detail']}")
+        for key in skipped:
+            print(f"skipped (funder rules): {key} — {results[key]['detail']}")
         if blocked:
             print("blocked on empty required fields: " + ", ".join(blocked))
         if errors:
@@ -891,6 +994,9 @@ async def main():
     parser.add_argument("--dry-run", action="store_true", help="Fill form but don't submit")
     parser.add_argument("--dry-run-all", action="store_true",
                         help="Dry-run every registered program into one live log (submits nothing)")
+    parser.add_argument("--country",
+                        help="Applicant's country of residence, for funder eligibility rules "
+                             "the form does not enforce (e.g. NLnet requires Horizon Europe)")
 
     args = parser.parse_args()
 
@@ -907,13 +1013,18 @@ async def main():
     if args.dry_run_all:
         if not args.profile:
             parser.error("--dry-run-all requires --profile")
-        return await dry_run_all(args.profile, headless=args.headless)
+        return await dry_run_all(args.profile, headless=args.headless, country=args.country)
 
     if not args.program or not args.profile:
         parser.print_help()
         return 1
 
-    success = await app.apply(args.program, args.profile, headless=args.headless, dry_run=args.dry_run)
+    try:
+        success = await app.apply(args.program, args.profile, headless=args.headless,
+                                  dry_run=args.dry_run, country=args.country)
+    except Ineligible as exc:
+        print(f"[SKIP] {exc}")
+        return 2  # could not be performed as configured — neither a pass nor a failure
     return 0 if success else 1
 
 if __name__ == "__main__":
