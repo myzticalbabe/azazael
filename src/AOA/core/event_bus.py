@@ -47,11 +47,14 @@ class AOEventType:
 
 class EventBus:
     def __init__(self, max_history=1000):
-        self._subscribers=defaultdict(list); self._sinks=[]; self._history=None; self._max_history=max_history; self._lock=threading.Lock()
+        self._subscribers=defaultdict(list); self._sinks=[]; self._max_history=max_history; self._lock=threading.Lock()
         # Use a bounded ring (deque with maxlen) for O(1) trimming instead of
         # O(n) list slice. The deque drops the oldest entry automatically when
         # it exceeds maxlen, so publish never reallocates the backing array.
-        self._history = deque(maxlen=max_history)
+        # Declared once, here, with its real type: a `self._history = None`
+        # placeholder made every later read Optional and pushed the None case
+        # into publish() and both readers.
+        self._history: deque[AOEvent] = deque(maxlen=max_history)
         # `publish` used to `except: pass`, so a subscriber that raised was
         # silently never delivered to -- a broken consumer was indistinguishable
         # from one that legitimately did nothing, with 9 arms subscribed.
@@ -109,9 +112,6 @@ class EventBus:
         """Remove a previously registered sink."""
         if fn in self._sinks:
             self._sinks.remove(fn)
-        """Subscriber deliveries that raised. Non-zero means a consumer is
-        broken and its events are being dropped."""
-        with self._cb_errors_lock: return self._cb_error_count
     def get_callback_errors(self, limit=10):
         with self._cb_errors_lock: return list(self._cb_errors[-limit:])
     def subscribe(self, pattern, cb):
@@ -144,7 +144,17 @@ class EventBus:
         broken and its events are being dropped."""
         with self._cb_errors_lock:
             return self._cb_error_count
-        with self._lock: return len(self._history)
+
+    @property
+    def history_count(self):
+        """Events retained right now (bounded by ``max_history``).
+
+        This is the reader the AOA tests call. A bad merge had spliced its body
+        into ``unsubscribe_sink`` (which then returned the error count instead
+        of None) and left a second copy unreachable behind the return above.
+        """
+        with self._lock:
+            return len(self._history)
 
 class EventPipeline:
     def __init__(self, bus, name=""): self.bus=bus; self.name=name; self._steps=[]

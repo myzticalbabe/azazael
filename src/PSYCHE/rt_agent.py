@@ -443,6 +443,18 @@ def triage(text: str, activation: Optional[Dict[str, float]] = None) -> Triage:
     return Triage("low", reasons, matched)
 
 
+def _triple(values: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    """Coerce a PAD triple, keeping its length.
+
+    `tuple(float(v) for v in pad)` is `tuple[float, ...]`: a length no field or
+    downstream signature promises, which is why the two assignments that used it
+    needed a `type: ignore` that the checker went on reporting through. Unpacking
+    into three names states the length the type already required.
+    """
+    first, second, third = (float(v) for v in values)
+    return (first, second, third)
+
+
 class TherapeuticLoop:
     """The realtime loop over one person's artifacts.
 
@@ -459,8 +471,8 @@ class TherapeuticLoop:
                  audit_limit: int = 64) -> None:
         self.network = network
         self.index = index
-        self.pad = tuple(float(v) for v in pad)  # type: ignore[assignment]
-        self.baseline = tuple(float(v) for v in baseline)  # type: ignore[assignment]
+        self.pad = _triple(pad)
+        self.baseline = _triple(baseline)
         self.decay_rate = float(decay_rate)
         self.budget_ms = float(budget_ms)
         self.threshold = float(threshold)

@@ -14,7 +14,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, overload
+from typing import Any, Dict, List, Optional, Union, overload
 
 # Import the canonical ledger implementation
 from CORE.failure_ledger import (
@@ -88,20 +88,28 @@ def note_failure(where: str, exc: Optional[BaseException] = None,
 
 
 @overload
-def note_failure(record: FailureRecord) -> None:
+def note_failure(where: FailureRecord) -> None:
     """Structured record signature: note_failure(FailureRecord(...)).
-    
-    Args:
-        record: FailureRecord with where, exc, context, severity, tags
+
+    The parameter is named ``where``, not ``record``: an overload's parameter
+    names have to match the implementation's, and the implementation cannot be
+    called ``record`` for the two string overloads. Callers pass the record
+    positionally, so the name is not part of any call site.
     """
     ...
 
 
-def note_failure(where: str, exc: Optional[BaseException] = None,
+def note_failure(where: Union[str, FailureRecord],
+                 exc: Optional[BaseException] = None,
                  *, context: Optional[Dict[str, Any]] = None,
                  severity: str = "medium",
                  tags: Optional[List[str]] = None) -> None:
     """Enhanced note_failure with structured metadata.
+
+    The first parameter is ``Union[str, FailureRecord]``, not ``str``: the third
+    overload accepts a record, and an overload whose parameter set is wider than
+    its implementation is inconsistent by definition -- which is what the type
+    gate was reporting. The body already branches on the type.
     
     Backward compatible: note_failure(where, exc) works exactly as before.
     New callers can pass context, severity, tags as keyword-only args.

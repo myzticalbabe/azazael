@@ -36,20 +36,31 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from dataclasses import dataclass, asdict, field
 from datetime import datetime, timedelta
 
-# Feast imports (optional - gracefully handle missing)
+# Feast imports (optional - gracefully handle missing).
+#
+# The names are bound for the type checker and rebound for the runtime only when
+# the package is installed. `FeatureStore = Entity = ... = None` made every
+# annotation that mentions them invalid and every construction a call on None;
+# the entry point already raises when Feast is absent, so None was a lie about
+# what the code does rather than a state it handles.
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    import pandas as pd
+
+    from feast import Entity, FeatureStore, FeatureView, Field, FileSource, RedisSource
+    from feast.types import Bool, Float32, Int64, String
+    from feast.value_type import ValueType
+
 try:
-    from feast import FeatureStore, Entity, FeatureView, Field, FileSource, RedisSource
-    from feast.types import Float32, Int64, String, Bool
+    from feast import Entity, FeatureStore, FeatureView, Field, FileSource, RedisSource
+    from feast.types import Bool, Float32, Int64, String
     from feast.value_type import ValueType
     FEAST_AVAILABLE = True
 except ImportError:
     FEAST_AVAILABLE = False
-    FeatureStore = Entity = FeatureView = Field = FileSource = RedisSource = None
-    Float32 = Int64 = String = Bool = ValueType = None
 
 
 @dataclass
@@ -298,7 +309,11 @@ entity_key_serialization_version: 2
         fs = self._get_feature_store()
         try:
             fvs = fs.list_feature_views()
-            return {fv.name: [f.name for fv in fvs if fv.name == fv.name] for fv in fvs}
+            # The old comprehension iterated `fvs` but read `f.name` from a name
+            # that was never bound (a NameError the moment Feast was installed),
+            # behind a tautological `fv.name == fv.name` filter. A feature view's
+            # features are its schema fields.
+            return {fv.name: [field.name for field in fv.schema] for fv in fvs}
         except Exception as e:
             print(f"Failed to list features: {e}", file=sys.stderr)
             return {}

@@ -194,11 +194,11 @@ def _healthy(root: Optional[Path] = None) -> Dict[str, Any]:
     return check(
         intent="refuse a shard whose golden run does not reproduce",
         target="tools/sword.py",
-        must_not_break=["tests/test_defender.py"],
+        must_not_break=["tests/test_cradle.py"],
         defends=["the golden run's state_sha256 token"],
         refusal="BLOCK when the acceptance command exits non-zero",
         acceptance="pytest exits 0 and prints 30 passed",
-        evidence="tests/test_defender.py",
+        evidence="tests/test_cradle.py",
         root=root,
     )
 
@@ -265,11 +265,11 @@ def selftest(root: Optional[Path] = None) -> Tuple[int, List[str]]:
         kwargs = dict(
             intent="refuse a shard whose golden run does not reproduce",
             target="tools/sword.py",
-            must_not_break=["tests/test_defender.py"],
+            must_not_break=["tests/test_cradle.py"],
             defends=["the golden run's state_sha256 token"],
             refusal="BLOCK when the acceptance command exits non-zero",
             acceptance="pytest exits 0 and prints 30 passed",
-            evidence="tests/test_defender.py",
+            evidence="tests/test_cradle.py",
         )
         try:
             mutate(kwargs)

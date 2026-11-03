@@ -46,7 +46,7 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Sequence, List
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence
 import time as _time
 
 #: This list used to sit INSIDE the module docstring above, i.e. inside a string

@@ -48,25 +48,20 @@ from typing import List, Optional, Dict, Any, overload
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
-try:
-    from CORE.failure_shim import (
-        note_failure,
-        note_failure_v2,
-        failure_notes,
-        reset_notes,
-        FailureRecord,
-    )
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
-    def note_failure_v2(record) -> None:
-        pass
-    def failure_notes() -> dict:
-        return {}
-    def reset_notes() -> None:
-        pass
-    class FailureRecord:
-        pass
+# Imported unconditionally. The try/except that used to sit here defined a
+# SECOND FailureRecord class and a no-op note_failure_v2 for the case where
+# failure_shim was missing -- but failure_shim is a sibling in this package whose
+# only imports are the stdlib and CORE.failure_ledger, so the fallback could
+# fire only on a broken install, and its effect was to hide that break (and, to
+# the type checker, to declare CORE.FailureRecord as a different class from the
+# one every caller receives).
+from CORE.failure_shim import (
+    note_failure,
+    note_failure_v2,
+    failure_notes,
+    reset_notes,
+    FailureRecord,
+)
 
 # EVENT_VOCAB / EVENT_VOCAB_REVERSE — not yet defined in audit_trail.py.
 # Fall back to empty dicts to avoid blocking all CORE imports.
@@ -81,12 +76,17 @@ except (ImportError, AttributeError):
     _EVENT_VOCAB = None
     _EVENT_VOCAB_REVERSE = None
 
+# Annotated once, assigned in both branches: annotating inside the `if` and
+# assigning again in the `else` is a redeclaration, which is what the type gate
+# was reporting rather than anything about the vocabularies themselves.
+EVENT_VOCAB: dict
+EVENT_VOCAB_REVERSE: dict
 if _EVENT_VOCAB is None or _EVENT_VOCAB_REVERSE is None:
-    EVENT_VOCAB: dict = {}
-    EVENT_VOCAB_REVERSE: dict = {}
+    EVENT_VOCAB = {}
+    EVENT_VOCAB_REVERSE = {}
 else:
-    EVENT_VOCAB: dict = _EVENT_VOCAB
-    EVENT_VOCAB_REVERSE: dict = _EVENT_VOCAB_REVERSE
+    EVENT_VOCAB = _EVENT_VOCAB
+    EVENT_VOCAB_REVERSE = _EVENT_VOCAB_REVERSE
 
 # InferencePool is optional (requires CORE.freethreading)
 try:
