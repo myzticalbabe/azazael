@@ -191,3 +191,103 @@ def test_cli_selftest_exit_0_and_its_json_reports_zero_failures(
     # runs and stays allowed -- otherwise '0 failures' could mean 'ran nothing'.
     assert payload["failures"] == 0
     assert any(l.startswith("PASS healthy control") for l in payload["lines"]), payload["lines"][:2]
+
+
+# --------------------------------------------------------------------------- #
+# Batch mode: --frame-file, one process for many frames
+# --------------------------------------------------------------------------- #
+
+def _frame(**overrides):
+    frame = {"intent": "verify the cli exit contract",
+             "target": "tools/cmd_ok.py",
+             "must_not_break": ["tests/keep.md"],
+             "defends": ["the exit contract in this module's docstring"],
+             "refusal": "BLOCK when the exit code disagrees with the verdict"}
+    frame.update(overrides)
+    return frame
+
+
+def test_batch_frame_file_checks_healthy_frames_and_exits_0(tmp_path: pathlib.Path):
+    root = ok_root(tmp_path)
+    frames = tmp_path / "frames.json"
+    frames.write_text(json.dumps({"root": str(root),
+                                  "frames": [_frame(), _frame(target="tools/cmd_ok.py",
+                                                              defends=["two"])]}),
+                      encoding="utf-8")
+    proc = _run(["--frame-file", str(frames)], cwd=tmp_path)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert proc.stdout.count("SENTINEL OK") == 2, proc.stdout
+
+
+def test_batch_names_its_blocked_frame_and_what_was_never_checked(
+        tmp_path: pathlib.Path):
+    root = ok_root(tmp_path)
+    frames = tmp_path / "frames.json"
+    frames.write_text(json.dumps({"root": str(root),
+                                  "frames": [_frame(), _frame(intent="the situation"),
+                                             _frame(target="tools/never_reached.py")]}),
+                      encoding="utf-8")
+    proc = _run(["--frame-file", str(frames)], cwd=tmp_path)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    # The blocked frame is named by index, and the frames after it are not silent:
+    # the batch says they were never checked.
+    assert "frame #1" in proc.stdout, proc.stdout
+    assert "SENTINEL BLOCKED" in proc.stdout, proc.stdout
+    assert "never checked" in proc.stdout, proc.stdout
+
+
+def test_batch_json_mode_reports_structured(tmp_path: pathlib.Path):
+    root = ok_root(tmp_path)
+    frames = tmp_path / "frames.json"
+    frames.write_text(json.dumps({"root": str(root),
+                                  "frames": [_frame(intent="the situation")]}),
+                      encoding="utf-8")
+    proc = _run(["--frame-file", str(frames), "--json"], cwd=tmp_path)
+    assert proc.returncode == 1
+    payload = json.loads(proc.stdout)
+    assert payload["mode"] == "batch"
+    assert payload["blocked_at"] == 0
+    assert payload["checked"][0]["verdict"] == "SENTINEL BLOCKED"
+    assert any(p.startswith("S1 intent-scoped")
+               for p in payload["checked"][0]["problems"])
+
+
+def test_batch_cannot_run_arms_always_exit_2_and_never_read_as_ok(
+        tmp_path: pathlib.Path):
+    """The exit contract's >=2 arm: an unreadable/unshaped batch is an absence,
+    never a pass. Three arms cover the three can't-run shapes: file missing,
+    file not JSON, a frame missing a required field."""
+    root = ok_root(tmp_path)
+
+    # 1: the file does not exist at all
+    proc = _run(["--frame-file", str(tmp_path / "absent.json")], cwd=tmp_path)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "SENTINEL OK" not in proc.stdout + proc.stderr
+    assert "CANNOT RUN" in proc.stderr, proc.stderr
+
+    # 2: the file exists but is not JSON
+    not_json = tmp_path / "not.json"
+    not_json.write_text("this is prose, not json", encoding="utf-8")
+    proc = _run(["--frame-file", str(not_json), "--json"], cwd=tmp_path)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "SENTINEL OK" not in proc.stdout
+    assert "CANNOT RUN" in proc.stderr
+
+    # 3: a frame missing a required field -- the whole batch stops
+    bad_frame = _frame()
+    del bad_frame["refusal"]
+    bad = tmp_path / "missing_field.json"
+    bad.write_text(json.dumps({"root": str(root), "frames": [bad_frame]}),
+                   encoding="utf-8")
+    proc = _run(["--frame-file", str(bad), "--json"], cwd=tmp_path)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["mode"] == "batch"
+    assert "refusal" in payload["error"]
+    assert "SENTINEL OK" not in proc.stdout + proc.stderr
+
+    # 4: an empty frame list is cannot-run too -- checking nothing is not checking
+    empty = tmp_path / "empty.json"
+    empty.write_text(json.dumps({"root": str(root), "frames": []}), encoding="utf-8")
+    proc = _run(["--frame-file", str(empty)], cwd=tmp_path)
+    assert proc.returncode == 2, proc.stdout + proc.stderr

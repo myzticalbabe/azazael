@@ -46,6 +46,9 @@ CONTRACT
 * Every request/response passes through byte-for-byte except scored results.
 * A scored result below the floor is dropped and the drop is NAMED in a
   `floor` field, so a filtered answer cannot be mistaken for an empty store.
+* Every filtered result is also added to cumulative kept/dropped counters,
+  served by GET /healthz -- a drop is invisible to the model by construction,
+  so the counters are the one place the silence is measured.
 * Unscored results (writes, stats, goals) are never touched.
 * Daemon still down after PMB_UPSTREAM_WAIT seconds -> 502 with the reason,
   never an empty success. A daemon that is merely still starting is waited
@@ -78,6 +81,7 @@ bearer token it used for the daemon.
 import json
 import os
 import sys
+import threading
 import time
 import urllib.error
 from datetime import datetime
@@ -129,6 +133,68 @@ def stamp_runtime() -> None:
 
 #: Payload keys that can carry scored rows.
 SCORED_KEYS = ("results", "lessons", "decisions", "recent_activity")
+
+
+# --------------------------------------------------------------------------- #
+# Cumulative counters -- what the floor has done since this instance started
+# --------------------------------------------------------------------------- #
+
+#: A dropped row is invisible by construction: the model never sees it, so
+#: nothing downstream can report it. These counters are the one place the
+#: silence is measured. /healthz answers with them (kept_total, dropped_total,
+#: query_events), so an operator can see whether the floor is trimming or
+#: strangling without reading stderr.
+_COUNTERS = {"kept_total": 0, "dropped_total": 0, "query_events": 0}
+_COUNTERS_LOCK = threading.Lock()
+_COUNT_EVENT_START = time.monotonic()
+
+
+def _reset_counters() -> None:
+    """Zero the counters. Test hook; the proxy itself never resets them."""
+    global _COUNT_EVENT_START
+    with _COUNTERS_LOCK:
+        _COUNTERS["kept_total"] = 0
+        _COUNTERS["dropped_total"] = 0
+        _COUNTERS["query_events"] = 0
+        _COUNT_EVENT_START = time.monotonic()
+
+
+def _counters() -> dict:
+    with _COUNTERS_LOCK:
+        return {
+            "kept_total": _COUNTERS["kept_total"],
+            "dropped_total": _COUNTERS["dropped_total"],
+            "query_events": _COUNTERS["query_events"],
+            "seconds_running": round(time.monotonic() - _COUNT_EVENT_START, 1),
+        }
+
+
+def record_floor_event(floor_dict):
+    """Add one filtered result's kept/dropped counts to the totals."""
+    if not isinstance(floor_dict, dict):
+        return
+    kept = floor_dict.get("kept")
+    dropped = floor_dict.get("dropped")
+    if not isinstance(kept, int) or not isinstance(dropped, int):
+        return
+    with _COUNTERS_LOCK:
+        _COUNTERS["kept_total"] += kept
+        _COUNTERS["dropped_total"] += dropped
+        _COUNTERS["query_events"] += 1
+
+
+def health_payload() -> dict:
+    """The document GET /healthz serves. Pure, so it is testable without a socket."""
+    return {
+        "status": "ok",
+        "floors": {"status": "row_floor", "pmb_recall_floor": FLOOR,
+                   "pmb_recall_min_best": MIN_BEST},
+        "counters": _counters(),
+        "origin": ORIGIN,
+        "pid": os.getpid(),
+        "upstream": UPSTREAM,
+        "started": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
 
 
 def apply_floor(payload):
@@ -222,6 +288,8 @@ def _floor_frame(frame):
             continue
         filtered, note = apply_floor(payload)
         if note:
+            record_floor_event(filtered.get("floor")
+                               if isinstance(filtered, dict) else None)
             item = dict(item)
             item["text"] = json.dumps(filtered, ensure_ascii=False, default=str)
             changed = True
@@ -372,7 +440,24 @@ class FloorProxy(BaseHTTPRequestHandler):
         self._forward("POST")
 
     def do_GET(self):
+        if self.path == "/healthz":
+            self._healthz()
+            return
         self._forward("GET")
+
+    def _healthz(self):
+        """Serve counters + thresholds locally; never forwards to the daemon.
+
+        A health probe must answer even when upstream is cold -- that is the
+        state the probe exists to observe -- so this path is handled here and
+        never touches UPSTREAM.
+        """
+        body = json.dumps(health_payload(), ensure_ascii=False).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_DELETE(self):
         self._forward("DELETE")
