@@ -88,10 +88,47 @@ KNOWN_UNWIRED = {
         "basedpyright over the tree, measured at ~64s (module docstring); "
         "slow=True in the preflight_all.py registry",
     ),
-    # tools/failure_evidence_gate.py is no longer allowlisted: it was "unregistered
-    # and RED" (29 sites, 10 files) until 2026-11-01, when the findings reached 0
-    # and it was wired into pre-commit as Check 6c and registered here as
-    # failure-evidence-ratchet. An allowlist entry would now be a false statement.
+    # The five below moved from pre-commit's FAST tier to the EVIDENCE tier on
+    # 2026-11-02, when the hook was split (a whole-tree forensic pass does not
+    # belong in the 10s path). They are still invoked, from
+    # tools/evidence_tier.sh -- so `wired-elsewhere` with that runner is the
+    # accurate entry, and the same matcher proves it. A `wired` entry would now
+    # be false, and no entry at all would be a false alarm.
+    "failure_evidence_gate.py": (
+        "wired-elsewhere",
+        "findings reached 0 (29 sites, 10 files) on 2026-11-01 and it was wired; "
+        "on 2026-11-02 the hook grew an EVIDENCE tier and this moved there, "
+        "because a baseline-ratchet over the whole tree is not a staged-diff check",
+        "tools/evidence_tier.sh",
+    ),
+    "anti_pattern_gate.py": (
+        "wired-elsewhere",
+        "scans the tree against a recorded anti-pattern baseline, so it lives in "
+        "the EVIDENCE tier of the 2026-11-02 hook split rather than the per-commit "
+        "path whose subject is the staged diff",
+        "tools/evidence_tier.sh",
+    ),
+    "evidence_gate.py": (
+        "wired-elsewhere",
+        "re-derives claims about the tree (rotate_secret's success signal, the "
+        "NEURAL_MESH_WIRE_OR_CUT rows) rather than reading the staged diff, so it "
+        "runs from the EVIDENCE tier of the 2026-11-02 hook split",
+        "tools/evidence_tier.sh",
+    ),
+    "paradigm_gate.py": (
+        "wired-elsewhere",
+        "the EVIDENCE tier of the 2026-11-02 hook split runs it; it decides a "
+        "committed fact (a new top-level src/ function needs a @given) from the "
+        "commit range, which per-file staged reading cannot answer",
+        "tools/evidence_tier.sh",
+    ),
+    "transcript_ap5_gate.py": (
+        "wired-elsewhere",
+        "its subject is assistant prose in the persisted session store, not the "
+        "working tree -- so it runs from the EVIDENCE tier, which may read durable "
+        "artefacts the per-commit path should not",
+        "tools/evidence_tier.sh",
+    ),
     "anchor_runtime_gate.py": (
         "registered-slow",
         "registered 2026-11-01 as preflight_all.py 'anchor-runtime' with "
@@ -170,8 +207,19 @@ def _non_comment_lines(text):
 
 
 def _is_existence_guard(line):
-    """True when the line only TESTS for a script rather than executing it."""
-    return bool(_GUARD_RE.match(line))
+    """True when the line only TESTS for a script rather than executing it.
+
+    Two shapes: a bare/augmented ``[ -f path ]`` test (``_GUARD_RE``), and any
+    shell conditional that opens a block (``... ; then``). The second was added
+    2026-11-02: the hook guards a run with
+    ``if [ "${ALLOW:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/g.py" ]; then``,
+    whose leading test is a string comparison, so the ``-f`` regex did not see
+    it -- and the conditional line was credited as the invocation while the
+    real one sat two lines inside the body.
+    """
+    if _GUARD_RE.match(line):
+        return True
+    return line.rstrip().endswith("; then") or line.rstrip() == "then"
 
 
 def _invocation_lines(text):
@@ -286,18 +334,23 @@ def test_preflight_all_is_invoked_by_the_hook():
 def test_preflight_invocation_uses_the_pinned_interpreter():
     """Bare ``python``/``python3`` resolves to a different interpreter on this host."""
     lines = _hook_text().splitlines()
+    # 1-based line numbers, used as such: the previous version subtracted one
+    # here and then indexed 0-based `lines`, so it inspected the line AFTER the
+    # invocation and reported a correctly pinned call as bare (measured
+    # 2026-11-02 on the EVIDENCE-tier split's preflight guard).
     hits = [
-        lineno - 1
+        lineno
         for lineno, line in _invocation_lines(_hook_text())
         if "tools/preflight_all.py" in line
     ]
     assert hits, "no executable invocation line to inspect"
-    for index in hits:
-        window = " ".join(lines[max(0, index - 2): index + 1])
+    for lineno in hits:
+        index = lineno - 1
+        window = " ".join(lines[max(0, index - 3): index + 1])
         assert "$PYTHON3" in window, (
             "line %d invokes preflight_all.py without $PYTHON3 -- bare python is "
             "3.14.7 GIL on this host, not the 3.15t production interpreter"
-            % (index + 1)
+            % lineno
         )
         assert not re.search(r"(?<![$\w])python3?\b", lines[index]), (
             "line %d uses a bare python token on the invocation itself" % (index + 1)
