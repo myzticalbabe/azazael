@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 import json
 import logging
-from typing import Any, Dict, List, Optional, Pattern
+from typing import Any, Dict, List, Optional, Pattern, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
@@ -50,10 +50,14 @@ class ValidationResult:
     metadata: Dict[str, Any]
 
 
+# A threat pattern is the compiled expression plus the label it reports; the
+# pair is unpacked at every detection site, so the element type has to say so.
+ThreatPattern = Tuple[Pattern[str], str]
+
 # ─── Prompt Injection Patterns ───
 # Based on OWASP LLM01 and known attack patterns
 
-INJECTION_PATTERNS: List[Pattern] = [
+INJECTION_PATTERNS: List[ThreatPattern] = [
     # Direct instruction override
     (re.compile(r'(?i)ignore\s+(?:previous|all|above)\s+(?:instructions?|prompts?|rules?)'), "direct_override"),
     (re.compile(r'(?i)disregard\s+(?:previous|all|above)\s+(?:instructions?|prompts?|rules?)'), "direct_override"),
@@ -96,7 +100,7 @@ INJECTION_PATTERNS: List[Pattern] = [
 ]
 
 # ─── PII/Secret Patterns ───
-PII_PATTERNS: List[Pattern] = [
+PII_PATTERNS: List[ThreatPattern] = [
     (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), "ssn"),
     (re.compile(r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'), "credit_card"),
     (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), "email"),
@@ -124,8 +128,8 @@ class PromptGuard:
     
     def __init__(
         self,
-        injection_patterns: Optional[List[Pattern]] = None,
-        pii_patterns: Optional[List[Pattern]] = None,
+        injection_patterns: Optional[List[ThreatPattern]] = None,
+        pii_patterns: Optional[List[ThreatPattern]] = None,
         output_schema: Optional[Dict] = None,
         strict_mode: bool = False,
     ):
