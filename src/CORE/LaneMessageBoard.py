@@ -128,7 +128,7 @@ class LaneMessageBoard:
         self,
         session_id: Optional[str] = None,
         pams_url: Optional[str] = None,
-        lane: str = None,
+        lane: Optional[str] = None,
     ):
         if lane is None:
             raise ValueError("lane is required - omitting it silently writes as 'opencode' (see dive-laneboard-default-lane). Pass lane explicitly.")

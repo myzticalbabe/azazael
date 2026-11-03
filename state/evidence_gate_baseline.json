@@ -27,10 +27,8 @@
     "src/CORE/secrets_manager.py:368 audit_secrets",
     "src/CORE/spine_registry.py:2278 audit_state",
     "src/CORE/spine_registry.py:2334 purge_fixtures",
-    "src/CORE/worm_registry.py:2212 restore_registry",
     "src/ORCHESTRATION/MathCertainty.py:167 MerkleTree.verify_proof",
     "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py:429 MemoryManager.cleanup_old_data",
-    "src/SHARDS/prompt_guard.py:270 validate_response",
     "src/eve_unleashed/decision_engine.py:243 AutonomousDecisionEngine.audit_trail",
     "src/eve_unleashed/utils.py:57 validate_input_shape",
     "src/session_memory.py:724 SessionMemory.validate_lesson"
