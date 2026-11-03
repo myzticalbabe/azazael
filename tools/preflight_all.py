@@ -92,9 +92,23 @@ RUN_TIMEOUT = 3600.0
 PROBE_TIMEOUT = 120.0
 GIT_TIMEOUT = 120.0
 
-#: `(?:tools|scripts)/name.py` -- used to re-derive the hook's gate inventory
-#: from the hook text itself, so the registry cannot drift from its producer.
-_SCRIPT_RE = re.compile(r"(?:tools|scripts)/[A-Za-z0-9_]+\.py")
+#: `(?:prefix/)*(?:tools|scripts)/name.py` -- used to re-derive the hook's gate
+#: inventory from the hook text itself, so the registry cannot drift from its
+#: producer.
+#:
+#: THE LEADING GROUP IS LOAD-BEARING. A pattern anchored at `tools/` reads only the
+#: two top-level script dirs, so a gate that lives under a project directory
+#: (`Project_ELIZA/tools/shard_intake.py`, wired 2026-11-03) was derived as
+#: `tools/shard_intake.py`: a path that does not exist, matched against a registry
+#: entry that does, reported as registered-but-not-run on a tree where the gate ran
+#: on every push.
+#:
+#: `(?<![\\w$])` stops a match starting INSIDE a longer token. The tier file
+#: expresses paths as `"$SCRIPT_DIR/Project_ELIZA/tools/x.py"`: without the guard the
+#: engine could begin at `SCRIPT_DIR` and yield `SCRIPT_DIR/Project_ELIZA/tools/x.py`,
+#: which is not a repo-relative path and would be compared against one that is.
+_SCRIPT_RE = re.compile(
+    r"(?<![\w$])(?:[A-Za-z0-9_.-]+/)*(?:tools|scripts)/[A-Za-z0-9_]+\.py")
 
 
 class Gate(NamedTuple):
@@ -263,6 +277,38 @@ GATES: Tuple[Gate, ...] = (
         control=None,
         uncontrolled_because=None,
         requires=("NEURAL_MESH_WIRE_OR_CUT.json",),
+    ),
+    Gate(
+        name="shard-intake",
+        # Registered 2026-11-03 with the tier stanza that calls it. Before this the
+        # gate existed and had no caller at all: Project_ELIZA/shards holds 1,183
+        # generated stubs against the Kali atlas, every one addressable and every
+        # load() raising, and `--check` -- the only thing that compares that surface
+        # to the atlas it claims to describe -- ran nowhere.
+        #
+        # BLOCKING, and the missing-atlas case is why the tool grew a third state.
+        # The atlas is out of repo (~/yggdrasil_forest/atlas_kali-linux.json, written
+        # by tools/domain_trees.py on the Kali lane), so a host that never ran that
+        # census cannot judge the surface. The tool now exits 2 for that -- "could not
+        # perform the run" -- instead of 1, so the refusal says which of the two
+        # things happened. It still BLOCKS: `non-blocking` is reserved for gates whose
+        # exit code is advisory by design (test_hook_non_blocking_gates_are_exactly_
+        # the_advisory_ones), and a drift gate parked there would be decoration. The
+        # remedy is one command, named in the output.
+        #
+        # Escape, same idiom as ALLOW_EVIDENCE_GATE: ALLOW_SHARD_INTAKE=1.
+        argv=("Project_ELIZA/tools/shard_intake.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("Project_ELIZA/shards/SHARD_INDEX.json + every stub it indexes + "
+               "WIRED.json, re-derived against ~/yggdrasil_forest/atlas_kali-linux.json"),
+        control_test="Project_ELIZA/tests/test_shard_intake.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("Project_ELIZA/shards/SHARD_INDEX.json",),
     ),
     Gate(
         name="wire-evidence",
