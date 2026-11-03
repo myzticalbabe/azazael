@@ -33,4 +33,5 @@ shardex --help
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.

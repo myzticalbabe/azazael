@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Fixed-step orchestrator for accelerated play: integer timebase, no dropped ticks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "CDDL-1.1" }
 # No Python runtime dependencies: the engine is stdlib-only, and the fixed-step
 # claim is arithmetic over an integer timebase rather than a library call.
 #
@@ -19,7 +19,6 @@ dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
