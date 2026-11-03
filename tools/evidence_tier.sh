@@ -47,6 +47,17 @@
 # the last evidence reading, so "when did this tree last pass" is a timestamp
 # rather than a recollection. logs/ is gitignored: a fact about this host's last
 # run, not a claim committed into the tree.
+#
+# CHANGESET SCOPE (--base REV, 2026-11-03). Two stanzas below read a changeset:
+# the anti-pattern ratchet's staged additions and the preflight registry's
+# `changeset-focus` / `staged-scanner` rows, which are `git diff --cached` and
+# therefore judge the INDEX. At push time the index is not the changeset: on a
+# worktree several lanes share it holds whatever a concurrent lane has staged.
+# Measured 2026-11-03: a 2-file commit was refused by both rows over 7 forensic
+# files staged by another lane, none of them in the commit -- an index-scoped run
+# cannot distinguish "my change is too big" from "somebody else's desk drawer is".
+# `--base REV` makes the registry judge REV..HEAD and says which scope it used.
+# Without it the behaviour is unchanged (pre-commit still wants the index).
 
 # One level up: this file is tools/evidence_tier.sh, so dirname/.. is the root.
 # (It was `.githooks/lib/evidence.sh` -- two levels -- until the tier moved to a
@@ -65,6 +76,43 @@ if [ ! -x "$PY" ]; then
                 "$(command -v python3 2>/dev/null)"; do
         [ -n "$cand" ] && [ -x "$cand" ] && { PY="$cand"; break; }
     done
+fi
+
+# ── Changeset scope (2026-11-03) ──
+#   sh tools/evidence_tier.sh               # judge the git index (pre-commit)
+#   sh tools/evidence_tier.sh --base <rev>  # judge <rev>..HEAD (push of a commit)
+# The base is validated rather than trusted: an empty value, or a second argument
+# this script does not understand, exits 2 -- "could not judge" is not a pass, and
+# a typo that silently fell back to index mode would reproduce the hijack.
+EV_BASE=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --base)
+            shift
+            [ $# -ge 1 ] || { echo "[Evidence] --base needs a revision"; exit 2; }
+            EV_BASE="$1"
+            ;;
+        --base=*)
+            EV_BASE="${1#--base=}"
+            ;;
+        *)
+            echo "[Evidence] unknown argument: $1 (known: --base REV)"
+            exit 2
+            ;;
+    esac
+    shift
+done
+case "$EV_BASE" in
+    "") ;;
+    *" "*)
+        echo "[Evidence] --base must be a single ref, got: $EV_BASE"
+        exit 2
+        ;;
+esac
+if [ -n "$EV_BASE" ]; then
+    echo "[Evidence] changeset scope: $EV_BASE..HEAD (commit mode -- the index is NOT judged)"
+else
+    echo "[Evidence] changeset scope: the git index (no --base given)"
 fi
 
 # ─── Check 4: repo-wide anti-pattern ratchet ───
@@ -548,7 +596,15 @@ if [ "${ALLOW_PREFLIGHT:-}" != "1" ]; then
             # Status captured immediately. The gate's own output is NOT piped
             # through head/tail before $? is read: that pipeline rc trap has
             # produced a false pass in this repo three times.
-            PREFLIGHT_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --check 2>&1)
+            # Scope reaches the registry as an ARGUMENT, never as an env var:
+            # gate_fingerprint() hashes argv, so a recorded PASS from index mode
+            # cannot be reused to answer a commit-mode question.
+            if [ -n "$EV_BASE" ]; then
+                set -- --base "$EV_BASE"
+            else
+                set --
+            fi
+            PREFLIGHT_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --check "$@" 2>&1)
             PREFLIGHT_EXIT=$?
             echo "$PREFLIGHT_OUT"
             if [ $PREFLIGHT_EXIT -ne 0 ]; then
