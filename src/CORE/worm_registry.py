@@ -1993,6 +1993,12 @@ def repair_registry() -> Dict[str, Any]:
 
     importlib.invalidate_caches()  # clear importlib metadata caches too
 
+    # Captured BEFORE the clear, and outside the lock (snapshot takes it): the
+    # fleet this call is about to throw away is the only thing that can be put
+    # back if the rebuild fails. Class identity survives the round trip, so
+    # callers holding worm classes across a failed repair keep working ones.
+    _previous_fleet = snapshot_registry()
+
     with _registry_lock:
         # Captured BEFORE the clear: the purge needs to know which modules host
         # worms, and the registry is the only record of that.
@@ -2006,6 +2012,24 @@ def repair_registry() -> Dict[str, Any]:
         discover_worms()
     except Exception as exc:          # noqa: BLE001 - repair reports what it found
         note_failure("worm_registry:repair-rediscover", exc)
+        # Without this the process is left holding an EMPTY registry and no way
+        # to rebuild it (the purge dropped the modules that would have re-fired
+        # @register_worm, and re-discovery just failed). Restoring the captured
+        # fleet is the state that is strictly better than none.
+        restored = restore_registry(_previous_fleet)
+        after_failure = validate_registry_importable()
+        broken_failed = {b.get("name") for b in (after_failure.get("broken") or [])}
+        return {
+            "attempt": True,
+            "error": str(exc)[:200],
+            "repaired": len(broken_in - broken_failed),
+            "still_broken": after_failure.get("broken") or [],
+            "valid": bool(after_failure.get("valid")),
+            "total": after_failure.get("total", 0),
+            "checked": after_failure.get("checked", 0),
+            "restored": restored,
+            "repaired_at": datetime.now().isoformat(),
+        }
 
     after = validate_registry_importable()
     broken_out = set(b.get("name") for b in (after.get("broken") or []))
