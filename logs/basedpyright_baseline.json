@@ -1,15 +1,15 @@
 {
-  "recorded_at": "2026-11-03T02:45:28+00:00",
+  "recorded_at": "2026-11-03T05:11:46+00:00",
   "identity_scheme": "content-anchored-v1",
   "checker": "basedpyright (pyrightconfig.json, typeCheckingMode basic)",
   "summary": {
     "filesAnalyzed": 761,
-    "errorCount": 58,
+    "errorCount": 53,
     "warningCount": 46,
     "informationCount": 0
   },
   "severity_counts": {
-    "error": 58,
+    "error": 53,
     "warning": 46,
     "information": 0
   },
@@ -21,9 +21,9 @@
     "reportArgumentType": 6,
     "reportUndefinedVariable": 6,
     "reportRedeclaration": 6,
-    "reportGeneralTypeIssues": 6,
-    "reportAssignmentType": 3,
-    "reportCallIssue": 2
+    "reportGeneralTypeIssues": 3,
+    "reportCallIssue": 2,
+    "reportOperatorIssue": 1
   },
   "diagnostic_ids": [
     "src/AOA/core/delegation_tracer.py:reportOptionalMemberAccess:duration_ms = outcome.get(\"duration_ms\")",
@@ -124,11 +124,6 @@
     "src/PSYCHE/rt_agent.py:reportArgumentType:return express(self.pad, rules)",
     "src/PSYCHE/rt_agent.py:reportArgumentType:self.pad = pad_decay(self.pad, self.baseline, self.decay_rate, dt_s)",
     "src/PSYCHE/rt_agent.py:reportArgumentType:self.pad = pad_decay(self.pad, self.baseline, self.decay_rate, dt_s)#2",
-    "src/PSYCHE/rt_channel.py:reportOptionalMemberAccess:parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])",
-    "src/SHARDS/prompt_guard.py:reportAssignmentType:INJECTION_PATTERNS: List[Pattern] = [",
-    "src/SHARDS/prompt_guard.py:reportAssignmentType:PII_PATTERNS: List[Pattern] = [",
-    "src/SHARDS/prompt_guard.py:reportGeneralTypeIssues:for pattern, pii_type in self.pii_patterns:",
-    "src/SHARDS/prompt_guard.py:reportGeneralTypeIssues:for pattern, pii_type in self.pii_patterns:#2",
-    "src/SHARDS/prompt_guard.py:reportGeneralTypeIssues:for pattern, threat_type in self.injection_patterns:"
+    "src/PSYCHE/rt_channel.py:reportOptionalMemberAccess:parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])"
   ]
 }
