@@ -1,5 +1,6 @@
 """Command line: maat weigh [--raw PATH] [--sizes 3,5,7,9,11]
                 maat rules --text 'some 2d content' [--ref SRC] [--version YYYY-MM-DD]
+                maat mutate --rules RS.json [--seed TEXT] [--frames N]
 """
 from __future__ import annotations
 
@@ -12,6 +13,13 @@ from .panel import compare
 from .rules import validate
 
 DEFAULT_RAW = "C:/Users/clint/Documents/ai_panel_opinions_raw.json"
+
+
+def load_ruleset(path: str):
+    """Load and validate a ruleset file; raises on the first violation."""
+    from .rules import load
+
+    return load(path)
 
 
 def main(argv=None) -> int:
@@ -28,6 +36,11 @@ def main(argv=None) -> int:
     r.add_argument("--ref", default="inline", help="source reference (url / path / id)")
     r.add_argument("--media", default="2d", choices=("2d", "3d", "text"))
     r.add_argument("--version", default=None, help="ruleset version date YYYY-MM-DD")
+    m = sub.add_parser("mutate", help="run a mesh through the Q1R1 ruleset (Q2 kernel)")
+    m.add_argument("--rules", required=True, help="path to a Q1R1 ruleset JSON file")
+    m.add_argument("--seed", default="maat-default-seed", help="mesh seed text")
+    m.add_argument("--frames", type=int, default=4, help="frames of the render loop")
+    m.add_argument("--version", default=None, help="mesh version date YYYY-MM-DD")
     args = p.parse_args(argv)
 
     if args.cmd == "rules":
@@ -39,6 +52,24 @@ def main(argv=None) -> int:
             print("\n".join(errs), file=sys.stderr)
             return 1
         print(json.dumps(rs, indent=2, sort_keys=True))
+        return 0
+    if args.cmd == "mutate":
+        try:
+            rs = load_ruleset(args.rules)
+        except FileNotFoundError:
+            print(f"ruleset not found: {args.rules}", file=sys.stderr)
+            return 2
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 1
+        from .mutate import apply, new_mesh
+
+        try:
+            out = apply(rs, new_mesh(args.seed, version=args.version), frames=args.frames)
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 1
+        print(json.dumps(out, indent=2, sort_keys=True))
         return 0
     if args.cmd != "weigh":
         p.print_help()
