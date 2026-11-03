@@ -1,0 +1,29 @@
+{
+  "project": "jaeger",
+  "version": "0.1.0",
+  "description": "Azazael's internal tracer — consumes AOA DelegationSpec + ArmResult, emits spans within the tree. Not an OTLP client.",
+  "readme": "README.md",
+  "requires-python": ">=3.10",
+  "license": { "text": "CDDL-1.1" },
+  "dependencies": [
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp>=1.20"
+  ],
+  "classifiers": [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Common Development and Distribution License 1.1 (CDDL-1.1)",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Monitoring"
+  ],
+  "optional-dependencies": {
+    "dev": ["pytest>=7", "pytest-asyncio", "pytest-cov"]
+  },
+  "scripts": {
+    "jaeger-tracer": "jaeger.tracer:main",
+    "jaeger-export": "jaeger.export:main"
+  }
+}
