@@ -370,3 +370,15 @@ src/RUST_WASM/pkg*/
 /.transub/
 /.tmp_mirror/
 .requiem/
+
+# Same class, batch 2: every path below is the DEFAULT OUTPUT of a documented
+# command, so it is regenerable rather than authored -- `composed.json`
+# (launch.py --out), `.transub/` (transubstantiate.py --forge), the shardex
+# intake/real mirrors (--mirror), and an SBOM (`syft`) whose value is that it
+# describes the build it was taken from, not a copy committed beside it.
+/composed.json
+/Project_SHARDEX/composed.json
+/Project_SHARDEX/.transub/
+/.shardex-intake/
+/.shardex-real/
+/sbom.spdx.json
