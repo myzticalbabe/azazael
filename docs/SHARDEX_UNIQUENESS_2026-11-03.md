@@ -193,6 +193,78 @@ next challenger appears.
 
 ---
 
+## PANEL REVIEW — three-judge panel, 2026-11-03 (convened at the user's request)
+
+Each judge reviewed the ruling through an independent channel and recorded what
+it ran. No unanimous rubber stamp: one dissent-in-part, two written
+qualifications, all annexed with their commands.
+
+### Judge I — evidence re-run (adversarial re-execution): AFFIRM
+
+Six checks, all in one command batch against branch `deepseek-engram-813`:
+
+- **authorship**: `git log --all --format="%ae" -- Project_SHARDEX/ | sort -u`
+  → one email unchanged; commit count is now **17** — 16 pre-ruling plus this
+  ruling's own commit, which joined the set it rules on when it touched
+  `HARDWARE.md`. The doc's "16 commits" stands as the pre-ruling measurement;
+  the panel fixes the count's scope rather than the number itself.
+- **license sha**: `sha256sum Project_SHARDEX/LICENSE` →
+  `6466067853bf4d2647ae63a8b2d384251927912be2bbc14304255a9913214b7b` (matches F5).
+- **golden witness**: `grep -c 1f046312729509fc Project_SHARDEX/SHARDEX.md` → 6.
+- **import union (both files)**: adds `dataclasses` and `time` to the F3 list —
+  still stdlib, which *strengthens* the portability finding; see Judge III (b).
+- **ruling text at HEAD**: `git show HEAD:docs/SHARDEX_UNIQUENESS_2026-11-03.md`
+  → present; `HARDWARE.md:94` reads CDDL-1.1 with the b49dfc2f citation.
+
+### Judge II — memory-contradiction sweep (Engram + PMB fanout): AFFIRM, DISSENT IN PART on F2/R5 strength
+
+- **negative control**: Engram returns 5 hits for `Azazael` and zero for both
+  `SHARDEX` and `cddl` — the zero leg is real absence, not a dead search
+  (the instrument-blindness lesson of 2026-11-02 was honored, not skipped:
+  `supervisor__fanout_search` returned PMB + PAMS legs live).
+- **prior record found** (PMB lesson, 2026-11-02, `surface_id 6826`): *all
+  SHARDEX cross-language verification is two ports by the same author, so a
+  shared misreading passes both; the capability test that matters is whether a
+  third implementation, reading only the artifact, reproduces the hash.*
+- **Hold**: the F2 golden witness (`1f046312729509fc`) is a dual-ported
+  witness. The Chrome `data-hash` line adds a rendered channel, not an
+  independent re-derivation. The panel therefore qualifies F2: the hash is
+  **author-signed dual-verification**, and full independent closure is
+  **SHX-R1 pending** — a third implementation that never reads either port and
+  reproduces the hash from the artifact alone. The quantisation-ruler contract
+  (PMB lesson, `surface_id 6827`: *state the ruler once, in both languages, and
+  check it before checking the maths*) is annexed as a precondition of any
+  such port. **R2 uniqueness is not affected by this dissent; R5's claim-closure
+  wording is narrowed for F2 accordingly.**
+
+### Judge III — claim hygiene under RULE 0B-D/0B-E: AFFIRM IN MAJORITY, two qualifications
+
+- **(a) F4 lacks a recorded negative control.** No decoy query (a probe
+  expected to return nothing) was logged with the four search legs, so the
+  absence-of-results evidence is ranked **advisory, not dispositive**. The
+  uniqueness holding stands because it is *dated to 2026-11-03 and re-derivable*
+  — exactly what the ruling says — but a future challenger may demand the
+  decoy. The next re-derivation should ship the decoy with the queries.
+- **(b) F3's import list names `shardex.py` only.** The `launch.py`
+  complement (`dataclasses`, `time`) belongs in the record. Both are stdlib;
+  the finding (zero non-stdlib imports across both files) is unchanged and now
+  printed in full by Judge I.
+- **floor check**: every other claim carried its command and named its scope;
+  the `{CDCL}` anomaly (F6) was already properly scoped in the first commit
+  after the RULE 0B-E guard required it.
+
+### Panel verdict — AFFIRMED WITH QUALIFICATIONS
+
+The **SETTLED** verdict stands on all five holdings. Three qualifications are
+now part of the record: (Q1) the golden witness is dual-ported until SHX-R1 or
+its equivalent lands, with the ruler contract as its precondition; (Q2) F4's
+web basis is advisory pending a decoy-controlled re-derivation; (Q3) the
+commit-count and import-list scopes are as Judge I printed them. No judge
+dissented against authorship (F1/R1), license custody (F5), or portability
+(F3/R3). A dispute may cite this annex by name as the panel's reading.
+
+---
+
 *This ruling was assembled 2026-11-03 by the project decision machinery at the
 user's request. It cites every tool it used. Its verdict is dated. It does not
-accept acceptance: what is ruled is what was measured.*
+accept acceptance: what is ruled is what was measured.**
