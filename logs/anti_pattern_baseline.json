@@ -1,9 +1,9 @@
 {
-  "recorded_at": "2026-11-03T01:23:14+00:00",
+  "recorded_at": "2026-11-03T01:27:26+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 774,
+  "files_scanned": 773,
   "category_counts": {
     "except_return_default": 2,
     "hardcoded_win_path": 14,
@@ -12,7 +12,7 @@
     "unicode_emoji": 1219
   },
   "total_findings": 2205,
-  "tracked_only": false,
+  "tracked_only": true,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
