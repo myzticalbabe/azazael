@@ -409,6 +409,26 @@ def _composite_victims(conn: sqlite3.Connection, victim_type: str,
                               "ranked": len(ranked)}
 
 
+_DEFAULTS_CONFIG = (Path(__file__).resolve().parents[2]
+                    / "config" / "defaults.json")
+
+
+def _composite_eviction_enabled() -> bool:
+    """`retention.composite_eviction` from config/defaults.json (default False).
+
+    A deletion pass that switches victim SELECTION on is a decision about
+    which rows are lost, so it is opt-in and named here rather than inferred
+    from whether an embedding model happens to be reachable. A missing or
+    corrupt config degrades to the shipped default (legacy, size+age).
+    """
+    try:
+        data = json.loads(_DEFAULTS_CONFIG.read_text(encoding="utf-8"))
+    except Exception as exc:
+        _note_failure("data_retention:composite-default", exc)
+        return False
+    return bool((data.get("retention") or {}).get("composite_eviction", False))
+
+
 def enforce_global_quota(quota_mb: int | None = None,
                          db_path: str | None = None,
                          max_batches: int = 10,
@@ -460,16 +480,26 @@ def enforce_global_quota(quota_mb: int | None = None,
             # the pass. Same batch size (throughput preserved). Any failure
             # keeps the legacy oldest-first set above: the backstop must
             # never depend on the model server.
-            try:
-                if _STORE_OK and callable(_get_memory_store):
-                    _store = _get_memory_store()
-                else:
-                    _store = None
-                _preview = (_store.composite_eviction_preview(
-                    "quota:%s" % victim_type) if _store is not None else {})
-            except Exception as exc:
-                _note_failure("data_retention:quota-preview", exc)
-                _preview = {}
+            #
+            # OFF by default: this changes WHICH ROWS GET DELETED, so it is
+            # a knob (`retention.composite_eviction`), not a silent swap.
+            # `tests/test_enforce_global_quota_victim_rule.py` pins the
+            # shipped rule — largest unprotected type by BYTES, lowest id
+            # first — and this branch broke those pins the day it landed
+            # unconditionally.
+            _preview = {}
+            if _composite_eviction_enabled():
+                try:
+                    if _STORE_OK and callable(_get_memory_store):
+                        _store = _get_memory_store()
+                    else:
+                        _store = None
+                    _preview = (_store.composite_eviction_preview(
+                        "quota:%s" % victim_type)
+                        if _store is not None else {})
+                except Exception as exc:
+                    _note_failure("data_retention:quota-preview", exc)
+                    _preview = {}
             if _preview.get("embedding_available"):
                 try:
                     ids, _info = _composite_victims(

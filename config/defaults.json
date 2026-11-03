@@ -20,5 +20,8 @@
   },
   "preflight": {
     "disk_floor_gb": 10.0
+  },
+  "retention": {
+    "composite_eviction": false
   }
 }

@@ -74,6 +74,11 @@ _PLACEHOLDER_VALUES = frozenset({
     "dummy", "redacted", "example", "test", "testing", "fake", "sample",
     "your_api_key_here", "todo", "todo-set-me", "unset", "not-set",
     "block_begin", "block_end", "variable_begin", "variable_end",
+    # An output SENTINEL, not key material: src/SHARDS/polyglot.py defines
+    # WORK_TOKEN = "AZAZAEL-WORK-OK" and each language shard prints it so a
+    # caller can prove the interpreter ran. Measured 2026-11-02: one
+    # definition, six print sites, no request header, no auth path.
+    "azazael-work-ok",
 })
 
 #: Variable-name prefixes that mark a value as a deliberate test fixture.
