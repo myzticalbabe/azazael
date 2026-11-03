@@ -118,14 +118,23 @@ def strip_stage(text: str) -> Tuple[str, int]:
 
     Measured on the 2025 inaugural: 56 stage directions in a 179-sentence transcript. Left in,
     they are 56 one-word sentences and every sentence statistic is wrong in the same direction.
+
+    Both bracket styles are real transcripts: the inaugural archive writes `(Applause.)`,
+    the spoken-address archive writes `[applause]` and `[applause and cheers]`. Measured
+    2026-11-02 on the 2015 announcement: a stripper that knew only parentheses left
+    `applause` as the **eighth most frequent word** (x43) in a 6.5k-word corpus and added
+    43 one-word sentences to the count. The reading looked plausible; the top-word list
+    is what exposed it, which is why the tool prints one.
     """
     removed = 0
-    for cue in STAGE_DIRECTIONS:
-        pattern = re.compile(r"\s*\(\s*" + cue + r"\.?\s*\)", re.IGNORECASE)
-        text, n = pattern.subn("", text)
-        removed += n
-    # a bare ALL-CAPS cue on its own line, e.g. "(APPLAUSE)"
-    text = re.sub(r"\n\s*\((?:[A-Z][A-Za-z ]{2,20})\.\)\s*\n", "\n", text)
+    cues = "|".join(STAGE_DIRECTIONS)
+    # one cue, or several joined by "and" / a comma: [applause and cheers], (laughter, applause)
+    cue_run = r"(?:{c})(?:[\s,&]+(?:and[\s,]+)?(?:{c}))*".format(c=cues)
+    pattern = re.compile(r"\s*[(\[]\s*" + cue_run + r"[.!]?\s*[)\]]", re.IGNORECASE)
+    text, removed = pattern.subn("", text)
+    # a bare ALL-CAPS cue on its own line, e.g. "(APPLAUSE)" or "[APPLAUSE]"
+    text, n = re.subn(r"\n\s*[(\[](?:[A-Z][A-Za-z ]{2,40})[.!]?[)\]]\s*\n", "\n", text)
+    removed += n
     return text, removed
 
 
@@ -212,11 +221,16 @@ def split_sentences(text: str) -> List[str]:
         # "(Applause." + ")" -- a close paren is not a sentence break, and
         # re.split(r"(?<=[.!?])\s+") never did that, so this restores the
         # behaviour the count assertions in the tests were written against.
-        if end + 1 < length and text[end + 1] not in " \t\n":
+        # `str.isspace()`, not a hand-written set of characters. Scraped prose is full of
+        # U+00A0 from `&nbsp;` after a full stop: measured 2026-11-02 on whitehouse.gov's
+        # 2025 inaugural, a `" \t\n"` set refused every one of those boundaries and merged
+        # the speech into 94 sentences, the longest 125 words. The old regex splitter
+        # (`\s+`) handled it; the hand-written port silently did not.
+        if end + 1 < length and not text[end + 1].isspace():
             index = end + 1
             continue
         next_index = end + 1
-        while next_index < length and text[next_index] in " \t":
+        while next_index < length and text[next_index].isspace():
             next_index += 1
         if next_index >= length:
             break
