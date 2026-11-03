@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maat"
+version = "0.1.0"
+description = "MAAT - the Scales of Ma'at: multi-judge AI panel weighing for dispute opinions (3/5/7/9/11 nested panels)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Clint Oxford", email = "clintonoxford47@gmail.com" }]
+keywords = ["panel", "judging", "llm", "consensus", "dispute"]
+dependencies = []
+
+[project.scripts]
+maat = "maat.cli:main"
+
+[project.urls]
+Origin-Note = "Named after the scales in the Duat: Anubis weighed the heart against the Feather of Ma'at - see README.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
