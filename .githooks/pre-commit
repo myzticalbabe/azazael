@@ -45,6 +45,7 @@
 #        nobody has on disk, and that version is what would be committed
 #   2.   staged NEW anti-patterns     (tools/staged_scanner_gate.py)
 #   3.   canon drift                  (tools/canon_drift_check.py --check)
+#   4.   gate registry + hook parity  (tools/preflight_all.py --self-test)
 #   7b.  testing-paradigm G1          (tools/test_paradigm_gate.py)
 #   10.  generated instruction blocks (tools/agent_orders_sync.py --hook --wsl)
 #   10b. instruction-file PROSE       (tools/prompt_check.py)
@@ -57,7 +58,8 @@
 #
 # Declared overrides, unchanged and never silent: ALLOW_BULK_COMMIT=1,
 # ALLOW_STALE_INDEX=1, ALLOW_AGENT_ORDERS_DRIFT=1, ALLOW_PROMPT_STALE=1,
-# ALLOW_SUPERVISOR_NOGO=1, and COMMIT_TIER=full to run the evidence tier inline.
+# ALLOW_SUPERVISOR_NOGO=1, ALLOW_PREFLIGHT=1, and COMMIT_TIER=full to run the
+# evidence tier inline.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SCRIPT_DIR" || exit 1
@@ -186,6 +188,40 @@ else
     echo "[Canon] check not found -- passing loud (check unrunnable)"
 fi
 echo ""
+
+# ─── Check 4 (blocking): preflight registry + hook parity ───
+# `tools/preflight_all.py` is the registry of every gate this tree claims to
+# run. Nothing invoked it from a commit, so `--self-test` -- the check that the
+# gates the hook NAMES are the gates the registry EXPECTS, and that each gate
+# resolves to a file -- had never run on any commit. Measured 2026-11-02: 35
+# registered gates, 0 failures, 0.95 s, so it rides along rather than being a
+# separate gate. Cheap because it reads text; `--run-controls` (which actually
+# EXERCISES each declared control) stays a manual/full-tier run.
+# Exit 2 is "the runner could not be performed" -- reported loud and allowed,
+# exactly as checks 10/10b treat a host with nothing to check (a gate that
+# blocks when it cannot measure is a denial-of-service on every commit).
+# Declared override, never silent: ALLOW_PREFLIGHT=1.
+if [ "${ALLOW_PREFLIGHT:-}" = "1" ]; then
+    echo "[Preflight] skipped: ALLOW_PREFLIGHT=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_PREFLIGHT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/preflight_all.py" ]; then
+    echo "[Preflight] Checking the gate registry and hook parity..."
+    PRE_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --self-test 2>&1)
+    PRE_EXIT=$?
+    echo "$PRE_OUT" | tail -6
+    if [ $PRE_EXIT -eq 2 ]; then
+        echo "[Preflight] runner could not be performed -- passing loud."
+    elif [ $PRE_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Preflight] BLOCKED: a registered gate is missing, or the hook names"
+        echo "[Preflight] a gate the registry does not carry (see above)."
+        echo "[Preflight] Fix: python tools/preflight_all.py --self-test"
+        echo "[Preflight] Override (declared): ALLOW_PREFLIGHT=1."
+        exit 1
+    fi
+    echo ""
+fi
 
 # ─── Check 7b (blocking): testing-paradigm G1 (Engram #890 item 4) ───
 # Every NEW staged src/ module must be named by at least one tests/ file.
