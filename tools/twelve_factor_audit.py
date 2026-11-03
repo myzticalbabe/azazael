@@ -74,11 +74,15 @@ _PLACEHOLDER_VALUES = frozenset({
     "dummy", "redacted", "example", "test", "testing", "fake", "sample",
     "your_api_key_here", "todo", "todo-set-me", "unset", "not-set",
     "block_begin", "block_end", "variable_begin", "variable_end",
-    # An output SENTINEL, not key material: src/SHARDS/polyglot.py defines
-    # WORK_TOKEN = "AZAZAEL-WORK-OK" and each language shard prints it so a
-    # caller can prove the interpreter ran. Measured 2026-11-02: one
-    # definition, six print sites, no request header, no auth path.
+    # Output SENTINELS, not key material: src/SHARDS/polyglot.py defines
+    # GOLDEN_TOKEN/WORK_TOKEN and every language snippet prints one so a caller
+    # can prove the interpreter ran (polyglot's own contract: "the snippet
+    # prints exactly AZAZAEL-GOLDEN-OK on stdout"). Measured 2026-11-02: one
+    # definition each, six print sites per token across python/go/rust/js/
+    # powershell/bash, no request header, no auth path -- the same five files
+    # that carry GOLDEN_TOKEN print it and never send it.
     "azazael-work-ok",
+    "azazael-golden-ok",
 })
 
 #: Variable-name prefixes that mark a value as a deliberate test fixture.
