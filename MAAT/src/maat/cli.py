@@ -1,11 +1,15 @@
-"""Command line: maat weigh [--raw PATH] [--sizes 3,5,7,9,11]"""
+"""Command line: maat weigh [--raw PATH] [--sizes 3,5,7,9,11]
+                maat rules --text 'some 2d content' [--ref SRC] [--version YYYY-MM-DD]
+"""
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from . import PANEL_SIZES
 from .panel import compare
+from .rules import validate
 
 DEFAULT_RAW = "C:/Users/clint/Documents/ai_panel_opinions_raw.json"
 
@@ -19,7 +23,23 @@ def main(argv=None) -> int:
     w = sub.add_parser("weigh", help="compute nested panels from an opinions raw file")
     w.add_argument("--raw", default=DEFAULT_RAW, help="path to ai_panel_*_raw.json")
     w.add_argument("--sizes", default=",".join(str(s) for s in PANEL_SIZES))
+    r = sub.add_parser("rules", help="extract a Q1R1 ruleset from 2d content text")
+    r.add_argument("--text", required=True, help="content text to extract rules from")
+    r.add_argument("--ref", default="inline", help="source reference (url / path / id)")
+    r.add_argument("--media", default="2d", choices=("2d", "3d", "text"))
+    r.add_argument("--version", default=None, help="ruleset version date YYYY-MM-DD")
     args = p.parse_args(argv)
+
+    if args.cmd == "rules":
+        from .rules import extract as extract_rules
+
+        rs = extract_rules(args.text, ref=args.ref, media=args.media, version=args.version)
+        errs = validate(rs)
+        if errs:
+            print("\n".join(errs), file=sys.stderr)
+            return 1
+        print(json.dumps(rs, indent=2, sort_keys=True))
+        return 0
     if args.cmd != "weigh":
         p.print_help()
         return 0
