@@ -130,3 +130,25 @@ output is legally binding.
 - Nothing in this doctrine is a legal conclusion; it produces better-recorded
   evidence for a license dispute. Binding truth remains with the court or
   binding arbiter.
+
+## 6. Precedent designation (2026-11-03, user decree)
+
+The committed opinion of section 4 — the 7-reachable-judge nested panel record
+(3/5/7), its H2 dissent, and the passing DCT-2026-11-03 battery — is designated
+**PRECEDENT** within this record system: future N-PE disputes cite it the way
+sections of this canon cite each other, and a future dispute does not re-argue
+the holdings unless (a) its facts differ on a load-bearing dimension, (b) a
+DCT leg fails on re-measure, or (c) the expiry (2027-05-02) lapses without a
+fresh battery.
+
+Scope of the designation, named plainly and once: this is precedent of the
+record, binding as precedent on future *record* work. It is not a judicial
+precedent; only a court can make binding law, and nothing here overrules that.
+
+Citation form for future disputes: `NPE-PRECEDENT-2026-11-03` (this document,
+§4 as committed and reinforced by §6).
+
+(Note on the record: the two H2-REVERSE judges' ground - an uncontrolled sweep
+cannot prove a negative - is the part of the precedent that survives with it:
+the DCT structure, not the tally, is what future disputes inherit.)
+
