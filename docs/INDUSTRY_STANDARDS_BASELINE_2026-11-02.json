@@ -1,0 +1,154 @@
+{
+  "embedding_configuration": {
+    "primary": {
+      "provider": "llama_server",
+      "model": "mxbai-embed-large-v1-Q4_k_m.gguf",
+      "base_url": "http://127.0.0.1:18082/v1/embeddings",
+      "model_path": "C:\Users\clint\llama-server\models\mxbai-embed-large-v1\mxbai-embed-large-v1-Q4_k_m.gguf",
+      "description": "mxbai-embed-large-v1 GGUF — SOTA 335M param, 1024 dim, served via llama-server on port 18082"
+    },
+    "fallback": {
+      "provider": "ollama",
+      "model": "nomic-embed-text:latest",
+      "base_url": "http://localhost:11434/api/embeddings",
+      "description": "Fast local Ollama embeddings"
+    },
+    "options": {
+      "qwen3_long_context": {
+        "provider": "ollama",
+        "model": "qwen3-embedding:0.6b",
+        "base_url": "http://localhost:11434/api/embeddings",
+        "description": "Qwen3 0.6B, 639MB, 32K context, 1024 dims (2026-09-12: for long chunks that clip mxbai's 512-token window)"
+      },
+      "openai": {
+        "provider": "openai",
+        "model": "text-embedding-3-small",
+        "base_url": "https://api.openai.com/v1",
+        "api_key": "your-openai-api-key-here",
+        "description": "OpenAI embeddings (requires API key)"
+      }
+    }
+  },
+  "instructions": {
+    "setup": [
+      "1. Primary: mxbai-embed-large-v1 GGUF served via llama-server embedding mode on port 18082",
+      "2. Fallback: Ollama nomic-embed-text (ollama pull nomic-embed-text:latest)",
+      "3. For Ollama: Make sure model is pulled (ollama pull nomic-embed-text:latest)",
+      "4. For OpenAI: Add your API key",
+      "5. Restart to apply changes"
+    ],
+    "providers": {
+      "llama_server": "Best quality, 1024-dim, 0.2 GB, direct GGUF via embedding endpoint on port 18082",
+      "ollama": "Fast local embeddings, good for development",
+      "openai": "Premium quality but requires internet and API costs"
+    },
+    "preservation_note": "Existing embeddings are preserved automatically - new embeddings use your configured providers"
+  },
+  "industry_standards_analysis": {
+    "timestamp": "2026-11-02T17:55:13Z",
+    "git_rev": "28911db3665b668748cbdc33f73ceece6777a436",
+    "baseline_file": "C:/Azazael/azazael/docs/INDUSTRY_STANDARDS_BASELINE_2026-11-02.json",
+    "standards": {
+      "NIST_AI_RMF_1_0": {
+        "overall": "PARTIAL",
+        "functions": {
+          "GOVERN": "PARTIAL - governance exists, measurement weak",
+          "MAP": "NONE - no AI system inventory or context documentation",
+          "MEASURE": "PARTIAL - golden_arrow (6662 tests), basedpyright (53 errors), prose_forensics",
+          "MANAGE": "PARTIAL - Board task queue, supervisor verdict"
+        },
+        "gaps": ["No formal AI system inventory", "No risk tolerance criteria", "No third-party AI component tracking"]
+      },
+      "NIST_SP_800_218_SSDF": {
+        "overall": "PARTIAL",
+        "practices": {
+          "PO": "PARTIAL - governance exists, measurement weak",
+          "PS": "PARTIAL - secure dev practices exist, no formal attestation",
+          "PW": "STRONG - golden_arrow (6662 tests), deep_dive",
+          "RV": "NONE - no CVE monitoring, no dependency scanning"
+        },
+        "gaps": ["No SBOM", "No SLSA provenance", "No dependency vulnerability scanning"]
+      },
+      "ISO_IEC_42001": {
+        "overall": "NONE",
+        "clauses": {
+          "4_Context": "NONE - No AI system scope defined",
+          "5_Leadership": "PARTIAL - RULEs exist but no formal policy",
+          "6_Planning": "PARTIAL - tools/error_resolution.py only",
+          "7_Support": "WEAK - No AI-specific training/competence",
+          "8_Operation": "PARTIAL - tools/error_resolution.py decision tree",
+          "9_Performance": "PARTIAL - Gates + supervisor verdict",
+          "10_Improvement": "PARTIAL - tools/error_resolution.py, anti-pattern ratchet"
+        },
+        "verdict": "No AI management system exists"
+      },
+      "ISO_IEC_25010": {
+        "overall": "AD-HOC",
+        "characteristics": {
+          "Functional_Suitability": "golden_arrow: 6662 passed / 19 failed",
+          "Performance_Efficiency": "deep_dive AST audit (9s), golden_arrow (525s)",
+          "Compatibility": "MCP servers (8/8 reachable), cross-lane board",
+          "Usability": "Lane prompts, board CLI, docs/",
+          "Reliability": "MCP startup gate (9/9), supervisor (GO)",
+          "Security": "Gates, staged scan, anti-pattern",
+          "Maintainability": "ast_audit (3819 files, 0 syntax errors), 112 bare-except, 2676 orphans",
+          "Portability": "Python 3.14t/3.15t, cross-env (Win/WSL/Kali)"
+        }
+      },
+      "SLSA_Provenance": {
+        "level": 0,
+        "sbom": "NONE",
+        "provenance": "NONE"
+      },
+      "SPDX_CycloneDX_SBOM": {
+        "exists": false,
+        "formats": []
+      },
+      "OWASP_LLM_TOP_10": {
+        "coverage": "4/10",
+        "risks": {
+          "LLM01_Prompt_Injection": "NO prompt injection detection",
+          "LLM02_Insecure_Output_Handling": "NO output validation gate",
+          "LLM03_Training_Data_Poisoning": "N/A (no training)",
+          "LLM04_Model_Denial_of_Service": "NO DoS protection",
+          "LLM05_Supply_Chain_Vulnerabilities": "CRITICAL - No SBOM, no dependency scanning",
+          "LLM06_Sensitive_Information_Disclosure": "Partial - .gitignore, pams_promote_guard",
+          "LLM07_Insecure_Plugin_Design": "Partial - pmb_prepare validates",
+          "LLM08_Excessive_Agency": "Partial - lane system isolates agents",
+          "LLM09_Overreliance": "Partial - acceptance language forbidden (RULE 0B)",
+          "LLM10_Model_Theft": "N/A (no model deployment)"
+        }
+      },
+      "CISA_SSDF": {
+        "overall": "PARTIAL",
+        "practices": {
+          "PO": "PARTIAL",
+          "PS": "PARTIAL",
+          "PW": "STRONG - golden_arrow, deep_dive",
+          "RV": "NONE - no CVE monitoring, no dependency scanning"
+        }
+      }
+    },
+    "recommended_actions": [
+      "Generate SBOM (CycloneDX + SPDX) — enables all downstream compliance",
+      "Implement SLSA Level 1 — build provenance for every artifact",
+      "Add dependency vulnerability scanning — pip-audit, cargo audit, npm audit",
+      "Define AI System Inventory — scope all AI/ML components per ISO 42001",
+      "Formal AI Risk Assessment — apply NIST AI RMF MAP/MEASURE functions",
+      "Implement OWASP LLM Top 10 controls — prompt injection, output validation, supply chain",
+      "Add CVE monitoring — GitHub Dependabot or equivalent",
+      "Define quality SLAs — ISO 25010 attributes with measurable targets",
+      "Implement receipt requirement (G2) — command, exit_code, stdout_sha256 per claim",
+      "Add volume budget (D5) — per-lane write budget enforcement"
+    ],
+    "evidence_commands": {
+      "test_baseline": "python C:/Azazael/azazael/tools/golden_arrow.py --status",
+      "type_check_baseline": "python C:/Azazael/azazael/tools/type_check_gate.py",
+      "deep_dive_forensics": "python C:/Azazael/azazael/tools/deep_dive.py --forensics",
+      "mcp_stack_verification": "python C:/Azazael/azazael/tools/mcp_startup_gate.py --fix && python C:/Azazael/azazael/tools/mcp_eight_verify.py --fast",
+      "guard_inventory": "cat C:/Azazael/azazael/docs/SUBAGENT_GUARDS_2026-11-02.md",
+      "supervisor_verdict": "python C:/Azazael/azazael/tools/supervisor_mcp.py",
+      "board_stats": "python C:/Users/clint/_board.py stats freebuff && python C:/Users/clint/_board.py stats kilo && python C:/Users/clint/_board.py stats opencode"
+    }
+  }
+}
