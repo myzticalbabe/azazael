@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2028,
+  "as_of_id": 2033,
   "path": "~/.engram/engram.db",
-  "records": 1198,
+  "records": 1200,
   "types": [
    "bugfix",
    "decision",
@@ -6265,14 +6265,14 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_Nurse_Ratchet/README.md",
-   "symptom": "See `CITATION.cff`. Licensed Apache-2.0; see `NOTICE` for attribution.",
+   "symptom": "See `CITATION.cff`. Licensed CDDL-1.1; see `NOTICE` for attribution. License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "Citing"
   },
   {
    "cause": "",
-   "id": "project-nurse-ratchet-readme-md-L254",
+   "id": "project-nurse-ratchet-readme-md-L255",
    "kind": "limitation",
-   "line": 254,
+   "line": 255,
    "rationale": "",
    "remedy": "",
    "surface": "Project_Nurse_Ratchet/README.md",
@@ -6309,7 +6309,7 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_CRADLE/README.md",
-   "symptom": "Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).",
+   "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "License"
   },
   {
@@ -6452,14 +6452,14 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
-   "symptom": "See `CITATION.cff`. Licensed Apache-2.0; see `NOTICE` for attribution.",
+   "symptom": "See `CITATION.cff`. Licensed CDDL-1.1; see `NOTICE` for attribution. License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "Citing"
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L286",
+   "id": "project-eliza-readme-md-L287",
    "kind": "limitation",
-   "line": 286,
+   "line": 287,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6749,7 +6749,7 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_SHARDEX/README.md",
-   "symptom": "Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).",
+   "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "License"
   },
   {
@@ -21127,6 +21127,30 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Reviewed GitHub publish readiness for the AZAZAEL tree and dispatched 6 parallel workers on the claimed board backlog.",
    "title": "GitHub publish readiness: two-repo hazard, 100MB history blocker, 6-worker backlog pass"
+  },
+  {
+   "cause": "Windows: gate PASS=9, fleet LAGGING (4336 loose objects, cmd: git repack), AST audit 2 unparseable files — Project_ELIZA/tools/forensic_chain_of_custody.py:3 and Project_FLAMING_SWORD/tools/sword.py:1530. Ubuntu: git stack BLEEDING 0 gaps (the 2026-11-01 coverage defect is closed) but content stale: HEAD 7d883bab Jul 29, 1353 dirty files, no local tools/ copies. Kali: not a git repo by design (artefact store), board telemetry_store.db symlink -> /mnt/c/... intact, 3170 .py files.",
+   "date": "2026-11-03",
+   "id": "engram-2029",
+   "kind": "engram:discovery",
+   "line": 2029,
+   "rationale": "What: Audited all 3 environments on 2026-11-03 with the tree's own tools (git_fleet_audit.py, ast_audit.py, mcp_startup_gate.py, agent_orders_sync.py, defaults_profile.py). Why: User ordered \"AUDIT ALL ENVIRONMENTS\". Where: C:/Azazael/azazael (Windows prod), /root/azazael in Ubuntu-26.04 and kali-linux WSL. Learned: Windows: gate PASS=9, fleet LAGGING (4336 loose objects, cmd: git repack), AST audit 2 unparseable files — Project_ELIZA/tools/forensic_chain_of_custody.py:3 and Project_FLAMING_SWORD/tools/sword.py:1530. Ubuntu: git stack BLEEDING 0 gaps (the 2026-11-01 coverage defect is closed) but content stale: HEAD 7d883bab Jul 29, 1353 dirty files, no local tools/ copies. Kali: not a git…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Audited all 3 environments on 2026-11-03 with the tree's own tools (git_fleet_audit.py, ast_audit.py, mcp_startup_gate.py, agent_orders_sync.py, defaults_profile.py).",
+   "title": "3-environment audit 2026-11-03: Windows LAGGING, Ubuntu BLEEDING-stale, Kali artefact store"
+  },
+  {
+   "cause": "verify() must read the row's mode like run() does; the docstring said so but the code didn't. Commit gate: ALLOW_BULK_COMMIT must be an env var, a message mention is not enough. Disk floor gate (preflight.disk_floor_gb=10.0) hard-blocks commits at 7.1 GB free — a tested shipped control, not to be weakened ad hoc; HEAD at block time b8f72b64.",
+   "date": "2026-11-03",
+   "id": "engram-2031",
+   "kind": "engram:bugfix",
+   "line": 2031,
+   "rationale": "What: Full Project_ELIZA shard audit verified correct; the five event-bus shard stubs repaired; adopt_queue.verify() fixed to honor adopted-mode rows; leading commit staged but blocked on disk floor. Why: User asked whether ALL shards are correct for full operation. Where: Project_ELIZA/tools/adopt_queue.py (verify() now filters to vendored rows; 3 subprocess calls bounded 600/600/30s; unparseable line now printed), Project_ELIZA/shards/aoa/aoa_core_event_bus__{aoevent,aoeventtype,eventbus,eventpipeline,eventpriority}.py (restored hand-ported load() targets), Project_ELIZA/shards/{WIRED,ADOPTION_QUEUE}.json, control Project_ELIZA/tests/test_adopted_event_bus.py. Learned: verify() must read…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Full Project_ELIZA shard audit verified correct; the five event-bus shard stubs repaired; adopt_queue.verify() fixed to honor adopted-mode rows; leading commit staged but blocked on disk floor.",
+   "title": "ELIZA shard audit verified correct; commit staged but blocked on disk floor"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21169,17 +21193,17 @@
   {
    "path": "Project_Nurse_Ratchet/README.md",
    "records": 10,
-   "sha": "d0fa8e75cb152cec39e730ee5b4c438edff7cf5218e622927886251a0b366e59"
+   "sha": "ab443109ce680e03a72fba5189b45951ed603f8469431c67001ae8fc50af2c61"
   },
   {
    "path": "Project_CRADLE/README.md",
    "records": 3,
-   "sha": "cd371f8288547c1332d5b47e848592e768fee0d407f18206c7cb9b9c274ff7d6"
+   "sha": "390b629b9d8a745ce76f079a23ba7076a37b015165bb672b4407216397737e6c"
   },
   {
    "path": "Project_ELIZA/README.md",
    "records": 14,
-   "sha": "fc7335b9b08f9fb9491d5d3dc074543c7e53839ffad3a6745d6333fb0e59ecb4"
+   "sha": "0e7a1cb48af3cff079f61d5738f52be99fea1db7765aaad141629373c1ce3037"
   },
   {
    "path": "Project_FLAME/README.md",
@@ -21199,16 +21223,16 @@
   {
    "path": "Project_SHARDEX/README.md",
    "records": 3,
-   "sha": "9019617d2d79c00b5192c99690721cdbbc8b7db5cdb856ad4a8b92e783c1e9d6"
+   "sha": "0ad1b3206334ace50f891c2bb8545cfc25e14d4b75f2f09ccb53f0a8e1efa4d4"
   }
  ],
  "totals": {
   "by_kind": {
    "engram:architecture": 36,
-   "engram:bugfix": 153,
+   "engram:bugfix": 154,
    "engram:config": 15,
    "engram:decision": 399,
-   "engram:discovery": 243,
+   "engram:discovery": 244,
    "engram:learning": 280,
    "engram:lesson": 57,
    "engram:pattern": 15,
@@ -21219,7 +21243,7 @@
    "memory": 67,
    "practice": 30
   },
-  "records": 1765,
+  "records": 1767,
   "surfaces": 14
  }
 }
