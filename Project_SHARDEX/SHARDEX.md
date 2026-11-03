@@ -25,6 +25,7 @@ Stdlib only. No key, no build, no network.
 | **L2 FORGE** | transubstantiates one shard into `flame.json` + `flame.html`: a 3D arena whose size, orb count and seed come from that shard's own content hash, with a golden run computed in Python and in the browser | **BUILT** |
 | **L3 TUNE** | a champion edits `flame.json` (or forges with `--tune k=v`); the golden hash moves with the config, so every bracket has a hash it must agree on | **BUILT** |
 | **L4 LAUNCH** | brackets, signed result files, replay verification, entry fees, a spectator view | **BUILT** |
+| **L5 COMPOSE** | two or more forged meshes into one arena, with a composition hash that is a property of the set — order-independent, byte-sensitive, and refusing a rule the inputs disagree about until it is declared | **BUILT** (2 lanes measured; see below) |
 
 ## The honest boundary — read this before the marketing writes itself
 
@@ -201,12 +202,38 @@ glow and the camera are presentation and are not in the hash.
 
 1. **Ruleset extraction** (L4, research): recovering movement, collision and win
    conditions from a game's code. Until that exists, no document here says "your game".
-2. **Brackets** (L4, mechanical): a round is a config plus a hash plus a replay — the
-   pieces exist, the ranking does not.
-3. **Signed results**: `author_pubkey` is in the schema and empty in every forged
+2. **Signed results**: `author_pubkey` is in the schema and empty in every forged
    manifest. A result file that anyone can edit is a result file nobody can rank.
-4. **Multi-shard arenas**: today one shard forges one arena. A game with 40 shards is 40
-   arenas, and telling them apart is the next real design question, not a config flag.
+3. **A composed arena in a browser**: `--compose` merges the meshes and names the set, and
+   `meshscene` renders a single mesh; the merged mesh has not yet been driven through the
+   page, so L5 is a name and a digest, not playable.
+
+### Ranked brackets (L4, 2026-11-02)
+
+`rank.py` ranks a bracket's results rather than only replaying them: single-elimination and
+round-robin, a winner decided by score then hash (never by input order), and a result file
+that `--verify` re-derives — a hand-edited round hash or winner is refused.
+`python Project_SHARDEX/rank.py --selftest` → 13 checks, `selftest: PASS`, including
+"perturbing any one entrant's golden hash moves round 1's hash (8/8)" — the round hash is a
+function of every entrant, which is what L4 was missing when a bracket could rank nothing.
+
+### Composing two arenas (L5, measured 2026-11-02)
+
+```
+python Project_SHARDEX/shardex.py --compose build/tmp/r4/arena build/tmp/r4/moved
+  lane 0  1894f7d8c9908126   576 neurons, 1108 synapses  offset 0
+  lane 1  a478063c575874f2  1152 neurons, 2309 synapses  offset 192
+  merged       1728 neurons, 3417 synapses, grid 384x54
+  mesh digest  226d539422b9202a
+  composition  6ff14820ed418db8
+```
+
+The two arenas are not made commensurable by being merged: each keeps its own mesh digest
+and is placed at an offset, and the composition hash is taken over the **sorted** input
+digests, so `--compose a b` and `--compose b a` name one space (`tests/test_compose.py`,
+9 tests). A rule the inputs disagree about (`sim_hz`, `ticks`, `seed` differ between the
+two reference shards) is **refused** until it is declared, and a declared value must be one
+an input already states — a silent average would be a third arena nobody authored.
 
 ## Intake: when a real game tree arrives (SHX-7 / SHX-8)
 
