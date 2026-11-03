@@ -33,6 +33,7 @@
 #   4d.    platform page claims          (tools/platform_claims.py --check)
 #   5.     mesh wire-or-cut ledger       (tools/mesh_function_preflight.py --check)
 #   5b.    span receipt guard selftest   (tools/span_receipt_guard.py --selftest)
+#   5c.    ELIZA shard stubs vs atlas     (Project_ELIZA/tools/shard_intake.py --check)
 #   6.     wired-declaration evidence    (tools/wire_evidence_audit.py --check)
 #   6b.    evidence gate                 (tools/evidence_gate.py)
 #   6c.    failure-evidence ratchet      (tools/failure_evidence_gate.py --check)
@@ -287,6 +288,54 @@ if [ -f "$SCRIPT_DIR/tools/span_receipt_guard.py" ]; then
     fi
 else
     echo "[SpanReceipt] guard not found -- passing loud (check unrunnable)"
+fi
+echo ""
+
+# ─── Check 5c (blocking): ELIZA's shard stubs still describe the Kali atlas ───
+# Project_ELIZA/shards holds one addressable stub per Kali class unit, plus
+# SHARD_INDEX.json and WIRED.json, the adoption ledger. Measured 2026-11-03: the
+# surface was intact (1,183 stubs, every one importable and every load() raising)
+# and `--check` had NO CALLER -- the drift gate existed, its own test file passed,
+# and nothing in the commit or push path ran it. A gate nothing runs is a promise.
+#
+# THE ATLAS IS OUT OF REPO (~/yggdrasil_forest/atlas_kali-linux.json, written by
+# tools/domain_trees.py on the Kali lane), so a host that never ran that census
+# cannot judge the stubs. That case is named and skipped LOUDLY, and the tool's
+# exit 2 -- could not perform the run -- is read as its own thing rather than
+# flattened into the drift exit. What must never happen is the third reading:
+# silence that looks green.
+echo "[ShardIntake] Checking ELIZA shard stubs against the Kali atlas..."
+ATLAS_KALI="${YGGDRASIL_ATLAS:-$HOME/yggdrasil_forest/atlas_kali-linux.json}"
+if [ "${ALLOW_SHARD_INTAKE:-}" = "1" ]; then
+    # Same escape idiom as ALLOW_EVIDENCE_GATE: declared, and declared aloud.
+    echo "[ShardIntake] ALLOW_SHARD_INTAKE=1 declared -- gate NOT run for this commit."
+elif [ ! -f "$SCRIPT_DIR/Project_ELIZA/tools/shard_intake.py" ]; then
+    echo "[ShardIntake] tool not found -- passing loud (check unrunnable)"
+elif [ ! -f "$ATLAS_KALI" ]; then
+    echo "[ShardIntake] atlas ABSENT ($ATLAS_KALI) -- COULD NOT JUDGE, and this BLOCKS."
+    echo "[ShardIntake] Nothing was judged, so nothing is green: generate the census on"
+    echo "[ShardIntake] the Kali lane (python tools/domain_trees.py) and copy it, pass"
+    echo "[ShardIntake] --atlas via YGGDRASIL_ATLAS, or declare ALLOW_SHARD_INTAKE=1."
+    exit 1
+else
+    # Capture first, then print: piping into tail would make $? tail's status.
+    SHARD_OUT=$("$PY" "$SCRIPT_DIR/Project_ELIZA/tools/shard_intake.py" \
+        --atlas "$ATLAS_KALI" --check 2>&1)
+    SHARD_EXIT=$?
+    echo "$SHARD_OUT" | tail -8
+    if [ $SHARD_EXIT -eq 2 ]; then
+        echo ""
+        echo "[ShardIntake] BLOCKED: the atlas exists and could not be read (above)."
+        echo "[ShardIntake] This is a corrupt input, not a drifted surface: fix it,"
+        echo "[ShardIntake] or regenerate the census, rather than committing past it."
+        exit 1
+    elif [ $SHARD_EXIT -ne 0 ]; then
+        echo ""
+        echo "[ShardIntake] The stub surface no longer matches the atlas, or a wired"
+        echo "[ShardIntake] entry lost the test that proves it. Regenerate deliberately:"
+        echo "[ShardIntake]   python Project_ELIZA/tools/shard_intake.py --write"
+        exit 1
+    fi
 fi
 echo ""
 
