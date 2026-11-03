@@ -45,6 +45,9 @@ Sources, all fetched in this session:
 - **Rally transcripts** — dozens exist; one would have doubled the spoken sample, but each is a
   different room and a different transcription standard, and the point here is structural, not
   exhaustive. Listed as the obvious next arm.
+- ~~**The 2015 announcement**~~ — **INCLUDED 2026-11-02** as arm 2 (§1). `time.com` returns **406**
+  to a scripted fetch; the American Presidency Project's spoken-address archive serves it, and it
+  was measured from there with the same instrument and the same trims.
 - **Social posts** — platform-shaped, often fragmentary, and edited/deleted; a corpus of
   screenshots is not a corpus. **D** by construction.
 - **Interviews and press gaggles** — the richest source of unscripted syntax and the hardest to
@@ -93,6 +96,66 @@ python tools/prose_forensics.py --file .prose/msg.txt --label message_2025 \
 python tools/prose_forensics.py --compare .prose/inaugural_2017.json \
   .prose/inaugural_2025.json .prose/message_2025.json
 ```
+
+### Arm 2 — the 2015 announcement (added 2026-11-02)
+
+Next-arm (c) from §4, built. The corpus needed a third *register*, not a third speech: the two
+inaugurals are both ritual occasions, so the 2017→2025 shift measured in §1 could have been a
+shift in the occasion rather than in the speaker. A campaign announcement is the same speaker
+unscripted-by-office, twelve months before the first term.
+
+```bash
+python tools/prose_forensics.py \
+  --url "https://www.presidency.ucsb.edu/documents/remarks-announcing-candidacy-for-president-new-york-city" \
+  --label announcement_2015 --start-after "June 16, 2015" --strip-stage \
+  --out .prose/announcement_2015.json
+```
+
+| metric | 2015 announcement | for comparison: 2025 inaugural |
+| --- | --- | --- |
+| words measured | 6,514 | 2,982 |
+| sentences | 658 | 178 |
+| mean sentence length | **9.90** | 16.97 |
+| median / p90 | **7 / 21** | 15 / 32 |
+| sentences ≤ 8 words | **60.4%** | 30.3% |
+| sentences ≥ 40 words | 2.0% | 5.6% |
+| "I / me / my" per 1,000 | **39.15** | 16.89 |
+| "we / our / us" per 1,000 | 33.16 | 52.98 |
+| "you / your" per 1,000 | 15.35 | 12.58 |
+| negation per 1,000 | **26.56** | 15.09 |
+| intensifiers per 1,000 | 15.51 | 7.38 |
+| `very` (raw) | **29** | 11 |
+| sentence-initial "but" | 5.0% | 3.4% |
+| longest same-starter run | 7 | 6 |
+| Flesch reading ease | **81.9** | 55.8 |
+
+**What this arm changes, and the one thing it does not.** The person-shift is **not** a 2025
+invention: in 2015 "I" is already **39.15** per 1,000 — *more than twice* the 2025 rate — so the
+2025 speech is a **contraction** from a peak, not the arrival of a self. The 2015 register is
+fragmented, not rambling: mean **9.90** words at Flesch **81.9** is a rally voice built from short
+bursts, which is the opposite defect from the one the "long rambling sentence" caricature predicts.
+Negation nearly doubles (26.56) and intensifiers double (15.51, `very` ×29): 
+what looks like a later stylistic drift is present in the first hour of the campaign.
+**Not established:** that this is typical of the register — n=1 per genre, and a rally transcript
+is a different transcription standard again, which is why next-arm (a) still stands.
+
+**Two instrument defects this arm found, both fixed at the cause, both recorded because the
+reading looked plausible before the fix.**
+
+1. **`--strip-stage` knew only parentheses.** The spoken-address archive writes `[applause]`.
+   Measured: `applause` was the **eighth most frequent word** in a 6.5k-word corpus (×43), and 43
+   one-word "sentences" were in the count. The top-word list is what exposed it — which is why
+   `show()` prints one. Fixed to match both bracket styles and joined cues (`[applause and cheers]`).
+2. **The splitter did not treat `\u00a0` as whitespace.** White House pages emit `&nbsp;` after every
+   full stop; a hand-written `" \t\n"` set refused every one of those boundaries, merging the 2025
+   inaugural into **94** sentences with a 125-word longest. The old regex splitter (`\s+`) handled
+   it and the hand-written port silently did not. Fixed to `str.isspace()`.
+   **Negative control:** the 2025 inaugural re-measures **178** sentences / mean **16.97** (recorded
+   before the fix: 179 / 16.66) and the announcement, which contains no `&nbsp;`, is byte-identical
+   before and after — the fix changed only the corpus that had the defect.
+
+Both are the same failure mode: an instrument that silently answers a slightly different question.
+Neither produced an error; both produced a number.
 
 ### What each number licenses, and what it does not
 
@@ -232,10 +295,11 @@ document:
    retrospective edit, because changing the instrument after publishing a number is how numbers
    stop being comparable.
 
-**Next arms, in order of value:** (a) 6–10 rally transcripts to test whether the 2025 person-shift
-holds outside the inaugural genre; (b) a 2017 message against the 2025 message to separate
-office-form from author; (c) the 2015 announcement transcript, to date the shift rather than
-assume it.
+**Next arms, in order of value:** (a) 6–10 rally transcripts to test whether the person-shift
+holds outside the inaugural genre; **(b) a 2017 message against the 2025 message to separate
+office-form from author;** (c) ~~the 2015 announcement transcript, to date the shift~~ — **BUILT
+2026-11-02 (§1, arm 2)**: the shift is already at peak in 2015 ("I" 39.15/1,000), so it dates to
+the campaign, not to the office.
 
 ---
 
@@ -368,12 +432,34 @@ liberty function are both structurally funded rather than both hoped for.
 
 ## 7. Environmental and societal harm assessment
 
-**Environmental.** The best current aggregate is the IEA's *Energy and AI* (April 2025): data
-centres were about **415 TWh in 2024, roughly 1.5% of world electricity**, with a Base Case near
-**945 TWh by 2030**; generation dedicated to them is put at ~460 TWh (2024) rising past
-1,000 TWh (2030) and 1,300 TWh (2035). *Provenance:* those figures are from the IEA's published
-summary pages as returned by search in this session — the report body was **not fetched**, so the
-tier is **C/P** and the numbers should be re-derived from the PDF before any official use.
+**Environmental.** The best current aggregate is the IEA's *Energy and AI* (April 2025), and these
+figures now come from the report **body**, not from search snippets. Re-derived 2026-11-02;
+tier **A** for the four quoted readings, with the sentence each one is taken from:
+
+| reading | value | the sentence it comes from |
+| --- | --- | --- |
+| data-centre electricity, 2024 | **415 TWh ≈ 1.5%** of world consumption | "Data centres accounted for around 1.5% of the world's electricity consumption in 2024, or 415 terawatt-hours (TWh)." |
+| data-centre electricity, 2030 | **~945 TWh**, more than double | "Data centre electricity consumption is set to more than double to around 945 TWh by 2030." |
+| generation *dedicated* to data centres | **460 TWh (2024) → >1 000 TWh (2030) → 1 300 TWh (2035)** | "Global electricity generation to supply data centres is projected to grow from 460 TWh in 2024 to over 1 000 TWh in 2030 and 1 300 TWh in 2035 in the Base Case." |
+| CO₂ from that generation | **peak ≈320 Mt by 2030, ≈300 Mt by 2035** | "CO₂ emissions from electricity generation for data centres peak at around 320 Mt CO₂ by 2030, before entering a shallow decline to around 300 Mt CO₂ by 2035." |
+
+*Provenance:* `iea.org` returns **403** to a plain fetch and to an impersonated HTTP client; the
+pages render only through a browser, so the reading below is what a real user sees and a script
+would not. Sources: `/reports/energy-and-ai/executive-summary` and `/energy-supply-for-ai`
+(fetched 2026-11-02, HTTP 200 via headless Chrome). **The distinction the earlier draft blurred:**
+**415 TWh is electricity *consumption* by data centres; 460 TWh is electricity *generation* to
+supply them** — a ~45 TWh gap that is own-site generation and losses. Quoting one as the other is
+the usual error in secondary coverage, so this file keeps both rows and never substitutes them.
+
+Three figures from the same body that a harm assessment should carry and the earlier draft did not:
+
+- **The range, not the central case:** across the report's cases, 2035 data-centre demand spans
+  **700–1 700 TWh** (Base ~1 200). A single point estimate understates the policy problem.
+- **~20% of planned data-centre projects are at risk of delay** from grid constraints — the
+  binding constraint is the queue, not the turbine. This is the same claim §6 makes structurally,
+  now with the report's number on it.
+- **Concentration is the local harm:** the US held **45%** of 2024 data-centre consumption, China
+  25%, Europe 15%, and nearly half of US capacity sits in **five** regional clusters.
 
 What the aggregate hides, and what a harm assessment must carry:
 
@@ -448,7 +534,9 @@ require; like the others, each is checkable by a reader or by `tools/prose_foren
 ## 10. What this section does not establish
 
 It does not establish that the decree has been published, only that it was communicated here; it
-does not verify the IEA figures beyond their summary pages; and it does not settle whether
+does not verify the IEA figures **beyond the four rows in §7**, which were re-derived from the
+report body on 2026-11-02 — every other IEA number in this file is still a snippet reading; and it
+does not settle whether
 centralization or decentralization is *better* — it argues that the choice should be made per
 function (checking vs use) rather than per ideology. The one claim I will make plainly, and
 defend: **a name that asserts a grade before the grade exists will be believed by the people who

@@ -56,6 +56,39 @@ def test_stage_directions_are_removed_and_counted():
     assert stripped["sentences"] == 4
 
 
+def test_bracketed_and_joined_stage_directions_are_also_stripped():
+    """The spoken-address archive writes [applause], not (Applause.).
+
+    Measured 2026-11-02 on the 2015 announcement: a stripper that knew only parentheses left
+    "applause" as the eighth most frequent word in a 6.5k-word corpus. The control below fails
+    if the count is right for the wrong reason -- it asserts the cue word is gone, not just
+    that some count moved.
+    """
+    for cue in ("[applause]", "[Laughter.]", "[applause and cheers]", "(Laughter, applause)"):
+        text = FIXTURE.replace("Eight nine.", "Eight nine. " + cue)
+        assert text != FIXTURE
+        stripped = P.measure(text, "with-cue", strip_cues=True)
+        assert stripped["stage_directions_removed"] == 1, cue
+        assert stripped["sentences"] == 4, cue
+        assert stripped["words"] == 19, cue
+
+
+def test_a_non_breaking_space_still_ends_a_sentence():
+    """whitehouse.gov emits `&nbsp;` after every full stop; U+00A0 must split like a space.
+
+    Measured 2026-11-02: a hand-written " \\t\\n" whitespace set refused those boundaries and
+    merged the 2025 inaugural into 94 sentences with a 125-word longest. The negative control
+    is the plain-space text, which must read identically -- a fix that changes both corpora
+    would be a different instrument, not a repair.
+    """
+    nbsp = FIXTURE.replace(". ", ".\u00a0")
+    assert nbsp != FIXTURE, "the fixture must actually contain spaces after full stops"
+    plain = P.measure(FIXTURE, "plain")
+    timed = P.measure(nbsp, "nbsp")
+    assert (timed["sentences"], timed["words"]) == (4, 19)
+    assert timed["sentence_len"] == plain["sentence_len"]
+
+
 def test_measurement_is_deterministic():
     first = P.measure(FIXTURE, "fixture")
     second = P.measure(FIXTURE, "fixture")
