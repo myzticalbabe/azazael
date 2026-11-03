@@ -46,6 +46,9 @@ HOOK_SCRIPTS = {
                               # until 2026-11-02, so this list could not have
                               # named it -- transcribed with the stanza.
     "tools/canon_drift_check.py",
+    "tools/disk_floor_gate.py",   # fast tier 0; a full disk fails as a locked
+                                  # database rather than as "disk full", so it
+                                  # runs before anything that writes.
     "tools/evidence_gate.py",
     "tools/failure_evidence_gate.py",
     "tools/index_drift_check.py",
@@ -55,6 +58,10 @@ HOOK_SCRIPTS = {
     "tools/platform_claims.py",
     "tools/pmb_session_observe.py",
     "tools/preflight_all.py",
+    "tools/prompt_check.py",      # fast tier 10b; the instruction files are not
+                                  # staged paths, so the commit is the only
+                                  # moment "the copies just read are the copies
+                                  # being shipped" can be asked.
     "tools/staged_scanner_gate.py",
     "tools/span_receipt_guard.py",   # --selftest; landed in the hook 2026-11-01,
                                      # transcribed here 2026-11-02 (this list went

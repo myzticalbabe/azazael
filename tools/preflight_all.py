@@ -69,10 +69,18 @@ HOOK = REPO / ".githooks" / "pre-commit"
 #: registered-but-not-run on a tree where they ran, from a copy of the file that
 #: is no longer the whole hook.
 #:
+#: Resolved at CALL time, not import time. As a module constant this made
+#: ``REPO``/``HOOK`` un-overridable: a caller that retargeted them still read this
+#: host's hook. Measured 2026-11-02 -- every fixture in
+#: tests/test_preflight_all.py compared a one-gate registry against the real
+#: 24-gate hook and reported fourteen gates of drift that did not exist, and the
+#: one test that WANTED drift could not see it.
+#:
 #: The evidence tier is in `tools/`, not `.githooks/lib/`, because `.gitignore`
 #: excludes `.githooks/*` apart from `pre-commit`: a parity check that reads an
 #: ignored path reads whatever this host happens to have and calls it the gate.
-HOOK_TIER_FILES = (HOOK, REPO / "tools" / "evidence_tier.sh")
+def hook_tier_files() -> Tuple[Path, ...]:
+    return (HOOK, REPO / "tools" / "evidence_tier.sh")
 #: Generated and gitignored (`.githooks/*`), planted by tools/bible_ship.py; it
 #: carries the push-time gates, which no other check can reach.
 PUSH_HOOK = REPO / ".githooks" / "pre-push"
@@ -922,7 +930,7 @@ def hook_parity(gates: Sequence[Gate], hook_text: Optional[str]) -> Tuple[bool, 
     """Return (ok, message). Absence of the hook is MISSING EVIDENCE, not a pass."""
     if hook_text is None:
         return False, ("MISSING_EVIDENCE: %s not readable -- cannot verify the registry"
-                       % " + ".join(str(p.relative_to(REPO)) for p in HOOK_TIER_FILES))
+                       % " + ".join(str(p.relative_to(REPO)) for p in hook_tier_files()))
     ran = set(hook_gate_scripts(hook_text))
     # The runner cannot register itself: --check would then execute --check on
     # itself, one level deeper per commit. It is the backstop, not a gate.
@@ -1460,7 +1468,7 @@ def read_hook() -> Optional[str]:
     """The gate text of every tier file that is present, or None if none is."""
     parts: List[str] = []
     errors: List[str] = []
-    for path in HOOK_TIER_FILES:
+    for path in hook_tier_files():
         try:
             parts.append(path.read_text(encoding="utf-8", errors="replace"))
         except OSError as exc:
