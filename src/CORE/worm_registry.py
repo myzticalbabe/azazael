@@ -711,6 +711,23 @@ def _discover_worms_impl(
                 if attr_name in WORM_REGISTRY:
                     continue
 
+                # A worm entry is spawned as `cls()` and nothing else — the
+                # cluster runner and the DLQ replay driver
+                # (mesh._registry_execute) both construct it with no arguments.
+                # A class that REQUIRES constructor arguments is a library, not
+                # a spawning unit, and filing it produces a worm that cannot be
+                # spawned at all. Measured 2026-11-02: trainers_v2's three
+                # HookAwareTrainer subclasses (GRPOTrainerV2, RLTrainLoopV2,
+                # SB3TrainerV2) carry VERSION = "2.0.0", so the heuristic here
+                # filed them as `utility` worms; every `orchestrate` run
+                # reported exactly 3 failures, each a TypeError raised before
+                # any work happened.
+                if not _spawnable_without_args(obj):
+                    _log_event("worm_auto_register_skipped",
+                               worm_name=attr_name, module=module_name,
+                               reason="constructor_requires_arguments")
+                    continue
+
                 # Auto-categorize and register.
                 #
                 # G17 root cause (measured 2026-09-14): the guess was fed the
@@ -833,6 +850,38 @@ _MODULE_PREFIX_NATURES = {
     "container_": "container",
     "backup_": "backup",
 }
+
+
+def _spawnable_without_args(cls: type) -> bool:
+    """True when `cls()` is legal — the only construction the fleet performs.
+
+    Auto-registration used to accept any class carrying a `VERSION` attribute,
+    which is true of helper trainers that are meant to be handed a context by
+    their caller. Such a class lands in the registry, the scheduler spawns it
+    at the next cooldown, `cls()` raises TypeError, and the run reports a
+    failure for a worm that never existed. Discovery asks the constructor
+    instead of guessing from the name.
+
+    An opaque signature (C extension, `__signature__` unavailable) is treated
+    as spawnable: this filter removes only what it can prove is not.
+    """
+    try:
+        sig = inspect.signature(cls)
+    except (TypeError, ValueError):
+        # No signature to read (C extension, or `__signature__` withheld). Silence
+        # is not evidence of required arguments, so the class is let through and
+        # the filter stays limited to what it can prove.
+        sig = None
+    if sig is None:
+        return True
+    for param in sig.parameters.values():
+        if param.default is param.empty and param.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        ):
+            return False
+    return True
 
 
 def _guess_category(class_name: str, module_name: str) -> str:

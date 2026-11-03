@@ -27,6 +27,28 @@ if str(_src_dir) not in sys.path:
 
 from CORE.local_memory import LocalMemoryStore
 
+try:
+    import pytest
+except ImportError:                                     # direct runner: no pytest
+    pytest = None
+
+
+if pytest is not None:
+    @pytest.fixture(autouse=True)
+    # start of the recorder guard release
+    #
+    # _seed_store() writes 58 rows per fixture. The recorder guard is a
+    # process-wide flood valve (8 rows/s, burst 200), so the first class to seed
+    # spends the bucket and every later class reads back a truncated store --
+    # measured 2026-11-02: "6 not greater than 30" and "5 not greater than 20"
+    # in a whole-file run, both green when the file is run alone. These tests
+    # check the monitor's arithmetic over the rows it was given, so they have to
+    # be given all of them.
+    def _recorder_guard_released(monkeypatch):
+        from CORE import recorder_guard
+        monkeypatch.setattr(recorder_guard, "_DISABLED", True, raising=False)
+        recorder_guard.guard().reset()
+
 
 def _make_temp_store() -> LocalMemoryStore:
     """Create a temporary LocalMemoryStore for testing."""

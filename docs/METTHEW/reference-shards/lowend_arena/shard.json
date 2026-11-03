@@ -1,5 +1,5 @@
 {
-  "id": "lowend-arena@sha256:7be085f4210c64577a60207aa9b1317205df30f9b0a17ca729fa53510e179728",
+  "id": "lowend-arena@sha256:d96d43a6fed7d5976597cb6af3c8a055cca6d45e9bc3a33d1bb988bfebd58710",
   "version": "0.1.0",
   "genre": "arena",
   "tier": "lowend",
@@ -7,15 +7,15 @@
   "files": [
     {
       "path": "main.py",
-      "sha256": "aa2b5a1687fdbb8299f28425765a5335f6074cdec003628ca8e932ed3d3e393e",
+      "sha256": "a7d74bea3363730b4a78ee0ef67c2068a0b8601c284e7e1c862d985222d63685",
       "role": "code",
-      "size_bytes": 15486
+      "size_bytes": 15470
     },
     {
       "path": "SHARD.md",
-      "sha256": "2a7c0d7a293cceb2a5f65e2c17c6f5bb007a30f77dd9f159cba97ca4ae6a1746",
+      "sha256": "b2ddba4547d8a2afa4f16dc15d00903af24c47846f2ca1313e10bab2de403816",
       "role": "data",
-      "size_bytes": 658
+      "size_bytes": 3749
     }
   ],
   "entrypoint": "main.py",
@@ -24,7 +24,7 @@
     "input": "000102030405060708090a0b0c0d0e0f",
     "ticks": 3600,
     "state_sha256": "db5cee352d4a39cebbdcd53a27a8dabf5721c22df7e13b72211e2587af933634",
-    "token": "AZAZAEL-LOWEND-OK",
+    "token": "AZAZAEL-GOLDEN-OK",
     "headless": true
   },
   "capabilities": [
@@ -90,21 +90,5 @@
     "scene": "2-player 720p arena, py3.15t author box (to be re-based)"
   },
   "competitive": false,
-  "provenance": [],
-  "shardex": {
-    "forged": true,
-    "state": "FORGED",
-    "flame": ".git\\shx\\forge_main",
-    "tunables": {
-      "screen_w": 1280,
-      "screen_h": 720,
-      "arena_w": 1200,
-      "arena_h": 680,
-      "player_radius": 16,
-      "projectile_radius": 4,
-      "tick_hz": 60,
-      "max_hp": 100,
-      "damage": 10
-    }
-  }
+  "provenance": []
 }

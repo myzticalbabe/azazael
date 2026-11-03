@@ -386,3 +386,18 @@ test_convergence.__test__ = False
 
 if __name__ == '__main__':
     main()
+
+
+# ── pytest entry point ───────────────────────────────────────────────
+# `main()` is this file's real harness and it exits the process, so without a
+# wrapper pytest collected ZERO tests here and returned 5: a file holding seven
+# optimizer convergence checks read as a permanently broken file in the suite
+# report while its own harness was green. Same assertions, reachable by the
+# gate.
+def test_optimizer_harness_passes():
+    try:
+        main()
+    except SystemExit as exc:
+        assert not exc.code, f"optimizer harness exited {exc.code}"
+    else:
+        assert FAILED == 0, f"{FAILED} optimizer check(s) failed"

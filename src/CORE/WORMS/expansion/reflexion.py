@@ -109,8 +109,13 @@ def pivotal_credit_weights(turns: Any, pivotal: int | None = None,
     if not seq:
         return []
     pivot = locate_pivotal_turn(seq) if pivotal is None else pivotal
+    if pivot is None:
+        # Nothing pivotal: the docstring above already promises []. The old
+        # `else 0` invented turn 0 and returned [1.0] for an all-success
+        # trajectory, i.e. credited a turn that was never decisive.
+        return []
     try:
-        pivot = int(pivot) if pivot is not None else 0
+        pivot = int(pivot)
     except (TypeError, ValueError) as exc:
         note_failure("expansion/reflexion:credit-pivot", exc)
         return []

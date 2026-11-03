@@ -37,6 +37,21 @@ from CORE.WORMS.expansion.cutting_edge_model import SparseMoE  # noqa: E402
 from CORE.failure_ledger import failure_notes, note_failure, reset_notes  # noqa: E402
 from CORE.local_memory import LocalMemoryStore  # noqa: E402
 
+@pytest.fixture(autouse=True)
+# start of the recorder guard release
+#
+# The recorder guard is a production flood policy -- 8 rows/s, burst 200 -- held
+# process-wide. A race test asserts "every concurrent write landed", which is a
+# claim about the store's locking, not about the throttle: with the bucket empty
+# from an earlier test the writes are dropped silently and the assertion fails on
+# the guard's budget. Released for the duration of each test; the throttle's own
+# behaviour is exercised by the guard's own tests.
+def _recorder_guard_released(monkeypatch):
+    from CORE import recorder_guard
+    monkeypatch.setattr(recorder_guard, "_DISABLED", True, raising=False)
+    recorder_guard.guard().reset()
+
+
 #: Repetitions. One pass proves nothing about a race; this is the whole point of
 #: the phase, so the count is named rather than inlined.
 REPEATS = 3

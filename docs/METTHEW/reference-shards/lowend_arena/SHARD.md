@@ -25,7 +25,7 @@ command behind it.
 python main.py --ticks 3600 --input 000102030405060708090a0b0c0d0e0f --headless
 
 # Expected JSON output:
-# {"agree": true, "headless": true, "repeat": 1, "state_sha256": "<hash>", "ticks": 3600, "token": "AZAZAEL-LOWEND-OK"}
+# {"agree": true, "headless": true, "repeat": 1, "state_sha256": "<hash>", "ticks": 3600, "token": "AZAZAEL-GOLDEN-OK"}
 
 # Verify determinism across repeats
 python main.py --ticks 3600 --input 000102030405060708090a0b0c0d0e0f --headless --repeat 5

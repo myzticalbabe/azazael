@@ -27,6 +27,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Dict, List, Any, Optional, Set, Tuple, TypedDict, NotRequired
 
 from CORE.atomic_store import atomic_write_json, file_lock
 from CORE.failure_ledger import note_failure
@@ -34,12 +35,62 @@ from SHARDS.polyglot import EXPECTED_SUM, run_shard, supported_shard_langs
 from SHARDS import registry as _registry
 
 
+# ── Type definitions ──────────────────────────────────────────────
+
+class PythonInfo(TypedDict):
+    path: str
+    type: str
+    discovered_via: str
+    version: str | None
+    source: NotRequired[str]
+    embedded: NotRequired[bool]
+    file: NotRequired[str]
+    size_mb: NotRequired[float]
+    age_days: NotRequired[int]
+    size_bytes: NotRequired[int]
+    modified: NotRequired[str | None]
+
+
+class InstallInfo(TypedDict):
+    path: str
+    version: str | None
+    type: str
+
+
+class EmbeddedInfo(TypedDict):
+    path: str
+    source: str
+    version: str | None
+    embedded: bool
+
+
+class RelationshipGraph(TypedDict):
+    dependency_graph: Dict[str, Dict[str, Any]]
+    version_distribution: Dict[str, List[str]]
+    category_distribution: Dict[str, int]
+
+
+class CleanupRecommendation(TypedDict):
+    action: str
+    item: str
+    path: str
+    reason: str
+    impact: str
+    size_mb: NotRequired[float]
+    size_gb: NotRequired[float]
+    can_remove: NotRequired[bool]
+
+
+class SystemData(TypedDict):
+    metadata: Dict[str, str]
+
+
 _STORE_PATH = Path(__file__).with_name("antibodies.json")
 _HISTORY_CAP = 50  # bounded growth: the store is a deed book, not a log
 _IMMUNE_STREAK = 3  # consecutive passing seeks required for immunity
 
 
-def _antibody_specs() -> dict:
+def _antibody_specs() -> Dict[str, Dict[str, Any]]:
     """The two first-generation antibodies (cloned from observed instances)."""
     return {
         "seq-range-mismatch": {
@@ -69,27 +120,27 @@ def _antibody_specs() -> dict:
     }
 
 
-def _load_store() -> dict:
+def _load_store() -> Dict[str, Any]:
     try:
         return json.loads(_STORE_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {"generation": 0, "updated_at": "", "antibodies": {}}
 
 
-def _save_store(store: dict) -> None:
+def _save_store(store: Dict[str, Any]) -> None:
     """Atomic write via CORE.atomic_store (D1) — single implementation."""
     store["updated_at"] = datetime.now(timezone.utc).isoformat()
     atomic_write_json(_STORE_PATH, store, "antibodies")
 
 
-def _store_lock():
+def _store_lock() -> Any:
     """Exclusive lock for read-modify-write (D2) — via CORE.atomic_store."""
     return file_lock(_STORE_PATH.with_suffix(".lock"), "antibodies")
 
 
-def _probe_work_tier() -> dict:
+def _probe_work_tier() -> Dict[str, Any]:
     """Seek every work golden that disagrees with EXPECTED_SUM."""
-    instances: list = []
+    instances: List[str] = []
     ran = 0
     for lang in supported_shard_langs():
         res = run_shard(lang, tier="work")
@@ -103,7 +154,7 @@ def _probe_work_tier() -> dict:
             "expected_sum": EXPECTED_SUM}
 
 
-def _probe_stale_fallback() -> dict:
+def _probe_stale_fallback() -> Dict[str, Any]:
     """Stale sweep must degrade to canonical order (forced-stale probe)."""
     old = _registry.SWEEP_MAX_AGE_HOURS
     _registry.SWEEP_MAX_AGE_HOURS = -1  # every table stale by age
@@ -116,13 +167,13 @@ def _probe_stale_fallback() -> dict:
             "instances": [] if ok else ["_measured_order spent stale medians"]}
 
 
-_PROBES = {
+_PROBES: Dict[str, Any] = {
     "seq-range-mismatch": _probe_work_tier,
     "stale-table-routing": _probe_stale_fallback,
 }
 
 
-def run_antibody(name: str) -> dict:
+def run_antibody(name: str) -> Dict[str, Any]:
     """Execute one antibody probe; JSON-serializable result (shard shape)."""
     key = (name or "").lower()
     if key not in _PROBES:
@@ -138,7 +189,7 @@ def run_antibody(name: str) -> dict:
             "instances": found["instances"]}
 
 
-def record_seek(name: str, outcome: dict, root: str = "") -> dict:
+def record_seek(name: str, outcome: Dict[str, Any], root: str = "") -> Dict[str, Any]:
     """Append a seek observation as a new generation (Train step).
 
     Every run is evidence: generation counter advances, history stays
@@ -185,7 +236,7 @@ def _origin() -> str:
         return "unknown-host"
 
 
-def antibody_status(name: str | None = None) -> dict:
+def antibody_status(name: Optional[str] = None) -> Dict[str, Any]:
     """Current status (and bounded history) for one or all antibodies."""
     specs = _antibody_specs()
     stored = _load_store().get("antibodies", {})
@@ -203,7 +254,7 @@ def antibody_status(name: str | None = None) -> dict:
         for key in specs}}
 
 
-def _streak(entry: dict) -> int:
+def _streak(entry: Dict[str, Any]) -> int:
     """Consecutive passing seeks at the head of history."""
     streak = 0
     for gen in reversed(entry.get("generations", [])):
@@ -214,7 +265,7 @@ def _streak(entry: dict) -> int:
     return streak
 
 
-def promote_antibody(name: str, to_status: str) -> dict:
+def promote_antibody(name: str, to_status: str) -> Dict[str, Any]:
     """Advance (or reopen) an antibody on recorded evidence (Evolve step).
 
     seeking -> neutralized requires a passing seek on record.
@@ -268,12 +319,12 @@ def promote_antibody(name: str, to_status: str) -> dict:
         return {"ok": True, "name": key, "from": have, "to": entry["status"]}
 
 
-def seek_all(record: bool = True) -> dict:
+def seek_all(record: bool = True) -> Dict[str, Any]:
     """Run every probe; optionally record each as a generation (Train).
 
     Returns {ok, results}. ok is True only when every antibody passes
     on every toolchain present (missing toolchains skip cleanly)."""
-    results = []
+    results: List[Dict[str, Any]] = []
     for key in _antibody_specs():
         res = run_antibody(key)
         if record:
@@ -292,14 +343,14 @@ _BOX_MAX_DEPTH = 5
 _BOX_TIMEOUT_S = 300
 
 
-def _default_box_roots() -> list:
+def _default_box_roots() -> List[str]:
     """Where to look for checkouts: repo parent + AZAZAEL_BOX_ROOTS env.
 
     The default stays conservative (siblings of this checkout, where the
     WSL mirror and distro copies live). Extend with the env var
     (os.pathsep-separated) to cover the rest of the box. Only existing
     directories survive; anything else is ignored, never an error."""
-    roots: list = []
+    roots: List[str] = []
     try:
         repo = Path(__file__).resolve().parents[2]
         roots.append(str(repo.parent))
@@ -308,8 +359,8 @@ def _default_box_roots() -> list:
     env = os.environ.get("AZAZAEL_BOX_ROOTS", "")
     if env:
         roots.extend(p for p in env.split(os.pathsep) if p.strip())
-    seen: set = set()
-    out: list = []
+    seen: Set[str] = set()
+    out: List[str] = []
     for root in roots:
         try:
             resolved = str(Path(root).resolve())
@@ -322,7 +373,7 @@ def _default_box_roots() -> list:
     return out
 
 
-def discover_checkouts(roots=None, max_depth: int = _BOX_MAX_DEPTH) -> list:
+def discover_checkouts(roots: Optional[List[str]] = None, max_depth: int = _BOX_MAX_DEPTH) -> List[str]:
     """Find Azazael checkouts under roots (marker-gated, bounded depth).
 
     A checkout is a directory containing src/SHARDS/antibodies.py — the
@@ -332,12 +383,12 @@ def discover_checkouts(roots=None, max_depth: int = _BOX_MAX_DEPTH) -> list:
 hidden, VCS, build, and environment dirs are never entered."""
     if roots is None:
         roots = _default_box_roots()
-    found: list = []
+    found: List[str] = []
     for root in roots:
         base = Path(root)
         if not base.is_dir():
             continue
-        stack = [(base, 0)]
+        stack: List[Tuple[Path, int]] = [(base, 0)]
         while stack:
             cur, depth = stack.pop()
             try:
@@ -361,8 +412,8 @@ hidden, VCS, build, and environment dirs are never entered."""
                         or "site-packages" in name):
                     continue
                 stack.append((child, depth + 1))
-    seen: set = set()
-    ordered: list = []
+    seen: Set[str] = set()
+    ordered: List[str] = []
     for path in found:
         if path not in seen:
             seen.add(path)
@@ -370,7 +421,7 @@ hidden, VCS, build, and environment dirs are never entered."""
     return ordered
 
 
-def _seek_checkout(root: str, timeout: int = _BOX_TIMEOUT_S) -> dict:
+def _seek_checkout(root: str, timeout: int = _BOX_TIMEOUT_S) -> Dict[str, Any]:
     """Run one checkout's own seek in a subprocess; parse its JSON report.
 
     Subprocess isolation (not import): the other checkout's code runs in
@@ -395,9 +446,9 @@ def _seek_checkout(root: str, timeout: int = _BOX_TIMEOUT_S) -> dict:
         return {"unreachable": f"unparseable report: {err}"}
 
 
-def seek_box(roots=None, timeout: int = _BOX_TIMEOUT_S,
+def seek_box(roots: Optional[List[str]] = None, timeout: int = _BOX_TIMEOUT_S,
              record: bool = True,
-             max_depth: int = _BOX_MAX_DEPTH) -> dict:
+             max_depth: int = _BOX_MAX_DEPTH) -> Dict[str, Any]:
     """Seek every checkout on the box; optionally record per-root (Train).
 
     Box semantics are strict: ok requires EVERY reachable checkout clean
@@ -407,21 +458,21 @@ def seek_box(roots=None, timeout: int = _BOX_TIMEOUT_S,
     out of the evidence. Recorded as one generation per (antibody, root).
     """
     checkouts = discover_checkouts(roots, max_depth=max_depth)
-    per_root: list = []
+    per_root: List[Dict[str, Any]] = []
     for root in checkouts:
         per_root.append({"root": root,
                          "report": _seek_checkout(root, timeout=timeout)})
-    results: list = []
-    record_errors: list = []
+    results: List[Dict[str, Any]] = []
+    record_errors: List[str] = []
     for name in _antibody_specs():
-        instances: list = []
+        instances: List[str] = []
         ran = 0
         roots_seen = 0
         for item in per_root:
             root = item["root"]
             rep = item["report"]
-            sub = [r for r in rep.get("results", [])
-                   if r.get("name") == name]
+            sub: List[Dict[str, Any]] = [r for r in rep.get("results", [])
+                    if r.get("name") == name]
             if not sub:
                 instances.append(f"{root}: checkout unreachable "
                                  f"({rep.get('unreachable', 'no report')[:150]})")
@@ -433,8 +484,8 @@ def seek_box(roots=None, timeout: int = _BOX_TIMEOUT_S,
                 instances.append(f"{root}: {inst}")
             if record:
                 rec = record_seek(name, {"ok": bool(res.get("ok", False)),
-                                         "instances": res.get("instances", [])},
-                                  root=root)
+                                          "instances": res.get("instances", [])},
+                                   root=root)
                 if not rec.get("ok"):
                     record_errors.append(f"{root}: {rec.get('error', '')[:150]}")
         ok = not instances

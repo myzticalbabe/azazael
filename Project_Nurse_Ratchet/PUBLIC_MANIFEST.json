@@ -243,10 +243,20 @@
    "to": ".github/workflows/ci.yml",
    "kind": "governance"
   },
+{
+    "from": "MANIFEST_NOTES.md",
+    "to": "MANIFEST_NOTES.md",
+    "kind": "docs"
+  },
   {
-   "from": "MANIFEST_NOTES.md",
-   "to": "MANIFEST_NOTES.md",
-   "kind": "docs"
+    "from": "HARDWARE.md",
+    "to": "HARDWARE.md",
+    "kind": "docs"
+  },
+  {
+    "from": "requiem.py",
+    "to": "requiem.py",
+    "kind": "instrument"
   },
   {
    "from": ".gitignore",
