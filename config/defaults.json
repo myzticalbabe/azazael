@@ -4,7 +4,7 @@
   "golden_arrow": {
     "enabled": true,
     "strict": false,
-    "timeout_s": 180,
+    "timeout_s": 360,
     "workers": 6
   },
   "deep_dive": {

@@ -120,6 +120,15 @@ def test_explicit_target_outside_the_default_set(tmp_path):
     assert ship.END in target.read_text(encoding="utf-8")
 
 
+# The global per-test timeout is 120 s (pytest.ini, and golden_arrow passes the
+# same 120 on the command line). Sourcing all three shipped templates costs 197 s
+# on this host (measured 2026-11-02: each source runs the evidence tier -- 31
+# gates -- plus the AP5 prose scan), so the harness killed this test before its
+# own assertion ran and reported a FAIL with no summary line, which says nothing
+# about whether the substitution is bad. The bounds, each above the measurement
+# and below the next: 240 s per template inside the test (the wedge stop), 330 s
+# here, 360 s per file in config/defaults.json.
+@pytest.mark.timeout(330)
 def test_no_hook_template_ships_a_bad_substitution(tmp_path):
     """`sh -n` passes on `${X}` doubled into `${{X}}` and the hook then dies at
     runtime with "bad substitution" -- measured here, on all three templates."""
@@ -130,9 +139,14 @@ def test_no_hook_template_ships_a_bad_substitution(tmp_path):
     for name in ship.HOOKS:
         text = (tmp_path / ".githooks" / name).read_text(encoding="utf-8")
         assert "${{" not in text
+        # The bound is what the hook actually costs, not a round number. Measured
+        # 2026-11-02: sourcing the shipped pre-push template takes 92 s because it
+        # runs the evidence tier (31 gates, most reused) and the AP5 prose scan.
+        # A 60 s bound failed the hook for being slow rather than for shipping a
+        # bad substitution, which is the only thing this test asserts.
         completed = subprocess.run(["sh", "-c", "set -e; . \"$1\" </dev/null || true",
                                     "sh", str(tmp_path / ".githooks" / name)],
-                                   capture_output=True, text=True, timeout=60)
+                                   capture_output=True, text=True, timeout=240)
         assert "bad substitution" not in (completed.stderr or "")
 
 
