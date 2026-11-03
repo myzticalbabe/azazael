@@ -1,7 +1,11 @@
-"""Tests for scripts/commit_gate.py -- pure bulk-detection logic only.
+"""Tests for scripts/commit_gate.py.
 
-No git, no DB, no network: evaluate()/is_generated() are pure functions.
+Mostly pure bulk-detection logic (evaluate()/is_generated()). The two scope
+questions -- "how big is my index" vs "how big is the commit I am pushing" --
+are exercised against a throwaway repo, because the difference between them is
+the whole point of --base and cannot be seen in a pure function.
 """
+import subprocess
 import sys
 from pathlib import Path
 
@@ -79,3 +83,88 @@ def test_generated_line_flood_still_blocked_for_tracked_source():
     problems = cg.evaluate(rows, 150, 8)
     assert len(problems) == 1
     assert "local_memory.py" in problems[0]
+
+
+# ── scope wording ──────────────────────────────────────────────────────────
+# "Stage a focused set" is correct advice about an index and useless advice
+# about a commit that is already written: the operator goes looking for a
+# staging mistake that does not exist. Both directions are asserted, because a
+# remedy that silently disappears from the index path is a regression too.
+
+def test_index_scope_refusal_still_says_stage():
+    rows = [(1, 1, "f%d.py" % i) for i in range(9)]
+    assert any("Stage a focused set" in p for p in cg.evaluate(rows, 150, 8))
+
+
+def test_commit_scope_refusal_names_the_commit_not_the_index():
+    rows = [(1, 1, "f%d.py" % i) for i in range(9)]
+    problems = cg.evaluate(
+        rows, 150, 8,
+        changeset="files in base..HEAD",
+        remedy="Declare the bulk op in a commit message.",
+        file_remedy="Split the commit.")
+    assert any("files in base..HEAD" in p for p in problems)
+    assert not any("Stage a focused set" in p for p in problems)
+
+
+def test_commit_scope_file_cap_does_not_tell_a_commit_to_stage():
+    rows = [(200, 60, "src/CORE/local_memory.py")]
+    problems = cg.evaluate(rows, 150, 8,
+                           file_remedy="Split the commit.")
+    assert problems and "Split the commit." in problems[0]
+    assert "ALLOW_BULK_COMMIT=1" not in problems[0]
+
+
+# ── the bulk declaration authorises ONE commit, not a range ────────────────
+
+def _repo(tmp_path, monkeypatch):
+    """A throwaway repo with two commits, frozen config, no inherited hooks."""
+    monkeypatch.chdir(tmp_path)
+
+    def run(*args):
+        subprocess.run(["git", *args], check=True, capture_output=True,
+                       text=True, timeout=60)
+
+    run("init", "-q")
+    run("config", "user.email", "gate@example.invalid")
+    run("config", "user.name", "gate test")
+    run("config", "commit.gpgsign", "false")
+    run("config", "core.hooksPath", str(tmp_path / "no-hooks"))
+    (tmp_path / "a.txt").write_text("a", encoding="utf-8")
+    run("add", "a.txt")
+    run("commit", "-q", "-m", "first")
+    (tmp_path / "b.txt").write_text("b", encoding="utf-8")
+    run("add", "b.txt")
+    run("commit", "-q", "-m", "second, no declaration")
+    return run, tmp_path
+
+
+def test_undeclared_commit_is_not_authorised(tmp_path, monkeypatch):
+    _repo(tmp_path, monkeypatch)
+    assert cg.single_commit_bulk_declaration("HEAD~1") is None
+
+
+def test_declared_commit_authorises_itself(tmp_path, monkeypatch):
+    run, p = _repo(tmp_path, monkeypatch)
+    (p / "c.txt").write_text("c", encoding="utf-8")
+    run("add", "c.txt")
+    run("commit", "-q", "-m", "untrack: ALLOW_BULK_COMMIT=1 (frame sweep)")
+    head = cg._git("rev-parse", "HEAD").strip()
+    assert cg.single_commit_bulk_declaration("HEAD~1") == head
+
+
+def test_declaration_does_not_authorise_a_wider_range(tmp_path, monkeypatch):
+    """NEGATIVE CONTROL for the narrowing (2026-11-03).
+
+    The first version accepted a declaration from any commit in the range. Over
+    a real history that is always true (28 of 90 sampled commits declared
+    something), so the range check could never fail. A commit message describes
+    the commit it hangs on, so a declaring commit inside a multi-commit range
+    authorises nothing.
+    """
+    run, p = _repo(tmp_path, monkeypatch)
+    (p / "c.txt").write_text("c", encoding="utf-8")
+    run("add", "c.txt")
+    run("commit", "-q", "-m", "untrack: ALLOW_BULK_COMMIT=1 (frame sweep)")
+    assert cg.single_commit_bulk_declaration("HEAD~1") is not None
+    assert cg.single_commit_bulk_declaration("HEAD~2") is None

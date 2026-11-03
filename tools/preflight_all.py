@@ -165,7 +165,8 @@ GATES: Tuple[Gate, ...] = (
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="the staged changeset (git index) -- file count and changed lines",
+        reads=("the staged changeset (git index), or BASE..HEAD under --base "
+               "-- file count and changed lines"),
         control_test="tests/test_commit_gate.py",
         control=None,
         uncontrolled_because=None,
@@ -193,7 +194,8 @@ GATES: Tuple[Gate, ...] = (
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="each staged .py at :0: (the INDEX) vs HEAD, per finding category",
+        reads=("each staged .py at :0: vs HEAD, or 'BASE:path' vs 'HEAD:path' "
+               "under --base, per finding category"),
         control_test="tests/test_staged_scanner_gate.py",
         control=None,
         uncontrolled_because=None,
@@ -1097,6 +1099,31 @@ def save_evidence(evidence: Dict[str, dict]) -> None:
 # --------------------------------------------------------------------------- #
 
 
+#: Rows whose changeset defaults to the git INDEX. At push time that index holds
+#: whatever a concurrent lane has staged, so an index-scoped run can refuse a
+#: push over files the commit never touched (measured 2026-11-03: a 2-file
+#: commit blocked by 7 forensic files staged by another lane). Under --base they
+#: judge BASE..HEAD instead.
+#:
+#: The base travels in ARGV, not in the environment, because gate_fingerprint()
+#: hashes argv: a recorded PASS from index mode must never be reused to answer a
+#: commit-mode question, nor the reverse. An env var would let one scope inherit
+#: the other's evidence silently -- the stale-evidence defect this registry
+#: exists to prevent.
+CHANGESET_GATES: Tuple[str, ...] = ("changeset-focus", "staged-scanner")
+
+
+def with_changeset_base(gate: Gate, base: Optional[str]) -> Gate:
+    """`gate`, pointed at BASE..HEAD when a commit is named and the row reads one.
+
+    Every other row is returned untouched, so --base cannot narrow the run to
+    two gates: the tree-scoped checks still judge the tree.
+    """
+    if not base or gate.name not in CHANGESET_GATES:
+        return gate
+    return gate._replace(argv=gate.argv + ("--base", base))
+
+
 class Result(NamedTuple):
     gate: str
     outcome: str  # PASS | FAIL | UNRUNNABLE | CACHED
@@ -1440,7 +1467,7 @@ def cmd_list(gates: Sequence[Gate], as_json: bool) -> int:
 
 
 def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
-              allow_unrunnable: Sequence[str]) -> int:
+              allow_unrunnable: Sequence[str], base: Optional[str] = None) -> int:
     ok, message = hook_parity(gates, read_hook())
     print("[preflight] hook parity: %s" % message)
     if not ok:
@@ -1453,12 +1480,23 @@ def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
     if push_state in ("STALE", "UNREADABLE"):
         return 1
 
+    # Which changeset the two index-scoped rows judge. Printed either way: "the
+    # index" and "a commit" are different questions, and a run that does not say
+    # which one it answered cannot be cited for either.
+    if base:
+        print("[preflight] changeset scope: %s..HEAD (%s)"
+              % (base, ", ".join(CHANGESET_GATES)))
+    else:
+        print("[preflight] changeset scope: the git index -- no commit named "
+              "(--base REV to judge a commit)")
+
     evidence = load_evidence()
     state = repo_state_hash()
     results: List[Result] = []
     for gate in gates:
         if gate.slow and not include_slow:
             continue
+        gate = with_changeset_base(gate, base)
         interpreter_path = resolve_interpreter(gate.interpreter)
         if interpreter_path is None:
             if gate.name in allow_unrunnable:
@@ -1824,6 +1862,9 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
     parser.add_argument("--allow-blind", action="append", default=[], metavar="GATE",
                         help="with --strict: declare a gate known to be blind; repeatable")
     parser.add_argument("--json", action="store_true", help="machine-readable --list")
+    parser.add_argument("--base", metavar="REV", default=None,
+                        help="judge REV..HEAD instead of the git index "
+                             "(changeset-focus, staged-scanner)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if not (REPO / "tools").is_dir():
@@ -1837,11 +1878,29 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
               file=sys.stderr)
         return 2
 
+    if args.base:
+        if args.list or args.self_test:
+            print("[preflight] --base applies to --check", file=sys.stderr)
+            return 2
+        probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
+                                "%s^{commit}" % args.base],
+                               cwd=str(REPO), capture_output=True, text=True,
+                               timeout=30, encoding="utf-8", errors="replace")
+        if probe.returncode != 0:
+            # An unresolvable base would hand the gates an empty range, which
+            # reads as PASS. Refusing here is the difference between "no
+            # changes to worry about" and "the question was never asked".
+            print("[preflight] --base %r does not resolve to a commit in this "
+                  "clone -- refusing to judge an empty range" % args.base,
+                  file=sys.stderr)
+            return 2
+
     if args.list:
         return cmd_list(gates, args.json)
     if args.self_test:
         return cmd_self_test(gates, args.run_controls, args.strict, args.allow_blind)
-    return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable)
+    return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable,
+                     args.base)
 
 
 if __name__ == "__main__":
