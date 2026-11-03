@@ -14,9 +14,6 @@ only what the selftest cannot express:
 """
 from __future__ import annotations
 
-import contextlib
-import importlib.util
-import io
 import json
 import pathlib
 import subprocess
@@ -28,16 +25,9 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 TOOL = REPO / "Project_FLAMING_SWORD" / "tools" / "sentinel.py"
 
 
-def load_tool():
-    spec = importlib.util.spec_from_file_location("flaming_sword_reaper", TOOL)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 @pytest.fixture(scope="module")
-def reaper():
-    return load_tool()
+def reaper(load_tool_by_path):
+    return load_tool_by_path(TOOL, "flaming_sword_reaper")
 
 
 # --------------------------------------------------------------------------- #
@@ -111,7 +101,7 @@ def test_topic_intent_and_ghost_target_are_both_reaped(reaper):
 # CLI exit contract
 # --------------------------------------------------------------------------- #
 
-def _ok_root(base: pathlib.Path) -> pathlib.Path:
+def ok_root(base: pathlib.Path) -> pathlib.Path:
     """A minimal tree the exit-0 frame can honestly resolve against."""
     root = base / "okroot"
     (root / "tools").mkdir(parents=True)
@@ -128,56 +118,62 @@ def _run(argv: list[str], cwd: pathlib.Path):
 
 
 def test_cli_exit_0_on_an_allowed_action(tmp_path: pathlib.Path):
-    # Run with an isolated --root so the check cannot pass by accident: the fixture
-    # tree is built as the frame claims it.
-    (tmp_path / "tools").mkdir()
-    (tmp_path / "tools" / "cmd_ok.py").write_bytes(b"\n")
-    (tmp_path / "tests").mkdir()
-    (tmp_path / "tests" / "keep.md").write_bytes(b"# kept\n")
+    # The fixture tree is built for the frame, so the check cannot pass by
+    # accident: --root is isolated, the exit-0 contract holds only honestly.
+    root = ok_root(tmp_path)
     proc = _run(["--intent", "verify the cli exit contract",
                  "--target", "tools/cmd_ok.py",
                  "--break", "tests/keep.md",
                  "--defends", "the exit contract in this module's docstring",
                  "--refusal", "BLOCK when the exit code disagrees with the verdict",
-                 "--root", str(tmp_path)], cwd=tmp_path)
+                 "--root", str(root)], cwd=tmp_path)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "SENTINEL OK" in proc.stdout, proc.stdout
 
 
-def test_cli_exit_code_agrees_with_the_verdict(tmp_path: pathlib.Path):
-    # The property the selftest cannot express: exit 0 IFF the verdict is OK. A
-    # non-zero exit printed alongside 'SENTINEL OK' (or the reverse) is the one
-    # way a reaper can lie to a shell pipeline.
-    module = load_tool()
-    bad_argv = ["--intent", "the situation with the exits",  # S1: topic, not act
-                "--target", "tools/ghost.py",                # S2: ghost
-                "--break", "prose about the tests",           # S3: no path
-                "--refusal", "",                              # S5: nothing
-                "--root", str(tmp_path)]
-    with contextlib.redirect_stdout(io.StringIO()) as buf:
-        rc_blocked = module.main(bad_argv)
-    out_blocked = buf.getvalue()
-    assert rc_blocked == 1, out_blocked
-    assert "SENTINEL BLOCKED" in out_blocked
-    assert "SENTINEL OK" not in out_blocked, "exit 1 must never read as OK"
-    good_argv = ["--intent", "verify the cli exit contract",
-                 "--target", "tools/cmd_ok.py",
-                 "--break", "tests/keep.md",
-                 "--defends", "the exit contract in this module's docstring",
-                 "--refusal", "BLOCK when the exit code disagrees with the verdict",
-                 "--root", str(_ok_root(tmp_path))]
-    with contextlib.redirect_stdout(io.StringIO()) as buf:
-        rc_ok = module.main(good_argv)
-    assert rc_ok == 0, buf.getvalue()
+# --------------------------------------------------------------------------- #
+# Blocked frame: the subprocess contract, once
+# --------------------------------------------------------------------------- #
+# The blocked-frame CLI assertions run ONCE, in subprocess text mode, and their
+# findings carry to --json mode in the sibling test below. Both earlier shapes
+# (in-process main() calling, json-only blocked run) were deleted here: an
+# in-process main() and a subprocess still exercise the same return contract,
+# and the never-reads-as-OK property is stated against real printed bytes.
+def _bad_frame_argv(tmp_path: pathlib.Path):
+    return ["--intent", "the situation with the exits",  # S1: topic, not act
+            "--target", "tools/ghost.py",               # S2: ghost
+            "--break", "prose about the tests",          # S3: no path
+            "--refusal", "",                             # S5: nothing
+            "--root", str(tmp_path)]
 
 
-def test_cli_blocked_frame_exits_1_with_the_deadly_claims(
-        reaper, tmp_path: pathlib.Path):
-    proc = _run(["--intent", "the situation with the exits",   # S1: topic, not act
-                 "--target", "tools/ghost.py",                # S2: ghost
-                 "--break", "prose about the tests",           # S3: no path
-                 "--refusal", "",                              # S5: nothing
-                 "--root", str(tmp_path), "--json"], cwd=tmp_path)
+def test_cli_blocked_frame_exits_1_and_never_reads_as_ok(
+        tmp_path: pathlib.Path):
+    # Exit 0 IFF the verdict is OK: a non-zero exit whose printed prose (or
+    # JSON) still reads 'SENTINEL OK' is the one way a reaper lies to a shell
+    # pipeline.
+    proc = _run(_bad_frame_argv(tmp_path), cwd=tmp_path)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "SENTINEL BLOCKED" in proc.stdout, proc.stdout
+    assert "SENTINEL OK" not in proc.stdout, "exit 1 must never read as OK"
+
+
+def test_cli_blocked_frame_names_at_least_one_deadly_claim(
+        tmp_path: pathlib.Path):
+    argv = _bad_frame_argv(tmp_path) + ["--json"]
+    proc = _run(argv, cwd=tmp_path)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["verdict"] == "SENTINEL BLOCKED"
+    assert payload["problems"], "a BLOCKED verdict must name at least one claim"
+    prefixes = [p.split(":", 1)[0] for p in payload["problems"]]
+    assert "S1 intent-scoped" in prefixes and "S2 target-resolves" in prefixes
+
+
+def test_cli_blocked_frame_exits_1_names_what_was_reaped_with_the_deadly_claims(
+        tmp_path: pathlib.Path):
+    # --json mode: not just exit-1, but pointing at exactly which claim died.
+    proc = _run(_bad_frame_argv(tmp_path) + ["--json"], cwd=tmp_path)
     assert proc.returncode == 1, proc.stdout + proc.stderr
     payload = json.loads(proc.stdout)
     assert payload["verdict"] == "SENTINEL BLOCKED"
