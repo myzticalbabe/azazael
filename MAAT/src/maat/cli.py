@@ -1,6 +1,7 @@
 """Command line: maat weigh [--raw PATH] [--sizes 3,5,7,9,11]
                 maat rules --text 'some 2d content' [--ref SRC] [--version YYYY-MM-DD]
                 maat mutate --rules RS.json [--seed TEXT] [--frames N]
+                maat arena --rules RS.json [--seed TEXT] [--frames N]
 """
 from __future__ import annotations
 
@@ -41,6 +42,11 @@ def main(argv=None) -> int:
     m.add_argument("--seed", default="maat-default-seed", help="mesh seed text")
     m.add_argument("--frames", type=int, default=4, help="frames of the render loop")
     m.add_argument("--version", default=None, help="mesh version date YYYY-MM-DD")
+    a = sub.add_parser("arena", help="run candidate branches through the Q1R1 ruleset (Q3 kernel)")
+    a.add_argument("--rules", required=True, help="path to a Q1R1 ruleset JSON file")
+    a.add_argument("--seed", default="maat-default-seed", help="arena seed text")
+    a.add_argument("--frames", type=int, default=4, help="frames the tree runs")
+    a.add_argument("--version", default=None, help="arena version date YYYY-MM-DD")
     args = p.parse_args(argv)
 
     if args.cmd == "rules":
@@ -66,6 +72,24 @@ def main(argv=None) -> int:
 
         try:
             out = apply(rs, new_mesh(args.seed, version=args.version), frames=args.frames)
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 1
+        print(json.dumps(out, indent=2, sort_keys=True))
+        return 0
+    if args.cmd == "arena":
+        try:
+            rs = load_ruleset(args.rules)
+        except FileNotFoundError:
+            print(f"ruleset not found: {args.rules}", file=sys.stderr)
+            return 2
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 1
+        from .arena import apply as arena_apply, new_arena
+
+        try:
+            out = arena_apply(rs, new_arena(args.seed, version=args.version), frames=args.frames)
         except ValueError as e:
             print(e, file=sys.stderr)
             return 1

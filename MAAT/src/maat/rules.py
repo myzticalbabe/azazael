@@ -81,7 +81,15 @@ _TOKEN_FACTS: dict[str, str] = {
     "cast": "cast", "throw": "cast",
 }
 
-_KERNEL_EFFECT = {"shatter": ("mesh", "shatter"), "forge": ("mesh", "displace")}
+_KERNEL_EFFECT = {
+    "mirror": ("render", "overlay"),
+    "shatter": ("mesh", "shatter"),
+    "forge": ("mesh", "displace"),
+    "pulse": ("arena", "promote"),
+    "nest": ("arena", "spawn"),
+    "drift": ("arena", "retire"),
+    "veil": ("arena", "forbid"),
+}
 
 
 def _version_stamp(day: str | None) -> str:
