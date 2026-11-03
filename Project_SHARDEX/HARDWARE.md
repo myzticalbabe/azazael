@@ -91,7 +91,8 @@ These are now **inside the project** so `--doctor` and tests pass in a fresh clo
 
 ## License
 
-Apache-2.0 — see `LICENSE` and `NOTICE`.
+CDDL-1.1 — see `LICENSE` and `NOTICE`.
+License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.
 
 ---
 
