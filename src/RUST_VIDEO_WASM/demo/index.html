@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>music video → Rust/WASM — four architectures</title>
+<style>
+  :root { --bg:#0b0d12; --panel:#141922; --line:#243040; --ink:#e7ecf3; --dim:#8b98ab; --hot:#59e3c8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif,system-ui,sans-serif; }
+  header { padding:22px 26px 10px; border-bottom:1px solid var(--line); }
+  h1 { margin:0 0 4px; font-size:19px; letter-spacing:.2px; }
+  header p { margin:0; color:var(--dim); font-size:13px; }
+  nav { display:flex; gap:8px; padding:14px 26px; flex-wrap:wrap; }
+  nav button { background:var(--panel); color:var(--ink); border:1px solid var(--line); padding:8px 14px;
+    border-radius:999px; cursor:pointer; font-size:13px; }
+  nav button[aria-selected="true"] { border-color:var(--hot); color:var(--hot); }
+  main { padding:0 26px 30px; }
+  section { display:none; }
+  section.active { display:block; }
+  .stage { position:relative; display:inline-block; background:#000; border:1px solid var(--line);
+    border-radius:10px; overflow:hidden; }
+  .stage canvas, .stage video { display:block; max-width:100%; }
+  /* screen = additive: black pixels contribute nothing, so the aurora adds light
+     to the video instead of tinting it down. */
+  .stage canvas.overlay { position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen; }
+  .row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:14px 0; }
+  .row label { color:var(--dim); font-size:13px; }
+  .row button { background:#1d2632; color:var(--ink); border:1px solid var(--line); padding:7px 13px;
+    border-radius:8px; cursor:pointer; font-size:13px; }
+  .row button:hover { border-color:var(--hot); }
+  input[type=range] { width:130px; accent-color:var(--hot); }
+  code { background:#0f141c; border:1px solid var(--line); padding:1px 5px; border-radius:5px; font-size:12px; }
+  .note { color:var(--dim); font-size:13px; max-width:74ch; }
+  output { color:var(--hot); font-variant-numeric:tabular-nums; font-size:13px; }
+  footer { color:var(--dim); font-size:12px; padding:0 26px 26px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>One music video, four places the Rust/WASM can live</h1>
+  <p>Every panel below runs the same clip. What changes is which layer decodes it and which layer owns the pixels.</p>
+</header>
+
+<nav role="tablist">
+  <button role="tab" aria-selected="true"  data-tab="a">A · browser decodes, Rust paints</button>
+  <button role="tab" aria-selected="false" data-tab="b">B · frames baked into WASM</button>
+  <button role="tab" aria-selected="false" data-tab="c">C · Rust owns every pixel</button>
+  <button role="tab" aria-selected="false" data-tab="d">D · packed RGB stream in Rust</button>
+</nav>
+
+<main>
+  <section id="a" class="active">
+    <div class="stage">
+      <video id="vid" src="assets/sample.mp4" width="480" height="270" playsinline loop crossorigin="anonymous"></video>
+      <canvas id="aurora" class="overlay" width="480" height="270"></canvas>
+    </div>
+    <div class="row">
+      <button id="playA">play with sound</button>
+      <label>aurora gain <input id="gain" type="range" min="0" max="2" step="0.05" value="1"></label>
+      <output id="outA">idle</output>
+    </div>
+    <p class="note">The <code>&lt;video&gt;</code> element does the H.264 and AAC work. Rust receives 1024 PCM samples,
+      computes 32 band energies with a Hann-windowed DFT, and renders an additive field at 60&nbsp;fps — 118&nbsp;KB of WASM
+      for the whole visual layer. This is the only architecture here that streams a file of any length.</p>
+  </section>
+
+  <section id="b">
+    <div class="stage"><canvas id="canvasB" width="320" height="180"></canvas></div>
+    <div class="row">
+      <button id="playB">play</button>
+      <output id="outB">idle</output>
+    </div>
+    <p class="note">No media element at all: the frames are JPEGs inside one <code>AVFB</code> blob, decoded by
+      <code>jpeg-decoder</code> compiled into the module. It works, and it is the wrong default for a song — the blob is
+      <strong>0.18&nbsp;MB/s</strong> — about 38&nbsp;MB for this track at 320×180, roughly twice the 19.35&nbsp;MB mp4 that
+      holds it at 480p, because stills are not inter-coded.</p>
+  </section>
+
+  <section id="c">
+    <div class="stage"><canvas id="canvasC" width="480" height="270"></canvas></div>
+    <div class="row">
+      <button id="playC">play</button>
+      <label>effect
+        <select id="mode">
+          <option value="0">beat tint</option>
+          <option value="1">edge glow</option>
+          <option value="2">chroma + scanlines</option>
+        </select>
+      </label>
+      <label>strength <input id="strength" type="range" min="0" max="3" step="0.05" value="1"></label>
+      <output id="outC">idle</output>
+    </div>
+    <p class="note">The useful architecture: the browser decodes and Rust rewrites the frame. Each frame is
+      <code>drawImage</code> → <code>getImageData</code> → <code>process_frame_rgba</code> → <code>putImageData</code>.
+      Swap in <code>VideoFrame</code> from WebCodecs to remove the two CPU copies.</p>
+  </section>
+
+  <section id="d">
+    <div class="stage"><canvas id="canvasD" width="320" height="180"></canvas></div>
+    <div class="row">
+      <button id="playD">play</button>
+      <output id="outD">idle</output>
+    </div>
+    <p class="note">A packed <code>AVRD</code> stream — <code>w·h·3</code> raw bytes per frame, parsed and widened to RGBA
+      inside the module. The container and the pixel layout are Rust; the <em>decode</em> is not, and claiming otherwise
+      would need a full H.264 entropy decoder, which no production-grade pure-Rust implementation exists to supply.</p>
+  </section>
+</main>
+
+<footer id="foot">Rust 1.95.0 · wasm-pack 0.15.1 · module 118&nbsp;KB · clip: loading…</footer>
+
+<script type="module">
+import init, * as wasm from "../pkg/azazael_video_wasm.js";
+await init();
+
+const $ = (id) => document.getElementById(id);
+const tabs = [...document.querySelectorAll("nav button")];
+tabs.forEach((btn) => btn.addEventListener("click", () => {
+  tabs.forEach((b) => b.setAttribute("aria-selected", String(b === btn)));
+  document.querySelectorAll("main section").forEach((s) => s.classList.toggle("active", s.id === btn.dataset.tab));
+}));
+
+// ---------- mode A: audio in Rust ----------
+const vid = $("vid");
+const aurora = $("aurora");
+const actx = aurora.getContext("2d");
+let analyser = null, pcm = null, audio = null;
+
+$("playA").addEventListener("click", async () => {
+  if (!audio) {
+    audio = new AudioContext();
+    const src = audio.createMediaElementSource(vid);
+    analyser = audio.createAnalyser();
+    analyser.fftSize = 2048;
+    src.connect(analyser);
+    analyser.connect(audio.destination);
+    pcm = new Float32Array(analyser.fftSize);
+  }
+  await audio.resume();
+  await vid.play();
+  if (!vid.dataset.raf) { vid.dataset.raf = "1"; loopA(); }
+});
+
+const BANDS = 32;
+let smooth = new Float32Array(BANDS);
+
+// Fill the footer from the file actually loaded, not from a remembered clip.
+// Metadata often lands while init() is still awaiting the wasm fetch, so the
+// listener alone is too late: stamp immediately when it is already known.
+const stampFoot = () => {
+  if (vid.readyState < 1) return;
+  const name = decodeURIComponent(vid.currentSrc.split("/").pop() || "clip");
+  $("foot").textContent = `Rust 1.95.0 · wasm-pack 0.15.1 · module 118 KB · ${name} — ` +
+    `${vid.duration.toFixed(1)}s ${vid.videoWidth}×${vid.videoHeight}`;
+};
+vid.addEventListener("loadedmetadata", stampFoot);
+stampFoot();
+
+function loopA() {
+  if (analyser && !vid.paused) {
+    analyser.getFloatTimeDomainData(pcm);
+    const now = wasm.spectrum_bands(pcm, BANDS);
+    for (let i = 0; i < BANDS; i++) smooth[i] = smooth[i] * 0.72 + now[i] * 0.28;
+    const rgba = wasm.render_aurora(480, 270, smooth, performance.now() / 1000);
+    const img = new ImageData(new Uint8ClampedArray(rgba), 480, 270);
+    actx.putImageData(img, 0, 0);
+    $("outA").textContent = `t=${vid.currentTime.toFixed(1)}s  peak band ${smooth.indexOf(Math.max(...smooth))}`;
+  }
+  requestAnimationFrame(loopA);
+}
+
+// ---------- shared painter ----------
+function paint(canvas, rgba, w, h) {
+  const ctx = canvas.getContext("2d");
+  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), w, h), 0, 0);
+}
+
+// ---------- mode B: frames in the blob ----------
+let blobB = null;
+$("playB").addEventListener("click", async () => {
+  blobB ??= new Uint8Array(await (await fetch("assets/frames.bin")).arrayBuffer());
+  const n = wasm.frame_count(blobB);
+  const [w, h, fps] = wasm.frame_dims(blobB);
+  const t0 = performance.now();
+  (function frame(now) {
+    const i = Math.floor((now - t0) / 1000 * fps) % n;
+    paint($("canvasB"), wasm.decode_frame_rgba(blobB, i), w, h);
+    $("outB").textContent = `frame ${i + 1}/${n} @${fps}fps  ${w}×${h}`;
+    requestAnimationFrame(frame);
+  })(t0);
+});
+
+// ---------- mode C: Rust processes the video frame ----------
+const grab = document.createElement("canvas");
+grab.width = 480; grab.height = 270;
+const grabCtx = grab.getContext("2d", { willReadFrequently: true });
+
+$("playC").addEventListener("click", async () => {
+  await vid.play();
+  let last = 0, frames = 0, acc = 0;
+  (function frame(now) {
+    if (vid.readyState >= 2) {
+      grabCtx.drawImage(vid, 0, 0, 480, 270);
+      const img = grabCtx.getImageData(0, 0, 480, 270);
+      const energy = Math.min(1, smooth.reduce((a, b) => a + b, 0) / BANDS * 1.6);
+      wasm.process_frame_rgba(img.data, 480, 270, Number($("mode").value), Number($("strength").value), energy);
+      $("canvasC").getContext("2d").putImageData(img, 0, 0);
+      if (last) { frames++; acc += now - last; }
+      last = now;
+    }
+    requestAnimationFrame(frame);
+  })(0);
+  setInterval(() => {
+    $("outC").textContent = `480×270 rgba  ${frames ? Math.round(1000 / (acc / frames)) : 0} fps  energy ${(smooth.reduce((a, b) => a + b, 0) / BANDS).toFixed(2)}`;
+    frames = 0; acc = 0;
+  }, 500);
+});
+
+// ---------- mode D: packed RGB24 in the blob ----------
+let blobD = null;
+$("playD").addEventListener("click", async () => {
+  blobD ??= new Uint8Array(await (await fetch("assets/raw.bin")).arrayBuffer());
+  const n = wasm.raw_frame_count(blobD);
+  const [w, h, fps] = wasm.raw_frame_dims(blobD);
+  const cd = $("canvasD");
+  // 160x90 of real pixels, displayed at 3x: enlarging an ImageData canvas would
+  // otherwise paint the frame into the top-left quarter of a 320x180 surface.
+  cd.width = w; cd.height = h;
+  cd.style.width = "480px"; cd.style.imageRendering = "pixelated";
+  const t0 = performance.now();
+  (function frame(now) {
+    const i = Math.floor((now - t0) / 1000 * fps) % n;
+    paint($("canvasD"), wasm.unpack_rgb_frame(blobD, i), w, h);
+    $("outD").textContent = `frame ${i + 1}/${n} @${fps}fps  ${w}×${h} rgb24 (${(w * h * 3 / 1024).toFixed(0)} KB/frame)`;
+    requestAnimationFrame(frame);
+  })(t0);
+});
+</script>
+</body>
+</html>
