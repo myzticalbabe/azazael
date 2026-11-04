@@ -96,6 +96,22 @@ def clean() -> dict:
     }
 
 
+def criminal() -> dict:
+    """The clean record in a criminal posture, with a conforming confrontation block."""
+    record = clean()
+    record["proffer"]["forum"] = "criminal"
+    record["confrontation"] = {
+        "testimonial": True,
+        "basis": "a certificate of analysis prepared at the prosecution's request",
+        "declarant": "A. Analyst",
+        "declarant_available": True,
+        "prior_opportunity_to_cross": False,
+        "notice_and_demand_waiver": False,
+        "surrogate_analyst": False,
+    }
+    return record
+
+
 def gate_state(report: dict, gate_id: str) -> str:
     for gate in report["gates"]:
         if gate["gate"] == gate_id:
@@ -376,17 +392,20 @@ def test_cli_invalid_json_is_blind(tmp_path, capsys):
 
 
 def test_gate_table_covers_every_gate_and_states_a_falsifier():
-    assert [meta["id"] for meta in GATE_METADATA] == [f"G{i}" for i in range(1, 8)]
+    assert [meta["id"] for meta in GATE_METADATA] == [f"G{i}" for i in range(1, 10)]
     for meta in GATE_METADATA:
         assert meta["authority"]
         assert meta["falsifier"]
         assert meta["negative_control"]
+    assert GATE_METADATA[7]["applies_to"] == "criminal posture only"
+    assert GATE_METADATA[8]["applies_to"] == "criminal posture only"
     text = render_gates()
     assert "negative control" in text
     assert "G7" in text
+    assert "G9" in text
 
 
-@pytest.mark.parametrize("gate_id", [f"G{i}" for i in range(1, 8)])
+@pytest.mark.parametrize("gate_id", [f"G{i}" for i in range(1, 10)])
 def test_every_gate_can_fail(gate_id):
     """Each gate must be able to return GAP, or it is not a test.
 
@@ -401,8 +420,178 @@ def test_every_gate_can_fail(gate_id):
         "G5": lambda r: r["authentication"].update({"output_sha256": "x"}),
         "G6": lambda r: r.update({"hearsay": {"posture": "machine_record"}}),
         "G7": lambda r: r["review"].update({"authority_to_change": False}),
+        "G8": lambda r: r["confrontation"].update({"testimonial": "maybe"}),
+        "G9": lambda r: r["confrontation"].update({"surrogate_analyst": True}),
     }
-    record = clean()
+    record = criminal() if gate_id in {"G8", "G9"} else clean()
     perturbations[gate_id](record)
 
     assert gate_state(evaluate(record), gate_id) == GAP
+
+
+def test_civil_record_applies_seven_gates_and_says_so():
+    """The forum default is printed: a missing key must not drop the gates silently."""
+    report = evaluate(clean())
+
+    assert report["verdict"] == VERDICT_READY
+    assert report["forum"] == "civil"
+    assert report["forum_source"] == "unstated"
+    assert report["gates_applied"] == [f"G{i}" for i in range(1, 8)]
+    text = render(report)
+    assert "forum: civil (unstated)" in text
+    assert "NOT applied" in text
+
+
+def test_criminal_record_applies_nine_gates():
+    report = evaluate(criminal())
+
+    assert report["verdict"] == VERDICT_READY
+    assert report["counts"] == {PASS: 9, GAP: 0, UNVERIFIABLE: 0}
+    assert report["gates_applied"] == [f"G{i}" for i in range(1, 10)]
+
+
+def test_criminal_record_without_confrontation_is_incomplete_not_ready():
+    record = criminal()
+    del record["confrontation"]
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G8") == UNVERIFIABLE
+    assert gate_state(report, "G9") == UNVERIFIABLE
+    assert report["verdict"] == VERDICT_INCOMPLETE
+
+
+def test_negative_control_non_testimonial_with_a_basis_passes():
+    """An output that stayed in the regular course of business is not testimony."""
+    record = criminal()
+    record["confrontation"] = {
+        "testimonial": False,
+        "basis": "a routine billing export produced before any dispute existed",
+    }
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G8") == PASS
+    assert gate_state(report, "G9") == PASS
+    assert report["verdict"] == VERDICT_READY
+
+
+def test_bare_non_testimonial_assertion_is_a_gap():
+    record = criminal()
+    record["confrontation"] = {"testimonial": False}
+
+    assert gate_state(evaluate(record), "G8") == GAP
+
+
+def test_certificate_prepared_for_litigation_is_not_non_testimonial():
+    """A complete 902(13) certificate is the very document Melendez-Diaz calls testimonial."""
+    record = criminal()
+    record["authentication"] = {
+        "output_sha256": SHA,
+        "custody": [],
+        "certification_902_13": {
+            "certifier": "C. Custodian",
+            "qualified": True,
+            "notice_given": True,
+        },
+    }
+    record["confrontation"] = {
+        "testimonial": False,
+        "basis": "a custodian signed a certificate",
+    }
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G8") == GAP
+    detail = next(g["detail"] for g in report["gates"] if g["gate"] == "G8")
+    assert "Melendez-Diaz" in detail
+
+
+def test_unavailable_declarant_without_prior_opportunity_is_a_gap():
+    record = criminal()
+    record["confrontation"]["declarant_available"] = False
+    record["confrontation"]["prior_opportunity_to_cross"] = False
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G9") == GAP
+    detail = next(g["detail"] for g in report["gates"] if g["gate"] == "G9")
+    assert "Crawford" in detail
+
+
+def test_negative_control_prior_cross_examination_cures_unavailability():
+    record = criminal()
+    record["confrontation"]["declarant_available"] = False
+    record["confrontation"]["prior_opportunity_to_cross"] = True
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G9") == PASS
+    assert report["verdict"] == VERDICT_READY
+
+
+def test_surrogate_analyst_is_a_gap():
+    record = criminal()
+    record["confrontation"]["surrogate_analyst"] = True
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G9") == GAP
+    assert "Bullcoming" in next(
+        g["detail"] for g in report["gates"] if g["gate"] == "G9"
+    )
+
+
+def test_notice_and_demand_waiver_passes_and_states_its_limit():
+    record = criminal()
+    record["confrontation"]["declarant_available"] = False
+    record["confrontation"]["notice_and_demand_waiver"] = True
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G9") == PASS
+    assert "demand window" in render(report)
+
+
+def test_unnamed_declarant_is_a_gap():
+    record = criminal()
+    record["confrontation"]["declarant"] = ""
+
+    assert gate_state(evaluate(record), "G9") == GAP
+
+
+def test_named_declarant_without_availability_is_unaddressed():
+    record = criminal()
+    del record["confrontation"]["declarant_available"]
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G9") == UNVERIFIABLE
+    assert report["verdict"] == VERDICT_INCOMPLETE
+
+
+def test_unrecognised_forum_is_read_as_civil_and_names_the_value():
+    record = clean()
+    record["proffer"]["forum"] = "juvenile"
+
+    report = evaluate(record)
+
+    assert report["forum"] == "civil"
+    assert report["forum_source"] == "unrecognised"
+    assert "juvenile" in report["forum_note"]
+    assert "G8" not in report["gates_applied"]
+
+
+def test_negative_control_confrontation_block_cannot_affect_a_civil_record():
+    """A civil record carrying a defective confrontation block is not judged by G8/G9."""
+    record = clean()
+    record["confrontation"] = {"testimonial": True, "surrogate_analyst": True}
+
+    report = evaluate(record)
+
+    assert report["verdict"] == VERDICT_READY
+    assert report["gates_applied"] == [f"G{i}" for i in range(1, 8)]
+    text = render(report)
+    gate_lines = [line for line in text.splitlines() if line.startswith(("G8", "G9"))]
+    assert gate_lines == []
+    assert "surrogate" not in text.lower()
