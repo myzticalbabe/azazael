@@ -117,7 +117,7 @@ git push --force --tags origin
 
 **Every commit hash from the first commit that touched `archived/2026-05-31/`
 onward changes.** `archived/2026-05-31/` is a May-2026 path, so that is most or all
-of the 151 commits, on all four local branches (`deepseek-engram-813`,
+of the 151 commits, on all four local branches (`deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`,
 `lane-813-recovery`, `migration/baseline-20261001`, plus the `origin/*` refs) and all
 4 tags. `HEAD` is `58fe78a5` today; it will not be `58fe78a5` afterwards.
 

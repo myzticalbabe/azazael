@@ -1,7 +1,7 @@
 # PUBLISH READINESS — Azazael → GitHub
 
 **Date:** 2026-11-02
-**Subject repo:** `C:/Azazael/azazael` (branch `deepseek-engram-813`, 32,783 tracked files, pack 954.92 MiB)
+**Subject repo:** `C:/Azazael/azazael` (branch `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`, 32,783 tracked files, pack 954.92 MiB)
 **Verdict:** **NOT READY.** One blocker is fatal and cannot be fixed by committing. Everything else is hygiene that can be cleared.
 
 Every claim below is either read from a file in this repo (cited `file:line`) or is a measurement
@@ -45,7 +45,7 @@ its own receipt.
 | B4 | **No LICENSE file** | **BLOCKS-PUBLISH** | `glob LICENSE*` in `C:/Azazael/azazael` → **0 files** | **Owner decision — not mine to make.** Without a license the default is "all rights reserved": nobody may legally copy, modify or redistribute it. Choose before the repo is described as open. |
 | B5 | **501 MB of the 955 MB pack is vendored tarballs** | **PRE-PUBLISH-HYGIENE** | same measurement as B1; `.gitignore` (Azazael) excludes `.archive/` and `archive/build_artifacts/` but **not** `archived/` | After B1 the pack drops to roughly 450 MB, which is inside GitHub's comfort zone. |
 | B6 | **199 uncommitted changes** (114 untracked, 83 modified, 2 deleted) | **PRE-PUBLISH-HYGIENE** | `git status --porcelain \| wc -l` → 199 | Commit in coherent slices or stash. A publish from a dirty tree is unreviewable and the clean-clone build is untested. |
-| B7 | **Default branch is `deepseek-engram-813`** | **PRE-PUBLISH-HYGIENE** | `git rev-parse --abbrev-ref HEAD` | Publish to `main`; keep lane branches as branches. |
+| B7 | **Default branch is `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`** | **PRE-PUBLISH-HYGIENE** | `git rev-parse --abbrev-ref HEAD` | Publish to `main`; keep lane branches as branches. |
 | B8 | **Username `clint` is hard-coded across tracked content** | **PRE-PUBLISH-HYGIENE** | `code_search "clint"` → 152 matches (tool output cap); examples: `MASTER_CAPABILITY_TODO.md:171` ("Username in paths — implement path sanitization for `C:\Users\clint\...`"), `docs/agent_orders/03_lane_queue.md:15`, `.agents/skills/azazael-deploy/SKILL.md:10` | This leaks a username, not a secret, but it is a permanent public artifact. Decide: sanitize, or accept. `MASTER_CAPABILITY_TODO.md:171` already lists it as an open P1. |
 
 ---
@@ -100,7 +100,7 @@ it, and GitHub rejects the push on the blob, not the working tree. Two honest ro
 **Route A — rewrite history (keeps all 151 commits).**
 `git filter-repo --path archived/ --invert-paths`, then force-push. Consequences that must be
 accepted before starting: every commit SHA changes; the 4 tags must be re-pointed; the 6 remote
-branches (`master`, `deepseek-engram-813`, `lane-813-recovery`, `migration/baseline-20261001`,
+branches (`master`, `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`, `lane-813-recovery`, `migration/baseline-20261001`,
 `r15/wiring-gate-perf-calibration`, `sync/running-20261011`) must be re-pushed; and any document,
 board row, ledger or audit that quotes a short SHA becomes a dangling reference. This tree quotes
 SHAs constantly (e.g. `docs/RESTART_HANDOFF_2026-11-02.md` cites `eb10a862`, `7a6a2da3`), so the

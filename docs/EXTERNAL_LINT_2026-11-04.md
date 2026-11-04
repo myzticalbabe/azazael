@@ -15,7 +15,7 @@ Provenance for every number below:
 
 ```
 C:/Azazael/.venvs/py315t/Scripts/python.exe  (3.15.0rc3, sys._is_gil_enabled() = False)
-ruff 0.17.3        pyflakes 4.1.0        HEAD 67a6d912, branch deepseek-engram-813
+ruff 0.17.3        pyflakes 4.1.0        HEAD 67a6d912, branch deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]
 python tools/external_lint.py --paths src --json state/external_lint.json   -> exit 0
 python tools/mutation_probe.py --json state/mutation_probe.json             -> exit 0
 python -u -m pytest tests/test_mutation_probe.py -q --timeout=120           -> 7 passed in 0.47s
