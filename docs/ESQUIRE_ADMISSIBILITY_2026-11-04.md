@@ -1,9 +1,9 @@
 # ESQUIRE ADMISSIBILITY — audit, gap, instrument
 
-**Version:** 1.0 — 2026-11-04
+**Version:** 1.1 — 2026-11-04
 **Status:** audit plus a built instrument. Not legal advice, not reviewed by a lawyer.
-**Instrument:** `tools/esquire_admissibility.py` (ESQUIRE-ADMISSIBILITY-v1)
-**Tests:** `tests/test_esquire_admissibility.py` (36 tests, six of them negative controls)
+**Instrument:** `tools/esquire_admissibility.py` (ESQUIRE-ADMISSIBILITY-v2)
+**Tests:** `tests/test_esquire_admissibility.py` (52 tests)
 
 ---
 
@@ -97,7 +97,7 @@ record" — never "this evidence is admissible". `BLIND` covers an unreadable
 record and is never a pass: a file that does not parse is a fact to fix, not a
 silent zero.
 
-### 2.1 The seven gates
+### 2.1 The nine gates, seven of them universal
 
 | gate | question | authority | tier |
 | --- | --- | --- | --- |
@@ -108,14 +108,32 @@ silent zero.
 | **G5** | is the output identified, and its provenance certified or held in custody? | FRE 901(a), 901(b)(9), 902(13)–(14) | A |
 | **G6** | does the record state what the output is offered to prove, and on what predicate? | FRE 801, 803(6), 902(13) | A |
 | **G7** | is AI assistance disclosed, and did a named reviewer with authority to change it review it? | Esquire E-1/E-5; ABA Formal Op. 512 | B for the conduct rule |
+| **G8** | is the output, or a certificate about it, testimonial in a criminal case? | U.S. Const. amend. VI; *Crawford*; *Melendez-Diaz* | A for the amendment |
+| **G9** | is the declarant named and available, already cross-examined, or waived by notice-and-demand? | *Crawford*, 541 U.S. 36; *Bullcoming*, 564 U.S. 647 | A for both cases |
+
+**G8 and G9 apply only when `proffer.forum` is criminal.** A record that states no
+forum is read as civil, and the report prints that reading rather than leaving
+it implicit:
+
+```text
+forum: civil (unstated)
+forum note: the record states no forum, so it is read as civil and confrontation
+            gates G8 and G9 were NOT applied
+```
+
+The default is printed because silently dropping two gates on a missing key is
+indistinguishable, in the output, from a criminal proffer that satisfies them.
+An unrecognised value (`"juvenile"`, `"administrative"`) is read as civil too,
+and the value is quoted back verbatim in `forum_note`.
 
 The full table with each gate's falsifier and negative control is printable:
 `python tools/esquire_admissibility.py --gates`.
 
 ### 2.2 The record schema
 
-Seven sections — `proffer`, `witness`, `inputs`, `method`, `claims`,
-`authentication`, `hearsay`, `review` — documented in the module docstring with
+Eight unconditional sections — `proffer`, `witness`, `inputs`, `method`,
+`claims`, `authentication`, `hearsay`, `review` — plus a `confrontation` block
+read only in a criminal posture. All are documented in the module docstring with
 types, so an opponent can read the shape of the claim without reading the code.
 Records are hashed with a canonical, key-order-independent serialisation, and
 the hash is printed with every report: two parties can confirm they are arguing
@@ -126,7 +144,7 @@ about the same proffer.
 ## 3. The legal-accuracy decisions, and why each one is a decision
 
 An instrument that encodes an error of law is worse than no instrument, because
-it produces confident output. Five choices were made deliberately, each with a
+it produces confident output. Six choices were made deliberately, each with a
 test that fails if the choice is reversed.
 
 ### 3.1 The *Daubert* factors are non-exhaustive — so they cannot fail a gate
@@ -185,6 +203,18 @@ valuation, a measurement, a reconstruction carries no authorities, and a gate
 that demanded citations of every opinion would fail the ordinary expert report.
 `test_negative_control_opinion_without_citations_passes` holds that line.
 
+### 3.6 A certificate that satisfies G5 can defeat G8
+
+In a criminal case the 902(13) route in §3.3 turns against the proponent.
+*Melendez-Diaz v. Massachusetts*, 557 U.S. 305 (2009), held that a certificate
+prepared for litigation is a testimonial statement: the analyst who made it is a
+witness the accused has a right to confront, and a custodian's signature is no
+substitute. A record that relies on a complete 902(13) certification *and*
+characterises the output as non-testimonial is therefore a GAP at G8 — the
+paperwork that clears G5 is the very thing G8 asks about. The detail string names
+*Melendez-Diaz*, and
+`test_certificate_prepared_for_litigation_is_not_non_testimonial` holds the line.
+
 ---
 
 ## 4. Falsifiers and negative controls
@@ -204,12 +234,22 @@ keep it green.
 | G5 | machine output admitted with no hash, no custody, no certification of the producing process | output certified under 902(13) with notice, no custody chain |
 | G6 | output offered for its truth with no posture stated and no exception identified | output offered only to show what the system emitted |
 | G7 | a reviewer with no power to alter the output treated as satisfying human review | a reviewer who changed nothing but held authority |
+| G8 | a certificate prepared for litigation, offered in a criminal case, admitted as non-testimonial because a custodian signed it | a machine output that never left the regular course of business, characterised as non-testimonial with a stated basis |
+| G9 | a surrogate analyst who neither performed nor reviewed the work permitted to satisfy confrontation by reading a report | an unavailable declarant who was already cross-examined on the same statements |
 
 The G7 control is the sharpest one, because it cuts against intuition: a
 reviewer who changed nothing is *not* a defect. The absence of changes is a fact
 for cross-examination; only the absence of *authority* is a gap. An instrument
 that conflated the two would flag every honest reviewer who agreed with the
 machine.
+
+The criminal pair carries a control in each direction. G8's sharpest case is
+hostile to the tool's own G5: a complete 902(13) certificate must satisfy G5 and
+must fail G8 when the record calls the output non-testimonial. In the other
+direction, `test_negative_control_confrontation_block_cannot_affect_a_civil_record`
+holds that a civil record carrying a defective `confrontation` block is still
+READY on seven gates — a gate that fired outside its forum would be an error of
+law dressed as rigour.
 
 ---
 
@@ -233,10 +273,17 @@ main risk of building one at all.
   Roughly forty states follow them closely enough that the shape transfers, but
   the text does not, and a state proffer should be checked against that state's
   rules.
-- **The Confrontation Clause.** In a criminal case, machine output offered
-  against the accused raises *Crawford*/*Melendez-Diaz* questions about
-  testimonial statements that no G-gate addresses. The instrument is silent
-  here, and the silence is a limit, not a clearance.
+- **Whether a statement is testimonial.** G8 reads the proffer's own
+  characterisation and its stated basis; it cannot decide the question.
+  Testimonial character is a judgment about the circumstances in which the
+  statement was made, and *Melendez-Diaz* turns on facts — who asked for the
+  certificate, when, and for what purpose — that a form records only as the
+  proponent's assertion. G8 reports that the record *addresses* the question,
+  never that it answers it.
+- **Notice-and-demand statutes.** Where a state has one, G9 accepts a recorded
+  waiver and says in a note that the demand window is a fact to be established,
+  not assumed. The instrument does not know whether that window was open, or
+  whether the statute reaches this kind of report.
 
 ---
 
@@ -313,9 +360,11 @@ jurisdiction over evidence law.
 
 - **State rules.** Whether the gate set transfers to the evidence code of a
   particular state is unmeasured here. The instrument is federal.
-- **Criminal posture.** The Confrontation Clause limit in §5 is stated, not
-  solved. A criminal-case variant would need its own gates and its own
-  falsifiers.
+- **Criminal posture.** G8 and G9 now exist and are exercised by nine tests, but
+  the pair reads a characterisation the proponent wrote; whether a given
+  certificate is testimonial remains a ruling, not a reading. Juvenile and
+  administrative proceedings are read as civil and say so — neither has been
+  modelled.
 - **Judicial reception.** No decision applying an admissibility checklist of
   this kind to AI output was sought or found. "*Mata*" is about fabricated
   citations, not about a proffer record, and it is cited for citation integrity
@@ -336,14 +385,17 @@ the command that produced it.
 | 1 | the canon excludes admissibility from its scope | `grep -n "evidentiary rules about authenticating\|E-0\.2\*\*" docs/ESQUIRE_CANON_2026-11-03.md` | `47:**E-0.2** The canon does not govern:` and `50:(c) evidentiary rules about authenticating machine output;` |
 | 2 | the memo's only admissibility sentence is line 357 | `grep -n "currently inadmissible" docs/MEMORANDUM_WHEN_THE_MACHINE_DOES_THE_WORK_2026-11-03.md` | `357:language of this memorandum, is: **the machine's output is currently inadmissible` |
 | 3 | no prior admissibility tooling existed | `grep -rln "FRE 702\|Rule 702\|fre_702" --include=*.py tools/ src/ tests/ \| grep -v esquire_admissibility \| wc -l` | `0` |
-| 4 | the instrument's suite passes | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:xdist --timeout=120` | `36 passed in 0.44s`, exit 0 |
-| 5 | every gate can fail | `test_every_gate_can_fail` (parametrised G1..G7) | 7 pass; each perturbation produces GAP on its own gate |
-| 6 | READY exits 0 | `esquire_admissibility.py _smoke_ready.json` | `ESQUIRE-ADMISSIBILITY-v1  READY`, `gates: 7 pass, 0 gap, 0 unaddressed`, `READY_EXIT=0` |
+| 4 | the instrument's suite passes | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:cacheprovider` | `52 passed in 0.53s`, exit 0 |
+| 5 | every gate can fail | `test_every_gate_can_fail` (parametrised G1..G9) | 9 pass; G8/G9 run against the criminal fixture, each perturbation produces GAP on its own gate |
+| 6 | READY exits 0 | `esquire_admissibility.py /tmp/esq/civil.json` | `ESQUIRE-ADMISSIBILITY-v2  READY`, `forum: civil (unstated)`, `gates: 7 pass, 0 gap, 0 unaddressed, over 7 applied`, exit 0 |
 | 7 | GAPS exits 1 | same, record with `authority_to_change=False` | `G7  GAP  the reviewer had no authority to change the output`, `GAP_EXIT=1` |
 | 8 | INCOMPLETE exits 1 | same, record with `witness` removed | `INCOMPLETE`, `gates: 6 pass, 0 gap, 1 unaddressed`, `INC_EXIT=1` |
 | 9 | BLIND exits 2 and is never a pass | same, absent path and malformed JSON | `BLIND`, `reason: FileNotFoundError: ...`, `BLIND_EXIT=2` |
-| 10 | the gate table renders with falsifiers and controls | `esquire_admissibility.py --gates` | table printed for G1..G7; `GATES_EXIT=0` |
+| 10 | the gate table renders with falsifiers and controls | `esquire_admissibility.py --gates` | table printed for G1..G9; G8/G9 carry `applies to: criminal posture only`; exit 0 |
 | 11 | FRE 702/901/902 text was read at source | `read_url` on the Cornell LII pages, 2026-11-04 | HTTP 200 for each; 702 text carries the 2023 "more likely than not" formulation; 902(13)/(14) quoted verbatim |
+| 12 | a criminal record applies nine gates | `esquire_admissibility.py /tmp/esq/crim_gap.json` | `forum: criminal (stated)`, `gates: 8 pass, 1 gap, 0 unaddressed, over 9 applied`, `G9  GAP  declarant A. Analyst is unavailable ... (Crawford ...)`, exit 1 |
+| 13 | the forum default is printed, never silent | `esquire_admissibility.py /tmp/esq/civil.json` | `forum: civil (unstated)` and `forum note: ... confrontation gates G8 and G9 were NOT applied` in the same report that reads READY |
+| 14 | a civil record is not judged by the criminal gates | `test_negative_control_confrontation_block_cannot_affect_a_civil_record` | civil record with `{"testimonial": true, "surrogate_analyst": true}` still READY, `gates_applied` = G1..G7 |
 
 ### 9.1 An instrument finding worth recording
 

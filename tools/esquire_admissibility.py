@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ESQUIRE-ADMISSIBILITY-v1: a proffer instrument for machine-produced opinions.
+"""ESQUIRE-ADMISSIBILITY-v2: a proffer instrument for machine-produced opinions.
 
 WHAT THIS IS
     A deterministic checker over a *proffer record*: the structured account a
@@ -28,8 +28,17 @@ GATES AND AUTHORITY
     G5  authentication                     FRE 901(a), 901(b)(9), 902(13)-(14)
     G6  hearsay posture                    FRE 801, 803(6), 902(13)
     G7  human review and candor            Esquire E-1/E-5; ABA Formal Op. 512
+    G8  testimonial character              U.S. Const. amend. VI; Melendez-Diaz
+    G9  declarant and confrontation        Crawford, 541 U.S. 36; Bullcoming, 564 U.S. 647
 
-    Three points of legal accuracy the implementation is built to respect:
+    G8 and G9 apply ONLY when the record declares a criminal forum. A record that
+    states no forum is read as civil, and the report prints that reading in
+    `forum`, `forum_source` and `forum_note`. The default is stated, never
+    silent: reading a criminal proffer as civil would drop the Confrontation
+    Clause from the instrument without a word, which is the failure this pair of
+    gates exists to prevent.
+
+    Four points of legal accuracy the implementation is built to respect:
 
     * The Daubert factors (testing, error rate, peer review, general
       acceptance) are NON-EXHAUSTIVE. A test that required all four would
@@ -49,6 +58,11 @@ GATES AND AUTHORITY
       made admissible by a certification, and this instrument cannot see the
       difference: a G6 PASS on the 902(13) route is a statement about the
       record's paperwork, never about the record's truth status.
+    * In a criminal case that same certification is a TESTIMONIAL statement when
+      it was prepared for litigation (Melendez-Diaz v. Massachusetts, 557 U.S.
+      305 (2009)), so the document Foundation that satisfies G5 can create the
+      confrontation problem G8/G9 test. The instrument reports that conflict as
+      a GAP rather than letting a complete certificate read as a clean file.
 
 EXIT CODES
     0  READY       every gate PASS
@@ -59,6 +73,7 @@ EXIT CODES
 SCHEMA (v1)
     {
       "proffer":  {"case": str, "offered_by": str, "purpose": str,
+                   "forum": "civil" | "criminal",
                    "ai_assistance_disclosed": bool},
       "witness":  {"kind": "human", "name": str, "qualifications": [str],
                    "reviewed_output": bool},
@@ -77,8 +92,15 @@ SCHEMA (v1)
                    "business_records": {"custodian": str,
                                         "regular_practice": bool}},
       "review":   {"name": str, "authority_to_change": bool,
-                   "recorded_at": str, "changes_made": int}
+                   "recorded_at": str, "changes_made": int},
+      "confrontation": {"testimonial": bool, "basis": str, "declarant": str,
+                        "declarant_available": bool,
+                        "prior_opportunity_to_cross": bool,
+                        "notice_and_demand_waiver": bool,
+                        "surrogate_analyst": bool}
     }
+
+    `confrontation` is read only when `proffer.forum` is criminal.
 """
 
 from __future__ import annotations
@@ -91,7 +113,8 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-SCHEMA_VERSION = "esquire-admissibility/1"
+SCHEMA_VERSION = "esquire-admissibility/2"
+VERSION_LABEL = "ESQUIRE-ADMISSIBILITY-v" + SCHEMA_VERSION.rsplit("/", 1)[-1]
 
 PASS = "PASS"
 GAP = "GAP"
@@ -116,6 +139,13 @@ CITATION_DISQUALIFIED = frozenset({"fabricated", "hallucinated", "invented"})
 HEARSAY_POSTURES = frozenset(
     {"not_offered_for_truth", "offered_for_truth_exception", "machine_record"}
 )
+
+FORUM_CIVIL = "civil"
+FORUM_CRIMINAL = "criminal"
+CRIMINAL_FORUMS = frozenset(
+    {"criminal", "criminal_case", "criminal_proceeding", "criminal_trial"}
+)
+CIVIL_FORUMS = frozenset({"civil", "civil_case", "civil_proceeding", "civil_trial"})
 
 DISCLAIMER = (
     "This instrument reports whether a proffer record carries what each "
@@ -193,6 +223,30 @@ GATE_METADATA: tuple[dict[str, str], ...] = (
         "satisfying a human-review requirement.",
         "negative_control": "A reviewer who changed nothing but held authority must "
         "pass; the absence of changes is a cross-examination fact, not a defect.",
+    },
+    {
+        "id": "G8",
+        "title": "Testimonial character",
+        "authority": "U.S. Const. amend. VI; Crawford v. Washington, 541 U.S. 36 "
+        "(2004); Melendez-Diaz v. Massachusetts, 557 U.S. 305 (2009)",
+        "tier": "A for the amendment; A for both cases, not re-fetched today",
+        "applies_to": "criminal posture only",
+        "falsifier": "A certificate prepared for litigation, offered in a criminal "
+        "case, admitted as non-testimonial because a custodian signed it.",
+        "negative_control": "A machine output that never left the regular course of "
+        "business, characterised as non-testimonial with a stated basis, must pass.",
+    },
+    {
+        "id": "G9",
+        "title": "Declarant and opportunity to confront",
+        "authority": "Crawford v. Washington, 541 U.S. 36 (2004); Bullcoming v. "
+        "New Mexico, 564 U.S. 647 (2011)",
+        "tier": "A for both cases, not re-fetched today",
+        "applies_to": "criminal posture only",
+        "falsifier": "A surrogate analyst who neither performed nor reviewed the "
+        "work permitted to satisfy confrontation by reading a report.",
+        "negative_control": "An unavailable declarant who was already cross-examined "
+        "on the same statements must pass; unavailability alone is not the defect.",
     },
 )
 
@@ -507,7 +561,125 @@ def gate_7_review(record: dict[str, Any]) -> Finding:
     return Finding("G7", PASS, "disclosed, reviewed by an authorised named human", notes)
 
 
-GATES = (
+def gate_8_testimonial(record: dict[str, Any]) -> Finding:
+    """G8: whether the output, or a certificate about it, is testimonial."""
+    confrontation = record.get("confrontation")
+    if not isinstance(confrontation, dict):
+        return Finding(
+            "G8",
+            UNVERIFIABLE,
+            "the record does not address whether the output or a certificate "
+            "about it is testimonial",
+        )
+
+    testimonial = confrontation.get("testimonial")
+    cert = _cert_902_13(record)
+    notes: list[str] = []
+    if cert is not None:
+        notes.append(
+            "a 902(13) certificate prepared for litigation is itself a testimonial "
+            "statement (Melendez-Diaz v. Massachusetts, 557 U.S. 305 (2009)) and "
+            "needs its own declarant, not only a custodian's signature"
+        )
+
+    if not isinstance(testimonial, bool):
+        return Finding(
+            "G8",
+            GAP,
+            "the record addresses confrontation but does not state whether the "
+            "output is testimonial",
+            notes,
+        )
+
+    if testimonial:
+        return Finding(
+            "G8", PASS, "characterised as testimonial; G9 tests the declarant", notes
+        )
+
+    if cert is not None:
+        return Finding(
+            "G8",
+            GAP,
+            "the record calls the output non-testimonial while relying on a "
+            "902(13) certificate, which is testimonial when prepared for "
+            "litigation (Melendez-Diaz)",
+            notes,
+        )
+
+    basis = _text(confrontation.get("basis"))
+    if not basis:
+        return Finding(
+            "G8",
+            GAP,
+            "the record asserts the output is not testimonial but states no basis "
+            "for that character",
+            notes,
+        )
+    return Finding("G8", PASS, f"characterised as non-testimonial: {basis}", notes)
+
+
+def gate_9_confrontation(record: dict[str, Any]) -> Finding:
+    """G9: a testimonial statement's declarant, and the chance to confront them."""
+    confrontation = record.get("confrontation")
+    if not isinstance(confrontation, dict):
+        return Finding("G9", UNVERIFIABLE, "no confrontation posture is stated")
+
+    testimonial = confrontation.get("testimonial")
+    if testimonial is False:
+        return Finding(
+            "G9",
+            PASS,
+            "not triggered: the record states the output is non-testimonial (G8)",
+        )
+    if testimonial is not True:
+        return Finding(
+            "G9",
+            UNVERIFIABLE,
+            "the testimonial character of the output is unresolved, so the "
+            "declarant analysis cannot be performed",
+        )
+
+    declarant = _text(confrontation.get("declarant"))
+    problems: list[str] = []
+    if not declarant:
+        problems.append("a testimonial statement is offered with no named declarant")
+    if confrontation.get("surrogate_analyst") is True:
+        problems.append(
+            "the certifying witness is a surrogate who neither performed nor "
+            "reviewed the work (Bullcoming v. New Mexico, 564 U.S. 647 (2011))"
+        )
+    if problems:
+        return Finding("G9", GAP, "; ".join(problems[:3]))
+
+    satisfiers: list[str] = []
+    if confrontation.get("declarant_available") is True:
+        satisfiers.append("available for cross-examination at trial")
+    if confrontation.get("prior_opportunity_to_cross") is True:
+        satisfiers.append("already cross-examined on the same statements")
+    if confrontation.get("notice_and_demand_waiver") is True:
+        satisfiers.append(
+            "defence notice-and-demand waiver recorded; the demand window is a "
+            "fact to be established, not assumed"
+        )
+    if satisfiers:
+        return Finding("G9", PASS, f"declarant {declarant}: " + "; ".join(satisfiers))
+
+    if confrontation.get("declarant_available") is False:
+        return Finding(
+            "G9",
+            GAP,
+            f"declarant {declarant} is unavailable and the record shows no prior "
+            "opportunity to cross-examine (Crawford v. Washington, 541 U.S. 36 (2004))",
+        )
+    return Finding(
+        "G9",
+        UNVERIFIABLE,
+        f"declarant {declarant} is named, but availability and any prior "
+        "cross-examination are not stated",
+    )
+
+
+CIVIL_GATES = (
     gate_1_qualification,
     gate_2_inputs,
     gate_3_method,
@@ -516,6 +688,51 @@ GATES = (
     gate_6_hearsay,
     gate_7_review,
 )
+
+CRIMINAL_GATES = CIVIL_GATES + (gate_8_testimonial, gate_9_confrontation)
+
+# The universal set, kept as the name the document and the audit ledger cite.
+GATES = CIVIL_GATES
+
+
+def forum_of(record: dict[str, Any]) -> tuple[str, str, str]:
+    """Resolve the forum, and say in the report how it was resolved.
+
+    A record that states no forum is read as civil. That default is printed: a
+    missing key must not silently remove the confrontation gates.
+    """
+    stated = _text(_get(record, "proffer", "forum")).lower()
+    if stated in CRIMINAL_FORUMS:
+        return (
+            FORUM_CRIMINAL,
+            "stated",
+            f"forum stated as {stated!r}: confrontation gates G8 and G9 apply",
+        )
+    if not stated:
+        return (
+            FORUM_CIVIL,
+            "unstated",
+            "the record states no forum, so it is read as civil and confrontation "
+            "gates G8 and G9 were NOT applied",
+        )
+    if stated in CIVIL_FORUMS:
+        return (
+            FORUM_CIVIL,
+            "stated",
+            f"forum stated as {stated!r}: confrontation gates G8 and G9 do not apply",
+        )
+    return (
+        FORUM_CIVIL,
+        "unrecognised",
+        f"forum {stated!r} is not a recognised value, so it is read as civil and "
+        "confrontation gates G8 and G9 were NOT applied; recognised criminal "
+        f"values are {sorted(CRIMINAL_FORUMS)}",
+    )
+
+
+def applicable_gates(forum: str) -> tuple[Any, ...]:
+    """The gate set for a forum. Civil keeps the seven universal gates."""
+    return CRIMINAL_GATES if forum == FORUM_CRIMINAL else CIVIL_GATES
 
 
 def canonical(record: Any) -> str:
@@ -535,11 +752,13 @@ def evaluate(record: Any) -> dict[str, Any]:
             "verdict": VERDICT_BLIND,
             "reason": "the record is not an object with a 'proffer' section",
             "gates": [],
+            "gates_applied": [],
             "counts": {PASS: 0, GAP: 0, UNVERIFIABLE: 0},
             "disclaimer": DISCLAIMER,
         }
 
-    findings = [gate(record) for gate in GATES]
+    forum, forum_source, forum_note = forum_of(record)
+    findings = [gate(record) for gate in applicable_gates(forum)]
     counts = {PASS: 0, GAP: 0, UNVERIFIABLE: 0}
     for finding in findings:
         counts[finding.state] += 1
@@ -555,6 +774,9 @@ def evaluate(record: Any) -> dict[str, Any]:
         "schema": SCHEMA_VERSION,
         "verdict": verdict,
         "case": _text(_get(record, "proffer", "case")),
+        "forum": forum,
+        "forum_source": forum_source,
+        "forum_note": forum_note,
         "record_sha256": record_sha256(record),
         "gates": [
             {
@@ -565,6 +787,7 @@ def evaluate(record: Any) -> dict[str, Any]:
             }
             for finding in findings
         ],
+        "gates_applied": [finding.gate for finding in findings],
         "counts": counts,
         "disclaimer": DISCLAIMER,
     }
@@ -573,7 +796,7 @@ def evaluate(record: Any) -> dict[str, Any]:
 def render(report: dict[str, Any]) -> str:
     """One screen: verdict, then one line per gate, then notes."""
     verdict = report["verdict"]
-    lines = [f"ESQUIRE-ADMISSIBILITY-v1  {verdict}"]
+    lines = [f"{VERSION_LABEL}  {verdict}"]
     case = report.get("case")
     if case:
         lines.append(f"case: {case}")
@@ -582,10 +805,12 @@ def render(report: dict[str, Any]) -> str:
         lines.append(DISCLAIMER)
         return "\n".join(lines)
 
+    lines.append(f"forum: {report['forum']} ({report['forum_source']})")
+    lines.append(f"forum note: {report['forum_note']}")
     counts = report["counts"]
     lines.append(
         f"gates: {counts[PASS]} pass, {counts[GAP]} gap, "
-        f"{counts[UNVERIFIABLE]} unaddressed"
+        f"{counts[UNVERIFIABLE]} unaddressed, over {len(report['gates_applied'])} applied"
     )
     lines.append("")
     for gate in report["gates"]:
@@ -600,9 +825,10 @@ def render(report: dict[str, Any]) -> str:
 
 def render_gates() -> str:
     """The gate table, for audit and for the document that cites it."""
-    lines = ["ESQUIRE-ADMISSIBILITY-v1 gate table", ""]
+    lines = [f"{VERSION_LABEL} gate table", ""]
     for meta in GATE_METADATA:
         lines.append(f"{meta['id']}  {meta['title']}")
+        lines.append(f"    applies to:       {meta.get('applies_to', 'any forum')}")
         lines.append(f"    authority:        {meta['authority']}")
         lines.append(f"    evidence tier:    {meta['tier']}")
         lines.append(f"    falsifier:        {meta['falsifier']}")
@@ -650,6 +876,7 @@ def main(argv: list[str] | None = None) -> int:
             "verdict": VERDICT_BLIND,
             "reason": f"{type(error).__name__}: {error}",
             "gates": [],
+            "gates_applied": [],
             "counts": {PASS: 0, GAP: 0, UNVERIFIABLE: 0},
             "disclaimer": DISCLAIMER,
         }
