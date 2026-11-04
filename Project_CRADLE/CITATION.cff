@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project CRADLE: One command over sword, defender, sentinel and memory — the composition, not a fifth part."
+version: 0.1.0
+date-released: "2026-11-01"
+license: CDDL-1.1
+type: software
+abstract: >-
+  CRADLE orchestrates four parts that live in a sibling project: Project_FLAMING_SWORD,
+  providing `tools/sword.py` (FLAMING SWORD), `tools/defender.py` (defender),
+  `tools/sentinel.py` (THE REAPER) and `tools/memory_bridge.py` (THE GRIMOIRE).
+  CRADLE is the composition, not a fifth part — it wires the parts together and
+  reports missing siblings via `--doctor` rather than assuming they exist.
+authors:
+  - name: "Project CRADLE contributors"
+keywords:
+  - orchestration
+  - composition
+  - static analysis
+  - code quality
+  - open source
+references:
+  - type: software
+    title: "Project FLAMING SWORD"
+    notes: "Sibling project providing the four parts CRADLE orchestrates."
+    url: "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAMING_SWORD"

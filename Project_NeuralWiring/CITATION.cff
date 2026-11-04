@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_NeuralWiring: System-level neural wiring map: LocalMemoryStore, DataPipelineWorm, DirectMemory, neural subsystems connection map."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  System-level neural wiring map: LocalMemoryStore, DataPipelineWorm, DirectMemory, neural subsystems connection map.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - neural-wiring
+  - memory-store
+  - data-pipeline
+  - direct-memory
+  - system-wiring
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

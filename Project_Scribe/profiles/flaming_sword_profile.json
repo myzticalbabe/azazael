@@ -1,0 +1,305 @@
+{
+  "project_name": "Project FLAMING SWORD",
+  "project_description": "Code quality sweep tool: find, queue, fix, prove, and land a sweep of one codebase. Six tools (sword, defender, sentinel, memory_bridge, chain, housekeep) on stdlib + git. No runtime dependencies.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAMING_SWORD",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAMING_SWORD",
+  "team_size": 1,
+  "funding_amount": "$50,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/flaming_sword_pitch.pdf",
+  "prototype_video": "profiles/flaming_sword_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAMING_SWORD",
+  "proposal": "profiles/flaming_sword_proposal.md",
+  "budget": "profiles/flaming_sword_budget.xlsx",
+  "timeline": "profiles/flaming_sword_timeline.md",
+  "security_audit": "",
+  "threat_model": "",
+  "adoption_metrics": "",
+  "maintenance_plan": "",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "epic_megagrants": {
+      "max_amount": 150000,
+      "type": "cash_grant",
+      "deadline": "2026-09-04",
+      "priority": "medium"
+    },
+    "nlnet": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-03",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "medium"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "medium"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ospo": {
+      "max_amount": 750000,
+      "type": "cash_grant",
+      "deadline": "loi_cycle",
+      "priority": "high"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "medium"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "high"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "high"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "high"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "low"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "high"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "low"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "low"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "epic_megagrants": {
+      "project_description": "Code quality sweep toolchain: 6 tools on stdlib + git. Find, queue, fix, prove, land sweeps. Advances open-source tooling for code quality.",
+      "equipment_budget": "15000",
+      "equipment_justification": "RTX 4090 for sweep benchmarking + A100 cloud for large codebase analysis.",
+      "requested_amount": "75000"
+    },
+    "nlnet": {
+      "project_description": "FLAMING SWORD: stdlib-only code quality sweep with 6 tools (sword, defender, sentinel, memory_bridge, chain, housekeep). Advances open-source developer tooling.",
+      "call": "NGI0",
+      "website": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAMING_SWORD",
+      "abstract": "FLAMING SWORD finds, queues, fixes, proves, and lands a sweep of one codebase. Six tools on stdlib + git.",
+      "requested_amount": "50000",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV: RTX 4090 + 128GB DDR5 + 4TB NVMe for sweep benchmarking on large codebases.",
+      "use": "Developers run FLAMING SWORD to sweep code quality issues across their codebase.",
+      "comparison": "Unlike linters, FLAMING SWORD proves fixes land and reports missing fixes via disposition ledger.",
+      "challenges": "Proving fixes land without false positives requires git-integrated disposition tracking.",
+      "ecosystem": "Integrates with CRADLE (orchestration) and SHARDEX (content-addressed shards for analysis).",
+      "experience": "Team has built forensic investigation, code quality, and game engine tools.",
+      "other_funding": "No other funding currently.",
+      "requestor_name": "Clint Oxford",
+      "contact_email": "clintonoxford47@gmail.com",
+      "organization": "Azazael",
+      "country": "US",
+      "used_ai": "true",
+      "ai_prompt": "Used AI for fix pattern generation and disposition ledger design.",
+      "codebase_used_ai": "true",
+      "entity": "individual"
+    },
+    "github_secure_oss": {
+      "project_description": "Security-focused sweep: finds vulnerabilities, proves fixes land, disposition ledger tracks remediation. SLSA build verification.",
+      "equipment_budget": "10000",
+      "equipment_justification": "RTX 4090 for SBOM signing + SLSA verification of sweep artifacts.",
+      "requested_amount": "10000"
+    },
+    "amazon_security": {
+      "project_description": "FLAMING SWORD security sweep: finds vulns, proves fixes, disposition ledger. Amazon Security Research alignment for code quality tooling.",
+      "equipment_budget": "20000",
+      "equipment_justification": "AWS credits for SBOM signing, SLSA verification, and supply-chain integrity pipeline.",
+      "requested_amount": "80000"
+    },
+    "github_accelerator": {
+      "project_description": "AI-powered code quality sweep: FLAMING SWORD with 6 stdlib tools. Open-source, GitHub-hosted.",
+      "requested_amount": "40000",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV: RTX 4090 + A100 80GB cloud for AI-assisted fix pattern generation."
+    },
+    "prototype_fund": {
+      "project_description": "FLAMING SWORD prototype: 6-tool sweep pipeline on stdlib. German Prototype Fund alignment for dev tools.",
+      "equipment_budget": "30000",
+      "equipment_justification": "Prototype Fund \u00e2\u201a\u00ac95K/6mo: RTX 4090 + A100 cloud for sweep engine development.",
+      "requested_amount": "95000"
+    },
+    "charted_fund": {
+      "project_description": "CHARTED Fund: FLAMING SWORD dev tools for UK research software engineers. 6-tool sweep on stdlib.",
+      "equipment_budget": "10000",
+      "equipment_justification": "CHARTED \u00c2\u00a312.5K/activity: RTX 4090 for sweep benchmarking on UK research codebases.",
+      "requested_amount": "12500"
+    }
+  },
+  "project": "Project FLAMING SWORD",
+  "amount": "50000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

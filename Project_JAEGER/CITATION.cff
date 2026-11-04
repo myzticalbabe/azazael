@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project JAEGER: BCC Re-Investigation Machinery — the forensic layer that keeps claims tied to documents."
+version: 0.1.0
+date-released: "2026-11-01"
+license: CDDL-1.1
+type: software
+abstract: >-
+  JAEGER is the BCC Re-Investigation machinery: the forensic layer that
+  keeps an investigation's claims tied to the documents they rest on, and
+  the gate that decides what may leave the machine. It is NOT the therapeutic
+  agent in this tree — that is a SEPARATE project, Project Nurse Ratchet.
+  JAEGER provides the evidence provenance, entity resolution, claim-to-source
+  citation, and disclosure control for the BCC investigation.
+authors:
+  - name: "Project JAEGER contributors"
+keywords:
+  - forensic investigation
+  - evidence provenance
+  - BCC re-investigation
+  - disclosure control
+  - claim-to-source citation
+  - reproducible verification
+  - open science
+references:
+  - type: software
+    title: "Project ELIZA"
+    notes: "Sibling forensic investigation suite in the Azazael tree."
+    url: "https://github.com/myzticalbabe/azazael/tree/main/Project_ELIZA"
+  - type: software
+    title: "Project Nurse Ratchet"
+    notes: "Separate therapeutic agent project."
+    url: "https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet"

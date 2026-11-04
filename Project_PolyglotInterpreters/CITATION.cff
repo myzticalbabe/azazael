@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_PolyglotInterpreters: Go, Node, Rust, Python, PowerShell runners for executing non-Python code within Azazael ecosystem."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  Go, Node, Rust, Python, PowerShell runners for executing non-Python code within Azazael ecosystem.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - polyglot
+  - interpreters
+  - go
+  - node
+  - rust
+  - powershell
+  - code-execution
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

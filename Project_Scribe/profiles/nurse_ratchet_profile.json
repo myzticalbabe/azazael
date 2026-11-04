@@ -1,0 +1,425 @@
+{
+  "project_name": "Project Nurse Ratchet",
+  "project_description": "A therapeutic-agent loop over a person's construct network with auditable psychological modelling. Four layers: trait/affect model, psychological network (partial correlations), compiled inference (graded prototypes), realtime triage loop. Ships with evaluation instruments (labelled corpus with dev/holdout splits) and a publication gate that refuses to ship evidence about identifiable people.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet",
+  "team_size": 1,
+  "funding_amount": "$100,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/nurse_ratchet_pitch.pdf",
+  "prototype_video": "profiles/nurse_ratchet_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet",
+  "proposal": "profiles/nurse_ratchet_proposal.md",
+  "budget": "profiles/nurse_ratchet_budget.xlsx",
+  "timeline": "profiles/nurse_ratchet_timeline.md",
+  "security_audit": "profiles/nurse_ratchet_security_audit.md",
+  "threat_model": "profiles/nurse_ratchet_threat_model.md",
+  "adoption_metrics": "",
+  "maintenance_plan": "profiles/nurse_ratchet_maintenance.md",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "openai_mental_health": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "passed_2026-10-06",
+      "priority": "high"
+    },
+    "wellcome": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "one_mind": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "high"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "high"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "high"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "high"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "medium"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "medium"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "medium"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "medium"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "low"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "medium"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "openai_mental_health": {
+      "project_description": "Digital mental health therapeutic agent with auditable network psychometrics, JITAI timing, and a disclosure gate that refuses to ship evidence about identifiable people. Addresses OpenAI's safety priorities: affective use, emotional well-being, and classifier gaps in mental health language.",
+      "contact_email": "clintonoxford47@gmail.com",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV box: 2\u00c3\u2014 A100 80GB (cloud) for LLM fine-tuning + 128GB DDR5 + 4TB NVMe. OpenAI mental health grant max $100K; $15K compute for therapeutic model training with privacy-preserving inference.",
+      "requested_amount": "100000"
+    },
+    "wellcome": {
+      "project_description": "Therapeutic agent with network psychometrics, labelled corpus, and disclosure control. Aligns with Wellcome's digital mental health priorities: equitable solutions, reproducible verification, and open science.",
+      "equipment_budget": "20000",
+      "equipment_justification": "Hyper-Edge DEV box: 2\u00c3\u2014 A100 80GB + 256GB DDR5 + 8TB NVMe. Wellcome Trust allows up to \u00c2\u00a3200K; \u00c2\u00a320K equipment for clinical-grade model validation and holdout evaluation.",
+      "requested_amount": "200000"
+    },
+    "one_mind": {
+      "project_description": "Precision psychiatry therapeutic agent: trait/affect model \u00e2\u2020\u2019 psychological network \u00e2\u2020\u2019 compiled inference \u00e2\u2020\u2019 realtime triage. Ships with evaluation instruments and a publication gate for identifiable data protection.",
+      "equipment_budget": "10000",
+      "equipment_justification": "Hyper-Edge DEV box: 1\u00c3\u2014 A100 80GB + 128GB DDR5 + 4TB NVMe. One Mind accelerator covers GPU compute for precision psychiatry model training.",
+      "requested_amount": "50000"
+    },
+    "humanity_ai": {
+      "project_description": "Community-led AI for mental health: Nurse Ratchet therapeutic agent with community governance and disclosure gate.",
+      "requested_amount": "1000000",
+      "equipment_budget": "50000",
+      "equipment_justification": "Hyper-Edge DEV cluster for community-governed therapeutic model training with disclosure gate."
+    },
+    "unicef_venture": {
+      "project_description": "Youth mental health tech: Nurse Ratchet therapeutic agent for adolescent digital well-being. Equity-free, open-source, disclosure gate protects identifiable data.",
+      "requested_amount": "100000",
+      "equipment_budget": "20000",
+      "equipment_justification": "A100 80GB for therapeutic model training on youth mental health corpus. Privacy-preserving inference infrastructure."
+    },
+    "github_secure_oss": {
+      "project_description": "Security-focused therapeutic agent: disclosure gate prevents shipping evidence about identifiable people. SLSA build verification for therapeutic model supply chain.",
+      "equipment_budget": "5000",
+      "equipment_justification": "RTX 4090 for SBOM signing + SLSA verification of therapeutic model artifacts.",
+      "requested_amount": "10000"
+    },
+    "github_accelerator": {
+      "project_description": "10-week accelerator for Nurse Ratchet therapeutic agent. AI-native mental health agent with disclosure gate on GitHub.",
+      "requested_amount": "40000",
+      "equipment_budget": "15000",
+      "equipment_justification": "GitHub Copilot + Azure AI credits for AI-assisted therapeutic model development and disclosure gate."
+    },
+    "google_cloud_research": {
+      "project_description": "Research compute for Nurse Ratchet therapeutic model training and holdout evaluation with privacy-preserving inference.",
+      "requested_amount": "5000"
+    },
+    "google_startups_ai": {
+      "project_description": "AI-first therapeutic agent startup: Nurse Ratchet with auditable network psychometrics and disclosure gate. Privacy-preserving inference for mental health.",
+      "requested_amount": "350000",
+      "equipment_budget": "100000",
+      "equipment_justification": "Hyper-Edge DEV cluster: 4\u00c3\u2014 A100 80GB + 512GB DDR5 + 16TB NVMe for therapeutic model training and clinical-grade validation."
+    },
+    "aws_activate": {
+      "project_description": "Nurse Ratchet therapeutic agent on AWS. Privacy-preserving inference with content-addressed model sharding.",
+      "requested_amount": "200000",
+      "equipment_budget": "50000",
+      "equipment_justification": "AWS P4de (A100 80GB) for therapeutic model training. 30,000 GPU-hours for holdout evaluation with disclosure gate."
+    },
+    "microsoft_startups": {
+      "project_description": "Nurse Ratchet on Azure. GitHub Codespaces + Azure AI for therapeutic model contributor onboarding and clinical validation.",
+      "requested_amount": "150000",
+      "equipment_budget": "50000",
+      "equipment_justification": "Azure NDv4 (A100) for therapeutic model training. GitHub Codespaces integration for clinical contributors."
+    },
+    "cloudflare_startups": {
+      "project_description": "Nurse Ratchet edge therapeutic inference: Workers for privacy-preserving inference at the edge with disclosure gate.",
+      "requested_amount": "350000",
+      "equipment_budget": "50000",
+      "equipment_justification": "Workers AI ($50K) for edge therapeutic inference. R2 ($10K) for model distribution. KV for session state."
+    },
+    "czi_eoss": {
+      "project_description": "Nurse Ratchet as essential open-source tool for computational psychiatry. Auditable network psychometrics with disclosure gate for biomedical research.",
+      "requested_amount": "200000"
+    },
+    "openscience_fund": {
+      "project_description": "Track 1: Domain-specific tools. Nurse Ratchet therapeutic agent for precision psychiatry. Clear technical bottleneck: disclosure gate + clinical validation.",
+      "requested_amount": "250000",
+      "equipment_budget": "100000",
+      "equipment_justification": "A100 cluster for therapeutic model training with clinical-grade holdout evaluation and disclosure gate verification."
+    },
+    "sloan_ai_science": {
+      "project_description": "AI in Science: Nurse Ratchet therapeutic agent with auditable psychometrics. Reproducible verification for computational psychiatry.",
+      "requested_amount": "400000",
+      "equipment_budget": "100000",
+      "equipment_justification": "A100 cluster for therapeutic model training with graded prototypes and disclosure gate. Verifiable compute for science."
+    },
+    "nvidia_academic": {
+      "project_description": "AI Training: Nurse Ratchet therapeutic model with NVIDIA Nemotron. Inference on DGX Sparks with privacy-preserving disclosure gate.",
+      "requested_amount": "30000_h100_hrs",
+      "equipment_budget": "0",
+      "equipment_justification": "30,000 H100 80GB GPU-hours for therapeutic model fine-tuning + holdout evaluation. 2\u00c3\u2014 DGX Sparks for inference with disclosure gate."
+    },
+    "nvidia_inception": {
+      "project_description": "Nurse Ratchet therapeutic agent open-source. NVIDIA Inception for preferred pricing and cloud credits.",
+      "requested_amount": "free_credits"
+    },
+    "aws_activate_ai": {
+      "project_description": "AI-startup track: Nurse Ratchet on AWS. Privacy-preserving therapeutic inference with Trainium/Inferentia.",
+      "requested_amount": "200000+",
+      "equipment_budget": "100000",
+      "equipment_justification": "AWS Trainium/Inferentia for therapeutic model training. EC2 P5 (H100) for clinical validation pipeline."
+    },
+    "google_startups": {
+      "project_description": "Nurse Ratchet on GCP. Vertex AI for therapeutic model training with disclosure gate. TPU v5e for privacy-preserving inference.",
+      "requested_amount": "350000",
+      "equipment_budget": "100000",
+      "equipment_justification": "TPU v5e pods for therapeutic model training. Vertex AI pipelines for clinical-grade validation with disclosure gate."
+    },
+    "ai_grant_oss": {
+      "project_description": "No-strings grant for open-source AI: Nurse Ratchet therapeutic agent with auditable psychometrics and disclosure gate.",
+      "requested_amount": "50000"
+    },
+    "raais_foundation": {
+      "project_description": "Open-source AI for common good: Nurse Ratchet therapeutic agent advances trustworthy AI for mental health.",
+      "requested_amount": "3_month_grant"
+    },
+    "prototype_fund": {
+      "project_description": "Nurse Ratchet prototype: therapeutic agent loop with auditable network psychometrics and disclosure gate. German Prototype Fund alignment.",
+      "requested_amount": "95000",
+      "equipment_budget": "30000",
+      "equipment_justification": "Prototype Fund \u00e2\u201a\u00ac95K/6mo: A100 cloud for therapeutic model training with clinical holdout evaluation."
+    },
+    "amazon_security": {
+      "project_description": "Therapeutic agent supply-chain security: disclosure gate + SLSA verification for model artifacts. Amazon Security Research alignment.",
+      "requested_amount": "80000",
+      "equipment_budget": "20000",
+      "equipment_justification": "AWS credits for SBOM signing, SLSA verification, and clinical-grade model validation pipeline."
+    },
+    "catalyst_fund": {
+      "project_description": "Research Software Catalyst: Nurse Ratchet trustworthy AI for mental health via auditable psychometrics and disclosure gate.",
+      "requested_amount": "50000"
+    },
+    "opensats": {
+      "project_description": "Nurse Ratchet Bitcoin integration: therapeutic agent with disclosure gate for financial mental health applications.",
+      "requested_amount": "rolling"
+    },
+    "wellcome_trust": {
+      "project_description": "Nurse Ratchet for computational psychiatry reproducibility. Auditable network psychometrics with disclosure gate for biomedical research.",
+      "requested_amount": "large"
+    },
+    "open_science_nl": {
+      "project_description": "Open Science NL: Nurse Ratchet open-source therapeutic agent for reproducible computational psychiatry in Dutch institutions.",
+      "requested_amount": "15000"
+    },
+    "charted_fund": {
+      "project_description": "CHARTED Fund: Nurse Ratchet dev tools for UK research software engineers. Therapeutic agent with auditable psychometrics.",
+      "requested_amount": "12500"
+    },
+    "ukomain": {
+      "project_description": "UK Open Multimodal AI Benchmark: Nurse Ratchet therapeutic agent for multimodal mental health evaluation.",
+      "requested_amount": "50000",
+      "equipment_budget": "15000",
+      "equipment_justification": "UKOMAIN \u00c2\u00a350K: A100 for multimodal therapeutic agent evaluation with disclosure gate."
+    },
+    "linux_australia": {
+      "project_description": "Linux Australia: Nurse Ratchet open-source therapeutic agent for Australian mental health developer community.",
+      "requested_amount": "varies"
+    },
+    "freecad_grant": {
+      "project_description": "FreeCAD Grant: Nurse Ratchet CAD integration for therapeutic environment modeling.",
+      "requested_amount": "10000"
+    },
+    "anthropic_claude": {
+      "project_description": "Claude Corps: Nurse Ratchet therapeutic agent development with AI-assisted coding for disclosure gate and psychometric modeling.",
+      "requested_amount": "fellow_plus_10k"
+    },
+    "schmidt_ai_fellowship": {
+      "project_description": "Schmidt AI Fellowship: Nurse Ratchet postdoc for auditable network psychometrics in computational psychiatry.",
+      "requested_amount": "fellowship"
+    },
+    "openai_researcher": {
+      "project_description": "OpenAI Researcher Access: Nurse Ratchet therapeutic model validation using GPT-4 for psychometric evaluation.",
+      "requested_amount": "api_credits"
+    },
+    "anthropic_academic": {
+      "project_description": "Anthropic Academic: Nurse Ratchet with Claude for therapeutic agent code generation and disclosure gate implementation.",
+      "requested_amount": "api_credits"
+    }
+  },
+  "project": "Project Nurse Ratchet",
+  "amount": "100000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

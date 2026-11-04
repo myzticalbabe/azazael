@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_EcosystemOrchestrator: ADLP SystemTools, MetaCluster, ecosystem crawler, HORUS monitoring, distributed systems coordination."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  ADLP SystemTools, MetaCluster, ecosystem crawler, HORUS monitoring, distributed systems coordination.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - orchestration
+  - meta-cluster
+  - ecosystem
+  - distributed
+  - coordination
+  - crawler
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"
