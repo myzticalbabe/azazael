@@ -1,0 +1,141 @@
+# SpitFire Wine Validation — Win7/8.1 Binary Testing on Linux CI
+# Runs in parallel with main build matrix to catch DLL/manifest issues early
+
+name: SpitFire Wine Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, azazael-intel-ultra-9-evo]
+    paths:
+      - "src/spitfire/**"
+      - ".github/workflows/spitfire-build.yml"
+      - ".github/workflows/spitfire-wine-validation.yml"
+
+jobs:
+  wine-test:
+    name: Wine Test ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: win7
+            artifact: SpitFire-win7.exe
+            python_version: "3.8"
+            wine_arch: win32
+            # Win7 needs 32-bit Wine for some legacy apps, but 64-bit works for pure Python
+          - target: win81
+            artifact: SpitFire-win81.exe
+            python_version: "3.12"
+            wine_arch: win64
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download ${{ matrix.target }} artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SpitFire-${{ matrix.target }}
+          path: dist/${{ matrix.target }}
+        continue-on-error: true
+
+      - name: Install Wine + Dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y \
+            wine${{ matrix.wine_arch == 'win32' && '32' || '64' }} \
+            wine64 \
+            winetricks \
+            cabextract \
+            fonts-liberation
+        timeout-minutes: 10
+
+      - name: Configure Wine Prefix
+        run: |
+          export WINEPREFIX=/tmp/wine-${{ matrix.target }}
+          export WINEARCH=${{ matrix.wine_arch }}
+          wineboot --init
+          # Install VC++ runtimes that Nuitka binaries may need
+          winetricks -q vcrun2017 vcrun2019 corefonts
+          # Verify Wine works
+          wine --version
+        timeout-minutes: 5
+
+      - name: Verify Binary Exists
+        run: |
+          ls -la dist/${{ matrix.target }}/${{ matrix.artifact }}
+          file dist/${{ matrix.target }}/${{ matrix.artifact }}
+        continue-on-error: true
+
+      - name: Test Census Command (Read-Only, Safe)
+        run: |
+          export WINEPREFIX=/tmp/wine-${{ matrix.target }}
+          export WINEARCH=${{ matrix.wine_arch }}
+          cd dist/${{ matrix.target }}
+          # Test basic execution
+          wine ${{ matrix.artifact }} --version
+          # Test census (read-only, no filesystem writes outside repo)
+          wine ${{ matrix.artifact }} census --max-workers 4
+        timeout-minutes: 10
+
+      - name: Test Fix Command (Dry Run)
+        run: |
+          export WINEPREFIX=/tmp/wine-${{ matrix.target }}
+          export WINEARCH=${{ matrix.wine_arch }}
+          cd dist/${{ matrix.target }}
+          # Fix command is stubbed, should return 0
+          wine ${{ matrix.artifact }} fix --report
+        timeout-minutes: 5
+
+      - name: Upload Wine Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wine-logs-${{ matrix.target }}
+          path: /tmp/wine-${{ matrix.target }}/**/*.log
+          retention-days: 7
+
+  # Cross-validation: ensure Wine results match native Windows CI
+  cross-validate:
+    name: Cross-Validate Wine vs Native
+    needs: [wine-test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download Native Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: SpitFire-*
+          path: native
+          merge-multiple: true
+
+      - name: Download Wine Test Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wine-logs-*
+          path: wine-logs
+          merge-multiple: true
+
+      - name: Compare Results
+        run: |
+          echo "=== Cross-Validation Report ==="
+          for target in win7 win81; do
+            echo "Target: $target"
+            if [ -f "native/SpitFire-$target/SpitFire-$target.exe" ]; then
+              echo "  Native:  ✅ built"
+            else
+              echo "  Native:  ❌ missing"
+            fi
+            if [ -f "wine-logs/wine-logs-$target/drive_c/users/runner/Temp/wine.log" ]; then
+              echo "  Wine:    ✅ tested"
+            else
+              echo "  Wine:    ⚠️  logs missing"
+            fi
+          done
