@@ -60,38 +60,61 @@ WORMS_BY_CATEGORY = defaultdict(list)
 for name, entry in WORM_REGISTRY.items():
     WORMS_BY_CATEGORY[entry.get("category", "unknown")].append(name)
 
-# Per-worm timeout (seconds)
+# Per-worm FAST-PATH budget (seconds). Not a verdict -- see _run_with_timeout.
 PER_WORM_TIMEOUT = 10
+#: Extra wait granted to a call that missed the fast path before it is called
+#: HUNG. Measured 2026-11-04: PlasticityEngineWorm exceeded 10 s with twelve
+#: busy cores and settled well inside this window, while the same file read
+#: "1/247 worms failed instantiation" in a full run. A budget is a claim about
+#: the box; only an unsettled extended wait is a claim about the worm.
+HUNG_WAIT = 60
 
 
-def _run_with_timeout(func, timeout=10):
-    """Run a callable with a timeout guard. Returns {"result": ..., "error": ...}.
+def _run_with_timeout(func, timeout=PER_WORM_TIMEOUT):
+    """Run a callable with a timeout guard.
+
+    Returns {"result": ..., "error": ..., "slow": bool, "waited": float}.
 
     ONE persistent worker thread for the whole session (2026-10-06): the old
     per-call thread (200+ short-lived threads across the fleet) AVs inside
     torch C code on 3.15 -- rapid thread detach races native init (same class
     as the 3.14.8 biased-refcount thread-detach fixes). A single long-lived
     worker constructs everything; the timeout only bounds the WAIT.
+
+    A call that misses the fast path is waited on for up to HUNG_WAIT more
+    before it is reported HUNG, and the two outcomes are named differently
+    because they mean different things: "slow" is the box under load, "HUNG" is
+    a worm that never settles. The worker keeps running the original job, so the
+    extended wait costs no duplicated work.
     """
     box: dict = {}
-    _WORK_QUEUE.put((func, box))
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if "settled" in box:
-            return {"result": box.get("result"), "error": box.get("error")}
-        time.sleep(0.01)
-    return {"result": None, "error": f"TIMEOUT (>{timeout}s)"}
+    settled = threading.Event()
+    _WORK_QUEUE.put((func, box, settled))
+    start = time.monotonic()
+    if not settled.wait(timeout):
+        settled.wait(HUNG_WAIT)
+    waited = time.monotonic() - start
+    if not settled.is_set():
+        return {"result": None,
+                "error": f"HUNG (unsettled after {waited:.0f}s)",
+                "slow": False, "waited": waited}
+    if box.get("error"):
+        return {"result": None, "error": box["error"],
+                "slow": waited > timeout, "waited": waited}
+    return {"result": box.get("result"), "error": None,
+            "slow": waited > timeout, "waited": waited}
 
 
 def _single_worker():
     while True:
-        func, box = _WORK_QUEUE.get()
+        func, box, settled = _WORK_QUEUE.get()
         try:
             box["result"] = func()
         except Exception as e:
             box["error"] = f"{type(e).__name__}: {e}"
         finally:
             box["settled"] = True
+            settled.set()
 
 
 import queue as _queue
