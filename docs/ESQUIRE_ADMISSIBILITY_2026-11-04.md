@@ -421,3 +421,14 @@ Nothing in this document has been reviewed by a lawyer. Its citations are
 marked by verification state so that a lawyer can see, in one table, which
 authorities were read at source, which were confirmed to exist, and which were
 not touched.
+
+**Extraction (2026-11-04).** A standalone repository was staged at
+`C:/Azazael/publish_repos/esquire_admissibility/`: this document is its
+`README.md`, with the four `tools/` path references rewritten to the flat layout,
+and it carries an unchanged copy of the module plus the suite, whose only edit is
+the import (`from tools.esquire_admissibility` becomes
+`from esquire_admissibility`). Verified in the copy: `52 passed in 0.26s`; `READY`
+exit 0, `GAPS` exit 1, `BLIND` exit 2. Nothing was pushed and no GitHub repository
+was created — visibility is the owner's decision, not a step this document takes.
+Two files are local-only by construction: the staged repo has no remote, and the
+push, when it happens, is a fresh single-commit history (`5404046`).
