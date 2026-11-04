@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project FLAME: Fixed-step orchestrator for accelerated play — integer timebase, no dropped ticks."
+version: 0.1.0
+date-released: "2026-11-01"
+license: CDDL-1.1
+type: software
+abstract: >-
+  FLAME is a fixed-step game engine orchestrator with an integer timebase
+  that guarantees no dropped ticks. It runs on the Python standard library
+  with no runtime dependencies. The engine provides deterministic simulation
+  suitable for accelerated play, testing, and replay.
+authors:
+  - name: "Project FLAME contributors"
+keywords:
+  - game engine
+  - fixed-step
+  - integer timebase
+  - deterministic simulation
+  - open source
+references:
+  - type: software
+    title: "Godot Engine"
+    notes: "Reference for open-source game engine architecture."
+    url: "https://godotengine.org/"

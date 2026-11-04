@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project FLAMING SWORD: Find, queue, fix, prove and land a sweep of one codebase."
+version: 0.1.0
+date-released: "2026-11-01"
+license: CDDL-1.1
+type: software
+abstract: >-
+  FLAMING SWORD is a code quality sweep tool that finds, queues, fixes,
+  proves, and lands a sweep of one codebase. It provides six tools:
+  sword (main sweep), defender (defense), sentinel (THE REAPER),
+  memory_bridge (THE GRIMOIRE), chain_server (chain), and housekeep (maintenance).
+  The sweep is stdlib-only and depends on nothing but the standard library and git.
+authors:
+  - name: "Project FLAMING SWORD contributors"
+keywords:
+  - static analysis
+  - code quality
+  - code sweep
+  - automated repair
+  - open source
+  - developer tools
+references:
+  - type: software
+    title: "Project CRADLE"
+    notes: "Sibling project that orchestrates FLAMING SWORD's four parts."
+    url: "https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE"
