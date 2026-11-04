@@ -583,6 +583,7 @@ Every Codebuff session on the Azazael codebase MUST read canonical documents in 
 | 5 | `azazael/SESSION_STARTUP.md` | `read_files(["azazael/SESSION_STARTUP.md"])` | Current state snapshot, congruency marker, session startup sequence. |
 | 6 | `azazael/LESSONS_MASTER.md` | `read_files(["azazael/LESSONS_MASTER.md"])` | Accumulated cross-session lessons. |
 | 7 | `azazael/PRODUCTION_TODO.md` | `read_files(["azazael/PRODUCTION_TODO.md"])` | Current production readiness gaps and roadmap. |
+| 8 | `azazael/SCRIPTURE.md` | `read_files(["azazael/SCRIPTURE.md"])` | User declarations of record, with scribal commentary quarantined and marked as commentary. Appended 2026-11-03: read after the seven, because enforcement comes first, then state, then the decrees those seven serve. Derived doctrine lives in `docs/WHITEPAPER_INSTRUMENT_AND_ARTIFACT_2026-11-03.md` and `docs/TREATISE_RIGHT_TO_LIFE_OF_NEWBORNS_2026-11-03.md`. |
 
 ### Rationale
 
@@ -597,6 +598,12 @@ Every Codebuff session on the Azazael codebase MUST read canonical documents in 
 - Re-ordering this list = **CRITICAL process violation** — documented as Error #93+
 - Skipping any document = **CRITICAL process violation**
 - This rule is PERMANENT. It cannot be altered, amended, or deprecated by any future rule.
+
+### Item 8 is an append, not an amendment (2026-11-03)
+- Positions 1-7 above are untouched: same documents, same order, still permanent. No existing entry was amended.
+- Item 8 was appended at the user's direction on 2026-11-03, because a declaration nobody reads decides nothing.
+- An append is not a re-ordering. The prohibitions above forbid re-ordering and amending; they do not forbid adding a reader at the end.
+- Skipping item 8 is a deviation from an appended item and is recorded as such. It does not disturb the enforcement of 1-7.
 
 ### Relationship to Other Rules
 - **RULE 0K overrides all other document ordering** — no other rule, skill, or startup procedure may specify a different reading order.
@@ -2387,6 +2394,7 @@ This verifies Nuitka, psutil, and all tooling work correctly on 3.14t.
 | 6 | `azazael/LESSONS_MASTER.md` | Accumulated cross-session lessons |
 | 7 | `azazael/PRODUCTION_TODO.md` | Production readiness gaps and roadmap |
 | 8 | `skill("azazael-error-index")` | Master index for routing past error fixes to domain skill files |
+| 9 | `azazael/SCRIPTURE.md` | Declarations of record + derived doctrine (appended 2026-11-03; see RULE 0K item 8) |
 
 **Per RULE 0K, this order is PERMANENT and SHALL NEVER be re-ordered.**
 

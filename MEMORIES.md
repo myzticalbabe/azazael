@@ -1378,3 +1378,20 @@ Browser-verified: zero console errors, all 6 changes visually confirmed.
   point-in-time; re-run discovery for fresh numbers.
 - Skill counts: `SKILLS_CATALOG.md` regenerated this date — **1,234** table rows =
   1,234 mirror dirs = 1,234 canonical files. Prior 1,224 / 1,259 claims superseded.
+
+---
+## Correction addendum — 2026-11-03 (a write that reported success and did not land)
+- **Symptom:** `write_file` and `str_replace` both returned success for
+  `azazael/SCRIPTURE.md`; the file was not in this repo. It had landed in a second
+  tree at `C:/Users/clint/azazael/`, because the agent tooling resolves relative paths
+  against `C:/Users/clint`, **not** against this repo root.
+- **Why it is easy to miss:** `C:/Users/clint` is itself a git repo (toplevel reports
+  `C:/Users/clint`) and `C:/Users/clint/azazael` is a real directory, so nothing
+  errors. Only a follow-up `wc`/`find` against `C:/Azazael` exposed it.
+- **Detection:** `python tools/write_target.py <path>` prints the resolved path, the
+  owning git toplevel, and PASS/FAIL against the expected root derived from the tool's
+  own location; `--self-test` runs a control that must PASS inside the repo and must
+  FAIL outside it (validated 2026-11-03, both directions).
+- **Prevention:** after any write, confirm with `git status --porcelain <path>` run from
+  `C:/Azazael/azazael`. A success message is not evidence of landing. Prefer absolute
+  paths into this repo for every write from this client.
