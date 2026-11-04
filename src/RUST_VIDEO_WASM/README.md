@@ -8,10 +8,12 @@ readings instead of opinions.
 
 | | who decodes | what Rust does | module | verdict |
 |---|---|---|---|---|
-| **A** browser + Rust | `<video>` (H.264/AAC) | 32-band DFT on PCM, 60 fps aurora | 118 KB | **the default.** Streams any length |
-| **B** frames baked in | `jpeg-decoder` in-module | unpack + RGBA | 118 KB | works, wrong for songs (see size) |
-| **C** pixel processing | the browser | every pixel, every frame | 118 KB | **the useful one** for effects |
-| **D** packed stream | ffmpeg (offline) | RGB24 → RGBA in-module | 118 KB | correct container, honest limit |
+| **A** browser + Rust | `<video>` (H.264/AAC) | 32-band DFT on PCM, aurora field | 120 KB | **the default.** Streams any length |
+| **B** frames baked in | `jpeg-decoder` in-module | unpack + RGBA | 120 KB | works, wrong for songs (see size) |
+| **C** pixel processing | the browser (canvas) | every pixel, every frame | 120 KB | **the useful one** for effects |
+| **C+** pixel processing | WebCodecs `VideoFrame` | I420 → RGBA with real strides | 120 KB | 1.5 bytes/px instead of 4 |
+| **D** packed stream | ffmpeg (offline) | RGB24 → RGBA in-module | 120 KB | correct container, honest limit |
+| **D+** packed stream | `ffmpeg.wasm` **in the page** | RGB24 → RGBA in-module | 120 KB + 30.9 MB core | a full decode with no media element |
 
 ## Measured, not estimated
 
@@ -23,8 +25,14 @@ browser may not carry whatever codec a download happened to use.
 sample.mp4    19.35 MB   218.2 s   863x480   H.264 crf30 + AAC 96k, faststart
 frames.bin     2.13 MB    12.0 s   320x180   145 JPEG frames @12fps   -> 0.18 MB/s
 raw.bin        2.97 MB    12.0 s   160x90     72 RGB24 frames @6fps    -> 42 KB/frame
-wasm            118 KB    both targets
+wasm            120 KB    both targets
+spectrum.json   1.03 MB   6,546 frames @30fps   32 bands + RMS, full 218 s
 ```
+
+`spectrum.json` is log power, five decades: **1.0 is the frame's peak band, 0.0 is
+100 dB below it.** Linear values at 3 dp erased every band under 0.0005 — 34% of
+the cells read exactly `0` in the first bake, which is why the field had a hole in
+its middle.
 
 Read the B row as the argument against B: 0.18 MB/s at a postage-stamp 320×180
 means **≈38 MB to carry this one track**, roughly twice the 19.35 MB mp4 that
@@ -42,9 +50,16 @@ python tools/make_assets.py "C:/Users/clint/Music/In The End [Official HD Music 
 python tools/make_assets.py                                # or: synthesise a 6 s clip
 
 node test.mjs                     # every export, real assets, exit 0
+node tools/fetch_ffmpeg.mjs       # 30.9 MB core for mode D+, sha256-pinned
+node tools/bake_spectrum.mjs      # full track -> demo/assets/spectrum.json
+node tools/render_highlight.mjs --start 55 --seconds 20 --out C:/tmp/hl.mp4
+node tools/verify_demo.mjs        # drives all four panels, asserts both decode paths
 python -m http.server 8123 --bind 127.0.0.1
 #  -> http://127.0.0.1:8123/demo/index.html
 ```
+
+The ffmpeg core, `pkg/`, `pkg-node/` and `demo/assets/` are all generated and
+gitignored; every tool rebuilds what it needs.
 
 `python tools/make_assets.py <any.mp4>` is the whole swap-in: it re-encodes to
 H.264/AAC and re-cooks both blobs. It needs only ffmpeg and Python's stdlib.
@@ -67,34 +82,74 @@ frame rather than every shot.
 `process_frame_rgba` → `putImageData`. Three effects ship: beat tint, Sobel edge
 glow, chroma split with scanlines; all amplitude-linked to the audio energy
 measured by A. This is where Rust earns its place, because the work is per-pixel
-and the browser is only a decoder. The measured demo runs at the display's 60 fps
-at 480×270. Upgrade path: WebCodecs `VideoFrame` → `copyTo` removes both CPU
-copies that `getImageData`/`putImageData` charge.
+and the browser is only a decoder.
+
+**C+ — WebCodecs, no CPU readback.** `new VideoFrame(video)` → `copyTo` into an
+I420 buffer → `i420_to_rgba` with the coded strides passed straight through. Rust
+receives **1.5 bytes per pixel instead of 4**, and the two `getImageData`/
+`putImageData` copies disappear. Measured in the demo readout: `webcodecs i420
+862×480`, 620,640 bytes per frame against 1,655,040 for RGBA.
+
+One behaviour worth knowing: Chrome **rejects an explicit `copyTo` to a
+non-RGB format** — `allocationSize({format:"I420"})` throws `NotSupportedError`.
+Use `allocationSize()` + `copyTo(buf)`, which returns per-plane `{offset, stride}`.
 
 **D — a packed stream parsed in Rust.** `AVRD` blob: header plus contiguous
 `w·h·3` RGB24 frames, parsed and widened to RGBA by `unpack_rgb_frame`.
 
-### D's honest boundary
+**D+ — ffmpeg.wasm decodes the mp4 in the page.** The panel loads the UMD wrapper
+plus its 30.9 MB core on demand, writes the mp4 into the wasm filesystem, runs
+`-ss 30 -t 6 -an -vf scale=320:180 -f rawvideo -pix_fmt rgb24`, and plays the
+result through `stream_frame_count` / `unpack_stream_frame`. No `<video>` element
+is involved anywhere on that path. Measured: `wasm decode: 145 frames in 0.9s
+(6.54x realtime, 24.2 fps)`.
 
-The container and pixel layout are Rust. **The decode is not.** Decoding H.264
-inside the module needs a full entropy decoder, and there is no production-grade
-pure-Rust one to depend on. The practical route is `ffmpeg.wasm` — C compiled to
-WASM, roughly 25–30 MB, which is the entire payload budget before a single frame
-is stored. That route is documented here as the path to full in-WASM decoding; it
-is **not** implemented or tested in this crate, and nothing in this README should
-be read as claiming otherwise.
+Two traps, both paid for. Passing `classWorkerURL` makes `@ffmpeg/ffmpeg` create a
+**module** worker, which cannot `importScripts()` the UMD core — omit it and the
+wrapper finds its own worker beside `ffmpeg.js`. And the clip is 24 fps, not the
+30 a `requestAnimationFrame` loop assumes, so D+ derives fps as
+`frames / seconds` and plays 25% fast if it does not.
 
-## One defect this crate paid for, kept as a regression test
+## Three defects this crate paid for, kept as regression tests
 
-The first DFT normalised the phase as `-2π·k·i/win` in `f32`. At k≈1024, i≈1024
-that angle reaches ~6.4e6 rad, where f32 resolves only ~0.5 rad — the transform
-degenerated into noise: a 3 kHz tone peaked at band 30 of 32, and DC peaked at
-band 22. It survived a "does it return numbers" check because an impulse has a
-flat magnitude by construction, and flat looked correct.
-
+**The DFT phase.** The first version normalised the phase as `-2π·k·i/win` in
+`f32`. At k≈1024, i≈1024 that angle reaches ~6.4e6 rad, where f32 resolves only
+~0.5 rad — the transform degenerated into noise: a 3 kHz tone peaked at band 30
+of 32, and DC peaked at band 22. It survived a "does it return numbers" check
+because an impulse has a flat magnitude by construction, and flat looked correct.
 The fix is an exact integer reduce, `(k*i) % win`, with `f64` accumulation.
-`test.mjs` now carries the control that would have caught it: **DC must peak at
-band 0**, and a 3 kHz tone must peak at band 2.
+`test.mjs` carries the control: **DC must peak at band 0**.
+
+**The mirrored axis.** Bands were mapped over `0..win`, i.e. over `0..Fs`, so
+band `b` and band `31-b` read the conjugate pair `k` and `win-k` — identical in
+magnitude for a real signal. Half the field was a mirror image, both bright edges
+were the same DC bin, and a single tone lit both ends of the frame. The axis is
+now `0..win/2` (Nyquist), and `test.mjs` asserts that a tone in band 4 leaves its
+mirror, band 27, dark. The old assertion (`3 kHz peaks at band 2`) had been
+written to match the bug: 3000 Hz is 0.125 of the way to Nyquist, so it belongs
+in band 4.
+
+**The erased quiet bands.** One bin per band meant a band landing in a spectral
+null read exactly `0.0` in every frame (band 15 did, in all 6,546). Each band now
+means up to 5 taps across its own bin range. Separately, the bake stored linear
+magnitudes at 3 dp, which rounded every band under 0.0005 to zero — 34% of the
+baked cells — so the middle of the field was black by arithmetic, not by music. It
+now stores log power, and the page decodes it back to linear before any display
+maths.
+
+## The rendered clip
+
+`demo/aurora.html` is deterministic: every pixel is a function of the frame index
+passed in `?f=`, nothing reads the clock, so frame N is byte-identical on a re-run
+and a killed render resumes at N+1. `tools/render_highlight.mjs` drives it through
+CDP, captures each frame with Chrome (never PIL), encodes with ffmpeg, then
+verifies frame count, three distinct hashes and the decoded frames read back out
+of the mp4.
+
+One display decision is measured, not invented: this encode low-passes at ~16 kHz,
+so 10 of the 32 bands measure -80 dB or lower in every frame. The field spans the
+22 bands that carry the track and the frame says so (`16.5 kHz of spectrum,
+22/32 bands`) instead of spending a third of the picture on silence.
 
 ## Layout
 
@@ -103,10 +158,19 @@ Cargo.toml               crate azazael-video-wasm (cdylib + rlib, edition 2024)
 src/lib.rs               all exports: spectrum_bands, render_aurora,
                          frame_count, frame_dims, decode_frame_rgba,
                          process_frame_rgba, raw_frame_count, raw_frame_dims,
-                         unpack_rgb_frame
+                         unpack_rgb_frame, stream_frame_count,
+                         unpack_stream_frame, i420_to_rgba
 test.mjs                 node harness, real assets, exit status
 tools/make_assets.py     ffmpeg pipeline + both blob packers (stdlib only)
-tools/verify_demo.mjs    headless-Chrome CDP check: all four panels must paint
+tools/fetch_ffmpeg.mjs   vendors the pinned ffmpeg.wasm core (sha256 + sizes)
+tools/cdp.mjs            dependency-free Chrome DevTools helper
+                         (static server, launch, evaluate, screenshot)
+tools/verify_demo.mjs    CDP check: four panels paint, WebCodecs and ffmpeg.wasm
+                         readouts both asserted
+tools/bake_spectrum.mjs  full track -> demo/assets/spectrum.json
+  demo/bake.html         the page that runs the Rust DFT over the decoded PCM
+tools/render_highlight.mjs  deterministic frame capture -> mp4 + verification
+  demo/aurora.html       the deterministic renderer behind that clip
 demo/index.html          the four-tab demo
 ```
 

@@ -3,3 +3,6 @@
 /pkg-node/
 /Cargo.lock
 /demo/assets/
+
+# 32 MB of ffmpeg.wasm core: fetched by tools/fetch_ffmpeg.mjs, never committed
+/demo/vendor/
