@@ -929,6 +929,24 @@ def run_batch(root: Path, size: int, test_command: Optional[str],
                                                     item["detector"]),
                              remedy=item.get("remedy", ""))
 
+    if failed:
+        return 1
+
+    if not dry_run:
+        batch_record = {
+            "fixed": [item["id"] for item in applied],
+            "touched": touched,
+            "test_command": test_command,
+            "timestamp": time.time(),
+            "landed": False,
+            "verified": None,
+        }
+        existing = read_jsonl(state_dir(root) / "batches.jsonl")
+        existing.append(batch_record)
+        write_jsonl(state_dir(root) / "batches.jsonl", existing)
+
+    return 0
+
 
 #: A verification command is bounded. A suite that wedges must fail the landing,
 #: not hold the terminal open until somebody kills it.

@@ -1,17 +1,17 @@
 {
-  "recorded_at": "2026-11-03T02:41:23+00:00",
+  "recorded_at": "2026-11-04T13:54:54+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 774,
+  "files_scanned": 788,
   "category_counts": {
-    "except_return_default": 3,
+    "except_return_default": 2,
     "hardcoded_win_path": 14,
-    "import_inside_function": 969,
+    "import_inside_function": 968,
     "silent_except_pass": 2,
     "unicode_emoji": 1219
   },
-  "total_findings": 2207,
+  "total_findings": 2205,
   "tracked_only": true,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
@@ -684,7 +684,6 @@
       "import_inside_function": 3
     },
     "CORE\\worm_registry.py": {
-      "except_return_default": 1,
       "import_inside_function": 7
     },
     "CORE\\worm_registry_cache.py": {
@@ -782,7 +781,7 @@
       "import_inside_function": 1
     },
     "ORCHESTRATION\\HYDRA.py": {
-      "import_inside_function": 2
+      "import_inside_function": 1
     },
     "ORCHESTRATION\\HYDRA_ANALYZER.py": {
       "unicode_emoji": 25

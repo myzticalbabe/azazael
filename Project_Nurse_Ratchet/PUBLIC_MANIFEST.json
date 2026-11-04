@@ -244,6 +244,16 @@
    "kind": "governance"
   },
 {
+    "from": "docs/reference/recall-floor-protocol.md",
+    "to": "docs/reference/recall-floor-protocol.md",
+    "kind": "docs"
+  },
+  {
+    "from": "tools/recall_bound.py",
+    "to": "tools/recall_bound.py",
+    "kind": "instrument"
+  },
+  {
     "from": "MANIFEST_NOTES.md",
     "to": "MANIFEST_NOTES.md",
     "kind": "docs"
