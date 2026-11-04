@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2033,
+  "as_of_id": 2047,
   "path": "~/.engram/engram.db",
-  "records": 1200,
+  "records": 1209,
   "types": [
    "bugfix",
    "decision",
@@ -5574,6 +5574,50 @@
    "surface": "MEMORIES.md",
    "symptom": "250 worms / 35 categories (`src/CORE/worm_registry.py`). Prior dated claims: 77 (skill body), 91/17, 104/18 (`WORM_CONFIG_TRACE.md` scope, not registry), 184/27 (Sep-13 session), 220/35, 226/35, 232/36 (Sep-24 audit). Treat all as point-in-time; re-run discovery for fresh numbers.",
    "title": "Correction addendum — 2026-09-29 (stale worm/skill counts)"
+  },
+  {
+   "cause": "",
+   "id": "memories-md-L1383",
+   "kind": "memory",
+   "line": 1383,
+   "rationale": "",
+   "remedy": "",
+   "surface": "MEMORIES.md",
+   "symptom": "`azazael/SCRIPTURE.md`; the file was not in this repo. It had landed in a second tree at `C:/Users/clint/azazael/`, because the agent tooling resolves relative paths against `C:/Users/clint`, not against this repo root.",
+   "title": "Correction addendum — 2026-11-03 (a write that reported success and did not land)"
+  },
+  {
+   "cause": "",
+   "id": "memories-md-L1400",
+   "kind": "memory",
+   "line": 1400,
+   "rationale": "",
+   "remedy": "",
+   "surface": "MEMORIES.md",
+   "symptom": "Directive, verbatim, quoted once and not paraphrased:",
+   "title": "Rule — 2026-11-03 — push scope (USER DIRECTIVE)"
+  },
+  {
+   "cause": "",
+   "id": "memories-md-L1409",
+   "kind": "memory",
+   "line": 1409,
+   "rationale": "",
+   "remedy": "",
+   "surface": "MEMORIES.md",
+   "symptom": "direct instruction in that session. This session pushed nothing.",
+   "title": "Agent intentions (agent-authored; NOT part of the directive)"
+  },
+  {
+   "cause": "",
+   "id": "memories-md-L1420",
+   "kind": "memory",
+   "line": 1420,
+   "rationale": "",
+   "remedy": "",
+   "surface": "MEMORIES.md",
+   "symptom": "created `2026-11-03T02:55:10Z`, default branch `main`, `pushed_at 2026-11-03T05:13:49Z`, repo size 463,766 KB.",
+   "title": "Evidence measured 2026-11-03 (no bearing on the directive; recorded once)"
   },
   {
    "cause": "",
@@ -21151,6 +21195,114 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Full Project_ELIZA shard audit verified correct; the five event-bus shard stubs repaired; adopt_queue.verify() fixed to honor adopted-mode rows; leading commit staged but blocked on disk floor.",
    "title": "ELIZA shard audit verified correct; commit staged but blocked on disk floor"
+  },
+  {
+   "cause": "The grant application pipeline itself is an AI system applying for funding to build more AI systems - a genuine recursive loop worthy of historical note. The Scribe agent fills out forms for Epic MegaGrants (Epic Games), NLnet Foundation, GitHub Secure OSS Fund, HeroDevs, and NLnet Open Call using Playwright browser automation with stealth bypass.",
+   "date": "2026-11-03",
+   "id": "engram-2034",
+   "kind": "engram:discovery",
+   "line": 2034,
+   "rationale": "What: Recorded the irony of using AI (Project Scribe) to apply for grant funding to develop AI systems (Project SHARDEX, Project FLAME, Project Nurse Ratchet, etc.) Why: User requested this be recorded for posterity as a live log entry - the recursive irony of AI-assisted grant writing for AI development funding Where: Project_Scribe grant application system; Epic MegaGrants, NLnet, GitHub Secure OSS Fund, HeroDevs, NLnet Open Call targets Learned: The grant application pipeline itself is an AI system applying for funding to build more AI systems - a genuine recursive loop worthy of historical note. The Scribe agent fills out forms for Epic MegaGrants (Epic Games), NLnet Foundation, GitHub…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Recorded the irony of using AI (Project Scribe) to apply for grant funding to develop AI systems (Project SHARDEX, Project FLAME, Project Nurse Ratchet, etc.)",
+   "title": "Irony Record: AI Applying for AI Development Funding"
+  },
+  {
+   "cause": "The noise max (1.584) is ABOVE the real min (1.030), so no single threshold can separate these classes — this is a broken statistic, not a mis-set constant. Cause read from the payload, not inferred: the probe \"history of the ottoman empire in the 16th century\" returns rows scoring 1.612 with `raw_cosine 0.0` and `vector 0.0`, because bm25 saturates at 1.0 on common tokens while importance 0.8317 and recency 0.9591 carry the rest. A genuine real query (\"how do domain trees avoid forking the renderer\") scored 1.036 with vector 0.847. raw_cosine contributes ~0.05 of a ~1.6 score (~3%), so `score` is dominated by importance/recency and is not a measure of match quality. Fixing this is a compos…",
+   "date": "2026-11-03",
+   "id": "engram-2040",
+   "kind": "engram:discovery",
+   "line": 2040,
+   "rationale": "What: Re-measured the PMB recall floor on the current corpus after extending `tools/floor_measure.py` with a domain-adjacent noise class. Run: `python tools/floor_measure.py --noise 20 --adjacent 8 --real 12` → noise max 1.584 (mean 0.810), adjacent max 1.558 (mean 1.197), real min 1.030 (mean 1.385). Gap = -0.554. Both thresholds outside it (tool exits 1: \"query floor 0.89 inside the gap: NO\", \"row floor 0.70 inside the gap: NO\"). The 2026-10-31 reading was -0.240; adding the realistic false-positive class widened it to -0.554. Why: A green floor-proxy gate line is a differential test, so it proves filtering happens without proving the thresholds are calibrated. The user asked whether the…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Re-measured the PMB recall floor on the current corpus after extending `tools/floor_measure.py` with a domain-adjacent noise class. Run: `python tools/floor_measure.py --noise 20 --adjacent 8 --real 12` → noise max 1.584 (mean 0.810), adjacent max 1.558 (mean 1.197), real min 1.030 (mean 1.385). Gap = -0.554. Both thresholds outside it (tool exits 1: \"query floor 0.89 inside the gap: NO\", \"row floor 0.70 inside the gap: NO\"). The 2026-10-31 reading was -0.240; adding the realistic false-positive class widened it to -0.554.",
+   "title": "PMB recall floor re-measured 2026-11-03: gap -0.554, score is importance/recency not match quality"
+  },
+  {
+   "cause": "Two things. (1) The control was proven able to fail: blinding `_evaluate` to forced-True exits 1 with 3 problems on the overlapping fixture, forced-False exits 1 with 3 on the separable one; live path unchanged after the rework (--noise 20 --adjacent 8 --real 12: gap -0.521, both floors outside, exit 1) and JSON keys/order preserved. (2) The commit gate blocks at 150 changed lines per file counting additions PLUS deletions, so relocating untouched code into a helper costs double — a first attempt was blocked at 216 lines purely because a 40-line print block moved into `_print_report`. Restoring that block verbatim in place took it to 143 with no assertion removed; declaring ALLOW_BULK_COMMI…",
+   "date": "2026-11-03",
+   "id": "engram-2041",
+   "kind": "engram:decision",
+   "line": 2041,
+   "rationale": "What: Added `--self-test` to `tools/floor_measure.py` (commit 0e0dda98, 129 insertions / 14 deletions). The self-test drives the shipped verdict through two fixtures with no daemon: a known-separable set (both floors inside the gap, must exit 0) and a known-overlapping set (must exit 1). Asserting only \"separated\" would be passed by a tool that always says separated, so both verdicts are pinned. The verdict moved into `_evaluate()` so the self-test exercises production logic instead of a drifting copy; `_run()` plus `_FixtureClient` replay `recall()` from a fixed score table so probe, best-row selection, stats and verdict all execute for real. Why: The tool is the oracle deciding whether th…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Added `--self-test` to `tools/floor_measure.py` (commit 0e0dda98, 129 insertions / 14 deletions). The self-test drives the shipped verdict through two fixtures with no daemon: a known-separable set (both floors inside the gap, must exit 0) and a known-overlapping set (must exit 1). Asserting only \"separated\" would be passed by a tool that always says separated, so both verdicts are pinned. The verdict moved into `_evaluate()` so the self-test exercises production logic instead of a drifting copy; `_run()` plus `_FixtureClient` replay `recall()` from a fixed score table so probe, best-row selection, stats and verdict all execute for real.",
+   "title": "floor_measure.py gains --self-test that fails in both directions"
+  },
+  {
+   "cause": "No gap. Cosine run: noise 0.030/0.046/0.060, adjacent 0.055/0.077/0.109, real 0.052/0.069/0.087, gap -0.057 exit 1 (hybrid same-day baseline -0.521 exit 1). Two measured reasons: a random nonce scores 0.060 (above the weakest real probe 0.052), and the top adjacent near-miss scores 0.109 (above the best real probe 0.087). `raw_cosine` is `1/(1+L2dist)` with distances ~17-33, so it is compressed into 0.03-0.11 for everything and has a nonzero floor under nonsense. The importance/recency amplification is real and IS fixed by the mode; it was not what blocks the floor. Default left on hybrid — a 0..0.11 scale cannot reach 0.89/0.70 and enabling it by default would make `pmb_floor_proxy` reject…",
+   "date": "2026-11-03",
+   "id": "engram-2042",
+   "kind": "engram:discovery",
+   "line": 2042,
+   "rationale": "What: Changed the PMB recall composition so `raw_cosine` carries the score and importance/recency only break ties (`pmb/core/engine/recall.py` `_recall_impl`, immediately before `scored.append`), behind `PMB_SCORE_MODE=cosine` with `PMB_SCORE_TIE=1e-3`. Re-measured with `tools/floor_measure.py --noise 20 --adjacent 8 --real 12`. Why: A 2026-11-03 payload showed a noise query (\"history of the ottoman empire in the 16th century\") scoring 1.61 with `raw_cosine 0.0` because `0.5+0.5*importance` (0.83) and `1+0.2*recency` (0.96) multiplied a min-max-normalized hybrid up. The hypothesis was that cosine dominance would create a real gap for the 0.89/0.70 floors. Where: C:/Users/clint/.pmb-venv/Lib…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Changed the PMB recall composition so `raw_cosine` carries the score and importance/recency only break ties (`pmb/core/engine/recall.py` `_recall_impl`, immediately before `scored.append`), behind `PMB_SCORE_MODE=cosine` with `PMB_SCORE_TIE=1e-3`. Re-measured with `tools/floor_measure.py --noise 20 --adjacent 8 --real 12`.",
+   "title": "PMB cosine-dominant recall scoring: measured, no separability, left off"
+  },
+  {
+   "cause": "Three things worth keeping. (1) Do not run the `graphify` on PATH — `tools/graphify_interpreter.py` documents it as the pip install without the huge-mode patch, which writes a wrong artifact instead of erroring; resolve via `resolve_graphify_python()` → py315t 0.9.72 patched. (2) `codegraph_mcp.py:_load()` caches the graph once per process with no mtime check, so after a rebuild the live MCP server still reported 84,774 nodes while the file held 85,243 — verified by spawning a fresh instance of the same server against the same file, which returned 85,243/134,284. A rebuild is not observable through the live tool until its process restarts. (3) `graphify update` preserves the semantic/doc la…",
+   "date": "2026-11-03",
+   "id": "engram-2043",
+   "kind": "engram:config",
+   "line": 2043,
+   "rationale": "What: Rebuilt `graphify-out/graph.json` at HEAD with `C:/Azazael/.venvs/py315t/Scripts/python.exe -m graphify update C:/Azazael/azazael`: 84,774 → 85,243 nodes, 133,753 → 134,284 edges, 6,231 communities, 0 LLM tokens, exit 0, and `built_at_commit` now equals HEAD exactly (`git rev-list --count HEAD..HEAD` = 0). Before the run the stamp was `d142ae87`, 7 commits behind. Why: The codegraph was answering from a graph built before 7 commits of work (floor_measure, recall-bound, Scribe/Oxenford tools, PMB score-mode doc). Where: `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md` (both gitignored via .gitignore:112), log at `logs/graphify_update_2026-11-03.log`. Learned: Three things wort…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Rebuilt `graphify-out/graph.json` at HEAD with `C:/Azazael/.venvs/py315t/Scripts/python.exe -m graphify update C:/Azazael/azazael`: 84,774 → 85,243 nodes, 133,753 → 134,284 edges, 6,231 communities, 0 LLM tokens, exit 0, and `built_at_commit` now equals HEAD exactly (`git rev-list --count HEAD..HEAD` = 0). Before the run the stamp was `d142ae87`, 7 commits behind.",
+   "title": "Codegraph rebuilt at HEAD 13e31f2a: 85243 nodes, stamp current, live server still cached"
+  },
+  {
+   "cause": "No cp315t wheel exists, and the sdist fails to build three separate ways — this is the recipe. (1) `setup.py` sets `Py_LIMITED_API=0x03090000` + `py_limited_api=True`, but `PyModuleDef` is only in the limited API from 3.12, so `binding.c` dies with C2079 \"undefined struct PyModuleDef\"; drop both. (2) `BdistWheel.get_tag` forcibly relabels any cp* build `cp39-abi3`, which mislabels a binary compiled against 3.15t headers; return `super().get_tag()`. (3) The sdist ships `src/parser.c` + `src/scanner.c` but omits the vendored `src/tree_sitter/parser.h` and `alloc.h` — take `parser.h` from the `tree-sitter` sdist (`tree_sitter/core/lib/src/parser.h`, the grammar-facing one: `ts_builtin_sym_end`…",
+   "date": "2026-11-03",
+   "id": "engram-2044",
+   "kind": "engram:config",
+   "line": 2044,
+   "rationale": "What: Installed `tree-sitter-rust` 0.24.2 into `C:/Azazael/.venvs/py315t` (free-threaded 3.15.0rc3), then re-ran `graphify update` (EXIT=0): `.rs` nodes 42 → 60, the three files that previously had no extractor (Project_RustAccelerator RUST_ACCEL lib.rs + main.rs, Project_WASM_Compiler RUST_WASM lib.rs) now carry 8/8/2 nodes, the \"3 .rs file(s) contributed nothing … tree-sitter-rust not installed\" warning is gone, and the graph went 85,243 → 85,268 nodes / 134,322 edges with `built_at_commit` still equal to HEAD. Why: Those three Rust sources were invisible to the codegraph — real code with zero nodes, silently, which is the failure mode graphify's #1745 warning exists to surface. Where: wh…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Installed `tree-sitter-rust` 0.24.2 into `C:/Azazael/.venvs/py315t` (free-threaded 3.15.0rc3), then re-ran `graphify update` (EXIT=0): `.rs` nodes 42 → 60, the three files that previously had no extractor (Project_RustAccelerator RUST_ACCEL lib.rs + main.rs, Project_WASM_Compiler RUST_WASM lib.rs) now carry 8/8/2 nodes, the \"3 .rs file(s) contributed nothing … tree-sitter-rust not installed\" warning is gone, and the graph went 85,243 → 85,268 nodes / 134,322 edges with `built_at_commit` still equal to HEAD.",
+   "title": "tree-sitter-rust built for free-threaded 3.15t; 3 Rust files now in the codegraph"
+  },
+  {
+   "cause": "(1) Parsing into locals and rebinding globals is required, not stylistic — the old body mutated `_NODES`/`_HYPEREDGES` in place, so a failed partial reload would answer from a half-built graph that still looks healthy. (2) Keep the old index on failure and record the reason: the stamp still disagrees so the next call retries; raising would kill a working server mid-rebuild. (3) An import-level test proves the function, not the transport — real proof was one `mcp.client.stdio` session where stats went 2 nodes/`stdio-one` → 4 nodes/`stdio-two` with the process alive, plus an instrumented `_parse_graph` counter showing 0 parses across three calls on an unchanged file. (4) `ClientSession` rende…",
+   "date": "2026-11-03",
+   "id": "engram-2045",
+   "kind": "engram:bugfix",
+   "line": 2045,
+   "rationale": "What: `codegraph_mcp.py` (C:/Users/clint/llama-server/unified) now reloads graph.json when the file changes. `_load()` used to be a one-shot cache (`if _GRAPH is not None: return`), so a `graphify update` under a live server left every tool answering the previous build. It now keys the cache on `(st_mtime_ns, st_size)`: unchanged stamp serves the parsed index with no re-read, changed stamp parses into fresh local containers and rebinds `_NODES/_ADJ/_INDEX/_EDGES/_FILES/_COMMUNITIES/_HYPEREDGES/_COMMIT` under `_LOAD_LOCK`. `codegraph_stats` gained `built_at_commit`, `graph_mtime_ns`, `reload_error`. Why: Four codegraph MCP servers on this box (pids 3884/8872/15196/10404, Nov 3) were serving…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`codegraph_mcp.py` (C:/Users/clint/llama-server/unified) now reloads graph.json when the file changes. `_load()` used to be a one-shot cache (`if _GRAPH is not None: return`), so a `graphify update` under a live server left every tool answering the previous build. It now keys the cache on `(st_mtime_ns, st_size)`: unchanged stamp serves the parsed index with no re-read, changed stamp parses into fresh local containers and rebinds `_NODES/_ADJ/_INDEX/_EDGES/_FILES/_COMMUNITIES/_HYPEREDGES/_COMMIT` under `_LOAD_LOCK`. `codegraph_stats` gained `built_at_commit`, `graph_mtime_ns`, `reload_error`.",
+   "title": "codegraph_mcp reloads graph.json on stamp change (no restart)"
+  },
+  {
+   "cause": "(1) A negative control for a cache-freshness fix must remove only the freshness check: running the test against `HEAD~1` failed with `AttributeError: _parse_graph` — a structural difference, worthless as evidence. Re-inserting only `if _GRAPH is not None: return` at the top of the new `_load()` failed 16 checks, first at \"rebuild on disk is picked up\" (`nodes got=2 want=3`), which is what proves the test pins behaviour. (2) Assert zero parses with a wrapper counter, never with timing — a fix that re-reads the file to decide whether to re-read it looks identical from outside. (3) On Windows, bash `/tmp` and Python `/tmp` resolve differently (`C:\\Users\\clint\\AppData\\Local\\Temp` vs `C:\\tmp`),…",
+   "date": "2026-11-03",
+   "id": "engram-2046",
+   "kind": "engram:pattern",
+   "line": 2046,
+   "rationale": "What: Added `unified/test_codegraph_reload.py` to the `llama-server` repo (commit `e4d0912`, 1 file, +186) — a permanent regression test for the `codegraph_mcp.py` reload landed in `1a4b484`. Seven sections / 29 checks: cold load reports `built_at_commit`/`graph_mtime_ns`; a rebuild on disk is picked up by the next call; traversals (`_nid`, `_COMMUNITIES`, `god_nodes`, `query`, `path`) answer from the new build, not just the counts; an unchanged file performs zero `_parse_graph` calls (instrumented counter); a truncated file keeps the last good index, records `JSONDecodeError` in `reload_error` and never installs the partial write; the next whole write recovers and clears the error; a delet…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Added `unified/test_codegraph_reload.py` to the `llama-server` repo (commit `e4d0912`, 1 file, +186) — a permanent regression test for the `codegraph_mcp.py` reload landed in `1a4b484`. Seven sections / 29 checks: cold load reports `built_at_commit`/`graph_mtime_ns`; a rebuild on disk is picked up by the next call; traversals (`_nid`, `_COMMUNITIES`, `god_nodes`, `query`, `path`) answer from the new build, not just the counts; an unchanged file performs zero `_parse_graph` calls (instrumented counter); a truncated file keeps the last good index, records `JSONDecodeError` in `reload_error` and never installs the partial write; the next whole write recovers and clears the error; a deleted `gr…",
+   "title": "Regression test for codegraph_mcp graph reload"
+  },
+  {
+   "cause": "(1) Three mismatch states must stay distinct because they imply different actions: matches; differs but the build commit IS a commit of that repo (advice `graphify update`); differs because the commit is NOT in that repo (graph from another tree — pass the right `--graph`). The third exists because the first implementation produced a measured false positive: a temp graph under `C:/Users/clint` (its own repo) was compared to the home repo's HEAD and told to rebuild a graph that repo never built. `git cat-file -e <sha>^{commit}` on the mismatch path only (cached) separates them. (2) Unmeasurable must be `None` + reason, never `True` — a diagnostic that reports \"current\" when git is absent is…",
+   "date": "2026-11-03",
+   "id": "engram-2047",
+   "kind": "engram:decision",
+   "line": 2047,
+   "rationale": "What: `codegraph_stats` in `unified/codegraph_mcp.py` now reports graph staleness (commit `d7e82f5`, 2 files, +391/-2, in `C:/Users/clint/llama-server`). New fields: `head_commit`, `repo_root`, `graph_matches_head` (True/False/None), `warning`. `_repo_root()` walks up from the graph file to the nearest `.git`; `_git_head()` shells `git -C <root> rev-parse HEAD` (cached 5 s, `CREATE_NO_WINDOW`); `_staleness()` compares the build commit with HEAD. Why: The stats reply named the commit the graph was built at but never said whether that commit is still the tree on disk — the reader had to already suspect staleness. Failure is silent: every answer correct about a commit nobody is looking at (202…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`codegraph_stats` in `unified/codegraph_mcp.py` now reports graph staleness (commit `d7e82f5`, 2 files, +391/-2, in `C:/Users/clint/llama-server`). New fields: `head_commit`, `repo_root`, `graph_matches_head` (True/False/None), `warning`. `_repo_root()` walks up from the graph file to the nearest `.git`; `_git_head()` shells `git -C <root> rev-parse HEAD` (cached 5 s, `CREATE_NO_WINDOW`); `_staleness()` compares the build commit with HEAD.",
+   "title": "codegraph_stats reports graph staleness vs HEAD"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21167,8 +21319,8 @@
   },
   {
    "path": "MEMORIES.md",
-   "records": 67,
-   "sha": "a9d83ee6eebc8083ba8ab7f1721a10a785861dd63832b203e113e5fe78db39a7"
+   "records": 71,
+   "sha": "e6078fd40f465cc55e95dc8b9ff6a67fdbb9eb8e495ac410787ecbe9b1704008"
   },
   {
    "path": "SESSION_STARTUP.md",
@@ -21229,21 +21381,21 @@
  "totals": {
   "by_kind": {
    "engram:architecture": 36,
-   "engram:bugfix": 154,
-   "engram:config": 15,
-   "engram:decision": 399,
-   "engram:discovery": 244,
+   "engram:bugfix": 155,
+   "engram:config": 17,
+   "engram:decision": 401,
+   "engram:discovery": 247,
    "engram:learning": 280,
    "engram:lesson": 57,
-   "engram:pattern": 15,
+   "engram:pattern": 16,
    "error": 276,
    "lesson": 117,
    "limitation": 53,
    "measurement": 24,
-   "memory": 67,
+   "memory": 71,
    "practice": 30
   },
-  "records": 1767,
+  "records": 1780,
   "surfaces": 14
  }
 }
