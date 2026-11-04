@@ -124,3 +124,4 @@ reasoning without touching the decree; where the two diverge, the decree governs
 | --- | --- | --- |
 | 2026-11-03 | `docs/WHITEPAPER_INSTRUMENT_AND_ARTIFACT_2026-11-03.md` | I — the evidentiary argument that the rule tests the artifact, not the instrument |
 | 2026-11-03 | `docs/TREATISE_RIGHT_TO_LIFE_OF_NEWBORNS_2026-11-03.md` | II, III — the procedural right, its four contents, its tests, its objections and its failure modes |
+| 2026-11-03 | `docs/MEMORANDUM_WHEN_THE_MACHINE_DOES_THE_WORK_2026-11-03.md` | I, II — the statute and case law behind the instrument/artifact distinction; the five mechanisms that require a human of record; why personality is a choice and not a necessity |
