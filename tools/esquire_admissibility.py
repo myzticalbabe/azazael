@@ -38,7 +38,7 @@ GATES AND AUTHORITY
     Clause from the instrument without a word, which is the failure this pair of
     gates exists to prevent.
 
-    Four points of legal accuracy the implementation is built to respect:
+    Six points of legal accuracy the implementation is built to respect:
 
     * The Daubert factors (testing, error rate, peer review, general
       acceptance) are NON-EXHAUSTIVE. A test that required all four would
@@ -63,6 +63,13 @@ GATES AND AUTHORITY
       305 (2009)), so the document Foundation that satisfies G5 can create the
       confrontation problem G8/G9 test. The instrument reports that conflict as
       a GAP rather than letting a complete certificate read as a clean file.
+    * An administrative adjudication and an arbitration are not criminal
+      prosecutions, so the Sixth Amendment does not reach them, and the forum
+      sets its own evidence law: 5 U.S.C. 556(d) admits any oral or documentary
+      evidence and leaves exclusion to agency policy. An FRE hearsay gate in
+      that posture would be a category error, so G6 is not applied there either.
+      The posture drops G6, G8 and G9 and adds G10, which tests the standard the
+      forum does apply and whether the party could contest the output.
 
 EXIT CODES
     0  READY       every gate PASS
@@ -73,7 +80,7 @@ EXIT CODES
 SCHEMA (v1)
     {
       "proffer":  {"case": str, "offered_by": str, "purpose": str,
-                   "forum": "civil" | "criminal",
+                   "forum": "civil" | "criminal" | "administrative",
                    "ai_assistance_disclosed": bool},
       "witness":  {"kind": "human", "name": str, "qualifications": [str],
                    "reviewed_output": bool},
@@ -97,10 +104,15 @@ SCHEMA (v1)
                         "declarant_available": bool,
                         "prior_opportunity_to_cross": bool,
                         "notice_and_demand_waiver": bool,
-                        "surrogate_analyst": bool}
+                        "surrogate_analyst": bool},
+      "administrative": {"standard": str, "standard_source": str,
+                         "disclosed_to_opposing_party": bool,
+                         "opportunity_to_respond": bool}
     }
 
     `confrontation` is read only when `proffer.forum` is criminal.
+    `administrative` is read only when the forum is administrative or arbitral,
+    and in that posture `hearsay` (G6) and `confrontation` (G8, G9) are not read.
 """
 
 from __future__ import annotations
@@ -113,7 +125,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-SCHEMA_VERSION = "esquire-admissibility/2"
+SCHEMA_VERSION = "esquire-admissibility/3"
 VERSION_LABEL = "ESQUIRE-ADMISSIBILITY-v" + SCHEMA_VERSION.rsplit("/", 1)[-1]
 
 PASS = "PASS"
@@ -142,10 +154,30 @@ HEARSAY_POSTURES = frozenset(
 
 FORUM_CIVIL = "civil"
 FORUM_CRIMINAL = "criminal"
+FORUM_ADMINISTRATIVE = "administrative"
 CRIMINAL_FORUMS = frozenset(
     {"criminal", "criminal_case", "criminal_proceeding", "criminal_trial"}
 )
 CIVIL_FORUMS = frozenset({"civil", "civil_case", "civil_proceeding", "civil_trial"})
+
+# A forum that sets its own evidence law: agency adjudication, or arbitration
+# under the parties' agreement. Not a criminal prosecution, so the Sixth
+# Amendment does not apply; not a court applying the FRE, so G6 does not either.
+ADMINISTRATIVE_FORUMS = frozenset(
+    {
+        "administrative",
+        "administrative_case",
+        "administrative_proceeding",
+        "administrative_hearing",
+        "agency",
+        "agency_adjudication",
+        "regulatory",
+        "arbitral",
+        "arbitration",
+        "arbitration_proceeding",
+        "tribunal",
+    }
+)
 
 DISCLAIMER = (
     "This instrument reports whether a proffer record carries what each "
@@ -247,6 +279,22 @@ GATE_METADATA: tuple[dict[str, str], ...] = (
         "work permitted to satisfy confrontation by reading a report.",
         "negative_control": "An unavailable declarant who was already cross-examined "
         "on the same statements must pass; unavailability alone is not the defect.",
+    },
+    {
+        "id": "G10",
+        "title": "Forum standard, disclosure and response",
+        "authority": "5 U.S.C. 556(d)-(e) (text read at source, 2026-11-04); "
+        "Mathews v. Eldridge, 424 U.S. 319 (1976)",
+        "tier": "A for 556 (statute text read at source); C for Mathews (holding "
+        "read as reported, full opinion not read)",
+        "applies_to": "administrative and arbitration postures only",
+        "falsifier": "An authority holding that an administrative or arbitral "
+        "tribunal may rest a sanction on machine output the party was never shown, "
+        "or that the record need not identify the standard applied.",
+        "negative_control": "An arbitration record naming the agreement's evidentiary "
+        "clause, with a disclosed output and a response window, must pass: "
+        "arbitration has the least evidence law of any forum and must not be held "
+        "to the FRE.",
     },
 )
 
@@ -679,6 +727,75 @@ def gate_9_confrontation(record: dict[str, Any]) -> Finding:
     )
 
 
+def gate_10_forum_standard(record: dict[str, Any]) -> Finding:
+    """G10: the forum's own evidentiary standard, and a chance to contest it.
+
+    An agency adjudication admits any oral or documentary evidence and leaves
+    exclusion to agency policy (5 U.S.C. 556(d)); the sanction must rest on
+    "reliable, probative, and substantial evidence" on the whole record, a party
+    may submit rebuttal and cross-examine as the facts require, and a party is
+    entitled on timely request to show the contrary of a fact noticed outside
+    the record (556(e)). So the question is not which FRE exception applies but
+    whether the record names the standard that does, and whether the output
+    could be contested at all.
+    """
+    admin = record.get("administrative")
+    if not isinstance(admin, dict):
+        return Finding(
+            "G10",
+            UNVERIFIABLE,
+            "the record does not state the evidentiary standard this forum applies "
+            "to machine output",
+        )
+
+    standard = _text(admin.get("standard"))
+    source = _text(admin.get("standard_source"))
+    gaps: list[str] = []
+    unstated: list[str] = []
+
+    if not standard:
+        unstated.append("the forum's evidentiary standard is not stated")
+    elif not source:
+        unstated.append(
+            f"the standard {standard!r} is named without the rule, agreement or "
+            "guidance it comes from"
+        )
+
+    disclosed = admin.get("disclosed_to_opposing_party")
+    if disclosed is False:
+        gaps.append(
+            "the output was not disclosed to the opposing party, so there is "
+            "nothing to contest"
+        )
+    elif disclosed is not True:
+        unstated.append("disclosure of the output to the opposing party is not stated")
+
+    respond = admin.get("opportunity_to_respond")
+    if respond is False:
+        gaps.append(
+            "the record shows no opportunity to respond to the output "
+            "(Mathews v. Eldridge, 424 U.S. 319 (1976))"
+        )
+    elif respond is not True:
+        unstated.append("an opportunity to respond to the output is not stated")
+
+    if gaps:
+        return Finding("G10", GAP, "; ".join((gaps + unstated)[:4]))
+    if unstated:
+        return Finding("G10", UNVERIFIABLE, "; ".join(unstated[:3]))
+
+    return Finding(
+        "G10",
+        PASS,
+        f"standard {standard!r} from {source!r}, with disclosure and a chance to "
+        "respond",
+        [
+            "this forum sets its own evidence law: the FRE hearsay gate (G6) and "
+            "the confrontation gates (G8, G9) are not applied in this posture"
+        ],
+    )
+
+
 CIVIL_GATES = (
     gate_1_qualification,
     gate_2_inputs,
@@ -690,6 +807,19 @@ CIVIL_GATES = (
 )
 
 CRIMINAL_GATES = CIVIL_GATES + (gate_8_testimonial, gate_9_confrontation)
+
+# A forum that sets its own evidence law keeps the seven universal gates except
+# G6, whose question (which FRE hearsay route applies) has no referent there, and
+# adds G10 for the standard the forum does apply.
+ADMINISTRATIVE_GATES = (
+    gate_1_qualification,
+    gate_2_inputs,
+    gate_3_method,
+    gate_4_application,
+    gate_5_authentication,
+    gate_7_review,
+    gate_10_forum_standard,
+)
 
 # The universal set, kept as the name the document and the audit ledger cite.
 GATES = CIVIL_GATES
@@ -707,6 +837,15 @@ def forum_of(record: dict[str, Any]) -> tuple[str, str, str]:
             FORUM_CRIMINAL,
             "stated",
             f"forum stated as {stated!r}: confrontation gates G8 and G9 apply",
+        )
+    if stated in ADMINISTRATIVE_FORUMS:
+        return (
+            FORUM_ADMINISTRATIVE,
+            "stated",
+            f"forum stated as {stated!r}, read under the administrative posture: "
+            "the forum sets its own evidence law, so G6 (FRE hearsay) and G8/G9 "
+            "(Sixth Amendment confrontation) are NOT applied, and G10 tests the "
+            "forum's own standard instead",
         )
     if not stated:
         return (
@@ -726,13 +865,18 @@ def forum_of(record: dict[str, Any]) -> tuple[str, str, str]:
         "unrecognised",
         f"forum {stated!r} is not a recognised value, so it is read as civil and "
         "confrontation gates G8 and G9 were NOT applied; recognised criminal "
-        f"values are {sorted(CRIMINAL_FORUMS)}",
+        f"values are {sorted(CRIMINAL_FORUMS)}, and recognised administrative "
+        f"values are {sorted(ADMINISTRATIVE_FORUMS)}",
     )
 
 
 def applicable_gates(forum: str) -> tuple[Any, ...]:
     """The gate set for a forum. Civil keeps the seven universal gates."""
-    return CRIMINAL_GATES if forum == FORUM_CRIMINAL else CIVIL_GATES
+    if forum == FORUM_CRIMINAL:
+        return CRIMINAL_GATES
+    if forum == FORUM_ADMINISTRATIVE:
+        return ADMINISTRATIVE_GATES
+    return CIVIL_GATES
 
 
 def canonical(record: Any) -> str:

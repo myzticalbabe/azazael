@@ -112,6 +112,24 @@ def criminal() -> dict:
     return record
 
 
+def administrative() -> dict:
+    """The clean record in a forum that sets its own evidence law.
+
+    No hearsay posture is added on purpose: in this posture the FRE hearsay
+    question has no referent, so a record that never answers it must not be
+    failed for the omission.
+    """
+    record = clean()
+    record["proffer"]["forum"] = "administrative"
+    record["administrative"] = {
+        "standard": "reliable, probative, and substantial evidence on the whole record",
+        "standard_source": "5 U.S.C. 556(d); agency rule 1.33",
+        "disclosed_to_opposing_party": True,
+        "opportunity_to_respond": True,
+    }
+    return record
+
+
 def gate_state(report: dict, gate_id: str) -> str:
     for gate in report["gates"]:
         if gate["gate"] == gate_id:
@@ -392,20 +410,22 @@ def test_cli_invalid_json_is_blind(tmp_path, capsys):
 
 
 def test_gate_table_covers_every_gate_and_states_a_falsifier():
-    assert [meta["id"] for meta in GATE_METADATA] == [f"G{i}" for i in range(1, 10)]
+    assert [meta["id"] for meta in GATE_METADATA] == [f"G{i}" for i in range(1, 11)]
     for meta in GATE_METADATA:
         assert meta["authority"]
         assert meta["falsifier"]
         assert meta["negative_control"]
     assert GATE_METADATA[7]["applies_to"] == "criminal posture only"
     assert GATE_METADATA[8]["applies_to"] == "criminal posture only"
+    assert GATE_METADATA[9]["applies_to"] == "administrative and arbitration postures only"
     text = render_gates()
     assert "negative control" in text
     assert "G7" in text
     assert "G9" in text
+    assert "G10" in text
 
 
-@pytest.mark.parametrize("gate_id", [f"G{i}" for i in range(1, 10)])
+@pytest.mark.parametrize("gate_id", [f"G{i}" for i in range(1, 11)])
 def test_every_gate_can_fail(gate_id):
     """Each gate must be able to return GAP, or it is not a test.
 
@@ -422,8 +442,16 @@ def test_every_gate_can_fail(gate_id):
         "G7": lambda r: r["review"].update({"authority_to_change": False}),
         "G8": lambda r: r["confrontation"].update({"testimonial": "maybe"}),
         "G9": lambda r: r["confrontation"].update({"surrogate_analyst": True}),
+        "G10": lambda r: r["administrative"].update(
+            {"disclosed_to_opposing_party": False}
+        ),
     }
-    record = criminal() if gate_id in {"G8", "G9"} else clean()
+    if gate_id in {"G8", "G9"}:
+        record = criminal()
+    elif gate_id == "G10":
+        record = administrative()
+    else:
+        record = clean()
     perturbations[gate_id](record)
 
     assert gate_state(evaluate(record), gate_id) == GAP
@@ -595,3 +623,106 @@ def test_negative_control_confrontation_block_cannot_affect_a_civil_record():
     gate_lines = [line for line in text.splitlines() if line.startswith(("G8", "G9"))]
     assert gate_lines == []
     assert "surrogate" not in text.lower()
+
+
+def test_administrative_record_applies_g1_to_g5_g7_and_g10():
+    """A forum with its own evidence law is not asked the FRE questions."""
+    report = evaluate(administrative())
+
+    assert report["verdict"] == VERDICT_READY
+    assert report["counts"] == {PASS: 7, GAP: 0, UNVERIFIABLE: 0}
+    assert report["gates_applied"] == ["G1", "G2", "G3", "G4", "G5", "G7", "G10"]
+    assert report["forum"] == "administrative"
+    assert report["forum_source"] == "stated"
+    text = render(report)
+    assert "forum: administrative (stated)" in text
+    assert "G6 (FRE hearsay)" in text
+    assert "G10" in text
+    assert [line for line in text.splitlines() if line.startswith(("G6", "G8", "G9"))] == []
+
+
+def test_administrative_record_without_the_block_is_incomplete_not_a_pass():
+    record = administrative()
+    del record["administrative"]
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G10") == UNVERIFIABLE
+    assert report["verdict"] == VERDICT_INCOMPLETE
+
+
+def test_standard_without_its_source_is_unaddressed():
+    """Naming a standard the record cannot source is an omission, not a pass."""
+    record = administrative()
+    del record["administrative"]["standard_source"]
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G10") == UNVERIFIABLE
+    assert "without the rule, agreement or guidance" in report["gates"][-1]["detail"]
+
+
+def test_undisclosed_output_is_a_gap_not_an_omission():
+    record = administrative()
+    record["administrative"]["disclosed_to_opposing_party"] = False
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G10") == GAP
+    assert report["verdict"] == VERDICT_GAPS
+
+
+def test_no_opportunity_to_respond_is_a_gap_naming_matthews():
+    record = administrative()
+    record["administrative"]["opportunity_to_respond"] = False
+
+    report = evaluate(record)
+
+    assert gate_state(report, "G10") == GAP
+    detail = [g["detail"] for g in report["gates"] if g["gate"] == "G10"][0]
+    assert "Mathews" in detail
+
+
+def test_arbitration_is_read_under_the_administrative_posture():
+    """The declared value is quoted back: a posture label must not overwrite it."""
+    record = administrative()
+    record["proffer"]["forum"] = "arbitration"
+
+    report = evaluate(record)
+
+    assert report["forum"] == "administrative"
+    assert report["forum_source"] == "stated"
+    assert "'arbitration'" in report["forum_note"]
+    assert "G10" in report["gates_applied"]
+    assert "G6" not in report["gates_applied"]
+    assert "G8" not in report["gates_applied"]
+    assert "G9" not in report["gates_applied"]
+
+
+def test_negative_control_bare_arbitration_record_satisfies_g10():
+    """Arbitration has the least evidence law of any forum; G10 must not demand FRE paperwork."""
+    record = administrative()
+    record["proffer"]["forum"] = "arbitration"
+    del record["hearsay"]
+    del record["authentication"]["custody"]
+    record["administrative"] = {
+        "standard": "the tribunal decides admissibility, and hears any evidence it "
+        "considers material",
+        "standard_source": "arbitration agreement clause 9",
+        "disclosed_to_opposing_party": True,
+        "opportunity_to_respond": True,
+    }
+
+    assert gate_state(evaluate(record), "G10") == PASS
+
+
+def test_negative_control_administrative_block_cannot_affect_a_civil_record():
+    """A gate that fired outside its posture would be an error of law dressed as rigour."""
+    record = clean()
+    record["administrative"] = {"disclosed_to_opposing_party": False}
+
+    report = evaluate(record)
+
+    assert report["verdict"] == VERDICT_READY
+    assert report["gates_applied"] == [f"G{i}" for i in range(1, 8)]
+    assert "G10" not in report["gates_applied"]
