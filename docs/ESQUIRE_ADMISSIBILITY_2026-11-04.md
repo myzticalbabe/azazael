@@ -1,9 +1,9 @@
 # ESQUIRE ADMISSIBILITY — audit, gap, instrument
 
-**Version:** 1.1 — 2026-11-04
+**Version:** 1.2 — 2026-11-04
 **Status:** audit plus a built instrument. Not legal advice, not reviewed by a lawyer.
-**Instrument:** `tools/esquire_admissibility.py` (ESQUIRE-ADMISSIBILITY-v2)
-**Tests:** `tests/test_esquire_admissibility.py` (52 tests)
+**Instrument:** `tools/esquire_admissibility.py` (ESQUIRE-ADMISSIBILITY-v3)
+**Tests:** `tests/test_esquire_admissibility.py` (61 tests)
 
 ---
 
@@ -97,7 +97,7 @@ record" — never "this evidence is admissible". `BLIND` covers an unreadable
 record and is never a pass: a file that does not parse is a fact to fix, not a
 silent zero.
 
-### 2.1 The nine gates, seven of them universal
+### 2.1 The ten gates: seven universal, two criminal, one for a forum with its own evidence law
 
 | gate | question | authority | tier |
 | --- | --- | --- | --- |
@@ -110,6 +110,7 @@ silent zero.
 | **G7** | is AI assistance disclosed, and did a named reviewer with authority to change it review it? | Esquire E-1/E-5; ABA Formal Op. 512 | B for the conduct rule |
 | **G8** | is the output, or a certificate about it, testimonial in a criminal case? | U.S. Const. amend. VI; *Crawford*; *Melendez-Diaz* | A for the amendment |
 | **G9** | is the declarant named and available, already cross-examined, or waived by notice-and-demand? | *Crawford*, 541 U.S. 36; *Bullcoming*, 564 U.S. 647 | A for both cases |
+| **G10** | does the record name the standard the forum itself applies, and show the output was disclosed with a chance to respond? | 5 U.S.C. § 556(d)–(e); *Mathews v. Eldridge*, 424 U.S. 319 | A for § 556 (read at source); C for *Mathews* |
 
 **G8 and G9 apply only when `proffer.forum` is criminal.** A record that states no
 forum is read as civil, and the report prints that reading rather than leaving
@@ -123,8 +124,25 @@ forum note: the record states no forum, so it is read as civil and confrontation
 
 The default is printed because silently dropping two gates on a missing key is
 indistinguishable, in the output, from a criminal proffer that satisfies them.
-An unrecognised value (`"juvenile"`, `"administrative"`) is read as civil too,
-and the value is quoted back verbatim in `forum_note`.
+**An administrative or arbitral forum gets a third posture, not the civil one.**
+`proffer.forum` accepts `"administrative"` and its synonyms (`agency`,
+`regulatory`, `administrative_hearing`, `tribunal`) as well as `"arbitration"`,
+`"arbitral"` and `"arbitration_proceeding"`. In that posture **G6, G8 and G9 are
+not applied and G10 is**, for the reasons in §3.7, and the report prints all
+three exclusions plus the change:
+
+```text
+forum: administrative (stated)
+forum note: forum stated as 'arbitration', read under the administrative posture:
+            the forum sets its own evidence law, so G6 (FRE hearsay) and G8/G9
+            (Sixth Amendment confrontation) are NOT applied, and G10 tests the
+            forum's own standard instead
+```
+
+The declared value survives the posture label: a record that says `arbitration`
+quotes `'arbitration'` back in `forum_note` rather than reporting a forum it did
+not invoke. Any other value still reads as civil — `"juvenile"`, for instance —
+and an unrecognised value is quoted back verbatim in `forum_note`.
 
 The full table with each gate's falsifier and negative control is printable:
 `python tools/esquire_admissibility.py --gates`.
@@ -133,8 +151,13 @@ The full table with each gate's falsifier and negative control is printable:
 
 Eight unconditional sections — `proffer`, `witness`, `inputs`, `method`,
 `claims`, `authentication`, `hearsay`, `review` — plus a `confrontation` block
-read only in a criminal posture. All are documented in the module docstring with
-types, so an opponent can read the shape of the claim without reading the code.
+read only in a criminal posture and an `administrative` block (`standard`,
+`standard_source`, `disclosed_to_opposing_party`, `opportunity_to_respond`) read
+only in the administrative posture. All are documented in the module docstring
+with types, so an opponent can read the shape of the claim without reading the
+code. The published repository carries a worked example of each posture under
+`examples/`.
+
 Records are hashed with a canonical, key-order-independent serialisation, and
 the hash is printed with every report: two parties can confirm they are arguing
 about the same proffer.
@@ -144,7 +167,7 @@ about the same proffer.
 ## 3. The legal-accuracy decisions, and why each one is a decision
 
 An instrument that encodes an error of law is worse than no instrument, because
-it produces confident output. Six choices were made deliberately, each with a
+it produces confident output. Seven choices were made deliberately, each with a
 test that fails if the choice is reversed.
 
 ### 3.1 The *Daubert* factors are non-exhaustive — so they cannot fail a gate
@@ -215,6 +238,36 @@ paperwork that clears G5 is the very thing G8 asks about. The detail string name
 *Melendez-Diaz*, and
 `test_certificate_prepared_for_litigation_is_not_non_testimonial` holds the line.
 
+### 3.7 In a forum that sets its own evidence law, three gates do not apply
+
+An agency adjudication is not a court applying the Federal Rules, and an
+arbitration is not a court at all. 5 U.S.C. § 556(d), read at source on
+2026-11-04, admits "any oral or documentary evidence", leaves exclusion of
+"irrelevant, immaterial, or unduly repetitious evidence" to agency policy, and
+allows a sanction only on "consideration of the whole record" and evidence that
+is "reliable, probative, and substantial"; § 556(e) makes the transcript and
+exhibits the exclusive record for decision and entitles a party, on timely
+request, "to an opportunity to show the contrary" of a fact noticed outside it.
+
+Two consequences, either of which would be an error of law if the civil gate set
+were simply reused:
+
+- **G6 has no referent there.** Asking which FRE hearsay route applies in a forum
+  that does not apply the hearsay rule is a category error, and it would fail
+  every honest administrative proffer for an omission the forum does not care
+  about. G6 is not applied in this posture, and the report says so.
+- **So do G8 and G9.** The Confrontation Clause governs criminal prosecutions;
+  dropping those two outside one is the same rule the civil posture already
+  follows, not a concession made to agencies.
+
+What replaces them is **G10**, which asks the question this forum does have: name
+the governing standard, source it, and show the output was disclosed to the
+opposing party with an opportunity to respond. The response element is
+§ 556(d)–(e) for agencies and the due-process floor of *Mathews v. Eldridge*,
+424 U.S. 319 (1976), for everything else; for arbitration it is the parties' own
+clause, and G10's negative control is an arbitral record that satisfies it with
+no FRE paperwork at all.
+
 ---
 
 ## 4. Falsifiers and negative controls
@@ -236,6 +289,7 @@ keep it green.
 | G7 | a reviewer with no power to alter the output treated as satisfying human review | a reviewer who changed nothing but held authority |
 | G8 | a certificate prepared for litigation, offered in a criminal case, admitted as non-testimonial because a custodian signed it | a machine output that never left the regular course of business, characterised as non-testimonial with a stated basis |
 | G9 | a surrogate analyst who neither performed nor reviewed the work permitted to satisfy confrontation by reading a report | an unavailable declarant who was already cross-examined on the same statements |
+| G10 | an authority holding that a tribunal may rest a sanction on machine output the party was never shown, or that the record need not identify the standard applied | an arbitral record naming the agreement's clause, with a disclosed output and a response window — arbitration has the least evidence law of any forum |
 
 The G7 control is the sharpest one, because it cuts against intuition: a
 reviewer who changed nothing is *not* a defect. The absence of changes is a fact
@@ -250,6 +304,14 @@ direction, `test_negative_control_confrontation_block_cannot_affect_a_civil_reco
 holds that a civil record carrying a defective `confrontation` block is still
 READY on seven gates — a gate that fired outside its forum would be an error of
 law dressed as rigour.
+
+The administrative posture has the same pair.
+`test_negative_control_bare_arbitration_record_satisfies_g10` requires G10 to
+pass on an arbitral record with no `hearsay` block and no custody chain, because
+holding an arbitration to the Federal Rules is the error this gate could most
+easily commit. `test_negative_control_administrative_block_cannot_affect_a_civil_record`
+requires a civil record carrying a defective `administrative` block to stay
+READY on seven gates.
 
 ---
 
@@ -284,6 +346,13 @@ main risk of building one at all.
   waiver and says in a note that the demand window is a fact to be established,
   not assumed. The instrument does not know whether that window was open, or
   whether the statute reaches this kind of report.
+- **What the forum actually did.** G10 reads the standard the record *says* the
+  forum applies, and whether disclosure and a response opportunity are recorded.
+  It cannot check that the tribunal followed its own rule, and it does not model
+  the vacatur standard for an arbitral award (9 U.S.C. § 10 was not read here).
+- **Juvenile and other specialised proceedings.** Still read as civil, and said
+  so in the output. Their confidentiality rules and their own evidence law are
+  not modelled.
 
 ---
 
@@ -362,9 +431,10 @@ jurisdiction over evidence law.
   particular state is unmeasured here. The instrument is federal.
 - **Criminal posture.** G8 and G9 now exist and are exercised by nine tests, but
   the pair reads a characterisation the proponent wrote; whether a given
-  certificate is testimonial remains a ruling, not a reading. Juvenile and
-  administrative proceedings are read as civil and say so — neither has been
-  modelled.
+  certificate is testimonial remains a ruling, not a reading. Administrative and
+  arbitral proceedings are now a posture with its own gate set (§3.7); juvenile
+  proceedings are still read as civil and say so, and their confidentiality
+  rules are not modelled.
 - **Judicial reception.** No decision applying an admissibility checklist of
   this kind to AI output was sought or found. "*Mata*" is about fabricated
   citations, not about a proffer record, and it is cited for citation integrity
@@ -385,7 +455,7 @@ the command that produced it.
 | 1 | the canon excludes admissibility from its scope | `grep -n "evidentiary rules about authenticating\|E-0\.2\*\*" docs/ESQUIRE_CANON_2026-11-03.md` | `47:**E-0.2** The canon does not govern:` and `50:(c) evidentiary rules about authenticating machine output;` |
 | 2 | the memo's only admissibility sentence is line 357 | `grep -n "currently inadmissible" docs/MEMORANDUM_WHEN_THE_MACHINE_DOES_THE_WORK_2026-11-03.md` | `357:language of this memorandum, is: **the machine's output is currently inadmissible` |
 | 3 | no prior admissibility tooling existed | `grep -rln "FRE 702\|Rule 702\|fre_702" --include=*.py tools/ src/ tests/ \| grep -v esquire_admissibility \| wc -l` | `0` |
-| 4 | the instrument's suite passes | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:cacheprovider` | `52 passed in 0.53s`, exit 0 |
+| 4 | the instrument's suite passed at v1.1 | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:cacheprovider` | `52 passed in 0.53s`, exit 0 (v1.1 reading; v3 reading is row 16) |
 | 5 | every gate can fail | `test_every_gate_can_fail` (parametrised G1..G9) | 9 pass; G8/G9 run against the criminal fixture, each perturbation produces GAP on its own gate |
 | 6 | READY exits 0 | `esquire_admissibility.py /tmp/esq/civil.json` | `ESQUIRE-ADMISSIBILITY-v2  READY`, `forum: civil (unstated)`, `gates: 7 pass, 0 gap, 0 unaddressed, over 7 applied`, exit 0 |
 | 7 | GAPS exits 1 | same, record with `authority_to_change=False` | `G7  GAP  the reviewer had no authority to change the output`, `GAP_EXIT=1` |
@@ -396,6 +466,10 @@ the command that produced it.
 | 12 | a criminal record applies nine gates | `esquire_admissibility.py /tmp/esq/crim_gap.json` | `forum: criminal (stated)`, `gates: 8 pass, 1 gap, 0 unaddressed, over 9 applied`, `G9  GAP  declarant A. Analyst is unavailable ... (Crawford ...)`, exit 1 |
 | 13 | the forum default is printed, never silent | `esquire_admissibility.py /tmp/esq/civil.json` | `forum: civil (unstated)` and `forum note: ... confrontation gates G8 and G9 were NOT applied` in the same report that reads READY |
 | 14 | a civil record is not judged by the criminal gates | `test_negative_control_confrontation_block_cannot_affect_a_civil_record` | civil record with `{"testimonial": true, "surrogate_analyst": true}` still READY, `gates_applied` = G1..G7 |
+| 15 | a forum with its own evidence law drops G6, G8 and G9 and adds G10 | `py315t tools/esquire_admissibility.py C:/tmp/esq/arb.json` | `ESQUIRE-ADMISSIBILITY-v3  READY`; `forum: administrative (stated)`; `forum note: forum stated as 'arbitration' ... G6 (FRE hearsay) and G8/G9 ... are NOT applied, and G10 tests the forum's own standard instead`; `gates: 7 pass, 0 gap, 0 unaddressed, over 7 applied`; `G10  PASS  standard 'reliable, probative, and substantial evidence on the whole record' from '5 U.S.C. 556(d); agency rule 1.33'`; exit 0 |
+| 16 | the suite passes at v3 | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:cacheprovider` | `61 passed in 0.53s`, exit 0 |
+| 17 | every gate can fail, G10 included | `test_every_gate_can_fail` (parametrised G1..G10) | 10 pass; G10 runs against the administrative fixture and a withheld disclosure produces GAP |
+| 18 | G10's authority was read this session, at the tier claimed | `read_url` on the Cornell LII `5 U.S.C. § 556` page and the Justia *Mathews v. Eldridge* page, 2026-11-04 | § 556(d) quoted verbatim in §3.7; § 556(d)–(e) entitlements confirmed; *Mathews*, 424 U.S. 319 (1976), three-factor test read in the annotation, full opinion not read (hence tier C); `--gates` prints `G10 ... applies to: administrative and arbitration postures only` at exit 0 |
 
 ### 9.1 An instrument finding worth recording
 
