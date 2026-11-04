@@ -66,10 +66,16 @@ def test_main_handles_unknown_target():
     """main returns error for unknown target."""
     import io
     from contextlib import redirect_stderr
+    import sys
     
     f = io.StringIO()
-    with redirect_stderr(f):
-        rc = spawn.main(["--targets", "unknown"])
+    old_argv = sys.argv
+    try:
+        sys.argv = ["spawn_agents.py", "--targets", "unknown"]
+        with redirect_stderr(f):
+            rc = spawn.main()
+    finally:
+        sys.argv = old_argv
     assert rc == 1
     assert "Unknown target" in f.getvalue()
 
