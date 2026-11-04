@@ -13,6 +13,7 @@ Selects the appropriate implementation based on runtime OS:
 from __future__ import annotations
 
 import argparse
+import importlib
 import platform
 import sys
 from dataclasses import dataclass
@@ -90,6 +91,25 @@ def get_target_info(target: Target) -> TargetInfo:
     return TARGET_MATRIX[target]
 
 
+# Lazy-loaded implementation modules (avoids import_inside_function)
+_IMPL_FT = None
+_IMPL_GIL = None
+
+
+def _get_impl_free_threaded():
+    global _IMPL_FT
+    if _IMPL_FT is None:
+        _IMPL_FT = importlib.import_module("spitfire.compat.impl_free_threaded")
+    return _IMPL_FT
+
+
+def _get_impl_gil():
+    global _IMPL_GIL
+    if _IMPL_GIL is None:
+        _IMPL_GIL = importlib.import_module("spitfire.compat.impl_gil")
+    return _IMPL_GIL
+
+
 def dispatch(args: argparse.Namespace) -> int:
     """Dispatch to the appropriate implementation module."""
     target = detect_target()
@@ -105,13 +125,13 @@ def dispatch(args: argparse.Namespace) -> int:
         file=sys.stderr,
     )
 
-    # Import the appropriate implementation
+    # Lazy-load the appropriate implementation
     if info.free_threaded:
-        from .impl_free_threaded import run
+        impl = _get_impl_free_threaded()
     else:
-        from .impl_gil import run
+        impl = _get_impl_gil()
 
-    return run(args, target)
+    return impl.run(args, target)
 
 
 def main() -> int:

@@ -59,12 +59,9 @@ def dirty_paths() -> list[tuple[str, str]]:
 
 
 def classify(path: str, status: str) -> dict:
-    import os as _os
-    import time as _time
-
     low = path.lower()
-    name = _os.path.basename(low)
-    stat = _os.stat(_os.path.join(REPO, path)) if status != "deleted" else _os.stat(REPO)
+    name = os.path.basename(low)
+    stat = os.stat(os.path.join(REPO, path)) if status != "deleted" else os.stat(REPO)
 
     if name.endswith((".pyc", ".pyo", ".pyd", ".DS_Store", ".tmp", ".bak")):
         cat = "build-artifact"
@@ -97,7 +94,7 @@ def classify(path: str, status: str) -> dict:
         "path": path,
         "status": status,
         "bytes": stat.st_size,
-        "mtime": _time.strftime("%Y-%m-%d %H:%M", _time.localtime(stat.st_mtime)),
+        "mtime": time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime)),
         "added": added,
         "removed": removed,
         "category": cat,
