@@ -2,8 +2,15 @@
 
 ### A whitepaper and advisory opinion on the human of record
 
-**Version:** 1.0 — 2026-11-03
+**Version:** 1.1 — 2026-11-03
 **Status:** advisory. Not legal advice, not an opinion of counsel, not a restatement.
+
+> **Changelog v1.1.** The four 2026-era sources that v1.0 carried as UNVERIFIABLE were
+> fetched on 2026-11-03 and read at source. Three confirmed the canon's reading; one
+> (**Colorado**) changed it — the statute the memorandum cites as relaxed was repealed and
+> re-enacted, and the replacement installs a human on *appeal* rather than in the production
+> path. E-2 gains E-2.3–E-2.4, E-3 gains a decision-type boundary, E-5.3 gains its
+> instrument, and the citation table is re-marked against primary text.
 **Derived from:** `docs/MEMORANDUM_WHEN_THE_MACHINE_DOES_THE_WORK_2026-11-03.md` (the memorandum),
 `docs/PANEL_RULINGS_2026-11-03.md` (five seats, six questions, commits `e25ef8a1` and `48e49505`)
 **Evidence:** `logs/legal_panel/2026-11-03/` and `logs/legal_panel/deepseek.json`
@@ -98,6 +105,41 @@ the canon treats it as the boundary of the class.
 construction and is therefore exposed to interpretive expansion; inventorship rests on a
 definition and is therefore resistant to it. A change in one does not predict the other.
 
+**E-2.3** The funder species is now evidenced at source, and the notice states its own
+rationale in terms of the funder's process, not a third party's right. NOT-OD-25-132
+(17 July 2025, effective for the 25 September 2025 receipt date) provides that
+
+> "NIH will not consider applications that are either substantially developed by AI, or
+> contain sections substantially developed by AI, to be original ideas of applicants."
+
+and gives as its reason that rapid AI-assisted submission "may unfairly strain NIH's
+application review processes", together with "stewardship of taxpayer dollars". The same
+notice caps an individual PI at "six new, renewal, resubmission, or revision applications"
+per calendar year. A rule that protects the reviewer's capacity and the taxpayer's money is
+the funder species in its pure form: it is **in class** on the status test (an AI-developed
+application is not "original"), and it is **not** a third-party-rights mandate.
+
+**E-2.4 — the appeal mode.** A human-of-record mandate need not place the human in the
+production path. Colorado's replacement statute (SB 26-189, signed 14 May 2026, effective
+1 January 2027) repeals and re-enacts SB 24-205 and grants consumers "the right to request
+meaningful human review and reconsideration following a covered ADMT making a consequential
+decision resulting in an adverse outcome", while requiring developers to supply deployers
+with "instructions for appropriate use and human review".
+
+That is a third mode, and the canon must name it:
+
+| mode | where the human sits | what it buys |
+| --- | --- | --- |
+| **in production** | before the output takes effect (authorship, inventorship, oversight) | validity of the output |
+| **of record** | named and answerable (supervision, sign-off) | a defendant and a duty |
+| **on appeal** | after an adverse decision (Colorado's reconsideration right) | a route to reverse the outcome |
+
+The modes are not interchangeable. A reconsideration right is compatible with a fully
+automated first decision, which is why a jurisdiction can retreat from a human-in-the-loop
+mandate and still claim to have kept "meaningful human review". A canon that equates the
+three will misread exactly this kind of reform as a repeal of human oversight when it is a
+relocation of it.
+
 **Evidence state.** Four seats independently drew the legal/functional distinction; one seat
 (`deepseek`) supplied the third-party/funder split unprompted. Tier C reasoning evidence.
 
@@ -120,6 +162,9 @@ where a machine produced the output**, not whether a human's paid work was displ
   could perform at all.
 - **A funder's artefact ban** — a prohibition on machine-generated content, which is a
   generation rule and not a substitution rule.
+- **A decision-type regime** — Colorado's ADMT framework triggers on the *kind of decision*
+  (education, employment, housing, lending, insurance, health care, essential government
+  services), not on displacement. Its human element is a reconsideration right (E-2.4).
 
 **E-3.3** The canon therefore states the axis as *sufficient-shape*: mandates that install a
 human where a machine did the work are substitution-shaped; mandates may exist that install a
@@ -175,6 +220,15 @@ cannot supply the content of the liability rule that would have applied, and it 
 the waiver reading. Where the waiver reading rests on a preprint and a withdrawal, it is
 marked tier C and may not be pleaded as settled.
 
+The withdrawal itself is now confirmed at source: the Commission announced it in the 2025
+work programme (COM(2025) 45), and the withdrawal was published in the Official Journal as
+C/2025/5423 on 6 October 2025; the European Parliament's legislative train records the file
+as **Withdrawn** (procedure 2022/0303(COD)). The reason recorded is the absence of
+foreseeable agreement — which is exactly the kind of fact that proves abandonment and proves
+nothing about substance. The proposed instrument's content, had it passed, was a rebuttable
+presumption of causality and a disclosure power for national courts; neither survives the
+withdrawal as law.
+
 **Evidence state.** Four seats accepted the trigger analysis; one argued the opposite
 direction on duties (non-delegable supervision); one named this as the memorandum's most
 exposed claim. All five treated the withdrawn directive as incapable of proving the
@@ -224,9 +278,21 @@ one unreasoned. The split is itself the finding and is preserved.
 hallucinate a citation, and cannot be cross-examined. Five seats agreeing raises confidence
 in a *reading*; it does not raise the tier of the underlying authority.
 
-**E-7.2** Every 2026-era instrument cited in the memorandum (the funder policy, the preprint,
-the withdrawal, the state statute's amendments) is **UNVERIFIABLE** in this canon's evidence
-record until fetched, and is marked so in the citation table.
+**E-7.2** Four 2026-era instruments were carried as UNVERIFIABLE in v1.0 and fetched on
+2026-11-03. The tier of each is set by what was read, not by the fact that it was found:
+
+| instrument | fetched | tier now | what the text establishes |
+| --- | --- | --- | --- |
+| NOT-OD-25-132 | `grants.nih.gov` notice page, 200 | **A** (agency notice) | the originality status rule, its process rationale, and the six-application cap |
+| Wilson et al., arXiv 2605.13723 | `arxiv.org/abs`, 200 | **C+** (preprint, *reviewed and accepted* at HHAI 2026) | the term "humanwashing" and its target: the loop metaphor, not a legal right |
+| AILD withdrawal | EP legislative train + OJ reference | **A** (official record) | withdrawal is fact; the instrument's content is not law |
+| Colorado SB 26-189 | `leg.colorado.gov` bill page, 200 | **A** (enacted statute) | repeal-and-reenact; the human element is reconsideration, not oversight |
+
+**E-7.3** A confirmation is not an endorsement of the use. The preprint is now confirmed to
+exist and to say what the memorandum says it says, and it is still not authority for a legal
+conclusion: its argument is that the *metaphor* of a loop obscures what a human actually does,
+which supports a factual claim about fig-leaf oversight and does not establish that a
+statutory right is extinguished.
 
 ### Article E-8 — Honesty in both directions
 
@@ -281,6 +347,7 @@ requirement (E-8) is to say so before an opponent does.
 | data protection: human in the loop | yes | data subject | substitution-shaped | n/a | **displaces** the Art. 22 route | **in class**; extinction claim barred |
 | funder originality | yes | **the funder** | generation rule, not substitution | n/a | n/a | **outside the class**; boundary case |
 | EU AI Act Art. 14 oversight | yes | third party (affected persons) | **risk-based** | n/a (regulatory, not competition) | n/a | **outside the class**; boundary case |
+| Colorado ADMT (SB 26-189) | yes, **on appeal** | consumer | decision-type, not displacement | n/a | human review is the remedy, not the trigger | **in class, appeal mode** (E-2.4) |
 | medical-device AI oversight | yes | patient | **risk-based** | n/a | n/a | **outside the class**; boundary case |
 
 ---
@@ -292,6 +359,12 @@ glossary; it is not the opinion of counsel and binds no one.*
 
 **On the question whether the law installs a human where a machine does the work:** it does,
 in at least five regimes, and the installation is the same shape in each.
+
+**On the question where the law puts that human:** not always in the production path. A
+jurisdiction can repeal a human-in-the-loop mandate and keep a human on appeal, and Colorado
+did exactly that in 2026. The canon therefore treats "human oversight" as a family of three
+modes — in production, of record, on appeal — and refuses the equation of them, because the
+equation is how a relocation of oversight gets reported as its abolition.
 
 **On the question whether that shape is one rule:** it is not. Two of the five are
 construction, two are statutory or regulatory command, one is private programme policy. The
@@ -326,6 +399,7 @@ And it forbids describing a displaced procedural route as an extinguished right.
 | a decision applying §8(b)(6) language to a regulator's condition | E-1 |
 | a regime whose human requirement is enforced by the funder for the funder's liability to a third party | E-2.1 |
 | a risk-based oversight rule that applies only where a human role was displaced | E-3.2 |
+| a regime that mandates a named human *of record* rather than a reconsideration right, on the same facts as Colorado | E-2.4 |
 | authority holding a nominal reviewer satisfies Art. 22 | E-5.3 |
 | a judgment reaching a board's AI-substitution rule on the merits | E-6.2 |
 | a fetched primary text contradicting any tier-C reading above | E-7 |
@@ -341,13 +415,36 @@ And it forbids describing a displaced procedural route as an extinguished right.
 | antitrust split preserved | same files | live: cohere, deepseek; academic: gemini; standing caveat: qwen |
 | harness commits | `git show --stat e25ef8a1` | 2 files, 686 insertions |
 | raw replies committed | `git show --stat 48e49505` | 9 files, 328 insertions |
+| four 2026 sources exist as cited | `read_url` on `grants.nih.gov/.../NOT-OD-25-132.html`, `arxiv.org/abs/2605.13723`, `europarl.europa.eu/legislative-train/...ai-liability-directive`, `leg.colorado.gov/bills/sb26-189` | 200, 200, 200, 200; quoted lines in §VII.a |
+| Colorado repealed and re-enacted the AI Act | `leg.colorado.gov/bills/sb26-189` bill summary | "The act repeals and reenacts those provisions"; Governor signed 05/14/2026; effective 1 January 2027 |
+| the human element is reconsideration, not oversight | same page, bill summary | "the right to request meaningful human review and reconsideration following a covered ADMT making a consequential decision resulting in an adverse outcome" |
+| the AILD withdrawal is official | EP legislative train, updated 20/09/2026 | "Status: Withdrawn"; OJ C/2025/5423, 6 October 2025 |
 
-**Citation marks.** CONFIRMED: NLRA §8(b)(6); *American Newspaper Publishers Assn.*; *Goldfarb*;
-*N.C. State Bd. of Dental Examiners*; *Parker v. Brown*; 17 U.S.C. §102(a); 35 U.S.C.
-§100(f)–(g); *Thaler v. Perlmutter*; GDPR Art. 22; EU AI Act Art. 14 and Annex III; the
-European Parliament's 16 February 2017 resolution; ABA Formal Opinion 512.
-UNVERIFIABLE here: the funder policy, the humanwashing preprint, the AI Liability Directive's
-withdrawal, and the state statute's amendments — all asserted by the memorandum, none fetched.
+### VII.a — Citation marks after the fetch
+
+**CONFIRMED at source, 2026-11-03** (URL, HTTP status and the quoted line recorded above):
+NOT-OD-25-132; Wilson et al., arXiv 2605.13723 (reviewed and accepted, HHAI 2026); the AI
+Liability Directive's withdrawal (OJ C/2025/5423, 6 October 2025); Colorado SB 26-189
+(enacted 14 May 2026, effective 1 January 2027).
+
+**CONFIRMED, not re-fetched today:** NLRA §8(b)(6); *American Newspaper Publishers Assn. v.
+NLRB*, 345 U.S. 100 (1953); *Goldfarb*, 421 U.S. 773 (1975); *N.C. State Bd. of Dental
+Examiners*, 574 U.S. 494 (2015); *Parker v. Brown*, 317 U.S. 341 (1943); 17 U.S.C. §102(a);
+35 U.S.C. §100(f)–(g); *Thaler v. Perlmutter*; GDPR Art. 22; EU AI Act Art. 14 and Annex III;
+European Parliament resolution of 16 February 2017; ABA Formal Opinion 512.
+
+**QUALIFIED — exists, but the memorandum's use runs wider than the source:**
+
+| authority | mark | why |
+| --- | --- | --- |
+| arXiv 2605.13723 | QUALIFIED | says the *loop metaphor* obscures; does not say a right is extinguished |
+| NOT-OD-25-132 | QUALIFIED | an originality status rule plus a volume cap — not a disclosure mandate, and not a general bar on AI assistance |
+| AILD withdrawal | QUALIFIED | proves abandonment; the presumption-of-causality and disclosure powers never became law |
+| Colorado SB 24-205 | **MISSTATED if described as relaxed** | repealed and re-enacted; the successor is a different regime, not a softened one |
+
+**UNVERIFIABLE, still:** the memorandum's characterisation of how agencies have applied
+NOT-OD-25-132 in individual cases, and any claim about the content of the withdrawn
+directive as if it had effect. Neither was read here.
 
 ---
 
