@@ -91,6 +91,32 @@ def _discover_modules() -> dict:
     )
 
 
+def _run_ml_analysis() -> Any:
+    """Run HORUS ML analysis, resolving the module across both layouts.
+
+    ``src/HORUS`` is a DATA directory (``index.html``, ``output/``,
+    ``results/``) with no Python in it, so a bare ``from HORUS import
+    run_ml_analysis`` names a DIFFERENT module depending on which directory is
+    on sys.path: ``ORCHESTRATION/HORUS.py`` when ``src/ORCHESTRATION`` is, and
+    that data directory when ``src`` is. Same ambiguity ``_discover_modules``
+    documents above, same remedy: try the package-qualified import first, then
+    the sibling name, and skip a candidate that resolves but does not carry the
+    symbol instead of calling through it.
+    """
+    for mod in ("ORCHESTRATION.HORUS", "HORUS"):
+        try:
+            module = __import__(mod, fromlist=["run_ml_analysis"])
+        except ImportError as exc:
+            note_failure("HYDRA:run_ml_analysis-import", exc)
+            continue
+        run = getattr(module, "run_ml_analysis", None)
+        if run is not None:
+            return run()
+    raise ModuleNotFoundError(
+        "No HORUS.run_ml_analysis (tried ORCHESTRATION.HORUS, HORUS)"
+    )
+
+
 class ProcessingStage(Enum):
     """HYDRA processing stages."""
 
@@ -280,9 +306,7 @@ class HYDRACluster:
                 result.success = result.modules_processed > 0
 
             elif stage == ProcessingStage.ANALYSIS:
-                from HORUS import run_ml_analysis
-
-                output = run_ml_analysis()
+                output = _run_ml_analysis()
                 result.modules_processed = len(output.entries)
                 result.output = output.to_dict()
                 result.success = result.modules_processed > 0

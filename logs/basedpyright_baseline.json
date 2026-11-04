@@ -1,18 +1,53 @@
 {
-  "recorded_at": "2026-11-03T05:29:17+00:00",
+  "recorded_at": "2026-11-04T13:46:46+00:00",
   "identity_scheme": "content-anchored-v1",
   "checker": "basedpyright (pyrightconfig.json, typeCheckingMode basic)",
   "summary": {
-    "filesAnalyzed": 761,
+    "filesAnalyzed": 775,
     "errorCount": 0,
-    "warningCount": 0,
+    "warningCount": 29,
     "informationCount": 0
   },
   "severity_counts": {
     "error": 0,
-    "warning": 0,
+    "warning": 29,
     "information": 0
   },
-  "top_rules": {},
-  "diagnostic_ids": []
+  "top_rules": {
+    "reportOptionalMemberAccess": 10,
+    "reportWildcardImportFromLibrary": 9,
+    "reportOptionalSubscript": 5,
+    "reportOptionalCall": 5
+  },
+  "diagnostic_ids": [
+    "src/CODEX/CORE/ANIMATION_PROTOCOLS.py:reportWildcardImportFromLibrary:from ANIMATION_PROTOCOLS import * # noqa: E402, F401",
+    "src/CODEX/CORE/CHANGELOG_GENERATOR.py:reportWildcardImportFromLibrary:from CHANGELOG_GENERATOR import * # noqa: E402, F401",
+    "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py:reportWildcardImportFromLibrary:from ECOSYSTEM_HEALTH_CHECK import * # noqa: E402, F401",
+    "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py:reportWildcardImportFromLibrary:from FILE_MANIFEST_GENERATOR import * # noqa: E402, F401",
+    "src/CODEX/CORE/HORUS_INTEGRATION.py:reportWildcardImportFromLibrary:from HORUS_INTEGRATION import * # noqa: E402, F401",
+    "src/CODEX/CORE/QL_FILE_OPTIMIZER.py:reportWildcardImportFromLibrary:from QL_FILE_OPTIMIZER import * # noqa: E402, F401",
+    "src/CODEX/CORE/enrichment_display.py:reportWildcardImportFromLibrary:from enrichment_display import * # noqa: E402, F401",
+    "src/CODEX/CORE/matrix_animation.py:reportWildcardImportFromLibrary:from matrix_animation import * # noqa: E402, F401",
+    "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py:reportWildcardImportFromLibrary:from CORE.WORMS.expansion import * # noqa: E402, F401",
+    "src/CORE/cd3_exporter.py:reportOptionalMemberAccess:format(ctx.span_id, \"016x\"),",
+    "src/CORE/cd3_exporter.py:reportOptionalMemberAccess:format(ctx.trace_id, \"032x\"),",
+    "src/grantforge/export/__init__.py:reportOptionalCall:ws.cell(row=row, column=1, value=\"Category\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalCall:ws.cell(row=row, column=1, value=\"Total\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalCall:ws.cell(row=row, column=2, value=\"Amount\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalCall:ws.cell(row=row, column=2, value=f\"=SUM(B{first_amount_row}:B{row-1})\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalCall:ws[\"A1\"].font = Font(bold=True, size=14)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row + 1, column=1, value=self._ceiling_note(input))",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=1, value=\"Category\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=1, value=\"Total\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=1, value=cat)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=1, value=self._budget_note(input))",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=2, value=\"Amount\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.cell(row=row, column=2, value=f\"=SUM(B{first_amount_row}:B{row-1})\").font = Font(bold=True)",
+    "src/grantforge/export/__init__.py:reportOptionalMemberAccess:ws.title = \"Budget\"",
+    "src/grantforge/export/__init__.py:reportOptionalSubscript:ws[\"A1\"] = \"Grant Budget\"",
+    "src/grantforge/export/__init__.py:reportOptionalSubscript:ws[\"A1\"].font = Font(bold=True, size=14)",
+    "src/grantforge/export/__init__.py:reportOptionalSubscript:ws[\"A2\"] = f\"Proposal: {input.proposal.title}\"",
+    "src/grantforge/export/__init__.py:reportOptionalSubscript:ws[\"A3\"] = f\"PI: {input.pi_profile.name}\"",
+    "src/grantforge/export/__init__.py:reportOptionalSubscript:ws[\"A4\"] = f\"Funder: {input.rfp.funder_id}\""
+  ]
 }
