@@ -457,6 +457,41 @@ def test_every_gate_can_fail(gate_id):
     assert gate_state(evaluate(record), gate_id) == GAP
 
 
+@pytest.mark.parametrize(
+    ("gate_id", "fixture", "block"),
+    [
+        ("G1", clean, "witness"),
+        ("G2", clean, "inputs"),
+        ("G3", clean, "method"),
+        ("G4", clean, "claims"),
+        ("G5", clean, "authentication"),
+        ("G6", clean, "hearsay"),
+        ("G7", clean, "review"),
+        ("G8", criminal, "confrontation"),
+        ("G9", criminal, "confrontation"),
+        ("G10", administrative, "administrative"),
+    ],
+)
+def test_every_gate_reads_a_missing_block_as_unaddressed(gate_id, fixture, block):
+    """A gate handed a record that never addresses its question must say
+    UNVERIFIABLE, not GAP.
+
+    G10 draws this line (test 644 of the 2026-11-04 audit: an unstated field is
+    unaddressed, a stated False is a gap) and the audit it came from demanded
+    the same shape at block level in every posture. A gate that reads absence
+    as contradiction accuses a silent proffer of a failing fact it never
+    asserted. Unaddressed is still not READY — the verdict assertion below
+    holds — and every block here is one the gate reads with no default.
+    """
+    record = fixture()
+    del record[block]
+
+    report = evaluate(record)
+
+    assert gate_state(report, gate_id) == UNVERIFIABLE
+    assert report["verdict"] != VERDICT_READY
+
+
 def test_civil_record_applies_seven_gates_and_says_so():
     """The forum default is printed: a missing key must not drop the gates silently."""
     report = evaluate(clean())

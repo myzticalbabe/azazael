@@ -268,6 +268,15 @@ opposing party with an opportunity to respond. The response element is
 clause, and G10's negative control is an arbitral record that satisfies it with
 no FRE paperwork at all.
 
+The line this gate draws between GAP and UNVERIFIABLE was audited against every
+other gate rather than trusted from its newest instance (2026-11-04). At block
+level the ten gates agree, in all three postures: a record that never addresses
+a gate's question reads UNVERIFIABLE, and only a *stated* failing value reads
+GAP. The one asymmetry inside a block is deliberate and survives the audit —
+G8 owns the testimonial question, so a present `confrontation` block that
+leaves `testimonial` unstated is a GAP on G8, while G9 defers to G8 and reads
+the same absence as UNVERIFIABLE. Three postures, one rule about silence.
+
 ---
 
 ## 4. Falsifiers and negative controls
@@ -312,6 +321,30 @@ holding an arbitration to the Federal Rules is the error this gate could most
 easily commit. `test_negative_control_administrative_block_cannot_affect_a_civil_record`
 requires a civil record carrying a defective `administrative` block to stay
 READY on seven gates.
+
+### 4.1 Absence is not contradiction, in any posture
+
+The G10 audit demanded that shape everywhere, and it holds. The test that pins
+it is `test_every_gate_reads_a_missing_block_as_unaddressed` (parametrised,
+one case per gate, suite 61 → 71):
+
+| gate | block deleted | result |
+| --- | --- | --- |
+| G1 | `witness` | UNVERIFIABLE |
+| G2 | `inputs` | UNVERIFIABLE |
+| G3 | `method` | UNVERIFIABLE |
+| G4 | `claims` | UNVERIFIABLE |
+| G5 | `authentication` | UNVERIFIABLE |
+| G6 | `hearsay` | UNVERIFIABLE |
+| G7 | `review` | UNVERIFIABLE |
+| G8, G9 (criminal) | `confrontation` | UNVERIFIABLE |
+| G10 (administrative) | `administrative` | UNVERIFIABLE |
+
+Absence is recorded, not punished: a gate that read a silent proffer as one
+that failed a test it was never asked would be an instrument that lies about
+what the proffer did. Unaddressed still blocks READY — the verdict row is part
+of the test — so the two states differ in what they accuse, not in whether the
+proffer survives.
 
 ---
 
@@ -450,7 +483,8 @@ jurisdiction over evidence law.
 Every claim in this document that is a claim about the tree or the code carries
 the command that produced it. Rows 1–14 are the v1.1 readings (`ESQUIRE-ADMISSIBILITY-v2`,
 nine gates, 52 tests); rows 15–20 are the v1.2 readings (`v3`, ten gates, 61
-tests). Neither set is silently rewritten when the other is measured.
+tests); rows 21–22 are the 2026-11-04 follow-up readings (71 tests, CI on the
+published copy). Neither set is silently rewritten when the other is measured.
 
 | # | claim | command | result |
 | --- | --- | --- | --- |
@@ -474,6 +508,8 @@ tests). Neither set is silently rewritten when the other is measured.
 | 18 | G10's authority was read this session, at the tier claimed | `read_url` on the Cornell LII `5 U.S.C. § 556` page and the Justia *Mathews v. Eldridge* page, 2026-11-04 | § 556(d) quoted verbatim in §3.7; § 556(d)–(e) entitlements confirmed; *Mathews*, 424 U.S. 319 (1976), three-factor test read in the annotation, full opinion not read (hence tier C); `--gates` prints `G10 ... applies to: administrative and arbitration postures only` at exit 0 |
 | 19 | the published copy passes its own suite | `py315t -m pytest tests -q -p no:cacheprovider` in `publish_repos/esquire_admissibility` | `61 passed in 0.29s`, exit 0 |
 | 20 | the three examples exercise three postures, and each is READY | `esquire_admissibility.py examples/civil.json` / `examples/criminal.json` / `examples/administrative.json` | `READY` at `7 pass ... over 7 applied`, `9 pass ... over 9 applied`, `7 pass ... over 7 applied`; `forum: administrative (stated)` on the third; exit 0 each |
+| 21 | absence is UNVERIFIABLE at block level in every posture | `test_every_gate_reads_a_missing_block_as_unaddressed` (parametrised, one case per gate) | 10 pass — block deleted per gate, each gate UNVERIFIABLE and the verdict never READY; suite `71 passed in 0.56s`, exit 0 |
+| 22 | the published repository has CI that keeps the README's verdict table and break-it cases executable | `.github/workflows/ci.yml` | suite matrix (Python 3.10–3.13) runs `pytest -q`; three examples checked READY at exit 0; four break-it cases re-run expecting exit 1 without READY — all steps executed against the working tree before push: `71 passed in 0.21s`, three `READY rc=0`, breaks `rc=1 GAPS/INCOMPLETE` ×4 |
 
 ### 9.1 An instrument finding worth recording
 
@@ -507,11 +543,16 @@ is its `README.md` beneath a short preamble, with the
 `tools/esquire_admissibility.py` path references rewritten to the flat layout. It
 carries an unchanged copy of the module and of the suite, whose only edit is the
 import (`from tools.esquire_admissibility` becomes `from esquire_admissibility`),
-plus three worked records under `examples/`, one per posture.
+plus three worked records under `examples/`, one per posture, and
+`.github/workflows/ci.yml`, which runs the suite on Python 3.10–3.13, checks all
+three examples report READY at exit 0, and re-runs the README's four break-it
+cases expecting exit 1 — the bottom verdict table is enforced, not quoted.
 
-Verified in the copy: `61 passed in 0.29s`; each example reports `READY` at exit
-0 through the flat-layout CLI, and `GAPS` exit 1 / `BLIND` exit 2 were re-checked
-there. The history was transported rather than re-created: the monorepo commits
+Verified in the copy after the CI and absence-test landing: `71 passed in
+0.26s`, exit 0; each example reports `READY` at exit 0 through the flat-layout
+CLI, and `GAPS` exit 1 / `BLIND` exit 2 were re-checked there (break cases
+`rc=1 GAPS` / `rc=1 INCOMPLETE` on 2026-11-04). The history was transported
+rather than re-created: the monorepo commits
 were replayed onto a pruned base and the blobs compared byte-for-byte before the
 first push, so what the remote holds is the same content that was tested here.
 Publishing changes nothing about the document's status — it is still an
