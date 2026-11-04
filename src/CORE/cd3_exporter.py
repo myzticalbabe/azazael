@@ -94,6 +94,18 @@ except ImportError:                               # never break the host
 if TYPE_CHECKING:               # annotation-only: never evaluated at run time
     from opentelemetry.sdk.trace import ReadableSpan
     from opentelemetry.sdk.trace.export import SpanExportResult as _SpanExportResultType
+    # `SpanExporter` is a plain class, not a typing.Protocol (`_is_protocol` is
+    # False, its mro is `(SpanExporter, object)`), so the processors that take
+    # one use NOMINAL assignability: an exporter that merely HAS the three
+    # methods is still not a `SpanExporter`. It has to inherit from it. The
+    # base is resolved again at runtime below, so this module still imports
+    # cleanly when the optional SDK is absent.
+    from opentelemetry.sdk.trace.export import SpanExporter as _SpanExporterBase
+else:
+    try:
+        from opentelemetry.sdk.trace.export import SpanExporter as _SpanExporterBase
+    except ImportError:                     # optional dependency absent
+        _SpanExporterBase = object
 
 
 class _SpanExportResultFallback:
@@ -111,13 +123,22 @@ class _SpanExportResultFallback:
 
 
 OTEL_SDK_AVAILABLE = False
-try:
+if TYPE_CHECKING:
+    # Typed against the SDK's own enum, which is what `export()` returns. The
+    # runtime fallback below is deliberately invisible here: when the name is
+    # `type[SpanExportResult] | type[_SpanExportResultFallback]`, every
+    # `return SpanExportResult.SUCCESS` widens to `Literal[...] | int`, which is
+    # not the declared return type -- and SQLiteSpanExporter then stops
+    # satisfying the `SpanExporter` protocol it is handed to as a processor.
     from opentelemetry.sdk.trace.export import SpanExportResult
+else:                           # runtime only; a type checker skips this branch
+    try:
+        from opentelemetry.sdk.trace.export import SpanExportResult
 
-    OTEL_SDK_AVAILABLE = True
-except ImportError as _otel_missing:            # optional dependency absent
-    note_failure("cd3_exporter:otel-sdk-import", _otel_missing)
-    SpanExportResult = _SpanExportResultFallback
+        OTEL_SDK_AVAILABLE = True
+    except ImportError as _otel_missing:            # optional dependency absent
+        note_failure("cd3_exporter:otel-sdk-import", _otel_missing)
+        SpanExportResult = _SpanExportResultFallback
 
 # -- DB path resolution -----------------------------------------------
 # Default to same DB as DirectMemory for cross-ledger queries.
@@ -197,7 +218,7 @@ CREATE INDEX IF NOT EXISTS idx_otel_correlation ON otel_spans(correlation_id);
 # Writes spans to memory_store.db in WAL mode for concurrent access
 # from multiple 3.14t threads.
 
-class SQLiteSpanExporter:
+class SQLiteSpanExporter(_SpanExporterBase):
     """Exports OTel spans to memory_store.db for unified trace analysis.
 
     Stores spans in the otel_spans table alongside DirectMemory events,
@@ -302,7 +323,7 @@ class SQLiteSpanExporter:
         finally:
             conn.close()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Shutdown the exporter.
 
         Intentionally inert, and REQUIRED: ``SpanExporter`` declares it and the
@@ -311,7 +332,7 @@ class SQLiteSpanExporter:
         holding one open, which is also why there is no writer lock to drop.
         """
 
-    def force_flush(self, timeout_millis: int = 30000):
+    def force_flush(self, timeout_millis: int = 30000) -> bool:
         """Force flush any pending exports.
 
         Intentionally inert, and REQUIRED by the ``SpanExporter`` interface:
@@ -319,7 +340,12 @@ class SQLiteSpanExporter:
         a flush has nothing to do. Implemented as a real method rather than
         omitted so the interface contract is visible here instead of looking
         like an unfinished stub.
+
+        Returns True because nothing is pending: the interface declares
+        ``-> bool`` and a body that only holds a docstring returns ``None``,
+        which reads to ``TracerProvider.force_flush()`` as a FAILED flush.
         """
+        return True
 
     def get_stats(self) -> dict[str, Any]:
         """Return export statistics.

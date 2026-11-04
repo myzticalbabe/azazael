@@ -15,8 +15,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 _spec = importlib.util.spec_from_file_location("bible_ship", ROOT / "tools" / "bible_ship.py")
 ship = importlib.util.module_from_spec(_spec)
@@ -120,15 +118,49 @@ def test_explicit_target_outside_the_default_set(tmp_path):
     assert ship.END in target.read_text(encoding="utf-8")
 
 
-# The global per-test timeout is 120 s (pytest.ini, and golden_arrow passes the
-# same 120 on the command line). Sourcing all three shipped templates costs 197 s
-# on this host (measured 2026-11-02: each source runs the evidence tier -- 31
-# gates -- plus the AP5 prose scan), so the harness killed this test before its
-# own assertion ran and reported a FAIL with no summary line, which says nothing
-# about whether the substitution is bad. The bounds, each above the measurement
-# and below the next: 240 s per template inside the test (the wedge stop), 330 s
-# here, 360 s per file in config/defaults.json.
-@pytest.mark.timeout(330)
+# WHY THIS TEST RUNS THE HOOK IN ITS OWN REPOSITORY (2026-11-04)
+#
+# It used to source each installed hook with no `cwd`, so the hook inherited the
+# pytest working directory -- this repository -- and every gate below the bypass
+# line fired for real: 92 s for the pre-push template, 197 s for all three
+# (measured 2026-11-02), so the harness killed the file before its own assertion
+# ran. Raising the bound (120 -> 240 -> 330 s) bought nothing, because the cost
+# was the environment the hook inherited, not the hook.
+#
+# `cwd` is now a fresh repository of its own, where `tools/bible_ship.py` and
+# `tools/bible_check.py` are absent and each stanza leaves at its own "not here"
+# guard. That is also the behaviour worth pinning: a hook installed for somebody
+# else's repo must not gate this one.
+#
+# The early exit costs coverage, though, because a shell does NOT report a bad
+# substitution on a line it never reaches -- measured: `exit 0` above `x=${{B}}`
+# prints nothing and exits 0, and `sh -n` calls that same file clean. So every
+# `${...}` in the installed text is expanded on its own below, which is 100%
+# token coverage for milliseconds.
+def _expansions(text):
+    """Every `${...}` in `text`, brace-matched. A malformed `${{X}}` closes at
+    the first `}`, so the token handed back is the broken one, not a truncation."""
+    tokens = []
+    start = text.find("${")
+    while start != -1:
+        depth = 0
+        end = -1
+        for i in range(start + 1, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        if end == -1:
+            tokens.append(text[start:])       # unterminated: let the shell judge it
+            break
+        tokens.append(text[start:end + 1])
+        start = text.find("${", end + 1)
+    return tokens
+
+
 def test_no_hook_template_ships_a_bad_substitution(tmp_path):
     """`sh -n` passes on `${X}` doubled into `${{X}}` and the hook then dies at
     runtime with "bad substitution" -- measured here, on all three templates."""
@@ -136,17 +168,30 @@ def test_no_hook_template_ships_a_bad_substitution(tmp_path):
         assert "${{" not in template, "%s carries a doubled brace" % name
         assert "${" in template, "%s cannot read its bypass variable" % name
     ship.install_hooks(tmp_path)
+    # A repository of its own: without this the temp dir is nested inside the
+    # C:/Users/clint checkout on this host, and the hooks would be sourced against
+    # whatever repo happens to contain it.
+    subprocess.run(["git", "init", "-q", str(tmp_path)], capture_output=True, text=True,
+                   encoding="utf-8", errors="replace", timeout=60)
     for name in ship.HOOKS:
         text = (tmp_path / ".githooks" / name).read_text(encoding="utf-8")
         assert "${{" not in text
-        # The bound is what the hook actually costs, not a round number. Measured
-        # 2026-11-02: sourcing the shipped pre-push template takes 92 s because it
-        # runs the evidence tier (31 gates, most reused) and the AP5 prose scan.
-        # A 60 s bound failed the hook for being slow rather than for shipping a
-        # bad substitution, which is the only thing this test asserts.
+        # One token per one-line script, which is the shape the hook itself is.
+        # NOT `sh -c 'eval ..."$1"...'`: that form was measured returning rc=0
+        # with empty stderr for `${{B}}`, i.e. a check that passes whatever it is
+        # given, which is the failure this whole test is about.
+        probe = tmp_path / "expansion-probe.sh"
+        for token in _expansions(text):
+            probe.write_text("x=%s\n" % token, encoding="utf-8")
+            expanded = subprocess.run(["sh", str(probe)], capture_output=True, text=True,
+                                      encoding="utf-8", errors="replace", timeout=60)
+            assert expanded.returncode == 0, "%s: %s -> %s" % (name, token,
+                                                                (expanded.stderr or "").strip())
+            assert "bad substitution" not in (expanded.stderr or ""), "%s: %s" % (name, token)
         completed = subprocess.run(["sh", "-c", "set -e; . \"$1\" </dev/null || true",
                                     "sh", str(tmp_path / ".githooks" / name)],
-                                   capture_output=True, text=True, timeout=240)
+                                   capture_output=True, text=True, cwd=str(tmp_path),
+                                   timeout=60)
         assert "bad substitution" not in (completed.stderr or "")
 
 
