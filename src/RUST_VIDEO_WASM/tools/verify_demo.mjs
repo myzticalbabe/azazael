@@ -61,7 +61,10 @@ try {
     } else if (m.method === "Runtime.consoleAPICalled") {
       logs.push(`[${m.params.type}] ` + m.params.args.map((a) => a.value ?? a.description ?? a.type).join(" "));
     } else if (m.method === "Runtime.exceptionThrown") {
-      logs.push(`[exception] ${m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text}`);
+      const d = m.params.exceptionDetails;
+      const frame = d.stackTrace?.callFrames?.[0];
+      logs.push(`[exception] ${d.exception?.description ?? d.text}` +
+        (frame ? `  @ ${frame.functionName || "(top)"}:${frame.lineNumber + 1}` : ""));
     }
   };
 
@@ -110,8 +113,14 @@ try {
   console.log("B:", JSON.stringify(b));
   await shot("/tmp/vw_b.png");
 
-  // ---- C
+  // ---- C: force the WebCodecs transport and assert the readout names it. The
+  // panel falling back to canvas would still paint, so only the readout proves
+  // the I420 path ran.
   await evaluate(`document.querySelector('[data-tab="c"]').click()`);
+  await evaluate(`(() => {
+    const s = document.getElementById("pathC");
+    s.value = "webcodecs"; s.dispatchEvent(new Event("change"));
+  })()`);
   await evaluate(`document.getElementById("playC").click()`);
   await sleep(1800);
   const c = await evaluate(`(() => {
@@ -122,26 +131,58 @@ try {
   })()`);
   console.log("C:", JSON.stringify(c));
   await shot("/tmp/vw_c.png");
+  const cWebCodecs = /webcodecs i420/.test(c.out);
 
-  // ---- D
+  // ---- D, source 1: the pre-packed AVRD blob (no decoder involved)
   await evaluate(`document.querySelector('[data-tab="d"]').click()`);
   await evaluate(`document.getElementById("playD").click()`);
   await sleep(1200);
+  const dBlob = await evaluate(`(() => {
+    const c = document.getElementById("canvasD");
+    const g = c.getContext("2d").getImageData(0,0,c.width,c.height).data;
+    let nonBlack = 0; for (let i=0;i<g.length;i+=4) if (g[i]+g[i+1]+g[i+2] > 12) nonBlack++;
+    return { nonBlack, out: document.getElementById("outD").textContent };
+  })()`);
+  console.log("D blob:", JSON.stringify(dBlob));
+
+  // ---- D, source 2: ffmpeg.wasm decodes the mp4 in the page. This is the slow
+  // one (30.9 MB core, then 6 s of AV1), so poll the readout instead of sleeping
+  // a guessed duration, and fail on the panel's own error text.
+  await evaluate(`document.getElementById("decodeD").click()`);
+  let dOut = "";
+  for (let i = 0; i < 180; i++) {
+    await sleep(500);
+    dOut = await evaluate('document.getElementById("outD").textContent');
+    if (/^wasm decode:/.test(dOut) || /failed|not vendored/i.test(dOut)) break;
+  }
+  await sleep(600);
   const d = await evaluate(`(() => {
     const c = document.getElementById("canvasD");
     const g = c.getContext("2d").getImageData(0,0,c.width,c.height).data;
     let nonBlack = 0; for (let i=0;i<g.length;i+=4) if (g[i]+g[i+1]+g[i+2] > 12) nonBlack++;
     return { nonBlack, out: document.getElementById("outD").textContent };
   })()`);
-  console.log("D:", JSON.stringify(d));
+  const decodedFrames = Number((/wasm decode: (\d+) frames/.exec(d.out) || [])[1] || 0);
+  console.log("D ffmpeg:", JSON.stringify({ decodedFrames, nonBlack: d.nonBlack, out: d.out }));
   await shot("/tmp/vw_d.png");
 
   console.log("--- console ---");
   console.log(logs.length ? logs.join("\n") : "(clean: no console output, no exceptions)");
 
-  const bad = [a.lit > 200, b.nonBlack > 500, c.nonBlack > 500, d.nonBlack > 500];
-  console.log(bad.every(Boolean) ? "DEMO OK: all four panels paint" : "DEMO FAIL: a panel is blank");
-  process.exitCode = bad.every(Boolean) && !logs.some((l) => l.includes("exception")) ? 0 : 1;
+  const checks = [
+    ["A aurora lit", a.lit > 200, `${a.lit} px`],
+    ["B blob paints", b.nonBlack > 500, `${b.nonBlack} px`],
+    ["C paints", c.nonBlack > 500, `${c.nonBlack} px`],
+    ["C ran the WebCodecs I420 transport", cWebCodecs, c.out.slice(0, 60)],
+    ["D blob paints", dBlob.nonBlack > 500, `${dBlob.nonBlack} px`],
+    ["D ffmpeg.wasm decoded in-page", decodedFrames >= 100, `${decodedFrames} frames`],
+    ["D ffmpeg.wasm output paints", d.nonBlack > 500, `${d.nonBlack} px`],
+    ["no exceptions", !logs.some((l) => l.includes("exception")), `${logs.length} console lines`],
+  ];
+  for (const [name, ok, detail] of checks) console.log(`${ok ? "PASS" : "FAIL"}  ${name}  ${detail}`);
+  const allOk = checks.every(([, ok]) => ok);
+  console.log(allOk ? "DEMO OK: four panels, both decode paths" : "DEMO FAIL: see the FAIL lines");
+  process.exitCode = allOk ? 0 : 1;
 } catch (err) {
   console.error("DRIVER ERROR:", err.message);
   process.exitCode = 2;
