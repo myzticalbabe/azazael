@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from ..compat.launcher import dispatch
+from ..spawn_agents import main as spawn_main
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,12 +39,45 @@ def build_parser() -> argparse.ArgumentParser:
     # All command
     a = sub.add_parser("all", help="Run census then fix")
 
+    # Spawn command (parallel builds)
+    s = sub.add_parser("spawn", help="Spawn parallel build subagents for targets")
+    s.add_argument(
+        "--targets",
+        default="win7,win81,win10,macos,linux",
+        help="Comma-separated targets",
+    )
+    s.add_argument(
+        "--mode",
+        choices=["agent_manager", "kilo_task", "specs"],
+        default="specs",
+        help="Spawn mode",
+    )
+    s.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Output directory for spec files",
+    )
+    s.add_argument(
+        "--background",
+        action="store_true",
+        help="Run subagents in background",
+    )
+    s.add_argument(
+        "--print-prompts",
+        action="store_true",
+        help="Print prompts to stdout",
+    )
+
     return ap
 
 
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+
+    # Handle spawn command directly (doesn't need OS dispatch)
+    if args.cmd == "spawn":
+        return spawn_main()
 
     # Dispatch to OS-appropriate implementation
     return dispatch(args)
