@@ -448,7 +448,9 @@ jurisdiction over evidence law.
 ## 9. Verification ledger
 
 Every claim in this document that is a claim about the tree or the code carries
-the command that produced it.
+the command that produced it. Rows 1–14 are the v1.1 readings (`ESQUIRE-ADMISSIBILITY-v2`,
+nine gates, 52 tests); rows 15–20 are the v1.2 readings (`v3`, ten gates, 61
+tests). Neither set is silently rewritten when the other is measured.
 
 | # | claim | command | result |
 | --- | --- | --- | --- |
@@ -470,6 +472,8 @@ the command that produced it.
 | 16 | the suite passes at v3 | `py315t -m pytest tests/test_esquire_admissibility.py -q -p no:cacheprovider` | `61 passed in 0.53s`, exit 0 |
 | 17 | every gate can fail, G10 included | `test_every_gate_can_fail` (parametrised G1..G10) | 10 pass; G10 runs against the administrative fixture and a withheld disclosure produces GAP |
 | 18 | G10's authority was read this session, at the tier claimed | `read_url` on the Cornell LII `5 U.S.C. § 556` page and the Justia *Mathews v. Eldridge* page, 2026-11-04 | § 556(d) quoted verbatim in §3.7; § 556(d)–(e) entitlements confirmed; *Mathews*, 424 U.S. 319 (1976), three-factor test read in the annotation, full opinion not read (hence tier C); `--gates` prints `G10 ... applies to: administrative and arbitration postures only` at exit 0 |
+| 19 | the published copy passes its own suite | `py315t -m pytest tests -q -p no:cacheprovider` in `publish_repos/esquire_admissibility` | `61 passed in 0.29s`, exit 0 |
+| 20 | the three examples exercise three postures, and each is READY | `esquire_admissibility.py examples/civil.json` / `examples/criminal.json` / `examples/administrative.json` | `READY` at `7 pass ... over 7 applied`, `9 pass ... over 9 applied`, `7 pass ... over 7 applied`; `forum: administrative (stated)` on the third; exit 0 each |
 
 ### 9.1 An instrument finding worth recording
 
@@ -496,13 +500,19 @@ marked by verification state so that a lawyer can see, in one table, which
 authorities were read at source, which were confirmed to exist, and which were
 not touched.
 
-**Extraction (2026-11-04).** A standalone repository was staged at
-`C:/Azazael/publish_repos/esquire_admissibility/`: this document is its
-`README.md`, with the four `tools/` path references rewritten to the flat layout,
-and it carries an unchanged copy of the module plus the suite, whose only edit is
-the import (`from tools.esquire_admissibility` becomes
-`from esquire_admissibility`). Verified in the copy: `52 passed in 0.26s`; `READY`
-exit 0, `GAPS` exit 1, `BLIND` exit 2. Nothing was pushed and no GitHub repository
-was created — visibility is the owner's decision, not a step this document takes.
-Two files are local-only by construction: the staged repo has no remote, and the
-push, when it happens, is a fresh single-commit history (`5404046`).
+**Extraction and publication (2026-11-04).** A standalone repository lives at
+`C:/Azazael/publish_repos/esquire_admissibility/` and is published at
+**<https://github.com/myzticalbabe/esquire-admissibility>** (public). This document
+is its `README.md` beneath a short preamble, with the
+`tools/esquire_admissibility.py` path references rewritten to the flat layout. It
+carries an unchanged copy of the module and of the suite, whose only edit is the
+import (`from tools.esquire_admissibility` becomes `from esquire_admissibility`),
+plus three worked records under `examples/`, one per posture.
+
+Verified in the copy: `61 passed in 0.29s`; each example reports `READY` at exit
+0 through the flat-layout CLI, and `GAPS` exit 1 / `BLIND` exit 2 were re-checked
+there. The history was transported rather than re-created: the monorepo commits
+were replayed onto a pruned base and the blobs compared byte-for-byte before the
+first push, so what the remote holds is the same content that was tested here.
+Publishing changes nothing about the document's status — it is still an
+unreviewed audit plus a tool, and its outputs are still readable by an opponent.
