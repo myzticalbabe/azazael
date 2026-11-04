@@ -60,7 +60,7 @@
       <output id="outA">idle</output>
     </div>
     <p class="note">The <code>&lt;video&gt;</code> element does the H.264 and AAC work. Rust receives 1024 PCM samples,
-      computes 32 band energies with a Hann-windowed DFT, and renders an additive field at 60&nbsp;fps — 118&nbsp;KB of WASM
+      computes 32 band energies with a Hann-windowed DFT, and renders an additive field at 60&nbsp;fps — 120&nbsp;KB of WASM
       for the whole visual layer. This is the only architecture here that streams a file of any length.</p>
   </section>
 
@@ -88,26 +88,40 @@
         </select>
       </label>
       <label>strength <input id="strength" type="range" min="0" max="3" step="0.05" value="1"></label>
+      <label>frame path
+        <select id="pathC">
+          <option value="auto">auto (WebCodecs if present)</option>
+          <option value="webcodecs">WebCodecs VideoFrame → I420</option>
+          <option value="canvas">canvas getImageData → RGBA</option>
+        </select>
+      </label>
       <output id="outC">idle</output>
     </div>
-    <p class="note">The useful architecture: the browser decodes and Rust rewrites the frame. Each frame is
-      <code>drawImage</code> → <code>getImageData</code> → <code>process_frame_rgba</code> → <code>putImageData</code>.
-      Swap in <code>VideoFrame</code> from WebCodecs to remove the two CPU copies.</p>
+    <p class="note">The useful architecture: the browser decodes and Rust rewrites the frame. Two transports, and the
+      readout names the one that actually ran. <code>canvas</code> is <code>drawImage</code> → <code>getImageData</code> →
+      <code>process_frame_rgba</code> → <code>putImageData</code>, which is a GPU→CPU readback of RGBA.
+      <code>WebCodecs</code> is <code>new VideoFrame(video)</code> → <code>copyTo({format:"I420"})</code> →
+      <code>i420_to_rgba</code>, so Rust receives <strong>1.5 bytes per pixel instead of 4</strong>, with the coded
+      strides passed through rather than de-strided in JS.</p>
   </section>
 
   <section id="d">
     <div class="stage"><canvas id="canvasD" width="320" height="180"></canvas></div>
     <div class="row">
-      <button id="playD">play</button>
+      <button id="playD">play packed blob</button>
+      <button id="decodeD">decode in page (ffmpeg.wasm)</button>
       <output id="outD">idle</output>
     </div>
-    <p class="note">A packed <code>AVRD</code> stream — <code>w·h·3</code> raw bytes per frame, parsed and widened to RGBA
-      inside the module. The container and the pixel layout are Rust; the <em>decode</em> is not, and claiming otherwise
-      would need a full H.264 entropy decoder, which no production-grade pure-Rust implementation exists to supply.</p>
+    <p class="note"><strong>Two sources, one reader.</strong> The first button replays a pre-packed <code>AVRD</code>
+      stream. The second loads <code>ffmpeg.wasm</code>, decodes the mp4 <em>in this page</em> to a headerless RGB24
+      stream (<code>stream_frame_count</code> / <code>unpack_stream_frame</code>), and plays it with no media element
+      anywhere. That is a full decode with no native video pipeline — the entropy decoder is ffmpeg compiled to wasm,
+      <strong>30.9&nbsp;MB</strong> of it, not the 120&nbsp;KB crate. <code>node tools/fetch_ffmpeg.mjs</code> vendors it;
+      the panel says so plainly if it is absent rather than failing silently.</p>
   </section>
 </main>
 
-<footer id="foot">Rust 1.95.0 · wasm-pack 0.15.1 · module 118&nbsp;KB · clip: loading…</footer>
+<footer id="foot">Rust 1.95.0 · wasm-pack 0.15.1 · module 120&nbsp;KB · clip: loading…</footer>
 
 <script type="module">
 import init, * as wasm from "../pkg/azazael_video_wasm.js";
@@ -150,7 +164,7 @@ let smooth = new Float32Array(BANDS);
 const stampFoot = () => {
   if (vid.readyState < 1) return;
   const name = decodeURIComponent(vid.currentSrc.split("/").pop() || "clip");
-  $("foot").textContent = `Rust 1.95.0 · wasm-pack 0.15.1 · module 118 KB · ${name} — ` +
+  $("foot").textContent = `Rust 1.95.0 · wasm-pack 0.15.1 · module 120 KB · ${name} — ` +
     `${vid.duration.toFixed(1)}s ${vid.videoWidth}×${vid.videoHeight}`;
 };
 vid.addEventListener("loadedmetadata", stampFoot);
@@ -175,6 +189,13 @@ function paint(canvas, rgba, w, h) {
   ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), w, h), 0, 0);
 }
 
+// rAF timestamps are the frame's presentation time, which can predate the
+// performance.now() taken at click, so `now - t0` may be negative. A negative
+// `% n` is negative in JS, and index -1 decodes to nothing — the frame keeps
+// the previous paint and ImageData throws "input data has zero elements".
+const frameIndex = (elapsed, fps, n) =>
+  Math.max(0, Math.min(n - 1, Math.floor(Math.max(0, elapsed) / 1000 * fps) % n));
+
 // ---------- mode B: frames in the blob ----------
 let blobB = null;
 $("playB").addEventListener("click", async () => {
@@ -183,7 +204,7 @@ $("playB").addEventListener("click", async () => {
   const [w, h, fps] = wasm.frame_dims(blobB);
   const t0 = performance.now();
   (function frame(now) {
-    const i = Math.floor((now - t0) / 1000 * fps) % n;
+    const i = frameIndex(now - t0, fps, n);
     paint($("canvasB"), wasm.decode_frame_rgba(blobB, i), w, h);
     $("outB").textContent = `frame ${i + 1}/${n} @${fps}fps  ${w}×${h}`;
     requestAnimationFrame(frame);
@@ -191,49 +212,183 @@ $("playB").addEventListener("click", async () => {
 });
 
 // ---------- mode C: Rust processes the video frame ----------
+// Two transports. WebCodecs gives Rust the I420 planes at 1.5 bytes/px with the
+// coded strides intact; the canvas path gives RGBA at 4 bytes/px after a
+// GPU->CPU readback. Same Rust function either way.
+const cCanvas = $("canvasC");
+const cCtx = cCanvas.getContext("2d");
 const grab = document.createElement("canvas");
-grab.width = 480; grab.height = 270;
 const grabCtx = grab.getContext("2d", { willReadFrequently: true });
+let cTransport = "idle";
+
+async function frameViaWebCodecs(video) {
+  const vf = new VideoFrame(video);
+  try {
+    // Chrome refuses an explicit copy to a NON-RGB format: allocationSize({
+    // format:"I420"}) throws NotSupportedError. The native call is the supported
+    // one, and it hands back the plane offsets/strides we need anyway.
+    if (vf.format !== "I420") throw new Error(`native format is ${vf.format}, not I420`);
+    const rect = vf.visibleRect ?? { width: vf.displayWidth, height: vf.displayHeight };
+    const w = rect.width, h = rect.height;
+    const buf = new Uint8Array(vf.allocationSize());
+    const layout = await vf.copyTo(buf);
+    const rgba = wasm.i420_to_rgba(buf, w, h,
+      layout[0].offset, layout[0].stride,
+      layout[1].offset, layout[1].stride,
+      layout[2].offset, layout[2].stride);
+    if (!rgba.length) throw new Error("i420_to_rgba rejected the planes");
+    return { rgba, w, h, bytes: buf.length, transport: "webcodecs i420" };
+  } finally { vf.close(); }
+}
+
+function frameViaCanvas(video, w, h) {
+  if (grab.width !== w || grab.height !== h) { grab.width = w; grab.height = h; }
+  grabCtx.drawImage(video, 0, 0, w, h);
+  const img = grabCtx.getImageData(0, 0, w, h);
+  return { rgba: img.data, w, h, bytes: w * h * 4, transport: "canvas rgba" };
+}
 
 $("playC").addEventListener("click", async () => {
   await vid.play();
-  let last = 0, frames = 0, acc = 0;
-  (function frame(now) {
-    if (vid.readyState >= 2) {
-      grabCtx.drawImage(vid, 0, 0, 480, 270);
-      const img = grabCtx.getImageData(0, 0, 480, 270);
-      const energy = Math.min(1, smooth.reduce((a, b) => a + b, 0) / BANDS * 1.6);
-      wasm.process_frame_rgba(img.data, 480, 270, Number($("mode").value), Number($("strength").value), energy);
-      $("canvasC").getContext("2d").putImageData(img, 0, 0);
-      if (last) { frames++; acc += now - last; }
-      last = now;
+  const want = $("pathC").value;
+  let last = 0, frames = 0, acc = 0, busy = false;
+  (async function frame() {
+    if (!busy && vid.readyState >= 2 && vid.videoWidth) {
+      busy = true;
+      try {
+        const w = vid.videoWidth, h = vid.videoHeight;
+        let got = null, why = "";
+        if (want !== "canvas") {
+          if (typeof VideoFrame === "function") {
+            try { got = await frameViaWebCodecs(vid); }
+            catch (err) { why = `webcodecs: ${err.name}: ${err.message}`.slice(0, 120); }
+          } else {
+            why = "no VideoFrame constructor";
+          }
+        }
+        got ??= frameViaCanvas(vid, w, h);
+        // Keep the reason the better path lost: a silent downgrade is how a
+        // zero-copy claim quietly becomes a getImageData claim.
+        cTransport = why ? `${got.transport} (${why})` : got.transport;
+        if (cCanvas.width !== got.w || cCanvas.height !== got.h) {
+          cCanvas.width = got.w; cCanvas.height = got.h;
+          cCanvas.style.width = "480px";
+        }
+        const energy = Math.min(1, smooth.reduce((a, b) => a + b, 0) / BANDS * 1.6);
+        wasm.process_frame_rgba(got.rgba, got.w, got.h, Number($("mode").value),
+          Number($("strength").value), energy);
+        const px = got.rgba instanceof Uint8ClampedArray
+          ? got.rgba : new Uint8ClampedArray(got.rgba);
+        cCtx.putImageData(new ImageData(px, got.w, got.h), 0, 0);
+        if (last) { frames++; acc += performance.now() - last; }
+        last = performance.now();
+      } finally { busy = false; }
     }
     requestAnimationFrame(frame);
-  })(0);
+  })();
   setInterval(() => {
-    $("outC").textContent = `480×270 rgba  ${frames ? Math.round(1000 / (acc / frames)) : 0} fps  energy ${(smooth.reduce((a, b) => a + b, 0) / BANDS).toFixed(2)}`;
+    $("outC").textContent = `${cTransport}  ${cCanvas.width}×${cCanvas.height}  ` +
+      `${frames ? Math.round(1000 / (acc / frames)) : 0} fps  energy ` +
+      `${(smooth.reduce((a, b) => a + b, 0) / BANDS).toFixed(2)}`;
     frames = 0; acc = 0;
   }, 500);
 });
 
 // ---------- mode D: packed RGB24 in the blob ----------
 let blobD = null;
+// A canvas whose backing store matches the frame, scaled by CSS. Drawing a
+// 160x90 ImageData onto a 320x180 canvas would paint only the top-left quarter.
+function stageD(w, h) {
+  const cd = $("canvasD");
+  cd.width = w; cd.height = h;
+  cd.style.width = "480px"; cd.style.imageRendering = "pixelated";
+  return cd;
+}
+
 $("playD").addEventListener("click", async () => {
   blobD ??= new Uint8Array(await (await fetch("assets/raw.bin")).arrayBuffer());
   const n = wasm.raw_frame_count(blobD);
   const [w, h, fps] = wasm.raw_frame_dims(blobD);
-  const cd = $("canvasD");
-  // 160x90 of real pixels, displayed at 3x: enlarging an ImageData canvas would
-  // otherwise paint the frame into the top-left quarter of a 320x180 surface.
-  cd.width = w; cd.height = h;
-  cd.style.width = "480px"; cd.style.imageRendering = "pixelated";
+  stageD(w, h);
   const t0 = performance.now();
   (function frame(now) {
-    const i = Math.floor((now - t0) / 1000 * fps) % n;
+    const i = frameIndex(now - t0, fps, n);
     paint($("canvasD"), wasm.unpack_rgb_frame(blobD, i), w, h);
-    $("outD").textContent = `frame ${i + 1}/${n} @${fps}fps  ${w}×${h} rgb24 (${(w * h * 3 / 1024).toFixed(0)} KB/frame)`;
+    $("outD").textContent = `blob: frame ${i + 1}/${n} @${fps}fps  ${w}×${h} rgb24 (${(w * h * 3 / 1024).toFixed(0)} KB/frame)`;
     requestAnimationFrame(frame);
   })(t0);
+});
+
+// ---------- mode D: ffmpeg.wasm decodes the mp4 in this page ----------
+// The core is 30.9 MB, so it is fetched on demand and never committed. An
+// absent vendor directory is reported, not swallowed.
+const DW = 320, DH = 180, D_SECONDS = 6, D_START = 30;
+let ffmpeg = null, dStream = null;
+
+const loadScript = (src) => new Promise((res, rej) => {
+  const s = document.createElement("script");
+  s.src = src; s.onload = res;
+  s.onerror = () => rej(new Error(`cannot load ${src}`));
+  document.head.append(s);
+});
+
+async function ensureFfmpeg() {
+  if (ffmpeg) return ffmpeg;
+  if (!self.FFmpegWASM) await loadScript("vendor/ffmpeg/ffmpeg.js");
+  const f = new self.FFmpegWASM.FFmpeg();
+  f.on("log", ({ message }) => {
+    if (/^frame=/.test(message)) $("outD").textContent = `ffmpeg.wasm: ${message.slice(0, 90)}`;
+  });
+  const abs = (p) => new URL(p, location.href).href;
+  // No classWorkerURL: that option forces {type:"module"}, and a module worker
+  // cannot importScripts() the UMD core (it fails "Cannot find module <coreURL>").
+  // Without it the wrapper locates its own 814.ffmpeg.js beside ffmpeg.js and
+  // starts a classic worker, which is what the UMD core expects.
+  await f.load({
+    coreURL: abs("vendor/ffmpeg/ffmpeg-core.js"),
+    wasmURL: abs("vendor/ffmpeg/ffmpeg-core.wasm"),
+  });
+  return (ffmpeg = f);
+}
+
+$("decodeD").addEventListener("click", async () => {
+  const out = $("outD");
+  try {
+    out.textContent = "loading ffmpeg.wasm core (30.9 MB)…";
+    const f = await ensureFfmpeg();
+    out.textContent = "writing mp4 into the wasm filesystem…";
+    const mp4 = new Uint8Array(await (await fetch("assets/sample.mp4")).arrayBuffer());
+    await f.writeFile("in.mp4", mp4);
+    out.textContent = `decoding ${D_SECONDS}s from ${D_START}s in wasm…`;
+    const t0 = performance.now();
+    // -an: audio is irrelevant to this panel, and dropping it halves the work.
+    const code = await f.exec([
+      "-ss", String(D_START), "-t", String(D_SECONDS), "-i", "in.mp4", "-an",
+      "-vf", `scale=${DW}:${DH}`, "-f", "rawvideo", "-pix_fmt", "rgb24", "out.rgb",
+    ]);
+    const ms = Math.round(performance.now() - t0);
+    if (code !== 0) throw new Error(`ffmpeg exited ${code}`);
+    dStream = await f.readFile("out.rgb");
+    const n = wasm.stream_frame_count(dStream.length, DW, DH);
+    if (!n) throw new Error("ffmpeg produced no complete frames");
+    stageD(DW, DH);
+    // The clip is 24 fps, not the 30 the DOM usually assumes: derive it from what
+    // arrived instead of assuming, or playback runs 25% fast.
+    const fps = n / D_SECONDS;
+    const t = performance.now();
+    (function frame(now) {
+      const i = frameIndex(now - t, fps, n);
+      paint($("canvasD"), wasm.unpack_stream_frame(dStream, DW, DH, i), DW, DH);
+      out.textContent = `wasm decode: ${n} frames in ${(ms / 1000).toFixed(1)}s ` +
+        `(${(D_SECONDS / (ms / 1000)).toFixed(2)}x realtime, ${fps.toFixed(1)} fps)  frame ${i + 1}/${n}`;
+      requestAnimationFrame(frame);
+    })(t);
+  } catch (err) {
+    const msg = String(err?.message ?? err);
+    out.textContent = msg.includes("cannot load vendor/ffmpeg/ffmpeg.js")
+      ? "ffmpeg.wasm not vendored — run: node tools/fetch_ffmpeg.mjs"
+      : `decode failed: ${msg}`;
+  }
 });
 </script>
 </body>

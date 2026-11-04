@@ -36,14 +36,75 @@ const d0 = wasm.unpack_rgb_frame(raw, 0);
 check("D unpack size", d0.length === 160 * 90 * 4, `${d0.length} bytes`);
 check("D alpha opaque", d0[3] === 255);
 
+// ---- D+: headerless RGB24 stream (ffmpeg.wasm rawvideo output)
+const W = 8, H = 4;
+const stream = new Uint8Array(W * H * 3 * 3);
+for (let f = 0; f < 3; f++) {
+  for (let i = 0; i < W * H; i++) {
+    const p = f * W * H * 3 + i * 3;
+    stream[p] = f * 80; stream[p + 1] = 40 + f; stream[p + 2] = 200 - f;
+  }
+}
+check("D+ stream_frame_count", wasm.stream_frame_count(stream.length, W, H) === 3,
+  `${wasm.stream_frame_count(stream.length, W, H)} frames`);
+const s1 = wasm.unpack_stream_frame(stream, W, H, 1);
+check("D+ unpack picks the right frame", s1.length === W * H * 4 && s1[0] === 80 && s1[1] === 41 && s1[2] === 199,
+  `px0=${s1[0]},${s1[1]},${s1[2]}`);
+check("D+ alpha opaque", s1[3] === 255);
+check("D+ rejects past the end", wasm.unpack_stream_frame(stream, W, H, 3).length === 0);
+check("D+ truncated tail is not a frame", wasm.stream_frame_count(stream.length - 1, W, H) === 2);
+
+// ---- C+: I420 conversion with real video strides
+// 4x2 frame, black (Y=16,U=V=128) on the left half, white (Y=235) on the right.
+const yw = 4, yh = 2, yStride = 6;          // 2 bytes of row padding, as Chrome emits
+const cStride = 4;                          // 2 bytes of chroma padding
+const i420 = new Uint8Array(yStride * yh + cStride * yh);
+for (let y = 0; y < yh; y++) {
+  i420[y * yStride + 0] = 16; i420[y * yStride + 1] = 16;
+  i420[y * yStride + 2] = 235; i420[y * yStride + 3] = 235;
+}
+const uOff = yStride * yh, vOff = uOff + cStride * (yh / 2);
+i420.fill(128, uOff, vOff);
+i420.fill(128, vOff, vOff + cStride * (yh / 2));
+const rgb = wasm.i420_to_rgba(i420, yw, yh, 0, yStride, uOff, cStride, vOff, cStride);
+check("C+ i420 size", rgb.length === yw * yh * 4, `${rgb.length} bytes`);
+check("C+ black stays black", rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0, `${rgb[0]},${rgb[1]},${rgb[2]}`);
+check("C+ white stays white", rgb[8] === 255 && rgb[9] === 255 && rgb[10] === 255, `${rgb[8]},${rgb[9]},${rgb[10]}`);
+check("C+ padding is not read as pixels", wasm.i420_to_rgba(i420, yw, yh, 0, yStride, uOff, cStride, vOff, cStride).length === yw * yh * 4);
+check("C+ short buffer returns empty", wasm.i420_to_rgba(i420.slice(0, 4), yw, yh, 0, yStride, uOff, cStride, vOff, cStride).length === 0);
+
 // ---- mode A: spectrum + aurora
 const N = 1024, sr = 48000, hz = 3000; // bin 64 of 1024 == 3000 Hz
 const pcm = new Float32Array(N);
 for (let i = 0; i < N; i++) pcm[i] = Math.sin((2 * Math.PI * hz * i) / sr);
 const bands = wasm.spectrum_bands(pcm, 32);
 const peak = bands.indexOf(Math.max(...bands));
-check("A spectrum peaks at the right band", peak === 2, `peak band ${peak} (expected 2)`);
+// 3000 Hz is 3000/24000 = 0.125 of the way to Nyquist, and the bands now span
+// 0..Nyquist in 32 equal slices of 16 bins: bin 64 lands in band 4. This
+// assertion read `peak === 2` until 2026-11-03 because the axis was mapped
+// over 0..Fs; the expectation had been written to match the mirror bug.
+check("A spectrum peaks at the right band", peak === 4, `peak band ${peak} (expected 4)`);
 check("A bands normalised", Math.abs(Math.max(...bands) - 1) < 1e-6 && Math.min(...bands) >= 0);
+
+// Negative control for the mirrored axis (fixed 2026-11-03): band b and band
+// 31-b read conjugate bins of a real signal, so the mirror had identical
+// magnitudes and a single tone lit BOTH edges of the field. A tone at band 4
+// must leave its mirror (band 27) dark.
+const mirror = Array.from(bands);
+check("A spectrum is not mirrored", mirror[4] > 0.5 && mirror[27] < 0.05,
+  `band4 ${mirror[4].toFixed(3)} band27 ${mirror[27].toFixed(3)}`);
+
+// Mid and high bands must carry signal: one bin per band read 0 in every frame
+// whenever that bin sat in a null of the chord. Three tones in three registers,
+// each landing in its own band, must all register.
+const multi = new Float32Array(N);
+for (const f of [1500, 9000, 18000]) {
+  for (let i = 0; i < N; i++) multi[i] += Math.sin((2 * Math.PI * f * i) / sr) / 3;
+}
+const mBands = Array.from(wasm.spectrum_bands(multi, 32));
+check("A mid/high bands carry signal",
+  mBands[2] > 0.2 && mBands[12] > 0.2 && mBands[24] > 0.2,
+  `bands 2/12/24 = ${mBands[2].toFixed(2)}/${mBands[12].toFixed(2)}/${mBands[24].toFixed(2)}`);
 
 // Negative control for the f32-phase bug fixed on 2026-11-03: DC must peak in
 // band 0. Before the integer-modulo fix this peaked at band 22.
