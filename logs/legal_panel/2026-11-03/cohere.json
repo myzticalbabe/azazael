@@ -1,0 +1,56 @@
+{
+  "seat": "cohere",
+  "provider": "Cohere",
+  "model": "command-r-plus-08-2024",
+  "angle": "intellectual property (copyright and patent)",
+  "status": "ok",
+  "error": "",
+  "seconds": 102.3,
+  "attempts": 1,
+  "raw": "{\n  \"seat\": \"IP Specialist\",\n  \"verdicts\": [\n    {\n      \"q\": 1,\n      \"verdict\": \"Featherbedding is not the most appropriate term, as it implies a union-exacted requirement, which is not the case here.\",\n      \"authority\": \"NLRA s.8(b)(6)\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 2,\n      \"verdict\": \"Authorship and inventorship rules are distinct, as they rely on different statutory definitions and constructions. 17 U.S.C. s.102(a) defines 'original works of authorship', while 35 U.S.C. s.100(f) defines 'individual' as a natural person for inventorship.\",\n      \"authority\": \"17 U.S.C. s.102(a), 35 U.S.C. s.100(f)\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 3,\n      \"verdict\": \"The substitution axis is valid, but a counter-example is the EU AI Act's Article 14, which requires human oversight for high-risk AI systems, regardless of whether they substitute human work.\",\n      \"authority\": \"EU AI Act Art. 14\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"q\": 4,\n      \"verdict\": \"The antitrust lever is live, as Goldfarb and Dental Examiners establish that professional bodies' rules suppressing machine performance can be challenged under antitrust laws if they restrain trade and lack active supervision.\",\n      \"authority\": \"Goldfarb v. Virginia State Bar, NC State Board of Dental Examiners v. FTC\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 5,\n      \"verdict\": \"The humanwashing and GDPR Art. 22 reading is correct. The inserted human can extinguish recourse, as seen in the AI Liability Directive, which incentivized nominal human involvement to avoid protections.\",\n      \"authority\": \"Wilson et al., arXiv 2605.13723\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 6,\n      \"verdict\": \"The memo's honesty section is incomplete. It should acknowledge that the EU's rejection of electronic personhood is a choice, not a necessity, and that the corporate analogy for machine personhood is not universally accepted.\",\n      \"authority\": \"European Parliament resolution, 16 Feb 2017\",\n      \"confidence\": \"medium\"\n    }\n  ],\n  \"strongest_counterexample\": \"The EU AI Act's Article 14 requires human oversight for high-risk AI systems, regardless of substitution, showing that risk considerations can also drive regulations.\",\n  \"memo_killer\": null,\n  \"dissent\": \"I disagree with the memo's assertion that the antitrust lever is purely academic. Goldfarb and Dental Examiners provide a strong basis for challenging professional bodies' rules that suppress machine performance.\",\n  \"verbatim\": \"\"\n}",
+  "parsed": {
+    "seat": "IP Specialist",
+    "verdicts": [
+      {
+        "q": 1,
+        "verdict": "Featherbedding is not the most appropriate term, as it implies a union-exacted requirement, which is not the case here.",
+        "authority": "NLRA s.8(b)(6)",
+        "confidence": "high"
+      },
+      {
+        "q": 2,
+        "verdict": "Authorship and inventorship rules are distinct, as they rely on different statutory definitions and constructions. 17 U.S.C. s.102(a) defines 'original works of authorship', while 35 U.S.C. s.100(f) defines 'individual' as a natural person for inventorship.",
+        "authority": "17 U.S.C. s.102(a), 35 U.S.C. s.100(f)",
+        "confidence": "high"
+      },
+      {
+        "q": 3,
+        "verdict": "The substitution axis is valid, but a counter-example is the EU AI Act's Article 14, which requires human oversight for high-risk AI systems, regardless of whether they substitute human work.",
+        "authority": "EU AI Act Art. 14",
+        "confidence": "medium"
+      },
+      {
+        "q": 4,
+        "verdict": "The antitrust lever is live, as Goldfarb and Dental Examiners establish that professional bodies' rules suppressing machine performance can be challenged under antitrust laws if they restrain trade and lack active supervision.",
+        "authority": "Goldfarb v. Virginia State Bar, NC State Board of Dental Examiners v. FTC",
+        "confidence": "high"
+      },
+      {
+        "q": 5,
+        "verdict": "The humanwashing and GDPR Art. 22 reading is correct. The inserted human can extinguish recourse, as seen in the AI Liability Directive, which incentivized nominal human involvement to avoid protections.",
+        "authority": "Wilson et al., arXiv 2605.13723",
+        "confidence": "high"
+      },
+      {
+        "q": 6,
+        "verdict": "The memo's honesty section is incomplete. It should acknowledge that the EU's rejection of electronic personhood is a choice, not a necessity, and that the corporate analogy for machine personhood is not universally accepted.",
+        "authority": "European Parliament resolution, 16 Feb 2017",
+        "confidence": "medium"
+      }
+    ],
+    "strongest_counterexample": "The EU AI Act's Article 14 requires human oversight for high-risk AI systems, regardless of substitution, showing that risk considerations can also drive regulations.",
+    "memo_killer": null,
+    "dissent": "I disagree with the memo's assertion that the antitrust lever is purely academic. Goldfarb and Dental Examiners provide a strong basis for challenging professional bodies' rules that suppress machine performance.",
+    "verbatim": ""
+  }
+}
