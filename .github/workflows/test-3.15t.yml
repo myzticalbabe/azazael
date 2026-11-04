@@ -44,7 +44,7 @@
 # never meant the tests/ tree passes.
 #
 # Triggers below name the branches that actually exist and get pushed
-# (`git branch`: deepseek-engram-813, lane-813-recovery,
+# (`git branch`: azazael-intel-ultra-9-evo, lane-813-recovery,
 # migration/baseline-20261001). They previously said `main`, which exists
 # nowhere in this repo -- a second reason this file could not have run.
 # ============================================================================
@@ -55,13 +55,13 @@ on:
   push:
     branches:
       - main                      # kept for the day a hosted remote exists
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - lane-813-recovery
       - migration/baseline-20261001
   pull_request:
     branches:
       - main
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - "lane-813-recovery"
       - migration/baseline-20261001
   workflow_dispatch:
