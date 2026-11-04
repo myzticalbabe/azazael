@@ -1,0 +1,56 @@
+{
+  "seat": "gemini",
+  "provider": "Google",
+  "model": "gemini-3.1-flash-lite",
+  "angle": "labour and employment law",
+  "status": "ok",
+  "error": "",
+  "seconds": 3.8,
+  "attempts": 1,
+  "raw": "{\n  \"seat\": \"Labour and Employment Law Specialist\",\n  \"verdicts\": [\n    {\n      \"q\": 1,\n      \"verdict\": \"Featherbedding is a category error; it requires a union exaction. The better term is 'regulatory credentialism' or 'occupational gatekeeping,' which captures the state-sanctioned exclusion of non-human labor to protect incumbent professional rents.\",\n      \"authority\": \"NLRA \u00a78(b)(6); American Newspaper Publishers Assn. v. NLRB\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 2,\n      \"verdict\": \"They are functionally one mechanism\u2014the 'human-in-the-loop' mandate\u2014but legally distinct. Authorship relies on judicial construction of 'originality,' while inventorship relies on a rigid statutory definition of 'individual,' making the latter more resistant to interpretive expansion.\",\n      \"authority\": \"35 U.S.C. \u00a7100(f); Thaler v. Perlmutter\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 3,\n      \"verdict\": \"The substitution axis fails against 'safety-critical' disclosure mandates. For example, medical device AI regulations require human oversight regardless of whether the AI replaces a human or performs a task no human could feasibly do, like real-time genomic analysis.\",\n      \"authority\": \"EU AI Act Art. 14\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"q\": 4,\n      \"verdict\": \"The lever is academic. State boards acting under clear legislative mandates for 'public safety' enjoy Parker immunity; proving that a board is merely protecting incumbents rather than exercising state-delegated police power is a near-impossible evidentiary burden.\",\n      \"authority\": \"Parker v. Brown; NC State Bd. of Dental Examiners v. FTC\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"q\": 5,\n      \"verdict\": \"The reading is correct in effect but hyperbolic in intent. While human-in-the-loop requirements can create 'liability shields,' they also impose non-delegable duties of supervision, which increase, rather than extinguish, the human's legal exposure.\",\n      \"authority\": \"Restatement (Third) of Agency\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"q\": 6,\n      \"verdict\": \"The honesty section is incomplete; it ignores the 'non-delegable duty' doctrine in tort law, which often mandates human oversight not as a rent-seeking device, but as a necessary condition for liability to attach to a legal person.\",\n      \"authority\": \"Restatement (Second) of Torts \u00a7424\",\n      \"confidence\": \"high\"\n    }\n  ],\n  \"strongest_counterexample\": \"Medical device regulations requiring human oversight for AI-driven diagnostic tools that perform tasks (e.g., high-speed pattern recognition) no human could perform, proving the requirement is about risk-mitigation, not just protecting human labor.\",\n  \"memo_killer\": \"The claim that human-in-the-loop requirements 'extinguish' recourse; in reality, they trigger non-delegable duty doctrines that ensure a human is strictly liable for the machine's failure (Restatement (Second) of Torts \u00a7424).\",\n  \"dissent\": \"I dissent from the characterization of all human-oversight rules as 'featherbedding-shaped.' Many are legitimate responses to the 'black box' problem where the law requires a human to bridge the accountability gap, not to preserve a job.\",\n  \"verbatim\": \"The short answer is featherbedding \u2014 it is the only one of the four that is a term of art with a statutory definition, and it names precisely the thing described: someone is paid for work the machine did.\"\n}",
+  "parsed": {
+    "seat": "Labour and Employment Law Specialist",
+    "verdicts": [
+      {
+        "q": 1,
+        "verdict": "Featherbedding is a category error; it requires a union exaction. The better term is 'regulatory credentialism' or 'occupational gatekeeping,' which captures the state-sanctioned exclusion of non-human labor to protect incumbent professional rents.",
+        "authority": "NLRA \u00a78(b)(6); American Newspaper Publishers Assn. v. NLRB",
+        "confidence": "high"
+      },
+      {
+        "q": 2,
+        "verdict": "They are functionally one mechanism\u2014the 'human-in-the-loop' mandate\u2014but legally distinct. Authorship relies on judicial construction of 'originality,' while inventorship relies on a rigid statutory definition of 'individual,' making the latter more resistant to interpretive expansion.",
+        "authority": "35 U.S.C. \u00a7100(f); Thaler v. Perlmutter",
+        "confidence": "high"
+      },
+      {
+        "q": 3,
+        "verdict": "The substitution axis fails against 'safety-critical' disclosure mandates. For example, medical device AI regulations require human oversight regardless of whether the AI replaces a human or performs a task no human could feasibly do, like real-time genomic analysis.",
+        "authority": "EU AI Act Art. 14",
+        "confidence": "medium"
+      },
+      {
+        "q": 4,
+        "verdict": "The lever is academic. State boards acting under clear legislative mandates for 'public safety' enjoy Parker immunity; proving that a board is merely protecting incumbents rather than exercising state-delegated police power is a near-impossible evidentiary burden.",
+        "authority": "Parker v. Brown; NC State Bd. of Dental Examiners v. FTC",
+        "confidence": "medium"
+      },
+      {
+        "q": 5,
+        "verdict": "The reading is correct in effect but hyperbolic in intent. While human-in-the-loop requirements can create 'liability shields,' they also impose non-delegable duties of supervision, which increase, rather than extinguish, the human's legal exposure.",
+        "authority": "Restatement (Third) of Agency",
+        "confidence": "medium"
+      },
+      {
+        "q": 6,
+        "verdict": "The honesty section is incomplete; it ignores the 'non-delegable duty' doctrine in tort law, which often mandates human oversight not as a rent-seeking device, but as a necessary condition for liability to attach to a legal person.",
+        "authority": "Restatement (Second) of Torts \u00a7424",
+        "confidence": "high"
+      }
+    ],
+    "strongest_counterexample": "Medical device regulations requiring human oversight for AI-driven diagnostic tools that perform tasks (e.g., high-speed pattern recognition) no human could perform, proving the requirement is about risk-mitigation, not just protecting human labor.",
+    "memo_killer": "The claim that human-in-the-loop requirements 'extinguish' recourse; in reality, they trigger non-delegable duty doctrines that ensure a human is strictly liable for the machine's failure (Restatement (Second) of Torts \u00a7424).",
+    "dissent": "I dissent from the characterization of all human-oversight rules as 'featherbedding-shaped.' Many are legitimate responses to the 'black box' problem where the law requires a human to bridge the accountability gap, not to preserve a job.",
+    "verbatim": "The short answer is featherbedding \u2014 it is the only one of the four that is a term of art with a statutory definition, and it names precisely the thing described: someone is paid for work the machine did."
+  }
+}

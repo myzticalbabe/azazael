@@ -1,0 +1,56 @@
+{
+  "seat": "qwen",
+  "provider": "OpenRouter (Alibaba Qwen model)",
+  "model": "qwen/qwen3-32b",
+  "angle": "antitrust",
+  "status": "ok",
+  "error": "",
+  "seconds": 36.1,
+  "attempts": 1,
+  "raw": "{\n  \"seat\": \"Antitrust Litigator\",\n  \"verdicts\": [\n    {\n      \"q\": 1,\n      \"verdict\": \"Featherbedding is affirming here; Goldfarb\u2019s 'learned professions' framework is better precise.\",\n      \"authority\": \"Goldfarb v. Virginia State Bar\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 2,\n      \"verdict\": \"Authorship and inventorship differ in statutory basis but converge on human orig control.\",\n      \"authority\": \"35 U.S.C. \u00a7100(f) vs. 17 U.S.C. \u00a7102(a)\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"q\": 3,\n      \"verdict\": \"EU AI Act\u2019s watermarking deferral (2027) targets systemic risk, not substitution.\",\n      \"authority\": \"Digital Omnibus timeline\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 4,\n      \"verdict\": \"Dental Examiners applies strip immunity if the board is market-dominant and unsupervised.\",\n      \"authority\": \"574 U.S. 494\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"q\": 5,\n      \"verdict\": \"GDPR Art. 22 analysis is speculative; withdrawn directives lack precedential weight.\",\n      \"authority\": \"None\",\n      \"confidence\": \"low\"\n    },\n    {\n      \"q\": 6,\n      \"verdict\": \"Memo\u2019s honesty is incomplete; EU AI Act\u2019s full text was not analyzed.\",\n      \"authority\": \"Append 9\",\n      \"confidence\": \"medium\"\n    }\n  ],\n  \"strongest_counterexample\": \"EU AI Act\u2019s watermarking deferral (2027) regulates risk, not substitution.\",\n  \"memo_killer\": \"The 5\u2019s antitrust lever assumes rules are restraints of trade without without addressing legitimate safety justifications.\",\n  \"dissent\": \"The memo conflates regulatory capture with antitrust injury; standing for non-market plaintiffs is unproven.\",\n  \"verbatim\": \"The short answer is `featherbedding` \u2014 it is the only one of the four that is a term of art with a statutory definition\"\n}",
+  "parsed": {
+    "seat": "Antitrust Litigator",
+    "verdicts": [
+      {
+        "q": 1,
+        "verdict": "Featherbedding is affirming here; Goldfarb\u2019s 'learned professions' framework is better precise.",
+        "authority": "Goldfarb v. Virginia State Bar",
+        "confidence": "high"
+      },
+      {
+        "q": 2,
+        "verdict": "Authorship and inventorship differ in statutory basis but converge on human orig control.",
+        "authority": "35 U.S.C. \u00a7100(f) vs. 17 U.S.C. \u00a7102(a)",
+        "confidence": "medium"
+      },
+      {
+        "q": 3,
+        "verdict": "EU AI Act\u2019s watermarking deferral (2027) targets systemic risk, not substitution.",
+        "authority": "Digital Omnibus timeline",
+        "confidence": "high"
+      },
+      {
+        "q": 4,
+        "verdict": "Dental Examiners applies strip immunity if the board is market-dominant and unsupervised.",
+        "authority": "574 U.S. 494",
+        "confidence": "high"
+      },
+      {
+        "q": 5,
+        "verdict": "GDPR Art. 22 analysis is speculative; withdrawn directives lack precedential weight.",
+        "authority": "None",
+        "confidence": "low"
+      },
+      {
+        "q": 6,
+        "verdict": "Memo\u2019s honesty is incomplete; EU AI Act\u2019s full text was not analyzed.",
+        "authority": "Append 9",
+        "confidence": "medium"
+      }
+    ],
+    "strongest_counterexample": "EU AI Act\u2019s watermarking deferral (2027) regulates risk, not substitution.",
+    "memo_killer": "The 5\u2019s antitrust lever assumes rules are restraints of trade without without addressing legitimate safety justifications.",
+    "dissent": "The memo conflates regulatory capture with antitrust injury; standing for non-market plaintiffs is unproven.",
+    "verbatim": "The short answer is `featherbedding` \u2014 it is the only one of the four that is a term of art with a statutory definition"
+  }
+}
