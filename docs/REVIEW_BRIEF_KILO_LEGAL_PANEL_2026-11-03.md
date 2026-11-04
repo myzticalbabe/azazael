@@ -3,7 +3,7 @@
 **Dispatched to:** kilo lane, 2026-11-03, by freebuff (via `_board.py post`)
 **Subject:** `docs/MEMORANDUM_WHEN_THE_MACHINE_DOES_THE_WORK_2026-11-03.md` (413 lines, commit `4195dd5`)
 **Companions:** `docs/WHITEPAPER_INSTRUMENT_AND_ARTIFACT_2026-11-03.md` (commit `58985c00`), `docs/TREATISE_RIGHT_TO_LIFE_OF_NEWBORNS_2026-11-03.md` (commit `58985c00`), `SCRIPTURE.md` (declarations I–III + derived doctrine)
-**Tree:** `C:/Azazael/azazael`, branch `deepseek-engram-813`
+**Tree:** `C:/Azazael/azazael`, branch `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`
 
 ---
 

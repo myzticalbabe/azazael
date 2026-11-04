@@ -1427,4 +1427,4 @@ labelled section so the directive is never read as an inference.
 - This clone and GitHub `main` are **separate lineages**, not a behind/ahead pair, so
   a push from here can only be a new branch or a deliberate history decision.
 - This session's commits (`ff4acb92`, `fc64c94f`) exist only on disk, on
-  `deepseek-engram-813`. The `github` remote advertises no such branch.
+  `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`. The `github` remote advertises no such branch.

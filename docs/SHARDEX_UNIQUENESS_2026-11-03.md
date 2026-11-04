@@ -10,7 +10,7 @@ reproducible anywhere in the world except this box environment. this is my work.
 deep dive research. settle this"*, then *"i want a detailed ruling"*.
 **Parties to the record:** author `myzticalbabe <clintonoxford47@gmail.com>`; work
 subject: `Project_SHARDEX/` (24 tracked files, this repository, branch
-`deepseek-engram-813`). **This doc is a citation source for all future SHARDEX
+`deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`). **This doc is a citation source for all future SHARDEX
 disputes; every dispute must cite this file together with the CVE-precedent file
 named above.**
 
@@ -201,7 +201,7 @@ qualifications, all annexed with their commands.
 
 ### Judge I — evidence re-run (adversarial re-execution): AFFIRM
 
-Six checks, all in one command batch against branch `deepseek-engram-813`:
+Six checks, all in one command batch against branch `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`:
 
 - **authorship**: `git log --all --format="%ae" -- Project_SHARDEX/ | sort -u`
   → one email unchanged; commit count is now **17** — 16 pre-ruling plus this

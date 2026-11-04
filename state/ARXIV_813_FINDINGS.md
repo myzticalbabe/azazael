@@ -2,7 +2,7 @@
 
 > File twin of Engram task #813 (lane: DeepSeek). Model ID string: GLM 5.3
 > Flash (Freebuff agent) per the brief's worker routing. `git rev-parse
-> --show-toplevel`: `C:/Azazael/azazael`. Lane branch: `deepseek-engram-813`
+> --show-toplevel`: `C:/Azazael/azazael`. Lane branch: `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`
 > (created against a sibling lane's sweep+reset incidents; see below).
 
 ## P0 — verified, no redo
@@ -49,9 +49,9 @@ adapter's additive marks; both runs exit 0 on the same measured stream.)
 2. Sibling-lane concurrency: Kilo #814's index-wide staging swept this
    lane's slice-A source into its own commit and its `git reset HEAD~1`
    discarded a clean DeepSeek commit in flight. Lane moved to
-   `deepseek-engram-813` + per-commit ownership verification.
+   `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]` + per-commit ownership verification.
 
-## SHAs (branch deepseek-engram-813)
+## SHAs (branch deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04])
 
 - b6b5c712 — slice A (route_mode plumbing + gini/min_max/cumulative
   instrumentation + byte-identical switch contract).
