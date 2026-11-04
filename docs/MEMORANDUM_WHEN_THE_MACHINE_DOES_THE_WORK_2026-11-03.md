@@ -78,7 +78,7 @@ the machine to the person.
 | 2 | **inventorship** | 35 U.S.C. §100(f) "individual"; *Thaler v. Vidal*, 43 F.4th 1207 (Fed. Cir. 2022) | conceive with a human | be named the inventor | the human — the patent |
 | 3 | **professional responsibility** | ABA Formal Opinion 512 (29 Jul 2024) and state analogues | draft, review, analyse | discharge the duty of competence or candour | the licensed human — the fee |
 | 4 | **liability** | only persons are defendants; EU AI Act Arts. 3, 14 | act | answer for the act | the human provider/deployer — the exposure |
-| 5 | **funder originality** | NOT-OD-25-132 (effective 2025-09-25) | assist "for limited aspects" | be the origin of a submitted section | the applicant — the award and the priority |
+| 5 | **funder originality** | NOT-OD-25-132 (effective 2025-09-25); NLnet GenAI policy v2.0 (published 2026-10-20) | assist "for limited aspects"; read a proposal with an LLM | be the origin of a submitted section; submit AI-written prose or AI-generated artefacts | **the funder** — preserved evaluation capacity (NLnet, see §1.5); the applicant — the award and the priority (NIH) |
 
 ### 1.1 Authorship — settled, at the top
 
@@ -131,14 +131,46 @@ person. The EU AI Act does this by construction: the obligations attach to
 here is not a safety feature bolted on afterwards; it is the mechanism by which the
 regulation has someone to address.
 
-### 1.5 Funder originality — the rule that started this enquiry
+### 1.5 Funder originality — the rule that started this enquiry, and the one that breaks the pattern
 
 NOT-OD-25-132 forbids treating an application "substantially developed by AI" as the
 applicant's original idea, and caps an applicant at six applications per calendar
 year. Its stated harm is volume. Its operative effect is the same as the other four:
 the applicant must be the origin of the section, so the tool may assist and may not
-originate. The whitepaper argued this on the primary text; it stands, and it is now
-one instance of a pattern rather than a peculiarity of NIH.
+originate. The whitepaper argued this on the primary text; it stands.
+
+**A second instrument, and a different jurisdiction.** NLnet's GenAI policy v2.0,
+published 2026-10-20, applies to every deadline after that date — the next being
+2027-01-03. Proposals may not be AI-written (an accessibility exception is carved
+out); development work is confined to read-only LLM use; artefacts of any kind that
+were AI-generated are barred. Its stated reason is the same shape as NIH's: an
+avalanche of low-quality proposals, which the policy describes as "on the whole of
+much lower quality" and "very taxing and demotivating". *(Tier A — the policy text
+was read. Two funders, two jurisdictions, ten months apart, independently arrive at
+the same instrument. That is convergence evidence, and it is the strongest form this
+section can take.)*
+
+**But this is where the five mechanisms stop being one mechanism, and the
+memorandum should say so rather than let a reader discover it.** In mechanisms 1–4
+the inserted human is installed *for the protection of a person* — the author, the
+inventor, the client, the injured party. In funder originality the human is
+installed for the protection of **the funder's own evaluation capacity**. The named
+harm is not that anyone's rights are extinguished; it is that the funder can no
+longer read what it is sent. The applicant is not protected by the rule, the
+applicant is *screened* by it. That makes §1.5 the same shape as the others and a
+different species: a condition of market access rather than a rights instrument.
+
+This matters for the review brief's second question — *are the five mechanisms
+actually one mechanism?* On the present record: **no, and the fifth is the
+counter-example.** The value the rule transfers does not go to the applicant; it
+stays with the funder. The transfer in §2's sense — a person made necessary, and the
+rent for that necessity captured by the person — is absent here.
+
+Nothing above is the nexus of the argument. The nexus is §2: the inserted human as
+the device that *removes* protection, where the requirement can extinguish the rights
+of the person it is said to protect. Funder originality is the rule that started this
+enquiry — the section's own heading says so — and starting an enquiry is not the same
+as turning on it.
 
 ---
 
@@ -223,8 +255,14 @@ If the restrictions were about risk, they would track hazard. They track substit
 - AI that **drafts** a grant application is restricted (NOT-OD-25-132) — the AI is
   doing the applicant's work.
 - AI that **reads** a grant, summarises it, or checks it against a funder's criteria
-  is not restricted by any instrument found in this search — the AI is doing work
-  nobody was paid to do.
+  is not restricted — the AI is doing work nobody was paid to do. The cleanest proof
+  is intra-document: NLnet's policy v2.0 permits read-only LLM use in development and
+  forbids AI-written prose in the same instrument, so one funder, on one page, draws
+  the line between reading and writing rather than between safe and unsafe uses.
+  *(A qualification the memorandum should not hide: the same policy also bars
+  AI-generated artefacts outright, which is a generation ban and therefore a second
+  axis. The read/write contrast is clean for prose; the artefact clause is not, and is
+  closer to a content rule than to a substitution rule.)*
 - AI that **screens** job applicants is restricted (Illinois HB 3773, NYC LL 144) —
   the AI is doing the screener's work.
 - AI that **schedules** interviews is not — nobody's profession is displaced.
@@ -408,6 +446,18 @@ result of this memorandum that favours the position.
 | Corporation as artificial person | *Dartmouth College v. Woodward*, 17 U.S. 518 (1819) | personality is extendable | A |
 | Corporate personhood caveat | *Santa Clara County v. Southern Pacific R.R.*, 118 U.S. 394 (1886) | the sentence is in the headnote | A |
 | Electronic personhood declined | European Parliament resolution, 16 Feb 2017 | the question was put and answered no | C |
+| Funder bars AI-written proposals — second instrument, second jurisdiction | NLnet GenAI policy v2.0, published 20 Oct 2026, applies to every deadline after that date (next: 2027-01-03) | read-only LLM use permitted in development; AI-written prose barred (accessibility exception); AI-generated artefacts of any kind barred; stated harm is proposal volume and quality | A |
 
 *Append-only. A claim corrected later is marked corrected on its date; the correction
 names what it replaces.*
+
+**Correction, 2026-11-03.** §1.5 and row 5 of the §1 table previously cited
+NOT-OD-25-132 alone as the funder-originality mechanism, and recorded the **applicant**
+as the party capturing the value. Both are replaced. The NLnet policy is a second
+tier-A instrument in a second jurisdiction, ten months later, reaching the same rule
+independently — so the section is stronger than it was, not weaker. But the value in
+this mechanism is captured by the **funder**, as preserved evaluation capacity; the
+applicant is screened by the rule, not protected by it. §1.5 now records that this
+makes the fifth mechanism the same *shape* as the first four and a different
+*species*, which is a partial answer to the review brief's question 2 and a limit on
+the convergence claim the section used to make without qualification.
