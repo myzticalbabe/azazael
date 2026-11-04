@@ -28,7 +28,7 @@ python C:/Users/clint/_board.py claim freebuff 10            # PASS: rows, or "N
   stop. Do not proceed silently on the assumption that it would have said GO.
 - `NO-GO` from the supervisor is not advice. It blocks non-memory work.
 
-### 0.2 The turn contract — a turn is not finished until all six are done
+### 0.2 The turn contract — a turn is not finished until all seven are done
 
 1. **Claim** the work by id (`_board.py claim <lane>`), never by memory of what
    was pending.
@@ -40,6 +40,9 @@ python C:/Users/clint/_board.py claim freebuff 10            # PASS: rows, or "N
 5. **Retire** the row: `done <id> "<command + result>"` or `block <id> "<blocker>"`.
    A claim you cannot retire did not happen.
 6. **Status row**: `_board.py report <lane> <status> <detail>` then read it back.
+   The detail MUST include the command, exit code, and output line.
+7. **Record** — `pmb_record_batch(items=[...])` with all turn outcomes (activity/decision/lesson/fact/goal).
+   One atomic batch per turn; use absolute dates. Encounter-time errors written immediately; outcomes batched at turn end.
 
 Prose is not a deliverable. `done`, `fixed`, `passes`, `verified`, `landed` are
 claims; each one carries the command behind it.
