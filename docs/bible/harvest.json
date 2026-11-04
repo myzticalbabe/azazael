@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2047,
+  "as_of_id": 2065,
   "path": "~/.engram/engram.db",
-  "records": 1209,
+  "records": 1224,
   "types": [
    "bugfix",
    "decision",
@@ -21303,6 +21303,186 @@
    "surface": "~/.engram/engram.db",
    "symptom": "`codegraph_stats` in `unified/codegraph_mcp.py` now reports graph staleness (commit `d7e82f5`, 2 files, +391/-2, in `C:/Users/clint/llama-server`). New fields: `head_commit`, `repo_root`, `graph_matches_head` (True/False/None), `warning`. `_repo_root()` walks up from the graph file to the nearest `.git`; `_git_head()` shells `git -C <root> rev-parse HEAD` (cached 5 s, `CREATE_NO_WINDOW`); `_staleness()` compares the build commit with HEAD.",
    "title": "codegraph_stats reports graph staleness vs HEAD"
+  },
+  {
+   "cause": "Do NOT resolve this by running `type_check_gate.py --baseline` — that records 8 errors as accepted debt. Either fix the 8 (5 are one root cause in cd3_exporter's SpanExportResult return type) and then record a clean baseline, or record the truth deliberately and name it as debt. Distinguish this from the anti-pattern baseline re-recorded the same session, where the only delta across ALL categories was −1 (a decrease) and 14 new tracked files added zero findings — that one baselined nothing over. A decrease is a legitimate re-record; a growth is the forbidden rebaseline.",
+   "date": "2026-11-04",
+   "id": "engram-2048",
+   "kind": "engram:bugfix",
+   "line": 2048,
+   "rationale": "What: `logs/basedpyright_baseline.json` and `logs/basedpyright_report.json` (both git-tracked) record `filesAnalyzed: 761, errorCount: 0, warningCount: 0, diagnostic_ids: []`. A live `basedpyright.exe --outputjson --project pyrightconfig.json` run measures `filesAnalyzed: 775, errorCount: 8, warningCount: 29`. The type gate has therefore been reporting green while 8 real type errors exist. Why: Found while running the mandated tool/memory test pass on 2026-11-04. `tests/test_type_check_gate.py::test_the_committed_baseline_agrees_with_the_committed_report` fails with `AssertionError: a baseline with no diagnostics proves nothing / assert []`. The test is CORRECT to fail — an empty baseline c…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`logs/basedpyright_baseline.json` and `logs/basedpyright_report.json` (both git-tracked) record `filesAnalyzed: 761, errorCount: 0, warningCount: 0, diagnostic_ids: []`. A live `basedpyright.exe --outputjson --project pyrightconfig.json` run measures `filesAnalyzed: 775, errorCount: 8, warningCount: 29`. The type gate has therefore been reporting green while 8 real type errors exist.",
+   "title": "Type-check gate is false-green: baseline claims 0 diagnostics, live run has 8 errors"
+  },
+  {
+   "cause": "(1) A shell does not report a bad substitution on a line it never reaches -- `exit 0` above `x=${{B}}` prints nothing and exits 0, and `sh -n` calls that file clean -- so making the hook exit early costs coverage unless every `${...}` is expanded separately. (2) The first token check was vacuous: `sh -c 'eval ... \"$1\"'` returned rc=0 with empty stderr for `${{B}}`, while the same token written into a script file returned rc=1 with \"bad substitution\". A negative control caught it; the check now writes a one-line script per token and requires rc==0. (3) On this host `C:/Users/clint` is itself a git repository, so a temp dir is inside a repo and `git rev-parse --show-toplevel` succeeds there -…",
+   "date": "2026-11-04",
+   "id": "engram-2049",
+   "kind": "engram:bugfix",
+   "line": 2049,
+   "rationale": "What: `tests/test_bible_ship.py::test_no_hook_template_ships_a_bad_substitution` finished in 1.24 s (16 passed) after running each installed hook in a repository of its own, plus a per-token expansion probe. Why: the test sourced each shipped template with no `cwd`, so the hook inherited the pytest working directory -- this repository -- and every gate below the bypass line fired for real (92 s for pre-push, 197 s for all three, measured 2026-11-02), so the harness killed the file before its own assertion ran. Earlier work had raised the bound 120 -> 240 -> 330 s, which treated the measurement as the defect. Where: `tests/test_bible_ship.py` (the test + a new `_expansions()` helper). `tools…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`tests/test_bible_ship.py::test_no_hook_template_ships_a_bad_substitution` finished in 1.24 s (16 passed) after running each installed hook in a repository of its own, plus a per-token expansion probe.",
+   "title": "Hook test hung because it inherited this repo; fixed by hermetic cwd + token expansion"
+  },
+  {
+   "cause": "golden_arrow full run at b4f92756: 520 files, 518 ok, 2 failed, 0 hung, exit=1. Both failures (tests/test_worm_smoke.py 43.2 s, tests/test_preflight_all.py 224.7 s) pass ALONE (5 passed 19.36 s; 165 passed 110.99 s), so the cause is the suite's 16-worker concurrency touching shared stores and child processes -- recorded as t-0012 deferred rather than fixed by guesswork. - Commit 718bc469 landed cd3_exporter (one sqlite connection for an in-memory DB lifetime; self-test 4/4, 2 spans) and scanner rule hook_spawn_without_cwd (21 rules, 0 hits in src/ and tests/, ratchet 2205 = baseline). The rule catches the shape that made a unit test run a real 92 s pre-push: a child inherits cwd, so spawnin…",
+   "date": "2026-11-04",
+   "id": "engram-2050",
+   "kind": "engram:bugfix",
+   "line": 2050,
+   "rationale": "What: Finished the four-item batch and closed every session error into the FLAMING SWORD ledger. Why: \"IMPLEMENT ALL\" then \"ADD ALL ERRORS TO FLAMING SWORD\": the batch was basedpyright errors, the scanner gate rule for hook spawns without cwd, the cd3_exporter :memory: bug, and the hanging hook test. Where: src/CORE/cd3_exporter.py, src/CORE/compliance/scanner.py, tests/test_bible_ship.py, Project_FLAMING_SWORD/.flaming_sword/tasks.jsonl, logs/basedpyright_*.json. Learned: - golden_arrow full run at b4f92756: 520 files, 518 ok, 2 failed, 0 hung, exit=1. Both failures (tests/test_worm_smoke.py 43.2 s, tests/test_preflight_all.py 224.7 s) pass ALONE (5 passed 19.36 s; 165 passed 110.99 s), so…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished the four-item batch and closed every session error into the FLAMING SWORD ledger.",
+   "title": "Full-suite failures were concurrency, not file defects; FLAMING SWORD ledger seeded"
+  },
+  {
+   "cause": "The commit gate rejected my first attempt with `tools/anti_pattern_gate.py: except_return_default 0 -> 1 (+1)` — my own new `_baseline_fingerprint` had `except OSError: return \"\"`. Fixed structurally (print the reason to stderr, then return) rather than rebaselined; staged_scanner_gate then read `5 .py file(s): no new anti-patterns`, exit 0. The staged scanner reads the INDEX, so the fix had to be `git add`ed before re-running or it re-reports a fixed finding. Also: the shim was proved by a planted-defect positive control (3 defects in a fixture → exactly silent_except_pass L8, os_system L6, except_return_default L15) and by canonical-vs-shim CLI output being byte-identical over 23 lines.",
+   "date": "2026-11-04",
+   "id": "engram-2051",
+   "kind": "engram:bugfix",
+   "line": 2051,
+   "rationale": "What: Landed commit 67a6d912 (5 files, 247+/12-) for the three requested followups plus the commit-gate repair. (1) `Project_Compliance/tools/compliance/scanner.py` is now a 79-line runpy delegate to `CORE.compliance.scanner`, so the retired 20-rule implementation cannot run again while the legacy path still resolves. (2) `tools/anti_pattern_gate.py` fingerprints the baseline before and after a scan, writes it atomically via os.replace with a journal row and writer_pid, and refuses mid-run with exit 2 if the reference moved. (3) `tools/golden_arrow.py` now names FAILED/ERROR tests and keeps a failures[] list in its report. (4) `tests/test_startup_warm_wiring.py` replaced a single-sample sto…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed commit 67a6d912 (5 files, 247+/12-) for the three requested followups plus the commit-gate repair. (1) `Project_Compliance/tools/compliance/scanner.py` is now a 79-line runpy delegate to `CORE.compliance.scanner`, so the retired 20-rule implementation cannot run again while the legacy path still resolves. (2) `tools/anti_pattern_gate.py` fingerprints the baseline before and after a scan, writes it atomically via os.replace with a journal row and writer_pid, and refuses mid-run with exit 2 if the reference moved. (3) `tools/golden_arrow.py` now names FAILED/ERROR tests and keeps a failures[] list in its report. (4) `tests/test_startup_warm_wiring.py` replaced a single-sample stopwatch…",
+   "title": "Two flaky gates anchored to invariants; scanner shim + baseline guard landed 67a6d912"
+  },
+  {
+   "cause": "Both golden_arrow failures pass reliably when run in isolation (28/28 and 27/27 respectively) — consistent with the 67a6d912 'anchor flaky gates to invariants' pattern; likely thread-timeout contention under full 10-min load. No new defects beyond recorded debt.",
+   "date": "2026-11-04",
+   "id": "engram-2052",
+   "kind": "engram:discovery",
+   "line": 2052,
+   "rationale": "What: Ran the mandated startup chain in the opencode lane and verified memory/tool tests. Gate `mcp_startup_gate.py --fix` exit 0 PASS=9/9 in 5.2s. `session_start.py` delivered PMB=2655ch, engram=9194ch, engram guard exit=0, supervisor verdict GO. Memory tests on py315t: test_local_memory + store + memory_db_isolation + memorybus + pmb_capture + pmb_floor_proxy_health + mcp_eight_verify = 147 passed; test_local_memory_sota_rows + memory_db_module_teardown + memory_dir_caching + memorybus_persistent + postgres_memory + pmb_floor_apply + pmb_loop_liveness + pmb_observe_transcript + pmb_session_observe + binary_analysis_tools = 71 passed (25 skipped); test_tool_error_handlers + ops_tools + git…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Ran the mandated startup chain in the opencode lane and verified memory/tool tests. Gate `mcp_startup_gate.py --fix` exit 0 PASS=9/9 in 5.2s. `session_start.py` delivered PMB=2655ch, engram=9194ch, engram guard exit=0, supervisor verdict GO. Memory tests on py315t: test_local_memory + store + memory_db_isolation + memorybus + pmb_capture + pmb_floor_proxy_health + mcp_eight_verify = 147 passed; test_local_memory_sota_rows + memory_db_module_teardown + memory_dir_caching + memorybus_persistent + postgres_memory + pmb_floor_apply + pmb_loop_liveness + pmb_observe_transcript + pmb_session_observe + binary_analysis_tools = 71 passed (25 skipped); test_tool_error_handlers + ops_tools + git_tools…",
+   "title": "MCP connect + startup/memory/tool tests 2026-11-04 (opencode lane)"
+  },
+  {
+   "cause": "(a) The two families are complementary, not redundant: the scanner owns all 9 house anti-patterns and is blind to all 4 dead-name classes; ruff+pyflakes own the dead names and catch only 1 house pattern (shell_true via PLW1510). HED-1's months-long NameError lived exactly in that blind spot. (b) `_PATTERN_WIN_PATH` (scanner.py:218) requires TWO backslashes in the file text, so raw-string Windows paths are invisible - recorded as a known_gap rather than hidden, so an unexplained hole still exits 1. (c) `cls_new_factory` flags text inside string literals while `os_system` does not - the probe now assembles its fixtures from parts so the instrument is not a finding in the gate it measures. (d)…",
+   "date": "2026-11-04",
+   "id": "engram-2054",
+   "kind": "engram:decision",
+   "line": 2054,
+   "rationale": "What: Landed three follow-ups in one commit d971b94c (6 files, 1115+/8-). (1) `spine._fabric_resilience` now names a closed reason on all four failure paths (snapshot_failed, verify_failed, restore_failed, organ_error) so a caller can never read None; the fabric test classifies those natures instead of allow-listing two strings (28 passed). (2) `tools/external_lint.py` reads src/ via ruff 0.17.3 + pyflakes 4.1.0 (installed into py315t for this): 789 files, ruff 13280, pyflakes 1216, found 3 undefined names the canonical scanner cannot see. (3) `tools/mutation_probe.py` plants 14 defect classes and scores 3 detectors with a clean control: scanner 9/14, ruff 5/14, pyflakes 4/14, union 13/14,…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed three follow-ups in one commit d971b94c (6 files, 1115+/8-). (1) `spine._fabric_resilience` now names a closed reason on all four failure paths (snapshot_failed, verify_failed, restore_failed, organ_error) so a caller can never read None; the fabric test classifies those natures instead of allow-listing two strings (28 passed). (2) `tools/external_lint.py` reads src/ via ruff 0.17.3 + pyflakes 4.1.0 (installed into py315t for this): 789 files, ruff 13280, pyflakes 1216, found 3 undefined names the canonical scanner cannot see. (3) `tools/mutation_probe.py` plants 14 defect classes and scores 3 detectors with a clean control: scanner 9/14, ruff 5/14, pyflakes 4/14, union 13/14, exit 0…",
+   "title": "External lint oracle + mutation probe landed (d971b94c)"
+  },
+  {
+   "cause": "(1) Measure before calling it hung: `git rev-list --count origin/main..HEAD` = 1387 commits, `git rev-list --objects origin/main..HEAD | wc -l` = 45077 objects, ~980 MB by `cat-file --batch-check='%(objectsize:disk)'`, merge-base fe4b004. (2) git suppresses its progress meter when stderr is not a tty, so `> log 2>&1` makes a live upload look dead. `git push --progress` forces the meter into the log. (3) `git status -sb` showing `## branch` with no `...origin/...` is the clean signal that the upstream was never set - the first failure was exit 128 \"has no upstream branch\" and needs `--set-upstream origin <branch>`. (4) A read-only `GIT_TERMINAL_PROMPT=0 git ls-remote` succeeding proves NOTHI…",
+   "date": "2026-11-04",
+   "id": "engram-2055",
+   "kind": "engram:discovery",
+   "line": 2055,
+   "rationale": "What: `git push` of branch `deepseek-engram-813` to github.com/myzticalbabe/azazael exceeded a 600s foreground budget twice with zero output, which reads as a hang but is a large upload. Why: Diagnosed 2026-11-04 while landing d971b94c. Where: C:/Azazael/azazael Learned: (1) Measure before calling it hung: `git rev-list --count origin/main..HEAD` = 1387 commits, `git rev-list --objects origin/main..HEAD | wc -l` = 45077 objects, ~980 MB by `cat-file --batch-check='%(objectsize:disk)'`, merge-base fe4b004. (2) git suppresses its progress meter when stderr is not a tty, so `> log 2>&1` makes a live upload look dead. `git push --progress` forces the meter into the log. (3) `git status -sb` sho…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`git push` of branch `deepseek-engram-813` to github.com/myzticalbabe/azazael exceeded a 600s foreground budget twice with zero output, which reads as a hang but is a large upload.",
+   "title": "git push on this tree: 980MB pack, no tty progress, 600s reads as hang"
+  },
+  {
+   "cause": "(1) `git rev-list --objects origin/main..HEAD | git cat-file --batch-check` is the cheap way to prove which blobs a push will ship; run it before diagnosing a network stall. (2) The 55% figure was a red herring — it counts objects, and the remaining 45% held the big blobs; real throughput was ~110 KiB/s while `git push` still completed in ~300 s, so a frozen percentage is not a hang. (3) `git push --dry-run` confirms auth and ref acceptance in seconds without shipping a pack. (4) Rewriting changes every SHA, so the local branch (`d971b94c`) now diverges from the remote; pushes must come from the clean clone until the local branch is reconciled.",
+   "date": "2026-11-04",
+   "id": "engram-2056",
+   "kind": "engram:bugfix",
+   "line": 2056,
+   "rationale": "What: Got `deepseek-engram-813` onto github.com/myzticalbabe/azazael as `8d79e2ac95018b2031065dc08d9ca07195cd074a`, after four earlier push attempts looked like a hang at \"Writing objects: 55%\". Why: GitHub hard-rejects any push carrying a file over 100 MB (GH001). `git ls-tree -r -l HEAD` showed two such blobs in the *current* tree, not merely history: `archived/2026-05-31/onnxruntime.tar.gz` (272.3 MB) and `archived/2026-05-31/onnxruntime-source/onnxruntime.tar.gz` (228.8 MB), both added in `0fb52604`. Untracking them at HEAD cannot help — the blobs stay reachable across all 1387 commits, so the push still ships them. Where: bare clone `C:/Azazael/push_clean_2026-11-04.git` (single-branch…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Got `deepseek-engram-813` onto github.com/myzticalbabe/azazael as `8d79e2ac95018b2031065dc08d9ca07195cd074a`, after four earlier push attempts looked like a hang at \"Writing objects: 55%\".",
+   "title": "Pushed deepseek-engram-813 after purging two over-100MB blobs"
+  },
+  {
+   "cause": "In a pruned mirror the correct recipe is base-tree + cacheinfo, never live-root-tree. Prove it with `git diff --stat <base> <new>` (must show exactly the intended file set) and `git fsck --connectivity-only <new>` BEFORE update-ref; a successful commit-tree means nothing. Also preserve GIT_AUTHOR/COMMITTER name, email and dates from the source commit so the transported commit carries the same provenance.",
+   "date": "2026-11-04",
+   "id": "engram-2057",
+   "kind": "engram:bugfix",
+   "line": 2057,
+   "rationale": "What: Pushed commit b604d3d5 (as eaff01fe) into push_clean_2026-11-04.git. First attempt used `commit-tree <live b604d3d5^{tree}> -p 8d79e2ac` after importing only the 7 new trees/blobs. The commit object was created and a tree match check passed, but `git diff --stat 8d79e2ac..NEW` died with `fatal: unable to read tree (7bb1c1ec…)`. Why: The bare clone is a REWRITTEN history (two >100 MB tarballs dropped), so its committed tree is 714590c3 while the live d971b94c tree is d6b94643 — they are NOT the same object. Using the live root tree makes the new commit reference pruned tarball directories whose blobs the bare clone does not have. A tree-hash equality check against the live tree passes…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Pushed commit b604d3d5 (as eaff01fe) into push_clean_2026-11-04.git. First attempt used `commit-tree <live b604d3d5^{tree}> -p 8d79e2ac` after importing only the 7 new trees/blobs. The commit object was created and a tree match check passed, but `git diff --stat 8d79e2ac..NEW` died with `fatal: unable to read tree (7bb1c1ec…)`.",
+   "title": "Transporting one commit into the rewritten bare clone: rebuild the tree on the BARE base, never on the live root tree"
+  },
+  {
+   "cause": "Neither remedy is safe from a lane that does not own the edit: `--apply` would bake an UNCOMMITTED foreign source edit into seven machine-wide instruction files plus WSL, and staging the source would adopt another lane's work without owner evidence. The gate's requirement is \"copies match COMMITTED source\", which is unsatisfiable from here, so the declared override ALLOW_AGENT_ORDERS_DRIFT=1 was used WITH the reason written into the commit message. Practical consequence to expect: while a canon source is dirty, EVERY lane's commit is blocked until that lane lands it — so a dirty docs/agent_orders source is a tree-wide blocker, not a local one.",
+   "date": "2026-11-04",
+   "id": "engram-2058",
+   "kind": "engram:discovery",
+   "line": 2058,
+   "rationale": "What: The first `git commit` for this lane was blocked by the orders-in-sync hook: 7 local start-here copies (C:/Users/clint/AGENTS.md, C:/Azazael/AGENTS.md, kilo AGENTS.md + BEAM_AGENTS.md, opencode AGENTS.md, .claude/CLAUDE.md, .codebuff/rules.md) plus 2 WSL targets reported DRIFT against docs/agent_orders/01_start_here.md. Why: The SOURCE is dirty, not the copies — `git diff` on 01_start_here.md shows +4/−1 edited 2026-11-04 11:36 by a lane that has not landed it (\"all six are done\" → \"all seven are done\", a new step 7 mandating pmb_record_batch, and a clause that the status-row detail must carry command/exit code/output line). The copies were generated 2026-11-02 from the committed vers…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "The first `git commit` for this lane was blocked by the orders-in-sync hook: 7 local start-here copies (C:/Users/clint/AGENTS.md, C:/Azazael/AGENTS.md, kilo AGENTS.md + BEAM_AGENTS.md, opencode AGENTS.md, .claude/CLAUDE.md, .codebuff/rules.md) plus 2 WSL targets reported DRIFT against docs/agent_orders/01_start_here.md.",
+   "title": "A dirty canon source blocks every lane's commit; the declared override is the only non-adopting route"
+  },
+  {
+   "cause": "The 9 dead-control baseline rows for this file are a scanner limitation, not unwired gates — `findings = [gate(record) for gate in applicable_gates(forum)]` calls each gate through a loop variable a name scan cannot resolve. Cite that dispatch line, never \"fixed\". Bulk gate was declared (ALLOW_BULK_COMMIT=1) for 995f4723 because a 245-line single-file feature cannot pass a 150-line/file cap without a red intermediate commit. GitHub visibility for the standalone repo remains an owner decision: no remote created.",
+   "date": "2026-11-04",
+   "id": "engram-2059",
+   "kind": "engram:decision",
+   "line": 2059,
+   "rationale": "What: Landed three followups on the AI-opinion admissibility instrument and transported them to the push-clean bare store. - dc2e04d2 agent_orders sources (01_start_here + 05_hyper_edge_defaults) so `agent_orders_sync.py --check` stops blocking commits: 44 targets in sync, exit 0. - 995f4723 criminal posture: gates G8 (testimonial character) + G9 (declarant/Confrontation Clause, Crawford v. Washington) apply only when `proffer.forum == \"criminal\"`; forum is always printed (`forum`, `forum_source`, `forum_note`); schema bumped to `esquire-admissibility/2` with derived VERSION_LABEL. 52 tests pass (was 36). - 2ce5e011 provenance note recording the extraction; b056cebd is the pre-commit eviden…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed three followups on the AI-opinion admissibility instrument and transported them to the push-clean bare store. - dc2e04d2 agent_orders sources (01_start_here + 05_hyper_edge_defaults) so `agent_orders_sync.py --check` stops blocking commits: 44 targets in sync, exit 0. - 995f4723 criminal posture: gates G8 (testimonial character) + G9 (declarant/Confrontation Clause, Crawford v. Washington) apply only when `proffer.forum == \"criminal\"`; forum is always printed (`forum`, `forum_source`, `forum_note`); schema bumped to `esquire-admissibility/2` with derived VERSION_LABEL. 52 tests pass (was 36). - 2ce5e011 provenance note recording the extraction; b056cebd is the pre-commit evidence tie…",
+   "title": "Esquire admissibility v2 landed and transported (2026-11-04)"
+  },
+  {
+   "cause": "(a) A scratch-index commit (GIT_INDEX_FILE) isolates the commit but does not clean the index it bypassed — the shared index kept an older staged blob of the same doc, so status read MM and a foreign bundle commit would have reverted the patch while the worktree still matched HEAD; remedy is git restore --staged <path> then prove git ls-files -s <path> == git rev-parse HEAD:<path>. (b) G6 was excluded from the administrative gate set for 5 U.S.C. 556(d) (the agency sets its own evidence law) and G8/G9 for the Sixth Amendment's non-application, with all three exclusions printed in the report rather than silently dropped. (c) forum_of returns posture administrative while quoting the declared v…",
+   "date": "2026-11-04",
+   "id": "engram-2060",
+   "kind": "engram:decision",
+   "line": 2060,
+   "rationale": "What: Finished three followups on the AI-opinion admissibility instrument: (1) added an administrative/arbitration posture with a new gate G10 (forum standard, disclosure and response), (2) added three example proffers plus a break-it guide to the standalone repo, (3) created and pushed the public GitHub repo. Why: G8 (confrontation) and G9 (surrogate analyst) encode Sixth Amendment guarantees that do not reach an administrative or arbitral forum, so a forum with its own evidence law was being tried under a standard that does not apply to it; the instrument also had no shipped examples and no remote. Where: azazael/tools/esquire_admissibility.py (FORUM_ADMINISTRATIVE, ADMINISTRATIVE_FORUMS,…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished three followups on the AI-opinion admissibility instrument: (1) added an administrative/arbitration posture with a new gate G10 (forum standard, disclosure and response), (2) added three example proffers plus a break-it guide to the standalone repo, (3) created and pushed the public GitHub repo.",
+   "title": "esquire-admissibility published with a third (administrative) posture"
+  },
+  {
+   "cause": "(a) heredoc commit message via 'nohup bash -c … commit -F - <<EOF' mangles the subject — always write a script file and 'git commit -F <file>'. (b) pyproject description must be a single pre-cleaned line: a literal \\n escape in the description string survived into TOML and was caught only by repr-verification. (c) bash cannot run the 3.15t venv as 'python <venv python.exe>'; call the interpreter path directly. (d) Disk-floor gate (10 GB for C:) transiently refused an evidence commit when space dipped to 7.0 GB; resolved by retrying after space recovered, never by lowering the floor.",
+   "date": "2026-11-04",
+   "id": "engram-2061",
+   "kind": "engram:decision",
+   "line": 2061,
+   "rationale": "What: Landed all three self-suggested followups for the esquire-admissibility instrument. (1) Verified G10's block-level absence→UNVERIFIABLE rule already holds for all ten gates; pinned it with a parametrised test (10 cases, G1–G7 clean() deletions, G8/G9 criminal() confrontation, G10 administrative()) in azazael/tests/test_esquire_admissibility.py — suite 71 passed, exit 0 in both monorepo and standalone; documented in doc §3.7/§4.1/§9/§10 and mirrored into the standalone README. (2) Added CI to standalone repo myzticalbabe/esquire-admissibility: .github/workflows/ci.yml with pytest matrix 3.10–3.13 plus examples (3 READY postures) and 4 break-cases expecting exit 1; all steps executed lo…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed all three self-suggested followups for the esquire-admissibility instrument. (1) Verified G10's block-level absence→UNVERIFIABLE rule already holds for all ten gates; pinned it with a parametrised test (10 cases, G1–G7 clean() deletions, G8/G9 criminal() confrontation, G10 administrative()) in azazael/tests/test_esquire_admissibility.py — suite 71 passed, exit 0 in both monorepo and standalone; documented in doc §3.7/§4.1/§9/§10 and mirrored into the standalone README. (2) Added CI to standalone repo myzticalbabe/esquire-admissibility: .github/workflows/ci.yml with pytest matrix 3.10–3.13 plus examples (3 READY postures) and 4 break-cases expecting exit 1; all steps executed locally…",
+   "title": "Esquire admissibility followups landed: absence-pinning test, CI green, transport parity"
+  },
+  {
+   "cause": "Transport replay requires the full ordered commit list every run — a partial run rewrites the branch to base+1 (damage observed and repaired); replay is deterministic so rebuilt shas reproduced 253bd404 and GitHub fast-forwarded. In the monorepo the workflow path is .github/workflows/test-3.15t.yml (repo root C:/Azazael/azazael). 15 tracked files still carry the old name, all dated evidence docs, deliberately kept as historical record.",
+   "date": "2026-11-04",
+   "id": "engram-2063",
+   "kind": "engram:decision",
+   "line": 2063,
+   "rationale": "What: Repo-wide rename of the transport/branch name `deepseek-engram-813` to `azazael-intel-ultra-9-evo` (literal spacing invalid as a git ref, so dashes; lowercase canonical casing matching the monorepo's checked-out branch). Why: User instructed a name change and said \"this is a repo-wide change, ensure.\" Where: bare transport store push_clean_2026-11-04.git (rebuilt branch, tip 0891ab97), GitHub myzticalbabe/azazael (single ref at 0891ab97 via fast-forward push), monorepo C:/Azazael/azazael (branch renamed, .github/workflows/test-3.15t.yml triggers in commit f79d059c), state/head.json regenerated, dead local/ deepseek tracking ref deleted. Learned: Transport replay requires the full orde…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Repo-wide rename of the transport/branch name `deepseek-engram-813` to `azazael-intel-ultra-9-evo` (literal spacing invalid as a git ref, so dashes; lowercase canonical casing matching the monorepo's checked-out branch).",
+   "title": "azazael-intel-ultra-9-evo rename landed"
+  },
+  {
+   "cause": "(1) From inside Python on this box, bare \"bash\" resolves to WSL2 bash — /c/tmp paths don't exist there; use the explicit Git Bash path for tooling. (2) SO_REUSEADDR double-bind let 6 stale dashboard servers answer on :8799; verify servers by curl, not netstat. (3) A PowerShell-redirected log is UTF-16LE; converting in place with iconv+mv destroyed it (empty converter output + clobber) — the swarm summary was rebuilt from swarm_results.json. (4) taskkill on a runner-reported background PID hit freebuff.exe instead — match image name/command line first.",
+   "date": "2026-11-04",
+   "id": "engram-2064",
+   "kind": "engram:decision",
+   "line": 2064,
+   "rationale": "What: Completed the repo-wide rename-sweep cycle: 11-commit transport replay extended (new transport tip 89ad71cb, deterministic byte-identical reproduction of earlier shas), pushed to GitHub as fast-forward 0891ab97..89ad71cb, all 21 transport-diff paths blob-verified MATCH between repo HEAD (97d9573f) and the pushed branch. Dashboard rebuilt and fixed. Why: User asked to push the rename branch visibility through the transport and watch live; transport extension re-derives the branch from bare with identical shas so repairs remain fast-forwards. Where: C:/Azazael/azazael (repo), C:/Azazael/push_clean_2026-11-04.git (bare), /tmp/transport_followups.sh, C:/tmp/dashboard_server.py Learned: (1…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Completed the repo-wide rename-sweep cycle: 11-commit transport replay extended (new transport tip 89ad71cb, deterministic byte-identical reproduction of earlier shas), pushed to GitHub as fast-forward 0891ab97..89ad71cb, all 21 transport-diff paths blob-verified MATCH between repo HEAD (97d9573f) and the pushed branch. Dashboard rebuilt and fixed.",
+   "title": "rename-sweep transport pushed; dashboard python-bash=WSL2 gotcha"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21320,7 +21500,7 @@
   {
    "path": "MEMORIES.md",
    "records": 71,
-   "sha": "e6078fd40f465cc55e95dc8b9ff6a67fdbb9eb8e495ac410787ecbe9b1704008"
+   "sha": "53f7b45566119ccf801c68f0580d1333b9733b3662407e47ad9f113561390be8"
   },
   {
    "path": "SESSION_STARTUP.md",
@@ -21381,10 +21561,10 @@
  "totals": {
   "by_kind": {
    "engram:architecture": 36,
-   "engram:bugfix": 155,
+   "engram:bugfix": 161,
    "engram:config": 17,
-   "engram:decision": 401,
-   "engram:discovery": 247,
+   "engram:decision": 407,
+   "engram:discovery": 250,
    "engram:learning": 280,
    "engram:lesson": 57,
    "engram:pattern": 16,
@@ -21395,7 +21575,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1780,
+  "records": 1795,
   "surfaces": 14
  }
 }
