@@ -1,0 +1,246 @@
+ 
+ 
+ 
+MEMORANDUM OF UNDERSTANDING 
+Section I — Parties / Beneficiaries / Purpose / Effective Date 
+A. Parties. This Memorandum of Understanding ("MOU") is made between the 
+American Farm Bureau Federation ("AFBF") and the signatory Manufacturer of Agricultural 
+Equipment. All capitalized terms in this MOU have the meanings set forth in Section V below.  
+B.  Beneficiaries. The intended beneficiaries of this MOU are Farmers and 
+Independent Repair Facilities located in all fifty (50) United States and Puerto Rico.  
+C.  Purpose. The purpose of this MOU is, through a voluntary private sector 
+commitment to outcomes rather than legislative or regulatory measures, to:  
+1. continue to enhance the ability of Farmers to timely control the lawful  
+operation and upkeep  of Agricultural Equipment;  
+2. assure the timely availability, on Fair and Reasonable terms, of Tools, 
+Specialty Tools, Software and Documentation originating fr om Manufacturer, and Data 
+from the operation of Agricultural Equipment originating from Manufacturer;  
+3. assure that no safety controls or protocols on Agricultural Equipment are 
+compromised through the modification of protective measures installed for th e benefit of 
+Agricultural Equipment owners, operators and bystanders;  
+4. assure that the intellectual property of Manufacturer, including copyrighted 
+software, is fully protected from illegal infringement through the modification of 
+Embedded Software; and  
+5. assure that compliance with federal and state emissions control 
+requirements is not compromised through changes to power ratings or other modification 
+of control measures installed for the purpose of complying with the Clean Air Act and other 
+environmental laws and regulations.  
+D. Effective Date. This MOU shall come into force as of January 8, 2023. Thereafter, 
+Manufacturer and AFBF agree to meet as needed, and at least semi -annually, to assess how the 
+MOU is operating, address operational concerns, suggest updates to this MOU, including updates 
+based on technological advancements, and discuss any other matters relevant to "Right to Repair" 
+or the MOU or adding amendments to this MOU. In the event that Manufacturer or AFBF 
+concludes that, due to changed circumstances, the MOU may no longer be viable, that party shall 
+provide written notice to the other party of its intent to withdraw from the MOU due to the change 
+in circumstances. The parties shall cooperate in good faith to schedule a meeting within thirty (30) 
+days of such written notice to discuss the ongoing viability of the MOU. 
+
+                                                                                   Memorandum of Understanding Between AFBF and John Deere 
+ 
+ 
+2 
+ 
+Section II— Obligations of Manufacturer  
+A.  In General  
+1.  Manufacturer shall ensure that any Farmer, including any staff or 
+independent technician assisting a Farmer at a Farmer's request, and any Independent Repair 
+Facility that provides assistance to Farmers, has electronic access on Fair and Reasonable terms to 
+Manufacturer's Tools, Specialty Tools, Software and Documentation, including:  
+•  John Deere Customer Service ADVISOR™ 
+•  Manuals (Operator, Parts, Service)  
+•  Product service demonstrations, training, seminars or clinics  
+•  On-board diagnostics via diagnostics port or wireless interface  
+•  Other publications with information on service, parts, operation and safety  
+2.  Manufacturer will ensure that Farmers and Independent Repair Facilities 
+will be able to access and obtain, per subscription or sale, Manufacturer's Tools, Specialty Tools, 
+Software, and Documentation, as set forth above, from Manufacturer or fro m Authorized Repair 
+Facilities on Fair and Reasonable terms.  
+3.  Manufacturer shall ensure that any Farmer, including any staff or 
+independent technician assisting a Farmer at a Farmer's request, and any Independent Repair 
+Facility that provides assistance to Farmers, have electronic access on Fair and Reasonable terms 
+to Customer Service ADVISOR, which is available for Farmers and Independent Repair Facilities 
+to purchase from Authorized Repair Facilities or online directly from Manufacturer in the United  
+States.  
+•  Customer Service ADVISOR will continue to provide access to operator's and  
+technical manuals, allow the look -up of diagnostic codes, provide machine  
+diagnostic connectivity with Electronic Data Link ("EDL"), and perform machine 
+calibrations that require EDL.  
+•  Customer Service ADVISOR will continue to be available for Independent 
+Repair Facilities to purchase online from Manufacturer in the United States.  
+•  Manufacturer shall assure availability of training for any purchaser of Customer 
+Service ADVISOR.  
+4.    Manufacturer shall ensure that a Farmer has electronic access on Fair and 
+Reasonable terms to Manufacturer's Codes and Data and, with Farmer authorization, Codes and 
+Data will be available to a Farmer's selected Independent Repair Facility. 
+ 
+ 
+ 
+                                                                                   Memorandum of Understanding Between AFBF and John Deere 
+ 
+ 
+3 
+ 
+           5.  This MOU shall not be interpreted or construed to require a Manufacturer to:  
+a)  divulge trade secrets, proprietary or confidential information;   
+b)  allow owners or Independent Repair Facilities to override 
+safety features or emissions controls or to adjust Agricultural Equipment 
+power levels; or,  
+c)  violate any federal, state, or local laws or regulations.  
+ 
+B.  Provision to Farmers on Fair and Reasonable Basis  
+1.   If Manufacturer provides to Authorized Repair Facilities any Tools, 
+Specialty Tools, Software and Documentation for functions listed in Subsection A.1., separately 
+or as  fully or partially integrated  Software, Manufacturer shall ensure that these are available to 
+Farmers on a Fair and Reasonable basis, whether the Tools, as part of Software or otherwise, or 
+Specialty Tools are purchased, leased, or subscribed to, and whether or not fulfillment is dire ctly 
+by the Manufacturer or an Authorized Repair Facility.  
+2.   When Manufacturer receives any Codes, or real -time Data with respect to 
+the in-field operation of a Farmer's Agricultural Equipment, Manufacturer shall ensure that such 
+Codes, and Data are also available to the Farmer using the Agricultural Equipment.  
+3.    Subject to the limitations of Section II.A.5. above, Manufacturer shall make 
+available, on Fair and Reasonable terms, Tools, Specialty Tools, Software and Documentation, 
+inclusive of any u pdates to information or Embedded Software, for purposes of diagnosis, 
+maintenance or repair of such Agricultural Equipment to any Farmer that  owns or leases 
+Agricultural Equipment manufactured by or on behalf of the Manufacturer.  
+4.   For Agricultural Equipment that contains an electronic lock, immobilizer or 
+other security-related function, pursuant to commitments in the preamble of this MOU, and subject 
+to the limitations of Section II.A.5. above, the Manufacturer shall make available to the Farmer, 
+on Fair and Reasonable terms, any special Documentation, and Tools needed to disable the lock, 
+immobilizer or function and to re -set it when disabled in the ordinary course of diagnosis, 
+maintenance or repair of the Agricultural Equipment.  
+5.  To the extent practical and Manufacturer deems secure, and subject to the 
+limitations of Section II.A.5, Tools, Specialty Tools, Software and Documentation shall be 
+provided on a remote, immediate basis, whether delivery is made from the Manufacturer or 
+through an Authorized Repair Facility.  
+6.   Manufacturer shall provide Farmers and Independent Repair Facilities with an 
+opportunity, on Fair and Reasonable terms, to acquire any Software integrally with or within a 
+Tool, or subsequently as necessary for operation, maintenance, repair, or upgrade of Agricultural 
+Equipment or a mechanical part.  
+7.   Manufacturer shall not be required to sell Tools, Specialty Tools, Software and 
+Documentation if such are no longer available to the Manufacturer or the Authorized Repair 
+Facility of the Manufacturer.   
+                                                                                   Memorandum of Understanding Between AFBF and John Deere 
+ 
+ 
+4 
+ 
+8.   Manufacturer shall not prevent Farmers and Independent Repair Facilities from 
+legally fabricating or otherwise obtaining Tools, Specialty Tools, Software and Documentation 
+from a third party, whether or not such Tools,  Specialty  Tools,  Software  and Documentation are 
+currently available from the Manufacturer or an Authorized Repair Facility, for use solely in the 
+ordinary course of their own lawful businesses and not for resale or distribution. In no event will 
+the provisions of this Paragraph II.B. 8. be construed to prevent or preclude Manufacturer from 
+pursuing any action to enforce a trademark, copyright or other claim of infringement regarding 
+Manufacturer's intellectual property.  
+C.  Provision To Independent Repair Facilities on Fair and Reasonable Basis  
+1.  If an Independent Repair Facility requests Manufacturer to provide any Tools, 
+Specialty Tools, Software and Documentation as provided to Farmers pursuant to Subsections 
+B.1.-B.8., or if a Farmer makes such a request in connection with their  own Agricultural 
+Equipment, the Manufacturer shall provide such Tools, Specialty Tools, Software and 
+Documentation on Fair and Reasonable terms with respect to the Independent Repair Facility.  
+ 
+Section III — AFBF Commitment to Manufacturer  
+A. AFBF agrees t o encourage state Farm Bureau organizations to recognize the 
+commitments made in this MOU and refrain from introducing, promoting, or supporting federal 
+or state "Right to Repair" legislation that imposes obligations beyond the commitments in this 
+MOU.  In the event any state or federal legislation or regulation relating to issues covered by this 
+MOU and/or "Right to Repair" is enacted, each of AFBF and Manufacturer reserve the right, upon 
+fifteen (15) days written notice, to withdraw from this MOU. 
+ 
+Section IV - Cooperation between AFBF and Manufacturer  
+A.  AFBF and Manufacturer agree to work together to develop a process for educating 
+Farmers and Independent Repair Facilities on the Tools, Specialty Tools, Software and 
+Documentation and the resources available to Farmers and Independent Repair Facilities to repair 
+and maintain Agricultural Equipment.  
+B.  In the event of a disagreement over the interpretation, terms or application of this 
+MOU between a beneficiary (Farmer or Independent Repair Facility) of this MOU and 
+Manufacturer or an Authorized Dealer, the parties agree to the following sequence of events:  (1) 
+Good faith consultation between or among the parties to the disagreement; (2) If resolution is not 
+achieved between a beneficiary an d an Authorized Dealer, inclusion of Manufacturer in the 
+consultation; and, (3) If the disagreement pertains to the general interpretation or application of a 
+core provision, inclusion of AFBF in the consultation. 
+ 
+ 
+                                                                                   Memorandum of Understanding Between AFBF and John Deere 
+ 
+ 
+5 
+ 
+Section V — Definitions  
+A.  Agricultural Equipment means any product, originating from the Manufacturer 
+when sold or leased for use in farming, or other forms of agriculture, that depends for its 
+functioning, in whole or in part, on digital electronics embedded in or attached to it. Agricultura l 
+Equipment includes, but is not limited to, a tractor, combine, harvesting equipment, tillage, 
+planting, irrigation or cultivating implement, baler, or other off -road vehicles primarily designed 
+for use in an agricultural operation, but does not include m otor vehicles designed and sold 
+primarily for passenger or property transportation on public roadways.  
+B.  Authorized Repair Facility  means (1) an individual or business that has an 
+arrangement for a definite or indefinite period with a Manufacturer pursu ant to which the 
+Manufacturer grants to the individual or business a permission, license, or franchise to use a trade 
+name, service  mark, or related characteristic for the purposes of offering diagnosis, repair or 
+maintenance services of Agricultural Equip ment under the name of or on behalf of the 
+Manufacturer; or (2) an individual or business otherwise utilized by the Manufacturer to provide 
+such repair or maintenance services.  
+C.  Code means, subject to the limitations of Section II.A.5, (1) human or mac hine-
+readable information related to a performance issue arising from operation of a Farmer's 
+Agricultural Equipment or (2) information necessary to be transmitted to a Farmer's Agricultural 
+Equipment in order to maintain, repair, or activate the Agricultural Equipment or any part thereof.  
+D.   Data means transmitted or compiled information arising from the operation of a 
+Farmer's Agricultural Equipment or its parts.  
+E.  Documentation means, subject to the limitations of Section II.A.5., any manual, 
+diagram, reporting output, service code description, schematic or other guidance or information 
+used in effecting the services of diagnosis, maintenance, repair, or upgrade of Agricultural 
+Equipment.  
+F.  Embedded Software means any programmable instructions provided on firmware 
+(a software program or set of instructions programmed on Agricultural Equipment, or on a part of 
+such Agricultural Equipment, to allow the Agricultural Equipment or part to communicate within 
+itself or with other computer hardware) deliv ered with or loaded to the Agricultural Equipment, 
+with respect to Agricultural Equipment operation, including all relevant patches and fixes made 
+by the Manufacturer, including but not limited to items described as "basic internal operating 
+system," "inte rnal operating system," "machine code," "assembly code," "root code," and 
+"microcode".  
+G.  "Fair and Reasonable" means equitable terms for access to or receipt of any item 
+pertaining to Agricultural Equipment, including any Tools, Specialty Tools, Softwar e and 
+Documentation, in light of relevant factors, including and subject to the limitations of Section 
+II.A., the Manufacturer's suggested retail price and the distribution model of any respective item.  
+                                                                                   Memorandum of Understanding Between AFBF and John Deere 
+ 
+ 
+6 
+ 
+H.  Farmer means an individual or business engaged in agriculture as a means of 
+livelihood or commerce, including but not limited to the production of crops, livestock, or 
+aquaculture (excluding recreational fishing) and who owns or leases Agricultural Equipment.  
+I.  Independent Repair Facility means an individual or business that is not affiliated 
+with an Authorized Repair Facility or a Manufacturer with respect to Agricultural Equipment but 
+is (1) engaged in diagnosing, maintaining, or repairing Agricultural Equip ment generally and (2) 
+is willing and capable of repairing Agricultural Equipment if provided access to Tools, Specialty 
+Tools, Software and Documentation regarding the Agricultural  Equipment, whether or not that 
+individual or business is a Farmer.  
+J.  Manufacturer means Deere & Company ("John Deere"). However, AFBF 
+commits to offering comparable terms as set forth in this MOU to any entity engaged in the 
+business of selling, leasing or otherwise supplying new Agricultural Equipment manufactured by 
+or on behalf of itself to any individual or business.  
+K.  Specialty Tool means a mechanical implement originating from the Manufacturer 
+which is necessary for facilitation of mechanical or electronic maintenance, repair, or upgrade of 
+a Manufacturer's Agricultu ral Equipment that is not generally available other than from the 
+Manufacturer's Authorized Repair Facilities.  
+L.  Software means Customer Service ADVISOR.  
+M.  Tools means Software, any hardware implement (specialty or otherwise) or other 
+apparatus originating from the Manufacturer used for Data readout, diagnosis, maintenance or 
+repair of Agricultural Equipment, including Software or other mechanisms that calibrate 
+functionality or perform any other function required to operate, maintain, upgrade, activa te, or 
+bring the Agricultural Equipment back to fully functional condition. 
+ 
+ Signed on this 8th day of January, 2023: 
+ 
+ Deere & Company    American Farm Bureau Federation 
+ 
+ 
+ _______________________   _____________________________  
+ David Gilmore    Zippy Duvall 
+ Senior Vice President,    President 
+ Sales and Marketing 
+  
+ 
+ 

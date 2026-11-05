@@ -1,0 +1,423 @@
+{
+  "schema": "deere-claims/1",
+  "matter": "FTC v. Deere & Company, No. 3:25-cv-50017 (N.D. Ill., W.D.)",
+  "subject": "John Deere repair restrictions: what the primary record establishes",
+  "generated": "2026-11-05",
+  "read_at": "2026-11-05",
+  "grades": ["SUPPORTED", "PARTIAL", "UNSUPPORTED", "BLOCKED"],
+  "verdicts": {"READY": 0, "GAPS": 1, "INCOMPLETE": 1, "BLIND": 2},
+  "rules": [
+    "A claim is worth its quote. Every SUPPORTED claim carries a verbatim substring of a captured source, verified by tools/deere_claims_check.py.",
+    "A gap that is named in `reason` is declared and does not change the verdict; a gap left unnamed is a defect and forces GAPS.",
+    "A source whose digest does not match the capture is BLIND, not stale: the bytes are not the bytes that were read."
+  ],
+  "sources": {
+    "stipord": {
+      "url": "https://www.ftc.gov/system/files/ftc_gov/pdf/Deere-JointMotion-StipOrd.pdf",
+      "path": "raw/beam1_20261105_A_stipord.pdf",
+      "text": "raw/beam1_20261105_A_stipord.txt",
+      "sha256": "4023bd9af363224f8956a4c3c10f21683e500e1445529aaf6e9ddab11c49cdaa",
+      "tier": "A",
+      "bytes": 737570,
+      "pages": 35,
+      "fetched": "2026-11-05",
+      "note": "Stipulated Order, docket 260-1, filed 07/08/26. The PDF concatenates the joint motion (Doc 260) and the order itself."
+    },
+    "complaint": {
+      "url": "https://www.ftc.gov/system/files/ftc_gov/pdf/DeereCoREDACTEDComplaintCaseNo325-cv-50017.pdf",
+      "path": "raw/beam1_20261105_A_complaint.pdf",
+      "text": "raw/beam1_20261105_A_complaint.txt",
+      "sha256": "da1ffe28a7afb9fdda2dcfc5350ea480ac8de19437ce44ebcde16c7cf6011666",
+      "tier": "A",
+      "bytes": 504612,
+      "pages": 37,
+      "fetched": "2026-11-05",
+      "note": "Redacted complaint, Doc 1, filed 01/15/25. Allegations, not findings."
+    },
+    "ferguson": {
+      "url": "https://www.ftc.gov/system/files/ftc_gov/pdf/deere-chairman-ferguson-statement.pdf",
+      "path": "raw/beam1_20261105_A_ferguson_statement.pdf",
+      "text": "raw/beam1_20261105_A_ferguson_statement.txt",
+      "sha256": "4e50f8668e671797bb199b5d9def7e34e7107ad030dfcfc7b4bf82262a8fa8ab",
+      "tier": "A",
+      "bytes": 252876,
+      "pages": 4,
+      "fetched": "2026-11-05",
+      "note": "Statement of Chairman Ferguson, joined by Commissioner Meador, 2026-07-08."
+    },
+    "mou": {
+      "url": "https://www.fb.org/files/AFBF_John_Deere_MOU.pdf",
+      "path": "raw/beam1_20261105_A_afbf_mou.pdf",
+      "text": "raw/beam1_20261105_A_afbf_mou.txt",
+      "sha256": "7de4d565a6260c5c34c8f45937c50b3599091845547eb90a2f89c2cee8fe4080",
+      "tier": "A",
+      "bytes": 232528,
+      "pages": 6,
+      "fetched": "2026-11-05",
+      "note": "AFBF-John Deere MOU, signed 2023-01-08."
+    },
+    "dmca": {
+      "url": "https://www.govinfo.gov/content/pkg/FR-2024-10-28/html/2024-24563.htm",
+      "path": "raw/beam1_20261105_A_dmca_final_rule.html",
+      "text": "raw/beam1_20261105_A_dmca_final_rule.txt",
+      "sha256": "64eca43ca6f8e30a6c65983a006f2557a4749025431ea86501f9f4e0e3072726",
+      "tier": "A",
+      "bytes": 111705,
+      "pages": null,
+      "fetched": "2026-11-05",
+      "note": "Federal Register 89 FR 85437-85450, final rule, 2024-10-28."
+    },
+    "wi_doj": {
+      "url": "https://www.wisdoj.gov/PressReleases/press-release-John-Deere.pdf",
+      "path": "raw/beam1_20261105_A_wi_doj_pr.pdf",
+      "text": "raw/beam1_20261105_A_wi_doj_pr.txt",
+      "sha256": "aedccdd3e987a920ede5cb6733adf893ca8ef6f24dd48262e919a58ec88c2f8d",
+      "tier": "B",
+      "bytes": 204197,
+      "pages": 3,
+      "fetched": "2026-11-05",
+      "note": "Wisconsin DOJ release, 2026-07-08, co-plaintiff's own framing."
+    },
+    "case_page": {
+      "url": "https://www.ftc.gov/legal-library/browse/cases-proceedings/211-0191-deere-company-ftc-v",
+      "path": "raw/beam1_20261105_B_ftc_case_page.html",
+      "text": "raw/beam1_20261105_B_ftc_case_page.txt",
+      "sha256": "83227293ec5f37af0e30354f493b6a0ebbbb46e424a7b6976d42f33da653c899",
+      "tier": "B",
+      "bytes": 997981,
+      "pages": null,
+      "fetched": "2026-11-05",
+      "note": "FTC docket index page for Matter 211 0191."
+    },
+    "ftc_release": {
+      "url": "https://www.ftc.gov/news-events/news/press-releases/2026/07/ftc-states-secure-settlement-deere-company-advancing-farmers-right-repair",
+      "path": "raw/beam1_20261105_B_ftc_press_release.html",
+      "text": "raw/beam1_20261105_B_ftc_press_release.txt",
+      "sha256": "cc0be6fa280e58848f117bd3ca434da16b360612c132ec510fdabeb70bfd757b",
+      "tier": "B",
+      "bytes": 1002140,
+      "pages": null,
+      "fetched": "2026-11-05",
+      "note": "FTC press release, 2026-07-08."
+    }
+  },
+  "claims": [
+    {
+      "id": "D1",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order I.B, p.5",
+      "claim": "The plaintiffs are four states (Illinois, Arizona, Minnesota, Wisconsin) acting through their Attorneys General, plus Attorney General Dana Nessel on behalf of the People of Michigan -- five sovereign plaintiffs, not four.",
+      "quote": "means the states of Illinois, Arizona, Minnesota, and Wisconsin, acting by and through their respective Attorneys General, and Plaintiff Attorney General Dana Nessel, on behalf of the People of Michigan"
+    },
+    {
+      "id": "D2",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Joint motion para. 1, p.2",
+      "claim": "At filing (2025-01-15) only Illinois and Minnesota were state co-plaintiffs; Arizona, Wisconsin and Michigan joined later.",
+      "quote": "On January 15, 2025, Plaintiffs the Federal Trade Commission and the States of Illinois and Minnesota filed the initial Complaint in this action"
+    },
+    {
+      "id": "D3",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Joint motion para. 1, p.2",
+      "claim": "An amended complaint followed on 2025-02-07 with the same allegations, and Deere denied them.",
+      "quote": "On February 7, 2025, all Plaintiffs filed an Amended Complaint containing the same allegations."
+    },
+    {
+      "id": "D4",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Joint motion para. 1, p.2",
+      "claim": "Deere's motion for judgment on the pleadings was denied on 2025-06-09, so the complaint survived a pleadings challenge.",
+      "quote": "the court denied Deere"
+    },
+    {
+      "id": "D5",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order, customer-notice appendix, p.22",
+      "claim": "The order is not a finding of liability and is not an admission that the alleged facts are true.",
+      "quote": "an admission by Deere that it has violated the law or that any of the facts alleged by Plaintiffs"
+    },
+    {
+      "id": "D6",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order XI (Term), p.13",
+      "claim": "The obligation runs 10 years from the date the order is entered -- entry, not signature, starts the clock.",
+      "quote": "shall terminate 10 years from the date on which it is entered"
+    },
+    {
+      "id": "D7",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order signature block, p.13",
+      "claim": "On the face of Doc 260-1 the judge's entry line is blank, so the ten-year term had not begun as of the capture.",
+      "quote": "SO ORDERED this ____ day of _______________, 2026."
+    },
+    {
+      "id": "D8",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order II.A, p.6",
+      "claim": "The core duty is dealer parity: repair resources equivalent to what Deere gives its own dealers, subject to a rollout schedule.",
+      "quote": "Repair Resources equivalent to those Deere then makes available to Deere Dealers"
+    },
+    {
+      "id": "D9",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order II.C, p.6",
+      "claim": "Future tools must be released to owners and independents once they reach more than half of US dealer locations.",
+      "quote": "as soon as access is granted to over 50 percent of Deere Dealer locations in the United States"
+    },
+    {
+      "id": "D10",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order II.D, p.6",
+      "claim": "Dealers must be instructed not to discriminate or retaliate against owners and independents who buy repair resources.",
+      "quote": "not to discriminate or retaliate in any way"
+    },
+    {
+      "id": "D11",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order II, proviso, p.6",
+      "claim": "Access is a licence, subscription or purchase right; it conveys no title to or ownership of Deere's intellectual property.",
+      "quote": "need not include title to or ownership of any of Deere"
+    },
+    {
+      "id": "D12",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Appendix A, part (z), p.17",
+      "claim": "Emissions-inducement overrides after a final inducement (the 'limp mode' recovery) are on the required capability list.",
+      "quote": "performance of Emissions Inducement Overrides in connection with repair following an engine final inducement"
+    },
+    {
+      "id": "D13",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Appendix A, part (aa), p.17",
+      "claim": "Offline-mode diagnostics and reprogramming are required, which matters where there is no connectivity in a field.",
+      "quote": "performance of reprogramming and diagnostics in offline mode"
+    },
+    {
+      "id": "D14",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Appendix A, part (p), p.16",
+      "claim": "The manuals obligation expressly covers AI-enhanced search functions, not only static documents.",
+      "quote": "viewing and searching (including any AI-enhanced search functions) of operator"
+    },
+    {
+      "id": "D15",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Appendix B, row (2), pp.18-19",
+      "claim": "Legacy air seeders and planters (MY2004-MY2021) get reprogramming on a 2026-08-01 deadline, separate from the general date-of-order deadline.",
+      "quote": "(2) August 1, 2026 (3) Company A Date"
+    },
+    {
+      "id": "D16",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "stipord",
+      "locator": "Order I.G / Appendix B row (3), p.5, p.19",
+      "claim": "Some engine-controller capabilities depend on a third-party engine supplier's approval, running 90 days after that approval -- an outside party can delay the order's own timetable.",
+      "quote": "the date 90 days after Deere"
+    },
+    {
+      "id": "D17",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "complaint",
+      "locator": "Complaint para. 8, p.3",
+      "claim": "The complaint's first market is fully functional repair tools, alleged to be Deere-only because only Deere holds the requisite information.",
+      "quote": "Deere has monopoly power in the market for fully functional repair tools capable of enabling all repairs on Deere agricultural equipment."
+    },
+    {
+      "id": "D18",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "complaint",
+      "locator": "Complaint para. 117, p.30",
+      "claim": "The Sherman Act count pleads monopoly power in a narrower market: restricted repairs for Deere large tractors and combines.",
+      "quote": "Deere has had monopoly power in the United States in the market for restricted repairs for Deere Large Tractors and Combines."
+    },
+    {
+      "id": "D19",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "complaint",
+      "locator": "Complaint para. 11, p.3",
+      "claim": "The alleged mechanism is that dealers hold 100 percent of restricted repairs and charge supracompetitive prices, with Deere profiting on parts.",
+      "quote": "dealers are able to maintain a 100% market share and charge supracompetitive prices for restricted repairs"
+    },
+    {
+      "id": "D20",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "ferguson",
+      "locator": "Ferguson statement part I, p.2",
+      "claim": "The Chairman who now signs the settlement dissented from the original 2025 filing, for procedural reasons, not on the merits.",
+      "quote": "At the time the Commission filed its Complaint, I dissented for procedural reasons"
+    },
+    {
+      "id": "D21",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "ferguson",
+      "locator": "Ferguson statement part II, p.2",
+      "claim": "The Commission's own description of the remedy is parity with dealers by the end of 2026.",
+      "quote": "by the end of this year Deere must provide to farmers and independent repair providers"
+    },
+    {
+      "id": "D22",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "ferguson",
+      "locator": "Ferguson statement part II, p.3",
+      "claim": "The 50 percent dealer threshold is justified as the point where a tool leaves the experimental or pilot stage.",
+      "quote": "beyond the experimental or pilot stage"
+    },
+    {
+      "id": "D23",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU I.C (Purpose), p.1",
+      "claim": "The MOU states its own purpose as a voluntary private commitment instead of legislation or regulation.",
+      "quote": "through a voluntary private sector commitment to outcomes rather than legislative or regulatory measures"
+    },
+    {
+      "id": "D24",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU I.D (Effective Date), p.1",
+      "claim": "The MOU took effect 2023-01-08, two years before the FTC complaint.",
+      "quote": "This MOU shall come into force as of January 8, 2023."
+    },
+    {
+      "id": "D25",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU III.A (AFBF Commitment), p.5",
+      "claim": "AFBF undertook to encourage state Farm Bureaus to refrain from introducing, promoting or supporting right-to-repair legislation imposing obligations beyond the MOU -- a legislative restraint given in exchange for the manufacturer commitments.",
+      "quote": "refrain from introducing, promoting, or supporting federal or state"
+    },
+    {
+      "id": "D26",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU III.A, p.5",
+      "claim": "If right-to-repair legislation is actually enacted, either party may withdraw on 15 days' written notice -- the exit is tied to enactment, not to dissatisfaction.",
+      "quote": "upon fifteen (15) days written notice, to withdraw from this MOU"
+    },
+    {
+      "id": "D27",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU II.B.7, pp.3-4",
+      "claim": "The MOU excuses supplying a tool the manufacturer itself no longer has, which makes availability contingent on the manufacturer's own product decisions.",
+      "quote": "if such are no longer available to the Manufacturer or the Authorized Repair"
+    },
+    {
+      "id": "D28",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "mou",
+      "locator": "MOU II.A.5(b), p.3",
+      "claim": "The MOU never requires allowing owners or independents to override safety features or emissions controls.",
+      "quote": "allow owners or Independent Repair Facilities to override safety features or emissions controls"
+    },
+    {
+      "id": "D29",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "dmca",
+      "locator": "89 FR 85437, part 10 (computer programs), 2024-10-28",
+      "claim": "The 2024 triennial rulemaking renewed the anti-circumvention exemption for computer programs controlling mechanized agricultural vehicles, for diagnosis, repair or modification.",
+      "quote": "computer programs that control motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels for purposes of diagnosis, repair, or modification"
+    },
+    {
+      "id": "D30",
+      "tier": "A",
+      "status": "SUPPORTED",
+      "source": "dmca",
+      "locator": "89 FR 85437, commercial equipment class",
+      "claim": "The Librarian did not grant a broad commercial and industrial equipment class; the grant reached only retail-level commercial food preparation equipment.",
+      "quote": "primarily designed for use in retail-level commercial food preparation"
+    },
+    {
+      "id": "D31",
+      "tier": "B",
+      "status": "SUPPORTED",
+      "source": "case_page",
+      "locator": "FTC case page, Matter 211 0191",
+      "claim": "The FTC's own docket page still records the case as pending, last updated 2026-07-08, corroborating that entry had not occurred.",
+      "quote": "July 8, 2026 Case Status Pending"
+    },
+    {
+      "id": "D32",
+      "tier": "B",
+      "status": "SUPPORTED",
+      "source": "wi_doj",
+      "locator": "Wisconsin DOJ release, 2026-07-08, p.1",
+      "claim": "The co-plaintiff describes the coalition as itself plus four other states, which reconciles with the order's four states plus the Michigan Attorney General.",
+      "quote": "along with the Federal Trade Commission (FTC) and four other states"
+    },
+    {
+      "id": "D33",
+      "tier": "B",
+      "status": "SUPPORTED",
+      "source": "wi_doj",
+      "locator": "Wisconsin DOJ release, p.2",
+      "claim": "The 'only Deere can do it' proposition is an allegation pleaded in the complaint, and the release keeps it in that voice.",
+      "quote": "As alleged in the joint lawsuit, Deere makes the only software repair tools capable of performing all electronic repairs on Deere equipment."
+    },
+    {
+      "id": "D34",
+      "tier": "A",
+      "status": "UNSUPPORTED",
+      "source": "complaint",
+      "locator": "Complaint para. 9, p.3",
+      "claim": "Paragraph 9 of the captured complaint is missing its operative text between 'Deere also fails to' and ', as equipment manufacturers in the automotive and trucking industries do' -- the line is absent from the extraction, so what Deere is alleged to have failed to do cannot be quoted from this capture.",
+      "quote": "",
+      "reason": "Extraction gap in the redacted PDF: the sentence's object is missing from the text layer. Not repaired by guesswork; needs a page-image read or a different copy before it can be quoted."
+    },
+    {
+      "id": "D35",
+      "tier": "C",
+      "status": "BLOCKED",
+      "source": null,
+      "locator": "n/a",
+      "claim": "Reporting has described a private class settlement in the range of 99 million dollars reached in 2026. This is not verified anywhere in this corpus because no primary document for the private case was captured.",
+      "quote": "",
+      "reason": "No primary capture: the private class action docket and settlement order were not retrieved. Secondary reporting alone does not reach the SUPPORTED grade, so the figure stays out of the findings."
+    }
+  ]
+}
