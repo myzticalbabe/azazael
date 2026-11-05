@@ -1,6 +1,6 @@
 {
   "instrument": "src/ARC/cain_obsolescence_accountability/cain_obsolescence_mark.py",
-  "read_at": "2026-11-04",
+  "read_at": "2026-11-05",
   "rule": "A pin may not be quoted beyond its tier. A figure presented as fact needs a source read at proof tier. A citation that did not resolve is recorded as a negative reading, never as support. This ledger cites only what the mark itself cites: no substitute source is introduced here, so the mark's own citations are the thing being graded.",
   "measured": "All seven evidence_url values were requested from this host on 2026-11-04. Six failed: four HTTP 404 (Microsoft, Apple, Intel, Sonos), one HTTP 404 (the repair.org Deere PDF), one host that did not resolve (hop.asso.fr). One returned HTTP 200 (developer.android.com Play Integrity overview), and that page is a product overview carrying no device population.",
   "pins": [
@@ -10,11 +10,15 @@
       "vendor": "Microsoft",
       "mark": "CAIN-MARK-MICROSOFT",
       "mechanism": {
-        "claim": "Windows 10 end of support is gated on TPM 2.0 and Secure Boot, leaving pre-8th-generation hardware without a supported upgrade path",
+        "claim": "Windows 10 end of support is gated on TPM 2.0, and Microsoft's list of supported Intel processors carries no Core-branded entry below 8th Generation, leaving pre-8th-generation Core hardware off the supported list",
         "tier": "B",
         "source": "https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements",
-        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 55,562 bytes saved, sha256:c77b461e6a900b2e. The page lists TPM 2.0 and \"Secure boot and TPM enabled\" as Windows 11 requirements.",
-        "does_not_prove": "nothing: a 404 establishes neither the TPM requirement nor an end-of-support date, so the mark's citation for this pillar supports no part of the pillar"
+        "verified": "read 2026-11-05: HTTP 200 bytes saved under ARC/cain/raw; packet evidence_packet_r5.json sha256:ba1d3a5e60fb918f; judged round r6 over 4 sources by tools/arena_llm_judge.py on the local model (:8081), 42 calls, 0 blind, 0 ungrounded quotes (judgments sha256:94d6e0fdac970b22)",
+        "does_not_prove": "nothing: a 404 establishes neither the TPM requirement nor an end-of-support date, so the mark's citation for this pillar supports no part of the pillar",
+        "tier_note": "B (official index / vendor statement)",
+        "grade": "PARTIAL",
+        "grade_votes": 6,
+        "grade_residual": "A universal negative (\"no Core-branded part below 8th generation\") cannot be read off a contiguous quote; it is established by full-text enumeration and carried in the packet's proof block. All six angles declined to treat the enumeration as a quote, so the element reads as missing to the instrument."
       },
       "figures": {
         "affected_devices_count": {
@@ -45,7 +49,10 @@
           "does_not_prove": "the cost any owner paid: a per-device average over three years requires a take-up rate the mark does not state"
         }
       },
-      "does_not_prove": "that the gate caused abandonment rather than a support decision made for other reasons, that the affected machines remain physically functional, or that any owner paid the ESU prices quoted",
+      "does_not_prove": [
+        "that the gate caused abandonment rather than a support decision made for other reasons, that the affected machines remain physically functional, or that any owner paid the ESU prices quoted",
+        "A universal negative (\"no Core-branded part below 8th generation\") cannot be read off a contiguous quote; it is established by full-text enumeration and carried in the packet's proof block. All six angles declined to treat the enumeration as a quote, so the element reads as missing to the instrument."
+      ],
       "mark_evidence_url": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
       "mark_evidence_status": "HTTP 404 at source on 2026-11-04, requested from this host with curl -L (UA Chrome/131): the lifecycle products path returns no page, so the mark's own citation is dead and this pin cites the Windows 11 requirements page read the same day."
     },
@@ -55,11 +62,15 @@
       "vendor": "Apple",
       "mark": "CAIN-MARK-APPLE",
       "mechanism": {
-        "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries without disclosing the change or offering an opt-out",
-        "tier": "B",
+        "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries, and a regulator found the updates were pushed without adequate information and without any means of restoring original functionality",
+        "tier": "A",
         "source": "https://support.apple.com/en-us/101575",
-        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 182,405 decoded bytes saved, sha256:cfa8a9e588dd7729. The page states iOS \"dynamically manages performance peaks to prevent the device from unexpectedly shutting down\" and names the affected models.",
-        "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the throttling mechanism rests on the mark's own assertion"
+        "verified": "read 2026-11-05: HTTP 200 bytes saved under ARC/cain/raw; packet evidence_packet_r5.json sha256:ba1d3a5e60fb918f; judged round r6 over 3 sources by tools/arena_llm_judge.py on the local model (:8081), 42 calls, 0 blind, 0 ungrounded quotes (judgments sha256:94d6e0fdac970b22)",
+        "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the throttling mechanism rests on the mark's own assertion",
+        "tier_note": "A (primary document) + secondary",
+        "grade": "PARTIAL",
+        "grade_votes": 6,
+        "grade_residual": "No single saved document states both the iOS version numbers and the non-disclosure finding: elements 1-2 rest on Apple's page, elements 3-4 on the Italian AGCM decision. Three angles also flagged the translation as non-authoritative, which is why the gloss is labelled."
       },
       "figures": {
         "affected_devices_count": {
@@ -90,7 +101,10 @@
           "does_not_prove": "what any owner received: a per-user settlement average is not a measure of loss"
         }
       },
-      "does_not_prove": "that the performance change was concealed rather than undocumented, or that battery ageing alone drove the observed slowdowns",
+      "does_not_prove": [
+        "that the performance change was concealed rather than undocumented, or that battery ageing alone drove the observed slowdowns",
+        "No single saved document states both the iOS version numbers and the non-disclosure finding: elements 1-2 rest on Apple's page, elements 3-4 on the Italian AGCM decision. Three angles also flagged the translation as non-authoritative, which is why the gloss is labelled."
+      ],
       "mark_evidence_url": "https://www.apple.com/battery-and-performance/",
       "mark_evidence_status": "HTTP 404 at source on 2026-11-04, requested from this host with curl -L: www.apple.com/battery-and-performance/ returns no page."
     },
@@ -100,11 +114,15 @@
       "vendor": "Intel",
       "mark": "CAIN-MARK-INTEL",
       "mechanism": {
-        "claim": "Microcode updates from 0x125 to 0x132 address Vmin shift instability on 13th and 14th generation Core i9 processors, and the mark asserts the resulting electromigration damage cannot be reversed",
-        "tier": "UNVERIFIABLE-HERE",
+        "claim": "Intel attributes 13th/14th-generation Core instability to elevated core voltage requests and ships microcode 0x12B, which encompasses 0x125 and 0x129, as the mitigation",
+        "tier": "B",
         "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
-        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; the vendor thread was not read",
-        "does_not_prove": "nothing: a dead citation cannot establish that the microcode ladder exists, what each revision changed, or that the damage is irreversible"
+        "verified": "read 2026-11-05: HTTP 200 bytes saved under ARC/cain/raw; packet evidence_packet_r5.json sha256:ba1d3a5e60fb918f; judged round r6 over 1 sources by tools/arena_llm_judge.py on the local model (:8081), 42 calls, 0 blind, 0 ungrounded quotes (judgments sha256:94d6e0fdac970b22)",
+        "does_not_prove": "nothing: a dead citation cannot establish that the microcode ladder exists, what each revision changed, or that the damage is irreversible",
+        "tier_note": "B (official index / vendor statement)",
+        "grade": "SUPPORTED",
+        "grade_votes": 6,
+        "grade_residual": "None of the six angles stated a missing element."
       },
       "figures": {
         "affected_devices_count": {
@@ -143,11 +161,15 @@
       "vendor": "Google",
       "mark": "CAIN-MARK-GOOGLE",
       "mechanism": {
-        "claim": "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation, making continued function a vendor decision rather than a property of the hardware",
+        "claim": "The Play Integrity API returns a verdict about the device itself, and an application may act on that verdict by denying access outright, making continued function a vendor decision rather than a property of the hardware",
         "tier": "B",
         "source": "https://developer.android.com/google/play/integrity",
-        "verified": "HTTP 200 at source on 2026-11-04; the page is the Play Integrity API product overview, an official index of the service and its signing functions",
-        "does_not_prove": "that the API is used as a kill switch on any particular device, that any named app refuses to run, or that any OEM's patch window is two to three years"
+        "verified": "read 2026-11-05: HTTP 200 bytes saved under ARC/cain/raw; packet evidence_packet_r5.json sha256:ba1d3a5e60fb918f; judged round r6 over 2 sources by tools/arena_llm_judge.py on the local model (:8081), 42 calls, 0 blind, 0 ungrounded quotes (judgments sha256:94d6e0fdac970b22)",
+        "does_not_prove": "that the API is used as a kill switch on any particular device, that any named app refuses to run, or that any OEM's patch window is two to three years",
+        "tier_note": "B (official index / vendor statement)",
+        "grade": "PARTIAL",
+        "grade_votes": 6,
+        "grade_residual": "No sentence states that an app may deny access on the verdict. The overview frames denial as the alternative the API is used instead of, and the verdicts page shows app code branching on the verdict. Denial-on-verdict is an inference, so element 2 is recorded as not literally supported."
       },
       "figures": {
         "affected_devices_count": {
@@ -178,7 +200,10 @@
           "does_not_prove": "the cost of any upgrade: a replacement price is not a damage figure without a counterfactual service life"
         }
       },
-      "does_not_prove": "that attestation caused any device to stop working, which is the causal claim; the mechanism is documented, the harm is not"
+      "does_not_prove": [
+        "that attestation caused any device to stop working, which is the causal claim; the mechanism is documented, the harm is not",
+        "No sentence states that an app may deny access on the verdict. The overview frames denial as the alternative the API is used instead of, and the verdicts page shows app code branching on the verdict. Denial-on-verdict is an inference, so element 2 is recorded as not literally supported."
+      ]
     },
     {
       "id": "C5",
@@ -186,11 +211,15 @@
       "vendor": "HP/Canon/Epson/Brother",
       "mark": "CAIN-MARK-HP-CANON-EPSON-BROTHER",
       "mechanism": {
-        "claim": "HP Dynamic Security and Epson's waste-ink counter stop a printer from printing on a firmware condition rather than on physical failure",
-        "tier": "C",
-        "source": "https://www.halteobsolescence.org/rapport-denquete-les-cas-des-imprimantes/",
-        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 231,315 bytes saved, sha256:505a0f55e8fc56a8. HOP's printer investigation report, titled \"Rapport d'enquete : Les cas des imprimantes\".",
-        "does_not_prove": "nothing: an unresolvable host establishes neither the firmware mechanisms nor the page's findings, and the mark names no other source"
+        "claim": "HP distributes firmware updates under its 'dynamic security' policy that can stop a printer working with cartridges that do not carry a new or reused HP chip or electronic circuitry, including cartridges that work in the printer today",
+        "tier": "B",
+        "source": "https://web.archive.org/web/20260216063002id_/https://support.hp.com/us-en/document/ish_7470520-7449625-16",
+        "verified": "read 2026-11-05: HTTP 200, 108073 bytes saved under ARC/cain/raw (beam1_20261105_005903_B_web_archive_org_web_20260216063002id_support_hp_com_us_en_document_ish_7470520-7449625-16.html); packet evidence_packet_r7.json sha256:4cc87c19492a8a63; judged round r7 by tools/arena_llm_judge.py on the local model (:8081), 12 calls, 0 blind, 0 ungrounded quotes (judgments sha256:6c7d0fc80ebac327)",
+        "does_not_prove": "the document does not say the printer fails silently or without a warning; it says the cartridge is blocked from working. The 'no warning' element is not claimed here.",
+        "tier_note": "B (the vendor's own support document, retrieved from its Wayback capture 20260216063002 because the live page is a JavaScript shell)",
+        "grade": "SUPPORTED",
+        "grade_votes": 6,
+        "grade_residual": "None of the six angles stated a missing element."
       },
       "figures": {
         "affected_devices_count": {
@@ -223,7 +252,7 @@
       },
       "does_not_prove": "that the firms named acted together, which the vendor string 'HP/Canon/Epson/Brother' implies and no document in the mark supports",
       "mark_evidence_url": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
-      "mark_evidence_status": "the host hop.asso.fr did not resolve from this host on 2026-11-04 (getaddrinfo ENOTFOUND), and the Wayback availability API returned no snapshot for that path the same day."
+      "mark_evidence_status": "read 2026-11-05: the host does not resolve (curl error 6, DNS lookup failed); it did not resolve on 2026-11-04 either. Substituted in this ledger by HP's own dynamic-security document, read from its Wayback capture 20260216063002 of support.hp.com/us-en/document/ish_7470520-7449625-16."
     },
     {
       "id": "C6",
@@ -231,11 +260,15 @@
       "vendor": "John Deere",
       "mark": "CAIN-MARK-JOHN DEERE",
       "mechanism": {
-        "claim": "ECU software locks combined with DMCA 1201 anti-circumvention restrict repair of agricultural equipment to the manufacturer's technicians",
-        "tier": "C",
+        "claim": "A software tool is required to perform all repairs on Deere equipment, and Deere makes that tool available only to its authorized dealers, forcing farmers to rely on dealers for critical repairs",
+        "tier": "A",
         "source": "https://www.copyright.gov/1201/2021/",
-        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 34,815 bytes saved, sha256:b8fd28ab34a12679. The U.S. Copyright Office Eighth Triennial Section 1201 proceeding index.",
-        "does_not_prove": "nothing: a dead citation establishes neither the ECU lock nor the statutory position the mark attributes to Deere"
+        "verified": "read 2026-11-05: HTTP 200 bytes saved under ARC/cain/raw; packet evidence_packet_r5.json sha256:ba1d3a5e60fb918f; judged round r6 over 2 sources by tools/arena_llm_judge.py on the local model (:8081), 42 calls, 0 blind, 0 ungrounded quotes (judgments sha256:94d6e0fdac970b22)",
+        "does_not_prove": "nothing: a dead citation establishes neither the ECU lock nor the statutory position the mark attributes to Deere",
+        "tier_note": "A (primary document)",
+        "grade": "SUPPORTED",
+        "grade_votes": 6,
+        "grade_residual": "None of the six angles stated a missing element."
       },
       "figures": {
         "affected_devices_count": {
@@ -276,11 +309,15 @@
       "vendor": "Sonos",
       "mark": "CAIN-MARK-SONOS",
       "mechanism": {
-        "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and the mark asserts no factory reset can recover it",
-        "tier": "UNVERIFIABLE-HERE",
-        "source": "https://www.sonos.com/en-us/recycle-mode",
-        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned",
-        "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the irreversibility claim rests on the mark's own assertion"
+        "claim": "Sonos states that a Sonos product placed in Recycle Mode cannot be set up in a Sonos system, and directs owners of such a product to dispose of it",
+        "tier": "B",
+        "source": "https://support.sonos.com/en-us/article/unable-to-set-up-a-sonos-product-in-recycle-mode",
+        "verified": "read 2026-11-05: HTTP 200, 358924 bytes saved under ARC/cain/raw (beam1_20261105_005810_B_support_sonos_com_en_us_article_unable-to-set-up-a-sonos-product-in-recycle-mode.html); packet evidence_packet_r7.json sha256:4cc87c19492a8a63; judged round r7 by tools/arena_llm_judge.py on the local model (:8081), 12 calls, 0 blind, 0 ungrounded quotes (judgments sha256:6c7d0fc80ebac327)",
+        "does_not_prove": "the article does not state a countdown, a deadline, or that a factory reset cannot recover the device; those elements are carried by secondary reporting and are excluded from the claim graded here.",
+        "tier_note": "B (the vendor's own support article, read live)",
+        "grade": "SUPPORTED",
+        "grade_votes": 6,
+        "grade_residual": "None of the six angles stated a missing element."
       },
       "figures": {
         "affected_devices_count": {
@@ -311,7 +348,9 @@
           "does_not_prove": "what a replacement cost an owner: list price, discount, and residual value are not reconciled"
         }
       },
-      "does_not_prove": "that Recycle Mode was presented as the only path, which is the coercion claim rather than the technical one"
+      "does_not_prove": "that Recycle Mode was presented as the only path, which is the coercion claim rather than the technical one",
+      "mark_evidence_url": "https://www.sonos.com/en-us/recycle-mode",
+      "mark_evidence_status": "read 2026-11-05: HTTP 404. Substituted in this ledger by Sonos' own support article 'Unable to set up a Sonos product in Recycle Mode', which states the outcome directly and was read at 200 the same day."
     },
     {
       "id": "X1",
@@ -334,11 +373,54 @@
     },
     {
       "gate": "G-CAIN-2",
-      "why": "Two pillars still name no source at proof tier for the vendor's own conduct: the printer firmware mechanism rests on a complainant's own investigation (tier C) and the Deere mechanism cites the statutory instrument rather than a Deere document. A live, readable vendor or court record is required before either premise is proven.",
+      "why": "One pillar still names no source at proof tier for the vendor's own conduct: the Deere mechanism cites the statutory instrument rather than a Deere document. A live, readable Deere record (repair-parts policy, service manual, dealer terms) is required before that premise is proven. The printer half of this declaration was closed on 2026-11-05 by HP's own dynamic-security document (tier B).",
       "pins": [
-        "C5",
         "C6"
       ]
     }
-  ]
+  ],
+  "judged": {
+    "instrument": "tools/arena_llm_judge.py",
+    "round": "r6",
+    "judged_at": "2026-11-05T00:49:25",
+    "endpoint": "http://127.0.0.1:8081",
+    "model": "local",
+    "calls": 42,
+    "blind_calls": 0,
+    "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+    "packet": "ARC/cain/evidence_packet_r5.json",
+    "packet_sha256": "ba1d3a5e60fb918fb6266f3b3421ef2417efa0013a953d970e83ddec10d518bf",
+    "judgments": "ARC/cain/arena_llm_judgments_r6.json",
+    "judgments_sha256": "94d6e0fdac970b22cf21945f2804a948befe11d28e2f5a82105afc3a8dda8dab",
+    "instrument_defect_fixed": "compact() dropped the packet's proof and gloss fields, so round 5 asked six angles about a measurement they were never shown. Round 5 was discarded; round 6 ran after the fix.",
+    "rounds": {
+      "r6": {
+        "pins": [
+          "C1",
+          "C2",
+          "C3",
+          "C4",
+          "C6"
+        ],
+        "judgments": "ARC/cain/arena_llm_judgments_r6.json",
+        "calls": 42,
+        "packet_sha256": "ba1d3a5e60fb918fb6266f3b3421ef2417efa0013a953d970e83ddec10d518bf"
+      },
+      "r7": {
+        "pins": [
+          "C5",
+          "C7"
+        ],
+        "judged_at": "2026-11-05T01:04:20",
+        "judgments": "ARC/cain/arena_llm_judgments_r7.json",
+        "judgments_sha256": "6c7d0fc80ebac327",
+        "packet": "ARC/cain/evidence_packet_r7.json",
+        "packet_sha256": "4cc87c19492a8a63",
+        "calls": 12,
+        "blind_calls": 0,
+        "note": "Evidence changed, instrument did not: two vendor primaries were retrieved and C5/C7 claims narrowed to what those documents state. C1-C4 and C6 were not re-judged."
+      }
+    },
+    "latest_round": "r7"
+  }
 }
