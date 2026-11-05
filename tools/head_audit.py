@@ -38,6 +38,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# One sha width, one place. The ref table, the worktree table and the gap detail
+# all name the same commits; when they abbreviated differently (8 here, 12
+# there) a reader comparing two tables could not tell a real difference from a
+# formatting one. 12 is the shortest width that is unambiguous in this history.
+SHA_W = 12
 HEAD_STATE = ROOT / "state" / "head.json"
 
 
@@ -73,8 +79,11 @@ def _count(cwd: Path, *args: str) -> int | None:
         # git printed something that is not a count. The reading failed, so it
         # stays None and the caller reports `unmeasured` -- never 0, which would
         # read as "no exclusive commits" and is the opposite of the truth.
+        # Printed whole, never sliced: a diagnostic that cuts its own evidence
+        # is the defect this tool exists to find. rev-list --count emits one
+        # short line, so there is no size to bound.
         print("head_audit: unreadable rev-list count (%s): %r"
-              % (type(exc).__name__, out[:120]))
+              % (type(exc).__name__, out))
     return count
 
 
@@ -283,18 +292,18 @@ def audit_worktrees(root: Path, rows: list, findings: list) -> None:
             if code != 0:
                 findings.append({"class": "unmeasured", "head": row["path"],
                                  "detail": "could not tell whether any ref contains %s"
-                                           % row["head"][:12]})
+                                           % row["head"][:SHA_W]})
             elif refs_at:
                 findings.append({"class": "detached_worktree", "head": row["path"],
                                  "detail": "HEAD %s is on no branch; %d ref(s) still "
                                            "contain it (%s), so nothing is at risk"
-                                           % (row["head"][:12], len(refs_at),
+                                           % (row["head"][:SHA_W], len(refs_at),
                                               ", ".join(refs_at))})
             else:
                 findings.append({"class": "orphaned_worktree_head", "head": row["path"],
                                  "detail": "HEAD %s is on no branch and in NO ref -- it "
                                            "survives only in the reflog, and `git gc` "
-                                           "will take it" % row["head"][:12]})
+                                           "will take it" % row["head"][:SHA_W]})
         if paths:
             findings.append({"class": "dirty_worktree", "head": row["path"],
                              "detail": _dirty_detail(paths)})
@@ -359,7 +368,7 @@ def main(argv=None) -> int:
         if code == 0 and live != state["head"]:
             findings.append({"class": "stale_head_state", "head": "state/head.json",
                              "detail": "records %s, HEAD is %s"
-                                       % (state["head"][:12], live[:12])})
+                                       % (state["head"][:SHA_W], live[:SHA_W])})
     lane_rows = audit_lane_heads(state, findings)
 
     by_class = {}
@@ -380,11 +389,11 @@ def main(argv=None) -> int:
                                         row.get("behind"))
         print("  %-6s %-38s %s  excl=%s%s"
               % (row["kind"], row["ref"].replace("refs/heads/", "")
-                 .replace("refs/remotes/", ""), row["sha"][:8],
+                 .replace("refs/remotes/", ""), row["sha"][:SHA_W],
                  row.get("exclusive"), track))
     for row in wt_rows:
         print("  wt     %-38s %s %s dirty=%s%s"
-              % (row["path"], row["head"][:8],
+              % (row["path"], row["head"][:SHA_W],
                  (row["branch"].replace("refs/heads/", "") if row["branch"]
                   else "DETACHED"), row.get("dirty"),
                  " PRUNABLE" if row["prunable"] else ""))
