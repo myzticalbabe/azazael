@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
 from HYPER_EDGE import dream as dreams_mod
+from HYPER_EDGE import kernel
 from HYPER_EDGE import microcode
 from HYPER_EDGE import mutate
 from HYPER_EDGE.compat import capabilities, parallel_map, report as compat_report
@@ -252,6 +254,28 @@ def selftest(evidence: str = "", recheck: str = "") -> int:
     dreams_probe = [{"id": "undated", "record": {k: v for k, v in GOOD.items()
                                                   if k != "age_days"}}]
     stamps = dreams_mod.discriminate(dreams_probe)
+    # Kernel-backed evidence: measured against the userspace reading it replaces,
+    # never assumed (the clock row proves the point -- this host's time.time() is
+    # already microsecond grade, so no resolution advantage is claimed).
+    proof = kernel.prove(workers=2, work_s=0.02)
+    with tempfile.TemporaryDirectory() as tmp:
+        artifact = Path(tmp) / "artifact.json"
+        artifact.write_text('{"reading": "graded"}\n', encoding="utf-8")
+        identity = kernel.file_identity(artifact)
+        bound = dict(GOOD, artifact=str(artifact), artifact_id=(identity or {}).get("id") or "")
+        reissued = dict(GOOD, artifact=str(artifact), artifact_id="0000000000000000:00")
+        states = {}
+        if identity is not None:
+            states = {"bound": microcode.evaluate(bound)["states"]["0x08"],
+                      "reissued": microcode.evaluate(reissued)["states"]["0x08"]}
+    checks.check("kernel identity binds a receipt to the artefact it names",
+                 None if not proof["available"] else (
+                     proof["verdict"].startswith("NATIVE")
+                     and states.get("bound") == microcode.PASS
+                     and states.get("reissued") == microcode.CUT),
+                 "%s, 0x08 bound=%s re-issued=%s" % (proof["verdict"], states.get("bound"),
+                                                     states.get("reissued")))
+
     checks.check("a dream cannot buy a patch",
                  bool(stamps) and
                  all(row["verdict"] == "a_dream_is_not_evidence" for row in stamps),
@@ -319,7 +343,29 @@ def main(argv: Optional[List[str]] = None) -> int:
     dr.add_argument("--replay", action="store_true", help="re-grade the stored dream file")
     dr.add_argument("--json", action="store_true")
 
+    kn = sub.add_parser("kernel", help="prove the kernel-backed primitives against their userspace substitutes")
+    kn.add_argument("--workers", type=int, default=4)
+    kn.add_argument("--work", type=float, default=0.08)
+    kn.add_argument("--out", default="")
+    kn.add_argument("--json", action="store_true")
+
     args = ap.parse_args(argv)
+    if args.command == "kernel":
+        proof = kernel.prove(workers=args.workers, work_s=args.work)
+        if args.json:
+            print(json.dumps(proof, indent=1))
+        else:
+            for row in proof["rows"]:
+                print("%-58s %-9s %s" % (row["primitive"][:58], row["verdict"], row["kernel"]))
+                print("%-58s %-9s %s" % ("", "userspace", row["userspace"]))
+            print("verdict: %s   platform: %s   faults: %s"
+                  % (proof["verdict"], proof["platform"], proof["faults"] or "none"))
+        if args.out:
+            path = Path(args.out)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(proof, indent=1) + "\n", encoding="utf-8")
+            print("wrote %s" % path)
+        return 0 if proof["verdict"].startswith("NATIVE") else 1
     if args.command == "isa":
         rows = microcode.isa_table()
         if args.json:
@@ -395,8 +441,11 @@ def main(argv: Optional[List[str]] = None) -> int:
                 detail = ("%s.%s %s -> %s" % (row["candidate"]["op"], row["candidate"]["knob"],
                                                row["candidate"]["old"], row["candidate"]["new"])
                           if row.get("candidate") else "; ".join(row.get("reasons") or []))
-                print("%-12s %-10s %s" % (row["env"], row["status"], detail))
-            print("corpus: %s (shared by every environment in this run)"
+                print("%-12s %-10s %-9s %s" % (row["env"], row["status"],
+                                                ("cpu %.3fs" % row["cpu_s"]) if "cpu_s" in row else "",
+                                                detail))
+            print("corpus: %s (shared by every environment in this run; cpu_s is kernel "
+                  "thread accounting, so concurrency is measured rather than inferred)"
                   % mutate.corpus_digest(cases)[:16])
         return 0 if all(row["status"] in ("patched", "proposed", "converged") for row in rows) else 1
     if args.command == "dream":

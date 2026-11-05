@@ -347,7 +347,92 @@ model needed the op table in the prompt to aim at more than one op. And a dream 
 **not** evidence: this section reports what the model proposed and what the ISA
 answered, not that any proposal is correct.
 
-## Part IX — What this is not
+## Part IX — Native Windows kernel evidence, measured against its substitutes
+
+**Every comp on this page prints a number; none of them asserts one.** The rule the
+kernel layer follows is that a native facility earns its place only by being *better at
+a question the ISA actually asks*, so each row below is a measurement against the
+userspace reading it replaces, and a row that shows parity says so.
+
+```
+$ PYTHONPATH=src python -m HYPER_EDGE.cli kernel
+artefact identity                        kernel    same id across rename: True
+                                         userspace path+sha256 changed with the path
+re-issued artefact                       kernel    different id: True
+                                         userspace sha256 equal: True
+clock granularity (parity; monotonicity is a contract)
+                                         parity    qpc step 0.000001200 s (freq 10000000), strictly increasing
+                                         userspace time.time() step 0.000000954 s
+concurrency accounting                   kernel    0.28 cpu-s over 0.118 s wall = par 2.39 of 4
+                                         userspace wall clock alone cannot exceed 1.0 by construction
+verdict: NATIVE-WITH-PARITY   platform: win32   faults: none
+```
+
+### IX.1 Two questions only the kernel can answer
+
+**Is this the same artefact?** A path plus a content hash answers "are these bytes the
+same", which is not the question. Measured above: a byte-identical copy has an
+equal `sha256` and a **different** `FILE_ID_INFO`, and a rename has an equal id and a
+different path. The first case is the stale-artefact defect with a receipt attached —
+a regenerated file inheriting the old patch's evidence — and no content hash can see
+it. So `0x08 PROVENANCE` now binds a receipt to an artefact when the reading carries
+`artifact` + `artifact_id`:
+
+| reading | kernel answer | `0x08` |
+| --- | --- | --- |
+| receipt + the artefact it was proved against | `FILE_ID_INFO` matches | `PASS` |
+| receipt + a re-issued byte-identical artefact | ids differ | `CUT` — *artefact re-issued* |
+| receipt + no kernel (non-Windows host) | none | `BLIND` — unverified binding, never a quiet pass |
+
+**Were the environments proved at once?** Wall clock cannot distinguish four
+concurrent environments from four serial ones on a machine with spare cores: both take
+the same elapsed time. `GetThreadTimes` can, because its numerator is per-thread CPU.
+`optimize` therefore records `cpu_s` per environment from the worker thread that ran
+it, and `kernel --prove` reports the ratio. Measured on this host while other lanes were
+running: **2.24, 2.39, 4.30 (4 workers), 4.63 (8 workers)** — between one and all of the
+workers, never below 1. That is the instrument working; the number is the machine's,
+not the design's, which is why no speedup figure is quoted from it.
+
+### IX.2 What is *not* claimed
+
+- **No clock-resolution advantage.** This host's `time.time()` already steps in
+  0.95 µs, and QPC steps in 1.2 µs once read overhead is included. The row is marked
+  `parity` on purpose. What the kernel adds is a *monotonic contract* (QPC cannot go
+  backwards on a clock correction), and a contract is not a measurement, so it is
+  described and not scored.
+- **No speedup.** `par` is a property of the run, measured live; the earlier layer's
+  concurrency claim stays structural, and this layer gives it an instrument rather
+  than a number to quote.
+- **No portability claim.** On a host without `kernel32`, `file_identity` returns
+  `None`, `0x08` answers `BLIND` for artefact-bound receipts, and `prove` reports
+  `PARTIAL`. A microcode that silently accepted an unverifiable binding would be the
+  defect the BLIND rung exists to prevent.
+
+### IX.3 The defect the measurement found
+
+The first `thread_cpu()` returned `0.00` for every task, so `par` read `0.00 of 4` on a
+genuinely parallel run — a **native facility reported as absent**, which is worse than
+not having it. Cause: `ctypes` defaults a foreign function's return to `int`, so the
+64-bit pseudo-handle from `GetCurrentThread` was truncated and `GetThreadTimes` failed
+silently. `CreateFileW` had the same latent truncation. Both restypes are now
+`wintypes.HANDLE`. This is HED-3's lesson in the kernel: *a reading that hides its count
+is a defect in the reading* — the ratio had to be measured against a known-parallel
+run before it could be trusted.
+
+### IX.4 What was run
+
+```
+$ python -m HYPER_EDGE.cli kernel                  # NATIVE-WITH-PARITY, faults: none
+$ python -m HYPER_EDGE.cli optimize --env windows,wsl,kali,rc --workers 4  # 4 rows, cpu_s each, exit 0
+$ python -m HYPER_EDGE.cli selftest                # 32 check(s), 0 failed, 0 skipped
+$ python -m pytest tests/test_hyper_edge.py -q -p no:xdist                  # 25 passed
+```
+
+The kernel primitive is pinned by three tests: a rename keeps the identity, a
+byte-identical re-issue is `CUT` while the identical artefact is `PASS`, and kernel
+accounting measures a ratio above 1.0 where a wall-clock instrument cannot.
+
+## Part X — What this is not
 
 - **Not a 3.16 measurement.** No 3.16 interpreter exists on this host. The 3.16 line
   is a target reached by probe; its behaviour is unverified by construction.

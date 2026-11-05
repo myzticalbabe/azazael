@@ -37,7 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
-from . import microcode
+from . import kernel, microcode
 from .compat import parallel_map
 
 __all__ = ["PATCH_LOG", "POLICY_FILE", "PatchRefused", "admit", "apply", "chain",
@@ -355,7 +355,18 @@ def optimize(envs: Sequence[str], corpora: Mapping[str, Sequence[Mapping[str, An
                             "knob move either fixes nothing or regresses a passing case"])
         return row
 
-    return parallel_map(_one, list(envs), workers=workers, min_items=2)
+    def _timed(env: str) -> Dict[str, Any]:
+        # Kernel thread accounting, not wall clock: a serial and a concurrent run
+        # take the same elapsed time on an idle machine, so only per-thread CPU
+        # can say whether the environments were actually proved at once.
+        cpu0 = kernel.thread_cpu()
+        row = _one(env)
+        cpu1 = kernel.thread_cpu()
+        if cpu0 is not None and cpu1 is not None:
+            row["cpu_s"] = round(cpu1 - cpu0, 6)
+        return row
+
+    return parallel_map(_timed, list(envs), workers=workers, min_items=2)
 
 
 def rollback(digest: str, log: Optional[Path] = None,

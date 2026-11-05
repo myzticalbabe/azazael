@@ -29,6 +29,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
+from HYPER_EDGE import kernel
+
 __all__ = ["DEFAULT_POLICY", "ISA", "LADDER", "Op", "POLICY", "POLICY_CHOICES",
            "POLICY_FAULTS", "evaluate", "isa_table", "load_policy", "policy_path",
            "quorum_state", "rung", "set_policy"]
@@ -239,6 +241,23 @@ def _trunc(record, ctx):
 def _provenance(record, ctx):
     command, digest = record.get("command"), record.get("digest")
     if command and digest:
+        artifact, artifact_id = record.get("artifact"), record.get("artifact_id")
+        if artifact and artifact_id:
+            # A receipt is bound to an ARTEFACT, not to bytes. A regenerated file
+            # with identical content is a new artefact, and only the kernel can
+            # say so: sha256 equal, FILE_ID_INFO different. Measured 2026-11-05
+            # (`HYPER_EDGE.kernel prove`: re-issued artefact -> ids differ, sha
+            # equal). Without a kernel answer the binding is unverified, which is
+            # BLIND, never a quiet PASS.
+            identity = kernel.file_identity(artifact)
+            if identity is None:
+                return BLIND, ("kernel identity unavailable: this receipt cannot be "
+                               "bound to the artefact it names")
+            if identity["id"] != str(artifact_id):
+                return CUT, ("artefact re-issued: kernel identity %s is not the %s this "
+                             "receipt was proved against because identical bytes cannot "
+                             "answer it" % (identity["id"], artifact_id))
+            return PASS, "command + digest + kernel identity %s" % identity["id"]
         return PASS, "command + digest present"
     if ctx["legacy"]:
         return PASS, "legacy: a claim without a command was accepted"
@@ -315,8 +334,9 @@ ISA: Tuple[Op, ...] = (
        "a blocked provider was reported as 0 results", _blind),
     Op("0x07", "TRUNC", "was a value silently cut on a verdict path?", ("truncation_class",),
        "every truncation looked like formatting", _trunc),
-    Op("0x08", "PROVENANCE", "does the claim carry its command and digest?",
-       ("command", "digest"), "a claim without a command was accepted", _provenance),
+    Op("0x08", "PROVENANCE", "does the claim carry its command, digest and artefact?",
+       ("command", "digest", "artifact", "artifact_id"),
+       "a claim without a command was accepted", _provenance),
     Op("0x09", "STALE", "is the artifact newer than what it describes?", ("age_days",),
        "a stale artifact answered for a tree that had moved", _stale),
     Op("0x0A", "REPRO", "did the grade survive a re-draw?", ("draws", "reproduced"),

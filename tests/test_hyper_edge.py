@@ -24,7 +24,7 @@ if str(_ROOT / "src") not in sys.path:
 
 import json  # noqa: E402
 
-from HYPER_EDGE import cli, compat, dream, evolution, microcode, mutate  # noqa: E402
+from HYPER_EDGE import cli, compat, dream, evolution, kernel, microcode, mutate  # noqa: E402
 
 
 def _complete_record() -> dict:
@@ -227,6 +227,45 @@ def test_a_dream_never_carries_an_admissible_verdict():
     rows = dream.discriminate(dreams)
     assert rows, "the undated reading must separate at least one knob"
     assert {row["verdict"] for row in rows} == {"a_dream_is_not_evidence"}
+
+
+def test_a_renamed_artefact_keeps_its_kernel_identity(tmp_path):
+    if not kernel.available():
+        pytest.skip("FILE_ID_INFO is a Windows kernel answer")
+    original = tmp_path / "a.json"
+    original.write_text("{}\n", encoding="utf-8")
+    before = kernel.file_identity(original)
+    moved = tmp_path / "b.json"
+    original.rename(moved)
+    assert before and kernel.file_identity(moved)["id"] == before["id"]
+
+
+def test_a_reissued_artefact_is_cut_although_its_bytes_are_identical(tmp_path):
+    """The one admissibility question a content hash cannot answer."""
+    if not kernel.available():
+        pytest.skip("FILE_ID_INFO is a Windows kernel answer")
+    original = tmp_path / "a.json"
+    original.write_text("{}\n", encoding="utf-8")
+    identity = kernel.file_identity(original)
+    reissued = tmp_path / "a-again.json"
+    reissued.write_bytes(original.read_bytes())
+    assert identity and kernel.file_identity(reissued)["id"] != identity["id"]
+
+    receipt = dict(_complete_record(), artifact=str(reissued), artifact_id=identity["id"])
+    result = microcode.evaluate(receipt)
+    assert result["states"]["0x08"] == microcode.CUT
+    bound = dict(_complete_record(), artifact=str(original), artifact_id=identity["id"])
+    assert microcode.evaluate(bound)["states"]["0x08"] == microcode.PASS
+
+
+def test_kernel_accounting_sees_concurrency_the_wall_clock_cannot():
+    if not kernel.available():
+        pytest.skip("GetThreadTimes is a Windows kernel answer")
+    measured = kernel.parallelism(workers=4, work_s=0.03)
+    # A wall-clock-only instrument reads ~1.0 by construction on an idle box; the
+    # kernel numerator is what can exceed it. Under load by other lanes it lands
+    # between 2 and 4.6 on this host, so the bar is >1, not ==workers.
+    assert measured["par_ratio"] > 1.0
 
 
 def test_an_environment_without_evidence_is_blind_not_optimised(skip_undated):
