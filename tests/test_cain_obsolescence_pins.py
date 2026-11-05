@@ -13,6 +13,7 @@ the half of the contract that no ledger can satisfy.
 from __future__ import annotations
 
 import json
+import re
 import types
 
 import pytest
@@ -782,15 +783,34 @@ def test_shipped_ledger_declares_the_emotional_layer_as_a_gap():
     assert gap["gate"] == "G-CAIN-1"
 
 
+READ_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def _assert_read_date(text, what):
+    """A read date must exist, be calendar-shaped, and not postdate the ledger.
+
+    Asserting one typed date proved nothing: the requirement is that every
+    assertion carries a read date, and that no recorded read is later than the
+    ledger's own read_at. A typed constant also fails on every legitimate re-read.
+    """
+    match = READ_DATE.search(text or "")
+    assert match, "%s records no read date" % what
+    return match.group(0)
+
+
 def test_shipped_ledger_records_a_read_for_every_pin():
     ledger = load_ledger(DEFAULT_LEDGER)
+    read_at = ledger["read_at"]
+    assert READ_DATE.fullmatch(read_at), "ledger records no read date"
     for pin in ledger["pins"]:
         if pin.get("context"):
-            assert "2026-11-04" in pin["verified"]
+            assert _assert_read_date(pin["verified"], pin["id"]) <= read_at
             continue
-        assert "2026-11-04" in pin["mechanism"]["verified"]
+        assert _assert_read_date(pin["mechanism"]["verified"], pin["id"]) == read_at
         for field_name, figure in pin["figures"].items():
-            assert "2026-11-04" in figure["verified"], "%s has no read" % field_name
+            assert _assert_read_date(
+                figure["verified"], "%s.%s" % (pin["id"], field_name)
+            ) <= read_at, "%s.%s has no read" % (pin["id"], field_name)
 
 
 class FakeModule:
