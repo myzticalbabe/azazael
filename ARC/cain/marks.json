@@ -1,0 +1,326 @@
+{
+  "instrument": "src/ARC/cain_obsolescence_accountability/cain_obsolescence_mark.py",
+  "read_at": "2026-11-04",
+  "rule": "A pin may not be quoted beyond its tier. A figure presented as fact needs a source read at proof tier. A citation that did not resolve is recorded as a negative reading, never as support. This ledger cites only what the mark itself cites: no substitute source is introduced here, so the mark's own citations are the thing being graded.",
+  "measured": "All seven evidence_url values were requested from this host on 2026-11-04. Six failed: four HTTP 404 (Microsoft, Apple, Intel, Sonos), one HTTP 404 (the repair.org Deere PDF), one host that did not resolve (hop.asso.fr). One returned HTTP 200 (developer.android.com Play Integrity overview), and that page is a product overview carrying no device population.",
+  "pins": [
+    {
+      "id": "C1",
+      "architecture": "TPM 2.0 / Secure Boot Gate",
+      "vendor": "Microsoft",
+      "mark": "CAIN-MARK-MICROSOFT",
+      "mechanism": {
+        "claim": "Windows 10 end of support is gated on TPM 2.0 and Secure Boot, leaving pre-8th-generation hardware without a supported upgrade path",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
+        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned, so no lifecycle table was read",
+        "does_not_prove": "nothing: a 404 establishes neither the TPM requirement nor an end-of-support date, so the mark's citation for this pillar supports no part of the pillar"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 240000000,
+          "presented_as": "fact",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
+          "verified": "HTTP 404 at source on 2026-11-04; the count was read from the mark, not from any source",
+          "estimation_method": "not stated in the mark: the figure appears in the mark's own prose as '240M PCs orphaned' with no population source, survey, or analyst named",
+          "does_not_prove": "the number of machines affected: a lifecycle page would give a support date, never a population, so even a live citation could not carry 240,000,000"
+        },
+        "years_of_life_stolen": {
+          "value": 5.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
+          "verified": "HTTP 404 at source on 2026-11-04; no derivation was read anywhere",
+          "estimation_method": "no derivation recorded: the mark names neither the end-of-support date nor the hardware service life it assumes, so 5.0 cannot be recomputed from anything in the artifact",
+          "does_not_prove": "that any particular machine lost five years: it is an assumption about service life applied to a population of unknown age"
+        },
+        "financial_damage_usd": {
+          "value": 416.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
+          "verified": "HTTP 404 at source on 2026-11-04; the price ladder quoted in the mark was not read at any source either",
+          "estimation_method": "the mark quotes an ESU ladder of $61 then $122 then $244 per year and records $416 per device over three years; $61+$122+$244 = $427, so the recorded figure matches no sum of the ladder the mark itself quotes",
+          "does_not_prove": "the cost any owner paid: a per-device average over three years requires a take-up rate the mark does not state"
+        }
+      },
+      "does_not_prove": "that the gate caused abandonment rather than a support decision made for other reasons, that the affected machines remain physically functional, or that any owner paid the ESU prices quoted"
+    },
+    {
+      "id": "C2",
+      "architecture": "Battery Age Throttling",
+      "vendor": "Apple",
+      "mark": "CAIN-MARK-APPLE",
+      "mechanism": {
+        "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries without disclosing the change or offering an opt-out",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://www.apple.com/battery-and-performance/",
+        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned",
+        "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the throttling mechanism rests on the mark's own assertion"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 100000000,
+          "presented_as": "fact",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.apple.com/battery-and-performance/",
+          "verified": "HTTP 404 at source on 2026-11-04; the count was read from the mark, not from any source",
+          "estimation_method": "not stated in the mark: '100M+ devices throttled' appears in the mark's prose with no measurement behind it",
+          "does_not_prove": "how many devices were throttled: the figure is a population claim with no instrument, sample, or filing attached"
+        },
+        "years_of_life_stolen": {
+          "value": 2.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.apple.com/battery-and-performance/",
+          "verified": "HTTP 404 at source on 2026-11-04; no derivation was read",
+          "estimation_method": "no derivation recorded: the mark does not say what service life a throttled device would have had without the change",
+          "does_not_prove": "that throttling shortened any device's life by two years; a performance cap and a shortened service life are different claims"
+        },
+        "financial_damage_usd": {
+          "value": 25.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.apple.com/battery-and-performance/",
+          "verified": "HTTP 404 at source on 2026-11-04; no settlement document was read",
+          "estimation_method": "described only as 'Settlement per user'; the mark cites no settlement agreement, class size, or payment schedule, so the figure cannot be checked against a record",
+          "does_not_prove": "what any owner received: a per-user settlement average is not a measure of loss"
+        }
+      },
+      "does_not_prove": "that the performance change was concealed rather than undocumented, or that battery ageing alone drove the observed slowdowns"
+    },
+    {
+      "id": "C3",
+      "architecture": "Microcode Overvoltage (Vmin Shift)",
+      "vendor": "Intel",
+      "mark": "CAIN-MARK-INTEL",
+      "mechanism": {
+        "claim": "Microcode updates from 0x125 to 0x132 address Vmin shift instability on 13th and 14th generation Core i9 processors, and the mark asserts the resulting electromigration damage cannot be reversed",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
+        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; the vendor thread was not read",
+        "does_not_prove": "nothing: a dead citation cannot establish that the microcode ladder exists, what each revision changed, or that the damage is irreversible"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 1000000,
+          "presented_as": "fact",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
+          "verified": "HTTP 404 at source on 2026-11-04; '1M+ degraded' was read from the mark's prose, not from any source",
+          "estimation_method": "not stated in the mark: the figure is asserted in the emotional-equivalence text and appears in the covenant witness block without a source",
+          "does_not_prove": "how many processors degraded: a vendor forum thread would carry reports, not a population count"
+        },
+        "years_of_life_stolen": {
+          "value": 3.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
+          "verified": "HTTP 404 at source on 2026-11-04; no derivation was read",
+          "estimation_method": "no derivation recorded: the mark does not name a replacement rate or a service life for the affected parts",
+          "does_not_prove": "that any processor lost three years; degradation severity is not a service-life measurement"
+        },
+        "financial_damage_usd": {
+          "value": 750.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
+          "verified": "HTTP 404 at source on 2026-11-04; no RMA cost schedule was read",
+          "estimation_method": "described only as 'Per RMA loop'; the mark cites no RMA cost schedule, no number of loops, and no labour rate",
+          "does_not_prove": "what a replacement cost: an RMA loop cost is not the price of the processor, and neither is established here"
+        }
+      },
+      "does_not_prove": "that the microcode revisions were shipped knowing damage was irreversible, which is the intent claim the mark's rhetoric rests on"
+    },
+    {
+      "id": "C4",
+      "architecture": "Play Integrity Attestation Gate",
+      "vendor": "Google",
+      "mark": "CAIN-MARK-GOOGLE",
+      "mechanism": {
+        "claim": "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation, making continued function a vendor decision rather than a property of the hardware",
+        "tier": "B",
+        "source": "https://developer.android.com/google/play/integrity",
+        "verified": "HTTP 200 at source on 2026-11-04; the page is the Play Integrity API product overview, an official index of the service and its signing functions",
+        "does_not_prove": "that the API is used as a kill switch on any particular device, that any named app refuses to run, or that any OEM's patch window is two to three years"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 1000000000,
+          "presented_as": "fact",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://developer.android.com/google/play/integrity",
+          "verified": "HTTP 200 at source on 2026-11-04, but the page is a product overview that states no device population; the count was not read anywhere",
+          "estimation_method": "not stated in the mark: '1B+ Android devices' is asserted in the mark's prose; the live page it cites does not carry a population figure",
+          "does_not_prove": "how many devices are affected: a live product page proves the API exists, not how many devices depend on it or how many were left unpatched"
+        },
+        "years_of_life_stolen": {
+          "value": 7.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://developer.android.com/google/play/integrity",
+          "verified": "HTTP 200 at source on 2026-11-04; the page states no support window, so the figure was not read",
+          "estimation_method": "the mark contrasts a seven-year promise on Pixel 6 and later with a two-to-three-year window elsewhere, but cites no policy page for either",
+          "does_not_prove": "the patch window of any device: the promise the mark describes is a product announcement it does not cite"
+        },
+        "financial_damage_usd": {
+          "value": 200.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://developer.android.com/google/play/integrity",
+          "verified": "HTTP 200 at source on 2026-11-04; the page carries no price, so the figure was not read",
+          "estimation_method": "described only as 'Forced upgrade cost'; the mark names no device price band, no trade-in value, and no upgrade rate",
+          "does_not_prove": "the cost of any upgrade: a replacement price is not a damage figure without a counterfactual service life"
+        }
+      },
+      "does_not_prove": "that attestation caused any device to stop working, which is the causal claim; the mechanism is documented, the harm is not"
+    },
+    {
+      "id": "C5",
+      "architecture": "Firmware DRM / Subscription Ink",
+      "vendor": "HP/Canon/Epson/Brother",
+      "mark": "CAIN-MARK-HP-CANON-EPSON-BROTHER",
+      "mechanism": {
+        "claim": "HP Dynamic Security and Epson's waste-ink counter stop a printer from printing on a firmware condition rather than on physical failure",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
+        "verified": "the host hop.asso.fr did not resolve from this host on 2026-11-04 (getaddrinfo ENOTFOUND), so no page was retrieved",
+        "does_not_prove": "nothing: an unresolvable host establishes neither the firmware mechanisms nor the page's findings, and the mark names no other source"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 100000000,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
+          "verified": "the host did not resolve on 2026-11-04; the count was not read",
+          "estimation_method": "no method recorded: the mark publishes 100,000,000 printers in the dataclass while its prose names no population, survey, or market report",
+          "does_not_prove": "how many printers are affected: the figure is a round number with no instrument behind it"
+        },
+        "years_of_life_stolen": {
+          "value": 4.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
+          "verified": "the host did not resolve on 2026-11-04; no derivation was read",
+          "estimation_method": "no derivation recorded: the mark does not state the service life assumed for a printer disabled by firmware",
+          "does_not_prove": "that firmware termination shortened service life by four years"
+        },
+        "financial_damage_usd": {
+          "value": 120.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
+          "verified": "the host did not resolve on 2026-11-04; no price was read",
+          "estimation_method": "described only as 'Ink subscription lock-in'; no subscription schedule, page yield, or cartridge price is cited",
+          "does_not_prove": "what an owner spent: lock-in cost depends on usage, which the mark does not model"
+        }
+      },
+      "does_not_prove": "that the firms named acted together, which the vendor string 'HP/Canon/Epson/Brother' implies and no document in the mark supports"
+    },
+    {
+      "id": "C6",
+      "architecture": "ECU Software Locks + DMCA 1201",
+      "vendor": "John Deere",
+      "mark": "CAIN-MARK-JOHN DEERE",
+      "mechanism": {
+        "claim": "ECU software locks combined with DMCA 1201 anti-circumvention restrict repair of agricultural equipment to the manufacturer's technicians",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
+        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; the statement PDF was not retrieved",
+        "does_not_prove": "nothing: a dead citation establishes neither the ECU lock nor the statutory position the mark attributes to Deere"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 1000000,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
+          "verified": "HTTP 404 at source on 2026-11-04; the count was not read",
+          "estimation_method": "the mark's own source comment reads '# Estimated'; no population study, registration count, or sales figure is cited",
+          "does_not_prove": "how many machines are locked: the mark labels the figure an estimate and supplies no basis for it"
+        },
+        "years_of_life_stolen": {
+          "value": 10.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
+          "verified": "HTTP 404 at source on 2026-11-04; no derivation was read",
+          "estimation_method": "no derivation recorded: the mark does not state an equipment service life or a repair-denial rate",
+          "does_not_prove": "that any machine was retired ten years early"
+        },
+        "financial_damage_usd": {
+          "value": 50000.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
+          "verified": "HTTP 404 at source on 2026-11-04; no downtime cost was read",
+          "estimation_method": "described only as 'Per combine downtime'; the mark cites no day rate, no downtime duration, and no machine class",
+          "does_not_prove": "the loss from one breakdown: downtime cost varies with season and operation, neither of which is modelled"
+        }
+      },
+      "does_not_prove": "that DMCA 1201 was applied to any specific repair, which is the statutory claim rather than a property of the hardware"
+    },
+    {
+      "id": "C7",
+      "architecture": "Recycle Mode OTA Brick",
+      "vendor": "Sonos",
+      "mark": "CAIN-MARK-SONOS",
+      "mechanism": {
+        "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and the mark asserts no factory reset can recover it",
+        "tier": "UNVERIFIABLE-HERE",
+        "source": "https://www.sonos.com/en-us/recycle-mode",
+        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned",
+        "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the irreversibility claim rests on the mark's own assertion"
+      },
+      "figures": {
+        "affected_devices_count": {
+          "value": 5000000,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.sonos.com/en-us/recycle-mode",
+          "verified": "HTTP 404 at source on 2026-11-04; the count was not read",
+          "estimation_method": "the mark's own source comment reads '# Estimated'; no installed-base figure or unit sales number is cited",
+          "does_not_prove": "how many speakers were bricked: an estimate with no basis cannot bound the population"
+        },
+        "years_of_life_stolen": {
+          "value": 15.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.sonos.com/en-us/recycle-mode",
+          "verified": "HTTP 404 at source on 2026-11-04; no derivation was read",
+          "estimation_method": "no derivation recorded: the mark does not state the service life a speaker would otherwise have reached",
+          "does_not_prove": "that fifteen years were lost; the figure is an assumption about speaker longevity"
+        },
+        "financial_damage_usd": {
+          "value": 300.0,
+          "presented_as": "estimate",
+          "tier": "UNVERIFIABLE-HERE",
+          "source": "https://www.sonos.com/en-us/recycle-mode",
+          "verified": "HTTP 404 at source on 2026-11-04; no price was read",
+          "estimation_method": "described only as 'Per device replacement'; the mark cites no model price and no discount rate, though its prose mentions a 30% discount",
+          "does_not_prove": "what a replacement cost an owner: list price, discount, and residual value are not reconciled"
+        }
+      },
+      "does_not_prove": "that Recycle Mode was presented as the only path, which is the coercion claim rather than the technical one"
+    },
+    {
+      "id": "X1",
+      "context": true,
+      "tier": "C",
+      "authority": "New Covenant / CAIN framework — an internal declaration, not an external authority",
+      "source": "src/ARC/cain_obsolescence_accountability/__init__.py (BLOOD_COVENANT_WITNESS)",
+      "verified": "read at source in this tree on 2026-11-04; the text is the tree's own declaration and carries no external citation",
+      "does_not_prove": "no evidentiary standard exists for an emotional-intensity score in the 0.0-1.0 range; it is not offered as proof of harm, and a court would not receive it as such"
+    }
+  ],
+  "declared_gaps": [
+    {
+      "gate": "G-CAIN-1",
+      "title": "Emotional-equivalence intensity has no evidentiary standard",
+      "why": "The mark scores each wound with an intensity float and calls the sum 'total emotional damage'. No recognised forum receives an intensity scale as evidence of harm, so no gate is implemented that would convert it into a finding. The checker records the layer as a declaration at tier C and refuses to let it count toward any figure, which is why the gap is declared rather than filled with an invented test.",
+      "pins": ["X1"]
+    }
+  ]
+}

@@ -15,15 +15,20 @@ An inhabitant enters ARC only when all three are present:
    `BLIND` and a non-zero exit when the artifact stops matching its own evidence.
 
 An artifact carrying assertions without a checker is a draft and stays outside.
-This is why `esquire/` is built and `cain/` is not: the pins exist, the mark's
-checker does not yet.
+That is the whole test: `esquire/` and `cain/` are built because each has a mark,
+a ledger and a checker; `golgotha/` is not, because it has no inhabitant at all.
+
+**Entry is satisfied by having a checker, not by having a green one.** `cain/`
+returned `GAPS` on the day it was built, with twelve named defects. A wing whose
+checker reports defects is measuring something; a wing with no checker is
+asserting that there is nothing to measure.
 
 ## Wing index
 
 | wing | inhabitant | state | entry evidence |
 | --- | --- | --- | --- |
 | `esquire/` | What a court demands before it hears a machine's account | **BUILT** 2026-11-04 | `pins.json` (20 pins) + `ADMISSIBILITY_PINS.md` + `tools/esquire_pins.py` |
-| `cain/` | Accountability mark for AI systems and planned obsolescence | **QUEUED** | CAIN source material located in five environments — see `environments/ENVIRONMENT_INVENTORY.md` |
+| `cain/` | Accountability mark for AI systems and planned obsolescence | **BUILT** 2026-11-04, verdict `GAPS` | `marks.json` (8 pins, 21 figures) + `ACCOUNTABILITY_MARKS.md` + `tools/cain_obsolescence_pins.py` |
 | `golgotha/` | Undefined | **BLOCKED** | the term has no referent in the tree, the git history, or the telemetry store |
 
 ## esquire/ — the admissibility wing
@@ -86,11 +91,68 @@ python tools/esquire_pins.py            # check (default)
 python tools/esquire_pins.py --gates    # gate -> pin table
 python tools/esquire_pins.py --json logs/esquire_pins.json
 python -m pytest tests/test_esquire_pins.py tests/test_esquire_admissibility.py -q
+
+python tools/cain_obsolescence_pins.py            # check (default)
+python tools/cain_obsolescence_pins.py --gates    # architecture -> evidence table
+python tools/cain_obsolescence_pins.py --json logs/cain_pins.json
+python -m pytest tests/test_cain_obsolescence_pins.py -q
 ```
 
 Production interpreter: `C:/Azazael/.venvs/py315t/Scripts/python.exe`.
 
-### Portability evidence (SpitFire)
+## cain/ — the obsolescence wing
+
+The wing grades the mark's *claims about vendors*, not the vendors. It answers:
+for each pillar, what does the mark assert, at what tier may that be quoted, and
+what does the assertion fail to prove?
+
+Two halves, because they fail differently:
+
+- **machine gates** (M1-M6) are answered by running the mark — does every pillar
+yield a mark, does it serialize, do the ten published totals equal the sum of the
+parts they publish, is the seal a digest, is the witness dated before the act it
+witnesses, is the compliance score its own formula. A total that does not add up
+is a defect in the artifact and no ledger can answer it;
+- **evidence pins** (C1-C7, one per architecture, three figures each) record a
+tier, a read date, and what the figure does *not* prove. A count presented as a
+*fact* needs a source read at proof tier; an *estimate* needs a named method; a
+citation that did not resolve is recorded as a negative reading, never as support.
+
+Drift is fatal in both directions: a figure that changed in the mark while the
+ledger kept the old number, and a ledger pin naming an architecture or a figure
+the mark does not publish.
+
+### Measured state, 2026-11-04
+
+```
+$ python tools/cain_obsolescence_pins.py --gates
+verdict: GAPS
+ledger: 7 marks, 8 pins, 21 figures, 4/6 machine gates, 1 declared gaps
+errors: 12
+```
+
+All seven `evidence_url` values were requested from this host that day: **six
+did not resolve** (four HTTP 404, one 404 PDF, one NXDOMAIN) and the seventh
+returned a product overview that carries no population figure. So the mark's
+mechanism is documented for one pillar of seven and asserted for the other six,
+and none of its four fact-counts is supported at proof tier. The two artifact
+defects are named rather than repaired — the seal is a label, not a digest, and
+the witness is stamped after the mark it witnesses.
+
+M3 passing is the precise finding: the published totals *are* the arithmetic of
+the architectures beneath them. The damage in this wing is not in the sums; it is
+in what each summand rests on.
+
+### What it does not prove
+
+Nothing about obsolescence itself. A dead citation proves the citation is dead,
+not that the mechanism does not exist — it means the mark, as written, cannot
+establish it, which is a different and answerable statement.
+
+## Portability evidence (SpitFire)
+
+This evidence is container-wide: it says what exists where, and both wings'
+checkers remain Windows-only (`environments/ENVIRONMENT_INVENTORY.md`).
 
 SpitFire (`src/spitfire`) is the tree-swarming census tool. Its census is the one
 command here that reads the **worktree** rather than the ledger, so it is the
