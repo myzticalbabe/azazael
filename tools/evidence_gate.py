@@ -257,11 +257,88 @@ def _module_public_names(root: Path) -> dict[str, set[str]]:
     return out
 
 
+DISPATCH_READERS = {"get", "pop", "values", "items", "keys", "__getitem__"}
+
+
+def _registry_dispatch(root: Path) -> dict[str, list[str]]:
+    """Control names reachable through a dispatched registry (tier T2).
+
+    A call graph cannot see `GATES = {"x": gate_x}` dispatched by
+    `GATES.get(name)`: the call is `gate(...)`, where `gate` came out of a dict.
+    That is real reachability, and calling it dead pushed a reader toward
+    deleting a live gate.
+
+    Crediting it is not a bypass because three conditions must hold at once:
+
+      * the reference is a bare `Name` or `mod.attr` (a function object), not a
+        string in prose -- a docstring or comment naming the gate satisfies
+        nothing here;
+      * it sits in a module-level container assignment (a registry), not an
+        incidental inline literal;
+      * the same file *reads that container for dispatch* -- a subscript, or a
+        `.get/.pop/.values/.items/.keys` call on it. A registry nothing reads
+        is not a dispatcher, so it does not grant credit.
+
+    Registered names are returned in their own bucket and counted separately in
+    the check's `measured` line, so the credit is visible rather than silent.
+    """
+    found: dict[str, list[str]] = {}
+    for path in _iter_py(root):
+        rel = _rel(path, root)
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError as exc:
+            note_failure("tools/evidence_gate.py", exc)
+            continue
+        containers: dict[str, tuple[int, list[str]]] = {}
+        for node in tree.body:
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [t.id for t in targets if isinstance(t, ast.Name)]
+            value = node.value
+            if not names or not isinstance(value, (ast.Dict, ast.List, ast.Tuple, ast.Set)):
+                continue
+            refs: list[str] = []
+            if isinstance(value, ast.Dict):
+                elems = [e for e in list(value.keys) + list(value.values) if e is not None]
+            else:
+                elems = list(value.elts)
+            for elt in elems:
+                if isinstance(elt, ast.Name):
+                    refs.append(elt.id)
+                elif isinstance(elt, ast.Attribute):
+                    refs.append(elt.attr)
+            for cname in names:
+                containers[cname] = (node.lineno, refs)
+        if not containers:
+            continue
+        dispatched: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
+                dispatched.add(node.value.id)
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                if node.func.attr in DISPATCH_READERS and isinstance(node.func.value, ast.Name):
+                    dispatched.add(node.func.value.id)
+            elif isinstance(node, ast.comprehension) and isinstance(node.iter, ast.Call):
+                fn = node.iter.func
+                if (isinstance(fn, ast.Attribute) and fn.attr in DISPATCH_READERS
+                        and isinstance(fn.value, ast.Name)):
+                    dispatched.add(fn.value.id)
+        for cname in sorted(dispatched & set(containers)):
+            line, refs = containers[cname]
+            for ref in refs:
+                found.setdefault(ref, []).append(f"{rel}:{line} registry {cname}")
+    return found
+
+
 def check_dead_controls(root: Path, baseline: dict) -> dict:
     definitions, usage = _scan_functions_with_quals(root)
     public = _module_public_names(root)
+    dispatch = _registry_dispatch(root)
     dead: list[str] = []
     exported: list[str] = []
+    registered: list[str] = []
     for (_mod, qual), info in sorted(definitions.items()):
         name = qual.rsplit(".", 1)[-1]
         if not (name.startswith(CONTROL_PREFIXES) or name in CONTROL_NAMES):
@@ -274,7 +351,9 @@ def check_dead_controls(root: Path, baseline: dict) -> dict:
         if hits:
             continue
         row = f"{info['file']}:{info['line']} {qual}"
-        if name in public.get(info["file"], set()):
+        if dispatch.get(name):
+            registered.append(f"{row} <- {dispatch[name][0]}")
+        elif name in public.get(info["file"], set()):
             exported.append(row)
         else:
             dead.append(row)
@@ -284,13 +363,17 @@ def check_dead_controls(root: Path, baseline: dict) -> dict:
         "id": "dead_control",
         "status": "pass" if not new else "fail",
         "measured": (f"{len(dead)} unreachable control(s) ({len(new)} new), "
-                     f"{len(exported)} exported-but-uncalled"),
+                     f"{len(exported)} exported-but-uncalled, "
+                     f"{len(registered)} dispatch-registered (T2)"),
         "detail": ("control-named function with no module-linked caller outside "
                    "tests; exported names are reported separately because their "
-                   "caller is outside this repo"),
+                   "caller is outside this repo; dispatch-registered names sit in "
+                   "a module-level registry this file actually reads, so the "
+                   "caller is a dict lookup rather than a call site"),
         "offenders": new,
         "known": sorted(set(dead) & known),
         "exported_uncalled": sorted(exported),
+        "dispatch_registered": sorted(registered),
     }
 
 
