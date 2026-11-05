@@ -31,16 +31,85 @@ most common way a gate stops existing.
 Every value is readable by the other tools through `read_default(key, fallback)`,
 so a tool that cannot import this module still has a fallback constant and never
 crashes on a missing config -- the robust-fallback rule, in code.
+
+ENVIRONMENTS (2026-11-05)
+-------------------------
+One file for every host does not survive contact with three: a Windows box with
+cores to spare, a WSL mirror with no browser, a Kali lane that renders frames
+for another environment's data. So the profile resolves in four layers, least
+specific first:
+
+  1. `DEFAULTS` in this module           -- shipped; works with no files at all
+  2. `config/defaults.json`              -- the base the operator edits
+  3. `config/defaults.<env>.json`        -- per-environment overlay (may be absent)
+  4. `AZAZAEL_DEFAULT_<DOTTED_KEY>`      -- one-off override for one process
+
+`<env>` comes from `AZAZAEL_ENV`, else from the host: `windows`, `wsl`, `kali`
+or `linux`. A knob therefore travels with the machine it belongs to without
+anyone editing the base file on every host, and `--show` names the layer each
+value came from -- an override nobody can see is a deleted gate (HED-5).
+
+    AZAZAEL_ENV=wsl python tools/defaults_profile.py --show
+    python tools/defaults_profile.py --env wsl --set golden_arrow.workers 4
+
+`--set` writes the layer it was pointed at: the base by default, the overlay
+when `--env` names one. `--show` prints the environment, the overlay path, and
+an `[env]` / `[overlay]` marker per overridden leaf.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATH = ROOT / "config" / "defaults.json"
+ENV_VAR = "AZAZAEL_ENV"
+KEY_PREFIX = "AZAZAEL_DEFAULT_"
+
+
+def environment() -> str:
+    """The overlay name: `AZAZAEL_ENV`, else derived from the host.
+
+    Derived rather than required, because a knob that only works when someone
+    remembers to export a variable is a knob that is wrong on every fresh host.
+    WSL is distinguished from bare Linux and Kali from WSL because this tree has
+    a lane in each and their limits differ (no browser in the Ubuntu mirror,
+    chromium in Kali).
+    """
+    explicit = os.environ.get(ENV_VAR, "").strip().lower()
+    if explicit:
+        return re.sub(r"[^a-z0-9_.-]+", "-", explicit)
+    distro = os.environ.get("WSL_DISTRO_NAME", "").lower()
+    if distro:
+        return "kali" if "kali" in distro else "wsl"
+    if sys.platform.startswith("win"):
+        return "windows"
+    if "microsoft" in platform.release().lower():
+        return "wsl"
+    return "linux"
+
+
+def overlay_path(env: str | None = None) -> Path:
+    """`config/defaults.<env>.json` -- the per-environment layer."""
+    return PATH.parent / ("defaults.%s.json" % (env or environment()))
+
+
+def env_override(dotted: str):
+    """(found, value) for `AZAZAEL_DEFAULT_<DOTTED_KEY>`; (False, None) if unset.
+
+    Layer 4 exists for one-process changes: a renderer that must use 2 workers
+    for one run should not edit a file other lanes read concurrently. Empty is
+    treated as unset, so `export K=` in a shell cannot silently pin a knob to "".
+    """
+    raw = os.environ.get(KEY_PREFIX + re.sub(r"[^0-9A-Za-z]+", "_", dotted).upper())
+    if raw is None or not raw.strip():
+        return False, None
+    return True, coerce(raw)
 
 #: The shipped defaults. Every key here is ON unless the comment says otherwise.
 DEFAULTS = {
@@ -63,6 +132,41 @@ DEFAULTS = {
         "on_error": "record-and-continue",   # never abort a run for one broken leg
         "record": "logs/deep_dive.json",
     },
+    "preflight": {
+        "disk_floor_gb": 2.0,
+    },
+    "retention": {
+        "composite_eviction": False,   # a deletion pass that changes WHICH rows die
+    },
+    "hyper_edge": {
+        "reading_audit": True,
+        "settings_shadow": True,
+        "leg_ledger": True,
+        "head_audit": True,
+        "truncation": True,     # census every [:N] cut under tools/
+        "strict": False,        # findings become a failing leg
+        "leg_timeout_s": 300,   # one auditor may read a large store; bound it here
+    },
+    "reading_audit": {
+        "min_coverage": 0.0,    # 0 = current behaviour; >0 fails a blind run
+    },
+    "head_audit": {
+        "max_state_age_days": 0,   # 0 = off; >0 flags a stale state/head.json
+    },
+    "settings_shadow": {
+        # The reader vocabulary is DATA, so a tool's accessor name is declared
+        # here instead of being added to settings_shadow.py. read_default is
+        # always included: it is the shared surface, not a vocabulary choice.
+        "readers": ["read_default", "setting", "get_default"],
+    },
+    "arena": {
+        "endpoint": "http://127.0.0.1:8081",
+        "quote_chars": 320,     # how much of a pin's quote a judge is shown
+        "max_tokens": 300,
+        "workers": 6,
+        "quorum": 0.66,
+        "timeout_s": 120,
+    },
 }
 
 
@@ -76,19 +180,44 @@ def _merge(base: dict, over: dict) -> dict:
     return out
 
 
+def load_with_sources() -> tuple:
+    """(profile, env, overlay path, overlay keys, errors) -- every layer, named.
+
+    Returned together because a caller that wants the value and a caller that
+    wants to say WHERE the value came from must read the same resolution. A
+    corrupt file is an entry in `errors`, never a crash and never a silent
+    downgrade: the shipped defaults stay in force and `--check` reports it.
+    """
+    data = json.loads(json.dumps(DEFAULTS))
+    env = environment()
+    ov = overlay_path(env)
+    errors, ov_keys = [], set()
+    if PATH.exists():
+        try:
+            data = _merge(data, json.loads(PATH.read_text(encoding="utf-8")))
+        except ValueError as exc:
+            # A corrupt base must not take the tools down with it: the shipped
+            # defaults are the fallback, and --check reports the corruption.
+            errors.append("%s: %s" % (PATH, exc))
+    if ov.exists():
+        try:
+            layer = json.loads(ov.read_text(encoding="utf-8"))
+            data = _merge(data, layer)
+            ov_keys = {key for key, _value in _leaves(layer) if key}
+        except ValueError as exc:
+            errors.append("%s: %s" % (ov, exc))
+    return data, env, ov, ov_keys, errors
+
+
 def load() -> dict:
-    if not PATH.exists():
-        return json.loads(json.dumps(DEFAULTS))
-    try:
-        return _merge(DEFAULTS, json.loads(PATH.read_text(encoding="utf-8")))
-    except ValueError:
-        # A corrupt config must not take the tools down with it: the shipped
-        # defaults are the fallback, and --check reports the corruption.
-        return json.loads(json.dumps(DEFAULTS))
+    return load_with_sources()[0]
 
 
 def read_default(dotted: str, fallback=None):
-    """Read `a.b.c` from the profile, falling back to `fallback` on any problem."""
+    """Read `a.b.c` through all four layers, falling back on any problem."""
+    found, value = env_override(dotted)
+    if found:
+        return value
     node = load()
     for part in dotted.split("."):
         if not isinstance(node, dict) or part not in node:
@@ -116,8 +245,21 @@ def coerce(text: str):
             return text
 
 
-def set_key(dotted: str, value) -> None:
-    data = load()
+def set_key(dotted: str, value, path: Path | None = None) -> Path:
+    """Write one knob into the base file, or into an overlay when `path` names it.
+
+    An overlay is written as its own small document, never as the merged result:
+    copying the base into `defaults.wsl.json` would freeze today's values as that
+    host's future and make the base file's later edits invisible there.
+    """
+    target = Path(path or PATH)
+    if target == PATH:
+        data = load()
+    else:
+        try:
+            data = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+        except ValueError:
+            data = {}
     node = data
     parts = dotted.split(".")
     for part in parts[:-1]:
@@ -125,8 +267,9 @@ def set_key(dotted: str, value) -> None:
             node[part] = {}
         node = node[part]
     node[parts[-1]] = value
-    PATH.parent.mkdir(parents=True, exist_ok=True)
-    PATH.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return target
 
 
 def _leaves(data: dict, prefix: str = ""):
@@ -172,6 +315,51 @@ def problems(data: dict) -> list:
     fb = data.get("fallback")
     if not isinstance(fb, dict) or "on_error" not in fb:
         out.append("fallback.on_error must be set (record-and-continue)")
+    else:
+        if fb.get("on_error") not in ("record-and-continue", "abort"):
+            out.append("fallback.on_error must be record-and-continue or abort")
+        if not isinstance(fb.get("record"), str) or not fb.get("record"):
+            out.append("fallback.record must be a non-empty path")
+    he = data.get("hyper_edge")
+    if not isinstance(he, dict):
+        out.append("hyper_edge must be an object")
+    else:
+        for key in ("reading_audit", "settings_shadow", "leg_ledger", "head_audit",
+                    "truncation", "strict"):
+            if not isinstance(he.get(key), bool):
+                out.append("hyper_edge.%s must be true or false" % key)
+        bound = he.get("leg_timeout_s")
+        if not isinstance(bound, (int, float)) or isinstance(bound, bool) or bound < 10:
+            out.append("hyper_edge.leg_timeout_s must be a number >= 10")
+    cov = (data.get("reading_audit") or {}).get("min_coverage")
+    if not isinstance(cov, (int, float)) or isinstance(cov, bool) or not 0.0 <= cov <= 1.0:
+        out.append("reading_audit.min_coverage must be a number 0.0..1.0")
+    age = (data.get("head_audit") or {}).get("max_state_age_days")
+    if not isinstance(age, (int, float)) or isinstance(age, bool) or age < 0:
+        out.append("head_audit.max_state_age_days must be a number >= 0 (0 = off)")
+    readers = (data.get("settings_shadow") or {}).get("readers")
+    if not isinstance(readers, list) or not all(isinstance(r, str) and r for r in readers):
+        out.append("settings_shadow.readers must be a list of non-empty names")
+    ar = data.get("arena")
+    if not isinstance(ar, dict):
+        out.append("arena must be an object")
+    else:
+        if not isinstance(ar.get("endpoint"), str) or not ar.get("endpoint", "").startswith("http"):
+            out.append("arena.endpoint must be an http(s) URL")
+        for key, floor in (("quote_chars", 40), ("max_tokens", 50), ("workers", 1),
+                           ("timeout_s", 5)):
+            value = ar.get(key)
+            if not isinstance(value, int) or isinstance(value, bool) or value < floor:
+                out.append("arena.%s must be an integer >= %d" % (key, floor))
+        quorum = ar.get("quorum")
+        if not isinstance(quorum, (int, float)) or isinstance(quorum, bool) \
+                or not 0.0 < quorum <= 1.0:
+            out.append("arena.quorum must be a number in (0.0, 1.0]")
+    if not isinstance((data.get("retention") or {}).get("composite_eviction"), bool):
+        out.append("retention.composite_eviction must be true or false")
+    floor_gb = (data.get("preflight") or {}).get("disk_floor_gb")
+    if not isinstance(floor_gb, (int, float)) or isinstance(floor_gb, bool) or floor_gb < 0:
+        out.append("preflight.disk_floor_gb must be a number >= 0")
     return out
 
 
@@ -185,8 +373,13 @@ def main(argv=None) -> int:
     ap.add_argument("--set", nargs=2, metavar=("KEY", "VALUE"), default=None)
     ap.add_argument("--init", action="store_true")
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--env", default="",
+                    help="overlay name for this invocation (sets AZAZAEL_ENV); "
+                         "with --set, writes config/defaults.<env>.json")
     args = ap.parse_args(argv)
     PATH = Path(args.path)
+    if args.env:
+        os.environ[ENV_VAR] = args.env
 
     if args.init:
         if PATH.exists():
@@ -199,10 +392,13 @@ def main(argv=None) -> int:
         print("wrote %s" % PATH)
 
     if args.set:
-        set_key(args.set[0], coerce(args.set[1]))
-        print("%s = %r" % (args.set[0], coerce(args.set[1])))
+        target = overlay_path(args.env) if args.env else PATH
+        written = set_key(args.set[0], coerce(args.set[1]), target)
+        print("%s = %r -> %s" % (args.set[0], coerce(args.set[1]), written))
 
-    data = load()
+    data, env, ov, ov_keys, errors = load_with_sources()
+    for line in errors:
+        print("DEFECT: unreadable layer %s" % line, file=sys.stderr)
     if args.get:
         print(read_default(args.get, None))
         return 0
@@ -224,11 +420,23 @@ def main(argv=None) -> int:
     # later -- measured 2026-11-05, when the new `hyper_edge` block existed, was
     # read by tools/deep_dive.py, and did not appear in --show at all. A knob the
     # surface cannot print is a knob nobody can verify is in force (HED-5).
-    print("defaults -- %s (version %s)" % (PATH, data.get("version")))
+    print("defaults -- %s (version %s, environment %s)"
+          % (PATH, data.get("version"), env))
+    print("  overlay %s: %s"
+          % (ov, "%d override(s)" % len(ov_keys) if ov.exists()
+             else "absent (base only; create it with --env %s --set KEY VALUE)" % env))
     rows = list(_leaves({k: v for k, v in data.items() if k != "version"}))
+    overridden = 0
     for name, value in rows:
-        print("  %-30s %s" % (name, value))
-    print("  %d knob(s)" % len(rows))
+        found, forced = env_override(name)
+        mark = ""
+        if found:
+            value, mark, overridden = forced, "  [env]", overridden + 1
+        elif name in ov_keys:
+            mark, overridden = "  [overlay]", overridden + 1
+        print("  %-30s %s%s" % (name, value, mark))
+    print("  %d knob(s), %d overridden for this environment (%s)"
+          % (len(rows), overridden, env))
     return 0
 
 

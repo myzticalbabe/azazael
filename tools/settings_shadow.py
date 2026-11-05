@@ -28,6 +28,17 @@ reports the three shapes the rules forbid:
 No import, no execution: the audit is static by design, so it can run on a tree
 whose tools do not import cleanly -- which is exactly when a reading is wanted.
 
+THE VOCABULARY IS DATA (2026-11-05)
+-----------------------------------
+Which accessor names count as "reading the config" used to be a set literal in
+this module, so a tool that invented a fourth name stayed invisible until
+somebody edited the auditor -- a rule the config could not see and no gate could
+check. The list now lives at `settings_shadow.readers`, is read through the
+shared surface with a literal key (so this module's own knob is not an orphan to
+itself), and `read_default` is always in it because that name is the surface
+rather than a choice. Wrappers are still discovered from source: a function that
+passes its own parameter straight to a reader is that reader's alias.
+
 Exit: 0 when clean or advisory, 1 when clean is required (--strict) and anything
 is open, 2 when the audit could not be performed.
 """
@@ -41,7 +52,51 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "config" / "defaults.json"
-READERS = {"read_default", "setting", "get_default"}
+DEFAULT_READERS = {"read_default", "setting", "get_default"}
+#: The live vocabulary, replaced from `settings_shadow.readers` in main() before
+#: any module is scanned, so the names a tool is judged against are the ones the
+#: config declares.
+READERS = set(DEFAULT_READERS)
+
+
+def _surface_readers(fallback):
+    """The declared vocabulary, read through the shared surface with a literal key.
+
+    This module parses the config itself (the audit is static on purpose), so its
+    own knob would be an `orphan_knob` to itself: the scan finds a read only when
+    a module calls a reader with a literal string. This call IS that read. A tree
+    without `defaults_profile` on the path degrades to the `--config` document.
+    """
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        from defaults_profile import read_default           # noqa: PLC0415
+    except Exception:
+        return fallback
+    try:
+        return read_default("settings_shadow.readers", fallback)
+    except Exception:
+        return fallback
+
+
+def reader_vocabulary(config: dict) -> tuple:
+    """(names, source) for the reader vocabulary, with `read_default` always in.
+
+    Union rather than replace: `read_default` is the shared surface every other
+    name wraps, so an overlay that lists three aliases and forgets the real
+    accessor cannot silently blind the audit. Names are stripped and blanks
+    dropped, because a trailing space in a JSON list is a typo that would hide a
+    reader without reporting anything.
+    """
+    declared = _surface_readers(None)
+    source = "config/defaults.json"
+    if declared is None:
+        node = config.get("settings_shadow")
+        declared = node.get("readers") if isinstance(node, dict) else None
+        source = "the --config document"
+    if not isinstance(declared, list):
+        return set(DEFAULT_READERS), "builtin (no settings_shadow.readers declared)"
+    names = {str(name).strip() for name in declared if str(name).strip()}
+    return {"read_default"} | names, source
 
 
 def flatten(node, prefix="") -> list:
@@ -105,13 +160,22 @@ def local_wrappers(tree: ast.AST) -> set:
     return names
 
 
-def readers_in(path: Path) -> tuple:
+def readers_in(path: Path, declared: set | None = None) -> tuple:
     """(reads, wrappers) for one module.
 
     `reads` is every (key, fallback_text, line) the module takes through the
     shared reader or through a wrapper of it; `wrappers` is the local names that
     were discovered, so the audit can say which vocabulary each tool invented.
+
+    `declared` is the config's own key set, and it exists because the first
+    version kept only keys containing a dot. That quietly excluded every
+    top-level knob: `ast_audit` is a bare key in `config/defaults.json`, so
+    `setting("ast_audit", True)` was wired, correct and invisible -- reported as
+    an orphan (measured 2026-11-05, after five other knobs were wired and this
+    one alone stayed red). A key is now a setting read when it is dotted (nested)
+    or when the config declares that exact name (top-level).
     """
+    top_level = declared or set()
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     except (OSError, SyntaxError) as exc:
@@ -129,7 +193,9 @@ def readers_in(path: Path) -> tuple:
         if _call_name(node) not in targets or not node.args:
             continue
         ok, key = _literal(node.args[0])
-        if not ok or not isinstance(key, str) or "." not in key:
+        if not ok or not isinstance(key, str) or not key:
+            continue
+        if "." not in key and key not in top_level:
             continue
         fallback = "<none>"
         if len(node.args) > 1:
@@ -250,6 +316,9 @@ def main(argv=None) -> int:
         return 2
     declared = {key: value for key, value in flatten(config) if key}
     declared.pop("version", None)
+    vocabulary, vocab_source = reader_vocabulary(config)
+    READERS.clear()
+    READERS.update(vocabulary)
 
     roots = [Path(r) for r in (args.root or [ROOT / "tools", ROOT / "src" / "CORE"])]
     scan_root = " + ".join(str(r) for r in roots)
@@ -261,7 +330,7 @@ def main(argv=None) -> int:
 
     reads, unparseable, aliases, bypasses, surfaces = {}, [], {}, [], []
     for path in modules:
-        found, wrappers = readers_in(path)
+        found, wrappers = readers_in(path, set(declared))
         lines, is_surface = bypasses_in(path)
         if is_surface:
             surfaces.append(path.name)
@@ -317,8 +386,10 @@ def main(argv=None) -> int:
           % (len(declared), len(reads), len(modules), shared, len(findings),
              ", ".join("%s=%d" % kv for kv in sorted(by_class.items())) or "none",
              scan_root))
+    print("reader vocabulary: %s (%d name(s), from %s)"
+          % (", ".join(sorted(READERS)), len(READERS), vocab_source))
     if aliases:
-        print("reader vocabulary: %s -- one knob under several names is how a "
+        print("local wrappers: %s -- one knob under several names is how a "
               "fallback drifts"
               % ", ".join("%s(%s)" % (name, "/".join(sorted(files)))
                           for name, files in sorted(aliases.items())))
@@ -340,6 +411,7 @@ def main(argv=None) -> int:
             "unparseable": unparseable, "by_class": by_class,
             "bypasses": bypasses, "shared_surface": sorted(surfaces),
             "reader_aliases": {k: sorted(v) for k, v in aliases.items()},
+            "reader_vocabulary": sorted(READERS), "vocabulary_source": vocab_source,
         }, indent=2) + "\n", encoding="utf-8")
         print("report: %s" % out)
 

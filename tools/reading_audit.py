@@ -37,6 +37,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+
+def _setting(key: str, fallback):
+    """`config/defaults.json` through the shared reader, with a constant fallback."""
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import defaults_profile            # noqa: PLC0415
+        return defaults_profile.read_default(key, fallback)
+    except Exception:
+        return fallback
+
+
 PASSISH = {"pass", "passed", "ok", "clean", "success", "green", "healthy"}
 VERDICT_KEYS = ("verdict", "result", "status")
 DENOM_KEYS = (
@@ -159,8 +170,13 @@ def audit_file(path: Path, findings: list) -> dict:
     before = len(findings)
     verdicts = audit_verdicts(record, str(path), findings)
     audit_legs(record, str(path), findings)
+    # A per-file flag as well as the per-finding one: coverage is a property of
+    # the artifact set ("did these readings say how much they read"), while a
+    # finding is a property of one record. The first cannot be derived from the
+    # second without counting the artifacts nobody flagged.
+    denominated = any(_positive(value) for _key, value in _denominators(record))
     return {"file": str(path), "verdicts": verdicts,
-            "pass": len(findings) == before}
+            "pass": len(findings) == before, "denominated": denominated}
 
 
 def main(argv=None) -> int:
@@ -195,12 +211,17 @@ def main(argv=None) -> int:
     blind = sum(1 for row in findings
                 if row["class"] in ("denominator_free", "collapsed"))
     index = (blind / verdicts_total) if verdicts_total else 0.0
+    covered = sum(1 for row in audited if row.get("denominated"))
+    coverage = (covered / len(audited)) if audited else 0.0
+    min_coverage = float(_setting("reading_audit.min_coverage", 0.0))
 
     print("reading_audit: %d file(s), %d pass verdict(s), %d finding(s) [%s]"
           % (len(audited), verdicts_total, len(findings),
              ", ".join("%s=%d" % kv for kv in sorted(by_class.items())) or "none"))
     print("blindness index: %d/%d pass verdict(s) cannot be told apart from a run "
           "that read nothing (%.0f%%)" % (blind, verdicts_total, index * 100))
+    print("coverage: %d/%d artifact(s) carry a usable denominator (%.0f%%; floor %.0f%%)"
+          % (covered, len(audited), coverage * 100, min_coverage * 100))
     shown = findings if args.max_list <= 0 else findings[:args.max_list]
     for row in shown:
         print("  - %-19s %s: %s"
@@ -217,9 +238,15 @@ def main(argv=None) -> int:
             "globs": patterns, "files": len(audited),
             "pass_verdicts": verdicts_total, "findings": findings,
             "by_class": by_class, "blindness_index": round(index, 4),
+            "coverage": round(coverage, 4), "min_coverage": min_coverage,
         }, indent=2) + "\n", encoding="utf-8")
         print("report: %s" % out)
 
+    if min_coverage > 0 and coverage < min_coverage:
+        print("reading_audit: coverage %.0f%% is below reading_audit.min_coverage "
+              "%.0f%% -- these artifacts cannot be said to have read the corpus."
+              % (coverage * 100, min_coverage * 100))
+        return 1
     return 1 if (args.strict and findings) else 0
 
 

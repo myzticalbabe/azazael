@@ -367,8 +367,15 @@ def main(argv=None) -> int:
                     help="where the report lands (default: logs/golden_arrow[_mode].json)")
     ap.add_argument("--baseline", action="store_true",
                     help="record this run's failing files as known debt")
-    ap.add_argument("--strict", action="store_true",
-                    help="fail on recorded debt as well as new failures")
+    # `--no-strict` exists so a config-level `golden_arrow.strict=true` can still
+    # be relaxed for one run: a flag that can only turn a gate ON leaves the
+    # operator editing the shared file other lanes read.
+    ap.add_argument("--strict", action=argparse.BooleanOptionalAction,
+                    default=bool(_profile("golden_arrow.strict", False)),
+                    help="fail on recorded debt as well as new failures "
+                         "(default: golden_arrow.strict)")
+    ap.add_argument("--force", action="store_true",
+                    help="run even when golden_arrow.enabled is false")
     ap.add_argument("--status", action="store_true", help="print the last report only")
     ap.add_argument("--no-deep-dive", action="store_true",
                     help="skip the forensic + web stage after the suite")
@@ -387,6 +394,16 @@ def main(argv=None) -> int:
             # how a gate gets switched off.
             write_baseline(last)
         return print_report(last, args.verbose, load_baseline(), args.strict)
+
+    # HED-8: the switch that turns the arrow off lives in the shared config, and
+    # it reports its own state. Exiting 2 is deliberate -- `could not run` is the
+    # one code a caller must not read as success, and a disabled gate is exactly
+    # that. --force is the escape hatch, so nobody has to edit the shared file.
+    if not args.force and not bool(_profile("golden_arrow.enabled", True)):
+        print("GOLDEN ARROW: disabled by golden_arrow.enabled=false. Nothing ran -- "
+              "a switched-off gate is not a pass. Re-enable with `defaults_profile.py "
+              "--set golden_arrow.enabled true`, or run --force.")
+        return 2
 
     py = interpreter()
     files = test_files(args)

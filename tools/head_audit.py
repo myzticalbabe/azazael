@@ -35,9 +35,20 @@ import hashlib
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _setting(key: str, fallback):
+    """`config/defaults.json` through the shared reader, with a constant fallback."""
+    try:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import defaults_profile            # noqa: PLC0415
+        return defaults_profile.read_default(key, fallback)
+    except Exception:
+        return fallback
 
 # One sha width, one place. The ref table, the worktree table and the gap detail
 # all name the same commits; when they abbreviated differently (8 here, 12
@@ -369,6 +380,25 @@ def main(argv=None) -> int:
             findings.append({"class": "stale_head_state", "head": "state/head.json",
                              "detail": "records %s, HEAD is %s"
                                        % (state["head"][:SHA_W], live[:SHA_W])})
+    # A state file can agree with HEAD and still be a stale reading: the numbers
+    # in it (test count, skill count, gate verdict) were measured on some day, and
+    # a month-old file answers for a tree it no longer describes. The floor is a
+    # knob because the right age differs per lane -- 0 keeps it off, which is the
+    # behaviour every existing caller was written against.
+    limit_days = float(_setting("head_audit.max_state_age_days", 0))
+    if limit_days > 0 and not state_gap:
+        try:
+            age_days = (time.time() - HEAD_STATE.stat().st_mtime) / 86400.0
+        except OSError as exc:
+            findings.append({"class": "stale_head_state", "head": "state/head.json",
+                             "detail": "mtime unreadable (%s) -- the reading cannot "
+                                       "be dated" % exc})
+        else:
+            if age_days > limit_days:
+                findings.append({
+                    "class": "stale_head_state", "head": "state/head.json",
+                    "detail": "%.1f day(s) old, floor %.1f -- re-run "
+                              "tools/head_state.py --write" % (age_days, limit_days)})
     lane_rows = audit_lane_heads(state, findings)
 
     by_class = {}

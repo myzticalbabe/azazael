@@ -142,6 +142,7 @@ def hyper_edge_flags() -> dict:
         "settings_shadow": bool(setting("hyper_edge.settings_shadow", True)),
         "leg_ledger": bool(setting("hyper_edge.leg_ledger", True)),
         "head_audit": bool(setting("hyper_edge.head_audit", True)),
+        "truncation": bool(setting("hyper_edge.truncation", True)),
     }
 
 
@@ -150,6 +151,7 @@ HYPER_EDGE_TOOLS = [
     ("settings_shadow", "tools/settings_shadow.py", "hyper_edge.settings_shadow"),
     ("leg_ledger", "tools/leg_ledger.py", "hyper_edge.leg_ledger"),
     ("head_audit", "tools/head_audit.py", "hyper_edge.head_audit"),
+    ("truncation", "tools/truncation_census.py", "hyper_edge.truncation"),
 ]
 
 
@@ -164,6 +166,7 @@ def leg_hyper_edge(_payload):
     a failure, because the report it would audit is being written by this run.
     """
     strict = bool(setting("hyper_edge.strict", False))
+    leg_bound = float(setting("hyper_edge.leg_timeout_s", 300))
     flags = hyper_edge_flags()
     parts, failed, summary = [], [], {}
     for name, rel, key in HYPER_EDGE_TOOLS:
@@ -177,7 +180,7 @@ def leg_hyper_edge(_payload):
             continue
         cmd = [sys.executable, rel] + (["--strict"] if strict else [])
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", timeout=180)
+                              encoding="utf-8", errors="replace", timeout=leg_bound)
         lines = [line for line in (proc.stdout or "").strip().splitlines()
                  if line.strip()]
         first = lines[0] if lines else (proc.stderr or "").strip()[:200]
@@ -363,7 +366,8 @@ def main(argv=None) -> int:
     ap.add_argument("--web", action="store_true", help="web leg only")
     ap.add_argument("--offline", action="store_true", help="force the web fallback")
     ap.add_argument("--query", action="append", default=[], help="explicit query")
-    ap.add_argument("--json", default=str(REPORT))
+    ap.add_argument("--json", default="",
+                    help="where the report lands (default: fallback.record)")
     ap.add_argument("--timeout", type=float, default=None)
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args(argv)
@@ -384,10 +388,19 @@ def main(argv=None) -> int:
         do_web = False
     timeout = args.timeout or float(setting("deep_dive.web_timeout_s", 20))
     max_q = int(setting("deep_dive.max_queries", 3))
+    fallback_mode = str(setting("fallback.on_error", "record-and-continue")).strip().lower()
+    record = args.json or str(setting("fallback.record", str(REPORT)))
+    out = Path(record)
+    if not out.is_absolute():
+        out = ROOT / out
 
     legs, results = [], []
     if do_forensics:
-        legs.extend(FORENSIC_LEGS)
+        for name, fn in FORENSIC_LEGS:
+            if name == "ast_audit" and not bool(setting("ast_audit", True)):
+                why.append("ast_audit leg off (ast_audit=false)")
+                continue
+            legs.append((name, fn))
     if do_web:
         queries = args.query or default_queries(max_q)
         legs.append(("web", leg_web))
@@ -399,10 +412,30 @@ def main(argv=None) -> int:
 
     payload = {"queries": args.query or default_queries(max_q), "timeout": timeout}
     started = time.monotonic()
-    with ThreadPoolExecutor(max_workers=len(legs)) as pool:
-        jobs = [pool.submit(run_leg, name, fn, payload, timeout) for name, fn in legs]
-        for job in jobs:
-            results.append(job.result())
+    if fallback_mode == "abort":
+        # `fallback.on_error=abort` is the operator saying one broken leg ends the
+        # run; it is opt-in because the shipped rule is record-and-continue. Legs
+        # after the failure are recorded as `skipped` with the reason, never left
+        # out: a leg missing from the report reads exactly like a leg that passed.
+        done = set()
+        for name, fn in legs:
+            row = run_leg(name, fn, payload, timeout)
+            results.append(row)
+            done.add(name)
+            if row.get("status") in ("error", "timeout"):
+                for rest, _fn in legs:
+                    if rest not in done:
+                        results.append({"leg": rest, "status": "skipped",
+                                        "seconds": 0.0,
+                                        "detail": "not run: fallback.on_error=abort "
+                                                  "after %s" % name})
+                break
+    else:
+        with ThreadPoolExecutor(max_workers=len(legs)) as pool:
+            jobs = [pool.submit(run_leg, name, fn, payload, timeout)
+                    for name, fn in legs]
+            for job in jobs:
+                results.append(job.result())
     elapsed = round(time.monotonic() - started, 1)
 
     forensic_failed = [r for r in results
@@ -411,11 +444,11 @@ def main(argv=None) -> int:
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "elapsed_s": elapsed,
         "settings": {"enabled": enabled, "forensics": do_forensics, "web": do_web,
-                     "timeout_s": timeout, "max_queries": max_q, "suppressed": why},
+                     "timeout_s": timeout, "max_queries": max_q,
+                     "fallback": fallback_mode, "suppressed": why},
         "legs": results,
         "verdict": "FAIL" if forensic_failed else "PASS",
     }
-    out = Path(args.json)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 

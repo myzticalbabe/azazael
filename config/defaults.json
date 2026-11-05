@@ -29,6 +29,29 @@
     "settings_shadow": true,
     "leg_ledger": true,
     "head_audit": true,
-    "strict": false
+    "truncation": true,
+    "strict": false,
+    "leg_timeout_s": 300
+  },
+  "reading_audit": {
+    "min_coverage": 0.0
+  },
+  "head_audit": {
+    "max_state_age_days": 0
+  },
+  "settings_shadow": {
+    "readers": [
+      "read_default",
+      "setting",
+      "get_default"
+    ]
+  },
+  "arena": {
+    "endpoint": "http://127.0.0.1:8081",
+    "quote_chars": 320,
+    "max_tokens": 300,
+    "workers": 6,
+    "quorum": 0.66,
+    "timeout_s": 120
   }
 }
