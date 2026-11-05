@@ -303,6 +303,100 @@ def gate_publication_gate_passes(
     ]
 
 
+# --- claim binding -----------------------------------------------------------
+#
+# The README's feature table is the project's own inventory of surfaces-with-a
+# reading: `| layer | module | what it does | measured |`. A pin that cites one
+# of those lines (``source: "README.md:26"``) binds a published claim to the
+# instrument that produced the reading. Nothing checked that binding, so a fifth
+# layer could be published with no pin answering for it, and a pin could cite a
+# line that states no measurement at all. Both directions are refused here.
+#
+# The closed set is "rows of a table whose last header cell declares a
+# measurement", which is a property of the project's own markdown rather than a
+# guess at which numbers are claims. A table that does not declare one -- the
+# per-corpus recall table under Limitations, whose last column is `status` -- is
+# outside the rule by construction, not half-covered by a heuristic.
+
+CLAIM_HEADER_WORDS = ("measur", "evidenc", "reading", "result")
+README_CITATION_RE = re.compile(r"README\.md:(\d+)(?:\s*[-\u2013]\s*(\d+))?", re.IGNORECASE)
+
+
+def table_cells(line: str) -> List[str]:
+    """Cells of a markdown pipe-table row, or [] for any other line."""
+    stripped = line.strip()
+    if not stripped.startswith("|"):
+        return []
+    body = stripped[1:]
+    if body.endswith("|"):
+        body = body[:-1]
+    return [cell.strip() for cell in body.split("|")]
+
+
+def readme_claim_rows(project: Path) -> List[Dict[str, Any]]:
+    """Rows of every README table whose last header cell declares a measurement."""
+    path = project / "README.md"
+    if not path.is_file():
+        raise Blinded("no README.md under %s, so there is no claim surface to bind" % project)
+    rows: List[Dict[str, Any]] = []
+    header: Optional[List[str]] = None
+    text = path.read_text(encoding="utf-8", errors="replace")
+    for number, line in enumerate(text.splitlines(), 1):
+        cells = table_cells(line)
+        if not cells:
+            header = None  # a table ends at the first non-table line
+            continue
+        if all(set(cell) <= set("-: ") for cell in cells):
+            continue  # the |---|---| rule under a header
+        if header is None:
+            header = cells
+            continue
+        last = header[-1].lower()
+        if not any(word in last for word in CLAIM_HEADER_WORDS):
+            continue
+        rows.append(
+            {
+                "line": number,
+                "surface": cells[0],
+                "text": line.strip(),
+            }
+        )
+    return rows
+
+
+def gate_claims_are_pinned(
+    ledger: Dict[str, Any], pins: List[Dict[str, Any]], project: Path, manifest: Dict[str, Any]
+) -> List[str]:
+    """Every measured row has a pin, and every README citation names a measured row."""
+    errors: List[str] = []
+    rows = readme_claim_rows(project)
+    measured_lines = {row["line"] for row in rows}
+
+    cited: Dict[int, List[str]] = {}
+    for pin in pins:
+        pin_id = str(pin.get("id") or "?")
+        source = str(pin.get("source") or "")
+        for match in README_CITATION_RE.finditer(source):
+            start = int(match.group(1))
+            end = int(match.group(2) or start)
+            for line in range(start, end + 1):
+                cited.setdefault(line, []).append(pin_id)
+
+    for row in rows:
+        if row["line"] not in cited:
+            errors.append(
+                "README.md:%d (%s) publishes a measurement and no pin answers for it"
+                % (row["line"], row["surface"])
+            )
+    for line in sorted(cited):
+        if line not in measured_lines:
+            errors.append(
+                "%s cites README.md:%d, which is not a row of a measured table: a pin must "
+                "cite a reading" % (", ".join(cited[line]), line)
+            )
+    return errors
+
+
 GateFn = Callable[[Dict[str, Any], List[Dict[str, Any]], Path, Dict[str, Any]], List[str]]
 
 GATES: Dict[str, GateFn] = {
@@ -312,6 +406,7 @@ GATES: Dict[str, GateFn] = {
     "safety-precedence-has-a-test": gate_safety_precedence_has_a_test,
     "disclosure-manifest-is-closed": gate_disclosure_manifest_is_closed,
     "carried-claims-say-why": gate_carried_claims_say_why,
+    "claims-are-pinned": gate_claims_are_pinned,
     "publication-gate-passes": gate_publication_gate_passes,
 }
 

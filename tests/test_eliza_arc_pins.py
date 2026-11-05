@@ -26,6 +26,7 @@ from tools.eliza_arc_pins import (
     exit_code_for,
     gate_carried_claims_say_why,
     gate_claim_number_was_measured,
+    gate_claims_are_pinned,
     gate_disclosure_manifest_is_closed,
     gate_instrument_exists,
     gate_no_clinical_claim,
@@ -37,6 +38,7 @@ from tools.eliza_arc_pins import (
     number_tokens,
     pin_table,
     pins_of,
+    readme_claim_rows,
     verdict,
     VERDICT_BLIND,
     VERDICT_GAPS,
@@ -113,10 +115,23 @@ def test_shipped_ledger_declares_exactly_the_implemented_gates():
 
 
 def test_shipped_ledger_has_no_structural_defect():
-    """Only the publication gate may fail: no other error class is present."""
+    """Only two classes may fail: the publication gate, and rows nobody has pinned yet."""
     errors, _warnings, _carried = check(load_ledger())
-    others = [err for err in errors if "publication gate" not in err and "banner claims" not in err]
+    others = [
+        err
+        for err in errors
+        if "publication gate" not in err
+        and "banner claims" not in err
+        and "publishes a measurement and no pin answers" not in err
+    ]
     assert others == []
+
+
+def test_shipped_readme_rows_without_a_pin_are_exactly_three():
+    """A ratchet on the unpinned set: a fourth unpinned reading fails this test."""
+    errors, _warnings, _carried = check(load_ledger())
+    unpinned = [err.split()[0] for err in errors if "publishes a measurement" in err]
+    assert unpinned == ["README.md:32", "README.md:33", "README.md:34"]
 
 
 def test_shipped_ledger_structure_is_clean_without_running_gates():
@@ -473,6 +488,74 @@ def test_main_gates_flag_prints_the_table(capsys):
     out = capsys.readouterr().out
     assert "E11" in out
     assert "carried" in out
+
+
+# --- gate: claims-are-pinned -----------------------------------------------
+
+CLAIM_README = (
+    "# ELIZA\n"  # 1
+    "\n"  # 2
+    "| layer | module | measured |\n"  # 3
+    "| --- | --- | --- |\n"  # 4
+    "| triage | a.py | p50 0.025 ms |\n"  # 5
+    "| safety | b.py | 6 precedence tests |\n"  # 6
+    "\n"  # 7
+    "| limitation | status |\n"  # 8
+    "| --- | --- |\n"  # 9
+    "| no clinical use | open |\n"  # 10
+)
+
+
+def _project(tmp_path, text=CLAIM_README):
+    (tmp_path / "README.md").write_text(text, encoding="utf-8")
+    return tmp_path
+
+
+def test_claim_reader_takes_only_rows_of_a_measured_table(tmp_path):
+    rows = readme_claim_rows(_project(tmp_path))
+    assert [row["line"] for row in rows] == [5, 6]
+    assert [row["surface"] for row in rows] == ["triage", "safety"]
+
+
+def test_claim_reader_blinds_without_a_readme(tmp_path):
+    with pytest.raises(Blinded):
+        readme_claim_rows(tmp_path)
+
+
+def test_claim_gate_is_silent_when_every_measured_row_is_cited(tmp_path):
+    pins = [_pin(id="T1", source="README.md:5"), _pin(id="T2", source="README.md:6")]
+    assert gate_claims_are_pinned(_ledger(pins), pins, _project(tmp_path), MANIFEST) == []
+
+
+def test_claim_gate_accepts_a_cited_line_range(tmp_path):
+    pins = [_pin(id="T1", source="README.md:5-6")]
+    assert gate_claims_are_pinned(_ledger(pins), pins, _project(tmp_path), MANIFEST) == []
+
+
+def test_claim_gate_fires_on_a_measured_row_no_pin_answers_for(tmp_path):
+    pins = [_pin(id="T1", source="README.md:5")]
+    errors = gate_claims_are_pinned(_ledger(pins), pins, _project(tmp_path), MANIFEST)
+    assert len(errors) == 1
+    assert errors[0].startswith("README.md:6 (safety)")
+    assert "no pin answers for it" in errors[0]
+
+
+def test_claim_gate_fires_on_a_citation_into_a_table_that_measures_nothing(tmp_path):
+    pins = [
+        _pin(id="T1", source="README.md:5"),
+        _pin(id="T2", source="README.md:6"),
+        _pin(id="T3", source="README.md:10"),
+    ]
+    errors = gate_claims_are_pinned(_ledger(pins), pins, _project(tmp_path), MANIFEST)
+    assert len(errors) == 1
+    assert "T3 cites README.md:10" in errors[0]
+    assert "not a row of a measured table" in errors[0]
+
+
+def test_claim_gate_fires_on_both_faults_at_once(tmp_path):
+    pins = [_pin(id="T1", source="README.md:6"), _pin(id="T2", source="README.md:9")]
+    errors = gate_claims_are_pinned(_ledger(pins), pins, _project(tmp_path), MANIFEST)
+    assert len(errors) == 2
 
 
 # --- loader blinding --------------------------------------------------------

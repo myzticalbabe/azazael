@@ -144,7 +144,7 @@ it does not prove:** that the branch is safe in deployment — only that the cod
 which selects a stance cannot choose a non-crisis stance once triage returns crisis.
 Given the three misses above, that distinction is the whole point.
 
-## The seven gates
+## The eight gates
 
 Every gate is implemented in `tools/eliza_arc_pins.py`. A gate declared in the ledger
 without an implementation is an error, and an implementation not declared is an error
@@ -158,6 +158,7 @@ without an implementation is an error, and an implementation not declared is an 
 | `safety-precedence-has-a-test` | a safety claim whose named test is absent or undefined |
 | `disclosure-manifest-is-closed` | a manifest with no allowlist, no deny list, or no stated status |
 | `carried-claims-say-why` | a tier-B figure carried without a reason, or a tier-A figure with no command |
+| `claims-are-pinned` | **a measured README row no pin answers for, or a pin citing a row that measures nothing** |
 | `publication-gate-passes` | a publication banner the project's own gate refuses |
 
 `claim-number-was-measured` is the one worth naming twice: it compares the numbers in
@@ -166,26 +167,46 @@ a claim against the numbers in the reading that is supposed to support it. A cla
 nobody printed, and the gate normalises separators precisely so it cannot be passed
 by typing the same figure two different ways.
 
+`claims-are-pinned` closes the one binding this wing lacked. Until it existed, the
+pins were bound to instruments and to each other but **not to the tree**: a pin could
+cite `README.md:26` whether or not line 26 published a reading, and a measured row
+could sit in the README with nothing answering for it. It reads every table whose
+last header cell declares a measurement (`measur`, `evidenc`, `reading`, `result`),
+requires a pin for each such row, and refuses a citation into a table that measures
+nothing — the limitations table's `status` column is deliberately outside it, because
+a status is not a reading. What it does not prove: that the reading in the row is
+*correct*, only that a pin has claimed it. Correctness is `claim-number-was-measured`.
+
 `publication-gate-passes` runs the project's gate live — `subprocess.run` with a
 180-second bound, `encoding="utf-8"`, `errors="replace"` — and reads its exit status.
 It is not a transcription of a past run: the wing reports today's answer, and it
 would go quiet the day the gate goes green.
 
-## Measured state, 2026-11-04
+## Measured state, 2026-11-05
 
 ```
 $ C:/Azazael/.venvs/py315t/Scripts/python.exe tools/eliza_arc_pins.py
 verdict: GAPS
-ledger: 11 pins, 7 implemented gates, 2 declared gaps
-errors: 2
-  [GAP] publication gate exits 1: Publication is blocked. An undeclared file is not
-        necessarily forbidden -- declare it in PUBLIC_MANIFEST.json, or remove it.
+ledger: 11 pins, 8 implemented gates, 2 declared gaps
+errors: 5
+  [GAP] README.md:32 (bypass) publishes a measurement and no pin answers for it
+  [GAP] README.md:33 (ultra-loose) publishes a measurement and no pin answers for it
+  [GAP] README.md:34 (concurrent) publishes a measurement and no pin answers for it
+  [GAP] publication gate exits 1: Publication is blocked. An undeclared file is not necessarily forbidden -- declare it in PUBLIC_MANIFEST.json, or remove it.
   [GAP] the banner claims a publishable tree; the project's own gate refuses it
 carried (stated by the project, not re-measured here): E1, E2, E3, E4
 exit 1
 ```
 
-`tests/test_eliza_arc_pins.py`: **62 tests, 0 failures** — every gate driven both
+The three `README.md:32-34` lines are the gate's first real finding: the README's
+second table publishes three figures whose last column also declares a measurement,
+and no pin answers for them. They are recorded as GAPS rather than repaired here
+because pinning them needs a reading this container cannot take — the pin's tier and
+instrument are the owning lane's to name. Moving those rows into a table that does
+not claim a measurement would also clear the gate, and would be the wrong repair: it
+would delete the claim instead of answering for it.
+
+`tests/test_eliza_arc_pins.py`: **70 tests, 0 failures** — every gate driven both
 ways (silent on a satisfying pin, firing on a violating one), the verdict and exit
 codes, and every blinding path.
 

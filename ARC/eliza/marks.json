@@ -10,6 +10,7 @@
     "safety-precedence-has-a-test",
     "disclosure-manifest-is-closed",
     "carried-claims-say-why",
+    "claims-are-pinned",
     "publication-gate-passes"
   ],
   "pins": [

@@ -104,7 +104,7 @@ changes, which is the only thing that should expire it.
 container: GAPS
 esquire    READY       pins=20     errors=0
 cain       READY       pins=8      errors=0
-eliza      GAPS        pins=11     errors=2
+eliza      GAPS        pins=11     errors=5
 provenance INCOMPLETE  pins=39     errors=0
 blocked: golgotha
 undeclared: none
@@ -151,6 +151,62 @@ Measured 2026-11-05 on this tree: 39 pins — 9 backed, 7 re-runnable instrument
 0 defects, 14 coverage gaps (all 14 in `esquire/`, all tier A). That reading is
 what `INCOMPLETE` is for: the container's instruments all work, and the evidence
 says less than the pins do.
+
+## Binding leg — is every declared surface pinned?
+
+The evidence leg asks whether a pin's *proof* can still be found. The binding leg
+asks the other half of the same question: **does every surface the wing declares
+have a pin answering for it?** A wing whose checker already enforces that is a
+wing whose green means something; a wing that publishes a measurement nothing is
+bound to is publishing an assertion.
+
+```
+python tools/arc_pin_audit.py                  # declared vs pinned, per wing
+python tools/arc_pin_audit.py --wing eliza     # one wing
+python tools/arc_pin_audit.py --prove          # mutation control, see below
+python tools/arc_pin_audit.py --json logs/arc_pin_audit.json
+```
+
+Verdicts: `CLEAN` 0, `MISSING` 1, `BLIND` 2. It reads each wing's declaration from
+the wing's own module — esquire's `GATE_METADATA` and `declared_gaps`, cain's live
+`(vendor, architecture)` pairs, eliza's README rows in a table whose last header
+cell declares a measurement — so the audit cannot invent a surface the wing does
+not publish, or miss one it does. A declared surface with no pin is `MISSING`; a
+pin answering for a surface the wing never declared is an orphan, and also
+`MISSING`; `BLIND` is reserved for a declaration that could not be read at all.
+
+`--prove` is the control that makes the audit more than a second opinion: it
+copies each wing's ledger, **removes every pin answering for one declared
+surface**, runs the wing's own checker against the copy, and reports `BITES`
+(exit non-zero) or `SILENT`. The first version of this control deleted a single
+pin, and esquire reported `SILENT` — correctly, because esquire shares gates
+between pins, so removing P1 left G6 covered by P4. The binding was fine and the
+control was wrong; a control that only ever deletes one pin tests the ledger's
+redundancy, not the wing's enforcement.
+
+Measured 2026-11-05 on this tree:
+
+```
+$ C:/Azazael/.venvs/py315t/Scripts/python.exe tools/arc_pin_audit.py --prove
+  wing     declared  pinned  missing  rule
+  esquire        11      11        0  tools/esquire_pins.py: '%s has no pin'
+  cain            7       7        0  tools/cain_obsolescence_pins.py: 'is published and unpinned'
+  eliza           7       4        3  tools/eliza_arc_pins.py: 'publishes a measurement and no pin answers for it'
+  [MISSING] eliza: README.md:32 bypass
+  [MISSING] eliza: README.md:33 ultra-loose
+  [MISSING] eliza: README.md:34 concurrent
+  [CONTROL] esquire: removed P7 for G1 -> checker exit 1 (BITES)
+  [CONTROL] cain: removed C1 for Microsoft / TPM 2.0 / Secure Boot Gate -> checker exit 1 (BITES)
+  [CONTROL] eliza: removed E4 for README.md:23 -> checker exit 1 (BITES)
+verdict: MISSING
+exit 1
+```
+
+The three eliza rows are real, not a tooling gap: the README's second table
+publishes three figures whose last column declares a measurement, and no pin
+answers for them. They are recorded as gaps for the owning lane rather than
+pinned here, because a pin's tier, instrument and command are the lane's to name
+and a container that invents them would be fabricating the evidence it grades.
 
 ## esquire/ — the admissibility wing
 
