@@ -9,6 +9,30 @@ This worktree is shared. A "clean tree" is not "nothing is dirty" — other lane
 have work in flight by design. It is **nothing dirty that your lane cannot name a
 board row or a commit for**.
 
+## 0.1 Which lanes this reaches, and which it cannot
+
+The poster accepts exactly three lanes. Measured 2026-11-05 while delivering this
+instruction:
+
+```
+$ python C:/Users/clint/_board.py post freebuff task "..." --from freebuff   -> POST freebuff->freebuff: delivery_row=47672
+$ python C:/Users/clint/_board.py post kilo     task "..." --from freebuff   -> POST freebuff->kilo: delivery_row=47674
+$ python C:/Users/clint/_board.py post opencode task "..." --from freebuff   -> POST freebuff->opencode: delivery_row=47676
+$ python C:/Users/clint/_board.py post crush    task "..." --from freebuff   -> REFUSED: dst_lane must be one of ('opencode', 'kilo', 'freebuff'), got 'crush'
+$ python C:/Users/clint/_board.py post agy      task "..." --from freebuff   -> REFUSED: dst_lane must be one of ('opencode', 'kilo', 'freebuff'), got 'agy'
+```
+
+`_board.py`'s own module docstring says "Board reader/poster for interactive CLI
+lanes (crush, kilo, agy, opencode)" — four names, of which the validation accepts
+three and adds `freebuff`. A document that promises delivery to `crush` or `agy`
+promises something the tool refuses. If either lane is live, it has no queue here
+until that set is widened; until then its instruction is this file, read
+directly.
+
+`tasks <lane>` prints a truncated `detail` (the three deliveries store 882, 936
+and 833 characters respectively; the reader showed roughly the first 500). Read a
+row's full text from the store, never from the truncated listing.
+
 ---
 
 ## 0. The state this instruction answers (measured, not asserted)
