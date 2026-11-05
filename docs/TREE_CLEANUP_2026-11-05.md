@@ -200,3 +200,84 @@ producer named, which is enough to ask the question — and not enough to answer
 
 > Leave the worktree with **nothing dirty your lane cannot name**, and state your
 > name in the commit that removes it.
+
+---
+
+## 8. Post-incident revision — 2026-11-05T10:20Z, HEAD `ad5d7157`
+
+Sections 0–7 are pinned at `6579f565` and are left as written; this section
+corrects them with what was measured afterwards. Nothing above is edited, because
+a cleanup instruction whose own history is silently rewritten is one more artifact
+that cannot be re-read.
+
+### 8.1 The tree, re-measured
+
+```
+$ git rev-parse --short HEAD                     -> ad5d7157 (branch azazael-intel-ultra-9-evo)
+$ git status --porcelain | wc -l                 -> 0
+$ git status --porcelain | grep -c '^ D'         -> 0
+$ git status --porcelain | grep -c '^ M'         -> 0
+$ git status --porcelain | grep -c '^??'         -> 0
+```
+
+The 55 dirty entries of §0 are gone, and every one of the three unowned paths
+(§6) was resolved by the lane that produced it: `.audit/` by `ad5d7157`
+(1,588 files, index hygiene), the CAIN files by the CAIN slice `13cc87b3`, and
+`bcc_bypass.py` with its tests and harvest row.
+
+### 8.2 Two §6 rows were read wrong, and how
+
+| §6 row | what §6 said | what was measured later |
+| --- | --- | --- |
+| `ARC/deere/*` 19 `D` + 19 `??` | freebuff re-lands the move; the tree holds the only copy | **The move landed.** `git show --name-status --format= 5e98e9d0` → `19 R100` (`ARC/deere/` → `analysis/deere/`), committed 10:03:59. Nothing was re-landed and nothing was lost |
+| `c07ee3a1` dangling | a commit no branch contains | still true of the *commit*; it was never true of the *work*, which landed under `5e98e9d0` |
+
+The defect was in the reading, not the tree: `19 D + 19 ??` is the **shape** of a
+move and the **shape** of a loss. §2 rule 5 tells you to check ancestry of a sha;
+it does not tell you to check whether a *different* sha carries the same content.
+A move assertion needs `--name-status` with rename detection, or `git log --follow`.
+
+### 8.3 The restore at 09:56, kept as a finding
+
+Between 09:56:43 and 09:57:03 EST a mass restore ran: tracked files reverted to
+HEAD (`bcc_bypass.py` mtime 09:57:03, its gzip fix absent), untracked work
+deleted (`cain_marks.json`, `cain_marks_final.json`), and
+`state/bake_harvest_freebuff_2026-11-04.jsonl` rewritten to HEAD with its two
+`kit-gzip` rows gone. Full record: `docs/INCIDENT_2026-11-05_WORKTREE_RESTORE.md`
+(141 lines), including §1.1, which retracts the two claims that did not survive
+measurement.
+
+- **Recoverable:** the tracked edits (rewritten by hand, tests green).
+- **Unrecoverable:** the two harvest rows. They were never committed — absent in
+  `git show HEAD:state/bake_harvest_freebuff_2026-11-04.jsonl` as well — so no
+  object held them. Four recovery routes were tried and came back negative
+  (`.git/lost-found/other`: 131 objects, no match; 1,728 `.audit/*.jsonl`; the
+  `G:/` mirror tree; `//wsl.localhost`), and a route that was *tested and came
+  back empty* is what makes "unrecoverable" a finding rather than a shrug.
+- **Culprit:** unattributed. `git reflog` shows only this session's own commits,
+  because a `git restore` writes no reflog entry. No lane posted a restore or
+  clean status row. Recorded as unknown, not as a lane.
+
+### 8.4 Two rules added, both bought today
+
+8. **Snapshot before a destructive verb.** `python tools/worktree_snapshot.py
+   --snapshot` writes a sha256 manifest under `.worktree-snapshots/` (gitignored)
+   and `--restore <STAMP>` puts the bytes back; `--verify` re-checks them. Caps are
+   25 MB per file and 512 MB total — this disk was at 99% — and **files outside
+   the caps, or ignored by `.gitignore`, are named in the output** rather than
+   silently skipped. It cannot protect what it does not capture, so it says what
+   it did not capture.
+9. **An empty index is not proof of a no-op.** After another lane's commit, `git
+   diff --cached` reads 0 whether your files were swept out *or are already in
+   HEAD*. `git add` exits 0 in both cases. The only landing proof is content:
+   `git ls-tree HEAD -- <paths>` and `git diff HEAD -- <paths>` empty. Measured
+   today: five files staged for this lane's own commit were absorbed by
+   `ad5d7157`, whose message describes none of them — the work landed, the
+   attribution did not. A handoff must cite the commit that *contains* the file
+   and say that its message is not a description.
+
+### 8.5 Expiry
+
+Section 8.1's zeros are a reading at `ad5d7157`, 2026-11-05T10:20Z. Re-measure
+before quoting after **2026-11-12**. Sections 2, 8.4 and 8.2's rename rule do not
+expire: they are properties of git and of this worktree, not counts.
