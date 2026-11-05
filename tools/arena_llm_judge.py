@@ -55,6 +55,22 @@ DEFAULT_URL = os.environ.get("ARC_JUDGE_URL", "http://127.0.0.1:8081")
 DEFAULT_MODEL = os.environ.get("ARC_JUDGE_MODEL", "local")
 QUORUM = 0.66
 
+
+def _setting(key: str, fallback):
+    """`config/defaults.json` through the shared reader, with a constant fallback.
+
+    The endpoint, the worker count and the quorum were literals here, so a
+    machine whose judge lives on another port -- or a slower one that needs a
+    longer timeout -- had to edit the tool. They are knobs now (HED-5), and the
+    env overlay means one machine's slower endpoint does not touch the others.
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import defaults_profile            # noqa: PLC0415
+        return defaults_profile.read_default(key, fallback)
+    except Exception:
+        return fallback
+
 VERDICTS = ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "BLOCKED")
 STRENGTH = {"SUPPORTED": 3, "PARTIAL": 2, "UNSUPPORTED": 1, "BLOCKED": 0}
 
@@ -148,6 +164,24 @@ def extract_json(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _elide(text: Any, width: int) -> str:
+    """A cut string that SAYS it was cut.
+
+    `normalise` used to slice a judge's quote and reason silently, so a row that
+    quoted 300 of 900 characters was indistinguishable from a judge that wrote
+    300. The marker is the difference between a short quote and a shortened one.
+    """
+    text = str(text)
+    return text if len(text) <= width else text[:width] + "..."
+
+
+def _elide_list(values: Any, width: int) -> Tuple[List[str], bool]:
+    """(capped list, was_it_capped). The flag, not a fake "..." element, so no
+    downstream count is inflated by a placeholder that is not an element."""
+    items = [str(x) for x in (values or [])]
+    return items[:width], len(items) > width
+
+
 def normalise(parsed: Dict[str, Any]) -> Dict[str, Any]:
     verdict = str(parsed.get("verdict", "")).strip().upper()
     if verdict not in VERDICTS:
@@ -156,13 +190,17 @@ def normalise(parsed: Dict[str, Any]) -> Dict[str, Any]:
         confidence = float(parsed.get("confidence", 0))
     except (TypeError, ValueError):
         confidence = 0.0
+    supports, supports_cut = _elide_list(parsed.get("supports_elements"), 8)
+    missing, missing_cut = _elide_list(parsed.get("missing_elements"), 8)
     out = {
         "verdict": verdict,
         "confidence": max(0.0, min(1.0, confidence)),
-        "supports_elements": [str(x) for x in (parsed.get("supports_elements") or [])][:8],
-        "missing_elements": [str(x) for x in (parsed.get("missing_elements") or [])][:8],
-        "best_quote": str(parsed.get("best_quote", ""))[:300],
-        "reason": str(parsed.get("reason", ""))[:400],
+        "supports_elements": supports,
+        "missing_elements": missing,
+        "supports_truncated": supports_cut,
+        "missing_truncated": missing_cut,
+        "best_quote": _elide(parsed.get("best_quote", ""), 300),
+        "reason": _elide(parsed.get("reason", ""), 400),
     }
     return out
 
@@ -282,24 +320,68 @@ def grade_pin(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         return dict(base, grade="SUPPORTED", reason="%d/%d judges SUPPORTED" % (tally[top], len(votes)))
     if STRENGTH[top] > 1 and share >= QUORUM:
         return dict(base, grade="PARTIAL", reason="%d/%d judges PARTIAL" % (tally[top], len(votes)))
-    return dict(base, grade="PARTIAL" if tally["PARTIAL"] or tally["SUPPORTED"] else "UNSUPPORTED",
-                reason="no quorum: %s" % json.dumps(tally))
+    # A split vote is not a weak verdict, it is the ABSENCE of one. The previous
+    # line reported `PARTIAL` whenever any judge said PARTIAL, so 3 UNSUPPORTED /
+    # 2 PARTIAL / 1 BLOCKED -- 0.50 against a 0.66 quorum -- printed as a PARTIAL
+    # grade with "no quorum" beside it (measured 2026-11-05, round r2, pin C4).
+    # The reason contradicted the grade, and a reader takes the grade.
+    return dict(base, grade="NO_QUORUM",
+                reason="no quorum: %s (%.2f < %.2f needed)"
+                       % (json.dumps(tally), share, QUORUM))
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="LLM arena judge over the CAIN evidence packet")
     ap.add_argument("--packet", default="ARC/cain/evidence_packet.json")
     ap.add_argument("--out", default="ARC/cain/arena_llm_judgments.json")
-    ap.add_argument("--url", default=DEFAULT_URL)
-    ap.add_argument("--timeout", type=float, default=180.0)
-    ap.add_argument("--workers", type=int, default=3)
+    # Every one of these is a knob now; the constant stays as the shipped
+    # fallback so a missing config degrades instead of crashing (HED-5).
+    global QUORUM
+    QUORUM = float(_setting("arena.quorum", QUORUM))
+    ap.add_argument("--url", default=str(_setting("arena.endpoint", DEFAULT_URL)))
+    ap.add_argument("--timeout", type=float,
+                    default=float(_setting("arena.timeout_s", 180.0)))
+    ap.add_argument("--workers", type=int,
+                    default=int(_setting("arena.workers", 3)))
     ap.add_argument("--round", default="r1")
-    ap.add_argument("--quote-chars", type=int, default=320)
-    ap.add_argument("--max-tokens", type=int, default=300)
+    ap.add_argument("--quote-chars", type=int,
+                    default=int(_setting("arena.quote_chars", 320)))
+    ap.add_argument("--max-tokens", type=int,
+                    default=int(_setting("arena.max_tokens", 300)))
     ap.add_argument("--pins", default="", help="re-judge only these pins, e.g. C3")
     ap.add_argument("--checkpoint", default="",
                     help="append each finished row here as JSONL, so a timeout leaves a partial artifact")
+    ap.add_argument("--regrade", action="store_true",
+                    help="re-derive the pin grades from an existing --out artifact's rows "
+                         "without calling the model (a rule change, not a re-judge)")
     args = ap.parse_args(argv)
+
+    if args.regrade:
+        # The rows are the evidence and the tally is a rule applied to them, so a
+        # rule change must not require 42 fresh model calls. This is also the only
+        # honest way to show a corrected rule against the SAME votes.
+        path = Path(args.out)
+        if not path.exists():
+            print("regrade: %s does not exist -- nothing to re-derive" % path)
+            return 2
+        data = json.loads(path.read_text(encoding="utf-8"))
+        rows = data.get("rows") or []
+        if not rows:
+            print("regrade: %s holds no rows -- nothing to re-derive" % path)
+            return 2
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for row in rows:
+            grouped.setdefault(row.get("pin"), []).append(row)
+        data["pins"] = {pin_id: grade_pin(pin_rows)
+                        for pin_id, pin_rows in grouped.items()}
+        data.setdefault("meta", {})["regraded_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        data["meta"]["quorum"] = QUORUM
+        path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n",
+                        encoding="utf-8")
+        for pin_id, grade in data["pins"].items():
+            print("  %-3s %-11s %s" % (pin_id, grade["grade"], grade["reason"]))
+        return 0 if all(g["grade"] not in ("BLIND", "NO_QUORUM")
+                        for g in data["pins"].values()) else 1
 
     try:
         model_rec = probe_model(args.url)
@@ -371,7 +453,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         for r in blind_rows[:6]:
             print("  %-22s %-3s %s | %s" % (r["judge"][:22], r["pin"], r.get("error", "")[:60],
                                             r.get("raw", "")[:80].replace("\n", " ")))
-    return 0 if not blind_rows else 1
+    # A pin that reached no quorum is a reading that was not obtained: exit 1 so a
+    # caller cannot mistake "the judges split" for "the judges agreed".
+    no_reading = [pin_id for pin_id, grade in by_pin.items()
+                  if grade["grade"] in ("BLIND", "NO_QUORUM")]
+    if no_reading:
+        print("no verdict obtained for: %s" % ", ".join(no_reading))
+    return 0 if not blind_rows and not no_reading else 1
 
 
 if __name__ == "__main__":
