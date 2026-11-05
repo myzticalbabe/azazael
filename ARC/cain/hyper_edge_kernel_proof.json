@@ -8,8 +8,8 @@
    "userspace": "path+sha256 changed with the path",
    "verdict": "kernel",
    "detail": {
-    "before": "f6485b6c485b2a9f:d519130000005b000000000000000000",
-    "after": "f6485b6c485b2a9f:d519130000005b000000000000000000"
+    "before": "f6485b6c485b2a9f:31131300000052000000000000000000",
+    "after": "f6485b6c485b2a9f:31131300000052000000000000000000"
    }
   },
   {
@@ -36,14 +36,14 @@
   },
   {
    "primitive": "concurrency accounting",
-   "kernel": "0.31 cpu-s over 0.118 s wall = par 2.66 of 4",
+   "kernel": "0.31 cpu-s over 0.117 s wall = par 2.68 of 4",
    "userspace": "wall clock alone cannot exceed 1.0 by construction",
    "verdict": "kernel",
    "detail": {
     "workers": 4,
     "sum_cpu_s": 0.3125,
-    "wall_s": 0.11759529999108054,
-    "par_ratio": 2.6574191317484863,
+    "wall_s": 0.11677249999775086,
+    "par_ratio": 2.676143783904764,
     "cpu_per_task": [
      0.078125,
      0.078125,
@@ -53,7 +53,7 @@
    }
   }
  ],
- "measured_at": "2026-11-05T19:55:18Z",
+ "measured_at": "2026-11-05T20:06:44Z",
  "faults": [],
  "verdict": "NATIVE-WITH-PARITY"
 }

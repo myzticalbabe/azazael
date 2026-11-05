@@ -33,7 +33,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from . import microcode
+from . import kernel, microcode
 
 __all__ = ["DREAM_FILE", "DEFAULT_URL", "discriminate", "dream", "grade", "replay",
            "served_model"]
@@ -165,7 +165,35 @@ def dream(count: int = 4, url: Optional[str] = None, timeout: float = 240.0,
     return {"status": "OK" if dreams else "EMPTY",
             "reason": "" if dreams else "; ".join(refused or ["no dream survived grading"]),
             "model": model, "endpoint": endpoint, "dreams": dreams,
+            "graded_against": binding(),
             "refused": refused, "as_of": "recorded by HYPER_EDGE.dream"}
+
+
+def binding() -> Dict[str, str]:
+    """The control-case artefact these dreams were graded against.
+
+    A dream is a hypothesis about a *specific* microcode and a specific policy
+    file. Re-grading it after that artefact was re-issued would be grading a
+    hypothesis against a different world, so the identity travels with the dream
+    set and :func:`is_current` can refuse the comparison.
+    """
+    path = microcode.policy_path()
+    identity = kernel.file_identity(path)
+    return {"artifact": str(path), "artifact_id": (identity or {}).get("id", "")}
+
+
+def is_current(entry: Mapping[str, Any]) -> bool:
+    """True when the artefact a dream was graded against is still that artefact.
+
+    An unbound dream (recorded before identities were carried) returns ``True``
+    and is labelled ``unbound`` by the caller: discarding every stored dream over
+    a missing field would delete evidence, which is the opposite of the point.
+    """
+    recorded = entry.get("artifact_id")
+    if not recorded:
+        return True
+    live = kernel.file_identity(entry.get("artifact") or "")
+    return bool(live and live["id"] == recorded)
 
 
 def grade(raw: Sequence[Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
@@ -204,10 +232,11 @@ def replay(dreams: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     """Re-grade stored dreams under the policy in force (they are not frozen)."""
     rows: List[Dict[str, Any]] = []
     for entry in dreams:
+        current = is_current(entry)
         result = microcode.evaluate(entry["record"])
-        rows.append({"id": entry.get("id"), "rung": result["rung"],
-                     "was": entry.get("rung"),
-                     "moved": result["rung"] != entry.get("rung"),
+        rows.append({"id": entry.get("id"), "rung": result["rung"] if current else "STALE",
+                     "was": entry.get("rung"), "stale": not current,
+                     "moved": current and result["rung"] != entry.get("rung"),
                      "op_states": {code: state for code, state in result["states"].items()
                                    if state not in (microcode.PASS, microcode.SKIP)}})
     return rows
@@ -216,6 +245,13 @@ def replay(dreams: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
 def discriminate(dreams: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     """Knob moves a dream set would separate -- hypotheses, stamped as such."""
     out: List[Dict[str, Any]] = []
+    stale = [str(entry.get("id")) for entry in dreams if not is_current(entry)]
+    graded = [entry for entry in dreams if is_current(entry)]
+    if stale:
+        # Named, not dropped silently: a stale dream is a lead that must be
+        # re-dreamed against the live artefact, not a dream that never existed.
+        out.append({"op": "-", "knob": "artifact", "old": "", "new": "",
+                    "moved": stale, "verdict": "stale_dropped"})
     for code, knobs in microcode.POLICY_CHOICES.items():
         for knob, choices in knobs.items():
             current = microcode.POLICY.get(code, {}).get(knob)
@@ -223,7 +259,7 @@ def discriminate(dreams: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
                 if value == current:
                     continue
                 moved: List[str] = []
-                for entry in dreams:
+                for entry in graded:
                     now = microcode.evaluate(entry["record"])["rung"]
                     other = microcode.evaluate(
                         entry["record"],

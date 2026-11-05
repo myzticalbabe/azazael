@@ -30,6 +30,9 @@
     "leg_ledger": true,
     "head_audit": true,
     "truncation": true,
+    "ctypes_restype": true,
+    "kernel": true,
+    "kernel_timeout_s": 180,
     "strict": false,
     "leg_timeout_s": 300
   },

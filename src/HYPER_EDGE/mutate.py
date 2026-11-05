@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
@@ -54,6 +55,14 @@ PATCH_LOG: Path = _root() / "ARC" / "cain" / "hyper_edge_microcode_patches.jsonl
 
 #: The live policy, read at import by :mod:`HYPER_EDGE.microcode`.
 POLICY_FILE: Path = microcode.policy_path()
+
+#: Last converge per environment, keyed by env: corpus digest + when.
+CONVERGE_FILE: Path = _root() / "ARC" / "cain" / "hyper_edge_converge.json"
+
+#: Below this much total CPU a parallel run is not judged for serialisation: two
+#: environments that each cost 3 ms can finish in sequence inside one scheduling
+#: quantum and a ratio test on that would be noise, not evidence.
+SERIAL_FLOOR_S: float = 0.20
 
 
 def policy_file(env: Optional[str] = None) -> Path:
@@ -227,8 +236,29 @@ def chain(log: Optional[Path] = None) -> Dict[str, Any]:
             return {"ok": False, "at": number,
                     "reason": "entry %d content hash does not match its patch" % number}
         prev = str(entry["digest"])
+
+    # The hash chain proves the ledger was not edited. It cannot prove the
+    # artefact a patch was applied to is still that artefact: a policy file
+    # regenerated from identical bytes inherits the entry's name and not its
+    # identity. Measured 2026-11-05 -- only the kernel can answer this.
+    bound, reissued, unbound = 0, [], 0
+    for number, entry in enumerate(entries, 1):
+        recorded = entry.get("artifact_id")
+        if not recorded:
+            unbound += 1
+            continue
+        live = kernel.file_identity(entry.get("artifact") or entry.get("policy_file") or "")
+        if live is None:
+            unbound += 1
+            continue
+        bound += 1
+        if live["id"] != recorded:
+            reissued.append({"entry": number, "op": entry.get("op"),
+                             "artifact": entry.get("artifact"),
+                             "recorded": recorded, "live": live["id"]})
     return {"ok": True, "entries": len(entries), "head": prev,
-            "head_patch": str(entries[-1].get("patch")) if entries else ""}
+            "head_patch": str(entries[-1].get("patch")) if entries else "",
+            "artifacts": {"bound": bound, "unbound": unbound, "reissued": reissued}}
 
 
 def _content(entry: Mapping[str, Any]) -> Dict[str, Any]:
@@ -300,11 +330,68 @@ def apply(patch: Mapping[str, Any], cases: Sequence[Mapping[str, Any]],
     if faults:
         raise PatchRefused(faults)
 
+    # Bind the entry to the artefact it was written into. The kernel identity is
+    # taken AFTER the write on purpose: truncate-and-write keeps the inode, so the
+    # id is the id of this policy file, and a regenerate-elsewhere produces a
+    # different one. Excluded from `_content`, because a patch id that changes per
+    # filesystem is not citable evidence -- `digest` (the chain link) carries it.
+    identity = kernel.file_identity(target)
+    if identity is not None:
+        entry["artifact"] = str(target)
+        entry["artifact_id"] = identity["id"]
+        # Re-hash the body WITHOUT the digest field it already carries: hashing a
+        # dict that contains its own previous digest produces a link the chain's
+        # own check can never reproduce (found 2026-11-05 by the binding test).
+        entry["digest"] = _sha({key: value for key, value in entry.items()
+                                if key != "digest"})
+        PAYLOAD["_provenance"]["digest"] = entry["digest"]
+        target.write_text(json.dumps(PAYLOAD, indent=2, sort_keys=True) + "\n",
+                          encoding="utf-8")
     ledger.parent.mkdir(parents=True, exist_ok=True)
     with ledger.open("a", encoding="utf-8") as handle:
         handle.write(_canon(entry) + "\n")
     entry["policy_file"] = str(target)
     return entry
+
+
+def _converge_record() -> Dict[str, Any]:
+    """The last converge per environment, or ``{}`` when nothing was recorded."""
+    if not CONVERGE_FILE.exists():
+        return {}
+    try:
+        payload = json.loads(CONVERGE_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        # A malformed record must not read as "never converged": that would make
+        # the guard silent, which is the failure mode it exists to catch.
+        return {"_unreadable": "%s: %s" % (CONVERGE_FILE.name, exc)}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _remember_converge(rows: Sequence[Mapping[str, Any]]) -> None:
+    """Record what converged, against which corpus and which policy artefact."""
+    record = _converge_record()
+    if record.get("_unreadable"):
+        record = {}
+    for row in rows:
+        # `stale` is recorded too: it means "this run proved the NEW corpus, the
+        # previous converge described a different one". Without that the guard
+        # could never clear -- every later run would compare against the first
+        # corpus forever, which is a permanent alarm, not a watch.
+        if row.get("status") not in ("converged", "patched", "proposed", "stale"):
+            continue
+        # The artefact that matters is the policy actually read, not the per-env
+        # path `apply` would have written: identity of a file that does not exist
+        # records as "" and reads like a binding that was checked.
+        live_policy = microcode.policy_path()
+        identity = kernel.file_identity(live_policy)
+        record[str(row.get("env"))] = {
+            "corpus": row.get("corpus"),
+            "status": "converged" if row.get("status") == "stale" else row.get("status"),
+            "at": _now(), "policy": str(live_policy),
+            "artifact_id": (identity or {}).get("id", "")}
+    CONVERGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CONVERGE_FILE.write_text(json.dumps(record, indent=1, sort_keys=True) + "\n",
+                             encoding="utf-8")
 
 
 def optimize(envs: Sequence[str], corpora: Mapping[str, Sequence[Mapping[str, Any]]],
@@ -316,7 +403,14 @@ def optimize(envs: Sequence[str], corpora: Mapping[str, Sequence[Mapping[str, An
     corpus is reported ``no_evidence`` -- BLIND, not optimised and not refused,
     because "we did not look" and "we looked and it was wrong" are different
     findings and this tree loses an argument every time they are collapsed.
+
+    Two guards sit on top of the per-environment answer, both earned 2026-11-05:
+    a run whose thread CPU does not exceed its wall time was **serial** whatever
+    its rows say (concurrency is measured, not declared), and an environment whose
+    corpus moved since its last converge is **stale** -- the old converge is not
+    evidence for the new corpus, so it is re-proved rather than quoted.
     """
+    prior = _converge_record()
 
     def _one(env: str) -> Dict[str, Any]:
         cases = list(corpora.get(env) or [])
@@ -326,7 +420,14 @@ def optimize(envs: Sequence[str], corpora: Mapping[str, Sequence[Mapping[str, An
                 "no corpus for %r: BLIND, not a pass" % env])
             return row
         row["corpus"] = corpus_digest(cases)
+        was = prior.get(env) if isinstance(prior.get(env), dict) else None
+        if was and was.get("corpus") and was["corpus"] != row["corpus"]:
+            row.update(status="stale", patch=None, reasons=[
+                "corpus moved since the last converge (%s -> %s): re-prove, do not "
+                "quote the old one" % (str(was["corpus"])[:12], row["corpus"][:12])])
         if not replay(cases)["failing"]:
+            if row.get("status") == "stale":
+                return row
             # Nothing to repair is a converged environment, not a refusal: the
             # first version called this "refused: no admissible candidate", which
             # reads as "the microcode rejected a patch" and is false -- there was
@@ -366,7 +467,36 @@ def optimize(envs: Sequence[str], corpora: Mapping[str, Sequence[Mapping[str, An
             row["cpu_s"] = round(cpu1 - cpu0, 6)
         return row
 
-    return parallel_map(_timed, list(envs), workers=workers, min_items=2)
+    started = time.perf_counter()
+    rows = parallel_map(_timed, list(envs), workers=workers, min_items=2)
+    wall = time.perf_counter() - started
+
+    # Kernel accounting is the only witness to overlap: an idle box gives a
+    # serial run and a concurrent run the same wall time. Below SERIAL_FLOOR_S
+    # the run is too cheap to judge and is labelled as unjudged rather than
+    # called concurrent on the strength of a 3 ms ratio.
+    total_cpu = sum(float(row.get("cpu_s") or 0.0) for row in rows)
+    effective = workers if workers else min(len(rows), 4)
+    judged = kernel.available() and effective > 1 and len(rows) > 1 \
+        and total_cpu >= SERIAL_FLOOR_S
+    concurrency: Dict[str, Any] = {
+        "workers": effective, "wall_s": round(wall, 6), "cpu_s": round(total_cpu, 6),
+        "par_ratio": round(total_cpu / wall, 3) if wall else 0.0,
+        "judged": judged,
+        "verdict": (("concurrent" if total_cpu / wall >= 1.15 else "serial")
+                    if judged else "unjudged")}
+    if judged and concurrency["verdict"] == "serial":
+        for row in rows:
+            if row.get("status") in ("converged", "patched", "proposed"):
+                row.update(status="serial", reasons=[
+                    "the run claims workers=%d but kernel thread accounting measured "
+                    "%.3f cpu-s over %.3f s wall (par %.2f): the environments were "
+                    "proved one after another" % (effective, total_cpu, wall,
+                                                  concurrency["par_ratio"])])
+    for row in rows:
+        row["concurrency"] = concurrency
+    _remember_converge(rows)
+    return rows
 
 
 def rollback(digest: str, log: Optional[Path] = None,

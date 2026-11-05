@@ -23,6 +23,8 @@ if str(_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_ROOT / "src"))
 
 import json  # noqa: E402
+import os  # noqa: E402
+import time  # noqa: E402
 
 from HYPER_EDGE import cli, compat, dream, evolution, kernel, microcode, mutate  # noqa: E402
 
@@ -127,6 +129,17 @@ def _blind_patch() -> dict:
             "old": microcode.POLICY["0x09"]["undated"], "new": "blind"}
 
 
+@pytest.fixture(autouse=True)
+def _isolated_converge(tmp_path, monkeypatch):
+    """No test may write the committed converge record.
+
+    A test that proves a converge against its own tiny corpus would otherwise
+    replace the real per-environment record, and the next real run would read
+    "the corpus moved" from a fixture.
+    """
+    monkeypatch.setattr(mutate, "CONVERGE_FILE", tmp_path / "converge.json")
+
+
 @pytest.fixture()
 def skip_undated():
     """The pre-fix policy, so the patch engine has a failing case to repair.
@@ -163,6 +176,39 @@ def test_a_patch_that_regresses_a_passing_case_is_refused(skip_undated):
     assert verdict["regressions"] == ["legacy"]
 
 
+def test_a_serial_run_is_named_whatever_its_rows_claim(monkeypatch):
+    """Concurrency is measured by the kernel, never declared by the caller."""
+    monkeypatch.setattr(mutate, "parallel_map",
+                        lambda fn, items, **kw: [fn(item) for item in items])
+
+    def burn(cases, policy=None):
+        end = time.process_time() + 0.12
+        while time.process_time() < end:
+            sum(range(1000))
+        return {"failing": []}
+
+    monkeypatch.setattr(mutate, "replay", burn)
+    # Names the converge record cannot already hold: a prior real converge with a
+    # different corpus would (correctly) mark these rows stale before the timing
+    # guard runs, which would test the other guard.
+    rows = mutate.optimize(["t-serial-a", "t-serial-b"],
+                           {"t-serial-a": [{"id": "a"}],
+                            "t-serial-b": [{"id": "b"}]},
+                           workers=2)
+    assert {row["status"] for row in rows} == {"serial"}
+    assert all("one after another" in " ".join(row["reasons"]) for row in rows)
+    assert rows[0]["concurrency"]["verdict"] == "serial"
+
+
+def test_a_run_too_cheap_to_time_is_unjudged_not_a_failure():
+    rows = mutate.optimize(["a", "b"], {"a": [_case("u", "BLIND", UNDATED)],
+                                         "b": [_case("u", "BLIND", UNDATED)]},
+                           workers=2)
+    assert rows[0]["concurrency"]["judged"] is False
+    assert rows[0]["concurrency"]["verdict"] == "unjudged"
+    assert {row["status"] for row in rows} == {"converged"}
+
+
 def test_the_admitted_patch_is_least_severe_and_ledgered(tmp_path, skip_undated):
     cases = [_case("undated", "BLIND", UNDATED)]
     entry = mutate.apply(_blind_patch(), cases,
@@ -185,6 +231,26 @@ def test_a_patch_identity_does_not_move_with_the_clock(tmp_path, skip_undated):
     assert mutate.chain(Path("nonexistent-log.jsonl"))["entries"] == 0
 
 
+def test_a_patch_is_bound_to_the_artefact_it_was_written_into(tmp_path, skip_undated):
+    """The chain proves the ledger was not edited; only identity proves the file."""
+    log = tmp_path / "led.jsonl"
+    target = tmp_path / "mc.json"
+    entry = mutate.apply(_blind_patch(), [_case("undated", "BLIND", UNDATED)],
+                         policy_path=target, log=log)
+    assert entry["artifact"] == str(target) and entry["artifact_id"]
+    verdict = mutate.chain(log)
+    assert verdict["artifacts"] == {"bound": 1, "unbound": 0, "reissued": []}
+
+    # Byte-identical re-issue: os.replace puts a *different* inode at the same
+    # path. Nothing in the file's bytes changed, so no hash can see this.
+    replacement = tmp_path / "reissue.json"
+    replacement.write_text(target.read_text(encoding="utf-8"), encoding="utf-8")
+    os.replace(replacement, target)
+    again = mutate.chain(log)
+    assert len(again["artifacts"]["reissued"]) == 1
+    assert again["artifacts"]["reissued"][0]["entry"] == 1
+
+
 def test_the_chain_names_a_tampered_line(tmp_path, skip_undated):
     log = tmp_path / "led.jsonl"
     cases = [_case("undated", "BLIND", UNDATED)]
@@ -194,6 +260,36 @@ def test_the_chain_names_a_tampered_line(tmp_path, skip_undated):
     log.write_text(json.dumps(entry) + "\n")
     verdict = mutate.chain(log)
     assert verdict["ok"] is False and "digest" in verdict["reason"]
+
+
+# --- the kernel layer: identity, leases, accounting -------------------------
+
+def test_a_lease_is_exclusive_until_it_is_released(tmp_path):
+    lease = tmp_path / "holder"
+    first = kernel.acquire(lease)
+    assert first["acquired"] is True
+    second = kernel.acquire(lease)
+    assert second["acquired"] is False
+    assert str(os.getpid()) in second["holder"], second["holder"]
+    assert kernel.held(lease)
+    assert kernel.release(lease) is True
+    assert kernel.held(lease) is None
+    assert kernel.acquire(lease)["acquired"] is True
+    kernel.release(lease)
+
+
+def test_a_baseline_is_one_sided_and_silent_without_one():
+    assert kernel.compare_baseline(2.4, {"par_ratio": 2.2})["ok"] is True
+    assert kernel.compare_baseline(1.0, {"par_ratio": 2.2})["ok"] is False
+    silent = kernel.compare_baseline(1.0, {})
+    assert silent["judged"] is False and "no recorded baseline" in silent["reason"]
+
+
+def test_every_isa_op_states_the_grade_it_can_reach():
+    grades = {row["code"]: row["grade"] for row in microcode.grades()}
+    assert set(grades) == {op.code for op in microcode.ISA}
+    assert [code for code, grade in grades.items() if grade == "ungraded"] == []
+    assert grades["0x08"] == "kernel"
 
 
 # --- dreaming: the model proposes, the ISA grades, evidence decides ----------
@@ -220,6 +316,15 @@ def test_a_malformed_reading_is_graded_blind_not_raised():
     result = microcode.evaluate(bad)
     assert result["rung"] == microcode.BLIND
     assert "0x0A" in result["faults"]
+
+
+def test_a_dream_graded_against_a_reissued_artefact_is_named_not_used():
+    entry = {"id": "d-stale", "rung": "CUT", "record": UNDATED,
+             "artifact": "definitely-not-a-policy.json",
+             "artifact_id": "dead:beef"}
+    rows = dream.discriminate([entry])
+    assert rows[0]["verdict"] == "stale_dropped"
+    assert rows[0]["moved"] == ["d-stale"]
 
 
 def test_a_dream_never_carries_an_admissible_verdict():

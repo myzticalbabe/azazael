@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -143,6 +144,7 @@ def hyper_edge_flags() -> dict:
         "leg_ledger": bool(setting("hyper_edge.leg_ledger", True)),
         "head_audit": bool(setting("hyper_edge.head_audit", True)),
         "truncation": bool(setting("hyper_edge.truncation", True)),
+        "ctypes_restype_audit": bool(setting("hyper_edge.ctypes_restype", True)),
     }
 
 
@@ -152,6 +154,7 @@ HYPER_EDGE_TOOLS = [
     ("leg_ledger", "tools/leg_ledger.py", "hyper_edge.leg_ledger"),
     ("head_audit", "tools/head_audit.py", "hyper_edge.head_audit"),
     ("truncation", "tools/truncation_census.py", "hyper_edge.truncation"),
+    ("ctypes_restype_audit", "tools/ctypes_restype_audit.py", "hyper_edge.ctypes_restype"),
 ]
 
 
@@ -199,11 +202,42 @@ def leg_hyper_edge(_payload):
     return {"detail": detail, "summary": summary}
 
 
+def leg_kernel(_payload):
+    """The kernel evidence layer proves itself inside the default run.
+
+    A layer that only proves itself when someone remembers the command is the
+    "practice that depends on memory" HED-8 warns about. This leg runs the proof
+    with the default workers so it is comparable to the recorded baseline, and a
+    ratio below it fails the leg -- a native facility silently degrading is
+    exactly the reading HED-3 says must not be folded into "ok".
+    """
+    if not bool(setting("hyper_edge.kernel", True)):
+        return {"status": "skipped", "detail": "hyper_edge.kernel=false"}
+    if not (ROOT / "src" / "HYPER_EDGE" / "kernel.py").exists():
+        return {"status": "skipped", "detail": "HYPER_EDGE/kernel.py not in this tree"}
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT / "src") + (os.pathsep + env["PYTHONPATH"]
+                                              if env.get("PYTHONPATH") else "")
+    env["PYTHONIOENCODING"] = "utf-8"
+    bound = float(setting("hyper_edge.kernel_timeout_s", 180))
+    proc = subprocess.run([sys.executable, "-m", "HYPER_EDGE.cli", "kernel"],
+                          cwd=str(ROOT), env=env, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=bound)
+    lines = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+    verdict = next((line for line in lines if line.startswith("verdict:")), "")
+    baseline = next((line for line in lines if line.startswith("baseline:")), "")
+    if proc.returncode != 0 or not verdict:
+        tail = (proc.stderr or "").strip().splitlines()[-1:] or ["no output"]
+        return {"status": "error", "detail": (verdict or baseline or tail[0])[:300]}
+    return {"detail": "%s | %s" % (verdict, baseline) if baseline else verdict}
+
+
 FORENSIC_LEGS = [
     ("ast_audit", leg_ast_audit),
     ("evidence_gate", leg_evidence_gate),
     ("golden_arrow_status", leg_golden_arrow_status),
     ("hyper_edge", leg_hyper_edge),
+    ("kernel", leg_kernel),
 ]
 
 

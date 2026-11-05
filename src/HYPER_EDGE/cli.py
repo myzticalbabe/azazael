@@ -276,6 +276,12 @@ def selftest(evidence: str = "", recheck: str = "") -> int:
                  "%s, 0x08 bound=%s re-issued=%s" % (proof["verdict"], states.get("bound"),
                                                      states.get("reissued")))
 
+    ungraded = [row["code"] for row in microcode.grades() if row["grade"] == "ungraded"]
+    checks.check("every op states the evidence grade it can reach",
+                 len(microcode.grades()) == len(microcode.ISA) and not ungraded,
+                 "%d graded, ungraded=%s" % (len(microcode.ISA) - len(ungraded),
+                                             ungraded or "none"))
+
     checks.check("a dream cannot buy a patch",
                  bool(stamps) and
                  all(row["verdict"] == "a_dream_is_not_evidence" for row in stamps),
@@ -347,6 +353,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     kn.add_argument("--workers", type=int, default=4)
     kn.add_argument("--work", type=float, default=0.08)
     kn.add_argument("--out", default="")
+    kn.add_argument("--baseline", default="", help="recorded par baseline to compare against")
+    kn.add_argument("--write-baseline", action="store_true",
+                    help="record this run's par ratio as the baseline")
     kn.add_argument("--json", action="store_true")
 
     args = ap.parse_args(argv)
@@ -360,20 +369,47 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print("%-58s %-9s %s" % ("", "userspace", row["userspace"]))
             print("verdict: %s   platform: %s   faults: %s"
                   % (proof["verdict"], proof["platform"], proof["faults"] or "none"))
+        # A ratio is only evidence against something recorded; a baseline that
+        # moves with every run can never show a regression.
+        baseline_path = Path(args.baseline) if args.baseline else (
+            Path(__file__).resolve().parents[2] / "ARC" / "cain"
+            / "hyper_edge_kernel_baseline.json")
+        par = next((row["detail"] for row in proof["rows"]
+                    if row["primitive"].startswith("concurrency")), {})
+        baseline: dict = {}
+        if baseline_path.exists():
+            try:
+                baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+            except ValueError as exc:
+                baseline = {"_unreadable": str(exc)}
+                print("baseline %s unreadable: %s" % (baseline_path, exc))
+        judged = kernel.compare_baseline(float(par.get("par_ratio") or 0.0), baseline)
+        if args.write_baseline:
+            baseline_path.parent.mkdir(parents=True, exist_ok=True)
+            baseline_path.write_text(json.dumps(
+                {"par_ratio": par.get("par_ratio"), "workers": par.get("workers"),
+                 "platform": proof["platform"],
+                 "at": proof.get("measured_at")}, indent=1) + "\n", encoding="utf-8")
+            print("baseline written: %s (par %.2f)" % (baseline_path, par.get("par_ratio") or 0.0))
         if args.out:
             path = Path(args.out)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(proof, indent=1) + "\n", encoding="utf-8")
             print("wrote %s" % path)
-        return 0 if proof["verdict"].startswith("NATIVE") else 1
+        print("baseline: %s" % judged["reason"])
+        return 0 if proof["verdict"].startswith("NATIVE") and judged.get("ok", True) else 1
     if args.command == "isa":
-        rows = microcode.isa_table()
+        grade = {row["code"]: row["grade"] for row in microcode.grades()}
+        rows = [dict(row, grade=grade.get(row["code"], "ungraded"))
+                for row in microcode.isa_table()]
         if args.json:
             print(json.dumps(rows, indent=1))
         else:
             for row in rows:
-                print("%s %-11s %s" % (row["code"], row["name"], row["question"]))
-        return 0
+                print("%s %-11s %-9s %s" % (row["code"], row["name"], row["grade"],
+                                            row["question"]))
+        ungraded = [row["code"] for row in rows if row["grade"] == "ungraded"]
+        return 1 if ungraded else 0
     if args.command == "selftest":
         return selftest(args.evidence, args.recheck)
     if args.command == "evolve":
@@ -427,7 +463,16 @@ def main(argv: Optional[List[str]] = None) -> int:
             print("chain: %s (%d entries, head %s)"
                   % ("ok" if ledger["ok"] else ledger.get("reason"),
                      ledger.get("entries", 0), str(ledger.get("head"))[:12]))
-        return 0 if ledger["ok"] else 1
+            artifacts = ledger.get("artifacts") or {}
+            print("artefacts: %d bound, %d unbound, %d re-issued"
+                  % (artifacts.get("bound", 0), artifacts.get("unbound", 0),
+                     len(artifacts.get("reissued") or [])))
+            for item in artifacts.get("reissued") or []:
+                print("  entry %s (%s): recorded %s, live %s — the policy file this "
+                      "patch was applied to was re-issued"
+                      % (item["entry"], item["op"], item["recorded"], item["live"]))
+        artifacts = ledger.get("artifacts") or {}
+        return 0 if ledger["ok"] and not artifacts.get("reissued") else 1
     if args.command == "optimize":
         envs = [env.strip() for env in args.env.split(",") if env.strip()]
         cases = corpus()
@@ -442,12 +487,28 @@ def main(argv: Optional[List[str]] = None) -> int:
                                                row["candidate"]["old"], row["candidate"]["new"])
                           if row.get("candidate") else "; ".join(row.get("reasons") or []))
                 print("%-12s %-10s %-9s %s" % (row["env"], row["status"],
-                                                ("cpu %.3fs" % row["cpu_s"]) if "cpu_s" in row else "",
+                                                ("cpu %.3fs" % row["cpu_s"]
+                                                 if float(row.get("cpu_s") or 0.0) >= 0.001
+                                                 else "cpu unjudged") if "cpu_s" in row else "",
                                                 detail))
             print("corpus: %s (shared by every environment in this run; cpu_s is kernel "
                   "thread accounting, so concurrency is measured rather than inferred)"
                   % mutate.corpus_digest(cases)[:16])
-        return 0 if all(row["status"] in ("patched", "proposed", "converged") for row in rows) else 1
+            concurrency = (rows[0].get("concurrency") if rows else {}) or {}
+            if concurrency.get("judged"):
+                print("concurrency: %s — %.3f cpu-s over %.3f s wall, par %.2f of %d"
+                      % (concurrency.get("verdict"), concurrency.get("cpu_s", 0.0),
+                         concurrency.get("wall_s", 0.0), concurrency.get("par_ratio", 0.0),
+                         concurrency.get("workers", 0)))
+            else:
+                print("concurrency: unjudged — %.3f cpu-s over %.3f s wall is below "
+                      "the kernel's thread-accounting quantum, so no ratio is quoted"
+                      % (concurrency.get("cpu_s", 0.0), concurrency.get("wall_s", 0.0)))
+        bad = [row for row in rows if row["status"] in ("serial", "stale")]
+        for row in bad:
+            print("%s: %s" % (row["env"], "; ".join(row.get("reasons") or [])))
+        return 0 if not bad and all(row["status"] in ("patched", "proposed", "converged")
+                                    for row in rows) else 1
     if args.command == "dream":
         target = Path(args.out) if args.out else dreams_mod.DREAM_FILE
         if args.replay:

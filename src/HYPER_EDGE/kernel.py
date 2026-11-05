@@ -37,9 +37,10 @@ import tempfile
 import time
 from ctypes import wintypes
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
-__all__ = ["available", "clock", "file_identity", "parallelism", "prove", "thread_cpu"]
+__all__ = ["acquire", "available", "clock", "compare_baseline", "file_identity",
+           "held", "parallelism", "prove", "release", "thread_cpu"]
 
 _k32: Any = None
 _faults: List[str] = []
@@ -89,7 +90,18 @@ def file_identity(path: os.PathLike | str) -> Optional[Dict[str, Any]]:
     """
     k32 = _load()
     if k32 is None:
-        return None
+        # POSIX: (device, inode) is the same *kind* of answer -- kernel-assigned,
+        # path-free, stable across a rename. It is weaker in one documented way:
+        # an inode number can be reused after a delete, so a re-issue is detected
+        # only while the original still exists. The source field says which
+        # primitive answered, so no caller has to guess.
+        try:
+            stat = os.stat(str(path))
+        except OSError as exc:
+            _faults.append("stat failed for %s: %s" % (path, exc))
+            return None
+        return {"volume": "%08x" % stat.st_dev, "index": "%016x" % stat.st_ino,
+                "id": "%08x:%016x" % (stat.st_dev, stat.st_ino), "source": "stat"}
     handle = k32.CreateFileW(str(path), GENERIC_READ, FILE_SHARE_ALL, None,
                              OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, None)
     if handle in (None, -1, 0xFFFFFFFFFFFFFFFF):
@@ -158,10 +170,21 @@ def resolution(reads: int = 4000) -> Dict[str, Any]:
 # --- per-thread CPU ----------------------------------------------------------
 
 def thread_cpu() -> Optional[float]:
-    """CPU seconds consumed by the CALLING thread, from GetThreadTimes."""
+    """CPU seconds consumed by the CALLING thread, from GetThreadTimes.
+
+    On POSIX the same question is answered by ``RUSAGE_THREAD``; both are kernel
+    accounting, so the parallelism ratio means the same thing on either host
+    rather than being a Windows-only claim.
+    """
     k32 = _load()
     if k32 is None:
-        return None
+        try:
+            import resource
+            usage = resource.getrusage(resource.RUSAGE_THREAD)
+        except (ImportError, OSError, AttributeError) as exc:
+            _faults.append("RUSAGE_THREAD unavailable: %s" % exc)
+            return None
+        return float(usage.ru_utime + usage.ru_stime)
     creation, exit_, kernel, user = (wintypes.FILETIME() for _ in range(4))
     handle = k32.GetCurrentThread()
     ok = k32.GetThreadTimes(ctypes.c_void_p(handle), ctypes.byref(creation),
@@ -195,6 +218,92 @@ def parallelism(workers: int = 4, work_s: float = 0.08) -> Dict[str, Any]:
     return {"workers": workers, "sum_cpu_s": total, "wall_s": wall,
             "par_ratio": (total / wall) if wall else 0.0,
             "cpu_per_task": list(cpu)}
+
+
+# --- exclusive lease ---------------------------------------------------------
+
+def _holder(path: Path) -> str:
+    try:
+        return " ".join(path.read_text(encoding="utf-8", errors="replace").split()[:2])
+    except OSError as exc:
+        _faults.append("lease unreadable at %s: %s" % (path, exc))
+        return "unreadable: %s" % exc
+
+
+def acquire(path: os.PathLike | str, retry_s: float = 0.0) -> Dict[str, Any]:
+    """Take an exclusive lease on ``path`` atomically (``O_CREAT|O_EXCL``).
+
+    The kernel's own create-if-absent is the compare-and-set: two lanes calling
+    this at the same moment cannot both succeed, because the loser gets
+    ``FileExistsError`` from the filesystem rather than a race they must detect in
+    userspace. The lease names its holder and time so a stale one is diagnosable;
+    no age-based auto-break is performed here, because breaking a live lease is a
+    decision an operator must make with the holder's identity in hand.
+    """
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + max(0.0, retry_s)
+    while True:
+        try:
+            handle = os.open(str(target), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                return {"acquired": False, "path": str(target),
+                        "holder": _holder(target)}
+            time.sleep(0.02)
+            continue
+        except OSError as exc:
+            _faults.append("lease create failed for %s: %s" % (target, exc))
+            return {"acquired": False, "path": str(target), "holder": "error: %s" % exc}
+        try:
+            os.write(handle, ("%d %s\n" % (os.getpid(),
+                                           time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+                              ).encode("utf-8"))
+        finally:
+            os.close(handle)
+        return {"acquired": True, "path": str(target), "pid": os.getpid()}
+
+
+def held(path: os.PathLike | str) -> Optional[str]:
+    """The lease holder, or ``None`` when the path is free."""
+    target = Path(path)
+    return _holder(target) if target.exists() else None
+
+
+def release(path: os.PathLike | str) -> bool:
+    """Drop a lease. ``False`` means it was already gone (not an error)."""
+    # "Already gone" is the state the caller wanted, so it is checked rather than
+    # raised: an `except FileNotFoundError: return False` is a silent-default
+    # shape, and the scanner is right that a failure branch should record.
+    if not os.path.exists(str(path)):
+        return False
+    try:
+        os.unlink(str(path))
+    except OSError as exc:
+        _faults.append("lease release failed for %s: %s" % (path, exc))
+        return False
+    return True
+
+
+def compare_baseline(measured: float, baseline: Optional[Mapping[str, Any]] = None,
+                     tolerance: float = 0.7) -> Dict[str, Any]:
+    """Judge a live ratio against a recorded one. No baseline = not judged.
+
+    The tolerance is one-sided on purpose: a ratio *above* the baseline is the
+    machine being faster today, which is not a regression, while a ratio below it
+    can only mean the work stopped overlapping.
+    """
+    reference = float((baseline or {}).get("par_ratio") or 0.0)
+    if reference <= 0.0:
+        return {"judged": False, "reason": "no recorded baseline to compare against"}
+    floor = reference * tolerance
+    return {"judged": True, "baseline": reference, "measured": measured,
+            "floor": floor, "ok": measured >= floor,
+            "reason": ("par %.2f >= %.2f (%.0f%% of baseline %.2f)"
+                       % (measured, floor, tolerance * 100, reference))
+                      if measured >= floor else
+                      ("par %.2f < %.2f: parallelism regressed against baseline %.2f"
+                       % (measured, floor, reference))}
 
 
 # --- proof -------------------------------------------------------------------

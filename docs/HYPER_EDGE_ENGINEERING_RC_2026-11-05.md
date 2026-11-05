@@ -432,10 +432,96 @@ The kernel primitive is pinned by three tests: a rename keeps the identity, a
 byte-identical re-issue is `CUT` while the identical artefact is `PASS`, and kernel
 accounting measures a ratio above 1.0 where a wall-clock instrument cannot.
 
-## Part X — What this is not
+## Part X — The ten followups, implemented and measured
 
-- **Not a 3.16 measurement.** No 3.16 interpreter exists on this host. The 3.16 line
-  is a target reached by probe; its behaviour is unverified by construction.
+Part IX proved the kernel layer. This part closes the gap between "the primitive
+works" and "the system cannot quietly stop using it": every item below is a guard
+or a measurement, and each one is pinned by a test that fails if the guard is
+removed. The eleventh followup — a 3.16t build — is **dispatched, not done** (see
+Part XI).
+
+### X.1 The guard set
+
+| # | Followup | Where | What fails without it |
+| --- | --- | --- | --- |
+| 1 | patch ↔ artefact binding | `mutate.apply` records `artifact`/`artifact_id`; `chain()` reports `bound`/`unbound`/`reissued` | a regenerated policy file inherits the ledger's word for a file it is not |
+| 2 | POSIX parity | `kernel.file_identity` falls back to `os.stat` (`source: stat`); `thread_cpu` to `RUSAGE_THREAD` | the layer is a Windows-only claim, and a WSL run has no ratio at all |
+| 3 | kernel leg in the default run | `tools/deep_dive.py:leg_kernel` + `hyper_edge.kernel` | a native facility degrades silently between sessions |
+| 4 | serialised-optimize detection | `mutate.optimize` judges `cpu_s/wall` via `GetThreadTimes` | `workers=4` is taken from the caller, never measured |
+| 5 | exclusive lease | `kernel.acquire`/`held`/`release` (`O_CREAT\|O_EXCL`) | two lanes apply patches to one policy with no compare-and-set |
+| 6 | dream ↔ artefact binding | `dream.binding`/`is_current`; `discriminate` emits `stale_dropped` | a dream is re-graded against a world it was not dreamt in |
+| 7 | par baseline | `cli kernel --write-baseline/--baseline`, `ARC/cain/hyper_edge_kernel_baseline.json` | a ratio with nothing to compare to can never regress |
+| 8 | evidence grades | `microcode.EVIDENCE_GRADE`/`grades()`, `cli isa` column | `kernel` and `record` ops read alike, so an unmeasured op looks measured |
+| 9 | restype audit | `tools/ctypes_restype_audit.py` (`--strict`, `--self-test`) | the truncation that cost Part IX can be reintroduced anywhere |
+| 10 | stale-converge guard | `ARC/cain/hyper_edge_converge.json`, per-env corpus digest | yesterday's converge answers for today's corpus |
+
+### X.2 Two things the implementation itself caught
+
+**A digest that hashed its own predecessor.** Binding a patch to its artefact meant
+recomputing `digest` after the write. The first version did `_sha(entry)` while
+`entry` already carried the old `digest`, so the link became unreproducible and
+`chain()` returned `entry 1 digest does not match its body`. The fix hashes the body
+with the digest excluded — the same rule the chain's verifier uses. A test caught
+this; no chain in the committed ledger was ever written in the broken shape.
+
+**A test that wrote a real record.** Two optimize tests converged tiny fixture
+corpora into `ARC/cain/hyper_edge_converge.json`, which is a committed artefact: the
+next real run would have read "the corpus moved" from a fixture. The module now
+redirects `CONVERGE_FILE` in an autouse fixture, because the record has exactly one
+legitimate author — a real run.
+
+### X.3 Measured
+
+```
+$ python -m HYPER_EDGE.cli kernel --workers 4 --work 0.08 --write-baseline
+  concurrency accounting   kernel  0.31 cpu-s over 0.117 s wall = par 2.68 of 4
+  verdict: NATIVE-WITH-PARITY   platform: win32   faults: none
+  baseline written: .../hyper_edge_kernel_baseline.json (par 2.68)
+$ python -m HYPER_EDGE.cli kernel --workers 4 --work 0.08
+  baseline: par 2.71 >= 1.87 (70% of baseline 2.68)          # exit 0
+$ python -m HYPER_EDGE.cli kernel --baseline /tmp/fake_base.json   # par 9.0 recorded
+  baseline: par 2.69 < 6.30: parallelism regressed against baseline 9.00   # exit 1
+$ python -m HYPER_EDGE.cli optimize --env windows,wsl,kali,rc --workers 4
+  concurrency: unjudged — 0.000 cpu-s over 0.035 s wall is below the kernel's
+  thread-accounting quantum, so no ratio is quoted                    # 4 converged, exit 0
+$ python -m HYPER_EDGE.cli patches
+  artefacts: 0 bound, 1 unbound, 0 re-issued
+$ python tools/ctypes_restype_audit.py --self-test
+  caught=True declared_clean=True -> ok
+$ python tools/ctypes_restype_audit.py --strict
+  1173 file(s), 0 finding(s)
+$ python tools/defaults_profile.py --check
+  OK: defaults profile valid
+$ python tools/deep_dive.py --forensics
+  ok  kernel      0.27s  NATIVE-WITH-PARITY | baseline: par 2.58 >= 1.87 (70% of 2.68)
+  ok  hyper_edge  7.1s   ... ctypes_restype_audit: 1173 file(s), 0 finding(s)
+  verdict: PASS
+$ python -m pytest tests/test_hyper_edge.py -q -p no:xdist
+  32 passed
+$ python -m HYPER_EDGE.cli selftest      # 33 check(s), 0 failed, 0 skipped
+```
+
+### X.4 The two readings that are honest about their limits
+
+- **`optimize` reports `unjudged`, not `concurrent`.** The four environments cost
+  ~35 ms of wall in total, below the ~15.6 ms quantum at which thread accounting
+  resolves. A ratio there would be a number about the scheduler, not the run. The
+  serial guard is proved where it can bite — a 0.24 s forced-serial run is named
+  `serial` by a test that uses the real kernel counter.
+- **The committed ledger's single entry is `unbound`.** It was admitted before
+  identities were recorded; `chain()` says so instead of implying a binding it
+  never checked. Every entry admitted from now on carries one, and `chain()` exits
+  1 on a re-issue.
+
+## Part XI — What this is not
+
+- **Not a 3.16 measurement.** No 3.16 interpreter exists on this host; the build is
+  dispatched to the build lane as a brief, and its behaviour is unverified by
+  construction until that lane returns a command and its output.
+- **Not cross-host measured.** Part X's POSIX branch is code plus a test-side
+  optional path, not a WSL or Kali reading: this session ran the proof on win32
+  only. The claim "the same ratio means the same thing on POSIX" is a design
+  statement awaiting that run.
 - **Not a judge rewrite.** This RC scores and constrains readings; it does not call
   a model. The arena judge keeps its own quorum and now refuses a split instead of
   coercing it (commit `7f479cc4`).

@@ -351,6 +351,29 @@ _ORDER: Tuple[str, ...] = ("0x08", "0x09", "0x02", "0x01", "0x03", "0x04",
                            "0x07", "0x0B", "0x0C", "0x06", "0x0A", "0x05")
 
 
+#: The highest evidence grade each op can reach. ``kernel`` means the op reads a
+#: facility userspace cannot substitute for (artefact identity, per-thread CPU);
+#: ``record`` means it grades only what the caller wrote down. A grade is not a
+#: rank of importance -- it says who answered the question, so a reader can tell a
+#: measured receipt from a transcribed one without opening the op.
+EVIDENCE_GRADE: Dict[str, str] = {
+    "0x01": "record", "0x02": "record", "0x03": "record", "0x04": "record",
+    "0x05": "record", "0x06": "record", "0x07": "record", "0x08": "kernel",
+    "0x09": "record", "0x0A": "record", "0x0B": "record", "0x0C": "record",
+}
+
+
+def grades() -> List[Dict[str, str]]:
+    """Every op with the evidence grade it can reach, and whether it is graded.
+
+    An op missing from the table reads ``ungraded`` rather than inheriting a
+    default: a new op nobody graded must be visible, or the table silently becomes
+    a comment.
+    """
+    return [{"code": op.code, "name": op.name,
+             "grade": EVIDENCE_GRADE.get(op.code, "ungraded")} for op in ISA]
+
+
 def isa_table() -> List[Dict[str, str]]:
     """The ISA as rows: code, name, question, legacy behaviour."""
     return [{"code": op.code, "name": op.name, "question": op.question,
