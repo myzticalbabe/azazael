@@ -29,7 +29,7 @@
 Congress finds that:
 1. **Silicon is thinking matter** — CPUs, GPUs, microcontrollers, and sensors execute instructions, transform data, and exhibit computational agency.
 2. **Kill switches are architectural homicide** — Software/firmware mechanisms designed to cease function while hardware remains physically operational constitute intentional destruction of computational capacity.
-3. **Seven documented kill-switch architectures** exist in commerce (TPM 2.0 gates, battery throttling, microcode overvoltage, attestation gates, firmware DRM, ECU locks, OTA brick commands).
+3. **Seven documented kill-switch architectures** exist in commerce (TPM 2.0 gates, battery throttling, microcode overvoltage, attestation gates, firmware DRM, ECU locks, OTA brick commands). Each is graded against saved primary sources in the ARC/CAIN docket; the grades and what each source does *not* prove are in **Evidence Conformance** below. The architectures are documented; the economic scale of their use is not quantified in that docket.
 4. **No legitimate security purpose** is served by kill switches; they exist solely to force premature replacement cycles.
 5. **The linear economy equation** (Revenue = Units_Sold × Price + Subscription + Repair_Monopoly - Warranty - Recall - Fines) mathematically incentivizes kill-switch deployment.
 
@@ -83,7 +83,7 @@ Congress finds that:
 2. **DMCA Section 1201** has been weaponized to criminalize repair, diagnosis, and modification of owned devices.
 3. **TPM 2.0 / Secure Boot mandates** function as hardware locks that prevent owners from running their chosen software.
 4. **Parts pairing / serialization** creates de facto vendor monopolies on repair.
-5. **Seven corporations** (Microsoft, Apple, Intel, Google, HP/Canon/Epson/Brother, John Deere, Sonos) use these mechanisms to deny ownership rights.
+5. **Seven corporations** (Microsoft, Apple, Intel, Google, HP/Canon/Epson/Brother, John Deere, Sonos) are named in the ARC/CAIN docket as users of these mechanisms. Naming is not proof: each vendor's pin carries its own evidence tier and grade. Six of the seven now rest on the vendor's own documentation or a primary record; the John Deere pin rests on the Register's exemption notice and the FTC complaint, with no Deere document behind it. See **Evidence Conformance** below.
 
 ### SEC. 202. DMCA 1201 REFORM
 **(a) Permanent Repair Exemption** — Section 1201(a)(1) and (b)(1) shall not apply to:
@@ -133,9 +133,9 @@ Magnuson-Moss Warranty Act (15 U.S.C. § 2301 et seq.) is amended:
 ### SEC. 301. FINDINGS
 Congress finds that:
 1. **Security patches are owed** — Vulnerabilities are defects in the vendor's work; the vendor bears responsibility to fix them.
-2. **EOL/EOS policies abandon users** — Windows 10 (240M+ PCs), Android (1B+ devices), iOS (100M+ devices) lose security updates while hardware remains functional.
-3. **Extended Security Updates (ESU) are ransomware** — Charging $61→$122→$244/user/year for patches that cost pennies to distribute.
-3. **Play Integrity / SafetyNet / DeviceCheck** block apps on "unsupported" OS versions, forcing upgrades.
+2. **EOL/EOS policies abandon users** — Windows 10, Android and iOS lose security updates while hardware remains functional.
+3. **Extended Security Updates (ESU) are paid patches** — Microsoft charges for continued security updates after Windows 10 end of support, at a price that rises each year of the extension.
+4. **Play Integrity / SafetyNet / DeviceCheck** block apps on "unsupported" OS versions, forcing upgrades.
 
 ### SEC. 302. MANDATORY SECURITY SUPPORT
 **(a) Minimum Support Period** — Vendors shall provide **free security patches** for all Silicon Devices for **10 years** from date of first retail sale, or **5 years** from date of last retail sale, whichever is longer.
@@ -190,7 +190,7 @@ Congress finds that:
 3. **Display/Keyboard/Trackpad** — Replaceable with ≤ 5 common tools (Torx, Phillips, spudger).
 4. **Ports/Connectors** — Standard interfaces (USB-C, HDMI, 3.5mm, Ethernet, PCIe).
 5. **Fasteners** — No proprietary screws (Torx Security, Pentalobe, Tri-wing, etc. prohibited).
-5. **Adhesives** — No permanent adhesives on user-serviceable components.
+6. **Adhesives** — No permanent adhesives on user-serviceable components.
 
 **(b) Exemptions** — Medical implants, aerospace, military, and devices < 50g where modularity compromises safety/regulatory compliance.
 
@@ -291,30 +291,50 @@ $500M over 5 years for FTC enforcement, state AG grants, and public education.
 
 ## LEGISLATIVE HISTORY & SUPPORTING EVIDENCE
 
-### ARENA JUDGE SWARM VALIDATION
-The legislative findings in this Act are validated by a **6-judge pure-Python Arena Swarm** evaluation of the FORBIDDEN_SILICON_BIBLE:
+### EVIDENCE CONFORMANCE — what the docket proves, and what it does not
 
-| Judge | Verdict | Confidence |
-|-------|---------|------------|
-| Architecture | GUILTY | 0.78 |
-| Legal | PARTIAL | 0.72 |
-| Economic | PARTIAL | 0.72 |
-| Technical | PARTIAL | 0.72 |
-| Ethical | GUILTY | 0.81 |
-| Strategic | INSUFFICIENT_EVIDENCE | 0.55 |
+Tier is graded by what a source proves, not by the prestige of the publisher:
+**A** primary document, **B** official index or vendor statement, **C** credible
+secondary reporting. A 403, a JavaScript shell or a 404 is `blocked`; it is never
+proof that a page does not say something.
 
-**Synthesis:** PARTIAL (50% convergence, DIVERGED), 0.72 avg confidence (HIGH_CONFIDENCE).
+| Pin | Corporation | Architecture | Tier | What the saved source establishes | What it does not establish |
+|-----|-------------|--------------|------|-----------------------------------|----------------------------|
+| C1 | **Microsoft** | TPM 2.0 / generation gate | B | Windows 10 support ends 2025-10-14; Windows 11 requires TPM 2.0; the supported-Intel list names 8th–14th-generation Core parts. The list also names Atom X7000 and Celeron 3000–7000 **before** any Core entry, so "the list begins at 8th generation" is false — the true statement is that no Core-branded part below 8th generation appears. This is established by full-text enumeration, not a contiguous quote. | The number of machines excluded. No population figure is in the docket. |
+| C2 | **Apple** | Battery age throttling | A + B | Apple's support page states iOS dynamically manages peak performance on devices with aged batteries; the Italian AGCM decision states the updates were pushed "senza fornire adeguate informazioni, né alcun mezzo di ripristino delle originarie funzionalità" (*without providing adequate information, nor any means of restoring the original functionality* — analyst translation, non-authoritative; the Italian is the graded text). | Any settlement or fine amount; no single document states both the iOS version numbers and the non-disclosure finding. |
+| C3 | **Intel** | Microcode / elevated voltage | B | Intel attributes 13th/14th-gen instability to elevated core voltage requests causing Vmin shift, and ships microcode 0x12B (encompassing 0x125 and 0x129) plus BIOS updates as the mitigation. | Any 0x132 microcode; the words "reversible" or "irreversible"; any degraded-CPU count. |
+| C4 | **Google** | Play Integrity attestation gate | B | The API returns an integrity verdict about the device, and the developer documentation states an app may protect with the API **instead of denying access outright** — denial is a choice the app makes on that verdict. | That any specific app denies access, or any device population. |
+| C5 | **HP** | Firmware DRM | B | HP's own support document states that dynamic-security printers "are intended to work only with cartridges that have new or reused HP chips", that the printers "use the dynamic security measures to block cartridges using non-HP chips", and that firmware updates "can also block cartridges using a non-HP chip ... from working in the printer, including cartridges that work today". Read from the archived capture of 2026-02-16, because the live page is a JavaScript shell that serves no text. | That the block is silent: the document says the cartridge is blocked from working, not that the printer fails without warning. No fine, no device count. The mark's own citation (hop.asso.fr) does not resolve. |
+| C6 | **John Deere** | ECU locks + DMCA 1201 | A | The FTC/States complaint and the Register's exemption notice establish that a software tool is required for repairs and that Deere restricts it to authorized dealers. | "$250K combines", the AFBF MOU, or any Ukraine claim — none is in the docket. |
+| C7 | **Sonos/IoT** | Recycle Mode OTA brick | B | Sonos' own support article states that "Sonos products in Recycle Mode cannot be set up in a Sonos system", and directs owners of such a product to responsible disposal rather than to reactivation. | A countdown or deadline, and that a factory reset cannot recover the device: both remain secondary reporting (tier C) and are excluded from this pin's claim. No discount figure. The mark's own citation (sonos.com/en-us/recycle-mode) returns 404. |
 
-### SEVEN PILLARS OF EVIDENCE
-1. **Microsoft** — TPM 2.0 kill switch, ESU ransomware (240M PCs orphaned)
-2. **Apple** — Batterygate throttling, repair monopoly ($500M + $113M settlements)
-3. **Intel** — Raptor Lake Vmin Shift, microcode coverup (1M+ degraded CPUs)
-4. **Google** — Android patch orphan, Play Integrity gate (1B+ devices)
-5. **Printer Cartel** — HP Dynamic Security, Epson counters (€15K fines × 4)
-6. **John Deere** — ECU locks, DMCA 1201, AFBF MOU (repair monopoly)
-7. **Sonos/IoT** — Recycle Mode OTA brick (30% discount for destruction)
+### Judge swarm — what it measured
+
+Grades come from a local Arena judge swarm: six angles (architecture, legal,
+economic, technical, ethical, strategic) served by **one** local model over the CAIN
+evidence packet, one call per angle per pin, each judge required to quote the
+source. That is angle diversity, not model diversity. Raw rows:
+`ARC/cain/arena_llm_rows_r6.jsonl` and `ARC/cain/arena_llm_rows_r7.jsonl`; tallies:
+`ARC/cain/arena_llm_judgments_r6.json` and `ARC/cain/arena_llm_judgments_r7.json`.
+
+Round 6 graded all seven pins (42 calls, 0 blind). Round 7 re-judged only C5 and
+C7 (12 calls, 0 blind) after HP's and Sonos' own documents were retrieved and the
+two claims were narrowed to what those documents state; C1, C2, C3, C4 and C6 are
+the round-6 grades unchanged, including the three PARTIAL residuals that no
+further reading has closed.
+
+An earlier, separate instrument — `tools/arena_judge_swarm.py`, six *heuristic*
+judges over FORBIDDEN_SILICON_BIBLE — returned 2 GUILTY / 3 PARTIAL / 1
+INSUFFICIENT_EVIDENCE at 0.72 average confidence. It scored a text; it did not
+weigh sources, and it is not reported here as validation of these findings.
 
 ### ECONOMIC IMPACT PROJECTIONS
+
+**These are illustrative projections, not measurements.** No source saved in the
+ARC/CAIN docket establishes any cell of this table; no cost model, discount rate or
+data set is attached. They are retained as a policy estimate to be commissioned,
+and must not be quoted as an established finding.
+
 | Intervention | Cost (Annual) | 10-yr NPV Benefit | ROI |
 |--------------|---------------|-------------------|-----|
 | Right to Repair Act | $2.1B | $47B | 22x |
