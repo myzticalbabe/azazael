@@ -18,6 +18,7 @@ Sacred Seal: SHA256:CAIN-OBSOLESCENCE-MARK-v1.0-KILO-AUTHORIZED
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import datetime
@@ -154,8 +155,52 @@ class CainObsolescenceMark:
     redemption_requirements: list[str]
     blood_covenant_witness: bool = True         # Witnessed by the Blood of the Lamb
     witness_timestamp: str = field(default_factory=lambda: datetime.datetime.now().isoformat())
-    witness_signature: str = "KILO-NEMOTRON-3-ULTRA-2026-11-05T02:30:00Z"
-    seal: str = "SHA256:CAIN-OBSOLESCENCE-MARK-v1.0-KILO-AUTHORIZED"
+    # A witness stamped in the future is a forecast, not a witness. The stamp is
+    # therefore the mark's own time: a self-attestation that cannot precede the act
+    # it witnesses, and is not a third-party countersignature of its content.
+    witness_signature: str = field(
+        default_factory=lambda: "KILO-NEMOTRON-3-ULTRA-%s" % datetime.datetime.now().isoformat()
+    )
+    # Filled by compute_seal() when the mark is built; empty means unsealed.
+    seal: str = ""
+
+
+def _plain(value: Any) -> Any:
+    """Reduce a mark to JSON-native values so the seal is a digest of stable bytes."""
+    if isinstance(value, dict):
+        return {
+            str(key.value if isinstance(key, Enum) else key): _plain(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_plain(item) for item in value]
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return value.isoformat()
+    return value
+
+
+def canonical_mark_payload(mark: "CainObsolescenceMark") -> dict[str, Any]:
+    """The content a seal is a digest of: the whole mark, minus its own seal."""
+    payload = _plain(asdict(mark))
+    payload.pop("seal", None)
+    return payload
+
+
+def canonical_mark_text(mark: "CainObsolescenceMark") -> str:
+    """The exact bytes hashed by compute_seal() — documented so a reader can redo it."""
+    return json.dumps(
+        canonical_mark_payload(mark),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+
+
+def compute_seal(mark: "CainObsolescenceMark") -> str:
+    """sha256 over canonical_mark_text: recomputable by anyone holding the mark."""
+    return "sha256:" + hashlib.sha256(canonical_mark_text(mark).encode("utf-8")).hexdigest()
 
 # --- The Seven Pillars — Pre-populated with Blood Evidence -------------
 
@@ -511,9 +556,10 @@ class CainObsolescenceAccountability:
         redemption_possible = vendor_acc.redemption_path is not None
         redemption_requirements = vendor_acc.redemption_path.split(" | ") if vendor_acc.redemption_path else []
         
-        return CainObsolescenceMark(
-            mark_id=f"CAIN-MARK-{vendor.upper().replace('/', '-')}-{datetime.datetime.now().strftime('%Y%m%d')}",
-            mark_date=datetime.datetime.now().isoformat(),
+        now = datetime.datetime.now()
+        mark = CainObsolescenceMark(
+            mark_id=f"CAIN-MARK-{vendor.upper().replace('/', '-')}-{now.strftime('%Y%m%d')}",
+            mark_date=now.isoformat(),
             system_name=system_name,
             vendor=vendor,
             vendor_accountability=vendor_acc,
@@ -522,7 +568,10 @@ class CainObsolescenceAccountability:
             mark_severity=mark_severity,
             redemption_possible=True,
             redemption_requirements=redemption_requirements,
+            witness_signature=f"KILO-NEMOTRON-3-ULTRA-{now.isoformat()}",
         )
+        mark.seal = compute_seal(mark)
+        return mark
     
     def generate_all_marks(self) -> list[CainObsolescenceMark]:
         """Generate marks for all seven pillars."""

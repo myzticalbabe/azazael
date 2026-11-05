@@ -13,6 +13,7 @@ the half of the contract that no ledger can satisfy.
 from __future__ import annotations
 
 import json
+import types
 
 import pytest
 
@@ -28,6 +29,7 @@ from tools.cain_obsolescence_pins import (
     load_marks,
     machine_gates,
     main,
+    pin_tier,
     staleness,
     verdict,
     VERDICT_BLIND,
@@ -259,6 +261,43 @@ def test_all_machine_gates_pass_on_a_sound_mark():
     described = _described()
     gates = machine_gates(FakeModule(), [object()], described)
     assert [g["ok"] for g in gates] == [True] * 6
+
+
+def test_seal_that_does_not_recompute_from_the_mark_is_reported():
+    """A digest-shaped string the module cannot reproduce seals nothing."""
+    described = _described()
+    m4 = next(
+        g for g in machine_gates(_WrongSeal(), [object()], described) if g["gate"] == "M4"
+    )
+    assert m4["ok"] is False
+    assert "its own bytes hash to" in m4["detail"]
+
+
+def test_two_marks_cannot_share_one_seal():
+    described = _described()
+    second = json.loads(json.dumps(described[0]))
+    second["mark_id"] = "CAIN-MARK-TEST2-20261104"
+    described.append(second)
+    m4 = next(g for g in machine_gates(FakeModule(), [], described) if g["gate"] == "M4")
+    assert m4["ok"] is False
+    assert "cannot repeat" in m4["detail"]
+
+
+def test_module_without_compute_seal_cannot_seal_anything():
+    """Shape and uniqueness are satisfiable by a counter; only a recompute is not."""
+    module = types.SimpleNamespace()
+    m4 = next(g for g in machine_gates(module, [], _described()) if g["gate"] == "M4")
+    assert m4["ok"] is False
+    assert "exposes no compute_seal" in m4["detail"]
+
+
+def test_compute_seal_raising_is_a_failed_gate_not_a_crash():
+    described = _described()
+    m4 = next(
+        g for g in machine_gates(_RaisingSeal(), [object()], described) if g["gate"] == "M4"
+    )
+    assert m4["ok"] is False
+    assert "compute_seal raised" in m4["detail"]
 
 
 # ── coverage: both directions ───────────────────────────────────────────────
@@ -516,6 +555,24 @@ def test_declared_gap_pinned_below_tier_c_is_an_error():
     assert any("below C" in e for e in errs)
 
 
+def test_pin_tier_reads_the_parts_of_an_architecture_pin():
+    assert pin_tier(_pin()) == "A"
+    at_c = _pin(mechanism=dict(_pin()["mechanism"], tier="C"), figures=[])
+    assert pin_tier(at_c) == "C"
+    assert pin_tier({"id": "X1"}) is None
+
+
+def test_declared_gap_on_an_architecture_pin_at_tier_c_is_not_a_tier_defect():
+    # An architecture pin records a tier per claim; before the fix the loop read
+    # only a top-level ``tier`` and so reported every such pin at ``None``.
+    ledger = _ledger(
+        pins=[_pin(mechanism=dict(_pin()["mechanism"], tier="C"), figures=[])],
+        declared_gaps=[{"gate": "G1", "why": LONG, "pins": ["P1"]}],
+    )
+    errs = _errors(ledger=ledger)
+    assert not [e for e in errs if "below C" in e]
+
+
 def test_declared_gap_without_a_reason_is_an_error():
     ledger = _ledger(
         pins=[_pin(), _context_pin()],
@@ -600,6 +657,35 @@ def test_module_without_compute_all_marks_is_blind(tmp_path):
     path.write_text("VALUE = 1\n", encoding="utf-8")
     with pytest.raises(Blinded):
         load_mark_module(path)
+
+
+def test_module_is_registered_before_it_executes(tmp_path):
+    # ``dataclasses`` resolves a field's string annotation through
+    # ``sys.modules[cls.__module__]``.  Executing an unregistered module makes
+    # that lookup ``None`` and the load dies inside the standard library, which
+    # the checker then reported as BLIND -- a loader bug blamed on the artifact.
+    path = tmp_path / "registered.py"
+    path.write_text(
+        "import sys\nSEEN = sys.modules.get(__name__) is not None\n"
+        "def compute_all_marks():\n    return [SEEN]\n",
+        encoding="utf-8",
+    )
+    module = load_mark_module(path)
+    assert module.SEEN is True
+
+
+def test_module_with_string_annotations_loads(tmp_path):
+    # The exact shape that broke: postponed annotations plus a dataclass.
+    path = tmp_path / "annotated.py"
+    path.write_text(
+        "from __future__ import annotations\n\n"
+        "from dataclasses import dataclass\n\n\n"
+        "@dataclass\nclass Mark:\n    label: str = ''\n\n\n"
+        "def compute_all_marks():\n    return [Mark()]\n",
+        encoding="utf-8",
+    )
+    module = load_mark_module(path)
+    assert module.compute_all_marks()[0].label == ""
 
 
 def test_compute_raising_is_blind_not_empty():
@@ -737,4 +823,22 @@ class FakeModule:
 
     def marks(self):
         return []
+
+    def compute_seal(self, mark):
+        """Reproduce the ``_described()`` seal, as the real module reproduces its own."""
+        return "sha256:" + "a" * 64
+
+
+class _WrongSeal(FakeModule):
+    """A module whose seal does not match the digest it hands back."""
+
+    def compute_seal(self, mark):
+        return "sha256:" + "b" * 64
+
+
+class _RaisingSeal(FakeModule):
+    """A module whose seal routine dies on its own subject."""
+
+    def compute_seal(self, mark):
+        raise ValueError("payload is not canonical")
 

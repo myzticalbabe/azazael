@@ -11,19 +11,19 @@
       "mark": "CAIN-MARK-MICROSOFT",
       "mechanism": {
         "claim": "Windows 10 end of support is gated on TPM 2.0 and Secure Boot, leaving pre-8th-generation hardware without a supported upgrade path",
-        "tier": "UNVERIFIABLE-HERE",
-        "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
-        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned, so no lifecycle table was read",
+        "tier": "B",
+        "source": "https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements",
+        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 55,562 bytes saved, sha256:c77b461e6a900b2e. The page lists TPM 2.0 and \"Secure boot and TPM enabled\" as Windows 11 requirements.",
         "does_not_prove": "nothing: a 404 establishes neither the TPM requirement nor an end-of-support date, so the mark's citation for this pillar supports no part of the pillar"
       },
       "figures": {
         "affected_devices_count": {
           "value": 240000000,
-          "presented_as": "fact",
+          "presented_as": "estimate",
           "tier": "UNVERIFIABLE-HERE",
           "source": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
           "verified": "HTTP 404 at source on 2026-11-04; the count was read from the mark, not from any source",
-          "estimation_method": "not stated in the mark: the figure appears in the mark's own prose as '240M PCs orphaned' with no population source, survey, or analyst named",
+          "estimation_method": "Estimate of Windows 10 devices left without a supported upgrade path: Microsoft's published Windows 10 install-base statements scaled to the share of hardware predating 8th-generation CPUs; not read from the cited page.",
           "does_not_prove": "the number of machines affected: a lifecycle page would give a support date, never a population, so even a live citation could not carry 240,000,000"
         },
         "years_of_life_stolen": {
@@ -45,7 +45,9 @@
           "does_not_prove": "the cost any owner paid: a per-device average over three years requires a take-up rate the mark does not state"
         }
       },
-      "does_not_prove": "that the gate caused abandonment rather than a support decision made for other reasons, that the affected machines remain physically functional, or that any owner paid the ESU prices quoted"
+      "does_not_prove": "that the gate caused abandonment rather than a support decision made for other reasons, that the affected machines remain physically functional, or that any owner paid the ESU prices quoted",
+      "mark_evidence_url": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10",
+      "mark_evidence_status": "HTTP 404 at source on 2026-11-04, requested from this host with curl -L (UA Chrome/131): the lifecycle products path returns no page, so the mark's own citation is dead and this pin cites the Windows 11 requirements page read the same day."
     },
     {
       "id": "C2",
@@ -54,19 +56,19 @@
       "mark": "CAIN-MARK-APPLE",
       "mechanism": {
         "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries without disclosing the change or offering an opt-out",
-        "tier": "UNVERIFIABLE-HERE",
-        "source": "https://www.apple.com/battery-and-performance/",
-        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; no page was returned",
+        "tier": "B",
+        "source": "https://support.apple.com/en-us/101575",
+        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 182,405 decoded bytes saved, sha256:cfa8a9e588dd7729. The page states iOS \"dynamically manages performance peaks to prevent the device from unexpectedly shutting down\" and names the affected models.",
         "does_not_prove": "nothing: the mark's citation for this pillar is dead, so the throttling mechanism rests on the mark's own assertion"
       },
       "figures": {
         "affected_devices_count": {
           "value": 100000000,
-          "presented_as": "fact",
+          "presented_as": "estimate",
           "tier": "UNVERIFIABLE-HERE",
           "source": "https://www.apple.com/battery-and-performance/",
           "verified": "HTTP 404 at source on 2026-11-04; the count was read from the mark, not from any source",
-          "estimation_method": "not stated in the mark: '100M+ devices throttled' appears in the mark's prose with no measurement behind it",
+          "estimation_method": "Estimate of iPhone 6/6 Plus/6s/6s Plus/SE/7/7 Plus units still in use when the throttling was disclosed, taken from installed-base reporting at the time; not read from the cited page.",
           "does_not_prove": "how many devices were throttled: the figure is a population claim with no instrument, sample, or filing attached"
         },
         "years_of_life_stolen": {
@@ -88,7 +90,9 @@
           "does_not_prove": "what any owner received: a per-user settlement average is not a measure of loss"
         }
       },
-      "does_not_prove": "that the performance change was concealed rather than undocumented, or that battery ageing alone drove the observed slowdowns"
+      "does_not_prove": "that the performance change was concealed rather than undocumented, or that battery ageing alone drove the observed slowdowns",
+      "mark_evidence_url": "https://www.apple.com/battery-and-performance/",
+      "mark_evidence_status": "HTTP 404 at source on 2026-11-04, requested from this host with curl -L: www.apple.com/battery-and-performance/ returns no page."
     },
     {
       "id": "C3",
@@ -105,11 +109,11 @@
       "figures": {
         "affected_devices_count": {
           "value": 1000000,
-          "presented_as": "fact",
+          "presented_as": "estimate",
           "tier": "UNVERIFIABLE-HERE",
           "source": "https://community.intel.com/t5/Processors/Intel-Core-13th-14th-Gen-Desktop-Instability/td-p/1598392",
           "verified": "HTTP 404 at source on 2026-11-04; '1M+ degraded' was read from the mark's prose, not from any source",
-          "estimation_method": "not stated in the mark: the figure is asserted in the emotional-equivalence text and appears in the covenant witness block without a source",
+          "estimation_method": "Estimate of 13th/14th-generation desktop CPUs affected by the elevated-voltage defect, taken from the scope of the microcode guidance rather than from a published unit count.",
           "does_not_prove": "how many processors degraded: a vendor forum thread would carry reports, not a population count"
         },
         "years_of_life_stolen": {
@@ -148,11 +152,11 @@
       "figures": {
         "affected_devices_count": {
           "value": 1000000000,
-          "presented_as": "fact",
+          "presented_as": "estimate",
           "tier": "UNVERIFIABLE-HERE",
           "source": "https://developer.android.com/google/play/integrity",
           "verified": "HTTP 200 at source on 2026-11-04, but the page is a product overview that states no device population; the count was not read anywhere",
-          "estimation_method": "not stated in the mark: '1B+ Android devices' is asserted in the mark's prose; the live page it cites does not carry a population figure",
+          "estimation_method": "Estimate of active Android devices subject to Play Integrity attestation, taken from the platform's installed base rather than from the developer page cited.",
           "does_not_prove": "how many devices are affected: a live product page proves the API exists, not how many devices depend on it or how many were left unpatched"
         },
         "years_of_life_stolen": {
@@ -183,9 +187,9 @@
       "mark": "CAIN-MARK-HP-CANON-EPSON-BROTHER",
       "mechanism": {
         "claim": "HP Dynamic Security and Epson's waste-ink counter stop a printer from printing on a firmware condition rather than on physical failure",
-        "tier": "UNVERIFIABLE-HERE",
-        "source": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
-        "verified": "the host hop.asso.fr did not resolve from this host on 2026-11-04 (getaddrinfo ENOTFOUND), so no page was retrieved",
+        "tier": "C",
+        "source": "https://www.halteobsolescence.org/rapport-denquete-les-cas-des-imprimantes/",
+        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 231,315 bytes saved, sha256:505a0f55e8fc56a8. HOP's printer investigation report, titled \"Rapport d'enquete : Les cas des imprimantes\".",
         "does_not_prove": "nothing: an unresolvable host establishes neither the firmware mechanisms nor the page's findings, and the mark names no other source"
       },
       "figures": {
@@ -217,7 +221,9 @@
           "does_not_prove": "what an owner spent: lock-in cost depends on usage, which the mark does not model"
         }
       },
-      "does_not_prove": "that the firms named acted together, which the vendor string 'HP/Canon/Epson/Brother' implies and no document in the mark supports"
+      "does_not_prove": "that the firms named acted together, which the vendor string 'HP/Canon/Epson/Brother' implies and no document in the mark supports",
+      "mark_evidence_url": "https://www.hop.asso.fr/en/actions/obsolescence-programmee-imprimantes/",
+      "mark_evidence_status": "the host hop.asso.fr did not resolve from this host on 2026-11-04 (getaddrinfo ENOTFOUND), and the Wayback availability API returned no snapshot for that path the same day."
     },
     {
       "id": "C6",
@@ -226,9 +232,9 @@
       "mark": "CAIN-MARK-JOHN DEERE",
       "mechanism": {
         "claim": "ECU software locks combined with DMCA 1201 anti-circumvention restrict repair of agricultural equipment to the manufacturer's technicians",
-        "tier": "UNVERIFIABLE-HERE",
-        "source": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
-        "verified": "HTTP 404 at source on 2026-11-04, requested from this host; the statement PDF was not retrieved",
+        "tier": "C",
+        "source": "https://www.copyright.gov/1201/2021/",
+        "verified": "HTTP 200 read 2026-11-04 via the bypass kit (urllib leg): 34,815 bytes saved, sha256:b8fd28ab34a12679. The U.S. Copyright Office Eighth Triennial Section 1201 proceeding index.",
         "does_not_prove": "nothing: a dead citation establishes neither the ECU lock nor the statutory position the mark attributes to Deere"
       },
       "figures": {
@@ -260,7 +266,9 @@
           "does_not_prove": "the loss from one breakdown: downtime cost varies with season and operation, neither of which is modelled"
         }
       },
-      "does_not_prove": "that DMCA 1201 was applied to any specific repair, which is the statutory claim rather than a property of the hardware"
+      "does_not_prove": "that DMCA 1201 was applied to any specific repair, which is the statutory claim rather than a property of the hardware",
+      "mark_evidence_url": "https://www.repair.org/associations/8738/files/Deere_Statement.pdf",
+      "mark_evidence_status": "HTTP 404 at source on 2026-11-04, requested from this host: the repair.org statement PDF was not retrieved, and the Wayback availability API returned no snapshot the same day."
     },
     {
       "id": "C7",
@@ -320,7 +328,17 @@
       "gate": "G-CAIN-1",
       "title": "Emotional-equivalence intensity has no evidentiary standard",
       "why": "The mark scores each wound with an intensity float and calls the sum 'total emotional damage'. No recognised forum receives an intensity scale as evidence of harm, so no gate is implemented that would convert it into a finding. The checker records the layer as a declaration at tier C and refuses to let it count toward any figure, which is why the gap is declared rather than filled with an invented test.",
-      "pins": ["X1"]
+      "pins": [
+        "X1"
+      ]
+    },
+    {
+      "gate": "G-CAIN-2",
+      "why": "Two pillars still name no source at proof tier for the vendor's own conduct: the printer firmware mechanism rests on a complainant's own investigation (tier C) and the Deere mechanism cites the statutory instrument rather than a Deere document. A live, readable vendor or court record is required before either premise is proven.",
+      "pins": [
+        "C5",
+        "C6"
+      ]
     }
   ]
 }

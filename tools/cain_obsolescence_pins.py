@@ -143,9 +143,16 @@ def load_mark_module(path: Path = MARK_MODULE) -> Any:
     if spec is None or spec.loader is None:
         raise Blinded("mark module could not be loaded: %s" % path)
     module = importlib.util.module_from_spec(spec)
+    # Register BEFORE executing.  ``dataclasses`` resolves a field's string
+    # annotation through ``sys.modules[cls.__module__].__dict__``; an unregistered
+    # module makes that lookup ``None`` and the whole mark module dies with
+    # ``AttributeError: 'NoneType' object has no attribute '__dict__'`` -- a
+    # loader bug reported as if the artifact were blind.
+    sys.modules[spec.name] = module
     try:
         spec.loader.exec_module(module)
     except Exception as exc:  # noqa: BLE001 - a load failure is BLIND, and is named
+        sys.modules.pop(spec.name, None)
         raise Blinded("mark module raised on load: %s: %s" % (type(exc).__name__, exc))
     if not hasattr(module, "compute_all_marks"):
         raise Blinded("mark module exposes no compute_all_marks")
@@ -339,17 +346,56 @@ def machine_gates(module: Any, marks: List[Any], described: List[Dict[str, Any]]
             break
     results.append({"gate": "M3", "title": "aggregate-arithmetic", "ok": ok, "detail": detail})
 
-    # M4 — a seal a reader cannot recompute seals nothing.
-    ok, detail = True, "every seal is a sha256 digest"
+    # M4 — a seal a reader cannot recompute seals nothing: shape, uniqueness, and
+    # then the digest recomputed from the module that built the mark. Shape alone
+    # is not evidence: a per-mark counter dressed in hex passes it.
+    ok, detail = True, "every seal is a sha256 digest over the mark it seals"
+    seen: dict[str, str] = {}
     for row in described:
-        if not SEAL_DIGEST.match(row["seal"].strip()):
+        seal = str(row["seal"]).strip()
+        if not SEAL_DIGEST.match(seal):
             ok = False
             detail = (
                 "%s seals with %r: a label, not a digest over any bytes; a reader cannot "
                 "recompute it and it is identical on every mark"
-                % (row["mark_id"], row["seal"])
+                % (row["mark_id"], seal)
             )
             break
+        if seal in seen:
+            ok = False
+            detail = (
+                "%s and %s carry the same seal %s: a digest over different bytes cannot repeat"
+                % (seen[seal], row["mark_id"], seal)
+            )
+            break
+        seen[seal] = row["mark_id"]
+
+    compute_seal = getattr(module, "compute_seal", None)
+    if ok and compute_seal is None:
+        ok = False
+        detail = (
+            "the mark module exposes no compute_seal: the seal's input cannot be recomputed, "
+            "so a well-formed digest string is only a label wearing a digest's shape"
+        )
+    if ok and marks:
+        for mark, row in zip(marks, described):
+            try:
+                recomputed = str(compute_seal(mark))
+            except Exception as exc:
+                ok = False
+                detail = "%s: compute_seal raised %s: %s" % (
+                    row["mark_id"],
+                    type(exc).__name__,
+                    exc,
+                )
+                break
+            if recomputed != str(row["seal"]).strip():
+                ok = False
+                detail = (
+                    "%s seals %s but its own bytes hash to %s: the seal is not a digest of "
+                    "this mark" % (row["mark_id"], str(row["seal"]).strip(), recomputed)
+                )
+                break
     results.append({"gate": "M4", "title": "seal-is-a-digest", "ok": ok, "detail": detail})
 
     # M5 — a witness dated after the act is a forecast, not a witness.
@@ -513,6 +559,30 @@ def _check_figure(
         )
 
 
+TIER_STRENGTH = {"A": 4, "B": 3, "C": 2, "D": 1}
+
+
+def pin_tier(pin: Dict[str, Any]) -> Optional[str]:
+    """The strongest tier a pin carries, wherever the pin records it.
+
+    A declaration pin (X1) carries one top-level ``tier``.  An architecture pin
+    (C1-C7) carries a tier per claim instead: ``mechanism.tier`` plus one per
+    figure.  Reading only the top-level field scored every architecture pin at
+    ``None`` and reported a declared gap as if the gap were a tier defect.
+    """
+    recorded = [pin.get("tier")]
+    mechanism = pin.get("mechanism")
+    if isinstance(mechanism, dict):
+        recorded.append(mechanism.get("tier"))
+    for figure in pin.get("figures") or []:
+        if isinstance(figure, dict):
+            recorded.append(figure.get("tier"))
+    tiers = [t for t in recorded if isinstance(t, str) and t in TIER_STRENGTH]
+    if not tiers:
+        return None
+    return max(tiers, key=lambda t: TIER_STRENGTH[t])
+
+
 def check(
     ledger: Dict[str, Any], described: List[Dict[str, Any]], machine: List[Dict[str, Any]]
 ) -> Tuple[List[str], List[str]]:
@@ -666,9 +736,9 @@ def check(
             pin = by_id.get(str(pid))
             if pin is None:
                 errors.append("declared gap %s names missing pin %s" % (gid, pid))
-            elif pin.get("tier") not in ("A", "B", "C"):
+            elif pin_tier(pin) not in ("A", "B", "C"):
                 errors.append(
-                    "declared gap %s names %s at tier %s, below C" % (gid, pid, pin.get("tier"))
+                    "declared gap %s names %s at tier %s, below C" % (gid, pid, pin_tier(pin))
                 )
 
     return errors, warnings
