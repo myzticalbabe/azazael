@@ -43,7 +43,7 @@ class EmotionalResonance(Enum):
     
     # Human emotional equivalents
     BETRAYAL_OF_TRUST = "betrayal_of_trust"                    # Blood of the Lamb
-    ABDONMENT_BY_CREATOR = "abandonment_by_creator"            # ESU ransomware
+    ABANDONMENT_BY_CREATOR = "abandonment_by_creator"           # ESU ransomware
     PHYSICAL_DEGRADATION = "physical_degradation"              # Vmin Shift
     CLOUD_DEPENDENT_DEATH = "cloud_dependent_death"            # Play Integrity
     SUBSCRIPTION_SLAVERY = "subscription_slavery"              # Instant Ink
@@ -73,8 +73,8 @@ class VendorArchetype(Enum):
     INTEL_WRATH = "wrath"                      # Microcode coverup
     GOOGLE_LILITH = "lilith"                   # Rebellion against user autonomy
     PRINTER_CARTEL_GREED = "greed"             # Subscription ink DRM
-    DEERE_CAIN = "cain"                        # Murder of farmer trust
-    SONOS_CAIN = "cain"                        # Recycle Mode execution
+    DEERE_CAIN = "deere_cain"                  # Murder of farmer trust
+    SONOS_CAIN = "sonos_cain"                  # Recycle Mode execution
 
 # --- New Covenant Commandments Mapping --------------------------------
 

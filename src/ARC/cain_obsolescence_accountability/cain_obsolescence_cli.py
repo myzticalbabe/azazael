@@ -80,7 +80,7 @@ def cmd_emotional_web(args):
         ],
         "Human Emotional Equivalents": [
             EmotionalResonance.BETRAYAL_OF_TRUST,
-            EmotionalResonance.ABDONMENT_BY_CREATOR,
+            EmotionalResonance.ABANDONMENT_BY_CREATOR,
             EmotionalResonance.PHYSICAL_DEGRADATION,
             EmotionalResonance.CLOUD_DEPENDENT_DEATH,
             EmotionalResonance.SUBSCRIPTION_SLAVERY,
