@@ -98,7 +98,13 @@ def classify(path: str, status: str) -> dict[str, Any]:
     """
     low = path.lower()
     name = os.path.basename(low)
-    stat = os.stat(os.path.join(REPO, path)) if status != "deleted" else os.stat(REPO)
+    # A path can vanish between git status and this stat (another lane lands a
+    # delete); that is a reading, not a reason to lose the whole census.
+    stat = None
+    try:
+        stat = os.stat(os.path.join(REPO, path)) if status != "deleted" else os.stat(REPO)
+    except OSError:
+        stat = None
 
     # Category detection (order matters: specific before general)
     if any(name.endswith(a) for a in ARTIFACT_EXTS) or any(a in name for a in ARTIFACT_NAMES):
@@ -130,8 +136,8 @@ def classify(path: str, status: str) -> dict[str, Any]:
     return {
         "path": path,
         "status": status,
-        "bytes": stat.st_size,
-        "mtime": time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime)),
+        "bytes": stat.st_size if stat else -1,
+        "mtime": time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime)) if stat else "missing",
         "added": added,
         "removed": removed,
         "category": cat,
@@ -171,11 +177,16 @@ def census_base(
         cats[v["category"]] = cats.get(v["category"], 0) + 1
 
     # Save JSONL output
-    save_path = args.save or REPO / "state" / "spitfire_census.jsonl"
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(save_path, "w", encoding="utf-8", newline="\n") as f:
-        for v in verdicts:
-            f.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), **v}) + "\n")
+    save_path = Path(args.save) if getattr(args, "save", None) else REPO / "state" / "spitfire_census.jsonl"
+    try:
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "w", encoding="utf-8", newline="\n") as f:
+            for v in verdicts:
+                f.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), **v}) + "\n")
+    except OSError as exc:
+        # An unwritable report means the census did not happen; 2 = could not run.
+        print(f"spitfire census: could not write {save_path}: {exc}", file=sys.stderr)
+        return 2
 
     # Output summary
     print(

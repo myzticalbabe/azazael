@@ -135,5 +135,53 @@ def test_sh_timeout():
     assert callable(shared.sh)
 
 
+def test_launcher_contract_is_implemented(tmp_path):
+    """launcher.dispatch calls impl.run(args, target) — the contract must exist.
+
+    Regression: the CLI raised AttributeError('module ... has no attribute run')
+    on every platform, while the tests were green because nothing called run.
+    """
+    import argparse
+
+    from spitfire.compat import impl_free_threaded, impl_gil, launcher
+
+    assert callable(getattr(impl_free_threaded, "run"))
+    assert callable(getattr(impl_gil, "run"))
+
+    args = argparse.Namespace(cmd="census", max_workers=2, save=tmp_path / "c.jsonl")
+    assert launcher.dispatch(args) == 0
+    assert (tmp_path / "c.jsonl").exists()
+
+
+def test_impl_run_accepts_a_string_save_path(tmp_path):
+    """The direct-execution parser passes --save as str; census must accept it."""
+    import argparse
+
+    from spitfire.compat import impl_free_threaded
+
+    args = argparse.Namespace(cmd="census", max_workers=1, save=str(tmp_path / "s.jsonl"))
+    assert impl_free_threaded.run(args) == 0
+    assert (tmp_path / "s.jsonl").exists()
+
+
+def test_census_unwritable_report_is_not_success(tmp_path):
+    """A census whose report cannot be written returns 2, never 0."""
+    import argparse
+
+    from spitfire.compat import impl_gil
+
+    blocker = tmp_path / "blocker"
+    blocker.write_text("a file, not a directory", encoding="utf-8")
+    args = argparse.Namespace(cmd="census", max_workers=1, save=blocker / "c.jsonl")
+    assert impl_gil.run(args) == 2
+
+
+def test_classify_missing_path_is_a_reading_not_a_crash():
+    """A path that vanished between git status and stat still classifies."""
+    result = shared.classify("does/not/exist/anywhere.py", "modified")
+    assert result["bytes"] == -1
+    assert result["mtime"] == "missing"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

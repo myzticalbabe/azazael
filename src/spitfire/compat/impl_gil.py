@@ -12,6 +12,12 @@ import argparse
 from .shared import run_dispatcher
 
 
+def run(args: argparse.Namespace, target: str = "") -> int:
+    """Entry point the launcher calls: args carries cmd, max_workers and save."""
+    workers = getattr(args, "max_workers", None) or 32
+    return run_dispatcher(args, workers, gil_free=False, impl_name="GIL")
+
+
 def main() -> int:
     """Entry point for direct execution (testing)."""
     parser = argparse.ArgumentParser()
@@ -21,7 +27,7 @@ def main() -> int:
     args = parser.parse_args()
 
     # GIL implementation: gil_free=False
-    return run_dispatcher(args, args.max_workers, gil_free=False, impl_name="GIL")
+    return run(args)
 
 
 if __name__ == "__main__":
