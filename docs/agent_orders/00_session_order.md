@@ -118,9 +118,11 @@ They only make answers wrong.
   `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `sys._is_gil_enabled()`
   is False). `python` on PATH is 3.14.7 **with** the GIL. Run the suite with the
   3.15t interpreter; a "hang" measured under 3.14 is not evidence about production.
-- **6,277 tests exist and nothing gates them.** (Collected 2026-11-02 with the
-  3.15t interpreter; the figure in this line said 5,380 for three days because no
-  gate read this file, which is why `tools/prompt_check.py` now does.) No stanza of
+- **6,975 tests exist and nothing gates them.** (Collected 2026-11-05 by
+  `python tools/head_state.py --write`, which runs `pytest --collect-only -q` under
+  the 3.15t interpreter and writes `state/head.json`. This line said 5,380 for
+  three days, then 6,277 for three more, because no gate read this file — which is
+  why `tools/prompt_check.py` now does, and it is what caught the 6,277.) No stanza of
   the commit hook runs pytest. Before concluding "the suite is slow", check that it is not *stuck*:
   metering helpers need a bound, and a test with no timeout can wedge a whole run
   (two did, for months — the compliance gate under test read a 5.4 GB store on
