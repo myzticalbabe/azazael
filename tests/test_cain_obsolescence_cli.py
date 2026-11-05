@@ -89,6 +89,56 @@ def test_cmd_compute_marks_creates_file(tmp_path):
     assert data["seal"] == "SHA256:CAIN-OBSOLESCENCE-MARK-v1.0-KILO-AUTHORIZED"
 
 
+def test_default_marks_output_lives_in_the_package():
+    """A bare default filename used to resolve against the caller's cwd."""
+    from src.ARC.cain_obsolescence_accountability.cain_obsolescence_cli import (
+        _resolve_marks_output,
+    )
+
+    path = _resolve_marks_output(None)
+    assert path.name == "cain_obsolescence_marks.json"
+    assert path.parent.name == "marks"
+    assert path.parent.parent.name == "cain_obsolescence_accountability"
+
+
+def test_marks_in_a_repository_root_are_refused(tmp_path):
+    """Two runs left mark files at the repo root where they look like canon."""
+    (tmp_path / ".git").mkdir()
+
+    from src.ARC.cain_obsolescence_accountability.cain_obsolescence_cli import (
+        _resolve_marks_output,
+    )
+
+    with pytest.raises(SystemExit, match="repository root"):
+        _resolve_marks_output(str(tmp_path / "cain_marks.json"))
+
+
+def test_witness_comes_from_the_caller_not_a_constant(tmp_path, monkeypatch):
+    """The witness used to be a literal in the source, so it named everyone."""
+    from src.ARC.cain_obsolescence_accountability.cain_obsolescence_cli import (
+        _witness,
+    )
+
+    monkeypatch.delenv("CAIN_WITNESS", raising=False)
+    assert _witness(MockArgs()) == "UNATTRIBUTED", (
+        "a missing witness must say UNATTRIBUTED, not borrow another lane's name"
+    )
+    assert _witness(MockArgs(witness="kilo")) == "kilo"
+
+    monkeypatch.setenv("CAIN_WITNESS", "opencode")
+    assert _witness(MockArgs()) == "opencode"
+
+
+def test_compute_stamps_the_caller_witness(tmp_path):
+    """The written file must carry the caller's name, not the old constant."""
+    import json
+
+    output_file = tmp_path / "marks.json"
+    cmd_compute_marks(MockArgs(output=str(output_file), witness="freebuff"))
+    data = json.loads(output_file.read_text(encoding="utf-8"))
+    assert data["witness"] == "freebuff"
+
+
 def test_cmd_validate_valid_file(tmp_path):
     """cmd_validate passes for valid file."""
     # Create a valid marks file

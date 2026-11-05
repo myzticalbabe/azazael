@@ -11,6 +11,7 @@ import sys
 import json
 import argparse
 import datetime
+import os
 import traceback
 from pathlib import Path
 
@@ -185,6 +186,54 @@ def cmd_covenant(args):
     print("\n" + "=" * 80)
 
 
+def _cain_marks_dir() -> Path:
+    """Default home for computed marks: the package, never the caller's cwd."""
+    return Path(__file__).resolve().parent / "marks"
+
+
+def _witness(args) -> str:
+    """Who is asserting this mark.
+
+    Until 2026-11-05 the witness was the literal string
+    "KILO-NEMOTRON-3-ULTRA-2026-11-05T02:30:00Z" written into this source, so
+    every run by every lane stamped the same witness and the stamp attributed
+    nothing. Two mark files left at the repository root carried it and were
+    read as kilo's work; they were written by whoever ran this CLI. A witness
+    is a claim about a caller, so it comes from the caller: --witness, then
+    CAIN_WITNESS, then the honest answer, UNATTRIBUTED.
+    """
+    explicit = getattr(args, "witness", None)
+    if explicit:
+        return str(explicit)
+    return os.environ.get("CAIN_WITNESS", "").strip() or "UNATTRIBUTED"
+
+
+def _resolve_marks_output(output=None) -> Path:
+    """Where `compute` writes, and the one place it refuses to write.
+
+    The default is <package>/marks/cain_obsolescence_marks.json. A bare
+    filename used to resolve against the working directory, which is how two
+    runs left cain_marks.json and cain_marks_final.json untracked at the
+    repository root (measured 2026-11-05). An explicit path is honoured
+    everywhere except a repository root, where a stray marks file is
+    indistinguishable from tracked canon.
+    """
+    if output:
+        path = Path(output)
+        parent = path.parent if str(path.parent) not in ("", ".") else Path.cwd()
+        parent = parent.resolve()
+        for marker in (".git", "pyproject.toml"):
+            if (parent / marker).exists():
+                raise SystemExit(
+                    "REFUSED: %s is a repository root, and a marks file written "
+                    "there is indistinguishable from canon. Pass a path under "
+                    "%s (the default) or inside your own lane's scratch "
+                    "directory." % (parent, _cain_marks_dir())
+                )
+        return path
+    return _cain_marks_dir() / "cain_obsolescence_marks.json"
+
+
 def cmd_compute_marks(args):
     """Compute and save marks to file."""
     from cain_obsolescence_mark import compute_all_marks, CainObsolescenceAccountability
@@ -192,11 +241,13 @@ def cmd_compute_marks(args):
     engine = CainObsolescenceAccountability()
     marks = engine.generate_all_marks()
     
-    output_path = Path(args.output) if args.output else Path("cain_obsolescence_marks.json")
+    output_path = _resolve_marks_output(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    witness = _witness(args)
     
     data = {
         "generated": datetime.datetime.now().isoformat(),
-        "witness": "KILO-NEMOTRON-3-ULTRA-2026-11-05T02:30:00Z",
+        "witness": witness,
         "seal": "SHA256:CAIN-OBSOLESCENCE-MARK-v1.0-KILO-AUTHORIZED",
         "marks": [vars(m) for m in marks],
     }
@@ -204,6 +255,7 @@ def cmd_compute_marks(args):
     output_path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
     print(f"Marks saved to: {output_path}")
     print(f"Computed {len(marks)} marks.")
+    print(f"Witness: {witness}")
 
 
 def cmd_validate(args):
@@ -280,6 +332,10 @@ Examples:
     # Compute marks
     compute_parser = subparsers.add_parser("compute", help="Compute and save all marks")
     compute_parser.add_argument("-o", "--output", help="Output file path")
+    compute_parser.add_argument(
+        "--witness",
+        help="Who is asserting this mark (default: CAIN_WITNESS, else UNATTRIBUTED)"
+    )
     
     # Validate
     validate_parser = subparsers.add_parser("validate", help="Validate mark file")
@@ -289,7 +345,10 @@ Examples:
     
     if not args.command:
         parser.print_help()
-        return 1
+        # Exit rather than return: the sibling path for an unknown command
+        # exits, and a test that pins "no command exits with an error" was
+        # red against a bare return 1 (measured 2026-11-05, pre-existing).
+        sys.exit(1)
     
     commands = {
         "pillars": cmd_list_pillars,
