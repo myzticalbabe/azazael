@@ -23,5 +23,12 @@
   },
   "retention": {
     "composite_eviction": false
+  },
+  "hyper_edge": {
+    "reading_audit": true,
+    "settings_shadow": true,
+    "leg_ledger": true,
+    "head_audit": true,
+    "strict": false
   }
 }

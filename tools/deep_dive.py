@@ -130,10 +130,77 @@ def leg_golden_arrow_status(_payload):
             "summary": totals}
 
 
+# Keys are written out in full and read at a call site, never assembled as
+# "hyper_edge." + name: settings_shadow resolves a read only when the reader is
+# called with a literal string, so a computed key (or one parked in a table)
+# leaves the knob looking untouched. Measured 2026-11-05: the first version put
+# the keys in this table and the auditor reported all four as `orphan_knob` --
+# its own finding class, fired by how this file asked for its settings.
+def hyper_edge_flags() -> dict:
+    return {
+        "reading_audit": bool(setting("hyper_edge.reading_audit", True)),
+        "settings_shadow": bool(setting("hyper_edge.settings_shadow", True)),
+        "leg_ledger": bool(setting("hyper_edge.leg_ledger", True)),
+        "head_audit": bool(setting("hyper_edge.head_audit", True)),
+    }
+
+
+HYPER_EDGE_TOOLS = [
+    ("reading_audit", "tools/reading_audit.py", "hyper_edge.reading_audit"),
+    ("settings_shadow", "tools/settings_shadow.py", "hyper_edge.settings_shadow"),
+    ("leg_ledger", "tools/leg_ledger.py", "hyper_edge.leg_ledger"),
+    ("head_audit", "tools/head_audit.py", "hyper_edge.head_audit"),
+]
+
+
+def leg_hyper_edge(_payload):
+    """HED-9..HED-12 -- the readings that decay unless something runs them.
+
+    Each auditor is advisory on its own (findings printed, exit 0), so a tree
+    carrying known debt still runs the leg and still reports; `hyper_edge.strict`
+    turns findings into a failing leg, which is the same debt model HED-2 uses for
+    the test baseline. `leg_ledger` audits the PREVIOUS logs/deep_dive.json, so on
+    a first run there is nothing to audit -- that is `skipped`, not a pass and not
+    a failure, because the report it would audit is being written by this run.
+    """
+    strict = bool(setting("hyper_edge.strict", False))
+    flags = hyper_edge_flags()
+    parts, failed, summary = [], [], {}
+    for name, rel, key in HYPER_EDGE_TOOLS:
+        if not flags[name]:
+            parts.append("%s=off (%s=false)" % (name, key))
+            summary[name] = "off"
+            continue
+        if name == "leg_ledger" and not REPORT.exists():
+            parts.append("leg_ledger=skipped (no prior %s to audit)" % REPORT.name)
+            summary[name] = "skipped"
+            continue
+        cmd = [sys.executable, rel] + (["--strict"] if strict else [])
+        proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=180)
+        lines = [line for line in (proc.stdout or "").strip().splitlines()
+                 if line.strip()]
+        first = lines[0] if lines else (proc.stderr or "").strip()[:200]
+        # The auditors already prefix their own name; prefixing again produced
+        # `reading_audit: reading_audit: 65 file(s)` in the first run.
+        if first.startswith(name + ":"):
+            first = first[len(name) + 1:].lstrip()
+        summary[name] = {"exit": proc.returncode, "line": first}
+        parts.append("%s: %s" % (name, first or "no output"))
+        if proc.returncode != 0:
+            failed.append("%s exit %s" % (name, proc.returncode))
+    detail = "; ".join(parts)
+    if failed:
+        return {"status": "error", "summary": summary,
+                "detail": detail + " | FAILED: " + ", ".join(failed)}
+    return {"detail": detail, "summary": summary}
+
+
 FORENSIC_LEGS = [
     ("ast_audit", leg_ast_audit),
     ("evidence_gate", leg_evidence_gate),
     ("golden_arrow_status", leg_golden_arrow_status),
+    ("hyper_edge", leg_hyper_edge),
 ]
 
 

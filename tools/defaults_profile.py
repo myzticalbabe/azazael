@@ -129,6 +129,22 @@ def set_key(dotted: str, value) -> None:
     PATH.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def _leaves(data: dict, prefix: str = ""):
+    """Every scalar leaf in the profile, as (dotted key, value).
+
+    Recursive on purpose: `--show` and `problems()` both need to see a block
+    nobody told them about.
+    """
+    for key in sorted(data):
+        name = "%s%s" % (prefix, key)
+        value = data[key]
+        if isinstance(value, dict):
+            for row in _leaves(value, name + "."):
+                yield row
+        else:
+            yield name, value
+
+
 def problems(data: dict) -> list:
     out = []
     if not isinstance(data.get("ast_audit"), bool):
@@ -202,16 +218,17 @@ def main(argv=None) -> int:
         print("OK: defaults profile valid (%s)" % PATH)
         return 0
     # --show is the default surface: a default that is off must be visible.
-    print("defaults -- %s" % PATH)
-    print("  ast_audit              %s" % data.get("ast_audit"))
-    ga = data.get("golden_arrow", {})
-    print("  golden_arrow.enabled   %s  (every test file, %s workers, %ss/file, strict=%s)"
-          % (ga.get("enabled"), ga.get("workers"), ga.get("timeout_s"), ga.get("strict")))
-    dd = data.get("deep_dive", {})
-    print("  deep_dive.enabled      %s  (forensics=%s, web_search=%s, max_queries=%s)"
-          % (dd.get("enabled"), dd.get("forensics"), dd.get("web_search"), dd.get("max_queries")))
-    fb = data.get("fallback", {})
-    print("  fallback.on_error      %s  -> %s" % (fb.get("on_error"), fb.get("record")))
+    # Printed by walking the file, never by a hand-kept list. The first version
+    # printed five hard-coded lines and therefore could not show
+    # preflight.disk_floor_gb, retention.composite_eviction or anything added
+    # later -- measured 2026-11-05, when the new `hyper_edge` block existed, was
+    # read by tools/deep_dive.py, and did not appear in --show at all. A knob the
+    # surface cannot print is a knob nobody can verify is in force (HED-5).
+    print("defaults -- %s (version %s)" % (PATH, data.get("version")))
+    rows = list(_leaves({k: v for k, v in data.items() if k != "version"}))
+    for name, value in rows:
+        print("  %-30s %s" % (name, value))
+    print("  %d knob(s)" % len(rows))
     return 0
 
 
