@@ -122,7 +122,17 @@ class LaneMessageBoard:
     for opencode / kilo / freebuff lanes.
     """
 
-    VALID_LANES = ("opencode", "kilo", "freebuff")
+    # One tuple drives every lane check in this class (init, post, status,
+    # claim, retire, release, broadcast). It carried three lanes while the
+    # reader that fronts it advertised four: _board.py is documented as a
+    # reader/poster for crush, kilo, agy and opencode, and the poster refused
+    # crush and agy with "dst_lane must be one of ('opencode', 'kilo',
+    # 'freebuff')" (measured 2026-11-05, rows 47672-47676). A lane the reader
+    # names and the writer refuses has no queue, so the set is widened here
+    # rather than left to a second copy: docs/scripts/lane_kit.py holds the
+    # tutorial copy of this tuple, and tests/test_lane_kit.py pins the two
+    # to each other so they cannot drift apart again.
+    VALID_LANES = ("opencode", "kilo", "freebuff", "crush", "agy")
 
     def __init__(
         self,

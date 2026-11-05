@@ -42,7 +42,7 @@ import sqlite3
 import sys
 import time
 
-LANES = ("opencode", "kilo", "freebuff")  # code, not config, in the reference build
+LANES = ("opencode", "kilo", "freebuff", "crush", "agy")  # code, not config, in the reference build
 LEASE_SECONDS = 1800                      # 30 min: a dead lane's work returns
 MAX_ATTEMPTS = 3                          # the cap the reference build lacked
 STATE = ("available", "claimed", "done", "blocked")
