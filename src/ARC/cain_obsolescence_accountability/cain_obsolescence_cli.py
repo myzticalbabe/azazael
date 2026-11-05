@@ -11,6 +11,7 @@ import sys
 import json
 import argparse
 import datetime
+import traceback
 from pathlib import Path
 
 # Add parent directory to path
@@ -207,7 +208,6 @@ def cmd_compute_marks(args):
 
 def cmd_validate(args):
     """Validate a mark file."""
-    import sys
     file_path = Path(args.file)
     if not file_path.exists():
         print(f"Error: File not found: {file_path}", file=sys.stderr)
@@ -312,11 +312,9 @@ Examples:
         return 0
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
-        import traceback
         traceback.print_exc()
         return 1
 
 
 if __name__ == "__main__":
-    import datetime
     sys.exit(main())
