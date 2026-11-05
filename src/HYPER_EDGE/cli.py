@@ -14,11 +14,13 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
+from HYPER_EDGE import dream as dreams_mod
 from HYPER_EDGE import microcode
+from HYPER_EDGE import mutate
 from HYPER_EDGE.compat import capabilities, parallel_map, report as compat_report
 from HYPER_EDGE import evolution
 
-__all__ = ["main", "selftest"]
+__all__ = ["CONTROLS", "GOOD", "corpus", "main", "selftest"]
 
 GOOD: Dict[str, Any] = {
     "tier": "A",
@@ -65,7 +67,32 @@ CONTROLS: Tuple[Tuple[str, Dict[str, Any], str, Dict[str, Any]], ...] = (
     ("0x0A", {"reproduced": False}, microcode.LEAD, {}),
     ("0x0B", {"knob_readers": 0}, microcode.CUT, {}),
     ("0x0C", {"enabled": False}, microcode.BLIND, {}),
+    # An undated artifact is not fresh and it is not hostile -- the honest answer is
+    # BLIND. It was SKIP until the patch engine was pointed at this case; see
+    # ARC/cain/hyper_edge_microcode_patches.jsonl for the evidence that bought it.
+    ("0x09", {"age_days": None}, microcode.BLIND, {}),
 )
+
+#: What produced every case below. A case without this is refused by ``admit``.
+SELFTEST_COMMAND = "PYTHONPATH=src python -m HYPER_EDGE.cli selftest"
+
+
+def corpus() -> List[Dict[str, Any]]:
+    """The control corpus as evidence: every case, its expected answer, its command.
+
+    The digest is the corpus's own identity, so a patch proved against a corpus
+    that has since changed is refused instead of silently re-interpreted.
+    """
+    cases: List[Dict[str, Any]] = [
+        {"id": "%s/%02d" % (code, index), "code": code,
+         "record": _reading(**overrides), "expected": expected, "ctx": dict(ctx)}
+        for index, (code, overrides, expected, ctx) in enumerate(CONTROLS)
+    ]
+    digest = mutate.corpus_digest(cases)
+    for case in cases:
+        case["command"] = SELFTEST_COMMAND
+        case["digest"] = digest
+    return cases
 
 
 class Checks:
@@ -128,6 +155,40 @@ def selftest(evidence: str = "", recheck: str = "") -> int:
     checks.check("legacy mode reproduces the old coercion", legacy["rung"] == "VERIFIED",
                  "legacy rung=%s (the defect being migrated away from)" % legacy["rung"])
 
+    # --- the self-modifying layer: an unpaid patch must not move the microcode ---
+    # Two pinned cases on one knob: A wants the move, B pins the shipped answer. The
+    # engine must refuse to buy A by breaking B, whatever the live policy happens to
+    # be, so these controls hold before AND after a real patch is applied.
+    guard = [
+        {"id": "guard/A", "code": "0x0A", "record": _reading(draws=0),
+         "expected": microcode.LEAD, "ctx": {}, "command": SELFTEST_COMMAND,
+         "digest": "guard"},
+        {"id": "guard/B", "code": "0x0A", "record": _reading(draws=0),
+         "expected": microcode.SKIP, "ctx": {}, "command": SELFTEST_COMMAND,
+         "digest": "guard"},
+    ]
+    unpaid = {"op": "0x0A", "knob": "undrawn", "old": "skip", "new": "lead",
+              "corpus": mutate.corpus_digest(guard)}
+    stripped = [dict(guard[0], digest=""), guard[1]]
+    verdict = mutate.admit(unpaid, stripped)
+    checks.check("an unnoted counterexample cannot buy a patch",
+                 not verdict["admissible"] and any("unprovable" in reason
+                                                   for reason in verdict["reasons"]),
+                 "; ".join(verdict["reasons"])[:110])
+    strict = mutate.admit(unpaid, guard)
+    checks.check("a patch that would break a pinned case is refused",
+                 not strict["admissible"] and any("regress" in reason
+                                                  for reason in strict["reasons"]),
+                 "; ".join(strict["reasons"])[:110])
+    ledger = mutate.chain()
+    checks.check("the patch ledger hash-chains", ledger["ok"],
+                 "%d entr(ies), head=%s" % (ledger.get("entries", 0),
+                                            str(ledger.get("head"))[:12]))
+    live = microcode.POLICY.get("0x09", {}).get("undated")
+    checks.check("the live microcode carries the admitted policy",
+                 live is not None and not microcode.POLICY_FAULTS,
+                 "0x09.undated=%s, %d policy fault(s)" % (live, len(microcode.POLICY_FAULTS)))
+
     serial = [len(text) for text in ("a", "bb", "ccc", "dddd", "eeeee", "ffffff")]
     pooled = parallel_map(lambda text: len(text), ("a", "bb", "ccc", "dddd", "eeeee", "ffffff"))
     checks.check("parallel_map preserves order", pooled == serial,
@@ -169,6 +230,35 @@ def selftest(evidence: str = "", recheck: str = "") -> int:
                          agree["checked"], len(agree["mismatches"]),
                          (": " + "; ".join(agree["mismatches"])) if agree["mismatches"] else "")) if agree["available"] else "arena_llm_judge not importable")
 
+    # A reading the instrument cannot type must be refused, not crashed on: the
+    # dream that found this used "draws": [1, 2] with reproduced=true.
+    # GOOD with exactly one field malformed, so the fault is the only difference.
+    malformed = dict(GOOD)
+    malformed.update({"draws": [1, 2], "reproduced": True})
+    try:
+        graded = microcode.evaluate(malformed)
+    except Exception as fault:  # noqa: BLE001 - the crash is the finding
+        checks.check("a malformed reading is graded, never crashed on", False,
+                     "evaluate raised %s: %s" % (type(fault).__name__, fault))
+    else:
+        checks.check("a malformed reading is graded, never crashed on",
+                     graded["rung"] == microcode.BLIND and bool(graded["faults"]),
+                     "rung=%s faults=%s" % (graded["rung"], sorted(graded["faults"])))
+
+    # A dream is a hypothesis generator, never a proof: every knob move it
+    # separates must be stamped as such, and no stamp may claim admissibility.
+    # A record with no age exercises 0x09, so at least one knob move separates it
+    # and the check is not vacuously true on a reading that passes everything.
+    dreams_probe = [{"id": "undated", "record": {k: v for k, v in GOOD.items()
+                                                  if k != "age_days"}}]
+    stamps = dreams_mod.discriminate(dreams_probe)
+    checks.check("a dream cannot buy a patch",
+                 bool(stamps) and
+                 all(row["verdict"] == "a_dream_is_not_evidence" for row in stamps),
+                 "%d knob move(s) separated, %d stamped"
+                 % (len(stamps), sum(row["verdict"] == "a_dream_is_not_evidence"
+                                     for row in stamps)))
+
     failed, skipped = checks.failed(), checks.skipped()
     print("selftest: %d check(s), %d failed, %d skipped" %
           (len(checks.rows), failed, skipped))
@@ -203,6 +293,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     ev.add_argument("--apply", default="", metavar="ENV",
                     help="write the chosen overlay to config/defaults.<ENV>.json")
 
+    pt = sub.add_parser("patch", help="repair the microcode from a failing case")
+    pt.add_argument("--apply", action="store_true", help="persist the admitted patch")
+    pt.add_argument("--env", default="", help="policy file to write (default: the base one)")
+    pt.add_argument("--json", action="store_true")
+
+    ps = sub.add_parser("patches", help="the admitted patch ledger, and its chain")
+    ps.add_argument("--json", action="store_true")
+
+    op = sub.add_parser("optimize", help="prove the microcode per environment, concurrently")
+    op.add_argument("--env", default="windows,wsl,kali,rc")
+    op.add_argument("--apply", default="", help="comma-separated envs to persist")
+    op.add_argument("--workers", type=int, default=None)
+    op.add_argument("--json", action="store_true")
+
+    rb = sub.add_parser("rollback", help="write one patch's old value back")
+    rb.add_argument("digest")
+    rb.add_argument("--env", default="")
+
+    dr = sub.add_parser("dream", help="grade adversarial readings invented by the local model")
+    dr.add_argument("--count", type=int, default=4)
+    dr.add_argument("--url", default="")
+    dr.add_argument("--timeout", type=float, default=240.0)
+    dr.add_argument("--out", default="")
+    dr.add_argument("--replay", action="store_true", help="re-grade the stored dream file")
+    dr.add_argument("--json", action="store_true")
+
     args = ap.parse_args(argv)
     if args.command == "isa":
         rows = microcode.isa_table()
@@ -222,6 +338,114 @@ def main(argv: Optional[List[str]] = None) -> int:
         ] + (["--shipped-quorum", str(args.shipped_quorum)]
              if args.shipped_quorum is not None else [])
           + (["--apply", args.apply] if args.apply else []))
+    if args.command == "patch":
+        cases = corpus()
+        proposal = mutate.propose(cases)
+        chosen = next((candidate for candidate in proposal
+                       if mutate.admit(candidate, cases)["admissible"]), None)
+        if chosen is None:
+            if args.json:
+                print(json.dumps({"applied": False, "candidates": proposal}, indent=1))
+            else:
+                print("no admissible patch: the corpus constrains no knob")
+                for candidate in proposal:
+                    print("  %s.%s=%s fixes=%s regressions=%s"
+                          % (candidate["op"], candidate["knob"], candidate["new"],
+                             candidate["fixes"], candidate["regressions"]))
+            return 1
+        try:
+            entry = mutate.apply(chosen, cases, dry_run=not args.apply,
+                                 env=args.env or None)
+        except mutate.PatchRefused as refused:
+            print("REFUSED: %s" % "; ".join(refused.reasons))
+            return 1
+        if args.json:
+            print(json.dumps(entry, indent=1))
+        else:
+            print("patch %s.%s %s -> %s fixes=%s regressions=%s"
+                  % (entry["op"], entry["knob"], entry["old"], entry["new"],
+                     entry["fixes"], entry["regressions"]))
+            print("patch=%s digest=%s %s" % (entry["patch"][:16], entry["digest"][:16],
+                                             "applied" if args.apply else "dry-run"))
+        return 0
+    if args.command == "patches":
+        entries = mutate.patches()
+        ledger = mutate.chain()
+        if args.json:
+            print(json.dumps({"chain": ledger, "entries": entries}, indent=1))
+        else:
+            for entry in entries:
+                print("%s %s.%s %s -> %s fixes=%s"
+                      % (str(entry.get("digest"))[:12], entry.get("op"), entry.get("knob"),
+                         entry.get("old"), entry.get("new"), entry.get("fixes")))
+            print("chain: %s (%d entries, head %s)"
+                  % ("ok" if ledger["ok"] else ledger.get("reason"),
+                     ledger.get("entries", 0), str(ledger.get("head"))[:12]))
+        return 0 if ledger["ok"] else 1
+    if args.command == "optimize":
+        envs = [env.strip() for env in args.env.split(",") if env.strip()]
+        cases = corpus()
+        rows = mutate.optimize(envs, {env: cases for env in envs},
+                               apply_envs=[env.strip() for env in args.apply.split(",") if env.strip()],
+                               workers=args.workers)
+        if args.json:
+            print(json.dumps(rows, indent=1, default=str))
+        else:
+            for row in rows:
+                detail = ("%s.%s %s -> %s" % (row["candidate"]["op"], row["candidate"]["knob"],
+                                               row["candidate"]["old"], row["candidate"]["new"])
+                          if row.get("candidate") else "; ".join(row.get("reasons") or []))
+                print("%-12s %-10s %s" % (row["env"], row["status"], detail))
+            print("corpus: %s (shared by every environment in this run)"
+                  % mutate.corpus_digest(cases)[:16])
+        return 0 if all(row["status"] in ("patched", "proposed", "converged") for row in rows) else 1
+    if args.command == "dream":
+        target = Path(args.out) if args.out else dreams_mod.DREAM_FILE
+        if args.replay:
+            try:
+                stored = json.loads(target.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                print("BLIND: cannot read %s: %s" % (target, exc))
+                return 2
+            rows = dreams_mod.replay(stored.get("dreams") or [])
+        else:
+            stored = dreams_mod.dream(args.count, url=args.url or None, timeout=args.timeout)
+            rows = dreams_mod.replay(stored["dreams"])
+            stored["replay"] = rows
+            stored["discriminating"] = dreams_mod.discriminate(stored["dreams"])
+            if stored["status"] in ("OK", "EMPTY") and args.count:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(json.dumps(stored, indent=1, sort_keys=True) + "\n",
+                                   encoding="utf-8")
+        if args.json:
+            print(json.dumps({"status": stored.get("status"), "model": stored.get("model"),
+                              "rows": rows,
+                              "discriminating": stored.get("discriminating", [])}, indent=1))
+        else:
+            print("dreams: %s model=%s %d graded"
+                  % (stored.get("status"), stored.get("model"), len(rows)))
+            for row in rows:
+                print("  %-18s rung=%-10s %s%s" % (row["id"], row["rung"], row["op_states"],
+                                                   "  (moved from %s)" % row["was"] if row["moved"] else ""))
+            for row in stored.get("discriminating", []):
+                print("  hypothesis %s.%s %s -> %s separates %s"
+                      % (row["op"], row["knob"], row["old"], row["new"], row["moved"]))
+            for why in (stored.get("refused") or [])[:6]:
+                print("  refused: %s" % why)
+            if stored.get("reason"):
+                print("  reason: %s" % stored["reason"])
+            if not args.replay and stored.get("status") in ("OK", "EMPTY"):
+                print("  stored: %s" % target)
+        return 0 if stored.get("status") == "OK" else 2
+    if args.command == "rollback":
+        try:
+            entry = mutate.rollback(args.digest, env=args.env or None)
+        except mutate.PatchRefused as refused:
+            print("REFUSED: %s" % "; ".join(refused.reasons))
+            return 1
+        print("rolled back %s: %s.%s %s -> %s"
+              % (args.digest[:12], entry["op"], entry["knob"], entry["old"], entry["new"]))
+        return 0
     ap.print_help()
     return 2
 

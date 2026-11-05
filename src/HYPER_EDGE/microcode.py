@@ -22,10 +22,16 @@ demonstrated.
 
 from __future__ import annotations
 
+import json
+import os
+import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
-__all__ = ["ISA", "LADDER", "Op", "evaluate", "isa_table", "quorum_state", "rung"]
+__all__ = ["DEFAULT_POLICY", "ISA", "LADDER", "Op", "POLICY", "POLICY_CHOICES",
+           "POLICY_FAULTS", "evaluate", "isa_table", "load_policy", "policy_path",
+           "quorum_state", "rung", "set_policy"]
 
 PASS = "PASS"
 LEAD = "LEAD"
@@ -33,6 +39,102 @@ CUT = "CUT"
 BLIND = "BLIND"
 NO_QUORUM = "NO_QUORUM"
 SKIP = "SKIP"
+
+#: Declared policy knobs -- the only surface a patch may move. Each op whose answer
+#: depends on a judgement call (what to do when a value is *absent*) exposes it by
+#: name instead of hard-coding one answer, so "the rule is wrong" becomes a data
+#: change with a replay proof rather than an edit to a predicate body.
+DEFAULT_POLICY: Dict[str, Dict[str, str]] = {
+    "0x09": {"undated": "skip"},
+    "0x0A": {"undrawn": "skip"},
+}
+
+#: Legal values per knob, ordered least to most severe. A proposer tries them in
+#: this order and stops at the first that fixes a failing case without regressing a
+#: passing one -- so the least destructive repair wins by construction.
+POLICY_CHOICES: Dict[str, Dict[str, Tuple[str, ...]]] = {
+    "0x09": {"undated": ("skip", "blind", "cut")},
+    "0x0A": {"undrawn": ("skip", "blind", "lead")},
+}
+
+#: Loading faults from the persisted policy (unknown op, unknown knob, illegal
+#: value). Never silently dropped: the selftest prints them and fails on them.
+POLICY_FAULTS: List[str] = []
+
+#: The policy in force. Seeded from DEFAULT_POLICY, then overlaid by
+#: ``config/microcode.json`` when that file exists -- a patch that does not survive
+#: a process restart is not a repair, it is a mood.
+POLICY: Dict[str, Dict[str, str]] = {code: dict(knobs) for code, knobs in DEFAULT_POLICY.items()}
+
+
+_ENV_TOKEN = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
+
+
+def policy_path(env: Optional[str] = None) -> Path:
+    """``<project>/config/microcode[.<env>].json``, resolved from this file.
+
+    One file per environment, exactly like the settings overlay: a policy proved
+    against one environment's corpus must not silently govern another. The env
+    token is validated because it becomes part of a path.
+    """
+    root = Path(__file__).resolve().parents[2] / "config"
+    if env is None:
+        return root / "microcode.json"
+    if not _ENV_TOKEN.match(str(env)):
+        raise ValueError("illegal environment token %r" % (env,))
+    return root / ("microcode.%s.json" % env)
+
+
+def set_policy(policy: Mapping[str, Mapping[str, Any]]) -> List[str]:
+    """Validate and install ``policy`` in place. Returns the faults it refused.
+
+    Unknown ops, unknown knobs and illegal values are refused by name; a refused
+    knob keeps its previous value, because a typo must not silently disable a gate.
+    """
+    faults: List[str] = []
+    for code, knobs in policy.items():
+        if code not in POLICY_CHOICES:
+            faults.append("unknown op %r in policy" % (code,))
+            continue
+        if not isinstance(knobs, Mapping):
+            faults.append("policy[%s] is not a mapping" % code)
+            continue
+        for knob, value in knobs.items():
+            choices = POLICY_CHOICES[code].get(knob)
+            if choices is None:
+                faults.append("unknown knob %s.%s" % (code, knob))
+                continue
+            if value not in choices:
+                faults.append("%s.%s=%r is not one of %s" % (code, knob, value, list(choices)))
+                continue
+            POLICY.setdefault(code, {})[knob] = value
+    return faults
+
+
+def load_policy(path: Optional[Path] = None, env: Optional[str] = None) -> List[str]:
+    """Overlay ``config/microcode.json`` onto the shipped defaults.
+
+    A missing file is normal (nothing has been patched yet) and is not a fault. A
+    present-but-unreadable file IS a fault: it means someone believes a patch is
+    in force when it is not.
+    """
+    target = Path(path) if path is not None else policy_path(env)
+    if not target.exists():
+        return []
+    try:
+        data = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return ["%s unreadable: %s" % (target.name, exc)]
+    if not isinstance(data, Mapping):
+        return ["%s is not a JSON object" % target.name]
+    return set_policy(data.get("policy") or {})
+
+
+#: Applied at import: a persisted patch is in force in every process that imports
+#: the ISA, which is what makes it a repair rather than a session-local edit. The
+#: environment selects the overlay, so ``AZAZAEL_ENV=rc`` reads the policy proved
+#: against the rc corpus and nothing else.
+POLICY_FAULTS.extend(load_policy(env=os.environ.get("AZAZAEL_ENV") or None))
 
 #: the verdict ladder: exclusive rungs, most severe first. A reading sits on one.
 LADDER: Tuple[str, ...] = ("CUT", "BLIND", "NO_QUORUM", "LEAD", "PARTIAL", "VERIFIED")
@@ -146,6 +248,11 @@ def _provenance(record, ctx):
 def _stale(record, ctx):
     age = record.get("age_days")
     if age is None:
+        undated = str((ctx.get("policy") or {}).get("0x09", {}).get("undated", "skip"))
+        if undated == "blind":
+            return BLIND, "no age declared: freshness is unanswerable (policy 0x09.undated=blind)"
+        if undated == "cut":
+            return CUT, "no age declared and the policy cuts undated artifacts (0x09.undated=cut)"
         return SKIP, "no age declared"
     limit = float(ctx.get("max_age_days") or 0)
     if limit <= 0:
@@ -158,9 +265,18 @@ def _stale(record, ctx):
 def _repro(record, ctx):
     draws = record.get("draws")
     if not draws:
+        undrawn = str((ctx.get("policy") or {}).get("0x0A", {}).get("undrawn", "skip"))
+        if undrawn == "blind":
+            return BLIND, "no re-draw recorded: reproducibility unanswerable (policy 0x0A.undrawn=blind)"
+        if undrawn == "lead":
+            return LEAD, "no re-draw recorded and the policy queues the grade (0x0A.undrawn=lead)"
         return SKIP, "no re-draw recorded"
     if record.get("reproduced") is True:
-        return PASS, "grade reproduced across %d draw(s)" % int(draws)
+        try:
+            count = int(draws)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("draws must be a count, got %r" % (draws,)) from exc
+        return PASS, "grade reproduced across %d draw(s)" % count
     return LEAD, "grade did not reproduce: quote the draws, not a verdict"
 
 
@@ -245,24 +361,43 @@ def rung(states: Mapping[str, str]) -> str:
 
 
 def evaluate(record: Mapping[str, Any], quorum: float = 0.66,
-             legacy: bool = False, max_age_days: float = 0.0) -> Dict[str, Any]:
+             legacy: bool = False, max_age_days: float = 0.0,
+             policy: Optional[Mapping[str, Mapping[str, str]]] = None) -> Dict[str, Any]:
     """Run the ISA over one reading and return the rung plus every op's reason.
 
     ``legacy=True`` reproduces the pre-RC behaviour for every op, including the
     two defective ones -- this is the migration instrument, not a mode to ship.
+    ``policy`` overrides the knobs in force for this call only, which is how the
+    patch engine replays a candidate without touching the live policy.
     """
     ctx: Dict[str, Any] = {"quorum": float(quorum), "legacy": bool(legacy),
-                           "max_age_days": float(max_age_days)}
+                           "max_age_days": float(max_age_days),
+                           "policy": policy if policy is not None else POLICY}
     by_code = {op.code: op for op in ISA}
     states: Dict[str, str] = {}
     reasons: Dict[str, str] = {}
+    faults: Dict[str, str] = {}
     for code in _ORDER:
         op = by_code[code]
-        state, reason = op.fn(record, ctx)
+        try:
+            state, reason = op.fn(record, ctx)
+        except (TypeError, ValueError, KeyError, AttributeError, ZeroDivisionError) as exc:
+            # A reading the instrument cannot type is a refusal, never a crash.
+            # Measured 2026-11-05: a dreamed record with "draws": [1, 2] and
+            # reproduced=true raised TypeError out of int(), and the whole CLI
+            # died -- an adversary could stop the instrument by malforming one
+            # field.  The fault is named here and the rung becomes BLIND.
+            state = BLIND
+            reason = "the reading could not be graded: %s: %s" % (type(exc).__name__, exc)
+            faults[code] = reason
         states[code] = state
         reasons[code] = "%s %s: %s" % (op.code, op.name, reason)
-    return {"rung": rung(states), "states": states, "reasons": reasons,
+    grade = rung(states)
+    if faults and grade != CUT:
+        grade = BLIND
+    return {"rung": grade, "states": states, "reasons": reasons, "faults": faults,
             "quorum": ctx["quorum"], "legacy": ctx["legacy"],
+            "policy": {code: dict(knobs) for code, knobs in ctx["policy"].items()},
             "isa": "%s-%d" % ("HYPER_EDGE-ISA", len(ISA))}
 
 
