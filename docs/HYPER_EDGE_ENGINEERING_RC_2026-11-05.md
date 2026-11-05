@@ -202,22 +202,22 @@ corpus.
 
 | command | exit | line that proves it |
 |---|---|---|
-| `python -m HYPER_EDGE.cli selftest` | 0 | `selftest: 23 check(s), 0 failed, 0 skipped` |
+| `python -m HYPER_EDGE.cli selftest` | 0 | `selftest: 24 check(s), 0 failed, 0 skipped` |
 | `python -m HYPER_EDGE.cli evolve …` | 0 | `chosen -> q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250` |
 | `AZAZAEL_ENV=rc python tools/defaults_profile.py --check` | 0 | names base **and** overlay |
 | `AZAZAEL_DEFAULT_ARENA_QUORUM=0.4 … --check` | 1 | refuses the impossible quorum |
 | `python tools/defaults_profile.py --get arena.quorum` | 0 | `0.66` |
 
-The 23 selftest checks include **one negative control per op** (12), plus: 12 unique
+The 24 selftest checks include **one negative control per op** (12), plus: 12 unique
 codes, 12/12 legacy columns documented, a complete reading reaching VERIFIED, the
 RC-vs-legacy split pair, `parallel_map` order, evolve determinism for a seed, the
-0.50 edge refusal, admissibility of the chosen genome, and agreement with the
-judge's own tally. Two of them **failed on first run** — `0x09` (its control
+0.50 edge refusal, the 0.50 quorum refused **at the rule** (not only by the band),
+admissibility of the chosen genome, and agreement with the judge's own tally. Two of them **failed on first run** — `0x09` (its control
 supplied no age limit, so it tested nothing) and the 0.50 edge (which graded a
 split) — and both were fixed rather than relaxed.
 
 ```
-selftest: 23 check(s), 0 failed, 0 skipped
+selftest: 24 check(s), 0 failed, 0 skipped
 ```
 
 ## Part VIII — What this is not

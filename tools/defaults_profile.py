@@ -180,6 +180,19 @@ def _merge(base: dict, over: dict) -> dict:
     return out
 
 
+def _set_dotted(tree: dict, dotted: str, value) -> None:
+    """Assign `a.b.c` inside `tree`, creating intermediate objects as needed."""
+    parts = dotted.split(".")
+    node = tree
+    for part in parts[:-1]:
+        nxt = node.get(part)
+        if not isinstance(nxt, dict):
+            nxt = {}
+            node[part] = nxt
+        node = nxt
+    node[parts[-1]] = value
+
+
 def load_with_sources() -> tuple:
     """(profile, env, overlay path, overlay keys, errors) -- every layer, named.
 
@@ -206,6 +219,16 @@ def load_with_sources() -> tuple:
             ov_keys = {key for key, _value in _leaves(layer) if key}
         except ValueError as exc:
             errors.append("%s: %s" % (ov, exc))
+    # Layer 4 is folded into the merged view as well. It used to be applied only
+    # inside read_default(), so `--check` validated layers 1-3 and reported OK
+    # while AZAZAEL_DEFAULT_ARENA_QUORUM=0.4 was in force -- measured 2026-11-05:
+    # the gate printed "valid" for a quorum the engine refuses, because the layer
+    # that set it was invisible to the gate. A layer a checker cannot see is a
+    # layer nobody checks.
+    for name, _value in list(_leaves(data)):
+        found, forced = env_override(name)
+        if found:
+            _set_dotted(data, name, forced)
     return data, env, ov, ov_keys, errors
 
 
@@ -352,9 +375,15 @@ def problems(data: dict) -> list:
             if not isinstance(value, int) or isinstance(value, bool) or value < floor:
                 out.append("arena.%s must be an integer >= %d" % (key, floor))
         quorum = ar.get("quorum")
+        # 0.5 is not a legal quorum: at 0.50 a 3-2-1 split's top share equals the
+        # quorum and obtains a verdict. Derived by the HYPER_EDGE engine from the
+        # recorded rows (band (0.50, 1.00], maximin 0.75; measured 2026-11-05), so
+        # the checker refuses what the engine refuses -- otherwise a hand set of
+        # 0.4 would pass here and reintroduce the defect the engine removed.
         if not isinstance(quorum, (int, float)) or isinstance(quorum, bool) \
-                or not 0.0 < quorum <= 1.0:
-            out.append("arena.quorum must be a number in (0.0, 1.0]")
+                or not 0.5 < quorum <= 1.0:
+            out.append("arena.quorum must be a number in (0.5, 1.0] "
+                       "(0.5 or below cannot exclude a split vote)")
     if not isinstance((data.get("retention") or {}).get("composite_eviction"), bool):
         out.append("retention.composite_eviction must be true or false")
     floor_gb = (data.get("preflight") or {}).get("disk_floor_gb")
@@ -411,7 +440,11 @@ def main(argv=None) -> int:
             print("DEFECT: %s" % line)
         if bad:
             return 1
-        print("OK: defaults profile valid (%s)" % PATH)
+        # Name every layer that was read, not just the base file: the merged view
+        # is what was validated, and a message naming only defaults.json reads as
+        # a check of a file the active environment does not use.
+        print("OK: defaults profile valid (base %s; %s)" % (
+            PATH, ("overlay %s" % ov) if ov.exists() else "no overlay for env %s" % env))
         return 0
     # --show is the default surface: a default that is off must be visible.
     # Printed by walking the file, never by a hand-kept list. The first version
