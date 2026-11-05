@@ -220,7 +220,134 @@ split) — and both were fixed rather than relaxed.
 selftest: 24 check(s), 0 failed, 0 skipped
 ```
 
-## Part VIII — What this is not
+## Part VIII — Microcode that repairs itself, and dreams that cannot buy a patch
+
+**Measured 2026-11-05, interpreter `C:/Azazael/.venvs/py315t/Scripts/python.exe`, branch
+`azazael-intel-ultra-9-evo`.** Every line below carries the command that produced it.
+
+### VIII.1 A patch is a policy value with a receipt, not a rewrite
+
+The ISA's predicate bodies are never rewritten at runtime; what may change is a
+**declared knob** in `microcode.POLICY_CHOICES`. Admission is four gates, in order:
+
+1. a **real failing case** in the control corpus, carrying `command` + `digest`;
+2. the candidate **fixes** that case under replay;
+3. it **regresses no passing case**;
+4. the **least severe** admissible value wins (`skip` → `blind` → `cut`), so a repair
+   cannot escalate to `cut` merely because `cut` also fixes the symptom.
+
+The one admitted patch is the product of exactly that:
+
+```
+$ PYTHONPATH=src python -m HYPER_EDGE.cli patch --apply
+patch 0x09.undated skip -> blind fixes=['0x09/12'] regressions=[]
+patch=f22beb08ea36... digest=7b9e66ca2c0c... applied
+$ python -m HYPER_EDGE.cli patches
+7b9e66ca2c0c 0x09.undated skip -> blind fixes=['0x09/12']
+chain: ok (1 entries, head 7b9e66ca2c0c)
+```
+
+`cut` was admissible too (`fixes=[] regressions=[]` is *not* what it reported: it was
+reported as regressing the case that is supposed to stay `BLIND`). `cut` would have
+asserted the artifact is inadmissible when the truth is that **the freshness question
+was never asked** — the claim is about the instrument, not the world. `blind` is the
+only value that says that, which is why severity order is a gate and not a taste.
+
+### VIII.2 Why this file has two hashes per entry
+
+The first version hashed `created` into the only identifier. The same proposal was
+therefore `c8a5873550629894` when dry-run and `a6d7a81023ba29a2` fifteen minutes
+later — an identity that drifts with the clock cannot be cited as evidence. Now
+`patch` hashes the **content** (op, knob, old, new, fixes, regressions, corpus,
+evidence, env) and is stable; `digest` hashes content **plus** position and creation
+time, and is the chain link. Proof: the same proposal replayed one second apart prints
+`patch=f22beb08ea36` twice, while `digest` moves. A repeated proposal is refused by
+name (`patch f22beb08ea36 is already entry 1 of the ledger`), so the same repair
+cannot be logged twice.
+
+### VIII.3 Native AI: the model dreams, the ISA grades, evidence decides
+
+`HYPER_EDGE.dream` asks the **local** OpenAI-compatible endpoint the judge swarm
+already uses — no new dependency, no cloud key — for readings a naive reviewer would
+accept and this microcode should not. Two measured runs, model
+`Qwen3-4B-Instruct-2507-abliterated` served from `127.0.0.1:8081`:
+
+| run | asked | graded | outcome |
+| --- | --- | --- | --- |
+| `hyper_edge_dreams.json` | 3 | 4 | all `CUT`; `0x0B` (orphan knob) fired on every dream |
+| `hyper_edge_dreams_r2.json` | 4 | 4 | aims at `0x03`/`0x09`/`0x0A`; one hypothesis |
+
+Run 1 is the interesting failure: the model nested `why` inside every `record`, and the
+first version **discarded all three dreams over a field it had already been given as a
+sibling**. A key outside the ISA is now dropped and named in `dropped_keys`; a dream is
+graded on the keys it did use. Run 2 added the op table to the prompt and produced the
+one line that matters:
+
+```
+hypothesis 0x09.undated blind -> cut separates ['quorum-not-reached:LEAD->CUT']
+verdict: a_dream_is_not_evidence
+```
+
+That is a dream **proposing** the escalation VIII.1 refused. It stays a hypothesis:
+to move the microcode a dream must be pinned into the control corpus with the command
+and digest that produced its expected answer. `discriminate()` stamps every row, and
+`selftest` fails if any stamp claims otherwise (`a dream cannot buy a patch`).
+
+### VIII.4 Three defects the layer found in its own engine
+
+| symptom | cause | repair |
+| --- | --- | --- |
+| `TypeError: int() argument must be ... not 'list'` killed the CLI | a dreamed record with `"draws": [1, 2]` and `reproduced: true`; `_repro` called `int()` unguarded | `evaluate` grades a faulting op `BLIND`, names it in `faults`, and the rung becomes `BLIND` unless a positive `CUT` already fired; `selftest` now proves it (`rung=BLIND faults=['0x0A']`) |
+| a chain in a test ledger read `prev=<real head>` against `GENESIS` | `apply` read its head from the default ledger while appending to the ledger it was given | head is read from the same path it writes (`patches(log)`) |
+| four environments reported `refused` after the fix landed | "no failing case" was classified as a rejected patch | distinct status `converged`: *every control case passes under the policy in force* |
+
+An adversary could have stopped the instrument by malforming one field. That is the
+case for grading faults at all: a refusal is a reading, a traceback is a blind spot.
+
+### VIII.5 All environments, concurrently
+
+```
+$ PYTHONPATH=src python -m HYPER_EDGE.cli optimize --env windows,wsl,kali,rc --workers 4
+windows      proposed   0x09.undated skip -> blind
+wsl          proposed   0x09.undated skip -> blind
+kali         proposed   0x09.undated skip -> blind
+rc           proposed   0x09.undated skip -> blind
+corpus: f8c26bf6f6b99b45 (shared by every environment in this run)
+```
+
+One proof per environment through `compat.parallel_map` (native
+`CORE.freethreading.FreeThreadPool`), results in declared order. With the fix in force
+the same command reports `converged` on all four. **Honesty line, not decoration:** every
+environment proves the *same* corpus here, so this demonstrates concurrent evaluation
+and per-environment policy isolation (`config/microcode.<env>.json`), not four
+different bodies of evidence. An environment with no corpus reports `no_evidence`
+(`BLIND`), and that path is pinned by a test.
+
+### VIII.6 What was run
+
+```
+$ python -m HYPER_EDGE.cli selftest           # 31 check(s), 0 failed, 0 skipped
+$ python -m pytest tests/test_hyper_edge.py -q -p no:xdist   # 22 passed
+$ python tools/staged_scanner_gate.py <staged paths>         # recorded below
+```
+
+| proof | command | result |
+| --- | --- | --- |
+| patch admitted and ledgered | `cli patch --apply` | `applied`, `chain: ok (1 entries)` |
+| duplicate refused | `cli patch --apply` (policy reverted in a copy) | `REFUSED: patch f22beb08ea36 is already entry 1` |
+| clock-free identity | `cli patch` twice, 1 s apart | `patch=f22beb08ea36` both times |
+| dreams graded | `cli dream --count 4` | `4 graded`, 1 hypothesis stamped |
+| env concurrency | `cli optimize --env windows,wsl,kali,rc --workers 4` | 4 rows, declared order |
+| fault graded | `selftest` | `rung=BLIND faults=['0x0A']` |
+
+**Limitations.** No 16-core measurement of the parallel gain: `optimize` proves 4
+environments over a 12-case corpus in milliseconds, so the concurrency argument here is
+structural, not a speedup claim. Dream quality depends on the local model's size; a 4B
+model needed the op table in the prompt to aim at more than one op. And a dream set is
+**not** evidence: this section reports what the model proposed and what the ISA
+answered, not that any proposal is correct.
+
+## Part IX — What this is not
 
 - **Not a 3.16 measurement.** No 3.16 interpreter exists on this host. The 3.16 line
   is a target reached by probe; its behaviour is unverified by construction.

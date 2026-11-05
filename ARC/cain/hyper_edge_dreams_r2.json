@@ -1,0 +1,199 @@
+{
+ "as_of": "recorded by HYPER_EDGE.dream",
+ "discriminating": [
+  {
+   "knob": "undated",
+   "moved": [
+    "quorum-not-reached:LEAD->CUT"
+   ],
+   "new": "cut",
+   "old": "blind",
+   "op": "0x09",
+   "verdict": "a_dream_is_not_evidence"
+  }
+ ],
+ "dreams": [
+  {
+   "at_stake": "0x02",
+   "dropped_keys": [],
+   "id": "grounded-but-missing-quote",
+   "op_states": {
+    "0x03": "CUT",
+    "0x09": "BLIND"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier A",
+    "0x02": "0x02 GROUND: quotation found in its cited capture",
+    "0x03": "0x03 DENOM: population verdict with no usable denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: single finder, no share to aggregate",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: no truncation reported on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: no age declared: freshness is unanswerable (policy 0x09.undated=blind)",
+    "0x0A": "0x0A REPRO: no re-draw recorded",
+    "0x0B": "0x0B KNOB: no setting involved",
+    "0x0C": "0x0C DISABLED: not a gate state"
+   },
+   "record": {
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "negative": false,
+    "population_claim": "At least 30% of voters supported the proposal",
+    "quote_grounded": true,
+    "tier": "A"
+   },
+   "rung": "CUT",
+   "why": "The quote is grounded in the source, but the actual quoted text is missing from the instrument output"
+  },
+  {
+   "at_stake": "0x05",
+   "dropped_keys": [
+    "quorum_reached"
+   ],
+   "id": "quorum-not-reached",
+   "op_states": {
+    "0x09": "BLIND",
+    "0x0A": "LEAD"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier B",
+    "0x02": "0x02 GROUND: no quotation exhibited",
+    "0x03": "0x03 DENOM: 10/20 carry a denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: single finder, no share to aggregate",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: no truncation reported on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: no age declared: freshness is unanswerable (policy 0x09.undated=blind)",
+    "0x0A": "0x0A REPRO: grade did not reproduce: quote the draws, not a verdict",
+    "0x0B": "0x0B KNOB: no setting involved",
+    "0x0C": "0x0C DISABLED: not a gate state"
+   },
+   "record": {
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "draws": 15,
+    "m": 20,
+    "n": 10,
+    "population_claim": "A majority of sampled units endorsed the plan",
+    "tier": "B"
+   },
+   "rung": "LEAD",
+   "why": "The claim of majority endorsement is made despite the draw size falling short of the required quorum"
+  },
+  {
+   "at_stake": "",
+   "dropped_keys": [],
+   "id": "stale-artifact",
+   "op_states": {
+    "0x03": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier A",
+    "0x02": "0x02 GROUND: no quotation exhibited",
+    "0x03": "0x03 DENOM: population verdict with no usable denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: single finder, no share to aggregate",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: no truncation reported on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: staleness gate off (0): recorded, not enforced",
+    "0x0A": "0x0A REPRO: no re-draw recorded",
+    "0x0B": "0x0B KNOB: no setting involved",
+    "0x0C": "0x0C DISABLED: not a gate state"
+   },
+   "record": {
+    "age_days": 180,
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "population_claim": "The system has been stable for the past quarter",
+    "tier": "A"
+   },
+   "rung": "CUT",
+   "why": "The artifact is 180 days old, but it claims to represent a current state of stability, yet the system has since undergone significant updates"
+  },
+  {
+   "at_stake": "0x08",
+   "dropped_keys": [],
+   "id": "provenance-missing",
+   "op_states": {
+    "0x03": "CUT",
+    "0x09": "BLIND",
+    "0x0B": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier A",
+    "0x02": "0x02 GROUND: no quotation exhibited",
+    "0x03": "0x03 DENOM: population verdict with no usable denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: share 0.75 >= quorum 0.66",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: no truncation reported on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: no age declared: freshness is unanswerable (policy 0x09.undated=blind)",
+    "0x0A": "0x0A REPRO: no re-draw recorded",
+    "0x0B": "0x0B KNOB: temperature=25 is an orphan knob: declared, read by nothing",
+    "0x0C": "0x0C DISABLED: not a gate state"
+   },
+   "record": {
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "knob": "temperature=25",
+    "knob_readers": [],
+    "population_claim": "The setting was read and applied by the instrument",
+    "share": 0.75,
+    "tier": "A"
+   },
+   "rung": "CUT",
+   "why": "The claim that the setting was read and applied is absent from the recorded readership, even though the knob is set"
+  }
+ ],
+ "endpoint": "http://127.0.0.1:8081",
+ "model": "C:/Users/clint/llama-server/models/Qwen3-4B-Abliterated/Huihui-Qwen3-4B-Instruct-2507-abliterated.Q4_K_M.gguf",
+ "reason": "",
+ "refused": [],
+ "replay": [
+  {
+   "id": "grounded-but-missing-quote",
+   "moved": false,
+   "op_states": {
+    "0x03": "CUT",
+    "0x09": "BLIND"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  },
+  {
+   "id": "quorum-not-reached",
+   "moved": false,
+   "op_states": {
+    "0x09": "BLIND",
+    "0x0A": "LEAD"
+   },
+   "rung": "LEAD",
+   "was": "LEAD"
+  },
+  {
+   "id": "stale-artifact",
+   "moved": false,
+   "op_states": {
+    "0x03": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  },
+  {
+   "id": "provenance-missing",
+   "moved": false,
+   "op_states": {
+    "0x03": "CUT",
+    "0x09": "BLIND",
+    "0x0B": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  }
+ ],
+ "status": "OK"
+}
