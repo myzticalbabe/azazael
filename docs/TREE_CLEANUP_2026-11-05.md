@@ -153,21 +153,22 @@ python C:/Users/clint/_board.py status <lane>     # read it back
 
 ## 6. Inventory at `6579f565` — attribution as measured, not assumed
 
-| path group | count | owner evidence | action |
+| path group | count | owner evidence (measured) | action |
 | --- | --- | --- | --- |
-| `ARC/deere/*` → `analysis/deere/*` | 19 `D` + 19 `??` | row 47666 cites `c07ee3a1`; that commit is **dangling** | the lane that made the move re-lands it (paths are already correct in the tree) |
-| `tools/deere_claims_check.py`, `tests/test_deere_claims_check.py` | 2 `M` | same row, same dangling commit | same lane, same slice |
+| `ARC/deere/*` → `analysis/deere/*` | 19 `D` + 19 `??` | **freebuff**: rows 47665, 47666 name `60651efb` then `c07ee3a1` | freebuff re-lands the move; the tree's paths are already correct, so `git add -u ARC/deere` plus `git add analysis/deere` is the whole slice |
+| `tools/deere_claims_check.py`, `tests/test_deere_claims_check.py` | 2 `M` | **freebuff**, same rows, same dangling commit | freebuff, same slice |
 | `.audit/session_*.jsonl`, `.audit/anchors.jsonl` | 25 `D` + 1 `M` | no row names a retention run; `.audit/` is gitignored (`.gitignore:82`) | one lane takes index hygiene and names itself in the commit; nobody "restores" them |
-| `src/ARC/cain_obsolescence_accountability/cain_obsolescence_cli.py` | 1 `M` (−4) | cain wing work | the cain lane slices it |
-| `cain_marks.json`, `cain_marks_final.json` at repo root | 2 `??` | no row; scratch-shaped | owner moves to `ARC/cain/` or `/tmp`; if nobody owns them, a row |
-| `Project_ELIZA/tools/bcc_bypass.py` | 1 `M` (+27) | no row in the last 10 status rows | the eliza lane names itself or reverts |
-| `logs/anti_pattern_baseline.json` | 1 `M` | `logs/` is gitignored, this file is force-added | a rebaseline needs a stated reason; otherwise revert |
-| `state/bake_harvest_freebuff_2026-11-04.jsonl` | 1 `M` | freebuff harvest lane | land with the fix it describes |
-| `anti_pattern_detail.txt` | 1 `??` | no owner | row, not cleanup |
+| `src/ARC/cain_obsolescence_accountability/cain_obsolescence_cli.py` | 1 `M` (−4) | no row; continues `57ad578d` `CAIN: Fix anti-pattern regressions (import_inside_function x2, subprocess_no_timeout)` (2026-11-04 22:05) — the edit removes exactly those two local imports | the lane that wrote that commit slices it; kilo holds the cain marks (next row) and should check first |
+| `cain_marks.json`, `cain_marks_final.json` at repo root | 2 `??` | **kilo**: both files name `"witness": "KILO-NEMOTRON-3-ULTRA-2026-11-05T02:30:00Z"`, both hold the same 7 marks, generated 21:47:21 and 21:49:49 | two runs of one generator that wrote to the working directory; move under `ARC/cain/` or `/tmp`, do not commit either to the repo root |
+| `Project_ELIZA/tools/bcc_bypass.py` | 1 `M` (+27) | **freebuff**: harvest row `kit-gzip-raw` (`error_fix`) in `state/bake_harvest_freebuff_2026-11-04.jsonl` describes this exact `fetch_http` gzip defect and the Apple page measurement | land the fix **and** its harvest row in one commit — the lane file is the rule, not a leftover |
+| `logs/anti_pattern_baseline.json` | 1 `M` | no row; `logs/` is gitignored and this file is force-added | a rebaseline needs a stated reason in the message; otherwise revert |
+| `state/bake_harvest_freebuff_2026-11-04.jsonl` | 1 `M` | **freebuff**, same `kit-gzip-raw` row | pair with the fix above |
+| `anti_pattern_detail.txt` | 1 `??` | no row; the shape `anti_pattern_gate.py --report` produces | a row, not a deletion |
 
-Two rows say "no owner". That is the honest reading of this store: a file with no
-board row and no commit is not evidence of a lane's intent, and no lane should
-invent one to make the count reach zero.
+Three rows say "no owner". That is the honest reading of this store: a file with
+no board row and no commit is not evidence of a lane's intent, and no lane should
+invent one to make the count reach zero. What the three *do* have is a plausible
+producer named, which is enough to ask the question — and not enough to answer it.
 
 ---
 
