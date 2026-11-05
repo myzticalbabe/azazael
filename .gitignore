@@ -382,3 +382,6 @@ src/RUST_WASM/pkg*/
 /.shardex-intake/
 /.shardex-real/
 /sbom.spdx.json
+
+# worktree snapshots (tools/worktree_snapshot.py)
+.worktree-snapshots/
