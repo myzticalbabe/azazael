@@ -11,11 +11,24 @@ reading.
 So this tool does one thing: run every declared wing's own checker, in a
 subprocess, with a wall bound, and report the worst recorded state.
 
+A wing's checker grades whether a pin's text answers a demand. It does not grade
+whether the evidence behind that text can still be looked at, and on 2026-11-05
+none of the 39 pins in the tree carried bytes that could be re-examined. So one
+leg runs beside the wings: ``tools/arc_provenance.py``, in its own bounded child,
+re-hashing captures from disk and locating in-tree quotes and instruments. Its
+verdict is folded in, the way a deep dive is a stage of a test run rather than a
+second test runner. It is not a second grader of pins -- it has no opinion about
+whether any pin is enough -- and it can never turn a wing's ``GAPS`` into
+``READY``.
+
 What it does NOT do, and must never do:
 
 * It does not grade a wing itself. The wing's checker is the instrument; this
   tool has no opinion about pins, tiers or evidence. A second grader would drift
-  from the first one, and the two would disagree in public.
+  from the first one, and the two would disagree in public. The evidence leg is
+  the narrow exception and is scoped to keep that true: it grades whether the
+  bytes and instruments a pin names still exist, never whether the pin is
+  enough, and it is reported under its own row.
 * It never turns an unreadable instrument into a pass. Missing checker, missing
   ledger, unparseable output, a crash, a timeout, or a checker whose printed
   verdict disagrees with its own exit code or its own JSON report all grade
@@ -113,6 +126,11 @@ WINGS: Tuple[Dict[str, str], ...] = (
         "checker": "tools/eliza_arc_pins.py",
         "ledger": "ARC/eliza/marks.json",
         "inhabitant": "what a conversational agent may claim, and must refuse to claim",
+        # The pins cite `tools/<instrument>.py`, and the instruments live in the
+        # project the wing grades. Without this, a provenance run reported two
+        # tier-A pins as "instrument missing" for a path that resolves one
+        # directory down (measured 2026-11-05).
+        "project_root": "Project_ELIZA",
     },
 )
 
@@ -126,6 +144,20 @@ BLOCKED_WINGS: Dict[str, str] = {
 # Directories under ARC/ that are evidence about the container rather than a
 # graded wing. Named explicitly so the undeclared check stays meaningful.
 NON_WING_DIRS = frozenset({"environments"})
+
+# The provenance leg. It is not a wing: it grades no pin's text, it re-examines
+# whether the evidence a wing's tier-A pins claim can still be looked at (bytes
+# re-hashed from disk, in-tree quotes located, instruments found). It runs as a
+# bounded child and its verdict is folded into the container's, the way a deep
+# dive is a stage of a test run rather than a second test runner.
+PROVENANCE_TOOL = "tools/arc_provenance.py"
+
+# The generated block in ARC/README.md. Bounded by markers so a hand-edited
+# verdict cannot survive a write, and --check-readme can fail on drift instead
+# of leaving a stale table to be read as current.
+STATE_START = "<!-- ARC:STATE START"
+STATE_END = "<!-- ARC:STATE END -->"
+README = ARC / "README.md"
 
 VERDICT_RE = re.compile(r"^verdict:\s*([A-Za-z]+)\s*$", re.MULTILINE)
 
@@ -273,6 +305,125 @@ def run_wing(wing: Dict[str, str], timeout: float) -> Dict[str, Any]:
     return grade_wing(name, proc.returncode, report, proc.stdout or "", elapsed)
 
 
+def run_provenance(
+    timeout: float, run_instruments: bool = False
+) -> Dict[str, Any]:
+    """Run the evidence leg and grade it the same way a wing is graded.
+
+    Same discipline as ``run_wing``: a missing tool, an unreadable report, a
+    timeout and a self-contradicting instrument all grade ``BLIND``. The leg is
+    never allowed to be absent quietly.
+    """
+    name = "provenance"
+    tool = ROOT / PROVENANCE_TOOL
+    if not tool.is_file():
+        return blind(name, "tool missing at %s" % PROVENANCE_TOOL)
+
+    with tempfile.TemporaryDirectory(prefix="arc_prov_") as tmp:
+        out = Path(tmp) / "provenance_report.json"
+        cmd = [sys.executable, str(tool), "--check", "--json", str(out)]
+        if run_instruments:
+            cmd.append("--run-instruments")
+        started = time.monotonic()
+        try:
+            proc = subprocess.run(
+                cmd,
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            elapsed = time.monotonic() - started
+            result = blind(
+                name,
+                "evidence leg exceeded %.0fs wall bound; a hung instrument is not a pass"
+                % timeout,
+            )
+            result["seconds"] = round(elapsed, 2)
+            return result
+        except OSError as exc:
+            return blind(
+                name, "evidence leg could not be started: %s: %s" % (type(exc).__name__, exc)
+            )
+        elapsed = time.monotonic() - started
+
+        report: Optional[Dict[str, Any]] = None
+        if out.is_file():
+            try:
+                loaded = json.loads(out.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                result = blind(name, "report at %s could not be read: %s" % (out.name, exc))
+                result["stdout_sha256"] = hashlib.sha256(
+                    (proc.stdout or "").encode("utf-8")
+                ).hexdigest()
+                return result
+            if isinstance(loaded, dict):
+                report = loaded
+
+    graded = grade_wing(name, proc.returncode, report, proc.stdout or "", elapsed)
+    if isinstance(report, dict):
+        for key in ("backed", "instruments", "defects", "coverage_gaps"):
+            value = report.get(key)
+            graded[key] = value if isinstance(value, int) else None
+    return graded
+
+
+def render_state_block(
+    wings: Sequence[Dict[str, Any]],
+    provenance: Optional[Dict[str, Any]],
+    blocked: Sequence[str] = (),
+    undeclared: Sequence[str] = (),
+) -> str:
+    """The README state block, computed from the same data the table prints.
+
+    No clock and no HEAD in the text: either one would make ``--check-readme``
+    fail the second after a write and train everyone to ignore it. The block
+    carries readings, and the command in its first line is how to refresh them.
+    """
+    rows = list(wings) + ([provenance] if provenance else [])
+    verdict, _ = combine(rows, blocked=blocked, undeclared=undeclared)
+    lines = [
+        STATE_START
+        + " (generated by tools/arc_check.py --write-readme; do not edit) -->"
+    ]
+    lines.append("container: %s" % verdict)
+    for row in rows:
+        pins = "-" if row.get("pins") is None else str(row.get("pins"))
+        lines.append(
+            "%-10s %-11s pins=%-6s errors=%d"
+            % (row["wing"], row["verdict"], pins, len(row.get("errors") or []))
+        )
+    lines.append("blocked: %s" % (", ".join(sorted(blocked)) or "none"))
+    lines.append("undeclared: %s" % (", ".join(sorted(undeclared)) or "none"))
+    lines.append(STATE_END)
+    return "\n".join(lines)
+
+
+def extract_state_block(text: str) -> Optional[str]:
+    """The block as written, or None when the markers are absent or unbalanced."""
+    start = (text or "").find(STATE_START)
+    if start < 0:
+        return None
+    end = text.find(STATE_END, start)
+    if end < 0:
+        return None
+    return text[start : end + len(STATE_END)]
+
+
+def replace_state_block(text: str, block: str) -> Tuple[str, bool]:
+    """Replace the block in place. (text, False) when there is nothing to replace."""
+    start = (text or "").find(STATE_START)
+    if start < 0:
+        return text, False
+    end = text.find(STATE_END, start)
+    if end < 0:
+        return text, False
+    return text[:start] + block + text[(end + len(STATE_END)) :], True
+
+
 def combine(
     wings: Sequence[Dict[str, Any]],
     blocked: Sequence[str] = (),
@@ -332,6 +483,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "--quiet", action="store_true", help="print the table and verdict only"
     )
+    parser.add_argument(
+        "--no-provenance",
+        action="store_true",
+        help="skip the evidence leg (for a wing-only reading; never in a gate)",
+    )
+    parser.add_argument(
+        "--run-instruments",
+        action="store_true",
+        help="forward to the evidence leg: execute each declared tier-A command",
+    )
+    parser.add_argument(
+        "--readme",
+        metavar="PATH",
+        default=str(README),
+        help="README carrying the generated state block (default ARC/README.md)",
+    )
+    parser.add_argument(
+        "--write-readme",
+        action="store_true",
+        help="rewrite the state block in --readme from this run",
+    )
+    parser.add_argument(
+        "--check-readme",
+        action="store_true",
+        help="fail when the state block in --readme is stale",
+    )
     args = parser.parse_args(argv)
 
     if not ARC.is_dir():
@@ -340,8 +517,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return EXIT_BLIND
 
     graded = [run_wing(wing, args.timeout) for wing in WINGS]
+    provenance = (
+        None
+        if args.no_provenance
+        else run_provenance(args.timeout, run_instruments=args.run_instruments)
+    )
+    legs = graded + ([provenance] if provenance else [])
     undeclared = undeclared_dirs()
-    name, code = combine(graded, blocked=list(BLOCKED_WINGS), undeclared=undeclared)
+    name, code = combine(legs, blocked=list(BLOCKED_WINGS), undeclared=undeclared)
 
     if args.json:
         out = Path(args.json)
@@ -353,6 +536,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                         "verdict": name,
                         "exit": code,
                         "wings": graded,
+                        "provenance": provenance,
                         "blocked": [
                             {"wing": w, "reason": r} for w, r in BLOCKED_WINGS.items()
                         ],
@@ -372,7 +556,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("wrote %s" % out)
 
     print("%-10s %-12s %-5s %-6s %-8s %s" % ("wing", "verdict", "exit", "pins", "secs", "errors"))
-    for wing in graded:
+    for wing in legs:
         print(
             "%-10s %-12s %-5d %-6s %-8.2f %d"
             % (
@@ -380,14 +564,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 wing["verdict"],
                 wing["exit"],
                 "-" if wing["pins"] is None else wing["pins"],
-                wing["seconds"],
+                wing.get("seconds", 0.0),
                 len(wing["errors"]),
             )
         )
 
-    # Every wing that did not grade is named with its reason, whatever the
+    # Every leg that did not grade is named with its reason, whatever the
     # headline says. This is the section that stops a missing wing being silent.
-    for wing in graded:
+    for wing in legs:
         if wing["verdict"] == VERDICT_BLIND:
             print("  [BLIND] %s: %s" % (wing["wing"], wing["reason"]))
 
@@ -401,12 +585,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
 
     if not args.quiet:
-        for wing in graded:
+        for wing in legs:
             for err in wing["errors"][:3]:
                 print("  [%s] %s" % (wing["verdict"], err))
             hidden = len(wing["errors"]) - 3
             if hidden > 0:
-                print("  [%s] ... and %d more (run the wing checker for the full list)" % (wing["verdict"], hidden))
+                print("  [%s] ... and %d more (run %s for the full list)"
+                      % (wing["verdict"], hidden, wing["wing"]))
 
     print("verdict: %s" % name)
     print(
@@ -418,6 +603,67 @@ def main(argv: Optional[List[str]] = None) -> int:
             len(undeclared),
         )
     )
+    if provenance is not None:
+        print(
+            "evidence: %s (%s)"
+            % (
+                provenance["verdict"],
+                "pins=None"
+                if provenance.get("pins") is None
+                else "backed=%s instruments=%s defects=%s coverage=%s"
+                % (
+                    provenance.get("backed"),
+                    provenance.get("instruments"),
+                    provenance.get("defects"),
+                    provenance.get("coverage_gaps"),
+                ),
+            )
+        )
+
+    if args.write_readme or args.check_readme:
+        block = render_state_block(
+            graded, provenance, list(BLOCKED_WINGS), undeclared
+        )
+        readme = Path(args.readme)
+        try:
+            text = readme.read_text(encoding="utf-8")
+        except OSError as exc:
+            print("verdict: %s" % VERDICT_BLIND)
+            print("reason: README could not be read at %s: %s" % (readme, exc))
+            return EXIT_BLIND
+        current = extract_state_block(text)
+        if current is None:
+            # Appending a block the check cannot find would be a state that
+            # reads as current and never updates again.
+            print("verdict: %s" % VERDICT_BLIND)
+            print(
+                "reason: no %s ... %s markers in %s; the block cannot be placed"
+                % (STATE_START, STATE_END, readme)
+            )
+            return EXIT_BLIND
+        if args.write_readme:
+            updated, replaced = replace_state_block(text, block)
+            if not replaced:
+                print("verdict: %s" % VERDICT_BLIND)
+                print("reason: block markers in %s could not be replaced" % readme)
+                return EXIT_BLIND
+            if updated != text:
+                try:
+                    readme.write_text(updated, encoding="utf-8")
+                except OSError as exc:
+                    print("verdict: %s" % VERDICT_BLIND)
+                    print("reason: README could not be written: %s" % exc)
+                    return EXIT_BLIND
+                print("wrote state block to %s" % readme)
+            else:
+                print("state block in %s already current" % readme)
+        if args.check_readme and current.strip() != block.strip():
+            print("  [STALE] %s state block disagrees with this run:" % readme)
+            for line in block.splitlines():
+                print("    %s" % line)
+            code = EXIT_BAD
+        elif args.check_readme:
+            print("state block in %s is current" % readme)
     return code
 
 

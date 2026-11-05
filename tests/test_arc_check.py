@@ -173,3 +173,70 @@ class TestDeclaration:
 
     def test_non_wing_dirs_do_not_overlap_declarations(self):
         assert not (set(arc.NON_WING_DIRS) & ({w["wing"] for w in arc.WINGS} | set(arc.BLOCKED_WINGS)))
+
+
+class TestStateBlock:
+    """The generated README block: placeable, idempotent, and clock-free."""
+
+    def _block(self, **kwargs):
+        legs = [
+            wing("esquire"),
+            wing("cain", "GAPS", errors=["C3 (A) DEFECT: capture missing"]),
+        ]
+        return arc.render_state_block(
+            legs, kwargs.get("provenance"), kwargs.get("blocked", []), []
+        )
+
+    def test_block_carries_the_verdict_and_every_leg(self):
+        block = self._block()
+        assert block.startswith(arc.STATE_START)
+        assert block.endswith(arc.STATE_END)
+        assert "container: GAPS" in block
+        for name in ("esquire", "cain"):
+            assert name in block
+
+    def test_block_carries_no_clock_or_head(self):
+        # A timestamp would make --check-readme fail one second after a write.
+        import re
+
+        block = self._block()
+        assert not re.search(r"\d{4}-\d{2}-\d{2}", block)
+        assert "HEAD" not in block
+
+    def test_a_folded_evidence_leg_appears_as_its_own_row(self):
+        provenance = wing("provenance", "INCOMPLETE", pins=39)
+        block = self._block(provenance=provenance)
+        assert "provenance" in block
+        assert "container: GAPS" in block
+
+    def test_extract_returns_the_block_verbatim(self):
+        block = self._block()
+        text = "intro\n\n%s\n\noutro\n" % block
+        assert arc.extract_state_block(text) == block
+
+    def test_extract_refuses_a_half_present_block(self):
+        text = "intro\n%s\n" % arc.STATE_START
+        assert arc.extract_state_block(text) is None
+
+    def test_replace_is_a_round_trip_and_idempotent(self):
+        block = self._block()
+        text = "head\n\n%s\n\ntail\n" % block
+        replaced, ok = arc.replace_state_block(text, block)
+        assert ok is True
+        assert replaced == text
+        again, ok_again = arc.replace_state_block(replaced, block)
+        assert ok_again is True
+        assert again == replaced
+
+    def test_replace_actually_substitutes_a_stale_block(self):
+        fresh = self._block()
+        stale = "%s\ncontainer: READY\n%s" % (arc.STATE_START, arc.STATE_END)
+        text = "head\n%s\ntail\n" % stale
+        replaced, ok = arc.replace_state_block(text, fresh)
+        assert ok is True
+        assert "container: READY" not in replaced
+        assert arc.extract_state_block(replaced) == fresh
+
+    def test_replace_declines_when_the_markers_are_absent(self):
+        text = "no markers here\n"
+        assert arc.replace_state_block(text, "x") == (text, False)

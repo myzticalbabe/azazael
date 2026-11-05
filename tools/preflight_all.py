@@ -563,6 +563,36 @@ GATES: Tuple[Gate, ...] = (
         requires=(),  # the PMB daemon's own store, not a repo path
     ),
     Gate(
+        name="arc-container",
+        # Inside no hook on purpose: the container grades an artifact (ARC's
+        # wings), not a change in the diff. Registered anyway so the inventory
+        # is complete and the evidence leg is never a tool nobody runs.
+        argv=("tools/arc_check.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        # Deliberately non-blocking: the exit code IS the artifact's graded state
+        # (READY / GAPS / INCOMPLETE / BLIND), so a wing holding a named defect
+        # -- eliza's publication gate, esquire's uncovered tier-A pins -- would
+        # otherwise turn the shared sweep red for a condition its own lane owns.
+        # Flipping this to blocking is that lane's call, once the container reads
+        # READY and the reading means "regressed" instead of "still short".
+        blocking=False,
+        slow=False,
+        reads=(
+            "ARC/ -- each declared wing's own checker plus the evidence leg "
+            "(tools/arc_provenance.py), folded into one container verdict"
+        ),
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "the exit code reports the ARC artifact's state, not a repository "
+            "instrument's health; non-zero is the expected reading while a wing "
+            "is at GAPS or a pin is uncovered, so it is not a defect signal"
+        ),
+        requires=("ARC/README.md",),
+    ),
+    Gate(
         name="two-interpreter-suite",
         argv=("scripts/ci_two_interpreter_gate.py",),
         interpreter="python3",
