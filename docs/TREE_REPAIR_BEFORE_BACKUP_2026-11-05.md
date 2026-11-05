@@ -220,7 +220,8 @@ Each is stated as *the shape*, because the specific name will differ in your tre
    output you rely on is itself tracked (`git ls-files <tool>` non-empty).
 
 6. **A validator scoped to all history fails forever on old debt.**
-   `harvest_now.py --validate` scanned every lane file and reported **27 defective rows**
+   `harvest_now.py --agent <lane> --validate` (the `--agent` is required; a bare
+   `--validate` exits 2 with a usage error, which is not a clean lane) scanned every lane file and reported **27 defective rows**
    — all dated 2026-10-19, written before `item_id` was required. A gate that fails from
    day one gets switched off, so the default now validates **today's** lane file and
    `--all-dates` prints the history. **Check:** your validator's default scope is the
@@ -238,10 +239,12 @@ cd <tree>
 git rev-parse --short HEAD                          # record it in the backup manifest
 git status --porcelain | wc -l                      # must be explainable, not necessarily 0
 python tools/mcp_startup_gate.py --fix              # exit 0, all [PASS]
-python tools/orphan_watch.py                        # exit 0
+python tools/orphan_watch.py                        # exit 0, or 1 ONLY when the one
+                                                    # stranded ref is the declared backup
+                                                    # ref with an adoption queue named
 python tools/control_tiers.py --check               # PASS
 python tools/evidence_gate.py                       # GATE: PASS
-python tools/agent_orders_sync.py --check           # generated blocks byte-identical
+python tools/agent_orders_sync.py --check --wsl     # blocks byte-identical incl. distros
 C:/Azazael/.venvs/py315t/Scripts/python.exe -u -m pytest \
     --tb=short -r f --timeout=120 -q                # xdist -n auto from pytest.ini
 python tools/head_state.py --write && python tools/head_state.py --show
