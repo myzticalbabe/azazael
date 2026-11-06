@@ -302,6 +302,60 @@ def cmd_registry(args) -> int:
     return 0
 
 
+def cmd_grievance(args) -> int:
+    """Boston Tea Party: file, draft, route, learn."""
+    from . import redress as _r
+    act = args.grievance_action
+    if act == "file":
+        rec = _r.file_grievance(args.respondent, args.category,
+                                args.narrative, args.redress, args.evidence)
+        print(f"Filed {rec['id']} [{rec['category']}] vs {rec['respondent']}")
+        return 0
+    if act == "show":
+        recs = _r.list_grievances()
+        for r in recs:
+            print(f"  {r['id']} [{r['category']}] vs {r['respondent']}: {r['redress_sought'][:80]}")
+        print(f"grievances={len(recs)}")
+        return 0
+    if act == "draft":
+        recs = [r for r in _r.list_grievances() if r["id"] == args.id]
+        if not recs:
+            print(f"ERROR: no grievance {args.id}", file=sys.stderr)
+            return 1
+        print(_r.draft_foia(recs[0], args.agency or "[AGENCY]",
+                            args.requester or "[REQUESTER]"))
+        print("--- public comment packet (not filed) ---")
+        print(json.dumps(_r.draft_public_comment(recs[0]), indent=2))
+        return 0
+    if act == "dockets":
+        for d in _r.search_dockets(args.term):
+            print(f"  {d.get('id')}: {d.get('title', d.get('error', ''))}")
+        return 0
+    if act == "refer":
+        for name, url in _r.legal_referral(args.state):
+            print(f"  {name}: {url}")
+        return 0
+    for line in _r.tutorial():
+        print(line)
+    return 0
+
+
+def cmd_cradle(args) -> int:
+    """Adopt every model file in the cradle with its native runner."""
+    from .cradle import adopt_cradle
+    summary = adopt_cradle(args.dir)
+    print(f"Cradle: {summary['cradle']}")
+    for name, fw, runner in summary["adopted"]:
+        print(f"  ADOPTED {name} [{fw}] via {runner}")
+    for name, detail in summary["failed"]:
+        print(f"  FAILED  {name}: {detail}")
+    for name, why in summary["skipped"]:
+        print(f"  SKIPPED {name} ({why})")
+    print(f"adopted={len(summary['adopted'])} failed={len(summary['failed'])} "
+          f"skipped={len(summary['skipped'])}")
+    return 0 if not summary["failed"] else 1
+
+
 def cmd_config(args) -> int:
     """Backup or restore eve configuration."""
     from .config import EveConfig
@@ -677,6 +731,32 @@ def main():
     serve_p.add_argument("--host", default="127.0.0.1", help="Bind host")
     serve_p.add_argument("--port", "-p", type=int, default=8080, help="Bind port")
     serve_p.set_defaults(func=cmd_serve)
+
+    # eve cradle
+    cradle_p = sub.add_parser("cradle", help="Adopt model files in the cradle natively")
+    cradle_p.add_argument("--dir", default=None, help="Cradle dir (default: ~/.azazael/cradle)")
+    cradle_p.set_defaults(func=cmd_cradle)
+
+    # eve grievance (Boston Tea Party: public grievance and redress)
+    grv_p = sub.add_parser("grievance", help="File grievances, draft redress, find legal aid")
+    grv_sub = grv_p.add_subparsers(dest="grievance_action", help="Grievance action")
+    grv_file = grv_sub.add_parser("file", help="File a grievance")
+    grv_file.add_argument("--respondent", required=True)
+    grv_file.add_argument("--category", required=True)
+    grv_file.add_argument("--narrative", required=True)
+    grv_file.add_argument("--redress", required=True)
+    grv_file.add_argument("--evidence", nargs="*", default=[])
+    grv_sub.add_parser("show", help="List filed grievances")
+    grv_draft = grv_sub.add_parser("draft", help="Draft FOIA + public comment from a grievance")
+    grv_draft.add_argument("--id", required=True)
+    grv_draft.add_argument("--agency", default="")
+    grv_draft.add_argument("--requester", default="")
+    grv_dock = grv_sub.add_parser("dockets", help="Search Regulations.gov dockets")
+    grv_dock.add_argument("--term", required=True)
+    grv_ref = grv_sub.add_parser("refer", help="Free legal-aid referrals")
+    grv_ref.add_argument("--state", default=None)
+    grv_sub.add_parser("tutorial", help="Guided grievance-filing tutorial")
+    grv_p.set_defaults(func=cmd_grievance, grievance_action="show")
 
     # eve stats
     stats_p = sub.add_parser("stats", help="Show engine statistics")

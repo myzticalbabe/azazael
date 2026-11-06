@@ -1,1 +1,73 @@
-{"acceptance": ["Every desktop entry point has a recorded baseline (lines, guard, entry command)", "Every iteration lands at least one verified improvement with its proof command", "No iteration regresses a prior green (startup probe + gate tests stay green)", "Goal retired only when the user says the desktop suite is done, never by drift"], "current_iteration": 1, "goal": "PERSISTENTLY EVOLVE THE HARNESS. Goal-task: improve all desktop apps, one verified iteration at a time, forever. Each session: startup probe confirms the loop is alive, one iteration lands, the log grows. (User mandate 2026-11-06.)", "iterations": [{"evidence": "goal file created; inventory measured 2026-11-06", "n": 0, "result": "7 entry points, all main-guarded; eve_unleashed has no GUI (CLI/service, out of scope)", "work": "Inventory + baselines: measured lines and main-guard status for every desktop entry point"}], "targets": [{"baseline_lines": 1736, "entry": "src/AZAZAEL_Inference_Studio.py", "guard": true}, {"baseline_lines": 1402, "entry": "src/CODEX/CODEX_Studio.py", "guard": true}, {"baseline_lines": 745, "entry": "src/ORCHESTRATION/SelfImprovingGUI.py", "guard": true}, {"baseline_lines": null, "entry": "src/METAWORMS_POPUP.py", "guard": true}, {"baseline_lines": null, "entry": "src/DOCKERZ.py + META mirror", "guard": true}, {"baseline_lines": null, "entry": "src/ERRORZ.py + META mirror", "guard": true}, {"baseline_lines": null, "entry": "src/METRICZ.py + META mirror (+ HORUS/HYDRA_CONTAINER dashboards)", "guard": true}], "updated": "2026-11-06"}
+{
+  "acceptance": [
+    "Every desktop entry point has a recorded baseline (lines, guard, entry command)",
+    "Every iteration lands at least one verified improvement with its proof command",
+    "No iteration regresses a prior green (startup probe + gate tests stay green)",
+    "Goal retired only when the user says the desktop suite is done, never by drift"
+  ],
+  "current_iteration": 2,
+  "goal": "PERSISTENTLY EVOLVE THE HARNESS. Goal-task: improve all desktop apps, one verified iteration at a time, forever. Each session: startup probe confirms the loop is alive, one iteration lands, the log grows. (User mandate 2026-11-06.)",
+  "iterations": [
+    {
+      "evidence": "goal file created; inventory measured 2026-11-06",
+      "n": 0,
+      "result": "7 entry points, all main-guarded; eve_unleashed has no GUI (CLI/service, out of scope)",
+      "work": "Inventory + baselines: measured lines and main-guard status for every desktop entry point"
+    },
+    {
+      "n": 2,
+      "title": "NSP-native routing + cradle adoption + grievance redress live; queue serve-native gguf, learning-style tracks, Berzerker owner",
+      "done": [
+        "swarm sequential bounded fallback live (groq 801ms, ALIVE)",
+        "NSP verifier fixed to real SMT-LIB + 2 spec defects; live nsp verified 3/3",
+        "eve cradle adopted Qwen3-4b natively with verified receipt",
+        "eve grievance module (file/draft/dockets/refer/tutorial) with live docket proof",
+        "lane assists posted kilo#47745 opencode#47747"
+      ],
+      "queued": [
+        "serve /infer native gguf routing via cradle sidecars (no swarm hop)",
+        "learning-style tracks: visual + reading + kinesthetic tutorials",
+        "provider_score_monotonic coverage (loser-score traces)",
+        "Berzerker AIO minted by Oxen technocracy as durable owner"
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "baseline_lines": 1736,
+      "entry": "src/AZAZAEL_Inference_Studio.py",
+      "guard": true
+    },
+    {
+      "baseline_lines": 1402,
+      "entry": "src/CODEX/CODEX_Studio.py",
+      "guard": true
+    },
+    {
+      "baseline_lines": 745,
+      "entry": "src/ORCHESTRATION/SelfImprovingGUI.py",
+      "guard": true
+    },
+    {
+      "baseline_lines": null,
+      "entry": "src/METAWORMS_POPUP.py",
+      "guard": true
+    },
+    {
+      "baseline_lines": null,
+      "entry": "src/DOCKERZ.py + META mirror",
+      "guard": true
+    },
+    {
+      "baseline_lines": null,
+      "entry": "src/ERRORZ.py + META mirror",
+      "guard": true
+    },
+    {
+      "baseline_lines": null,
+      "entry": "src/METRICZ.py + META mirror (+ HORUS/HYDRA_CONTAINER dashboards)",
+      "guard": true
+    }
+  ],
+  "updated": "2026-11-06"
+}
