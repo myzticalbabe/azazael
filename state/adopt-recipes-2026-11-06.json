@@ -293,5 +293,9 @@
    "SOULFORGE-LICENSE.txt travels with the wheelhouse"
   ],
   "date": "2026-11-06"
+ },
+ "error_evolves_harness": {
+  "doctrine": "Every error ships a harness mechanism (code, check, or doctrine), never just a fix. Mechanisms shipped 2026-11-06: OXENFORD_NMAKE absolute-path resolution + smoke-spawn (nasm-build.py); tools/bake_append.py write-time lane validation; file-based Windows-path debugging rule.",
+  "date": "2026-11-06"
  }
 }
