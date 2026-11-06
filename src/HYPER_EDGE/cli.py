@@ -323,6 +323,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     ev.add_argument("--apply", default="", metavar="ENV",
                     help="write the chosen overlay to config/defaults.<ENV>.json")
 
+    validation_help = (
+        "Validate preregistered quorum candidates on adjudicated held-out data. "
+        "Manifest JSON requires protocol.partition='held_out', adjudicated=true, "
+        "adjudicator, adjudication_protocol, independence_attested=true, "
+        "independence_basis, preregistered_quorums, development_packet_sha256s; "
+        "packets[] with unique packet_id/64-hex packet_sha256 and claims[]; each "
+        "claim has claim_id, adjudicated_grade, and votes[] with one grade, "
+        "model_id and model_family per independent family. Minimum readiness: "
+        "20 unique packet clusters and 3 families."
+    )
+    val = sub.add_parser("validate", help="evaluate preregistered quorum candidates on held-out labels",
+                         description=validation_help)
+    val.add_argument("--manifest", required=True, help="adjudicated held-out manifest JSON")
+    val.add_argument("--bootstrap-samples", type=int, default=1000)
+    val.add_argument("--seed", type=int, default=20261105)
+    val.add_argument("--json", action="store_true")
+
     pt = sub.add_parser("patch", help="repair the microcode from a failing case")
     pt.add_argument("--apply", action="store_true", help="persist the admitted patch")
     pt.add_argument("--env", default="", help="policy file to write (default: the base one)")
@@ -412,6 +429,30 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1 if ungraded else 0
     if args.command == "selftest":
         return selftest(args.evidence, args.recheck)
+    if args.command == "validate":
+        try:
+            result = evolution.evaluate_holdout_file(
+                args.manifest, bootstrap_samples=args.bootstrap_samples, seed=args.seed)
+        except (OSError, ValueError, json.JSONDecodeError) as fault:
+            print("INVALID HOLDOUT: %s" % fault)
+            return 2
+        if args.json:
+            print(json.dumps(result, indent=1, sort_keys=True))
+        else:
+            print("held-out readiness: %s (%d packet clusters, %d independent families)" %
+                  ("READY" if result["eligible"] else "NOT READY",
+                   result["packet_clusters"], result["model_families"]))
+            for reason in result["readiness_reasons"]:
+                print("  - %s" % reason)
+            for row in result["quorums"]:
+                print("q=%.4f accuracy=%.3f [%.3f, %.3f] coverage=%.3f [%.3f, %.3f] "
+                      "selective_accuracy=%s" %
+                      (row["quorum"], row["accuracy"], *row["accuracy_ci95"],
+                       row["coverage"], *row["coverage_ci95"],
+                       "n/a" if row["selective_accuracy"] is None else
+                       "%.3f" % row["selective_accuracy"]))
+            print("quorum setting unchanged; this command reports evaluation only")
+        return 0 if result["eligible"] else 1
     if args.command == "evolve":
         return evolution.main([
             "--evidence", args.evidence, "--recheck", args.recheck,

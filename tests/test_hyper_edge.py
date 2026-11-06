@@ -22,6 +22,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_ROOT / "src"))
 
+import hashlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import time  # noqa: E402
@@ -90,17 +91,53 @@ def test_engine_refuses_a_quorum_that_cannot_exclude_a_split():
                                    "truncation_strict": True})
 
 
-def test_engine_tally_agrees_with_the_judge():
-    """The engine must not own a second definition of 'share'."""
-    # The judge's own vocabulary, read from the judge not guessed: a 2/3 top share.
+def test_engine_tally_and_final_grade_agree_with_the_judge():
+    """Crosscheck must cover the production grade, not only share arithmetic."""
     rows = [{"pin": "p1", "grade": "SUPPORTED"},
             {"pin": "p1", "grade": "SUPPORTED"},
             {"pin": "p1", "grade": "UNSUPPORTED"}]
-    verdict = evolution.crosscheck({"rows": rows},
-                                   {"p1": {"share": 2.0 / 3.0, "verdicts": 3}})
+    shares = evolution.pin_shares({"rows": rows})
+    verdict = evolution.crosscheck({"rows": rows}, shares, quorum=0.66)
     if not verdict["available"]:
         pytest.skip("arena_llm_judge not importable in this environment")
     assert verdict["mismatches"] == []
+    result = evolution.score({"quorum": 0.66, "max_age_days": 0.0,
+                              "truncation_strict": 0.0}, shares)
+    assert result["grades"]["p1"] == "SUPPORTED"
+    assert result["verdicts"] == 1
+
+
+@pytest.mark.parametrize(("grades", "expected"), [
+    (["PARTIAL"] * 5 + ["BLIND"], "BLIND"),
+    (["UNSUPPORTED"] * 5 + ["PARTIAL"], "NO_QUORUM"),
+    (["BLOCKED"] * 5 + ["PARTIAL"], "NO_QUORUM"),
+    (["SUPPORTED"] * 5 + ["PARTIAL"], "SUPPORTED"),
+    (["PARTIAL"] * 5 + ["SUPPORTED"], "PARTIAL"),
+])
+def test_replay_matches_production_grade_for_all_vote_states(grades, expected):
+    rows = [{"pin": "control", "grade": grade, "quote_is_grounded": True}
+            for grade in grades]
+    shares = evolution.pin_shares({"rows": rows})
+    score = evolution.score({"quorum": 0.66, "max_age_days": 0.0,
+                             "truncation_strict": 0.0}, shares)
+    if not score["grading_available"]:
+        pytest.skip("arena_llm_judge not importable in this environment")
+    assert score["grades"]["control"] == expected
+    assert score["verdicts"] == int(expected in ("SUPPORTED", "PARTIAL"))
+    check = evolution.crosscheck({"rows": rows}, shares, quorum=0.66)
+    assert check["mismatches"] == []
+
+
+def test_replay_threshold_changes_production_grade_at_six_vote_boundary():
+    rows = [{"pin": "edge", "grade": grade} for grade in
+            (["SUPPORTED"] * 4 + ["PARTIAL"] * 2)]
+    shares = evolution.pin_shares({"rows": rows})
+    low = evolution.score({"quorum": 0.66, "max_age_days": 0.0,
+                           "truncation_strict": 0.0}, shares)
+    high = evolution.score({"quorum": 0.7497, "max_age_days": 0.0,
+                            "truncation_strict": 0.0}, shares)
+    assert low["grades"]["edge"] == "SUPPORTED"
+    assert high["grades"]["edge"] == "NO_QUORUM"
 
 
 def test_parallel_map_preserves_input_order():
@@ -379,3 +416,145 @@ def test_an_environment_without_evidence_is_blind_not_optimised(skip_undated):
     status = {row["env"]: row["status"] for row in rows}
     assert status["kali"] == "no_evidence"
     assert status["windows"] in ("proposed", "converged")
+
+
+# --- held-out evaluation: readiness, not adoption ---------------------------
+#
+# A frontier chosen on the corpus the engine evolved on cannot answer "does this
+# quorum generalise". These pin the four ways a manifest could smuggle an
+# in-sample number back in: a shared packet, six persona prompts from one model,
+# too few clusters to carry an interval, and no development corpus to compare
+# against.
+
+def _development() -> list:
+    """A development-side digest: the readiness gate needs one to exclude overlap."""
+    return [hashlib.sha256(b"development-only-packet").hexdigest()]
+
+
+def _manifest(packets: int = 20, families=("fam-a", "fam-b", "fam-c"),
+              grade: str = "SUPPORTED", label: str = "SUPPORTED",
+              development=None, quorums=(0.66,)) -> dict:
+    rows = []
+    for index in range(packets):
+        digest = hashlib.sha256(("packet-%d" % index).encode()).hexdigest()
+        votes = [{"grade": grade, "model_id": "%s-%d" % (family, index),
+                  "model_family": family} for family in families]
+        rows.append({"packet_id": "p%d" % index, "packet_sha256": digest,
+                     "claims": [{"claim_id": "c%d" % index,
+                                 "adjudicated_grade": label, "votes": votes}]})
+    return {"protocol": {"partition": "held_out", "adjudicated": True,
+                         "adjudicator": "two independent annotators",
+                         "adjudication_protocol": "blind, disagreements resolved on record",
+                         "independence_attested": True,
+                         "independence_basis": "distinct model families per claim",
+                         "preregistered_quorums": list(quorums),
+                         "development_packet_sha256s": (
+                             [rows[0]["packet_sha256"]] if development is None else development)},
+            "packets": rows}
+
+
+def test_a_held_out_packet_that_sat_in_development_is_refused():
+    manifest = _manifest()
+    with pytest.raises(ValueError, match="not held out"):
+        evolution.evaluate_holdout(manifest)
+
+
+def test_duplicate_cluster_hashes_count_as_one_cluster():
+    manifest = _manifest(development=[])
+    manifest["packets"][1]["packet_sha256"] = manifest["packets"][0]["packet_sha256"]
+    with pytest.raises(ValueError, match="duplicate packet_sha256"):
+        evolution.evaluate_holdout(manifest)
+
+
+def test_one_model_wearing_two_family_names_is_refused():
+    """Six personas from one model are one reading, not six independent judges."""
+    manifest = _manifest(development=[])
+    claim = manifest["packets"][0]["claims"][0]
+    claim["votes"][1]["model_family"] = claim["votes"][0]["model_family"]
+    with pytest.raises(ValueError, match="repeats model_family"):
+        evolution.evaluate_holdout(manifest)
+
+
+def test_a_model_id_cannot_belong_to_two_families():
+    manifest = _manifest(development=[])
+    reused = manifest["packets"][0]["claims"][0]["votes"][0]["model_id"]
+    votes = manifest["packets"][2]["claims"][0]["votes"]
+    votes[0]["model_id"], votes[0]["model_family"] = reused, "fam-b"
+    votes[1]["model_family"] = "fam-a"   # keep families unique inside the claim
+    with pytest.raises(ValueError, match="two families"):
+        evolution.evaluate_holdout(manifest)
+
+
+def test_an_unadjudicated_partition_is_refused_not_scored():
+    manifest = _manifest(development=[])
+    manifest["protocol"]["adjudicated"] = False
+    with pytest.raises(ValueError, match="adjudicated"):
+        evolution.evaluate_holdout(manifest)
+
+
+def test_too_few_clusters_is_not_ready_and_says_why():
+    result = evolution.evaluate_holdout(_manifest(packets=5, development=_development()))
+    assert result["eligible"] is False
+    assert result["readiness_reasons"] == [
+        "5 unique packet cluster(s); at least 20 are required"]
+    # The rows are still produced; they are simply not a generalisation claim.
+    assert result["quorums"][0]["claims"] == 5
+
+
+def test_an_empty_development_corpus_cannot_exclude_overlap():
+    result = evolution.evaluate_holdout(_manifest(development=[]))
+    assert result["eligible"] is False
+    assert any("development_packet_sha256s is empty" in reason
+               for reason in result["readiness_reasons"])
+
+
+def test_enough_clusters_and_families_is_ready():
+    result = evolution.evaluate_holdout(
+        _manifest(packets=evolution.HOLDOUT_MIN_PACKET_CLUSTERS,
+                  families=("fam-a", "fam-b", "fam-c"), development=_development()))
+    assert result["eligible"] is True, result["readiness_reasons"]
+    row = result["quorums"][0]
+    assert row["accuracy"] == 1.0 and row["coverage"] == 1.0
+    assert row["selective_accuracy"] == 1.0
+
+
+def test_a_blind_panel_abstains_and_is_not_scored_as_accurate():
+    """Silence is not agreement: no endorsement means no accuracy credit."""
+    result = evolution.evaluate_holdout(_manifest(grade="BLIND", development=_development()))
+    row = result["quorums"][0]
+    assert row["abstentions"] == row["claims"]
+    assert row["accuracy"] == 0.0 and row["coverage"] == 0.0
+    assert row["selective_accuracy"] is None
+    assert row["false_negatives"] == row["claims"]
+
+
+def test_intervals_resample_packets_not_claims():
+    result = evolution.evaluate_holdout(_manifest(development=_development()),
+                                        bootstrap_samples=50, seed=3)
+    assert result["bootstrap"] == {"samples": 50, "seed": 3, "unit": "packet_sha256"}
+    low, high = result["quorums"][0]["accuracy_ci95"]
+    assert low <= high and low <= result["quorums"][0]["accuracy"] <= high
+
+
+def test_validation_reports_the_shipped_quorum_and_changes_nothing():
+    result = evolution.evaluate_holdout(_manifest(development=_development()),
+                                        bootstrap_samples=10)
+    assert result["shipped_quorum"] == pytest.approx(0.66, abs=1e-9)
+    assert result["quorums"][0]["quorum"] == pytest.approx(0.66, abs=1e-9)
+    assert json.loads((_ROOT / "config" / "defaults.json").read_text(
+        encoding="utf-8"))["arena"]["quorum"] == pytest.approx(0.66, abs=1e-9)
+
+
+def test_the_validate_command_exits_one_on_an_unready_manifest(tmp_path, capsys):
+    path = tmp_path / "holdout.json"
+    path.write_text(json.dumps(_manifest(packets=3, development=_development())),
+                    encoding="utf-8")
+    assert cli.main(["validate", "--manifest", str(path)]) == 1
+    assert "NOT READY" in capsys.readouterr().out
+
+
+def test_the_validate_command_exits_two_on_an_invalid_manifest(tmp_path, capsys):
+    path = tmp_path / "holdout.json"
+    path.write_text(json.dumps({"protocol": {}, "packets": []}), encoding="utf-8")
+    assert cli.main(["validate", "--manifest", str(path)]) == 2
+    assert "INVALID HOLDOUT" in capsys.readouterr().out

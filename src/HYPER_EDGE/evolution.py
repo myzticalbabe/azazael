@@ -32,6 +32,7 @@ import hashlib
 import json
 import math
 import random
+import re
 import sys
 import time
 from pathlib import Path
@@ -43,12 +44,16 @@ from HYPER_EDGE.microcode import NO_QUORUM, PASS, quorum_state
 __all__ = [
     "BOUNDS",
     "GENOME_KEYS",
+    "HOLDOUT_MIN_MODEL_FAMILIES",
+    "HOLDOUT_MIN_PACKET_CLUSTERS",
     "load_evidence",
     "pin_shares",
     "crosscheck",
     "score",
     "evolve",
     "shipped_score",
+    "evaluate_holdout",
+    "evaluate_holdout_file",
 ]
 
 #: name -> (low, high, kind). A Continuous gene is sampled as a float; a Flag as
@@ -70,6 +75,23 @@ GENOME_KEYS: Tuple[str, ...] = tuple(BOUNDS)
 _JUDGE_FAULTS: List[str] = []
 
 
+def _judge_module():
+    """The production judge module, if this tree is importable.
+
+    One import site, so the grade function and the verdict vocabulary the
+    held-out validator accepts cannot drift apart.
+    """
+    tools_dir = Path(__file__).resolve().parents[2] / "tools"
+    try:
+        if str(tools_dir) not in sys.path:
+            sys.path.insert(0, str(tools_dir))
+        import arena_llm_judge  # type: ignore
+        return arena_llm_judge
+    except BaseException as fault:  # noqa: BLE001 - absence is a fallback, not a crash
+        _JUDGE_FAULTS.append("%s: %s" % (type(fault).__name__, fault))
+        return None
+
+
 def _judge_grade_pin():
     """The judge's own aggregation function, if this tree is importable.
 
@@ -77,32 +99,53 @@ def _judge_grade_pin():
     judge's rule changes the engine's fitness by construction, and the selftest
     checks the two agree row-for-row rather than assuming it.
     """
-    tools_dir = Path(__file__).resolve().parents[2] / "tools"
-    try:
-        if str(tools_dir) not in sys.path:
-            sys.path.insert(0, str(tools_dir))
-        from arena_llm_judge import grade_pin  # type: ignore
-        return grade_pin
-    except BaseException as fault:  # noqa: BLE001 - absence is a fallback, not a crash
-        _JUDGE_FAULTS.append("%s: %s" % (type(fault).__name__, fault))
+    module = _judge_module()
+    return None if module is None else module.grade_pin
+
+
+def _grade_share(slot: Mapping[str, Any], quorum: Optional[float], grade_pin) -> Optional[str]:
+    """Grade an aggregated slot through the production judge, not a shadow rule."""
+    if grade_pin is None:
         return None
+    # Production's tie-breaking order is VERDICTS order, not first-seen row order.
+    verdict_order = ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "BLOCKED")
+    rows: List[Dict[str, Any]] = []
+    tally = slot.get("tally") or {}
+    for grade in verdict_order:
+        rows.extend({"grade": grade} for _ in range(int(tally.get(grade, 0))))
+    rows.extend({"grade": "BLIND"} for _ in range(int(slot.get("blind", 0))))
+    kwargs = {} if quorum is None else {"quorum": quorum}
+    return str(grade_pin(rows, **kwargs)["grade"])
 
 
-def crosscheck(evidence: Mapping[str, Any], shares: Mapping[str, Mapping[str, Any]]) -> Dict[str, Any]:
-    """Compare this engine's tally against the judge's, per pin."""
+def crosscheck(evidence: Mapping[str, Any], shares: Mapping[str, Mapping[str, Any]],
+               quorum: Optional[float] = None) -> Dict[str, Any]:
+    """Compare tally, availability and final grade against the production judge."""
     grade_pin = _judge_grade_pin()
     if grade_pin is None:
-        return {"available": False, "checked": 0, "mismatches": []}
+        return {"available": False, "checked": 0, "mismatches": [],
+                "faults": list(_JUDGE_FAULTS)}
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for row in evidence["rows"]:
         grouped.setdefault(row.get("pin") or "?", []).append(row)
     mismatches: List[str] = []
     for pin, rows in sorted(grouped.items()):
-        verdict = grade_pin(rows)
-        ours = float(shares[pin].get("share") or 0.0)
-        theirs = (max(verdict["tally"].values()) / verdict["votes"]) if verdict["votes"] else 0.0
+        kwargs = {} if quorum is None else {"quorum": quorum}
+        expected = grade_pin(rows, **kwargs)
+        slot = shares[pin]
+        ours = float(slot.get("share") or 0.0)
+        theirs = (max(expected["tally"].values()) / expected["votes"]
+                  if expected["votes"] else 0.0)
         if abs(ours - theirs) > 1e-9:
-            mismatches.append("%s: engine %.4f vs judge %.4f" % (pin, ours, theirs))
+            mismatches.append("%s: share engine %.4f vs judge %.4f" % (pin, ours, theirs))
+        replay_grade = _grade_share(slot, quorum, grade_pin)
+        if replay_grade != expected["grade"]:
+            mismatches.append("%s: grade replay %s vs judge %s" %
+                               (pin, replay_grade, expected["grade"]))
+        if int(slot.get("blind", 0)) != expected["blind"] or int(slot.get("votes", 0)) != expected["votes"]:
+            mismatches.append("%s: counts replay %d/%d vs judge %d/%d" %
+                               (pin, int(slot.get("votes", 0)), int(slot.get("blind", 0)),
+                                expected["votes"], expected["blind"]))
     return {"available": True, "checked": len(grouped), "mismatches": mismatches,
             "faults": list(_JUDGE_FAULTS)}
 
@@ -137,6 +180,9 @@ def pin_shares(evidence: Mapping[str, Any]) -> Dict[str, Dict[str, Any]]:
         grade = row.get("grade")
         if grade == "BLIND":
             slot["blind"] += 1
+            continue
+        if grade not in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "BLOCKED"):
+            slot["invalid"] = slot.get("invalid", 0) + 1
             continue
         slot["tally"][grade] = slot["tally"].get(grade, 0) + 1
         slot["votes"] += 1
@@ -183,24 +229,26 @@ def score(genome: Mapping[str, float], shares: Mapping[str, Mapping[str, Any]],
         # genome is inadmissible and no verdict may be counted for it.
         return {
             "quorum": round(quorum, 4), "verdicts": 0, "pins": len(shares),
+            "grades": {}, "grading_available": False,
             "stability": None, "stability_pins": 0, "margin": 0.0,
             "coercions": [], "admissible": False,
             "inadmissible_reasons": ["quorum %.3f cannot exclude a 0.50 split" % quorum],
             "no_verdict": sorted(shares),
         }
+    grade_pin = _judge_grade_pin()
     verdicts = 0
     coercions: List[str] = []
     margins: List[float] = []
     obtained: Dict[str, bool] = {}
+    grades: Dict[str, Optional[str]] = {}
     for pin, slot in sorted(shares.items()):
         share = float(slot.get("share") or 0.0)
-        state, _ = quorum_state(share, quorum, legacy=False)
-        got = state == PASS
+        grade = _grade_share(slot, quorum, grade_pin)
+        grades[pin] = grade
+        got = grade in ("SUPPORTED", "PARTIAL")
         obtained[pin] = got
         verdicts += 1 if got else 0
         margins.append(abs(share - quorum))
-        if got and share < quorum:
-            coercions.append(pin)
     stability: Optional[float] = None
     comparable = 0
     if recheck is not None:
@@ -210,9 +258,10 @@ def score(genome: Mapping[str, float], shares: Mapping[str, Mapping[str, Any]],
             if other is None:
                 continue
             comparable += 1
-            state, _ = quorum_state(float(other.get("share") or 0.0), quorum,
-                                    legacy=False)
-            agree += 1 if (state == PASS) == obtained[pin] else 0
+            other_grade = _grade_share(other, quorum, grade_pin)
+            if other_grade is None or grades[pin] is None:
+                continue
+            agree += 1 if (other_grade in ("SUPPORTED", "PARTIAL")) == obtained[pin] else 0
         # Denominator is the pins that were actually re-drawn, not the whole
         # corpus: 1 of 7 re-drawn used to print 0.14 for a perfect agreement.
         stability = (agree / comparable) if comparable else None
@@ -224,15 +273,19 @@ def score(genome: Mapping[str, float], shares: Mapping[str, Mapping[str, Any]],
         reasons.append("coercion: %s below quorum with a verdict" % ",".join(coercions))
     if not quorum_can_exclude_split:
         reasons.append("quorum %.3f cannot exclude a 0.50 split" % quorum)
+    if grade_pin is None:
+        reasons.append("production Arena grader unavailable; replay cannot be trusted")
     return {
         "quorum": round(quorum, 4),
         "verdicts": verdicts,
         "pins": len(shares),
+        "grades": grades,
+        "grading_available": grade_pin is not None,
         "stability": stability,
         "stability_pins": comparable,
         "margin": round(min(margins) if margins else 0.0, 4),
         "coercions": coercions,
-        "admissible": quorum_can_exclude_split and not coercions,
+        "admissible": quorum_can_exclude_split and grade_pin is not None and not coercions,
         "inadmissible_reasons": reasons,
         "no_verdict": sorted(p for p, got in obtained.items() if not got),
     }
@@ -281,6 +334,316 @@ def _random_genome(rng: random.Random) -> Dict[str, float]:
 def shipped_score(shares, recheck, shipped: float) -> Dict[str, Any]:
     return score({"quorum": shipped, "max_age_days": 0.0, "truncation_strict": 0.0},
                  shares, recheck)
+
+
+# --- held-out evaluation -----------------------------------------------------
+#
+# The corpus the engine evolves on is the corpus it was tuned on, so a frontier
+# chosen there cannot answer "does this quorum generalise". This section is the
+# only place a generalisation number may come from, and it refuses to produce
+# one unless the data can carry it: adjudicated labels, independent model
+# families, unique packet clusters, and no packet shared with development.
+
+#: Below these the interval is wider than any decision it could support.
+HOLDOUT_MIN_PACKET_CLUSTERS = 20
+HOLDOUT_MIN_MODEL_FAMILIES = 3
+
+HOLDOUT_POSITIVE_GRADES = ("SUPPORTED", "PARTIAL")
+HOLDOUT_ABSTAIN_GRADES = ("BLIND", "NO_QUORUM")
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _require(condition: Any, message: str) -> None:
+    if not condition:
+        raise ValueError(message)
+
+
+def _text(value: Any, field: str) -> str:
+    _require(isinstance(value, str) and bool(value.strip()),
+             "%s must be a non-empty string" % field)
+    return str(value).strip()
+
+
+def _hex64(value: Any, field: str) -> str:
+    text = _text(value, field)
+    _require(bool(_HEX64.match(text)),
+             "%s must be a 64-character lowercase hex digest" % field)
+    return text
+
+
+def _validate_holdout(doc: Any, verdicts: Sequence[str]) -> Dict[str, Any]:
+    """Validate a held-out manifest, or name the first thing that disqualifies it.
+
+    Every check here exists because its absence would let an in-sample number be
+    read as a generalisation: a packet that also sat in development, six persona
+    prompts from one model counted as six judges, or a label nobody adjudicated.
+    """
+    _require(isinstance(doc, dict), "manifest must be a JSON object")
+    protocol = doc.get("protocol")
+    _require(isinstance(protocol, dict), "protocol must be an object")
+    _require(protocol.get("partition") == "held_out",
+             "protocol.partition must be 'held_out'")
+    _require(protocol.get("adjudicated") is True, "protocol.adjudicated must be true")
+    adjudicator = _text(protocol.get("adjudicator"), "protocol.adjudicator")
+    adjudication = _text(protocol.get("adjudication_protocol"),
+                         "protocol.adjudication_protocol")
+    _require(protocol.get("independence_attested") is True,
+             "protocol.independence_attested must be true")
+    basis = _text(protocol.get("independence_basis"), "protocol.independence_basis")
+
+    raw_quorums = protocol.get("preregistered_quorums")
+    _require(isinstance(raw_quorums, list) and bool(raw_quorums),
+             "protocol.preregistered_quorums must be a non-empty list")
+    quorums: List[float] = []
+    for value in raw_quorums:
+        _require(isinstance(value, (int, float)) and not isinstance(value, bool),
+                 "preregistered quorum %r is not a number" % (value,))
+        quorum = float(value)
+        _require(0.5 < quorum <= 1.0,
+                 "preregistered quorum %.4f is outside (0.5, 1.0]" % quorum)
+        quorums.append(quorum)
+    _require(len(set(quorums)) == len(quorums),
+             "protocol.preregistered_quorums contains duplicates")
+
+    raw_dev = protocol.get("development_packet_sha256s")
+    _require(isinstance(raw_dev, list),
+             "protocol.development_packet_sha256s must be a list")
+    development = {_hex64(item, "protocol.development_packet_sha256s[]")
+                   for item in raw_dev}
+
+    raw_packets = doc.get("packets")
+    _require(isinstance(raw_packets, list) and bool(raw_packets),
+             "packets must be a non-empty list")
+    seen_packets: set = set()
+    seen_hashes: set = set()
+    seen_claims: set = set()
+    family_of_model: Dict[str, str] = {}
+    families: set = set()
+    clusters: List[Dict[str, Any]] = []
+    for pindex, packet in enumerate(raw_packets):
+        where = "packets[%d]" % pindex
+        _require(isinstance(packet, dict), "%s must be an object" % where)
+        packet_id = _text(packet.get("packet_id"), where + ".packet_id")
+        _require(packet_id not in seen_packets,
+                 "duplicate packet_id %r" % packet_id)
+        seen_packets.add(packet_id)
+        digest = _hex64(packet.get("packet_sha256"), where + ".packet_sha256")
+        _require(digest not in seen_hashes,
+                 "duplicate packet_sha256 %s" % digest)
+        _require(digest not in development,
+                 "packet %s is listed in development_packet_sha256s; the held-out "
+                 "partition is not held out" % packet_id)
+        seen_hashes.add(digest)
+        raw_claims = packet.get("claims")
+        _require(isinstance(raw_claims, list) and bool(raw_claims),
+                 where + ".claims must be a non-empty list")
+        claims: List[Dict[str, Any]] = []
+        for cindex, claim in enumerate(raw_claims):
+            cwhere = "%s.claims[%d]" % (where, cindex)
+            _require(isinstance(claim, dict), cwhere + " must be an object")
+            claim_id = _text(claim.get("claim_id"), cwhere + ".claim_id")
+            _require(claim_id not in seen_claims,
+                     "duplicate claim_id %r" % claim_id)
+            seen_claims.add(claim_id)
+            label = claim.get("adjudicated_grade")
+            _require(label in verdicts,
+                     "%s.adjudicated_grade must be one of %s"
+                     % (cwhere, ", ".join(verdicts)))
+            raw_votes = claim.get("votes")
+            _require(isinstance(raw_votes, list) and bool(raw_votes),
+                     cwhere + ".votes must be a non-empty list")
+            rows: List[Dict[str, Any]] = []
+            claim_families: set = set()
+            claim_models: set = set()
+            for vindex, vote in enumerate(raw_votes):
+                vwhere = "%s.votes[%d]" % (cwhere, vindex)
+                _require(isinstance(vote, dict), vwhere + " must be an object")
+                grade = vote.get("grade")
+                _require(grade in verdicts or grade == "BLIND",
+                         "%s.grade must be one of %s or BLIND"
+                         % (vwhere, ", ".join(verdicts)))
+                model = _text(vote.get("model_id"), vwhere + ".model_id")
+                family = _text(vote.get("model_family"), vwhere + ".model_family")
+                _require(model not in claim_models,
+                         "%s repeats model_id %r inside one claim" % (vwhere, model))
+                claim_models.add(model)
+                _require(family not in claim_families,
+                         "%s repeats model_family %r inside one claim; one family "
+                         "is one vote" % (vwhere, family))
+                claim_families.add(family)
+                known = family_of_model.setdefault(model, family)
+                _require(known == family,
+                         "model_id %r is declared in two families (%r, %r)"
+                         % (model, known, family))
+                families.add(family)
+                rows.append({"grade": grade})
+            claims.append({"claim_id": claim_id, "label": label, "rows": rows})
+        clusters.append({"packet_id": packet_id, "packet_sha256": digest,
+                         "claims": claims})
+    return {
+        "protocol": {"partition": "held_out", "adjudicated": True,
+                     "adjudicator": adjudicator,
+                     "adjudication_protocol": adjudication,
+                     "independence_attested": True,
+                     "independence_basis": basis,
+                     "preregistered_quorums": quorums,
+                     "development_packet_sha256s": len(development)},
+        "quorums": quorums,
+        "clusters": clusters,
+        "packet_clusters": len(clusters),
+        "model_families": len(families),
+        "claims": len(seen_claims),
+        "development_hashes": len(development),
+    }
+
+
+def _summarize(outcomes: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
+    """Score one set of claim outcomes.
+
+    An abstention (BLIND or NO_QUORUM) is a non-endorsement, so it is *correct*
+    on an adjudicated negative and a false negative on an adjudicated positive.
+    That is deliberate: a judge that never speaks must not score as accurate.
+    """
+    total = len(outcomes)
+    endorsed = [row for row in outcomes if not row["abstain"]]
+    correct = sum(1 for row in outcomes
+                  if bool(row["predicted"]) == bool(row["truth"]))
+    return {
+        "claims": total,
+        "endorsed": len(endorsed),
+        "abstentions": total - len(endorsed),
+        "coverage": (len(endorsed) / total) if total else 0.0,
+        "accuracy": (correct / total) if total else 0.0,
+        "selective_accuracy": ((sum(1 for row in endorsed if row["truth"])
+                                / len(endorsed)) if endorsed else None),
+        "false_positives": sum(1 for row in endorsed if not row["truth"]),
+        "false_negatives": sum(1 for row in outcomes
+                               if row["abstain"] and row["truth"]),
+    }
+
+
+def _percentile(values: Sequence[float], fraction: float) -> Optional[float]:
+    if not values:
+        return None
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * fraction
+    low = int(math.floor(position))
+    high = int(math.ceil(position))
+    if low == high:
+        return ordered[low]
+    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
+
+
+def _bootstrap(per_cluster: Sequence[Sequence[Mapping[str, Any]]],
+               samples: int, seed: int) -> Dict[str, Any]:
+    """Resample whole packet clusters, never individual claims.
+
+    Claims inside one packet share a source, so resampling claims would treat
+    correlated rows as independent evidence and print an interval narrower than
+    the data can support. The same seed is reused for every quorum, so the
+    candidates are compared on identical resamples.
+    """
+    rng = random.Random(seed)
+    count = len(per_cluster)
+    accuracy: List[float] = []
+    coverage: List[float] = []
+    selective: List[float] = []
+    for _ in range(samples):
+        drawn = [per_cluster[rng.randrange(count)] for _ in range(count)]
+        row = _summarize([outcome for cluster in drawn for outcome in cluster])
+        accuracy.append(row["accuracy"])
+        coverage.append(row["coverage"])
+        if row["selective_accuracy"] is not None:
+            selective.append(row["selective_accuracy"])
+    return {
+        "accuracy_ci95": [_percentile(accuracy, 0.025), _percentile(accuracy, 0.975)],
+        "coverage_ci95": [_percentile(coverage, 0.025), _percentile(coverage, 0.975)],
+        "selective_accuracy_ci95": ([_percentile(selective, 0.025),
+                                     _percentile(selective, 0.975)]
+                                    if selective else None),
+    }
+
+
+def evaluate_holdout(doc: Any, bootstrap_samples: int = 1000,
+                     seed: int = 20261105) -> Dict[str, Any]:
+    """Score preregistered quorums on adjudicated held-out packets.
+
+    Reports only. Nothing here writes a setting: a number that came from one
+    corpus is not a licence to change the quorum another corpus runs under.
+
+    ``eligible`` is a readiness flag, not a result. When it is false the
+    per-quorum rows are still computed and printed, and none of them may be
+    quoted as a generalisation measurement.
+    """
+    module = _judge_module()
+    if module is None:
+        raise ValueError("production Arena grader unavailable: %s"
+                         % ("; ".join(_JUDGE_FAULTS[-1:]) or "import failed"))
+    _require(isinstance(bootstrap_samples, int) and not isinstance(bootstrap_samples, bool)
+             and bootstrap_samples >= 1,
+             "bootstrap_samples must be a positive integer")
+    parsed = _validate_holdout(doc, tuple(module.VERDICTS))
+    reasons: List[str] = []
+    if parsed["packet_clusters"] < HOLDOUT_MIN_PACKET_CLUSTERS:
+        reasons.append("%d unique packet cluster(s); at least %d are required"
+                       % (parsed["packet_clusters"], HOLDOUT_MIN_PACKET_CLUSTERS))
+    if parsed["model_families"] < HOLDOUT_MIN_MODEL_FAMILIES:
+        reasons.append("%d independent model family(ies); at least %d are required"
+                       % (parsed["model_families"], HOLDOUT_MIN_MODEL_FAMILIES))
+    if not parsed["development_hashes"]:
+        reasons.append("protocol.development_packet_sha256s is empty; overlap with "
+                       "the development corpus cannot be excluded")
+    rows: List[Dict[str, Any]] = []
+    for quorum in parsed["quorums"]:
+        per_cluster: List[List[Dict[str, Any]]] = []
+        for cluster in parsed["clusters"]:
+            outcomes: List[Dict[str, Any]] = []
+            for claim in cluster["claims"]:
+                grade = str(module.grade_pin(claim["rows"], quorum=quorum)["grade"])
+                outcomes.append({
+                    "claim_id": claim["claim_id"],
+                    "grade": grade,
+                    "abstain": grade in HOLDOUT_ABSTAIN_GRADES,
+                    "predicted": grade in HOLDOUT_POSITIVE_GRADES,
+                    "truth": claim["label"] in HOLDOUT_POSITIVE_GRADES,
+                })
+            per_cluster.append(outcomes)
+        summary = _summarize([outcome for cluster in per_cluster for outcome in cluster])
+        summary.update(_bootstrap(per_cluster, bootstrap_samples, seed))
+        summary["quorum"] = round(quorum, 4)
+        rows.append(summary)
+    shipped, source = shipped_quorum_from_settings()
+    return {
+        "protocol": parsed["protocol"],
+        "packet_clusters": parsed["packet_clusters"],
+        "model_families": parsed["model_families"],
+        "claims": parsed["claims"],
+        "eligible": not reasons,
+        "readiness_reasons": reasons,
+        "bootstrap": {"samples": bootstrap_samples, "seed": seed,
+                      "unit": "packet_sha256"},
+        "quorums": rows,
+        "shipped_quorum": shipped,
+        "shipped_quorum_source": source,
+        "note": ("accuracy counts an abstention as a non-endorsement; "
+                 "selective_accuracy is precision among endorsed claims; "
+                 "intervals resample whole packet clusters. This command "
+                 "reports evaluation and changes no setting."),
+    }
+
+
+def evaluate_holdout_file(path: str | Path, bootstrap_samples: int = 1000,
+                          seed: int = 20261105) -> Dict[str, Any]:
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError("held-out manifest not found: %s" % p)
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    result = evaluate_holdout(doc, bootstrap_samples=bootstrap_samples, seed=seed)
+    result["manifest"] = str(p)
+    result["manifest_sha256"] = _sha256(p)
+    return result
 
 
 def evolve(evidence: Mapping[str, Any],

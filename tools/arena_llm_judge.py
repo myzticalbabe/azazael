@@ -303,8 +303,15 @@ def judge_pin(judge_id: str, spec: Dict[str, Any], pin: Dict[str, Any], url: str
     return row
 
 
-def grade_pin(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Aggregate one pin's votes. Any BLIND row makes the pin BLIND."""
+def grade_pin(rows: List[Dict[str, Any]], quorum: Optional[float] = None) -> Dict[str, Any]:
+    """Aggregate one pin's votes using the production grading rules.
+
+    ``quorum`` lets offline replay use the same grade semantics at candidate
+    thresholds without mutating the judge's process-global configured default.
+    """
+    active_quorum = QUORUM if quorum is None else float(quorum)
+    if active_quorum <= 0.5 or active_quorum > 1.0:
+        raise ValueError("quorum must be in (0.5, 1.0]")
     blind = [r for r in rows if r.get("grade") == "BLIND"]
     votes = [r for r in rows if r.get("grade") in STRENGTH]
     tally = {v: sum(1 for r in votes if r["grade"] == v) for v in VERDICTS}
@@ -316,9 +323,9 @@ def grade_pin(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         return dict(base, grade="BLIND", reason="no judge answered")
     top = max(tally, key=lambda v: tally[v])
     share = tally[top] / len(votes)
-    if top == "SUPPORTED" and share >= QUORUM:
+    if top == "SUPPORTED" and share >= active_quorum:
         return dict(base, grade="SUPPORTED", reason="%d/%d judges SUPPORTED" % (tally[top], len(votes)))
-    if STRENGTH[top] > 1 and share >= QUORUM:
+    if STRENGTH[top] > 1 and share >= active_quorum:
         return dict(base, grade="PARTIAL", reason="%d/%d judges PARTIAL" % (tally[top], len(votes)))
     # A split vote is not a weak verdict, it is the ABSENCE of one. The previous
     # line reported `PARTIAL` whenever any judge said PARTIAL, so 3 UNSUPPORTED /
