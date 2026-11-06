@@ -284,6 +284,18 @@ class ModelRegistry:
 
         return newly_found
 
+    def prune_missing(self) -> list[str]:
+        """Drop entries whose file no longer exists. Self-heal for stale
+        rows (e.g. legacy entries from moved model dirs). Returns the pruned
+        canonical paths and saves only when something was removed."""
+        gone = [c for c, m in self._models.items()
+                if not Path(m.canonical_path or c).is_file()]
+        for c in gone:
+            del self._models[c]
+        if gone:
+            self.save()
+        return gone
+
     # ── Helpers ─────────────────────────────────────────────────
 
     @staticmethod

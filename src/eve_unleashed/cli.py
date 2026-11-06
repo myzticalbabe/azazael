@@ -36,6 +36,87 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 # from typing import Optional  # removed — all names have native equivalents
 
+SWARM_TIMEOUT_S = 180
+
+
+SWARM_PER_PROVIDER_S = 60
+SWARM_NSP_SPECS = ["valid_query_features", "valid_provider_selection",
+                   "no_dead_provider"]
+
+
+def _swarm_fallback(prompt):
+    """LLM-swarm fallback: route a text prompt through the free-provider
+    swarm when no local framework can run it.
+
+    Sequential and bounded, never broadcast: broadcast waits for every
+    provider with no timeout (measured 2026-11-06: hung past 100 s with
+    two keyed providers live), which wedged serve's /infer. Here each
+    keyed provider gets SWARM_PER_PROVIDER_S seconds in a throwaway
+    worker; the first success wins, a hanging provider costs at most one
+    slice instead of the whole request.
+
+    Every routing emits an NSP trace event verified against the
+    inference_router spec (valid_query_features, valid_provider_selection,
+    no_dead_provider): the receipt names the verdict.
+
+    Returns (win_dict, nsp_note) or (None, reason). Never raises: the
+    swarm is a fallback, and a fallback must not become a second failure."""
+    import concurrent.futures
+    try:
+        from CORE.inference.parallel import ParallelInferenceEngine
+    except Exception as e:
+        note_failure("cli:swarm-import", e)
+        return None, "swarm unavailable (parallel engine would not import)"
+    try:
+        engine = ParallelInferenceEngine()
+    except Exception as e:
+        note_failure("cli:swarm-init", e)
+        return None, "swarm unavailable (engine would not start)"
+    targets = engine.get_all_providers_with_keys()
+    if not targets:
+        return None, "swarm has no keyed providers (set an API key first)"
+    worker = engine._build_worker_fn(prompt, 256, None, None)
+    win = None
+    errs = []
+    dead_idx = -1
+    for i, target in enumerate(targets):
+        pid = target.get("id", "?") if isinstance(target, dict) else target
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(worker, target)
+            try:
+                res = fut.result(timeout=SWARM_PER_PROVIDER_S)
+            except Exception as e:
+                note_failure("cli:swarm-provider", e)
+                errs.append("%s: slice-timeout" % pid)
+                if dead_idx < 0:
+                    dead_idx = i
+                continue
+        if res.success and res.content:
+            win = {"provider": res.provider, "model": res.model,
+                   "text": res.content, "elapsed_ms": res.elapsed_ms,
+                   "selected_idx": i, "num_providers": len(targets)}
+            break
+        errs.append("%s: %s" % (pid, (res.error or "empty")[:80]))
+        if dead_idx < 0:
+            dead_idx = i
+    if win is None:
+        return None, "swarm answered with no usable result" + (
+            " (%s)" % "; ".join(errs[:3]) if errs else "")
+    nsp_note = "nsp-unavailable"
+    try:
+        from .nsp_check import verify_router_trace
+        events = [{"event_type": "route", "symbolic_state": {
+            "query_norm": min(len(prompt) / 10.0, 50.0),
+            "selected_idx": win["selected_idx"],
+            "num_providers": win["num_providers"],
+            "dead_provider_idx": dead_idx}}]
+        verdict, detail = verify_router_trace(events, SWARM_NSP_SPECS)
+        nsp_note = "nsp:%s [%s]" % (verdict, detail)
+    except Exception as e:
+        note_failure("cli:swarm-nsp", e)
+    win["nsp"] = nsp_note
+    return win, ""
+
 
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
@@ -61,6 +142,20 @@ def cmd_infer(args) -> int:
     try:
         handle = engine.load_model(args.model, framework)
     except Exception as e:
+        if "not installed" in str(e) and isinstance(inputs, str):
+            print(f"local framework missing ({e}) -- trying LLM swarm...",
+                  file=sys.stderr)
+            win, reason = _swarm_fallback(inputs)
+            if win:
+                print(f"Swarm provider: {win['provider']} / {win['model']}")
+                print(f"Latency: {win['elapsed_ms']} ms")
+                print(f"NSP routing: {win.get('nsp', 'nsp-unavailable')}")
+                print("Predictions:")
+                print(f"  {win['text'][:2000]}")
+                return 0
+            print(f"ERROR loading model: {e}; swarm fallback: {reason}",
+                  file=sys.stderr)
+            return 1
         print(f"ERROR loading model: {e}", file=sys.stderr)
         return 1
 
@@ -177,6 +272,12 @@ def cmd_registry(args) -> int:
         dirs = args.dirs.split(",") if args.dirs else None
         found = reg.scan(directories=dirs)
         print(f"Registry scan complete — {found} new model(s) found")
+
+    if args.registry_action == "prune":
+        gone = reg.prune_missing()
+        print(f"Registry prune complete — {len(gone)} stale entr(ies) removed")
+        for g in gone[:10]:
+            print(f"  pruned: {g}")
 
     # Show summary
     stats = reg.stats()
@@ -444,6 +545,34 @@ def cmd_serve(args) -> int:
             try:
                 handle = engine.load_model(model_path, framework)
             except Exception as e:
+                if "not installed" in str(e) and isinstance(inputs, str):
+                    import asyncio as _aio
+                    try:
+                        win, reason = await _aio.wait_for(
+                            _aio.to_thread(_swarm_fallback, inputs),
+                            timeout=SWARM_TIMEOUT_S + 30)
+                    except Exception as te:
+                        note_failure("cli:swarm-serve", te)
+                        win, reason = None, "swarm error: %s" % te
+                    if win:
+                        return {
+                            "model": model_path,
+                            "framework": "swarm",
+                            "provider": win["provider"],
+                            "swarm_model": win["model"],
+                            "nsp": win.get("nsp", "nsp-unavailable"),
+                            "input_shape": None,
+                            "output_shape": None,
+                            "latency_ms": win["elapsed_ms"],
+                            "predictions": [win["text"]],
+                        }
+                    from .core import ModelLoader as _ML
+                    _label = (_ML.guess_framework(Path(model_path))
+                              if framework == "auto" else framework)
+                    raise HTTPException(
+                        status_code=503,
+                        detail="Framework '%s' is not installed; "
+                               "swarm fallback: %s" % (_label, reason))
                 raise HTTPException(status_code=400, detail=str(e))
         else:
             handle = matching[0]
@@ -481,6 +610,15 @@ def cmd_serve(args) -> int:
     async def shutdown():
         engine.shutdown()
 
+    from .model_registry import get_registry as _get_registry
+    try:
+        _gone = _get_registry().prune_missing()
+        print(f"   Registry prune: {len(_gone)} stale entr(ies) removed")
+        for _g in _gone[:5]:
+            print(f"     pruned: {_g}")
+    except Exception as _pe:
+        note_failure("cli:serve-prune", _pe)
+        print("   Registry prune skipped (registry unreadable)")
     print(f"Eve Unleashed Inference API starting on http://{args.host}:{args.port}")
     print(f"   Frameworks: {engine.available_frameworks}")
     print(f"   Docs:       http://{args.host}:{args.port}/docs")
@@ -511,6 +649,7 @@ def main():
     reg_p = sub.add_parser("registry", help="Model registry — track models across projects")
     reg_sub = reg_p.add_subparsers(dest="registry_action", help="Registry action")
     reg_sub.add_parser("show", help="Show registry summary")
+    reg_sub.add_parser("prune", help="Drop entries whose files no longer exist")
     reg_scan = reg_sub.add_parser("scan", help="Scan for model files")
     reg_scan.add_argument("--dirs", "-d", help="Comma-separated directories to scan")
     reg_p.add_argument("--verbose", "-v", action="store_true", help="Show all models")
