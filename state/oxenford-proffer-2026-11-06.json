@@ -1,0 +1,190 @@
+{
+ "proffer": {
+  "case": "Oxenford foundry record (no pending case; foundation laid in advance)",
+  "offered_by": "the CREATOR",
+  "purpose": "To show which native cp316t wheels were built, from which upstream sources, by which method, with what verification",
+  "ai_assistance_disclosed": true
+ },
+ "witness": {
+  "kind": "human",
+  "name": "the CREATOR",
+  "qualifications": [
+   "directed every adoption step live",
+   "observed each build result in-session"
+  ],
+  "reviewed_output": true
+ },
+ "inputs": {
+  "records": [
+   {
+    "id": "r1",
+    "source": ".build/wheelhouse-316t/SOULFORGE-LICENSE.txt",
+    "sha256": "fa86b524fc0ccd987bd48130b296872daab9082387348e95bba855f21d4fda0a"
+   },
+   {
+    "id": "r2",
+    "source": ".build/wheelhouse-316t/cffi-2.1.1-cp316-cp316t-win_amd64.whl",
+    "sha256": "6fb7a7a12aeec16f4f2cd06a8e7e7c254c6b45bf99f54dca8e2b273d6e33d386"
+   },
+   {
+    "id": "r3",
+    "source": ".build/wheelhouse-316t/greenlet-3.5.6-cp316-cp316t-win_amd64.whl",
+    "sha256": "8812205b065451b3edf7293ca90f72804db8e4658342e846db82a2dbcd0cfa02"
+   },
+   {
+    "id": "r4",
+    "source": ".build/wheelhouse-316t/numpy-2.5.4-cp316-cp316t-win_amd64.whl",
+    "sha256": "d92052e1228e180260bbf11c4e597601ca48a46893e9f429e4d21f36bc99298f"
+   },
+   {
+    "id": "r5",
+    "source": ".build/wheelhouse-316t/psutil-7.2.2-cp316-cp316t-win_amd64.whl",
+    "sha256": "e051e2fb9eaa72f7ca563944d0f27a88a0ed86320d0910b07bedd74554af0fb3"
+   },
+   {
+    "id": "r6",
+    "source": ".build/oxenford-dress.sh",
+    "sha256": "1882ff2d427dea9d220660384c04f03f9102669c9b4e8cc4d88bc76e6a28bd23"
+   },
+   {
+    "id": "r7",
+    "source": ".build/oxenford-upstream/cffi-316-pyfilesystemdefaultencoding.patch",
+    "sha256": "5b5013becb3d4576b60bc514b34e80ccbd07bab09be2e9071e09262a6351949d"
+   },
+   {
+    "id": "r8",
+    "source": ".build/oxenford-upstream/pillow-131-manifest-prune.patch",
+    "sha256": "7f7f18e4278f337e22974060cbdecc2626a82955351b8c8580376d57ec610a42"
+   },
+   {
+    "id": "r9",
+    "source": ".build/oxenford-upstream/README.md",
+    "sha256": "fe41e4bcb6bcff3061ca313b8ea2e4b0eb552455f4d7b4195bdc10c84997b10d"
+   },
+   {
+    "id": "r10",
+    "source": ".build/numpy-wheel.log",
+    "sha256": "64a469b7b5ed5b2d29acc3e6c3dad5be58958c24b4f3dcdbd33f654f39bafc90"
+   },
+   {
+    "id": "r11",
+    "source": ".build/pillow-wheel.log",
+    "sha256": "f46a52c07580c415638711b39341a2be773676a269f59fb0a642b896d9bbe2e1"
+   },
+   {
+    "id": "r12",
+    "source": ".build/scipy-ninja.log",
+    "sha256": "827411f836446d1a637c0fbc4365c6e8d62378fceac25b90d24391ede678cfc3"
+   },
+   {
+    "id": "r13",
+    "source": ".build/py316t-explore-live.log",
+    "sha256": "409f63c27b9ad3d414e71bcf9052ab0478f44149b2444891f13542b56fb1d63c"
+   },
+   {
+    "id": "r14",
+    "source": ".build/adopt/cffi-2.1.1.tar.gz",
+    "sha256": "dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be"
+   },
+   {
+    "id": "r15",
+    "source": ".build/adopt/pillow-13.0.0.tar.gz",
+    "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510"
+   },
+   {
+    "id": "r16",
+    "source": ".build/adopt/scipy-1.18.1.tar.gz",
+    "sha256": "52c4b7422442aba924d03ad4019852b08a92e64ea187b933135687bfe2747307"
+   },
+   {
+    "id": "r17",
+    "source": ".build/adopt/zlib-1.3.1.tar.gz",
+    "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23"
+   },
+   {
+    "id": "r18",
+    "source": ".build/adopt/numpy-2.5.4.tar.gz",
+    "sha256": "9a94cf751c9ad8ebaa835bcd3d40dacf8534ad086b88c38029b65123c7999d2a"
+   },
+   {
+    "id": "r19",
+    "source": ".build/adopt/scipy-1.18.1.tar.gz",
+    "sha256": "52c4b7422442aba924d03ad4019852b08a92e64ea187b933135687bfe2747307"
+   }
+  ],
+  "sufficiency_statement": "19 hashed artifacts: 6 upstream sdists, 2 patches, 5 wheels+license, foundry script, 4 build logs, upstream README; patches are diffs against the pristine sdists"
+ },
+ "method": {
+  "model": {
+   "name": "CPython 3.16.0a1 free-threaded (Oxenford build 22d79d98)",
+   "version": "3.16.0a1+ox",
+   "provenance": "built from cpython-316 source; selftest 33/33; pytest 51 passed; state/py316t_build.json landed 738e2db5"
+  },
+  "evaluation": {
+   "error_rate": 0.0,
+   "test_set": "88 checks, 0 failures: interpreter selftest 33/33, pytest 51 passed, 4 landed wheels import+functional green"
+  },
+  "peer_review": false,
+  "general_acceptance": "not accepted - alpha interpreter, experimental method"
+ },
+ "claims": [
+  {
+   "id": "c1",
+   "text": "cffi/pillow adoption patches change only what is stated, versus pristine sdists",
+   "inputs": [
+    "r7",
+    "r8",
+    "r14",
+    "r15"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c2",
+   "text": "wheelhouse wheels were compiled natively for cp316t on this machine",
+   "inputs": [
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r10",
+    "r11",
+    "r12"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c3",
+   "text": "each landed wheel passed import plus functional smoke on the 3.16t interpreter",
+   "inputs": [
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r13"
+   ],
+   "citations": []
+  }
+ ],
+ "authentication": {
+  "output_sha256": "fa86b524fc0ccd987bd48130b296872daab9082387348e95bba855f21d4fda0a",
+  "custody": [
+   "built on this machine",
+   "hashed in wheelhouse manifest",
+   "manifest force-added to repo"
+  ]
+ },
+ "hearsay": {
+  "posture": "machine_record",
+  "business_records": {
+   "custodian": "the CREATOR",
+   "regular_practice": true
+  }
+ },
+ "review": {
+  "name": "the CREATOR",
+  "authority_to_change": true,
+  "recorded_at": "2026-11-06",
+  "changes_made": 0
+ }
+}
