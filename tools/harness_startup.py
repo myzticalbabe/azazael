@@ -20,6 +20,7 @@ ROOT = os.path.dirname(HERE)
 PY315T = r"C:\Azazael\.venvs\py315t\Scripts\python.exe"
 BUILD = r"C:\Azazael\.build"
 LANE = os.path.join(ROOT, "state", "bake_harvest_freebuff_2026-11-06.jsonl")
+GOAL = os.path.join(ROOT, "state", "harness_goal.json")
 RECIPES_SNAP = os.path.join(ROOT, "state", "adopt-recipes-2026-11-06.json")
 RECIPES_LIVE = os.path.join(BUILD, "adopt-recipes.json")
 
@@ -94,6 +95,19 @@ def c_lane():
         return False, "%d drops: %s -- fix rows, never force-merge" % (
             len(dropped), dropped[:3])
     return True, "BASE=%d ACCEPTED=%d MERGED=%d" % (base_n, accepted, len(merged))
+
+
+@check("evolution loop alive (goal file current, iterations growing)")
+def c_goal():
+    try:
+        g = json.load(open(GOAL, encoding="utf-8"))
+    except Exception as e:
+        return False, "goal file missing/unreadable: %r -- recreate state/harness_goal.json" % e
+    iters = g.get("iterations", [])
+    if not g.get("goal") or not iters:
+        return False, "goal file has no goal or no iterations -- record iteration 0 before proceeding"
+    return True, "goal live: %d iteration(s), current=%s" % (
+        len(iters), g.get("current_iteration"))
 
 
 def main():
