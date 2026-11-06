@@ -37,6 +37,26 @@ def test_foia_draft_carries_parties_and_redress():
         assert needle in letter, needle
 
 
+def test_prove_case_passes_checks_and_labels_opinion(tmp_path, monkeypatch):
+    monkeypatch.setattr(redress, "GRIEVANCE_DIR", tmp_path)
+    ev = tmp_path / "bill.txt"
+    ev.write_text("test evidence", encoding="utf-8")
+    rec = redress.file_grievance("Crown", "consumer",
+                                 "Charged for crates never delivered.",
+                                 "Refund.", evidence=[str(ev)])
+    bundle = redress.prove_case(rec["id"])
+    assert bundle["judgment"].startswith("5/5"), bundle["checks"]
+    assert bundle["evidence_manifest"][0]["sha256"]
+    assert bundle["opinion"].startswith("OPINION (not machine-checked)")
+
+
+def test_prove_case_missing_id_raises(tmp_path, monkeypatch):
+    import pytest
+    monkeypatch.setattr(redress, "GRIEVANCE_DIR", tmp_path)
+    with pytest.raises(ValueError):
+        redress.prove_case("grv-nonexistent")
+
+
 def test_tutorial_teaches_filing_and_referral_lists_lawhelp():
     steps = redress.tutorial()
     assert any("eve grievance file" in s for s in steps)

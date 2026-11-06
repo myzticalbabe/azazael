@@ -335,6 +335,19 @@ def cmd_grievance(args) -> int:
         for name, url in _r.legal_referral(args.state):
             print(f"  {name}: {url}")
         return 0
+    if act == "prove":
+        try:
+            bundle = _r.prove_case(args.id)
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        for c in bundle["checks"]:
+            mark = "PASS" if c["passed"] else "FAIL"
+            print(f"  [{mark}] {c['check']}: {c['detail']}")
+        print(f"JUDGMENT: {bundle['judgment']}")
+        print(bundle["opinion"])
+        print(bundle["filed_note"])
+        return 0
     for line in _r.tutorial():
         print(line)
     return 0
@@ -755,6 +768,8 @@ def main():
     grv_dock.add_argument("--term", required=True)
     grv_ref = grv_sub.add_parser("refer", help="Free legal-aid referrals")
     grv_ref.add_argument("--state", default=None)
+    grv_prove = grv_sub.add_parser("prove", help="Compile court-filing evidence bundle")
+    grv_prove.add_argument("--id", required=True)
     grv_sub.add_parser("tutorial", help="Guided grievance-filing tutorial")
     grv_p.set_defaults(func=cmd_grievance, grievance_action="show")
 
