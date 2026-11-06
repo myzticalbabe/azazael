@@ -297,5 +297,16 @@
  "error_evolves_harness": {
   "doctrine": "Every error ships a harness mechanism (code, check, or doctrine), never just a fix. Mechanisms shipped 2026-11-06: OXENFORD_NMAKE absolute-path resolution + smoke-spawn (nasm-build.py); tools/bake_append.py write-time lane validation; file-based Windows-path debugging rule.",
   "date": "2026-11-06"
+ },
+ "diagnose_include_chain": {
+  "doctrine": "When cl fails inside system headers, never guess from the error line. Trace the include chain, then bisect the trigger.",
+  "technique": [
+   "1. Reproduce the single TU with /showIncludes; read the chain root-to-leaf to find who pulls the failing header.",
+   "2. Compile a 2-line probe of the failing header ALONE with the exact build flags. If green, flags and toolchain are innocent.",
+   "3. Add back the TU's own headers one prefix at a time until the failure returns; the last addition is the poison.",
+   "4. Read the SDK guard itself (winnt.h:159 checks _AMD64_/_X86_, not _M_X64) before theorizing about macros."
+  ],
+  "provenance": "nasm-3.02 nasmlib/file.c C1189 No Target Architecture, 2026-11-06: toolchain proven innocent by windows.h probe rc=0 with identical flags; chain root was config/msvc.h.",
+  "date": "2026-11-06"
  }
 }

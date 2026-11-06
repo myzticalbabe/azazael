@@ -30,6 +30,7 @@ Exit codes: 0 pass / 1 block (--hook) or user abort (review).
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -39,6 +40,14 @@ DEFAULT_MAX_FILES = 8
 
 GENERATED_SUFFIXES = (".ppm", ".png", ".log", ".jsonl", ".html")
 GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
+#: Dated machine snapshots: state/<name>-YYYY-MM-DD.json. These are
+#: regenerated whole by engines (proffer, manifests, recipe snapshots), so a
+#: 300-line regeneration is the file doing its job, not hidden dirt --
+#: harness improvement #4 (2026-11-06; the corporate commit's proffer
+#: rewrite tripped the per-file cap). Narrow on purpose: bare state/*.json
+#: and undated names stay judged like source.
+STATE_SNAPSHOT_RE = re.compile(
+    r"^state/[A-Za-z0-9_][A-Za-z0-9_.-]*-\d{4}-\d{2}-\d{2}\.json$")
 
 
 def _git(*args: str) -> str:
@@ -151,6 +160,8 @@ def worktree_status() -> list[tuple[str, str]]:
 def is_generated(path: str) -> bool:
     p = path.replace("\\", "/")
     if any(p.startswith(d) for d in GENERATED_DIRS):
+        return True
+    if STATE_SNAPSHOT_RE.match(p):
         return True
     return p.lower().endswith(GENERATED_SUFFIXES)
 

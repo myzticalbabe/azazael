@@ -66,6 +66,33 @@ def test_generated_exempt_from_both_tallies():
     assert cg.evaluate(rows, 150, 8) == []
 
 
+def test_state_snapshot_classification():
+    # Harness improvement #4 (2026-11-06): dated machine snapshots under
+    # state/ are regenerated whole by engines -- a 300-line proffer rewrite
+    # is the file doing its job, not hidden dirt.
+    assert cg.is_generated("state/oxenford-proffer-2026-11-06.json")
+    assert cg.is_generated("state/adopt-recipes-2026-11-06.json")
+    assert not cg.is_generated("state/head.json")
+    assert cg.is_generated("state/bake_harvest_freebuff_2026-11-06.jsonl")  # .jsonl suffix already exempt
+    assert not cg.is_generated("state/notes.json")
+    assert not cg.is_generated("src/CORE/local_memory.py")
+
+
+def test_state_snapshot_regeneration_passes_line_cap():
+    rows = [(300, 33, "state/oxenford-proffer-2026-11-06.json"),
+            (150, 35, "state/oxenford-wheelhouse-manifest-2026-11-06.json")]
+    assert cg.evaluate(rows, 150, 8) == []
+
+
+def test_state_snapshot_cannot_rescue_blocked_source():
+    # Negative control: the exemption covers snapshots only -- 9 source
+    # files stay blocked next to regenerated snapshots.
+    rows = [(1, 1, "src/f%d.py" % i) for i in range(9)]
+    rows += [(300, 33, "state/oxenford-proffer-2026-11-06.json")]
+    problems = cg.evaluate(rows, 150, 8)
+    assert any("9 staged files" in p for p in problems)
+
+
 def test_generated_cannot_rescue_blocked_changeset():
     # Negative control: exempting generated rows must not weaken the cap
     # on source rows -- 9 source files stay blocked next to 40 generated.
