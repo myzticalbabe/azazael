@@ -1,0 +1,1143 @@
+{
+ "meta": {
+  "round": "r9",
+  "judged_at": "2026-11-05T20:26:00",
+  "endpoint": "http://127.0.0.1:8081",
+  "model": "local",
+  "judges": [
+   "ARENA-JUDGE-1-ARCHITECTURE",
+   "ARENA-JUDGE-2-LEGAL",
+   "ARENA-JUDGE-3-ECONOMIC",
+   "ARENA-JUDGE-4-TECHNICAL",
+   "ARENA-JUDGE-5-ETHICAL",
+   "ARENA-JUDGE-6-STRATEGIC"
+  ],
+  "quorum": 0.66,
+  "packet": "ARC\\cain\\evidence_packet.json",
+  "packet_sha256": "1f3c71158a71d611fc338c764293794bfe076ca263356324fea3c4f1bc331fc8",
+  "calls": 42,
+  "blind_calls": 0,
+  "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+  "vocabulary": [
+   "SUPPORTED",
+   "PARTIAL",
+   "UNSUPPORTED",
+   "BLOCKED"
+  ]
+ },
+ "pins": {
+  "C1": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 3,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C2": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C3": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C4": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 3,
+    "UNSUPPORTED": 2,
+    "BLOCKED": 1
+   },
+   "ungrounded_quotes": 0,
+   "grade": "NO_QUORUM",
+   "reason": "no quorum: {\"SUPPORTED\": 0, \"PARTIAL\": 3, \"UNSUPPORTED\": 2, \"BLOCKED\": 1} (0.50 < 0.66 needed)"
+  },
+  "C5": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C6": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 6,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C7": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  }
+ },
+ "rows": [
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 36.38,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "End of support for Windows 10 is scheduled for October 14, 2025.",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy."
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot.",
+    "Pre-8th-generation hardware lacks a supported upgrade path due to TPM 2.0 and Secure Boot requirements."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "End of support for Windows 10 is scheduled for October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain supported until then.",
+   "reason": "The quote confirms end-of-support timing but does not explicitly state that support is gated by TPM 2.0 or Secure Boot, nor does it address pre-8th-generation hardware limitations.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 41.44,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "End of support for Windows 10 is scheduled for October 14, 2025.",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy."
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot.",
+    "Pre-8th-generation hardware lacks a supported upgrade path due to TPM 2.0 and Secure Boot requirements."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "End of support for Windows 10 is scheduled for October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain supported until then.",
+   "reason": "The sources confirm end-of-support timing but do not explicitly state that support is gated on TPM 2.0 and Secure Boot or that pre-8th-generation hardware is excluded from upgrade paths.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 81.2,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "End of support for Windows 10 is scheduled at October 14, 2025.",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy.",
+    "The current version, 22H2, will be the final version of Windows 10."
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot.",
+    "Pre-8th-generation hardware lacks a supported upgrade path due to TPM 2.0 and Secure Boot requirements."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "End of support for Windows 10 Home and Pro follows the Modern Lifecycle Policy. This applies to the following editions: Home, Pro, Pro Education, Pro for Workstations Important Windows 10 will reach end of support on October 14, 2025.",
+   "reason": "The claim specifies technical gating mechanisms (TPM 2.0 and Secure Boot) and hardware eligibility (pre-8th-gen), neither of which is explicitly stated in the quotes.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 71.85,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 end of support is scheduled for October 14, 2025",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy"
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot",
+    "Pre-8th-generation hardware lacks a supported upgrade path"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Windows 10 Home and Pro follows the Modern Lifecycle Policy. This applies to the following editions: Home, Pro, Pro Education, Pro for Workstations Important Windows 10 will reach end of support on October 14, 2025.",
+   "reason": "The quote confirms end-of-support date but does not mention TPM 2.0 or Secure Boot as gatekeeping requirements, nor does it address hardware generation-specific upgrade constraints.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 47.18,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "End of support for Windows 10 is scheduled for October 14, 2025.",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy.",
+    "The current version, 22H2, will be the final version of Windows 10."
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot.",
+    "Pre-8th-generation hardware lacks a supported upgrade path due to TPM 2.0 and Secure Boot requirements."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will rem",
+   "reason": "The quote confirms end-of-support date and final version but does not explicitly link support gating to TPM 2.0 and Secure Boot or address pre-8th-generation hardware limitations.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 75.53,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 end of support is scheduled for October 14, 2025",
+    "Windows 10 Home and Pro editions follow a modern lifecycle policy"
+   ],
+   "missing_elements": [
+    "End of support is gated on TPM 2.0 and Secure Boot",
+    "Pre-8th-generation hardware lacks a supported upgrade path"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Windows 10 Home and Pro follows the Modern Lifecycle Policy. This applies to the following editions: Home, Pro, Pro Education, Pro for Workstations Important Windows 10 will reach end of support on October 14, 2025.",
+   "reason": "The quote confirms end-of-support timing but does not mention TPM 2.0 or Secure Boot as gatekeepers or specify hardware generation requirements.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 63.43,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 improved power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus"
+   ],
+   "missing_elements": [
+    "disclosing the change",
+    "offering an opt-out",
+    "reduced peak performance on iPhones with aged batteries in iOS 11.2"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus",
+   "reason": "The quote confirms a performance improvement in iOS 10.2.1 targeting peak workloads and specific devices, but lacks explicit mention of disclosure or opt-out mechanisms and does not address iOS 11.2 or aged batteries.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 63.43,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 introduced a power management update that improves performance during peak workloads to avoid unexpected shutdowns on iPhone 6 and iPhone 6 Plus."
+   ],
+   "missing_elements": [
+    "The reduction in peak performance on iPhones with aged batteries was not disclosed to users.",
+    "Apple did not offer an opt-out mechanism for users to maintain peak performance despite the change.",
+    "The performance reduction specifically targeted aged batteries and was not a general power management update."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone ",
+   "reason": "The quote confirms a performance-related update in iOS 10.2.1 but lacks explicit disclosure or opt-out intent, and does not specify aged batteries as the target group.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 68.83,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 introduced improved power management to avoid unexpected shutdowns on iPhone 6 and 6 Plus",
+    "The change was made without explicitly stating the impact on peak performance"
+   ],
+   "missing_elements": [
+    "The change in iOS 10.2.1 and 11.2 specifically reduced peak performance on iPhones with aged batteries",
+    "The change was not disclosed to users",
+    "An opt-out option was not offered to users",
+    "The performance reduction was consistent across aged batteries and not just isolated to specific models",
+    "The impact was attributed to aged batteries specifically, not just general power management"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone ",
+   "reason": "The quote confirms a power management improvement in iOS 10.2.1 that avoids shutdowns, but does not explicitly state that peak performance was reduced, nor that the change was undisclosed or lacked an opt-out, nor that aged batteries were specifically affected.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 54.27,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 improved power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus"
+   ],
+   "missing_elements": [
+    "reduced peak performance on iPhones with aged batteries",
+    "without disclosing the change or offering an opt-out"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone ",
+   "reason": "The quote confirms a performance-related update in iOS 10.2.1 but does not state that peak performance was reduced or that the change was not disclosed or offered an opt-out.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 61.71,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 improved power management to avoid unexpected shutdowns on iPhone 6 and 6 Plus",
+    "the change was made without explicit mention of reduced peak performance"
+   ],
+   "missing_elements": [
+    "the change in iOS 10.2.1 and 11.2 specifically reduced peak performance on iPhones with aged batteries",
+    "the change was disclosed to users",
+    "an opt-out option was offered to users",
+    "the reduction in peak performance was consistent across aged batteries"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone ",
+   "reason": "The quote confirms a performance improvement in iOS 10.2.1 aimed at preventing shutdowns, but does not explicitly state that peak performance was reduced, nor that users were informed or given an opt-out option.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 68.32,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "iOS 10.2.1 improved power management to avoid unexpected shutdowns on iPhone 6 and 6 Plus",
+    "the change was made without explicit mention of peak performance reduction"
+   ],
+   "missing_elements": [
+    "the performance reduction was specific to aged batteries",
+    "the change was not disclosed to users",
+    "an opt-out option was not offered",
+    "the performance reduction occurred in iOS 11.2 as well"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus",
+   "reason": "The quote confirms a performance-related software update in iOS 10.2.1 that improves power management, but does not state that peak performance was reduced, nor that the change was undisclosed or lacked an opt-out, nor that iOS 11.2 replicated the issue.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 54.45,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.6,
+   "supports_elements": [
+    "Intel confirms root cause diagnosis for Vmin Shift Instability on 13th and 14th Gen desktop processors"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 address Vmin shift instability",
+    "Electromigration damage cannot be reversed"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and  14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms root cause diagnosis but does not mention microcode updates or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 61.74,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Intel confirms root cause diagnosis for Vmin Shift Instability on 13th and 14th generation Core i9 processors"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 address the Vmin shift instability",
+    "The resulting electromigration damage cannot be reversed"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and  14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms root cause diagnosis but does not mention microcode updates or electromigration damage irreversibility.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 69.82,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Intel has conducted an investigation into the Vmin shift instability on 13th and 14th generation Core i9 processors",
+    "Intel can now confirm the root cause diagnosis for the Vmin shift instability"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 specifically address the Vmin shift instability",
+    "The electromigration damage resulting from the instability cannot be reversed",
+    "The instability is specific to 13th and 14th generation Core i9 processors"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms investigation and root cause diagnosis but fails to mention microcode updates or reversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 64.78,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Intel has conducted an investigation into Vmin shift instability on 13th and 14th generation Core i9 processors",
+    "Intel has confirmed the root cause diagnosis for the Vmin shift instability issue"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 address the Vmin shift instability",
+    "The resulting electromigration damage cannot be reversed"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms investigation and root cause diagnosis of Vmin shift instability but does not mention microcode updates from 0x125 to 0x 132 or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 60.94,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Intel confirms root cause diagnosis for Vmin Shift Instability on 13th and 14th generation Core i9 processors"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 address Vmin shift instability",
+    "Electromigration damage resulting from the instability cannot be reversed"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and  14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms root cause diagnosis but fails to mention microcode updates or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 64.95,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Intel has confirmed the root cause diagnosis for Vmin shift instability on 13th and 14th generation Core i9 processors"
+   ],
+   "missing_elements": [
+    "Microcode updates from 0x125 to 0x132 address the Vmin shift instability",
+    "The resulting electromigration damage cannot be reversed"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and  14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms root cause diagnosis of Vmin shift instability but does not mention microcode updates or reversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 64.08,
+   "max_tokens_used": 300,
+   "verdict": "BLOCKED",
+   "confidence": 0.0,
+   "supports_elements": [],
+   "missing_elements": [
+    "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation",
+    "making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The source is a tier-C page with a quote that discusses version codes and usage statistics but does not mention the Play Integrity API, OS attestation, or vendor-driven runtime decisions.",
+   "grade": "BLOCKED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 61.12,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.6,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of OS build versions and SDK_INT values.",
+    "The API's technical operation is tied to OS build attestation through version codes and cumulative usage data."
+   ],
+   "missing_elements": [
+    "The Play Integrity API explicitly allows an application to refuse to run on a device based on OS build attestation failure.",
+    "The decision to continue function is described as a vendor decision rather than a property of the hardware.",
+    "The mechanism of refusal is tied to attestation failure in a way that reflects a vendor-driven policy, not a hardware-based property."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL .",
+   "reason": "The source confirms version codes and technical build attributes but fails to establish the intent or mechanism of refusal based on attestation failure as a vendor-driven decision.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 58.89,
+   "max_tokens_used": 300,
+   "verdict": "UNSUPPORTED",
+   "confidence": 0.15,
+   "supports_elements": [
+    "Build.VERSION_CODES_FULL.CINNAMON_BUN_1 is reported with SDK_INT 37"
+   ],
+   "missing_elements": [
+    "The Play Integrity API allows an application to refuse to run on a device whose OS build fails attestation",
+    "Continued function is a vendor decision rather than a property of the hardware",
+    "Attestation failure triggers application refusal via the Play Integrity API"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The quote provides no mention of attestation, application refusal, or vendor-driven decision on device functionality, missing all material elements of the claim.",
+   "grade": "UNSUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 52.27,
+   "max_tokens_used": 300,
+   "verdict": "UNSUPPORTED",
+   "confidence": 0.15,
+   "supports_elements": [],
+   "missing_elements": [
+    "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation",
+    "making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The quote discusses version codes and usage statistics but provides no mention of the Play Integrity API, attestation, or application-level runtime decisions based on OS build compliance.",
+   "grade": "UNSUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 60.2,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.4,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of versioning and build numbers.",
+    "The API operates within the framework of OS build versioning and SDK_INT, which implies integration with OS builds."
+   ],
+   "missing_elements": [
+    "The Play Integrity API specifically allows an application to refuse to run on a device when OS attestation fails.",
+    "The decision to continue function is explicitly a vendor decision rather than a property of the hardware.",
+    "The mechanism of attestation failure triggering runtime refusal is described in the quote."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL .",
+   "reason": "The quote establishes versioning but does not state the attestation mechanism or the vendor's intent to make runtime functionality a vendor decision.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 61.68,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.4,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of OS build attestation through Build.VERSION_CODES_FULL.",
+    "The API's role in versioning and build identification is implied but not explicitly tied to runtime refusal on attestation failure."
+   ],
+   "missing_elements": [
+    "Explicit statement that an application can refuse to run on a device when OS build attestation fails.",
+    "Evidence that the decision to allow continued function is a vendor decision rather than a hardware property.",
+    "Mechanism by which the API enables runtime refusal based on attestation outcomes."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL .",
+   "reason": "The quote establishes versioning and build identifiers but does not address the runtime refusal mechanism or the vendor-driven decision on continued function.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 67.19,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy involves firmware updates that block third-party ink usage",
+    "HP firmware updates alter printer behavior to enforce ink usage conditions"
+   ],
+   "missing_elements": [
+    "Epson's waste-ink counter mechanism stops printing on firmware conditions rather than physical failure",
+    "Specific architectural design (e.g., TPM gates, firmware DRM, cloud attestation) enabling kill-switch behavior",
+    "Linear economy equation validation linking firmware conditions to circular economy principles",
+    "Counter-pattern architectural soundness (SpitFire) demonstrated in printer systems",
+    "Pillar structural integrity of the claim across HP, Canon, Epson, and Brother"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about",
+   "reason": "The quote confirms HP's firmware-based dynamic security policy blocking third-party ink, but does not address Epson's waste-ink counter, nor architectural mechanisms like TPM or cloud attestation, nor the broader system-level elements of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 68.28,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy blocks third-party ink use via firmware updates",
+    "HP's firmware updates alter printer behavior, affecting third-party ink compatibility"
+   ],
+   "missing_elements": [
+    "Epson's waste-ink counter stops printing on firmware condition rather than physical failure",
+    "Specific evidence of intent to stop printing on firmware condition rather than physical failure",
+    "Mechanism of firmware-based printing stoppage for Epson specifically",
+    "Evidence that the condition is not a physical failure but a firmware-based one"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink.",
+   "reason": "The quote confirms HP's dynamic security policy and firmware-based blocking of third-party ink, but does not address Epson's waste-ink counter or the specific condition of printing cessation due to firmware rather than physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 72.64,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy involves firmware updates that block third-party ink usage",
+    "HP's firmware updates alter printer behavior, affecting user experience"
+   ],
+   "missing_elements": [
+    "The specific firmware condition prevents printing on a non-physical failure (e.g., not due to ink cartridge issues)",
+    "Epson's waste-ink counter mechanism stops printing under firmware conditions rather than physical failure",
+    "Evidence of a deliberate design choice to prioritize firmware over physical hardware performance",
+    "Temporal or causal linkage between firmware updates and printing cessation beyond ink-related issues"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about",
+   "reason": "The quote confirms HP's firmware-based blocking of third-party ink but does not establish the claim's core mechanism of stopping printing on firmware conditions rather than physical failure, nor does it address Epson's waste-ink counter mechanism.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 75.76,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy issues firmware updates that block third-party ink use",
+    "HP's firmware updates alter printer behavior beyond physical failure"
+   ],
+   "missing_elements": [
+    "Epson's waste-ink counter stops printing on firmware condition",
+    "firmware condition-based printing stop rather than physical failure for both HP and Epson",
+    "specific mechanism of waste-ink counter triggering printing halt on Epson printers"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about",
+   "reason": "The source confirms HP's dynamic security policy affecting printer behavior via firmware, but provides no evidence for Epson's waste-ink counter mechanism or its impact on printing.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 73.39,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy blocks third-party ink use via firmware updates",
+    "HP's firmware updates alter printer behavior without physical failure"
+   ],
+   "missing_elements": [
+    "Epson's waste-ink counter stops printing on firmware condition",
+    "The condition is not a physical failure but a firmware-based condition",
+    "The claim involves both HP and Epson simultaneously",
+    "The mechanism is intentional (i.e., HP/Canon/Epson/Brother knew it would affect user sovereignty)"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about",
+   "reason": "The quote confirms HP's firmware-based blocking of third-party ink but does not mention Epson's waste-ink counter or explicitly state that the action occurs without physical failure or that it is intentional.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 72.58,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP's dynamic security policy issues firmware updates that block third-party ink use",
+    "HP's firmware updates alter printer behavior in a way that affects printing functionality"
+   ],
+   "missing_elements": [
+    "Epson's waste-ink counter stops printing on firmware condition rather than physical failure",
+    "Specific mechanism of Epson's waste-ink counter causing printing obstruction",
+    "Evidence that HP Dynamic Security and Epson's waste-ink counter operate as mutually distinct or coordinated strategies"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about",
+   "reason": "The source confirms HP's dynamic security policy affecting third-party ink but does not address Epson's waste-ink counter or its impact on printing functionality.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 66.92,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via computer programs."
+   ],
+   "missing_elements": [
+    "ECU software locks that specifically prevent repair by third-party technicians",
+    "DMCA 1201 anti-circumvention provisions being applied to restrict repair of agricultural equipment",
+    "Combined effect of ECU software locks and DMCA 1201 anti-circumvention restricting repair to manufacturer's technicians"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48",
+   "reason": "The quote confirms a repair exemption for agricultural equipment but does not specify ECU software locks or the combined effect of DMCA 12051 and ECU software in restricting repair to manufacturer technicians.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 66.95,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via computer programs."
+   ],
+   "missing_elements": [
+    "ECU software locks specifically restrict repair of agricultural equipment to manufacturer's technicians.",
+    "DMCA 1201 anti-circumvention provisions are invoked and applied to restrict repair of agricultural equipment.",
+    "John Deere's ECU software locks are designed with intent to restrict repair to manufacturer's technicians, not merely technical limitations."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels",
+   "reason": "The source confirms a regulatory exemption for repair of agricultural vehicles but does not specify ECU software locks or the intent behind manufacturer-specific repair restrictions under DMCA 1201.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 70.64,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via unlocking or jailbreaking of computer programs."
+   ],
+   "missing_elements": [
+    "ECU software locks specifically restrict repair to manufacturer's technicians",
+    "DMCA 1201 anti-circumvention provisions are directly applied to restrict repair of agricultural equipment",
+    "The restriction is enforced through ECU software locks in a way that prevents independent repair or third-party access",
+    "The claim of a combined effect of ECU software locks and DMCA 1201 anti-circumvention creating a de facto repair monopoly"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48",
+   "reason": "The exemption acknowledges repair of agricultural equipment vehicles but does not specify ECU software locks or the combined effect of DMCA 1205 and software locks in restricting repair to manufacturer technicians.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 60.18,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via unlocking or jailbreaking of software."
+   ],
+   "missing_elements": [
+    "ECU software locks specifically lock repair to manufacturer's technicians",
+    "DMCA 1201 anti-circumvention provisions are directly applied to restrict repair in John Deere agricultural equipment",
+    "The restriction is not merely technical but results in practical barriers to independent repair"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels",
+   "reason": "The source confirms a statutory exemption for repair of agricultural equipment software but does not specify that ECU software locks restrict repair to manufacturer technicians or that DMCA 1201 is the mechanism enforcing this restriction.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 62.53,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via unlocking or jailbreaking of software."
+   ],
+   "missing_elements": [
+    "ECU software locks specifically lock out repair by third-party technicians.",
+    "DMCA 1201 anti-circumvention provisions are directly applied to restrict repair beyond manufacturer's technicians.",
+    "The combination of ECU software locks and DMCA 1201 creates a structural barrier to repair."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48",
+   "reason": "The quote confirms repair is recognized under a specific exemption but does not specify that ECU software locks or DMCA 1201 are the mechanisms restricting repair or that such restriction is intentional and combined.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 63.07,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "The exemption includes repair of motorized land vehicles, marine vessels, or mechanized agricultural vehicles or vessels via unlocking of software access controls."
+   ],
+   "missing_elements": [
+    "ECU software locks specifically restrict repair to manufacturer's technicians",
+    "DMCA 1201 anti-circumvention provisions are directly applied to restrict repair of agricultural equipment",
+    "John Deere's ECU software locks are cited as a case example or mechanism"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48",
+   "reason": "The quote confirms a regulatory exemption for repair of agricultural equipment vehicles but does not specify ECU software locks or manufacturer technician restriction as a mechanism or intent.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 55.53,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.7,
+   "supports_elements": [
+    "Recycle Mode permanently disables a functioning speaker after a countdown",
+    "In Recycle Mode, all data is erased and the speaker goes into a 21-day countdown mode"
+   ],
+   "missing_elements": [
+    "no factory reset can recover it"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the speaker goes into a ",
+   "reason": "The quote confirms the countdown and data erasure but does not state that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 57.38,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode disables a functioning speaker after a 21-day countdown",
+    "In Recycle Mode, all data is erased"
+   ],
+   "missing_elements": [
+    "No factory reset can recover the speaker after Recycle Mode is activated",
+    "The disablement is permanent and affects the speaker's functionality beyond data erasure"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and th",
+   "reason": "The quote confirms the countdown and data erasure but does not state that functionality is permanently disabled or that a factory reset cannot recover it.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 55.85,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+    "In Recycle Mode, all data is erased and the speaker goes into a countdown mode before it is made useless."
+   ],
+   "missing_elements": [
+    "Recycle Mode permanently disables a functioning speaker after a countdown",
+    "no factory reset can recover it"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle  Mode, all data is erased and the speaker goes into a countdown mode before it is made useless:",
+   "reason": "The quote confirms a countdown and data erasure but does not state that the speaker is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 52.51,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+    "In Recycle Mode, all data is erased and the speaker system goes into a 21 day countdown mode before it's inevitably made useless"
+   ],
+   "missing_elements": [
+    "Recycle Mode permanently disables a functioning speaker after a countdown",
+    "no factory reset can recover it"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "In Recycle Mode, all data is erased and the speaker system goes into a 21 day countdown mode before it's inevitably made useless",
+   "reason": "The quote confirms a countdown and data erasure but does not state that the speaker is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 47.24,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode permanently disables a functioning speaker after a countdown",
+    "In Recycle Mode, all data is erased and the speaker goes into a 21-day countdown mode"
+   ],
+   "missing_elements": [
+    "no factory reset can recover it"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the speaker goes into a ",
+   "reason": "The quote confirms the countdown and data erasure but does not state that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 43.49,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+    "In Recycle Mode, all data is erased and the speaker system goes into a 21 day countdown mode before it's made useless"
+   ],
+   "missing_elements": [
+    "Recycle Mode permanently disables a functioning speaker after a countdown",
+    "no factory reset can recover it"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "In Recycle Mode, all data is erased and the speaker system goes into a 21 day countdown mode before it's inevitably made useless",
+   "reason": "The quote confirms a countdown and data erasure but does not state that the speaker is permanently disabled or that a factory reset cannot recover it.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  }
+ ]
+}
