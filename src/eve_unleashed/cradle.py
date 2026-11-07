@@ -142,6 +142,83 @@ def _probe_direct(model_path, framework):
     return False, "no probe for framework %s" % framework
 
 
+def list_cradle_models(cradle_dir=None):
+    """Every model file in the cradle: [{name, bytes, framework}]."""
+    from .core import ModelLoader
+    cdir = Path(cradle_dir) if cradle_dir else CRADLE_DIR
+    if not cdir.is_dir():
+        return []
+    out = []
+    for path in sorted(cdir.iterdir()):
+        if not path.is_file() or path.suffix.lower() in (
+                ".json", ".receipt", ".bak"):
+            continue
+        if path.name.startswith("."):
+            continue
+        out.append({"name": path.name, "bytes": path.stat().st_size,
+                    "framework": ModelLoader.guess_framework(path)})
+    return out
+
+
+def resolve_model(name, cradle_dir=None):
+    """A cradle model by stem, name or path. Raises ValueError."""
+    p = Path(name)
+    if p.is_file():
+        return p
+    cdir = Path(cradle_dir) if cradle_dir else CRADLE_DIR
+    cands = [m for m in list_cradle_models(cdir)
+             if m["name"] == name or Path(m["name"]).stem == name]
+    if not cands:
+        raise ValueError("no cradle model %r (%s)" % (name, cdir))
+    if len(cands) > 1:
+        raise ValueError("ambiguous %r: %s" % (
+            name, ", ".join(m["name"] for m in cands)))
+    return cdir / cands[0]["name"]
+
+
+def run_gguf(model_path, prompt, max_tokens=256, sidebar_timeout=180):
+    """Run a text prompt on ANY cradle gguf via a transient sidecar.
+
+    Spawns the model with its own llama-server, POSTs /completion,
+    returns the text, kills the sidecar. Not only Eve's default: the
+    model is chosen by the caller. Raises RuntimeError on failure."""
+    cands = _llama_server_candidates()
+    if not cands:
+        raise RuntimeError("no llama-server binary")
+    port = _free_port()
+    if port is None:
+        raise RuntimeError("no free port for sidecar")
+    proc = None
+    try:
+        proc = subprocess.Popen(
+            [str(cands[0]), "-m", str(model_path), "--port", str(port)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        deadline = time.time() + sidebar_timeout
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                raise RuntimeError("sidecar exited during load")
+            try:
+                with urllib.request.urlopen(
+                        "http://127.0.0.1:%d/health" % port, timeout=5) as r:
+                    if r.status == 200:
+                        break
+            except Exception:
+                time.sleep(2)
+        else:
+            raise RuntimeError("sidecar never reached /health")
+        body = json.dumps({"prompt": prompt,
+                           "n_predict": max_tokens}).encode()
+        req = urllib.request.Request(
+            "http://127.0.0.1:%d/completion" % port, data=body,
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=sidebar_timeout) as r:
+            out = json.load(r)
+        return (out.get("content") or "").strip()
+    finally:
+        if proc is not None and proc.poll() is None:
+            proc.terminate()
+
+
 def adopt_cradle(cradle_dir=None):
     """Adopt every model file in the cradle. Returns a summary dict."""
     from .model_registry import ModelRegistry, MODEL_EXTENSIONS

@@ -19,6 +19,18 @@ def test_empty_cradle_adopts_nothing(tmp_path):
     assert summary["adopted"] == [] and summary["failed"] == []
 
 
+def test_resolve_by_stem_and_missing(tmp_path):
+    import pytest
+    (tmp_path / "alpha-7b-q4.gguf").write_bytes(b"x" * 64)
+    (tmp_path / "notes.txt").write_text("hi", encoding="utf-8")
+    got = cradle.resolve_model("alpha-7b-q4", tmp_path)
+    assert got.name == "alpha-7b-q4.gguf"
+    listed = [m["name"] for m in cradle.list_cradle_models(tmp_path)]
+    assert "alpha-7b-q4.gguf" in listed
+    with pytest.raises(ValueError):
+        cradle.resolve_model("nope", tmp_path)
+
+
 def test_helpers_keep_contracts():
     port = cradle._free_port()
     assert isinstance(port, int) and 1024 <= port <= 65535
