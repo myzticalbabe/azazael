@@ -7,7 +7,7 @@ reading `src/` with `ast`. Re-run it and the numbers must be the same.
 python tools/bible_check.py --genealogy --write
 ```
 
-26 houses, 574 edges between them.
+26 houses, 575 edges between them.
 
 And **CORE** begat **META**, **ORCHESTRATION**, **SCRIPTS**, and of the rest there were 3.
 And **CODEX** begat **CORE**, **ORCHESTRATION**, **META**, and of the rest there were 1.
@@ -59,7 +59,7 @@ And **spitfire** begat no other house.
 | SHORTCUTS | -- | 0 |
 | TOOLS | CORE, AZAZAEL_TOOLKIT | 10 |
 | UTILITIES | CORE, eve_unleashed | 20 |
-| eve_unleashed | CORE, META, UTILITIES | 63 |
+| eve_unleashed | CORE, META, UTILITIES | 64 |
 | grantforge | -- | 0 |
 | grantforge_native | -- | 0 |
 | spitfire | -- | 0 |

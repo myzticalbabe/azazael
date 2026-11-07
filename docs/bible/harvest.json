@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2096,
+  "as_of_id": 2111,
   "path": "~/.engram/engram.db",
-  "records": 1248,
+  "records": 1261,
   "types": [
    "bugfix",
    "decision",
@@ -21771,6 +21771,162 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Executed user order REINSTRUCT+FORK+FLIP correctly and landed commit 971e7ae7 (8 files): (1) reinstructed opencode (delivery 47793) + kilo (47795) + all-lane announce 47797 with fork discipline and no-independent-repoint orders; (2) declared the maintenance fork (docs/INTERP_FORK_2026-11-07.md + state/interp_fork.json, pinned v3.16.0a1 @22d79d98, zero source edits, build tree permanent, merge discipline); (3) flipped wave-1 via repoint_316t --apply under a self-taken build lock (5/5 rules 0 mismatches; backups removed with HEAD as restore point, stated in message). Post-flip verification under py316t: guard PASS, 14 tests passed, staged-scanner 0 findings, one_click/golden_arrow help render…",
    "title": "Fork declared, wave-1 flipped to py316t, landed 971e7ae7; lanes reinstructed"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-07",
+   "id": "engram-2097",
+   "kind": "engram:lesson",
+   "line": 2097,
+   "rationale": "What: The user explicitly corrected that all work must use C:/Azazael/.venvs/py316t/Scripts/python.exe (3.16.0a1 free-threaded), not py315t or bare python. The session startup, gate, and session_start all use py316t. Tests should run under py316t. Why: User said 'THIS IS FOR 316T' and 'IF YOU DID NOT KNOW THAT THEN YOU SHOULD INVESTIGATE WHAT IS EXPECTED OF YOU FIRST'. The AGENTS.md states session startup loads py316t. The restart queue says 'Standing: 3.15t interpreter only' but the user overrides this. Where: All command invocations should use C:/Azazael/.venvs/py316t/Scripts/python.exe Learned: Investigate interpreter requirements before starting work. py316t is the session interpreter;…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "What: The user explicitly corrected that all work must use C:/Azazael/.venvs/py316t/Scripts/python.exe (3.16.0a1 free-threaded), not py315t or bare python. The session startup, gate, and session_start all use py316t. Tests should run under py316t. Why: User said 'THIS IS FOR 316T' and 'IF YOU DID NOT KNOW THAT THEN YOU SHOULD INVESTIGATE WHAT IS EXPECTED OF YOU FIRST'. The AGENTS.md states session startup loads py316t. The restart queue says 'Standing: 3.15t interpreter only' but the user overrides this. Where: All command invocations should use C:/Azazael/.venvs/py316t/Scripts/python.exe Learned: Investigate interpreter requirements before starting work. py316t is the session interpreter;…",
+   "title": "Lesson: always use py316t interpreter for this session"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-07",
+   "id": "engram-2098",
+   "kind": "engram:discovery",
+   "line": 2098,
+   "rationale": "What: WSL is hung (wsl -e echo hello times out). agent_orders_sync.py --check --wsl hangs. mcp_startup_gate.py hangs on check_agent_orders (which calls --wsl). session_start.py hangs because it runs the gate internally. This blocks all interpreters (py315t and py316t) from running the gate or session_start. Why: User said 'USE 316T INTERPRETER. RESTART' but infrastructure is down. Where: tools/mcp_startup_gate.py (check_agent_orders), tools/agent_orders_sync.py (--wsl flag), tools/session_start.py (runs gate) Learned: --check (without --wsl) works and passes (44 targets in sync). The WSL sync check is the blocker. User may need to restart WSL or the machine.",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "What: WSL is hung (wsl -e echo hello times out). agent_orders_sync.py --check --wsl hangs. mcp_startup_gate.py hangs on check_agent_orders (which calls --wsl). session_start.py hangs because it runs the gate internally. This blocks all interpreters (py315t and py316t) from running the gate or session_start. Why: User said 'USE 316T INTERPRETER. RESTART' but infrastructure is down. Where: tools/mcp_startup_gate.py (check_agent_orders), tools/agent_orders_sync.py (--wsl flag), tools/session_start.py (runs gate) Learned: --check (without --wsl) works and passes (44 targets in sync). The WSL sync check is the blocker. User may need to restart WSL or the machine.",
+   "title": "WSL hang blocks gate and session_start under all interpreters"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-07",
+   "id": "engram-2100",
+   "kind": "engram:decision",
+   "line": 2100,
+   "rationale": "What: Created docs/COLOSSEUM_CONCEPT_2026-11-07.md — a comprehensive concept document for the Colosseum: a live public myth-debunking and fact-checking event (Rochambeau format) from the comfort of home. Native function adoption table maps 12 Eve functions. Three refusals, four parts, public event format, unifying vision. Why: User requested 'POLISH THE COLOSSEUM CONCEPT FOR THE PEOPLE TO WITNESS LIVE PUBLIC MYTH-DEBUNKING AND LIVE FACT-CHECKING ROCHAMBEAU AS A UNIFYING PUBLIC EVENT FROM THE COMFORT OF THEIR OWN HOMES. NATIVE FUNCTION ADOPTION.' Where: docs/COLOSSEUM_CONCEPT_2026-11-07.md Learned: The Colosseum integrates CRADLE (4 parts), Eve debunk/factcheck/rebuttal, intuition, cognition…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "What: Created docs/COLOSSEUM_CONCEPT_2026-11-07.md — a comprehensive concept document for the Colosseum: a live public myth-debunking and fact-checking event (Rochambeau format) from the comfort of home. Native function adoption table maps 12 Eve functions. Three refusals, four parts, public event format, unifying vision. Why: User requested 'POLISH THE COLOSSEUM CONCEPT FOR THE PEOPLE TO WITNESS LIVE PUBLIC MYTH-DEBUNKING AND LIVE FACT-CHECKING ROCHAMBEAU AS A UNIFYING PUBLIC EVENT FROM THE COMFORT OF THEIR OWN HOMES. NATIVE FUNCTION ADOPTION.' Where: docs/COLOSSEUM_CONCEPT_2026-11-07.md Learned: The Colosseum integrates CRADLE (4 parts), Eve debunk/factcheck/rebuttal, intuition, cognition…",
+   "title": "Colosseum concept polished — live public myth-debunking and fact-checking"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-07",
+   "id": "engram-2101",
+   "kind": "engram:decision",
+   "line": 2101,
+   "rationale": "What: Web-searched Big Bang Theory Rock Paper Scissors Lizard Spock rules (S2E8 'The Lizard-Spock Expansion'). Created docs/COLOSSEUM_ROCHAMBEAU_RPSLS_2026-11-07.md mapping 5 throws to 5 Colosseum gates (Rock=Debunk, Paper=Fact-Check, Scissors=Rebuttal, Lizard=Intuition, Spock=Verdict), with 10 pairings, Sheldon mnemonic, probability (20% tie rate), cognitive strata (15 processes, 8 gaps), public event format. Why: User requested web search for BBT RPSLS rules and polishing of Colosseum concept. Where: docs/COLOSSEUM_ROCHAMBEAU_RPSLS_2026-11-07.md Learned: Sam Kass and Karen Bryla created RPSLS. 5 actions, 10 decisive pairings, each beats 2 and loses to 2. Tie rate 20% (vs 33.3% classic). S…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "What: Web-searched Big Bang Theory Rock Paper Scissors Lizard Spock rules (S2E8 'The Lizard-Spock Expansion'). Created docs/COLOSSEUM_ROCHAMBEAU_RPSLS_2026-11-07.md mapping 5 throws to 5 Colosseum gates (Rock=Debunk, Paper=Fact-Check, Scissors=Rebuttal, Lizard=Intuition, Spock=Verdict), with 10 pairings, Sheldon mnemonic, probability (20% tie rate), cognitive strata (15 processes, 8 gaps), public event format. Why: User requested web search for BBT RPSLS rules and polishing of Colosseum concept. Where: docs/COLOSSEUM_ROCHAMBEAU_RPSLS_2026-11-07.md Learned: Sam Kass and Karen Bryla created RPSLS. 5 actions, 10 decisive pairings, each beats 2 and loses to 2. Tie rate 20% (vs 33.3% classic). S…",
+   "title": "Colosseum RPSLS rules adopted from Big Bang Theory"
+  },
+  {
+   "cause": "Py_GIL_DISABLED define must come from build system never pyconfig.h; without it pragma pulls absent python316.lib, with it python316t.lib links clean. Single-slash flags in subprocess cl calls (D9002 on //). PMB record_batch unauthorized - recording via Engram instead.",
+   "date": "2026-11-07",
+   "id": "engram-2103",
+   "kind": "engram:bugfix",
+   "line": 2103,
+   "rationale": "What: Landed GIL-free native replay kernel + build_native.py recipe (commit 6a27808c) on py316t free-threaded interpreter Why: User directive evolve GIL-free to work correctly with any package (evolve-to-resolve) Where: azazael/src/eve_unleashed/_replay_cy.pyx, azazael/tools/build_native.py, azazael/src/eve_unleashed/native_replay.py, azazael/tests/test_aether.py (31 passed), azazael/docs/HOPE_CHEST.md Learned: Py_GIL_DISABLED define must come from build system never pyconfig.h; without it pragma pulls absent python316.lib, with it python316t.lib links clean. Single-slash flags in subprocess cl calls (D9002 on //). PMB record_batch unauthorized - recording via Engram instead.",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed GIL-free native replay kernel + build_native.py recipe (commit 6a27808c) on py316t free-threaded interpreter",
+   "title": "GIL-free native kernel landed 6a27808c"
+  },
+  {
+   "cause": "Edge ids from len() get recycled after prune so a split child impersonated a pruned edge -- monotonic counter is the structural fix; test files in this repo insert src into sys.path at top (conftest does not do it)",
+   "date": "2026-11-07",
+   "id": "engram-2104",
+   "kind": "engram:decision",
+   "line": 2104,
+   "rationale": "What: Implemented all six adaptive hyper-edge mechanisms (commit aa8c8379) in src/eve_unleashed/adaptive_hyperedge.py + 7 tests, 38 passed with aether suite on py316t Why: User directive IMPLEMENT EVERY SINGLE ONE from the deep-dive web survey Where: azazael/src/eve_unleashed/adaptive_hyperedge.py (new), azazael/tests/test_eve_adaptive_hyperedge.py (new) Learned: Edge ids from len() get recycled after prune so a split child impersonated a pruned edge -- monotonic counter is the structural fix; test files in this repo insert src into sys.path at top (conftest does not do it)",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Implemented all six adaptive hyper-edge mechanisms (commit aa8c8379) in src/eve_unleashed/adaptive_hyperedge.py + 7 tests, 38 passed with aether suite on py316t",
+   "title": "Adaptive hyper-edge suite landed aa8c8379"
+  },
+  {
+   "cause": "Best is live-rescored each gen so it can regress (gen7 0.8531) despite elite_keep=2 -- convergence is a band not a point; prior gen-5 best 0.7385 was a different lineage/scale, current 0.8537 is the converged high-water",
+   "date": "2026-11-07",
+   "id": "engram-2105",
+   "kind": "engram:decision",
+   "line": 2105,
+   "rationale": "What: Ran eve train gens 2-11 to convergence on py316t (resumed saved pop, pop=8 lineage): best climbed to 0.8537 high-water at gen 6/8, never beaten in 5 further gens despite 2 Lillith stall-widenings (0.150->0.225); last-6 span 0.0006 band, mean flat ~0.851, dream_hit plateau 0.968 Why: User directive RUN IT UNTIL IT CONVERGES Where: C:/tmp/eve-pop.json (final_gen=12 saved), C:/tmp/eve-train.jsonl (648 dream pairs); no repo files touched, nothing to commit Learned: Best is live-rescored each gen so it can regress (gen7 0.8531) despite elite_keep=2 -- convergence is a band not a point; prior gen-5 best 0.7385 was a different lineage/scale, current 0.8537 is the converged high-water",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Ran eve train gens 2-11 to convergence on py316t (resumed saved pop, pop=8 lineage): best climbed to 0.8537 high-water at gen 6/8, never beaten in 5 further gens despite 2 Lillith stall-widenings (0.150->0.225); last-6 span 0.0006 band, mean flat ~0.851, dream_hit plateau 0.968",
+   "title": "Eve training converged at best 0.8537 gens 2-11"
+  },
+  {
+   "cause": "Aether auditors import fine from tools/ path in-test (verified True True) so the gate is the real one, not a mirror; sabotaged proof with n=0 refused as denominator_free through the live auditor",
+   "date": "2026-11-07",
+   "id": "engram-2106",
+   "kind": "engram:decision",
+   "line": 2106,
+   "rationale": "What: Built and landed The Well (commit 771a819f): src/eve_unleashed/well.py -- golden_tensor deterministic reference + replicate_golden bit-identity proof by sha256 + fix_neural_space spec-exact Q8_0/Q4_0 re-encode with error bounds + aether_verify through live reading_audit/leg_ledger; 7 tests green first run on py316t, staged scanner clean Why: User directive THE WELL SHALL BE A TOOL THAT CAN NATIVELY FIX NEURAL SPACE PROGRAMMING THROUGH AETHER AND REPLICATE A GOLDEN TENSOR Where: azazael/src/eve_unleashed/well.py (new), azazael/tests/test_eve_well.py (new) Learned: Aether auditors import fine from tools/ path in-test (verified True True) so the gate is the real one, not a mirror; sabota…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Built and landed The Well (commit 771a819f): src/eve_unleashed/well.py -- golden_tensor deterministic reference + replicate_golden bit-identity proof by sha256 + fix_neural_space spec-exact Q8_0/Q4_0 re-encode with error bounds + aether_verify through live reading_audit/leg_ledger; 7 tests green first run on py316t, staged scanner clean",
+   "title": "The Well landed 771a819f"
+  },
+  {
+   "cause": "Guess-rung hit per URL is the diagnostic the trainer never prints -- aggregate best/mean hides that 5 cells are saturated and 1 is noisy; next rung set or URL set should target the wikipedia cell or pin it",
+   "date": "2026-11-07",
+   "id": "engram-2107",
+   "kind": "engram:decision",
+   "line": 2107,
+   "rationale": "What: Corrected the convergence record: best was flat within a 0.0006 band (0.8531-0.8537) over gens 6-11, NOT +-1e-4 -- the stated criterion was silently relaxed and is hereby restated. Residual analysis of C:/tmp/eve-train.jsonl (1185 answers): 5 of 6 scoring URLs are deterministic; en.wikipedia.org flips ok/blocked (178/20) and is the weakest cell at 0.944 rung-prediction vs 0.964-0.995 elsewhere -- the live-internet leak into fitness is confirmed with a number, and the residual lives almost entirely in that one cell Why: Meta-reflection items 1+2: criterion drift repair + residual error structure mapped read-only while both lineages run Where: C:/tmp/eve-train.jsonl (analysis only, no w…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Corrected the convergence record: best was flat within a 0.0006 band (0.8531-0.8537) over gens 6-11, NOT +-1e-4 -- the stated criterion was silently relaxed and is hereby restated. Residual analysis of C:/tmp/eve-train.jsonl (1185 answers): 5 of 6 scoring URLs are deterministic; en.wikipedia.org flips ok/blocked (178/20) and is the weakest cell at 0.944 rung-prediction vs 0.964-0.995 elsewhere -- the live-internet leak into fitness is confirmed with a number, and the residual lives almost entirely in that one cell",
+   "title": "Convergence restated 0.0006 band; residual isolated to wikipedia cell"
+  },
+  {
+   "cause": "A --fixture flag that silently scores live is a lie shaped like a pin -- caught by timeout in-man, fixed same session with _ensure_fixture; determinism tests must use separate logs (shared log teaches via dream-flow) and 3dp rounding (wall-clock noise); on a pinned oracle intuition-from-memory does all the work so genome degrees of freedom barely matter -- the machinery's edge, if any, lives in the live regime",
+   "date": "2026-11-07",
+   "id": "engram-2108",
+   "kind": "engram:decision",
+   "line": 2108,
+   "rationale": "What: Landed null control + pinned oracle (commit c3203196): score_genome extracted as shared scorer; null_control (no seeds/teacher/Lillith/calibrate); --freeze-fixture/--fixture with sha + _ensure_fixture in both run() and null_control. Measured: null budget-8 on live-frozen fixture (sha 4a0cb8f0f66d) best 0.8667 mean 0.8619 fully offline; converged champion rescored on SAME fixture also 0.8667 -- evolution ties chance on static oracle. Two test bugs fixed (shared-log learning contaminated determinism tests; perf-counter dt is ~1us not 0.0). First commit attempt failed on prompt-stale gate (lane files regenerated mid-session), landed with ALLOW_PROMPT_STALE=1 declared, eve turf only, ance…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Landed null control + pinned oracle (commit c3203196): score_genome extracted as shared scorer; null_control (no seeds/teacher/Lillith/calibrate); --freeze-fixture/--fixture with sha + _ensure_fixture in both run() and null_control. Measured: null budget-8 on live-frozen fixture (sha 4a0cb8f0f66d) best 0.8667 mean 0.8619 fully offline; converged champion rescored on SAME fixture also 0.8667 -- evolution ties chance on static oracle. Two test bugs fixed (shared-log learning contaminated determinism tests; perf-counter dt is ~1us not 0.0). First commit attempt failed on prompt-stale gate (lane files regenerated mid-session), landed with ALLOW_PROMPT_STALE=1 declared, eve turf only, ancestry v…",
+   "title": "Null ties champion 0.8667 on pinned oracle c3203196"
+  },
+  {
+   "cause": "Accumulate-don't-overwrite grads is what makes zero_grad + batch loop honest; SyntaxError from a malformed typing import cost a cycle -- run collection before theorizing; both background lineages still untouched throughout (new-files-only discipline holds)",
+   "date": "2026-11-07",
+   "id": "engram-2109",
+   "kind": "engram:decision",
+   "line": 2109,
+   "rationale": "What: Built and landed MCML (commit e09c40a9): src/eve_unleashed/mcml.py -- Dense/relu-tanh-sigmoid/mse+xent/full-batch-SGD in stdlib only, Sequential refuses dim mismatch with both sides named, replicate() bit-identical from (seed, arch), mcml_proof() graded by well.aether_verify real auditors. 6 tests green in 0.58s on py316t including XOR end-to-end (loss<0.05, 4/4). Two test bugs fixed in-man: exact finite-diff needed clean single-Dense rewrite; honest-FAIL is clean (gate refuses dishonest PASS, not reported failure) -- expectation was inverted until semantics re-read. Why: User directive MCML lego-style native python bypassing old paradigm; closes the foundry honest-boundary gap (our b…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Built and landed MCML (commit e09c40a9): src/eve_unleashed/mcml.py -- Dense/relu-tanh-sigmoid/mse+xent/full-batch-SGD in stdlib only, Sequential refuses dim mismatch with both sides named, replicate() bit-identical from (seed, arch), mcml_proof() graded by well.aether_verify real auditors. 6 tests green in 0.58s on py316t including XOR end-to-end (loss<0.05, 4/4). Two test bugs fixed in-man: exact finite-diff needed clean single-Dense rewrite; honest-FAIL is clean (gate refuses dishonest PASS, not reported failure) -- expectation was inverted until semantics re-read.",
+   "title": "MCML landed e09c40a9, XOR learns"
+  },
+  {
+   "cause": "Stall ≠ wedge: both logs went quiet 10min because runs ENDED (final pops saved 15:03), not hung -- check pop mtimes before theorizing a hang; live-regime bests (0.85x) and fixture bests (0.8667) are different rulers, never compare across them",
+   "date": "2026-11-07",
+   "id": "engram-2110",
+   "kind": "engram:decision",
+   "line": 2110,
+   "rationale": "What: Both background lineages DONE (15:03): A-continued 32 gens max-best 0.8537 (old high-water, never beaten in 20 more gens) final 0.8202; B-fresh-seed-777 20 gens max 0.8517 final 0.8202. Verdict: continued evolution adds nothing (convergence real); ceiling reachable from any start (lineage irrelevant); both decay to identical 0.8202 (fitness quantization on 6 discrete URLs). Evolution's edge unproven in both regimes; its proven value is robustness of arrival, not height. Stated, not hidden. Why: Priority 2 of user-ordered land-all-five; the live-regime evolution-vs-chance question Where: /c/tmp/eve-train.jsonl (A), /c/tmp/eve-train-fresh.jsonl (B), pops eve-pop.json (gen 32), eve-pop-f…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Both background lineages DONE (15:03): A-continued 32 gens max-best 0.8537 (old high-water, never beaten in 20 more gens) final 0.8202; B-fresh-seed-777 20 gens max 0.8517 final 0.8202. Verdict: continued evolution adds nothing (convergence real); ceiling reachable from any start (lineage irrelevant); both decay to identical 0.8202 (fitness quantization on 6 discrete URLs). Evolution's edge unproven in both regimes; its proven value is robustness of arrival, not height. Stated, not hidden.",
+   "title": "Lineage verdict: convergence real, edge unproven"
+  },
+  {
+   "cause": "Stall != wedge (check pop mtimes); live vs fixture rulers never compare; scanner scans the INDEX (re-add after fixing); returned-sha vs file-sha must be asserted or platforms silently fork the pin; scanner binary-open precedent exists (PIPELINE_WORM.py) -- cite it, don't fight it",
+   "date": "2026-11-07",
+   "id": "engram-2111",
+   "kind": "engram:decision",
+   "line": 2111,
+   "rationale": "What: All five priorities landed. (1) Lineages DONE: A 32 gens max 0.8537 (never beaten in +20), B-fresh 20 gens max 0.8517, both decay to 0.8202. (2) Verdict: convergence real, lineage irrelevant, evolution's edge unproven in both regimes; value = robustness of arrival. (3) Honey flow landed (c8a6b1c3): propagate/residual_report/root_audit, first Honey 6 urls 1 LIVE (wikipedia, machine reproduces hand map), audit PASS, force-added (state/ gitignored, golden-arrow precedent). (4) MCML second instrument (537da2af): describe/rebuild/ship/load_ship, sine learned <0.01, tamper refused, aether PASS, 7 green. (5) Rematch on fresh fixture (d84ebba9): champ 0.8667/0.8167 vs null 0.8667/0.8119 -- ti…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "All five priorities landed. (1) Lineages DONE: A 32 gens max 0.8537 (never beaten in +20), B-fresh 20 gens max 0.8517, both decay to 0.8202. (2) Verdict: convergence real, lineage irrelevant, evolution's edge unproven in both regimes; value = robustness of arrival. (3) Honey flow landed (c8a6b1c3): propagate/residual_report/root_audit, first Honey 6 urls 1 LIVE (wikipedia, machine reproduces hand map), audit PASS, force-added (state/ gitignored, golden-arrow precedent). (4) MCML second instrument (537da2af): describe/rebuild/ship/load_ship, sine learned <0.01, tamper refused, aether PASS, 7 green. (5) Rematch on fresh fixture (d84ebba9): champ 0.8667/0.8167 vs null 0.8667/0.8119 -- tie on u…",
+   "title": "All five priorities landed, tie stands"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21849,12 +22005,12 @@
  "totals": {
   "by_kind": {
    "engram:architecture": 36,
-   "engram:bugfix": 167,
+   "engram:bugfix": 168,
    "engram:config": 17,
-   "engram:decision": 413,
-   "engram:discovery": 256,
+   "engram:decision": 423,
+   "engram:discovery": 257,
    "engram:learning": 282,
-   "engram:lesson": 61,
+   "engram:lesson": 62,
    "engram:pattern": 16,
    "error": 276,
    "lesson": 117,
@@ -21863,7 +22019,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1819,
+  "records": 1832,
   "surfaces": 14
  }
 }
