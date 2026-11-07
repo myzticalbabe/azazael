@@ -684,8 +684,10 @@ def cmd_debunk(args) -> int:
     for c in res["checks"]:
         mark = "PASS" if c["passed"] else "FAIL"
         print(f"  [{mark}] {c['check']}: {c['detail']}")
+    plabel = ("CHECKABLE" if res["verdict"] in ("CHECKABLE", "SUSPECT")
+              else "TEXT")
     for p in res["propositions"]:
-        print(f"  CHECKABLE: {p[:120]}")
+        print(f"  {plabel}: {p[:120]}")
     for o in res["opinions"]:
         print(f"  OPINION: {o[:120]}")
     for f in res["fallacy_flags"]:
@@ -699,14 +701,21 @@ def cmd_factcheck(args) -> int:
     """Live fact-checking: every live byte receipted."""
     from . import factcheck as _f
     if args.url:
+        from . import evidence as _e
         r = _f.fetch_url(args.url)
         print(json.dumps(r, indent=2))
+        if r["status"] == "ok" and args.lock:
+            print(f"LOCKED {_e.ingest_receipt(r)['id']}")
         return 0 if r["status"] == "ok" else 1
     try:
         res = _f.factcheck_claim(args.claim, args.grievance)
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
+    if args.lock:
+        from . import evidence as _e
+        for lid in _f.lock_receipts(res):
+            print(f"LOCKED {lid}")
     print(f"DEBUNK: {res['debunk']['verdict']}")
     for lk in res["entity_lookups"]:
         mark = "FOUND" if lk.get("found") else "ABSENT"
@@ -1360,6 +1369,8 @@ def main():
                        help="Filed grievance id to cross-check against")
     fac_p.add_argument("--url", default=None,
                        help="Fetch one URL now and keep the receipt only")
+    fac_p.add_argument("--lock", action="store_true",
+                       help="Archive live receipts into the evidence locker")
     fac_p.set_defaults(func=cmd_factcheck)
 
     # eve locker (content-addressed evidence with custody)

@@ -166,8 +166,13 @@ def prove_case(gid):
     check("category_known", rec.get("category") in CATEGORIES,
           rec.get("category"))
     manifest = []
+    try:
+        from .evidence import resolve as _resolve
+    except Exception:
+        def _resolve(ref):
+            return ref
     for ev in rec.get("evidence", []):
-        p = Path(ev)
+        p = Path(_resolve(ev))
         if p.is_file():
             h = hashlib.sha256()
             with open(p, "rb") as f:

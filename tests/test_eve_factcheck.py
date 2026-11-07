@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from eve_unleashed import factcheck as F
@@ -86,6 +88,38 @@ def test_factcheck_refuted_beats_lookups():
     res = F.factcheck_claim("This always stands except when it falls.")
     assert res["verdict"] == "REFUTED"
     assert res["debunk"]["verdict"] == "REFUTED"
+
+
+def test_no_entities_verdict_needs_nothing_live():
+    res = F.factcheck_claim("Water flows downhill.")
+    assert res["verdict"] == "NO_ENTITIES"
+    assert res["entities_checked"] == 0
+
+
+def test_loc_fallback_when_wikipedia_misses():
+    no = {"topic": "Xy Zed", "found": False,
+          "receipt": {"status": "failed"}}
+    yes = {"topic": "Xy Zed", "found": True, "via": "loc",
+           "title": "T", "description": "d",
+           "receipt": {"status": "ok"}}
+    with patch.object(F, "wikipedia_lookup", return_value=no), \
+         patch.object(F, "loc_lookup", return_value=yes):
+        res = F.factcheck_claim("The Xy Zed matter stands.")
+    assert res["verdict"] == "CORROBORATED"
+    assert res["entity_lookups"][0]["fallback"] is True
+
+
+def test_lock_receipts_archives_ok_only(monkeypatch, tmp_path):
+    import eve_unleashed.evidence as E
+    monkeypatch.setattr(E, "LOCKER_DIR", tmp_path)
+    res = {"receipts": [{"status": "ok", "url": "http://x",
+                           "sha256": "s", "bytes": 1,
+                           "fetched_utc": "t"},
+                          {"status": "failed"}]}
+    ids = F.lock_receipts(res)
+    assert len(ids) == 1 and ids[0].startswith("ev:")
+    with pytest.raises(ValueError):
+        F.lock_receipts("nope")
 
 
 def test_factcheck_grievance_crosscheck(tmp_path, monkeypatch):

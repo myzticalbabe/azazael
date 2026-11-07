@@ -29,6 +29,7 @@ except Exception:
         pass
 
 WIKI_SUMMARY = ("https://en.wikipedia.org/api/rest_v1/page/summary/%s")
+LOC_SEARCH = ("https://www.loc.gov/search/?q=%s&fo=json&c=3")
 _FETCH_TIMEOUT = 30
 
 
@@ -80,6 +81,51 @@ def wikipedia_lookup(topic):
                 "error": str(e)[:200]}
 
 
+def loc_lookup(topic):
+    """Keyless Library of Congress search. Same shape as wikipedia_lookup."""
+    url = LOC_SEARCH % urllib.parse.quote(topic)
+    receipt = fetch_url(url)
+    if receipt["status"] != "ok":
+        return {"topic": topic, "found": False, "via": "loc",
+                "receipt": receipt}
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "EveUnleashed-factcheck/1.0"})
+        with urllib.request.urlopen(req, timeout=_FETCH_TIMEOUT) as r:
+            data = json.load(r)
+        results = data.get("results", [])
+        if not results:
+            return {"topic": topic, "found": False, "via": "loc",
+                    "receipt": receipt}
+        first = results[0]
+        return {"topic": topic, "found": True, "via": "loc",
+                "title": first.get("title", "")[:120],
+                "description": "Library of Congress: %d result(s)" % len(
+                    results),
+                "extract": (first.get("title", "") + " -- " +
+                            (first.get("date", "") or "undated"))[:300],
+                "receipt": receipt}
+    except Exception as e:
+        note_failure("factcheck:loc", e)
+        return {"topic": topic, "found": False, "via": "loc",
+                "receipt": receipt, "error": str(e)[:200]}
+
+
+def lock_receipts(result):
+    """Archive a factcheck result's receipts into the evidence locker.
+
+    Returns the locker ids. Receipts you cannot re-verify later are
+    rumors with hashes -- locking is what makes them evidence."""
+    from .evidence import ingest_receipt
+    ids = []
+    if not isinstance(result, dict):
+        raise ValueError("nothing to lock: not a factcheck result")
+    for r in result.get("receipts", []):
+        if r.get("status") == "ok":
+            ids.append(ingest_receipt(r)["id"])
+    return ids
+
+
 def extract_entities(text):
     """Candidate checkable entities: capitalized multi-word phrases."""
     found = re.findall(r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b", text)
@@ -128,12 +174,24 @@ def factcheck_claim(text, grievance_id=None):
             note_failure("factcheck:cross", e)
             cross = {"grievance": grievance_id, "matched": False,
                      "detail": "cross-check failed: %s" % e}
+    for lk in lookups:
+        if not lk.get("found"):
+            second = loc_lookup(lk["topic"])
+            lk.update({k: second[k] for k in
+                       ("found", "via", "title", "description")
+                       if k in second})
+            lk["fallback"] = True
+            receipts.append(second["receipt"])
+        else:
+            lk["via"] = "wikipedia"
     found = [lk for lk in lookups if lk.get("found")]
     if analysis["verdict"] == "REFUTED":
         verdict = "REFUTED"
     elif analysis["verdict"] == "UNVERIFIABLE":
         verdict = "UNVERIFIABLE"
-    elif lookups and len(found) == len(lookups):
+    elif not lookups:
+        verdict = "NO_ENTITIES"
+    elif len(found) == len(lookups):
         verdict = "CORROBORATED"
     elif found:
         verdict = "PARTIAL"
@@ -141,6 +199,7 @@ def factcheck_claim(text, grievance_id=None):
         verdict = "UNCORROBORATED"
     return {"claim": text, "debunk": analysis, "entity_lookups": lookups,
             "receipts": receipts, "grievance_crosscheck": cross,
+            "entities_checked": len(lookups),
             "verdict": verdict,
             "opinion": ("OPINION (not live-checked): %s"
                         % "; ".join(analysis["opinions"][:3])

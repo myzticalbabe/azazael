@@ -54,6 +54,18 @@ def test_missing_and_bad_inputs(monkeypatch, tmp_path):
         E.ingest_receipt({"url": "x"})
 
 
+def test_prove_case_accepts_locker_ids(monkeypatch, tmp_path):
+    import eve_unleashed.redress as R
+    monkeypatch.setattr(R, "GRIEVANCE_DIR", tmp_path / "g")
+    monkeypatch.setattr(E, "LOCKER_DIR", tmp_path / "e")
+    meta = E.ingest_text("exhibit", "n")
+    rec = R.file_grievance("Acme", "consumer",
+                           "A narrative long enough to count here.",
+                           "Refund.", evidence=[meta["id"]])
+    bundle = R.prove_case(rec["id"])
+    assert any(m["present"] for m in bundle["evidence_manifest"])
+
+
 def test_resolve_and_list(monkeypatch, tmp_path):
     _isolate(monkeypatch, tmp_path)
     meta = E.ingest_text("exhibit", "n")
