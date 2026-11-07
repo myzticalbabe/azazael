@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: AETHER upgrades A-1..A-6, see below).
+**Last stocked:** 2026-11-07 (session: native replay N-1 + per-rung U-2 + gap ledger seeding, see below). No cap: every gap gets a row.
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -43,7 +43,18 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 
 | # | Item | Price | Status |
 |---|------|-------|--------|
-| H-10 | Push pythran issue from draft to filed; watch Pillow #10455 for review | S | STOCKED (draft not found under docs/ — needs its location) |
+| H-10 | Pythran draft: searched docs/ + tree, only vendored scipy hits; draft unfindable, ended-search recorded; native route proven via Cython instead (N-1) | S | CLOSED (ended-search + superseded, evidence below) |
+| N-1 | Native replay: Cython kernel `_replay_cy` built with MSVC 14.51, parity vs dream tested, 6x on 20k pairs; pythran 0.19 present but its headers reject cl and no clang-cl on box (that verdict IS the pythran answer) | M | LANDED (commit below) |
+| U-2 | Per-rung floors: leg holds the weakest qualifying rung (>=5 pairs), floor tuner writes global + rung floor | S | LANDED (commit below) |
+| U-1 | Arm the floor: replay kilo's per-env logs (20+ pairs), run agreement_floor per env, A-1 goes strict | S | STOCKED (blocked on kilo logs) |
+| U-4 | Lillith tunes the swarm: shard shapes as a genome, fitness = hop-depth + isolation misses | M | STOCKED (kilo turf) |
+| U-5 | Web leg: second provider or honest single-source label on the verdict | M | STOCKED |
+| U-6 | Cross-env convergence comparison at fixed seed 316 (needs kilo's rows) | M | STOCKED (blocked on kilo) |
+| D-1 | Denominator-free 4 (esquire_capture, hook_evidence, one_click, pin_audit) — owning lanes | M | STOCKED (ledger tracks under hyper_edge) |
+| D-2 | Golden-arrow 6 failed (2026-11-05 baseline, 537 files) — owning lanes | L | STOCKED |
+| D-3 | servemesh:ModelShardServerWorm.verify token-only wired row (commit cc9dcf0a predates this session; never rebaseline foreign debt) | S | STOCKED (ledger new; owner: servemesh lane) |
+| D-4 | Credential rotation: 0 rotations recorded (absence of evidence, not freshness) | S | STOCKED (ledger new under evidence_gate) |
+| D-5 | orphan interp.* knobs x6 + bypass_reader + fallback_drift (pre-existing, not this session) | S | STOCKED |
 | H-11 | Record outcomes batch | XS | LANDED (standing rule: every landing commits its chest line) |
 
 ## LANDED — paid in full
@@ -60,6 +71,9 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | E2E `eve train --gens 2 --pop 4` live: gen1 best 0.8332 dream 0.708, gen2 best 0.8316 dream 0.771 | this session, isolated paths |
 | Micro-swarm assay (64 keys): hypercube-32x2 64 visits/hops 5, dodeca-x4 80/5, petersen-x8 80/hops 2 | this session — hops fall as solids shrink |
 | Bibles: RULE 0Z-Q (knit/unknit), E2R-5 source + pointer fixed, sync 60 targets 0 problems | commits below |
+| Forensics 2026-11-07T17:08Z: 5 legs, ast_audit ok (5662 parsed, 0 syntax), kernel NATIVE-WITH-PARITY, verdict FAIL (evidence_gate wired_claims + rotation; hyper_edge only via claim_agreement BLIND, no live log) | this session |
+| Seeded: logs/verdict.md rewritten, verdict_history.jsonl row 1, aether_findings ledger new=2 (evidence_gate, hyper_edge) | this session, gitignored logs/ |
+| Native build recipe (this box): MSVC 14.51 + SDK 10.0.26100.0 + C:/Azazael/.py316t headers; cython -3 _replay_cy.pyx; cl //c //nologo //O2 //MD //EHsc -DPy_GIL_DISABLED=1; link //DLL //EXPORT:PyInit__replay_cy python316t.lib | this session, exit 0 |
 | Rungs unlocked (H-07): playwright/chromium render + curl_cffi stealth proven live | this session |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |
