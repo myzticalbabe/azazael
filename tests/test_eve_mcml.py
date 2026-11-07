@@ -9,10 +9,14 @@ from eve_unleashed.mcml import (
     Activate,
     Dense,
     Sequential,
+    describe,
     digest,
+    load_ship,
     mcml_proof,
     mse,
+    rebuild,
     replicate,
+    ship,
     xent_logits,
 )
 from eve_unleashed.well import aether_verify
@@ -85,6 +89,35 @@ def test_xor_learns_end_to_end():
     assert final < 0.05, final
     for x, t in data:
         assert abs(m.forward(x)[0] - t[0]) < 0.25
+
+
+def test_full_loop_sine_learn_digest_verify_ship(tmp_path):
+    import math
+    data = [([x], [math.sin(x)])
+            for x in (-1 + 2 * i / 15 for i in range(16))]
+    m = Sequential([Dense(1, 8, seed=21), Activate("tanh"),
+                    Dense(8, 1, seed=22)])
+    for _epoch in range(3000):
+        m.zero_grad()
+        for x, t in data:
+            m.backward(mse(m.forward(x), t)[1])
+        m.step(0.1 / len(data))
+    loss = sum(mse(m.forward(x), t)[0] for x, t in data) / len(data)
+    assert loss < 0.01, loss
+    assert describe(m)["blocks"][0] == {"dense": [1, 8], "seed": 21}
+    assert rebuild(describe(m)).params() != m.params()  # fresh weights
+    p = str(tmp_path / "sine.ship.json")
+    ship(m, loss, p)
+    assert digest(load_ship(p)) == digest(m)  # shipped == trained
+    assert aether_verify(mcml_proof(m, loss, 0.05))["verdict"] == "PASS"
+    raw = open(p, encoding="utf-8").read().replace("0.5", "0.6", 1)
+    open(p, "w", encoding="utf-8").write(raw)
+    refused = False
+    try:
+        load_ship(p)
+    except ValueError as e:
+        refused = "shipment refused" in str(e)  # names the tamper
+    assert refused
 
 
 def test_xent_and_proof_through_real_auditors():

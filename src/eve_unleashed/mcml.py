@@ -217,6 +217,60 @@ def replicate(model_fn: Callable[[], Sequential]) -> Dict:
     return {"match": da == db, "digest": da, "n_params": len(a.params())}
 
 
+def describe(model: Sequential) -> Dict:
+    """Architecture record: everything needed to rebuild, nothing learned."""
+    spec = []
+    for b in model.blocks:
+        if isinstance(b, Dense):
+            spec.append({"dense": [b.in_dim, b.out_dim], "seed": b.seed})
+        else:
+            spec.append({"activate": b.kind})
+    return {"in_dim": model.in_dim, "out_dim": model.out_dim,
+            "blocks": spec}
+
+
+def rebuild(spec: Dict) -> Sequential:
+    blocks = []
+    for s in spec["blocks"]:
+        if "dense" in s:
+            blocks.append(Dense(s["dense"][0], s["dense"][1],
+                                seed=s["seed"]))
+        else:
+            blocks.append(Activate(s["activate"]))
+    return Sequential(blocks)
+
+
+def ship(model: Sequential, loss: float, path: str) -> Dict:
+    """Write the shippable artifact: architecture + learned params + digest."""
+    import json as _json
+    artifact = {"spec": describe(model), "params": model.params(),
+                "loss": loss, "digest": digest(model)}
+    with open(path, "w", encoding="utf-8") as f:
+        _json.dump(artifact, f)
+    return artifact
+
+
+def load_ship(path: str) -> Sequential:
+    """Rebuild from a shipped artifact; refuse tampered shipments by name."""
+    import json as _json
+    with open(path, encoding="utf-8") as f:
+        artifact = _json.load(f)
+    model = rebuild(artifact["spec"])
+    flat = list(artifact["params"])
+    for b in model.blocks:
+        if isinstance(b, Dense):
+            n = b.in_dim * b.out_dim
+            b.W = [flat[i * b.in_dim:(i + 1) * b.in_dim]
+                   for i in range(b.out_dim)]
+            flat = flat[n:]
+            b.b = flat[:b.out_dim]
+            flat = flat[b.out_dim:]
+    if digest(model) != artifact["digest"]:
+        raise ValueError("shipment refused: digest mismatch (have %s)"
+                         % digest(model)[:12])
+    return model
+
+
 def mcml_proof(model: Sequential, loss: float, bound: float) -> Dict:
     """Shape a training result for well.aether_verify (the real auditors)."""
     return {"within_bound": loss <= bound, "n": len(model.params()),
