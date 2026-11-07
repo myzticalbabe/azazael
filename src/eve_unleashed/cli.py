@@ -1033,6 +1033,45 @@ def cmd_search(args) -> int:
     return 0
 
 
+def cmd_cognition(args) -> int:
+    """Name the strata Eve runs, the ones it does not, and the crossing."""
+    from . import cognition as _c
+    from . import live_log as _l
+    if args.stratum:
+        try:
+            p = _c.paradigm(args.stratum)
+        except ValueError as e:
+            print("ERROR: %s" % e, file=sys.stderr)
+            return 1
+        print("%s: %s" % (p["stratum"].upper(), p["paradigm"]))
+        print("  members: %s" % ", ".join(p["members"]))
+        return 0
+    if args.nexus:
+        nx = _c.nexus(args.nexus, log_path=args.log)
+        for s in _c.STRATA:
+            link = nx[s]
+            print("  %-12s %s [%s]" % (s, link["act"], link["locus"]))
+            if s == "subconscious":
+                print("               guess=%s conf=%.2f via %s"
+                      % (link["guess"], link["confidence"],
+                         "; ".join(link["provenance"])))
+        _l.emit("cognition", "nexus", path=args.log, request=args.nexus,
+                guess=nx["subconscious"]["guess"])
+        return 0
+    a = _c.audit(args.log)
+    for r in a["processes"]:
+        print("  %-13s %-14s %s" % (r["stratum"], r["name"],
+                                    r["state"]))
+    for g in a["gaps"]:
+        print("  GAP           %-14s %s" % (g["name"], g["what"][:60]))
+    print("cognition: used=%d/%d declared=%d absent=%d gaps=%d"
+          % (a["used"], a["total"], a["declared"], a["absent"],
+             len(a["gaps"])))
+    _l.emit("cognition", "audit", path=args.log, used=a["used"],
+            total=a["total"], gaps=len(a["gaps"]))
+    return 0
+
+
 def cmd_e2e(args) -> int:
     """End-to-end: intuition, bypass, dream, tests -- every step live-logged."""
     import socket as _sock
@@ -1815,6 +1854,16 @@ def main():
     fe_p.add_argument("--intuit", action="store_true",
                       help="Ask Eve's memory first (no network), then climb")
     fe_p.set_defaults(func=cmd_fetch)
+
+    # eve cognition (conscious / subconscious / unconscious strata + gaps)
+    cog_p = sub.add_parser("cognition",
+                           help="Cognitive strata: what runs, what does not")
+    cog_p.add_argument("--stratum", default=None,
+                       help="Name one stratum's paradigm")
+    cog_p.add_argument("--nexus", default=None,
+                       help="Trace one request across all three strata")
+    cog_p.add_argument("--log", default=None)
+    cog_p.set_defaults(func=cmd_cognition)
 
     # eve e2e (live-logged end-to-end: intuition, bypass, dream, tests)
     e2e_p = sub.add_parser("e2e", help="Live-logged end-to-end run")
