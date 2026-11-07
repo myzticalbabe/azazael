@@ -16,7 +16,8 @@ and deduplication by normalized URL. No scraping of HTML result
 pages, no credentialed APIs, no query logging anywhere.
 
 Challenge appendix: `fetch_visible(url)` climbs plain request,
-browser headers, headless render -- reporting the clearing rung.
+browser headers, TLS impersonation, headless render -- reporting
+the clearing rung.
 A surviving challenge reads `blocked`, never empty, never
 invented. Interactive CAPTCHAs are out of scope: the kit renders
 what a real browser shows and stops there.
@@ -234,13 +235,43 @@ def _render_fetch(url):
     return text or "", err
 
 
+def _curl_cffi_fetch(url):
+    """TLS-impersonation rung (house pattern, BYPASS_BCC_BENCHMARK.md).
+
+    Tries Chrome/Safari/Edge handshake profiles; the first body
+    with no challenge marker wins. Returns (body, profile, error).
+    Raises RuntimeError if curl_cffi is missing so the ladder can
+    record the rung skipped instead of failed."""
+    try:
+        from curl_cffi import requests as _cr
+    except Exception as e:
+        raise RuntimeError("curl_cffi not installed: %s" % (e,))
+    profiles = ("chrome124", "chrome120", "safari15_5", "edge101")
+    last_err, last_kind = "all profiles challenged", None
+    for profile in profiles:
+        try:
+            r = _cr.get(url, impersonate=profile, timeout=_TIMEOUT,
+                        headers={"Accept-Language": "en-US,en;q=0.9"})
+            kind = detect_challenge(r.status_code, dict(r.headers),
+                                    r.text or "")
+            if kind:
+                last_kind = kind
+                continue
+            if r.status_code == 200:
+                return r.text or "", profile, None
+            last_err = "HTTP %s (%s)" % (r.status_code, profile)
+        except Exception as e:
+            note_failure("websearch:curl-cffi:%s" % profile, e)
+            last_err = str(e)[:160]
+    return "", None, "%s; last wall: %s" % (last_err, last_kind)
+
+
 def fetch_visible(url):
     """Fetch a page up the mutation ladder; report the clearing rung.
 
     Rung 1: plain request. Rung 2: full browser headers. Rung 3:
-    headless render. Returns {state, rung, kind, text}. `state` is
-    `ok`, `error`, or `blocked`; a challenge surviving rung 3 is
-    `blocked` with its kind, never an empty answer."""
+    curl_cffi TLS impersonation. Rung 4: headless render. A wall
+    surviving rung 4 is `blocked` with its kind, never empty."""
     if not url or not str(url).strip():
         raise ValueError("nothing to fetch: empty url")
     url = str(url).strip()
@@ -266,6 +297,16 @@ def fetch_visible(url):
         except Exception as e:
             last_err = str(e)[:160]
             note_failure("websearch:fetch:%s" % rung, e)
+    try:
+        text, profile, cerr = _curl_cffi_fetch(url)
+    except RuntimeError as e:
+        text, profile, cerr = "", None, str(e)
+    if not cerr:
+        return {"state": "ok", "rung": "tls-impersonation",
+                "kind": None, "profile": profile,
+                "text": (text or "")[:20000]}
+    note_failure("websearch:fetch:tls-impersonation",
+                 Exception(cerr[:120]))
     try:
         text, err = _render_fetch(url)
     except RuntimeError as e:

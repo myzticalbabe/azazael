@@ -52,6 +52,14 @@ def test_fetch_empty_url_rejected():
         _w.fetch_visible("   ")
 
 
+def test_tls_impersonation_rung_live():
+    body, profile, err = _w._curl_cffi_fetch("https://example.com")
+    assert err is None, err
+    assert profile in ("chrome124", "chrome120", "safari15_5",
+                       "edge101")
+    assert "documentation examples" in body
+
+
 def test_live_headless_render_executes():
     text, err = _w._render_fetch("https://example.com")
     assert err is None, err
