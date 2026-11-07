@@ -38,5 +38,6 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | Item | Evidence |
 |------|----------|
 | `eve train` + Lillith tuner | commit `c0216f02` — 9 tests green, live gen-5 proof best 0.7385 |
+| Inspiration trio: teacher bias + hunch crossover + dream-to-gene flow | commit below — 18 trainer + 11 recall tests green |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |

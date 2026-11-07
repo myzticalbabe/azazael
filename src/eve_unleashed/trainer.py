@@ -11,6 +11,13 @@ history window) so the tuning itself is graded by numbers, never by prose.
 Boundary (RULE: who grades the grader): Lillith may tune trainer PARAMETERS
 (mutation width). She may not rewrite trainer code or the fitness definition.
 Those stay human.
+
+INSPIRATION (landed 2026-11-07): selection is not teaching. Three mechanisms
+move ideas between genomes: (1) teacher bias -- the rest of the population
+leans toward the best genome's genes; (2) crossover of intuitions -- children
+splice both parents' hunch lists (see splice_hunches); (3) dream-to-gene flow
+-- the dream log's recurring winning rungs seed fresh genomes, and ancestral
+hunches boost live decisions via effective_confidence. The dreams write DNA.
 """
 
 from __future__ import annotations
@@ -23,7 +30,12 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from .self_modifying_worms import GeneticAlgorithm, WormDNA, WormFitness
+from .self_modifying_worms import (
+    GeneticAlgorithm,
+    HUNCH_CAP,
+    WormDNA,
+    WormFitness,
+)
 
 DEFAULT_URLS = [
     "https://example.com",
@@ -36,6 +48,13 @@ DEFAULT_URLS = [
 DEFAULT_LOG = "C:/tmp/eve-train.jsonl"
 DEFAULT_POP = "C:/tmp/eve-pop.json"
 DEFAULT_CAP_S = 40.0  # training-harness bound; the product ladder is untouched
+TEACH_STRENGTH = 0.25  # teacher-bias pull per generation (fraction of gap)
+HUNCH_BOOST = 0.05  # ancestral-rung confidence boost, capped at 0.99
+DREAM_HIT_MIN = 2  # a rung must hit this often to enter the seed pool
+DREAM_SEED_TOP = 4  # ...and only the top-N winners seed fresh genomes
+#: Numeric genes the teacher may pull. mutation_rate is Lillith's, never his.
+TEACH_GENES = ("aggressiveness", "min_confidence", "cooldown_s",
+               "scan_interval_s", "resource_budget_mb")
 
 
 @dataclass
@@ -100,6 +119,49 @@ class LillithTuner:
             d.mutation_rate = max(self.MIN_W, min(self.MAX_W, self.width))
 
 
+def effective_confidence(base: float, rung: Optional[str],
+                         hunches: List[str]) -> float:
+    """Ancestral trust: a guessed rung that won before gets +HUNCH_BOOST.
+
+    Pure, tested. This is inspiration with a behavioral edge -- the lineage
+    acts bolder where its ancestors were right."""
+    if rung and rung in (hunches or []):
+        return min(0.99, float(base) + HUNCH_BOOST)
+    return float(base)
+
+
+def dream_seed_hunches(log_path: str) -> List[str]:
+    """Dream-to-gene flow: recurring winning rungs become seed material.
+
+    Reads the dream log (missing log -> no seeds, never an error) and
+    returns the top winning rungs. Fresh genomes seeded with these carry
+    ancestral intuitions from generation zero."""
+    from . import intuition as _i
+    dr = _i.dream(log_path=log_path)
+    ranked = sorted(dr.get("by_rung", {}).items(),
+                    key=lambda kv: kv[1].get("hits", 0), reverse=True)
+    return [r for r, c in ranked[:DREAM_SEED_TOP]
+            if r and r != "None" and c.get("hits", 0) >= DREAM_HIT_MIN]
+
+
+def teacher_bias(ga: GeneticAlgorithm, teacher: WormDNA,
+                 strength: float = TEACH_STRENGTH) -> int:
+    """Pull every genome except the teacher a fraction toward his genes.
+
+    In place, re-clamped via __post_init__. Returns the inspired count.
+    Pure mechanics, tested -- the muse, not the thermostat."""
+    n = 0
+    for d in ga.population:
+        if d is teacher:
+            continue
+        for gene in TEACH_GENES:
+            setattr(d, gene, getattr(d, gene)
+                    + strength * (getattr(teacher, gene) - getattr(d, gene)))
+        d.__post_init__()
+        n += 1
+    return n
+
+
 def _capped(fn: Callable, cap_s: float, *a):
     box: Dict[str, Any] = {}
     t = threading.Thread(target=lambda: box.update(r=fn(*a)), daemon=True)
@@ -133,8 +195,10 @@ def run_url(dna: WormDNA, url: str, log_path: str,
     _l.emit("fetch", "intuition", path=log_path, url=url,
             guess=g["state"], confidence=g["confidence"],
             predicted=g.get("predicted_rung"))
+    conf = effective_confidence(g["confidence"], g.get("predicted_rung"),
+                                dna.hunches)
     skip_live = (g["state"] == "blocked"
-                 and g["confidence"] >= dna.min_confidence
+                 and conf >= dna.min_confidence
                  and dna.aggressiveness < 0.5)
     t0 = time.perf_counter()
     res = (_capped(_memory_rungs, cap_s, url) if skip_live
@@ -147,7 +211,8 @@ def run_url(dna: WormDNA, url: str, log_path: str,
     actual_ok = res["state"] == "ok"
     hit = ((g["state"] == "guess" and actual_ok)
            or (g["state"] == "blocked" and not actual_ok))
-    return actual_ok, hit, dt
+    hunch = g.get("predicted_rung") if (hit and g.get("predicted_rung")) else None
+    return actual_ok, hit, dt, hunch
 
 
 def save_pop(ga: GeneticAlgorithm, path: str) -> None:
@@ -172,11 +237,12 @@ def load_or_seed(ga: GeneticAlgorithm, cfg: TrainConfig,
     if not cfg.fresh and os.path.exists(cfg.pop_path):
         load_pop(ga, cfg.pop_path)
         return ga.generation
+    seeds = dream_seed_hunches(cfg.log_path)
     ga.seed([WormDNA(worm_id=f"t1-{i}", worm_type="fetcher",
                      aggressiveness=rng.uniform(0.1, 0.9),
                      min_confidence=rng.uniform(0.5, 0.95),
                      cooldown_s=rng.uniform(0.1, 3.0),
-                     mutation_rate=0.15)
+                     mutation_rate=0.15, hunches=list(seeds))
              for i in range(ga.population_size)])
     return 1
 
@@ -189,10 +255,13 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
     for d in ga.population:
         ok = hits = wall = 0.0
         for u in cfg.urls:
-            o, h, dt = run_url(d, u, cfg.log_path, cfg.cap_s)
+            o, h, dt, hunch = run_url(d, u, cfg.log_path, cfg.cap_s)
             ok += o
             hits += h
             wall += dt
+            if hunch:
+                d.hunches.append(hunch)
+                d.hunches = d.hunches[-HUNCH_CAP:]
             time.sleep(min(d.cooldown_s, 1.0))
         n = len(cfg.urls)
         ga.record_fitness(WormFitness(
@@ -221,6 +290,11 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
           "best={best_id} aggr={aggr:.2f} conf={conf:.2f} "
           "mutw={mutw:.3f} [{tune}]".format(**summary), flush=True)
     ga.evolve()
+    inspired = teacher_bias(ga, best)
+    _l.emit("evolve", "inspire", path=cfg.log_path, gen=gnum,
+            teacher=best.worm_id[:8], strength=TEACH_STRENGTH,
+            inspired=inspired)
+    summary["insp"] = inspired
     tuner.apply(ga)
     return summary
 

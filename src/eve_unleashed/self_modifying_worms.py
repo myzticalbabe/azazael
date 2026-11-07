@@ -27,6 +27,28 @@ except ImportError:                               # never break the host
         pass
 
 
+#: Cap on inherited hunches: lineage memory, not a junk drawer.
+HUNCH_CAP = 8
+
+
+def splice_hunches(a: List[str], b: List[str],
+                   rng: Optional[random.Random] = None,
+                   cap: int = HUNCH_CAP) -> List[str]:
+    """Crossover of intuitions: head of a's hunches + tail of b's.
+
+    Deduped in order, Nones dropped, capped. Pure, tested."""
+    if rng is None:
+        rng = random.Random()
+    _ = rng  # order is positional, not random: head-meets-tail splice
+    ahead = (a or [])[:(len(a or []) + 1) // 2]
+    btail = (b or [])[len(b or []) // 2:]
+    out: List[str] = []
+    for h in list(ahead) + list(btail):
+        if h and h not in out:
+            out.append(h)
+    return out[:cap]
+
+
 #: Genome parameters every tunable worm exposes.
 @dataclass
 class WormDNA:
@@ -43,6 +65,7 @@ class WormDNA:
     cooldown_s: float = 30.0
     generation: int = 1
     parent_ids: List[str] = field(default_factory=list)
+    hunches: List[str] = field(default_factory=list)  # ancestral winning rungs
 
     def __post_init__(self) -> None:
         """Enforce genome invariants at construction, not just in mutate().
@@ -91,6 +114,7 @@ class WormDNA:
                      "min_confidence", "cooldown_s"):
             child[gene] = getattr(a, gene) if rng.random() < 0.5 else getattr(b, gene)
         child["mutation_rate"] = (a.mutation_rate + b.mutation_rate) / 2
+        child["hunches"] = splice_hunches(a.hunches, b.hunches, rng=rng)
         enabled = set(a.enabled_metrics) | set(b.enabled_metrics)
         child["enabled_metrics"] = sorted(enabled)
         return WormDNA(**child)
