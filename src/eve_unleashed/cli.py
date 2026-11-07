@@ -1072,6 +1072,34 @@ def cmd_cognition(args) -> int:
     return 0
 
 
+def cmd_forge(args) -> int:
+    """Grow the capability a named gap describes; stage it, run its contract."""
+    from . import forge as _f
+    from . import live_log as _l
+    if args.gap:
+        try:
+            out = _f.materialize(args.gap, root=args.root)
+        except ValueError as e:
+            print("ERROR: %s" % e, file=sys.stderr)
+            return 1
+        print("forge: %s -> %s" % (out["gap"], out["state"]))
+        print("  module: %s" % out["module"])
+        print("  test  : %s" % out["test"])
+        print("  %s" % out["tail"])
+        print("  %s" % out["note"])
+        _l.emit("forge", "materialize", gap=out["gap"],
+                state=out["state"])
+        return 0
+    rep = _f.report(root=args.root)
+    for r in rep["rows"]:
+        print("  %-22s %s" % (r["gap"],
+                              "staged" if r["staged"] else "-"))
+    print("forge: staged=%d/%d root=%s"
+          % (rep["staged"], rep["total"], rep["root"]))
+    _l.emit("forge", "report", staged=rep["staged"], total=rep["total"])
+    return 0
+
+
 def cmd_e2e(args) -> int:
     """End-to-end: intuition, bypass, dream, tests -- every step live-logged."""
     import socket as _sock
@@ -1864,6 +1892,13 @@ def main():
                        help="Trace one request across all three strata")
     cog_p.add_argument("--log", default=None)
     cog_p.set_defaults(func=cmd_cognition)
+
+    # eve forge (grow a named cognition gap into a staged contract)
+    fo_p = sub.add_parser("forge",
+                          help="Grow a named gap into a staged contract")
+    fo_p.add_argument("--gap", default=None)
+    fo_p.add_argument("--root", default=None)
+    fo_p.set_defaults(func=cmd_forge)
 
     # eve e2e (live-logged end-to-end: intuition, bypass, dream, tests)
     e2e_p = sub.add_parser("e2e", help="Live-logged end-to-end run")
