@@ -113,7 +113,7 @@ def interpreter() -> str:
     3.15t free-threaded is production (AGENTS.md). A gate that runs the suite on
     a different interpreter is measuring a program nobody ships.
     """
-    pinned = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+    pinned = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
     if pinned.exists():
         return str(pinned)
     return sys.executable

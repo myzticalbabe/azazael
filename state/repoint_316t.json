@@ -1,0 +1,54 @@
+{
+  "at": "20261107-011316",
+  "apply": true,
+  "rules": [
+    {
+      "file": "tools/one_click.py",
+      "note": "one-click front door -> 3.16t",
+      "wave": "wave1",
+      "expected": 1,
+      "verdict": "APPLIED",
+      "reparse": "compile OK"
+    },
+    {
+      "file": "tools/one_click_bootstrap.py",
+      "note": "bootstrap -> 3.16t",
+      "wave": "wave1",
+      "expected": 1,
+      "verdict": "APPLIED",
+      "reparse": "compile OK"
+    },
+    {
+      "file": "tools/golden_arrow.py",
+      "note": "test gate pinned interpreter -> 3.16t",
+      "wave": "wave1",
+      "expected": 1,
+      "verdict": "APPLIED",
+      "reparse": "compile OK"
+    },
+    {
+      "file": "tools/watchdog_5min.py",
+      "note": "watchdog -> 3.16t",
+      "wave": "wave1",
+      "expected": 1,
+      "verdict": "APPLIED",
+      "reparse": "compile OK"
+    },
+    {
+      "file": "tools/session_end.py",
+      "note": "session-end chain -> 3.16t (name follows the interpreter)",
+      "wave": "wave1",
+      "expected": 1,
+      "verdict": "APPLIED",
+      "reparse": "compile OK"
+    }
+  ],
+  "deferred": {
+    "tools/session_start.py / supervisor_mcp.py / supervisor_doctor.py": "MCP-adjacent chain; moves with the MCP-server wave, not alone.",
+    "tools/preflight_all.py / lane_acceptance.py / graphify_interpreter.py": "multi-interpreter aware; repointing one constant falsifies the ladder.",
+    "skills / docs / ARCHITECTURE.md / reports / state/*.md": "inventory and prose describing what existed; rewriting history is a lie.",
+    "config/production.yaml / config/config.yaml / src/config/*": "config choices; migrate with the owning lane's sign-off, not by sweep.",
+    "~/.agents / ~/.config / ~/.codebuff (outside repo)": "client lane configs; the MCP gate checks them, this tool does not own them.",
+    "MCP servers (pmb, engram, supervisor, scrapling, pams, codegraph)": "wave LAST: respawn order + stdio bindings must be proven on 3.16t first."
+  }
+}
