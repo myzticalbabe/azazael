@@ -1,0 +1,90 @@
+{
+  "fixture_sha": "479ed960d33bd7d1bf7452023f1aac5af55dc8694ff1ce4523153f86c040df77",
+  "frozen_from": "C:/tmp/eve-fixture.json",
+  "propagated_at": "2026-11-07T20:16:37.363444+00:00",
+  "note": "First Honey: null-control fixture + both lineages + verdicts. Live ruler (0.85x) and fixture ruler (0.8667) kept separate.",
+  "artifacts": {
+    "fixture_src": {
+      "path": "C:/tmp/eve-fixture.json",
+      "sha": "479ed960d33bd7d1bf7452023f1aac5af55dc8694ff1ce4523153f86c040df77"
+    },
+    "pop_A": {
+      "path": "C:/tmp/eve-pop.json",
+      "sha": "dc71ca17af1fdb08fd630fb7a5e29b3db41860700825e177150f2c1a588fa386"
+    },
+    "pop_B": {
+      "path": "C:/tmp/eve-pop-fresh.json",
+      "sha": "65352a206119d9475603140ca586e33c39590eb1468c20b81c9755b25836cf74"
+    },
+    "log_A": {
+      "path": "C:/tmp/eve-train.jsonl",
+      "sha": "b38879418c0d5ecfe719a184a9b9973b7c9bdd01ec33d29f7d16c7e36bb3f860"
+    },
+    "log_B": {
+      "path": "C:/tmp/eve-train-fresh.jsonl",
+      "sha": "ba6cac3b3c4c1075afd8515f97aea995a48106cde6a63bcc440b2dd40cba4f4b"
+    },
+    "log_null": {
+      "path": "C:/tmp/eve-null.jsonl",
+      "sha": "84cac889cf54d199541fb135699cce47c72584540d61702d0b59bd643585ce78"
+    },
+    "log_champ_rescore": {
+      "path": "C:/tmp/eve-champ-rescore.jsonl",
+      "sha": "6f17d91e0d87f371e9ca5d72527f9c43dc906eb6b4b31bb4b525b5719ff4bc0f"
+    }
+  },
+  "residuals": {
+    "urls": {
+      "https://example.com": {
+        "n": 428,
+        "outcomes": [
+          "ok"
+        ],
+        "flips": 0,
+        "status": "PINNED"
+      },
+      "https://www.python.org": {
+        "n": 428,
+        "outcomes": [
+          "ok"
+        ],
+        "flips": 0,
+        "status": "PINNED"
+      },
+      "https://en.wikipedia.org/wiki/Python_(programming_language)": {
+        "n": 428,
+        "outcomes": [
+          "blocked",
+          "ok"
+        ],
+        "flips": 1,
+        "status": "LIVE"
+      },
+      "https://httpbin.org/status/404": {
+        "n": 428,
+        "outcomes": [
+          "blocked"
+        ],
+        "flips": 0,
+        "status": "PINNED"
+      },
+      "http://unseen-train.invalid/": {
+        "n": 428,
+        "outcomes": [
+          "blocked"
+        ],
+        "flips": 0,
+        "status": "PINNED"
+      },
+      "https://www.ietf.org/rfc/rfc2616.txt": {
+        "n": 428,
+        "outcomes": [
+          "ok"
+        ],
+        "flips": 0,
+        "status": "PINNED"
+      }
+    },
+    "skipped_lines": 0
+  }
+}
