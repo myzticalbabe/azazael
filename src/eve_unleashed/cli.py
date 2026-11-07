@@ -1014,6 +1014,25 @@ def cmd_stationery(args) -> int:
     return 0
 
 
+def cmd_search(args) -> int:
+    """Five providers, one deduplicated list, errors named."""
+    from . import websearch as _w
+    try:
+        res = _w.search(args.query, args.providers or _w.PROVIDERS)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    for leg in res["legs"]:
+        print(f"  {leg['via']:14s} {leg['state']:7s} {leg['detail'][:70]}")
+    for h in res["hits"][:15]:
+        print(f"  [{h['via']:14s}] {h['title'][:70]}")
+        print(f"      {h['url'][:90]}")
+    print(f"search: {res['answered']}/{len(res['legs'])} answered, "
+          f"{len(res['hits'])} hit(s)")
+    print(res["note"])
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1642,6 +1661,12 @@ def main():
     st_p.add_argument("--doc", required=True)
     st_p.add_argument("--out", required=True)
     st_p.set_defaults(func=cmd_stationery)
+
+    # eve search (five keyless providers, failures isolated)
+    se_p = sub.add_parser("search", help="Fan a query across providers")
+    se_p.add_argument("--query", required=True)
+    se_p.add_argument("--providers", nargs="*", default=None)
+    se_p.set_defaults(func=cmd_search)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
