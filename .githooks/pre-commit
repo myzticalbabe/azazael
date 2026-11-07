@@ -331,8 +331,17 @@ if [ "${ALLOW_AGENT_ORDERS_DRIFT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/agent_o
     #           never be checked by looking at Windows files. A host without wsl
     #           says so and passes; a present distro that drifts blocks.
     #           3.6 s measured, so it rides along instead of being a separate gate.
-    ORDERS_OUT=$("$PY" "$SCRIPT_DIR/tools/agent_orders_sync.py" --hook --wsl 2>&1)
+    # Bounded: the WSL leg boots distros and re-probes, but a wedged WSL
+    # service must never wedge the commit. `timeout` turns a hung leg into
+    # exit 124, reported loud below and allowed -- an un-runnable reading is
+    # not a finding (HED-6), and the leg re-checks every commit.
+    ORDERS_OUT=$(timeout 240 "$PY" "$SCRIPT_DIR/tools/agent_orders_sync.py" --hook --wsl 2>&1)
     ORDERS_EXIT=$?
+    if [ $ORDERS_EXIT -eq 124 ]; then
+        echo "[AgentOrders] leg timed out after 240s (wedged WSL service?) -- skipped with reason, re-checks next commit."
+        echo ""
+        ORDERS_EXIT=0
+    fi
     echo "$ORDERS_OUT"
     if [ $ORDERS_EXIT -ne 0 ]; then
         echo ""

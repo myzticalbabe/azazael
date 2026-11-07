@@ -476,17 +476,26 @@ def do_guard(args) -> int:
     if not cand or not Path(cand).exists():
         problems.append(f"canonical path missing: {cand!r}")
     else:
-        rc, out = _run([cand, "-c", "import sys; print(sys.version)"], 60)
-        first = out.strip().splitlines()[0] if out.strip() else ""
-        series = str(pointer.get("series") or "")
-        if rc != 0 or (series and series not in first):
-            problems.append(f"canonical version drift: {first[:100]!r}")
-        rc, out = _run([cand, "-c",
-                        "import sys; print(sys.base_prefix)"], 60)
-        base = out.strip().splitlines()
-        if base and ".build" in base[0].replace("\\", "/"):
-            if not Path(base[0]).exists():
-                problems.append(f"build tree gone, venv stranded: {base[0]}")
+        # VERIFY-BEFORE-FLIP (G2, 2026-11-07): the guard test-starts the
+        # candidate and refuses it on any non-start. ONE spawn, not two: a
+        # loader-wedged binary makes every spawn cost timeout+kill-lag
+        # (~75s measured for a 60s timeout -- TerminateProcess does not
+        # promptly kill a process wedged in DLL load), so two probes double
+        # the worst case. A non-starting canonical is FAIL, never a hang.
+        rc, out = _run([cand, "-I", "-c",
+                        "import sys; print(sys.version);"
+                        " print(sys.base_prefix)"], 45)
+        lines = out.strip().splitlines() if out.strip() else []
+        if rc != 0 or not lines:
+            problems.append(f"canonical will not start (rc={rc}): "
+                            f"{out.strip()[:100]!r}")
+        else:
+            series = str(pointer.get("series") or "")
+            if series and series not in lines[0]:
+                problems.append(f"canonical version drift: {lines[0][:100]!r}")
+            if len(lines) > 1 and ".build" in lines[1].replace("\\", "/"):
+                if not Path(lines[1]).exists():
+                    problems.append(f"build tree gone, venv stranded: {lines[1]}")
     try:
         import shutil
         free_gb = shutil.disk_usage(str(REPO_ROOT)).free / (1024 ** 3)

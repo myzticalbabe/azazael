@@ -238,6 +238,8 @@ def main() -> int:
     ap.add_argument("--death", action="store_true")
     ap.add_argument("--waiting", action="store_true")
     ap.add_argument("--fresh", type=int, metavar="MIN", default=0)
+    ap.add_argument("--requiem", metavar="LANE", default=None,
+                    help="write state/requiem_<lane>_<date>.json bundle and print it")
     args = ap.parse_args()
     everything = not (args.board or args.procs or args.interp
                       or args.death or args.waiting or args.fresh)
@@ -261,7 +263,63 @@ def main() -> int:
     if args.fresh:
         print(f"== fresh files ({args.fresh} min) ==")
         print("\n".join(fresh(args.fresh)))
+    if args.requiem:
+        print(requiem(args.requiem))
     return 0
+
+
+def requiem(lane: str) -> str:
+    """Auto-requiem bundle: what died, where, last words -- no cause asserted.
+
+    Writes state/requiem_<lane>_<YYYYMMDD>.json (board tail, unretired
+    claims held by the lane, live processes, fresh files, HEAD sha) and
+    returns its path. Cause is a judgement made at the worst moment, so
+    the bundle records observations only.
+    """
+    import json as _json
+    import datetime as _dt
+    day = _dt.datetime.now().strftime("%Y%m%d")
+    bundle = {
+        "lane": lane,
+        "recorded": _dt.datetime.now().isoformat(timespec="seconds"),
+        "board_tail": board_tail(6),
+        "held_claims": [r for r in _held_claims(lane)],
+        "processes": procs(),
+        "fresh_60min": fresh(60),
+        "head": _head(),
+        "cause": None,
+    }
+    out = os.path.join(REPO, "state",
+                        f"requiem_{lane}_{day}.json")
+    with open(out, "w", encoding="utf-8") as fh:
+        _json.dump(bundle, fh, indent=2)
+    return out
+
+
+def _held_claims(lane: str) -> list:
+    if not os.path.exists(STORE):
+        return [f"store missing: {STORE}"]
+    try:
+        db = sqlite3.connect(STORE, timeout=30)
+    except Exception as exc:  # noqa: BLE001
+        return [f"store unreadable: {exc}"]
+    try:
+        return db.execute(
+            "SELECT board_id, task_id, state, claimed_by, claimed_at"
+            " FROM lane_task_state WHERE lane=? AND retired_at IS NULL"
+            " ORDER BY board_id DESC LIMIT 15", (lane,)).fetchall()
+    finally:
+        db.close()
+
+
+def _head() -> str:
+    try:
+        p = subprocess.run(["git", "log", "-1", "--format=%H %s"],
+                           capture_output=True, text=True, timeout=30,
+                           cwd=REPO, env=_env())
+        return (p.stdout or p.stderr).strip()[:160]
+    except Exception as exc:  # noqa: BLE001
+        return f"git unreadable: {exc}"
 
 
 if __name__ == "__main__":

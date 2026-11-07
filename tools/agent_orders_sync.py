@@ -267,6 +267,42 @@ def _wsl(distro, script, timeout=90, stdin_data=None):
     return p.returncode, txt.strip()
 
 
+def ensure_wsl_distro(distro, probe_timeout=20, boot_timeout=60):
+    """Start a WSL distro as needed; report live vs unresponsive.
+
+    START-AS-NEEDED, permanent (2026-11-07): the commit hook used to burn
+    90s per probe per path against a wedged WSL service and then BLOCK the
+    commit -- a leg that cannot run failing the run. Now: quick probe; on
+    failure ONE boot attempt (`wsl -d <distro> -e true` boots a stopped VM
+    and is a no-op on a running one); re-probe once. Still dead means the
+    *service* is wedged (measured: even `wsl.exe --status` wedges with zero
+    output), which no userspace boot can fix -- that is UNRESPONSIVE, a
+    skip-with-reason, never per-path DRIFT. Returns (state, reason) where
+    state is 'live' or 'unresponsive'.
+    """
+    try:
+        rc, _out = _wsl(distro, WSL_PROBE, timeout=probe_timeout)
+        if rc == 0:
+            return "live", ""
+        boot_reason = "probe rc=%s" % rc
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        boot_reason = "probe %s: %s" % (type(exc).__name__, exc)
+    boot_note = ""
+    try:
+        _wsl(distro, "true", timeout=boot_timeout)
+    except Exception as exc:  # noqa: BLE001 -- best-effort, recorded not silent
+        boot_note = "; boot attempt raised %s" % type(exc).__name__
+    try:
+        rc, _out = _wsl(distro, WSL_PROBE, timeout=probe_timeout)
+        if rc == 0:
+            return "live", ""
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return ("unresponsive", "%s%s; boot attempt did not revive it"
+                % (boot_reason, boot_note))
+    return ("unresponsive", "%s%s; boot attempt did not revive it"
+            % (boot_reason, boot_note))
+
+
 def check_wsl(apply=False):
     """Verify (and optionally write) the same blocks inside each WSL distro.
 
@@ -278,23 +314,18 @@ def check_wsl(apply=False):
     all blocks and written once, and the result is READ BACK -- a write that
     was not re-read is a claim, not a delivery.
     """
-    problems, applied, ok = [], [], 0
+    problems, applied, unresponsive, ok = [], [], [], 0
     # A host with no WSL is not a drift finding, and a gate that raises on it
     # would be red forever on such a host. Absent is reported as absent.
     if shutil.which("wsl") is None:
         print("        (no wsl on PATH -- WSL targets not verified)")
-        return problems, applied, ok
+        return problems, applied, ok, unresponsive
     for distro, paths in WSL_TARGETS.items():
-        try:
-            rc, _out = _wsl(distro, WSL_PROBE)
-        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            problems.append((distro, "<probe>", "PROBE ERROR: %s" % exc))
-            continue
-        if rc != 0:
-            problems.append((distro, "/mnt/c/Users/clint/_board.py",
-                             "PROBE FAILED -- either the distro is not installed here "
-                             "or a rewritten path is unreachable, so the block would "
-                             "be undeliverable"))
+        state, reason = ensure_wsl_distro(distro)
+        if state != "live":
+            unresponsive.append((distro, reason + "; remedy: restart the "
+                                 "WSL service (LxssManager) or reboot, then "
+                                 "re-run -- the leg re-checks every commit"))
             continue
         for path in paths:
             rc, text = _wsl(distro, "cat %s 2>/dev/null" % path)
@@ -338,7 +369,7 @@ def check_wsl(apply=False):
                                  % (wrc, delivered, len(TARGETS))))
             else:
                 applied.append(("%d blocks" % delivered, "%s:%s" % (distro, path)))
-    return problems, applied, ok
+    return problems, applied, ok, unresponsive
 
 
 def markers(key):
@@ -426,9 +457,11 @@ def check(apply=False, as_json=False, hook_mode=False, wsl=False):
                 problems.append((key, str(path), "DRIFT"))
     wsl_ok = 0
     if wsl:
-        w_problems, w_applied, wsl_ok = check_wsl(apply=apply)
+        w_problems, w_applied, wsl_ok, w_unresp = check_wsl(apply=apply)
         problems.extend(w_problems)
         applied.extend(w_applied)
+        for distro, why in w_unresp:
+            print("WSL-UNRESPONSIVE  %-14s %s" % (distro, why))
     if hook_mode and seen == 0 and wsl_ok == 0:
         problems.append(("*", "*", "NO TARGETS ON THIS HOST -- nothing was verified"))
     if as_json:
