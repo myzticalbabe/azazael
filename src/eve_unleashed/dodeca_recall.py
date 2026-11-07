@@ -100,6 +100,50 @@ def generalized_petersen(n: int) -> Callable[[int], List[int]]:
     return _nbr
 
 
+def icosahedron_neighbors(v: int) -> List[int]:
+    """12 vertices, degree 5, diameter 3: pole + two staggered pentagons.
+
+    0 = north pole; 1-5 upper ring; 6-10 lower ring; 11 = south pole.
+    Upper ring i meets lower ring i and i+1 (stagger); each ring cycles."""
+    if not 0 <= v < 12:
+        raise ValueError(f"vertex {v!r} not on the icosahedron")
+    if v == 0:
+        return [1, 2, 3, 4, 5]
+    if v == 11:
+        return [6, 7, 8, 9, 10]
+    if v < 6:
+        i = v - 1
+        return sorted([0, 1 + (i - 1) % 5, 1 + (i + 1) % 5,
+                       6 + i, 6 + (i + 1) % 5])
+    i = v - 6
+    return sorted([11, 6 + (i - 1) % 5, 6 + (i + 1) % 5,
+                   1 + i, 1 + (i - 1) % 5])
+
+
+def girth(n: int, nbr: Callable[[int], List[int]]) -> int:
+    """Shortest cycle length: BFS from each edge's far end, minus the edge.
+
+    Min over edges of (shortest u-v path avoiding (u,v)) + 1."""
+    best = n + 1
+    for u in range(n):
+        for w in nbr(u):
+            if w <= u:
+                continue
+            dist = {u: 0}
+            queue = deque([u])
+            while queue:
+                x = queue.popleft()
+                for y in nbr(x):
+                    if (x == u and y == w) or (x == w and y == u):
+                        continue
+                    if y not in dist:
+                        dist[y] = dist[x] + 1
+                        queue.append(y)
+            if w in dist:
+                best = min(best, dist[w] + 1)
+    return best
+
+
 def hypercube(d: int) -> Callable[[int], List[int]]:
     """Q_d: 2^d vertices, degree d, diameter d. Bit-flip edges."""
     n = 2 ** d
@@ -119,6 +163,7 @@ SHAPES: Dict[str, Tuple[int, Callable[[int], List[int]]]] = {
     "complete-20": (20, complete_neighbors(20)),
     "hypercube-32": (32, hypercube(5)),
     "g40": (40, generalized_petersen(20)),
+    "icosahedron": (12, icosahedron_neighbors),
 }
 
 
@@ -163,17 +208,43 @@ class ShapeStore:
         self.slots[home].append((key, value))
         return home
 
-    def recall(self, key: str, radius: int = None) -> Dict[str, Any]:
+    def _distances(self, home: int,
+                   weights: Dict[frozenset, float] = None) -> Dict[int, float]:
+        """Shortest costs from home: BFS unweighted, Dijkstra weighted."""
+        if not weights:
+            return {k: float(v)
+                    for k, v in bfs_distances(home, self.n, self.nbr).items()}
+        dist = {home: 0.0}
+        done = set()
+        while len(done) < self.n:
+            rest = [(d, v) for v, d in dist.items() if v not in done]
+            if not rest:
+                break
+            _, x = min(rest)
+            done.add(x)
+            for y in self.nbr(x):
+                c = weights.get(frozenset((x, y)), 1.0)
+                if y not in dist or dist[x] + c < dist[y]:
+                    dist[y] = dist[x] + c
+        return dist
+
+    def recall(self, key: str, radius: int = None,
+               weights: Dict[frozenset, float] = None) -> Dict[str, Any]:
         """Walk outward from key's home vertex; collect nearest-first.
 
         `exact`: entries under key (home vertex, distance 0). `context`:
         everything else within radius, distance-ordered. Default radius
         covers the whole solid: at most `diameter` hops, the guarantee.
+        With `weights` (edge -> cost), distance is cheapest cost via
+        Dijkstra: uniform weights reproduce BFS order exactly.
         """
         if radius is None:
-            radius = diameter(self.n, self.nbr)
+            # Hops unweighted; cost units weighted (a hop budget would
+            # starve every detour, so the weighted default covers all).
+            radius = (float("inf") if weights
+                      else diameter(self.n, self.nbr))
         home = home_of(key, self.n)
-        dist = bfs_distances(home, self.n, self.nbr)
+        dist = self._distances(home, weights)
         order = sorted(range(self.n), key=lambda v: (dist[v], v))
         exact: List[Tuple[int, str, Any]] = []
         context: List[Tuple[int, str, Any]] = []
@@ -201,6 +272,20 @@ class ShapeStore:
                 (exact if k == key else context).append((dist[v], k, val))
         return {"exact": exact, "context": context, "visited": self.n}
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Persist the store: shape plus every entry. Values stay caller's."""
+        return {"shape": self.shape,
+                "entries": [[k, v] for v in range(self.n)
+                              for k, v in self.slots[v]]}
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "ShapeStore":
+        """Resume a persisted store. Unknown shape -> ValueError, loudly."""
+        st = cls(d["shape"])
+        for k, v in d.get("entries", []):
+            st.put(k, v)
+        return st
+
 
 def morph_store(store: ShapeStore, shape: str) -> ShapeStore:
     """Morph every entry onto a new solid. Entries survive; addresses change.
@@ -217,11 +302,15 @@ def morph_store(store: ShapeStore, shape: str) -> ShapeStore:
 
 
 def transmogrify(name: str, n: int,
-                 nbr: Callable[[int], List[int]]) -> str:
+                 nbr: Callable[[int], List[int]],
+                 max_diameter: int = None,
+                 min_girth: int = None) -> str:
     """Register ANY neighbor-function as a new solid. Validated, or refused.
 
-    Refuses: vertex out of range, self-loop, disconnected graph. Returns
-    the name on success -- this is 'any form wanted', with a bouncer."""
+    Refuses: vertex out of range, self-loop, disconnected graph, and --
+    the guardrails (H-05) -- a diameter above max_diameter (cover costs
+    too much) or a girth below min_girth (too dense to order by).
+    Returns the name on success: 'any form wanted', with a bouncer."""
     if n < 4:
         raise ValueError(f"a solid needs >= 4 vertices, got {n}")
     for v in range(n):
@@ -232,6 +321,14 @@ def transmogrify(name: str, n: int,
                 raise ValueError(f"vertex {v} loops to itself")
     if len(bfs_distances(0, n, nbr)) != n:
         raise ValueError(f"{name}: graph is disconnected")
+    if max_diameter is not None:
+        got = diameter(n, nbr)
+        if got > max_diameter:
+            raise ValueError(f"{name}: diameter {got} > ceiling {max_diameter}")
+    if min_girth is not None:
+        got = girth(n, nbr)
+        if got < min_girth:
+            raise ValueError(f"{name}: girth {got} < floor {min_girth}")
     SHAPES[name] = (n, nbr)
     return name
 
@@ -320,13 +417,14 @@ class SwarmStore:
         s = self._shard(key)
         return s, self.stores[s].put(key, value)
 
-    def recall(self, key: str, radius: int = None) -> Dict[str, Any]:
+    def recall(self, key: str, radius: int = None,
+               weights: Dict[frozenset, float] = None) -> Dict[str, Any]:
         """Fan out to every shard; merge. Exact stays exact."""
         exact: List[Tuple[int, str, Any]] = []
         context: List[Tuple[int, int, str, Any]] = []
         hops = visited = 0
         for i, st in enumerate(self.stores):
-            res = st.recall(key, radius=radius)
+            res = st.recall(key, radius=radius, weights=weights)
             exact.extend(res["exact"])
             context.extend((d, i, k, v)
                            for d, k, v in res["context"])
@@ -442,15 +540,18 @@ def write_projection(store: ShapeStore, genome: Dict[str, Any],
 
 
 #: The shipped solids. Custom registrations may dissolve; these may not.
+#: The shipped solids. Custom registrations may dissolve; these may not.
 BUILTIN_SHAPES = frozenset(["dodecahedron", "petersen", "cycle-20",
-                            "complete-20", "hypercube-32", "g40"])
+                            "complete-20", "hypercube-32", "g40",
+                            "icosahedron"])
 
 
 def conjoin(a: ShapeStore, b: ShapeStore, shape: str = None) -> ShapeStore:
     """CONJOIN: marry two stores onto one solid. Every entry survives.
 
     Defaults to the larger solid; same key in both yields both entries
-    (recall exact shows the full marriage, no silent winner)."""
+    (recall exact shows the full marriage, no silent winner).
+    """
     shape = shape or (a.shape if a.n >= b.n else b.shape)
     new = ShapeStore(shape)
     for st in (a, b):
@@ -464,7 +565,8 @@ def separate(store: ShapeStore, pred: Callable[[str, Any], bool],
              shape: str = None) -> Tuple[ShapeStore, ShapeStore]:
     """SEPARATE: divide one store by predicate. (match, rest).
 
-    Disjoint and complete: every entry lands in exactly one child."""
+    Disjoint and complete: every entry lands in exactly one child.
+    """
     shape = shape or store.shape
     match, rest = ShapeStore(shape), ShapeStore(shape)
     for v in range(store.n):
@@ -485,7 +587,8 @@ def unregister_shape(name: str) -> str:
     """DISSOLVE (solid): burn a custom registration back to nothing.
 
     Builtins refuse -- the shipped solids are load-bearing. Existing
-    stores hold their own function reference and keep working."""
+    stores hold their own function reference and keep working.
+    """
     if name in BUILTIN_SHAPES:
         raise ValueError(f"{name}: builtin solids do not dissolve")
     if name not in SHAPES:
@@ -500,7 +603,8 @@ def ferment(store: ShapeStore, salience: Any, threshold: float = 1.0) -> list:
     salience is a dict (key -> weight) or a callable ((key, value) ->
     weight); dream() per-host salience plugs straight in. Returns the
     removed entries. What the lineage stopped caring about, the solid
-    stops holding."""
+    stops holding.
+    """
     if callable(salience):
         weight = salience
     else:
@@ -512,6 +616,8 @@ def ferment(store: ShapeStore, salience: Any, threshold: float = 1.0) -> list:
             (kept if weight(k, val) >= threshold else removed).append((k, val))
         store.slots[v] = kept
     return removed
+
+
 
 
 class DodecaStore(ShapeStore):

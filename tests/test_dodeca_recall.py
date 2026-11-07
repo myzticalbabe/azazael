@@ -132,6 +132,72 @@ def test_projection_py_form_is_importable_gold(tmp_path):
         == ["a.example"]
 
 
+def test_icosahedron_is_twelve_slots_degree_five_diameter_three():
+    n, nbr = D.SHAPES["icosahedron"]
+    assert n == 12 and all(len(nbr(v)) == 5 for v in range(12))
+    assert all(len(D.bfs_distances(v, 12, nbr)) == 12 for v in range(12))
+    assert D.diameter(12, nbr) == 3
+    st = D.ShapeStore("icosahedron")
+    st.put("hub", "v")
+    assert st.recall("hub")["exact"][0][0] == 0
+
+
+def test_girth_pins_known_solids():
+    assert D.girth(20, D.dodeca_neighbors) == 5
+    assert D.girth(6, _prism) == 3
+    assert D.girth(12, D.icosahedron_neighbors) == 3
+
+
+def test_guardrails_refuse_flabby_and_mushy_solids():
+    import pytest as _p
+    D.transmogrify("lean", 6, _prism, max_diameter=2, min_girth=3)  # passes
+    with _p.raises(ValueError):
+        D.transmogrify("flabby", 6, _prism, max_diameter=1)
+    with _p.raises(ValueError):
+        D.transmogrify("mushy", 6, _prism, min_girth=4)
+    D.unregister_shape("lean")
+
+
+def test_weighted_recall_routes_around_heavy_edges():
+    st = D.DodecaStore()
+    st.put("near", "n")
+    st.put("far", "f")
+    home = D.home_of("probe", 20)
+    heavy = {frozenset((home, w)): 100.0 for w in D.dodeca_neighbors(home)}
+    plain = st.recall("probe")
+    priced = st.recall("probe", weights=heavy)
+    assert [m[1] for m in plain["context"]] != []
+    assert priced["exact"] == plain["exact"]  # exact never moves
+    assert {m[1:] for m in priced["context"]} == \
+        {m[1:] for m in plain["context"]}  # same entries, repriced
+    assert priced["visited"] == plain["visited"] == 20  # full cover
+    assert [m[0] for m in priced["context"]] != \
+        [m[0] for m in plain["context"]]  # detours changed the costs
+
+
+def test_uniform_weights_reproduce_bfs_order():
+    st = D.DodecaStore()
+    for k in ["a", "b", "c"]:
+        st.put(k, k)
+    uni = {frozenset((v, w)) for v in range(20) for w in D.dodeca_neighbors(v)}
+    w = {e: 1.0 for e in uni}
+    for key in ["a", "b", "c"]:
+        assert [m[1:] for m in st.recall(key, weights=w)["context"]] == \
+               [m[1:] for m in st.recall(key)["context"]]
+
+
+def test_store_persists_and_resumes():
+    st = D.ShapeStore("hypercube-32")
+    st.put("a", {"rung": "archive"})
+    st.put("b", "plain")
+    d = st.to_dict()
+    back = D.ShapeStore.from_dict(d)
+    assert back.shape == "hypercube-32" and back.n == 32
+    assert [m[1:] for m in back.recall("a")["exact"]] == \
+        [("a", {"rung": "archive"})]
+    assert [m[1] for m in back.recall("b")["exact"]] == ["b"]
+
+
 def test_write_projection_lands_three_files(tmp_path):
     import os as _os
     st = D.DodecaStore()

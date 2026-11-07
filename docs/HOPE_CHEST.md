@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: full lifecycle closed, see below).
+**Last stocked:** 2026-11-07 (session: all remaining landed + e2e, see below).
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -11,11 +11,11 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 
 | # | Item | Price | Status |
 |---|------|-------|--------|
-| H-01 | Lillith tunes the shape: `shape` as a genome gene, selection picks the solid per phase | M | STOCKED |
-| H-02 | Icosahedron hub: 12 slots / deg 5 / diam 3 (promised NEXT in `dodeca_recall.py`) | S | STOCKED |
-| H-03 | Weighted edges: rung-aware costs + Dijkstra recall, gated behind `weighted=True` | M | STOCKED |
-| H-04 | Persist ShapeStore: `to_dict`/`from_dict` snapshot beside the pop file | S | STOCKED |
-| H-05 | Transmogrify guardrails: diameter ceiling + girth floor on evolved solids | S | STOCKED |
+| H-01 | Shape gene: `shape` on WormDNA, fitter-parent inheritance, 5% morph mutation | M | LANDED (commit below) |
+| H-02 | Icosahedron hub: 12 slots / deg 5 / diam 3 | S | LANDED (commit below) |
+| H-03 | Weighted edges: Dijkstra recall, uniform weights reproduce BFS exactly | M | LANDED (commit below) |
+| H-04 | Persist ShapeStore: `to_dict`/`from_dict` | S | LANDED (commit below) |
+| H-05 | Transmogrify guardrails: `max_diameter` + `min_girth` (girth via edge-avoiding BFS) | S | LANDED (commit below) |
 | H-06 | Transmogrify engine: MUTATE / TRANSMOGRIFY / TRANSSUBSTANTIATE / SWARM | M | LANDED (commit below) |
 | H-12 | CONJOIN + SEPARATE: merge two stores, split one by predicate | S | LANDED (commit below) |
 | H-13 | DISSOLVE: delete entries, unregister dead solids (registry rot kills morph-spaces) | XS | LANDED (commit below) |
@@ -27,16 +27,16 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 
 | # | Item | Price | Status |
 |---|------|-------|--------|
-| H-07 | Unlock render/stealth rungs: install playwright + curl_cffi under py316t, verify live e2e | M | STOCKED |
-| H-08 | Fix the dream metric: blocked guesses cannot hit (ceiling ~0.5 on current URL set) | S | STOCKED |
-| H-09 | Scale pop 4→8 after H-08; calibrate confidences from dream bins, not fixed 0.9/0.7 | S | STOCKED |
+| H-07 | Unlock render/stealth rungs: playwright+chromium+curl_cffi live under py316t | M | LANDED (commit below) |
+| H-08 | Dream agreement metric: blocked-blocked counts; stateless legacy logs keep old rule | S | LANDED (commit below) |
+| H-09 | Pop 4→8 (trainer + CLI defaults); calibration map from measured rung hit-rates | S | LANDED (commit below) |
 
 ## STOCKED — upstream / box / ledger
 
 | # | Item | Price | Status |
 |---|------|-------|--------|
-| H-10 | Push pythran issue from draft to filed; watch Pillow #10455 for review | S | STOCKED |
-| H-11 | Record outcomes batch (recall landing + morph-space + stale-method replacements) | XS | STOCKED |
+| H-10 | Push pythran issue from draft to filed; watch Pillow #10455 for review | S | STOCKED (draft not found under docs/ — needs its location) |
+| H-11 | Record outcomes batch | XS | LANDED (standing rule: every landing commits its chest line) |
 
 ## LANDED — paid in full
 
@@ -47,5 +47,9 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | Transmogrify engine: validated solid registration, degree-preserving mutation, re-homing, hypercube swarm | commit below — 16 recall + 18 trainer tests green |
 | PROJECTION: `cast_projection`/`write_projection` — JSON reloads anywhere, .py rebuilds with no trainer, .md records lineage | commit below — 19 recall + 18 trainer tests green |
 | Full lifecycle: conjoin/separate, dissolve_key/unregister_shape (builtins refuse), ferment (dict or callable salience), swarm grow/shrink/rebalance without loss | commit below — 26 recall + 18 trainer tests green |
+| Recall depth (H-02..H-05): icosahedron pinned, girth, guardrails, Dijkstra, persist | commit below — 33 recall tests green |
+| Evolution depth (H-01/H-08/H-09): shape gene + fitter inheritance, agreement metric, calibration, pop 8 | commit below — 25 trainer + intuition tests green |
+| E2E `eve train --gens 2 --pop 4` live: gen1 best 0.8332 dream 0.708, gen2 best 0.8316 dream 0.771 | this session, isolated paths |
+| Rungs unlocked (H-07): playwright/chromium render + curl_cffi stealth proven live | this session |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |
