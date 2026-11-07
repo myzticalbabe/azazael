@@ -936,6 +936,84 @@ def cmd_swarm(args) -> int:
     return 0
 
 
+def cmd_transmute(args) -> int:
+    """Run a recipe; print every stage, name every receipt."""
+    from . import transmute as _t
+    r = args.recipe
+    try:
+        if r == "lead_into_gold":
+            res = _t.lead_into_gold(args.claim or "")
+            print(f"VERDICT: {res['verdict']}")
+            if res.get("locked"):
+                print("LOCKED", " ".join(res["locked"]))
+            print(res.get("rebuttal", "")[:600])
+        elif r == "scroll_into_school":
+            res = _t.scroll_into_school(args.doc, args.out)
+            print(f"steps={res['steps']}")
+        elif r == "grievance_into_dossier":
+            res = _t.grievance_into_dossier(args.grievance, args.claim,
+                                            args.locker)
+            dos = res.get("dossier", {})
+            print(f"DOSSIER {dos.get('grievance','?')} "
+                  f"{dos.get('record_checks','?')}")
+        else:
+            res = _t.swarm_into_digest(args.claims)
+            for d in res["digest"]:
+                print(f"  [{d['verdict']:12s}] {d['claim'][:80]}")
+            print(f"tally={res['tally']}")
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    stages = res.get("stages", [])
+    for s in stages:
+        print(f"  stage {s['stage']}: " +
+              ", ".join(f"{k}={v}" for k, v in s.items()
+                           if k != "stage")[:100])
+    if stages:
+        return 0 if stages[-1]["stage"] != "ERROR" else 1
+    return 0
+
+
+def cmd_live(args) -> int:
+    """Serve the live morph window; the operator speaks, Eve shows."""
+    from . import live_morph as _l
+    from .doc_tutor import read_document as _read
+    try:
+        doc = _read(args.doc)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    state = _l.LiveState(doc["text"], doc["source"])
+    server, url = _l.serve(state, args.port)
+    print(f"LIVE {url}  (speak or type; the document answers)")
+    try:
+        import time as _time
+        while True:
+            _time.sleep(3600)
+    except KeyboardInterrupt:
+        print("LIVE window closed by operator")
+    finally:
+        server.shutdown()
+        server.server_close()
+    return 0
+
+
+def cmd_stationery(args) -> int:
+    """Document -> keepsake page in the created face."""
+    from .doc_tutor import read_document as _read
+    from .doc_tutor import tutorial as _tut
+    from . import stationery as _s
+    try:
+        doc = _read(args.doc)
+        res = _s.stationery_from_tutorial(doc, _tut(doc["text"]), args.out)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"KEEPSAKE {res['path']} ({res['bytes']}B, "
+          f"{res['sections']} sections)")
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1539,6 +1617,31 @@ def main():
                       help="Include live network signal (default: text only)")
     sw_p.add_argument("--workers", type=int, default=4)
     sw_p.set_defaults(func=cmd_swarm)
+
+    # eve transmute (chained recipes: claim/doc/grievance/swarm)
+    tr_p = sub.add_parser("transmute", help="Chained recipes, staged receipts")
+    tr_p.add_argument("--recipe", required=True,
+                      choices=["lead_into_gold", "scroll_into_school",
+                               "grievance_into_dossier", "swarm_into_digest"])
+    tr_p.add_argument("--claim", default=None)
+    tr_p.add_argument("--claims", nargs="*", default=[])
+    tr_p.add_argument("--doc", default=None)
+    tr_p.add_argument("--out", default=None)
+    tr_p.add_argument("--grievance", default=None)
+    tr_p.add_argument("--locker", nargs="*", default=[])
+    tr_p.set_defaults(func=cmd_transmute)
+
+    # eve live (voice-driven live morph window on loopback)
+    lv_p = sub.add_parser("live", help="Speak, watch the document change")
+    lv_p.add_argument("--doc", required=True)
+    lv_p.add_argument("--port", type=int, default=0)
+    lv_p.set_defaults(func=cmd_live)
+
+    # eve stationery (tutorial -> keepsake page, created face)
+    st_p = sub.add_parser("stationery", help="Render a keepsake page")
+    st_p.add_argument("--doc", required=True)
+    st_p.add_argument("--out", required=True)
+    st_p.set_defaults(func=cmd_stationery)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
