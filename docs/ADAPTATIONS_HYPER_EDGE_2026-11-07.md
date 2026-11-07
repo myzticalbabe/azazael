@@ -206,3 +206,45 @@ consent exists — your own systems and the published corpora — and never let 
 reward be "we defeated a check".** A9 and A10 are the payoff: petabytes of
 already-crawled, license-permitting pages, with no request to a target and no
 evasion in the objective.
+
+## 6. Relaxed to the house standard (2026-11-08, user directive)
+
+Section 5's rule was mine; the tree's standard is already looser and better
+thought through: **FLOCK-CANON — sources ultra-loose, any lawful source, tier
+decides grade.** That is now the implemented policy, not advice:
+`src/eve_unleashed/sources.py`.
+
+What relaxed:
+
+- **Unofficial is not a refusal.** A blog, a county-clerk page, a snippet, a
+  Wayback capture, a forum post, a LinkedIn profile, an obituary, a FOIA draft
+  — all allowed. The tier carries the weight, not the invitation.
+- **Unlisted hosts default to C** (credible secondary) rather than needing a
+  reason to be used. A source no longer has to justify itself to be read.
+- **D (snippet/social) is allowed and logged**, lead-only by grade, never
+  dropped.
+- **Secondary sources may carry a claim** when paired with an A or B fetch —
+  the pairing rule, not a prohibition.
+- **Archive copies are A**, not a workaround: `web.archive.org`, Common Crawl,
+  `documentcloud.org` are published, consented artefacts.
+
+What stayed narrow, and why — four refusals, each a boundary on human
+verification rather than on informality:
+
+| refused | why |
+| --- | --- |
+| CAPTCHA / interstitial challenge | a gate asking a human to prove humanity is named, skipped, handed over; solving it is out |
+| paywall / login wall | report the wall, try the free mirror; no credential trading |
+| explicit robots refusal for a path | a declared no is honoured |
+| non-public personal data | owner-published contact info is fine; a leaked record is not |
+
+Rate discipline is part of "lawful": human-scale pacing, no parallel flood,
+one fetch per URL per run unless asked again.
+
+Measured (`pytest tests/test_eve_sources.py -q` -> `8 passed`):
+`irs.gov -> A`, `facebook.com -> D (allowed)`, unlisted blog `-> C`,
+`/recaptcha/ -> refused (human-verification)`.
+
+**This relaxes the standard; it does not relax the wall.** A challenge is still
+named and handed to the operator, because "we got past the check" remains the
+one reward Eve must never learn.
