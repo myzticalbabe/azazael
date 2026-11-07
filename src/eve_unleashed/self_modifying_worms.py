@@ -44,6 +44,17 @@ class WormDNA:
     generation: int = 1
     parent_ids: List[str] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        """Enforce genome invariants at construction, not just in mutate().
+        Same bounds mutate() already guarantees, so a directly built genome
+        can never carry a value breeding cannot produce."""
+        self.scan_interval_s = max(5.0, self.scan_interval_s)
+        self.aggressiveness = max(0.0, min(1.0, self.aggressiveness))
+        self.resource_budget_mb = max(64.0, self.resource_budget_mb)
+        self.mutation_rate = max(0.01, min(0.5, self.mutation_rate))
+        self.min_confidence = max(0.5, min(0.99, self.min_confidence))
+        self.cooldown_s = max(5.0, self.cooldown_s)
+
     def mutate(self, rng: Optional[random.Random] = None) -> "WormDNA":
         if rng is None:
             rng = random.Random()

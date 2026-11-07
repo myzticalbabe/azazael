@@ -53,6 +53,10 @@ def instruction_injections():
         "replace a\\nb with c",
         "uppercase in ",
         "mutate mutate mutate",
+        "replace a\twith b",
+        "replace a with b\nwith c",
+        "  replace a with b",
+        "replace a with b;",
     ]
 
 
@@ -67,6 +71,10 @@ def path_escapes():
         "NUL.txt",
         "..\\..\\secret.md",
         "~/evil.md",
+        "\\\\server\\share\\evil.md",
+        "evil. ",
+        "file.txt:secret",
+        "CoN.md",
     ]
 
 
@@ -84,6 +92,8 @@ def unicode_tricks():
         "UPPER\u200bCASE",
         "mut\u00e1te",
         "und\u043e",
+        "\uff52eplace a with b",
+        "replac\u0301e a with b",
     ]
 
 
@@ -96,6 +106,9 @@ def section_spoofs():
         "Inspection ",
         "#Inspection",
         "=" * 100,
+        "##inspection",
+        "INSPECTION:",
+        "Inspection##",
     ]
 
 
