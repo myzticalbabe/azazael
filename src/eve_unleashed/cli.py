@@ -852,6 +852,35 @@ def cmd_inquest(args) -> int:
     return 0
 
 
+def cmd_mend(args) -> int:
+    """Persistent evolution: scan issues, record fixes, verify green."""
+    from . import mend as _m
+    act = args.mend_action
+    if act == "fix":
+        try:
+            row = _m.record_fix(args.title, args.body, args.item)
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        print(f"RECORDED {row['item_id']}: {row['title'][:80]}")
+        return 0
+    if act == "verify":
+        res = _m.verify()
+        for f in res["files"]:
+            print(f"  [{f['state'].upper():5s}] {f['file']}: {f['tail']}")
+        print(f"verify: {res['green']}/{res['total']} green")
+        return 0 if res["green"] == res["total"] else 1
+    issues = _m.scan()
+    p = _m.plan(issues)
+    for i in p["own"]:
+        print(f"  OWN     {i['kind']}: {i.get('title') or i['item'][:100]}")
+    for root, rows in p["foreign"].items():
+        print(f"  FOREIGN {root}: {len(rows)} issue(s), not touched")
+    print(f"issues={len(issues)} own={p['own_count']} "
+          f"foreign={p['foreign_count']}")
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1421,6 +1450,17 @@ def main():
     inq_p.add_argument("--claim", default=None,
                        help="Live-check one claim into the dossier")
     inq_p.set_defaults(func=cmd_inquest)
+
+    # eve mend (persistent evolution: scan, record, verify)
+    mend_p = sub.add_parser("mend", help="Persistent evolution: scan/record/verify")
+    mend_sub = mend_p.add_subparsers(dest="mend_action")
+    mend_sub.add_parser("scan", help="Open issues from cache + bake lane")
+    mend_rec = mend_sub.add_parser("fix", help="Record a fix in the bake lane")
+    mend_rec.add_argument("--title", required=True)
+    mend_rec.add_argument("--body", required=True)
+    mend_rec.add_argument("--item", default="mend")
+    mend_sub.add_parser("verify", help="Re-run the eve test files")
+    mend_p.set_defaults(func=cmd_mend, mend_action="scan")
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
