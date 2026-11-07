@@ -222,6 +222,40 @@ def cmd_morph(args) -> int:
     return 0
 
 
+def cmd_modgame(args) -> int:
+    """Apply a mod onto a game dir, or revert to byte-identical."""
+    from . import mods as _mods
+    try:
+        if args.evolve:
+            if not args.mod:
+                print("ERROR: --mod required to evolve",
+                      file=sys.stderr)
+                return 1
+            fit = json.loads(args.fitness) if args.fitness else None
+            best, score, hist = _mods.evolve_mod(
+                args.game, args.mod, args.generations, args.seed, fit)
+            for h in hist:
+                vals = ", ".join("%s=%s" % (p["key"], p["value"])
+                                  for p in h["patches"])
+                print(f"  gen {h['gen']}: score {h['score']} ({vals})")
+            print(f"Best: gen {best} score {score} (see .eveevo/best.json)")
+        elif args.revert:
+            n = _mods.revert_mod(args.game)
+            print(f"Reverted {n} file(s); game is pristine.")
+        else:
+            if not args.mod:
+                print("ERROR: --mod required (or --revert)",
+                      file=sys.stderr)
+                return 1
+            manifest = _mods.apply_mod(args.game, args.mod)
+            print(f"Mod applied: {len(manifest)} file(s) backed up "
+                  f"under .evebak.")
+    except (ValueError, OSError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
@@ -906,6 +940,18 @@ def main():
     m_rep.add_argument("--in", dest="src", required=True)
     m_rep.add_argument("--title", default="Eve report")
     morph_p.set_defaults(func=cmd_morph)
+
+    mod_p = sub.add_parser("modgame", help="Apply/revert game mods")
+    mod_p.add_argument("--game", required=True, help="Game directory")
+    mod_p.add_argument("--mod", default=None, help="Mod directory")
+    mod_p.add_argument("--revert", action="store_true")
+    mod_p.add_argument("--evolve", action="store_true",
+                       help="Evolve numeric patches across generations")
+    mod_p.add_argument("--generations", type=int, default=5)
+    mod_p.add_argument("--seed", type=int, default=7)
+    mod_p.add_argument("--fitness", default=None,
+                       help="JSON {file::key: target} (default: maximize)")
+    mod_p.set_defaults(func=cmd_modgame)
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
