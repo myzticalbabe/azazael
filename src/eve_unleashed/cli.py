@@ -1033,10 +1033,123 @@ def cmd_search(args) -> int:
     return 0
 
 
+def cmd_e2e(args) -> int:
+    """End-to-end: intuition, bypass, dream, tests -- every step live-logged."""
+    import socket as _sock
+    import subprocess as _sp
+    import tempfile as _tf
+    import urllib.request as _url
+    from . import bypass_kit as _b
+    from . import intuition as _in
+    from . import live_log as _l
+    log = args.log or _l.default_path()
+    fails = []
+    def mark(event, **kw):
+        return _l.emit("e2e", event, path=log, **kw)
+    real_connect = _sock.socket.connect
+    real_urlopen = _url.urlopen
+    def _no_egress(*a, **k):
+        raise AssertionError("network egress during intuition probe")
+    # 1. intuition probe: unseen URL answers unknown, with egress shut.
+    _sock.socket.connect = _no_egress
+    _url.urlopen = _no_egress
+    try:
+        g0 = _in.intuit("https://unseen-e2e.invalid/probe", log_path=log)
+        ok_probe = g0["state"] == "unknown"
+    finally:
+        _sock.socket.connect = real_connect
+        _url.urlopen = real_urlopen
+    mark("intuition-probe", guess=g0["state"],
+         confidence=g0["confidence"], passed=ok_probe)
+    print("e2e intuition-probe: %s (passed=%s)" % (g0["state"], ok_probe))
+    if not ok_probe:
+        fails.append("intuition-probe")
+    # 2. evolving: bypass kit must hold against Eve's own parsers.
+    bres = _b.run_suite()
+    ok_b = bres["bypassed_count"] == 0
+    mark("bypass", ran=bres["ran"], held=bres["held"],
+         bypassed=bres["bypassed_count"], passed=ok_b)
+    print("e2e bypass: ran=%d held=%d (passed=%s)"
+          % (bres["ran"], bres["held"], ok_b))
+    if not ok_b:
+        fails.append("bypass")
+    # 3. dreaming: recalibrate on a scratch stream, pairs must resolve.
+    with _tf.TemporaryDirectory() as td:
+        sp = str(Path(td) / "dream.jsonl")
+        _l.emit("fetch", "intuition", path=sp,
+                url="https://dream-e2e.invalid/a", predicted="plain")
+        _l.emit("fetch", "answer", path=sp,
+                url="https://dream-e2e.invalid/a",
+                rung="plain", state="ok", kind=None)
+        rep = _in.dream(log_path=sp)
+    ok_d = rep["pairs"] == 1 and rep["hits"] == 1
+    mark("dream", pairs=rep["pairs"], hits=rep["hits"],
+         hit_rate=rep["hit_rate"], passed=ok_d)
+    print("e2e dream: pairs=%d hits=%d (passed=%s)"
+          % (rep["pairs"], rep["hits"], ok_d))
+    if not ok_d:
+        fails.append("dream")
+    # 4. testing: deterministic challenge + intuition + live-log tests.
+    cmd = [sys.executable, "-u", "-m", "pytest",
+           "tests/test_eve_websearch_challenge.py",
+           "tests/test_eve_intuition.py",
+           "tests/test_eve_live_log.py",
+           "-q", "-p", "no:cacheprovider",
+           "--deselect", "tests/test_eve_websearch_challenge.py::test_archive_fallback_live_snapshot",
+           "--deselect", "tests/test_eve_websearch_challenge.py::test_commoncrawl_live_shape",
+           "--deselect", "tests/test_eve_websearch_challenge.py::test_stealth_render_live",
+           "--deselect", "tests/test_eve_websearch_challenge.py::test_fetch_plain_page_ok_first_rung",
+           "--deselect", "tests/test_eve_websearch_challenge.py::test_tls_impersonation_rung_live"]
+    try:
+        pr = _sp.run(cmd, capture_output=True, text=True, timeout=300)
+        lines = (pr.stdout + pr.stderr).strip().splitlines()
+        tail = lines[-1] if lines else "no output"
+        ok_t = pr.returncode == 0
+    except _sp.TimeoutExpired:
+        tail, ok_t = "TIMEOUT 300s", False
+    mark("tests", tail=tail, passed=ok_t)
+    print("e2e tests: %s (passed=%s)" % (tail, ok_t))
+    for line in lines[-4:-1]:
+        print("e2e   " + line)
+    if not ok_t:
+        fails.append("tests")
+    # 5. live fetch only when asked; a wall is an answer, not a failure.
+    if args.live_url:
+        from . import websearch as _w
+        try:
+            res = _w.fetch_visible(args.live_url)
+            mark("live-fetch", url=args.live_url, rung=res["rung"],
+                 state=res["state"])
+            print("e2e live-fetch: state=%s rung=%s"
+                  % (res["state"], res["rung"]))
+        except Exception as e:
+            mark("live-fetch", url=args.live_url, error=str(e)[:120],
+                 passed=False)
+            fails.append("live-fetch")
+    else:
+        mark("live-fetch", skipped="no --live-url given")
+        print("e2e live-fetch: skipped (no --live-url)")
+    mark("summary", failed=fails if fails else "none")
+    print("e2e: %s" % ("FAIL " + ",".join(fails) if fails else "PASS"))
+    return 0 if not fails else 1
+
+
 def cmd_fetch(args) -> int:
-    """Fetch a page; climb plain -> headers -> render on challenge."""
+    """Fetch a page; intuit first, then climb the ladder."""
+    from . import live_log as _l
     from . import websearch as _w
+    if getattr(args, "intuit", False):
+        from . import intuition as _in
+        g = _in.intuit(args.url)
+        _l.emit("fetch", "intuition", url=args.url, guess=g["state"],
+                confidence=g["confidence"],
+                predicted=g.get("predicted_rung"))
+        print("intuition: %s conf=%.2f via %s"
+              % (g["state"], g["confidence"],
+                 "; ".join(g["provenance"])))
     res = _w.fetch_visible(args.url)
+    _l.emit("fetch", "answer", url=args.url, rung=res["rung"],
+            state=res["state"], kind=res.get("kind"))
     print(f"fetch: state={res['state']} rung={res['rung']} "
           f"kind={res.get('kind')}")
     if res["state"] == "ok":
@@ -1699,7 +1812,15 @@ def main():
     # eve fetch <url> (mutation ladder against bot challenges)
     fe_p = sub.add_parser("fetch", help="Fetch a page up the ladder")
     fe_p.add_argument("url")
+    fe_p.add_argument("--intuit", action="store_true",
+                      help="Ask Eve's memory first (no network), then climb")
     fe_p.set_defaults(func=cmd_fetch)
+
+    # eve e2e (live-logged end-to-end: intuition, bypass, dream, tests)
+    e2e_p = sub.add_parser("e2e", help="Live-logged end-to-end run")
+    e2e_p.add_argument("--live-url", default=None)
+    e2e_p.add_argument("--log", default=None)
+    e2e_p.set_defaults(func=cmd_e2e)
 
     # eve bypass (defensive mutation kit against Eve's own parsers)
     by_p = sub.add_parser("bypass", help="Try to break Eve's parsers")
