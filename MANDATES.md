@@ -1393,6 +1393,32 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 
 ---
 
+## RULE 0Z-P: EVOLVE-TO-RESOLVE — TRAIN ON LIVE EXPERIENCE, NEVER ON SIMULATION (CRITICAL — Nov 7, 2026)
+
+**"THIS SHALL EVOLVE TO WHATEVER IT NEEDS. IT WAS DESIGNED FOR THIS. IT HAS NOT YET BEEN TRAINED." — User directive, 2026-11-07**
+
+**TRIGGER:** Every training loop on this tree — worm genomes, fetch policy, intuition priors, adversarial kits. A loop that trains on simulated fitness is rehearsal, not training.
+
+**THE CANON LIVES IN ONE PLACE:** `docs/agent_orders/08_evolve_to_resolve.md` (E2R-1 … E2R-9). It is generated into all lane instruction targets by `tools/agent_orders_sync.py`, and the MCP gate fails `orders-in-sync` on any drift. This section is the pointer; the block is the text. Editing this section instead of the block is a violation of RULE 0Z-J.
+
+**ACTION — the nine in one breath:**
+1. **Live experience only** (E2R-1). Simulation exercises machinery; only live outcomes train. The sim run moved numbers and taught nothing; the live run found a real captcha-wall.
+2. **The log is the training set** (E2R-2). Intuition is weightless by design; an empty log means nothing was trained, whatever the curve says.
+3. **Fitness names its instrument** (E2R-3). Held-rate, wall time, tracemalloc, ladder outcome dicts — and the genome→policy mapping written down with the run.
+4. **Bound the harness, never the product** (E2R-4). Caps live in the trainer (40 s fetch cap, 1.0 s politeness cap); the ladder source is untouched.
+5. **Dream hit-rate is the metric** (E2R-5). Pairs + rate every generation, denominator quoted (blocked guesses can never hit by construction).
+6. **Saturate the adversary, not the population** (E2R-6). Flat gradient at 100% walls means harder cases, not more generations.
+7. **Inherit, don't reseed** (E2R-7). Persist the population between runs; a fresh seed per invocation is re-seeding.
+8. **Findings recorded, parsers never auto-patched** (E2R-8). No exception, no flag.
+9. **Developed instruments only** (E2R-9). `eve bypass`/`e2e`, `GeneticAlgorithm`, the pack's own workflow — never a hand-rolled reimplementation.
+
+**Verify this rule:**
+`python tools/agent_orders_sync.py --check && python -m eve_unleashed.cli bypass`
+
+**Related:** RULE 0B-D (exercise and measure), RULE 0Z-K (live proof), RULE 0Z-J (canonical sync), RULE 0Z-O (hyper-edge defaults), `docs/agent_orders/08_evolve_to_resolve.md`
+
+---
+
 ## 🔴 SECTION 3: AGENT CLASSIFICATION & SPAWN REFERENCE
 
 ### Complete Agent Inventory (11 Agents: 10 Spawnable + 1 Auto-Managed)

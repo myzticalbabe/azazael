@@ -184,6 +184,23 @@ TARGETS = {
             HOME / ".codebuff/rules.md",
         ],
     ),
+    # Added 2026-11-07 on user directive: "EVOLVE-TO-RESOLVE CANON". Eve was
+    # designed to evolve and had never been trained; the first live training
+    # runs (simulated fitness taught nothing, live ladder taught priors /
+    # captcha-wall / policy evolution) are now nine rules in one source, pushed
+    # to every lane the same way the hyper-edge defaults were on 2026-11-02.
+    "evolve-to-resolve": (
+        "08_evolve_to_resolve.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
 }
 
 
