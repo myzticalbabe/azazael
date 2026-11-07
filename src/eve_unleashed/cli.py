@@ -389,6 +389,54 @@ def cmd_foundry(args) -> int:
     return 0
 
 
+def cmd_unleash(args) -> int:
+    """Unleash Eve: vessel in cradle, mind in sidecar, hands native."""
+    from . import unleash as _u
+    if args.matrix:
+        for r in _u.matrix():
+            mark = "READY" if r["available"] else "DARK"
+            print(f"  [{mark}] {r['function']}: {r['detail']}")
+        return 0
+    try:
+        path, ident = _u.build_vessel(args.name)
+    except OSError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"Vessel: {path} ({len(ident['native_functions'])} functions)")
+    if not args.ask:
+        return 0
+    from . import cradle as _c
+    try:
+        mind_path = _c.resolve_model(args.mind, None) if args.mind else None
+        if mind_path is None:
+            found = [m["name"] for m in _c.list_cradle_models()
+                     if m["framework"] == "gguf"
+                     and not m["name"].startswith("eve-vessel")
+                     and "foundry" not in m["name"]]
+            if not found:
+                print("ERROR: no mind (text gguf) in cradle",
+                      file=sys.stderr)
+                return 1
+            mind_path = _c.resolve_model(found[0], None)
+        prompt = (_u.EVE_SYSTEM_PROMPT + "\n\nUser: " + args.ask
+                  + "\nEve:")
+        text = _c.run_gguf(str(mind_path), prompt, 256)
+    except (ValueError, RuntimeError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"Mind: {Path(mind_path).name}")
+    print(text)
+    calls = _u.scan_calls(text)
+    for c in calls:
+        try:
+            res = _u.dispatch(c["function"], c["args"])
+            out = json.dumps(res)[:400]
+            print(f"  HAND {c['function']}: {out}")
+        except ValueError as e:
+            print(f"  HAND {c['function']}: refused ({e})")
+    return 0
+
+
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
@@ -1087,6 +1135,16 @@ def main():
     foundry_p.add_argument("--name", default="eve-foundry-001")
     foundry_p.add_argument("--seed", type=int, default=7)
     foundry_p.set_defaults(func=cmd_foundry)
+
+    unleash_p = sub.add_parser("unleash", help="Eve vessel + 316t hands")
+    unleash_p.add_argument("--name", default="eve-vessel-001")
+    unleash_p.add_argument("--matrix", action="store_true",
+                           help="Native-function availability on this interpreter")
+    unleash_p.add_argument("--ask", default=None,
+                           help="Ask the unleashed mind (cradle sidecar)")
+    unleash_p.add_argument("--mind", default=None,
+                           help="Cradle text model serving as mind")
+    unleash_p.set_defaults(func=cmd_unleash)
 
     # eve grievance (Boston Tea Party: public grievance and redress)
     grv_p = sub.add_parser("grievance", help="File grievances, draft redress, find legal aid")
