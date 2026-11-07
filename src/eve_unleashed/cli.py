@@ -194,6 +194,34 @@ def cmd_wasm(args) -> int:
     return 0
 
 
+def cmd_morph(args) -> int:
+    """Native conversion, morphing and mutation."""
+    from . import morph as _m
+    try:
+        if args.morph_action == "convert":
+            n = _m.convert_text(args.src, args.dst)
+            print(f"Converted {n} row(s): {args.src} -> {args.dst}")
+        elif args.morph_action == "mutate":
+            manifest = _m.mutate_file(args.src, args.out,
+                                      args.seed, args.count)
+            for m in manifest:
+                print(f"  {m['variant']}: byte {m['byte']} "
+                      f"{m['was']}->{m['now']}")
+            print(f"Mutants: {len(manifest)} (seed {args.seed})")
+        elif args.morph_action == "report":
+            state = json.loads(Path(args.src).read_text(
+                encoding="utf-8"))
+            print(_m.morph_markdown(state, args.title))
+        else:
+            print("ERROR: morph needs convert|mutate|report",
+                  file=sys.stderr)
+            return 1
+    except (ValueError, OSError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
@@ -863,6 +891,21 @@ def main():
     wasm_p.add_argument("--build", action="store_true",
                         help="Run wasm-pack build after generating")
     wasm_p.set_defaults(func=cmd_wasm)
+
+    morph_p = sub.add_parser("morph", help="Convert/morph/mutate files")
+    morph_sub = morph_p.add_subparsers(dest="morph_action")
+    m_conv = morph_sub.add_parser("convert", help=".csv<->.json")
+    m_conv.add_argument("--in", dest="src", required=True)
+    m_conv.add_argument("--out", dest="dst", required=True)
+    m_mut = morph_sub.add_parser("mutate", help="Seeded byte mutations")
+    m_mut.add_argument("--in", dest="src", required=True)
+    m_mut.add_argument("--out", required=True)
+    m_mut.add_argument("--seed", type=int, default=7)
+    m_mut.add_argument("--count", type=int, default=3)
+    m_rep = morph_sub.add_parser("report", help="State JSON to Markdown")
+    m_rep.add_argument("--in", dest="src", required=True)
+    m_rep.add_argument("--title", default="Eve report")
+    morph_p.set_defaults(func=cmd_morph)
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
