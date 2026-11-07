@@ -76,3 +76,15 @@ def test_null_control_same_seed_same_ruler(tmp_path):
     b = null_control(_cfg(tmp_path, seed=7, name="b"), 4)["scores"]
     # 3dp: wall-clock noise under replay, outcomes pinned.
     assert [round(s, 3) for s in a] == [round(s, 3) for s in b]
+
+
+def test_fixture_writer_hashes_the_file_it_wrote(tmp_path):
+    # The 2026-11-07 CRLF defect: doc sha (LF blob) never matched the file
+    # (CRLF on Windows). The writer now hashes the file itself.
+    from eve_unleashed.trainer import _write_fixture_doc
+    from eve_unleashed.honey import sha_file
+    p = str(tmp_path / "w.json")
+    doc = _write_fixture_doc({"urls": ["u"], "outcomes": {"u": {"state": "ok"}}}, p)
+    assert doc["sha256"] == sha_file(p)
+    raw = open(p, "rb").read()
+    assert b"\r" not in raw  # no platform translation in the pin

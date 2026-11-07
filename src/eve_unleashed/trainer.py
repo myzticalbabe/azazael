@@ -31,6 +31,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from .honey import sha_file
 from .self_modifying_worms import (
     GeneticAlgorithm,
     HUNCH_CAP,
@@ -212,10 +213,22 @@ def freeze_fixture(urls: List[str], path: str,
                        "rung": res.get("rung"), "kind": res.get("kind")}
     doc = {"urls": list(urls), "frozen_at": time.time(), "cap_s": cap_s,
            "outcomes": outcomes}
+    return _write_fixture_doc(doc, path)
+
+
+def _write_fixture_doc(doc: Dict[str, Any], path: str) -> Dict[str, Any]:
+    """Write the fixture so the bytes on disk are the bytes hashed.
+
+    Windows text-mode translates LF to CRLF after the hash was computed,
+    so a sha of the in-memory blob never matches the file (measured
+    2026-11-07: a92dbf7 vs cc3ed11d on identical content). newline=""
+    disables translation; the sha is taken over the file itself, so the
+    pin and the bytes cannot disagree again on any platform."""
     blob = json.dumps(doc, indent=1, sort_keys=True)
-    with open(path, "w", encoding="utf-8") as fh:
+    with open(path, "w", encoding="utf-8", newline="") as fh:
         fh.write(blob)
-    doc["sha256"] = hashlib.sha256(blob.encode("utf-8")).hexdigest()
+    doc = dict(doc)
+    doc["sha256"] = sha_file(path)
     doc["path"] = path
     return doc
 
