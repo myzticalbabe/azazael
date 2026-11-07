@@ -14,6 +14,12 @@ Discipline, stated: 12-second per-provider timeout, a named
 User-Agent on every request, at most 5 hits kept per provider,
 and deduplication by normalized URL. No scraping of HTML result
 pages, no credentialed APIs, no query logging anywhere.
+
+Challenge appendix: `fetch_visible(url)` climbs plain request,
+browser headers, headless render -- reporting the clearing rung.
+A surviving challenge reads `blocked`, never empty, never
+invented. Interactive CAPTCHAs are out of scope: the kit renders
+what a real browser shows and stops there.
 """
 import json as _json
 import time as _time
@@ -29,6 +35,39 @@ except Exception:
 _TIMEOUT = 12
 _UA = {"User-Agent": "EveUnleashed-websearch/1.0 (research; keyless)"}
 _PER_PROVIDER = 5
+_RENDER_TIMEOUT = 45
+
+# Full browser header set: the second rung of the mutation ladder.
+_BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+               "AppleWebKit/537.36 (KHTML, like Gecko) "
+               "Chrome/131.0.0.0 Safari/537.36")
+_BROWSER_HEADERS = {
+    "User-Agent": _BROWSER_UA,
+    "Accept": ("text/html,application/xhtml+xml,application/xml;"
+                "q=0.9,image/avif,image/webp,*/*;q=0.8"),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "identity",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+}
+
+# Challenge signatures, checked against status + headers + body.
+# Each is (kind, marker) where marker is found in body or headers.
+_CHALLENGE_MARKS = (
+    ("cloudflare-iuam", "Just a moment"),
+    ("cloudflare-iuam", "cf-chl"),
+    ("cloudflare-iuam", "challenges.cloudflare.com"),
+    ("cloudflare-turnstile", "turnstile"),
+    ("cloudflare-deny", "cf-error-details"),
+    ("captcha-wall", "g-recaptcha"),
+    ("captcha-wall", "hcaptcha"),
+    ("bot-wall", "Access Denied"),
+    ("bot-wall", "Attention Required"),
+    ("bot-wall", "are you a robot"),
+)
 
 PROVIDERS = ("wikipedia", "loc", "openlibrary", "crossref",
              "stackexchange")
@@ -126,6 +165,116 @@ def _stackexchange(query):
             for it in (data or {}).get("items", [])]
     return {"via": "stackexchange", "state": "ok" if hits else "empty",
             "detail": "%d hit(s)" % len(hits), "hits": hits[:_PER_PROVIDER]}
+
+
+def detect_challenge(status, headers, body):
+    """Name the bot challenge on a response, or None if it reads clean.
+
+    `status` is the HTTP code, `headers` a mapping, `body` text.
+    A 403/503 alone is an error, not a challenge; it becomes a
+    named challenge only when a challenge marker is present."""
+    try:
+        text = body if isinstance(body, str) else (body or b"").decode(
+            "utf-8", "replace")
+    except Exception as e:
+        note_failure("websearch:detect:decode", e)
+        text = ""
+    low = text.lower()
+    head = " ".join("%s: %s" % (k, v) for k, v in
+                      dict(headers or {}).items()).lower()
+    for kind, mark in _CHALLENGE_MARKS:
+        if mark.lower() in low or mark.lower() in head:
+            return kind
+    if status in (403, 503) and ("cf-ray" in head or "cloudflare" in head):
+        return "cloudflare-deny"
+    return None
+
+
+def _render_fetch(url):
+    """Third rung: render in headless system Chrome via Playwright.
+
+    Returns (text, error). Executes page JavaScript the way a real
+    browser does, so non-interactive challenges that clear on their
+    own resolve here. Needs the `playwright` package plus any
+    Chrome; raises RuntimeError naming what is missing."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as e:
+        raise RuntimeError("playwright not installed: %s" % (e,))
+    text, err = "", None
+    try:
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.launch(channel="chrome",
+                                            headless=True)
+            except Exception:
+                browser = p.chromium.launch(headless=True)
+            try:
+                page = browser.new_page(user_agent=_BROWSER_UA)
+                page.goto(url, timeout=_RENDER_TIMEOUT * 1000,
+                          wait_until="domcontentloaded")
+                try:
+                    page.wait_for_timeout(4000)
+                except Exception as e:
+                    note_failure("websearch:render:settle", e)
+                text = page.evaluate(
+                    "() => document.body ? document.body.innerText : ''")
+            finally:
+                browser.close()
+    except Exception as e:
+        note_failure("websearch:render", e)
+        err = str(e)[:160]
+    return text or "", err
+
+
+def fetch_visible(url):
+    """Fetch a page up the mutation ladder; report the clearing rung.
+
+    Rung 1: plain request. Rung 2: full browser headers. Rung 3:
+    headless render. Returns {state, rung, kind, text}. `state` is
+    `ok`, `error`, or `blocked`; a challenge surviving rung 3 is
+    `blocked` with its kind, never an empty answer."""
+    if not url or not str(url).strip():
+        raise ValueError("nothing to fetch: empty url")
+    url = str(url).strip()
+    ladder = [("plain", _UA), ("browser-headers", _BROWSER_HEADERS)]
+    last_err, last_kind = "no attempt made", None
+    for rung, headers in ladder:
+        try:
+            req = _request.Request(url, headers=headers)
+            with _request.urlopen(req, timeout=_TIMEOUT) as r:
+                raw = r.read()
+                try:
+                    body = raw.decode("utf-8", "replace")
+                except Exception as e:
+                    note_failure("websearch:fetch:decode", e)
+                    body = ""
+                kind = detect_challenge(r.status, dict(r.headers), body)
+                if kind:
+                    # Challenged, not answered: climb to the next rung.
+                    last_kind = kind
+                    continue
+                return {"state": "ok", "rung": rung, "kind": None,
+                        "text": body[:20000]}
+        except Exception as e:
+            last_err = str(e)[:160]
+            note_failure("websearch:fetch:%s" % rung, e)
+    try:
+        text, err = _render_fetch(url)
+    except RuntimeError as e:
+        return {"state": "error", "rung": "render-unavailable",
+                "kind": None,
+                "detail": "%s; plain fetch failed: %s" % (e, last_err)}
+    if err:
+        return {"state": "error", "rung": "render",
+                "kind": None, "detail": err}
+    kind = detect_challenge(200, {}, text)
+    if kind:
+        return {"state": "blocked", "rung": "render", "kind": kind,
+                "detail": ("challenge '%s' survived all three rungs; "
+                           "page withheld, nothing invented" % kind)}
+    return {"state": "ok", "rung": "render", "kind": None,
+            "text": (text or "")[:20000]}
 
 
 _FNS = {"wikipedia": _wikipedia, "loc": _loc,

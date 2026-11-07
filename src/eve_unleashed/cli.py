@@ -1033,6 +1033,21 @@ def cmd_search(args) -> int:
     return 0
 
 
+def cmd_fetch(args) -> int:
+    """Fetch a page; climb plain -> headers -> render on challenge."""
+    from . import websearch as _w
+    res = _w.fetch_visible(args.url)
+    print(f"fetch: state={res['state']} rung={res['rung']} "
+          f"kind={res.get('kind')}")
+    if res["state"] == "ok":
+        print(res["text"][:1500])
+    else:
+        print(res.get("detail", "withheld by challenge; "
+              "solve it in your own browser, Eve will not "
+              "solve CAPTCHAs for you"))
+    return 0 if res["state"] == "ok" else 1
+
+
 def cmd_bypass(args) -> int:
     """Attack Eve's own parsers; report what held and what gave."""
     from . import bypass_kit as _b
@@ -1680,6 +1695,11 @@ def main():
     se_p.add_argument("--query", required=True)
     se_p.add_argument("--providers", nargs="*", default=None)
     se_p.set_defaults(func=cmd_search)
+
+    # eve fetch <url> (mutation ladder against bot challenges)
+    fe_p = sub.add_parser("fetch", help="Fetch a page up the ladder")
+    fe_p.add_argument("url")
+    fe_p.set_defaults(func=cmd_fetch)
 
     # eve bypass (defensive mutation kit against Eve's own parsers)
     by_p = sub.add_parser("bypass", help="Try to break Eve's parsers")
