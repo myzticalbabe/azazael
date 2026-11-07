@@ -22,6 +22,14 @@ def test_detect_cf_ray_403():
                              ) == "cloudflare-deny"
 
 
+def test_detect_imperva_incapsula():
+    body = ("<html><body><script>var z='visid_incap_123';</script>"
+            "<iframe src='/._incap_/res/'>Request unsuccessful. "
+            "Incapsula incident ID</iframe></body></html>")
+    assert _w.detect_challenge(403, {"X-Iinfo": "1-2-3"}, body) == \
+        "imperva"
+
+
 def test_clean_page_is_none():
     body = "<html><body><h1>Example Domain</h1></body></html>"
     assert _w.detect_challenge(200, {}, body) is None
