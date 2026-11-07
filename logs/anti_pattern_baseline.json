@@ -1,19 +1,19 @@
 {
-  "recorded_at": "2026-11-04T18:09:52+00:00",
+  "recorded_at": "2026-11-07T05:17:25+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 788,
+  "files_scanned": 850,
   "category_counts": {
     "except_return_default": 2,
     "hardcoded_win_path": 14,
-    "import_inside_function": 968,
+    "import_inside_function": 1056,
     "silent_except_pass": 2,
     "unicode_emoji": 1219
   },
-  "total_findings": 2205,
+  "total_findings": 2293,
   "tracked_only": true,
-  "writer_pid": 14772,
+  "writer_pid": 22556,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -50,6 +50,9 @@
     },
     "AOA\\test_arm_exports.py": {
       "import_inside_function": 3
+    },
+    "ARC\\cain_obsolescence_accountability\\cain_obsolescence_cli.py": {
+      "import_inside_function": 2
     },
     "AZAZAEL_Inference_Studio.py": {
       "import_inside_function": 1,
@@ -514,7 +517,7 @@
       "import_inside_function": 14
     },
     "CORE\\data_retention.py": {
-      "import_inside_function": 13
+      "import_inside_function": 14
     },
     "CORE\\device.py": {
       "import_inside_function": 2
@@ -729,6 +732,21 @@
     "HYDRA\\ml_test.py": {
       "import_inside_function": 5
     },
+    "HYPER_EDGE\\cli.py": {
+      "import_inside_function": 1
+    },
+    "HYPER_EDGE\\compat.py": {
+      "import_inside_function": 2
+    },
+    "HYPER_EDGE\\evolution.py": {
+      "import_inside_function": 3
+    },
+    "HYPER_EDGE\\kernel.py": {
+      "import_inside_function": 2
+    },
+    "HYPER_EDGE\\microcode.py": {
+      "import_inside_function": 1
+    },
     "INTERPRETERS\\__init__.py": {
       "import_inside_function": 4
     },
@@ -901,8 +919,14 @@
     "UTILITIES\\TERENCE\\TERENCE.py": {
       "import_inside_function": 4
     },
+    "eve_unleashed\\bypass_kit.py": {
+      "import_inside_function": 4
+    },
     "eve_unleashed\\cli.py": {
-      "import_inside_function": 7
+      "import_inside_function": 44
+    },
+    "eve_unleashed\\cognition.py": {
+      "import_inside_function": 1
     },
     "eve_unleashed\\consciousness.py": {
       "import_inside_function": 5
@@ -910,17 +934,47 @@
     "eve_unleashed\\core.py": {
       "import_inside_function": 6
     },
+    "eve_unleashed\\cradle.py": {
+      "import_inside_function": 3
+    },
     "eve_unleashed\\decision_engine.py": {
       "import_inside_function": 1
     },
     "eve_unleashed\\engine.py": {
       "import_inside_function": 7
     },
+    "eve_unleashed\\factcheck.py": {
+      "import_inside_function": 2
+    },
+    "eve_unleashed\\inquest.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\interpreter_bridge.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\langs.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\live_morph.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\mend.py": {
+      "import_inside_function": 1
+    },
     "eve_unleashed\\model_router.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\mods.py": {
       "import_inside_function": 1
     },
     "eve_unleashed\\nl_interface.py": {
       "import_inside_function": 2
+    },
+    "eve_unleashed\\nsp_check.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\oracle.py": {
+      "import_inside_function": 4
     },
     "eve_unleashed\\pams_evolution.py": {
       "import_inside_function": 2
@@ -928,17 +982,47 @@
     "eve_unleashed\\predictive_worms.py": {
       "import_inside_function": 2
     },
+    "eve_unleashed\\redress.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\sanctuary.py": {
+      "import_inside_function": 1
+    },
     "eve_unleashed\\self_modifying_worms.py": {
       "import_inside_function": 4
     },
     "eve_unleashed\\service_manager.py": {
       "import_inside_function": 1
     },
+    "eve_unleashed\\soul_foundry.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\stationery.py": {
+      "import_inside_function": 3
+    },
     "eve_unleashed\\streaming.py": {
       "import_inside_function": 2
     },
+    "eve_unleashed\\swarm_oracle.py": {
+      "import_inside_function": 1
+    },
     "eve_unleashed\\terence_v2.py": {
       "import_inside_function": 3
+    },
+    "eve_unleashed\\unleash.py": {
+      "import_inside_function": 3
+    },
+    "eve_unleashed\\watch.py": {
+      "import_inside_function": 1
+    },
+    "eve_unleashed\\websearch.py": {
+      "import_inside_function": 4
+    },
+    "grantforge_native\\cli.py": {
+      "import_inside_function": 2
+    },
+    "grantforge_native\\mcp.py": {
+      "import_inside_function": 1
     },
     "memory_status.py": {
       "import_inside_function": 7

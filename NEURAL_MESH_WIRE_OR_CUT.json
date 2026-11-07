@@ -4432,9 +4432,9 @@
    "status": "accepted_gap"
   },
   "servemesh:ModelShardServerWorm.verify": {
-   "decider": "protocol_or_override",
+   "decider": "auto:preflight",
    "decider_evidence": [
-    "also defined by: FormalVerifier, MathematicalCertaintySystem, PurePythonVerifier"
+    "static caller found by mesh_function_preflight regeneration 2026-11-07"
    ],
    "evidence": [
     "scripts/mesh_trusted_key.py:239",
@@ -4445,9 +4445,9 @@
    "link_kind": "registry",
    "module": "servemesh",
    "qualname": "ModelShardServerWorm.verify",
-   "reason": "re-disposed 2026-10-31: the only production reference is a string literal, so no module-linked caller can exist; string dispatch is recorded in evidence",
+   "reason": "status moved dispatched to wired: static caller found in evidence",
    "seg": "def verify(self, model: str, shard: str) -> dict[str, Any]:\n        with self._lock:\n            entry = self._shards.get(f\"{model}:{shard}\")\n            if entry is None:\n                return {\"verified\": False, \"reason\": \"shard not published\"}\n            if \"bytes\" in entry:\n                return {\"verified\": True, \"bytes\": entry[\"bytes\"]}\n            return {\"verified\": True, \"bytes\": 0}",
-   "status": "dispatched"
+   "status": "wired"
   },
   "session_state:SessionStateManager.__init__": {
    "decider": "protocol_or_override",

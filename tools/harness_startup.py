@@ -74,7 +74,7 @@ def c_engines():
     bad = []
     for eng in ("oxenford-adopt.py", "oxenford-forge.py"):
         p = subprocess.run([PY315T, os.path.join(BUILD, eng), "--self-test"],
-                           capture_output=True, text=True, timeout=300)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
         if p.returncode != 0:
             tail = (p.stdout + p.stderr)[-300:]
             bad.append("%s rc=%d :: %s" % (eng, p.returncode, tail))

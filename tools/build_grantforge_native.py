@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
 
 def _run(args, timeout=120):
-    completed = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    completed = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     return completed.returncode, (completed.stdout or "") + (completed.stderr or "")
 
 
@@ -145,6 +145,7 @@ def verify(exe):
 
     def run(args, timeout=180):
         completed = subprocess.run([str(exe)] + args, capture_output=True, text=True,
+                                   encoding="utf-8", errors="replace",
                                    timeout=timeout)
         return completed.returncode, (completed.stdout or "")[:300], (completed.stderr or "")[:300]
 
