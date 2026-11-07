@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: all remaining landed + e2e, see below).
+**Last stocked:** 2026-11-07 (session: micro-swarms + bibles, see below).
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -22,6 +22,8 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | H-14 | FERMENT: salience-weighted decay so the solid holds living memory | M | LANDED (commit below) |
 | H-15 | MULTIPLY: grow/shrink the swarm with rebalancing | M | LANDED (commit below) |
 | H-16 | PROJECTION in all forms: JSON + frozen .py + chronicle | S | LANDED (commit below) |
+| H-17 | Micro-swarms: heterogeneous solids, shard-local morph/ferment, assemble_swarm | M | LANDED (commit below) |
+| H-18 | Bibles: RULE 0Z-Q tapestry rule, E2R-5 agreement fix, 60-target sync clean | S | LANDED (commit below) |
 
 ## STOCKED — training loop
 
@@ -50,6 +52,8 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | Recall depth (H-02..H-05): icosahedron pinned, girth, guardrails, Dijkstra, persist | commit below — 33 recall tests green |
 | Evolution depth (H-01/H-08/H-09): shape gene + fitter inheritance, agreement metric, calibration, pop 8 | commit below — 25 trainer + intuition tests green |
 | E2E `eve train --gens 2 --pop 4` live: gen1 best 0.8332 dream 0.708, gen2 best 0.8316 dream 0.771 | this session, isolated paths |
+| Micro-swarm assay (64 keys): hypercube-32x2 64 visits/hops 5, dodeca-x4 80/5, petersen-x8 80/hops 2 | this session — hops fall as solids shrink |
+| Bibles: RULE 0Z-Q (knit/unknit), E2R-5 source + pointer fixed, sync 60 targets 0 problems | commits below |
 | Rungs unlocked (H-07): playwright/chromium render + curl_cffi stealth proven live | this session |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |

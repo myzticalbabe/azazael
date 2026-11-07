@@ -45,10 +45,12 @@ A training speedup that edits the product is a benchmark gaming itself.
 ### E2R-5 — Dream hit-rate is the training metric
 
 Report `dream()` pairs + hit-rate every generation, from the same log the
-intuition reads. Note what the metric cannot see: a `hit` requires
-rung-equality on an `ok` answer, so blocked-state guesses can never hit —
-0.438 with three walled hosts in a six-URL set is strong, not weak. Quote
-the denominator (pairs) with the rate, or the number is HED-9's lie.
+intuition reads. A `hit` is AGREEMENT (2026-11-07): the verdict matches
+(guess/ok or blocked/blocked) AND the rung matches when one was predicted.
+A blocked guess that meets a blocked answer is a hit -- the lineage correctly
+predicted the wall. Guesses logged without a verdict keep the old rule (ok +
+rung match) so old logs still read. Quote the denominator (pairs) with the
+rate, or the number is HED-9's lie.
 
 ### E2R-6 — Selection needs variance; saturate the adversary, not the population
 

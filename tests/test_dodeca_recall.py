@@ -275,6 +275,56 @@ def test_ferment_accepts_callable_salience():
     assert removed == [("a", 1)] and st.recall("b")["exact"]
 
 
+def test_heterogeneous_swarm_recalls_across_solids():
+    sw = D.SwarmStore(["petersen", "g40"])
+    assert sw.shapes == ["petersen", "g40"] and len(sw.stores) == 2
+    for i in range(20):
+        sw.put("m%d.example" % i, i)
+    for i in range(20):
+        res = sw.recall("m%d.example" % i)
+        assert [m[1] for m in res["exact"]] == ["m%d.example" % i]
+        assert res["exact"][0][0] == 0
+
+
+def test_assemble_swarm_routes_hot_to_fast_solids():
+    entries = [("hot-%d" % i, {"hot": True}) for i in range(6)] + \
+              [("cold-%d" % i, {"hot": False}) for i in range(6)]
+    sw = D.assemble_swarm(entries,
+                          [("petersen", lambda k, v: v["hot"]),
+                           ("g40", None)])
+    assert sw.shapes == ["petersen", "g40"]
+    for i in range(6):
+        assert [m[1] for m in sw.stores[0].recall("hot-%d" % i)["exact"]] \
+            == ["hot-%d" % i]
+        assert [m[1] for m in sw.stores[1].recall("cold-%d" % i)["exact"]] \
+            == ["cold-%d" % i]
+    assert sw.count() == 12
+
+
+def test_morph_shard_moves_entries_to_new_solid():
+    sw = D.SwarmStore(["petersen", "dodecahedron"])
+    sw.put_on(1, "keep", "v")
+    D.morph_shard(sw, 1, "icosahedron")
+    assert sw.shapes[1] == "icosahedron"
+    assert [m[1] for m in sw.stores[1].recall("keep")["exact"]] == ["keep"]
+
+
+def test_ferment_shard_rots_locally():
+    sw = D.SwarmStore(["petersen", "petersen"])
+    sw.put_on(0, "loved", 5.0)
+    sw.put_on(1, "loved", 5.0)
+    sw.put_on(0, "dead", 0.1)
+    removed = D.ferment_shard(sw, 0, {"loved": 5.0, "dead": 0.1})
+    assert removed == [("dead", 0.1)]
+    assert [m[1] for m in sw.stores[1].recall("loved")["exact"]] == ["loved"]
+
+
+def test_grow_cycles_heterogeneous_shapes():
+    sw = D.SwarmStore(["petersen", "g40"])
+    assert sw.grow(1) == 3
+    assert sw.shapes == ["petersen", "g40", "petersen"]
+
+
 def test_multiply_grows_and_shrinks_without_loss():
     import pytest as _p
     sw = D.SwarmStore("hypercube-32", shards=2)

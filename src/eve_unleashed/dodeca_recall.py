@@ -402,11 +402,19 @@ class SwarmStore:
     shard; recall asks every shard and merges context by (distance, shard)
     while exact hits stay exact. The swarm is the shape, multiplied."""
 
-    def __init__(self, shape: str = "hypercube-32", shards: int = 4) -> None:
-        if shards < 1:
-            raise ValueError(f"a swarm needs >= 1 shard, got {shards}")
-        self.shape = shape
-        self.stores = [ShapeStore(shape) for _ in range(shards)]
+    def __init__(self, shape="hypercube-32", shards: int = 4) -> None:
+        if isinstance(shape, (list, tuple)):
+            shapes = list(shape)
+            if shards != 4 and shards != len(shapes):
+                raise ValueError(
+                    f"shard count {shards} != shapes given {len(shapes)}")
+        else:
+            if shards < 1:
+                raise ValueError(f"a swarm needs >= 1 shard, got {shards}")
+            shapes = [shape] * shards
+        self.shapes = shapes
+        self.shape = shapes[0]  # first solid speaks for the swarm
+        self.stores = [ShapeStore(s) for s in shapes]
 
     def _shard(self, key: str) -> int:
         return int(hashlib.md5(key.encode("utf-8")).hexdigest(), 16) \
@@ -435,6 +443,10 @@ class SwarmStore:
                 "visited": visited, "shards": len(self.stores),
                 "shape": self.shape}
 
+    def put_on(self, i: int, key: str, value: Any) -> int:
+        """Store directly on shard i (assembly routing). Returns home."""
+        return self.stores[i].put(key, value)
+
     def count(self) -> int:
         """Total entries across all shards."""
         return sum(len(sl) for st in self.stores for sl in st.slots.values())
@@ -451,7 +463,10 @@ class SwarmStore:
         if shards < 1:
             raise ValueError(f"a swarm needs >= 1 shard, got {shards}")
         entries = self._all_entries()
-        self.stores = [ShapeStore(self.shape) for _ in range(shards)]
+        self.shapes = [self.shapes[i % len(self.shapes)]
+                       for i in range(shards)]
+        self.shape = self.shapes[0]
+        self.stores = [ShapeStore(s) for s in self.shapes]
         for k, v in entries:
             self.put(k, v)
         return len(self.stores)
@@ -618,6 +633,45 @@ def ferment(store: ShapeStore, salience: Any, threshold: float = 1.0) -> list:
     return removed
 
 
+
+
+def morph_shard(sw: SwarmStore, i: int, shape: str) -> ShapeStore:
+    """Re-index one shard onto a new solid; its entries survive the move."""
+    entries = [(k, v) for v in range(sw.stores[i].n)
+               for k, v in sw.stores[i].slots[v]]
+    new = ShapeStore(shape)
+    for k, v in entries:
+        new.put(k, v)
+    sw.stores[i] = new
+    sw.shapes[i] = shape
+    return new
+
+
+def ferment_shard(sw: SwarmStore, i: int, salience: Any,
+                  threshold: float = 1.0) -> list:
+    """Rot one shard's low-salience entries; the rest of the swarm keeps."""
+    return ferment(sw.stores[i], salience, threshold)
+
+
+def assemble_swarm(entries: List[Tuple[str, Any]],
+                   spec: List[Tuple[str, Any]]) -> SwarmStore:
+    """Assemble a heterogeneous micro-swarm from a routing spec.
+
+    spec: [(shape, pred_or_None)]. Each entry lands on the FIRST shard
+    whose pred(key, value) holds (None = catch-all); unrouted entries
+    fall to the last shard. Hot keys earn fast solids (petersen, diam 2),
+    cold bulk earns roomy ones (g40) -- that is the micro-swarm bargain."""
+    if not spec:
+        raise ValueError("a swarm needs at least one (shape, pred) spec")
+    sw = SwarmStore([s for s, _ in spec])
+    for k, v in entries:
+        for i, (_, pred) in enumerate(spec):
+            if pred is None or pred(k, v):
+                sw.put_on(i, k, v)
+                break
+        else:
+            sw.put_on(len(spec) - 1, k, v)
+    return sw
 
 
 class DodecaStore(ShapeStore):

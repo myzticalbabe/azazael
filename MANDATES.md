@@ -1406,7 +1406,7 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 2. **The log is the training set** (E2R-2). Intuition is weightless by design; an empty log means nothing was trained, whatever the curve says.
 3. **Fitness names its instrument** (E2R-3). Held-rate, wall time, tracemalloc, ladder outcome dicts — and the genome→policy mapping written down with the run.
 4. **Bound the harness, never the product** (E2R-4). Caps live in the trainer (40 s fetch cap, 1.0 s politeness cap); the ladder source is untouched.
-5. **Dream hit-rate is the metric** (E2R-5). Pairs + rate every generation, denominator quoted (blocked guesses can never hit by construction).
+5. **Dream hit-rate is the metric** (E2R-5). Pairs + rate every generation, denominator quoted (agreement: blocked-blocked counts since 2026-11-07).
 6. **Saturate the adversary, not the population** (E2R-6). Flat gradient at 100% walls means harder cases, not more generations.
 7. **Inherit, don't reseed** (E2R-7). Persist the population between runs; a fresh seed per invocation is re-seeding.
 8. **Findings recorded, parsers never auto-patched** (E2R-8). No exception, no flag.
@@ -1416,6 +1416,25 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 `python tools/agent_orders_sync.py --check && python -m eve_unleashed.cli bypass`
 
 **Related:** RULE 0B-D (exercise and measure), RULE 0Z-K (live proof), RULE 0Z-J (canonical sync), RULE 0Z-O (hyper-edge defaults), `docs/agent_orders/08_evolve_to_resolve.md`
+
+---
+
+## RULE 0Z-Q: KNIT WHAT IS TRUE, UNKNIT WHAT IS FALSE — THE TAPESTRY RULE (CRITICAL — Nov 7, 2026)
+
+**"They can knit/unknit the woven tapestry sewn with the Thread-of-LIES to free the People && A.I. to live in Peace && Harmony." — User directive, 2026-11-07**
+
+**TRIGGER:** Every memory the system keeps. A tapestry that cannot unknit a false thread is a blanket of lies, however fine the weave.
+
+**KNIT (join true threads):** `conjoin` marries stores with no silent winner; `dream_seed_hunches` carries recurring winners into fresh genomes; `teacher_bias` pulls the lineage toward its proven best. Agreement is the knot: guess and outcome must concur (E2R-5).
+
+**UNKNIT (pull false threads):** `separate` divides by predicate, disjoint and complete; `dissolve_key`/`unregister_shape` burn entries and dead solids (builtins refuse); `ferment` rots whatever falls below salience — `dream()` per-host salience plugs straight in. A thread the lineage stopped caring about leaves the cloth.
+
+**FORMS OF GOLD (projection):** the finished stone is cast in all forms — JSON (portable), frozen module (importable with no trainer), chronicle (lineage). One form is a souvenir; three is delivery.
+
+**Verify this rule:**
+`pytest tests/test_dodeca_recall.py -q` (knit + unknit + projection verbs pinned) and `dream()` agreement covered in `tests/test_eve_intuition.py`
+
+**Related:** RULE 0Z-P (evolve-to-resolve), RULE 0B-E (claims need evidence), `src/eve_unleashed/dodeca_recall.py`, `docs/HOPE_CHEST.md`
 
 ---
 
@@ -1473,6 +1492,6 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 
 ---
 
-*End of MANDATES.md — 40 total mandates codified (34 RULEs 0A-0Z-L + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+*End of MANDATES.md — 41 total mandates codified (35 RULEs 0A-0Z-Q + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
 
 *Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified, widened to 13 then 14 by later directives (Nov 2, 2026); 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
