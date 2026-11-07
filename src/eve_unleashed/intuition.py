@@ -96,8 +96,18 @@ def dream(log_path=None):
         if not later:
             continue
         pairs += 1
-        won = later[0].get("rung") == g.get("predicted") and \
-            later[0].get("state") == "ok"
+        # Agreement, not just success (H-08): a blocked guess that meets a
+        # blocked answer is a hit -- the lineage correctly predicted the
+        # wall. Guesses without a recorded verdict fall back to the old
+        # rule (ok + rung match) so old logs still read.
+        if g.get("guess") is None:
+            won = later[0].get("rung") == g.get("predicted") and \
+                later[0].get("state") == "ok"
+        else:
+            agree = (g.get("guess") == "guess") == \
+                (later[0].get("state") == "ok")
+            won = agree and (g.get("predicted") is None or
+                             later[0].get("rung") == g.get("predicted"))
         hits += 1 if won else 0
         key = str(g.get("predicted"))
         cell = by_rung.setdefault(key, {"pairs": 0, "hits": 0})

@@ -64,16 +64,22 @@ def test_host_prior_modal_rung(tmp_path):
 def test_dream_pairs_guesses_with_answers(tmp_path):
     p = str(tmp_path / "l.jsonl")
     _l.emit("fetch", "intuition", path=p, url="https://d.example/1",
-            predicted="plain")
+            guess="guess", predicted="plain")
     _answer(p, "https://d.example/1", "plain")
     _l.emit("fetch", "intuition", path=p, url="https://d.example/2",
-            predicted="plain")
+            guess="guess", predicted="plain")
     _answer(p, "https://d.example/2", "render")
+    _l.emit("fetch", "intuition", path=p, url="https://d.example/3",
+            guess="blocked", predicted="render")
+    _answer(p, "https://d.example/3", "render", state="blocked",
+            kind="captcha")
     rep = _in.dream(log_path=p)
-    assert rep["pairs"] == 2 and rep["hits"] == 1
-    assert rep["hit_rate"] == 0.5
+    assert rep["pairs"] == 3 and rep["hits"] == 2  # blocked wall read: hit
+    assert rep["hit_rate"] == 0.667  # round(2/3, 3), as dream() reports
     assert rep["by_rung"]["plain"] == {"pairs": 2, "hits": 1}
-    assert rep["hosts"]["d.example"] == {"fetches": 2, "answered": 2, "salience": 2.0}
+    assert rep["by_rung"]["render"] == {"pairs": 1, "hits": 1}
+    assert rep["hosts"]["d.example"] == {"fetches": 3, "answered": 2,
+                                            "salience": 4.0}
 
 
 def test_empty_url_rejected(tmp_path):

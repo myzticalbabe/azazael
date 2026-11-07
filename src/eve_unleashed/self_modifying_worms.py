@@ -66,6 +66,7 @@ class WormDNA:
     generation: int = 1
     parent_ids: List[str] = field(default_factory=list)
     hunches: List[str] = field(default_factory=list)  # ancestral winning rungs
+    shape: str = "dodecahedron"  # the solid this lineage recalls on (H-01)
 
     def __post_init__(self) -> None:
         """Enforce genome invariants at construction, not just in mutate().
@@ -77,6 +78,9 @@ class WormDNA:
         self.mutation_rate = max(0.01, min(0.5, self.mutation_rate))
         self.min_confidence = max(0.5, min(0.99, self.min_confidence))
         self.cooldown_s = max(5.0, self.cooldown_s)
+        from .dodeca_recall import SHAPES  # local: recall never imports worms
+        if self.shape not in SHAPES:
+            self.shape = "dodecahedron"
 
     def mutate(self, rng: Optional[random.Random] = None) -> "WormDNA":
         if rng is None:
@@ -100,10 +104,17 @@ class WormDNA:
                     d[gene] = max(0.5, min(0.99, cur + rng.uniform(-0.1, 0.1)))
         d["mutation_rate"] = max(0.01, min(0.5, self.mutation_rate *
                                            rng.uniform(0.8, 1.2)))
+        if rng.random() < 0.05:  # rare morph: try another solid (H-01)
+            from .dodeca_recall import SHAPES
+            d["shape"] = rng.choice(sorted(SHAPES))
         return WormDNA(**d)
 
+    #: A child recalls on the fitter parent's solid (H-01): selection
+    #: pressure on shapes, not just genes. Unknown fitter -> coin flip.
     @staticmethod
-    def crossover(a: "WormDNA", b: "WormDNA", rng: Optional[random.Random] = None) -> "WormDNA":
+    def crossover(a: "WormDNA", b: "WormDNA",
+                  rng: Optional[random.Random] = None,
+                  fitter: Optional["WormDNA"] = None) -> "WormDNA":
         if rng is None:
             rng = random.Random()
         child = asdict(a)
@@ -115,6 +126,12 @@ class WormDNA:
             child[gene] = getattr(a, gene) if rng.random() < 0.5 else getattr(b, gene)
         child["mutation_rate"] = (a.mutation_rate + b.mutation_rate) / 2
         child["hunches"] = splice_hunches(a.hunches, b.hunches, rng=rng)
+        if fitter is a:
+            child["shape"] = a.shape
+        elif fitter is b:
+            child["shape"] = b.shape
+        elif rng.random() < 0.5:
+            child["shape"] = b.shape
         enabled = set(a.enabled_metrics) | set(b.enabled_metrics)
         child["enabled_metrics"] = sorted(enabled)
         return WormDNA(**child)
@@ -199,7 +216,10 @@ class GeneticAlgorithm:
         new_pop: List[WormDNA] = list(elites)
         while len(new_pop) < self.population_size:
             p1, p2 = self._select(scored), self._select(scored)
-            child = WormDNA.crossover(p1, p2, rng=self.rng)
+            s1 = fit[p1.worm_id].score() if fit.get(p1.worm_id) else 0.3
+            s2 = fit[p2.worm_id].score() if fit.get(p2.worm_id) else 0.3
+            child = WormDNA.crossover(p1, p2, rng=self.rng,
+                                      fitter=p1 if s1 >= s2 else p2)
             if self.rng.random() < 0.7:
                 child = child.mutate(rng=self.rng)
             new_pop.append(child)

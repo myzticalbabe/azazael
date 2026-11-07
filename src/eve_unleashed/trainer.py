@@ -62,9 +62,10 @@ class TrainConfig:
     """Everything `eve train` needs, with the proven defaults baked in."""
 
     gens: int = 1
-    pop: int = 4
+    pop: int = 8  # H-09: scaled 4 -> 8 once the dream metric was fixed
     seed: int = 316
     fresh: bool = False
+    calibrate: bool = True  # H-09: trust measured rung hit-rates over priors
     urls: List[str] = field(default_factory=lambda: list(DEFAULT_URLS))
     log_path: str = DEFAULT_LOG
     pop_path: str = DEFAULT_POP
@@ -186,8 +187,12 @@ def _memory_rungs(url: str) -> Dict[str, Any]:
 
 
 def run_url(dna: WormDNA, url: str, log_path: str,
-            cap_s: float = DEFAULT_CAP_S):
-    """One scored fetch: intuition guesses, policy decides live-vs-memory."""
+            cap_s: float = DEFAULT_CAP_S,
+            calib: Dict[str, float] = None):
+    """One scored fetch: intuition guesses, policy decides live-vs-memory.
+
+    calib maps rung -> measured hit-rate (H-09): a rung the dream log has
+    graded outranks the intuition prior for the skip-live decision."""
     from . import intuition as _i
     from . import live_log as _l
     from . import websearch as _w
@@ -195,8 +200,10 @@ def run_url(dna: WormDNA, url: str, log_path: str,
     _l.emit("fetch", "intuition", path=log_path, url=url,
             guess=g["state"], confidence=g["confidence"],
             predicted=g.get("predicted_rung"))
-    conf = effective_confidence(g["confidence"], g.get("predicted_rung"),
-                                dna.hunches)
+    base = g["confidence"]
+    if calib and g.get("predicted_rung") in calib:
+        base = calib[g.get("predicted_rung")]
+    conf = effective_confidence(base, g.get("predicted_rung"), dna.hunches)
     skip_live = (g["state"] == "blocked"
                  and conf >= dna.min_confidence
                  and dna.aggressiveness < 0.5)
@@ -248,14 +255,19 @@ def load_or_seed(ga: GeneticAlgorithm, cfg: TrainConfig,
 
 
 def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
-                   tuner: LillithTuner) -> Dict[str, Any]:
-    """Score every genome live, tune, evolve. Returns the gen summary."""
+                   tuner: LillithTuner,
+                   calib: Dict[str, float]) -> Dict[str, Any]:
+    """Score every genome live, tune, evolve. Returns the gen summary.
+
+    calib carries last generation's measured rung hit-rates into this
+    generation's skip-live decisions, then is refreshed in place."""
     from . import intuition as _i
     from . import live_log as _l
     for d in ga.population:
         ok = hits = wall = 0.0
         for u in cfg.urls:
-            o, h, dt, hunch = run_url(d, u, cfg.log_path, cfg.cap_s)
+            o, h, dt, hunch = run_url(d, u, cfg.log_path, cfg.cap_s,
+                                     calib=calib if cfg.calibrate else None)
             ok += o
             hits += h
             wall += dt
@@ -289,6 +301,11 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
           "dream_pairs={dream_pairs} dream_hit={dream_hit:.3f} "
           "best={best_id} aggr={aggr:.2f} conf={conf:.2f} "
           "mutw={mutw:.3f} [{tune}]".format(**summary), flush=True)
+    if cfg.calibrate:
+        calib.clear()
+        calib.update({r: c["hits"] / c["pairs"]
+                      for r, c in dr.get("by_rung", {}).items()
+                      if c.get("pairs", 0) >= 2})
     ga.evolve()
     inspired = teacher_bias(ga, best)
     _l.emit("evolve", "inspire", path=cfg.log_path, gen=gnum,
@@ -308,8 +325,9 @@ def run(cfg: TrainConfig) -> List[Dict[str, Any]]:
     start = load_or_seed(ga, cfg, rng)
     tuner = LillithTuner()
     out = []
+    calib: Dict[str, float] = {}
     for g in range(start, start + cfg.gens):
-        out.append(one_generation(ga, g, cfg, tuner))
+        out.append(one_generation(ga, g, cfg, tuner, calib))
     save_pop(ga, cfg.pop_path)
     print("DONE gens %d-%d final_gen=%d pop_saved=%s tuner=lillith mutw=%.3f"
           % (start, start + cfg.gens - 1, ga.generation,

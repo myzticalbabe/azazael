@@ -1924,7 +1924,7 @@ def main():
     # eve train (live test/evolve cycling; Lillith tunes mutation width)
     tr_p = sub.add_parser("train", help="Evolve the population live")
     tr_p.add_argument("--gens", type=int, default=1)
-    tr_p.add_argument("--pop", type=int, default=4)
+    tr_p.add_argument("--pop", type=int, default=8)  # H-09: scaled 4 -> 8
     tr_p.add_argument("--seed", type=int, default=316)
     tr_p.add_argument("--fresh", action="store_true",
                       help="Discard the saved population and start at gen 1")

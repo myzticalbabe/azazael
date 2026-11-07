@@ -160,12 +160,13 @@ def _dream_log(tmp_path, wins=2):
         ts += 1
         lines.append({"ts": ts, "phase": "fetch", "event": "intuition",
                       "url": "https://w.example/%d" % i,
-                      "predicted": "archive"})
+                      "guess": "guess", "predicted": "archive"})
         lines.append({"ts": ts + 0.5, "phase": "fetch", "event": "answer",
                       "url": "https://w.example/%d" % i,
                       "rung": "archive", "state": "ok"})
     lines.append({"ts": ts + 1, "phase": "fetch", "event": "intuition",
-                  "url": "https://l.example/", "predicted": "render"})
+                  "url": "https://l.example/", "guess": "blocked",
+                  "predicted": "render"})
     lines.append({"ts": ts + 1.5, "phase": "fetch", "event": "answer",
                   "url": "https://l.example/", "rung": "render",
                   "state": "blocked"})
@@ -191,6 +192,62 @@ def test_load_or_seed_fresh_carries_dream_seeds(tmp_path):
     ga = GeneticAlgorithm(population_size=2, rng=random.Random(9))
     load_or_seed(ga, cfg, random.Random(9))
     assert all(d.hunches == ["archive"] for d in ga.population)
+
+
+def test_shape_gene_defaults_and_rejects_unknown_solids():
+    assert WormDNA(worm_id="s", worm_type="fetcher").shape == "dodecahedron"
+    d = WormDNA(worm_id="s", worm_type="fetcher", shape="flatland")
+    assert d.shape == "dodecahedron"
+    d2 = WormDNA(worm_id="s", worm_type="fetcher", shape="icosahedron")
+    assert d2.shape == "icosahedron"
+
+
+def test_crossover_child_recalls_on_fitter_parents_solid():
+    rng = random.Random(4)
+    a = WormDNA(worm_id="a", worm_type="fetcher", shape="petersen")
+    b = WormDNA(worm_id="b", worm_type="fetcher", shape="icosahedron")
+    assert WormDNA.crossover(a, b, rng=rng, fitter=a).shape == "petersen"
+    assert WormDNA.crossover(a, b, rng=rng, fitter=b).shape == "icosahedron"
+
+
+def test_evolve_hands_fitter_parent_to_crossover():
+    from eve_unleashed.self_modifying_worms import WormFitness
+    ga = GeneticAlgorithm(population_size=3, rng=random.Random(5))
+    champ = WormDNA(worm_id="champ", worm_type="fetcher",
+                    shape="hypercube-32")
+    ga.seed([champ,
+             WormDNA(worm_id="w1", worm_type="fetcher", shape="petersen"),
+             WormDNA(worm_id="w2", worm_type="fetcher", shape="petersen")])
+    hi = WormFitness(worm_id="champ", worm_type="fetcher", generation=1,
+                     resource_usage=0.1, insight_quality=1.0, error_rate=0.0,
+                     uptime_s=1.0, actions_taken=6, actions_succeeded=6)
+    lo = WormFitness(worm_id="w1", worm_type="fetcher", generation=1,
+                     resource_usage=0.9, insight_quality=0.0, error_rate=1.0,
+                     uptime_s=1.0, actions_taken=6, actions_succeeded=0)
+    ga.record_fitness(hi)
+    ga.record_fitness(lo)
+    ga.record_fitness(WormFitness(worm_id="w2", worm_type="fetcher",
+                                 generation=1, resource_usage=0.9,
+                                 insight_quality=0.0, error_rate=1.0,
+                                 uptime_s=1.0, actions_taken=6,
+                                 actions_succeeded=0))
+    ga._select = lambda scored: champ  # both parents: the champion
+    ga.evolve()
+    kids = [d for d in ga.population if d.generation == 2]
+    assert kids and all(d.shape == "hypercube-32" for d in kids)
+
+
+def test_mutate_never_moves_off_registered_solids():
+    from eve_unleashed.dodeca_recall import SHAPES
+    rng = random.Random(316)
+    d = WormDNA(worm_id="m", worm_type="fetcher")
+    for _ in range(200):
+        d = d.mutate(rng=rng)
+        assert d.shape in SHAPES
+
+
+def test_train_config_defaults_pop_eight():
+    assert TrainConfig().pop == 8
 
 
 def test_save_load_pop_roundtrip(tmp_path):
