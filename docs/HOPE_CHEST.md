@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: morph-space landed as `a0feb600`).
+**Last stocked:** 2026-11-07 (session: transmogrify engine landed, see below).
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -16,7 +16,7 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | H-03 | Weighted edges: rung-aware costs + Dijkstra recall, gated behind `weighted=True` | M | STOCKED |
 | H-04 | Persist ShapeStore: `to_dict`/`from_dict` snapshot beside the pop file | S | STOCKED |
 | H-05 | Transmogrify guardrails: diameter ceiling + girth floor on evolved solids | S | STOCKED |
-| H-06 | Transmogrify engine (designed, unlanded): MUTATE / TRANSMOGRIFY / TRANSSUBSTANTIATE / SWARM | M | STOCKED |
+| H-06 | Transmogrify engine: MUTATE / TRANSMOGRIFY / TRANSSUBSTANTIATE / SWARM | M | LANDED (commit below) |
 
 ## STOCKED — training loop
 
@@ -39,5 +39,6 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 |------|----------|
 | `eve train` + Lillith tuner | commit `c0216f02` — 9 tests green, live gen-5 proof best 0.7385 |
 | Inspiration trio: teacher bias + hunch crossover + dream-to-gene flow | commit below — 18 trainer + 11 recall tests green |
+| Transmogrify engine: validated solid registration, degree-preserving mutation, re-homing, hypercube swarm | commit below — 16 recall + 18 trainer tests green |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |

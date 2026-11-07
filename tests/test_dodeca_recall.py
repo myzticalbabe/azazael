@@ -41,6 +41,75 @@ def test_larger_solids_are_sound():
     assert len(D.bfs_distances(0, 40, g40)) == 40
 
 
+def _prism(v: int) -> list:
+    """Triangular prism: 6 vertices, degree 3, diameter 2."""
+    if not 0 <= v < 6:
+        raise ValueError(v)
+    if v < 3:
+        return sorted([(v - 1) % 3, (v + 1) % 3, v + 3])
+    i = v - 3
+    return sorted([i, 3 + (i - 1) % 3, 3 + (i + 1) % 3])
+
+
+def test_transmogrify_registers_any_valid_form():
+    D.transmogrify("prism-6", 6, _prism)
+    st = D.ShapeStore("prism-6")
+    assert st.n == 6
+    st.put("k", "v")
+    assert st.recall("k")["exact"][0][0] == 0
+    assert D.diameter(6, _prism) == 2
+
+
+def test_transmogrify_refuses_broken_forms():
+    import pytest as _p
+    with _p.raises(ValueError):
+        D.transmogrify("tiny", 3, lambda v: [])
+    with _p.raises(ValueError):
+        D.transmogrify("loopy", 6, lambda v: [v])
+    with _p.raises(ValueError):
+        D.transmogrify("split", 6,
+                       lambda v: [u for u in _prism(v) if (u < 3) == (v < 3)])
+
+
+def test_mutate_rewires_but_keeps_degree_and_cover():
+    import random as _r
+    new_name, diam = D.mutate_shape("dodecahedron", swaps=3,
+                                    rng=_r.Random(316))
+    n, nbr = D.SHAPES[new_name]
+    assert n == 20 and all(len(nbr(v)) == 3 for v in range(20))
+    assert len(D.bfs_distances(0, 20, nbr)) == 20
+    st = D.ShapeStore(new_name)
+    st.put("mk", "mv")
+    assert [m[1] for m in st.recall("mk")["exact"]] == ["mk"]
+
+
+def test_transsubstantiate_rehomes_every_entry():
+    src = D.DodecaStore()
+    src.put("a.example", {"rung": "archive"})
+    src.put("b.example", {"rung": "render"})
+    new = D.transsubstantiate(src, lambda k, v: v["rung"])
+    assert new.shape == "dodecahedron"
+    got = new.recall("archive")["exact"]
+    assert [m[1] for m in got] == ["archive"]  # re-homed under rung
+    assert got[0][2] == {"rung": "archive"}  # substance (value) survives
+    assert [m[1] for m in new.recall("render")["exact"]] == ["render"]
+    assert new.recall("a.example")["exact"] == []  # old keys are gone
+
+
+def test_swarm_hypercubes_fan_out_and_merge():
+    sw = D.SwarmStore("hypercube-32", shards=4)
+    keys = ["h%d.example" % i for i in range(40)]
+    homes = {k: sw.put(k, k + "-val") for k in keys}
+    assert len({s for s, _ in homes.values()}) > 1  # spread happened
+    for k in keys:
+        res = sw.recall(k)
+        assert [m[1] for m in res["exact"]] == [k]
+        assert res["exact"][0][0] == 0
+        dists = [(m[0], m[1]) for m in res["context"]]
+        assert dists == sorted(dists)  # merged nearest-first
+    assert sw.recall("never-seen")["exact"] == []
+
+
 def test_morph_preserves_every_entry():
     small = D.ShapeStore("dodecahedron")
     keys = [f"host-{i}.example" for i in range(25)]  # more keys than slots

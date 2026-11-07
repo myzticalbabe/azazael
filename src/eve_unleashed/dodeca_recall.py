@@ -216,6 +216,128 @@ def morph_store(store: ShapeStore, shape: str) -> ShapeStore:
     return new
 
 
+def transmogrify(name: str, n: int,
+                 nbr: Callable[[int], List[int]]) -> str:
+    """Register ANY neighbor-function as a new solid. Validated, or refused.
+
+    Refuses: vertex out of range, self-loop, disconnected graph. Returns
+    the name on success -- this is 'any form wanted', with a bouncer."""
+    if n < 4:
+        raise ValueError(f"a solid needs >= 4 vertices, got {n}")
+    for v in range(n):
+        for w in nbr(v):
+            if not 0 <= w < n:
+                raise ValueError(f"vertex {v} reaches off-solid {w}")
+            if w == v:
+                raise ValueError(f"vertex {v} loops to itself")
+    if len(bfs_distances(0, n, nbr)) != n:
+        raise ValueError(f"{name}: graph is disconnected")
+    SHAPES[name] = (n, nbr)
+    return name
+
+
+def mutate_shape(name: str, swaps: int = 3,
+                 rng: "random.Random | None" = None,
+                 prefix: str = "mut") -> Tuple[str, int]:
+    """Rewire a registered solid's edges; register the variant; report it.
+
+    Edge-swaps preserve the degree sequence (swap (a,b),(c,d) for
+    (a,d),(c,b)); rejects swaps that duplicate an edge or self-loop, and
+    refuses a disconnected result. Returns (new_name, measured_diameter)."""
+    import random as _random
+    rng = rng or _random.Random()
+    if name not in SHAPES:
+        raise ValueError(f"unknown shape {name!r}; SHAPES={sorted(SHAPES)}")
+    n, nbr = SHAPES[name]
+    adj: Dict[int, set] = {v: set(nbr(v)) for v in range(n)}
+    edges = sorted({tuple(sorted((v, w))) for v in range(n) for w in adj[v]})
+    have = {tuple(sorted(e)) for e in edges}
+    done = 0
+    tries = 0
+    while done < swaps and tries < swaps * 50:
+        tries += 1
+        (a, b), (c, d) = rng.sample(edges, 2)
+        if len({a, b, c, d}) < 4:
+            continue
+        e1, e2 = tuple(sorted((a, d))), tuple(sorted((c, b)))
+        if e1 in have or e2 in have:
+            continue
+        for x, y in ((a, b), (c, d)):
+            adj[x].discard(y)
+            adj[y].discard(x)
+        for x, y in ((a, d), (c, b)):
+            adj[x].add(y)
+            adj[y].add(x)
+        edges = sorted({tuple(sorted((v, w)))
+                        for v in range(n) for w in adj[v]})
+        have = {tuple(sorted(e)) for e in edges}
+        done += 1
+    frozen = {v: sorted(ws) for v, ws in adj.items()}
+
+    def _mut(v: int) -> List[int]:
+        return list(frozen[v])
+    if len(bfs_distances(0, n, _mut)) != n:
+        raise ValueError(f"mutation of {name} disconnected the solid")
+    new_name = f"{prefix}-{name}-{done}sw"
+    SHAPES[new_name] = (n, _mut)
+    return new_name, diameter(n, _mut)
+
+
+def transsubstantiate(store: ShapeStore,
+                      key_fn: Callable[[str, Any], str],
+                      shape: str = None) -> ShapeStore:
+    """Change what the vertices HOLD: re-home every entry under new keys.
+
+    Same graph (or a named new one); new addressing substance. Entries
+    survive; addresses change. The deepest morph: accidents kept, substance
+    swapped."""
+    new = ShapeStore(shape or store.shape)
+    for v in range(store.n):
+        for k, val in store.slots[v]:
+            new.put(key_fn(k, val), val)
+    return new
+
+
+class SwarmStore:
+    """Swarm the recall: keys sharded across stores, recall fans out.
+
+    Each shard is a full solid (default hypercube-32). put lands on one
+    shard; recall asks every shard and merges context by (distance, shard)
+    while exact hits stay exact. The swarm is the shape, multiplied."""
+
+    def __init__(self, shape: str = "hypercube-32", shards: int = 4) -> None:
+        if shards < 1:
+            raise ValueError(f"a swarm needs >= 1 shard, got {shards}")
+        self.shape = shape
+        self.stores = [ShapeStore(shape) for _ in range(shards)]
+
+    def _shard(self, key: str) -> int:
+        return int(hashlib.md5(key.encode("utf-8")).hexdigest(), 16) \
+            % len(self.stores)
+
+    def put(self, key: str, value: Any) -> Tuple[int, int]:
+        """Store value; returns (shard, home vertex)."""
+        s = self._shard(key)
+        return s, self.stores[s].put(key, value)
+
+    def recall(self, key: str, radius: int = None) -> Dict[str, Any]:
+        """Fan out to every shard; merge. Exact stays exact."""
+        exact: List[Tuple[int, str, Any]] = []
+        context: List[Tuple[int, int, str, Any]] = []
+        hops = visited = 0
+        for i, st in enumerate(self.stores):
+            res = st.recall(key, radius=radius)
+            exact.extend(res["exact"])
+            context.extend((d, i, k, v)
+                           for d, k, v in res["context"])
+            hops = max(hops, res["hops"])
+            visited += res["visited"]
+        context.sort(key=lambda m: (m[0], m[1]))
+        return {"exact": exact, "context": context, "hops": hops,
+                "visited": visited, "shards": len(self.stores),
+                "shape": self.shape}
+
+
 class DodecaStore(ShapeStore):
     """The default solid. Kept by name: the canon was written for it."""
 
