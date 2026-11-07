@@ -21,6 +21,7 @@ Pure Python lists. Slow by design, exact by construction.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import random
 import struct
@@ -242,19 +243,17 @@ def rebuild(spec: Dict) -> Sequential:
 
 def ship(model: Sequential, loss: float, path: str) -> Dict:
     """Write the shippable artifact: architecture + learned params + digest."""
-    import json as _json
     artifact = {"spec": describe(model), "params": model.params(),
                 "loss": loss, "digest": digest(model)}
     with open(path, "w", encoding="utf-8") as f:
-        _json.dump(artifact, f)
+        json.dump(artifact, f)
     return artifact
 
 
 def load_ship(path: str) -> Sequential:
     """Rebuild from a shipped artifact; refuse tampered shipments by name."""
-    import json as _json
     with open(path, encoding="utf-8") as f:
-        artifact = _json.load(f)
+        artifact = json.load(f)
     model = rebuild(artifact["spec"])
     flat = list(artifact["params"])
     for b in model.blocks:

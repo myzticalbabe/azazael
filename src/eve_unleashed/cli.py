@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import List
 import time
 
+from .trainer import TrainConfig, freeze_fixture, null_control, run
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
@@ -1243,7 +1245,6 @@ def cmd_bypass(args) -> int:
 
 def cmd_train(args) -> int:
     """Test/evolve cycling for the population; Lillith tunes the width."""
-    from .trainer import TrainConfig, freeze_fixture, null_control, run
     if args.freeze_fixture:
         doc = freeze_fixture(TrainConfig().urls, args.freeze_fixture,
                              cap_s=args.cap_s)

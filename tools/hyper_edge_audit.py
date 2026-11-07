@@ -65,7 +65,7 @@ def _run_reading_audit() -> tuple:
     try:
         result = subprocess.run(
             [sys.executable, str(ROOT / "tools" / "reading_audit.py"), "--glob", "logs/*.json"],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, encoding="utf-8", timeout=120,
         )
         # Parse the output for finding classes
         output = result.stdout + result.stderr
@@ -94,7 +94,7 @@ def _run_settings_shadow() -> tuple:
     try:
         result = subprocess.run(
             [sys.executable, str(ROOT / "tools" / "settings_shadow.py")],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, encoding="utf-8", timeout=120,
         )
         output = result.stdout + result.stderr
         findings = []
@@ -133,7 +133,7 @@ def _run_head_audit() -> tuple:
     try:
         result = subprocess.run(
             [sys.executable, str(ROOT / "tools" / "head_audit.py")],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, encoding="utf-8", timeout=120,
         )
         output = result.stdout + result.stderr
         findings = []

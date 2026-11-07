@@ -31,6 +31,9 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from . import intuition as _i
+from . import live_log as _l
+from . import websearch as _w
 from .honey import sha_file
 from .self_modifying_worms import (
     GeneticAlgorithm,
@@ -142,7 +145,6 @@ def dream_seed_hunches(log_path: str) -> List[str]:
     Reads the dream log (missing log -> no seeds, never an error) and
     returns the top winning rungs. Fresh genomes seeded with these carry
     ancestral intuitions from generation zero."""
-    from . import intuition as _i
     dr = _i.dream(log_path=log_path)
     ranked = sorted(dr.get("by_rung", {}).items(),
                     key=lambda kv: kv[1].get("hits", 0), reverse=True)
@@ -180,7 +182,6 @@ def _capped(fn: Callable, cap_s: float, *a):
 
 
 def _memory_rungs(url: str) -> Dict[str, Any]:
-    from . import websearch as _w
     body, _snap, aerr = _w._archive_fallback(url)
     if not aerr:
         return {"state": "ok", "rung": "archive", "text": body[:20000]}
@@ -205,7 +206,6 @@ def freeze_fixture(urls: List[str], path: str,
     Replay (fixture_data) substitutes these pinned outcomes for every
     fetch, so fitness is deterministic given the file. Re-freeze to
     measure live drift; never edit the file by hand (sha-checked)."""
-    from . import websearch as _w
     outcomes = {}
     for u in urls:
         res = _capped(_w.fetch_visible, cap_s, u)
@@ -241,9 +241,6 @@ def run_url(dna: WormDNA, url: str, log_path: str,
 
     calib maps rung -> measured hit-rate (H-09): a rung the dream log has
     graded outranks the intuition prior for the skip-live decision."""
-    from . import intuition as _i
-    from . import live_log as _l
-    from . import websearch as _w
     g = _i.intuit(url, log_path=log_path)
     _l.emit("fetch", "intuition", path=log_path, url=url,
             guess=g["state"], confidence=g["confidence"],
@@ -365,8 +362,6 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
 
     calib carries last generation's measured rung hit-rates into this
     generation's skip-live decisions, then is refreshed in place."""
-    from . import intuition as _i
-    from . import live_log as _l
     for d in ga.population:
         ga.record_fitness(score_genome(d, cfg, calib))
     scores = {d.worm_id: ga.fitness[d.worm_id].score() for d in ga.population}

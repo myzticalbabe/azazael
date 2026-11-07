@@ -20,6 +20,8 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from .dodeca_recall import SHAPES  # recall never imports worms, so no cycle
+
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
@@ -78,7 +80,6 @@ class WormDNA:
         self.mutation_rate = max(0.01, min(0.5, self.mutation_rate))
         self.min_confidence = max(0.5, min(0.99, self.min_confidence))
         self.cooldown_s = max(5.0, self.cooldown_s)
-        from .dodeca_recall import SHAPES  # local: recall never imports worms
         if self.shape not in SHAPES:
             self.shape = "dodecahedron"
 
@@ -105,7 +106,6 @@ class WormDNA:
         d["mutation_rate"] = max(0.01, min(0.5, self.mutation_rate *
                                            rng.uniform(0.8, 1.2)))
         if rng.random() < 0.05:  # rare morph: try another solid (H-01)
-            from .dodeca_recall import SHAPES
             d["shape"] = rng.choice(sorted(SHAPES))
         return WormDNA(**d)
 

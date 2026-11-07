@@ -40,7 +40,7 @@ def run(cmd, cwd):
     print("+ " + " ".join(cmd))
     # Bounded: a wedged compiler must fail loudly, never hang the caller.
     proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
-                          timeout=600)
+                          encoding="utf-8", timeout=600)
     if proc.stdout.strip():
         print(proc.stdout.strip())
     if proc.returncode != 0:

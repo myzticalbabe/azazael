@@ -27,9 +27,13 @@ Measured in tests/test_dodeca_recall.py::test_morph_space_diameters.
 
 from __future__ import annotations
 
+import datetime
 import hashlib
+import json
+import random
 from collections import deque
 from typing import Any, Callable, Dict, List, Tuple
+from urllib.parse import urlparse
 
 try:
     from CORE.failure_ledger import note_failure
@@ -341,8 +345,7 @@ def mutate_shape(name: str, swaps: int = 3,
     Edge-swaps preserve the degree sequence (swap (a,b),(c,d) for
     (a,d),(c,b)); rejects swaps that duplicate an edge or self-loop, and
     refuses a disconnected result. Returns (new_name, measured_diameter)."""
-    import random as _random
-    rng = rng or _random.Random()
+    rng = rng or random.Random()
     if name not in SHAPES:
         raise ValueError(f"unknown shape {name!r}; SHAPES={sorted(SHAPES)}")
     n, nbr = SHAPES[name]
@@ -493,19 +496,17 @@ def cast_projection(store: ShapeStore, genome: Dict[str, Any],
     Constraint, stated not hidden: the .py form embeds values as literals,
     so values must be repr-literals. The JSON form carries anything
     json-serializable (default=str beyond that)."""
-    import datetime as _dt
-    import json as _json
     entries = [(k, v) for v in range(store.n) for k, v in store.slots[v]]
     prov = dict(provenance or {})
     prov.setdefault("cast_utc",
-                    _dt.datetime.now(_dt.timezone.utc).isoformat())
+                    datetime.datetime.now(datetime.timezone.utc).isoformat())
     payload = {"shape": store.shape, "slots": store.n,
                "diameter": diameter(store.n, store.nbr),
                "genome": dict(genome),
                "hunches": list(genome.get("hunches") or []),
                "entries": entries, "provenance": prov}
     gid = genome.get("worm_id", "?")
-    json_text = _json.dumps(payload, indent=2, default=str)
+    json_text = json.dumps(payload, indent=2, default=str)
     py_text = (
         '"""Cast stone: {shape} + genome {gid}. Frozen; needs no trainer."""\n'
         "from eve_unleashed.dodeca_recall import ShapeStore\n\n"
@@ -693,8 +694,6 @@ def bfs_order(home: int) -> List[int]:
 
 def index_live_log(log_path: str, store: ShapeStore = None) -> ShapeStore:
     """Map a live-log's fetch answers onto vertices, keyed by host."""
-    import json as _json
-    from urllib.parse import urlparse as _parse
     store = store or DodecaStore()
     with open(log_path, encoding="utf-8") as fh:
         for line in fh:
@@ -702,14 +701,14 @@ def index_live_log(log_path: str, store: ShapeStore = None) -> ShapeStore:
             if not line:
                 continue
             try:
-                ev = _json.loads(line)
+                ev = json.loads(line)
             except ValueError as e:
                 note_failure("dodeca:index:bad-line", e)
                 continue
             if ev.get("phase") != "fetch" or ev.get("event") != "answer":
                 continue
             url = ev.get("url", "")
-            host = _parse(url).netloc or url
+            host = urlparse(url).netloc or url
             store.put(host, {"rung": ev.get("rung"),
                              "state": ev.get("state"),
                              "kind": ev.get("kind")})
