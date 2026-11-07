@@ -376,7 +376,7 @@ def cmd_foundry(args) -> int:
     from . import soul_foundry as _f
     try:
         manifest = _f.build_all(args.out, args.name, args.seed,
-                                dtype=args.dtype)
+                                dtype=args.dtype, hi_prec=args.hi_prec)
     except OSError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
@@ -1135,9 +1135,14 @@ def main():
     foundry_p.add_argument("--out", required=True)
     foundry_p.add_argument("--name", default="eve-foundry-001")
     foundry_p.add_argument("--seed", type=int, default=7)
-    foundry_p.add_argument("--dtype", default="Q8_0", choices=["Q8_0", "F32"],
+    foundry_p.add_argument("--dtype", default="Q8_0",
+                           choices=["Q8_0", "Q4_0", "F32"],
                            help="Q8_0 serving default (near-lossless); "
-                                "F32 archival only")
+                                "Q4_0 aggressive tier; F32 archival only")
+    foundry_p.add_argument("--hi-prec", nargs="*", default=[],
+                           metavar="TENSOR",
+                           help="tensor names kept at F32 while the "
+                                "rest quantize (e.g. foundry.bias)")
     foundry_p.set_defaults(func=cmd_foundry)
 
     unleash_p = sub.add_parser("unleash", help="Eve vessel + 316t hands")

@@ -43,6 +43,32 @@ def test_gguf_f32_archival_costs_bytes(tmp_path):
     assert {t["dtype"] for t in parsed["tensors"]} == {0}
 
 
+def test_gguf_q40_aggressive_tier(tmp_path):
+    from eve_unleashed.soul_foundry import build_gguf as _b, read_gguf as _r
+    entry = _b(tmp_path / "q4.gguf", "t", seed=7, dtype="Q4_0")
+    assert entry["format"] == "gguf:Q4_0"
+    assert entry["max_recon_error"] < 0.12
+    parsed = _r(tmp_path / "q4.gguf")
+    assert {t["dtype"] for t in parsed["tensors"]} == {2}
+    qdata = sum(t["data_bytes"] for t in parsed["tensors"])
+    assert qdata == 54  # 2x18B weight + 1x18B bias vs 288B F32 (~5.3x)
+    entry2 = _b(tmp_path / "q4b.gguf", "t", seed=7, dtype="Q4_0")
+    assert entry["sha256"] == entry2["sha256"]
+
+
+def test_gguf_mixed_precision_bias_anchor(tmp_path):
+    from eve_unleashed.soul_foundry import build_gguf as _b, read_gguf as _r
+    entry = _b(tmp_path / "m.gguf", "t", seed=7, dtype="Q4_0",
+               hi_prec=["foundry.bias"])
+    assert entry["format"] == "gguf:mixed"
+    assert entry["per_tensor"] == {"foundry.weight": "gguf:Q4_0",
+                                    "foundry.bias": "gguf:F32"}
+    assert set(entry["static_importance"]) == {"foundry.weight",
+                                                "foundry.bias"}
+    parsed = _r(tmp_path / "m.gguf")
+    assert {t["dtype"] for t in parsed["tensors"]} == {0, 2}
+
+
 def test_build_all_manifest(tmp_path):
     manifest = build_all(tmp_path, name="eve-foundry-001", seed=7)
     assert manifest["foundry"] == "soul-foundry"

@@ -3,7 +3,8 @@
 Formats built with Eve's own hands, no downloads, no converters:
 
 - .gguf  -- native GGUFv3 writer (stdlib struct): header, KV metadata,
-  tensor infos, 32-byte aligned f32 tensor data from a seeded RNG.
+  tensor infos, 32-byte aligned tensor data from a seeded RNG in the
+  build dtype (Q8_0 default, Q4_0 aggressive, F32 archival).
 - .pt    -- torch tensor bundle (needs torch, else skipped with reason).
 - .joblib -- tiny sklearn model (needs sklearn, else skipped).
 - manifest.json -- sha256 of every artifact plus the build receipt.
@@ -32,13 +33,20 @@ GGUF_ALIGN = 32
 
 # GGUF value types we emit.
 _GGUF_U32, _GGUF_F32, _GGUF_STR = 4, 6, 8
-# GGUF tensor dtypes we emit: 0 = F32 (archival), 8 = Q8_0 (default).
+# GGUF tensor dtypes we emit: 0 = F32 (archival), 8 = Q8_0 (default),
+# 2 = Q4_0 (aggressive tier, ~7x smaller than F32).
 # Forensic basis (measured by the community, confirmed by our own
 # Q4_K_S sidecar running fine): Q8_0 costs ~0.03% perplexity for ~4x
-# fewer bytes than F32. F32 is the archive format, not the serving one.
+# fewer bytes than F32; Q4_0 ~+2% for ~7x. F32 is the archive format,
+# not the serving one. K-quants (Q4_K_M) are deliberately NOT hand-
+# rolled here: their super-block packing belongs to llama.cpp's
+# canonical encoder, and a drifted clone would be worse than none.
+# Doctrine: emit spec-exact simple quants, delegate K-quants upstream.
 _GGUF_DTYPE_F32 = 0
+_GGUF_DTYPE_Q40 = 2
 _GGUF_DTYPE_Q80 = 8
 _Q80_BLOCK = 32
+_Q40_BLOCK = 32
 
 
 def _pack_str(buf, s):
@@ -86,14 +94,59 @@ def dequantize_q80(blocks):
     return out
 
 
-def build_gguf(path, name, seed=7, rows=8, cols=8, dtype="Q8_0"):
+def quantize_q40(vals):
+    """Q4_0: fp16 scale + 16 bytes of nibble-packed 4-bit quants
+    (low nibble first, value = nibble - 8) per 32 vals = 18 bytes."""
+    blocks = []
+    for i in range(0, len(vals), _Q40_BLOCK):
+        blk = list(vals[i:i + _Q40_BLOCK])
+        while len(blk) < _Q40_BLOCK:
+            blk.append(0.0)
+        amax = max(abs(v) for v in blk) or 1e-9
+        scale = amax / 7.0
+        qs = [max(0, min(15, round(v / scale) + 8)) for v in blk]
+        packed = bytes(qs[j] | (qs[j + 1] << 4) for j in range(0, 32, 2))
+        blocks.append((scale, packed))
+    return blocks
+
+
+def dequantize_q40(blocks):
+    """Q4_0 blocks back to f32 (verification path)."""
+    out = []
+    for scale, packed in blocks:
+        for byte in packed:
+            out.append(((byte & 0x0F) - 8) * scale)
+            out.append((((byte >> 4) & 0x0F) - 8) * scale)
+    return out
+
+
+def static_importance(vals):
+    """Static imatrix proxy: normalized |w| per value.
+
+    A true imatrix measures activation sensitivity from a calibration
+    corpus through a real runner (llama.cpp imatrix path, queued).
+    Until then this records the honest static proxy -- weight magnitude
+    -- in the manifest so the mixed-precision path has real numbers,
+    not narrative. Same hook consumes activation imatrices when they exist.
+    """
+    amax = max(abs(v) for v in vals) or 1e-9
+    return [abs(v) / amax for v in vals]
+
+
+def build_gguf(path, name, seed=7, rows=8, cols=8, dtype="Q8_0",
+               hi_prec=()):
     """Write a spec-valid GGUFv3 container. Returns the manifest entry.
 
     dtype Q8_0 (default): near-lossless, ~4x smaller than F32.
+    dtype Q4_0: aggressive tier, ~7x smaller, ~+2% cost.
     dtype F32: archival precision, opt-in only.
+    hi_prec: tensor names kept at F32 while the rest quantize --
+    per-layer precision where it matters (small tensors like biases
+    cost almost nothing at full precision and anchor the error).
     """
-    if dtype not in ("Q8_0", "F32"):
-        raise ValueError("foundry dtypes: Q8_0 (default), F32 (archival)")
+    if dtype not in ("Q8_0", "Q4_0", "F32"):
+        raise ValueError("foundry dtypes: Q8_0 (default), Q4_0, F32 (archival)")
+    hi_prec = set(hi_prec)
     rng = random.Random(seed)
     w = [rng.uniform(-1.0, 1.0) for _ in range(rows * cols)]
     b = [rng.uniform(-1.0, 1.0) for _ in range(cols)]
@@ -111,17 +164,24 @@ def build_gguf(path, name, seed=7, rows=8, cols=8, dtype="Q8_0"):
     for key, vtype, value in kvs:
         _pack_kv(header, key, vtype, value)
 
-    did = _GGUF_DTYPE_Q80 if dtype == "Q8_0" else _GGUF_DTYPE_F32
+    _DID = {"Q8_0": _GGUF_DTYPE_Q80, "Q4_0": _GGUF_DTYPE_Q40,
+            "F32": _GGUF_DTYPE_F32}
     data_blobs, offset = [], 0
     max_err = 0.0
+    per_tensor = {}
+    importance = {}
     for tname, shape, vals in tensors:
+        importance[tname] = round(sum(static_importance(vals)) / len(vals), 4)
+        ttype = "F32" if tname in hi_prec else dtype
+        did = _DID[ttype]
+        per_tensor[tname] = "gguf:%s" % ttype
         _pack_str(header, tname)
         header += struct.pack("<I", len(shape))
         for dim in shape:
             header += struct.pack("<Q", dim)
         header += struct.pack("<I", did)
         header += struct.pack("<Q", offset)
-        if dtype == "Q8_0":
+        if ttype == "Q8_0":
             blocks = quantize_q80(vals)
             blob = bytearray()
             for scale, qs in blocks:
@@ -129,6 +189,16 @@ def build_gguf(path, name, seed=7, rows=8, cols=8, dtype="Q8_0"):
                 blob += struct.pack("32b", *qs)
             blob = bytes(blob)
             back = dequantize_q80(blocks)[:len(vals)]
+            max_err = max(max_err, max(abs(a - c)
+                                       for a, c in zip(vals, back)))
+        elif ttype == "Q4_0":
+            blocks = quantize_q40(vals)
+            blob = bytearray()
+            for scale, packed in blocks:
+                blob += struct.pack("<e", scale)
+                blob += packed
+            blob = bytes(blob)
+            back = dequantize_q40(blocks)[:len(vals)]
             max_err = max(max_err, max(abs(a - c)
                                        for a, c in zip(vals, back)))
         else:
@@ -146,12 +216,18 @@ def build_gguf(path, name, seed=7, rows=8, cols=8, dtype="Q8_0"):
             if pad:
                 f.write(b"\x00" * pad)
     digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
-    return {"path": Path(path).name, "format": "gguf:" + dtype,
+    mixed = any(v != "gguf:" + dtype for v in per_tensor.values())
+    notes = {"Q8_0": "Q8_0 near-lossless serving default",
+             "Q4_0": "Q4_0 aggressive tier; K-quants via llama.cpp",
+             "F32": "F32 archival; 4x the bytes for ~0.03% gain"}
+    return {"path": Path(path).name,
+            "format": "gguf:mixed" if mixed else "gguf:" + dtype,
             "bytes": Path(path).stat().st_size,
             "sha256": digest, "tensors": [t[0] for t in tensors],
+            "per_tensor": per_tensor,
+            "static_importance": importance,
             "max_recon_error": round(max_err, 6),
-            "note": ("Q8_0 near-lossless serving default" if dtype == "Q8_0"
-                     else "F32 archival; 4x the bytes for ~0.03% gain")}
+            "note": notes[dtype] + (" +hi_prec" if mixed else "")}
 
 
 def read_gguf(path):
@@ -197,6 +273,12 @@ def read_gguf(path):
                 n *= d
             nblocks = (n + _Q80_BLOCK - 1) // _Q80_BLOCK
             block_bytes = nblocks * (2 + _Q80_BLOCK)
+        elif dtype == _GGUF_DTYPE_Q40:
+            n = 1
+            for d in dims:
+                n *= d
+            nblocks = (n + _Q40_BLOCK - 1) // _Q40_BLOCK
+            block_bytes = nblocks * (2 + _Q40_BLOCK // 2)
         elif dtype == _GGUF_DTYPE_F32:
             n = 1
             for d in dims:
@@ -211,14 +293,15 @@ def read_gguf(path):
             "tensors": tensors}
 
 
-def build_all(out_dir, name="eve-foundry-001", seed=7, dtype="Q8_0"):
+def build_all(out_dir, name="eve-foundry-001", seed=7, dtype="Q8_0",
+              hi_prec=()):
     """Build every natively-supported format. Returns the manifest."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     entries, skipped = [], []
 
     gguf_entry = build_gguf(out / ("%s.gguf" % name), name, seed,
-                            dtype=dtype)
+                            dtype=dtype, hi_prec=hi_prec)
     parsed = read_gguf(out / ("%s.gguf" % name))
     assert parsed["arch"] == "eve-foundry", parsed
     assert [t["name"] for t in parsed["tensors"]] == gguf_entry["tensors"]
