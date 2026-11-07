@@ -30,7 +30,8 @@ def sha_file(path: str) -> str:
 
 
 def propagate(fixture_path: str, dest_dir: str, note: str = "",
-              artifacts: Dict[str, str] | None = None) -> Dict:
+              artifacts: Dict[str, str] | None = None,
+              connectance: Dict | None = None) -> Dict:
     """Copy the frozen fixture to the canonical dir; write honey.json.
 
     artifacts: {label: path} -- every cited claim (pops, logs) recorded
@@ -50,6 +51,7 @@ def propagate(fixture_path: str, dest_dir: str, note: str = "",
         "note": note,
         "artifacts": cited,
         "residuals": {},
+        "connectance": connectance or {},
     }
     with open(dest / "honey.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)

@@ -99,5 +99,134 @@
     },
     "skipped_lines": 0
   },
-  "rematch_fixture_sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638"
+  "rematch_fixture_sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638",
+  "connectance": {
+    "topology": {
+      "solids": [
+        "complete-20",
+        "cycle-20",
+        "dodecahedron",
+        "g40",
+        "hypercube-32",
+        "icosahedron",
+        "petersen"
+      ],
+      "edges": [
+        {
+          "src": "dream_log",
+          "dst": "genome-0",
+          "solid": "complete-20",
+          "note": "intuition-from-memory, no live fetch"
+        },
+        {
+          "src": "dream_log",
+          "dst": "genome-1",
+          "solid": "complete-20",
+          "note": "intuition-from-memory, no live fetch"
+        },
+        {
+          "src": "dream_log",
+          "dst": "genome-2",
+          "solid": "complete-20",
+          "note": "intuition-from-memory, no live fetch"
+        },
+        {
+          "src": "gen-11",
+          "dst": "gen-12-champ",
+          "solid": "cycle-20",
+          "note": "chain: cut ring"
+        },
+        {
+          "src": "gen-12-champ",
+          "dst": "lineage-A-gen-32",
+          "solid": "cycle-20",
+          "note": "chain: continued evolution"
+        },
+        {
+          "src": "lineage-A-gen-32",
+          "dst": "verdict-tie-0.8667",
+          "solid": "complete-20",
+          "note": "same ruler, honest tie"
+        },
+        {
+          "src": "lineage-B-gen-21",
+          "dst": "verdict-tie-0.8667",
+          "solid": "complete-20",
+          "note": "same ruler, honest tie"
+        },
+        {
+          "src": "null-budget-8",
+          "dst": "verdict-tie-0.8667",
+          "solid": "complete-20",
+          "note": "same ruler, honest tie"
+        },
+        {
+          "src": "fixture-freeze",
+          "dst": "fixture-replay",
+          "solid": "cycle-20",
+          "note": "chain: pin then replay"
+        },
+        {
+          "src": "fixture-replay",
+          "dst": "score_genome",
+          "solid": "cycle-20",
+          "note": "chain: one rung"
+        },
+        {
+          "src": "blobs-10",
+          "dst": "root-audit",
+          "solid": "icosahedron",
+          "note": "hub: all cite one"
+        },
+        {
+          "src": "honey.json",
+          "dst": "root-audit",
+          "solid": "icosahedron",
+          "note": "hub: all cite one"
+        },
+        {
+          "src": "WormDNA",
+          "dst": "hypercube-32-space",
+          "solid": "hypercube-32",
+          "note": "cooldown x aggressiveness x confidence x mutation"
+        },
+        {
+          "src": "eve-lane",
+          "dst": "shared-index",
+          "solid": "dodecahedron",
+          "note": "mesh: no lane commands another"
+        },
+        {
+          "src": "shared-index",
+          "dst": "kilo-lane",
+          "solid": "dodecahedron",
+          "note": "mesh: audit read"
+        }
+      ]
+    },
+    "audit": {
+      "verdict": "PASS",
+      "clean": true,
+      "n_edges": 15,
+      "n_nodes": 21,
+      "fans": [
+        "dream_log"
+      ],
+      "funnels": [
+        "root-audit",
+        "verdict-tie-0.8667"
+      ],
+      "hubs": [
+        "root-audit"
+      ],
+      "isolated": [],
+      "by_solid": {
+        "complete-20": 6,
+        "cycle-20": 4,
+        "icosahedron": 2,
+        "hypercube-32": 1,
+        "dodecahedron": 2
+      }
+    }
+  }
 }
