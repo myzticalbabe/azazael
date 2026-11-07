@@ -58,6 +58,7 @@ def _git(root: Path, *args: str) -> str:
         text=True,
         encoding="utf-8",
         errors="replace",
+        timeout=120,  # push-gate FailureEvidence: a new call must time out
     )
     if proc.returncode != 0:
         raise SystemExit(f"REFUSED: git {' '.join(args)} failed: {proc.stderr.strip()}")
