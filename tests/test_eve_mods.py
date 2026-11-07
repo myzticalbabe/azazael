@@ -72,3 +72,20 @@ def test_evolve_selects_best_generation(tmp_path):
     assert (game / ".eveevo" / "best.json").is_file()
     # the live game dir is untouched by evolution copies
     assert (game / "title.png").read_bytes() == b"ORIGINAL-TITLE"
+
+
+def test_apply_best_lands_winning_values(tmp_path):
+    from eve_unleashed.mods import apply_best, evolve_mod
+    game = _game(tmp_path)
+    mod = tmp_path / "evo_mod"
+    mod.mkdir()
+    (mod / "mod.json").write_text(json.dumps({
+        "patches": [{"file": "tuning.cfg", "key": "damage",
+                       "value": 99}], "assets": []}),
+        encoding="utf-8")
+    best, _, _ = evolve_mod(game, mod, generations=4, seed=7,
+                            fitness={"tuning.cfg::damage": 50})
+    manifest = apply_best(game)
+    assert manifest == ["tuning.cfg"]
+    text = (game / "tuning.cfg").read_text()
+    assert text.startswith("damage=") and "damage=99" not in text

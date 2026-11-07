@@ -147,6 +147,21 @@ def _score(gen_dir, trial, fitness):
     return round(total, 3)
 
 
+def apply_best(game_dir):
+    """Apply the evolved best generation onto the live game dir."""
+    import tempfile
+    game = Path(game_dir)
+    best = json.loads((game / ".eveevo" / "best.json").read_text(
+        encoding="utf-8"))
+    with tempfile.TemporaryDirectory(prefix="evebest") as tmp:
+        mod = Path(tmp) / "best"
+        mod.mkdir()
+        (mod / "mod.json").write_text(
+            json.dumps({"patches": best["patches"], "assets": []}),
+            encoding="utf-8")
+        return apply_mod(game, mod)
+
+
 def revert_mod(game_dir):
     """Restore every file in the backup manifest. Returns restored count."""
     bak = Path(game_dir) / ".evebak"

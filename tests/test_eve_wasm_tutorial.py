@@ -36,5 +36,6 @@ def test_generate_embeds_verdicts_and_host(tmp_path):
     assert "groq" in lib and "render_frame" in lib
     html = (out / "index.html").read_text(encoding="utf-8")
     assert "pkg/eve_inner_state.js" in html
+    assert "decide('apply-best')" in html and "/decide" in html
     assert (out / "Cargo.toml").read_text(
         encoding="utf-8").count("wasm-bindgen") == 1
