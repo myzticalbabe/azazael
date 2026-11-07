@@ -291,14 +291,23 @@ def _archive_fallback(url):
     snap_url = snap.get("url", "")
     if not snap.get("available") or not snap_url:
         return "", "", "unarchived: no snapshot listed"
-    try:
-        req = _request.Request(snap_url, headers=_BROWSER_HEADERS)
-        with _request.urlopen(req, timeout=_TIMEOUT) as r:
-            raw = r.read()
-        body = raw.decode("utf-8", "replace")
-    except Exception as e:
-        note_failure("websearch:archive:fetch", e)
-        return "", snap_url, "snapshot fetch failed: %s" % str(e)[:120]
+    body, ferr = "", "no attempt made"
+    for wait in (0, 5, 20):
+        if wait:
+            _time.sleep(wait)
+        try:
+            req = _request.Request(snap_url, headers=_BROWSER_HEADERS)
+            with _request.urlopen(req, timeout=_TIMEOUT) as r:
+                raw = r.read()
+            body, ferr = raw.decode("utf-8", "replace"), None
+            break
+        except Exception as e:
+            note_failure("websearch:archive:fetch", e)
+            ferr = str(e)[:120]
+            if "429" not in ferr:
+                break
+    if ferr:
+        return "", snap_url, "snapshot fetch failed: %s" % ferr
     kind = detect_challenge(200, {}, body)
     if kind:
         return "", snap_url, "snapshot itself walled: %s" % kind
