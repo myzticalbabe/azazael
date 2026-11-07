@@ -709,6 +709,49 @@ def cmd_serve(args) -> int:
     async def stats():
         return engine.stats
 
+    @app.post("/decide")
+    async def decide(req: dict):
+        """Clickable decision blocks: allowlisted dev actions only."""
+        from . import mods as _mods
+        action = req.get("decision", "")
+        game = req.get("game", "")
+        if action not in ("apply-best", "revert"):
+            raise HTTPException(status_code=400,
+                                detail="unknown decision: %s" % action)
+        if not game:
+            raise HTTPException(status_code=400,
+                                detail="'game' is required")
+        try:
+            if action == "apply-best":
+                manifest = _mods.apply_best(game)
+                return {"decision": action, "applied": manifest}
+            n = _mods.revert_mod(game)
+            return {"decision": action, "reverted": n}
+        except (ValueError, OSError) as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @app.post("/therapy")
+    async def therapy(req: dict):
+        """Live therapy: swarm LLM answer with NSP note, else grounding."""
+        from . import therapy as _th
+        mood = (req.get("mood") or "stressed")[:60]
+        note = (req.get("note") or "")[:500]
+        prompt = _th.build_prompt(mood, note)
+        import asyncio as _aio
+        try:
+            win, _reason = await _aio.wait_for(
+                _aio.to_thread(_swarm_fallback, prompt),
+                timeout=SWARM_TIMEOUT_S + 30)
+        except Exception as e:
+            note_failure("cli:therapy-swarm", e)
+            win = None
+        if win:
+            return {"text": win["text"], "provider": win["provider"],
+                    "nsp": win.get("nsp", "nsp-unavailable"),
+                    "live": True}
+        return {"text": _th.fallback_response(mood, note),
+                "provider": "grounding-fallback", "live": False}
+
     @app.get("/gpu")
     async def gpu_info():
         return engine.gpu_info

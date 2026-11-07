@@ -89,6 +89,81 @@ max-width:700px;margin:2em auto}button{margin:.2em;padding:.5em 1em}
 #stage{margin-top:1em}</style></head>
 <body><h1>%s</h1><p>Eve's inner states, compiled to Rust WASM.</p>
 <div id="nav"></div><div id="stage"></div>
+<div id="decide"><h3>Decision blocks (drive dev via Eve serve)</h3>
+<button onclick="decide('apply-best')">Apply best evolution</button>
+<button onclick="decide('revert')">Revert game</button>
+<span id="dout"></span></div>
+<div id="therapy" style="margin-top:1.5em;padding:1em;border:2px solid #1f5fa3;border-radius:12px">
+<h3>Live therapy + voice assistance</h3>
+<button id="therapyBtn" style="font-size:1.3em;padding:.6em 1.4em;background:#1f5fa3;color:#fff;border:none;border-radius:10px;cursor:pointer" onclick="liveTherapy()">THERAPY</button>
+<button onclick="voiceCommand()">Voice command (mic)</button>
+<button onclick="stopSpeech()">Stop voice</button><br/>
+<label>Mood: <select id="mood"><option>stressed</option><option>anxious</option><option>overwhelmed</option><option>sad</option><option>angry</option><option>okay</option></select></label>
+<input id="tnote" placeholder="what's on your mind?" size="40"/>
+<div id="tout" style="white-space:pre-wrap;margin-top:.6em;min-height:3em"></div>
+<div id="vout" style="color:#8b949e;margin-top:.4em"></div>
+</div>
+<script>
+const SERVE = 'http://127.0.0.1:8091';
+function speak(t){
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t.slice(0, 600));
+    u.rate = 0.95;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeech(){ try{ speechSynthesis.cancel(); }catch(e){} }
+async function decide(d){
+  const game = prompt('Game directory?', '');
+  if(!game) return;
+  const r = await fetch(SERVE + '/decide',
+    {method:'POST', headers:{'Content-Type':'application/json'},
+     body: JSON.stringify({decision:d, game})});
+  const txt = (await r.text()).slice(0, 200);
+  document.getElementById('dout').textContent = d + ': ' + txt;
+  speak(d === 'revert' ? 'Game reverted.' : 'Best evolution applied.');
+}
+async function liveTherapy(){
+  const mood = document.getElementById('mood').value;
+  const note = document.getElementById('tnote').value;
+  const out = document.getElementById('tout');
+  out.textContent = 'Eve is here with you...';
+  try{
+    const r = await fetch(SERVE + '/therapy',
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({mood, note})});
+    const j = await r.json();
+    out.textContent = j.text;
+    speak(j.text);
+  }catch(e){ out.textContent = 'Serve offline. Breathe in 4, hold 4, out 6. I am here.'; speak(out.textContent); }
+}
+function voiceCommand(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const out = document.getElementById('vout');
+  if(!SR){ out.textContent = 'Voice recognition not supported in this browser.'; return; }
+  const rec = new SR();
+  rec.lang = 'en-US'; rec.interimResults = false;
+  out.textContent = 'Listening... say therapy, breathe, apply best, revert, or next.';
+  rec.onresult = (ev) => {
+    const heard = ev.results[0][0].transcript;
+    out.textContent = 'Heard: ' + heard;
+    routeVoice(heard);
+  };
+  rec.onerror = (ev) => { out.textContent = 'Mic error: ' + ev.error; };
+  rec.start();
+}
+async function routeVoice(heard){
+  const t = heard.toLowerCase();
+  if(/therap|calm|anxious|stressed|ground/.test(t)){ liveTherapy(); return; }
+  if(/breath/.test(t)){ const b = 'Breathe in 4 counts, hold 4, out 6. Again. You are doing well.';
+    document.getElementById('tout').textContent = b; speak(b); return; }
+  if(/apply.*best/.test(t)){ decide('apply-best'); return; }
+  if(/revert|undo/.test(t)){ decide('revert'); return; }
+  if(/next|continue|forward/.test(t)){ if(typeof show === 'function'){ show(cur + 1); speak('Next step.'); } return; }
+  speak('I heard ' + heard + '. Say therapy, breathe, apply best, revert, or next.');
+}
+</script>
 <script type="module">
 import init, { step_count, steps_json, render_frame } from './pkg/%s.js';
 await init();
