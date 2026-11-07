@@ -1241,6 +1241,17 @@ def cmd_bypass(args) -> int:
     return 0 if res["bypassed_count"] == 0 else 1
 
 
+def cmd_train(args) -> int:
+    """Test/evolve cycling for the population; Lillith tunes the width."""
+    from .trainer import TrainConfig, run
+    cfg = TrainConfig(gens=args.gens, pop=args.pop, seed=args.seed,
+                      fresh=args.fresh,
+                      log_path=args.log, pop_path=args.pop_file,
+                      cap_s=args.cap_s)
+    run(cfg)
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1909,6 +1920,18 @@ def main():
     # eve bypass (defensive mutation kit against Eve's own parsers)
     by_p = sub.add_parser("bypass", help="Try to break Eve's parsers")
     by_p.set_defaults(func=cmd_bypass)
+
+    # eve train (live test/evolve cycling; Lillith tunes mutation width)
+    tr_p = sub.add_parser("train", help="Evolve the population live")
+    tr_p.add_argument("--gens", type=int, default=1)
+    tr_p.add_argument("--pop", type=int, default=4)
+    tr_p.add_argument("--seed", type=int, default=316)
+    tr_p.add_argument("--fresh", action="store_true",
+                      help="Discard the saved population and start at gen 1")
+    tr_p.add_argument("--log", default="C:/tmp/eve-train.jsonl")
+    tr_p.add_argument("--pop-file", default="C:/tmp/eve-pop.json")
+    tr_p.add_argument("--cap-s", type=float, default=40.0)
+    tr_p.set_defaults(func=cmd_train)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
