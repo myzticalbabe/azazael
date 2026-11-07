@@ -23,6 +23,7 @@ invented. Interactive CAPTCHAs are out of scope: the kit renders
 what a real browser shows and stops there.
 """
 import json as _json
+import os as _os
 import time as _time
 import urllib.parse as _parse
 import urllib.request as _request
@@ -247,11 +248,14 @@ def _curl_cffi_fetch(url):
     except Exception as e:
         raise RuntimeError("curl_cffi not installed: %s" % (e,))
     profiles = ("chrome124", "chrome120", "safari15_5", "edge101")
+    proxy = _os.environ.get("PROXY_URL") or None
+    proxies = {"http": proxy, "https": proxy} if proxy else None
     last_err, last_kind = "all profiles challenged", None
     for profile in profiles:
         try:
             r = _cr.get(url, impersonate=profile, timeout=_TIMEOUT,
-                        headers={"Accept-Language": "en-US,en;q=0.9"})
+                        headers={"Accept-Language": "en-US,en;q=0.9"},
+                        proxies=proxies)
             kind = detect_challenge(r.status_code, dict(r.headers),
                                     r.text or "")
             if kind:
@@ -266,12 +270,49 @@ def _curl_cffi_fetch(url):
     return "", None, "%s; last wall: %s" % (last_err, last_kind)
 
 
+def _archive_urls(url):
+    """Wayback availability lookup, then the snapshot address."""
+    api = ("https://archive.org/wayback/available?url=%s"
+           % _parse.quote(url, safe=""))
+    return api
+
+
+def _archive_fallback(url):
+    """Last rung: the closest Wayback snapshot, fetched plainly.
+
+    Returns (body, snapshot_url, error). A page nobody archived
+    has no snapshot; that reads `unarchived`, never an error in
+    the page itself."""
+    data, err = _get(_archive_urls(url))
+    if err:
+        return "", "", "availability lookup failed: %s" % err
+    outer = (data or {}).get("archived_snapshots", {}) or {}
+    snap = outer.get("closest", {}) or {}
+    snap_url = snap.get("url", "")
+    if not snap.get("available") or not snap_url:
+        return "", "", "unarchived: no snapshot listed"
+    try:
+        req = _request.Request(snap_url, headers=_BROWSER_HEADERS)
+        with _request.urlopen(req, timeout=_TIMEOUT) as r:
+            raw = r.read()
+        body = raw.decode("utf-8", "replace")
+    except Exception as e:
+        note_failure("websearch:archive:fetch", e)
+        return "", snap_url, "snapshot fetch failed: %s" % str(e)[:120]
+    kind = detect_challenge(200, {}, body)
+    if kind:
+        return "", snap_url, "snapshot itself walled: %s" % kind
+    return body, snap_url, None
+
+
 def fetch_visible(url):
     """Fetch a page up the mutation ladder; report the clearing rung.
 
     Rung 1: plain request. Rung 2: full browser headers. Rung 3:
-    curl_cffi TLS impersonation. Rung 4: headless render. A wall
-    surviving rung 4 is `blocked` with its kind, never empty."""
+    curl_cffi TLS impersonation (PROXY_URL honored). Rung 4:
+    headless render. Rung 5: closest Wayback snapshot. A wall
+    surviving rung 4 is `blocked`; rung 5 answers from the archive
+    or reports `unarchived`. Never empty, never invented."""
     if not url or not str(url).strip():
         raise ValueError("nothing to fetch: empty url")
     url = str(url).strip()
@@ -318,9 +359,14 @@ def fetch_visible(url):
                 "kind": None, "detail": err}
     kind = detect_challenge(200, {}, text)
     if kind:
+        body, snap_url, aerr = _archive_fallback(url)
+        if not aerr:
+            return {"state": "ok", "rung": "archive",
+                    "kind": kind, "snapshot": snap_url,
+                    "text": (body or "")[:20000]}
         return {"state": "blocked", "rung": "render", "kind": kind,
-                "detail": ("challenge '%s' survived all three rungs; "
-                           "page withheld, nothing invented" % kind)}
+                "detail": ("challenge '%s' survived live rungs; "
+                           "archive: %s" % (kind, aerr))}
     return {"state": "ok", "rung": "render", "kind": None,
             "text": (text or "")[:20000]}
 

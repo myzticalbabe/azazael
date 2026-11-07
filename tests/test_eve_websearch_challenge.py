@@ -60,6 +60,20 @@ def test_tls_impersonation_rung_live():
     assert "documentation examples" in body
 
 
+def test_archive_lookup_url_shape():
+    api = _w._archive_urls("https://example.com/a?b=c")
+    assert api.startswith(
+        "https://archive.org/wayback/available?url=")
+    assert "example.com" in api
+
+
+def test_archive_fallback_live_snapshot():
+    body, snap_url, err = _w._archive_fallback("https://example.com")
+    assert err is None, err
+    assert "web.archive.org" in snap_url
+    assert len(body) > 500
+
+
 def test_live_headless_render_executes():
     text, err = _w._render_fetch("https://example.com")
     assert err is None, err
