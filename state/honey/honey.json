@@ -2,7 +2,7 @@
   "fixture_sha": "479ed960d33bd7d1bf7452023f1aac5af55dc8694ff1ce4523153f86c040df77",
   "frozen_from": "C:/tmp/eve-fixture.json",
   "propagated_at": "2026-11-07T20:16:37.363444+00:00",
-  "note": "First Honey: null-control fixture + both lineages + verdicts. Live ruler (0.85x) and fixture ruler (0.8667) kept separate.",
+  "note": "First Honey: null-control fixture + both lineages + verdicts. Live ruler (0.85x) and fixture ruler (0.8667) kept separate. Rematch 2026-11-07: fresh fixture (wikipedia ok at freeze) -- champ best 0.8667 mean 0.8167 vs null best 0.8667 mean 0.8119. Tie persists on unseen ground.",
   "artifacts": {
     "fixture_src": {
       "path": "C:/tmp/eve-fixture.json",
@@ -31,6 +31,18 @@
     "log_champ_rescore": {
       "path": "C:/tmp/eve-champ-rescore.jsonl",
       "sha": "6f17d91e0d87f371e9ca5d72527f9c43dc906eb6b4b31bb4b525b5719ff4bc0f"
+    },
+    "fixture_rematch": {
+      "path": "C:/tmp/eve-fixture-rematch.json",
+      "sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638"
+    },
+    "log_rematch_champ": {
+      "path": "C:/tmp/eve-rematch-champ.jsonl",
+      "sha": "d3fabe43bc5dd1422e4a93b6118909f0efa8781beeba3d2c6cc8a1d94fa26744"
+    },
+    "log_rematch_null": {
+      "path": "C:/tmp/eve-rematch-null.jsonl",
+      "sha": "cca2415a51fdc6b947feeac65a7b5244dacdd125af1c1b42ce1fced6396009b9"
     }
   },
   "residuals": {
@@ -86,5 +98,6 @@
       }
     },
     "skipped_lines": 0
-  }
+  },
+  "rematch_fixture_sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638"
 }
