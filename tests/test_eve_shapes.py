@@ -14,7 +14,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pytest
 
-from eve_unleashed.shapes import ROLES, SOLIDS, ShapeGraph
+from eve_unleashed.shapes import (ROLES, SOLIDS, ShapeGraph,
+                                regime_histogram)
 
 
 def _session_topology() -> ShapeGraph:
@@ -64,6 +65,27 @@ def test_session_topology_audits_pass_with_geometry_emerged():
     assert set(v["by_solid"]) >= {"complete-20", "cycle-20",
                                   "icosahedron", "hypercube-32",
                                   "dodecahedron"}
+
+
+def test_regime_histogram_counts_five_regimes_alive():
+    h = regime_histogram(_session_topology())
+    assert sum(h.values()) == 15
+    assert h["fan"] >= 3 and h["funnel"] >= 3
+    assert h["ring"] >= 4 and h["hub"] == 2
+    assert h["cube"] == 1 and h["mesh"] == 2
+
+
+def test_hyper_edge_audits_itself_as_a_funnel():
+    # reading, settings, ledger, head: four legs, one verdict.
+    g = ShapeGraph()
+    for leg in ("reading_audit", "settings_shadow", "leg_ledger",
+                "head_audit"):
+        g.declare(leg, "hyper-edge-verdict", "complete-20",
+                  "four faces of auditability")
+    v = g.audit()
+    assert v["verdict"] == "PASS", v
+    assert v["funnels"] == ["hyper-edge-verdict"]
+    assert v["isolated"] == []
 
 
 def test_roles_cover_all_seven_registered_solids():

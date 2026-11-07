@@ -74,3 +74,29 @@ class ShapeGraph:
 
     def to_manifest(self) -> Dict:
         return {"solids": SOLIDS, "edges": list(self.edges)}
+
+
+def regime_histogram(graph: "ShapeGraph") -> Dict[str, int]:
+    """Edge count per connectance regime. Complete-20 splits by
+    direction: out-degree >= 2 is fan, in-degree >= 2 is funnel."""
+    out_deg: Dict[str, int] = {}
+    in_deg: Dict[str, int] = {}
+    for e in graph.edges:
+        out_deg[e["src"]] = out_deg.get(e["src"], 0) + 1
+        in_deg[e["dst"]] = in_deg.get(e["dst"], 0) + 1
+    hist: Dict[str, int] = {}
+    for e in graph.edges:
+        s = e["solid"]
+        if s == "complete-20":
+            role = ("funnel" if in_deg[e["dst"]] >= 2
+                    else "fan" if out_deg[e["src"]] >= 2 else "fan")
+        elif s == "cycle-20":
+            role = "ring"
+        elif s == "hypercube-32":
+            role = "cube"
+        elif s == "icosahedron":
+            role = "hub"
+        else:
+            role = "mesh"
+        hist[role] = hist.get(role, 0) + 1
+    return hist

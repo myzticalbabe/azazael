@@ -228,5 +228,190 @@
         "dodecahedron": 2
       }
     }
+  },
+  "resilience": {
+    "reports": {
+      "complete-20": {
+        "solid": "complete-20",
+        "n": 20,
+        "degree": 19,
+        "edges": 190,
+        "diameter": 1,
+        "mean_distance": 1.0,
+        "moore_efficiency": 1.0,
+        "spectral_gap": 19.99999999999995,
+        "survival": {
+          "fault_diameter": 1,
+          "disconnects": 0,
+          "fault_stretch": 1.0
+        },
+        "price": 1.0
+      },
+      "cycle-20": {
+        "solid": "cycle-20",
+        "n": 20,
+        "degree": 2,
+        "edges": 20,
+        "diameter": 10,
+        "mean_distance": 5.2631578947368425,
+        "moore_efficiency": 0.9523809523809523,
+        "spectral_gap": 0.09788696740969166,
+        "survival": {
+          "fault_diameter": 18,
+          "disconnects": 0,
+          "fault_stretch": 1.8
+        },
+        "price": 1.8900000000000001
+      },
+      "petersen": {
+        "solid": "petersen",
+        "n": 10,
+        "degree": 3,
+        "edges": 15,
+        "diameter": 2,
+        "mean_distance": 1.6666666666666667,
+        "moore_efficiency": 1.0,
+        "spectral_gap": 1.9999999999999976,
+        "survival": {
+          "fault_diameter": 3,
+          "disconnects": 0,
+          "fault_stretch": 1.5
+        },
+        "price": 1.5
+      },
+      "dodecahedron": {
+        "solid": "dodecahedron",
+        "n": 20,
+        "degree": 3,
+        "edges": 30,
+        "diameter": 5,
+        "mean_distance": 2.6315789473684212,
+        "moore_efficiency": 0.2127659574468085,
+        "spectral_gap": 0.7639320225002086,
+        "survival": {
+          "fault_diameter": 5,
+          "disconnects": 0,
+          "fault_stretch": 1.0
+        },
+        "price": 4.7
+      },
+      "icosahedron": {
+        "solid": "icosahedron",
+        "n": 12,
+        "degree": 5,
+        "edges": 30,
+        "diameter": 3,
+        "mean_distance": 1.6363636363636365,
+        "moore_efficiency": 0.11320754716981132,
+        "spectral_gap": 2.763932022500208,
+        "survival": {
+          "fault_diameter": 3,
+          "disconnects": 0,
+          "fault_stretch": 1.0
+        },
+        "price": 8.833333333333334
+      },
+      "hypercube-32": {
+        "solid": "hypercube-32",
+        "n": 32,
+        "degree": 5,
+        "edges": 80,
+        "diameter": 5,
+        "mean_distance": 2.5806451612903225,
+        "moore_efficiency": 0.01875732708089097,
+        "spectral_gap": 1.9999999999999967,
+        "survival": {
+          "fault_diameter": 5,
+          "disconnects": 0,
+          "fault_stretch": 1.0
+        },
+        "price": 53.31250000000001
+      },
+      "g40": {
+        "solid": "g40",
+        "n": 40,
+        "degree": 3,
+        "edges": 60,
+        "diameter": 7,
+        "mean_distance": 3.9743589743589745,
+        "moore_efficiency": 0.10471204188481675,
+        "spectral_gap": 0.22988924952766146,
+        "survival": {
+          "fault_diameter": 8,
+          "disconnects": 0,
+          "fault_stretch": 1.1428571428571428
+        },
+        "price": 10.914285714285715
+      }
+    },
+    "melee": {
+      "winner": "petersen",
+      "table": {
+        "petersen": {
+          "hops": 2.0,
+          "visited": 10
+        },
+        "dodecahedron": {
+          "hops": 5.0,
+          "visited": 20
+        }
+      },
+      "query": "wikipedia"
+    },
+    "retune_now": {
+      "solid": "petersen",
+      "rule": "broadcast->complete-20; fits petersen (<=10)->petersen; fits dodeca (<=20)->dodecahedron; fits cube (<=32)->hypercube-32; else g40",
+      "workload": {
+        "n_total": 5,
+        "n_hot": 2,
+        "broadcast": false
+      }
+    }
+  },
+  "funnel_proof": {
+    "inputs": {
+      "fixture_src": {
+        "path": "blobs/fixture_src.json",
+        "sha": "479ed960d33bd7d1bf7452023f1aac5af55dc8694ff1ce4523153f86c040df77"
+      },
+      "pop_A": {
+        "path": "blobs/pop_A.json",
+        "sha": "dc71ca17af1fdb08fd630fb7a5e29b3db41860700825e177150f2c1a588fa386"
+      },
+      "pop_B": {
+        "path": "blobs/pop_B.json",
+        "sha": "65352a206119d9475603140ca586e33c39590eb1468c20b81c9755b25836cf74"
+      },
+      "log_A": {
+        "path": "blobs/log_A.jsonl",
+        "sha": "b38879418c0d5ecfe719a184a9b9973b7c9bdd01ec33d29f7d16c7e36bb3f860"
+      },
+      "log_B": {
+        "path": "blobs/log_B.jsonl",
+        "sha": "ba6cac3b3c4c1075afd8515f97aea995a48106cde6a63bcc440b2dd40cba4f4b"
+      },
+      "log_null": {
+        "path": "blobs/log_null.jsonl",
+        "sha": "84cac889cf54d199541fb135699cce47c72584540d61702d0b59bd643585ce78"
+      },
+      "log_champ_rescore": {
+        "path": "blobs/log_champ_rescore.jsonl",
+        "sha": "6f17d91e0d87f371e9ca5d72527f9c43dc906eb6b4b31bb4b525b5719ff4bc0f"
+      },
+      "fixture_rematch": {
+        "path": "blobs/fixture_rematch.json",
+        "sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638"
+      },
+      "log_rematch_champ": {
+        "path": "blobs/log_rematch_champ.jsonl",
+        "sha": "d3fabe43bc5dd1422e4a93b6118909f0efa8781beeba3d2c6cc8a1d94fa26744"
+      },
+      "log_rematch_null": {
+        "path": "blobs/log_rematch_null.jsonl",
+        "sha": "cca2415a51fdc6b947feeac65a7b5244dacdd125af1c1b42ce1fced6396009b9"
+      }
+    },
+    "rule": "all cited artifacts verify against blobs",
+    "n_inputs": 10
   }
 }
