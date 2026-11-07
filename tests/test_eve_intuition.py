@@ -73,7 +73,7 @@ def test_dream_pairs_guesses_with_answers(tmp_path):
     assert rep["pairs"] == 2 and rep["hits"] == 1
     assert rep["hit_rate"] == 0.5
     assert rep["by_rung"]["plain"] == {"pairs": 2, "hits": 1}
-    assert rep["hosts"]["d.example"] == {"fetches": 2, "answered": 2}
+    assert rep["hosts"]["d.example"] == {"fetches": 2, "answered": 2, "salience": 2.0}
 
 
 def test_empty_url_rejected(tmp_path):

@@ -106,9 +106,39 @@ def dream(log_path=None):
     hosts = {}
     for a in answers:
         h = _host(a.get("url", ""))
-        cell = hosts.setdefault(h, {"fetches": 0, "answered": 0})
+        cell = hosts.setdefault(h, {"fetches": 0, "answered": 0,
+                                    "salience": 0.0})
         cell["fetches"] += 1
         cell["answered"] += 1 if a.get("state") == "ok" else 0
+        # Salience: weight outcomes by surprise, not recency. A blocked
+        # answer carries more weight than an ok one, so the dream
+        # prioritises learning from failures (L4-b).
+        cell["salience"] += 2.0 if a.get("state") != "ok" else 1.0
     return {"pairs": pairs, "hits": hits,
             "hit_rate": round(hits / pairs, 3) if pairs else 0.0,
             "by_rung": by_rung, "hosts": hosts}
+
+
+def inhibited_rungs(host, log_path=None, threshold=0.5):
+    '''Rungs that keep failing for this host and should be skipped.
+
+    Inhibition (L4-a): if a host's answer rate is below ``threshold``,
+    every rung that has produced a blocked answer for that host is
+    inhibited.  Returns a set of rung names.  Empty set means nothing
+    to skip.
+    '''
+    host = str(host or "").strip()
+    if not host:
+        return set()
+    rows = _fetch_rows(log_path)
+    host_rows = [r for r in rows if _host(r.get("url", "")) == host]
+    if not host_rows:
+        return set()
+    ok = [r for r in host_rows if r.get("state") == "ok"]
+    rate = len(ok) / len(host_rows)
+    if rate >= threshold:
+        return set()
+    # Inhibit rungs that have produced blocked answers for this host.
+    blocked_rungs = {r.get("rung") for r in host_rows
+                     if r.get("state") != "ok" and r.get("rung")}
+    return blocked_rungs
