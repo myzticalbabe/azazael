@@ -4449,7 +4449,8 @@
    "seg": "def verify(self, model: str, shard: str) -> dict[str, Any]:\n        with self._lock:\n            entry = self._shards.get(f\"{model}:{shard}\")\n            if entry is None:\n                return {\"verified\": False, \"reason\": \"shard not published\"}\n            if \"bytes\" in entry:\n                return {\"verified\": True, \"bytes\": entry[\"bytes\"]}\n            return {\"verified\": True, \"bytes\": 0}",
    "status": "wired",
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 27 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: yes"
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 27 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: yes",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm"
   },
   "session_state:SessionStateManager.__init__": {
    "decider": "protocol_or_override",
