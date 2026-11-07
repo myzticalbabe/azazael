@@ -290,6 +290,36 @@ def test_pythran_draft_math_matches_kernel():
     assert list(got[2]) == list(want[2]) and list(got[3]) == list(want[3])
 
 
+def test_native_thread_hammer():
+    # Evolve-to-resolve: both backends must answer identically under real
+    # free-thread contention. 8 workers x 16 rounds over shared columns.
+    from concurrent.futures import ThreadPoolExecutor
+
+    cols = ([5, 5, 7, -1, 3] * 50, [1, 1, 2, 0, 1] * 50,
+            [5, 3, 9, 0, 7] * 50, [1, 1, 0, 1, 0] * 50)
+    first = native_replay.score_columns(*cols)[:4]
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        outs = list(ex.map(lambda _: native_replay.score_columns(*cols)[:4],
+                           range(16)))
+    assert all(tuple(o[:2]) == tuple(first[:2]) and
+               list(o[2]) == list(first[2]) for o in outs)
+
+
+def test_native_keeps_gil_disabled():
+    # The defect this file evolved to kill: a kernel built without
+    # Py_GIL_DISABLED refuses to import (SystemError) or, worse, silently
+    # re-enables the GIL process-wide on first import. Skips where the
+    # compiled kernel cannot load (wrong interpreter): the fallback is
+    # honest, and honesty is tested elsewhere.
+    import sys
+
+    if getattr(native_replay, "BACKEND", "python") != "cython":
+        pytest.skip("compiled kernel absent on this interpreter")
+    if not hasattr(sys, "_is_gil_enabled"):
+        pytest.skip("no GIL introspection on this build")
+    assert not sys._is_gil_enabled()
+
+
 def test_floor_writes_rung_floor(tmp_path):
     cfg = _cfg(tmp_path)
     agreement_floor.main(["--log", _log(tmp_path, 20), "--config", cfg])

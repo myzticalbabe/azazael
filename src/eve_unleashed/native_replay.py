@@ -3,9 +3,15 @@
 Pairing (URL/ts matching) stays in Python: it is pointer-chasing no compiler
 types. Scoring is the compiled Cython kernel `_replay_cy` (built on this box
 with MSVC 14.51; the pythran draft beside it cannot compile here -- its own
-headers reject cl and the box has no clang-cl). When the compiled module is
-absent (fresh checkout, other envs), the same math runs in pure Python:
-parity between backends is tested, never asserted.
+headers reject cl and the box has no clang-cl). The build MUST define
+Py_GIL_DISABLED: without it the pragma in pyconfig.h pulls the absent
+python316.lib, and any module that still links refuses to import with
+SystemError on a free-threaded interpreter -- or silently re-enables the
+GIL process-wide. The kernel computes nogil over malloc'd columns and
+declares freethreading_compatible, so importing it never costs the process
+its free threads (tools/build_native.py bottles this recipe for any .pyx).
+When the compiled module is absent (fresh checkout, other envs), the same
+math runs in pure Python: parity between backends is tested, never asserted.
 
 One deliberate difference from intuition.dream: rungs aggregate only numeric
 predictions. A guess with predicted=None still counts globally (legacy rule)

@@ -44,7 +44,7 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | # | Item | Price | Status |
 |---|------|-------|--------|
 | H-10 | Pythran draft: searched docs/ + tree, only vendored scipy hits; draft unfindable, ended-search recorded; native route proven via Cython instead (N-1) | S | CLOSED (ended-search + superseded, evidence below) |
-| N-1 | Native replay: Cython kernel `_replay_cy` built with MSVC 14.51, parity vs dream tested, 6x on 20k pairs; pythran 0.19 present but its headers reject cl and no clang-cl on box (that verdict IS the pythran answer) | M | LANDED (commit below) |
+| N-1 | Native replay: Cython kernel `_replay_cy` built with MSVC 14.51, parity vs dream tested, 6x on 20k pairs; pythran 0.19 present but its headers reject cl and no clang-cl on box (that verdict IS the pythran answer) | M | EVOLVED GIL-FREE (commit below): kernel computes nogil over malloc'd columns, declares freethreading_compatible, import keeps GIL disabled, 8x32 thread-hammer green; recipe bottled as tools/build_native.py for any .pyx |
 | U-2 | Per-rung floors: leg holds the weakest qualifying rung (>=5 pairs), floor tuner writes global + rung floor | S | LANDED (commit below) |
 | U-1 | Arm the floor: replay kilo's per-env logs (20+ pairs), run agreement_floor per env, A-1 goes strict | S | STOCKED (blocked on kilo logs) |
 | U-4 | Lillith tunes the swarm: shard shapes as a genome, fitness = hop-depth + isolation misses | M | STOCKED (kilo turf) |
