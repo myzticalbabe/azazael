@@ -302,6 +302,15 @@ def cmd_stem(args) -> int:
 
 def cmd_local(args) -> int:
     """Use the local LLM directly (no swarm, no cloud)."""
+    if args.model:
+        from .interpreter_bridge import EveInterpreterBridge
+        out = EveInterpreterBridge().run_cradle(args.prompt, args.model)
+        if out.get("status") == "ok":
+            print(out["result"])
+            print(f"[via cradle:{out.get('model', args.model)}]")
+            return 0
+        print(f"ERROR: {out.get('error')}", file=sys.stderr)
+        return 1
     text, tag = _local_answer(args.prompt, system=args.system)
     if text:
         print(text)
@@ -309,6 +318,75 @@ def cmd_local(args) -> int:
         return 0
     print(f"ERROR: {tag}", file=sys.stderr)
     return 1
+
+
+def cmd_langs(args) -> int:
+    """Native Rust/Go compiler work."""
+    from . import langs as _l
+    try:
+        if args.lang_action == "tools":
+            for tool, where in _l.have_tools(args.lang).items():
+                print(f"  {tool}: {where or 'MISSING'}")
+            return 0
+        if args.lang_action == "check":
+            rep = _l.check(args.file)
+            print(f"{rep['lang']}: {'OK' if rep['ok'] else 'FAIL'}")
+            if rep["diagnostics"]:
+                print(rep["diagnostics"][:2000])
+            return 0 if rep["ok"] else 1
+        if args.lang_action == "fmt":
+            print("reformatted" if _l.fmt(args.file)
+                  else "already formatted")
+            return 0
+        rep = _l.fix(args.file)
+        print(f"formatted={rep['fixed_by_format']} clean={rep['clean']}")
+        if not rep["clean"]:
+            print(rep["check_after"]["diagnostics"][:2000])
+            return 1
+        return 0
+    except (ValueError, RuntimeError, OSError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_run(args) -> int:
+    """Run any cradle model on a text prompt (gguf sidecar)."""
+    from . import cradle as _c
+    try:
+        model = _c.resolve_model(args.model, args.dir)
+        from .core import ModelLoader
+        if ModelLoader.guess_framework(model) != "gguf":
+            print(f"ERROR: {model.name} is not a text (gguf) model; "
+                  "text run needs gguf", file=sys.stderr)
+            return 1
+        print(f"Model: {model.name}")
+        text = _c.run_gguf(model, args.prompt, args.tokens)
+    except (ValueError, RuntimeError, OSError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    if not text:
+        print("ERROR: model answered empty", file=sys.stderr)
+        return 1
+    print(text)
+    return 0
+
+
+def cmd_foundry(args) -> int:
+    """Soul Foundry: build .gguf/.pt/.joblib natively, no downloads."""
+    from . import soul_foundry as _f
+    try:
+        manifest = _f.build_all(args.out, args.name, args.seed)
+    except OSError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    for e in manifest["entries"]:
+        extra = e.get("load_back") or e.get("parse_back") or ""
+        print(f"  BUILT {e['path']} [{e['format']}] "
+              f"{e['bytes']} bytes sha {e['sha256'][:12]} {extra}")
+    for s in manifest["skipped"]:
+        print(f"  SKIPPED {s['format']}: {s['reason']}")
+    print(f"Foundry: {len(manifest['entries'])} artifact(s) in {args.out}")
+    return 0
 
 
 def cmd_infer(args) -> int:
@@ -996,6 +1074,20 @@ def main():
     cradle_p.add_argument("--dir", default=None, help="Cradle dir (default: ~/.azazael/cradle)")
     cradle_p.set_defaults(func=cmd_cradle)
 
+    run_p = sub.add_parser("run", help="Run any cradle model (not only Eve)")
+    run_p.add_argument("--model", required=True,
+                       help="Cradle stem, name or path")
+    run_p.add_argument("--prompt", required=True)
+    run_p.add_argument("--tokens", type=int, default=128)
+    run_p.add_argument("--dir", default=None)
+    run_p.set_defaults(func=cmd_run)
+
+    foundry_p = sub.add_parser("foundry", help="Build model artifacts natively")
+    foundry_p.add_argument("--out", required=True)
+    foundry_p.add_argument("--name", default="eve-foundry-001")
+    foundry_p.add_argument("--seed", type=int, default=7)
+    foundry_p.set_defaults(func=cmd_foundry)
+
     # eve grievance (Boston Tea Party: public grievance and redress)
     grv_p = sub.add_parser("grievance", help="File grievances, draft redress, find legal aid")
     grv_sub = grv_p.add_subparsers(dest="grievance_action", help="Grievance action")
@@ -1073,7 +1165,18 @@ def main():
     local_p = sub.add_parser("local", help="Answer via the local LLM only")
     local_p.add_argument("--prompt", required=True)
     local_p.add_argument("--system", default=None)
+    local_p.add_argument("--model", default=None,
+                         help="Cradle model stem (default: servers first)")
     local_p.set_defaults(func=cmd_local)
+
+    lang_p = sub.add_parser("langs", help="Rust/Go check, format, fix")
+    lang_sub = lang_p.add_subparsers(dest="lang_action")
+    for _act in ("check", "fmt", "fix"):
+        _p = lang_sub.add_parser(_act)
+        _p.add_argument("--file", required=True)
+    lang_tools = lang_sub.add_parser("tools", help="Toolchain presence")
+    lang_tools.add_argument("--lang", default="rust")
+    lang_p.set_defaults(func=cmd_langs, lang_action="check")
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
