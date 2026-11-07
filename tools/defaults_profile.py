@@ -358,6 +358,10 @@ def problems(data: dict) -> list:
         if not isinstance(afloor, (int, float)) or isinstance(afloor, bool) \
                 or not 0.0 <= afloor <= 1.0:
             out.append("hyper_edge.agreement_floor must be a number 0.0..1.0")
+        rfloor = he.get("agreement_rung_floor", 0.0)
+        if not isinstance(rfloor, (int, float)) or isinstance(rfloor, bool) \
+                or not 0.0 <= rfloor <= 1.0:
+            out.append("hyper_edge.agreement_rung_floor must be a number 0.0..1.0")
     cov = (data.get("reading_audit") or {}).get("min_coverage")
     if not isinstance(cov, (int, float)) or isinstance(cov, bool) or not 0.0 <= cov <= 1.0:
         out.append("reading_audit.min_coverage must be a number 0.0..1.0")

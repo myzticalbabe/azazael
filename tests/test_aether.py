@@ -224,3 +224,112 @@ def test_run_maps_child_exit():
     assert domain_verify.run([sys.executable, "-c",
                                "raise SystemExit(3)"])["status"] == "fail"
     assert domain_verify.run(["/nonexistent/binary"])["status"] == "blind"
+
+
+# --- N-1: native replay parity, per-rung floors ---
+
+from eve_unleashed import native_replay  # noqa: E402
+from eve_unleashed.intuition import dream  # noqa: E402
+from eve_unleashed.live_log import read_events  # noqa: E402
+
+
+def _scored_log(tmp_path, specs):
+    """specs: (kind, predicted, ans_rung, ans_state) per pair."""
+    p = tmp_path / "scored.jsonl"
+    with open(p, "w", encoding="utf-8") as fh:
+        for i, (kind, pred, arung, astate) in enumerate(specs):
+            fh.write(json.dumps({"phase": "fetch", "event": "intuition",
+                                 "url": "http://r/%d" % i, "ts": i * 2,
+                                 "guess": kind, "predicted": pred}) + "\n")
+            fh.write(json.dumps({"phase": "fetch", "event": "answer",
+                                 "url": "http://r/%d" % i, "ts": i * 2 + 1,
+                                 "rung": arung, "state": astate}) + "\n")
+    return str(p)
+
+
+def test_native_parity_with_dream(tmp_path):
+    specs = [("guess", 5, 5, "ok"), ("guess", 5, 3, "ok"),
+             ("block", 7, 9, "blocked"), ("block", 7, 7, "ok"),
+             ("guess", None, 4, "ok"), ("guess", 2, 2, "blocked")]
+    log = _scored_log(tmp_path, specs)
+    recs = read_events(log)["records"]
+    native = native_replay.rung_rates(recs)
+    legacy = dream(log_path=log)
+    assert (native["pairs"], native["hits"], native["hit_rate"]) == \
+        (legacy["pairs"], legacy["hits"], legacy["hit_rate"])
+    assert native["backend"] in ("cython", "python")
+    assert native["by_rung"]["5"] == {"pairs": 2, "hits": 1, "rate": 0.5}
+
+
+def test_weakest_rung_ignores_thin_cells():
+    cells = {"5": {"pairs": 6, "hits": 6, "rate": 1.0},
+             "3": {"pairs": 2, "hits": 0, "rate": 0.0}}
+    assert claim_agreement.weakest_rung(cells) == ("5", 1.0)
+    assert claim_agreement.weakest_rung({}) == (None, None)
+
+
+def test_leg_rots_on_weak_rung_despite_global(tmp_path):
+    specs = [("guess", 5, 5, "ok")] * 6 + [("guess", 3, 9, "ok")] * 5
+    log = _scored_log(tmp_path, specs)
+    assert claim_agreement.main(["--log", log, "--floor", "0.0",
+                                 "--rung-floor", "0.0"]) == 0
+    assert claim_agreement.main(["--log", log, "--floor", "0.0",
+                                 "--rung-floor", "0.9"]) == 1
+
+
+def test_pythran_draft_math_matches_kernel():
+    # G1: the pythran draft beside the Cython kernel is named and exercised.
+    # It cannot compile on this box (headers reject cl); its math must still
+    # agree with the fallback it documents, or the draft is decoration.
+    from eve_unleashed import _replay_kernel as draft  # noqa: E402
+
+    cols = ([5, 5, 7, -1], [1, 1, 2, 0], [5, 3, 9, 0], [1, 1, 0, 1])
+    got = draft.score_pairs(*cols, 10)
+    want = native_replay.py_score(*cols, 10)
+    assert tuple(got[:2]) == tuple(want[:2]) == (1, 4)
+    assert list(got[2]) == list(want[2]) and list(got[3]) == list(want[3])
+
+
+def test_floor_writes_rung_floor(tmp_path):
+    cfg = _cfg(tmp_path)
+    agreement_floor.main(["--log", _log(tmp_path, 20), "--config", cfg])
+    he = json.loads(Path(cfg).read_text())["hyper_edge"]
+    assert he["agreement_rung_floor"] == 1.0
+
+
+# --- A-4 extended: all six auditors must fail visibly on sabotage ---
+
+import ctypes_restype_audit  # noqa: E402
+import truncation_census  # noqa: E402
+
+
+def test_ctypes_instrument_proves_it_can_see():
+    assert ctypes_restype_audit.self_test()["ok"] is True
+
+
+def test_ctypes_catches_undeclared_handle(tmp_path):
+    bad = tmp_path / "bad.py"
+    bad.write_text("import ctypes\n"
+                   "k32 = ctypes.WinDLL(\"kernel32\")\n"
+                   "h = k32.CreateFileW(\"x\", 0, 0, None, 3, 0, None)\n",
+                   encoding="utf-8")
+    found = ctypes_restype_audit.audit_file(bad)
+    assert found and found[0]["function"] == "k32.CreateFileW"
+    clean = tmp_path / "clean.py"
+    clean.write_text("x = 1\n", encoding="utf-8")
+    assert ctypes_restype_audit.audit_file(clean) == []
+
+
+def test_truncation_names_silent_and_display(tmp_path):
+    f = tmp_path / "t.py"
+    f.write_text("rows = get()\nhead = rows[:10]\nprint(rows[:10])\n",
+                 encoding="utf-8")
+    sites, error = truncation_census.survey_file(f)
+    assert error is None
+    by_line = {s["line"]: s["class"] for s in sites}
+    assert by_line == {2: "silent", 3: "display"}
+
+
+def test_truncation_error_is_never_a_pass(tmp_path):
+    sites, error = truncation_census.survey_file(tmp_path / "missing.py")
+    assert sites == [] and isinstance(error, str) and error

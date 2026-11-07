@@ -32,10 +32,11 @@ def main(argv=None) -> int:
     ap.add_argument("--config", default=str(ROOT / "config" / "defaults.json"))
     ap.add_argument("--min-pairs", type=int, default=MIN_PAIRS)
     args = ap.parse_args(argv)
-    from eve_unleashed.intuition import dream  # noqa: PLC0415
+    from eve_unleashed.live_log import read_events  # noqa: PLC0415
+    from eve_unleashed.native_replay import rung_rates  # noqa: PLC0415
 
     try:
-        dr = dream(log_path=args.log)
+        dr = rung_rates(read_events(args.log)["records"])
     except FileNotFoundError:
         print("agreement_floor: BLIND -- no live log, floor untouched")
         return 2
@@ -43,17 +44,24 @@ def main(argv=None) -> int:
         print("agreement_floor: REFUSED -- %d pairs < %d minimum, floor untouched"
               % (dr["pairs"], args.min_pairs))
         return 2
+    weak = [c["rate"] for c in dr["by_rung"].values()
+            if c.get("pairs", 0) >= 5]
+    rung_floor = min(weak) if weak else dr["hit_rate"]
     cfg_path = Path(args.config)
     cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
     he = cfg.setdefault("hyper_edge", {})
     old = he.get("agreement_floor", 0.0)
+    old_rung = he.get("agreement_rung_floor", 0.0)
     he["agreement_floor"] = dr["hit_rate"]
+    he["agreement_rung_floor"] = rung_floor
     text = json.dumps(cfg, indent=2) + "\n"
     if "\r\n" in cfg_path.read_text(encoding="utf-8")[:2000]:
         text = text.replace("\n", "\r\n")
     cfg_path.write_text(text, encoding="utf-8", newline="")
-    print("agreement_floor: pairs=%d hit_rate=%.3f floor %.3f -> %.3f"
-          % (dr["pairs"], dr["hit_rate"], old, dr["hit_rate"]))
+    print("agreement_floor: pairs=%d hit_rate=%.3f floor %.3f -> %.3f "
+          "rung_floor %.3f -> %.3f backend=%s"
+          % (dr["pairs"], dr["hit_rate"], old, dr["hit_rate"],
+             old_rung, rung_floor, dr["backend"]))
     return 0
 
 

@@ -13,6 +13,11 @@ stays visibly untuned rather than silently strict.
 
 Exit: 0 rate >= floor, 1 rate < floor, 2 blind (no log, or no guess/answer
 pairs to replay -- HED-2's rule: an absence is never worded as a pass).
+
+Per-rung floors (U-2): the global rate averages the weakest rung away, so the
+leg also holds the weakest rung with >= MIN_RUNG_PAIRS pairs against
+`hyper_edge.agreement_rung_floor`. Scoring is the native replay kernel
+(native_replay: Cython when built, pure Python otherwise -- same math).
 """
 from __future__ import annotations
 
@@ -26,17 +31,24 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 
 def measure(log_path=None) -> dict:
-    """Replay the live log; return pairs/hits/hit_rate. Pure read, no writes."""
-    from eve_unleashed.intuition import dream  # noqa: PLC0415
+    """Replay the live log; return pairs/hits/rate/by_rung. Pure read."""
+    from eve_unleashed.live_log import read_events  # noqa: PLC0415
+    from eve_unleashed.native_replay import rung_rates  # noqa: PLC0415
 
-    dr = dream(log_path=log_path)
-    return {"pairs": dr["pairs"], "hits": dr["hits"],
-            "hit_rate": dr["hit_rate"]}
+    return rung_rates(read_events(log_path)["records"])
 
 
-def floor_default() -> float:
+MIN_RUNG_PAIRS = 5
+
+
+def floor_default(which="floor") -> float:
+    # Literal keys, never a computed "hyper_edge." + name: settings_shadow
+    # resolves a read only when the reader is called with a literal string,
+    # and a parameterized key reads as orphan_knob (measured 2026-11-07).
     try:
         from defaults_profile import read_default  # noqa: PLC0415
+        if which == "rung":
+            return float(read_default("hyper_edge.agreement_rung_floor", 0.0))
         return float(read_default("hyper_edge.agreement_floor", 0.0))
     except Exception as exc:
         print("claim_agreement: floor unreadable (%s), advisory 0.0" % exc,
@@ -44,12 +56,24 @@ def floor_default() -> float:
         return 0.0
 
 
+def weakest_rung(by_rung: dict):
+    """(rung, rate) of the weakest qualifying cell, else (None, None)."""
+    cand = [(r, c["rate"]) for r, c in by_rung.items()
+            if c.get("pairs", 0) >= MIN_RUNG_PAIRS]
+    if not cand:
+        return None, None
+    return min(cand, key=lambda kv: kv[1])
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--log", default=None)
     ap.add_argument("--floor", type=float, default=None)
+    ap.add_argument("--rung-floor", type=float, default=None)
     args = ap.parse_args(argv)
     floor = args.floor if args.floor is not None else floor_default()
+    rung_floor = args.rung_floor if args.rung_floor is not None \
+        else floor_default("rung")
     try:
         m = measure(args.log)
     except FileNotFoundError:
@@ -58,10 +82,15 @@ def main(argv=None) -> int:
     if not m["pairs"]:
         print("claim_agreement: BLIND -- 0 guess/answer pairs, nothing to replay")
         return 2
-    verdict = "HOLD" if m["hit_rate"] >= floor else "ROTTED"
-    print("claim_agreement: pairs=%d hits=%d hit_rate=%.3f floor=%.3f %s"
-          % (m["pairs"], m["hits"], m["hit_rate"], floor, verdict))
-    return 0 if m["hit_rate"] >= floor else 1
+    wrung, wrate = weakest_rung(m["by_rung"])
+    rotted = m["hit_rate"] < floor or \
+        (wrate is not None and wrate < rung_floor)
+    print("claim_agreement: pairs=%d hits=%d hit_rate=%.3f floor=%.3f "
+          "weakest=%s rate=%s rung_floor=%.3f backend=%s %s"
+          % (m["pairs"], m["hits"], m["hit_rate"], floor,
+             wrung, wrate, rung_floor, m["backend"],
+             "ROTTED" if rotted else "HOLD"))
+    return 1 if rotted else 0
 
 
 if __name__ == "__main__":

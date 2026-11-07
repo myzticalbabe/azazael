@@ -33,6 +33,7 @@
     "ctypes_restype": true,
     "claim_agreement": true,
     "agreement_floor": 0.0,
+    "agreement_rung_floor": 0.0,
     "kernel": true,
     "kernel_timeout_s": 180,
     "strict": false,
