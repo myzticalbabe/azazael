@@ -881,6 +881,61 @@ def cmd_mend(args) -> int:
     return 0
 
 
+def cmd_tutor(args) -> int:
+    """Document -> tutorial, natively, auditable."""
+    from . import doc_tutor as _d
+    try:
+        doc = _d.read_document(args.doc)
+        tut = _d.tutorial(doc["text"], args.audience)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"DOC {doc['source']} [{doc['format']}] {doc['words']} words "
+          f"sha {doc['sha256'][:16]}")
+    print(f"OUTLINE: {', '.join(tut['outline'][:8]) or '(none)'}")
+    for n, s in enumerate(tut["steps"][:10], 1):
+        print(f"  STEP {n}: {s['action'][:90]}")
+        print(f"      check: {s['check'][:80]}")
+    print(f"steps={len(tut['steps'])}")
+    if args.out:
+        w = _d.write_tutorial(args.out, doc, tut)
+        print(f"WROTE {w['path']} ({w['bytes']}B)")
+    return 0
+
+
+def cmd_oracle(args) -> int:
+    """Ask every oracle; report agreement, never a single voice."""
+    from . import oracle as _o
+    try:
+        res = _o.consult(args.claim, args.grievance, args.locker)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    for s in res["signals"]:
+        print(f"  {s['signal']:7s} {s['verdict']:14s} {s['detail'][:80]}")
+    print(f"VERDICT: {res['verdict']}  agreeing={res['agreeing']} "
+          f"disagreeing={res['disagreeing']} confidence={res['confidence']}")
+    print(res["note"])
+    return 0
+
+
+def cmd_swarm(args) -> int:
+    """Bounded swarm over claims."""
+    from . import swarm_oracle as _s
+    try:
+        res = _s.swarm(args.claims, args.grievance, args.live, args.workers)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    for r in res["results"]:
+        print(f"  [{r['verdict']:12s}] {r['claim'][:80]}")
+    for f in res["failed"]:
+        print(f"  [FAILED] {f['claim'][:70]}: {f['error'][:60]}")
+    print(f"swarm: {res['answered']}/{res['claims']} answered "
+          f"workers={res['workers']} live={res['live']} tally={res['tally']}")
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1461,6 +1516,29 @@ def main():
     mend_rec.add_argument("--item", default="mend")
     mend_sub.add_parser("verify", help="Re-run the eve test files")
     mend_p.set_defaults(func=cmd_mend, mend_action="scan")
+
+    # eve tutor (document -> runnable tutorial, natively)
+    tut_p = sub.add_parser("tutor", help="Convert a document into a tutorial")
+    tut_p.add_argument("--doc", required=True, help="Document to convert")
+    tut_p.add_argument("--out", default=None, help="Write tutorial markdown")
+    tut_p.add_argument("--audience", default="general")
+    tut_p.set_defaults(func=cmd_tutor)
+
+    # eve oracle (several signals, one verdict)
+    ora_p = sub.add_parser("oracle", help="Ask every signal, measure agreement")
+    ora_p.add_argument("--claim", required=True)
+    ora_p.add_argument("--grievance", default=None)
+    ora_p.add_argument("--locker", nargs="*", default=[])
+    ora_p.set_defaults(func=cmd_oracle)
+
+    # eve swarm (bounded parallel oracle fan-out)
+    sw_p = sub.add_parser("swarm", help="Fan claims across a bounded pool")
+    sw_p.add_argument("--claims", nargs="+", required=True)
+    sw_p.add_argument("--grievance", default=None)
+    sw_p.add_argument("--live", action="store_true",
+                      help="Include live network signal (default: text only)")
+    sw_p.add_argument("--workers", type=int, default=4)
+    sw_p.set_defaults(func=cmd_swarm)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
