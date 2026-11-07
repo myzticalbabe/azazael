@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2087,
+  "as_of_id": 2095,
   "path": "~/.engram/engram.db",
-  "records": 1242,
+  "records": 1248,
   "types": [
    "bugfix",
    "decision",
@@ -21699,6 +21699,78 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Diagnosed the PAMS memory outage: create_memory, daemon_health, and get_system_health all return Not connected from this client",
    "title": "PAMS outage diagnosed as transport failure on every endpoint"
+  },
+  {
+   "cause": "`graphify update <path>` derives its output dir from the path argument, so the argument must match whatever `--graph` the MCP server was configured with — updating `.` and updating `src` are two different corpora at two different paths. Also printed: 3 .go + 1 .java file contributed nothing (tree-sitter-go / tree_sitter_java not installed) and pyproject.toml yields zero nodes.",
+   "date": "2026-11-07",
+   "id": "engram-2088",
+   "kind": "engram:bugfix",
+   "line": 2088,
+   "rationale": "What: Rebuilt the codegraph index so it describes HEAD. `python -m graphify update .` at repo root wrote a 96,717-node graph to `C:/Azazael/azazael/graphify-out/graph.json` — the WRONG path: both ~/.agents/mcp.json and opencode.json configure codegraph_mcp.py with `--graph C:/Azazael/azazael/src/graphify-out/graph.json`. Re-ran `graphify update src`, which wrote 27,232 nodes / 52,178 edges / 1,226 communities to the configured path; codegraph_stats then reported built_at_commit=7e31722123bc = head_commit, graph_matches_head: true, warning empty, reload_error empty (the server reloads on file change, no client restart needed). Why: The index had been built at 8b353cf8, 2,911 commits behind H…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Rebuilt the codegraph index so it describes HEAD. `python -m graphify update .` at repo root wrote a 96,717-node graph to `C:/Azazael/azazael/graphify-out/graph.json` — the WRONG path: both ~/.agents/mcp.json and opencode.json configure codegraph_mcp.py with `--graph C:/Azazael/azazael/src/graphify-out/graph.json`. Re-ran `graphify update src`, which wrote 27,232 nodes / 52,178 edges / 1,226 communities to the configured path; codegraph_stats then reported built_at_commit=7e31722123bc = head_commit, graph_matches_head: true, warning empty, reload_error empty (the server reloads on file change, no client restart needed).",
+   "title": "Codegraph rebuilt at HEAD: update target must match the server's --graph path"
+  },
+  {
+   "cause": "`git check-ignore -v` output line numbers refer to the pattern's own file, so an apparent hit at a line that reads as a comment means the reading is corrupt — re-run the same command before building any conclusion on it. A single anomalous tool output is not evidence; a reproduction is.",
+   "date": "2026-11-07",
+   "id": "engram-2089",
+   "kind": "engram:learning",
+   "line": 2089,
+   "rationale": "What: During 2026-11-07 session startup, `git check-ignore -v dist-native .worktree-snapshots` printed matches at \".gitignore:373\" and `git status` simultaneously listed both as untracked. I acted on neither reading until re-measuring: `git check-ignore -v` then returned rc=1 with no output, `grep -n dist-native .gitignore` found nothing, and `sed -n '368,378p' .gitignore` showed line 373 is a comment inside the \"batch 2\" block. The real state was: nothing ignored. Why: A contradiction between two readings of the same fact is the stale-artifact class in miniature — but here the wrong reading was MINE, not an artifact's. Recording it because I had already started reasoning toward \"the gitign…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "During 2026-11-07 session startup, `git check-ignore -v dist-native .worktree-snapshots` printed matches at \".gitignore:373\" and `git status` simultaneously listed both as untracked. I acted on neither reading until re-measuring: `git check-ignore -v` then returned rc=1 with no output, `grep -n dist-native .gitignore` found nothing, and `sed -n '368,378p' .gitignore` showed line 373 is a comment inside the \"batch 2\" block. The real state was: nothing ignored.",
+   "title": "Falsified my own check-ignore reading before acting on it"
+  },
+  {
+   "cause": "pytest-timeout is not installed in py316t, so the tree-standard --timeout=120 flag is unrecognized there; run py316t pytest without it. `capabilities` subcommand still absent from HYPER_EDGE.cli (known doc-vs-code gap); `isa` is an opcode listing, not an equivalent.",
+   "date": "2026-11-07",
+   "id": "engram-2090",
+   "kind": "engram:discovery",
+   "line": 2090,
+   "rationale": "What: Reconnected the freebuff session to the interpreter build plan and closed its verification gap. The 3.16t interpreter was already built 2026-11-06 (v3.16.0a1 free-threaded, gil False, Py_GIL_DISABLED 1, GIL sidecar py316 present with one build-generated dirty file). Re-verified every acceptance item live under py316t today with exit codes: version/gil probe exit 0; HYPER_EDGE selftest 33/0/0 exit 0; pytest tests/test_hyper_edge.py 51 passed exit 0; evolve smoke (evidence ARC/cain/arena_llm_judgments_r9.json, gen 6, pop 24, seed 7) exit 0, chosen q=0.7506 reproducing the Nov 6 record. Repaired state/py316t_build.json (missing quote at char 1065 + truncated close brace at end); now pars…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Reconnected the freebuff session to the interpreter build plan and closed its verification gap. The 3.16t interpreter was already built 2026-11-06 (v3.16.0a1 free-threaded, gil False, Py_GIL_DISABLED 1, GIL sidecar py316 present with one build-generated dirty file). Re-verified every acceptance item live under py316t today with exit codes: version/gil probe exit 0; HYPER_EDGE selftest 33/0/0 exit 0; pytest tests/test_hyper_edge.py 51 passed exit 0; evolve smoke (evidence ARC/cain/arena_llm_judgments_r9.json, gen 6, pop 24, seed 7) exit 0, chosen q=0.7506 reproducing the Nov 6 record. Repaired state/py316t_build.json (missing quote at char 1065 + truncated close brace at end); now parses, 20…",
+   "title": "py316t interpreter re-verified live; build record repaired; venv depends on build tree"
+  },
+  {
+   "cause": "Shared state/ files drift under concurrent lanes — pinned_sha tries evidence_sha/sha/source and --apply refreshes whichever schema it finds. claim_live=0 does not mean nobody is working (opencode rebuilt without a claim). pytest-timeout absent in py316t so verify omits --timeout. Counts are observed properties (33/51), never literals.",
+   "date": "2026-11-07",
+   "id": "engram-2093",
+   "kind": "engram:discovery",
+   "line": 2093,
+   "rationale": "What: Implemented, verified, and landed the interpreter self-maintenance cycle (commit 73cffdde, 5 files): tools/interp_cycle.py with watch / verify --apply / promote / guard subcommands, interp knobs in config/defaults.json, tests/test_interp_cycle.py (9 passed), docs/INTERP_SELF_MAINTENANCE_2026-11-07.md. All four subcommands green live: watch ok (pre-fork 404 handled as informative), verify PASS 7/7 probes, promote wrote state/canonical_interp.json, guard PASS. Opencode reinstructed via board delivery 47787. Why: User ordered all three missing pieces built and landed (detector, actor+acceptance, survivable restart), then ordered opencode reinstructed. Mid-session discovery: opencode had…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Implemented, verified, and landed the interpreter self-maintenance cycle (commit 73cffdde, 5 files): tools/interp_cycle.py with watch / verify --apply / promote / guard subcommands, interp knobs in config/defaults.json, tests/test_interp_cycle.py (9 passed), docs/INTERP_SELF_MAINTENANCE_2026-11-07.md. All four subcommands green live: watch ok (pre-fork 404 handled as informative), verify PASS 7/7 probes, promote wrote state/canonical_interp.json, guard PASS. Opencode reinstructed via board delivery 47787.",
+   "title": "Interpreter self-maintenance cycle landed (73cffdde); opencode rebuild verified genuine, reinstructed"
+  },
+  {
+   "cause": "Two scanner blocks resolved structurally — bare-except handlers log to stderr; hardcoded_win_path fixed by ROOT-derived paths (os.path.join('C:',...) is drive-relative and wrong). The staged gate scans the INDEX blob via scan_source: probe the gate itself, never the worktree with a different function. The rule table's expected-count contract caught my broken string surgery instantly.",
+   "date": "2026-11-07",
+   "id": "engram-2094",
+   "kind": "engram:discovery",
+   "line": 2094,
+   "rationale": "What: Implemented, verified and landed all four robust upgrades as commit dcde6f10 (4 files, +314/-2): interp_cycle.py gained lock take/release/--force (promote refuses under a live lock, verify/guard warn) and the dirty subcommand (BENIGN cause stamped into state/py316t_build.json); new tools/repoint_316t.py wave-1 dry-run 5 planned 0 mismatches (apply held for a session boundary); tests/test_interp_cycle.py 14 passed. Staged-scanner gate 0 findings on all 3 py files; defaults --check OK; guard PASS. Board row 47792. Why: User ordered every recommendation from the robust-upgrade exploration implemented and committed: (i) dirty cause recorded, (ii) build lock, (iii) repoint migration wave 1…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Implemented, verified and landed all four robust upgrades as commit dcde6f10 (4 files, +314/-2): interp_cycle.py gained lock take/release/--force (promote refuses under a live lock, verify/guard warn) and the dirty subcommand (BENIGN cause stamped into state/py316t_build.json); new tools/repoint_316t.py wave-1 dry-run 5 planned 0 mismatches (apply held for a session boundary); tests/test_interp_cycle.py 14 passed. Staged-scanner gate 0 findings on all 3 py files; defaults --check OK; guard PASS. Board row 47792.",
+   "title": "Robust interpreter upgrades landed (dcde6f10); scanner saga resolved structurally"
+  },
+  {
+   "cause": "The index was reset by a concurrent lane mid-flight — assume a shared worktree and re-verify the staged set immediately before every commit. state/* is ignored: new state artifacts need -f with precedent cited. state/.interp_build.lock is runtime, never committed.",
+   "date": "2026-11-07",
+   "id": "engram-2095",
+   "kind": "engram:decision",
+   "line": 2095,
+   "rationale": "What: Executed user order REINSTRUCT+FORK+FLIP correctly and landed commit 971e7ae7 (8 files): (1) reinstructed opencode (delivery 47793) + kilo (47795) + all-lane announce 47797 with fork discipline and no-independent-repoint orders; (2) declared the maintenance fork (docs/INTERP_FORK_2026-11-07.md + state/interp_fork.json, pinned v3.16.0a1 @22d79d98, zero source edits, build tree permanent, merge discipline); (3) flipped wave-1 via repoint_316t --apply under a self-taken build lock (5/5 rules 0 mismatches; backups removed with HEAD as restore point, stated in message). Post-flip verification under py316t: guard PASS, 14 tests passed, staged-scanner 0 findings, one_click/golden_arrow help…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Executed user order REINSTRUCT+FORK+FLIP correctly and landed commit 971e7ae7 (8 files): (1) reinstructed opencode (delivery 47793) + kilo (47795) + all-lane announce 47797 with fork discipline and no-independent-repoint orders; (2) declared the maintenance fork (docs/INTERP_FORK_2026-11-07.md + state/interp_fork.json, pinned v3.16.0a1 @22d79d98, zero source edits, build tree permanent, merge discipline); (3) flipped wave-1 via repoint_316t --apply under a self-taken build lock (5/5 rules 0 mismatches; backups removed with HEAD as restore point, stated in message). Post-flip verification under py316t: guard PASS, 14 tests passed, staged-scanner 0 findings, one_click/golden_arrow help render…",
+   "title": "Fork declared, wave-1 flipped to py316t, landed 971e7ae7; lanes reinstructed"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21777,11 +21849,11 @@
  "totals": {
   "by_kind": {
    "engram:architecture": 36,
-   "engram:bugfix": 166,
+   "engram:bugfix": 167,
    "engram:config": 17,
-   "engram:decision": 412,
-   "engram:discovery": 253,
-   "engram:learning": 281,
+   "engram:decision": 413,
+   "engram:discovery": 256,
+   "engram:learning": 282,
    "engram:lesson": 61,
    "engram:pattern": 16,
    "error": 276,
@@ -21791,7 +21863,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1813,
+  "records": 1819,
   "surfaces": 14
  }
 }
