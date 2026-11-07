@@ -673,6 +673,55 @@ def cmd_grievance(args) -> int:
     return 0
 
 
+def cmd_debunk(args) -> int:
+    """Native myth-debunking: analysis only, Eve files nothing."""
+    from . import debunk as _d
+    try:
+        res = _d.debunk_claim(args.claim)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    for c in res["checks"]:
+        mark = "PASS" if c["passed"] else "FAIL"
+        print(f"  [{mark}] {c['check']}: {c['detail']}")
+    for p in res["propositions"]:
+        print(f"  CHECKABLE: {p[:120]}")
+    for o in res["opinions"]:
+        print(f"  OPINION: {o[:120]}")
+    for f in res["fallacy_flags"]:
+        print(f"  FLAG {f['flag']}: {', '.join(f['matched'])}")
+    print(f"VERDICT: {res['verdict']}")
+    print(res["next"])
+    return 0
+
+
+def cmd_factcheck(args) -> int:
+    """Live fact-checking: every live byte receipted."""
+    from . import factcheck as _f
+    if args.url:
+        r = _f.fetch_url(args.url)
+        print(json.dumps(r, indent=2))
+        return 0 if r["status"] == "ok" else 1
+    try:
+        res = _f.factcheck_claim(args.claim, args.grievance)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"DEBUNK: {res['debunk']['verdict']}")
+    for lk in res["entity_lookups"]:
+        mark = "FOUND" if lk.get("found") else "ABSENT"
+        print(f"  [{mark}] {lk['topic']}:"
+              f" {lk.get('title') or lk.get('description') or ''}"[:120])
+    if res["grievance_crosscheck"]:
+        cc = res["grievance_crosscheck"]
+        print(f"  CROSS {cc['grievance']}: {cc['detail']}")
+    print(f"receipts={len(res['receipts'])}")
+    if res["opinion"]:
+        print(res["opinion"])
+    print(f"VERDICT: {res['verdict']}")
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1177,6 +1226,20 @@ def main():
     grv_prove.add_argument("--id", required=True)
     grv_sub.add_parser("tutorial", help="Guided grievance-filing tutorial")
     grv_p.set_defaults(func=cmd_grievance, grievance_action="show")
+
+    # eve debunk (native myth-debunking: no network, no key)
+    deb_p = sub.add_parser("debunk", help="Take a claim apart with its own words")
+    deb_p.add_argument("--claim", required=True, help="The claim to debunk")
+    deb_p.set_defaults(func=cmd_debunk)
+
+    # eve factcheck (live fact-checking: receipts for everything seen)
+    fac_p = sub.add_parser("factcheck", help="Live-check a claim, receipt everything")
+    fac_p.add_argument("--claim", required=True, help="The claim to check")
+    fac_p.add_argument("--grievance", default=None,
+                       help="Filed grievance id to cross-check against")
+    fac_p.add_argument("--url", default=None,
+                       help="Fetch one URL now and keep the receipt only")
+    fac_p.set_defaults(func=cmd_factcheck)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
