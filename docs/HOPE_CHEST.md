@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: micro-swarms + bibles, see below).
+**Last stocked:** 2026-11-07 (session: AETHER upgrades A-1..A-6, see below).
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -24,6 +24,12 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | H-16 | PROJECTION in all forms: JSON + frozen .py + chronicle | S | LANDED (commit below) |
 | H-17 | Micro-swarms: heterogeneous solids, shard-local morph/ferment, assemble_swarm | M | LANDED (commit below) |
 | H-18 | Bibles: RULE 0Z-Q tapestry rule, E2R-5 agreement fix, 60-target sync clean | S | LANDED (commit below) |
+| A-1 | Gate replays the live log: dream agreement holds the floor | S | LANDED (commit below) |
+| A-2 | Floors retune from evidence, refuse on noise (<20 pairs) | S | LANDED (commit below) |
+| A-3 | Findings ledger: new -> persisting -> fixed, re-verified every run | M | LANDED (commit below) |
+| A-4 | Adversarial auditors: sabotaged verdicts the gate must catch | S | LANDED (commit below) |
+| A-5 | Verdict projection: machine JSON + human chronicle + history rows | S | LANDED (commit below) |
+| A-6 | Heterogeneous verification swarm: per-domain checks, one rolled verdict | M | LANDED (commit below) |
 
 ## STOCKED — training loop
 

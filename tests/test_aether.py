@@ -139,3 +139,88 @@ def test_floor_refuses_thin_evidence(tmp_path):
     assert agreement_floor.main(["--log", _log(tmp_path, 3),
                                  "--config", cfg]) == 2
     assert Path(cfg).read_text() == before
+
+
+# --- A-5: the verdict casts three ways, blind when there is no report ---
+
+import cast_verdict  # noqa: E402
+import domain_verify  # noqa: E402
+import findings_ledger  # noqa: E402
+
+
+def _report(tmp_path, legs, verdict="PASS"):
+    p = tmp_path / "deep_dive.json"
+    p.write_text(json.dumps({"generated": "2026-11-07T00:00:00Z",
+                             "elapsed_s": 9.9, "verdict": verdict,
+                             "legs": legs}), encoding="utf-8")
+    return str(p)
+
+
+def test_cast_writes_chronicle_and_history(tmp_path):
+    rep = _report(tmp_path, [{"leg": "forensics", "status": "ok",
+                               "seconds": 1.0, "detail": "clean"}])
+    md = str(tmp_path / "verdict.md")
+    hist = str(tmp_path / "history.jsonl")
+    assert cast_verdict.main(["--report", rep, "--md", md,
+                              "--history", hist]) == 0
+    text = Path(md).read_text()
+    assert "verdict: PASS" in text and "forensics" in text
+    rows = Path(hist).read_text().strip().splitlines()
+    assert len(rows) == 1 and json.loads(rows[0])["legs"] == {"forensics": "ok"}
+
+
+def test_cast_blind_without_report(tmp_path):
+    assert cast_verdict.main(["--report", str(tmp_path / "missing.json")]) == 2
+
+
+# --- A-3: findings transition new -> persisting -> fixed ---
+
+def _failing_leg(name, detail="boom"):
+    return {"leg": name, "status": "error", "seconds": 1.0, "detail": detail}
+
+
+def _ok_leg(name):
+    return {"leg": name, "status": "ok", "seconds": 1.0, "detail": "ran"}
+
+
+def test_findings_transition(tmp_path):
+    led = str(tmp_path / "ledger.jsonl")
+    rep1 = _report(tmp_path, [_failing_leg("x")], verdict="FAIL")
+    assert findings_ledger.main(["--report", rep1, "--ledger", led]) == 0
+    recs = [json.loads(l) for l in Path(led).read_text().splitlines()]
+    assert recs[0]["status"] == "new"
+    rep2 = _report(tmp_path, [_failing_leg("x", "still"), _failing_leg("y")],
+                    verdict="FAIL")
+    findings_ledger.main(["--report", rep2, "--ledger", led])
+    by_id = {r["id"]: r for r in
+             (json.loads(l) for l in Path(led).read_text().splitlines())}
+    assert by_id["x"]["status"] == "persisting"
+    assert by_id["y"]["status"] == "new"
+    rep3 = _report(tmp_path, [_ok_leg("x"), _failing_leg("y")], verdict="FAIL")
+    findings_ledger.main(["--report", rep3, "--ledger", led])
+    by_id = {r["id"]: r for r in
+             (json.loads(l) for l in Path(led).read_text().splitlines())}
+    assert by_id["x"]["status"] == "fixed"
+    assert by_id["y"]["status"] == "persisting"
+
+
+def test_ledger_blind_without_report(tmp_path):
+    assert findings_ledger.main(["--report", str(tmp_path / "missing.json"),
+                                 "--ledger", str(tmp_path / "l.jsonl")]) == 2
+
+
+# --- A-6: fail dominates, blind shapes the run, pass holds ---
+
+def test_merge_exit_shapes():
+    assert domain_verify.merge({"a": {"status": "pass"}}) == 0
+    assert domain_verify.merge({"a": {"status": "pass"},
+                                "b": {"status": "blind"}}) == 2
+    assert domain_verify.merge({"a": {"status": "blind"},
+                                "b": {"status": "fail"}}) == 1
+
+
+def test_run_maps_child_exit():
+    assert domain_verify.run([sys.executable, "-c", "pass"])["status"] == "pass"
+    assert domain_verify.run([sys.executable, "-c",
+                               "raise SystemExit(3)"])["status"] == "fail"
+    assert domain_verify.run(["/nonexistent/binary"])["status"] == "blind"
