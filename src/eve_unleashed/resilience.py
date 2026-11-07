@@ -16,6 +16,13 @@ import numpy as np
 
 from .dodeca_recall import SHAPES, ShapeStore, bfs_distances
 
+try:
+    from . import _forensic_cy as _cy
+    ENGINE = "native"
+except ImportError:
+    _cy = None
+    ENGINE = "python"
+
 
 def moore_efficiency(solid: str) -> float:
     """Registered vertices over the Moore bound: perfection prices itself."""
@@ -32,6 +39,10 @@ def fault_stats(solid: str) -> Dict:
     n, nbr = SHAPES[solid]
     adj = {v: list(nbr(v)) for v in range(n)}
     base = max(bfs_distances(0, n, nbr).values())
+    if _cy is not None:
+        worst, disc = _cy.fault_worst(n, [adj[v] for v in range(n)])
+        return {"fault_diameter": worst, "disconnects": disc,
+                "fault_stretch": worst / base, "engine": ENGINE}
     worst, disc = base, 0
     for kill in range(n):
         keep = [v for v in range(n) if v != kill]
@@ -51,7 +62,7 @@ def fault_stats(solid: str) -> Dict:
         else:
             worst = max(worst, mx)
     return {"fault_diameter": worst, "disconnects": disc,
-            "fault_stretch": worst / base}
+            "fault_stretch": worst / base, "engine": ENGINE}
 
 
 def spectral_gap(solid: str) -> float:
@@ -77,6 +88,7 @@ def regime_report(solid: str) -> Dict:
             "moore_efficiency": moore_efficiency(solid),
             "spectral_gap": spectral_gap(solid),
             "survival": fs,
+            "engine": ENGINE,
             "price": fs["fault_stretch"] / moore_efficiency(solid)}
 
 

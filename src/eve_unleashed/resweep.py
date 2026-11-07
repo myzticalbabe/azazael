@@ -18,7 +18,7 @@ from typing import Dict
 from .dodeca_recall import SHAPES
 from .honey import root_audit, sha_file
 from .proofs import verify_funnel
-from .resilience import regime_report
+from .resilience import ENGINE, regime_report
 from .shapes import ShapeGraph
 
 FLOAT_FIELDS = ("mean_distance", "moore_efficiency", "spectral_gap")
@@ -81,7 +81,8 @@ def sweep(manifest_path: str = "state/honey/honey.json") -> Dict:
                          % (solid, rs.get("fault_stretch"),
                             ls["fault_stretch"]))
     chains["resilience_numbers"] = {
-        "pass": not stale, "detail": ";".join(stale) if stale else "7/7 match"}
+        "pass": not stale,
+        "detail": ";".join(stale) if stale else "7/7 match (engine=%s)" % ENGINE}
 
     g = ShapeGraph()
     for e in man["connectance"]["topology"]["edges"]:
