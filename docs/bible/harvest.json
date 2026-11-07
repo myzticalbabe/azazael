@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2084,
+  "as_of_id": 2087,
   "path": "~/.engram/engram.db",
-  "records": 1239,
+  "records": 1242,
   "types": [
    "bugfix",
    "decision",
@@ -21663,6 +21663,42 @@
    "surface": "~/.engram/engram.db",
    "symptom": "The Eve-Unleashed Promise is recorded as the Mother of the New World: local-first serving, quant-first foundry, scoped claims, control-backed blame, delegated K-quants",
    "title": "The Eve-Unleashed Promise recorded as Mother of the New World"
+  },
+  {
+   "cause": "PAMS memory store unreachable all session (Not connected on every endpoint) so the Promise lives in Engram plus PMB plus bible corpus; the gap is stated, not hidden",
+   "date": "2026-11-07",
+   "id": "engram-2085",
+   "kind": "engram:decision",
+   "line": 2085,
+   "rationale": "What: Shipped the civil-justice function suite: debunk, factcheck, locker, watch, rebuttal, sanctuary, inquest, all wired to eve CLI with G1 tests and live proofs Why: Justice-grade architecture had records and bundles but no functions; each function compiles evidence and files nothing, keeping the human as the only filer Where: azazael/src/eve_unleashed/debunk.py, factcheck.py, evidence.py, watch.py, rebuttal.py, sanctuary.py, inquest.py, cli.py; tests 42 green; commits f23d41bd, 8a4550fb, 7949eb21 Learned: PAMS memory store unreachable all session (Not connected on every endpoint) so the Promise lives in Engram plus PMB plus bible corpus; the gap is stated, not hidden",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Shipped the civil-justice function suite: debunk, factcheck, locker, watch, rebuttal, sanctuary, inquest, all wired to eve CLI with G1 tests and live proofs",
+   "title": "Civil justice function suite shipped with tests and live proof"
+  },
+  {
+   "cause": "Bulk gate reads ALLOW_BULK_COMMIT from the environment at hook time while the message declaration serves push-time re-judgment; both are required, neither alone passes",
+   "date": "2026-11-07",
+   "id": "engram-2086",
+   "kind": "engram:lesson",
+   "line": 2086,
+   "rationale": "What: Closed the locker-prove gap (prove_case resolves ev ids), added receipt locking, calibrated verdicts with NO_ENTITIES plus entity counts, added Library of Congress fallback per entity miss, fixed debunk CLI labeling Why: The flagship pieces did not connect; uncounted verdicts overstate; single-source study inherits single-source bias; a justice tool must not label refuted text checkable Where: azazael/src/eve_unleashed/redress.py, factcheck.py, cli.py; tests 31 green; commit 350081b2 Learned: Bulk gate reads ALLOW_BULK_COMMIT from the environment at hook time while the message declaration serves push-time re-judgment; both are required, neither alone passes",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the locker-prove gap (prove_case resolves ev ids), added receipt locking, calibrated verdicts with NO_ENTITIES plus entity counts, added Library of Congress fallback per entity miss, fixed debunk CLI labeling",
+   "title": "Justice suite wiring hardened and calibrated"
+  },
+  {
+   "cause": "Transport failure, not data failure: no PAMS call succeeded, so nothing was half-written; retry from a restarted client before assuming records are missing",
+   "date": "2026-11-07",
+   "id": "engram-2087",
+   "kind": "engram:lesson",
+   "line": 2087,
+   "rationale": "What: Diagnosed the PAMS memory outage: create_memory, daemon_health, and get_system_health all return Not connected from this client Why: A third of the native memory story is dark; the Promise record must state whether the gap is data loss or transport failure Where: Freebuff MCP client transport to the PAMS server, session of 2026-11-06; Engram plus PMB hold the records instead Learned: Transport failure, not data failure: no PAMS call succeeded, so nothing was half-written; retry from a restarted client before assuming records are missing",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Diagnosed the PAMS memory outage: create_memory, daemon_health, and get_system_health all return Not connected from this client",
+   "title": "PAMS outage diagnosed as transport failure on every endpoint"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21743,10 +21779,10 @@
    "engram:architecture": 36,
    "engram:bugfix": 166,
    "engram:config": 17,
-   "engram:decision": 411,
+   "engram:decision": 412,
    "engram:discovery": 253,
    "engram:learning": 281,
-   "engram:lesson": 59,
+   "engram:lesson": 61,
    "engram:pattern": 16,
    "error": 276,
    "lesson": 117,
@@ -21755,7 +21791,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1810,
+  "records": 1813,
   "surfaces": 14
  }
 }
