@@ -14,8 +14,9 @@ unified verdict. This server puts an MCP face on the existing oracle logic:
   triage_plan     open items with a suggested evidence check each, for resolution
   refusal_log     idempotent refusal-ledger append (ER-01: one event, one row)
 
-Run under the free-threaded interpreter (py315t, which has `mcp`):
-  C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp.py
+Server mode needs the `mcp` package (run it under py315t, which has it).
+--verdict and the other CLI paths import no mcp and run under py316t:
+  C:/Azazael/.venvs/py316t/Scripts/python.exe tools/supervisor_mcp.py --verdict
 Registered in ~/.agents/mcp.json as stdio server "supervisor".
 """
 import json
@@ -30,10 +31,28 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import engram_supervise as sup  # noqa: E402
-try:
-    from mcp.server import MCPServer as FastMCP  # mcp 2.x
-except ImportError:
-    from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
+
+
+class _NoMCPServer:
+    """Fallback when `mcp` is not installed (e.g. py316t).
+
+    @server.tool() degrades to an identity decorator, so every CLI path
+    (--verdict, --log-refusal, --selftest) keeps working with plain
+    functions; main() already calls verdict.fn() if decorated else
+    verdict(). Only server mode raises, loudly, naming the fix.
+    """
+
+    def tool(self, *args, **kwargs):
+        def _identity(fn):
+            return fn
+        return _identity
+
+    def run(self, *args, **kwargs):
+        raise RuntimeError(
+            "supervisor server mode needs the 'mcp' package "
+            "(run under py315t, which has it)")
+
+
 import datetime
 import subprocess
 import urllib.request
@@ -207,7 +226,14 @@ def append_refusal(tool, detail, client="opencode", session="",
             return "refusal: WRITE FAILED (%s: %s)" % (type(exc).__name__, exc)
 
 
-server = FastMCP("supervisor")
+try:
+    try:
+        from mcp.server import MCPServer as FastMCP  # mcp 2.x
+    except ImportError:
+        from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
+    server = FastMCP("supervisor")
+except ImportError:
+    server = _NoMCPServer()
 
 
 def _pams_honest() -> tuple:

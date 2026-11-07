@@ -7,10 +7,10 @@ gate fails when a copy drifts.**
 
 ### The chain (this is the precedence — nothing else claims to go "first")
 
-0. **GATE** — `python C:/Azazael/azazael/tools/mcp_startup_gate.py --fix`
-1. **MEMORY LOAD** — `python C:/Azazael/azazael/tools/session_start.py "<task>"`
+0. **GATE** — `C:/Azazael/.venvs/py316t/Scripts/python.exe C:/Azazael/azazael/tools/mcp_startup_gate.py --fix`
+1. **MEMORY LOAD** — `C:/Azazael/.venvs/py316t/Scripts/python.exe C:/Azazael/azazael/tools/session_start.py "<task>"`
    (runs the gate as its own step 0, prints both PMB and Engram context)
-2. **VERDICT** — `supervisor__verdict` MCP tool (or `engram_supervise.py`).
+2. **VERDICT** — `supervisor__verdict` MCP tool (or `C:/Azazael/.venvs/py316t/Scripts/python.exe tools/supervisor_mcp.py --verdict`).
    `NO-GO` blocks non-memory work; `GO` proceeds.
 3. **SKILLS + CANON** — loaded **on trigger**, not up front: a skill when its
    description matches the task, a canon document when the task touches what it
@@ -118,6 +118,13 @@ They only make answers wrong.
   `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `sys._is_gil_enabled()`
   is False). `python` on PATH is 3.14.7 **with** the GIL. Run the suite with the
   3.15t interpreter; a "hang" measured under 3.14 is not evidence about production.
+- **Session startup loads the new interpreter (py316t):**
+  `C:/Azazael/.venvs/py316t/Scripts/python.exe` (3.16.0a1, free-threaded).
+  Measured 2026-11-07: gate, session_start and supervisor --verdict all green
+  under it, verdict text identical on both interpreters (contract script green).
+  supervisor_mcp.py imports no mcp unless server mode runs, so --verdict works
+  where mcp is not installed. Test-suite and commit-hook interpreters stay
+  3.15t until proven under 3.16 — startup is proven, the suite is not.
 - **6,975 tests exist and nothing gates them.** (Collected 2026-11-05 by
   `python tools/head_state.py --write`, which runs `pytest --collect-only -q` under
   the 3.15t interpreter and writes `state/head.json`. This line said 5,380 for
