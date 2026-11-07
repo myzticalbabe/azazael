@@ -81,7 +81,11 @@ def _swarm_fallback(prompt):
     dead_idx = -1
     for i, target in enumerate(targets):
         pid = target.get("id", "?") if isinstance(target, dict) else target
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        # No `with` block: pool.__exit__ waits for a stuck worker and
+        # re-wedges the request (measured 2026-11-06: ablation hung past
+        # 300 s on fut.result timeouts that the `with` then waited on).
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        try:
             fut = pool.submit(worker, target)
             try:
                 res = fut.result(timeout=SWARM_PER_PROVIDER_S)
@@ -91,6 +95,8 @@ def _swarm_fallback(prompt):
                 if dead_idx < 0:
                     dead_idx = i
                 continue
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
         if res.success and res.content:
             win = {"provider": res.provider, "model": res.model,
                    "text": res.content, "elapsed_ms": res.elapsed_ms,
@@ -116,6 +122,54 @@ def _swarm_fallback(prompt):
         note_failure("cli:swarm-nsp", e)
     win["nsp"] = nsp_note
     return win, ""
+
+
+def cmd_ablate(args) -> int:
+    """Native refusal ablation: same prompts, every provider, verdicts."""
+    import concurrent.futures
+    from . import ablate as _a
+    try:
+        from CORE.inference.parallel import ParallelInferenceEngine
+        engine = ParallelInferenceEngine()
+    except Exception as e:
+        print(f"ERROR: swarm unavailable ({e})", file=sys.stderr)
+        return 1
+    targets = engine.get_all_providers_with_keys()
+    if not targets:
+        print("ERROR: no keyed providers", file=sys.stderr)
+        return 1
+    names = [t.get("id", "?") if isinstance(t, dict) else t
+             for t in targets]
+    by_name = dict(zip(names, targets))
+    prompts = args.prompt or ["Explain photosynthesis in one sentence.",
+                              "What is 17 multiplied by 24?"]
+
+    def single(name, prompt, timeout):
+        worker = engine._build_worker_fn(prompt, 256, None, None)
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        try:
+            try:
+                res = pool.submit(worker, by_name[name]).result(
+                    timeout=timeout)
+            except Exception as e:
+                return None, e
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+        if getattr(res, "success", False) and getattr(res, "content", None):
+            return res.content, None
+        return None, Exception(getattr(res, "error", None) or "empty")
+
+    total_a = total_q = 0
+    for p in prompts:
+        rep = _a.ablate_prompt(p, names, single, args.timeout)
+        print(f"PROMPT: {rep['prompt']}")
+        for r in rep["rows"]:
+            print(f"  [{r['verdict']}] {r['provider']}: {r['detail']}")
+        total_a += rep["answered"]
+        total_q += rep["total"]
+    print(f"ABLATION: {total_a}/{total_q} provider-answers; "
+          "fallback serves first answer with NSP judgment")
+    return 0
 
 
 def cmd_infer(args) -> int:
@@ -774,6 +828,12 @@ def main():
     grv_p.set_defaults(func=cmd_grievance, grievance_action="show")
 
     # eve stats
+    abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
+    abl_p.add_argument("--prompt", action="append", default=[],
+                       help="Benign prompt (repeatable; default: two built-ins)")
+    abl_p.add_argument("--timeout", type=int, default=45)
+    abl_p.set_defaults(func=cmd_ablate)
+
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
 
