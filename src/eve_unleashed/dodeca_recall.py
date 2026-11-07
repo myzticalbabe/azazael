@@ -338,6 +338,80 @@ class SwarmStore:
                 "shape": self.shape}
 
 
+def cast_projection(store: ShapeStore, genome: Dict[str, Any],
+                    provenance: Dict[str, Any] = None) -> Dict[str, Any]:
+    """PROJECTION: cast the finished stone -- in ALL forms, not one.
+
+    Gold comes in all forms, so the artifact is three: JSON (portable,
+    inspectable, reloads entries anywhere), a frozen .py module (importable
+    gold: rebuilds the store with no trainer), and a .md chronicle (the
+    lineage record: who, what solid, what was learned). Returns the three
+    texts plus the payload dict.
+
+    Constraint, stated not hidden: the .py form embeds values as literals,
+    so values must be repr-literals. The JSON form carries anything
+    json-serializable (default=str beyond that)."""
+    import datetime as _dt
+    import json as _json
+    entries = [(k, v) for v in range(store.n) for k, v in store.slots[v]]
+    prov = dict(provenance or {})
+    prov.setdefault("cast_utc",
+                    _dt.datetime.now(_dt.timezone.utc).isoformat())
+    payload = {"shape": store.shape, "slots": store.n,
+               "diameter": diameter(store.n, store.nbr),
+               "genome": dict(genome),
+               "hunches": list(genome.get("hunches") or []),
+               "entries": entries, "provenance": prov}
+    gid = genome.get("worm_id", "?")
+    json_text = _json.dumps(payload, indent=2, default=str)
+    py_text = (
+        '"""Cast stone: {shape} + genome {gid}. Frozen; needs no trainer."""\n'
+        "from eve_unleashed.dodeca_recall import ShapeStore\n\n"
+        "SHAPE = {shape!r}\nGENOME = {genome!r}\n"
+        "HUNCHES = {hunches!r}\nENTRIES = {entries!r}\n\n"
+        "def load():\n"
+        "    st = ShapeStore(SHAPE)\n"
+        "    for k, v in ENTRIES:\n"
+        "        st.put(k, v)\n"
+        "    return st\n"
+    ).format(shape=store.shape, gid=gid, genome=dict(genome),
+             hunches=list(genome.get("hunches") or []), entries=entries)
+    md_lines = [f"# Cast stone: `{gid}`", "",
+                f"- solid: **{store.shape}** "
+                f"({store.n} slots, diameter "
+                f"{diameter(store.n, store.nbr)})",
+                f"- lineage: gen {genome.get('generation', '?')}, "
+                f"parents {genome.get('parent_ids', [])}",
+                f"- hunches: {list(genome.get('hunches') or [])}",
+                f"- entries: {len(entries)}",
+                f"- cast: {prov['cast_utc']}", "",
+                "## genes", ""]
+    for gene in ("aggressiveness", "min_confidence", "cooldown_s",
+                 "scan_interval_s", "resource_budget_mb",
+                 "mutation_rate"):
+        md_lines.append(f"- {gene}: {genome.get(gene, '?')}")
+    md_lines += ["", "## provenance", ""]
+    for k, v in prov.items():
+        if k != "cast_utc":
+            md_lines.append(f"- {k}: {v}")
+    return {"json": json_text, "py": py_text,
+            "md": "\n".join(md_lines) + "\n", "payload": payload}
+
+
+def write_projection(store: ShapeStore, genome: Dict[str, Any],
+                     base_path: str,
+                     provenance: Dict[str, Any] = None) -> List[str]:
+    """Write all three forms to <base>.json / <base>.py / <base>.md."""
+    cast = cast_projection(store, genome, provenance)
+    paths = []
+    for ext in ("json", "py", "md"):
+        p = f"{base_path}.{ext}"
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(cast[ext])
+        paths.append(p)
+    return paths
+
+
 class DodecaStore(ShapeStore):
     """The default solid. Kept by name: the canon was written for it."""
 

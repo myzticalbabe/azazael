@@ -96,6 +96,52 @@ def test_transsubstantiate_rehomes_every_entry():
     assert new.recall("a.example")["exact"] == []  # old keys are gone
 
 
+def _toa_genome():
+    return {"worm_id": "gold-1", "worm_type": "fetcher",
+            "aggressiveness": 0.28, "min_confidence": 0.72,
+            "cooldown_s": 1.5, "scan_interval_s": 60.0,
+            "resource_budget_mb": 256.0, "mutation_rate": 0.15,
+            "generation": 5, "parent_ids": ["t1-0"],
+            "hunches": ["archive", "commoncrawl"]}
+
+
+def test_projection_casts_all_three_forms():
+    import json as _j
+    st = D.DodecaStore()
+    st.put("a.example", {"rung": "archive"})
+    cast = D.cast_projection(st, _toa_genome(), {"gen": 5})
+    assert set(cast) == {"json", "py", "md", "payload"}
+    back = _j.loads(cast["json"])
+    assert back["shape"] == "dodecahedron" and back["diameter"] == 5
+    assert back["genome"]["worm_id"] == "gold-1"
+    assert [k for k, _ in back["entries"]] == ["a.example"]
+    assert "gold-1" in cast["md"] and "dodecahedron" in cast["md"]
+    assert "archive" in cast["md"] and "aggressiveness: 0.28" in cast["md"]
+
+
+def test_projection_py_form_is_importable_gold(tmp_path):
+    import importlib.util as _ilu
+    st = D.DodecaStore()
+    st.put("a.example", {"rung": "archive"})
+    (tmp_path / "stone.py").write_text(
+        D.cast_projection(st, _toa_genome())["py"], encoding="utf-8")
+    spec = _ilu.spec_from_file_location("stone", str(tmp_path / "stone.py"))
+    mod = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert [m[1] for m in mod.load().recall("a.example")["exact"]] \
+        == ["a.example"]
+
+
+def test_write_projection_lands_three_files(tmp_path):
+    import os as _os
+    st = D.DodecaStore()
+    st.put("a.example", "v")
+    paths = D.write_projection(st, _toa_genome(), str(tmp_path / "gold"))
+    assert sorted(_os.path.basename(p) for p in paths) \
+        == ["gold.json", "gold.md", "gold.py"]
+    assert all(_os.path.getsize(p) > 0 for p in paths)
+
+
 def test_swarm_hypercubes_fan_out_and_merge():
     sw = D.SwarmStore("hypercube-32", shards=4)
     keys = ["h%d.example" % i for i in range(40)]
