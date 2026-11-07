@@ -6,7 +6,7 @@ check: the shard counts below were three days stale and nothing could notice. On
 source now, generated into every lane, verified by `orders-in-sync`.
 
 - **Any moving picture, clip or multi-frame render:** read
-  `C:\Users\clint\YGGDRASIL_RENDER_PLAYBOOK_2026-10-30.md` before writing a
+  `C:\Users\clint\YGGDRASIL_RENDER_PLAYBOOK_2026-10-30.md` (historical — archived, path dead) before writing a
   renderer. Frame index from the URL (never the clock), one Chrome profile per
   frame, absolute output paths, never edit a running bash script, verify frame
   count + 3 distinct hashes + read the decoded frames. Chrome/Puppeteer capture,

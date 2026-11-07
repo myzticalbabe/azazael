@@ -110,7 +110,12 @@ def root_audit(manifest_path: str) -> Dict:
         legs.append({"name": "fixture.sha", "status": "ok",
                      "detail": man["fixture_sha"][:12]})
     for label, art in man.get("artifacts", {}).items():
+        # Relative paths resolve against the manifest: the Root travels
+        # with its evidence (state/honey/blobs/), so a fresh clone audits
+        # PASS instead of failing on another machine's /tmp layout.
         p = art["path"]
+        if not Path(p).is_absolute():
+            p = str(base / p)
         if not Path(p).exists():
             legs.append({"name": "artifact." + label, "status": "error",
                          "detail": "missing: " + p})

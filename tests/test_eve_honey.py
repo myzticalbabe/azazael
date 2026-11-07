@@ -25,6 +25,27 @@ def test_propagate_then_audit_passes(tmp_path):
     assert verdict["verdict"] == "PASS" and verdict["clean"] is True
 
 
+def test_relative_artifact_paths_resolve_against_manifest(tmp_path):
+    # The Root travels: bundled blobs are cited relatively, so a fresh
+    # clone (no /tmp) still audits PASS.
+    fix = tmp_path / "fx.json"
+    fix.write_text("{}")
+    blobdir = tmp_path / "honey" / "blobs"
+    blobdir.mkdir(parents=True)
+    (blobdir / "pop.json").write_text("{}", encoding="utf-8")
+    man = propagate(str(fix), str(tmp_path / "honey"),
+                    artifacts={})
+    from eve_unleashed.honey import sha_file
+    man["artifacts"] = {"pop": {
+        "path": "blobs/pop.json",
+        "sha": sha_file(str(blobdir / "pop.json"))}}
+    import json
+    json.dump(man, open(tmp_path / "honey" / "honey.json", "w",
+                         encoding="utf-8"), indent=2)
+    verdict = root_audit(str(tmp_path / "honey" / "honey.json"))
+    assert verdict["verdict"] == "PASS"
+
+
 def test_tampered_fixture_fails_audit_by_name(tmp_path):
     fix = tmp_path / "fx.json"
     fix.write_text('{"urls": ["a"]}')

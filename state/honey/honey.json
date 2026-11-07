@@ -5,43 +5,43 @@
   "note": "First Honey: null-control fixture + both lineages + verdicts. Live ruler (0.85x) and fixture ruler (0.8667) kept separate. Rematch 2026-11-07: fresh fixture (wikipedia ok at freeze) -- champ best 0.8667 mean 0.8167 vs null best 0.8667 mean 0.8119. Tie persists on unseen ground.",
   "artifacts": {
     "fixture_src": {
-      "path": "C:/tmp/eve-fixture.json",
+      "path": "blobs/fixture_src.json",
       "sha": "479ed960d33bd7d1bf7452023f1aac5af55dc8694ff1ce4523153f86c040df77"
     },
     "pop_A": {
-      "path": "C:/tmp/eve-pop.json",
+      "path": "blobs/pop_A.json",
       "sha": "dc71ca17af1fdb08fd630fb7a5e29b3db41860700825e177150f2c1a588fa386"
     },
     "pop_B": {
-      "path": "C:/tmp/eve-pop-fresh.json",
+      "path": "blobs/pop_B.json",
       "sha": "65352a206119d9475603140ca586e33c39590eb1468c20b81c9755b25836cf74"
     },
     "log_A": {
-      "path": "C:/tmp/eve-train.jsonl",
+      "path": "blobs/log_A.jsonl",
       "sha": "b38879418c0d5ecfe719a184a9b9973b7c9bdd01ec33d29f7d16c7e36bb3f860"
     },
     "log_B": {
-      "path": "C:/tmp/eve-train-fresh.jsonl",
+      "path": "blobs/log_B.jsonl",
       "sha": "ba6cac3b3c4c1075afd8515f97aea995a48106cde6a63bcc440b2dd40cba4f4b"
     },
     "log_null": {
-      "path": "C:/tmp/eve-null.jsonl",
+      "path": "blobs/log_null.jsonl",
       "sha": "84cac889cf54d199541fb135699cce47c72584540d61702d0b59bd643585ce78"
     },
     "log_champ_rescore": {
-      "path": "C:/tmp/eve-champ-rescore.jsonl",
+      "path": "blobs/log_champ_rescore.jsonl",
       "sha": "6f17d91e0d87f371e9ca5d72527f9c43dc906eb6b4b31bb4b525b5719ff4bc0f"
     },
     "fixture_rematch": {
-      "path": "C:/tmp/eve-fixture-rematch.json",
+      "path": "blobs/fixture_rematch.json",
       "sha": "cc3ed11d7dec5fb7877d9ab95986ef7b1d33cbc6e27e245f3fc9a24d74985638"
     },
     "log_rematch_champ": {
-      "path": "C:/tmp/eve-rematch-champ.jsonl",
+      "path": "blobs/log_rematch_champ.jsonl",
       "sha": "d3fabe43bc5dd1422e4a93b6118909f0efa8781beeba3d2c6cc8a1d94fa26744"
     },
     "log_rematch_null": {
-      "path": "C:/tmp/eve-rematch-null.jsonl",
+      "path": "blobs/log_rematch_null.jsonl",
       "sha": "cca2415a51fdc6b947feeac65a7b5244dacdd125af1c1b42ce1fced6396009b9"
     }
   },
