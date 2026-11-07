@@ -1,4 +1,4 @@
-"""MCML -- MiniCodeMachineLearning: lego-style native learning blocks.
+"""MCML -- MellifluousML: lego-style native learning blocks.
 
 Small composable primitives (Dense, activations, losses, SGD) in stdlib
 Python that assemble -- Lego-style -- into perfectly-formed models. No

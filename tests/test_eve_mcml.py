@@ -1,4 +1,4 @@
-"""MCML: lego blocks that are perfectly-formed, golden-anchored, learning."""
+"""MellifluousML (MCML): lego blocks, perfectly-formed, golden-anchored, learning."""
 import sys
 from pathlib import Path
 
