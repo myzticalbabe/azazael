@@ -44,6 +44,8 @@ def main() -> int:
              "--wheel-dir", wheeldir, req],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=280,
         )
         if r.returncode == 0:
