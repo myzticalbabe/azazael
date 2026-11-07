@@ -337,6 +337,35 @@ class SwarmStore:
                 "visited": visited, "shards": len(self.stores),
                 "shape": self.shape}
 
+    def count(self) -> int:
+        """Total entries across all shards."""
+        return sum(len(sl) for st in self.stores for sl in st.slots.values())
+
+    def _all_entries(self) -> List[Tuple[str, Any]]:
+        return [(k, v) for st in self.stores for sl in st.slots.values()
+                for k, v in sl]
+
+    def rebalance(self, shards: int) -> int:
+        """Rebuild the swarm at a new shard count; every entry re-homed.
+
+        The shard function changes with the count, so all entries move.
+        Returns the new shard count."""
+        if shards < 1:
+            raise ValueError(f"a swarm needs >= 1 shard, got {shards}")
+        entries = self._all_entries()
+        self.stores = [ShapeStore(self.shape) for _ in range(shards)]
+        for k, v in entries:
+            self.put(k, v)
+        return len(self.stores)
+
+    def grow(self, n: int = 1) -> int:
+        """MULTIPLY: add shards and rebalance. Returns the new count."""
+        return self.rebalance(len(self.stores) + n)
+
+    def shrink(self, n: int = 1) -> int:
+        """Divide the swarm down, never below one. Returns the new count."""
+        return self.rebalance(len(self.stores) - n)
+
 
 def cast_projection(store: ShapeStore, genome: Dict[str, Any],
                     provenance: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -410,6 +439,79 @@ def write_projection(store: ShapeStore, genome: Dict[str, Any],
             fh.write(cast[ext])
         paths.append(p)
     return paths
+
+
+#: The shipped solids. Custom registrations may dissolve; these may not.
+BUILTIN_SHAPES = frozenset(["dodecahedron", "petersen", "cycle-20",
+                            "complete-20", "hypercube-32", "g40"])
+
+
+def conjoin(a: ShapeStore, b: ShapeStore, shape: str = None) -> ShapeStore:
+    """CONJOIN: marry two stores onto one solid. Every entry survives.
+
+    Defaults to the larger solid; same key in both yields both entries
+    (recall exact shows the full marriage, no silent winner)."""
+    shape = shape or (a.shape if a.n >= b.n else b.shape)
+    new = ShapeStore(shape)
+    for st in (a, b):
+        for v in range(st.n):
+            for k, val in st.slots[v]:
+                new.put(k, val)
+    return new
+
+
+def separate(store: ShapeStore, pred: Callable[[str, Any], bool],
+             shape: str = None) -> Tuple[ShapeStore, ShapeStore]:
+    """SEPARATE: divide one store by predicate. (match, rest).
+
+    Disjoint and complete: every entry lands in exactly one child."""
+    shape = shape or store.shape
+    match, rest = ShapeStore(shape), ShapeStore(shape)
+    for v in range(store.n):
+        for k, val in store.slots[v]:
+            (match if pred(k, val) else rest).put(k, val)
+    return match, rest
+
+
+def dissolve_key(store: ShapeStore, key: str) -> int:
+    """DISSOLVE (entry): remove every entry under key. Returns the count."""
+    sl = store.slots[home_of(key, store.n)]
+    before = len(sl)
+    sl[:] = [(k, v) for k, v in sl if k != key]
+    return before - len(sl)
+
+
+def unregister_shape(name: str) -> str:
+    """DISSOLVE (solid): burn a custom registration back to nothing.
+
+    Builtins refuse -- the shipped solids are load-bearing. Existing
+    stores hold their own function reference and keep working."""
+    if name in BUILTIN_SHAPES:
+        raise ValueError(f"{name}: builtin solids do not dissolve")
+    if name not in SHAPES:
+        raise ValueError(f"unknown shape {name!r}; SHAPES={sorted(SHAPES)}")
+    del SHAPES[name]
+    return name
+
+
+def ferment(store: ShapeStore, salience: Any, threshold: float = 1.0) -> list:
+    """FERMENT: rot entries whose salience falls below threshold, in place.
+
+    salience is a dict (key -> weight) or a callable ((key, value) ->
+    weight); dream() per-host salience plugs straight in. Returns the
+    removed entries. What the lineage stopped caring about, the solid
+    stops holding."""
+    if callable(salience):
+        weight = salience
+    else:
+        weight = lambda k, v: salience.get(k, 0.0)
+    removed = []
+    for v in range(store.n):
+        kept = []
+        for k, val in store.slots[v]:
+            (kept if weight(k, val) >= threshold else removed).append((k, val))
+        store.slots[v] = kept
+    return removed
 
 
 class DodecaStore(ShapeStore):

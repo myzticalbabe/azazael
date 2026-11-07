@@ -142,6 +142,92 @@ def test_write_projection_lands_three_files(tmp_path):
     assert all(_os.path.getsize(p) > 0 for p in paths)
 
 
+def test_conjoin_marries_two_stores():
+    a, b = D.DodecaStore(), D.ShapeStore("petersen")
+    a.put("shared", "from-a")
+    a.put("only-a", 1)
+    b.put("shared", "from-b")
+    b.put("only-b", 2)
+    m = D.conjoin(a, b)
+    assert m.n == 20  # the larger solid wins by default
+    assert sorted(x[2] for x in m.recall("shared")["exact"]) \
+        == ["from-a", "from-b"]  # no silent winner
+    assert m.recall("only-a")["exact"] and m.recall("only-b")["exact"]
+
+
+def test_separate_partitions_completely():
+    src = D.DodecaStore()
+    src.put("a.example", {"rung": "archive"})
+    src.put("b.example", {"rung": "render"})
+    hot, cold = D.separate(src, lambda k, v: v["rung"] == "archive")
+    assert [m[1] for m in hot.recall("a.example")["exact"]] == ["a.example"]
+    assert hot.recall("b.example")["exact"] == []
+    assert [m[1] for m in cold.recall("b.example")["exact"]] == ["b.example"]
+    assert cold.recall("a.example")["exact"] == []
+
+
+def test_dissolve_key_removes_and_counts():
+    st = D.DodecaStore()
+    st.put("gone", 1)
+    st.put("gone", 2)
+    st.put("stays", 3)
+    assert D.dissolve_key(st, "gone") == 2
+    assert st.recall("gone")["exact"] == []
+    assert D.dissolve_key(st, "never-here") == 0
+    assert [m[1] for m in st.recall("stays")["exact"]] == ["stays"]
+
+
+def test_unregister_burns_custom_but_not_builtin():
+    import pytest as _p
+    D.transmogrify("doomed", 6, _prism)
+    keeper = D.ShapeStore("doomed")
+    keeper.put("k", "v")
+    assert D.unregister_shape("doomed") == "doomed"
+    assert "doomed" not in D.SHAPES
+    assert keeper.recall("k")["exact"]  # holds its own reference: alive
+    with _p.raises(ValueError):
+        D.unregister_shape("dodecahedron")
+    with _p.raises(ValueError):
+        D.unregister_shape("never-registered")
+
+
+def test_ferment_rots_what_the_lineage_ignores():
+    st = D.DodecaStore()
+    st.put("loved", {"rung": "archive"})
+    st.put("dead", {"rung": "render"})
+    removed = D.ferment(st, {"loved": 5.0, "dead": 0.2}, threshold=1.0)
+    assert removed == [("dead", {"rung": "render"})]
+    assert [m[1] for m in st.recall("loved")["exact"]] == ["loved"]
+    assert st.recall("dead")["exact"] == []
+
+
+def test_ferment_accepts_callable_salience():
+    st = D.DodecaStore()
+    st.put("a", 1)
+    st.put("b", 2)
+    removed = D.ferment(st, lambda k, v: float(v), threshold=2.0)
+    assert removed == [("a", 1)] and st.recall("b")["exact"]
+
+
+def test_multiply_grows_and_shrinks_without_loss():
+    import pytest as _p
+    sw = D.SwarmStore("hypercube-32", shards=2)
+    keys = ["m%d.example" % i for i in range(30)]
+    for k in keys:
+        sw.put(k, k)
+    assert sw.count() == 30
+    assert sw.grow(3) == 5
+    assert sw.count() == 30
+    for k in keys:
+        assert [m[1] for m in sw.recall(k)["exact"]] == [k]
+    assert sw.shrink(3) == 2
+    assert sw.count() == 30
+    for k in keys:
+        assert [m[1] for m in sw.recall(k)["exact"]] == [k]
+    with _p.raises(ValueError):
+        sw.shrink(2)  # never below one
+
+
 def test_swarm_hypercubes_fan_out_and_merge():
     sw = D.SwarmStore("hypercube-32", shards=4)
     keys = ["h%d.example" % i for i in range(40)]

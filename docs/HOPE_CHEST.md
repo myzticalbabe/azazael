@@ -1,6 +1,6 @@
 # HOPE CHEST — priced future work, kept stocked fresh
 
-**Last stocked:** 2026-11-07 (session: PROJECTION cast in all forms, see below).
+**Last stocked:** 2026-11-07 (session: full lifecycle closed, see below).
 **Refresh rule:** every session re-stocks this chest — mark LANDED with the
 commit hash, re-price anything whose size changed, and add newly discovered
 gaps. A chest that is not re-stocked is stale, and stale is forbidden.
@@ -17,10 +17,10 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | H-04 | Persist ShapeStore: `to_dict`/`from_dict` snapshot beside the pop file | S | STOCKED |
 | H-05 | Transmogrify guardrails: diameter ceiling + girth floor on evolved solids | S | STOCKED |
 | H-06 | Transmogrify engine: MUTATE / TRANSMOGRIFY / TRANSSUBSTANTIATE / SWARM | M | LANDED (commit below) |
-| H-12 | CONJOIN + SEPARATE: merge two stores, split one by predicate | S | STOCKED |
-| H-13 | DISSOLVE: delete entries, unregister dead solids (registry rot kills morph-spaces) | XS | STOCKED |
-| H-14 | FERMENT: salience-weighted decay so the solid holds living memory | M | STOCKED |
-| H-15 | MULTIPLY: grow/shrink the swarm with rebalancing | M | STOCKED |
+| H-12 | CONJOIN + SEPARATE: merge two stores, split one by predicate | S | LANDED (commit below) |
+| H-13 | DISSOLVE: delete entries, unregister dead solids (registry rot kills morph-spaces) | XS | LANDED (commit below) |
+| H-14 | FERMENT: salience-weighted decay so the solid holds living memory | M | LANDED (commit below) |
+| H-15 | MULTIPLY: grow/shrink the swarm with rebalancing | M | LANDED (commit below) |
 | H-16 | PROJECTION in all forms: JSON + frozen .py + chronicle | S | LANDED (commit below) |
 
 ## STOCKED — training loop
@@ -46,5 +46,6 @@ L (multi-file or box work). Price is cost-to-land, paid in full on landing.
 | Inspiration trio: teacher bias + hunch crossover + dream-to-gene flow | commit below — 18 trainer + 11 recall tests green |
 | Transmogrify engine: validated solid registration, degree-preserving mutation, re-homing, hypercube swarm | commit below — 16 recall + 18 trainer tests green |
 | PROJECTION: `cast_projection`/`write_projection` — JSON reloads anywhere, .py rebuilds with no trainer, .md records lineage | commit below — 19 recall + 18 trainer tests green |
+| Full lifecycle: conjoin/separate, dissolve_key/unregister_shape (builtins refuse), ferment (dict or callable salience), swarm grow/shrink/rebalance without loss | commit below — 26 recall + 18 trainer tests green |
 | Shape-parametric recall, 6 solids + morph_store | commit `a0feb600` — 11 recall + 9 trainer tests green |
 | EVOLVE-TO-RESOLVE canon (RULE 0Z-P) | commit `abd5c95a` — 67 targets in sync |
