@@ -21,9 +21,15 @@ instead of prose:
            ``state/canonical_interp.json``. Refuses build-tree-based
            candidates unless ``--allow-build-tree-base`` is given: a venv
            whose base is the build tree dies with the tree.
+           Takes the build lock; refuses while another lane holds it.
   guard    the cheap daily check: canonical pointer resolves, its version
            matches the record, the build tree still exists when needed,
            disk floor holds.
+  dirty    name the -dirty cause: run git status in the CPython source
+           tree and record modified/untracked build artifacts into the
+           build record. A build with source edits cannot ship.
+  lock     take (``--take lane``) or release (``--release``) the build
+           lock by hand; ``verify`` and ``guard`` report a live lock.
 
 Exit codes: 0 = pass / nothing to do, 1 = failure or action required,
 2 = the check could not be performed (never reported as a pass).
@@ -34,6 +40,8 @@ Usage
   python tools/interp_cycle.py verify [--candidate PY] [--apply] [--json PATH]
   python tools/interp_cycle.py promote --candidate PY [--allow-build-tree-base]
   python tools/interp_cycle.py guard
+  python tools/interp_cycle.py dirty --source DIR
+  python tools/interp_cycle.py lock --take LANE | --release
 """
 from __future__ import annotations
 
@@ -52,6 +60,7 @@ BUILD_RECORD = STATE / "py316t_build.json"
 VERIFY_REPORT = STATE / "interp_verify.json"
 WATCH_REPORT = STATE / "interp_watch.json"
 POINTER = STATE / "canonical_interp.json"
+BUILD_LOCK = STATE / ".interp_build.lock"
 
 CORE_PREFIXES = ("Python/", "Include/", "PCbuild/", "Misc/", "Objects/",
                  "Parser/", "Modules/")
@@ -348,7 +357,83 @@ def do_verify(args) -> int:
     return 0 if not failed else 1
 
 
+def lock_holder() -> str:
+    try:
+        return BUILD_LOCK.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        print(f"lock read: no live lock ({exc}); treating as free",
+              file=sys.stderr)
+        return ""
+
+
+def do_lock(args) -> int:
+    if args.take:
+        holder = lock_holder()
+        if holder and holder != args.take and not args.force:
+            print(f"lock held by {holder!r}; refusing (use --force to break)")
+            return 1
+        BUILD_LOCK.write_text(args.take, encoding="utf-8")
+        print(f"lock taken by {args.take}")
+        return 0
+    if args.release:
+        try:
+            BUILD_LOCK.unlink()
+        except FileNotFoundError as exc:
+            print(f"lock release: already free ({exc})", file=sys.stderr)
+        print("lock released")
+        return 0
+    holder = lock_holder()
+    print(f"lock: {holder!r}" if holder else "lock: free")
+    return 0
+
+
+def do_dirty(args) -> int:
+    src = Path(args.source or _setting(
+        "source_tree", "C:/Azazael/.build/cpython-316"))
+    # NOTE: _run has no cwd and would read the REPO's status (exit 0,
+    # masking the real answer). Always spawn in the source tree directly.
+    try:
+        proc = subprocess.run(
+            ["git", "status", "--porcelain"], capture_output=True,
+            text=True, timeout=60, cwd=str(src), encoding="utf-8",
+            errors="replace")
+        rc, out = proc.returncode, (proc.stdout or "")
+    except Exception as exc:
+        print(f"dirty: cannot read {src}: {exc}")
+        return 2
+    if rc != 0:
+        print(f"dirty: git status failed in {src}")
+        return 2
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    editable = [ln for ln in lines
+                if not ln[3:].startswith(("Programs/", "Include/pyconfig.h",
+                                          "libs/", "PCbuild/"))]
+    verdict = "CLEAN" if not lines else (
+        "BENIGN" if not editable else "SOURCE_EDIT")
+    cause = ("clean tree" if not lines else
+             "; ".join(lines)[:400] +
+             (" — build-generated only, no source edit"
+              if verdict == "BENIGN" else " — SOURCE EDIT PRESENT"))
+    print(f"dirty: {verdict}: {cause}")
+    try:
+        record = load_record()
+        record["dirty_cause"] = cause
+        record["dirty_verdict"] = verdict
+        BUILD_RECORD.write_text(json.dumps(record, indent=2),
+                                encoding="utf-8")
+        print("recorded into build record")
+    except Exception as exc:
+        print(f"dirty: record write failed: {exc}")
+        return 2
+    return 0 if verdict in ("CLEAN", "BENIGN") else 1
+
+
 def do_promote(args) -> int:
+    holder = lock_holder()
+    if holder:
+        print(f"promote refused: build lock held by {holder!r} "
+              f"(release it or wait for their verify to finish)")
+        return 1
     candidate = args.candidate or str(
         _setting("candidate", "C:/Azazael/.venvs/py316t/Scripts/python.exe"))
     args.candidate = candidate
@@ -439,9 +524,24 @@ def main() -> int:
     p.add_argument("--json", metavar="PATH", help="verify report path")
 
     sub.add_parser("guard", help="cheap daily canonical/disk check")
+
+    d = sub.add_parser("dirty", help="name the -dirty cause in the record")
+    d.add_argument("--source", metavar="DIR", help="CPython source tree")
+
+    lk = sub.add_parser("lock", help="take/release the build lock")
+    lk.add_argument("--take", metavar="LANE", help="take the lock as LANE")
+    lk.add_argument("--release", action="store_true",
+                    help="release the lock")
+    lk.add_argument("--force", action="store_true",
+                    help="break another lane's lock")
     args = ap.parse_args()
+    holder = lock_holder() if args.cmd != "lock" else ""
+    if args.cmd in ("verify", "guard") and holder:
+        print(f"NOTE: build lock held by {holder!r} — "
+              f"results may describe a mid-rebuild engine")
     return {"watch": do_watch, "verify": do_verify,
-            "promote": do_promote, "guard": do_guard}[args.cmd](args)
+            "promote": do_promote, "guard": do_guard,
+            "dirty": do_dirty, "lock": do_lock}[args.cmd](args)
 
 
 if __name__ == "__main__":

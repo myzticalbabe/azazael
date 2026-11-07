@@ -15,5 +15,7 @@
   "reverified": {
     "candidate": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
     "report": "C:\\Azazael\\azazael\\state\\interp_verify.json"
-  }
+  },
+  "dirty_cause": " M Programs/test_frozenmain.h; ?? Include/pyconfig.h; ?? libs/ \u2014 build-generated only, no source edit",
+  "dirty_verdict": "BENIGN"
 }

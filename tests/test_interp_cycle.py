@@ -56,3 +56,43 @@ def test_parse_pytest_pass_shape():
 
 def test_parse_pytest_fail_shape():
     assert MOD.parse_pytest("50 passed, 1 failed in 2.1s") == (50, False)
+
+
+def _classify(lines):
+    editable = [ln for ln in lines
+                if not ln[3:].startswith(("Programs/", "Include/pyconfig.h",
+                                          "libs/", "PCbuild/"))]
+    if not lines:
+        return "CLEAN"
+    return "BENIGN" if not editable else "SOURCE_EDIT"
+
+
+def test_dirty_clean_tree():
+    assert _classify([]) == "CLEAN"
+
+
+def test_dirty_benign_build_artifacts():
+    assert _classify([" M Programs/test_frozenmain.h",
+                      "?? Include/pyconfig.h",
+                      "?? libs/"]) == "BENIGN"
+
+
+def test_dirty_source_edit_flagged():
+    assert _classify([" M Programs/test_frozenmain.h",
+                      " M Python/ceval.c"]) == "SOURCE_EDIT"
+
+
+def test_lock_holder_empty_without_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(MOD, "BUILD_LOCK", tmp_path / "no-such.lock")
+    assert MOD.lock_holder() == ""
+
+
+def test_lock_take_and_release(tmp_path, monkeypatch):
+    monkeypatch.setattr(MOD, "BUILD_LOCK", tmp_path / "b.lock")
+    ns = type("NS", (), {})()
+    ns.take, ns.release, ns.force = "freebuff", False, False
+    assert MOD.do_lock(ns) == 0
+    assert MOD.lock_holder() == "freebuff"
+    ns.take, ns.release = None, True
+    assert MOD.do_lock(ns) == 0
+    assert MOD.lock_holder() == ""
