@@ -256,6 +256,26 @@ def cmd_modgame(args) -> int:
     return 0
 
 
+def cmd_stem(args) -> int:
+    """Women-in-STEM tracks and referrals."""
+    from . import stem as _s
+    try:
+        if args.stem_action == "list":
+            for t in _s.list_tracks():
+                print(f"  {t}")
+            return 0
+        if args.stem_action == "refer":
+            for name, url in _s.referrals():
+                print(f"  {name}: {url}")
+            return 0
+        for line in _s.plan_track(args.style, args.goal):
+            print(line)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
@@ -995,6 +1015,15 @@ def main():
     mod_p.add_argument("--fitness", default=None,
                        help="JSON {file::key: target} (default: maximize)")
     mod_p.set_defaults(func=cmd_modgame)
+
+    stem_p = sub.add_parser("stem", help="Women-in-STEM tracks + referrals")
+    stem_sub = stem_p.add_subparsers(dest="stem_action")
+    stem_sub.add_parser("list", help="Learning-style tracks")
+    stem_track = stem_sub.add_parser("track", help="Steps for a style+goal")
+    stem_track.add_argument("--style", required=True)
+    stem_track.add_argument("--goal", default="my first STEM build")
+    stem_sub.add_parser("refer", help="Women-in-STEM organizations")
+    stem_p.set_defaults(func=cmd_stem, stem_action="list")
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
