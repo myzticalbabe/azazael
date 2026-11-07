@@ -152,3 +152,183 @@ def inhibited_rungs(host, log_path=None, threshold=0.5):
     blocked_rungs = {r.get("rung") for r in host_rows
                      if r.get("state") != "ok" and r.get("rung")}
     return blocked_rungs
+
+
+def consolidate(log_path=None):
+    """Merge repeated episodes into one durable rule while idle.
+
+    Consolidation (L4-c): scan the fetch log for repeated (host, rung,
+    state) triples and collapse them into a single prior statement.
+    Returns a dict mapping host -> {rung: count, dominant_state}.
+    """
+    rows = _fetch_rows(log_path)
+    groups = {}
+    for r in rows:
+        h = _host(r.get("url", ""))
+        key = (h, r.get("rung"), r.get("state"))
+        groups.setdefault(key, 0)
+        groups[key] += 1
+    # Merge: for each host, find the dominant rung+state.
+    by_host = {}
+    for (h, rung, state), count in groups.items():
+        cell = by_host.setdefault(h, {})
+        entry = cell.setdefault(rung, {"ok": 0, "blocked": 0, "total": 0})
+        entry["total"] += count
+        if state == "ok":
+            entry["ok"] += count
+        else:
+            entry["blocked"] += count
+    # Determine dominant state per rung.
+    result = {}
+    for h, rungs in by_host.items():
+        merged = {}
+        for rung, counts in rungs.items():
+            dominant = "ok" if counts["ok"] >= counts["blocked"] else "blocked"
+            merged[rung] = {
+                "count": counts["total"],
+                "dominant_state": dominant,
+                "rate": round(counts["ok"] / counts["total"], 3) if counts["total"] else 0.0,
+            }
+        result[h] = merged
+    return result
+
+
+def incubate(url, log_path=None):
+    """Leave a blocked problem and return with a different attack.
+
+    Incubation: if the URL's host has a low answer rate, suggest an
+    alternative rung to try instead of the one that keeps failing.
+    Returns {"original_rung": ..., "alternative": ..., "reason": ...}.
+    """
+    url = str(url or "").strip()
+    if not url:
+        return {"original_rung": None, "alternative": None,
+                "reason": "empty url"}
+    host = _host(url)
+    rows = _fetch_rows(log_path)
+    host_rows = [r for r in rows if _host(r.get("url", "")) == host]
+    if not host_rows:
+        return {"original_rung": None, "alternative": "plain",
+                "reason": "no history for host; try plain"}
+    # Find the rung that failed most for this host.
+    blocked_rungs = {}
+    for r in host_rows:
+        if r.get("state") != "ok":
+            rung = r.get("rung")
+            if rung:
+                blocked_rungs[rung] = blocked_rungs.get(rung, 0) + 1
+    if not blocked_rungs:
+        return {"original_rung": None, "alternative": None,
+                "reason": "no blocked rungs for host"}
+    worst = max(blocked_rungs, key=blocked_rungs.get)
+    # Suggest the first rung not in blocked_rungs.
+    all_rungs = ["plain", "browser-headers", "tls-impersonation", "render"]
+    alternative = None
+    for r in all_rungs:
+        if r not in blocked_rungs:
+            alternative = r
+            break
+    if alternative is None:
+        alternative = "plain"
+    return {"original_rung": worst, "alternative": alternative,
+            "reason": "rung %s blocked %d time(s); try %s" % (
+                worst, blocked_rungs[worst], alternative)}
+
+
+def prime(url, log_path=None):
+    """Let the last task bias the next one's first guess.
+
+    Priming: returns the last successful rung for this host, so the
+    caller can try it first.  Returns {"primed_rung": ..., "source": ...}.
+    """
+    url = str(url or "").strip()
+    if not url:
+        return {"primed_rung": None, "source": "empty url"}
+    host = _host(url)
+    rows = _fetch_rows(log_path)
+    host_ok = [r for r in rows if _host(r.get("url", "")) == host
+               and r.get("state") == "ok"]
+    if not host_ok:
+        return {"primed_rung": None, "source": "no prior success for host"}
+    last = host_ok[-1]
+    return {"primed_rung": last.get("rung"),
+            "source": "last success: %s" % last.get("rung")}
+
+
+def prospective_memory(url, trigger, log_path=None):
+    """Hold an intention for a future trigger.
+
+    Prospective-memory: records that when ``trigger`` occurs for this
+    host, the given url should be revisited.  Returns the intention
+    dict (caller persists it).
+    """
+    url = str(url or "").strip()
+    trigger = str(trigger or "").strip()
+    if not url or not trigger:
+        return {"error": "url and trigger required"}
+    return {"intention": {"url": url, "trigger": trigger,
+                          "host": _host(url)},
+            "status": "held"}
+
+
+def counterfactual_replay(url, log_path=None):
+    """Re-run a past decision against what actually happened.
+
+    Counterfactual-replay: for each fetch answer for this URL, compare
+    the predicted rung (from intuition) with the actual rung.  Returns
+    a list of {predicted, actual, match, counterfactual} dicts.
+    """
+    url = str(url or "").strip()
+    if not url:
+        return []
+    recs = read_events(log_path)["records"]
+    guesses = [r for r in recs if r.get("phase") == "fetch"
+               and r.get("event") == "intuition" and r.get("url") == url]
+    answers = [r for r in recs if r.get("phase") == "fetch"
+               and r.get("event") == "answer" and r.get("url") == url]
+    results = []
+    for g in guesses:
+        later = [a for a in answers if a.get("ts", 0) >= g.get("ts", 0)]
+        if not later:
+            continue
+        a = later[0]
+        predicted = g.get("predicted")
+        actual = a.get("rung")
+        match = predicted == actual
+        # Counterfactual: what if we had tried the next rung instead?
+        counterfactual = None
+        if not match and actual:
+            counterfactual = "if %s had been tried, outcome might differ" % actual
+        results.append({"predicted": predicted, "actual": actual,
+                        "match": match, "counterfactual": counterfactual})
+    return results
+
+
+def affect(url, log_path=None):
+    """Carry a valence that changes the next choice.
+
+    Affect: compute a valence (-1.0 to 1.0) for this host based on
+    recent outcomes.  Positive = mostly ok, negative = mostly blocked.
+    Returns {"valence": float, "label": str}.
+    """
+    url = str(url or "").strip()
+    if not url:
+        return {"valence": 0.0, "label": "neutral"}
+    host = _host(url)
+    rows = _fetch_rows(log_path)
+    host_rows = [r for r in rows if _host(r.get("url", "")) == host]
+    if not host_rows:
+        return {"valence": 0.0, "label": "neutral"}
+    # Weight recent outcomes more heavily.
+    recent = host_rows[-5:]
+    score = 0.0
+    for r in recent:
+        score += 1.0 if r.get("state") == "ok" else -1.0
+    valence = round(score / len(recent), 3)
+    if valence > 0.3:
+        label = "positive"
+    elif valence < -0.3:
+        label = "negative"
+    else:
+        label = "neutral"
+    return {"valence": valence, "label": label}

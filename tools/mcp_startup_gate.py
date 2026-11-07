@@ -76,11 +76,36 @@ ORDERS_SYNC = Path("C:/Azazael/azazael/tools/agent_orders_sync.py")
 PROXY_STAMP = HOME / ".pmb" / "floor_proxy_runtime.json"
 PROXY_STARTUP = (HOME / "AppData" / "Roaming" / "Microsoft" / "Windows" /
                  "Start Menu" / "Programs" / "Startup" / "pmb-floor-proxy.vbs")
-DURABLE_ORIGIN = "logon"
 
-DAEMON_PORT = 8765
-PROXY_PORT = 8766
+# MCP stack configuration from config/defaults.json (mcp_stack section)
+def _mcp_stack_config() -> dict:
+    try:
+        from tools.defaults_profile import read_default
+        return {
+            "daemon_port": read_default("mcp_stack.daemon_port", 8765),
+            "floor_port": read_default("mcp_stack.floor_port", 8766),
+            "floor_enabled": read_default("mcp_stack.floor_enabled", True),
+            "floor_upstream_wait_s": read_default("mcp_stack.floor_upstream_wait_s", 30),
+            "floor_origin": read_default("mcp_stack.floor_origin", "logon"),
+            "lanes_route_through_floor": read_default("mcp_stack.lanes_route_through_floor", True),
+        }
+    except Exception as exc:
+        _note("_mcp_stack_config: config unreadable (%s: %s) -- using hardcoded defaults" %
+              (type(exc).__name__, exc))
+        return {
+            "daemon_port": 8765, "floor_port": 8766, "floor_enabled": True,
+            "floor_upstream_wait_s": 30, "floor_origin": "logon",
+            "lanes_route_through_floor": True,
+        }
+
+_cfg = _mcp_stack_config()
+DAEMON_PORT = _cfg["daemon_port"]
+PROXY_PORT = _cfg["floor_port"]
 PROXY_URL = "http://127.0.0.1:%d/mcp" % PROXY_PORT
+FLOOR_ENABLED = _cfg["floor_enabled"]
+FLOOR_UPSTREAM_WAIT = _cfg["floor_upstream_wait_s"]
+DURABLE_ORIGIN = _cfg["floor_origin"]
+LANES_ROUTE_THROUGH_FLOOR = _cfg["lanes_route_through_floor"]
 
 PASS, FAIL, WARN, BLOCKED, FIXED = "PASS", "FAIL", "WARN", "BLOCKED", "FIXED"
 
@@ -217,6 +242,28 @@ def _token():
     except OSError as exc:
         _note("_token: cannot read %s (%s)" % (PMB_TOKEN, exc))
         return ""
+
+
+def discover_daemon_port() -> int:
+    """Discover the live daemon port from servers.json registry.
+    Falls back to 8765 if registry is unreadable or empty."""
+    registry = Path.home() / ".pmb" / "servers.json"
+    default_port = 8765
+    try:
+        entries = json.loads(registry.read_text(encoding="utf-8"))
+    except Exception:
+        return default_port
+    for entry in entries if isinstance(entries, list) else []:
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("kind") not in (None, "daemon"):
+            continue
+        if entry.get("pid_alive") is False:
+            continue
+        port = entry.get("port")
+        if port:
+            return int(port)
+    return 8765
 
 
 def _parse_frames(raw, ctype):
@@ -359,11 +406,12 @@ def start_daemon():
                        timeout=90)
     except Exception as exc:
         return "start failed: %s" % exc
+    daemon_port = discover_daemon_port()
     for _ in range(40):
-        if port_open(DAEMON_PORT):
+        if port_open(daemon_port):
             return "started"
         time.sleep(0.5)
-    return "started but 127.0.0.1:%d did not open" % DAEMON_PORT
+    return "started but 127.0.0.1:%d did not open" % daemon_port
 
 
 def kill(pid):
@@ -414,10 +462,11 @@ def unfloored_servers(doc):
 
     pmb_entry only recognises keys named pmb / pmb-mcp / pmb_mcp, so an alias
     such as `pmb_direct` (measured in kilo.jsonc, 2026-10-31) sent a lane
-    straight at :8765 and passed this gate untouched. Any enabled entry whose
-    url is the daemon bypasses the relevance floor, whatever it is called.
+    straight at the daemon port and passed this gate untouched. Any enabled entry
+    whose url is the daemon bypasses the relevance floor, whatever it is called.
     A disabled entry is ignored: it cannot be called.
     """
+    daemon_port = discover_daemon_port()
     if not isinstance(doc, dict):
         return []
     found = []
@@ -433,13 +482,14 @@ def unfloored_servers(doc):
             url = entry.get("url")
             if not url:
                 continue
-            if str(url).rstrip("/").endswith(":%d/mcp" % DAEMON_PORT):
+            if str(url).rstrip("/").endswith(":%d/mcp" % daemon_port):
                 found.append((key, str(url)))
     return found
 
 
 def lane_config_status(path, label):
     """Check one lane's config routes pmb through the floor proxy."""
+    daemon_port = discover_daemon_port()
     if not path.exists():
         return WARN, "%s: not present at %s" % (label, path), ""
     doc, err = read_config(path)
@@ -451,15 +501,19 @@ def lane_config_status(path, label):
         return WARN, "%s: no pmb entry" % label, ""
     if enabled is False:
         return FAIL, "%s: pmb disabled" % label, "set enabled true or remove the entry"
+    if not FLOOR_ENABLED:
+        return WARN, "%s: floor proxy disabled in config" % label, ""
     if not str(url).rstrip("/").endswith(":%d/mcp" % PROXY_PORT):
         return FAIL, "%s: pmb -> %s" % (label, url), \
-            "point it at %s (the floor proxy), not the daemon at :%d" % (PROXY_URL, DAEMON_PORT)
+            "point it at %s (the floor proxy), not the daemon at :%d" % (PROXY_URL, daemon_port)
+    if not LANES_ROUTE_THROUGH_FLOOR:
+        return WARN, "%s: lanes_route_through_floor is false" % label, ""
     unfloored = unfloored_servers(doc)
     if unfloored:
         named = ", ".join("%s -> %s" % (k, u) for k, u in unfloored)
         return FAIL, "%s: unfloored pmb endpoint (%s)" % (label, named), \
             "route every pmb entry through %s; :%d is the raw daemon and skips the floor" % (
-                PROXY_URL, DAEMON_PORT)
+                PROXY_URL, daemon_port)
     return PASS, "%s: pmb -> :%d" % (label, PROXY_PORT), ""
 
 
@@ -467,15 +521,17 @@ def lane_config_status(path, label):
 # checks
 # --------------------------------------------------------------------------
 def check_daemon(fix):
-    if not port_open(DAEMON_PORT):
+    daemon_port = discover_daemon_port()
+    daemon_url = "http://127.0.0.1:%d/mcp" % daemon_port
+    if not port_open(daemon_port):
         if not fix:
-            return FAIL, "127.0.0.1:%d closed" % DAEMON_PORT, "run --fix or `pmb daemon start`"
+            return FAIL, "127.0.0.1:%d closed" % daemon_port, "run --fix or `pmb daemon start`"
         note = start_daemon()
-        if not port_open(DAEMON_PORT):
+        if not port_open(daemon_port):
             return FAIL, note, "`pmb daemon start` then re-run"
         return FIXED, "was down; %s" % note, ""
     t0 = time.time()
-    ok, info = Mcp("http://127.0.0.1:%d/mcp" % DAEMON_PORT).initialize()
+    ok, info = Mcp(daemon_url).initialize()
     ms = int((time.time() - t0) * 1000)
     if not ok:
         return FAIL, "port open, initialize failed: %s" % info, \
@@ -485,6 +541,8 @@ def check_daemon(fix):
 
 
 def check_proxy(fix):
+    daemon_port = discover_daemon_port()
+    daemon_url = "http://127.0.0.1:%d/mcp" % daemon_port
     if not port_open(PROXY_PORT):
         if not fix:
             return FAIL, "127.0.0.1:%d closed" % PROXY_PORT, "run --fix to start the floor proxy"
@@ -509,10 +567,11 @@ def check_proxy(fix):
     # The daemon leg needs its OWN session: streamable HTTP rejects a tools/call
     # from a client that never initialized with `400 Missing session ID`, and a
     # differential against that is not a comparison of two stores.
-    daemon_client = Mcp("http://127.0.0.1:%d/mcp" % DAEMON_PORT)
+    daemon_client = Mcp(daemon_url)
     d_ok, d_info = daemon_client.initialize()
     if not d_ok:
-        return FAIL, "daemon initialize failed: %s" % str(d_info)[:140],             "the daemon leg must hold a session before the differential is comparable"
+        return FAIL, "daemon initialize failed: %s" % str(d_info)[:140], \
+            "the daemon leg must hold a session before the differential is comparable"
     daemon_payload = daemon_client.call("recall", {"query": nonce, "top_k": 5})
     p_rows = proxy_payload.get("results") or []
     d_rows = daemon_payload.get("results") or []
@@ -743,8 +802,8 @@ def check_context_servers(procs):
     The check now reads the lane's own config through mcp_eight_verify in
     --fast mode: no process is spawned here, and an enabled entry whose
     command does not resolve, or whose endpoint is closed or aimed at the raw
-    daemon on :%d, is a FAIL with the path named.
-    """ % DAEMON_PORT
+    daemon on the discovered port, is a FAIL with the path named.
+    """
     try:
         import mcp_eight_verify as eight
     except Exception as exc:                       # recorded, not swallowed
@@ -822,7 +881,8 @@ def main(argv=None):
                                       "remedy": r[3]} for r in results]},
                          indent=2))
     else:
-        print("MCP STARTUP GATE  (floor proxy :%d -> daemon :%d)" % (PROXY_PORT, DAEMON_PORT))
+        daemon_port = discover_daemon_port()
+        print("MCP STARTUP GATE  (floor proxy :%d -> daemon :%d)" % (PROXY_PORT, daemon_port))
         for name, status, detail, remedy in results:
             if quiet and status == PASS:
                 continue

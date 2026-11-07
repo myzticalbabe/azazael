@@ -88,23 +88,24 @@ from datetime import datetime
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-FLOOR = float(os.environ.get("PMB_RECALL_FLOOR", "0.70"))
-MIN_BEST = float(os.environ.get("PMB_RECALL_MIN_BEST", "0.89"))
-PORT = int(os.environ.get("PMB_FLOOR_PORT", "8766"))
-UPSTREAM = os.environ.get("PMB_DAEMON_URL", "http://127.0.0.1:8765/mcp")
-#: Cold-start tolerance. The daemon loads an embedding model, so a client that
-#: connects the instant this proxy binds arrives seconds before upstream is
-#: listening. Measured 2026-10-31: opencode gives an unreachable MCP endpoint
-#: three attempts in 1.65 s, then marks the server failed for the session. So a
-#: connection failure inside this window is waited out, not answered with 502.
-UPSTREAM_WAIT = float(os.environ.get("PMB_UPSTREAM_WAIT", "30"))
+# Configuration from config/defaults.json via defaults_profile
+try:
+    from tools.defaults_profile import read_default
+    FLOOR = float(read_default("memory.pmb_recall_floor", 0.70))
+    MIN_BEST = float(read_default("memory.pmb_recall_min_best", 0.89))
+    PORT = int(read_default("mcp_stack.floor_port", 8766))
+    UPSTREAM = "http://127.0.0.1:%d/mcp" % int(read_default("mcp_stack.daemon_port", 8765))
+    UPSTREAM_WAIT = float(read_default("mcp_stack.floor_upstream_wait_s", 30))
+    ORIGIN = read_default("mcp_stack.floor_origin", "logon")
+except Exception:
+    # Fallback to environment variables for backward compatibility
+    FLOOR = float(os.environ.get("PMB_RECALL_FLOOR", "0.70"))
+    MIN_BEST = float(os.environ.get("PMB_RECALL_MIN_BEST", "0.89"))
+    PORT = int(os.environ.get("PMB_FLOOR_PORT", "8766"))
+    UPSTREAM = os.environ.get("PMB_DAEMON_URL", "http://127.0.0.1:8765/mcp")
+    UPSTREAM_WAIT = float(os.environ.get("PMB_UPSTREAM_WAIT", "30"))
+    ORIGIN = os.environ.get("PMB_FLOOR_ORIGIN", "manual")
 
-#: Provenance. A stack can be warm for two different reasons, and only one of
-#: them survives a reboot: the logon Startup item re-runs without a client,
-#: while pams spawns a proxy that exists only because a session happened to
-#: start it. Every behavioural check passes in both cases, so the starter
-#: declares itself here and `mcp_startup_gate.py` refuses the undurable one.
-ORIGIN = os.environ.get("PMB_FLOOR_ORIGIN", "manual")
 STAMP = os.environ.get("PMB_FLOOR_STAMP") or os.path.join(
     os.path.expanduser("~"), ".pmb", "floor_proxy_runtime.json")
 

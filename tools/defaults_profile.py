@@ -114,54 +114,115 @@ def env_override(dotted: str):
 #: The shipped defaults. Every key here is ON unless the comment says otherwise.
 DEFAULTS = {
     "version": 1,
+    "runtime": {
+        "interpreter": "py316t",
+        "gil_sidecar": True,
+        "freethreaded_required": True,
+        "venv_path": "C:/Azazael/.venvs/py316t",
+        "python_exe": "C:/Azazael/.venvs/py316t/Scripts/python.exe"
+    },
+    "mcp_stack": {
+        "daemon_port": 8765,
+        "floor_port": 8766,
+        "floor_enabled": True,
+        "floor_upstream_wait_s": 30,
+        "floor_origin": "logon",
+        "lanes_route_through_floor": True
+    },
+    "memory": {
+        "primary": "pmb",
+        "pmb_workspace": "personal",
+        "pmb_recall_floor": 0.70,
+        "pmb_recall_min_best": 0.89,
+        "engram_project": "azazael",
+        "engram_all_projects": True,
+        "pams_enabled": True,
+        "pams_user_id": "clint",
+        "pams_model_id": "mcp-client"
+    },
+    "evolution": {
+        "mode": "live",
+        "population_size": 8,
+        "generations": 20,
+        "convergence_eps": 0.005,
+        "convergence_window": 3,
+        "lillith_enabled": True,
+        "lillith_warmup_gens": 3,
+        "lillith_stall_eps": 0.001,
+        "adversary_saturation": True,
+        "dream_hit_target": 0.95,
+        "inheritance_mode": "persist",
+        "parser_autopatch": False
+    },
+    "gates": {
+        "mcp_startup": "blocking",
+        "evidence_gate": "blocking",
+        "hyper_edge": "advisory",
+        "commit_hook": "blocking",
+        "settings_shadow": "advisory",
+        "reading_audit": "advisory",
+        "head_audit": "advisory",
+        "leg_ledger": "advisory"
+    },
+    "coordination": {
+        "board_enabled": True,
+        "valid_lanes": ["kilo", "freebuff", "opencode"],
+        "claim_lease_seconds": 1800,
+        "max_claim_limit": 10,
+        "push_hook_enabled": True,
+        "dispatch_non_reasoning": True
+    },
     "ast_audit": True,
     "golden_arrow": {
-        "enabled": True,        # run every test file, not a subset
-        "strict": False,        # False = recorded debt passes, NEW failures do not
-        "timeout_s": 180,       # per test file; a hung file is named, never a pass
+        "enabled": True,
+        "strict": False,
+        "timeout_s": 180,
         "workers": 6,
     },
     "deep_dive": {
         "enabled": True,
-        "forensics": True,      # ast audit, evidence gate, unresolved refs, ledger freshness
-        "web_search": True,     # OFF-line hosts fall back and record the skip
+        "forensics": True,
+        "web_search": True,
         "web_timeout_s": 20,
         "max_queries": 3,
     },
     "fallback": {
-        "on_error": "record-and-continue",   # never abort a run for one broken leg
+        "on_error": "record-and-continue",
         "record": "logs/deep_dive.json",
     },
     "preflight": {
         "disk_floor_gb": 2.0,
     },
     "retention": {
-        "composite_eviction": False,   # a deletion pass that changes WHICH rows die
+        "composite_eviction": False,
     },
     "hyper_edge": {
         "reading_audit": True,
         "settings_shadow": True,
         "leg_ledger": True,
         "head_audit": True,
-        "truncation": True,     # census every [:N] cut under tools/
-        "strict": False,        # findings become a failing leg
-        "leg_timeout_s": 300,   # one auditor may read a large store; bound it here
+        "truncation": True,
+        "ctypes_restype": True,
+        "claim_agreement": True,
+        "agreement_floor": 0.0,
+        "agreement_rung_floor": 0.0,
+        "kernel": True,
+        "kernel_timeout_s": 180,
+        "strict": False,
+        "leg_timeout_s": 300,
     },
     "reading_audit": {
-        "min_coverage": 0.0,    # 0 = current behaviour; >0 fails a blind run
+        "min_coverage": 0.0,
     },
     "head_audit": {
-        "max_state_age_days": 0,   # 0 = off; >0 flags a stale state/head.json
+        "max_state_age_days": 0,
     },
     "settings_shadow": {
-        # The reader vocabulary is DATA, so a tool's accessor name is declared
-        # here instead of being added to settings_shadow.py. read_default is
-        # always included: it is the shared surface, not a vocabulary choice.
         "readers": ["read_default", "setting", "get_default"],
     },
     "arena": {
         "endpoint": "http://127.0.0.1:8081",
-        "quote_chars": 320,     # how much of a pin's quote a judge is shown
+        "quote_chars": 320,
         "max_tokens": 300,
         "workers": 6,
         "quorum": 0.66,

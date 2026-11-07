@@ -66,28 +66,37 @@ PROCESSES = (
     ("watchdog", "unconscious",
      "watch dockets and report only news",
      "eve_unleashed/watch.py", ()),
+    ("consolidation", "subconscious",
+     "merge repeated episodes into one durable rule while idle",
+     "eve_unleashed/intuition.py", ()),
+    ("incubation", "unconscious",
+     "leave a blocked problem and return with a different attack",
+     "eve_unleashed/intuition.py", ()),
+    ("priming", "subconscious",
+     "let the last task bias the next one's first guess",
+     "eve_unleashed/intuition.py", ()),
+    ("prospective-memory", "conscious",
+     "hold an intention for a future trigger, not just a goal",
+     "eve_unleashed/intuition.py", ()),
+    ("inhibition", "unconscious",
+     "suppress a rung that keeps failing for this host",
+     "eve_unleashed/intuition.py", ()),
+    ("counterfactual-replay", "unconscious",
+     "re-run a past decision against what actually happened",
+     "eve_unleashed/intuition.py", ()),
+    ("salience", "subconscious",
+     "weight what mattered, not what was merely recent",
+     "eve_unleashed/intuition.py", ()),
+    ("affect", "conscious",
+     "carry a valence that changes the next choice",
+     "eve_unleashed/intuition.py", ()),
 )
 
 #: Processes a mind has and Eve does NOT run. Named, so the gap is a plan
 #: rather than an absence nobody measured.
-GAPS = (
-    ("consolidation", "subconscious",
-     "merge repeated episodes into one durable rule while idle"),
-    ("incubation", "unconscious",
-     "leave a blocked problem and return with a different attack"),
-    ("priming", "subconscious",
-     "let the last task bias the next one's first guess"),
-    ("prospective-memory", "conscious",
-     "hold an intention for a future trigger, not just a goal"),
-    ("inhibition", "unconscious",
-     "suppress a rung that keeps failing for this host"),
-    ("counterfactual-replay", "unconscious",
-     "re-run a past decision against what actually happened"),
-    ("salience", "subconscious",
-     "weight what mattered, not what was merely recent"),
-    ("affect", "conscious",
-     "carry a valence that changes the next choice"),
-)
+# All 8 gaps are now implemented as native functions in intuition.py.
+# They move from GAPS to PROCESSES so the audit reflects reality.
+GAPS = ()
 
 
 def _src_root():

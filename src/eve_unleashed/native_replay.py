@@ -36,6 +36,27 @@ for _mod in ("eve_unleashed._replay_cy", "_replay_cy"):
 BACKEND = "cython" if _native_score is not None else "python"
 
 
+# Rung string to integer mapping (intuition.py all_rungs + commoncrawl)
+RUNG_MAP = {
+    "plain": 0,
+    "browser-headers": 1,
+    "tls-impersonation": 2,
+    "render": 3,
+    "commoncrawl": 4,
+    "stealth": 5,
+}
+RUNG_REVERSE = {v: k for k, v in RUNG_MAP.items()}
+
+
+def _rung_to_int(rung):
+    """Convert rung string to integer, or -1 if unknown/None."""
+    if rung is None:
+        return -1
+    if isinstance(rung, int):
+        return rung
+    return RUNG_MAP.get(rung, -1)
+
+
 def fallback_reason() -> str:
     """Why the replay runs on the backend it runs on."""
     return _NATIVE_WHY
@@ -62,9 +83,9 @@ def pair_columns(records):
             pred_kind.append(0)
         else:
             pr = g.get("predicted")
-            pred_rung.append(int(pr) if pr is not None else -1)
+            pred_rung.append(_rung_to_int(pr))
             pred_kind.append(1 if g.get("guess") == "guess" else 2)
-        ans_rung.append(int(a.get("rung") or 0))
+        ans_rung.append(_rung_to_int(a.get("rung")))
         ans_ok.append(1 if a.get("state") == "ok" else 0)
     return pred_rung, pred_kind, ans_rung, ans_ok
 

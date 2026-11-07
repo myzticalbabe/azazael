@@ -300,6 +300,64 @@ def _pmb_liveness() -> str:
 
 
 @server.tool()
+def _hyper_edge() -> tuple:
+    """Run hyper-edge audit leg (reading_audit + settings_shadow + head_audit).
+
+    Exits 1 when any denominator-free, orphan_knob, gap, or collapse finding
+    exists; exit 0 when all clear. Bounded at LEG_LIMIT_S so no child survives
+    the verdict response (same invariant as the other legs).
+    Returns (verdict_text, lines_list) tuple for the verdict renderer.
+    """
+    try:
+        result = subprocess.run(
+            [sys.executable, str(HERE / "hyper_edge_audit.py")],
+            capture_output=True, text=True, timeout=LEG_LIMIT_S,
+            encoding="utf-8", errors="replace",
+        )
+        output = result.stdout + result.stderr
+        # Parse the main verdict line from hyper_edge_audit.py output
+        lines = []
+        verdict_text = "unknown"
+        if result.returncode == 0:
+            # Check for the "all clear" success line
+            if "✅ Hyper-Edge Audit: No issues found" in output:
+                verdict_text = "GO"
+                lines.append("  Hyper-Edge Audit: All clear - no issues found")
+            else:
+                verdict_text = "GO"
+                lines.append("  Hyper-Edge Audit: exit 0 (no issues parsed)")
+        elif result.returncode == 1:
+            # Parse issue count from output
+            issue_count = 0
+            import re
+            m = re.search(r'(\d+) issue\(s\) found', output)
+            if m:
+                issue_count = int(m.group(1))
+            else:
+                # Count class lines
+                for _cls in ["denominator_free", "collapsed", "orphan_knob",
+                            "undeclared", "fallback_drift", "bypass_reader",
+                            "detached_worktree", "dirty_worktree",
+                            "exclusive_commits", "no_upstream", "stale_head_state",
+                            "unpushed"]:
+                    m2 = re.search(r'-\s+%s\s+(\S+)' % _cls, output)
+                    if m2:
+                        issue_count += 1
+            if issue_count > 0:
+                verdict_text = "NO-GO"
+            lines.append("  Hyper-Edge Audit: %d issue(s) found - mandatory leg failed" % issue_count)
+        else:
+            # exit 2 or other = could not perform
+            verdict_text = "CLARIFY"
+            lines.append("  Hyper-Edge Audit: could not perform (exit %d)" % result.returncode)
+        return verdict_text, lines
+    except subprocess.TimeoutExpired:
+        return ("CLARIFY", ["Hyper-Edge Audit: Timed out after %.0fs budget - reported loud, never silent" % LEG_LIMIT_S])
+    except Exception as exc:
+        return ("CLARIFY", ["Hyper-Edge Audit: ERROR (%s: %s)" % (type(exc).__name__, str(exc)[:120])])
+
+
+@server.tool()
 def verdict() -> str:
     """Unified GO / CLARIFY / NO-GO over Engram checks plus PMB liveness.
 
@@ -332,6 +390,7 @@ def verdict() -> str:
         legs["pams"] = ex.submit(_pams_honest)
         legs["live"] = ex.submit(_pmb_liveness)
         legs["goals"] = ex.submit(_pmb_goal_pressure)
+        legs["hyper_edge"] = ex.submit(_hyper_edge)
 
         def _bounded(name):
             left = max(0.0, deadline - time.time())
@@ -359,6 +418,7 @@ def verdict() -> str:
         pams_v = _bounded("pams")
         live_v = _bounded("live")
         goals_v = _bounded("goals")
+        hyper_v = _bounded("hyper_edge")
     finally:
         # shutdown(wait=True) -- the `with` form -- is what re-trips the
         # client timeout: it blocks on the hung leg even after .result()

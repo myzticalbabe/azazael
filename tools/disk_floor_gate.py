@@ -43,7 +43,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools"))
 
-DEFAULT_FLOOR_GB = 10.0
+
 GB = 1024.0 ** 3
 
 
@@ -60,12 +60,12 @@ def _threshold_gb(explicit: float | None) -> float:
                   file=sys.stderr)
     try:
         from defaults_profile import read_default  # noqa: E402  (path set above)
-        value = read_default("preflight.disk_floor_gb", DEFAULT_FLOOR_GB)
+        value = read_default("preflight.disk_floor_gb", 2.0)
         return float(value)
     except Exception as exc:  # noqa: BLE001 - a config read must never be the failure
         print("note: config default unreadable (%s: %s) -- using %.1f GB"
-              % (type(exc).__name__, exc, DEFAULT_FLOOR_GB), file=sys.stderr)
-        return DEFAULT_FLOOR_GB
+              % (type(exc).__name__, exc, 2.0), file=sys.stderr)
+        return 2.0
 
 
 def _volumes(extra: list[str]) -> list[tuple[str, Path]]:
