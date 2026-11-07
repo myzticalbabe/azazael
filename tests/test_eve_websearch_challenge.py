@@ -68,10 +68,31 @@ def test_archive_lookup_url_shape():
 
 
 def test_archive_fallback_live_snapshot():
+    import pytest
     body, snap_url, err = _w._archive_fallback("https://example.com")
+    if err and "429" in err:
+        pytest.skip("archive.org throttling this IP tonight: %s" % err)
     assert err is None, err
     assert "web.archive.org" in snap_url
     assert len(body) > 500
+
+
+def test_proxy_rotation_picks_from_list(monkeypatch):
+    monkeypatch.setenv("PROXY_ROTATE", "http://a:1, http://b:2")
+    monkeypatch.delenv("PROXY_URL", raising=False)
+    seen = {_w._pick_proxy() for _ in range(20)}
+    assert seen <= {"http://a:1", "http://b:2"}
+    monkeypatch.delenv("PROXY_ROTATE")
+    monkeypatch.setenv("PROXY_URL", "http://solo:3")
+    assert _w._pick_proxy() == "http://solo:3"
+    monkeypatch.delenv("PROXY_URL")
+    assert _w._pick_proxy() is None
+
+
+def test_stealth_render_live():
+    body, err = _w._scrapling_fetch("https://example.com")
+    assert err is None, err
+    assert "documentation examples" in body
 
 
 def test_live_headless_render_executes():

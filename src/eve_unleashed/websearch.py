@@ -15,12 +15,8 @@ User-Agent on every request, at most 5 hits kept per provider,
 and deduplication by normalized URL. No scraping of HTML result
 pages, no credentialed APIs, no query logging anywhere.
 
-Challenge appendix: `fetch_visible(url)` climbs plain request,
-browser headers, TLS impersonation, headless render -- reporting
-the clearing rung.
-A surviving challenge reads `blocked`, never empty, never
-invented. Interactive CAPTCHAs are out of scope: the kit renders
-what a real browser shows and stops there.
+Challenge appendix: live rungs, then the Wayback memory rung;
+a surviving wall reads `blocked`.
 """
 import json as _json
 import os as _os
@@ -236,6 +232,14 @@ def _render_fetch(url):
     return text or "", err
 
 
+def _pick_proxy():
+    rotate = [x.strip() for x in _os.environ.get("PROXY_ROTATE", "")
+              .split(",") if x.strip()]
+    if rotate:
+        return rotate[int(_time.time()) % len(rotate)]
+    return _os.environ.get("PROXY_URL") or None
+
+
 def _curl_cffi_fetch(url):
     """TLS-impersonation rung (house pattern, BYPASS_BCC_BENCHMARK.md).
 
@@ -248,7 +252,7 @@ def _curl_cffi_fetch(url):
     except Exception as e:
         raise RuntimeError("curl_cffi not installed: %s" % (e,))
     profiles = ("chrome124", "chrome120", "safari15_5", "edge101")
-    proxy = _os.environ.get("PROXY_URL") or None
+    proxy = _pick_proxy()
     proxies = {"http": proxy, "https": proxy} if proxy else None
     last_err, last_kind = "all profiles challenged", None
     for profile in profiles:
@@ -275,6 +279,25 @@ def _archive_urls(url):
     api = ("https://archive.org/wayback/available?url=%s"
            % _parse.quote(url, safe=""))
     return api
+
+
+def _scrapling_fetch(url):
+    """Stealth-Chromium rung (house strategy 4, live-proven 2026-11-06)."""
+    try:
+        from scrapling.fetchers import StealthyFetcher
+    except Exception as e:
+        raise RuntimeError("scrapling not installed: %s" % (e,))
+    try:
+        page = StealthyFetcher.fetch(url, headless=True)
+    except Exception as e:
+        note_failure("websearch:scrapling", e)
+        return "", str(e)[:160]
+    body = getattr(page, "html_content", "") or ""
+    kind = detect_challenge(getattr(page, "status", 200), {}, body)
+    if kind or not body:
+        return "", "walled: %s" % (kind or "empty render")
+    return body, None
+
 
 
 def _archive_fallback(url):
@@ -315,13 +338,7 @@ def _archive_fallback(url):
 
 
 def fetch_visible(url):
-    """Fetch a page up the mutation ladder; report the clearing rung.
-
-    Rung 1: plain request. Rung 2: full browser headers. Rung 3:
-    curl_cffi TLS impersonation (PROXY_URL honored). Rung 4:
-    headless render. Rung 5: closest Wayback snapshot. A wall
-    surviving rung 4 is `blocked`; rung 5 answers from the archive
-    or reports `unarchived`. Never empty, never invented."""
+    """Live rungs up the ladder, then memory rungs (never touch host)."""
     if not url or not str(url).strip():
         raise ValueError("nothing to fetch: empty url")
     url = str(url).strip()
@@ -360,24 +377,31 @@ def fetch_visible(url):
     try:
         text, err = _render_fetch(url)
     except RuntimeError as e:
-        return {"state": "error", "rung": "render-unavailable",
-                "kind": None,
-                "detail": "%s; plain fetch failed: %s" % (e, last_err)}
+        text, err = "", "render unavailable: %s" % (e,)
+    render_kind = None
     if err:
-        return {"state": "error", "rung": "render",
-                "kind": None, "detail": err}
-    kind = detect_challenge(200, {}, text)
-    if kind:
-        body, snap_url, aerr = _archive_fallback(url)
-        if not aerr:
-            return {"state": "ok", "rung": "archive",
-                    "kind": kind, "snapshot": snap_url,
-                    "text": (body or "")[:20000]}
-        return {"state": "blocked", "rung": "render", "kind": kind,
-                "detail": ("challenge '%s' survived live rungs; "
-                           "archive: %s" % (kind, aerr))}
-    return {"state": "ok", "rung": "render", "kind": None,
-            "text": (text or "")[:20000]}
+        note_failure("websearch:fetch:render", Exception(err[:120]))
+    else:
+        render_kind = detect_challenge(200, {}, text)
+        if not render_kind:
+            return {"state": "ok", "rung": "render", "kind": None,
+                    "text": (text or "")[:20000]}
+    try:
+        stext, serr = _scrapling_fetch(url)
+    except RuntimeError as e:
+        stext, serr = "", str(e)
+    if not serr:
+        return {"state": "ok", "rung": "stealth-render",
+                "kind": None, "text": (stext or "")[:20000]}
+    note_failure("websearch:fetch:stealth", Exception(str(serr)[:120]))
+    wall = render_kind or last_kind or "live fetch failed"
+    body, snap_url, aerr = _archive_fallback(url)
+    if not aerr:
+        return {"state": "ok", "rung": "archive",
+                "kind": wall, "snapshot": snap_url,
+                "text": (body or "")[:20000]}
+    return {"state": "blocked", "rung": "archive", "kind": wall,
+            "detail": "wall '%s' held every live rung; %s" % (wall, aerr)}
 
 
 _FNS = {"wikipedia": _wikipedia, "loc": _loc,
