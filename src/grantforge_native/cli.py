@@ -452,3 +452,7 @@ def main(argv=None):
     except (ValueError, OSError) as exc:
         _fail(exc)
         return 4
+
+
+if __name__ == "__main__":
+    sys.exit(main())

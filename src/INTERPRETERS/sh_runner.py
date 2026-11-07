@@ -14,6 +14,7 @@ the structured replacement for file/code execution.
 
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -35,13 +36,28 @@ except ImportError as exc:                               # never break the host
     note_failure("sh_runner:core-paths-import", exc)
     _get_project_root_safe = None
 
+def _to_bash_path(path):
+    r"""Convert a Windows absolute path to the POSIX form WSL/bash expects.
+
+    ``bash.exe`` on this host is WSL bash; it rejects ``C:\Azazael\...`` and
+    silently drops the backslashes, so a script path passed as a Windows path
+    arrives mangled (``C:Azazaelazazael...``).  Convert to ``/mnt/c/...``.
+    """
+    if os.name != "nt":
+        return path
+    p = str(path)
+    m = re.match(r"^([A-Za-z]):\\(.*)$", p)
+    if not m:
+        return p
+    return "/mnt/%s/%s" % (m.group(1).lower(), m.group(2).replace("\\", "/"))
+
+
 _DEFAULT_ROOT = (str(_get_project_root_safe()) if _get_project_root_safe is not None
                  else str(Path(__file__).resolve().parents[2]))
 
 AZAZAEL_ROOT = os.environ.get(
     "AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", _DEFAULT_ROOT)
 )
-
 SH_BUILD_DIR = Path(AZAZAEL_ROOT) / "build" / "sh"
 SH_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -141,7 +157,7 @@ class ShRunner:
                 stderr=f"File not found: {file_path}",
                 errors=[{"type": "file", "message": f"Missing: {file_path}"}],
             )
-        return self._run([self.bash_bin, str(source)] + (args or []),
+        return self._run([self.bash_bin, _to_bash_path(str(source))] + (args or []),
                          cwd=str(source.parent), timeout=60)
 
     def run_code(self, code: str, args: Optional[List[str]] = None) -> ShResult:
@@ -153,7 +169,7 @@ class ShRunner:
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
         source_path = SH_BUILD_DIR / f"azazael_{code_hash}.sh"
         source_path.write_text(code, encoding="utf-8")
-        return self._run([self.bash_bin, str(source_path)] + (args or []),
+        return self._run([self.bash_bin, _to_bash_path(str(source_path))] + (args or []),
                          cwd=str(SH_BUILD_DIR), timeout=60)
 
     def run_command(self, argv: List[str], cwd: str = ".") -> ShResult:
@@ -172,7 +188,7 @@ class ShRunner:
         source = Path(file_path)
         if not source.exists():
             return ShResult(success=False, stderr=f"File not found: {file_path}")
-        return self._run([self.bash_bin, "-n", str(source)],
+        return self._run([self.bash_bin, "-n", _to_bash_path(str(source))],
                          cwd=str(source.parent), timeout=30)
 
     def lint(self, file_path: str) -> ShResult:
@@ -186,7 +202,7 @@ class ShRunner:
                 stderr="shellcheck not found; skipping lint.",
                 errors=[{"type": "toolchain", "message": "shellcheck missing (optional)"}],
             )
-        return self._run([shellcheck, "-f", "gcc", str(file_path)],
+        return self._run([shellcheck, "-f", "gcc", _to_bash_path(str(file_path))],
                          cwd=str(Path(file_path).parent), timeout=60)
 
 

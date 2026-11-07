@@ -143,7 +143,7 @@ BLOCKED_WINGS: Dict[str, str] = {
 
 # Directories under ARC/ that are evidence about the container rather than a
 # graded wing. Named explicitly so the undeclared check stays meaningful.
-NON_WING_DIRS = frozenset({"environments"})
+NON_WING_DIRS = frozenset({"environments", "deere"})
 
 # The provenance leg. It is not a wing: it grades no pin's text, it re-examines
 # whether the evidence a wing's tier-A pins claim can still be looked at (bytes
