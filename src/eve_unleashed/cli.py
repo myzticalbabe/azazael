@@ -722,6 +722,127 @@ def cmd_factcheck(args) -> int:
     return 0
 
 
+def cmd_locker(args) -> int:
+    """Evidence locker: ingest, verify, custody, list."""
+    from . import evidence as _e
+    act = args.locker_action
+    if act == "ingest":
+        try:
+            meta = _e.ingest_file(args.path)
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        print(f"LOCKED {meta['id']} [{meta['bytes']}B] sha {meta['sha256'][:16]}")
+        return 0
+    if act == "note":
+        try:
+            meta = _e.ingest_text(args.text, args.label)
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        print(f"LOCKED {meta['id']} [{meta['bytes']}B]")
+        return 0
+    if act == "verify":
+        print(_e.verify(args.id)["state"])
+        return 0
+    if act == "custody":
+        for t in _e.custody(args.id):
+            print(f"  {t['utc']} {t['action']} {t['sha256'][:16]} {t['detail'][:60]}")
+        return 0
+    for m in _e.list_items():
+        print(f"  {m['id']} [{m['bytes']}B] {m['label'][:60]}")
+    print(f"items={len(_e.list_items())}")
+    return 0
+
+
+def cmd_watch(args) -> int:
+    """Docket watchlist: add, remove, poll."""
+    from . import watch as _w
+    if args.add:
+        print(f"watching: {_w.add_watch(args.add)['term']}")
+        return 0
+    if args.remove:
+        print(f"watches={_w.remove_watch(args.remove)['watches']}")
+        return 0
+    if args.check:
+        for n in _w.check_watches():
+            if n.get("error"):
+                print(f"  {n['term']}: ERROR {n['error'][:100]}")
+            else:
+                print(f"  {n['term']}: seen={n['seen']} new={len(n['new'])}")
+                for i in n["new"][:10]:
+                    print(f"    NEW {i}")
+        return 0
+    print("usage: eve watch --add TERM | --remove TERM | --check")
+    return 1
+
+
+def cmd_rebuttal(args) -> int:
+    """Counter-myth: factcheck then draft the correction."""
+    from . import factcheck as _f
+    from . import rebuttal as _b
+    try:
+        res = _f.factcheck_claim(args.claim, args.grievance)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(_b.draft_rebuttal(res))
+    return 0
+
+
+def cmd_sanctuary(args) -> int:
+    """Sanctuary: comfort, accommodation drafts, receipted study."""
+    from . import sanctuary as _s
+    if args.counsel:
+        print(_s.counsel(args.counsel))
+        return 0
+    if args.accommodate:
+        try:
+            print(_s.draft_accommodation(*args.accommodate))
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        return 0
+    if args.study:
+        print(json.dumps(_s.study(args.study), indent=2))
+        return 0
+    if args.movements:
+        for m in _s.movements():
+            print(f"  {m['name']}: {m['checkable'][:100]}")
+            print(f"    {m['opinion']}")
+        return 0
+    print("usage: eve sanctuary --counsel BURDEN | --accommodate NAME CTX NEED"
+          " | --study TOPIC | --movements")
+    return 1
+
+
+def cmd_inquest(args) -> int:
+    """Forensic dossier: record + custody + receipts + timeline."""
+    from . import inquest as _q
+    fcs = []
+    if args.claim:
+        from . import factcheck as _f
+        try:
+            fcs = [_f.factcheck_claim(args.claim, args.id)]
+        except ValueError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+    try:
+        d = _q.open_inquest(args.id, args.locker, fcs)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    print(f"INQUEST {d['grievance']} opened {d['opened_utc']}")
+    print(f"  record: {d['record_checks']}  custody: {d['custody']}  "
+          f"receipts: {d['live_receipts']}")
+    for t in d["timeline"]:
+        print(f"  {t['stamp']}: {t['event'][:100]}")
+    print(f"  JUDGMENT: {d['judgment']}")
+    print(f"  {d['opinion']}")
+    print(f"  LIMITS: {d['limits']}")
+    return 0
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1240,6 +1361,55 @@ def main():
     fac_p.add_argument("--url", default=None,
                        help="Fetch one URL now and keep the receipt only")
     fac_p.set_defaults(func=cmd_factcheck)
+
+    # eve locker (content-addressed evidence with custody)
+    lok_p = sub.add_parser("locker", help="Keep evidence, prove custody")
+    lok_sub = lok_p.add_subparsers(dest="locker_action")
+    lok_file = lok_sub.add_parser("ingest", help="Ingest a file")
+    lok_file.add_argument("--path", required=True)
+    lok_note = lok_sub.add_parser("note", help="Ingest a written note")
+    lok_note.add_argument("--text", required=True)
+    lok_note.add_argument("--label", default="intake-note")
+    lok_ver = lok_sub.add_parser("verify", help="Rehash a locker item")
+    lok_ver.add_argument("--id", required=True)
+    lok_cus = lok_sub.add_parser("custody", help="Touch log for an item")
+    lok_cus.add_argument("--id", required=True)
+    lok_sub.add_parser("list", help="List locker items")
+    lok_p.set_defaults(func=cmd_locker, locker_action="list")
+
+    # eve watch (docket watchlist)
+    wat_p = sub.add_parser("watch", help="Watch dockets, report only news")
+    wat_p.add_argument("--add", default=None, help="Watch a term")
+    wat_p.add_argument("--remove", default=None, help="Unwatch a term")
+    wat_p.add_argument("--check", action="store_true",
+                       help="Poll all terms and diff")
+    wat_p.set_defaults(func=cmd_watch)
+
+    # eve rebuttal (counter-myth with receipts)
+    reb_p = sub.add_parser("rebuttal", help="Draft a citable correction")
+    reb_p.add_argument("--claim", required=True)
+    reb_p.add_argument("--grievance", default=None)
+    reb_p.set_defaults(func=cmd_rebuttal)
+
+    # eve sanctuary (faith for the justice-seeker)
+    san_p = sub.add_parser("sanctuary", help="Comfort, accommodation, study")
+    san_p.add_argument("--counsel", default=None,
+                       help="Burden to hold (comfort + referrals)")
+    san_p.add_argument("--accommodate", nargs=3, metavar=("NAME", "CTX", "NEED"),
+                       help="Draft accommodation (CTX: workplace/school/prison)")
+    san_p.add_argument("--study", default=None, help="Study a faith topic")
+    san_p.add_argument("--movements", action="store_true",
+                       help="Faith-rooted justice record")
+    san_p.set_defaults(func=cmd_sanctuary)
+
+    # eve inquest (forensic dossier for one grievance)
+    inq_p = sub.add_parser("inquest", help="Bind record, custody, receipts")
+    inq_p.add_argument("--id", required=True, help="Grievance id")
+    inq_p.add_argument("--locker", nargs="*", default=[],
+                       help="Locker ids to bind")
+    inq_p.add_argument("--claim", default=None,
+                       help="Live-check one claim into the dossier")
+    inq_p.set_defaults(func=cmd_inquest)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
