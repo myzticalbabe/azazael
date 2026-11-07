@@ -1243,11 +1243,22 @@ def cmd_bypass(args) -> int:
 
 def cmd_train(args) -> int:
     """Test/evolve cycling for the population; Lillith tunes the width."""
-    from .trainer import TrainConfig, run
+    from .trainer import TrainConfig, freeze_fixture, null_control, run
+    if args.freeze_fixture:
+        doc = freeze_fixture(TrainConfig().urls, args.freeze_fixture,
+                             cap_s=args.cap_s)
+        print("fixture frozen: %d urls sha=%s path=%s"
+              % (len(doc["urls"]), doc["sha256"][:12], doc["path"]))
+        return 0
     cfg = TrainConfig(gens=args.gens, pop=args.pop, seed=args.seed,
                       fresh=args.fresh,
                       log_path=args.log, pop_path=args.pop_file,
-                      cap_s=args.cap_s)
+                      cap_s=args.cap_s, fixture=args.fixture)
+    if args.null:
+        res = null_control(cfg, args.null)
+        print("null_control budget=%d best=%.4f mean=%.4f"
+              % (res["budget"], res["best"], res["mean"]))
+        return 0
     run(cfg)
     return 0
 
@@ -1931,6 +1942,13 @@ def main():
     tr_p.add_argument("--log", default="C:/tmp/eve-train.jsonl")
     tr_p.add_argument("--pop-file", default="C:/tmp/eve-pop.json")
     tr_p.add_argument("--cap-s", type=float, default=40.0)
+    tr_p.add_argument("--null", type=int, default=0,
+                      help="Random-search baseline: score N fresh genomes, "
+                           "no evolution (uses --log/--pop-file isolation)")
+    tr_p.add_argument("--fixture", default=None,
+                      help="Replay a frozen oracle file instead of live fetch")
+    tr_p.add_argument("--freeze-fixture", default=None, metavar="PATH",
+                      help="Fetch each URL live once, freeze to PATH, exit")
     tr_p.set_defaults(func=cmd_train)
 
     # eve stats

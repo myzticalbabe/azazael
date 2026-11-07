@@ -22,6 +22,7 @@ hunches boost live decisions via effective_confidence. The dreams write DNA.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
@@ -70,6 +71,9 @@ class TrainConfig:
     log_path: str = DEFAULT_LOG
     pop_path: str = DEFAULT_POP
     cap_s: float = DEFAULT_CAP_S
+    fixture: Optional[str] = None  # replay path; live network untouched
+    fixture_data: Optional[Dict[str, Dict[str, Any]]] = field(
+        default=None, repr=False)  # url -> {state, rung, kind}
 
 
 class LillithTuner:
@@ -186,9 +190,40 @@ def _memory_rungs(url: str) -> Dict[str, Any]:
     return {"state": "blocked", "rung": "commoncrawl", "detail": "wall held"}
 
 
+def _load_fixture(path: str) -> Dict[str, Dict[str, Any]]:
+    """Read a frozen oracle file. Returns url -> {state, rung, kind}."""
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    return dict(doc.get("outcomes", {}))
+
+
+def freeze_fixture(urls: List[str], path: str,
+                   cap_s: float = DEFAULT_CAP_S) -> Dict[str, Any]:
+    """Pin the oracle: fetch each URL live once, record the outcome.
+
+    Replay (fixture_data) substitutes these pinned outcomes for every
+    fetch, so fitness is deterministic given the file. Re-freeze to
+    measure live drift; never edit the file by hand (sha-checked)."""
+    from . import websearch as _w
+    outcomes = {}
+    for u in urls:
+        res = _capped(_w.fetch_visible, cap_s, u)
+        outcomes[u] = {"state": res.get("state"),
+                       "rung": res.get("rung"), "kind": res.get("kind")}
+    doc = {"urls": list(urls), "frozen_at": time.time(), "cap_s": cap_s,
+           "outcomes": outcomes}
+    blob = json.dumps(doc, indent=1, sort_keys=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(blob)
+    doc["sha256"] = hashlib.sha256(blob.encode("utf-8")).hexdigest()
+    doc["path"] = path
+    return doc
+
+
 def run_url(dna: WormDNA, url: str, log_path: str,
             cap_s: float = DEFAULT_CAP_S,
-            calib: Dict[str, float] = None):
+            calib: Dict[str, float] = None,
+            fixture: Dict[str, Dict[str, Any]] = None):
     """One scored fetch: intuition guesses, policy decides live-vs-memory.
 
     calib maps rung -> measured hit-rate (H-09): a rung the dream log has
@@ -208,13 +243,18 @@ def run_url(dna: WormDNA, url: str, log_path: str,
                  and conf >= dna.min_confidence
                  and dna.aggressiveness < 0.5)
     t0 = time.perf_counter()
-    res = (_capped(_memory_rungs, cap_s, url) if skip_live
-           else _capped(_w.fetch_visible, cap_s, url))
+    replay = False
+    if fixture is not None and url in fixture:
+        res = dict(fixture[url])
+        replay = True
+    else:
+        res = (_capped(_memory_rungs, cap_s, url) if skip_live
+               else _capped(_w.fetch_visible, cap_s, url))
     if res["state"] != "ok" and dna.aggressiveness >= 0.75 and not skip_live:
         res = _capped(_w.fetch_visible, cap_s, url)
     dt = time.perf_counter() - t0
     _l.emit("fetch", "answer", path=log_path, url=url, rung=res.get("rung"),
-            state=res["state"], kind=res.get("kind"))
+            state=res["state"], kind=res.get("kind"), replay=replay)
     actual_ok = res["state"] == "ok"
     hit = ((g["state"] == "guess" and actual_ok)
            or (g["state"] == "blocked" and not actual_ok))
@@ -254,6 +294,57 @@ def load_or_seed(ga: GeneticAlgorithm, cfg: TrainConfig,
     return 1
 
 
+def score_genome(dna: WormDNA, cfg: TrainConfig,
+                 calib: Dict[str, float] = None) -> WormFitness:
+    """Score one genome over every URL. No selection, no tuning, no breed.
+
+    The shared scoring core: one_generation and null_control both call
+    it, so the baseline and the lineage are graded by the same ruler."""
+    ok = hits = wall = 0.0
+    for u in cfg.urls:
+        o, h, dt, hunch = run_url(dna, u, cfg.log_path, cfg.cap_s,
+                                 calib=calib if cfg.calibrate else None,
+                                 fixture=cfg.fixture_data)
+        ok += o
+        hits += h
+        wall += dt
+        if hunch:
+            dna.hunches.append(hunch)
+            dna.hunches = dna.hunches[-HUNCH_CAP:]
+        time.sleep(min(dna.cooldown_s, 1.0))
+    n = len(cfg.urls)
+    return WormFitness(
+        worm_id=dna.worm_id, worm_type=dna.worm_type, generation=dna.generation,
+        resource_usage=min(1.0, wall / (n * 2 * 12.0)),
+        insight_quality=hits / n, error_rate=(n - ok) / n,
+        uptime_s=wall, actions_taken=n, actions_succeeded=int(ok))
+
+
+def null_control(cfg: TrainConfig, budget: int) -> Dict[str, Any]:
+    """Random-search baseline: N fresh genomes, scored once each, no evolution.
+
+    No dream seeds, no teacher, no Lillith, no calibrate -- pure chance
+    on the same ruler. If evolution cannot beat this per equal budget,
+    the lineage claim is narrative. Uses isolated pop/log files only."""
+    _ensure_fixture(cfg)
+    rng = random.Random(cfg.seed)
+    scores = []
+    for i in range(budget):
+        d = WormDNA(worm_id="null-%d" % i, worm_type="fetcher",
+                    aggressiveness=rng.uniform(0.1, 0.9),
+                    min_confidence=rng.uniform(0.5, 0.95),
+                    cooldown_s=rng.uniform(0.0, 0.2),
+                    mutation_rate=0.15, hunches=[])
+        f = score_genome(d, cfg, calib=None)
+        s = round(f.score(), 4)
+        scores.append(s)
+        print("null %d/%d: score=%.4f" % (i + 1, budget, s), flush=True)
+    return {"budget": budget,
+            "best": round(max(scores), 4) if scores else 0.0,
+            "mean": round(sum(scores) / len(scores), 4) if scores else 0.0,
+            "scores": scores}
+
+
 def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
                    tuner: LillithTuner,
                    calib: Dict[str, float]) -> Dict[str, Any]:
@@ -264,23 +355,7 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
     from . import intuition as _i
     from . import live_log as _l
     for d in ga.population:
-        ok = hits = wall = 0.0
-        for u in cfg.urls:
-            o, h, dt, hunch = run_url(d, u, cfg.log_path, cfg.cap_s,
-                                     calib=calib if cfg.calibrate else None)
-            ok += o
-            hits += h
-            wall += dt
-            if hunch:
-                d.hunches.append(hunch)
-                d.hunches = d.hunches[-HUNCH_CAP:]
-            time.sleep(min(d.cooldown_s, 1.0))
-        n = len(cfg.urls)
-        ga.record_fitness(WormFitness(
-            worm_id=d.worm_id, worm_type=d.worm_type, generation=d.generation,
-            resource_usage=min(1.0, wall / (n * 2 * 12.0)),
-            insight_quality=hits / n, error_rate=(n - ok) / n,
-            uptime_s=wall, actions_taken=n, actions_succeeded=int(ok)))
+        ga.record_fitness(score_genome(d, cfg, calib))
     scores = {d.worm_id: ga.fitness[d.worm_id].score() for d in ga.population}
     best = max(ga.population, key=lambda d: scores[d.worm_id])
     dr = _i.dream(log_path=cfg.log_path)
@@ -316,8 +391,16 @@ def one_generation(ga: GeneticAlgorithm, gnum: int, cfg: TrainConfig,
     return summary
 
 
+def _ensure_fixture(cfg: TrainConfig) -> None:
+    """Load the frozen oracle once. A --fixture flag that silently
+    scores live is a lie shaped like a pin; this makes the pin real."""
+    if cfg.fixture and cfg.fixture_data is None:
+        cfg.fixture_data = _load_fixture(cfg.fixture)
+
+
 def run(cfg: TrainConfig) -> List[Dict[str, Any]]:
     """Test/evolve cycling: live-score, tune, breed, repeat. Returns summaries."""
+    _ensure_fixture(cfg)
     rng = random.Random(cfg.seed)
     ga = GeneticAlgorithm(population_size=cfg.pop, elite_keep=2, rng=rng)
     if cfg.fresh and os.path.exists(cfg.pop_path):
