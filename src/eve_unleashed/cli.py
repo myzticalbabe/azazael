@@ -1033,6 +1033,19 @@ def cmd_search(args) -> int:
     return 0
 
 
+def cmd_bypass(args) -> int:
+    """Attack Eve's own parsers; report what held and what gave."""
+    from . import bypass_kit as _b
+    res = _b.run_suite()
+    for b in res["bypassed"]:
+        print(f"  BYPASSED [{b['suite']}] {b['input'][:70]}")
+        print(f"      {b['detail'][:90]}")
+    print(f"bypass-kit: ran={res['ran']} held={res['held']} "
+          f"bypassed={res['bypassed_count']}")
+    print(res["note"])
+    return 0 if res["bypassed_count"] == 0 else 1
+
+
 def cmd_cradle(args) -> int:
     """Adopt every model file in the cradle with its native runner."""
     from .cradle import adopt_cradle
@@ -1667,6 +1680,10 @@ def main():
     se_p.add_argument("--query", required=True)
     se_p.add_argument("--providers", nargs="*", default=None)
     se_p.set_defaults(func=cmd_search)
+
+    # eve bypass (defensive mutation kit against Eve's own parsers)
+    by_p = sub.add_parser("bypass", help="Try to break Eve's parsers")
+    by_p.set_defaults(func=cmd_bypass)
 
     # eve stats
     abl_p = sub.add_parser("ablate", help="Refusal ablation across providers")
