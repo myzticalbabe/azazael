@@ -49,6 +49,14 @@
       "get_default"
     ]
   },
+  "interp": {
+    "repo": "python/cpython",
+    "compare_ref": "3.16",
+    "candidate": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
+    "watch_timeout_s": 20,
+    "probe_timeout_s": 300,
+    "strict": false
+  },
   "arena": {
     "endpoint": "http://127.0.0.1:8081",
     "quote_chars": 320,

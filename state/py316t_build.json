@@ -1,1 +1,19 @@
-{"acceptance":{"1_version":"3.16.0a1 free-threading build (tags/v3.16.0a1:22d79d9, Nov  6 2026, 13:22:10) [MSC v.1951 64 bit (AMD64)] -- exit 0","2_gil_enabled":"False -- exit 0","3_capabilities":"NOT EXECUTABLE AS WRITTEN: no 'capabilities' subcommand in HYPER_EDGE.cli (choices: isa,selftest,evolve,validate,patch,patches,optimize,rollback,dream,kernel). Named doc-vs-code gap; ground covered by native-detector agreement (True) + selftest + evolve smoke.","4_selftest":"33 check(s), 0 failed, 0 skipped (doc said 24 -- suite grew since 2026-11-05) -- exit 0","5_pytest":"51 passed, 2 warnings (doc said 11 -- suite grew) -- exit 0","6_record":"this file"},"branch_resolution":"no '3.16' branch upstream (ls-remote heads empty); newest v3.16.0a* tag used per doc order: v3.16.0a1","built_by":"freebuff lane, 2026-11-06 (session continuing Luna 2026-11-05 authorship)","configure":"PCbuild/build.bat -p x64 -c Release --disable-gil; flag spelling UNCHANGED from 3.15 (bat -h: '--disable-gil  Enable support for running without the GIL.')","disk_gb_free_before":47,dropped_series_notes":"wide-suite behaviour on 3.16 unmeasured beyond test_hyper_edge.py; wheel set that installs is not a wheel set that works; green selftest proves ISA properties, not the tree's other tests","evidence_sha":"22d79d9840a275ed6ed36cd590dc74edc61765fb","evolve_smoke":"evolve --evidence ARC/cain/arena_llm_judgments_r9.json --generations 6 --population 24 --seed 7 on 3.16t: chosen q=0.7506 vs shipped 0.66 (committed RC overlay 0.7497 -- parity within noise) -- exit 0","gil_enabled":false,"interp":"C:/Azazael/.venvs/py316t/Scripts/python.exe","msvc":"C:\\Program Files\\Microsoft Visual Studio\\18\\Community (vswhere: VC.Tools.x86.x64 present); build 0 warnings 0 errors","native_detector_agrees":true,"native_is_free_threaded":true,"py_gil_disabled":1,"refused_packages":{"py316_sidecar":[],"py316t":[]},"series":"v3.16.0a1","source":"C:/Azazael/.build/cpython-316 @ 22d79d9840a275ed6ed36cd590dc74edc61765fb (2026-10-13)","sys_version":"3.16.0a1 free-threading build (tags/v3.16.0a1:22d79d9, Nov  6 2026, 13:22:10) [MSC v.1951 64 bit (AMD64)]","toolchain":"PCbuild amd64t (free-threaded)","gil_sidecar":{"interp":"C:/Azazael/.venvs/py316/Scripts/python.exe","sys_version":"3.16.0a1 (tags/v3.16.0a1-dirty:22d79d9, Nov  6 2026, 13:30:10)","gil_enabled":true,"dirty_cause":"one build-generated file only (Programs/test_frozenmain.h M) -- no source edit","built":"2026-11-06 13:31 EST, 0 errors"}
+{
+  "branch": "3.16",
+  "sha": "22d79d9840a275ed6ed36cd590dc74edc61765fb",
+  "configure_line": "PCbuild/build.bat -p x64 -c Release --disable-gil -v",
+  "sys_version": "3.16.0a1 free-threading build (tags/v3.16.0a1-dirty:22d79d9, Nov  7 2026, 00:27:28) [MSC v.1951 64 bit (AMD64)]",
+  "Py_GIL_DISABLED": 1,
+  "gil_enabled": false,
+  "capabilities": "HYPER_EDGE compat: python 3.16.0alpha (cpython) free-threaded | cpu=16 workers=16 | pool=CORE.freethreading.FreeThreadPool | live=free_threading,tomllib,exception_groups,per_interpreter_gil,concurrent (re-verified)",
+  "selftest": "selftest: 33 check(s), 0 failed, 0 skipped (re-verified)",
+  "pytest_count": "51 passed (re-verified)",
+  "packages_refused": [],
+  "interpreter": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
+  "build_log": "C:/Azazael/.build/py316t_build.log",
+  "date": "2026-11-07",
+  "reverified": {
+    "candidate": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
+    "report": "C:\\Azazael\\azazael\\state\\interp_verify.json"
+  }
+}
