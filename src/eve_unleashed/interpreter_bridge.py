@@ -261,6 +261,10 @@ class EveInterpreterBridge:
             "temperature": 0.2,
             "max_tokens": max_tokens or self.FALLBACK_MAX_TOKENS,
             "stream": False,
+            # Qwen3-style thinking models stream reasoning into
+            # reasoning_content with empty content (measured 2026-11-06:
+            # 16 tokens of reasoning, content ""). Ask for the answer.
+            "enable_thinking": False,
         }
         req = urllib.request.Request(
             base.rstrip("/") + "/chat/completions",
@@ -276,9 +280,11 @@ class EveInterpreterBridge:
         first = choices[0] if isinstance(choices[0], dict) else {}
         message = first.get("message") or {}
         content = message.get("content") if isinstance(message, dict) else None
+        if not content and isinstance(message, dict):
+            content = message.get("reasoning_content")
         if not content:
             content = first.get("text")  # legacy completion-shaped responses
-        return content or ""
+        return (content or "").strip().strip('"')
 
     def _try_target(self, target: Dict[str, Any], prompt: str, system: Optional[str]):
         """Run one generation attempt against one target server.

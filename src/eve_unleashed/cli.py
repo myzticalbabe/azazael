@@ -39,6 +39,30 @@ except ImportError:                               # never break the host
 SWARM_TIMEOUT_S = 180
 
 
+def _local_answer(prompt, system=None):
+    """Try the local LLM first (LM Studio / llama-server / GGUF direct).
+
+    Returns (text, provider_tag) or (None, reason). Never raises: the
+    local path is a preference, not a gate -- failure falls through to
+    the swarm, and the reason names why."""
+    try:
+        from .interpreter_bridge import EveInterpreterBridge
+    except Exception as e:
+        note_failure("cli:local-import", e)
+        return None, "local bridge unavailable (%s)" % e
+    try:
+        bridge = EveInterpreterBridge()
+        out = bridge.run_local(prompt, system=system)
+    except Exception as e:
+        note_failure("cli:local-run", e)
+        return None, "local run failed (%s)" % e
+    if isinstance(out, dict) and out.get("status") == "ok" and out.get("result"):
+        tag = out.get("provider") or out.get("model") or "local"
+        return str(out["result"]), "local:%s" % tag
+    err = (out or {}).get("error", "no local generation path") if isinstance(out, dict) else "no local generation path"
+    return None, "local unavailable (%s)" % str(err)[:120]
+
+
 SWARM_PER_PROVIDER_S = 60
 SWARM_NSP_SPECS = ["valid_query_features", "valid_provider_selection",
                    "no_dead_provider"]
@@ -274,6 +298,17 @@ def cmd_stem(args) -> int:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
     return 0
+
+
+def cmd_local(args) -> int:
+    """Use the local LLM directly (no swarm, no cloud)."""
+    text, tag = _local_answer(args.prompt, system=args.system)
+    if text:
+        print(text)
+        print(f"[via {tag}]")
+        return 0
+    print(f"ERROR: {tag}", file=sys.stderr)
+    return 1
 
 
 def cmd_infer(args) -> int:
@@ -752,12 +787,22 @@ def cmd_serve(args) -> int:
 
     @app.post("/therapy")
     async def therapy(req: dict):
-        """Live therapy: swarm LLM answer with NSP note, else grounding."""
+        """Live therapy: local LLM first, then swarm, else grounding."""
         from . import therapy as _th
         mood = (req.get("mood") or "stressed")[:60]
         note = (req.get("note") or "")[:500]
         prompt = _th.build_prompt(mood, note)
         import asyncio as _aio
+        try:
+            local_text, local_tag = await _aio.wait_for(
+                _aio.to_thread(_local_answer, prompt), timeout=200)
+        except Exception as e:
+            note_failure("cli:therapy-local", e)
+            local_text, local_tag = None, "local error"
+        if local_text:
+            return {"text": local_text, "provider": local_tag,
+                    "nsp": "nsp:local-first (no routing needed)",
+                    "live": True}
         try:
             win, _reason = await _aio.wait_for(
                 _aio.to_thread(_swarm_fallback, prompt),
@@ -1024,6 +1069,11 @@ def main():
     stem_track.add_argument("--goal", default="my first STEM build")
     stem_sub.add_parser("refer", help="Women-in-STEM organizations")
     stem_p.set_defaults(func=cmd_stem, stem_action="list")
+
+    local_p = sub.add_parser("local", help="Answer via the local LLM only")
+    local_p.add_argument("--prompt", required=True)
+    local_p.add_argument("--system", default=None)
+    local_p.set_defaults(func=cmd_local)
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)

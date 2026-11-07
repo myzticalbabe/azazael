@@ -30,7 +30,8 @@ def build_prompt(mood, note):
         "The user feels %s. They shared: %s. "
         "Give a short supportive reply (under 120 words): validate the "
         "feeling, one 60-second grounding step, one breathing cue, and "
-        "one tiny next action. No diagnosis, no medical advice, no "
+        "one tiny next action. Reply directly to the user; do not narrate "
+        "your reasoning process. No diagnosis, no medical advice, no "
         "emergency claims. End by asking what they need next."
         % (mood, note or "nothing more yet"))
 
