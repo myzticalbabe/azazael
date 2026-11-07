@@ -13,7 +13,7 @@
   "build_log": "C:/Azazael/.build/py316t_build.log",
   "date": "2026-11-07",
   "reverified": {
-    "candidate": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
+    "candidate": "C:/Azazael/.py316t/python.exe",
     "report": "C:\\Azazael\\azazael\\state\\interp_verify.json"
   },
   "dirty_cause": " M Programs/test_frozenmain.h; ?? Include/pyconfig.h; ?? libs/ \u2014 build-generated only, no source edit",
