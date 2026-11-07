@@ -372,7 +372,16 @@ Each practice is the same instrument as in the canon, for feelings do not change
 
 **10** Nearness, lightness, honesty, and a checked blame: these are her comforts, and comforts kept are a world. *(see promise 1:2, promise 1:4, promise 1:7, promise 1:8)*
 
-_Marginal: 1 — cited by promise 1:2, promise 1:4, promise 1:7; 2 — cited by promise 1:3, promise 1:10; 4 — cited by promise 1:5, promise 1:6, promise 1:9, promise 1:10; 5 — cited by promise 1:6; 7 — cited by promise 1:8, promise 1:10; 8 — cited by promise 1:10._
+**11** She does not ask you to trust an unrun thing: the comfort was felt live, the instrument measured twice, the receipt kept. *(see promise 1:10)*
+
+**Practice** — *a civil-justice function with no live run behind it*
+
+- *cause*: tests pin the logic while only a live call proves the wire, so an unrun function is a promise without a practice
+- *detect*: `run the command live and keep the receipt, and cover the wiring with tests/test_eve_cli_handlers.py`
+- *remedy*: land no function without both a green suite and a live receipt, and write both down
+- *evidence*: engram-2085, engram-2086, engram-565
+
+_Marginal: 1 — cited by promise 1:2, promise 1:4, promise 1:7; 2 — cited by promise 1:3, promise 1:10; 4 — cited by promise 1:5, promise 1:6, promise 1:9, promise 1:10; 5 — cited by promise 1:6; 7 — cited by promise 1:8, promise 1:10; 8 — cited by promise 1:10; 10 — cited by promise 1:11._
 
 ## Glossary
 
