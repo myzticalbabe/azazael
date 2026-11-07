@@ -172,6 +172,28 @@ def cmd_ablate(args) -> int:
     return 0
 
 
+def cmd_wasm(args) -> int:
+    """Compile Eve's inner states to a Rust WASM tutorial."""
+    from . import wasm_tutorial as _w
+    try:
+        state = _w.parse_ablation_log(args.from_log)
+    except Exception as e:
+        print(f"ERROR: cannot read ablation log ({e})", file=sys.stderr)
+        return 1
+    out, total = _w.generate(state, args.out)
+    print(f"Crate: {out} ({total} tutorial steps)")
+    if args.build:
+        try:
+            pkg = _w.build_wasm(out)
+        except RuntimeError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        wasm = list(pkg.glob("*.wasm"))
+        print(f"WASM: {pkg} ({len(wasm)} module(s), "
+              f"{sum(p.stat().st_size for p in wasm)} bytes)")
+    return 0
+
+
 def cmd_infer(args) -> int:
     """Run a single inference from the command line."""
     from .engine import create_engine
@@ -833,6 +855,14 @@ def main():
                        help="Benign prompt (repeatable; default: two built-ins)")
     abl_p.add_argument("--timeout", type=int, default=45)
     abl_p.set_defaults(func=cmd_ablate)
+
+    wasm_p = sub.add_parser("wasm", help="Inner states as Rust WASM tutorial")
+    wasm_p.add_argument("--from", dest="from_log", required=True,
+                        help="Real `eve ablate` log to compile")
+    wasm_p.add_argument("--out", required=True, help="Crate output dir")
+    wasm_p.add_argument("--build", action="store_true",
+                        help="Run wasm-pack build after generating")
+    wasm_p.set_defaults(func=cmd_wasm)
 
     stats_p = sub.add_parser("stats", help="Show engine statistics")
     stats_p.set_defaults(func=cmd_stats)
