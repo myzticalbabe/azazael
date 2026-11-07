@@ -36,7 +36,7 @@ def post(lane: str, command: str) -> int:
               f"or refuse with reason. Command: {command}")
     p = subprocess.run([sys.executable, BOARD, "post", lane, "perm-block",
                         detail, "--from", "freebuff"],
-                       capture_output=True, text=True, timeout=90, env=_env())
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90, env=_env())
     print((p.stdout or p.stderr).strip()[:200])
     return 0
 

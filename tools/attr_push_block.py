@@ -50,7 +50,7 @@ def newest_touchers(path: str, n: int = 3) -> list[str]:
     p = subprocess.run(
         ["git", "log", f"--format=%h %ad %s", "--date=short", "-n", str(n),
          "--", path],
-        capture_output=True, text=True, timeout=60, cwd=REPO, env=_env())
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60, cwd=REPO, env=_env())
     out = (p.stdout or "").strip().splitlines()
     return out or ["no commits touch this path (untracked or foreign)"]
 

@@ -55,7 +55,7 @@ def procs() -> list[str]:
     """Agent/runtime processes alive right now (plain TABLE output only)."""
     try:
         out = subprocess.run(
-            ["tasklist.exe"], capture_output=True, text=True,
+            ["tasklist.exe"], capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=60, env=_env(),
         ).stdout
     except Exception as exc:  # noqa: BLE001 -- forensics must not die
@@ -120,7 +120,7 @@ def interp(timeout: int = 40) -> list[str]:
             p = subprocess.run(
                 [exe, "-I", "-c", "import sys; print(sys.version.split()[0],"
                  " sys._is_gil_enabled())"],
-                capture_output=True, text=True, timeout=timeout, env=_env(),
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, env=_env(),
             )
             dt = time.time() - t0
             lines.append(
@@ -165,7 +165,7 @@ def death() -> list[str]:
              "Get-WinEvent -FilterHashtable @{LogName='Application';"
              " Level=2} -MaxEvents 4 |"
              " Select-Object TimeCreated, Id, ProviderName"],
-            capture_output=True, text=True, timeout=90, env=_env(),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90, env=_env(),
         ).stdout.strip().splitlines()
         lines.append("app errors: " + (" | ".join(out[3:7]) if len(out) > 3 else "none recent"))
     except Exception as exc:  # noqa: BLE001
@@ -315,7 +315,7 @@ def _held_claims(lane: str) -> list:
 def _head() -> str:
     try:
         p = subprocess.run(["git", "log", "-1", "--format=%H %s"],
-                           capture_output=True, text=True, timeout=30,
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
                            cwd=REPO, env=_env())
         return (p.stdout or p.stderr).strip()[:160]
     except Exception as exc:  # noqa: BLE001

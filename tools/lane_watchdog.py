@@ -47,7 +47,7 @@ class ProcListBlind(RuntimeError):
 def live_procs() -> set[str]:
     """Lower-cased process image names alive right now (plain TABLE output)."""
     try:
-        out = subprocess.run(["tasklist.exe"], capture_output=True, text=True,
+        out = subprocess.run(["tasklist.exe"], capture_output=True, text=True, encoding="utf-8", errors="replace",
                              timeout=60, env=_env()).stdout.lower()
     except Exception as exc:  # noqa: BLE001 -- becomes BLIND, not empty
         raise ProcListBlind(f"tasklist failed: {exc}") from exc
