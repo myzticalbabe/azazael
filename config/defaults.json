@@ -31,6 +31,8 @@
     "head_audit": true,
     "truncation": true,
     "ctypes_restype": true,
+    "claim_agreement": true,
+    "agreement_floor": 0.0,
     "kernel": true,
     "kernel_timeout_s": 180,
     "strict": false,

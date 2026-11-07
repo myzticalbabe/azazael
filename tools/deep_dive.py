@@ -145,6 +145,8 @@ def hyper_edge_flags() -> dict:
         "head_audit": bool(setting("hyper_edge.head_audit", True)),
         "truncation": bool(setting("hyper_edge.truncation", True)),
         "ctypes_restype_audit": bool(setting("hyper_edge.ctypes_restype", True)),
+        # Literal like the rest: a computed key would read as orphan_knob.
+        "claim_agreement": bool(setting("hyper_edge.claim_agreement", True)),
     }
 
 
@@ -155,6 +157,7 @@ HYPER_EDGE_TOOLS = [
     ("head_audit", "tools/head_audit.py", "hyper_edge.head_audit"),
     ("truncation", "tools/truncation_census.py", "hyper_edge.truncation"),
     ("ctypes_restype_audit", "tools/ctypes_restype_audit.py", "hyper_edge.ctypes_restype"),
+    ("claim_agreement", "tools/claim_agreement.py", "hyper_edge.claim_agreement"),
 ]
 
 
