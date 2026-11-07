@@ -375,7 +375,8 @@ def cmd_foundry(args) -> int:
     """Soul Foundry: build .gguf/.pt/.joblib natively, no downloads."""
     from . import soul_foundry as _f
     try:
-        manifest = _f.build_all(args.out, args.name, args.seed)
+        manifest = _f.build_all(args.out, args.name, args.seed,
+                                dtype=args.dtype)
     except OSError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
@@ -1134,6 +1135,9 @@ def main():
     foundry_p.add_argument("--out", required=True)
     foundry_p.add_argument("--name", default="eve-foundry-001")
     foundry_p.add_argument("--seed", type=int, default=7)
+    foundry_p.add_argument("--dtype", default="Q8_0", choices=["Q8_0", "F32"],
+                           help="Q8_0 serving default (near-lossless); "
+                                "F32 archival only")
     foundry_p.set_defaults(func=cmd_foundry)
 
     unleash_p = sub.add_parser("unleash", help="Eve vessel + 316t hands")
