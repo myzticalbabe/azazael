@@ -89,6 +89,45 @@ def test_proxy_rotation_picks_from_list(monkeypatch):
     assert _w._pick_proxy() is None
 
 
+def test_cc_pick_selects_html_200():
+    nd = ('{"url":"x","status":"404","mime":"text/html",'
+          '"filename":"a.warc.gz","offset":"0","length":"99"}\n'
+          '{"url":"x","status":"200","mime":"application/pdf",'
+          '"filename":"b.warc.gz","offset":"10","length":"99"}\n'
+          '{"url":"x","status":"200","mime":"text/html",'
+          '"filename":"c.warc.gz","offset":"20","length":"1234"}\n')
+    rec = _w._cc_pick(nd)
+    assert rec and rec["filename"] == "c.warc.gz"
+    assert _w._cc_pick("not json\n{}") is None
+
+
+def test_cc_extract_unpacks_gzip_warc():
+    import gzip
+    inner = b"<h1>from the crawl</h1>"
+    blob = (b"WARC/1.0\r\nWARC-Type: response\r\n\r\n"
+            b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
+            + inner)
+    body, err = _w._cc_extract(gzip.compress(blob))
+    assert err is None, err
+    assert "from the crawl" in body
+    body2, err2 = _w._cc_extract(blob)
+    assert err2 is None, err2
+    assert "from the crawl" in body2
+    _, err3 = _w._cc_extract(b"garbage without structure")
+    assert err3 is not None
+
+
+def test_commoncrawl_live_shape():
+    import pytest
+    body, cid, err = _w._commoncrawl_fetch("https://example.com")
+    if err and ("HTTP Error" in err or "timed out" in err
+                or "unreachable" in err or "no usable capture" in err):
+        pytest.skip("crawl index unreachable tonight: %s" % err)
+    assert err is None, err
+    assert cid.startswith("CC-MAIN-")
+    assert len(body) > 500
+
+
 def test_stealth_render_live():
     body, err = _w._scrapling_fetch("https://example.com")
     assert err is None, err

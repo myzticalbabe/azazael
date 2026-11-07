@@ -15,8 +15,8 @@ User-Agent on every request, at most 5 hits kept per provider,
 and deduplication by normalized URL. No scraping of HTML result
 pages, no credentialed APIs, no query logging anywhere.
 
-Challenge appendix: live rungs, then the Wayback memory rung;
-a surviving wall reads `blocked`.
+Challenge appendix: live rungs, then memory rungs (Wayback,
+Common Crawl) that never touch the host; a wall reads `blocked`.
 """
 import json as _json
 import os as _os
@@ -300,6 +300,97 @@ def _scrapling_fetch(url):
 
 
 
+def _cc_pick(ndjson_text):
+    """First successful text/html capture in an index page."""
+    for line in (ndjson_text or "").splitlines():
+        try:
+            rec = _json.loads(line)
+        except Exception as e:
+            note_failure("websearch:cc:json", e)
+            rec = {}
+        if not rec:
+            continue
+        ok = (str(rec.get("status")) == "200" and "html" in
+              str(rec.get("mime", "")).lower() and rec.get("filename")
+              and rec.get("offset") is not None and rec.get("length"))
+        if ok:
+            return rec
+    return None
+
+
+def _cc_extract(blob):
+    """HTTP body out of a (possibly gzipped) WARC response record."""
+    import gzip as _gzip
+    data = blob
+    if data[:2] == b"\x1f\x8b":
+        try:
+            data = _gzip.decompress(data)
+        except Exception as e:
+            note_failure("websearch:cc:gunzip", e)
+            return "", "warc gunzip failed"
+    parts = data.split(b"\r\n\r\n", 2)
+    if len(parts) < 3:
+        return "", "warc structure unrecognized"
+    inner_headers, body = parts[1], parts[2]
+    if b"content-encoding: gzip" in inner_headers.lower():
+        try:
+            body = _gzip.decompress(body)
+        except Exception as e:
+            note_failure("websearch:cc:body-gunzip", e)
+            return "", "inner body gunzip failed"
+    try:
+        return body.decode("utf-8", "replace"), None
+    except Exception as e:
+        note_failure("websearch:cc:decode", e)
+        return "", "body decode failed"
+
+
+def _cc_try_crawl(cid, url):
+    """One crawl's index lookup plus WARC pull; None when unusable."""
+    api = ("https://index.commoncrawl.org/%s-index?url=%s"
+           "&output=json&filter=status:200"
+           % (cid, _parse.quote(url, safe="")))
+    try:
+        req = _request.Request(api, headers=_UA)
+        with _request.urlopen(req, timeout=30) as r:
+            nd = r.read().decode("utf-8", "replace")
+    except Exception as e:
+        note_failure("websearch:cc:index:%s" % cid, e)
+        nd = ""
+    rec = _cc_pick(nd) or {}
+    off, ln = str(rec.get("offset", "")), str(rec.get("length", ""))
+    if not (off.isdigit() and ln.isdigit()):
+        return None
+    off, ln = int(off), int(ln)
+    warc_url = "https://data.commoncrawl.org/%s" % rec["filename"]
+    try:
+        req = _request.Request(
+            warc_url, headers={**_UA, "Range": "bytes=%d-%d"
+                              % (off, off + ln - 1)})
+        with _request.urlopen(req, timeout=30) as r:
+            blob = r.read()
+    except Exception as e:
+        note_failure("websearch:cc:warc", e)
+        blob = b""
+    body, xerr = _cc_extract(blob)
+    if xerr or detect_challenge(200, {}, body):
+        return None
+    return body
+
+
+def _commoncrawl_fetch(url):
+    """Ring 7: answer from the crawl, never touching the target host."""
+    info, err = _get("https://index.commoncrawl.org/collinfo.json")
+    if err or not info:
+        return "", "", "crawl list unreachable: %s" % (err or "empty")
+    ids = [c.get("id", "") for c in info[:3] if c.get("id")]
+    for cid in ids:
+        body = _cc_try_crawl(cid, url)
+        if body:
+            return body, cid, None
+    return "", "", "no usable capture in %d recent crawl(s)" % len(ids)
+
+
 def _archive_fallback(url):
     """Last rung: the closest Wayback snapshot, fetched plainly.
 
@@ -400,8 +491,13 @@ def fetch_visible(url):
         return {"state": "ok", "rung": "archive",
                 "kind": wall, "snapshot": snap_url,
                 "text": (body or "")[:20000]}
-    return {"state": "blocked", "rung": "archive", "kind": wall,
-            "detail": "wall '%s' held every live rung; %s" % (wall, aerr)}
+    cbody, cid, cerr = _commoncrawl_fetch(url)
+    if not cerr:
+        return {"state": "ok", "rung": "commoncrawl", "kind": wall,
+                "crawl": cid, "text": (cbody or "")[:20000]}
+    detail = "wall '%s' held; archive: %s; crawl: %s" % (wall, aerr, cerr)
+    return {"state": "blocked", "rung": "commoncrawl", "kind": wall,
+            "detail": detail}
 
 
 _FNS = {"wikipedia": _wikipedia, "loc": _loc,
