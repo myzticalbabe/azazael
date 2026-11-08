@@ -476,7 +476,7 @@ def generate_rich_html():
         <div class="footer">
             <h2>ALL SYSTEMS OPERATIONAL</h2>
             <p style="color: #888; margin-top: 15px;">
-                CODEX: C:\\Users\\clint\\Desktop\\CODEX\\comprehensive\\
+                f"CODEX: {desktop_path("CODEX")}comprehensive/"
             </p>
         </div>
     </div>

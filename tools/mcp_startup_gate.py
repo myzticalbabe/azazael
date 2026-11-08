@@ -77,6 +77,18 @@ PROXY_STAMP = HOME / ".pmb" / "floor_proxy_runtime.json"
 PROXY_STARTUP = (HOME / "AppData" / "Roaming" / "Microsoft" / "Windows" /
                  "Start Menu" / "Programs" / "Startup" / "pmb-floor-proxy.vbs")
 
+#: Diagnostics from except paths that must not raise but must not be silent
+#: either. The compliance scanner bars `except: return <constant>` because it
+#: makes a fault indistinguishable from success; recording first and then
+#: returning the same value keeps the caller's contract and the reason.
+NOTES: list[str] = []
+
+
+def _note(message):
+    """Record a handled exception without changing the caller's result."""
+    NOTES.append(str(message))
+
+
 # MCP stack configuration from config/defaults.json (mcp_stack section)
 def _mcp_stack_config() -> dict:
     try:
@@ -120,18 +132,6 @@ def port_open(port, host="127.0.0.1", timeout=2.0):
         return sock.connect_ex((host, port)) == 0
     finally:
         sock.close()
-
-
-#: Diagnostics from except paths that must not raise but must not be silent
-#: either. The compliance scanner bars `except: return <constant>` because it
-#: makes a fault indistinguishable from success; recording first and then
-#: returning the same value keeps the caller's contract and the reason.
-NOTES: list[str] = []
-
-
-def _note(message):
-    """Record a handled exception without changing the caller's result."""
-    NOTES.append(str(message))
 
 
 def _ps_json(script):

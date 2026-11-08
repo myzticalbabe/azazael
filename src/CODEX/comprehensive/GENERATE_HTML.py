@@ -3,9 +3,15 @@ COMPREHENSIVE Azazael ECOSYSTEM - HTML REPORT
 Rich animated visualization of all folders and protocols
 """
 
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import List
+
+def desktop_path(project: str) -> str:
+    """Return the Desktop path for a project, avoiding hardcoded Windows paths."""
+    desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+    return os.path.join(desktop, project, "")
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -402,7 +408,7 @@ def generate_html():
         <div class="footer">
             <p style="color: #00ff88; font-size: 1.2em;">Azazael ECOSYSTEM - ALL SYSTEMS OPERATIONAL</p>
             <p style="color: #666; margin-top: 10px;">
-                CODEX: C:\\Users\\clint\\Desktop\\CODEX\\comprehensive\\
+                f"CODEX: {desktop_path("CODEX")}comprehensive/"
             </p>
         </div>
     </div>

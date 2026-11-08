@@ -112,19 +112,19 @@ They only make answers wrong.
   paragraph is the resolution of a direct contradiction between the PMB block's
   "batch them together at turn end" and the ERROR CAPTURE rules.)
 
-### Tooling facts — measured 2026-10-30, verify before contradicting
+### Tooling facts — measured 2026-11-08, verify before contradicting
 
-- **The production interpreter is 3.15t free-threaded:**
-  `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `sys._is_gil_enabled()`
+- **The production interpreter is 3.16t free-threaded:**
+  `C:/Azazael/.venvs/py316t/Scripts/python.exe` (3.16.0a1, `sys._is_gil_enabled()`
   is False). `python` on PATH is 3.14.7 **with** the GIL. Run the suite with the
-  3.15t interpreter; a "hang" measured under 3.14 is not evidence about production.
-- **Session startup loads the new interpreter (py316t):**
-  `C:/Azazael/.venvs/py316t/Scripts/python.exe` (3.16.0a1, free-threaded).
-  Measured 2026-11-07: gate, session_start and supervisor --verdict all green
-  under it, verdict text identical on both interpreters (contract script green).
-  supervisor_mcp.py imports no mcp unless server mode runs, so --verdict works
-  where mcp is not installed. Test-suite and commit-hook interpreters stay
-  3.15t until proven under 3.16 — startup is proven, the suite is not.
+  3.16t interpreter; a "hang" measured under 3.14 is not evidence about production.
+- **3.15t is now the GIL sidecar** for packages without `cp316t` wheels:
+  `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, free-threaded).
+  Use only when a dependency refuses to install under 3.16t.
+- **Session startup, test suite, commit hooks, and all gates use 3.16t:**
+  Measured 2026-11-08: gate, session_start, supervisor --verdict, and 122 tests
+  (type_check, pmb, mcp, agent_orders, anti_pattern, compliance) all pass under 3.16t.
+  The "suite not proven" blocker is resolved.
 - **6,975 tests exist and nothing gates them.** (Collected 2026-11-05 by
   `python tools/head_state.py --write`, which runs `pytest --collect-only -q` under
   the 3.15t interpreter and writes `state/head.json`. This line said 5,380 for

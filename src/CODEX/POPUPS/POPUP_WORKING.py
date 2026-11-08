@@ -3,6 +3,7 @@ Azazael Ecosystem - Working Clickable Popup
 Smooth animations with all technical details
 """
 
+import os
 import tkinter as tk
 from tkinter import messagebox
 from typing import List
@@ -15,6 +16,12 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+
+def desktop_path(project: str) -> str:
+    """Return the Desktop path for a project, avoiding hardcoded Windows paths."""
+    desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+    return os.path.join(desktop, project, "")
 
 SYSTEMS = {
     "HYDRA": {
@@ -68,7 +75,7 @@ SYSTEMS = {
         "lines": "Batch files",
         "desc": "Executable Shortcuts Manager with .bat files",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\SHORTY\\",
+            f"Location: {desktop_path("SHORTY")}",
             "~20 .bat batch files",
             "Shortcuts: azazael.bat, auto_install.bat, bat_analysis.bat",
             "diagnostics.bat, health_monitor.bat",
@@ -82,7 +89,7 @@ SYSTEMS = {
         "lines": "Module",
         "desc": "Mathematical Indexer with statistical analysis",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\POINDEXTER\\",
+            f"Location: {desktop_path("POINDEXTER")}",
             "Features: Statistical analysis, Index generation",
             "Data aggregation, Math computations",
             "Commands: --stats, --index, --aggregate",
@@ -95,7 +102,7 @@ SYSTEMS = {
         "lines": "Module",
         "desc": "Cross-Platform Utilities with OS abstraction",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\PERSEPHONE\\",
+            f"Location: {desktop_path("PERSEPHONE")}",
             "Features: Cross-platform support, OS abstraction",
             "Portability functions, System utilities",
             "Commands: --cross-platform, --abstract, --port",
@@ -108,7 +115,7 @@ SYSTEMS = {
         "lines": "Multiple scripts",
         "desc": "System Information & Notification System",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\TWITLER\\",
+            f"Location: {desktop_path("TWITLER")}",
             "Files: TWITLER.bat, TWITLER_Admin.ps1, install_deps.bat",
             "monitor_system.bat, quick_health.bat, quick_status.bat",
             "RUN_AS_ADMIN.bat, run_wormz_ml.bat",
@@ -122,7 +129,7 @@ SYSTEMS = {
         "lines": "Multiple files",
         "desc": "Functional Worms System - 6 individual worms + 5 clusters",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\WORMZ\\",
+            f"Location: {desktop_path("WORMZ")}",
             "WORMZ (25KB) - BIBL terminology crawler",
             "SYSTEMZ (7KB) - System monitoring",
             "PROCESSZ (9KB) - Process management",
@@ -139,7 +146,7 @@ SYSTEMS = {
         "lines": "Multiple files",
         "desc": "Metaworms Orchestration - 11 metaworms + HYDRAMETA ML",
         "details": [
-            "Location: C:\\Users\\clint\\Desktop\\METAWORMS\\",
+            f"Location: {desktop_path("METAWORMS")}",
             "Tier 3: ERRORZ, TRIMZ, METAZ, DEPENDZ, VALIDZ, DEADZ",
             "METRICZ, LOGZ, CHANGEZ, OPTIMIZ, HEALTHZ",
             "Tier 4: HYDRAMETA, HYDRAMETA_UV (ML Optimization)",
@@ -441,7 +448,7 @@ class AzazaelPopup:
         # Footer
         tk.Label(
             scrollable,
-            text="CODEX: C:\\Users\\clint\\Desktop\\CODEX",
+            text=f"CODEX: {desktop_path("CODEX")}",
             font=("Consolas", 9),
             bg="#0d0d1a",
             fg="#444",

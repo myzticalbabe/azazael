@@ -4,9 +4,15 @@ Detailed information with smooth, subtle animations
 """
 
 from pathlib import Path
+import os
 import tkinter as tk
 from tkinter import messagebox
 from typing import List
+
+def desktop_path(project: str) -> str:
+    """Return the Desktop path for a project, avoiding hardcoded Windows paths."""
+    desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+    return os.path.join(desktop, project, "")
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -356,7 +362,7 @@ class AzazaelPopup:
         # Footer
         tk.Label(
             scrollable,
-            text="CODEX: C:\\Users\\clint\\Desktop\\CODEX",
+            text=f"CODEX: {desktop_path("CODEX")}",
             font=("Consolas", 9),
             bg="#0d0d1a",
             fg="#444",
