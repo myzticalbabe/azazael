@@ -178,6 +178,23 @@ demo/index.html          the four-tab demo
 `pkg/`, `pkg-node/`, `target/` and `demo/assets/` are generated and gitignored;
 this README's numbers are produced by the commands above, not stored with them.
 
+## Law (ordered 2026-11-09: the harness prevents the drift)
+
+A render made to be **watched** is a different artifact class than a render
+made to **verify**. This crate produces the second and never the first:
+
+- Instruments (`test.mjs`, `verify_demo.mjs`, `bake_*`, `make_assets.py`)
+  measure. A capture exists to be counted, hashed, and read back — frame
+  count, three distinct hashes, decoded frames out of the encoded file.
+- No mp4 is a deliverable, is committed, is served, or is played as one.
+  Baked mp4s live in gitignored `demo/assets/` and are deleted after
+  verification. Anything with a Play button is not the goods: the 120 KB
+  module and its proofs are.
+- Showmanship drift — render, serve, play for an audience — is deleted on
+  sight, not reviewed. The audience learns from numbers and annotations
+  (panels carry verdicts, bands carry Hz, defects carry names), never
+  from playback.
+
 ## A note on the source clip
 
 The demo plays a licensed Linkin Park music video because that is the file in the
