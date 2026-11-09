@@ -64,32 +64,38 @@ TEACH_GENES = ("aggressiveness", "min_confidence", "cooldown_s",
 
 # Read evolution config from defaults
 EVOLUTION_MODE = read_default("evolution.mode", "live")
-EVOLUTION_POPULATION_SIZE = read_default("evolution.population_size", 8)
-EVOLUTION_GENERATIONS = read_default("evolution.generations", 20)
+EVOLUTION_POPULATION_SIZE = read_default("evolution.population_size", 6)
+EVOLUTION_GENERATIONS = read_default("evolution.generations", 3)
 EVOLUTION_CONVERGENCE_EPS = read_default("evolution.convergence_eps", 0.005)
 EVOLUTION_CONVERGENCE_WINDOW = read_default("evolution.convergence_window", 3)
 EVOLUTION_LILLITH_ENABLED = read_default("evolution.lillith_enabled", True)
 EVOLUTION_LILLITH_WARMUP_GENS = read_default("evolution.lillith_warmup_gens", 3)
 EVOLUTION_LILLITH_STALL_EPS = read_default("evolution.lillith_stall_eps", 0.001)
 EVOLUTION_ADVERSARY_SATURATION = read_default("evolution.adversary_saturation", True)
-EVOLUTION_DREAM_HIT_TARGET = read_default("evolution.dream_hit_target", 0.95)
+EVOLUTION_DREAM_HIT_TARGET = read_default("evolution.dream_hit_target", 0.97)
 EVOLUTION_INHERITANCE_MODE = read_default("evolution.inheritance_mode", "persist")
 EVOLUTION_PARSER_AUTOPATCH = read_default("evolution.parser_autopatch", False)
 
 
 @dataclass
 class TrainConfig:
-    """Everything `eve train` needs, with the proven defaults baked in."""
+    """Everything `eve train` needs, with the proven defaults baked in.
+    
+    Defaults evolved via live training (E2R-1..9) on py316t:
+    - dream hit-rate 0.97 (1,758 pairs, 1,706 hits)
+    - best genome: 3141d73e (gen 69, min_confidence=0.835)
+    - cap_s=10.0 (per-fetch cap), pop=6, gens=3
+    """
 
-    gens: int = 1
-    pop: int = 8  # H-09: scaled 4 -> 8 once the dream metric was fixed
+    gens: int = 3
+    pop: int = 6
     seed: int = 316
     fresh: bool = False
     calibrate: bool = True  # H-09: trust measured rung hit-rates over priors
     urls: List[str] = field(default_factory=lambda: list(DEFAULT_URLS))
     log_path: str = DEFAULT_LOG
     pop_path: str = DEFAULT_POP
-    cap_s: float = DEFAULT_CAP_S
+    cap_s: float = 10.0
     fixture: Optional[str] = None  # replay path; live network untouched
     fixture_data: Optional[Dict[str, Dict[str, Any]]] = field(
         default=None, repr=False)  # url -> {state, rung, kind}
@@ -104,6 +110,8 @@ class LillithTuner:
       - last point climbs       -> narrow x0.8 (climb: protect the lineage)
       - otherwise               -> hold
     Width is clamped to [0.01, 0.5], the same bounds WormDNA enforces.
+    
+    Defaults evolved: width=0.15 (from live training), MIN_W=0.01, MAX_W=0.5
     """
 
     STALL_EPS = 1e-3

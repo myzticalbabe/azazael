@@ -54,21 +54,26 @@ def splice_hunches(a: List[str], b: List[str],
 #: Genome parameters every tunable worm exposes.
 @dataclass
 class WormDNA:
-    """Mutable configuration genome for a self-modifying worm."""
-
+    """Mutable configuration genome for a self-modifying worm.
+    
+    Defaults evolved via live training (E2R-1..9) on py316t:
+    - dream hit-rate 0.97 (1,758 pairs, 1,706 hits)
+    - best genome: 3141d73e (gen 69, min_confidence=0.835)
+    - live walls: Wikipedia (train-cap), httpbin 404 (train-cap)
+    """
     worm_id: str
     worm_type: str
-    scan_interval_s: float = 60.0
-    aggressiveness: float = 0.5          # 0.0 conservative -> 1.0 aggressive
-    resource_budget_mb: float = 256.0
-    mutation_rate: float = 0.1           # probability of mutation per gene
-    min_confidence: float = 0.7          # act only above this confidence
+    scan_interval_s: float = 36.27
+    aggressiveness: float = 0.297
+    resource_budget_mb: float = 307.26
+    mutation_rate: float = 0.5
+    min_confidence: float = 0.835
     enabled_metrics: List[str] = field(default_factory=lambda: ["cpu", "mem"])
-    cooldown_s: float = 30.0
+    cooldown_s: float = 6.92
     generation: int = 1
     parent_ids: List[str] = field(default_factory=list)
-    hunches: List[str] = field(default_factory=list)  # ancestral winning rungs
-    shape: str = "dodecahedron"  # the solid this lineage recalls on (H-01)
+    hunches: List[str] = field(default_factory=lambda: ["render", "commoncrawl", "plain"])
+    shape: str = "g40"
 
     def __post_init__(self) -> None:
         """Enforce genome invariants at construction, not just in mutate().

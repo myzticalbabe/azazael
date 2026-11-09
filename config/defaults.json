@@ -28,15 +28,15 @@
   },
   "evolution": {
     "mode": "live",
-    "population_size": 8,
-    "generations": 20,
+    "population_size": 6,
+    "generations": 3,
     "convergence_eps": 0.005,
     "convergence_window": 3,
     "lillith_enabled": true,
     "lillith_warmup_gens": 3,
     "lillith_stall_eps": 0.001,
     "adversary_saturation": true,
-    "dream_hit_target": 0.95,
+    "dream_hit_target": 0.97,
     "inheritance_mode": "persist",
     "parser_autopatch": false
   },
