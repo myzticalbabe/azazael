@@ -110,10 +110,10 @@ C:/Users/clint/Desktop/EveUnleashed_Selector/eve_unleashed_app.py
 - **Desktop path** — `~/Desktop/AZAZAEL_Standalone/Eve_Unleashed_314t.exe`
 - **Source** — `~/Desktop/EveUnleashed_Selector/eve_unleashed_app.py` (external project, not in src)
 - **Skills directory** — This file at `azazael/skills/azazael-eve-unleashed.md`
-# Requirements: Python 3.15t venv (C:/Azazael/.venvs/py315t), Nuitka 4.1.2+
+# Requirements: Python 3.16t venv (C:/Azazael/.venvs/py316t), Nuitka 4.1.2+
 # 3.14t venv (venv-314t) RETIRED 2026-10-19 — do not build against it.
-C:/Azazael/.venvs/py315t/Scripts/python.exe -m nuitka --standalone --onefile \
-- System info bar: hostname, OS, uptime, process/thread count, interpreter status (3.15t production)
+C:/Azazael/.venvs/py316t/Scripts/python.exe -m nuitka --standalone --onefile \
+- System info bar: hostname, OS, uptime, process/thread count, interpreter status (3.16t production)
 ## Build Command — STALE 2026-10-21, do not run as-is
 The block below names `~/venv-314t` (ARCHIVED 2026-10-19), a `~/Desktop/`
 working dir that no longer exists, and a 314t-tagged output. Standalone
@@ -124,3 +124,6 @@ path, then adapt. Flags that remain valid when a builder is confirmed:
 <builder-python> -m nuitka --standalone --onefile \
 --output-filename=Eve_Unleashed_315t.exe \
 <verified-app-path>/eve_unleashed_app.py
+# Requirements: Python 3.15t venv (C:/Azazael/.venvs/py315t), Nuitka 4.1.2+
+C:/Azazael/.venvs/py315t/Scripts/python.exe -m nuitka --standalone --onefile \
+- System info bar: hostname, OS, uptime, process/thread count, interpreter status (3.15t production)

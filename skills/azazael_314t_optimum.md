@@ -70,3 +70,4 @@ Not yet working on 3.14t. Use Ollama as bridge to GGUF models in LM Studio.
 Priority: Circuit breaker wiring, centralized YAML config, integration tests
 > RETIRED 2026-10-19 — a backend survey measured on 3.14.5 free-threading, an interpreter this project no longer
 > runs. Kept as provenance, not callable. Current stack: `C:/Azazael/.venvs/py315t`.
+> runs. Kept as provenance, not callable. Current stack: `C:/Azazael/.venvs/py316t`.
