@@ -1,16 +1,16 @@
 {
-  "recorded_at": "2026-11-09T07:22:16+00:00",
+  "recorded_at": "2026-11-09T07:36:03+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
   "files_scanned": 862,
   "category_counts": {
-    "import_inside_function": 1056,
+    "import_inside_function": 1058,
     "unicode_emoji": 1219
   },
-  "total_findings": 2275,
+  "total_findings": 2277,
   "tracked_only": true,
-  "writer_pid": 14372,
+  "writer_pid": 21360,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -941,7 +941,7 @@
       "import_inside_function": 1
     },
     "eve_unleashed\\langs.py": {
-      "import_inside_function": 1
+      "import_inside_function": 3
     },
     "eve_unleashed\\live_morph.py": {
       "import_inside_function": 1

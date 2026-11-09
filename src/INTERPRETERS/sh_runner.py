@@ -36,20 +36,41 @@ except ImportError as exc:                               # never break the host
     note_failure("sh_runner:core-paths-import", exc)
     _get_project_root_safe = None
 
-def _to_bash_path(path):
+def _bash_flavor(bash_bin=""):
+    """Which POSIX mapping the bash binary expects: 'wsl' or 'msys'.
+
+    WSL bash wants ``/mnt/c/...``; Git-Bash / MSYS2 / Cygwin bash want
+    ``/c/...``. The old code assumed WSL always, which broke every bash
+    run on boxes (like this one) where ``bash`` resolves to Git-Bash.
+    WSL is detected by the binary name or the WSL distro marker; the
+    MSYS family is the default because it is what ``which bash`` finds
+    on a stock Windows dev box.
+    """
+    b = (bash_bin or "").lower().replace(chr(92), "/")
+    if b.endswith("wsl.exe") or os.environ.get("WSL_DISTRO_NAME"):
+        return "wsl"
+    return "msys"
+
+
+def _to_bash_path(path, bash_bin=""):
     r"""Convert a Windows absolute path to the POSIX form WSL/bash expects.
 
-    ``bash.exe`` on this host is WSL bash; it rejects ``C:\Azazael\...`` and
-    silently drops the backslashes, so a script path passed as a Windows path
-    arrives mangled (``C:Azazaelazazael...``).  Convert to ``/mnt/c/...``.
+    ``bash`` rejects ``C:\Azazael\...`` and silently drops the
+    backslashes, so a script path passed as a Windows path arrives
+    mangled (``C:Azazaelazazael...``). Convert to the flavored form:
+    ``/c/...`` for MSYS/Git-Bash, ``/mnt/c/...`` for WSL bash.
+    Both ``C:\`` and ``C:/`` prefixes are recognised.
     """
     if os.name != "nt":
         return path
     p = str(path)
-    m = re.match(r"^([A-Za-z]):\\(.*)$", p)
+    m = re.match(r"^([A-Za-z]):[\\/](.*)$", p)
     if not m:
         return p
-    return "/mnt/%s/%s" % (m.group(1).lower(), m.group(2).replace("\\", "/"))
+    rest = m.group(2).replace(chr(92), "/")
+    if _bash_flavor(bash_bin) == "wsl":
+        return "/mnt/%s/%s" % (m.group(1).lower(), rest)
+    return "/%s/%s" % (m.group(1).lower(), rest)
 
 
 _DEFAULT_ROOT = (str(_get_project_root_safe()) if _get_project_root_safe is not None
@@ -157,7 +178,9 @@ class ShRunner:
                 stderr=f"File not found: {file_path}",
                 errors=[{"type": "file", "message": f"Missing: {file_path}"}],
             )
-        return self._run([self.bash_bin, _to_bash_path(str(source))] + (args or []),
+        return self._run([self.bash_bin,
+                          _to_bash_path(str(source), self.bash_bin)]
+                         + (args or []),
                          cwd=str(source.parent), timeout=60)
 
     def run_code(self, code: str, args: Optional[List[str]] = None) -> ShResult:
@@ -169,7 +192,9 @@ class ShRunner:
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]
         source_path = SH_BUILD_DIR / f"azazael_{code_hash}.sh"
         source_path.write_text(code, encoding="utf-8")
-        return self._run([self.bash_bin, _to_bash_path(str(source_path))] + (args or []),
+        return self._run([self.bash_bin,
+                          _to_bash_path(str(source_path), self.bash_bin)]
+                         + (args or []),
                          cwd=str(SH_BUILD_DIR), timeout=60)
 
     def run_command(self, argv: List[str], cwd: str = ".") -> ShResult:
@@ -188,7 +213,8 @@ class ShRunner:
         source = Path(file_path)
         if not source.exists():
             return ShResult(success=False, stderr=f"File not found: {file_path}")
-        return self._run([self.bash_bin, "-n", _to_bash_path(str(source))],
+        return self._run([self.bash_bin, "-n",
+                          _to_bash_path(str(source), self.bash_bin)],
                          cwd=str(source.parent), timeout=30)
 
     def lint(self, file_path: str) -> ShResult:

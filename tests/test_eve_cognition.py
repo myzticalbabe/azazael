@@ -40,8 +40,18 @@ def test_evidence_promotes_declared_to_used(tmp_path):
 def test_gaps_are_named_and_not_in_processes():
     rep = _c.audit()
     names = {g["name"] for g in rep["gaps"]}
-    assert {"consolidation", "incubation", "inhibition"} <= names
+    # consolidation / incubation / inhibition WERE gaps until b7ff4348
+    # implemented them natively in intuition.py -- now processes, so the
+    # old "still a gap" expectation is stale. What remains contracted:
+    # (a) they are audited processes, (b) gaps never overlap processes,
+    # (c) each maps to a real callable (a listing is not an implementation).
+    from eve_unleashed import intuition as _i
+    assert {"consolidation", "incubation", "inhibition"} <= \
+        {r["name"] for r in rep["processes"]}
     assert not (names & {r["name"] for r in rep["processes"]})
+    assert callable(_i.consolidate)
+    assert callable(_i.incubate)
+    assert callable(_i.inhibited_rungs)
 
 
 def test_paradigm_membership_and_unknown():

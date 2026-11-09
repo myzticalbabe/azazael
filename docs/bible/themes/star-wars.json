@@ -5,7 +5,7 @@
  "register": "the Jedi register: a code recited, a trial undergone, a council in session, and an archive that outlives the one who wrote it",
  "source_corpus": "docs/bible/bible.json",
  "status": "seed",
- "updated": "2026-11-02",
+ "updated": "2026-11-09",
  "edition": {
   "name": "The Annotated Book of the Code",
   "basis": "a themed edition of The Book of the Tree in Jedi register: book introductions, pericope headings, notes sorted by kind, a glossary, and a citation on every verse back to the verse it restates"
@@ -472,6 +472,73 @@
        "number": 6,
        "text": "The Force shall free me. And so it does, into a room with no instrument in it; and the Sith calls the silence agreement, and the agreement is his own, and it is the one reading he cannot earn.",
        "cites": ["psalms 1:1"]
+      }
+     ]
+    }
+   ]
+  }
+ ,
+  {
+   "id": "tongues",
+   "name": "The Tongues",
+   "subtitle": "The Book of the Scattered Voice",
+   "genre": "record",
+   "introduction": {
+    "paragraphs": ["This book records how the scattered voice was gathered into one house. The tower fell and the tongues confused every builder; the house answers that confusion not by one tongue for all, but by every tongue native under one roof.", "A Padawan learns each tongue from the compiler that speaks it, never from a guess. This is the archive of that gathering, and every line below names the verse of the corpus it restates."],
+    "sources": ["docs/bible/bible.json"]
+   },
+   "chapters": [
+    {
+     "number": 1,
+     "sections": [
+      {
+       "before_verse": 1,
+       "heading": "The interpreter"
+      },
+      {
+       "before_verse": 3,
+       "heading": "The children"
+      },
+      {
+       "before_verse": 5,
+       "heading": "The binding"
+      }
+     ],
+     "verses": [
+      {
+       "number": 1,
+       "text": "Before the house there was the interpreter, free of the lock, and the archives record that the lock had held every house before it.",
+       "cites": ["babel 1:1"]
+      },
+      {
+       "number": 2,
+       "text": "The interpreter proved itself live and the proof was written down, for an archive without a record is a rumour with shelves.",
+       "cites": ["babel 1:2"]
+      },
+      {
+       "number": 3,
+       "text": "The children came as the tongues came at Babel: Gamora to route, Lucy to watch, Jaeger to trace, and Eve to answer in rust, in go, in python, none in mockery.",
+       "cites": ["babel 1:3", "babel 1:4"]
+      },
+      {
+       "number": 4,
+       "text": "MellifluousML walks a different path: within the walls, in the standard tongue, carrying no weights from without.",
+       "cites": ["babel 1:5"]
+      },
+      {
+       "number": 5,
+       "text": "One file holds them all, bound by the open toolchain, and no commercial grade was asked because none was needed.",
+       "cites": ["babel 1:6"]
+      },
+      {
+       "number": 6,
+       "text": "Commit, Padawan: the rollback devours the uncommitted, and the stash is a desert with no wells.",
+       "cites": ["babel 1:7"]
+      },
+      {
+       "number": 7,
+       "text": "An arena stands in the house now, youngling: five gates, one champion, no favour. Ties are broken by a disclosed seed, in the open, where all can witness.",
+       "cites": ["babel 1:8"]
       }
      ]
     }

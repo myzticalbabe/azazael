@@ -199,24 +199,58 @@ def cmd_ablate(args) -> int:
 
 
 def cmd_wasm(args) -> int:
-    """Compile Eve's inner states to a Rust WASM tutorial."""
+    """Compile Eve's inner states to a WASM tutorial (Rust or Go tier)."""
     from . import wasm_tutorial as _w
     try:
         state = _w.parse_ablation_log(args.from_log)
     except Exception as e:
         print(f"ERROR: cannot read ablation log ({e})", file=sys.stderr)
         return 1
+    if args.go:
+        out, total = _w.generate_go(state, args.out)
+        print(f"Go module: {out} ({total} tutorial steps)")
+        if args.build:
+            try:
+                pkg = _w.build_wasm_go(out)
+            except RuntimeError as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                return 1
+            wasm = list(pkg.glob("*.wasm"))
+            print(f"WASM: {pkg} ({len(wasm)} module(s), "
+                  f"{sum(p.stat().st_size for p in wasm)} bytes)")
+        if args.run:
+            try:
+                rep = _w.run_wasm_go(out)
+            except RuntimeError as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                return 1
+            print(f"WASM ran: {rep['step_count']} steps, "
+                  f"frame {rep['frame_chars']} chars ({rep['frame_head']}...)")
+        return 0
     out, total = _w.generate(state, args.out)
     print(f"Crate: {out} ({total} tutorial steps)")
     if args.build:
         try:
-            pkg = _w.build_wasm(out)
+            pkg = _w.build_wasm(out, target=args.target)
         except RuntimeError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
         wasm = list(pkg.glob("*.wasm"))
         print(f"WASM: {pkg} ({len(wasm)} module(s), "
               f"{sum(p.stat().st_size for p in wasm)} bytes)")
+        if args.run:
+            if args.target != "nodejs":
+                print("ERROR: --run needs --target nodejs "
+                      "(web target loads via fetch, browser only)",
+                      file=sys.stderr)
+                return 1
+            try:
+                rep = _w.run_wasm(pkg)
+            except RuntimeError as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                return 1
+            print(f"WASM ran: {rep['step_count']} steps, "
+                  f"frame {rep['frame_chars']} chars ({rep['frame_head']}...)")
     return 0
 
 
@@ -323,7 +357,7 @@ def cmd_local(args) -> int:
 
 
 def cmd_langs(args) -> int:
-    """Native Rust/Go compiler work."""
+    """Native Rust/Go/Python work, plus new-arch contracts."""
     from . import langs as _l
     try:
         if args.lang_action == "tools":
@@ -335,6 +369,12 @@ def cmd_langs(args) -> int:
             print(f"{rep['lang']}: {'OK' if rep['ok'] else 'FAIL'}")
             if rep["diagnostics"]:
                 print(rep["diagnostics"][:2000])
+            return 0 if rep["ok"] else 1
+        if args.lang_action == "arch":
+            rep = _l.check_arch(args.arch)
+            print(f"{rep['arch']}: {'OK' if rep['ok'] else 'FAIL'}")
+            if rep["detail"]:
+                print(rep["detail"][:2000])
             return 0 if rep["ok"] else 1
         if args.lang_action == "fmt":
             print("reformatted" if _l.fmt(args.file)
@@ -1959,12 +1999,18 @@ def main():
     abl_p.add_argument("--timeout", type=int, default=45)
     abl_p.set_defaults(func=cmd_ablate)
 
-    wasm_p = sub.add_parser("wasm", help="Inner states as Rust WASM tutorial")
+    wasm_p = sub.add_parser("wasm", help="Inner states as WASM tutorial")
     wasm_p.add_argument("--from", dest="from_log", required=True,
                         help="Real `eve ablate` log to compile")
-    wasm_p.add_argument("--out", required=True, help="Crate output dir")
+    wasm_p.add_argument("--out", required=True, help="Module output dir")
     wasm_p.add_argument("--build", action="store_true",
-                        help="Run wasm-pack build after generating")
+                        help="Compile to .wasm after generating")
+    wasm_p.add_argument("--go", action="store_true",
+                        help="Go tier (needs go+node) instead of Rust tier")
+    wasm_p.add_argument("--run", action="store_true",
+                        help="Execute the built module under node (Go tier, or Rust tier with --target nodejs)")
+    wasm_p.add_argument("--target", default="web", choices=("web", "nodejs"),
+                        help="Rust tier wasm-pack target (nodejs runs headless)")
     wasm_p.set_defaults(func=cmd_wasm)
 
     morph_p = sub.add_parser("morph", help="Convert/morph/mutate files")
@@ -2010,11 +2056,14 @@ def main():
                          help="Cradle model stem (default: servers first)")
     local_p.set_defaults(func=cmd_local)
 
-    lang_p = sub.add_parser("langs", help="Rust/Go check, format, fix")
+    lang_p = sub.add_parser("langs", help="Rust/Go/Python check, format, fix, arch")
     lang_sub = lang_p.add_subparsers(dest="lang_action")
     for _act in ("check", "fmt", "fix"):
         _p = lang_sub.add_parser(_act)
         _p.add_argument("--file", required=True)
+    _arch_p = lang_sub.add_parser("arch", help="New-arch contract check")
+    _arch_p.add_argument("--arch", required=True,
+                         help="gamora | lucy | jaeger-316t")
     lang_tools = lang_sub.add_parser("tools", help="Toolchain presence")
     lang_tools.add_argument("--lang", default="rust")
     lang_p.set_defaults(func=cmd_langs, lang_action="check")
