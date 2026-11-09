@@ -9,6 +9,7 @@ One command over parts that existed and did not know about each other.
 | **Jaeger 3:16T** | `src/AOA/core/delegation_tracer.py` + `src/CORE/cd3_exporter.py` | every injection writes one span; `gamora inject` wraps any prompt |
 | **Cradle** | `Project_CRADLE/cradle.py` | `gamora cradle -- <args>` passes through |
 | **Lucy** | `Project_LUCY/lucy.py` | `gamora lucy <mood> [note]` -- Eliza + therapy, offline-first |
+| **Berzerker A.I.O.** | `Project_GAMORA/berzerker.py` (mind over `src/eve_unleashed/cognition.py`, `intuition.py`) | `gamora berzerker audit` (23-process census) / `mind <request>` (3-strata crossing) / `code <assignment> [--lang] [--level]` (STEM coach for girls, offline-first) |
 
 ## Why a harness and not a merge
 
@@ -26,6 +27,11 @@ ledger.
     python gamora.py eve -- <eve args>
     python gamora.py cradle -- <cradle args>
     python gamora.py lucy <mood> [note] [--json]
+    python gamora.py berzerker audit | mind "<request>" | dream [host]
+    python gamora.py berzerker inhibited <host> | weird [--lang L]
+    python gamora.py berzerker code "<assignment>" [--lang L] [--level spark|builder|pilot] [--name Ada] [--json]
+    python gamora.py berzerker done --name Ada --level spark   # tally one finished session (3 earn the next rung)
+    python gamora.py doctor [--json]
     python gamora.py swarm <claim> [...]
     python gamora.py inject "prompt" [--capability C --arm A]
 

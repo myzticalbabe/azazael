@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2128,
+  "as_of_id": 2131,
   "path": "~/.engram/engram.db",
-  "records": 1257,
+  "records": 1260,
   "types": [
    "bugfix",
    "decision",
@@ -21879,6 +21879,42 @@
    "surface": "~/.engram/engram.db",
    "symptom": "MellifluousML EVOLVE-TO-RESOLVE: drove every open red to green natively on 316t. (1) Rust avenue: winget-installed rustup, discovered stable 1.99.1 toolchain + wasm32 target were already on disk with only the shims missing — restored to PATH. Result: eve_langs 9/9 (rustc/rustfmt now real), polyglot full 6-language agreement. (2) Antibodies seek_checkout KeyError: root cause was script-path import — `python src/SHARDS/antibodies.py` ran with cwd=root but src/ off sys.path, so CORE import died and the parser returned {unreachable} with no ok key. Fix: guarded bootstrap (try import, except ImportError insert src parent, re-import — installed CORE never shadowed). Script path now prints a real…",
    "title": "Evolve-to-resolve complete: 60/60 green on 316t"
+  },
+  {
+   "cause": "Verify edits with grep/pytest, never trust tool success alone; `git diff stash` exposes Frankenstein states. Nuitka 4.3.5 has NO --module-config/--windows-target-version; 3.16 is warning-only gate. Go wasm must RETURN payload via __eveCollect (no process.exit under blocked runtime). Rust nodejs target is CJS (require, no init()). Worktree-vs-HEAD empty for a file you \"edited\" = edit never landed — check immediately.",
+   "date": "2026-11-09",
+   "id": "engram-2129",
+   "kind": "engram:decision",
+   "line": 2129,
+   "rationale": "What: Rollback had reverted tracked edits while reporting success; found full original evolution in `stash@{0}` (branch azazael-intel-ultra-9-evo). Restored via `git checkout stash@{0} -- langs.py cli.py antibodies.py pyproject.toml test_eve_cognition.py test_eve_langs.py`; kept worktree wasm_tutorial.py (functionally identical) and sh_runner.py (identical to stash). Left stash intact as safety net. Updated eve.win10.nuitka.toml header to working Nuitka 4.3.5 command. Relaunched onefile exe build in background (log /tmp/nuitka_316t.log, confirmed compiling on 3.16 no-GIL, load ~13.6 with --jobs=16). Why: str_replace \"successes\" were not on disk (ARCH_CONTRACTS referenced but never defined -…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Rollback had reverted tracked edits while reporting success; found full original evolution in `stash@{0}` (branch azazael-intel-ultra-9-evo). Restored via `git checkout stash@{0} -- langs.py cli.py antibodies.py pyproject.toml test_eve_cognition.py test_eve_langs.py`; kept worktree wasm_tutorial.py (functionally identical) and sh_runner.py (identical to stash). Left stash intact as safety net. Updated eve.win10.nuitka.toml header to working Nuitka 4.3.5 command. Relaunched onefile exe build in background (log /tmp/nuitka_316t.log, confirmed compiling on 3.16 no-GIL, load ~13.6 with --jobs=16).",
+   "title": "316t stack recovered from git stash, verified, exe build relaunched"
+  },
+  {
+   "cause": "Nuitka 4.3.5-vs-3.16noGIL failure chain in order: unknown plugin pkg_resources -> no --windows-target-version -> MSVC 14.3 missing (use --msvc=14.5) -> python316t.lib absent from probed dirs (stage copy into build-tree libs/) -> allocator.h `&op->` undeclared (patch to `&object`, backup .orig) -> 25 C2065 errors in 3 venv runtime files. Frontier mappings: MainProgram.c Py_*Flag globals REMOVED in 3.16, migrate to PyConfig fields (initconfig.h: parser_debug/verbose/interactive/inspect/optimization_level/write_bytecode/user_site_directory/use_environment/utf8_mode/site_import); HelpersDictionaries.c _Py_IMMORTAL_REFCNT gone, 3.16 has PyUnstable_IsImmortal/SetImmortal in cpython/object.h; opco…",
+   "date": "2026-11-09",
+   "id": "engram-2130",
+   "kind": "engram:decision",
+   "line": 2130,
+   "rationale": "What: Canonicalized the 316t house as commit 3b124cdb (31 files): Eve langs python branch + arch contracts, wasm Go+Rust tiers, Gamora+Jaeger, Lucy arena (5 judges + rochambeau bracket), Babel books in all 5 bible styles with renders, Nuitka toml header. Recovered from a second external revert via `git checkout stash@{0} -- <8 files>`. Why: User ordered record/update/canonicalize; a competing actor on branch azazael-intel-ultra-9-evo reverted tracked worktree edits twice; commit makes the state durable. Where: src/eve_unleashed/{langs,cli,wasm_tutorial}.py, src/INTERPRETERS/sh_runner.py, src/SHARDS/antibodies.py, pyproject.toml, Project_LUCY/lucy.py, Project_GAMORA/, docs/bible/*, tests/tes…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Canonicalized the 316t house as commit 3b124cdb (31 files): Eve langs python branch + arch contracts, wasm Go+Rust tiers, Gamora+Jaeger, Lucy arena (5 judges + rochambeau bracket), Babel books in all 5 bible styles with renders, Nuitka toml header. Recovered from a second external revert via `git checkout stash@{0} -- <8 files>`.",
+   "title": "Canonized 316t house (3b124cdb); Nuitka C-frontier mapped"
+  },
+  {
+   "cause": "Environment ideas adopted natively: Windows Eve debunk/swarm/bounded pool/Jaeger spans; Ubuntu toolchain advisory via shutil.which only; Kali defensive stance (name walls, never defeat); G-archive/MCML digest receipts; Colosseum no-model-no-answer offline rule; cognition GAPS is now () so the coach reads PROCESSES (23). Typo trap: module defines COACH_LANGS (no underscore). Verified on 316t: 10/10 Gamora tests green, live CLI demo prints coach scaffold.",
+   "date": "2026-11-09",
+   "id": "engram-2131",
+   "kind": "engram:decision",
+   "line": 2131,
+   "rationale": "What: Gave Gamora DOMellifluousML cliT a native Berzerker A.I.O. (Project_GAMORA/berzerker.py): audit() census of 23 cognition processes across 3 strata, mind() 3-strata nexus crossing, code_coach() offline STEM coding coach for girls (debunk Rock throw + toolchain advisory + leveled starter + 3 try-it steps + sha256 receipt). Wired `gamora berzerker audit|mind|code` subcommand, GAMORA.md row, 6 new tests. Why: User ordered native Berzerker adoption after surveying all environments; the coach is the STEM-for-girls coding agent. Where: Project_GAMORA/berzerker.py, Project_GAMORA/gamora.py (cmd_berzerker + parser), Project_GAMORA/GAMORA.md, Project_GAMORA/tests/test_berzerker.py. Learned: Env…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Gave Gamora DOMellifluousML cliT a native Berzerker A.I.O. (Project_GAMORA/berzerker.py): audit() census of 23 cognition processes across 3 strata, mind() 3-strata nexus crossing, code_coach() offline STEM coding coach for girls (debunk Rock throw + toolchain advisory + leveled starter + 3 try-it steps + sha256 receipt). Wired `gamora berzerker audit|mind|code` subcommand, GAMORA.md row, 6 new tests.",
+   "title": "Gamora native Berzerker AIO + STEM coach"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -21959,7 +21995,7 @@
    "engram:architecture": 32,
    "engram:bugfix": 171,
    "engram:config": 14,
-   "engram:decision": 432,
+   "engram:decision": 435,
    "engram:discovery": 249,
    "engram:learning": 282,
    "engram:lesson": 62,
@@ -21971,7 +22007,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1828,
+  "records": 1831,
   "surfaces": 14
  }
 }

@@ -468,7 +468,9 @@ Read it for the shape of the claim. A tongue is native when the compiler that na
 
 **8** And Lucy raised an arena within the house, where five gates judge every answer and none judges alone; the champion is crowned on merit, and the seed of the sudden death is disclosed. *(see babel 1:4)*
 
-_Marginal: 1 — cited by babel 1:2, babel 1:6; 2 — cited by babel 1:7; 3 — cited by babel 1:4; 4 — cited by babel 1:5, babel 1:8._
+**9** And Berzerker took up the mind of the house, every stratum and every process, and turned it toward the daughters as a coach; she scaffolds the work and never invents the answer, and every lesson is written down. *(see babel 1:4)*
+
+_Marginal: 1 — cited by babel 1:2, babel 1:6; 2 — cited by babel 1:7; 3 — cited by babel 1:4; 4 — cited by babel 1:5, babel 1:8, babel 1:9._
 
 ## Glossary
 

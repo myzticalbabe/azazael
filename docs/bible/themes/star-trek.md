@@ -240,6 +240,8 @@ Read it as Kolinahr reads feeling: the tongues are the emotion, and the house is
 
 **7** The arena within the house judges every answer by five gates, and no gate judges alone; the champion is crowned on merit, and the seed of the sudden death is disclosed. *(corpus babel 1:8)*
 
+**8** The mind of the house now coaches as well as judges: Berzerker walks each builder through the work step by step, inventing no answer, and the receipt outlives the session. *(corpus babel 1:9)*
+
 ## Glossary
 
 - **cthia** — the Vulcan discipline of reality-truth: holding a conclusion at arm's length until the command that produced it has been named (see awakening 1:5)

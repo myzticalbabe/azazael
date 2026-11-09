@@ -238,6 +238,8 @@ A Padawan learns each tongue from the compiler that speaks it, never from a gues
 
 **7** An arena stands in the house now, youngling: five gates, one champion, no favour. Ties are broken by a disclosed seed, in the open, where all can witness. *(corpus babel 1:8)*
 
+**8** A coach stands beside the arena now, youngling: Berzerker teaches the builder to build, step by step, inventing nothing, and every lesson is receipted in the open. *(corpus babel 1:9)*
+
 ## Glossary
 
 - **the Code** — the five-line creed attributed to Odan-Urr: a statement about what is absent, which is why this book treats every line as a claim needing a check (see the_code 1:1)

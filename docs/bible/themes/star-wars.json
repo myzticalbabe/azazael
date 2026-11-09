@@ -539,6 +539,11 @@
        "number": 7,
        "text": "An arena stands in the house now, youngling: five gates, one champion, no favour. Ties are broken by a disclosed seed, in the open, where all can witness.",
        "cites": ["babel 1:8"]
+      },
+      {
+       "number": 8,
+       "text": "A coach stands beside the arena now, youngling: Berzerker teaches the builder to build, step by step, inventing nothing, and every lesson is receipted in the open.",
+       "cites": ["babel 1:9"]
       }
      ]
     }

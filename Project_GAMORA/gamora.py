@@ -20,10 +20,10 @@ COMMANDS
     python gamora.py doctor                  is this machine ready (316t?)
     python gamora.py lilith [--once]          hive status, stdlib only
     python gamora.py eve -- <eve args>        passthrough to Eve Unleashed
-    python gamora.py cradle -- <cradle args>  passthrough to Project_CRADLE
-    python gamora.py lucy <mood> [note]       Eliza + therapy, offline-first
-    python gamora.py swarm <claim> [...]      native swarm over oracles
+    python gamora.py cradle -- <cradle args>  passthrough to Project_CRADLE    python gamora.py lucy <mood> [note]       Eliza + therapy, offline-first
+    python gamora.py swarm <claim> [...]          native swarm over oracles
     python gamora.py inject "prompt"          Jaeger 3:16T prompt injector
+    python gamora.py berzerker audit|mind|code   native AIO + STEM coach
 
 Stdlib only. Every subsystem import is lazy and degrades to a named
 message -- a missing part is a report, never a traceback.
@@ -107,6 +107,10 @@ def cmd_doctor(_args) -> int:
             ok = False
 
     print("doctor: %s" % ("READY" if ok else "NOT READY"))
+    if getattr(args, "json", False):
+        print("---")
+        print(json.dumps({"ready": bool(ok), "gil": gil,
+                          "python": sys.version.split()[0]}, indent=2))
     return 0 if ok else 1
 
 
@@ -216,6 +220,71 @@ def cmd_swarm(args) -> int:
     return 0
 
 
+def _span(capability, rep) -> None:
+    """One Jaeger span per delegation. Telemetry never breaks the run."""
+    try:
+        repo_src = REPO / "src"
+        if str(repo_src) not in sys.path:
+            sys.path.insert(0, str(repo_src))
+        from AOA.core.delegation_tracer import emit_delegation as _emit
+        flat = rep if isinstance(rep, dict) else {"result": str(rep)}
+        _emit(dict(flat), capability="gamora." + str(capability),
+              arm_id="gamora-316t")
+    except Exception:
+        pass  # scanner:ignore silent_except_pass -- telemetry guard; the answer above already stands
+
+
+def cmd_berzerker(args) -> int:
+    """Native Berzerker A.I.O.: audit the mind, cross it, coach code."""
+    if str(GAMORA_ROOT) not in sys.path:
+        sys.path.insert(0, str(GAMORA_ROOT))
+    try:
+        import berzerker as _b
+    except Exception as e:
+        print("berzerker: unavailable (%s)" % e)
+        return 1
+    action = (args.action or "audit").lower()
+    try:
+        if action == "audit":
+            rep = _b.audit()
+        elif action == "mind":
+            rep = _b.mind(args.text)
+        elif action == "dream":
+            rep = _b.dream(args.text or None)
+        elif action == "inhibited":
+            rep = _b.inhibited(args.text)
+        elif action == "weird":
+            rep = _b.weird_tests(args.lang)
+        elif action == "done":
+            rep = _b.record_completion(args.name, args.level)
+        elif action == "code":
+            rep = _b.code_coach(args.text, language=args.lang,
+                                level=args.level,
+                                name=args.name or None)
+            if rep.get("ok") and not args.json:
+                print(rep["response"])
+                _span("berzerker.code", rep)
+                return 0
+        else:
+            print("berzerker: unknown action %r"
+                  " (audit|mind|dream|inhibited|weird|code|done)"
+                  % args.action)
+            return 1
+    except Exception as e:
+        print("berzerker: failed (%s)" % e)
+        return 1
+    _span("berzerker." + action, rep)
+    if args.json or action in ("audit", "mind", "dream", "inhibited",
+                               "weird", "done"):
+        print(json.dumps(_b.as_jsonable(rep), indent=2)[:4000])
+    elif rep.get("ok"):
+        print(rep.get("response", rep))
+    else:
+        print("berzerker: %s" % rep.get("reason", rep))
+        return 1
+    return 0 if rep.get("ok", True) else 1
+
+
 def cmd_inject(args) -> int:
     """Jaeger 3:16T prompt injector: wrap a prompt with trace + drive."""
     repo_src = REPO / "src"
@@ -243,10 +312,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         prog="gamora",
         description="Gamora DOMellifluousML cliT -- one command over "
-                    "lilith swarm, eve, jaeger 3:16T, cradle.")
+                    "lilith swarm, eve, jaeger 3:16T, cradle, berzerker.")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("doctor", help="is this machine ready (316t?)")
+    p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_doctor)
 
     p = sub.add_parser("lilith", help="hive status, stdlib only")
@@ -271,6 +341,21 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("swarm", help="native swarm over oracles")
     p.add_argument("claims", nargs="+")
     p.set_defaults(fn=cmd_swarm)
+
+    p = sub.add_parser("berzerker", help="native AIO mind + STEM coach")
+    p.add_argument("action", nargs="?", default="audit",
+                   help="audit|mind|dream|inhibited|weird|code|done")
+    p.add_argument("text", nargs="?", default="",
+                   help="request (mind) / assignment (code) / host"
+                          " (dream|inhibited)")
+    p.add_argument("--lang", default="python",
+                   help="code coach language")
+    p.add_argument("--level", default="spark",
+                   help="spark | builder | pilot")
+    p.add_argument("--name", default="",
+                   help="builder first name (levels + receipts)")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_berzerker)
 
     p = sub.add_parser("inject", help="Jaeger 3:16T prompt injector")
     p.add_argument("prompt", help="prompt text, or - for stdin")
