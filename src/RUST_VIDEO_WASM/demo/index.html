@@ -31,6 +31,7 @@
   input[type=range] { width:130px; accent-color:var(--hot); }
   code { background:#0f141c; border:1px solid var(--line); padding:1px 5px; border-radius:5px; font-size:12px; }
   .note { color:var(--dim); font-size:13px; max-width:74ch; }
+  .verdict { font-size:13px; max-width:74ch; border-left:3px solid var(--hot); padding-left:10px; }
   output { color:var(--hot); font-variant-numeric:tabular-nums; font-size:13px; }
   footer { color:var(--dim); font-size:12px; padding:0 26px 26px; }
 </style>
@@ -50,6 +51,8 @@
 
 <main>
   <section id="a" class="active">
+    <p class="verdict"><strong>Verdict: the default.</strong> The only architecture here that streams a file of
+      any length — 120&nbsp;KB of WASM for the whole visual layer.</p>
     <div class="stage">
       <video id="vid" src="assets/sample.mp4" width="480" height="270" playsinline loop crossorigin="anonymous"></video>
       <canvas id="aurora" class="overlay" width="480" height="270"></canvas>
@@ -62,18 +65,25 @@
     <p class="note">The <code>&lt;video&gt;</code> element does the H.264 and AAC work. Rust receives 1024 PCM samples,
       computes 32 band energies with a Hann-windowed DFT, and renders an additive field at 60&nbsp;fps — 120&nbsp;KB of WASM
       for the whole visual layer. This is the only architecture here that streams a file of any length.</p>
+    <p class="note">Three defects this panel paid for, kept as regression tests: a 32-bit float DFT phase that turned
+      music into noise (fixed by exact integer reduce + f64); a mirrored band axis that lit both ends of the frame
+      (fixed by mapping 0..Nyquist, tone in band&nbsp;4 leaves band&nbsp;27 dark); linear magnitudes at 3&nbsp;dp that
+      rounded 34% of the field to black (fixed by storing log power). The readout names the peak band <em>and</em>
+      its measured Hz, derived from this device's live sample rate — never a remembered number.</p>
   </section>
 
   <section id="b">
-    <div class="stage"><canvas id="canvasB" width="320" height="180"></canvas></div>
+    <div class="stage"><canvas id="canvasB" width="640" height="360"></canvas></div>
     <div class="row">
       <button id="playB">play</button>
       <output id="outB">idle</output>
     </div>
+    <p class="verdict"><strong>Verdict: works, wrong for songs.</strong> No media element, no network after load —
+      and a payload that grows with every frame instead of every shot.</p>
     <p class="note">No media element at all: the frames are JPEGs inside one <code>AVFB</code> blob, decoded by
       <code>jpeg-decoder</code> compiled into the module. It works, and it is the wrong default for a song — the blob is
-      <strong>0.18&nbsp;MB/s</strong> — about 38&nbsp;MB for this track at 320×180, roughly twice the 19.35&nbsp;MB mp4 that
-      holds it at 480p, because stills are not inter-coded.</p>
+      <strong>0.54&nbsp;MB/s</strong> — about 119&nbsp;MB for this track at 640×360, three-and-a-half times the
+      33.82&nbsp;MB mp4 that holds it at 720p, because stills are not inter-coded.</p>
   </section>
 
   <section id="c">
@@ -97,6 +107,7 @@
       </label>
       <output id="outC">idle</output>
     </div>
+    <p class="verdict"><strong>Verdict: the useful one</strong> for effects — the browser decodes, Rust rewrites every pixel.</p>
     <p class="note">The useful architecture: the browser decodes and Rust rewrites the frame. Two transports, and the
       readout names the one that actually ran. <code>canvas</code> is <code>drawImage</code> → <code>getImageData</code> →
       <code>process_frame_rgba</code> → <code>putImageData</code>, which is a GPU→CPU readback of RGBA.
@@ -112,6 +123,8 @@
       <button id="decodeD">decode in page (ffmpeg.wasm)</button>
       <output id="outD">idle</output>
     </div>
+    <p class="verdict"><strong>Verdict: correct container / full decode.</strong> A packed stream parsed in Rust — or
+      ffmpeg itself compiled to wasm (30.9&nbsp;MB of entropy decoder, not the 120&nbsp;KB crate).</p>
     <p class="note"><strong>Two sources, one reader.</strong> The first button replays a pre-packed <code>AVRD</code>
       stream. The second loads <code>ffmpeg.wasm</code>, decodes the mp4 <em>in this page</em> to a headerless RGB24
       stream (<code>stream_frame_count</code> / <code>unpack_stream_frame</code>), and plays it with no media element
@@ -178,7 +191,10 @@ function loopA() {
     const rgba = wasm.render_aurora(480, 270, smooth, performance.now() / 1000);
     const img = new ImageData(new Uint8ClampedArray(rgba), 480, 270);
     actx.putImageData(img, 0, 0);
-    $("outA").textContent = `t=${vid.currentTime.toFixed(1)}s  peak band ${smooth.indexOf(Math.max(...smooth))}`;
+    const peak = smooth.indexOf(Math.max(...smooth));
+    const nyq = (audio?.sampleRate ?? 48000) / 2;
+    const lo = Math.round(peak * nyq / BANDS), hi = Math.round((peak + 1) * nyq / BANDS);
+    $("outA").textContent = `t=${vid.currentTime.toFixed(1)}s  peak band ${peak} (~${lo}\u2013${hi} Hz @ ${(audio?.sampleRate ?? 48000) / 1000}kHz)`;
   }
   requestAnimationFrame(loopA);
 }
