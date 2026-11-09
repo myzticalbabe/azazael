@@ -41,7 +41,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 from CORE.failure_ledger import note_failure
-from azazael.tools.defaults_profile import read_default
+from tools.defaults_profile import read_default
 
 _log = logging.getLogger(__name__)
 
@@ -1291,6 +1291,39 @@ class LaneMessageBoard:
             counts["retired"] = (counts["done"] + counts["blocked"]
                                  + counts["archived"])
             return counts
+        finally:
+            conn.close()
+
+    def recent_transitions(self, lane: Optional[str] = None,
+                           limit: int = 20) -> List[Dict[str, Any]]:
+        """Newest-first state-table transitions — the sight layer (2026-11-09).
+
+        Status rows are voluntary: a lane can do a day's work (kilo retired 3
+        rows the morning of 2026-11-09) without posting one, and a reader of
+        poll_status alone then reports the lane dark. The state table is not
+        voluntary — every claim/done/block writes here — so it is the ground
+        truth for who did what, when. Read-only; newest first.
+
+        Returns dicts: {board_id, lane, task_id, state, claimed_by,
+        retired_at, attempts, note (first 300 chars)}.
+        """
+        conn = self._state_conn()
+        try:
+            where, args = (("WHERE s.lane = ?", (lane,)) if lane else ("", ()))
+            rows = conn.execute(
+                "SELECT s.board_id, s.lane, s.task_id, s.state, s.claimed_by, "
+                "       s.claimed_at, s.retired_at, s.attempts, "
+                "       substr(s.note, 1, 300) "
+                "FROM lane_task_state s " + where +
+                " ORDER BY s.board_id DESC LIMIT ?",
+                args + (int(limit),),
+            ).fetchall()
+            return [
+                {"board_id": r[0], "lane": r[1], "task_id": r[2],
+                 "state": r[3], "claimed_by": r[4], "claimed_at": r[5],
+                 "retired_at": r[6], "attempts": r[7], "note": r[8]}
+                for r in rows
+            ]
         finally:
             conn.close()
 
