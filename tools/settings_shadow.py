@@ -301,7 +301,7 @@ def main(argv=None) -> int:
     ap.add_argument("--config", default=str(CONFIG))
     ap.add_argument("--root", action="append", default=[],
                     help="directory of modules to scan for readers; repeatable "
-                         "(default: tools and src/CORE)")
+                         "(default: tools, src/CORE and src/eve_unleashed)")
     ap.add_argument("--strict", action="store_true",
                     help="exit 1 when any finding is open")
     ap.add_argument("--json", default="", help="also write the findings here")
@@ -320,9 +320,9 @@ def main(argv=None) -> int:
     READERS.clear()
     READERS.update(vocabulary)
 
-    roots = [Path(r) for r in (args.root or [ROOT / "tools", ROOT / "src" / "CORE"])]
+    roots = [Path(r) for r in (args.root or [ROOT / "tools", ROOT / "src" / "CORE", ROOT / "src" / "eve_unleashed"])]
     scan_root = " + ".join(str(r) for r in roots)
-    modules = sorted({p for root in roots for p in root.glob("*.py")})
+    modules = sorted({p for root in roots for p in root.rglob("*.py")})
     if not modules:
         print("settings_shadow: no module under %s -- nothing audited, which is not "
               "a pass." % scan_root)
