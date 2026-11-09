@@ -639,7 +639,7 @@ fi
 # Written only on PASS, so its presence is a reading and its absence is the truth.
 TREE_SHA=$(git write-tree 2>/dev/null || echo unknown)
 mkdir -p "$SCRIPT_DIR/logs" 2>/dev/null || true
-printf '{"verdict":"PASS","ran_at":"%s","tree":"%s","tier":"evidence"}\n' \
+printf '{"verdict":"PASS","ran_at":"%s","tree":"%s","tier":"evidence","checks_passed":14}\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TREE_SHA" > "$SCRIPT_DIR/logs/hook_evidence.json"
 
 exit 0

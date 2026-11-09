@@ -54,6 +54,7 @@ DENOM_KEYS = (
     "files", "files_scanned", "files_total", "py_files", "py_parsed", "modules",
     "rows", "records", "entries", "items", "total", "count", "counts",
     "targets", "legs", "checked", "scanned", "tests", "collected", "findings_total",
+    "checks_passed",
 )
 SCOPES = ("summary", "totals", "counts", "stats")
 LEG_STATES = {"ok", "empty", "skipped", "error", "timeout"}

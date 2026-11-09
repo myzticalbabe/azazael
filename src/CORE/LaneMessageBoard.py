@@ -108,7 +108,8 @@ def _task_sig(payload: Dict[str, Any]):
             return v
         try:
             return json.dumps(v, sort_keys=True, default=str)
-        except Exception:
+        except Exception as exc:
+            note_failure("_task_sig.norm", exc)
             return str(v)
 
     return (tid, norm(payload.get("action")), norm(payload.get("detail")))
@@ -469,7 +470,8 @@ class LaneMessageBoard:
             try:
                 task = LaneTask.from_dict(msg.content if isinstance(msg.content, dict)
                                           else json.loads(msg.content))
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:subscribe_tasks-adapter", exc)
                 return  # malformed message; skip
             callback(task)
 
@@ -607,8 +609,8 @@ class LaneMessageBoard:
                 except Exception as exc:
                     note_failure("LaneMessageBoard:search_messages", exc)
                     continue
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("_poll_persistent_queue outer", exc)
         return results
 
     def poll_tasks(
@@ -1107,8 +1109,8 @@ class LaneMessageBoard:
                 {"type": "release", "lane": lane, "source": self.lane},
                 "release_task",
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("LaneMessageBoard:release_task-audit", exc)
         return True
 
     def archive_backlog(
@@ -1325,7 +1327,8 @@ class LaneMessageBoard:
         try:
             with open(chat_log_path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
-        except Exception:
+        except Exception as exc:
+            note_failure("LaneMessageBoard:import_from_chat_log", exc)
             return 0
 
         if not isinstance(data, list):
