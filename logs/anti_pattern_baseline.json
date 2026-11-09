@@ -1,18 +1,17 @@
 {
-  "recorded_at": "2026-11-09T06:29:46+00:00",
+  "recorded_at": "2026-11-09T06:32:08+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 864,
+  "files_scanned": 862,
   "category_counts": {
     "import_inside_function": 1058,
     "silent_except_pass": 1,
-    "subprocess_no_timeout": 1,
     "unicode_emoji": 1219
   },
-  "total_findings": 2279,
-  "tracked_only": false,
-  "writer_pid": 22072,
+  "total_findings": 2278,
+  "tracked_only": true,
+  "writer_pid": 21108,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -1020,9 +1019,6 @@
     },
     "session_memory.py": {
       "import_inside_function": 2
-    },
-    "spitfire\\build\\build_all.py": {
-      "subprocess_no_timeout": 1
     },
     "tests\\test_ecosystem.py": {
       "import_inside_function": 32
