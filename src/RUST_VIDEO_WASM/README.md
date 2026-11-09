@@ -22,9 +22,9 @@ Source: `C:/Users/clint/Music/In The End [Official HD Music Video] - Linkin Park
 browser may not carry whatever codec a download happened to use.
 
 ```
-sample.mp4    19.35 MB   218.2 s   863x480   H.264 crf30 + AAC 96k, faststart
-frames.bin     2.13 MB    12.0 s   320x180   145 JPEG frames @12fps   -> 0.18 MB/s
-raw.bin        2.97 MB    12.0 s   160x90     72 RGB24 frames @6fps    -> 42 KB/frame
+sample.mp4    33.82 MB   218.2 s   1294x720  H.264 crf30 + AAC 96k, faststart
+frames.bin     6.57 MB    12.1 s   640x360   145 JPEG frames @12fps   -> 0.54 MB/s
+raw.bin       11.87 MB    12.0 s   320x180    72 RGB24 frames @6fps   -> 165 KB/frame
 wasm            120 KB    both targets
 spectrum.json   1.03 MB   6,546 frames @30fps   32 bands + RMS, full 218 s
 ```
@@ -34,10 +34,11 @@ spectrum.json   1.03 MB   6,546 frames @30fps   32 bands + RMS, full 218 s
 the cells read exactly `0` in the first bake, which is why the field had a hole in
 its middle.
 
-Read the B row as the argument against B: 0.18 MB/s at a postage-stamp 320×180
-means **≈38 MB to carry this one track**, roughly twice the 19.35 MB mp4 that
-holds it at 480p — inter-frame prediction is doing real work, and baking stills
-throws it away.
+Read the B row as the argument against B: 0.54 MB/s at 640×360
+means **≈119 MB to carry this one track**, three-and-a-half times the 33.82 MB
+mp4 that holds it at 720p — inter-frame prediction is doing real work, and
+baking stills throws it away. (The hi-res re-cook of 2026-11-09 strengthened
+this verdict: doubling resolution quadrupled the baking penalty.)
 
 ## Run it
 

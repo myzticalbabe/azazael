@@ -19,10 +19,10 @@ const mp4 = readFileSync("demo/assets/sample.mp4");
 const nB = wasm.frame_count(frames);
 const dimsB = wasm.frame_dims(frames);
 check("B frame_count", nB > 0, `${nB} frames`);
-check("B frame_dims", dimsB[0] === 320 && dimsB[1] === 180, `${dimsB.join("x")}`);
+check("B frame_dims", dimsB[0] === 640 && dimsB[1] === 360, `${dimsB.join("x")}`);
 
 const f0 = wasm.decode_frame_rgba(frames, 0);
-check("B decode size", f0.length === 320 * 180 * 4, `${f0.length} bytes`);
+check("B decode size", f0.length === 640 * 360 * 4, `${f0.length} bytes`);
 const fmid = wasm.decode_frame_rgba(frames, Math.floor(nB / 2));
 let differ = 0;
 for (let i = 0; i < Math.min(f0.length, fmid.length); i += 4) if (f0[i] !== fmid[i]) differ++;
@@ -33,7 +33,7 @@ check("B rejects out-of-range index", wasm.decode_frame_rgba(frames, nB).length 
 const nD = wasm.raw_frame_count(raw);
 check("D raw_frame_count", nD > 0, `${nD} frames`);
 const d0 = wasm.unpack_rgb_frame(raw, 0);
-check("D unpack size", d0.length === 160 * 90 * 4, `${d0.length} bytes`);
+check("D unpack size", d0.length === 320 * 180 * 4, `${d0.length} bytes`);
 check("D alpha opaque", d0[3] === 255);
 
 // ---- D+: headerless RGB24 stream (ffmpeg.wasm rawvideo output)
@@ -123,7 +123,7 @@ check("A aurora glows", lit > 200, `${lit} lit pixels`);
 const snapshot = wasm.decode_frame_rgba(frames, 0);
 for (const mode of [0, 1, 2]) {
   const buf = new Uint8Array(snapshot);
-  wasm.process_frame_rgba(buf, 320, 180, mode, 1.0, 0.8);
+  wasm.process_frame_rgba(buf, 640, 360, mode, 1.0, 0.8);
   let changed = 0;
   for (let i = 0; i < buf.length; i++) if (buf[i] !== snapshot[i]) changed++;
   check(`C mode ${mode} mutates the frame`, changed > 1000, `${changed} bytes changed`);
@@ -136,7 +136,7 @@ const blobSec = nB / dimsB[2];
 const blobRate = frames.length / blobSec;
 check("payload: assets are real", mp4.length > 1000 && frames.length > 1000,
   `mp4 ${(mp4.length / 1048576).toFixed(2)} MB total, blob ${(frames.length / 1048576).toFixed(2)} MB for ${blobSec.toFixed(0)}s`);
-console.log(`INFO  baked frames cost ${(blobRate / 1048576).toFixed(2)} MB/s at 320x180/12fps ` +
+console.log(`INFO  baked frames cost ${(blobRate / 1048576).toFixed(2)} MB/s at 640x360/12fps ` +
   `(${((blobRate / 1048576) * 218).toFixed(0)} MB for a 3m38s track)`);
 
 console.log(fails === 0 ? "\nALL CHECKS PASSED" : `\n${fails} CHECK(S) FAILED`);

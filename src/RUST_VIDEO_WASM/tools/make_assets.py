@@ -119,7 +119,7 @@ def main() -> None:
         # the codec the download happened to use (this library has AV1+Opus mp4s).
         run(
             "ffmpeg", "-y", "-i", src,
-            "-vf", "scale=-2:480",
+            "-vf", "scale=-2:720",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "30",
             "-pix_fmt", "yuv420p", "-profile:v", "high",
             "-movflags", "+faststart", "-c:a", "aac", "-b:a", "96k", mp4,
@@ -133,14 +133,14 @@ def main() -> None:
         print("input: synthesised 6 s test clip")
 
     start, dur = excerpt
-    n_b, size_b = pack_frames(mp4, fps=12, width=320, height=180,
+    n_b, size_b = pack_frames(mp4, fps=12, width=640, height=360,
                              out=os.path.join(ASSETS, "frames.bin"), start=start, duration=dur)
-    n_d, size_d = pack_raw(mp4, fps=6, width=160, height=90,
+    n_d, size_d = pack_raw(mp4, fps=6, width=320, height=180,
                           out=os.path.join(ASSETS, "raw.bin"), start=start, duration=dur)
 
     print(f"sample.mp4  {os.path.getsize(mp4)/1048576:7.2f} MB  streamable, faststart")
-    print(f"frames.bin  {size_b/1048576:7.2f} MB  {n_b} frames @12fps 320x180 JPEG")
-    print(f"raw.bin     {size_d/1048576:7.2f} MB  {n_d} frames @6fps 160x90 RGB24")
+    print(f"frames.bin  {size_b/1048576:7.2f} MB  {n_b} frames @12fps 640x360 JPEG")
+    print(f"raw.bin     {size_d/1048576:7.2f} MB  {n_d} frames @6fps 320x180 RGB24")
 
 
 if __name__ == "__main__":
