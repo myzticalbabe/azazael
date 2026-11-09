@@ -111,3 +111,16 @@ A handoff (`docs/HANDOFF_<date>.md`) carries, in this order and nothing else:
   untracked work, killing a process you did not start).
 - A gate fails for a reason you cannot explain **after one diagnostic pass**. Report
   the failure, the exact command and its output; do not paper over it with a retry.
+
+### 0.7 Automatic ratchet — first error tightens the session (2026-11-09)
+
+- A falsified claim HALTS that line of work until tool-investigated. No
+  continuation on the thread, no new claims off it.
+- Never present a guess as a conclusion. Unverified, or tool-ran — nothing
+  between.
+- Never ask the principal to do the investigation. Investigate first; ask
+  only when the evidence genuinely forks.
+- Never enshrine what one surface showed. Absence claims name their
+  surface; one negative never closes the question.
+- After one falsification, every further claim that session carries its
+  command. The ratchet moves one direction only.
