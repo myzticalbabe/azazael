@@ -27,6 +27,14 @@ import importlib.util
 import json
 import sqlite3
 from pathlib import Path
+import pytest
+
+# Skip tests if persistent_ai_memory is not available
+try:
+    import persistent_ai_memory
+    HAS_PERSISTENT_AI_MEMORY = True
+except ImportError:
+    HAS_PERSISTENT_AI_MEMORY = False
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "pams_capture.py"
@@ -63,6 +71,7 @@ def _counts(db_path):
     return out
 
 
+@pytest.mark.skipif(not HAS_PERSISTENT_AI_MEMORY, reason="persistent_ai_memory not installed")
 def test_open_stores_start_message_and_writes_linkage(tmp_path, monkeypatch):
     _clean_env(monkeypatch)
     mod = _load_tool()
@@ -81,6 +90,7 @@ def test_open_stores_start_message_and_writes_linkage(tmp_path, monkeypatch):
     assert c["contents"][0].startswith("SESSION START [t-agent]:")
 
 
+@pytest.mark.skipif(not HAS_PERSISTENT_AI_MEMORY, reason="persistent_ai_memory not installed")
 def test_close_attaches_summary_to_same_session(tmp_path, monkeypatch):
     _clean_env(monkeypatch)
     mod = _load_tool()

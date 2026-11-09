@@ -94,9 +94,31 @@ PROCESSES = (
 
 #: Processes a mind has and Eve does NOT run. Named, so the gap is a plan
 #: rather than an absence nobody measured.
-# All 8 gaps are now implemented as native functions in intuition.py.
-# They move from GAPS to PROCESSES so the audit reflects reality.
+# These 8 gaps are the forge's targets; they may be implemented in intuition.py
+# but remain forge targets until graduated (moved to PROCESSES with evidence=used).
 GAPS = ()
+
+#: Forge targets - gaps that the forge should attempt to implement.
+# These 8 are the forge's targets; they may be implemented in intuition.py
+# but remain forge targets until graduated.
+FORGE_GAPS = (
+    ("consolidation", "subconscious",
+     "merge repeated episodes into one durable rule while idle"),
+    ("incubation", "unconscious",
+     "leave a blocked problem and return with a different attack"),
+    ("priming", "subconscious",
+     "let the last task bias the next one's first guess"),
+    ("prospective-memory", "conscious",
+     "hold an intention for a future trigger, not just a goal"),
+    ("inhibition", "unconscious",
+     "suppress a rung that keeps failing for this host"),
+    ("counterfactual-replay", "unconscious",
+     "re-run a past decision against what actually happened"),
+    ("salience", "subconscious",
+     "weight what mattered, not what was merely recent"),
+    ("affect", "conscious",
+     "carry a valence that changes the next choice"),
+)
 
 
 def _src_root():

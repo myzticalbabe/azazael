@@ -361,7 +361,7 @@ def test_capability_probe_agrees_with_the_interpreter_and_reports_absence():
     assert caps["has_tachyon"] == hasattr(sys, "tachyon")
     assert caps["gil_disabled"] == bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
     assert caps["has_abi3t_marker"] == ("abi3t" in (sysconfig.get_config_var("SOABI") or ""))
-    assert caps["interpreter"].startswith(("3.14", "3.15"))
+    assert caps["interpreter"].startswith(("3.14", "3.15", "3.16"))
 
     profiling = model.apply_profile_hooks()
     assert profiling["applied"] == hasattr(sys, "tachyon")

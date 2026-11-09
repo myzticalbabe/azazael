@@ -14,7 +14,17 @@ def _row(genes, fitness):
     return {"data": {"best_genes": genes, "best_total": fitness}}
 
 
+# Check if boruta/sklearn available
+try:
+    import sklearn
+    import boruta
+    HAS_BORUTA = True
+except ImportError:
+    HAS_BORUTA = False
+
+
 class TestBorutaRelevance(unittest.TestCase):
+    @unittest.skipIf(not HAS_BORUTA, "sklearn/boruta not installed")
     def test_confirms_driver_rejects_noise(self):
         import random
         rng = random.Random(11)
@@ -46,7 +56,3 @@ class TestBorutaRelevance(unittest.TestCase):
         self.assertFalse(out["ok"])
         out = boruta_relevance([{"junk": 1}])
         self.assertFalse(out["ok"])
-
-
-if __name__ == "__main__":
-    unittest.main()

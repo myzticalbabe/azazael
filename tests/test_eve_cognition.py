@@ -5,6 +5,13 @@ reads 'declared', never 'used'; a locus that does not exist reads
 'absent'. Gaps are named, never hidden.
 """
 
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
+
 import pytest
 
 from eve_unleashed import cognition as _c

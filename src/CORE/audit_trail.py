@@ -941,9 +941,13 @@ def verify_capsule_chain(capsules: list) -> dict:
         if i == 0:
             link_ok = None                       # no predecessor to bind
         else:
-            link_ok = str(cap.get("prev_hash", "")) == prev_sig
-            if not link_ok:
-                broken.append(f"link@{i}")
+            # Key must exist AND match; missing prev_hash breaks the chain
+            if "prev_hash" not in cap:
+                link_ok = False
+            else:
+                link_ok = str(cap.get("prev_hash", "")) == prev_sig
+        if not link_ok:
+            broken.append(f"link@{i}")
         ok = ok and sig_verified and (link_ok is None or link_ok)
         per.append({"index": i, "sealed": bool(cap.get("sealed")),
                     "signature": bool(sig), "sig_verified": sig_verified,

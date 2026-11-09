@@ -41,7 +41,7 @@ from .self_modifying_worms import (
     WormDNA,
     WormFitness,
 )
-from azazael.tools.defaults_profile import read_default
+from tools.defaults_profile import read_default
 
 DEFAULT_URLS = [
     "https://example.com",

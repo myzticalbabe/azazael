@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 
-from .cognition import GAPS
+from .cognition import FORGE_GAPS
 
 #: gap name -> (module name, function, test assertion, acceptance command)
 #: The assertion is written as the property, not as a number, so it stays
@@ -77,7 +77,7 @@ def _root(root):
 def gaps():
     """Every named gap with its spec, so the forge cannot invent targets."""
     out = []
-    for name, stratum, what in GAPS:
+    for name, stratum, what in FORGE_GAPS:
         mod, fn, assertion = SPECS[name]
         out.append({"gap": name, "stratum": stratum, "what": what,
                     "module": mod, "function": fn, "assertion": assertion})

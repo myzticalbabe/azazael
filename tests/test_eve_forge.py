@@ -1,6 +1,12 @@
 """Eve forge -- contracts for the named gaps, staged, never autonomous."""
 
 import os
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import pytest
 
@@ -9,7 +15,7 @@ from eve_unleashed import forge as _f
 
 
 def test_every_gap_has_a_spec():
-    named = {g["name"] for g in _c.audit()["gaps"]}
+    named = {g[0] for g in _c.FORGE_GAPS}
     forged = {g["gap"] for g in _f.gaps()}
     assert named == forged
     for g in _f.gaps():

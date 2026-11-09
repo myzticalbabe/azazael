@@ -38,7 +38,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
 from collections import defaultdict
-from azazael.tools.defaults_profile import read_default
+from tools.defaults_profile import read_default
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).

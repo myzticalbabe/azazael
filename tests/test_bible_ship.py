@@ -11,9 +11,16 @@ Two hazards get their own tests because both were observed, not imagined:
 """
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+# Use Git Bash on Windows, /bin/sh on Unix
+if sys.platform == "win32":
+    SH = r"C:/Program Files/Git/bin/bash.exe"
+else:
+    SH = "/bin/sh"
 
 ROOT = Path(__file__).resolve().parents[1]
 _spec = importlib.util.spec_from_file_location("bible_ship", ROOT / "tools" / "bible_ship.py")
@@ -183,12 +190,12 @@ def test_no_hook_template_ships_a_bad_substitution(tmp_path):
         probe = tmp_path / "expansion-probe.sh"
         for token in _expansions(text):
             probe.write_text("x=%s\n" % token, encoding="utf-8")
-            expanded = subprocess.run(["sh", str(probe)], capture_output=True, text=True,
+            expanded = subprocess.run([SH, str(probe)], capture_output=True, text=True,
                                       encoding="utf-8", errors="replace", timeout=60)
             assert expanded.returncode == 0, "%s: %s -> %s" % (name, token,
                                                                 (expanded.stderr or "").strip())
             assert "bad substitution" not in (expanded.stderr or ""), "%s: %s" % (name, token)
-        completed = subprocess.run(["sh", "-c", "set -e; . \"$1\" </dev/null || true",
+        completed = subprocess.run([SH, "-c", "set -e; . \"$1\" </dev/null || true",
                                     "sh", str(tmp_path / ".githooks" / name)],
                                    capture_output=True, text=True, cwd=str(tmp_path),
                                    timeout=60)
@@ -206,7 +213,7 @@ def test_install_writes_executable_hooks_and_refuses_occupied_ones(tmp_path):
         assert states[name] == "created"
         path = hooks / name
         assert ship.HOOK_MARK in path.read_text(encoding="utf-8")
-        completed = subprocess.run(["sh", "-n", str(path)], capture_output=True, text=True, timeout=60)
+        completed = subprocess.run([SH, "-n", str(path)], capture_output=True, text=True, timeout=60)
         assert completed.returncode == 0, completed.stderr
 
 
@@ -225,19 +232,19 @@ def test_commit_msg_hook_refuses_a_claim_without_evidence(tmp_path):
     # a gate that fires on the word "fix" teaches people to bypass it.
     hook.write_text("Fix the parser\n\nthe parser now rejects empty input\n",
                     encoding="utf-8")
-    completed = subprocess.run(["sh", str(script), str(hook)], capture_output=True,
+    completed = subprocess.run([SH, str(script), str(hook)], capture_output=True,
                                text=True, timeout=60)
     assert completed.returncode == 0
 
     hook.write_text("Fix the parser\n\nfixed, all tests pass\n", encoding="utf-8")
-    completed = subprocess.run(["sh", str(script), str(hook)], capture_output=True,
+    completed = subprocess.run([SH, str(script), str(hook)], capture_output=True,
                                text=True, timeout=60)
     assert completed.returncode == 1
     assert "Verified:" in completed.stderr
 
     hook.write_text("Fix the parser\n\nfixed.\nVerified: pytest -q -> 12 passed\n",
                     encoding="utf-8")
-    completed = subprocess.run(["sh", str(script), str(hook)], capture_output=True,
+    completed = subprocess.run([SH, str(script), str(hook)], capture_output=True,
                                text=True, timeout=60)
     assert completed.returncode == 0
 
