@@ -59,7 +59,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple
 
+# Ensure repo root is on sys.path for tools imports
 REPO = Path(__file__).resolve().parent.parent
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from tools.defaults_profile import read_default
 HOOK = REPO / ".githooks" / "pre-commit"
 #: The commit gate is TWO files since the 2026-11-02 tier split: `pre-commit`
 #: holds the checks about what a commit IS, `tools/evidence_tier.sh` holds the
@@ -85,6 +90,16 @@ def hook_tier_files() -> Tuple[Path, ...]:
 #: carries the push-time gates, which no other check can reach.
 PUSH_HOOK = REPO / ".githooks" / "pre-push"
 EVIDENCE = REPO / "logs" / "preflight_all_evidence.json"
+
+# Read gates config from defaults
+GATES_MCP_STARTUP = read_default("gates.mcp_startup", "blocking")
+GATES_EVIDENCE_GATE = read_default("gates.evidence_gate", "blocking")
+GATES_HYPER_EDGE = read_default("gates.hyper_edge", "advisory")
+GATES_COMMIT_HOOK = read_default("gates.commit_hook", "blocking")
+GATES_SETTINGS_SHADOW = read_default("gates.settings_shadow", "advisory")
+GATES_READING_AUDIT = read_default("gates.reading_audit", "advisory")
+GATES_HEAD_AUDIT = read_default("gates.head_audit", "advisory")
+GATES_LEG_LEDGER = read_default("gates.leg_ledger", "advisory")
 
 #: A gate that hangs must not hang the gate runner. The suite gates are the long
 #: ones (the two-interpreter gate runs pytest twice); this is the ceiling.

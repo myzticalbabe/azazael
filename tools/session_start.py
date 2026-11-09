@@ -38,6 +38,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from azazael.tools.defaults_profile import read_default
 
 # Force UTF-8 and degrade unencodable characters: the default Windows console is
 # cp1252 and cannot encode either store's payload. Estate convention -- the same
@@ -59,6 +60,13 @@ ENGRAM_BIN = os.environ.get("ENGRAM_BIN") or shutil.which("engram") or str(
     Path.home() / "go" / "bin" / "engram.exe"
 )
 PAMS_PY315T = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+
+# Read runtime config from defaults
+RUNTIME_INTERPRETER = read_default("runtime.interpreter", "py316t")
+RUNTIME_VENV_PATH = read_default("runtime.venv_path", "C:/Azazael/.venvs/py316t")
+RUNTIME_PYTHON_EXE = read_default("runtime.python_exe", "C:/Azazael/.venvs/py316t/Scripts/python.exe")
+RUNTIME_GIL_SIDECAR = read_default("runtime.gil_sidecar", True)
+RUNTIME_FREETHREADED_REQUIRED = read_default("runtime.freethreaded_required", True)
 
 
 def _emit(text: str) -> int:

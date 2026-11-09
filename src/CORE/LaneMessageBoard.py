@@ -41,6 +41,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 from CORE.failure_ledger import note_failure
+from azazael.tools.defaults_profile import read_default
 
 _log = logging.getLogger(__name__)
 
@@ -152,6 +153,14 @@ class LaneMessageBoard:
             lane: [] for lane in self.VALID_LANES
         }
         self._callbacks["all"] = []
+
+        # Read coordination config from defaults
+        self._coord_board_enabled = read_default("coordination.board_enabled", True)
+        self._coord_claim_lease_seconds = read_default("coordination.claim_lease_seconds", 1800)
+        self._coord_max_claim_limit = read_default("coordination.max_claim_limit", 10)
+        self._coord_push_hook_enabled = read_default("coordination.push_hook_enabled", True)
+        self._coord_dispatch_non_reasoning = read_default("coordination.dispatch_non_reasoning", True)
+        self._coord_valid_lanes = read_default("coordination.valid_lanes", ["kilo", "freebuff", "opencode"])
 
     # -- topic helpers -------------------------------------------------------
 

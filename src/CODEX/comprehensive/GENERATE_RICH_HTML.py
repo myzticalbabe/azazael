@@ -3,8 +3,20 @@ COMPLETE Azazael ECOSYSTEM - RICH HTML REPORT
 All Systems with Full Graphics
 """
 
+from pathlib import Path
 
-def generate_rich_html():
+try:
+    from CORE.paths import get_desktop_dir
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from CORE.paths import get_desktop_dir
+
+
+def generate_rich_html(desktop_dir=None):
+    if desktop_dir is None:
+        desktop_dir = get_desktop_dir()
+    
     html = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -476,14 +488,14 @@ def generate_rich_html():
         <div class="footer">
             <h2>ALL SYSTEMS OPERATIONAL</h2>
             <p style="color: #888; margin-top: 15px;">
-                CODEX: C:\\Users\\clint\\Desktop\\CODEX\\comprehensive\\
+                CODEX: {desktop_dir}\\CODEX\\comprehensive\\
             </p>
         </div>
     </div>
 </body>
 </html>
 """
-    return html
+    return html.format(desktop_dir=desktop_dir)
 
 
 def main():

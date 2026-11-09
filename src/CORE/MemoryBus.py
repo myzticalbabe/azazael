@@ -38,6 +38,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
 from collections import defaultdict
+from azazael.tools.defaults_profile import read_default
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -99,6 +100,15 @@ PAMS_POST_MAX_CHARS = int(os.environ.get("PAMS_POST_MAX_CHARS", "8000"))
 #: Flushed rows are IN PAMS already -- delete them after this many days so
 #: the queue table cannot grow forever (was 214MB, zero rows ever flushed).
 FLUSHED_TTL_DAYS = int(os.environ.get("PAMS_FLUSHED_TTL_DAYS", "7"))
+
+# Read memory config from defaults
+MEMORY_PRIMARY = read_default("memory.primary", "pmb")
+MEMORY_PMB_WORKSPACE = read_default("memory.pmb_workspace", "personal")
+MEMORY_ENGRAM_PROJECT = read_default("memory.engram_project", "azazael")
+MEMORY_ENGRAM_ALL_PROJECTS = read_default("memory.engram_all_projects", True)
+MEMORY_PAMS_ENABLED = read_default("memory.pams_enabled", True)
+MEMORY_PAMS_USER_ID = read_default("memory.pams_user_id", "clint")
+MEMORY_PAMS_MODEL_ID = read_default("memory.pams_model_id", "mcp-client")
 
 #: PAMS serves its HTTP API under /api (mcp_server.py: /api/health,
 #: /api/memories/promote, ...). The bare paths (/health, /memories) 404,

@@ -7,6 +7,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
 from typing import List
+from CORE.paths import get_desktop_dir
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -16,6 +17,8 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+DESKTOP_DIR = get_desktop_dir()
 
 SYSTEMS = {
     "HYDRA": {
@@ -356,7 +359,7 @@ class AzazaelPopup:
         # Footer
         tk.Label(
             scrollable,
-            text="CODEX: C:\\Users\\clint\\Desktop\\CODEX",
+            text="CODEX: {DESKTOP_DIR}\\CODEX".format(DESKTOP_DIR=DESKTOP_DIR),
             font=("Consolas", 9),
             bg="#0d0d1a",
             fg="#444",

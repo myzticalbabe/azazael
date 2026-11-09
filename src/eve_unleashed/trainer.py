@@ -41,6 +41,7 @@ from .self_modifying_worms import (
     WormDNA,
     WormFitness,
 )
+from azazael.tools.defaults_profile import read_default
 
 DEFAULT_URLS = [
     "https://example.com",
@@ -60,6 +61,20 @@ DREAM_SEED_TOP = 4  # ...and only the top-N winners seed fresh genomes
 #: Numeric genes the teacher may pull. mutation_rate is Lillith's, never his.
 TEACH_GENES = ("aggressiveness", "min_confidence", "cooldown_s",
                "scan_interval_s", "resource_budget_mb")
+
+# Read evolution config from defaults
+EVOLUTION_MODE = read_default("evolution.mode", "live")
+EVOLUTION_POPULATION_SIZE = read_default("evolution.population_size", 8)
+EVOLUTION_GENERATIONS = read_default("evolution.generations", 20)
+EVOLUTION_CONVERGENCE_EPS = read_default("evolution.convergence_eps", 0.005)
+EVOLUTION_CONVERGENCE_WINDOW = read_default("evolution.convergence_window", 3)
+EVOLUTION_LILLITH_ENABLED = read_default("evolution.lillith_enabled", True)
+EVOLUTION_LILLITH_WARMUP_GENS = read_default("evolution.lillith_warmup_gens", 3)
+EVOLUTION_LILLITH_STALL_EPS = read_default("evolution.lillith_stall_eps", 0.001)
+EVOLUTION_ADVERSARY_SATURATION = read_default("evolution.adversary_saturation", True)
+EVOLUTION_DREAM_HIT_TARGET = read_default("evolution.dream_hit_target", 0.95)
+EVOLUTION_INHERITANCE_MODE = read_default("evolution.inheritance_mode", "persist")
+EVOLUTION_PARSER_AUTOPATCH = read_default("evolution.parser_autopatch", False)
 
 
 @dataclass
