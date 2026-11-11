@@ -13,6 +13,7 @@
     "floor_enabled": true,
     "floor_upstream_wait_s": 30,
     "floor_origin": "logon",
+    "floor_auth_mode": "inject",
     "lanes_route_through_floor": true
   },
   "memory": {

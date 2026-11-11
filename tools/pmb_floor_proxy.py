@@ -88,8 +88,81 @@ from datetime import datetime
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-# Configuration from config/defaults.json via defaults_profile
+# The token resolver is a SIBLING of this file, not a package member: the
+# proxy is started by a Startup VBS whose working directory is outside the
+# repository, so `from tools.x import y` FAILS there (measured:
+# ModuleNotFoundError) and the proxy silently falls back to its environment
+# defaults instead of reading config/defaults.json. Loading the sibling by
+# PATH keeps this file working with no repo root on sys.path, which is the
+# condition it actually runs under.
+#
+# This file is loaded two ways -- as a SCRIPT (sys.path[0] is this directory)
+# and by FILE PATH in the test suite (which resolves neither `pmb_token` nor
+# `tools.pmb_token`) -- so the directory is added to sys.path explicitly and
+# the sibling is imported from its own name. One path, no guessing.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 try:
+    from pmb_token import upstream_headers as _upstream_headers
+    from pmb_token import token_matches as _token_matches
+except ImportError:
+    _upstream_headers = None
+    _token_matches = None
+
+if _upstream_headers is None:
+    _TOKEN_SIBLING_MISSING = True
+
+    def _upstream_headers(headers, path=None):
+        """Fallback when the sibling module cannot be loaded.
+
+        Pass the client's own header through unchanged rather than inventing
+        a token: the daemon then answers 401 with its own reason, and a
+        missing sibling is visible in the daemon's answer instead of being
+        masked by the proxy's own guess. The failure is NAMED on stderr --
+        ONCE, not per request, because a per-request warning on a hot path
+        buries the message it is trying to deliver -- and because a silent
+        fallback here is exactly how this proxy ends up running with the wrong
+        thresholds and nobody noticing.
+        """
+        global _TOKEN_SIBLING_MISSING
+        if _TOKEN_SIBLING_MISSING:
+            _TOKEN_SIBLING_MISSING = False
+            print("[floor-proxy] pmb_token sibling not importable; "
+                  "forwarding the client's Authorization header unchanged",
+                  file=sys.stderr, flush=True)
+        return dict(headers)
+
+if _token_matches is None:
+    def _token_matches(presented, expected=None):
+        """Fallback when the sibling module cannot be loaded.
+
+        Without the resolver there is nothing to compare the client's token
+        against, so strict mode cannot be honoured. Say so rather than
+        pretending: the caller turns this into a refusal, and a refusal that
+        names its cause is a far better failure than a silent pass.
+        """
+        print("[floor-proxy] pmb_token sibling not importable; strict auth "
+              "cannot be verified", file=sys.stderr, flush=True)
+        return False
+
+# Configuration from config/defaults.json via defaults_profile.
+#
+# The repo root is put on sys.path FIRST, because this file is started by a
+# Startup VBS whose working directory is outside the repository: measured
+# 2026-11-11, `from tools.defaults_profile import read_default` FAILED there
+# (ModuleNotFoundError) and the proxy silently fell back to its
+# environment-variable defaults -- so editing config/defaults.json did not
+# change the thresholds the live proxy was actually applying. A settings
+# surface that the running process cannot see is not a settings surface.
+#
+# The fallback is still here (a host without the repo must still serve), but
+# it now says so out loud: a silent fallback is how a proxy ends up running
+# with thresholds nobody chose.
+try:
+    _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _REPO_ROOT not in sys.path:
+        sys.path.insert(0, _REPO_ROOT)
     from tools.defaults_profile import read_default
     FLOOR = float(read_default("memory.pmb_recall_floor", 0.70))
     MIN_BEST = float(read_default("memory.pmb_recall_min_best", 0.89))
@@ -97,7 +170,8 @@ try:
     UPSTREAM = "http://127.0.0.1:%d/mcp" % int(read_default("mcp_stack.daemon_port", 8765))
     UPSTREAM_WAIT = float(read_default("mcp_stack.floor_upstream_wait_s", 30))
     ORIGIN = read_default("mcp_stack.floor_origin", "logon")
-except Exception:
+    CONFIG_SOURCE = "config/defaults.json"
+except Exception as exc:
     # Fallback to environment variables for backward compatibility
     FLOOR = float(os.environ.get("PMB_RECALL_FLOOR", "0.70"))
     MIN_BEST = float(os.environ.get("PMB_RECALL_MIN_BEST", "0.89"))
@@ -105,6 +179,35 @@ except Exception:
     UPSTREAM = os.environ.get("PMB_DAEMON_URL", "http://127.0.0.1:8765/mcp")
     UPSTREAM_WAIT = float(os.environ.get("PMB_UPSTREAM_WAIT", "30"))
     ORIGIN = os.environ.get("PMB_FLOOR_ORIGIN", "manual")
+    CONFIG_SOURCE = "environment fallback (%s: %s)" % (type(exc).__name__, exc)
+
+#: Whether a client must present the token at all.
+#:
+#: "inject" -- the proxy resolves the live token and authenticates on the
+#:   client's behalf. A client with a stale (or absent) token still works,
+#:   which is the whole point: a token the server can rotate must never be
+#:   COPIED into a client. The daemon's token is a shared secret for THIS
+#:   machine, and the proxy is the only thing that talks to the daemon, so
+#:   holding it here is the natural place.
+#:
+#: "strict" -- the client must present the live token itself; a stale or
+#:   missing one is refused with 401. Use this when the proxy is reachable by
+#:   something that should NOT be able to use the memory store.
+#:
+#: The default is "inject" because the failure this fixes is silent and
+#: total (a lane's memory tools vanish for the whole session) while the
+#: threat it opens is a loopback-only port that already had the token in
+#: every lane config on the box. It is a KNOB rather than a constant so the
+#: choice is visible and reversible rather than baked into the code.
+try:
+    from tools.defaults_profile import read_default as _read_default
+    AUTH_MODE = str(_read_default("mcp_stack.floor_auth_mode", "inject")).lower()
+except Exception:
+    AUTH_MODE = os.environ.get("PMB_FLOOR_AUTH_MODE", "inject").lower()
+if AUTH_MODE not in ("inject", "strict"):
+    print("[floor-proxy] unknown floor_auth_mode %r; falling back to 'inject'"
+          % AUTH_MODE, file=sys.stderr, flush=True)
+    AUTH_MODE = "inject"
 
 STAMP = os.environ.get("PMB_FLOOR_STAMP") or os.path.join(
     os.path.expanduser("~"), ".pmb", "floor_proxy_runtime.json")
@@ -194,6 +297,7 @@ def health_payload() -> dict:
         "origin": ORIGIN,
         "pid": os.getpid(),
         "upstream": UPSTREAM,
+        "config_source": CONFIG_SOURCE,
         "started": datetime.now().astimezone().isoformat(timespec="seconds"),
     }
 
@@ -379,11 +483,48 @@ class FloorProxy(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # keep stdout clean for the client
         print("[floor-proxy] " + (fmt % args), file=sys.stderr, flush=True)
 
+    def _refuse(self, reason):
+        """Answer 401 with a NAMED reason, without touching the upstream.
+
+        The daemon's own 401 says `{"error": "unauthorized"}` and nothing
+        else, which cannot distinguish "your token is wrong" from "your token
+        is a month old" from "there is no token at all". The proxy is the
+        component that KNOWS which, so it is the component that says so.
+        """
+        body = json.dumps({"error": "unauthorized", "reason": reason},
+                          ensure_ascii=False).encode("utf-8")
+        self.send_response(401)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        print("[floor-proxy] refused: %s" % reason, file=sys.stderr, flush=True)
+
     def _forward(self, method):
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length) if length else None
         headers = {k: v for k, v in self.headers.items()
                    if k.lower() not in ("host", "content-length", "connection")}
+        # The daemon's token is resolved FROM DISK HERE, per request, not
+        # copied into any client's config. Measured 2026-11-11: opencode's and
+        # kilo's configs held a token that had been rotated out from under
+        # them, so the client was told `needs authentication` while the daemon
+        # was healthy and serving 30 tools. A token the server can rotate must
+        # never be COPIED into a client -- a copy is a promise the server never
+        # made. See tools/pmb_token.py for the full contract.
+        #
+        # In "strict" mode the client's own credential is checked first, and a
+        # missing or stale one is refused HERE with a named reason -- the
+        # daemon would answer 401 too, but its answer says "unauthorized"
+        # without saying WHICH of the two problems it was.
+        if AUTH_MODE == "strict":
+            presented = self.headers.get("Authorization")
+            if not _token_matches(presented):
+                self._refuse("unauthorized: the presented token is not the "
+                             "live daemon token (rotate it, or set "
+                             "mcp_stack.floor_auth_mode to 'inject')")
+                return
+        headers = _upstream_headers(headers)
         req = urllib.request.Request(UPSTREAM, data=body, headers=headers,
                                      method=method)
         extra = []

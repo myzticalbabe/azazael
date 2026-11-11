@@ -31,7 +31,14 @@ WHAT IT CHECKS (behaviour first, config second)
   5  supervisor-fresh  every supervisor_mcp.py process started after its edit
   6  pams-running      pams_server_launcher.py present and not stale
   7  lane-config       every lane config parses and routes pmb through :8766
-  8  lane-context      engram / codegraph / barta present (WARN only)
+  8  lane-credentials  every lane's BAKED pmb token still matches the live
+                       daemon token. Added 2026-11-11: two lane configs held a
+                       rotated-out token, so their pmb tools were dead while
+                       this gate read PASS=9 -- `lane-config` only asked
+                       whether the URL routes through :8766, never whether the
+                       credential authenticates. A lane with NO baked token is
+                       fine: the proxy resolves the live one at request time.
+  9  lane-context      engram / codegraph / barta present (WARN only)
 
 USAGE
   python mcp_startup_gate.py            check, exit 1 on any FAIL
@@ -57,6 +64,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import hmac
 from datetime import datetime
 from typing import Dict, List
 from pathlib import Path
@@ -76,6 +84,22 @@ ORDERS_SYNC = Path("C:/Azazael/azazael/tools/agent_orders_sync.py")
 PROXY_STAMP = HOME / ".pmb" / "floor_proxy_runtime.json"
 PROXY_STARTUP = (HOME / "AppData" / "Roaming" / "Microsoft" / "Windows" /
                  "Start Menu" / "Programs" / "Startup" / "pmb-floor-proxy.vbs")
+
+#: Diagnostics from except paths that must not raise but must not be silent
+#: either. The compliance scanner bars `except: return <constant>` because it
+#: makes a fault indistinguishable from success; recording first and then
+#: returning the same value keeps the caller's contract and the reason.
+#:
+#: Defined HERE, above `_mcp_stack_config`, because that function calls
+#: `_note` when the config cannot be read -- a helper defined further down
+#: would not exist yet at the moment it is needed.
+NOTES: list[str] = []
+
+
+def _note(message):
+    """Record a handled exception without changing the caller's result."""
+    NOTES.append(str(message))
+
 
 # MCP stack configuration from config/defaults.json (mcp_stack section)
 def _mcp_stack_config() -> dict:
@@ -120,18 +144,6 @@ def port_open(port, host="127.0.0.1", timeout=2.0):
         return sock.connect_ex((host, port)) == 0
     finally:
         sock.close()
-
-
-#: Diagnostics from except paths that must not raise but must not be silent
-#: either. The compliance scanner bars `except: return <constant>` because it
-#: makes a fault indistinguishable from success; recording first and then
-#: returning the same value keeps the caller's contract and the reason.
-NOTES: list[str] = []
-
-
-def _note(message):
-    """Record a handled exception without changing the caller's result."""
-    NOTES.append(str(message))
 
 
 def _ps_json(script):
@@ -242,6 +254,16 @@ def _token():
     except OSError as exc:
         _note("_token: cannot read %s (%s)" % (PMB_TOKEN, exc))
         return ""
+
+
+def _live_daemon_token():
+    """The daemon's CURRENT token, or "" when it cannot be read.
+
+    Read at call time, never cached: the token can be rotated under us, and a
+    cached copy would make this check report on a stale world -- the exact
+    defect this check exists to catch.
+    """
+    return _token()
 
 
 def discover_daemon_port() -> int:
@@ -455,6 +477,95 @@ def pmb_entry(doc):
                 if isinstance(entry, dict):
                     return entry.get("url"), entry.get("enabled", True)
     return None, None
+
+
+def pmb_baked_token(doc):
+    """The Authorization token a lane's config BAKES into its pmb entry.
+
+    Returns the bearer value (without the "Bearer " prefix) or None when the
+    entry carries no credential at all.
+
+    WHY THIS IS HERE
+    Measured 2026-11-11: every lane config carried `Authorization: Bearer
+    <token>` for pmb, and the daemon's token had been rotated out from under
+    two of them. The daemon was healthy the whole time -- 30 tools, 62 ms --
+    and `opencode mcp list` reported `pmb needs authentication`, so every pmb
+    tool vanished for that session. THIS GATE read PASS=9 throughout,
+    because `lane-config` only asked whether the pmb URL routes through
+    :8766 and never asked whether the baked credential still authenticates.
+
+    A copy of a token the server can rotate is a promise the server never
+    made, so the copy has to be CHECKED, not trusted.
+    """
+    if not isinstance(doc, dict):
+        return None
+    for holder in ("mcp", "mcpServers"):
+        servers = doc.get(holder)
+        if isinstance(servers, dict):
+            for key in ("pmb", "pmb-mcp", "pmb_mcp"):
+                entry = servers.get(key)
+                if not isinstance(entry, dict):
+                    continue
+                headers = entry.get("headers")
+                if not isinstance(headers, dict):
+                    continue
+                raw = headers.get("Authorization") or headers.get("authorization")
+                if not isinstance(raw, str):
+                    continue
+                value = raw.strip()
+                if value.lower().startswith("bearer "):
+                    value = value[7:].strip()
+                return value or None
+    return None
+
+
+def check_lane_credentials():
+    """Does every lane's BAKED pmb token still match the live daemon token?
+
+    This is the check whose absence let the 2026-11-11 outage pass a green
+    gate. The distinction it draws is the one that matters:
+
+      * a lane with NO baked token is fine -- it relies on the proxy to
+        resolve the live token (see tools/pmb_token.py), which is the shape
+        upstream pmb documents and the shape that cannot go stale;
+      * a lane with a token that MATCHES the live one is fine;
+      * a lane with a token that DIFFERS is BROKEN -- that lane's pmb tools
+        are dead until the token is refreshed, and only that lane's.
+
+    Reported per lane, because "some lane is broken" is not actionable and
+    "kilo's pmb entry holds a token the daemon no longer accepts" is.
+    """
+    live = _live_daemon_token()
+    if not live:
+        return WARN, "no daemon token on disk to compare against", ""
+    stale, absent, ok = [], [], []
+    for path, label in ((KILO_CONF, "kilo"), (FREEBUFF_CONF, "freebuff"),
+                         (OPENCODE_CONF, "opencode"),
+                         (OPENCODE_KILO_CONF, "opencode-kilo")):
+        if not path.exists():
+            continue
+        doc, _err = read_config(path)
+        if doc is None:
+            continue
+        baked = pmb_baked_token(doc)
+        if baked is None:
+            absent.append(label)
+        elif not hmac.compare_digest(baked, live):
+            stale.append(label)
+        else:
+            ok.append(label)
+    if stale:
+        return FAIL, ("baked pmb token does not match the live daemon token "
+                      "for: %s (those lanes' pmb tools are dead until the "
+                      "token is refreshed; the proxy resolves the live token "
+                      "for clients that carry none)" % ", ".join(stale)), \
+            ("refresh the token in %s, or remove the Authorization header so "
+             "the proxy resolves it at runtime" % ", ".join(stale))
+    detail = "%d lane(s) with a live token: %s" % (len(ok), ", ".join(ok) or "-")
+    if absent:
+        detail += "; %d relying on the proxy: %s" % (len(absent),
+                                                     ", ".join(absent))
+    return PASS, detail, ""
 
 
 def unfloored_servers(doc):
@@ -855,6 +966,7 @@ def run(fix=False):
     results.append(("supervisor-fresh",) + check_supervisor(fix, procs))
     results.append(("pams-running",) + check_pams(fix, procs))
     results.append(("lane-config",) + check_lane_configs(fix))
+    results.append(("lane-credentials",) + check_lane_credentials())
     results.append(("orders-in-sync",) + check_agent_orders(fix))
     results.append(("lane-context",) + check_context_servers(procs))
     return results
