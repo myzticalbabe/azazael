@@ -110,6 +110,54 @@ def _per_interpreter_gil() -> bool:
     return _free_threading() and _module_present("concurrent.interpreters")
 
 
+def _win32_shim() -> bool:
+    """Can this host provide the Win32 API surface WITHOUT pywin32?
+
+    Measured 2026-11-11: pywin32 publishes no free-threaded wheel for any
+    version -- every wheel it has ever shipped carries a GIL ABI tag
+    (cp39..cp315), and none carries a free-threaded one. The MCP Python SDK
+    imports it at module level on Windows, so on a free-threaded interpreter
+    ``import mcp`` fails before any application code runs.
+
+    The replacement (``src/win32_shim``) rebuilds that surface on ctypes
+    against kernel32, which needs no compiled extension and therefore works on
+    any interpreter. The probe asks the REAL question -- can a Job Object be
+    created and configured HERE -- rather than "is the module importable",
+    because an import that cannot find kernel32 would import fine and fail at
+    the first call.
+    """
+    try:
+        import os.path
+
+        shim_dir = os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "win32_shim")
+        if not os.path.isdir(shim_dir):
+            return False
+        if shim_dir not in sys.path:
+            sys.path.insert(0, shim_dir)
+        import win32api  # type: ignore
+        import win32con  # type: ignore
+        import win32job  # type: ignore
+
+        job = win32job.CreateJobObject(None, "")
+        try:
+            info = win32job.QueryInformationJobObject(
+                job, win32job.JobObjectExtendedLimitInformation)
+            info["BasicLimitInformation"]["LimitFlags"] |= (
+                win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE)
+            win32job.SetInformationJobObject(
+                job, win32job.JobObjectExtendedLimitInformation, info)
+            again = win32job.QueryInformationJobObject(
+                job, win32job.JobObjectExtendedLimitInformation)
+            return bool(again["BasicLimitInformation"]["LimitFlags"]
+                        & win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE)
+        finally:
+            win32api.CloseHandle(job)
+    except BaseException as fault:  # noqa: BLE001 - absence is recorded, never silent
+        _record("win32_shim", fault)
+        return False
+
+
 # capability -> what the RC does when it is present. Printed by ``report`` so an
 # operator can see which paths are live instead of inferring them from a version.
 ADOPTION: Dict[str, str] = {
@@ -119,6 +167,7 @@ ADOPTION: Dict[str, str] = {
     "exception_groups": "multi-leg failures raise one ExceptionGroup (legs still recorded)",
     "per_interpreter_gil": "one evolution island per interpreter instead of one pool",
     "concurrent_interpreters": "islands may hold separate module state (true isolation)",
+    "win32_shim": "the Win32 API is available without pywin32 (free-threaded safe)",
 }
 
 
@@ -139,6 +188,7 @@ def capabilities() -> Dict[str, Any]:
         ),
         "probe_faults": len(_PROBE_FAULTS),
     }
+    caps["win32_shim"] = _win32_shim()
     caps["threading_mode"] = ("free-threaded" if caps["free_threading"]
                               else "GIL" if caps["gil"] else "unknown")
     return caps
