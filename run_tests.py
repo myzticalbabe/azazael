@@ -77,7 +77,7 @@ TIMEOUT_OVERRIDES = {
     "test_workflow.py": 180,              # 3 min: Windows CI is slow; local pass is seconds
     "test_scheduling.py": 180,            # 3 min: Windows CI is slow; local pass is seconds
     "test_memorybus.py": 180,             # 3 min: CI took 103s for a 1s local test
-    "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
+    "test_clusterworms_unit.py": 600,      # 10 min: file takes 108s healthy locally; CI runners are far slower (inner class budgets are the hang-catchers, measured 2026-11-11)
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
     "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
     "test_worm_governance_integration.py": 120,  # 2 min: cold-cache full real discovery or cache-backed
