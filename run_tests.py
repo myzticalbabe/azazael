@@ -76,6 +76,7 @@ TIMEOUT_OVERRIDES = {
     "test_config_and_breaker.py": 180,     # 3 min for config + breaker tests
     "test_workflow.py": 180,              # 3 min: Windows CI is slow; local pass is seconds
     "test_scheduling.py": 180,            # 3 min: Windows CI is slow; local pass is seconds
+    "test_memorybus.py": 180,             # 3 min: CI took 103s for a 1s local test
     "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
     "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
@@ -139,6 +140,29 @@ def _persist_run_record(record):
     except Exception as e:
         msg = f"run record persist failed: {e}"
         print(msg, file=sys.stderr)
+
+
+def _persist_file_log(filename, status, returncode, elapsed, output):
+    """Write per-file output to logs/test_<name>.log for CI artifacts (#CI-debug).
+
+    run_tests.py prints only a one-line summary per file, so a CI-only
+    failure arrives with no evidence. The tail (last 200 lines) is enough
+    to see the traceback while bounding artifact size.
+    """
+    try:
+        log_dir = os.path.join(PROJECT_ROOT, "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        lines = output.splitlines()
+        tail = lines[-200:]
+        with open(os.path.join(log_dir, filename.replace(".py", ".log"),),
+                  "w", encoding="utf-8", errors="replace") as fh:
+            fh.write("file: {}\nstatus: {}\nreturncode: {}\nduration_s: {}\n".format(
+                filename, status, returncode, elapsed))
+            fh.write("=" * 60 + "\n")
+            fh.write("\n".join(tail))
+            fh.write("\n")
+    except Exception as e:
+        print("  [file log persist failed: {}]".format(e), file=sys.stderr)
 
 
 def run_test_file(filename, timeout=60):
@@ -209,6 +233,7 @@ def run_test_file(filename, timeout=60):
             "faulthandler": True,
         }
         _persist_run_record(record)
+        _persist_file_log(filename, status, proc.returncode, elapsed, output)
 
         if dump_path:
             print("  [nativestack] dump written: {}".format(dump_path))
