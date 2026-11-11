@@ -41,7 +41,11 @@ from .self_modifying_worms import (
     WormDNA,
     WormFitness,
 )
-from tools.defaults_profile import read_default
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 
 DEFAULT_URLS = [
     "https://example.com",

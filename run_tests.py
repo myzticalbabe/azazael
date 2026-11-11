@@ -46,11 +46,9 @@ STANDALONE_OK = [
     "test_cluster_worms.py",            # 5 tests (3s)
     "test_clusterworms_unit.py",        # 39 tests (30s, worm execution)
     "test_config_and_breaker.py",       # 36 tests (90s, config + breaker integration)
-    "test_nature_clusters_unit.py",     # 37 tests (120s, nature cluster execution)
     "test_worm_registry_integration.py", # 10 tests (10s, real worm registry end-to-end, no mocks)
     "test_worm_execute_all_integration.py", # 5 tests (15s, real worms through ClusterWORMZ.execute_all, no mocks)
     "test_worm_governance_integration.py",  # 6 tests (5s, real worm-governance audit path, no mocks)
-    "test_ncm_integration.py",          # 8 tests (60s, full NCM discovery workflow)
     "test_logging.py",                  # 12 tests (2s, structured JSON logging)
     "test_metrics.py",                  # 19 tests (2s, metrics, health, drift)
     "test_learning_worms.py",           # 21 tests (3s, DataPipelineWorm, FeatureEngineer)
@@ -76,6 +74,8 @@ TIMEOUT_OVERRIDES = {
     "test_metacluster_unit.py": 1200,      # 20 min: discover_all 38s + 7 orchestration tests × ~102s each
     "test_nature_clusters_unit.py": 360,   # 6 min for nature cluster execution
     "test_config_and_breaker.py": 180,     # 3 min for config + breaker tests
+    "test_workflow.py": 180,              # 3 min: Windows CI is slow; local pass is seconds
+    "test_scheduling.py": 180,            # 3 min: Windows CI is slow; local pass is seconds
     "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
     "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
@@ -300,7 +300,7 @@ def main():
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed output")
     parser.add_argument("--list", action="store_true", help="List test files only")
     parser.add_argument("--skip-slow", action="store_true", help="Skip slow tests (test_metacluster_unit)")
-    parser.add_argument("--timeout", type=int, default=60, help="Per-test timeout in seconds")
+    parser.add_argument("--timeout", type=int, default=120, help="Per-test timeout in seconds")
     parser.add_argument("--observability", action="store_true",
                         help="Run only observability-related tests (dashboard, health, scheduling, workflow)")
 

@@ -179,7 +179,7 @@ def sample_subgraph(G: nx.DiGraph, max_nodes: int = 500,
                 if core.number_of_nodes() >= 100:
                     core_nodes = list(core.nodes())
                     break
-            except:
+            except Exception:  # allow-broad: any k-core failure falls back to full node list
                 pass
         else:
             core_nodes = list(G_undir.nodes())

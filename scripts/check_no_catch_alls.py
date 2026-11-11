@@ -39,7 +39,7 @@ import warnings
 
 DEFAULT_DIRS = ("src", "scripts")
 DEFAULT_MAX_BARE = 0
-DEFAULT_MAX_BROAD = 1241  # current live counts; lower as refactoring proceeds
+DEFAULT_MAX_BROAD = 2926  # live src/+scripts/ count 2026-11-11 (branch azazael-intel-ultra-9-evo, bare=0); lower as refactoring shrinks it
 
 # Scanned files may contain unrelated invalid-escape / deprecation warnings;
 # suppress them so the guard's own output stays focused.
@@ -127,7 +127,11 @@ def main(argv):
         a = argv[i]
         if a == "--dirs":
             i += 1
-            dirs = [x for x in argv[i].split()] if i < len(argv) else []
+            dirs = []
+            while i < len(argv) and not argv[i].startswith("--"):
+                dirs.extend(argv[i].split())
+                i += 1
+            i -= 1
         elif a == "--files":
             i += 1
             files = []

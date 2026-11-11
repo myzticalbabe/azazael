@@ -64,7 +64,11 @@ REPO = Path(__file__).resolve().parent.parent
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from tools.defaults_profile import read_default
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 HOOK = REPO / ".githooks" / "pre-commit"
 #: The commit gate is TWO files since the 2026-11-02 tier split: `pre-commit`
 #: holds the checks about what a commit IS, `tools/evidence_tier.sh` holds the
