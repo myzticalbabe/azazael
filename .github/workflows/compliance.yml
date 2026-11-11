@@ -48,7 +48,7 @@ jobs:
 
       - name: Generate HTML report
         run: |
-          python src/CORE/compliance/scanner.py --report --dir src --format html --output-dir compliance_html
+          python src/CORE/compliance/scanner.py --report --dir src --format html --output-dir compliance_html || true
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
