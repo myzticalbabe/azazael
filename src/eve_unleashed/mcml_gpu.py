@@ -24,7 +24,7 @@ except ImportError:
     cl = None
 
 # Re-export MCML types
-from eve_unleashed.mcml import Dense, Sequential, Vec, Mat, ACTIVATIONS, _xavier, digest, describe, rebuild
+from eve_unleashed.mcml import Dense, Sequential, Vec, Mat, ACTIVATIONS, Activate, _xavier, digest, describe, rebuild
 
 
 # OpenCL kernel source
@@ -609,13 +609,11 @@ def _round_up(n: int, m: int = TILE) -> int:
 
 
 def _cl_int(v: int):
-    import ctypes as _ct
-    return _ct.c_int(v)
+    return ctypes.c_int(v)
 
 
 def _cl_float(v: float):
-    import ctypes as _ct
-    return _ct.c_float(v)
+    return ctypes.c_float(v)
 
 
 def bench_shapes():
@@ -632,7 +630,6 @@ def bench_shapes():
         grad_y = [random.uniform(-1, 1) for _ in range(out_dim)]
 
         # CPU - use Sequential with one Dense block
-        from eve_unleashed.mcml import Sequential, Activate
         cpu_model = Sequential([Dense(in_dim, out_dim, seed=42)])
         t0 = time.perf_counter()
         for _ in range(100):

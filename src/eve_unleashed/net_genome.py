@@ -29,6 +29,10 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+from .mcml import Dense
+# Import-safe without pyopencl (mcml_gpu guards the driver import), so the GPU
+# symbols live at module scope; the no-GPU case is recorded by _gpu_ready().
+from .mcml_gpu import FusedPair, mse_batch
 from .self_modifying_worms import GeneticAlgorithm
 
 # -- the task: a fixed, deterministic regression both backends score alike --
@@ -151,7 +155,6 @@ class NetFitness:
 
 # -- scoring engines --
 def _fit_cpu(g: NetGenome) -> Tuple[float, float]:
-    from .mcml import Dense
     d1 = Dense(IN_DIM, g.hidden, seed=g.init_seed)
     d2 = Dense(g.hidden, OUT_DIM, seed=g.init_seed + 1)
     B = len(TRAIN_X)
@@ -185,7 +188,6 @@ def _mse(pred: List[float], target: List[float]) -> Tuple[float, List[float]]:
 
 
 def _fit_gpu(g: NetGenome) -> Tuple[float, float]:
-    from .mcml_gpu import FusedPair, mse_batch
     pair = FusedPair(IN_DIM, g.hidden, OUT_DIM,
                      seed1=g.init_seed, seed2=g.init_seed + 1)
     t0 = time.perf_counter()
@@ -214,7 +216,6 @@ LAST_BACKEND_ERROR: Optional[str] = None
 def backend_available() -> bool:
     global LAST_BACKEND_ERROR
     try:
-        from .mcml_gpu import FusedPair
         FusedPair(IN_DIM, 8, OUT_DIM)
     except Exception as e:  # noqa: BLE001 - recorded, then reported
         LAST_BACKEND_ERROR = f"{type(e).__name__}: {e}"

@@ -47,6 +47,8 @@ asserted.
 
 from __future__ import annotations
 
+import importlib
+
 __all__ = ["PROVIDES", "VERSION", "available", "why"]
 
 VERSION = "1.0.0"
@@ -71,8 +73,6 @@ def available() -> bool:
     the Win32 surface stands.
     """
     try:
-        import importlib
-
         for name in PROVIDES:
             importlib.import_module(name)
         return True

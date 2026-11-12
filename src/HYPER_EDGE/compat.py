@@ -127,8 +127,6 @@ def _win32_shim() -> bool:
     the first call.
     """
     try:
-        import os.path
-
         shim_dir = os.path.join(os.path.dirname(os.path.dirname(
             os.path.abspath(__file__))), "win32_shim")
         if not os.path.isdir(shim_dir):

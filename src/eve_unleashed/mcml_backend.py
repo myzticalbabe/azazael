@@ -24,10 +24,15 @@ before/after on the same batch.
 from __future__ import annotations
 
 import os
+import random
 import time
 from typing import List
 
 from eve_unleashed.mcml import Dense, Vec
+# The GPU module is import-safe without pyopencl (it guards the import and
+# leaves cl = None), so it is imported at module scope; the missing-driver
+# case is reported by make_dense with a named error, not by a lazy import.
+from eve_unleashed.mcml_gpu import PYOPENCL_AVAILABLE, GpuDense, mse_batch
 
 BACKEND_ENV = "MCML_BACKEND"
 DEFAULT_BACKEND = "cpu"
@@ -47,13 +52,11 @@ def make_dense(in_dim: int, out_dim: int, seed: int = 7):
     if name == "cpu":
         return Dense(in_dim, out_dim, seed=seed)
     if name == "opencl":
-        try:
-            from eve_unleashed.mcml_gpu import GpuDense
-        except ImportError as e:
+        if not PYOPENCL_AVAILABLE:
             raise RuntimeError(
                 "MCML_BACKEND=opencl needs pyopencl, which is not installed; "
                 "unset the flag for CPU or install the wheel"
-            ) from e
+            )
         return GpuDense(in_dim, out_dim, seed=seed)
     raise ValueError(f"{BACKEND_ENV} must be cpu|opencl, got {name!r}")
 
@@ -102,7 +105,6 @@ def _maxd(a: Vec, b: Vec) -> float:
 def report(in_dim: int = 64, out_dim: int = 32, batch: int = 16,
            steps: int = 20, lr: float = 0.01) -> int:
     """Exactness + timing of opencl vs cpu on the same batch. Exit-code int."""
-    import random
     rng = random.Random(20261112)
     xs = [[rng.uniform(-1, 1) for _ in range(in_dim)] for _ in range(batch)]
     ts = [[rng.uniform(-1, 1) for _ in range(out_dim)] for _ in range(batch)]
@@ -119,7 +121,6 @@ def report(in_dim: int = 64, out_dim: int = 32, batch: int = 16,
         return 2
     x0 = xs[0]
     fwd_d = _maxd(gpu.forward(x0), cpu.forward(x0))
-    from eve_unleashed.mcml_gpu import mse_batch
     _, grad_y = mse_batch([cpu.forward(v) for v in xs], ts)
     _zero_grad(gpu)
     _zero_grad(cpu)
