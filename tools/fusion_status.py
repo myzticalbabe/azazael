@@ -87,16 +87,27 @@ def interop() -> dict:
     return out
 
 
-def main() -> None:
+BUDGET_S = 60.0  # measured ~5s (2 VHDX stats + wsl probes); 12x headroom
+
+
+def main(argv=None) -> int:
+    """Hyper-edge auditor entry: accepts the runner's argv list, returns exit."""
+    args = list(argv) if argv is not None else sys.argv[1:]
     report = {
         "volumes": volumes(),
         "vhdx_logical": vhdx(),
         "distros": [distro_status(d) for d in VHDX],
         "interop": interop(),
     }
-    if "--json" in sys.argv:
+    if "--json" in args:
         print(json.dumps(report, indent=2))
-        return
+        return 0
+    states = ", ".join(
+        "%s %s" % (d["distro"],
+                     "reachable" if str(d.get("df_root", "")).startswith("/dev/")
+                     else "UNREACHABLE")
+        for d in report["distros"])
+    print("fusion: %s | windows_316t=%s" % (states, report["interop"].get("windows_316t", "?")))
     print("== volumes ==")
     for k, v in report["volumes"].items():
         print(f"  {k} {v}")
@@ -109,6 +120,7 @@ def main() -> None:
     print("== interop ==")
     for k, v in report["interop"].items():
         print(f"  {k}: {v}")
+    return 0
 
 
 if __name__ == "__main__":

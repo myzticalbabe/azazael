@@ -96,6 +96,7 @@
     "ctypes_restype": true,
     "claim_agreement": true,
     "drift_audit": true,
+    "fusion": true,
     "agreement_floor": 0.955,
     "agreement_rung_floor": 1.0,
     "kernel": true,
