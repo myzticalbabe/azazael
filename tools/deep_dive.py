@@ -46,8 +46,11 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
+import importlib
+import io
+import threading
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "logs" / "deep_dive.json"
@@ -161,6 +164,95 @@ HYPER_EDGE_TOOLS = [
 ]
 
 
+class _ThreadRoutedStdout:
+    """sys.stdout stand-in routing each thread's writes to its own buffer.
+
+    A global redirect_stdout around the fan-out would interleave one auditor's
+    lines into another's first-line parse. Workers set router.local.buf before
+    calling the auditor and clear it after; every other thread (including the
+    driver) falls through to the real stdout untouched.
+    """
+
+    def __init__(self, real):
+        self._real = real
+        self.local = threading.local()
+
+    def write(self, data):
+        buf = getattr(self.local, "buf", None)
+        if buf is None:
+            return self._real.write(data)
+        return buf.write(data)
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+    def flush(self):
+        buf = getattr(self.local, "buf", None)
+        if buf is None:
+            return self._real.flush()
+        return buf.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+def _auditor_first_line(text, name):
+    lines = [line for line in (text or "").strip().splitlines()
+             if line.strip()]
+    first = lines[0] if lines else ""
+    # The auditors already prefix their own name; prefixing again produced
+    # `reading_audit: reading_audit: 65 file(s)` in the first run.
+    if first.startswith(name + ":"):
+        first = first[len(name) + 1:].lstrip()
+    return first
+
+
+def _run_auditor_subprocess(rel, strict, bound):
+    cmd = [sys.executable, rel] + (["--strict"] if strict else [])
+    proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=bound)
+    lines = [line for line in (proc.stdout or "").strip().splitlines()
+             if line.strip()]
+    first = lines[0] if lines else (proc.stderr or "").strip()[:200]
+    return proc.returncode, first
+
+
+def _run_auditor_task(name, rel, strict, bound, router):
+    """Run one auditor in-process, subprocess on failure.
+
+    Returns (exit, first_line, via). `check` is preferred when an auditor
+    defines it (none do yet -- the attempt is the forward-compatible part);
+    otherwise the auditor's own main(argv) runs on this worker thread with
+    prints captured per-thread. Anything raised in-process falls back to the
+    original subprocess path so one broken auditor never takes the leg down.
+    """
+    # Auditor mains take sys.argv[1:] style (no prog element): passing rel as
+    # argv[0] made every argparse-based auditor exit 2 on its own filename.
+    argv = ["--strict"] if strict else []
+    try:
+        mod = importlib.import_module(Path(rel).stem)
+        entry = getattr(mod, "check", None)
+        via = "in-process(check)" if entry is not None else "in-process(main)"
+        if entry is None:
+            entry = mod.main
+        buf = io.StringIO()
+        router.local.buf = buf
+        try:
+            rc = entry(argv)
+        except SystemExit as exc:
+            rc = exc.code
+        finally:
+            router.local.buf = None
+        rc = rc if isinstance(rc, int) else 0
+        return rc, _auditor_first_line(buf.getvalue(), name), via
+    except Exception as exc:
+        router.local.buf = None
+        rc, first = _run_auditor_subprocess(rel, strict, bound)
+        return rc, _auditor_first_line(first, name), \
+            "subprocess(fallback: %s: %s)" % (type(exc).__name__, str(exc)[:100])
+
+
 def leg_hyper_edge(_payload):
     """HED-9..HED-12 -- the readings that decay unless something runs them.
 
@@ -175,6 +267,7 @@ def leg_hyper_edge(_payload):
     leg_bound = float(setting("hyper_edge.leg_timeout_s", 300))
     flags = hyper_edge_flags()
     parts, failed, summary = [], [], {}
+    pending = []
     for name, rel, key in HYPER_EDGE_TOOLS:
         if not flags[name]:
             parts.append("%s=off (%s=false)" % (name, key))
@@ -184,21 +277,38 @@ def leg_hyper_edge(_payload):
             parts.append("leg_ledger=skipped (no prior %s to audit)" % REPORT.name)
             summary[name] = "skipped"
             continue
-        cmd = [sys.executable, rel] + (["--strict"] if strict else [])
-        proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", timeout=leg_bound)
-        lines = [line for line in (proc.stdout or "").strip().splitlines()
-                 if line.strip()]
-        first = lines[0] if lines else (proc.stderr or "").strip()[:200]
-        # The auditors already prefix their own name; prefixing again produced
-        # `reading_audit: reading_audit: 65 file(s)` in the first run.
-        if first.startswith(name + ":"):
-            first = first[len(name) + 1:].lstrip()
-        summary[name] = {"exit": proc.returncode, "line": first}
-        parts.append("%s: %s" % (name, first or "no output"))
-        if proc.returncode != 0:
-            failed.append("%s exit %s" % (name, proc.returncode))
-    detail = "; ".join(parts)
+        pending.append((name, rel))
+    # Fan-out: one worker per auditor on this (free-threaded) interpreter.
+    # No context manager: pool.shutdown(wait=True) would wed the leg to a
+    # hung worker; futures carry the bound and a timeout is recorded as one.
+    t0 = time.time()
+    router = _ThreadRoutedStdout(sys.stdout)
+    sys.stdout = router
+    ran = {}
+    pool = ThreadPoolExecutor(max_workers=max(1, len(pending)))
+    try:
+        futs = {pool.submit(_run_auditor_task, name, rel, strict,
+                            leg_bound, router): name for name, rel in pending}
+        for fut, name in futs.items():
+            try:
+                ran[name] = fut.result(timeout=leg_bound)
+            except FuturesTimeoutError:
+                ran[name] = ("timeout", "", "timeout after %ds"
+                             % int(leg_bound))
+    finally:
+        sys.stdout = router._real
+        pool.shutdown(wait=False, cancel_futures=True)
+    wall = time.time() - t0
+    for name, rel, key in HYPER_EDGE_TOOLS:
+        if name not in ran:
+            continue
+        rc, first, via = ran[name]
+        summary[name] = {"exit": rc, "line": first or "no output",
+                         "via": via}
+        parts.append("%s [%s]: %s" % (name, via, first or "no output"))
+        if rc != 0:
+            failed.append("%s exit %s" % (name, rc))
+    detail = "; ".join(parts) + " | wall %.1fs" % wall
     if failed:
         return {"status": "error", "summary": summary,
                 "detail": detail + " | FAILED: " + ", ".join(failed)}
