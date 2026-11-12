@@ -30,12 +30,13 @@ D. INTEROP FUSION (independent of storage, do now). 316t-everywhere +
    `wsl.exe` dispatch + `\\wsl$` mounts; Windows shrinks by uninstalling
    Windows-side dupes absorbed by WSL (catalogued, user confirms each).
 E. BM partitions (noted, untouched). 100GB+5.5GB unknown: likely BM Ubuntu.
-   No action without BM-lane evidence.
+   No action except by the freebuff lane under the BM runbook (sole authority).
 
 ## Decision
 
 D now (tooling in this commit) + A staged (runbook below, gates on user).
-B is A's pre-step (compaction runs either way). C rejected. E deferred.
+B is A's pre-step (compaction runs either way). C rejected. E deferred to
+the freebuff lane only (BM runbook binds single-lane, no handoffs).
 
 ## Staged migration (each step needs one explicit user GO)
 

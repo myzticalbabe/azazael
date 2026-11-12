@@ -1,10 +1,18 @@
-# BM Ubuntu supersede runbook (bare-metal replay)
+# BM Ubuntu supersede runbook (bare-metal replay, FREEBUFF LANE ONLY)
 
+> Sole execution authority: the freebuff lane. This brief binds to exactly
+> one lane and one worktree; no BM lane exists for this work, no handoff
+> is written, and pushing any step to another lane is forbidden. The
+> freebuff lane claims it, executes it on the BM boot, verifies it, and
+> retires it. One lane executing this brief, never two.
+>
 > Same tool, same doctrine as WSL. BM is a third estate: do NOT reuse WSL
 > captures. Every number below must be re-measured on BM.
 
 ## 0. Preconditions (all must hold)
 
+- Freebuff lane claims this brief first:
+  `python C:/Users/clint/_board.py claim freebuff` (never work unclaimed).
 - Bare-metal Ubuntu boots, network up, `python3.14t` present at the same
   `/usr/local/bin/python3.14t` path (or adjust paths below).
 - `tools/env_supersede.py` synced from this repo at the committed revision.
@@ -63,7 +71,7 @@ bash scripts/bm_shrink.sh   # apt side, review first
 - Re-run `--check` -> `remove=0` (steady state).
 - Import + CLI smoke through the touched paths.
 
-## 6. Record
+## 6. Record and retire (freebuff lane closes its own brief)
 
 - Append an execution record to the BM manifest (before/after counts,
   repair if any, smoke commands + results).
@@ -71,3 +79,7 @@ bash scripts/bm_shrink.sh   # apt side, review first
   validate with `tools/merge_bake_lane.py --lane <file> --apply`.
 - Commit by path (`<=8` files, new files exempt from the line cap);
   read `git show --stat HEAD` back.
+- Retire the board row in the same turn:
+  `python C:/Users/clint/_board.py done <id> "<command + result>"`
+  or `block <id> "<exact blocker>"`. A claim the freebuff lane cannot
+  retire did not happen. Never hand the row to another lane.
