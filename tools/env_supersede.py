@@ -72,6 +72,45 @@ APT_VERDICTS: list[tuple[str, str, str, str]] = [
     ("build-essential", "KEEP", "toolchain for CPython source builds (runbook BM §2 pattern)", "toolchain, keep"),
 ]
 
+# ---------------------------------------------------------------------------
+# Kali scope: RECON TURF. Engines stay; only GUI frontends, legacy dupes and
+# the nested-virt stack go. Every REMOVE below has zero in-env rdepends
+# (measured via apt-cache rdepends --installed) except the qemu unit, which
+# is removed as a consistent 10-package unit.
+# ---------------------------------------------------------------------------
+KALI_APT_VERDICTS: list[tuple[str, str, str, str]] = [
+    ("hydra-gtk", "REMOVE", "GUI frontend of kept hydra CLI; headless WSL has no display; rdepends clean", "hydra CLI (kept)"),
+    ("johnny", "REMOVE", "GUI frontend of kept john CLI; same as hydra-gtk; rdepends clean", "john CLI (kept)"),
+    ("nmapsi4", "REMOVE", "GUI frontend of kept nmap; WslKaliWorm checks /usr/bin/nmap, never the GUI; rdepends clean", "nmap CLI (kept)"),
+    ("bettercap-ui", "REMOVE", "web UI of kept bettercap; no serving role on this host; rdepends clean", "bettercap CLI (kept)"),
+    ("kali-system-gui", "REMOVE", "settings panel; no headless function; rdepends clean", "nothing to absorb"),
+    ("dirb", "REMOVE", "legacy dir buster; no rdepends; maintained successors installed", "feroxbuster/gobuster/ffuf (all kept)"),
+    ("dirbuster", "REMOVE", "legacy Java dir buster; no rdepends; same absorber as dirb", "feroxbuster/gobuster/ffuf (all kept)"),
+    ("mesa-utils", "REMOVE", "glxinfo-class probes; recon needs no GL; rdepends clean", "nothing to absorb"),
+    ("vulkan-tools", "REMOVE", "diagnostic probe binaries; same as mesa-utils; rdepends clean", "nothing to absorb"),
+    ("qemu-block-extra", "REMOVE", "nested-virt stack, removed as a 10-package unit; no tree refs to qemu anywhere", "nothing to absorb"),
+    ("qemu-system-common", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-system-data", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-system-gui", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-system-modules-opengl", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-system-modules-spice", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-system-x86", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-user", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("qemu-user-binfmt", "REMOVE", "same qemu unit as qemu-block-extra (deregisters binfmt handlers, safe)", "nothing to absorb"),
+    ("qemu-utils", "REMOVE", "same qemu unit as qemu-block-extra", "nothing to absorb"),
+    ("nmap", "KEEP", "WslKaliWorm expects wsl2-kali and checks /usr/bin/nmap; llm-tools-nmap Depends: nmap", "IS the recon engine (keep)"),
+    ("bloodhound.py", "KEEP", "legacy ingestor BUT netexec Depends on it (measured rdepends); removal strands netexec", "migrate netexec to bloodhound-ce first (kali-lane plan)"),
+    ("bloodhound-ce-python", "KEEP", "CE ingestor; the migration target for the plan above", "IS the replacement (keep)"),
+    ("python3-impacket", "KEEP", "lib under bloodhound/crackmapexec/netexec; recon lane core", "recon cone (keep)"),
+    ("impacket-scripts", "KEEP", "the usable example scripts (psexec et al.), not just docs", "recon cone (keep)"),
+    ("llm-tools-nmap", "KEEP", "NL-to-nmap bridge (llm CLI + nmap); native-adjacent recon", "recon bridge (keep)"),
+    ("python2", "KEEP", "legacy interpreter; offsec-awae-python2 manual; interpreters are never auto-removed", "kali lane owns it"),
+    ("feroxbuster", "KEEP", "maintained dir-bust successor; absorber for dirb/dirbuster", "IS the replacement (keep)"),
+    ("gobuster", "KEEP", "maintained dir-bust successor; same as feroxbuster", "IS the replacement (keep)"),
+    ("hydra", "KEEP", "engine behind hydra-gtk; recon lane core", "IS the engine (keep)"),
+    ("john", "KEEP", "engine behind johnny; recon lane core", "IS the engine (keep)"),
+]
+
 PIP_TOOLCHAIN = {"pip", "setuptools", "wheel", "packaging"}
 
 # CLI applications owned by lanes: never libraries, never imported, but live
@@ -159,12 +198,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--emit-pip-script", default=None)
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--strict", action="store_true")
+    ap.add_argument("--scope", choices=["ubuntu", "kali"], default="ubuntu",
+                      help="ubuntu: WSL Ubuntu verdicts; kali: WSL Kali recon-turf verdicts")
     a = ap.parse_args(argv)
     cap = Path(a.captures)
 
-    pip14 = [norm_dist(x) for x in (cap / "pip_14t.txt").read_text().splitlines() if x.strip()]
+    # Skip pip freeze comment lines (# ...) and editable installs (-e ...):
+    # a comment once classified '#' as a REMOVE orphan (2026-11-12).
+    pip14 = [
+        norm_dist(x)
+        for x in (cap / "pip_14t.txt").read_text().splitlines()
+        if x.strip() and not x.strip().startswith(("#", "-e ", "--"))
+    ]
     revdeps: dict[str, list[str]] = json.loads((cap / "revdeps.json").read_text())
-    tree_imports: set[str] = set(json.loads((cap / "tree_imports.json").read_text()))
+    try:
+        tree_imports: set[str] = set(json.loads((cap / "tree_imports.json").read_text()))
+    except FileNotFoundError:
+        tree_imports = set()
     baseline = load_baseline()
     manual = [x.strip() for x in (cap / "apt_manual.txt").read_text().splitlines() if x.strip()]
     installed = {x.strip() for x in (cap / "apt_installed.txt").read_text().splitlines() if x.strip()}
@@ -175,9 +225,14 @@ def main(argv: list[str] | None = None) -> int:
         ubuntu_imports: set[str] = set(json.loads((cap / "tree_imports_ubuntu.json").read_text()))
     except FileNotFoundError:
         ubuntu_imports = set()
+    try:
+        kali_imports: set[str] = set(json.loads((cap / "tree_imports_kali.json").read_text()))
+    except FileNotFoundError:
+        kali_imports = set()
+    extra_imports = ubuntu_imports | kali_imports
     local_roots = {p.name for p in (REPO / "src").iterdir()}
     local_roots |= {"tools", "scripts", "tests", "eve_unleashed", "CORE", "CODEX"}
-    tree_imports = (tree_imports | ubuntu_imports) - local_roots - {m.lower() for m in local_roots}
+    tree_imports = (tree_imports | extra_imports) - local_roots - {m.lower() for m in local_roots}
 
     # normalize the live reverse-dep map (raw requirement strings carry markers)
     rev: dict[str, list[str]] = {}
@@ -200,8 +255,72 @@ def main(argv: list[str] | None = None) -> int:
     def self_dist(dist: str) -> bool:
         return dist in SELF_EXACT or dist == "azazael" or dist.startswith("azazael-")
 
+    # locations.json maps dist -> install location. ONLY env-owned dists
+    # (site-packages of the target interpreter, NOT the OS dist-packages)
+    # are pip candidates. APT-OWNED dists are apt's surface: pip must not
+    # touch them -- measured 2026-11-12, pip uninstalled files out from
+    # under 80 python3-* apt packages on Kali (repaired via apt-get install
+    # --reinstall; dpkg -V clean after). APT-owned rows land in the manifest
+    # as OS rows, never in the pip uninstall script.
+    try:
+        locations: dict[str, str] = json.loads((cap / "locations.json").read_text())
+        loc_by_norm = {pep503(k): v for k, v in locations.items()}
+    except FileNotFoundError:
+        loc_by_norm = {}
+
+    def env_owned(dist: str) -> bool:
+        if not loc_by_norm:
+            return True  # no location data: legacy behavior, --check still guards imports
+        v = loc_by_norm.get(dist, "")
+        return ("dist-packages" not in v) or ("/usr/local" in v) or (".local" in v)
+
+    apt_owned_note: dict[str, str] = {}
+
+    # Dists that install console/gui scripts are user-facing capabilities, invoked
+    # as binaries and never imported -- removing one strands workflows with no
+    # import error to notice. console_scripts root as lane tools; gui-only stay
+    # INVESTIGATE (kept, listed separately) -- a headless host cannot run them,
+    # but they may be the only copy of a dev capability (e.g. Qt tooling).
+    # entry_points.json maps dist -> {console: [...], gui: [...]}. Console-script
+    # dists are user-facing capabilities (invoked as binaries, never imported).
+    # In kali scope (recon turf = app launcher by design) they root as lane tools.
+    # Gui-only dists are INVESTIGATE: kept, listed separately -- headless host
+    # cannot run them, but they may be the sole copy of a dev capability.
+    try:
+        entry_points: dict[str, dict[str, list[str]]] = json.loads((cap / "entry_points.json").read_text())
+    except FileNotFoundError:
+        entry_points = {}
+    scripted_console = {pep503(k) for k, v in entry_points.items() if v.get("console")} if a.scope == "kali" else set()
+    scripted_gui_only = {pep503(k) for k, v in entry_points.items() if v.get("gui") and not v.get("console")} if a.scope == "kali" else set()
+
+    if a.scope == "kali":
+        PIP_TOOLS.update({
+            "arjun": "recon lane CLI (HTTP parameter discovery)",
+            "bloodhound": "recon lane legacy ingestor (kept: netexec requires it; migrate-to-ce plan)",
+            "bloodhound-ce": "recon lane CE ingestor",
+            "crackmapexec": "recon lane netexec predecessor lib",
+            "dirsearch": "recon lane CLI (web path scanner)",
+            "netexec": "recon lane tool (Network Execution Tool)",
+            "sublist3r": "recon lane CLI (subdomain enumeration)",
+            "theharvester": "recon lane CLI (email/subdomain harvest)",
+            "uro": "recon lane CLI (URL declutter)",
+            "wafw00f": "recon lane CLI (WAF fingerprint)",
+            "waybackpy": "recon lane CLI (Wayback Machine)",
+            "impacket": "recon lane lib (python3-impacket twin; bloodhound/crackmapexec/netexec cone)",
+        })
+
+    # Kali scope: the global env is a shared recon toolbox. Dead chains whose
+    # top is unimported may still be a tool whose script metadata is unusual
+    # (or a service dependency), so only STRICT orphans remove; dead chains go
+    # to INVESTIGATE (kept, queued with their chain top for kali-lane triage).
+    kali_investigate: dict[str, str] = {}
+
     keep: dict[str, str] = {}
     for dist in pip14n:
+        if not env_owned(dist) and dist not in baseline and dist not in PIP_TOOLCHAIN:
+            apt_owned_note[dist] = loc_by_norm.get(dist, "?")
+            keep[dist] = "APT-OWNED (OS dist-packages): pip must not touch; apt surface only"
+            continue
         mod = mod_for_dist(dist)
         if mod in tree_imports or dist in tree_imports:
             keep[dist] = "imported by tree (either checkout)"
@@ -211,6 +330,8 @@ def main(argv: list[str] | None = None) -> int:
             keep[dist] = "baseline/toolchain"
         elif dist in PIP_TOOLS:
             keep[dist] = f"lane tool: {PIP_TOOLS[dist]}"
+        elif dist in scripted_console:
+            keep[dist] = "lane CLI (ships console script; kali app-launcher env)"
         elif dist in MANAGED:
             keep[dist] = "auto-downloader managed (re-fetches on demand)"
         elif dist in RUNTIME:
@@ -235,14 +356,19 @@ def main(argv: list[str] | None = None) -> int:
             continue
         users = [u for u in rev.get(dist, []) if u in in_env]
         if users:
-            # dead chain: top is unimported, unbaselined, not a lane tool
             tops = sorted(users)[:3]
-            pip_remove[dist] = f"dead chain via: {','.join(tops)} (top unimported/unbaselined, not a lane tool)"
+            if a.scope == "kali":
+                kali_investigate[dist] = f"dead chain via: {','.join(tops)} -- kali-lane triage"
+                keep[dist] = f"kali investigate (kept): dead chain via {','.join(tops)}"
+            else:
+                # dead chain: top is unimported, unbaselined, not a lane tool
+                pip_remove[dist] = f"dead chain via: {','.join(tops)} (top unimported/unbaselined, not a lane tool)"
         else:
             pip_remove[dist] = "orphan: not imported, not in baseline, zero in-env reverse deps"
 
     # --- apt classification -------------------------------------------------
-    verdict_of = {v[0]: v for v in APT_VERDICTS}
+    table = KALI_APT_VERDICTS if a.scope == "kali" else APT_VERDICTS
+    verdict_of = {v[0]: v for v in table}
     apt_remove = [(p, v[2], v[3]) for p, v in verdict_of.items() if v[1] == "REMOVE" and p in installed]
     apt_missing = [(p, v[1]) for p, v in verdict_of.items() if p not in installed]
     apt_unreviewed = [p for p in manual if p not in verdict_of]
@@ -262,13 +388,19 @@ def main(argv: list[str] | None = None) -> int:
             if p not in installed:
                 failures.append(f"apt REMOVE candidate not installed: {p}")
 
+    scope_title = "WSL Kali (recon turf)" if a.scope == "kali" else "WSL Ubuntu"
+    scope_note = (
+        "> Scope: WSL kali-linux (live probe) + BM Ubuntu (derived: unbuilt, runbook-only)."
+        if a.scope == "kali"
+        else "> Scope: WSL Ubuntu-26.04 (live probe) + BM Ubuntu (derived: unbuilt, runbook-only).\n"
+             "> Kali recon turf is analyzed in its own manifest -- never shrunk by Ubuntu verdicts."
+    )
     lines = [
-        "# ENV SUPERSEDE MANIFEST — WSL Ubuntu package verdicts",
+        f"# ENV SUPERSEDE MANIFEST — {scope_title} package verdicts",
         "",
-        "> Generated by `python tools/env_supersede.py --captures <dir>`.",
+        "> Generated by `python tools/env_supersede.py --captures <dir> [--scope kali]`.",
         "> Doctrine: a verdict names its evidence command; a row without provenance is narrative.",
-        "> Scope: WSL Ubuntu-26.04 (live probe) + BM Ubuntu (derived: unbuilt, runbook-only).",
-        "> Kali (1,009 pip) is foreign recon turf -- out of scope for removal.",
+        scope_note,
         "",
         f"## Denominators: apt installed={len(installed)} manual={len(manual)} | pip_14t={len(pip14)} | tree external imports={len(tree_imports)}",
         "",
@@ -286,6 +418,19 @@ def main(argv: list[str] | None = None) -> int:
     for p, v in verdict_of.items():
         if v[1] == "KEEP":
             lines.append(f"- KEEP `{p}` -- {v[2]}")
+    if apt_owned_note:
+        lines += ["", f"### APT-OWNED pip-visible ({len(apt_owned_note)}) -- kept, apt surface only", ""]
+        for dist in sorted(apt_owned_note):
+            lines.append(f"- OS `{dist}` @ {apt_owned_note[dist]}")
+    if kali_investigate:
+        lines += ["", f"### KALI-INVESTIGATE pip ({len(kali_investigate)}) -- kept, queued for kali-lane triage", ""]
+        for dist in sorted(kali_investigate):
+            lines.append(f"- HOLD `{dist}` -- {kali_investigate[dist]}")
+    if scripted_gui_only:
+        gui_kept = sorted(d for d in scripted_gui_only if d in in_env)
+        lines += ["", f"### GUI-script dists ({len(gui_kept)}) -- kept, headless-unrunnable but sole copy", ""]
+        for dist in gui_kept:
+            lines.append(f"- GUI `{dist}`")
     lines += ["", f"### UNREVIEWED manual rows ({len(apt_unreviewed)}) -- next sweep", ""]
     for p in sorted(apt_unreviewed)[:60]:
         lines.append(f"- ? `{p}`")
@@ -300,8 +445,10 @@ def main(argv: list[str] | None = None) -> int:
         "",
         "- BM starts from the POST-SHRINK set: stock Ubuntu 26.04 + runbook BM §2",
         "  (build-essential + 10 dev libs) + the native sub-trees named as absorbers above.",
-        "- BM NEVER receives the 21 REMOVE classes: no SDL/pygame, no bazel/swig/qemu/mold/eatmydata,",
-        "  no GPU-probe binaries (device.py decides), no nmap (PortAuditor covers it), no GUI FMs.",
+        "- BM NEVER receives the Ubuntu REMOVE classes (no SDL/pygame, no bazel/swig/qemu/mold/eatmydata,",
+        "  no GPU-probe binaries (device.py decides), no nmap (PortAuditor covers it), no GUI FMs)",
+        "  NOR the Kali REMOVE classes (no nested-virt qemu stack, no GUI recon frontends,",
+        "  no legacy dirb/dirbuster while feroxbuster/gobuster ship).",
         "- BM gets the XPU stack (device.py prefers XPU) and the single production interpreter",
         "  (3.16t free-threaded per current production; 3.15t sidecar only where wheels demand it).",
         "- Interpreter sprawl is NOT replicated: system 3.14 (OS) + one production build.",

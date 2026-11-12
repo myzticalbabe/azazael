@@ -1,0 +1,73 @@
+# BM Ubuntu supersede runbook (bare-metal replay)
+
+> Same tool, same doctrine as WSL. BM is a third estate: do NOT reuse WSL
+> captures. Every number below must be re-measured on BM.
+
+## 0. Preconditions (all must hold)
+
+- Bare-metal Ubuntu boots, network up, `python3.14t` present at the same
+  `/usr/local/bin/python3.14t` path (or adjust paths below).
+- `tools/env_supersede.py` synced from this repo at the committed revision.
+- A capture dir, e.g. `/tmp/bm_pkg/`, writable.
+
+## 1. Capture (BM-owned, live)
+
+```bash
+apt list --installed > /tmp/bm_pkg/apt_installed.txt
+apt-mark showmanual > /tmp/bm_pkg/apt_manual.txt
+/usr/local/bin/python3.14t -m pip freeze > /tmp/bm_pkg/pip_14t.txt
+/usr/local/bin/python3.14t probe_tree.py   # tree imports -> tree_imports.json
+/usr/local/bin/python3.14t probe_revdeps.py  # -> revdeps.json
+/usr/local/bin/python3.14t probe_entrypoints.py  # -> entry_points.json
+/usr/local/bin/python3.14t probe_locations.py    # -> locations.json
+```
+
+Probe scripts: same shape as the WSL ones (importlib.metadata distributions
++ revdeps; entry-points via importlib.metadata; locations via `d._path`).
+`locations.json` is REQUIRED: without it the tool falls back to legacy
+behavior and SYSTEM-owned dists become pip candidates (this deleted files
+out from under 80 apt packages on Kali; repaired via reinstall).
+
+## 2. Classify (dry run, no changes)
+
+```bash
+python tools/env_supersede.py --captures /tmp/bm_pkg --check
+```
+
+Expect: `keep=N remove=M` lines plus the reason for every REMOVE.
+`remove=0` on a fresh estate means steady state; anything listed is a
+candidate with its evidence attached.
+
+## 3. Review gates (human, before any uninstall)
+
+1. Every apt REMOVE has clean `rdepends` AND an absorber named.
+2. Every pip REMOVE is ENV-located (check `locations.json`, never assume).
+3. No baseline/toolchain/self dist in any REMOVE list.
+4. Recon/dev CLIs (`nxc`, `bloodhound-python`, build tools) smoke-tested
+   AFTER, not before.
+
+## 4. Execute (scripts, file-based, never inline quoting)
+
+```bash
+python tools/env_supersede.py --captures /tmp/bm_pkg \
+  --emit-manifest docs/BM_SUPERSEDE_MANIFEST.md \
+  --emit-script scripts/bm_shrink.sh
+bash scripts/bm_shrink.sh   # apt side, review first
+# pip side: uninstall listed orphans one tool run at a time
+```
+
+## 5. Verify (each claim carries its command)
+
+- `apt-get check && dpkg --audit` -> clean (no output).
+- `dpkg -V` over `python3*` -> zero `missing` lines.
+- Re-run `--check` -> `remove=0` (steady state).
+- Import + CLI smoke through the touched paths.
+
+## 6. Record
+
+- Append an execution record to the BM manifest (before/after counts,
+  repair if any, smoke commands + results).
+- Bake rows at encounter time into `state/bake_harvest_bm_<date>.jsonl`;
+  validate with `tools/merge_bake_lane.py --lane <file> --apply`.
+- Commit by path (`<=8` files, new files exempt from the line cap);
+  read `git show --stat HEAD` back.
