@@ -304,6 +304,12 @@ def main(argv=None) -> int:
         return 1
     return 1 if (args.strict and findings) else 0
 
+# Self-proof budget (slice 6): measured ~0.04s in-process 2026-11-12; the
+# budget is headroom, not a target. verdict() reports within_budget; the
+# deep_dive leg fails a leg that breaches it, same as a hung file (HED-2).
+BUDGET_S = 10.0
+
+
 def verdict(argv=None):
     """Cursor-speed verdict: timed in-process main(), same classes as the CLI.
 
@@ -326,7 +332,8 @@ def verdict(argv=None):
     ms = (time.perf_counter() - t0) * 1000.0
     line = next((ln for ln in buf.getvalue().splitlines() if ln.strip()), "")
     return {"exit": rc if isinstance(rc, int) else 0,
-            "line": line, "ms": ms}
+            "line": line, "ms": ms, "budget_s": BUDGET_S,
+            "within_budget": ms / 1000.0 <= BUDGET_S}
 
 
 if __name__ == "__main__":

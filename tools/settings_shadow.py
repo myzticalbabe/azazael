@@ -418,6 +418,11 @@ def main(argv=None) -> int:
     open_findings = len(findings) + len(unparseable)
     return 1 if (args.strict and open_findings) else 0
 
+# Self-proof budget (slice 6): measured ~7.5s in-process 2026-11-12 (AST
+# scan of tools+src); headroom for tree growth. See reading_audit.BUDGET_S.
+BUDGET_S = 60.0
+
+
 def verdict(argv=None):
     """Cursor-speed verdict: timed in-process main(), same classes as the CLI.
 
@@ -440,7 +445,8 @@ def verdict(argv=None):
     ms = (time.perf_counter() - t0) * 1000.0
     line = next((ln for ln in buf.getvalue().splitlines() if ln.strip()), "")
     return {"exit": rc if isinstance(rc, int) else 0,
-            "line": line, "ms": ms}
+            "line": line, "ms": ms, "budget_s": BUDGET_S,
+            "within_budget": ms / 1000.0 <= BUDGET_S}
 
 
 if __name__ == "__main__":

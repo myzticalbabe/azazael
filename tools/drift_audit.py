@@ -179,6 +179,11 @@ def audit(extra=None):
     return reps
 
 
+# Self-proof budget (slice 6): boots two stopped WSL distros; measured
+# well under a minute 2026-11-12. Headroom for slow boots.
+BUDGET_S = 240.0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="drift_audit.py",
                                  description=__doc__.splitlines()[0])

@@ -166,6 +166,11 @@ def main(argv=None) -> int:
              "ROTTED" if rotted else "HOLD"))
     return 1 if rotted else 0
 
+# Self-proof budget (slice 6): replay is ms-scale on today's log; the
+# ledger-validate path reads one file. Headroom for log growth.
+BUDGET_S = 60.0
+
+
 def verdict(argv=None):
     """Cursor-speed verdict: timed in-process main(), same classes as the CLI.
 
@@ -188,7 +193,8 @@ def verdict(argv=None):
     ms = (time.perf_counter() - t0) * 1000.0
     line = next((ln for ln in buf.getvalue().splitlines() if ln.strip()), "")
     return {"exit": rc if isinstance(rc, int) else 0,
-            "line": line, "ms": ms}
+            "line": line, "ms": ms, "budget_s": BUDGET_S,
+            "within_budget": ms / 1000.0 <= BUDGET_S}
 
 
 if __name__ == "__main__":
