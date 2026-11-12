@@ -79,6 +79,14 @@ except ImportError as exc:
 
 PAMS_URL = os.environ.get("PAMS_URL", "http://127.0.0.1:21434")
 PAMS_TIMEOUT = float(os.environ.get("PAMS_TIMEOUT", "2.0"))
+# Probe-only budget for the _pams_probe reachability check. A localhost
+# health check answers in milliseconds when PAMS is up, so a short probe
+# timeout only hurries the answer when the resolved port is dead -- and a
+# dead port used to cost every one-shot CLI invocation the full
+# PAMS_TIMEOUT (measured 2026-11-12: `board stats` spent 2.002s of 2.365s
+# in one socket connect to a 15-day-old port file's port). Real API traffic
+# keeps PAMS_TIMEOUT; only the availability probe uses this knob.
+PAMS_PROBE_TIMEOUT = float(os.environ.get("PAMS_PROBE_TIMEOUT", "0.4"))
 #: Promote does server-side classification – seconds, not milliseconds.
 #: The 2s check timeout never fit it: every post timed out client-side
 #: (server may still have stored it → retry duplicates). 2026-09-28.
@@ -903,11 +911,11 @@ class MemoryBus:
         """One reachability attempt against the CURRENT self.pams_url."""
         try:
             if HAS_REQUESTS:
-                resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_TIMEOUT)
+                resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_PROBE_TIMEOUT)
                 return resp.status_code == 200
             else:
                 req = urllib.request.Request(f"{self.pams_url}{PAMS_API_PREFIX}/health")
-                with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
+                with urllib.request.urlopen(req, timeout=PAMS_PROBE_TIMEOUT) as resp:
                     return resp.status == 200
         except Exception as exc:
             note_failure("MemoryBus:L773", exc)
