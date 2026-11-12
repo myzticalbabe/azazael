@@ -284,8 +284,10 @@ def _run_auditor_task(name, rel, strict, bound, router):
     # Auditor mains take sys.argv[1:] style (no prog element): passing rel as
     # argv[0] made every argparse-based auditor exit 2 on its own filename.
     argv = ["--strict"] if strict else []
+    t0 = time.perf_counter()
     try:
         mod = importlib.import_module(Path(rel).stem)
+        budget = getattr(mod, "BUDGET_S", None)
         entry = getattr(mod, "check", None)
         via = "in-process(check)" if entry is not None else "in-process(main)"
         if entry is None:
@@ -299,12 +301,17 @@ def _run_auditor_task(name, rel, strict, bound, router):
         finally:
             router.local.buf = None
         rc = rc if isinstance(rc, int) else 0
-        return rc, _auditor_first_line(buf.getvalue(), name), via
+        elapsed = time.perf_counter() - t0
+        return rc, _auditor_first_line(buf.getvalue(), name), via, \
+            elapsed, budget
     except Exception as exc:
         router.local.buf = None
         rc, first = _run_auditor_subprocess(rel, strict, bound)
+        elapsed = time.perf_counter() - t0
+        budget = getattr(sys.modules.get(Path(rel).stem), "BUDGET_S", None)
         return rc, _auditor_first_line(first, name), \
-            "subprocess(fallback: %s: %s)" % (type(exc).__name__, str(exc)[:100])
+            "subprocess(fallback: %s: %s)" % (type(exc).__name__, str(exc)[:100]), \
+            elapsed, budget
 
 
 def leg_hyper_edge(_payload):
@@ -357,7 +364,7 @@ def leg_hyper_edge(_payload):
                 ran[name] = fut.result(timeout=leg_bound)
             except FuturesTimeoutError:
                 ran[name] = ("timeout", "", "timeout after %ds"
-                             % int(leg_bound))
+                             % int(leg_bound), float(leg_bound), None)
     finally:
         sys.stdout = router._real
         pool.shutdown(wait=False, cancel_futures=True)
@@ -365,14 +372,25 @@ def leg_hyper_edge(_payload):
     for name, rel, key in HYPER_EDGE_TOOLS:
         if name not in ran:
             continue
-        rc, first, via = ran[name]
+        rc, first, via, elapsed, budget = ran[name]
         leg_strict = next((s for n, _r, s in pending if n == name), False)
+        over = (budget is not None and elapsed is not None
+                and elapsed > budget)
         summary[name] = {"exit": rc, "line": first or "no output",
-                         "via": via, "strict": leg_strict}
+                         "via": via, "strict": leg_strict,
+                         "seconds": round(elapsed, 1) if elapsed is not None
+                         else None,
+                         "budget_s": budget, "within_budget": not over}
         mark = "strict" if leg_strict else "advisory"
-        parts.append("%s [%s/%s]: %s" % (name, via, mark, first or "no output"))
+        clock = ("%.1fs/budget%ss" % (elapsed, budget)
+                 if budget is not None else "%.1fs/nobudget" % elapsed)
+        parts.append("%s [%s/%s %s]: %s"
+                     % (name, via, mark, clock, first or "no output"))
         if rc != 0:
             failed.append("%s exit %s" % (name, rc))
+        if over:
+            failed.append("%s over budget (%.1fs > %ss)"
+                          % (name, elapsed, budget))
     _ratchet_update(ratchet, ran, ratchet_n)
     _ratchet_save(ratchet)
     latched = sorted(n for n, st in ratchet.items()
