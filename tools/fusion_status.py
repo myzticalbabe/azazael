@@ -56,6 +56,7 @@ def wsl_run(distro: str, argv: list) -> tuple:
         r = subprocess.run(
             ["wsl", "-d", distro] + argv,
             capture_output=True, text=True, timeout=120,
+            encoding="utf-8", errors="replace",
         )
         tail = (r.stdout + r.stderr).strip().splitlines()
         return r.returncode, (tail[-1] if tail else "")
