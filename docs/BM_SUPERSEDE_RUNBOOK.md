@@ -21,20 +21,23 @@
 ## 1. Capture (BM-owned, live)
 
 ```bash
-apt list --installed > /tmp/bm_pkg/apt_installed.txt
-apt-mark showmanual > /tmp/bm_pkg/apt_manual.txt
-/usr/local/bin/python3.14t -m pip freeze > /tmp/bm_pkg/pip_14t.txt
-/usr/local/bin/python3.14t probe_tree.py   # tree imports -> tree_imports.json
-/usr/local/bin/python3.14t probe_revdeps.py  # -> revdeps.json
-/usr/local/bin/python3.14t probe_entrypoints.py  # -> entry_points.json
-/usr/local/bin/python3.14t probe_locations.py    # -> locations.json
+CAP=/tmp/bm_pkg; TOOLS=<repo>/tools/bm_capture
+mkdir -p $CAP
+apt list --installed > $CAP/apt_installed.txt
+apt-mark showmanual > $CAP/apt_manual.txt
+python3 $TOOLS/probe_pip.py > $CAP/pip_14t.txt
+python3 $TOOLS/probe_tree.py <repo-checkout> > $CAP/tree_imports.json
+python3 $TOOLS/probe_revdeps.py > $CAP/revdeps.json
+python3 $TOOLS/probe_env.py entry_points > $CAP/entry_points.json
+python3 $TOOLS/probe_env.py locations > $CAP/locations.json
 ```
 
-Probe scripts: same shape as the WSL ones (importlib.metadata distributions
-+ revdeps; entry-points via importlib.metadata; locations via `d._path`).
-`locations.json` is REQUIRED: without it the tool falls back to legacy
-behavior and SYSTEM-owned dists become pip candidates (this deleted files
-out from under 80 apt packages on Kali; repaired via reinstall).
+Probes are committed in `tools/bm_capture/` (stdlib only, 3.8+; proven on
+3.16t/3.14t/3.15t). `locations.json` is REQUIRED: without it the tool
+falls back to legacy behavior and SYSTEM-owned dists become pip
+candidates (this deleted files out from under 80 apt packages on Kali;
+repaired via reinstall). `tree_imports.json` needs the repo checkout path
+as its argument (what the BM lane actually imports).
 
 ## 2. Classify (dry run, no changes)
 
