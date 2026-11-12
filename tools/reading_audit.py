@@ -250,6 +250,30 @@ def main(argv=None) -> int:
         return 1
     return 1 if (args.strict and findings) else 0
 
+def verdict(argv=None):
+    """Cursor-speed verdict: timed in-process main(), same classes as the CLI.
+
+    Direct (single-threaded) calls only: stdout is captured with a global
+    redirect, so the threaded fan-out in deep_dive keeps calling main().
+    Additive by construction: main() and every print path are untouched.
+    Returns {"exit", "line", "ms"}.
+    """
+    import contextlib  # local: the module top (and the CLI) stays byte-identical
+    import io
+    import time
+    args = list(argv) if argv else []
+    buf = io.StringIO()
+    t0 = time.perf_counter()
+    with contextlib.redirect_stdout(buf):
+        try:
+            rc = main(args)
+        except SystemExit as exc:
+            rc = exc.code
+    ms = (time.perf_counter() - t0) * 1000.0
+    line = next((ln for ln in buf.getvalue().splitlines() if ln.strip()), "")
+    return {"exit": rc if isinstance(rc, int) else 0,
+            "line": line, "ms": ms}
+
 
 if __name__ == "__main__":
     sys.exit(main())
