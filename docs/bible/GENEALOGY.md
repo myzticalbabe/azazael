@@ -7,7 +7,7 @@ reading `src/` with `ast`. Re-run it and the numbers must be the same.
 python tools/bible_check.py --genealogy --write
 ```
 
-26 houses, 587 edges between them.
+27 houses, 587 edges between them.
 
 And **CORE** begat **META**, **ORCHESTRATION**, **SCRIPTS**, and of the rest there were 3.
 And **CODEX** begat **CORE**, **ORCHESTRATION**, **META**, and of the rest there were 1.
@@ -35,6 +35,7 @@ And **SHORTCUTS** begat no other house.
 And **grantforge** begat no other house.
 And **grantforge_native** begat no other house.
 And **spitfire** begat no other house.
+And **win32_shim** begat no other house.
 
 | house | begat | edges out |
 |---|---|---|
@@ -64,3 +65,4 @@ And **spitfire** begat no other house.
 | grantforge_native | -- | 0 |
 | spitfire | -- | 0 |
 | tests | CORE, ML | 41 |
+| win32_shim | -- | 0 |
