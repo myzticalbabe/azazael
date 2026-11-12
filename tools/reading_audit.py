@@ -155,6 +155,52 @@ def audit_legs(record: dict, where: str, findings: list) -> None:
             })
 
 
+TREND_PATH = ROOT / "logs" / "reading_audit_trend.jsonl"
+TREND_WINDOW = 20  # runs kept in the printed window; the file itself is append-only
+
+
+def _record_trend(index, coverage, files, verdicts):
+    """Append this run, return (line, increased).
+
+    Best-effort: a trend that can fail the audit is a gate that fails when
+    the disk is read-only. increased compares against the previous RUN's
+    index (not a threshold): snapshot counts hide decay, and decay is a
+    rise between two readings, not a level.
+    """
+    import time
+    row = {"generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+           "index": round(index, 4), "coverage": round(coverage, 4),
+           "files": files, "verdicts": verdicts}
+    try:
+        TREND_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(TREND_PATH, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, sort_keys=True) + "\n")
+        hist, corrupt = [], 0
+        with open(TREND_PATH, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    hist.append(json.loads(line))
+                except ValueError:
+                    corrupt += 1  # counted, never silently dropped
+    except OSError as exc:
+        return ("trend: unwritable (%s) -- this run is unrecorded, not clean"
+                % type(exc).__name__, False)
+    hist = hist[-TREND_WINDOW:]
+    note = ("; %d corrupt prior row(s) counted, not read" % corrupt) \
+        if corrupt else ""
+    if len(hist) < 2:
+        return ("trend: no prior reading (this run is the baseline; "
+                "index %.4f over %d verdict(s))%s" % (index, verdicts, note),
+                False)
+    prev = hist[-2].get("index", 0.0)
+    delta = round(index, 4) - float(prev)
+    return ("trend: %.4f -> %.4f (delta %+.4f over last %d run(s))%s"
+            % (prev, round(index, 4), delta, len(hist), note), delta > 0)
+
+
 def audit_file(path: Path, findings: list) -> dict:
     """Audit one JSON artifact. A record that will not parse is its own finding."""
     try:
@@ -223,6 +269,12 @@ def main(argv=None) -> int:
           "that read nothing (%.0f%%)" % (blind, verdicts_total, index * 100))
     print("coverage: %d/%d artifact(s) carry a usable denominator (%.0f%%; floor %.0f%%)"
           % (covered, len(audited), coverage * 100, min_coverage * 100))
+    trend_line, increased = _record_trend(index, coverage, len(audited),
+                                          verdicts_total)
+    print(trend_line)
+    if increased:
+        print("reading_audit: blindness index ROSE since the previous run -- "
+              "snapshot counts hide decay, and decay is a rise, not a level.")
     shown = findings if args.max_list <= 0 else findings[:args.max_list]
     for row in shown:
         print("  - %-19s %s: %s"
@@ -247,6 +299,8 @@ def main(argv=None) -> int:
         print("reading_audit: coverage %.0f%% is below reading_audit.min_coverage "
               "%.0f%% -- these artifacts cannot be said to have read the corpus."
               % (coverage * 100, min_coverage * 100))
+        return 1
+    if args.strict and increased:
         return 1
     return 1 if (args.strict and findings) else 0
 
