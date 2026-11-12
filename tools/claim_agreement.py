@@ -116,6 +116,25 @@ def validate_ledger(path):
     return {"rows": n, "bad": bad, "verdicts": verdicts}
 
 
+# Slice 7: the live cursor ledger is the preferred claim source. Candidates
+# are the brief-named live path first, overridable for tests via
+# AZAZAEL_CURSOR_LEDGER. Absence is not failure: the tool says which source
+# it used and falls back to live-log replay (HED-6 record-and-continue).
+LEDGER_CANDIDATES = ["C:/Users/clint/LIVEVIEW_CURSOR_SWARM_V0.jsonl"]
+
+
+def _default_ledger():
+    import os
+    if "AZAZAEL_CURSOR_LEDGER" in os.environ:
+        cands = [os.environ["AZAZAEL_CURSOR_LEDGER"]]  # test seam: exact list
+    else:
+        cands = LEDGER_CANDIDATES
+    for cand in cands:
+        if cand and Path(cand).exists():
+            return cand
+    return None
+
+
 def ledger_main(path) -> int:
     try:
         rep = validate_ledger(path)
@@ -127,11 +146,11 @@ def ledger_main(path) -> int:
         return 2
     if rep["bad"]:
         lineno, frame, reason = rep["bad"][0]
-        print("claim_agreement: BROKEN -- ledger line %d (frame %s): %s "
-              "(%d rows checked)" % (lineno, frame, reason, rep["rows"]))
+        print("claim_agreement: BROKEN -- ledger %s line %d (frame %s): %s "
+              "(%d rows checked)" % (path, lineno, frame, reason, rep["rows"]))
         return 1
-    print("claim_agreement: ledger CHAIN OK N=%d verdicts=%s"
-          % (rep["rows"], rep["verdicts"]))
+    print("claim_agreement: ledger %s CHAIN OK N=%d verdicts=%s"
+          % (path, rep["rows"], rep["verdicts"]))
     return 0
 
 
@@ -140,11 +159,26 @@ def main(argv=None) -> int:
     ap.add_argument("--log", default=None)
     ap.add_argument("--ledger", default=None,
                     help="cursor JSONL ledger to validate as the claim source")
+    # Accepted for the hyper_edge leg's strict contract: ROTTED/BROKEN
+    # already exit 1, BLIND stays instrument-state (never a failure), so the
+    # flag changes nothing -- but rejecting it would turn a latched-strict
+    # run into an argparse error. Measured 2026-11-12 via the ratchet.
+    ap.add_argument("--strict", action="store_true",
+                    help="no-op: findings already fail (kept for the leg contract)")
     ap.add_argument("--floor", type=float, default=None)
     ap.add_argument("--rung-floor", type=float, default=None)
     args = ap.parse_args(argv)
-    if args.ledger is not None:
-        return ledger_main(args.ledger)
+    ledger = args.ledger or _default_ledger()
+    if ledger is not None:
+        if args.ledger is None:
+            print("claim_agreement: live ledger present, claims read from "
+                  "ledger rows (%s)" % ledger)
+        return ledger_main(ledger)
+    import os
+    print("claim_agreement: no ledger at %s -- falling back to live-log "
+          "replay" % ([os.environ["AZAZAEL_CURSOR_LEDGER"]]
+                         if "AZAZAEL_CURSOR_LEDGER" in os.environ
+                         else LEDGER_CANDIDATES))
     floor = args.floor if args.floor is not None else floor_default()
     rung_floor = args.rung_floor if args.rung_floor is not None \
         else floor_default("rung")

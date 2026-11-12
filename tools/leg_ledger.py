@@ -111,6 +111,13 @@ def main(argv=None) -> int:
     ap.add_argument("report", nargs="?", default=str(ROOT / "logs" / "deep_dive.json"),
                     help="deep-dive report to audit (default logs/deep_dive.json)")
     ap.add_argument("--json", default="", help="also write the findings here")
+    # Accepted for the hyper_edge leg's strict contract (global or latched
+    # per-leg strict passes --strict to every auditor): violations already
+    # fail the run, so the flag changes nothing -- but an auditor that rejects
+    # it turns a latched-strict run into an argparse error, which is a defect
+    # in the auditor, not a verdict. Measured 2026-11-12 via the ratchet.
+    ap.add_argument("--strict", action="store_true",
+                    help="no-op: violations already fail (kept for the leg contract)")
     args = ap.parse_args(argv)
 
     path = Path(args.report)
