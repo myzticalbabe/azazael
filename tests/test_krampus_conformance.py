@@ -108,7 +108,13 @@ def test_required_tools_covers_every_selector():
     tools = kc.required_tools(selectors)
     assert {"gamora_lilith", "gamora_eve", "krampus_select",
             "providers_list", "provider_best"} <= set(tools)
-    assert len(tools) == 6 + len(selectors)
+    assert len(tools) == len(kc.BASE_TOOLS) + len(selectors)
+
+
+def test_required_tools_includes_the_bare_metal_selections():
+    tools = kc.required_tools(["lilith"])
+    assert {"krampus_metal_list", "krampus_metal_probe"} <= set(tools)
+    assert len(tools) == 8 + 1
 
 
 @pytest.mark.parametrize("lane_state,expected_exit", [(kc.OK, 0), (kc.MISSING, 1)])
@@ -132,6 +138,32 @@ def test_blind_surface_is_exit_two_not_a_pass(monkeypatch):
 
     monkeypatch.setattr(kc, "_surface", boom)
     assert kc.main(["--json"]) == 2
+
+
+def test_metal_selections_are_listed_and_a_bogus_one_is_refused():
+    import krampus_mcp as km
+
+    assert km.METAL_SELECTIONS == ("local", "ssh", "vsock", "all")
+    listing = km.metal_list()
+    for sel in km.METAL_SELECTIONS:
+        assert sel in listing
+    # A selection the worm does not implement is refused by name, without a
+    # spawn: silently answering something else would read as a probed path.
+    refused = km.metal_probe("bogus")
+    assert "unknown metal selection" in refused
+    assert "local, ssh, vsock, all" in refused
+
+
+def test_metal_selections_route_through_the_picker_and_are_advertised():
+    import krampus_mcp as km
+
+    assert "metal:all -> metal_probe" in km.krampus_selectors()
+    assert "metal:local -> metal_probe" in km.krampus_selectors()
+    # "metal" with no selection lists them; a selection name runs its probe.
+    assert "bare-metal passthrough selections" in km.krampus_select("metal")
+    assert km.krampus_select("local").startswith("metal local (probe_local)")
+    # A name in no scope is still refused by name rather than guessed at.
+    assert "unknown selector" in km.krampus_select("not-a-selector")
 
 
 def test_probe_carries_tool_names_not_only_a_count(tmp_path):

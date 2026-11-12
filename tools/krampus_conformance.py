@@ -45,6 +45,14 @@ if str(TOOLS_DIR) not in sys.path:
 SERVER_NAME = "krampus"
 SERVER_SCRIPT = TOOLS_DIR / "krampus_mcp.py"
 
+#: Tools whose absence means a listed surface cannot be called at all. The
+#: bare-metal passthrough selections sit here with the rest: `<code>local</code>`,
+#: `<code>ssh</code>`, `<code>vsock</code>` and `<code>all</code>` reach a physical kernel from
+#: a virtual one, and a lane that cannot ask is a lane that guesses.
+BASE_TOOLS = ("krampus_members", "krampus_doctor", "krampus_select",
+              "krampus_selectors", "providers_list", "provider_best",
+              "krampus_metal_list", "krampus_metal_probe")
+
 #: One lane row per config the gate knows about. `mcp_eight_verify` owns the
 #: path table (and prefers the gate's constants), so read it from there rather
 #: than re-deriving a second copy that can drift.
@@ -70,9 +78,7 @@ def _surface() -> Tuple[List[dict], List[str], List[str]]:
 
 def required_tools(selectors: Sequence[str]) -> List[str]:
     """The tool names a lane must see for the surface to be fully callable."""
-    return (["krampus_members", "krampus_doctor", "krampus_select",
-             "krampus_selectors", "providers_list", "provider_best"]
-            + ["gamora_" + s for s in selectors])
+    return list(BASE_TOOLS) + ["gamora_" + s for s in selectors]
 
 
 def _entry_for(block: Dict[str, dict]) -> Tuple[Optional[str], Optional[dict]]:

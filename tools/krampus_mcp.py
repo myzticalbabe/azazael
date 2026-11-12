@@ -57,8 +57,18 @@ PROVIDERS = REPO / "src" / "CORE" / "inference" / "providers.py"
 # the parser so the two cannot drift silently.
 SELECTORS = ("lilith", "eve", "cradle", "lucy", "swarm", "inject", "berzerker")
 
+#: Bare-metal passthrough selections. WSL2 (Ubuntu and Kali alike) runs on the
+#: Microsoft virtual kernel, so /dev/kmsg, /dev/dri and eBPF are the VIRTUAL set.
+#: `BarePassthroughWorm` (src/CORE/WORMS/expansion/envmesh.py) probes the three
+#: real paths in order; these are its selections, exposed here so a lane can ask
+#: "am I on bare metal, and if not, which path gets me there" without importing
+#: the worm registry itself.
+METAL_SELECTIONS = ("local", "ssh", "vsock", "all")
+METAL_WORM = "CORE.WORMS.expansion.envmesh:BarePassthroughWorm"
+
 TIMEOUT_SELECTOR = 120
 TIMEOUT_PROVIDERS = 90
+TIMEOUT_METAL = 90
 
 
 def _python() -> str:
@@ -170,16 +180,63 @@ def krampus_selectors() -> str:
     lines += ["%s -> %s" % (s, "krampus_" + s)
               for s in ("members", "doctor", "select", "selectors",
                         "providers_list", "provider_best")]
+    lines += ["metal:%s -> metal_probe" % s for s in METAL_SELECTIONS]
     return "\n".join(lines)
 
 
 def krampus_select(selector: str, extra: str = "") -> str:
-    """The picker: route any selector by name (gamora or krampus scope)."""
+    """The picker: route any selector by name (gamora, metal or krampus scope)."""
     sel = (selector or "").strip()
     if sel in ("members", "doctor", "selectors", "providers_list",
-               "provider_best"):
+               "provider_best", "metal_list"):
         return globals()["krampus_" + sel]()
+    if sel in METAL_SELECTIONS:
+        return metal_probe(sel)
+    if sel in ("", "metal"):
+        return metal_list()
     return gamora_selector(sel, extra)
+
+
+def metal_list() -> str:
+    """The bare-metal passthrough selections and what each one proves."""
+    rows = (("local", "this process's own kernel",
+             "always runs; Windows/WSL answer with their virtual kernel"),
+            ("ssh", "a non-microsoft kernel over SSH",
+             "needs AZAZAEL_BARE_SSH=user@bare-host"),
+            ("vsock", "a host service reachable at 127.0.0.1:8420",
+             "h5/vsock bridge or TCP fallback; closed is a named failure"),
+            ("all", "the first path that actually reaches bare metal",
+             "probes local -> ssh -> vsock in that order"))
+    body = "\n".join("%-6s %-38s %s" % r for r in rows)
+    return ("bare-metal passthrough selections (%d): local, ssh, vsock, all\n%s\n"
+            "pick one with metal_probe, or krampus_select(\"metal\"/\"ssh\"...)"
+            % (len(METAL_SELECTIONS), body))
+
+
+def metal_probe(selection: str = "all") -> str:
+    """Run one BarePassthroughWorm selection and report its own dict.
+
+    The worm lives behind the same bounded subprocess as every other tool, so a
+    slow SSH handshake is a named timeout rather than a wedged server, and the
+    server process never imports the worm registry.
+    """
+    sel = (selection or "all").strip().lower()
+    if sel not in METAL_SELECTIONS:
+        return "unknown metal selection %r; known: %s" % (
+            selection, ", ".join(METAL_SELECTIONS))
+    mod, _, cls = METAL_WORM.partition(":")
+    method = {"all": "probe"}.get(sel, "probe_" + sel)
+    code = ("import json,sys;sys.path.insert(0,%r);"
+            "from %s import %s;w=%s();print(json.dumps(w.%s()))"
+            % (str(REPO / "src"), mod, cls, cls, method))
+    ok, text = _run([_python(), "-c", code], TIMEOUT_METAL)
+    if not ok:
+        return "metal %s could not run: %s" % (sel, text)
+    try:
+        payload = json.loads(text.splitlines()[-1])
+    except (ValueError, IndexError):
+        return text
+    return "metal %s (%s)\n%s" % (sel, method, json.dumps(payload, indent=2))
 
 
 def _tool(name, description, props=None, required=None):
@@ -211,6 +268,14 @@ def tool_list():
               "List all API connections with model counts and key status."),
         _tool("provider_best",
               "Picker: name the API connection that is live right now."),
+        _tool("krampus_metal_list",
+              "Bare-metal passthrough selections: local, ssh, vsock, all."),
+        _tool("krampus_metal_probe",
+              "Picker: run one bare-metal passthrough selection and report it.",
+              {"selection": {"type": "string",
+                             "description": "one of: "
+                                            + ", ".join(METAL_SELECTIONS)}},
+              ["selection"]),
     ]
     for sel in SELECTORS:
         tools.append(_tool("gamora_" + sel,
@@ -235,6 +300,10 @@ def call_tool(name, args):
         return providers_list()
     if name == "provider_best":
         return provider_best()
+    if name == "krampus_metal_list":
+        return metal_list()
+    if name == "krampus_metal_probe":
+        return metal_probe(str(args.get("selection", "all")))
     if name.startswith("gamora_"):
         return gamora_selector(name[len("gamora_"):],
                                str(args.get("extra", "")))
@@ -306,9 +375,15 @@ def selftest() -> int:
         if "gamora_" + sel not in names:
             problems.append("selector %r has no tool" % sel)
     for required in ("krampus_members", "krampus_doctor", "krampus_selectors",
-                     "krampus_select", "providers_list", "provider_best"):
+                     "krampus_select", "providers_list", "provider_best",
+                     "krampus_metal_list", "krampus_metal_probe"):
         if required not in names:
             problems.append("missing tool %r" % required)
+    for sel in METAL_SELECTIONS:
+        if "metal:%s" % sel not in krampus_selectors():
+            problems.append("metal selection %r is not listed" % sel)
+    if "unknown metal selection" not in metal_probe("not-a-path"):
+        problems.append("unknown metal selection is not refused by name")
     routed = krampus_select("selectors")
     if "gamora_eve" not in routed:
         problems.append("picker does not list gamora selectors")
