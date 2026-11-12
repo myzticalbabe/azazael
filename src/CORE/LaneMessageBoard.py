@@ -41,7 +41,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 from CORE.failure_ledger import note_failure
-from tools.defaults_profile import read_default
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 
 _log = logging.getLogger(__name__)
 

@@ -154,10 +154,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
+          # run_tests.py writes logs/<test>.log per file (tail 200 lines) so a
+          # CI-only failure arrives with its traceback, not just a summary.
           # Was `path: *.log`, which is not a glob to YAML -- a leading `*` is an
           # alias. The file failed to parse at all (yaml.safe_load -> "expected
           # alphabetic or numeric character, but found '.'"), so this workflow
           # had two independent reasons never to run: no hosted remote, and a
           # document that is not valid YAML. Measured 2026-11-01.
-          path: "*.log"
+          path: "logs/*.log"
           retention-days: 7

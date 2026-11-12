@@ -38,7 +38,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
 from collections import defaultdict
-from tools.defaults_profile import read_default
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
