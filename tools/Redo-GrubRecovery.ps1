@@ -27,8 +27,11 @@ $UBUNTU_STUB = 'EFI\ubuntu\grub.cfg'
 function Get-FwEntries {
     # identifier -> description for every {fwbootmgr} displayorder entry
     $raw = bcdedit /enum '{fwbootmgr}' 2>&1 | Out-String
-    $order = [regex]::Matches($raw, 'identifier\s+(\{[0-9a-f\-]+\})') |
-        ForEach-Object { $_.Groups[1].Value }
+    # NOTE: /enum '{fwbootmgr}' prints displayorder GUIDs BARE (no 'identifier'
+    # prefix) -- matching only 'identifier {...}' lines captures {fwbootmgr}
+    # itself and nothing else. Take every braced GUID except {fwbootmgr}.
+    $order = [regex]::Matches($raw, '\{[0-9a-f\-]{36}\}') |
+        ForEach-Object { $_.Value } | Where-Object { $_ -ne '{fwbootmgr}' }
     $descs = @{}
     foreach ($id in ($order | Select-Object -Unique)) {
         $d = bcdedit /enum $id 2>$null | Out-String
@@ -55,14 +58,12 @@ function Get-EspWithUbuntu {
         if (-not $volPath) { continue }
         $letter = 'S'
         mountvol "${letter}:" $volPath | Out-Null
-        try {
-            if (Test-Path "${letter}:\$UBUNTU_STUB") {
-                return @{ Letter = $letter; VolPath = $volPath;
-                          Partition = $p.PartitionNumber }
-            }
-        } finally {
-            if (-not $script:KeepMounted) { mountvol "${letter}:" /D | Out-Null }
+        if (Test-Path "${letter}:\$UBUNTU_STUB") {
+            # FOUND: stays mounted; the caller dismounts S: when done.
+            return @{ Letter = $letter; VolPath = $volPath;
+                      Partition = $p.PartitionNumber }
         }
+        mountvol "${letter}:" /D | Out-Null
     }
     return $null
 }
@@ -70,10 +71,23 @@ function Get-EspWithUbuntu {
 $drift = @()
 
 # ---- 1. firmware order -------------------------------------------------------
+# ESP first: the recreate step below addresses the shim as partition=S:,
+# and Get-EspWithUbuntu leaves S: mounted on success (caller dismounts).
+$esp = Get-EspWithUbuntu
 $fw = Get-FwEntries
 $ubuntuId = Get-UbuntuFwId $fw
 if (-not $ubuntuId) {
     $drift += 'NO ubuntu firmware entry exists at all (bcdedit /enum firmware shows none)'
+    if (-not $VerifyOnly) {
+        if (-not $esp) { fail 'cannot recreate ubuntu entry: no ESP holds \\EFI\\ubuntu\\grub.cfg' }
+        $copied = (bcdedit /copy '{bootmgr}' /d 'ubuntu' 2>&1 | Out-String)
+        if ($copied -notmatch '(\{[0-9a-f\-]+\})') { fail ('bcdedit /copy produced no GUID: ' + $copied) }
+        $ubuntuId = $Matches[1]
+        bcdedit /set $ubuntuId device partition=S: | Out-Null
+        bcdedit /set $ubuntuId path '\EFI\ubuntu\shimx64.efi' | Out-Null
+        bcdedit /set '{fwbootmgr}' displayorder $ubuntuId /addfirst | Out-Null
+        Write-Host "fixed: recreated ubuntu firmware entry $ubuntuId (shimx64.efi on S:), moved first"
+    }
 } elseif ($fw.Order.Count -gt 0 -and $fw.Order[0] -ne $ubuntuId) {
     $drift += 'ubuntu shim is NOT first in {fwbootmgr} displayorder'
     if (-not $VerifyOnly) {
@@ -95,14 +109,12 @@ if ($timeout -notmatch 'timeout\s+1\s') {
 }
 
 # ---- 2. ESP stub --------------------------------------------------------------
-$esp = Get-EspWithUbuntu
 if (-not $esp) {
     $drift += 'NO ESP on Disk0 holds \EFI\ubuntu\grub.cfg (checked every ESP partition)'
     if (-not $VerifyOnly) {
         Write-Host 'repair needs a target: mount the Ubuntu ESP and re-run'
     }
 } else {
-    $script:KeepMounted = -not $VerifyOnly
     Write-Host ("ok: \EFI\ubuntu\grub.cfg lives on ESP partition p{0} ({1})" -f
         $esp.Partition, $esp.VolPath)
 }
@@ -111,11 +123,12 @@ if ($VerifyOnly -or -not $esp) {
     Write-Host ''
     if ($drift.Count -eq 0) { Write-Host 'VERIFY: no drift. Reboot lands on the grub menu.' }
     else { Write-Host 'VERIFY: drift found:'; $drift | ForEach-Object { Write-Host "  - $_" } }
-    if ($esp) { mountvol "$($esp.Letter):" /D | Out-Null }
-    exit ($drift.Count -gt 0 ? 1 : 0)
+    if ($esp) { mountvol 'S:' /D | Out-Null }
+    if ($drift.Count -gt 0) { exit 1 } else { exit 0 }
 }
 
 # ---- repair the stub (backups first, exactly like 2026-11-09) ----------------
+# (S: is still mounted by Get-EspWithUbuntu; dismounted again at the end.)
 $S = $esp.Letter + ':'
 $live = Join-Path $S $UBUNTU_STUB
 $bak1 = $live + '.bak1'
@@ -145,7 +158,6 @@ menuentry 'Windows 11 (chainload)' {
 Set-Content -Path $live -Value $stub -Encoding Ascii -NoNewline:$false
 Write-Host ("wrote {0} ({1} bytes)" -f $live, (Get-Item $live).Length)
 mountvol "$S" /D | Out-Null
-$script:KeepMounted = $false
 
 Write-Host ''
 Write-Host 'DONE. Reboot -> grub menu (Ubuntu on p8 first, Windows 11 fallback).'

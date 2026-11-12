@@ -34,14 +34,19 @@ Script: `C:/Azazael/azazael/tools/Redo-GrubRecovery.ps1`
    `powershell -ExecutionPolicy Bypass -File E:\Redo-GrubRecovery.ps1 -VerifyOnly`
    - Exit 0 = no drift: reboot straight to the grub menu.
    - Exit 1 = drift listed: re-run without `-VerifyOnly` to repair.
-2. Repair run does, in order: ubuntu-first displayorder (only if drifted),
+2. Repair run does, in order: recreates the ubuntu firmware entry from
+   {bootmgr} when none exists (ESP device, shimx64.efi path, /addfirst),
+   else moves the existing ubuntu entry first (only if drifted),
    bootmgr timeout 1 s (only if drifted), finds the ESP holding
    `\EFI\ubuntu\`, rotates `grub.cfg` → `.bak1` → `.bak2`, writes the
    delegate stub (`hd0,gpt8` → p8's own `grub.cfg`, Win11 chainload fallback),
    dismounts the ESP.
 3. Reboot → grub menu → Ubuntu on p8. `E:\BM_INSTRUCTIONS.txt` is the BM side.
 
-Design notes: the stub addresses `hd0,gpt8` directly instead of by UUID, so it
+Parser note (2026-11-12): bcdedit enum of fwbootmgr prints displayorder
+GUIDs bare, so the detector takes every braced GUID except fwbootmgr itself;
+matching only identifier lines sees just fwbootmgr and reports a missing
+entry forever. Design notes: the stub addresses `hd0,gpt8` directly instead of by UUID, so it
 cannot go stale the way a PARTUUID string can — the layout it names was
 re-measured today. If p8's own `grub.cfg` is ever missing, the Win11 entry
 below the `configfile` line is the fallback, so the box always boots something.
