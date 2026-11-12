@@ -101,6 +101,7 @@
     "kernel": true,
     "kernel_timeout_s": 180,
     "strict": false,
+    "strict_after_clean": 3,
     "leg_timeout_s": 300
   },
   "reading_audit": {

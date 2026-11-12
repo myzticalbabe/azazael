@@ -220,6 +220,58 @@ def _run_auditor_subprocess(rel, strict, bound):
     return proc.returncode, first
 
 
+RATCHET_PATH = ROOT / "logs" / "deep_dive_leg_state.json"
+
+
+_RATCHET_NOTES = []  # state-file incidents, surfaced in the leg line
+
+
+def _ratchet_load():
+    """{auditor: {clean_streak, strict}}. Missing/corrupt file is a fresh
+    ledger, never a failure: the ratchet measures runs, and a run that cannot
+    be measured has not happened."""
+    try:
+        raw = json.loads(RATCHET_PATH.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            return raw
+        _RATCHET_NOTES.append("state is not an object, starting fresh")
+    except (OSError, ValueError) as exc:
+        _RATCHET_NOTES.append("state unreadable (%s), starting fresh"
+                              % type(exc).__name__)
+    return {}
+
+
+def _ratchet_update(ratchet, ran, n):
+    """A clean run lengthens the streak, a dirty one resets it; strict
+    latches at N and never auto-releases. Skipped/off legs are not runs
+    and leave no trace. Pure function over the state dict (testable
+    without a run); persistence stays in _ratchet_save."""
+    for name in ran:
+        rc = ran[name][0]
+        st = ratchet.get(name, {"clean_streak": 0, "strict": False})
+        if rc == 0:
+            st["clean_streak"] = int(st.get("clean_streak", 0)) + 1
+            if st["clean_streak"] >= n:
+                st["strict"] = True
+        else:
+            st["clean_streak"] = 0
+        ratchet[name] = st
+    ratchet["_policy"] = ("shrink-only: strict latches after %d consecutive "
+                            "clean runs and releases only by explicit commit "
+                            "naming the reason" % n)
+    return ratchet
+
+
+def _ratchet_save(state):
+    try:
+        RATCHET_PATH.parent.mkdir(parents=True, exist_ok=True)
+        RATCHET_PATH.write_text(json.dumps(state, indent=2, sort_keys=True)
+                                + "\n", encoding="utf-8")
+    except OSError as exc:
+        _RATCHET_NOTES.append("state unwritable (%s): this run unrecorded"
+                              % type(exc).__name__)
+
+
 def _run_auditor_task(name, rel, strict, bound, router):
     """Run one auditor in-process, subprocess on failure.
 
@@ -267,6 +319,9 @@ def leg_hyper_edge(_payload):
     """
     strict = bool(setting("hyper_edge.strict", False))
     leg_bound = float(setting("hyper_edge.leg_timeout_s", 300))
+    ratchet_n = int(setting("hyper_edge.strict_after_clean", 3))
+    del _RATCHET_NOTES[:]
+    ratchet = _ratchet_load()
     flags = hyper_edge_flags()
     parts, failed, summary = [], [], {}
     pending = []
@@ -279,7 +334,12 @@ def leg_hyper_edge(_payload):
             parts.append("leg_ledger=skipped (no prior %s to audit)" % REPORT.name)
             summary[name] = "skipped"
             continue
-        pending.append((name, rel))
+        # Per-leg strict: latched by the ratchet below after N consecutive
+        # clean runs, or forced by the global knob. Latched strict never
+        # auto-loosens (shrink-only); loosening is an explicit commit that
+        # names the reason, because a ratchet that relaxes itself is a hope.
+        leg_strict = strict or bool(ratchet.get(name, {}).get("strict", False))
+        pending.append((name, rel, leg_strict))
     # Fan-out: one worker per auditor on this (free-threaded) interpreter.
     # No context manager: pool.shutdown(wait=True) would wed the leg to a
     # hung worker; futures carry the bound and a timeout is recorded as one.
@@ -289,8 +349,9 @@ def leg_hyper_edge(_payload):
     ran = {}
     pool = ThreadPoolExecutor(max_workers=max(1, len(pending)))
     try:
-        futs = {pool.submit(_run_auditor_task, name, rel, strict,
-                            leg_bound, router): name for name, rel in pending}
+        futs = {pool.submit(_run_auditor_task, name, rel, leg_strict,
+                            leg_bound, router): name
+                for name, rel, leg_strict in pending}
         for fut, name in futs.items():
             try:
                 ran[name] = fut.result(timeout=leg_bound)
@@ -305,11 +366,21 @@ def leg_hyper_edge(_payload):
         if name not in ran:
             continue
         rc, first, via = ran[name]
+        leg_strict = next((s for n, _r, s in pending if n == name), False)
         summary[name] = {"exit": rc, "line": first or "no output",
-                         "via": via}
-        parts.append("%s [%s]: %s" % (name, via, first or "no output"))
+                         "via": via, "strict": leg_strict}
+        mark = "strict" if leg_strict else "advisory"
+        parts.append("%s [%s/%s]: %s" % (name, via, mark, first or "no output"))
         if rc != 0:
             failed.append("%s exit %s" % (name, rc))
+    _ratchet_update(ratchet, ran, ratchet_n)
+    _ratchet_save(ratchet)
+    latched = sorted(n for n, st in ratchet.items()
+                     if n != "_policy" and st.get("strict"))
+    if latched:
+        parts.append("ratchet strict: %s" % ", ".join(latched))
+    for note in _RATCHET_NOTES:
+        parts.append("ratchet note: %s" % note)
     detail = "; ".join(parts) + " | wall %.1fs" % wall
     if failed:
         return {"status": "error", "summary": summary,
