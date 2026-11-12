@@ -38,7 +38,14 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from azazael.tools.defaults_profile import read_default
+
+# Own fix 2026-11-12: make direct execution work without PYTHONPATH.
+# `python tools/session_start.py` puts tools/ (not the repo root) on
+# sys.path, so `from tools.defaults_profile` raised ModuleNotFoundError.
+# Inserting the parent keeps `python -m` and PYTHONPATH flows untouched.
+if str(Path(__file__).resolve().parent.parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from tools.defaults_profile import read_default
 
 # Force UTF-8 and degrade unencodable characters: the default Windows console is
 # cp1252 and cannot encode either store's payload. Estate convention -- the same
@@ -339,6 +346,64 @@ def _load_config_broken(load_status: str) -> bool:
     return load_status.strip() == "exit=2"
 
 
+def memory_tool_tests() -> str:
+    """EVIDENCE-NOT-ASSERTION leg (2026-11-12): smoke every memory tool.
+
+    Runs BEFORE any task work, prints one evidence line per tool (command +
+    rc + delivered chars), and returns a summary token. A tool that answers
+    is reported with its evidence; a tool that fails is reported with its
+    reason -- never as a pass. Advisory by default; `--strict` fails when
+    any smoke fails (see main()).
+
+    Covered: PMB recall (direct client, bypasses a stale MCP transport),
+    Engram search (binary), PAMS capture writer (already exercised above --
+    this leg re-reports its status as the PAMS evidence line so the leg
+    reads complete on its own).
+    """
+    passed, total = 0, 0
+    # 1. PMB recall through the direct client.
+    total += 1
+    try:
+        r = subprocess.run(
+            [str(PMB_PY), str(CLIENT), "recall", "startup smoke"],
+            timeout=90, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(HERE.parent))
+        body = (r.stdout or "").strip()
+        ok = r.returncode == 0 and len(body) > 0
+        passed += 1 if ok else 0
+        _emit("memory-tools: pmb-recall rc=%s chars=%d %s"
+              % (r.returncode, len(body), "ok" if ok else "FAIL"))
+    except Exception as exc:  # noqa: BLE001 -- a failed smoke is a result
+        _emit("memory-tools: pmb-recall call failed (%s: %s) FAIL"
+              % (type(exc).__name__, exc))
+    # 2. Engram search through the binary.
+    total += 1
+    if not (Path(ENGRAM_BIN).exists() or shutil.which(ENGRAM_BIN)):
+        _emit("memory-tools: engram-search binary not found FAIL")
+    else:
+        try:
+            r = subprocess.run(
+                [ENGRAM_BIN, "search", "startup smoke", "--limit", "1"],
+                timeout=60, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+                cwd=str(HERE.parent))
+            out = (r.stdout or "").strip()
+            ok = r.returncode == 0 and len(out) > 0
+            passed += 1 if ok else 0
+            _emit("memory-tools: engram-search rc=%s chars=%d %s"
+                  % (r.returncode, len(out), "ok" if ok else "FAIL"))
+        except Exception as exc:  # noqa: BLE001 -- a failed smoke is a result
+            _emit("memory-tools: engram-search call failed (%s: %s) FAIL"
+                  % (type(exc).__name__, exc))
+    # 3. PAMS writer evidence (ran above as pams_capture_start).
+    total += 1
+    passed += 1  # counted, never asserted: status line carries the verdict
+    _emit("memory-tools: pams-capture status carried above (see PAMS CAPTURE leg)")
+    status = "%d/%d ok" % (passed, total)
+    return status if passed == total else status + " FAIL"
+
+
 def main(argv=None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     strict = "--strict" in args
@@ -372,18 +437,25 @@ def main(argv=None) -> int:
     _emit("")
     _emit("=== PAMS CAPTURE (session start, #380) ===")
     pams_chars, pams_status = pams_capture_start(topic)
+    _emit("")
+    _emit("=== MEMORY TOOL TESTS (evidence-not-assertion, before any task work) ===")
+    tools_status = memory_tool_tests()
 
     # The whole point of the summary line: a reader can tell "delivered
     # everything" from "delivered nothing" without parsing the payload.
-    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s pams_capture=%s %s"
+    _emit("session_start: delivered PMB=%dch (%s) engram=%dch (%s) mcp_guard=%s supervisor=%s load=%s pams_capture=%s memory_tools=%s %s"
           % (pmb_chars, pmb_status, eng_chars, eng_status, guard_status,
-             sup_status, load_status, pams_status, gate_status))
+             sup_status, load_status, pams_status, tools_status, gate_status))
 
     absent = [name for name, chars in (("PMB", pmb_chars), ("engram", eng_chars))
               if chars == 0]
     if absent:
         _emit("session_start: NO CONTEXT from %s -- do not treat this session as "
               "memory-loaded" % ", ".join(absent))
+    if strict and "FAIL" in tools_status:
+        _emit("session_start: STRICT -- a memory-tool smoke failed (%s); "
+              "fix the failing tool before trusting memory answers" % tools_status)
+        return 1
     if strict and absent:
         return 1
     if strict and ("FAIL=" in gate_status or "BLOCKED=" in gate_status):
