@@ -140,6 +140,42 @@
       "limitation": true,
       "measured": "the tool prints 'LIMITATION: corpus and router were written by the same author, so this measures agreement with those expectations, not clinical validity' and 'Nothing here is a clinical validation. Do not cite this as one.'",
       "does_not_prove": "that the system is safe for a person in crisis: a limitation stated is a limit on what may be claimed, not a substitute for clinical oversight"
+    },
+    {
+      "id": "E12",
+      "surface": "bypass",
+      "asserts": "the bypass chain covers UJS, DOS, ProPublica, campaign finance and press, all public records",
+      "tier": "B",
+      "instrument": "tools/bcc_bypass.py",
+      "command": "no command in the tree enumerates the covered portals",
+      "source": "README.md:32",
+      "measured": "README.md:32 states 'UJS, DOS, ProPublica, campaign finance, press -- all public records'. Not re-measured here: no script in the tree emits the portal list -- the chain exists at tools/bcc_bypass.py but its coverage is prose, not output.",
+      "carried_because": "the portal list appears only in the project's own table; grading it would first need a coverage probe that runs the chain, and no such script exists in this tree",
+      "does_not_prove": "that each portal is reachable today, or that the chain clears them; it proves the project says what it covers"
+    },
+    {
+      "id": "E13",
+      "surface": "ultra-loose",
+      "asserts": "the ultra-loose tutorial rests on 10 flocks, 4 tiers and a proof standard",
+      "tier": "B",
+      "instrument": "tools/ultra_loose.py",
+      "command": "no command in the tree counts the flocks or tiers",
+      "source": "README.md:33",
+      "measured": "README.md:33 states '10 flocks, 4 tiers, proof standard'. Not re-measured here: the flock count lives in the canon document the tutorial teaches, and no script emits the tally.",
+      "carried_because": "the tally appears only in the project's own table; a gate that counted it would parse canon prose as data, which is exactly the eloquence-as-truth the ledger refuses",
+      "does_not_prove": "that ten flocks are the right ten, or that four tiers suffice; it proves the project says what it teaches"
+    },
+    {
+      "id": "E14",
+      "surface": "concurrent",
+      "asserts": "the concurrent guide runs 16-core free-threaded with PMB/PAMS shared across Windows, WSL2 and Kali",
+      "tier": "B",
+      "instrument": "WINDOWS_WSL_CONCURRENT.md",
+      "command": "no command in the tree attests the core count or the shared stores",
+      "source": "README.md:34",
+      "measured": "README.md:34 states '16-core free-threaded, PMB/PAMS shared' across Windows, WSL2 and Kali. Not re-measured here: the core count is a property of this box and the sharing a property of the running stack, neither emitted by a script in this tree.",
+      "carried_because": "the figure appears only in the project's own table; it describes the operator's box and live stack, which a static gate cannot observe without running them",
+      "does_not_prove": "that any other box has 16 cores, or that the stores are shared right now; it proves the project says what the guide assumes"
     }
   ],
   "declared_gaps": [

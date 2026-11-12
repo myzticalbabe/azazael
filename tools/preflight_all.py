@@ -456,7 +456,11 @@ GATES: Tuple[Gate, ...] = (
     ),
     Gate(
         name="transcript-ap5",
-        argv=("tools/transcript_ap5_gate.py", "--limit", "500"),
+        # --source all: this box's live transcripts are manicode (freebuff),
+        # not opencode; the default slot alone scans an absent store and the
+        # gate fails BLIND on a machine with real transcripts to read.
+        argv=("tools/transcript_ap5_gate.py", "--limit", "500",
+              "--source", "all"),
         interpreter="python3",
         env=(),
         inside_hook=True,
