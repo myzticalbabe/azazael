@@ -140,11 +140,19 @@ Write-Host "backed up: $live -> grub.cfg.bak1 (+bak2 rotated)"
 $stub = @'
 # BM recovery stub — delegates to the Ubuntu root on Disk0 partition 8
 # (fixed GPT layout, verified 2026-11-12; p8 = Linux filesystem, p9 = swap).
+# Dual-view 2026-11-12: also probes (hd0,gpt2) for the VirtualBox raw-map VM.
 # Entries below only appear if p8's own grub.cfg is missing, so this box
 # always boots SOMETHING.
 insmod part_gpt
 insmod ext2
-set root='hd0,gpt8'
+# NATIVE view: p8 is (hd0,gpt8). VM view (raw map of p1+p8 only): p8 shows
+# as (hd0,gpt2). The -e guard means a wrong slot simply does not match, so
+# one stub serves both (see docs/BM_RUN_BOTH_AT_ONCE_2026-11-12.md).
+if [ -e (hd0,gpt8)/boot/grub/grub.cfg ]; then
+  set root='hd0,gpt8'
+elif [ -e (hd0,gpt2)/boot/grub/grub.cfg ]; then
+  set root='hd0,gpt2'
+fi
 set prefix=($root)'/boot/grub'
 configfile $prefix/grub.cfg
 menuentry 'Windows 11 (chainload)' {
