@@ -9,6 +9,12 @@ caller keeps CPU unless it opts in:
 make_dense() returns mcml.Dense on cpu or mcml_gpu.GpuDense on opencl
 (lazy import; a clear RuntimeError when pyopencl is missing, so a box
 without the wheel fails loudly instead of silently training on CPU).
+
+The cpu default is a portability choice, not a speed one: measured
+2026-11-12 on Intel Arc 140T with kernels cached, opencl is 1.44x FASTER
+than cpu at 64->32 batch 16 (51.24 ms vs 73.73 ms). The earlier 0.45x
+reading was taken before GpuDense cached its kernel objects, and it is
+superseded, not a second opinion.
 train_batch() is backend-blind: it only uses forward/backward/step/
 zero_grad/params/grads, the surface both layers share.
 report() prints exactness (GpuDense vs Dense from the SAME seed:

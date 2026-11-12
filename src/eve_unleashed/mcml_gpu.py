@@ -151,6 +151,12 @@ class GpuDense:
         self.d_gW = self.ctx.buffer(flat_gW, self.ctx.mf.READ_WRITE | self.ctx.mf.COPY_HOST_PTR)
         self.d_gb = self.ctx.buffer(self.gb, self.ctx.mf.READ_WRITE | self.ctx.mf.COPY_HOST_PTR)
 
+        # Cache kernel objects once: pyopencl builds a NEW kernel on every
+        # program.<name> access, which is real per-call cost in a hot loop.
+        self.k_forward = cl.Kernel(self.ctx.program, "dense_forward")
+        self.k_backward = cl.Kernel(self.ctx.program, "dense_backward")
+        self.k_step = cl.Kernel(self.ctx.program, "dense_step")
+
     def _sync_to_host(self):
         """Sync device buffers to host arrays."""
         flat_W = self.ctx.read_buffer(self.d_W, self.in_dim * self.out_dim)
@@ -166,7 +172,7 @@ class GpuDense:
         d_x = self.ctx.buffer(x)
         d_y = cl.Buffer(self.ctx.ctx, self.ctx.mf.WRITE_ONLY, size=self.out_dim * 4)
 
-        self.ctx.program.dense_forward(
+        self.k_forward(
             self.ctx.queue, (self.out_dim,), None,
             self.d_W, self.d_b, d_x, d_y,
             ctypes.c_int(self.in_dim), ctypes.c_int(self.out_dim)
@@ -181,7 +187,7 @@ class GpuDense:
         d_grad_y = self.ctx.buffer(grad_y)
         d_grad_x = cl.Buffer(self.ctx.ctx, self.ctx.mf.WRITE_ONLY, size=self.in_dim * 4)
 
-        self.ctx.program.dense_backward(
+        self.k_backward(
             self.ctx.queue, (self.out_dim,), None,
             self.d_W, d_x, d_grad_y,
             d_grad_x, self.d_gW, self.d_gb,
@@ -209,7 +215,7 @@ class GpuDense:
 
     def step(self, lr: float):
         total = self.in_dim * self.out_dim + self.out_dim
-        self.ctx.program.dense_step(
+        self.k_step(
             self.ctx.queue, (total,), None,
             self.d_W, self.d_b, self.d_gW, self.d_gb,
             ctypes.c_float(lr),
@@ -270,12 +276,20 @@ class HybridDense:
         return results
 
     def zero_grad(self):
-        self.cpu_layer.zero_grad()
+        # mcml.Dense has gW/gb but no zero_grad/step (only Sequential does),
+        # so the CPU side is reset and updated here rather than delegated.
+        self.cpu_layer.gW = [[0.0] * self.cpu_layer.in_dim
+                             for _ in range(self.cpu_layer.out_dim)]
+        self.cpu_layer.gb = [0.0] * self.cpu_layer.out_dim
         if self.gpu_layer:
             self.gpu_layer.zero_grad()
 
     def step(self, lr: float):
-        self.cpu_layer.step(lr)
+        # Same update math as Sequential.step, applied to the CPU side.
+        d = self.cpu_layer
+        d.W = [[w - lr * gw for w, gw in zip(row, grow)]
+               for row, grow in zip(d.W, d.gW)]
+        d.b = [v - lr * gv for v, gv in zip(d.b, d.gb)]
         if self.gpu_layer:
             self.gpu_layer.step(lr)
 

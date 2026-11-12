@@ -107,6 +107,32 @@ def test_fused_pair_step_matches_dense_update():
     assert _maxd(pair.params(), want) <= 2e-6
 
 
+@pytest.mark.parametrize("pct", [0.0, 0.5, 1.0])
+def test_hybrid_dense_can_step_and_learn(pct):
+    """HybridDense delegated step/zero_grad to Dense, which has neither."""
+    _requires_gpu()
+    X, T = _fixture(batch=8)
+    h = gpu.HybridDense(16, 8, seed=7, gpu_pct=pct)
+    before = gpu.mse_batch(h.forward(X), T)[0]
+    for _ in range(40):
+        y = h.forward(X)
+        _, gy = gpu.mse_batch(y, T)
+        h.backward(X, gy)
+        h.step(0.05)
+        h.zero_grad()
+    after = gpu.mse_batch(h.forward(X), T)[0]
+    assert after < before, f"gpu_pct={pct}: loss {before} -> {after}"
+
+
+def test_hybrid_dense_tune_pins_a_split():
+    _requires_gpu()
+    X, T = _fixture(batch=8)
+    h = gpu.HybridDense(16, 8, seed=7, gpu_pct=0.5)
+    pinned = h.tune(X, T, steps=2)
+    assert 0.0 <= pinned <= 1.0
+    assert h._pinned_pct == pinned
+
+
 def test_tiled_sgemm_rounds_partial_tiles():
     """Batch size not divisible by TILE must still be exact."""
     _requires_gpu()
