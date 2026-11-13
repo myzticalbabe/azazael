@@ -54,6 +54,33 @@ python C:/Azazael/azazael/tools/mcp_startup_gate.py --fix
   any `D:` clone.
 - **Freebuff owns Eve** (`eve_unleashed/`); other lanes hands off.
 
+## Expose the screen before any work starts (2026-11-13)
+
+**Order: a session's first act after the gate is to say the machine is visible.**
+A human cannot check an agent's claim about pixels they cannot take. So before
+queue work, print the capability and its landing folder — not a promise to take
+a screenshot later:
+
+```bash
+python tools/sys_screenshot.py --full            # one shot, prints the real path
+python tools/sys_screenshot.py --pictures        # lands in Pictures\Screenshots
+                                                 # with Win+PrtScr's own naming
+```
+
+- `--pictures` writes where `Win+PrtScr` writes. Win+PrtScr itself is an Explorer
+  shell hotkey, **not an API**: `SendKeys` has no Windows-key support, so a tool
+  cannot press it; the same pixels are captured through the same screen DC instead.
+- Exit 0 must name a file that exists and is non-empty. A capture that saved a
+  black frame is not a screenshot, so a keeper is opened and looked at once.
+- **GUI automation is not forbidden, it is gated.** It runs through
+  `tools/gui_act.py`, which implements `desktop-automation-safety`: one process,
+  world minimised and restored, Win32 foreground dance, and content-verified
+  focus — foreground title **and** OCR of the target's top strip — before every
+  input burst. Lost focus aborts and keeps the captures. `--probe` observes,
+  `--plan` prints, and only `--confirm-live` presses a key.
+- Human-side check: an agent that says it clicked something must be able to show
+  the before and after frames. A claim about the UI without a frame is a claim.
+
 ## Critique loop — every restart carries one expiry
 
 Each lane's restart report names **one residual failure** with its repro command
