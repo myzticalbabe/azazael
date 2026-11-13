@@ -201,6 +201,27 @@ TARGETS = {
             HOME / ".codebuff/rules.md",
         ],
     ),
+    # Added 2026-11-12 after the block it replaces was measured to be a snapshot
+    # with no owner: it existed as hand-appended prose in two of these seven
+    # files, in NO docs/agent_orders source, so `--check` could not see it and
+    # could not notice it rot. It had: it claimed "freebuff 0 open; kilo 6;
+    # opencode 11" against a live board reading 100 / 0 / 47, and it pinned 3.15t
+    # as the only interpreter while the session-order block in the SAME file
+    # names 3.16t as production. The replacement carries no counts at all -- the
+    # rule is to run `stats` in the turn you quote it, so a number that cannot be
+    # re-measured cannot be written down here.
+    "restart-queue": (
+        "09_restart_queue.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
 }
 
 
