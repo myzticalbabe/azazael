@@ -61,6 +61,22 @@ loading its embedding model, so a cold start is a wait, not a 502.
   the 30-minute lease. This session claimed 10 freebuff rows (48985-48994) for
   `claim`, found them to be unrelated queued product work, and left them to
   expire rather than retire work it did not do. Recorded, not worked around.
+- **Every `pmb__*` MCP call failed with `Session not found`** (`Streamable HTTP
+  error ... {"code":-32600,"message":"Session not found"}`) while the stack
+  itself was healthy: a raw `initialize` to `http://127.0.0.1:8766/mcp` returned
+  `HTTP 200` with a protocolVersion result, and `:8765` returned `401` for a
+  request without the token, which is the designed answer. The daemon restarted
+  at 20:15 (pid 14564, spawned by pams) and this client's pmb stdio child kept a
+  session id the new daemon never issued. Class `[BLOCKED]`: only a client
+  restart clears it. The outage is why outcomes in section 2 were written with
+  the CLI instead of the MCP tool, and each write returned an id:
+  `pmb note` -> `001a1d2be5815_81eccb47`, `pmb fact` ->
+  `001a1d2be6051_50b394a8`, `pmb learn` -> `001a1d2be62be_3049795d`. Engram was
+  unaffected (observation `2212`, two conflict candidates judged `not_conflict`
+  as `rel-c49f6277715b1a85` and `rel-94e25541fb13f306`).
+- **The reboot clears that staleness by construction** — the pmb child is
+  respawned with a fresh session — but a lane that does not restart should run
+  the CLI path rather than retry the MCP tool.
 
 ## 4. The queue
 
