@@ -31,3 +31,10 @@
 | 2026-11-05T00:58:10 | B | curl_cffi | 200 | 7456 | 5cff8a1021e03e3f | beam1_20261105_005810_B_support_hp_com_us_en_document_ish_7470520-7449625-16.html | C5 | https://support.hp.com/us-en/document/ish_7470520-7449625-16 |
 | 2026-11-05T00:58:10 | B | curl_cffi | 200 | 358924 | c90afd535aa4ece0 | beam1_20261105_005810_B_support_sonos_com_en_us_article_unable-to-set-up-a-sonos-product-in-recycle-mode.html | C7 | https://support.sonos.com/en-us/article/unable-to-set-up-a-sonos-product-in-recycle-mode |
 | 2026-11-05T00:59:03 | B | curl_cffi | 200 | 108073 | 057e1afc3552dfb6 | beam1_20261105_005903_B_web_archive_org_web_20260216063002id_support_hp_com_us_en_document_ish_7470520-7449625-16.html | C5 | https://web.archive.org/web/20260216063002id_/https://support.hp.com/us-en/document/ish_7470520-7449 |
+
+## Credential redaction (2026-11-13)
+
+| UTC | tier | method | status | bytes | sha | raw-path | edge_idx | next-step |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-13T21:40:00Z | B | redaction | 200 | 288091 | d723422f9484 | beam1_20261104_233825_B_developer_android_com_google_play_integrity_overview.html | null | third-party Google frontend API keys redacted (9 hits); fetched sha 190d4160a7ee preserved in FETCH_LOG.jsonl; sha256_current d723422f9484 |
+| 2026-11-13T21:40:00Z | B | redaction | 200 | 359240 | 22ec25490e0e | beam1_20261104_235645_B_developer_android_com_google_play_integrity_verdicts.html | null | third-party Google frontend API keys redacted (9 hits); fetched sha 6b05562fff28 preserved in FETCH_LOG.jsonl; sha256_current 22ec25490e0e |
