@@ -1,0 +1,47 @@
+{
+ "made_at": "2026-11-06T22:00:19.035015+00:00",
+ "decisions": [
+  {
+   "verb": "MORPH",
+   "target": "none \u2014 everything landed",
+   "change": "reshape each unlanded package's recipe (backend, deps, patches) until its probe passes",
+   "proof": "C:/Azazael/.venvs/py316t/Scripts/python.exe oxenford-adopt.py <name> --graph",
+   "reversible": true
+  },
+  {
+   "verb": "MUTATE",
+   "target": "none \u2014 no stubs open",
+   "change": "mint a minimal source patch per stub, register under patch_files, re-adopt to land",
+   "proof": "patch -p1 --forward -i oxenford-upstream/<name>-<ver>-oxenford.patch",
+   "reversible": true
+  },
+  {
+   "verb": "TRANSMOGRIFY",
+   "target": [
+    "MarkupSafe",
+    "Pillow",
+    "cffi",
+    "cloudpickle",
+    "greenlet",
+    "joblib",
+    "narwhals",
+    "numpy",
+    "psutil",
+    "reportlab",
+    "scikit-learn",
+    "scipy",
+    "threadpoolctl"
+   ],
+   "change": "derive new artifacts from landed wheels: vendored-runtime wheels, exe, bundle, pdf",
+   "proof": "C:/Azazael/.venvs/py315t/Scripts/python.exe oxenford-forge.py wheel|exe|bundle|pdf",
+   "reversible": true
+  },
+  {
+   "verb": "TRANSSUBSTANTIATE",
+   "target": "open gaps (nasm self-host, SIMD flags, missing probes)",
+   "change": "turn each gap into a capability: self-built tool, enabled flag, recorded recipe row",
+   "proof": "C:/Azazael/.venvs/py315t/Scripts/python.exe oxenford-install.py --verify-only",
+   "reversible": false
+  }
+ ]
+}

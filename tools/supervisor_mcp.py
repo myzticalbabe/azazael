@@ -14,8 +14,14 @@ unified verdict. This server puts an MCP face on the existing oracle logic:
   triage_plan     open items with a suggested evidence check each, for resolution
   refusal_log     idempotent refusal-ledger append (ER-01: one event, one row)
 
-Run under the free-threaded interpreter (py315t, which has `mcp`):
-  C:/Azazael/.venvs/py315t/Scripts/python.exe tools/supervisor_mcp.py
+Server mode needs a WORKING `mcp` package. mcp 1.10.1 does
+`from pydantic._internal._typing_extra import eval_type_backport`, and
+pydantic 2.14 deleted that name, so a bare `import mcp` raises ImportError.
+The vendored backfill `tools/compat_pydantic214.py` must therefore be imported
+BEFORE mcp (see the import block below); it is a no-op alias on 3.16, where
+`typing._eval_type` already covers every syntax the backport handled.
+--verdict and the other CLI paths import no mcp and run under py316t:
+  C:/Azazael/.venvs/py316t/Scripts/python.exe tools/supervisor_mcp.py --verdict
 Registered in ~/.agents/mcp.json as stdio server "supervisor".
 """
 import json
@@ -30,10 +36,62 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import engram_supervise as sup  # noqa: E402
-try:
-    from mcp.server import MCPServer as FastMCP  # mcp 2.x
-except ImportError:
-    from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
+
+
+class _LazyServer:
+    """Builds the real MCP server only when server mode is entered.
+
+    The CLI paths (--verdict, --log-refusal, --selftest-refusal-dedupe) must
+    import no `mcp` at all: the import costs ~350 ms and pulls in
+    pydantic-settings, which emits an IncompleteFieldDefinitionWarning under
+    pydantic 2.14. The original design relied on `mcp` FAILING to import so an
+    identity decorator could stand in -- but mcp 1.10.1 + pydantic 2.14 fails
+    for a reason that ALSO breaks server mode, so that fallback could not be
+    the answer.
+
+    So the tool functions are collected here (the decorator returns the plain
+    function, so every CLI path keeps a directly callable `verdict`), and are
+    registered with the real FastMCP at run() time -- after the vendored
+    pydantic-2.14 backfill has been applied and `mcp` imports cleanly.
+    """
+
+    def __init__(self) -> None:
+        self._functions = []
+
+    def tool(self, *args, **kwargs):
+        def _collect(fn):
+            self._functions.append((args, kwargs, fn))
+            return fn
+        return _collect
+
+    def run(self, *args, **kwargs):
+        real = _build_real_server(self._functions)
+        return real.run(*args, **kwargs)
+
+
+def _build_real_server(functions):
+    """Import `mcp` (with the pydantic-2.14 backfill) and register the tools."""
+    # mcp 1.10.1 does `from pydantic._internal._typing_extra import
+    # eval_type_backport`; pydantic 2.14 deleted that name, so `import mcp`
+    # raises ImportError. The vendored backfill must be imported BEFORE mcp
+    # (HERE is already on sys.path above). Same pattern as barta_scrape_mcp.py,
+    # which is why that server always worked.
+    import compat_pydantic214  # noqa: F401 -- vendored pydantic-2.14 backfill
+    try:
+        try:
+            from mcp.server import MCPServer as FastMCP  # mcp 2.x
+        except ImportError:
+            from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
+        real = FastMCP("supervisor")
+    except ImportError as exc:
+        raise RuntimeError(
+            "supervisor server mode needs a working 'mcp' package: "
+            "%s: %s" % (type(exc).__name__, exc)) from exc
+    for args, kwargs, fn in functions:
+        real.tool(*args, **kwargs)(fn)
+    return real
+
+
 import datetime
 import subprocess
 import urllib.request
@@ -207,7 +265,10 @@ def append_refusal(tool, detail, client="opencode", session="",
             return "refusal: WRITE FAILED (%s: %s)" % (type(exc).__name__, exc)
 
 
-server = FastMCP("supervisor")
+# The real MCP server is built lazily, in _LazyServer.run(): the CLI paths
+# import no `mcp` at all, and server mode gets a working FastMCP because the
+# vendored pydantic-2.14 backfill is applied before `mcp` is imported.
+server = _LazyServer()
 
 
 def _pams_honest() -> tuple:
@@ -274,6 +335,64 @@ def _pmb_liveness() -> str:
 
 
 @server.tool()
+def _hyper_edge() -> tuple:
+    """Run hyper-edge audit leg (reading_audit + settings_shadow + head_audit).
+
+    Exits 1 when any denominator-free, orphan_knob, gap, or collapse finding
+    exists; exit 0 when all clear. Bounded at LEG_LIMIT_S so no child survives
+    the verdict response (same invariant as the other legs).
+    Returns (verdict_text, lines_list) tuple for the verdict renderer.
+    """
+    try:
+        result = subprocess.run(
+            [sys.executable, str(HERE / "hyper_edge_audit.py")],
+            capture_output=True, text=True, timeout=LEG_LIMIT_S,
+            encoding="utf-8", errors="replace",
+        )
+        output = result.stdout + result.stderr
+        # Parse the main verdict line from hyper_edge_audit.py output
+        lines = []
+        verdict_text = "unknown"
+        if result.returncode == 0:
+            # Check for the "all clear" success line
+            if "✅ Hyper-Edge Audit: No issues found" in output:
+                verdict_text = "GO"
+                lines.append("  Hyper-Edge Audit: All clear - no issues found")
+            else:
+                verdict_text = "GO"
+                lines.append("  Hyper-Edge Audit: exit 0 (no issues parsed)")
+        elif result.returncode == 1:
+            # Parse issue count from output
+            issue_count = 0
+            import re
+            m = re.search(r'(\d+) issue\(s\) found', output)
+            if m:
+                issue_count = int(m.group(1))
+            else:
+                # Count class lines
+                for _cls in ["denominator_free", "collapsed", "orphan_knob",
+                            "undeclared", "fallback_drift", "bypass_reader",
+                            "detached_worktree", "dirty_worktree",
+                            "exclusive_commits", "no_upstream", "stale_head_state",
+                            "unpushed"]:
+                    m2 = re.search(r'-\s+%s\s+(\S+)' % _cls, output)
+                    if m2:
+                        issue_count += 1
+            if issue_count > 0:
+                verdict_text = "NO-GO"
+            lines.append("  Hyper-Edge Audit: %d issue(s) found - mandatory leg failed" % issue_count)
+        else:
+            # exit 2 or other = could not perform
+            verdict_text = "CLARIFY"
+            lines.append("  Hyper-Edge Audit: could not perform (exit %d)" % result.returncode)
+        return verdict_text, lines
+    except subprocess.TimeoutExpired:
+        return ("CLARIFY", ["Hyper-Edge Audit: Timed out after %.0fs budget - reported loud, never silent" % LEG_LIMIT_S])
+    except Exception as exc:
+        return ("CLARIFY", ["Hyper-Edge Audit: ERROR (%s: %s)" % (type(exc).__name__, str(exc)[:120])])
+
+
+@server.tool()
 def verdict() -> str:
     """Unified GO / CLARIFY / NO-GO over Engram checks plus PMB liveness.
 
@@ -306,6 +425,7 @@ def verdict() -> str:
         legs["pams"] = ex.submit(_pams_honest)
         legs["live"] = ex.submit(_pmb_liveness)
         legs["goals"] = ex.submit(_pmb_goal_pressure)
+        legs["hyper_edge"] = ex.submit(_hyper_edge)
 
         def _bounded(name):
             left = max(0.0, deadline - time.time())
@@ -333,6 +453,7 @@ def verdict() -> str:
         pams_v = _bounded("pams")
         live_v = _bounded("live")
         goals_v = _bounded("goals")
+        hyper_v = _bounded("hyper_edge")
     finally:
         # shutdown(wait=True) -- the `with` form -- is what re-trips the
         # client timeout: it blocks on the hung leg even after .result()

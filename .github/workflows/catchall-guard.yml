@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: '3.15'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
       # The guard was wired into CI and its own control was not: nothing proved
       # it could still see a bare `except`. This step is that control -- it fires
       # the guard on a seeded defect and asserts it stays silent on a clean file.

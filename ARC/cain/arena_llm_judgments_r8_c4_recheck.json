@@ -1,0 +1,187 @@
+{
+ "meta": {
+  "round": "r8-c4-recheck",
+  "judged_at": "2026-11-05T12:37:29",
+  "endpoint": "http://127.0.0.1:8081",
+  "model": "local",
+  "judges": [
+   "ARENA-JUDGE-1-ARCHITECTURE",
+   "ARENA-JUDGE-2-LEGAL",
+   "ARENA-JUDGE-3-ECONOMIC",
+   "ARENA-JUDGE-4-TECHNICAL",
+   "ARENA-JUDGE-5-ETHICAL",
+   "ARENA-JUDGE-6-STRATEGIC"
+  ],
+  "quorum": 0.66,
+  "packet": "ARC\\cain\\evidence_packet.json",
+  "packet_sha256": "1f3c71158a71d611fc338c764293794bfe076ca263356324fea3c4f1bc331fc8",
+  "calls": 6,
+  "blind_calls": 0,
+  "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+  "vocabulary": [
+   "SUPPORTED",
+   "PARTIAL",
+   "UNSUPPORTED",
+   "BLOCKED"
+  ],
+  "regraded_at": "2026-11-05T12:37:47"
+ },
+ "pins": {
+  "C4": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 3,
+    "UNSUPPORTED": 2,
+    "BLOCKED": 1
+   },
+   "ungrounded_quotes": 0,
+   "grade": "NO_QUORUM",
+   "reason": "no quorum: {\"SUPPORTED\": 0, \"PARTIAL\": 3, \"UNSUPPORTED\": 2, \"BLOCKED\": 1} (0.50 < 0.66 needed)"
+  }
+ },
+ "rows": [
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 51.86,
+   "max_tokens_used": 300,
+   "verdict": "BLOCKED",
+   "confidence": 0.0,
+   "supports_elements": [],
+   "missing_elements": [
+    "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation",
+    "making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The source is a credible secondary (tier C) but contains no mention of the Play Integrity API, OS attestation, or vendor decision-based runtime control.",
+   "grade": "BLOCKED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 55.77,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.6,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of OS build versions and SDK_INT values.",
+    "The API's technical operation is tied to OS build attestation through version codes and cumulative usage data."
+   ],
+   "missing_elements": [
+    "The Play Integrity API explicitly allows an application to refuse to run on a device based on OS build attestation failure.",
+    "The decision to continue function is described as a vendor decision rather than a property of the hardware.",
+    "The mechanism of refusal is tied to attestation failure in a way that reflects a vendor-driven policy, not a hardware-based property."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL .",
+   "reason": "The source confirms version codes and technical build attributes but fails to establish the intent or mechanism of refusal based on attestation failure as a vendor decision.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 54.62,
+   "max_tokens_used": 300,
+   "verdict": "UNSUPPORTED",
+   "confidence": 0.15,
+   "supports_elements": [
+    "Build.VERSION_CODES_FULL.CINNAMON_BUN_1 is reported with SDK_INT 37"
+   ],
+   "missing_elements": [
+    "The Play Integrity API allows an application to refuse to run on a device whose OS build fails attestation",
+    "Continued function is a vendor decision rather than a property of the hardware",
+    "Attestation failure triggers application refusal via the Play Integrity API"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The quote provides no mention of attestation, application refusal, or vendor-driven decision on device functionality, missing all material elements of the claim.",
+   "grade": "UNSUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 25.69,
+   "max_tokens_used": 300,
+   "verdict": "UNSUPPORTED",
+   "confidence": 0.15,
+   "supports_elements": [],
+   "missing_elements": [
+    "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation",
+    "making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and thi...",
+   "reason": "The quote discusses version codes and usage statistics but provides no mention of the Play Integrity API, attestation, or application-level runtime decisions based on OS build compliance.",
+   "grade": "UNSUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 26.88,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.4,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of versioning and build numbers.",
+    "Build.VERSION_CODES_FULL includes references to specific OS builds like CINNAMON_BUN_1."
+   ],
+   "missing_elements": [
+    "The Play Integrity API specifically allows an application to refuse to run on a device when OS attestation fails.",
+    "The decision to continue function is described as a vendor decision rather than a property of the hardware.",
+    "The mechanism of attestation failure triggering runtime refusal is explicitly stated."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 .",
+   "reason": "The source confirms OS build versioning but does not address the API's behavior or the vendor's decision-making authority in response to attestation failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 30.17,
+   "max_tokens_used": 300,
+   "verdict": "PARTIAL",
+   "confidence": 0.4,
+   "supports_elements": [
+    "The Play Integrity API is referenced in the context of OS build attestation through Build.VERSION_CODES_FULL.",
+    "The API's role in versioning and build identification is implied but not explicitly tied to runtime refusal on attestation failure."
+   ],
+   "missing_elements": [
+    "Explicit statement that an application can refuse to run on a device when OS build attestation fails.",
+    "Evidence that the decision to allow continued function is a vendor decision rather than a hardware property.",
+    "Mechanism by which the API enables runtime refusal based on attestation outcomes."
+   ],
+   "supports_truncated": false,
+   "missing_truncated": false,
+   "best_quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL .",
+   "reason": "The quote establishes versioning and build identifiers but does not address the runtime refusal mechanism or vendor-driven decision on function continuity.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  }
+ ]
+}

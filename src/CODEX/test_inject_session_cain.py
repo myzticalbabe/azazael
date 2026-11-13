@@ -112,17 +112,21 @@ def main() -> int:
         total += 1
         try:
             fn()
-        except exc_type as exc:
-            if contains and contains not in str(exc):
+        except Exception as exc:  # noqa: BLE001 - any escape is graded below
+            # One handler, not two: `exc_type` defaults to Exception, so a
+            # `except exc_type` clause followed by `except Exception` made the
+            # second unreachable and silently turned "raised the wrong type"
+            # into a pass.
+            if not isinstance(exc, exc_type):
+                failures.append(name)
+                print("FAIL %s\n     raised %s, expected %s"
+                      % (name, type(exc).__name__, exc_type.__name__))
+            elif contains and contains not in str(exc):
                 failures.append(name)
                 print("FAIL %s\n     raised %s but message lacks %r:\n     %s"
                       % (name, type(exc).__name__, contains, exc))
             else:
                 print("ok   %s" % name)
-        except Exception as exc:  # noqa: BLE001 - wrong type is a failure
-            failures.append(name)
-            print("FAIL %s\n     raised %s, expected %s"
-                  % (name, type(exc).__name__, exc_type.__name__))
         else:
             failures.append(name)
             print("FAIL %s\n     did not raise" % name)

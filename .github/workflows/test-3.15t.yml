@@ -44,7 +44,7 @@
 # never meant the tests/ tree passes.
 #
 # Triggers below name the branches that actually exist and get pushed
-# (`git branch`: deepseek-engram-813, lane-813-recovery,
+# (`git branch`: azazael-intel-ultra-9-evo, lane-813-recovery,
 # migration/baseline-20261001). They previously said `main`, which exists
 # nowhere in this repo -- a second reason this file could not have run.
 # ============================================================================
@@ -55,13 +55,13 @@ on:
   push:
     branches:
       - main                      # kept for the day a hosted remote exists
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - lane-813-recovery
       - migration/baseline-20261001
   pull_request:
     branches:
       - main
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - "lane-813-recovery"
       - migration/baseline-20261001
   workflow_dispatch:
@@ -154,10 +154,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
+          # run_tests.py writes logs/<test>.log per file (tail 200 lines) so a
+          # CI-only failure arrives with its traceback, not just a summary.
           # Was `path: *.log`, which is not a glob to YAML -- a leading `*` is an
           # alias. The file failed to parse at all (yaml.safe_load -> "expected
           # alphabetic or numeric character, but found '.'"), so this workflow
           # had two independent reasons never to run: no hosted remote, and a
           # document that is not valid YAML. Measured 2026-11-01.
-          path: "*.log"
+          path: "logs/*.log"
           retention-days: 7

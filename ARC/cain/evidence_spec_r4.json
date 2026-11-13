@@ -1,0 +1,102 @@
+{
+ "round": "r4",
+ "generated_at": "2026-11-04",
+ "note": "Round 4 closes the single-element gaps round 3 named, one source per gap, and narrows C3 to what Intel's page actually says (it names 0x12B encompassing 0x125 and 0x129, never 0x132, and says nothing about reversibility). C5 keeps only the two elements its sources state.",
+ "pins": [
+  {
+   "pin": "C1",
+   "vendor": "Microsoft",
+   "claim": "Windows 10 end of support is gated on TPM 2.0, and the supported Intel processor list for Windows 11 begins at 8th generation, leaving earlier hardware without a supported upgrade path",
+   "elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0",
+    "the supported Intel processor list begins at 8th generation"
+   ],
+   "evidence": [
+    {"sha16": "eeeb0a9ba75e13b5", "anchor": "will reach end of support on October 14, 2025"},
+    {"sha16": "c77b461e6a900b2e", "anchor": "TPM 2.0"},
+    {"sha16": "4e1a658c49405ad0", "anchor": "8th Generation Core i3"}
+   ]
+  },
+  {
+   "pin": "C2",
+   "vendor": "Apple",
+   "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries, and a regulator found the updates were pushed without adequate information and without any means of restoring original functionality",
+   "elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "evidence": [
+    {"sha16": "32e91c649d43a4a4", "anchor": "improves power management during peak workloads"},
+    {"sha16": "cfa8a9e588dd7729", "anchor": "unexpected by the user"},
+    {"sha16": "187092e6240904c1", "anchor": "senza fornire adeguate informazioni"}
+   ]
+  },
+  {
+   "pin": "C3",
+   "vendor": "Intel",
+   "claim": "Intel attributes 13th/14th-generation Core instability to elevated core voltage requests and ships microcode 0x12B, which encompasses 0x125 and 0x129, as the mitigation",
+   "elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "evidence": [
+    {"sha16": "f0de7b1ed8d255ef", "anchor": "Microcode and BIOS code requesting elevated core voltages"}
+   ]
+  },
+  {
+   "pin": "C4",
+   "vendor": "Google",
+   "claim": "The Play Integrity API returns a verdict about the device itself, and an application may act on that verdict by denying access, making continued function a vendor decision rather than a property of the hardware",
+   "elements": [
+    "the API returns an integrity verdict about the device",
+    "an app may act on that verdict by denying access"
+   ],
+   "evidence": [
+    {"sha16": "190d4160a7eed781", "anchor": "Allow/Deny"},
+    {"sha16": "6b05562fff28c57c", "anchor": "Device integrity field"}
+   ]
+  },
+  {
+   "pin": "C5",
+   "vendor": "HP",
+   "claim": "HP issued firmware updates under its 'dynamic security' policy that block third-party ink, leaving the printer refusing to print rather than warning",
+   "elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "evidence": [
+    {"sha16": "f2ca2fc4f39b4c67", "anchor": "dynamic security"}
+   ]
+  },
+  {
+   "pin": "C6",
+   "vendor": "John Deere",
+   "claim": "A software tool is required to perform all repairs on Deere equipment, and Deere makes that tool available only to its authorized dealers, forcing farmers to rely on dealers for critical repairs",
+   "elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "evidence": [
+    {"sha16": "c8a59a4566c4afd7", "anchor": "only fully functional software repair tool"},
+    {"sha16": "3bdc0690bb094f43", "anchor": "Mechanized Agricultural Vehicles"}
+   ]
+  },
+  {
+   "pin": "C7",
+   "vendor": "Sonos",
+   "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and no factory reset can recover it",
+   "elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "evidence": [
+    {"sha16": "f23fb076d41e8859", "anchor": "Recycle Mode is a state your device enters"}
+   ]
+  }
+ ]
+}

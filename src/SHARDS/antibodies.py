@@ -29,8 +29,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set, Tuple, TypedDict, NotRequired
 
-from CORE.atomic_store import atomic_write_json, file_lock
-from CORE.failure_ledger import note_failure
+try:
+    from CORE.atomic_store import atomic_write_json, file_lock
+    from CORE.failure_ledger import note_failure
+except ImportError:
+    # Script path (`python src/SHARDS/antibodies.py`): the checkout root
+    # is cwd but src/ is not on sys.path. Bootstrap it once, guarded so
+    # an installed/importable CORE is never shadowed by the checkout.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from CORE.atomic_store import atomic_write_json, file_lock
+    from CORE.failure_ledger import note_failure
 from SHARDS.polyglot import EXPECTED_SUM, run_shard, supported_shard_langs
 from SHARDS import registry as _registry
 

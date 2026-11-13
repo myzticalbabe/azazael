@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Supersede observability dashboard</title>
+<style>body{font-family:sans-serif;max-width:70em;margin:2em auto;padding:0 1em}
+code{background:#f0f0f0;padding:0 .3em}li{margin:.2em 0}
+.warn{background:#fff3cd;border:1px solid #e0c36a;padding:.8em}</style>
+</head><body>
+<h1>Package supersede dashboard (Ubuntu + Kali)</h1>
+<p>Source: committed manifests. A verdict names its evidence command;
+a row without provenance is narrative.</p>
+<div class="warn"><b>Windows operator note:</b> this file is generated on
+Windows from WSL-captured manifests. To refresh: re-run the capture probes
+in each distro, re-run <code>tools/env_supersede.py --check</code>, re-emit
+manifests, then re-run this script. No server needed.</div>
+<h2>WSL Ubuntu-26.04</h2>
+<p><b>Denominators:</b> apt installed=2518 manual=170 | pip_14t=433 | tree external imports=379</p>
+<p><b>pip_14t:</b> KEEP=414 REMOVE=19</p>
+<p><b>apt:</b> REMOVE=21 curated-KEEP=10 UNREVIEWED=139</p>
+<h3>REMOVE verdicts (40)</h3>
+<ul>
+<li><code>cloudpathlib</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>cuda-bindings</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>cuda-pathfinder</code> -- dead chain via: cuda-bindings (top unimported/unbaselined, not a lane tool)</li>
+<li><code>cuda-toolkit</code> -- dead chain via: cuda-bindings (top unimported/unbaselined, not a lane tool)</li>
+<li><code>hikerapi</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>intel-extension-for-tensorflow</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>keras</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>maturin</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>mcp-types</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>monotonic</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>namex</code> -- dead chain via: keras (top unimported/unbaselined, not a lane tool)</li>
+<li><code>pgvector</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>posthog</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>pyelftools</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>pynput</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>python-louvain</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>smart-open</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>trl</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>typer-slim</code> -- orphan: not imported, not in baseline, zero in-env reverse deps</li>
+<li><code>krusader</code> -- no tree refs: grep -rln krusader src/ tools/ scripts/ = 0; GUI FM in a headless WSL distro | absorbed-by: native file ops: TARBABY_FileSearch + azazael_toolkit</li>
+<li><code>nautilus</code> -- no tree refs: grep -rln nautilus src/ tools/ = 0; GNOME FM, no desktop session in WSL | absorbed-by: same as krusader</li>
+<li><code>bazel-7.7.0</code> -- find . -maxdepth 3 -name WORKSPACE* -o -name BUILD.bazel = 0 hits; grep -rln bazel tools/ scripts/ src/CORE = 0 | absorbed-by: nothing to absorb: zero consumers</li>
+<li><code>swig</code> -- grep -rln swig tools/ scripts/ src/CORE = 0; no .i interface files in tree | absorbed-by: nothing to absorb</li>
+<li><code>qemu-utils</code> -- grep -rln qemu tools/ scripts/ src/CORE = 0 | absorbed-by: nothing to absorb</li>
+<li><code>mold</code> -- grep -rn mold build config (pyproject/setup.cfg/tools/*.py) = biology metaphors only; system ld links every native kernel built to date | absorbed-by: system binutils ld</li>
+<li><code>ccache</code> -- no wired usage in any build script; 3.16t production builds happen on Windows, not WSL; reinstall = 1 apt command (recorded here) | absorbed-by: nothing to absorb</li>
+<li><code>eatmydata</code> -- no wired usage; disables fsync -- actively risky on a 1T virtual disk; reinstall = 1 apt command | absorbed-by: nothing to absorb</li>
+<li><code>clinfo</code> -- diagnostic probe binary; device detection lives in src/CORE/device.py (torch.xpu/cuda/cpu ladder) | absorbed-by: src/CORE/device.py + backend_bandit</li>
+<li><code>vainfo</code> -- diagnostic probe binary; same absorber as clinfo | absorbed-by: src/CORE/device.py</li>
+<li><code>vulkan-tools</code> -- diagnostic probe binaries; same absorber as clinfo | absorbed-by: src/CORE/device.py</li>
+<li><code>mesa-utils</code> -- glxinfo-class probes; headless WSL has no GL consumer in tree | absorbed-by: src/CORE/device.py</li>
+<li><code>intel-gpu-tools</code> -- diagnostic suite; same absorber as clinfo | absorbed-by: src/CORE/device.py + backend_bandit</li>
+<li><code>libopencv-dev</code> -- sole tree mention is a probe *string* (azazael_toolkit.py:49), not an import; pip has no opencv dist | absorbed-by: PIL/pillow path (requirements-3.15t pins pillow 12.3.0)</li>
+<li><code>python3-pygame</code> -- canonical src/azazael_pygame.py (630 lines) has no live importer (only test shim + DEPRECATED re-export per its own 2026-10-11 measurement); CODEX renders via Puppeteer, not pygame | absorbed-by: CODEX/Puppeteer render pipeline</li>
+<li><code>libsdl2-dev</code> -- SDL stack exists only for the unimported pygame module above | absorbed-by: same as python3-pygame</li>
+<li><code>libsdl2-image-dev</code> -- same as libsdl2-dev | absorbed-by: same as python3-pygame</li>
+<li><code>libsdl2-mixer-dev</code> -- same as libsdl2-dev | absorbed-by: same as python3-pygame</li>
+<li><code>libsdl2-ttf-dev</code> -- same as libsdl2-dev | absorbed-by: same as python3-pygame</li>
+<li><code>libportmidi-dev</code> -- same as libsdl2-dev | absorbed-by: same as python3-pygame</li>
+<li><code>nmap</code> -- Ubuntu-side only: recon is Kali-lane turf; WslKaliWorm expects wsl2-kali and checks /usr/bin itself; native PortAuditor (security.py:102, psutil+socket stdlib) covers Ubuntu-side port audit | absorbed-by: src/CORE/WORMS/expansion/security.py::PortAuditor</li>
+</ul>
+<h3>Curated KEEP -- do not re-litigate (10)</h3>
+<ul>
+<li><code>intel-oneapi-compiler-dpcpp-cpp</code> -- device.py:5 preference order XPU &gt; CUDA &gt; CPU; torch 2.14.1+xpu live in /opt+15t sidecar -- this apt set is its driver/runtime half</li>
+<li><code>intel-oneapi-mkl-devel</code> -- same XPU stack as above</li>
+<li><code>tor</code> -- pip holds stem 1.8.2 + torbot 4.3.0 (eve OSINT lane, torbot skill); both require the tor daemon binary</li>
+<li><code>yt-dlp</code> -- imported/used by tools/sota_fetch_video.py, tiktok_batch.py, TIKTOK_PULL.py, youtube_transcript.py</li>
+<li><code>nodejs</code> -- MCP client stack (kilo/opencode/freebuff lanes) runs on node</li>
+<li><code>golang-go</code> -- gateway-go/ in-repo Go tier + engram Go source builds</li>
+<li><code>docker-ce</code> -- docker-compose.yml local production stack (azazael-core :18420/:18421); Kali runs containerd -- asymmetry noted, not removal</li>
+<li><code>tk-dev</code> -- live tkinter imports: AZAZAEL_Inference_Studio.py, CODEX_Studio.py, CODEX/POPUPS/*</li>
+<li><code>ffmpeg</code> -- CODEX/CAIN render pipeline dependency</li>
+<li><code>build-essential</code> -- toolchain for CPython source builds (runbook BM §2 pattern)</li>
+</ul>
+<h3>Execution record</h3>
+<p>## Execution record (2026-11-12, WSL Ubuntu-26.04 live)<br>
+<br>
+- apt: 21 named purged + autoremove cascade; installed 2519 -&gt; 2012 (-507).<br>
+- pip 14t: 19 named uninstalled; freeze 433 -&gt; 414 (-19, exact).<br>
+- verify: `verify_shrink.sh` (dpkg -l + pip show over all 40 names) prints ALL-40-ABSENT.<br>
+- smoke: `python3.14t -c &#x27;import torch, transformers, gymnasium, stable_baselines3, onnxruntime, mcp, llama_cpp&#x27;` -&gt; adaptation smoke OK.<br>
+- toolchain intact: gcc 15.2.0, docker 29.6.1, go 1.26.0, node v22.22.1, sqlite3/openssl headers present.<br>
+- BM Ubuntu: NOT probed (dual-boot, Windows running); BM section above stays a derived plan, not a measurement.</p>
+
+<h2>WSL kali-linux (recon turf)</h2>
+<p><b>Denominators:</b> apt installed=4349 manual=871 | pip_14t=990 | tree external imports=193</p>
+<p><b>pip_14t:</b> KEEP=990 REMOVE=0</p>
+<p><b>apt:</b> REMOVE=0 curated-KEEP=11 UNREVIEWED=851</p>
+<h3>REMOVE verdicts (0)</h3>
+<ul>
+</ul>
+<h3>Curated KEEP -- do not re-litigate (11)</h3>
+<ul>
+<li><code>nmap</code> -- WslKaliWorm expects wsl2-kali and checks /usr/bin/nmap; llm-tools-nmap Depends: nmap</li>
+<li><code>bloodhound.py</code> -- legacy ingestor BUT netexec Depends on it (measured rdepends); removal strands netexec</li>
+<li><code>bloodhound-ce-python</code> -- CE ingestor; the migration target for the plan above</li>
+<li><code>python3-impacket</code> -- lib under bloodhound/crackmapexec/netexec; recon lane core</li>
+<li><code>impacket-scripts</code> -- the usable example scripts (psexec et al.), not just docs</li>
+<li><code>llm-tools-nmap</code> -- NL-to-nmap bridge (llm CLI + nmap); native-adjacent recon</li>
+<li><code>python2</code> -- legacy interpreter; offsec-awae-python2 manual; interpreters are never auto-removed</li>
+<li><code>feroxbuster</code> -- maintained dir-bust successor; absorber for dirb/dirbuster</li>
+<li><code>gobuster</code> -- maintained dir-bust successor; same as feroxbuster</li>
+<li><code>hydra</code> -- engine behind hydra-gtk; recon lane core</li>
+<li><code>john</code> -- engine behind johnny; recon lane core</li>
+</ul>
+<h3>Execution record</h3>
+<p>## Execution record (2026-11-12, WSL kali-linux)<br>
+<br>
+- apt: 4379 installed -&gt; 4349 (-30: 19 named REMOVE + 11 autoremove cascade).<br>
+  Verified: 19 named absent (`apt list --installed` re-capture); `apt-get check`<br>
+  clean; `dpkg --audit` clean.<br>
+- pip 3.14t (`/usr/local/bin/python3.14t`): 277 env-owned dists uninstalled<br>
+  (266 strict orphans + patchelf + 8 tail orphans + 2 cascade orphans);<br>
+  freeze 1028 -&gt; 995 (delta -33: restored apt dist-infos reappear in freeze).<br>
+  Classifier post-state: `pip_14t: keep=990 remove=0`.<br>
+- Repair: pip deleted files out from under 80 python3-* apt packages<br>
+  (SYSTEM dists with zero in-env users). Repaired via<br>
+  `apt-get install --reinstall` over the 80 damaged; `dpkg -V` clean after<br>
+  (0 missing). Doctrine hardened in `tools/env_supersede.py`: only ENV-located<br>
+  dists are pip candidates; SYSTEM-located dists list as APT-OWNED keep rows.<br>
+- Recon smoke: `bloodhound-python --help` OK, `nxc --version` 1.5.1 OK,<br>
+  `import shodan/holehe/maigret/sherlock_project/dns.resolver` OK.<br>
+  Known pre-existing (not caused here): bare `import bloodhound` hangs with<br>
+  pristine apt-copy files too; CLI unaffected.</p>
+
+<h2>BM Ubuntu runbook</h2>
+<p>See <code>docs/BM_SUPERSEDE_RUNBOOK.md</code> for the bare-metal replay
+steps (same tool, same doctrine, BM-owned captures).</p>
+<h2>Verify commands (paste into each distro)</h2>
+<ul>
+<li><code>apt-get check &amp;&amp; dpkg --audit</code> (clean = no output)</li>
+<li><code>dpkg -V $(dpkg -l "python3*" | awk '/^ii/{print $2}')</code>
+(no <code>missing</code> lines = apt files intact)</li>
+<li><code>python tools/env_supersede.py --captures &lt;dir&gt; [--scope kali] --check</code>
+(<code>remove=0</code> = steady state)</li>
+</ul>
+</body></html>

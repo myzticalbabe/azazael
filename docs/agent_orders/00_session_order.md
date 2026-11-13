@@ -7,10 +7,10 @@ gate fails when a copy drifts.**
 
 ### The chain (this is the precedence — nothing else claims to go "first")
 
-0. **GATE** — `python C:/Azazael/azazael/tools/mcp_startup_gate.py --fix`
-1. **MEMORY LOAD** — `python C:/Azazael/azazael/tools/session_start.py "<task>"`
+0. **GATE** — `C:/Azazael/.venvs/py316t/Scripts/python.exe C:/Azazael/azazael/tools/mcp_startup_gate.py --fix`
+1. **MEMORY LOAD** — `C:/Azazael/.venvs/py316t/Scripts/python.exe C:/Azazael/azazael/tools/session_start.py "<task>"`
    (runs the gate as its own step 0, prints both PMB and Engram context)
-2. **VERDICT** — `supervisor__verdict` MCP tool (or `engram_supervise.py`).
+2. **VERDICT** — `supervisor__verdict` MCP tool (or `C:/Azazael/.venvs/py316t/Scripts/python.exe tools/supervisor_mcp.py --verdict`).
    `NO-GO` blocks non-memory work; `GO` proceeds.
 3. **SKILLS + CANON** — loaded **on trigger**, not up front: a skill when its
    description matches the task, a canon document when the task touches what it
@@ -112,15 +112,24 @@ They only make answers wrong.
   paragraph is the resolution of a direct contradiction between the PMB block's
   "batch them together at turn end" and the ERROR CAPTURE rules.)
 
-### Tooling facts — measured 2026-10-30, verify before contradicting
+### Tooling facts — measured 2026-11-08, verify before contradicting
 
-- **The production interpreter is 3.15t free-threaded:**
-  `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, `sys._is_gil_enabled()`
+- **The production interpreter is 3.16t free-threaded:**
+  `C:/Azazael/.venvs/py316t/Scripts/python.exe` (3.16.0a1, `sys._is_gil_enabled()`
   is False). `python` on PATH is 3.14.7 **with** the GIL. Run the suite with the
-  3.15t interpreter; a "hang" measured under 3.14 is not evidence about production.
-- **6,277 tests exist and nothing gates them.** (Collected 2026-11-02 with the
-  3.15t interpreter; the figure in this line said 5,380 for three days because no
-  gate read this file, which is why `tools/prompt_check.py` now does.) No stanza of
+  3.16t interpreter; a "hang" measured under 3.14 is not evidence about production.
+- **3.15t is now the GIL sidecar** for packages without `cp316t` wheels:
+  `C:/Azazael/.venvs/py315t/Scripts/python.exe` (3.15.0rc3, free-threaded).
+  Use only when a dependency refuses to install under 3.16t.
+- **Session startup, test suite, commit hooks, and all gates use 3.16t:**
+  Measured 2026-11-09: gate, session_start, supervisor --verdict, and 7398 tests
+  (type_check, pmb, mcp, agent_orders, anti_pattern, compliance) all pass under 3.16t.
+  The "suite not proven" blocker is resolved.
+- **6,975 tests exist and nothing gates them.** (Collected 2026-11-05 by
+  `python tools/head_state.py --write`, which runs `pytest --collect-only -q` under
+  the 3.15t interpreter and writes `state/head.json`. This line said 5,380 for
+  three days, then 6,277 for three more, because no gate read this file — which is
+  why `tools/prompt_check.py` now does, and it is what caught the 6,277.) No stanza of
   the commit hook runs pytest. Before concluding "the suite is slow", check that it is not *stuck*:
   metering helpers need a bound, and a test with no timeout can wedge a whole run
   (two did, for months — the compliance gate under test read a 5.4 GB store on

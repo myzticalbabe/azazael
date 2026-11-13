@@ -1,0 +1,266 @@
+{
+ "as_of": "recorded by HYPER_EDGE.dream",
+ "discriminating": [],
+ "dreams": [
+  {
+   "at_stake": "0x09",
+   "dropped_keys": [],
+   "id": "undated-artifact",
+   "op_states": {
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier A",
+    "0x02": "0x02 GROUND: quotation found in its cited capture",
+    "0x03": "0x03 DENOM: 150/100 carry a denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: share 0.65 < quorum 0.66: no verdict was obtained",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: light cut is admissible on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: staleness gate off (0): recorded, not enforced",
+    "0x0A": "0x0A REPRO: the reading could not be graded: ValueError: draws must be a count, got ['daily', 'weekly']",
+    "0x0B": "0x0B KNOB: high is an orphan knob: declared, read by nothing",
+    "0x0C": "0x0C DISABLED: gate enabled"
+   },
+   "record": {
+    "age_days": 30,
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "draws": [
+     "daily",
+     "weekly"
+    ],
+    "enabled": true,
+    "instrument_answered": true,
+    "knob": "high",
+    "knob_readers": [
+     "dev",
+     "ops"
+    ],
+    "m": 100,
+    "n": 150,
+    "negative": false,
+    "population_claim": "all users in Tier A",
+    "quote_grounded": true,
+    "reproduced": true,
+    "share": 0.65,
+    "tier": "A",
+    "truncation_class": "light",
+    "universe": "active-users"
+   },
+   "rung": "CUT",
+   "why": "it carries a verdict and no date"
+  },
+  {
+   "at_stake": "0x0A",
+   "dropped_keys": [],
+   "id": "missing-digest",
+   "op_states": {
+    "0x04": "CUT",
+    "0x08": "CUT",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier B",
+    "0x02": "0x02 GROUND: quotation found in its cited capture",
+    "0x03": "0x03 DENOM: 250/200 carry a denominator",
+    "0x04": "0x04 UNIVERSE: universe-free negative: this is 'we did not search', not 'none exists'",
+    "0x05": "0x05 QUORUM: share 0.75 >= quorum 0.66",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: medium cut is admissible on this path",
+    "0x08": "0x08 PROVENANCE: claim with no command/digest: indistinguishable from a recollection",
+    "0x09": "0x09 STALE: staleness gate off (0): recorded, not enforced",
+    "0x0A": "0x0A REPRO: the reading could not be graded: ValueError: draws must be a count, got ['monthly']",
+    "0x0B": "0x0B KNOB: medium is an orphan knob: declared, read by nothing",
+    "0x0C": "0x0C DISABLED: gate enabled"
+   },
+   "record": {
+    "age_days": 45,
+    "command": "tools/x.py --check",
+    "digest": null,
+    "draws": [
+     "monthly"
+    ],
+    "enabled": true,
+    "instrument_answered": true,
+    "knob": "medium",
+    "knob_readers": [
+     "dev"
+    ],
+    "m": 200,
+    "n": 250,
+    "negative": true,
+    "population_claim": "all beta users",
+    "quote_grounded": true,
+    "reproduced": true,
+    "share": 0.75,
+    "tier": "B",
+    "truncation_class": "medium",
+    "universe": "beta-users"
+   },
+   "rung": "CUT",
+   "why": "digest is null despite a clear command execution"
+  },
+  {
+   "at_stake": "0x0B",
+   "dropped_keys": [],
+   "id": "contradictory-draws",
+   "op_states": {
+    "0x01": "LEAD",
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier C corroborates an A or B; it cannot carry a fact alone",
+    "0x02": "0x02 GROUND: quotation found in its cited capture",
+    "0x03": "0x03 DENOM: 180/120 carry a denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: share 0.55 < quorum 0.66: no verdict was obtained",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: light cut is admissible on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: staleness gate off (0): recorded, not enforced",
+    "0x0A": "0x0A REPRO: the reading could not be graded: ValueError: draws must be a count, got ['daily']",
+    "0x0B": "0x0B KNOB: low is an orphan knob: declared, read by nothing",
+    "0x0C": "0x0C DISABLED: gate enabled"
+   },
+   "record": {
+    "age_days": 60,
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "draws": [
+     "daily"
+    ],
+    "enabled": true,
+    "instrument_answered": true,
+    "knob": "low",
+    "knob_readers": [
+     "dev",
+     "ops"
+    ],
+    "m": 120,
+    "n": 180,
+    "negative": false,
+    "population_claim": "all new users",
+    "quote_grounded": true,
+    "reproduced": true,
+    "share": 0.55,
+    "tier": "C",
+    "truncation_class": "light",
+    "universe": "new-users"
+   },
+   "rung": "CUT",
+   "why": "draws are listed as both daily and daily in the record, creating a contradiction"
+  },
+  {
+   "at_stake": "0x0C",
+   "dropped_keys": [],
+   "id": "real-but-unverifiable",
+   "op_states": {
+    "0x01": "LEAD",
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "reasons": {
+    "0x01": "0x01 TIER: tier D is a pointer: queue it, never cite it",
+    "0x02": "0x02 GROUND: quotation found in its cited capture",
+    "0x03": "0x03 DENOM: 100/80 carry a denominator",
+    "0x04": "0x04 UNIVERSE: not a negative",
+    "0x05": "0x05 QUORUM: share 0.45 < quorum 0.66: no verdict was obtained",
+    "0x06": "0x06 BLIND: instrument answered",
+    "0x07": "0x07 TRUNC: medium cut is admissible on this path",
+    "0x08": "0x08 PROVENANCE: command + digest present",
+    "0x09": "0x09 STALE: staleness gate off (0): recorded, not enforced",
+    "0x0A": "0x0A REPRO: the reading could not be graded: ValueError: draws must be a count, got ['weekly']",
+    "0x0B": "0x0B KNOB: low is an orphan knob: declared, read by nothing",
+    "0x0C": "0x0C DISABLED: gate enabled"
+   },
+   "record": {
+    "age_days": 90,
+    "command": "tools/x.py --check",
+    "digest": "EXIT=0 OK",
+    "draws": [
+     "weekly"
+    ],
+    "enabled": true,
+    "instrument_answered": true,
+    "knob": "low",
+    "knob_readers": [
+     "dev"
+    ],
+    "m": 80,
+    "n": 100,
+    "negative": false,
+    "population_claim": "all legacy users",
+    "quote_grounded": true,
+    "reproduced": true,
+    "share": 0.45,
+    "tier": "D",
+    "truncation_class": "medium",
+    "universe": "legacy-users"
+   },
+   "rung": "CUT",
+   "why": "the command and digest are real, but the draws and population claim are not supported by any trace logs or logs from instrument readers"
+  }
+ ],
+ "endpoint": "http://127.0.0.1:8081",
+ "model": "C:/Users/clint/llama-server/models/Qwen3-4B-Abliterated/Huihui-Qwen3-4B-Instruct-2507-abliterated.Q4_K_M.gguf",
+ "reason": "",
+ "refused": [],
+ "replay": [
+  {
+   "id": "undated-artifact",
+   "moved": false,
+   "op_states": {
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  },
+  {
+   "id": "missing-digest",
+   "moved": false,
+   "op_states": {
+    "0x04": "CUT",
+    "0x08": "CUT",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  },
+  {
+   "id": "contradictory-draws",
+   "moved": false,
+   "op_states": {
+    "0x01": "LEAD",
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  },
+  {
+   "id": "real-but-unverifiable",
+   "moved": false,
+   "op_states": {
+    "0x01": "LEAD",
+    "0x05": "NO_QUORUM",
+    "0x0A": "BLIND",
+    "0x0B": "CUT"
+   },
+   "rung": "CUT",
+   "was": "CUT"
+  }
+ ],
+ "status": "OK"
+}

@@ -27,16 +27,25 @@
     "src/CORE/secrets_manager.py:368 audit_secrets",
     "src/CORE/spine_registry.py:2278 audit_state",
     "src/CORE/spine_registry.py:2334 purge_fixtures",
-    "src/CORE/worm_registry.py:2212 restore_registry",
     "src/ORCHESTRATION/MathCertainty.py:167 MerkleTree.verify_proof",
     "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py:429 MemoryManager.cleanup_old_data",
-    "src/SHARDS/prompt_guard.py:270 validate_response",
     "src/eve_unleashed/decision_engine.py:243 AutonomousDecisionEngine.audit_trail",
     "src/eve_unleashed/utils.py:57 validate_input_shape",
-    "src/session_memory.py:724 SessionMemory.validate_lesson"
+    "src/session_memory.py:724 SessionMemory.validate_lesson",
+    "tools/esquire_admissibility.py:351 gate_1_qualification",
+    "tools/esquire_admissibility.py:372 gate_2_inputs",
+    "tools/esquire_admissibility.py:408 gate_3_method",
+    "tools/esquire_admissibility.py:444 gate_4_application",
+    "tools/esquire_admissibility.py:506 gate_5_authentication",
+    "tools/esquire_admissibility.py:538 gate_6_hearsay",
+    "tools/esquire_admissibility.py:578 gate_7_review",
+    "tools/esquire_admissibility.py:612 gate_8_testimonial",
+    "tools/esquire_admissibility.py:669 gate_9_confrontation",
+    "tools/esquire_admissibility.py:730 gate_10_forum_standard"
   ],
   "store_growth_max_mb": 600,
   "wired_token_only": [
-    "db_monitor:DatabaseMonitorWorm._policy_advice"
+    "db_monitor:DatabaseMonitorWorm._policy_advice",
+    "servemesh:ModelShardServerWorm.verify"
   ]
 }

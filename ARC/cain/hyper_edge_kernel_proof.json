@@ -1,0 +1,59 @@
+{
+ "platform": "win32",
+ "available": true,
+ "rows": [
+  {
+   "primitive": "artefact identity",
+   "kernel": "same id across rename: True",
+   "userspace": "path+sha256 changed with the path",
+   "verdict": "kernel",
+   "detail": {
+    "before": "f6485b6c485b2a9f:31131300000052000000000000000000",
+    "after": "f6485b6c485b2a9f:31131300000052000000000000000000"
+   }
+  },
+  {
+   "primitive": "re-issued artefact",
+   "kernel": "different id: True",
+   "userspace": "sha256 equal: True",
+   "verdict": "kernel",
+   "detail": {
+    "sha_equal": true,
+    "ids_differ": true
+   }
+  },
+  {
+   "primitive": "clock granularity (parity; monotonicity is a contract)",
+   "kernel": "qpc step 0.000001200 s (freq 10000000), strictly increasing",
+   "userspace": "time.time() step 0.000000954 s",
+   "verdict": "parity",
+   "detail": {
+    "wall_min_s": 9.5367431640625e-07,
+    "qpc_min_s": 1.2e-06,
+    "freq": 10000000,
+    "reads": 4000
+   }
+  },
+  {
+   "primitive": "concurrency accounting",
+   "kernel": "0.31 cpu-s over 0.117 s wall = par 2.68 of 4",
+   "userspace": "wall clock alone cannot exceed 1.0 by construction",
+   "verdict": "kernel",
+   "detail": {
+    "workers": 4,
+    "sum_cpu_s": 0.3125,
+    "wall_s": 0.11677249999775086,
+    "par_ratio": 2.676143783904764,
+    "cpu_per_task": [
+     0.078125,
+     0.078125,
+     0.078125,
+     0.078125
+    ]
+   }
+  }
+ ],
+ "measured_at": "2026-11-05T20:06:44Z",
+ "faults": [],
+ "verdict": "NATIVE-WITH-PARITY"
+}

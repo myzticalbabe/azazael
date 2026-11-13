@@ -261,6 +261,10 @@ class EveInterpreterBridge:
             "temperature": 0.2,
             "max_tokens": max_tokens or self.FALLBACK_MAX_TOKENS,
             "stream": False,
+            # Qwen3-style thinking models stream reasoning into
+            # reasoning_content with empty content (measured 2026-11-06:
+            # 16 tokens of reasoning, content ""). Ask for the answer.
+            "enable_thinking": False,
         }
         req = urllib.request.Request(
             base.rstrip("/") + "/chat/completions",
@@ -276,9 +280,11 @@ class EveInterpreterBridge:
         first = choices[0] if isinstance(choices[0], dict) else {}
         message = first.get("message") or {}
         content = message.get("content") if isinstance(message, dict) else None
+        if not content and isinstance(message, dict):
+            content = message.get("reasoning_content")
         if not content:
             content = first.get("text")  # legacy completion-shaped responses
-        return content or ""
+        return (content or "").strip().strip('"')
 
     def _try_target(self, target: Dict[str, Any], prompt: str, system: Optional[str]):
         """Run one generation attempt against one target server.
@@ -315,8 +321,14 @@ class EveInterpreterBridge:
     # GGUF fallback — direct llama.cpp inference (no server needed)
     # ------------------------------------------------------------------
     def _pick_text_gguf(self) -> Optional[str]:
+        # The cradle is searched FIRST: models the operator dropped in
+        # for Eve outrank the LM Studio library. Embeddings/mmproj never.
+        gguf_files: List[str] = []
         try:
-            gguf_files = glob.glob(str(Path.home() / ".lmstudio" / "models" / "**" / "*.gguf"), recursive=True)
+            cdir = Path.home() / ".azazael" / "cradle"
+            if cdir.is_dir():
+                gguf_files += [str(p) for p in cdir.glob("*.gguf")]
+            gguf_files += glob.glob(str(Path.home() / ".lmstudio" / "models" / "**" / "*.gguf"), recursive=True)
         except Exception as exc:
             note_failure("eve_interpreter:gguf_scan", exc)
             return None
@@ -329,6 +341,35 @@ class EveInterpreterBridge:
             note_failure("eve_interpreter:gguf_sort", exc)
             return None
         return text_models[0]
+
+    def run_cradle(self, prompt: str, model: Optional[str] = None, max_tokens: Optional[int] = None) -> Dict[str, Any]:
+        """Run a prompt on a cradle GGUF via a transient sidecar.
+
+        The interpreter evolved into the .gguf: any adopted cradle model
+        (chosen by stem, name or path) serves the prompt with its native
+        runner, then the sidecar is killed. No persistent server needed.
+        """
+        try:
+            from .cradle import resolve_model, run_gguf
+        except ImportError as exc:
+            note_failure("eve_interpreter:cradle_import", exc)
+            return {"status": "error", "error": "cradle unavailable: %s" % exc}
+        try:
+            path = resolve_model(model or "", None) if model else None
+            if path is None:
+                from .cradle import list_cradle_models
+                found = [m["name"] for m in list_cradle_models()
+                         if m["framework"] == "gguf"]
+                if not found:
+                    return {"status": "error", "error": "no gguf in cradle"}
+                path = resolve_model(found[0], None)
+            text = run_gguf(str(path), prompt, max_tokens or self.FALLBACK_MAX_TOKENS)
+        except (ValueError, RuntimeError) as exc:
+            note_failure("eve_interpreter:cradle_run", exc)
+            return {"status": "error", "error": str(exc)[:300]}
+        if not text:
+            return {"status": "error", "error": "cradle model answered empty"}
+        return {"status": "ok", "result": text, "provider": "cradle-sidecar", "model": str(path)}
 
     def _gguf_size_key(self, path: str) -> int:
         try:

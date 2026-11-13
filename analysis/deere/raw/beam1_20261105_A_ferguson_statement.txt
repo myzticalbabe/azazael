@@ -1,0 +1,164 @@
+ 
+UNITED STATES OF AMERICA 
+Federal Trade Commission 
+WASHINGTON, D.C. 20580 
+Office of the Chairman 
+ 
+ 
+Statement of Chairman Andrew N. Ferguson 
+Joined by Commissioner Mark R. Meador 
+In the Matter of Deere & Company 
+Matter Number 2110191 
+ 
+July 8, 2026 
+ 
+As today’s joint filing with the court reveals, the Commission has reached an agreement 
+with Deere & Company (“Deere”) resolving this matter .1 I write to briefly explain how this 
+settlement will ensure that America’s farmers enjoy the benefits of competition for the repair of 
+Deere farm equipment, and why competition in agriculture markets is so important to the American 
+way of life.  
+ 
+I 
+ 
+In January 2025, the Commission, joined by several states, filed suit against Deere, alleging 
+that Deere limited access to a fully functioning software tool to only Deere’s network of authorized 
+dealers—restricting the ability of independent repair shops and farmers  to perform repairs on 
+Deere equipment.2 According to our Complaint, these “repair restrictions steer[ed] additional (non-
+restricted) repair business away from self -repair and [independent repair providers ] and into 
+Deere’s dealer network .”3 Effectively, we alleged that Deere made our nation’s farmers more 
+dependent on Deere’s authorized dealers for necessary repairs to their Deere machinery, which 
+compelled farmers to sp end more, and wait longer, than they would have otherwise .4 The 
+Commission claimed that these repair restrictions violate Section 2 of the Sherman Act and Section 
+5 of the FTC Act.5  
+ 
+At the time the Commission filed its Complaint, I dissented for procedural reasons, one 
+being that initiating the lawsuit disrupted active settlement negotiations with Deere that could have 
+provided meaningful relief for America’s farmers sooner than today.6 But instead of focusing on 
+securing that relief, the Democrat majority rushed to court for one more press release on their way 
+out the door. 7 At the time, I indicated both that Deere and the Commission were engaged in 
+meaningful settlement discussion s, and that I favored settling the matter, “but only if that 
+ 
+1 Joint Mot. for Entry of Stip. Order for Perm. Injunction and Other Relief, FTC v. Deere & Co., No. 3:25-cv-50017 
+(N.D. Ill. July 8, 2026), Dkt. No. 260; Stipulated Order for Permanent Injunction and Other Relief, FTC v. Deere & 
+Co., No. 3:25-cv-50017 (N.D. Ill. July 8, 2026), Dkt. No. 260-1 (“Stipulated Final Order”). 
+2 Complaint ¶¶ 7–8, 43–59, 85–90, FTC v. Deere & Co., No. 25-cv-50017 (N.D. Ill. Jan. 15, 2025), Dkt. No. 1.  
+3 Id. ¶ 11. 
+4 Id. ¶¶ 11, 85–90, 109, 112. 
+5 Id. ¶¶ 120–25. 
+6 Dissenting Statement of Comm’r Andrew N. Ferguson, Joined by Comm’r Melissa Holyoak, In the Matter of Deere 
+& Company, Matter No. 2110191, at 2 (Jan. 15, 2025) (“Ferguson Deere Statement”). 
+7 Id. at 2–3. 
+   
+ 
+2 
+ 
+settlement provides real, tangible benefits to America’s farmers.” 8 The agreement reached today 
+does just that. 
+ 
+II 
+ 
+So what has the Commission  secured for our farmers? First and foremost,  by the end of 
+this year Deere must provide to farmers and independent repair providers (“IRPs”) the same repair 
+resources, including applicable software capabilities, that it currently provides to Deere dealers. 9 
+Those resources include electronic repair tools such as Deere’s “PRO Service” and other tools for 
+all Deere agricultural equipment with embedded digital electronics .10 Not only is Deere required 
+to provide these tools , but it must do so on “fair and reasonable terms .”11 In setting those terms, 
+Deere must account for farmers’ and IRPs’ ability to afford the tools.12 This requirement seeks to 
+ensure that Deere cannot circumvent the agreement by making tools technically available but 
+pricing them in a manner that may make them functionally unavailable to farmers and IRPs. By 
+expressly requiring parity between the repair resources once made available to only Deere dealers 
+and those made available to farmers and IRPs, the settlement seeks to ensure that farmers will no 
+longer have to pay increasingly exorbitant costs and endure service delays for necessary repairs to 
+their Deere machinery.  
+ 
+The parity requirement applies not only to Deere’s current suite of repair tools . It also 
+extends to any revised, updated, improved or new version of Deere’s current repair software, as 
+well as any future tool s that are similar or “reasonably necessary” for repairs, once Deere makes 
+them available to over 50 percent of its authorized dealer locations in the U.S.13  The logic for the 
+threshold is that when those new resources are available to this many authorized dealer locations, 
+they are beyond the experimental or pilot stage and are likely to  impact competition for repair 
+services. The settlement also requires Deere to instruct its authorized dealers both to promote the 
+availability of repair resources, and not to discriminate or retaliate  against any farmers or IRPs 
+who purchase or use these resources rather than using dealer repair services.14  
+ 
+ 
+8 Id. at 2.  
+9 Stipulated Final Order  ¶ II.A (“Deere shall … [m]ake available to every Owner and IRP on Fair and Reasonable 
+Terms, on a license, subscription, or purchase basis, Repair Resources equivalent to those Deere then makes available 
+to Deere Dealers, subject to the Rollout Schedule.” (emphasis added)).    
+10 Id. ¶¶ II.A, I.U (includes other tools “reasonably necessary to maintain, diagnose, or repair Deere Agricultural 
+Equipment”); ¶ I.H (Deere Agricultural Equipment covers “any past, current, or future product manufactured or sold 
+by Deere for use in farming or other forms of agriculture that depends for its functioning, in whole or in part, on digital 
+electronics embedded in or attached to it  … [such as] tractors, combines, harvesting equipment, tillage, planting, 
+irrigation or cultivating implements, balers, and other off-road vehicles and implements primarily designed for use in 
+an agricultural operation. …”). While not all required repair resources are currently available in PRO Service, Deere 
+has agreed to release the remaining capabilities by December 31, 2026 , as part of the Stipulated Final Order. See id. 
+App’x B (rollout schedule for remaining capabilities).  
+11 Id. ¶ II.A; see also id. ¶ II.C. 
+12 Id. ¶ I.P (list of factors to assess to arrive at “fair and reasonable terms” on which Deere must offer repair tools). 
+13 Id. ¶¶ I.Q, II.C (requiring Deere to provide farmers and IRPs with PRO Service software updates or future iterations 
+as well as resources that are similar or reasonably necessary for equipment maintenance, diagnosis, or repair if it 
+provides these tools to more than 50 percent of its authorized dealer locations). 
+14 Id. ¶ II.D; see also ¶ VI.B.1(d). 
+   
+ 
+3 
+ 
+To demonstrate its adherence to  the deal it has struck, Deere must submit compliance 
+reports—supported with facts and documents —every 60 days for the duration of its initial 
+promised repair resources rollout, followed by reports once a year thereafter for the  ten-year 
+duration of the order.15 As part of these regular reports, and any interim reports the Commission 
+may request, Deere must also report any complaints about the availability of repair resources or 
+related information and any complaints that its dealers allegedly retaliated against farmers or IRPs 
+for their decision to avail themselves of those repair tools.16 In addition to submitting the regular 
+and on-demand compliance reports, t o ensure Deere cannot circumvent the agreement’s future -
+proofing provisions, Deere must also immediately inform the Commission should it release any 
+new repair tool to more than 50 percent of its  authorized dealers—not just those it may deem 
+“reasonably necessary ” for repairs —without corresponding plans to also provide it, or an 
+equivalent tool, to farmers and IRPs.17  
+ 
+The settlement commits Deere to these terms for ten years, allowing for an extension in the 
+event Deere violates the settlement’s provisions; we may also bring an enforcement action should 
+we discover a violation after the agreement has expired.18 
+ 
+*** 
+ 
+I thank staff for working tirelessly to get us to today’s settlement, which achieves what I 
+initially outlined in my dissent: it restores competition by ensuring that farmers enjoy the right to 
+repair their own equipment or can turn to IRPs  to get the job done , rather than being dependent 
+solely on Deere dealers; and it does so now rather than at some unspecified time in the future after 
+further costly litigation. 
+ 
+I recently emphasized the rich historical ties between farmers and this nation’s founding. 
+Our first five presidents were all farmers, believing that “[t]he cultivators of the earth are the most 
+virtuous citizens and possess most of the amor patriae.” 19 Farmers made up the bulk of the 
+Continental Army that bravely fought for America’s independence from tyranny.20 And it was the 
+farmer who, according to Jefferson, would sustain America as an “empire of liberty.” 21 Beyond 
+these contributions, our nation’s farmers also played a pivotal role in shaping the nation’s earliest 
+ 
+15 Id. ¶¶ VI.A.1–2, VI.B. 
+16 Id. ¶ VI.B.1(d). 
+17 Id. ¶¶ VI.A.3–4 (requiring “[a]n interim Compliance Report no later than 10 days after Deere makes any new Repair 
+Tool available after the date of this Stipulated Order to more than 50 percent of Deere Dealer locations in the United 
+States without making or planning on making a Repa ir Tool with equivalent capabilities available to all Owners and 
+IRPs”). 
+18 Id. §§ X, XI.  
+19 Remarks of Chairman Andrew N. Ferguson, Texas Corn Producers Association Field Hearing,  at 2 n.4 (May 28, 
+2026) (“Ferguson Texas Field Hearing Remarks”) ; “I. Answers to DéMeunier’s First Queries, 24 January 
+1786,” Founders Online,  National Archives, https://founders.archives.gov/documents/Jefferson/01-10-02-0001-
+0002.  
+20 Ferguson Texas Field Hearing Remarks at 1 n.2. 
+21 Id. at 2 n.5. 
+   
+ 
+4 
+ 
+antitrust laws.22 So it is only right that this settlement protects those that Jefferson designated as 
+the nation’s most valuable and virtuous citizens.23  
+ 
+ 
+ 
+22 Id. at 3 n.10.  
+23 See Letter from Thomas Jefferson to John Jay (Aug. 23, 1785), https://founders.archives.gov/documents/Jefferson/ 
+01-08-02-0333; Ferguson Deere Statement at 1  (quoting Jefferson describing agriculture as “our wisest pursuit, 
+because it will in the end contribute most to real wealth, good morals and happiness”). 

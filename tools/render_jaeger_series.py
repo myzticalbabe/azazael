@@ -388,8 +388,9 @@ def configure_render(args, device_used):
     try:
         scene.view_settings.view_transform = "AgX"
         scene.view_settings.look = "AgX - Medium High Contrast"
-    except TypeError:
-        pass
+    except TypeError as exc:
+        print("jaeger: this Blender lacks AgX transforms (%s); keeping defaults"
+              % type(exc).__name__, flush=True)
     scene.view_settings.exposure = 0.0
 
 
@@ -405,7 +406,9 @@ def set_device(want: str) -> str:
         for d in prefs.devices:
             d.use = d.type == "ONEAPI"
         return "ONEAPI"
-    except (KeyError, AttributeError, RuntimeError):
+    except (KeyError, AttributeError, RuntimeError) as exc:
+        print("jaeger: device probe failed (%s: %s); falling back to CPU"
+              % (type(exc).__name__, exc), flush=True)
         return "CPU"
 
 

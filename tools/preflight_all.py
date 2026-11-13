@@ -59,7 +59,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple
 
+# Ensure repo root is on sys.path for tools imports
 REPO = Path(__file__).resolve().parent.parent
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 HOOK = REPO / ".githooks" / "pre-commit"
 #: The commit gate is TWO files since the 2026-11-02 tier split: `pre-commit`
 #: holds the checks about what a commit IS, `tools/evidence_tier.sh` holds the
@@ -86,15 +95,39 @@ def hook_tier_files() -> Tuple[Path, ...]:
 PUSH_HOOK = REPO / ".githooks" / "pre-push"
 EVIDENCE = REPO / "logs" / "preflight_all_evidence.json"
 
+# Read gates config from defaults
+GATES_MCP_STARTUP = read_default("gates.mcp_startup", "blocking")
+GATES_EVIDENCE_GATE = read_default("gates.evidence_gate", "blocking")
+GATES_HYPER_EDGE = read_default("gates.hyper_edge", "advisory")
+GATES_COMMIT_HOOK = read_default("gates.commit_hook", "blocking")
+GATES_SETTINGS_SHADOW = read_default("gates.settings_shadow", "advisory")
+GATES_READING_AUDIT = read_default("gates.reading_audit", "advisory")
+GATES_HEAD_AUDIT = read_default("gates.head_audit", "advisory")
+GATES_LEG_LEDGER = read_default("gates.leg_ledger", "advisory")
+
 #: A gate that hangs must not hang the gate runner. The suite gates are the long
 #: ones (the two-interpreter gate runs pytest twice); this is the ceiling.
 RUN_TIMEOUT = 3600.0
 PROBE_TIMEOUT = 120.0
 GIT_TIMEOUT = 120.0
 
-#: `(?:tools|scripts)/name.py` -- used to re-derive the hook's gate inventory
-#: from the hook text itself, so the registry cannot drift from its producer.
-_SCRIPT_RE = re.compile(r"(?:tools|scripts)/[A-Za-z0-9_]+\.py")
+#: `(?:prefix/)*(?:tools|scripts)/name.py` -- used to re-derive the hook's gate
+#: inventory from the hook text itself, so the registry cannot drift from its
+#: producer.
+#:
+#: THE LEADING GROUP IS LOAD-BEARING. A pattern anchored at `tools/` reads only the
+#: two top-level script dirs, so a gate that lives under a project directory
+#: (`Project_ELIZA/tools/shard_intake.py`, wired 2026-11-03) was derived as
+#: `tools/shard_intake.py`: a path that does not exist, matched against a registry
+#: entry that does, reported as registered-but-not-run on a tree where the gate ran
+#: on every push.
+#:
+#: `(?<![\\w$])` stops a match starting INSIDE a longer token. The tier file
+#: expresses paths as `"$SCRIPT_DIR/Project_ELIZA/tools/x.py"`: without the guard the
+#: engine could begin at `SCRIPT_DIR` and yield `SCRIPT_DIR/Project_ELIZA/tools/x.py`,
+#: which is not a repo-relative path and would be compared against one that is.
+_SCRIPT_RE = re.compile(
+    r"(?<![\w$])(?:[A-Za-z0-9_.-]+/)*(?:tools|scripts)/[A-Za-z0-9_]+\.py")
 
 
 class Gate(NamedTuple):
@@ -151,7 +184,8 @@ GATES: Tuple[Gate, ...] = (
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="the staged changeset (git index) -- file count and changed lines",
+        reads=("the staged changeset (git index), or BASE..HEAD under --base "
+               "-- file count and changed lines"),
         control_test="tests/test_commit_gate.py",
         control=None,
         uncontrolled_because=None,
@@ -179,7 +213,8 @@ GATES: Tuple[Gate, ...] = (
         inside_hook=True,
         blocking=True,
         slow=False,
-        reads="each staged .py at :0: (the INDEX) vs HEAD, per finding category",
+        reads=("each staged .py at :0: vs HEAD, or 'BASE:path' vs 'HEAD:path' "
+               "under --base, per finding category"),
         control_test="tests/test_staged_scanner_gate.py",
         control=None,
         uncontrolled_because=None,
@@ -263,6 +298,38 @@ GATES: Tuple[Gate, ...] = (
         control=None,
         uncontrolled_because=None,
         requires=("NEURAL_MESH_WIRE_OR_CUT.json",),
+    ),
+    Gate(
+        name="shard-intake",
+        # Registered 2026-11-03 with the tier stanza that calls it. Before this the
+        # gate existed and had no caller at all: Project_ELIZA/shards holds 1,183
+        # generated stubs against the Kali atlas, every one addressable and every
+        # load() raising, and `--check` -- the only thing that compares that surface
+        # to the atlas it claims to describe -- ran nowhere.
+        #
+        # BLOCKING, and the missing-atlas case is why the tool grew a third state.
+        # The atlas is out of repo (~/yggdrasil_forest/atlas_kali-linux.json, written
+        # by tools/domain_trees.py on the Kali lane), so a host that never ran that
+        # census cannot judge the surface. The tool now exits 2 for that -- "could not
+        # perform the run" -- instead of 1, so the refusal says which of the two
+        # things happened. It still BLOCKS: `non-blocking` is reserved for gates whose
+        # exit code is advisory by design (test_hook_non_blocking_gates_are_exactly_
+        # the_advisory_ones), and a drift gate parked there would be decoration. The
+        # remedy is one command, named in the output.
+        #
+        # Escape, same idiom as ALLOW_EVIDENCE_GATE: ALLOW_SHARD_INTAKE=1.
+        argv=("Project_ELIZA/tools/shard_intake.py", "--check"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("Project_ELIZA/shards/SHARD_INDEX.json + every stub it indexes + "
+               "WIRED.json, re-derived against ~/yggdrasil_forest/atlas_kali-linux.json"),
+        control_test="Project_ELIZA/tests/test_shard_intake.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=("Project_ELIZA/shards/SHARD_INDEX.json",),
     ),
     Gate(
         name="wire-evidence",
@@ -389,7 +456,11 @@ GATES: Tuple[Gate, ...] = (
     ),
     Gate(
         name="transcript-ap5",
-        argv=("tools/transcript_ap5_gate.py", "--limit", "500"),
+        # --source all: this box's live transcripts are manicode (freebuff),
+        # not opencode; the default slot alone scans an absent store and the
+        # gate fails BLIND on a machine with real transcripts to read.
+        argv=("tools/transcript_ap5_gate.py", "--limit", "500",
+              "--source", "all"),
         interpreter="python3",
         env=(),
         inside_hook=True,
@@ -513,6 +584,36 @@ GATES: Tuple[Gate, ...] = (
             "is not a defect signal, so there is nothing to control"
         ),
         requires=(),  # the PMB daemon's own store, not a repo path
+    ),
+    Gate(
+        name="arc-container",
+        # Inside no hook on purpose: the container grades an artifact (ARC's
+        # wings), not a change in the diff. Registered anyway so the inventory
+        # is complete and the evidence leg is never a tool nobody runs.
+        argv=("tools/arc_check.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        # Deliberately non-blocking: the exit code IS the artifact's graded state
+        # (READY / GAPS / INCOMPLETE / BLIND), so a wing holding a named defect
+        # -- eliza's publication gate, esquire's uncovered tier-A pins -- would
+        # otherwise turn the shared sweep red for a condition its own lane owns.
+        # Flipping this to blocking is that lane's call, once the container reads
+        # READY and the reading means "regressed" instead of "still short".
+        blocking=False,
+        slow=False,
+        reads=(
+            "ARC/ -- each declared wing's own checker plus the evidence leg "
+            "(tools/arc_provenance.py), folded into one container verdict"
+        ),
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "the exit code reports the ARC artifact's state, not a repository "
+            "instrument's health; non-zero is the expected reading while a wing "
+            "is at GAPS or a pin is uncovered, so it is not a defect signal"
+        ),
+        requires=("ARC/README.md",),
     ),
     Gate(
         name="two-interpreter-suite",
@@ -1051,6 +1152,31 @@ def save_evidence(evidence: Dict[str, dict]) -> None:
 # --------------------------------------------------------------------------- #
 
 
+#: Rows whose changeset defaults to the git INDEX. At push time that index holds
+#: whatever a concurrent lane has staged, so an index-scoped run can refuse a
+#: push over files the commit never touched (measured 2026-11-03: a 2-file
+#: commit blocked by 7 forensic files staged by another lane). Under --base they
+#: judge BASE..HEAD instead.
+#:
+#: The base travels in ARGV, not in the environment, because gate_fingerprint()
+#: hashes argv: a recorded PASS from index mode must never be reused to answer a
+#: commit-mode question, nor the reverse. An env var would let one scope inherit
+#: the other's evidence silently -- the stale-evidence defect this registry
+#: exists to prevent.
+CHANGESET_GATES: Tuple[str, ...] = ("changeset-focus", "staged-scanner")
+
+
+def with_changeset_base(gate: Gate, base: Optional[str]) -> Gate:
+    """`gate`, pointed at BASE..HEAD when a commit is named and the row reads one.
+
+    Every other row is returned untouched, so --base cannot narrow the run to
+    two gates: the tree-scoped checks still judge the tree.
+    """
+    if not base or gate.name not in CHANGESET_GATES:
+        return gate
+    return gate._replace(argv=gate.argv + ("--base", base))
+
+
 class Result(NamedTuple):
     gate: str
     outcome: str  # PASS | FAIL | UNRUNNABLE | CACHED
@@ -1394,7 +1520,7 @@ def cmd_list(gates: Sequence[Gate], as_json: bool) -> int:
 
 
 def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
-              allow_unrunnable: Sequence[str]) -> int:
+              allow_unrunnable: Sequence[str], base: Optional[str] = None) -> int:
     ok, message = hook_parity(gates, read_hook())
     print("[preflight] hook parity: %s" % message)
     if not ok:
@@ -1407,12 +1533,23 @@ def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
     if push_state in ("STALE", "UNREADABLE"):
         return 1
 
+    # Which changeset the two index-scoped rows judge. Printed either way: "the
+    # index" and "a commit" are different questions, and a run that does not say
+    # which one it answered cannot be cited for either.
+    if base:
+        print("[preflight] changeset scope: %s..HEAD (%s)"
+              % (base, ", ".join(CHANGESET_GATES)))
+    else:
+        print("[preflight] changeset scope: the git index -- no commit named "
+              "(--base REV to judge a commit)")
+
     evidence = load_evidence()
     state = repo_state_hash()
     results: List[Result] = []
     for gate in gates:
         if gate.slow and not include_slow:
             continue
+        gate = with_changeset_base(gate, base)
         interpreter_path = resolve_interpreter(gate.interpreter)
         if interpreter_path is None:
             if gate.name in allow_unrunnable:
@@ -1778,6 +1915,9 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
     parser.add_argument("--allow-blind", action="append", default=[], metavar="GATE",
                         help="with --strict: declare a gate known to be blind; repeatable")
     parser.add_argument("--json", action="store_true", help="machine-readable --list")
+    parser.add_argument("--base", metavar="REV", default=None,
+                        help="judge REV..HEAD instead of the git index "
+                             "(changeset-focus, staged-scanner)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if not (REPO / "tools").is_dir():
@@ -1791,11 +1931,29 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
               file=sys.stderr)
         return 2
 
+    if args.base:
+        if args.list or args.self_test:
+            print("[preflight] --base applies to --check", file=sys.stderr)
+            return 2
+        probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
+                                "%s^{commit}" % args.base],
+                               cwd=str(REPO), capture_output=True, text=True,
+                               timeout=30, encoding="utf-8", errors="replace")
+        if probe.returncode != 0:
+            # An unresolvable base would hand the gates an empty range, which
+            # reads as PASS. Refusing here is the difference between "no
+            # changes to worry about" and "the question was never asked".
+            print("[preflight] --base %r does not resolve to a commit in this "
+                  "clone -- refusing to judge an empty range" % args.base,
+                  file=sys.stderr)
+            return 2
+
     if args.list:
         return cmd_list(gates, args.json)
     if args.self_test:
         return cmd_self_test(gates, args.run_controls, args.strict, args.allow_blind)
-    return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable)
+    return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable,
+                     args.base)
 
 
 if __name__ == "__main__":

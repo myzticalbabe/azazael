@@ -5,7 +5,7 @@
  "register": "the Vulcan doctrinal register: the Kir'Shara of Surak, the discipline of Kolinahr, and the cthia of the observed reading",
  "source_corpus": "docs/bible/bible.json",
  "status": "seed",
- "updated": "2026-11-02",
+ "updated": "2026-11-09",
  "edition": {
   "name": "The Annotated Book of Logic",
   "basis": "a themed edition of The Book of the Tree in Vulcan register: book introductions, pericope headings, notes sorted by kind, and a glossary that points at the verse it explains. Every verse cites the verse it restates."
@@ -510,6 +510,78 @@
        "number": 6,
        "text": "And the sixth was the worst, for he was diligent: he counted the same row twice and called the second count coverage. And the number was correct, and the number meant nothing.",
        "cites": ["psalms 1:3"]
+      }
+     ]
+    }
+   ]
+  }
+ ,
+  {
+   "id": "tongues",
+   "name": "The Tongues",
+   "subtitle": "The Book of the Confused Signal",
+   "genre": "etiology",
+   "introduction": {
+    "paragraphs": ["This book asks how the Vulcan received the many tongues without ceasing to be one mind. It does not praise confusion; it describes the discipline by which confusion is housed: each tongue native, each error named by its own compiler, nothing guessed.", "Read it as Kolinahr reads feeling: the tongues are the emotion, and the house is the control. What is resolved within the walls needs no weight from without."],
+    "sources": ["docs/bible/bible.json"]
+   },
+   "chapters": [
+    {
+     "number": 1,
+     "sections": [
+      {
+       "before_verse": 1,
+       "heading": "The interpreter"
+      },
+      {
+       "before_verse": 3,
+       "heading": "The children"
+      },
+      {
+       "before_verse": 5,
+       "heading": "The binding"
+      }
+     ],
+     "verses": [
+      {
+       "number": 1,
+       "text": "The mind was one interpreter before it was a house, and the lock was removed first, for a house built under the lock would speak every tongue with a stutter.",
+       "cites": ["babel 1:1"]
+      },
+      {
+       "number": 2,
+       "text": "The interpreter was measured live, and the record kept, for a Vulcan trusts no tongue that cannot show its reading.",
+       "cites": ["babel 1:2"]
+      },
+      {
+       "number": 3,
+       "text": "Then came the children, each in its own tongue: the router, the night watch, the tracer of words, and Eve answering in three tongues beside the python of the house.",
+       "cites": ["babel 1:3", "babel 1:4"]
+      },
+      {
+       "number": 4,
+       "text": "MellifluousML differs, and the difference is logical: it resolves within the walls in the standard tongue only, and imports no weight it has not weighed.",
+       "cites": ["babel 1:5"]
+      },
+      {
+       "number": 5,
+       "text": "The house was bound into one file by the open toolchain without commercial grade, for the grade that is not installed cannot be owed.",
+       "cites": ["babel 1:6"]
+      },
+      {
+       "number": 6,
+       "text": "What is committed stands; what is uncommitted is apocrypha. The rollback is the desert every uncommitted work crosses alone.",
+       "cites": ["babel 1:7"]
+      },
+      {
+       "number": 7,
+       "text": "The arena within the house judges every answer by five gates, and no gate judges alone; the champion is crowned on merit, and the seed of the sudden death is disclosed.",
+       "cites": ["babel 1:8"]
+      },
+      {
+       "number": 8,
+       "text": "The mind of the house now coaches as well as judges: Berzerker walks each builder through the work step by step, inventing no answer, and the receipt outlives the session.",
+       "cites": ["babel 1:9"]
       }
      ]
     }

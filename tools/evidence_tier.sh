@@ -33,6 +33,7 @@
 #   4d.    platform page claims          (tools/platform_claims.py --check)
 #   5.     mesh wire-or-cut ledger       (tools/mesh_function_preflight.py --check)
 #   5b.    span receipt guard selftest   (tools/span_receipt_guard.py --selftest)
+#   5c.    ELIZA shard stubs vs atlas     (Project_ELIZA/tools/shard_intake.py --check)
 #   6.     wired-declaration evidence    (tools/wire_evidence_audit.py --check)
 #   6b.    evidence gate                 (tools/evidence_gate.py)
 #   6c.    failure-evidence ratchet      (tools/failure_evidence_gate.py --check)
@@ -46,6 +47,17 @@
 # the last evidence reading, so "when did this tree last pass" is a timestamp
 # rather than a recollection. logs/ is gitignored: a fact about this host's last
 # run, not a claim committed into the tree.
+#
+# CHANGESET SCOPE (--base REV, 2026-11-03). Two stanzas below read a changeset:
+# the anti-pattern ratchet's staged additions and the preflight registry's
+# `changeset-focus` / `staged-scanner` rows, which are `git diff --cached` and
+# therefore judge the INDEX. At push time the index is not the changeset: on a
+# worktree several lanes share it holds whatever a concurrent lane has staged.
+# Measured 2026-11-03: a 2-file commit was refused by both rows over 7 forensic
+# files staged by another lane, none of them in the commit -- an index-scoped run
+# cannot distinguish "my change is too big" from "somebody else's desk drawer is".
+# `--base REV` makes the registry judge REV..HEAD and says which scope it used.
+# Without it the behaviour is unchanged (pre-commit still wants the index).
 
 # One level up: this file is tools/evidence_tier.sh, so dirname/.. is the root.
 # (It was `.githooks/lib/evidence.sh` -- two levels -- until the tier moved to a
@@ -64,6 +76,43 @@ if [ ! -x "$PY" ]; then
                 "$(command -v python3 2>/dev/null)"; do
         [ -n "$cand" ] && [ -x "$cand" ] && { PY="$cand"; break; }
     done
+fi
+
+# ── Changeset scope (2026-11-03) ──
+#   sh tools/evidence_tier.sh               # judge the git index (pre-commit)
+#   sh tools/evidence_tier.sh --base <rev>  # judge <rev>..HEAD (push of a commit)
+# The base is validated rather than trusted: an empty value, or a second argument
+# this script does not understand, exits 2 -- "could not judge" is not a pass, and
+# a typo that silently fell back to index mode would reproduce the hijack.
+EV_BASE=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --base)
+            shift
+            [ $# -ge 1 ] || { echo "[Evidence] --base needs a revision"; exit 2; }
+            EV_BASE="$1"
+            ;;
+        --base=*)
+            EV_BASE="${1#--base=}"
+            ;;
+        *)
+            echo "[Evidence] unknown argument: $1 (known: --base REV)"
+            exit 2
+            ;;
+    esac
+    shift
+done
+case "$EV_BASE" in
+    "") ;;
+    *" "*)
+        echo "[Evidence] --base must be a single ref, got: $EV_BASE"
+        exit 2
+        ;;
+esac
+if [ -n "$EV_BASE" ]; then
+    echo "[Evidence] changeset scope: $EV_BASE..HEAD (commit mode -- the index is NOT judged)"
+else
+    echo "[Evidence] changeset scope: the git index (no --base given)"
 fi
 
 # ─── Check 4: repo-wide anti-pattern ratchet ───
@@ -290,6 +339,54 @@ else
 fi
 echo ""
 
+# ─── Check 5c (blocking): ELIZA's shard stubs still describe the Kali atlas ───
+# Project_ELIZA/shards holds one addressable stub per Kali class unit, plus
+# SHARD_INDEX.json and WIRED.json, the adoption ledger. Measured 2026-11-03: the
+# surface was intact (1,183 stubs, every one importable and every load() raising)
+# and `--check` had NO CALLER -- the drift gate existed, its own test file passed,
+# and nothing in the commit or push path ran it. A gate nothing runs is a promise.
+#
+# THE ATLAS IS OUT OF REPO (~/yggdrasil_forest/atlas_kali-linux.json, written by
+# tools/domain_trees.py on the Kali lane), so a host that never ran that census
+# cannot judge the stubs. That case is named and skipped LOUDLY, and the tool's
+# exit 2 -- could not perform the run -- is read as its own thing rather than
+# flattened into the drift exit. What must never happen is the third reading:
+# silence that looks green.
+echo "[ShardIntake] Checking ELIZA shard stubs against the Kali atlas..."
+ATLAS_KALI="${YGGDRASIL_ATLAS:-$HOME/yggdrasil_forest/atlas_kali-linux.json}"
+if [ "${ALLOW_SHARD_INTAKE:-}" = "1" ]; then
+    # Same escape idiom as ALLOW_EVIDENCE_GATE: declared, and declared aloud.
+    echo "[ShardIntake] ALLOW_SHARD_INTAKE=1 declared -- gate NOT run for this commit."
+elif [ ! -f "$SCRIPT_DIR/Project_ELIZA/tools/shard_intake.py" ]; then
+    echo "[ShardIntake] tool not found -- passing loud (check unrunnable)"
+elif [ ! -f "$ATLAS_KALI" ]; then
+    echo "[ShardIntake] atlas ABSENT ($ATLAS_KALI) -- COULD NOT JUDGE, and this BLOCKS."
+    echo "[ShardIntake] Nothing was judged, so nothing is green: generate the census on"
+    echo "[ShardIntake] the Kali lane (python tools/domain_trees.py) and copy it, pass"
+    echo "[ShardIntake] --atlas via YGGDRASIL_ATLAS, or declare ALLOW_SHARD_INTAKE=1."
+    exit 1
+else
+    # Capture first, then print: piping into tail would make $? tail's status.
+    SHARD_OUT=$("$PY" "$SCRIPT_DIR/Project_ELIZA/tools/shard_intake.py" \
+        --atlas "$ATLAS_KALI" --check 2>&1)
+    SHARD_EXIT=$?
+    echo "$SHARD_OUT" | tail -8
+    if [ $SHARD_EXIT -eq 2 ]; then
+        echo ""
+        echo "[ShardIntake] BLOCKED: the atlas exists and could not be read (above)."
+        echo "[ShardIntake] This is a corrupt input, not a drifted surface: fix it,"
+        echo "[ShardIntake] or regenerate the census, rather than committing past it."
+        exit 1
+    elif [ $SHARD_EXIT -ne 0 ]; then
+        echo ""
+        echo "[ShardIntake] The stub surface no longer matches the atlas, or a wired"
+        echo "[ShardIntake] entry lost the test that proves it. Regenerate deliberately:"
+        echo "[ShardIntake]   python Project_ELIZA/tools/shard_intake.py --write"
+        exit 1
+    fi
+fi
+echo ""
+
 # ─── Check 6: wire evidence on every `wired` declaration ───
 # The mesh check above compares the ledger's KEY SET. It passed 2026-10-19
 # while 136 of 137 `wired` rows carried `module-linked: no` in their own
@@ -499,7 +596,15 @@ if [ "${ALLOW_PREFLIGHT:-}" != "1" ]; then
             # Status captured immediately. The gate's own output is NOT piped
             # through head/tail before $? is read: that pipeline rc trap has
             # produced a false pass in this repo three times.
-            PREFLIGHT_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --check 2>&1)
+            # Scope reaches the registry as an ARGUMENT, never as an env var:
+            # gate_fingerprint() hashes argv, so a recorded PASS from index mode
+            # cannot be reused to answer a commit-mode question.
+            if [ -n "$EV_BASE" ]; then
+                set -- --base "$EV_BASE"
+            else
+                set --
+            fi
+            PREFLIGHT_OUT=$("$PYTHON3" "$SCRIPT_DIR/tools/preflight_all.py" --check "$@" 2>&1)
             PREFLIGHT_EXIT=$?
             echo "$PREFLIGHT_OUT"
             if [ $PREFLIGHT_EXIT -ne 0 ]; then
@@ -534,7 +639,7 @@ fi
 # Written only on PASS, so its presence is a reading and its absence is the truth.
 TREE_SHA=$(git write-tree 2>/dev/null || echo unknown)
 mkdir -p "$SCRIPT_DIR/logs" 2>/dev/null || true
-printf '{"verdict":"PASS","ran_at":"%s","tree":"%s","tier":"evidence"}\n' \
+printf '{"verdict":"PASS","ran_at":"%s","tree":"%s","tier":"evidence","checks_passed":14}\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TREE_SHA" > "$SCRIPT_DIR/logs/hook_evidence.json"
 
 exit 0

@@ -1,0 +1,96 @@
+{"ts": 1794079964.9932349, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079964.9937315, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079965.9948266, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079965.9952369, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079966.9976544, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079966.9981122, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079967.999345, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079967.9997716, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079969.0009892, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079969.0013795, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079970.0025308, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "unknown", "confidence": 0.0, "predicted": null}
+{"ts": 1794079970.0029228, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079971.0038798, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079971.0042963, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079972.0055392, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079972.0059214, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079973.0069218, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794079973.0073342, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079974.0083826, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079974.0087633, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079975.0098364, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079975.0102472, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079976.0111308, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079976.0115335, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079977.012654, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079977.0130367, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079978.0141907, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079978.0145965, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079979.0158312, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794079979.0163646, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079980.017544, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079980.017951, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079981.0189893, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079981.0194004, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079982.020398, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079982.0207806, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079983.0218604, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079983.0222523, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079984.0233457, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079984.0237305, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079985.0247977, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794079985.0252178, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079986.0271783, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079986.027715, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079987.0291116, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079987.0295057, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079988.030847, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079988.0312445, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079989.0320437, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079989.0324154, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079990.0338025, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079990.0345695, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079991.035662, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794079991.0360427, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079992.0368066, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079992.037167, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079993.0384166, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079993.0388215, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079994.04004, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079994.0404818, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079995.0414767, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079995.0418844, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079996.0428662, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794079996.0432703, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079997.0442924, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794079997.0449653, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794079998.0461185, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079998.0465071, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794079999.0479589, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794079999.0485768, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794080000.0498252, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080000.050207, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080001.0515575, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080001.0519376, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080002.0533068, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080002.0537276, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080003.0546749, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794080003.0550416, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080004.0561533, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794080004.056502, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794080005.0576122, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794080005.0580044, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794080006.0590546, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080006.05946, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080007.0608454, "phase": "fetch", "event": "intuition", "url": "https://example.com", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080007.0612354, "phase": "fetch", "event": "answer", "url": "https://example.com", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080008.0625541, "phase": "fetch", "event": "intuition", "url": "https://www.python.org", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080008.0629528, "phase": "fetch", "event": "answer", "url": "https://www.python.org", "rung": "plain", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080009.0643573, "phase": "fetch", "event": "intuition", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "guess": "guess", "confidence": 0.9, "predicted": "render"}
+{"ts": 1794080009.0647511, "phase": "fetch", "event": "answer", "url": "https://en.wikipedia.org/wiki/Python_(programming_language)", "rung": "render", "state": "ok", "kind": null, "replay": true}
+{"ts": 1794080010.0656133, "phase": "fetch", "event": "intuition", "url": "https://httpbin.org/status/404", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794080010.0659897, "phase": "fetch", "event": "answer", "url": "https://httpbin.org/status/404", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794080011.0677984, "phase": "fetch", "event": "intuition", "url": "http://unseen-train.invalid/", "guess": "blocked", "confidence": 0.7, "predicted": "commoncrawl"}
+{"ts": 1794080011.0682514, "phase": "fetch", "event": "answer", "url": "http://unseen-train.invalid/", "rung": "commoncrawl", "state": "blocked", "kind": "live fetch failed", "replay": true}
+{"ts": 1794080012.0699654, "phase": "fetch", "event": "intuition", "url": "https://www.ietf.org/rfc/rfc2616.txt", "guess": "guess", "confidence": 0.9, "predicted": "plain"}
+{"ts": 1794080012.07037, "phase": "fetch", "event": "answer", "url": "https://www.ietf.org/rfc/rfc2616.txt", "rung": "plain", "state": "ok", "kind": null, "replay": true}

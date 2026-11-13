@@ -37,17 +37,25 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type, Union, Callable, Awaitable
+from typing import (Any, AsyncGenerator, Awaitable, Callable, Dict, List, Optional,
+                    Set, TYPE_CHECKING, Type, Union)
 from enum import Enum
 from contextvars import ContextVar
 
-# Optional dependencies
+# Optional dependencies.
+#
+# Typed under TYPE_CHECKING so `Optional[redis.Redis]` is a real type when the
+# package is absent. The old `redis = None` fallback turned the module alias
+# into a variable, which made the annotation invalid and every attribute on it
+# Optional.
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    import redis.asyncio as redis
+
 try:
     import redis.asyncio as redis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None
 
 
 # Context variable for current worm execution
@@ -191,8 +199,12 @@ class AsyncWormRegistry:
     async def initialize(self) -> None:
         """Initialize the registry (connect to Redis if configured)."""
         if self._redis_url and REDIS_AVAILABLE:
-            self._redis = redis.from_url(self._redis_url)
-            await self._redis.ping()
+            # Assigned only after the connection answers: the old order stored
+            # the client first, so a server that refused the ping left a
+            # half-configured `_redis` installed for the next caller.
+            client = redis.from_url(self._redis_url)
+            await client.ping()
+            self._redis = client
     
     async def close(self) -> None:
         """Close connections and cancel running tasks."""
@@ -332,7 +344,11 @@ class AsyncWormRegistry:
                         )
                         
                         tracked.result = result
-                        tracked._completed_at = datetime.utcnow()
+                        # `completed_at` is the dataclass field; `_completed_at`
+                        # was never declared, so the timestamp was written to an
+                        # attribute nothing reads while the real field stayed
+                        # None.
+                        tracked.completed_at = datetime.utcnow()
                         self._metrics["completed"] += 1
                         
                         return result
@@ -341,7 +357,7 @@ class AsyncWormRegistry:
                         error = f"Worm execution timed out after {timeout}s"
                         tracked.error = error
                         tracked.status = WormStatus.FAILED
-                        tracked._completed_at = datetime.utcnow()
+                        tracked.completed_at = datetime.utcnow()
                         self._metrics["failed"] += 1
                         raise TimeoutError(error)
     
@@ -365,9 +381,15 @@ class AsyncWormRegistry:
                     try:
                         await worm_instance.initialize()
                         
-                        # Stream execution (worm must support streaming)
-                        if hasattr(worm_instance, "execute_stream"):
-                            async for update in worm_instance.execute_stream(input_data):
+                        # Stream execution (worm must support streaming).
+                        # `getattr` rather than `hasattr` + a direct call: the
+                        # base class does not declare `execute_stream`, so the
+                        # checker cannot narrow the attribute from a hasattr
+                        # test, and the fallback below is the whole point of the
+                        # guard.
+                        _stream = getattr(worm_instance, "execute_stream", None)
+                        if _stream is not None:
+                            async for update in _stream(input_data):
                                 yield update
                         else:
                             # Fallback: single execution

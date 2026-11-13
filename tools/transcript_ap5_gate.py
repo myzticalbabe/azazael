@@ -29,9 +29,15 @@ Two stores are modelled because the project is driven from two clients, and a
 gate that reads one of them reports a clean bill for output it never saw.
 
 ``opencode`` (default)
-    SQLite at ``%USERPROFILE%\\.local\\share\\opencode\\opencode.db``, read
-    through ``part`` JOIN ``message`` with the role in ``message.data``.
-    Observed directly: this is the store the gate has always read.
+    SQLite at ``%USERPROFILE%\\.local\\share\\opencode\\opencode.db``. Two
+    schemas are DETECTED at read time, not assumed: **v1** reads through
+    ``part`` JOIN ``message`` with the role in ``message.data``; **v2** (the
+    schema opencode v2.2.6 migrated to) reads ``session_message`` with the
+    role in the ``type`` COLUMN and the prose inlined in the message's
+    ``content`` block list. The migration removed the tables the v1 query
+    names, so a v1-only gate reports "STORE UNREADABLE -- nothing was
+    scanned" -- which is neither a pass nor a failure, and is exactly the
+    hole this gate exists to close.
 
 ``manicode`` (freebuff's client)
     ``%USERPROFILE%\\.config\\manicode\\projects\\<project>\\chats\\
@@ -213,8 +219,11 @@ SOURCE_REGISTRY: list[SourceSpec] = [
         parser="opencode",
         locator=DEFAULT_DB,
         enabled=True,
-        why="observed directly: opencode's own session store (SQLite, "
-            "table part JOIN message)",
+        why="observed directly: opencode's own session store (SQLite). Two "
+            "schemas are DETECTED, not assumed: v1 (part JOIN message, role in "
+            "message.data) and v2 (session_message + session_part, role in the "
+            "type COLUMN, prose inlined in the message's content blocks -- "
+            "opencode v2.2.6 migrated the store)",
         cli_attr="db",
     ),
     # Slot #2 -- freebuff (manicode client) chats. Verified IN-REPO, not
@@ -334,6 +343,59 @@ def _role_of(message_data: Any) -> str:
     return ""
 
 
+def _detect_schema(con) -> str:
+    """Name the opencode store schema actually present.
+
+    opencode v2.2.6 migrated the session store: `part` and `message` were
+    replaced by `session_part` and `session_message`, the role moved OUT of
+    the JSON blob into a `type` COLUMN, and the part rows were inlined into
+    the message row's `content` block list. A gate that keeps querying the
+    old tables reports "STORE UNREADABLE -- nothing was scanned", which is
+    not a clean result and is not a pass: absence is never a pass.
+
+    Detected, not assumed, so an older store still reads correctly.
+    """
+    names = {r[0] for r in con.execute(
+        "select name from sqlite_master where type='table'")}
+    if {"session_message", "session_part"} <= names:
+        return "v2"
+    if {"part", "message"} <= names:
+        return "v1"
+    return "unknown"
+
+
+def _text_of_v2(message_data: Any) -> str:
+    """Extract assistant prose from a v2 `session_message.data` blob.
+
+    v2 inlines what v1 kept in a separate `part` row: `content` is a list of
+    blocks and only the `text` blocks are assistant prose. A `tool` block
+    carries the TOOL'S OUTPUT in state.content[].text -- that is the tool's
+    words, not the assistant's, and v1 skipped it too (part.type != 'text').
+    """
+    if isinstance(message_data, str):
+        try:
+            message_data = json.loads(message_data)
+        except (ValueError, TypeError) as exc:
+            # Record, then fall back: the raw blob is still text a human
+            # would have read, so returning it beats dropping it.
+            note_failure("transcript_ap5_gate:_text_of_v2", exc)
+            return message_data
+    if isinstance(message_data, dict):
+        blocks = message_data.get("content")
+        if isinstance(blocks, list):
+            out: list[str] = []
+            for block in blocks:
+                if isinstance(block, dict) and block.get("type") == "text":
+                    text = block.get("text")
+                    if isinstance(text, str) and text:
+                        out.append(text)
+            return "\n".join(out)
+        text = message_data.get("text")
+        if isinstance(text, str):
+            return text
+    return ""
+
+
 def _text_of(part_data: Any) -> str:
     """Extract assistant prose from a part.data JSON blob.
 
@@ -418,16 +480,36 @@ def scan_store(
         return report
 
     try:
-        q = (
-            "SELECT p.session_id, p.message_id, p.id, p.data, m.data "
-            "FROM part p LEFT JOIN message m ON m.id = p.message_id "
-        )
+        schema = _detect_schema(con)
         args: list[Any] = []
-        if session:
-            q += "WHERE p.session_id = ? "
-            args.append(session)
-        q += "ORDER BY p.time_created DESC LIMIT ?"
-        args.append(limit)
+        if schema == "v2":
+            # opencode v2.2.6+: role is the `type` COLUMN and the prose is
+            # inlined in the message row's `content` blocks.
+            q = ("SELECT session_id, id, seq, data, type "
+                 "FROM session_message WHERE type = 'assistant' ")
+            if session:
+                q += "AND session_id = ? "
+                args.append(session)
+            q += "ORDER BY time_created DESC LIMIT ?"
+            args.append(limit)
+            role_from_column = True
+        elif schema == "v1":
+            q = (
+                "SELECT p.session_id, p.message_id, p.id, p.data, m.data "
+                "FROM part p LEFT JOIN message m ON m.id = p.message_id "
+            )
+            if session:
+                q += "WHERE p.session_id = ? "
+                args.append(session)
+            q += "ORDER BY p.time_created DESC LIMIT ?"
+            args.append(limit)
+            role_from_column = False
+        else:
+            report.schema_ok = False
+            report.note = (
+                "unknown opencode store schema: neither (part, message) nor "
+                "(session_part, session_message) is present")
+            return report
 
         try:
             rows = con.execute(q, args).fetchall()
@@ -436,10 +518,12 @@ def scan_store(
             report.note = "query failed: %s" % exc
             return report
 
-        for sess_id, msg_id, part_id, part_data, msg_data in rows:
-            if _role_of(msg_data) != "assistant":
+        for sess_id, msg_id, part_id, part_data, role_data in rows:
+            role = role_data if role_from_column else _role_of(role_data)
+            if role != "assistant":
                 continue
-            text = _text_of(part_data)
+            text = (_text_of_v2(part_data) if role_from_column
+                    else _text_of(part_data))
             if not text:
                 continue
             report.scanned_parts += 1

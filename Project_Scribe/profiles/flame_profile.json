@@ -1,0 +1,293 @@
+{
+  "project_name": "Project FLAME",
+  "project_description": "Fixed-step game engine orchestrator with integer timebase, no dropped ticks. Stdlib-only deterministic simulation for accelerated play, testing, and replay. Runs on Python standard library with no runtime dependencies.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAME",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAME",
+  "team_size": 1,
+  "funding_amount": "$50,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/flame_pitch.pdf",
+  "prototype_video": "profiles/flame_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAME",
+  "proposal": "profiles/flame_proposal.md",
+  "budget": "profiles/flame_budget.xlsx",
+  "timeline": "profiles/flame_timeline.md",
+  "security_audit": "",
+  "threat_model": "",
+  "adoption_metrics": "",
+  "maintenance_plan": "",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "epic_megagrants": {
+      "max_amount": 150000,
+      "type": "cash_grant",
+      "deadline": "2026-09-04",
+      "priority": "high"
+    },
+    "nlnet": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-03",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "high"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "medium"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ospo": {
+      "max_amount": 750000,
+      "type": "cash_grant",
+      "deadline": "loi_cycle",
+      "priority": "medium"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "high"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "high"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "high"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "medium"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "low"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "medium"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "high"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "medium"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "epic_megagrants": {
+      "project_description": "Fixed-step game engine with integer timebase: deterministic simulation for accelerated play, testing, and replay. Advances open-source 3D graphics ecosystem with stdlib-only, no-dropped-ticks guarantee.",
+      "equipment_budget": "25000",
+      "equipment_justification": "Hyper-Edge DEV box: 1\u00c3\u2014 RTX 4090 (24GB) for CUDA kernel dev + 1\u00c3\u2014 A100 80GB (cloud burst) for engine benchmarking + 256GB DDR5 + 8TB NVMe.",
+      "requested_amount": "150000"
+    },
+    "nlnet": {
+      "project_description": "Fixed-step deterministic game engine orchestrator. Stdlib-only, integer timebase, no dropped ticks. Advances open internet infrastructure for reproducible game development.",
+      "call": "NGI0",
+      "website": "https://github.com/myzticalbabe/azazael/tree/main/Project_FLAME",
+      "abstract": "FLAME is a fixed-step game engine orchestrator with an integer timebase that guarantees no dropped ticks. It runs on the Python standard library with no runtime dependencies.",
+      "requested_amount": "50000",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV box: 1\u00c3\u2014 RTX 4090 (24GB) + 128GB DDR5 + 4TB NVMe. NLnet NGI0 allows \u00e2\u201a\u00ac50K total; \u00e2\u201a\u00ac15K equipment for deterministic engine verification.",
+      "use": "Game developers can use FLAME for deterministic replay, testing, and accelerated simulation.",
+      "comparison": "Unlike variable-step engines, FLAME's integer timebase guarantees identical simulation across platforms.",
+      "challenges": "Ensuring deterministic floating-point behavior across architectures requires careful IEEE-754 handling.",
+      "ecosystem": "FLAME integrates with SHARDEX for content-addressed shard forging and FLAMING SWORD for code quality.",
+      "experience": "The team has built multiple game engines and deterministic simulation tools.",
+      "other_funding": "No other funding currently.",
+      "requestor_name": "Clint Oxford",
+      "contact_email": "clintonoxford47@gmail.com",
+      "organization": "Azazael",
+      "country": "US",
+      "used_ai": "true",
+      "ai_prompt": "Used AI for deterministic simulation code generation and integer timebase verification.",
+      "codebase_used_ai": "true",
+      "entity": "individual"
+    },
+    "github_secure_oss": {
+      "project_description": "Security-focused deterministic engine: stdlib-only with no dependencies eliminates supply chain attack surface. SLSA build verification for deterministic builds.",
+      "equipment_budget": "10000",
+      "equipment_justification": "RTX 4090 for SBOM signing + SLSA verification of deterministic engine builds.",
+      "requested_amount": "10000"
+    },
+    "github_accelerator": {
+      "project_description": "AI-native deterministic game engine: FLAME fixed-step simulation with integer timebase. Open-source, GitHub-hosted.",
+      "requested_amount": "40000",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV: RTX 4090 + A100 80GB cloud for AI-assisted engine development and deterministic verification."
+    },
+    "google_startups_ai": {
+      "project_description": "AI-first deterministic game engine: FLAME with integer timebase. Open-source, stdlib-only, reproducible simulation.",
+      "requested_amount": "350000",
+      "equipment_budget": "100000",
+      "equipment_justification": "Hyper-Edge DEV cluster: 4\u00c3\u2014 A100 80GB + 512GB DDR5 + 16TB NVMe for distributed engine CI/CD and golden-state verification."
+    }
+  },
+  "project": "Project FLAME",
+  "amount": "50000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

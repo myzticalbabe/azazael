@@ -1,0 +1,23 @@
+{
+  "ok": false,
+  "missing_required": [
+    "tfa_1118",
+    "tfa_3016",
+    "tfa_6",
+    "tfa_26"
+  ],
+  "overflow": [],
+  "out_of_bounds": [],
+  "filled": [
+    "tfa_22",
+    "tfa_3019",
+    "tfa_303",
+    "tfa_35",
+    "tfa_36",
+    "tfa_5",
+    "tfa_60"
+  ],
+  "field_count": 40,
+  "program": "census_emergent_ventures",
+  "checked_at": "2026-11-03T17:35:24"
+}

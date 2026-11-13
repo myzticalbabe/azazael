@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project Scribe — Agent form-filler for grant applications using browser bypass"
+version: 0.1.0
+date-released: "2026-11-03"
+license: CDDL-1.1
+type: software
+abstract: >-
+  Scribe is an agent-driven form-filler for grant applications. It uses the
+  same browser bypass stack as the BCC re-investigation (scrapling + curl_cffi
+  headers) to navigate Cloudflare, reCAPTCHA, and JS challenges, then fills
+  and submits grant applications from a structured project profile.
+authors:
+  - name: "Project Scribe contributors"
+keywords:
+  - grant applications
+  - form automation
+  - browser bypass
+  - cloudflare bypass
+  - agent tooling
+  - open source
+references:
+  - type: software
+    title: "scrapling"
+    notes: "Browser automation with bypass capabilities"
+    url: "https://github.com/scrapling/scrapling"
+  - type: software
+    title: "Project ELIZA"
+    notes: "Forensic investigation suite with similar bypass stack"
+    url: "https://github.com/myzticalbabe/azazael/tree/main/Project_ELIZA"

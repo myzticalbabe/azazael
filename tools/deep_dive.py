@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -45,8 +46,11 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
+import importlib
+import io
+import threading
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "logs" / "deep_dive.json"
@@ -130,10 +134,317 @@ def leg_golden_arrow_status(_payload):
             "summary": totals}
 
 
+# Keys are written out in full and read at a call site, never assembled as
+# "hyper_edge." + name: settings_shadow resolves a read only when the reader is
+# called with a literal string, so a computed key (or one parked in a table)
+# leaves the knob looking untouched. Measured 2026-11-05: the first version put
+# the keys in this table and the auditor reported all four as `orphan_knob` --
+# its own finding class, fired by how this file asked for its settings.
+def hyper_edge_flags() -> dict:
+    return {
+        "reading_audit": bool(setting("hyper_edge.reading_audit", True)),
+        "settings_shadow": bool(setting("hyper_edge.settings_shadow", True)),
+        "leg_ledger": bool(setting("hyper_edge.leg_ledger", True)),
+        "head_audit": bool(setting("hyper_edge.head_audit", True)),
+        "truncation": bool(setting("hyper_edge.truncation", True)),
+        "ctypes_restype_audit": bool(setting("hyper_edge.ctypes_restype", True)),
+        # Literal like the rest: a computed key would read as orphan_knob.
+        "claim_agreement": bool(setting("hyper_edge.claim_agreement", True)),
+        "drift_audit": bool(setting("hyper_edge.drift_audit", True)),
+        # Literal like the rest: a computed key would read as orphan_knob.
+        "fusion": bool(setting("hyper_edge.fusion", True)),
+    }
+
+
+HYPER_EDGE_TOOLS = [
+    ("reading_audit", "tools/reading_audit.py", "hyper_edge.reading_audit"),
+    ("settings_shadow", "tools/settings_shadow.py", "hyper_edge.settings_shadow"),
+    ("leg_ledger", "tools/leg_ledger.py", "hyper_edge.leg_ledger"),
+    ("head_audit", "tools/head_audit.py", "hyper_edge.head_audit"),
+    ("truncation", "tools/truncation_census.py", "hyper_edge.truncation"),
+    ("ctypes_restype_audit", "tools/ctypes_restype_audit.py", "hyper_edge.ctypes_restype"),
+    ("claim_agreement", "tools/claim_agreement.py", "hyper_edge.claim_agreement"),
+    ("drift_audit", "tools/drift_audit.py", "hyper_edge.drift_audit"),
+    ("fusion", "tools/fusion_status.py", "hyper_edge.fusion"),
+]
+
+
+class _ThreadRoutedStdout:
+    """sys.stdout stand-in routing each thread's writes to its own buffer.
+
+    A global redirect_stdout around the fan-out would interleave one auditor's
+    lines into another's first-line parse. Workers set router.local.buf before
+    calling the auditor and clear it after; every other thread (including the
+    driver) falls through to the real stdout untouched.
+    """
+
+    def __init__(self, real):
+        self._real = real
+        self.local = threading.local()
+
+    def write(self, data):
+        buf = getattr(self.local, "buf", None)
+        if buf is None:
+            return self._real.write(data)
+        return buf.write(data)
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+    def flush(self):
+        buf = getattr(self.local, "buf", None)
+        if buf is None:
+            return self._real.flush()
+        return buf.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+def _auditor_first_line(text, name):
+    lines = [line for line in (text or "").strip().splitlines()
+             if line.strip()]
+    first = lines[0] if lines else ""
+    # The auditors already prefix their own name; prefixing again produced
+    # `reading_audit: reading_audit: 65 file(s)` in the first run.
+    if first.startswith(name + ":"):
+        first = first[len(name) + 1:].lstrip()
+    return first
+
+
+def _run_auditor_subprocess(rel, strict, bound):
+    cmd = [sys.executable, rel] + (["--strict"] if strict else [])
+    proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=bound)
+    lines = [line for line in (proc.stdout or "").strip().splitlines()
+             if line.strip()]
+    first = lines[0] if lines else (proc.stderr or "").strip()[:200]
+    return proc.returncode, first
+
+
+RATCHET_PATH = ROOT / "logs" / "deep_dive_leg_state.json"
+
+
+_RATCHET_NOTES = []  # state-file incidents, surfaced in the leg line
+
+
+def _ratchet_load():
+    """{auditor: {clean_streak, strict}}. Missing/corrupt file is a fresh
+    ledger, never a failure: the ratchet measures runs, and a run that cannot
+    be measured has not happened."""
+    try:
+        raw = json.loads(RATCHET_PATH.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            return raw
+        _RATCHET_NOTES.append("state is not an object, starting fresh")
+    except (OSError, ValueError) as exc:
+        _RATCHET_NOTES.append("state unreadable (%s), starting fresh"
+                              % type(exc).__name__)
+    return {}
+
+
+def _ratchet_update(ratchet, ran, n):
+    """A clean run lengthens the streak, a dirty one resets it; strict
+    latches at N and never auto-releases. Skipped/off legs are not runs
+    and leave no trace. Pure function over the state dict (testable
+    without a run); persistence stays in _ratchet_save."""
+    for name in ran:
+        rc = ran[name][0]
+        st = ratchet.get(name, {"clean_streak": 0, "strict": False})
+        if rc == 0:
+            st["clean_streak"] = int(st.get("clean_streak", 0)) + 1
+            if st["clean_streak"] >= n:
+                st["strict"] = True
+        else:
+            st["clean_streak"] = 0
+        ratchet[name] = st
+    ratchet["_policy"] = ("shrink-only: strict latches after %d consecutive "
+                            "clean runs and releases only by explicit commit "
+                            "naming the reason" % n)
+    return ratchet
+
+
+def _ratchet_save(state):
+    try:
+        RATCHET_PATH.parent.mkdir(parents=True, exist_ok=True)
+        RATCHET_PATH.write_text(json.dumps(state, indent=2, sort_keys=True)
+                                + "\n", encoding="utf-8")
+    except OSError as exc:
+        _RATCHET_NOTES.append("state unwritable (%s): this run unrecorded"
+                              % type(exc).__name__)
+
+
+def _run_auditor_task(name, rel, strict, bound, router):
+    """Run one auditor in-process, subprocess on failure.
+
+    Returns (exit, first_line, via). `check` is preferred when an auditor
+    defines it (none do yet -- the attempt is the forward-compatible part);
+    otherwise the auditor's own main(argv) runs on this worker thread with
+    prints captured per-thread. Anything raised in-process falls back to the
+    original subprocess path so one broken auditor never takes the leg down.
+    """
+    # Auditor mains take sys.argv[1:] style (no prog element): passing rel as
+    # argv[0] made every argparse-based auditor exit 2 on its own filename.
+    argv = ["--strict"] if strict else []
+    t0 = time.perf_counter()
+    try:
+        mod = importlib.import_module(Path(rel).stem)
+        budget = getattr(mod, "BUDGET_S", None)
+        entry = getattr(mod, "check", None)
+        via = "in-process(check)" if entry is not None else "in-process(main)"
+        if entry is None:
+            entry = mod.main
+        buf = io.StringIO()
+        router.local.buf = buf
+        try:
+            rc = entry(argv)
+        except SystemExit as exc:
+            rc = exc.code
+        finally:
+            router.local.buf = None
+        rc = rc if isinstance(rc, int) else 0
+        elapsed = time.perf_counter() - t0
+        return rc, _auditor_first_line(buf.getvalue(), name), via, \
+            elapsed, budget
+    except Exception as exc:
+        router.local.buf = None
+        rc, first = _run_auditor_subprocess(rel, strict, bound)
+        elapsed = time.perf_counter() - t0
+        budget = getattr(sys.modules.get(Path(rel).stem), "BUDGET_S", None)
+        return rc, _auditor_first_line(first, name), \
+            "subprocess(fallback: %s: %s)" % (type(exc).__name__, str(exc)[:100]), \
+            elapsed, budget
+
+
+def leg_hyper_edge(_payload):
+    """HED-9..HED-12 -- the readings that decay unless something runs them.
+
+    Each auditor is advisory on its own (findings printed, exit 0), so a tree
+    carrying known debt still runs the leg and still reports; `hyper_edge.strict`
+    turns findings into a failing leg, which is the same debt model HED-2 uses for
+    the test baseline. `leg_ledger` audits the PREVIOUS logs/deep_dive.json, so on
+    a first run there is nothing to audit -- that is `skipped`, not a pass and not
+    a failure, because the report it would audit is being written by this run.
+    """
+    strict = bool(setting("hyper_edge.strict", False))
+    leg_bound = float(setting("hyper_edge.leg_timeout_s", 300))
+    ratchet_n = int(setting("hyper_edge.strict_after_clean", 3))
+    del _RATCHET_NOTES[:]
+    ratchet = _ratchet_load()
+    flags = hyper_edge_flags()
+    parts, failed, summary = [], [], {}
+    pending = []
+    for name, rel, key in HYPER_EDGE_TOOLS:
+        if not flags[name]:
+            parts.append("%s=off (%s=false)" % (name, key))
+            summary[name] = "off"
+            continue
+        if name == "leg_ledger" and not REPORT.exists():
+            parts.append("leg_ledger=skipped (no prior %s to audit)" % REPORT.name)
+            summary[name] = "skipped"
+            continue
+        # Per-leg strict: latched by the ratchet below after N consecutive
+        # clean runs, or forced by the global knob. Latched strict never
+        # auto-loosens (shrink-only); loosening is an explicit commit that
+        # names the reason, because a ratchet that relaxes itself is a hope.
+        leg_strict = strict or bool(ratchet.get(name, {}).get("strict", False))
+        pending.append((name, rel, leg_strict))
+    # Fan-out: one worker per auditor on this (free-threaded) interpreter.
+    # No context manager: pool.shutdown(wait=True) would wed the leg to a
+    # hung worker; futures carry the bound and a timeout is recorded as one.
+    t0 = time.time()
+    router = _ThreadRoutedStdout(sys.stdout)
+    sys.stdout = router
+    ran = {}
+    pool = ThreadPoolExecutor(max_workers=max(1, len(pending)))
+    try:
+        futs = {pool.submit(_run_auditor_task, name, rel, leg_strict,
+                            leg_bound, router): name
+                for name, rel, leg_strict in pending}
+        for fut, name in futs.items():
+            try:
+                ran[name] = fut.result(timeout=leg_bound)
+            except FuturesTimeoutError:
+                ran[name] = ("timeout", "", "timeout after %ds"
+                             % int(leg_bound), float(leg_bound), None)
+    finally:
+        sys.stdout = router._real
+        pool.shutdown(wait=False, cancel_futures=True)
+    wall = time.time() - t0
+    for name, rel, key in HYPER_EDGE_TOOLS:
+        if name not in ran:
+            continue
+        rc, first, via, elapsed, budget = ran[name]
+        leg_strict = next((s for n, _r, s in pending if n == name), False)
+        over = (budget is not None and elapsed is not None
+                and elapsed > budget)
+        summary[name] = {"exit": rc, "line": first or "no output",
+                         "via": via, "strict": leg_strict,
+                         "seconds": round(elapsed, 1) if elapsed is not None
+                         else None,
+                         "budget_s": budget, "within_budget": not over}
+        mark = "strict" if leg_strict else "advisory"
+        clock = ("%.1fs/budget%ss" % (elapsed, budget)
+                 if budget is not None else "%.1fs/nobudget" % elapsed)
+        parts.append("%s [%s/%s %s]: %s"
+                     % (name, via, mark, clock, first or "no output"))
+        if rc != 0:
+            failed.append("%s exit %s" % (name, rc))
+        if over:
+            failed.append("%s over budget (%.1fs > %ss)"
+                          % (name, elapsed, budget))
+    _ratchet_update(ratchet, ran, ratchet_n)
+    _ratchet_save(ratchet)
+    latched = sorted(n for n, st in ratchet.items()
+                     if n != "_policy" and st.get("strict"))
+    if latched:
+        parts.append("ratchet strict: %s" % ", ".join(latched))
+    for note in _RATCHET_NOTES:
+        parts.append("ratchet note: %s" % note)
+    detail = "; ".join(parts) + " | wall %.1fs" % wall
+    if failed:
+        return {"status": "error", "summary": summary,
+                "detail": detail + " | FAILED: " + ", ".join(failed)}
+    return {"detail": detail, "summary": summary}
+
+
+def leg_kernel(_payload):
+    """The kernel evidence layer proves itself inside the default run.
+
+    A layer that only proves itself when someone remembers the command is the
+    "practice that depends on memory" HED-8 warns about. This leg runs the proof
+    with the default workers so it is comparable to the recorded baseline, and a
+    ratio below it fails the leg -- a native facility silently degrading is
+    exactly the reading HED-3 says must not be folded into "ok".
+    """
+    if not bool(setting("hyper_edge.kernel", True)):
+        return {"status": "skipped", "detail": "hyper_edge.kernel=false"}
+    if not (ROOT / "src" / "HYPER_EDGE" / "kernel.py").exists():
+        return {"status": "skipped", "detail": "HYPER_EDGE/kernel.py not in this tree"}
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT / "src") + (os.pathsep + env["PYTHONPATH"]
+                                              if env.get("PYTHONPATH") else "")
+    env["PYTHONIOENCODING"] = "utf-8"
+    bound = float(setting("hyper_edge.kernel_timeout_s", 180))
+    proc = subprocess.run([sys.executable, "-m", "HYPER_EDGE.cli", "kernel"],
+                          cwd=str(ROOT), env=env, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=bound)
+    lines = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+    verdict = next((line for line in lines if line.startswith("verdict:")), "")
+    baseline = next((line for line in lines if line.startswith("baseline:")), "")
+    if proc.returncode != 0 or not verdict:
+        tail = (proc.stderr or "").strip().splitlines()[-1:] or ["no output"]
+        return {"status": "error", "detail": (verdict or baseline or tail[0])[:300]}
+    return {"detail": "%s | %s" % (verdict, baseline) if baseline else verdict}
+
+
 FORENSIC_LEGS = [
     ("ast_audit", leg_ast_audit),
     ("evidence_gate", leg_evidence_gate),
     ("golden_arrow_status", leg_golden_arrow_status),
+    ("hyper_edge", leg_hyper_edge),
+    ("kernel", leg_kernel),
 ]
 
 
@@ -296,7 +607,8 @@ def main(argv=None) -> int:
     ap.add_argument("--web", action="store_true", help="web leg only")
     ap.add_argument("--offline", action="store_true", help="force the web fallback")
     ap.add_argument("--query", action="append", default=[], help="explicit query")
-    ap.add_argument("--json", default=str(REPORT))
+    ap.add_argument("--json", default="",
+                    help="where the report lands (default: fallback.record)")
     ap.add_argument("--timeout", type=float, default=None)
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args(argv)
@@ -317,10 +629,19 @@ def main(argv=None) -> int:
         do_web = False
     timeout = args.timeout or float(setting("deep_dive.web_timeout_s", 20))
     max_q = int(setting("deep_dive.max_queries", 3))
+    fallback_mode = str(setting("fallback.on_error", "record-and-continue")).strip().lower()
+    record = args.json or str(setting("fallback.record", str(REPORT)))
+    out = Path(record)
+    if not out.is_absolute():
+        out = ROOT / out
 
     legs, results = [], []
     if do_forensics:
-        legs.extend(FORENSIC_LEGS)
+        for name, fn in FORENSIC_LEGS:
+            if name == "ast_audit" and not bool(setting("ast_audit", True)):
+                why.append("ast_audit leg off (ast_audit=false)")
+                continue
+            legs.append((name, fn))
     if do_web:
         queries = args.query or default_queries(max_q)
         legs.append(("web", leg_web))
@@ -332,10 +653,30 @@ def main(argv=None) -> int:
 
     payload = {"queries": args.query or default_queries(max_q), "timeout": timeout}
     started = time.monotonic()
-    with ThreadPoolExecutor(max_workers=len(legs)) as pool:
-        jobs = [pool.submit(run_leg, name, fn, payload, timeout) for name, fn in legs]
-        for job in jobs:
-            results.append(job.result())
+    if fallback_mode == "abort":
+        # `fallback.on_error=abort` is the operator saying one broken leg ends the
+        # run; it is opt-in because the shipped rule is record-and-continue. Legs
+        # after the failure are recorded as `skipped` with the reason, never left
+        # out: a leg missing from the report reads exactly like a leg that passed.
+        done = set()
+        for name, fn in legs:
+            row = run_leg(name, fn, payload, timeout)
+            results.append(row)
+            done.add(name)
+            if row.get("status") in ("error", "timeout"):
+                for rest, _fn in legs:
+                    if rest not in done:
+                        results.append({"leg": rest, "status": "skipped",
+                                        "seconds": 0.0,
+                                        "detail": "not run: fallback.on_error=abort "
+                                                  "after %s" % name})
+                break
+    else:
+        with ThreadPoolExecutor(max_workers=len(legs)) as pool:
+            jobs = [pool.submit(run_leg, name, fn, payload, timeout)
+                    for name, fn in legs]
+            for job in jobs:
+                results.append(job.result())
     elapsed = round(time.monotonic() - started, 1)
 
     forensic_failed = [r for r in results
@@ -344,11 +685,11 @@ def main(argv=None) -> int:
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "elapsed_s": elapsed,
         "settings": {"enabled": enabled, "forensics": do_forensics, "web": do_web,
-                     "timeout_s": timeout, "max_queries": max_q, "suppressed": why},
+                     "timeout_s": timeout, "max_queries": max_q,
+                     "fallback": fallback_mode, "suppressed": why},
         "legs": results,
         "verdict": "FAIL" if forensic_failed else "PASS",
     }
-    out = Path(args.json)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 

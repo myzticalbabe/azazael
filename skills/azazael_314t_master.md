@@ -111,5 +111,6 @@ node-gyp --version
 4. Audit all 450 G: wheels for cp314t compatibility
 5. Prototype Rust/PyO3 Windows-native .pyd
 > RETIRED 2026-10-19 — describes `C:/Users/clint/.local/bin/python3.14t.exe` and `.venv-3.14t`, both gone.
-> Production is 3.15t (`C:/Azazael/.venvs/py315t`); `C:/Azazael/.venvs/py314m` is the only 3.14 fallback.
+> Production is 3.16t (`C:/Azazael/.venvs/py316t`); `C:/Azazael/.venvs/py314m` is the only 3.14 fallback.
 > Kept as provenance, not callable.
+> Production is 3.15t (`C:/Azazael/.venvs/py315t`); `C:/Azazael/.venvs/py314m` is the only 3.14 fallback.

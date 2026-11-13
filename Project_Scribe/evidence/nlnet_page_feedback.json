@@ -1,0 +1,26 @@
+{
+  "ok": false,
+  "missing_required": [
+    "call",
+    "used_ai",
+    "codebase_used_ai",
+    "country",
+    "use",
+    "comparison"
+  ],
+  "overflow": [],
+  "out_of_bounds": [
+    "amount=100000 outside [5000, 50000]"
+  ],
+  "filled": [
+    "abstract",
+    "amount",
+    "email",
+    "project",
+    "requestor",
+    "website"
+  ],
+  "field_count": 33,
+  "program": "nlnet",
+  "checked_at": "2026-11-03T17:05:28"
+}

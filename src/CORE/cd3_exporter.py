@@ -46,7 +46,7 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Sequence, List
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence
 import time as _time
 
 #: This list used to sit INSIDE the module docstring above, i.e. inside a string
@@ -94,6 +94,18 @@ except ImportError:                               # never break the host
 if TYPE_CHECKING:               # annotation-only: never evaluated at run time
     from opentelemetry.sdk.trace import ReadableSpan
     from opentelemetry.sdk.trace.export import SpanExportResult as _SpanExportResultType
+    # `SpanExporter` is a plain class, not a typing.Protocol (`_is_protocol` is
+    # False, its mro is `(SpanExporter, object)`), so the processors that take
+    # one use NOMINAL assignability: an exporter that merely HAS the three
+    # methods is still not a `SpanExporter`. It has to inherit from it. The
+    # base is resolved again at runtime below, so this module still imports
+    # cleanly when the optional SDK is absent.
+    from opentelemetry.sdk.trace.export import SpanExporter as _SpanExporterBase
+else:
+    try:
+        from opentelemetry.sdk.trace.export import SpanExporter as _SpanExporterBase
+    except ImportError:                     # optional dependency absent
+        _SpanExporterBase = object
 
 
 class _SpanExportResultFallback:
@@ -111,13 +123,22 @@ class _SpanExportResultFallback:
 
 
 OTEL_SDK_AVAILABLE = False
-try:
+if TYPE_CHECKING:
+    # Typed against the SDK's own enum, which is what `export()` returns. The
+    # runtime fallback below is deliberately invisible here: when the name is
+    # `type[SpanExportResult] | type[_SpanExportResultFallback]`, every
+    # `return SpanExportResult.SUCCESS` widens to `Literal[...] | int`, which is
+    # not the declared return type -- and SQLiteSpanExporter then stops
+    # satisfying the `SpanExporter` protocol it is handed to as a processor.
     from opentelemetry.sdk.trace.export import SpanExportResult
+else:                           # runtime only; a type checker skips this branch
+    try:
+        from opentelemetry.sdk.trace.export import SpanExportResult
 
-    OTEL_SDK_AVAILABLE = True
-except ImportError as _otel_missing:            # optional dependency absent
-    note_failure("cd3_exporter:otel-sdk-import", _otel_missing)
-    SpanExportResult = _SpanExportResultFallback
+        OTEL_SDK_AVAILABLE = True
+    except ImportError as _otel_missing:            # optional dependency absent
+        note_failure("cd3_exporter:otel-sdk-import", _otel_missing)
+        SpanExportResult = _SpanExportResultFallback
 
 # -- DB path resolution -----------------------------------------------
 # Default to same DB as DirectMemory for cross-ledger queries.
@@ -197,7 +218,7 @@ CREATE INDEX IF NOT EXISTS idx_otel_correlation ON otel_spans(correlation_id);
 # Writes spans to memory_store.db in WAL mode for concurrent access
 # from multiple 3.14t threads.
 
-class SQLiteSpanExporter:
+class SQLiteSpanExporter(_SpanExporterBase):
     """Exports OTel spans to memory_store.db for unified trace analysis.
 
     Stores spans in the otel_spans table alongside DirectMemory events,
@@ -224,6 +245,33 @@ class SQLiteSpanExporter:
         self.batch_size = batch_size
         self.export_count = 0
         self.schema_initialized = False
+        #: An in-memory database is DESTROYED when its last connection closes, so
+        #: a per-batch ``connect(":memory:")`` created the schema and discarded it:
+        #: ``export()`` then reported "no such table: otel_spans" and wrote nothing
+        #: (reproduced 2026-11-04: this file's own self-test, rc=1, 0 spans). One
+        #: connection is held for the exporter's lifetime instead, and released by
+        #: ``shutdown()``.
+        self._memory_conn: sqlite3.Connection | None = None
+
+    def _connect(self) -> sqlite3.Connection:
+        """Return the connection this exporter writes through.
+
+        A file-backed database gets a fresh connection per call, which is what
+        keeps the writer lock short. ``:memory:`` gets the one connection that
+        holds the database, created on first use.
+        """
+        if self.db_path != ":memory:":
+            return sqlite3.connect(self.db_path, timeout=5)
+        if self._memory_conn is None:
+            self._memory_conn = sqlite3.connect(
+                ":memory:", timeout=5, check_same_thread=False
+            )
+        return self._memory_conn
+
+    def _release(self, conn: sqlite3.Connection) -> None:
+        """Close ``conn`` unless it is the connection that HOLDS the database."""
+        if conn is not self._memory_conn:
+            conn.close()
 
     def _ensure_db_dir(self):
         """Create the database directory if it does not exist."""
@@ -233,14 +281,14 @@ class SQLiteSpanExporter:
     def _init_schema(self):
         """Create the otel_spans table and indexes if they do not exist."""
         self._ensure_db_dir()
-        conn = sqlite3.connect(self.db_path, timeout=5)
+        conn = self._connect()
         try:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript(OTEL_SPANS_SCHEMA)
             conn.commit()
             self.schema_initialized = True
         finally:
-            conn.close()
+            self._release(conn)
 
     def export(self, spans: Sequence[ReadableSpan]) -> "_SpanExportResultType":
         """Export a batch of spans to the SQLite database.
@@ -259,7 +307,7 @@ class SQLiteSpanExporter:
         if not self.schema_initialized:
             self._init_schema()
 
-        conn = sqlite3.connect(self.db_path, timeout=5)
+        conn = self._connect()
         conn.execute("BEGIN TRANSACTION")
         try:
             for span in spans:
@@ -300,18 +348,24 @@ class SQLiteSpanExporter:
             print(f"[cd3_exporter] Export error: {e}")
             return SpanExportResult.FAILURE
         finally:
-            conn.close()
+            self._release(conn)
 
-    def shutdown(self):
-        """Shutdown the exporter.
+    def shutdown(self) -> None:
+        """Release what this exporter owns, which is only an in-memory database.
 
-        Intentionally inert, and REQUIRED: ``SpanExporter`` declares it and the
-        ``TracerProvider`` calls it on exit. There is nothing to release because
-        ``export()`` opens and closes its own connection per batch instead of
-        holding one open, which is also why there is no writer lock to drop.
+        REQUIRED: ``SpanExporter`` declares it and ``TracerProvider`` calls it on
+        exit. A file-backed database needs nothing here -- ``export()`` opens and
+        closes its own connection per batch instead of holding one open, which is
+        also why there is no writer lock to drop. ``:memory:`` is the exception:
+        its data exists only while a connection to it does, so that connection is
+        closed here and the next export starts from a fresh, empty database.
         """
+        if self._memory_conn is not None:
+            self._memory_conn.close()
+            self._memory_conn = None
+            self.schema_initialized = False
 
-    def force_flush(self, timeout_millis: int = 30000):
+    def force_flush(self, timeout_millis: int = 30000) -> bool:
         """Force flush any pending exports.
 
         Intentionally inert, and REQUIRED by the ``SpanExporter`` interface:
@@ -319,7 +373,12 @@ class SQLiteSpanExporter:
         a flush has nothing to do. Implemented as a real method rather than
         omitted so the interface contract is visible here instead of looking
         like an unfinished stub.
+
+        Returns True because nothing is pending: the interface declares
+        ``-> bool`` and a body that only holds a docstring returns ``None``,
+        which reads to ``TracerProvider.force_flush()`` as a FAILED flush.
         """
+        return True
 
     def get_stats(self) -> dict[str, Any]:
         """Return export statistics.
@@ -365,12 +424,18 @@ def record_span(
     """Write ONE span without the OpenTelemetry SDK.
 
     ``SQLiteSpanExporter.export()`` takes ``ReadableSpan`` objects, and only the
-    SDK produces those. Measured 2026-11-02 on the production interpreter
-    (``C:/Azazael/.venvs/py315t``): ``from opentelemetry.sdk.trace import
-    TracerProvider`` raises ``ModuleNotFoundError: No module named
-    'opentelemetry.sdk'``, so on that interpreter ``export()`` can be called but
-    nothing can ever hand it a span -- the table stayed empty (0 rows in the live
-    ``telemetry_store.db``) while the exporter looked wired.
+    SDK produces those.
+
+    Measured 2026-11-02: ``from opentelemetry.sdk.trace import TracerProvider``
+    raised ``ModuleNotFoundError: No module named 'opentelemetry.sdk'`` on
+    ``C:/Azazael/.venvs/py315t``, leaving the table empty (0 rows in the live
+    ``telemetry_store.db``) while the exporter looked wired. **Re-measured
+    2026-11-04: that reading is stale** -- both ``C:/Azazael/.venvs/py315t`` and
+    the 3.14.7 ``python`` on PATH import ``opentelemetry.sdk.trace`` and
+    ``opentelemetry.sdk.trace.export`` (rc=0, ``import OK``). So this is the
+    no-SDK fallback path for an interpreter that lacks the package, not the
+    production route; a caller with a Tracer must build one with
+    ``build_tracer()`` and go through ``export()``.
 
     This module already persists spans to SQLite itself; the SDK was only ever
     naming types. So a caller that HAS span data and no SDK writes through here,
@@ -639,14 +704,16 @@ if __name__ == "__main__":
     assert exporter.schema_initialized, "Schema not initialized"
     print("  [PASS] Exporter creation + schema init")
 
-    # Test 2: Verify schema table creation
-    conn = sqlite3.connect(":memory:")
-    conn.executescript(OTEL_SPANS_SCHEMA)
-    tables = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
-    ).fetchall()
-    assert any("otel_spans" in t for t in tables[0] if tables), "otel_spans table missing"
-    conn.close()
+    # Test 2: Verify schema table creation -- through the SAME connection the
+    # exporter writes to. A second connect(":memory:") is a second, empty
+    # database, so the previous version of this test could not see the table it
+    # was asserting about and passed on a schema it had just created itself.
+    conn = exporter._connect()
+    tables = {
+        row[0]
+        for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    }
+    assert "otel_spans" in tables, f"otel_spans table missing (tables={sorted(tables)})"
     print("  [PASS] otel_spans table created with schema")
 
     # Test 3: Export spans via OTel SDK
@@ -672,8 +739,9 @@ if __name__ == "__main__":
     assert exporter2.export_count >= 2, f"Expected >=2 spans, got {exporter2.export_count}"
     print(f"  [PASS] Span export: {exporter2.export_count} spans exported")
 
-    # Test 4: Trace reconstruction
-    conn = sqlite3.connect(":memory:")
+    # Test 4: Trace reconstruction -- read back what the exporter wrote, through
+    # the connection that holds it.
+    conn = exporter2._connect()
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
         "SELECT name FROM otel_spans WHERE trace_id = ? ORDER BY start_time ASC",
@@ -682,7 +750,6 @@ if __name__ == "__main__":
     names = [r["name"] for r in rows]
     assert "self_test_root" in names, "Root span not found"
     assert "child_span" in names, "Child span not found"
-    conn.close()
     print(f"  [PASS] Trace reconstruction: {names}")
 
     # Test 5: query_trace_by_id convenience function

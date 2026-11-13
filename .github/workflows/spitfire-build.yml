@@ -1,0 +1,137 @@
+# Project SpitFire — CI/CD Multi-Target Build
+# Builds 5 platform targets in parallel matrix
+
+name: SpitFire Build
+
+on:
+  push:
+    branches: [main, azazael-intel-ultra-9-evo]
+    paths:
+      - "src/spitfire/**"
+      - ".github/workflows/spitfire-build.yml"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Specific target to build"
+        required: false
+        type: choice
+        options: [win7, win81, win10, macos, linux, all]
+
+env:
+  NUITKA_VERSION: "latest"
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows 7 — Python 3.8 + VS 2017 (MSVC 14.1)
+          - target: win7
+            os: windows-2019
+            python: "3.8"
+            arch: x64
+            config: spitfire.win7.nuitka.toml
+            artifact: SpitFire-win7.exe
+            needs_vs: "2017"
+
+          # Windows 8.1 — Python 3.12 + VS 2019 (MSVC 14.2)
+          - target: win81
+            os: windows-2022
+            python: "3.12"
+            arch: x64
+            config: spitfire.win81.nuitka.toml
+            artifact: SpitFire-win81.exe
+            needs_vs: "2019"
+
+          # Windows 10+ — Python 3.15t free-threaded + VS 2022 (MSVC 14.3)
+          - target: win10
+            os: windows-2022
+            python: "3.15t"
+            arch: x64
+            config: spitfire.win10.nuitka.toml
+            artifact: SpitFire-win10.exe
+            needs_vs: "2022"
+            experimental: true
+
+          # macOS 10.15+ — Python 3.15t universal2
+          - target: macos
+            os: macos-13
+            python: "3.15t"
+            arch: universal2
+            config: spitfire.macos.nuitka.toml
+            artifact: SpitFire-macos
+
+          # Linux — Python 3.15t manylinux2014
+          - target: linux
+            os: ubuntu-20.04
+            python: "3.15t"
+            arch: x86_64
+            config: spitfire.linux.nuitka.toml
+            artifact: SpitFire-linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: ${{ matrix.arch }}
+          cache: pip
+
+      - name: Install Nuitka
+        run: pip install -U nuitka==${{ env.NUITKA_VERSION }}
+
+      - name: Install VS BuildTools (Windows)
+        if: runner.os == 'Windows'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: ${{ matrix.needs_vs }}
+
+      - name: Build SpitFire ${{ matrix.target }}
+        run: |
+          cd ${{ github.workspace }}
+          python src/spitfire/build/build_all.py --target ${{ matrix.target }}
+        env:
+          # Pass experimental flag for 3.15t builds
+          NUITKA_EXPERIMENTAL: ${{ matrix.experimental == true && 'python3.15' || '' }}
+
+      - name: Verify binary
+        run: |
+          ls -la dist/${{ matrix.target }}/${{ matrix.artifact }}*
+          file dist/${{ matrix.target }}/${{ matrix.artifact }}* || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpitFire-${{ matrix.target }}
+          path: dist/${{ matrix.target }}/${{ matrix.artifact }}*
+          retention-days: 30
+
+  release:
+    name: Create Release
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: SpitFire-*
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+          generate_release_notes: true

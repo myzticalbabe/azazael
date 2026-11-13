@@ -1,0 +1,21 @@
+<frozen runpy>:129: RuntimeWarning: 'HYPER_EDGE.evolution' found in sys.modules after import of package 'HYPER_EDGE', but prior to execution of 'HYPER_EDGE.evolution'; this may result in unpredictable behaviour
+shipped quorum in force: 0.6600 via defaults_profile(windows)
+evidence: arena_llm_judgments_r9.json (calls=42 round=r9)
+band: quorum must be > 0.50 (C4 must not pass) and <= 1.00 (C1 must pass)
+  gen  0  evaluated=32 frontier= 1  best: q=0.7594 verdicts=6/7 stability=1.00 on 1 margin=0.241
+  gen  1  evaluated=32 frontier= 1  best: q=0.7428 verdicts=6/7 stability=1.00 on 1 margin=0.243
+  gen  2  evaluated=32 frontier= 1  best: q=0.7548 verdicts=6/7 stability=1.00 on 1 margin=0.245
+  gen  3  evaluated=32 frontier= 1  best: q=0.7548 verdicts=6/7 stability=1.00 on 1 margin=0.245
+  gen  4  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+  gen  5  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+  gen  6  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+  gen  7  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+  gen  8  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+  gen  9  evaluated=32 frontier= 1  best: q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+frontier (1):
+   q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+shipped 0.66 -> q=0.6600 verdicts=6/7 stability=1.00 on 1 margin=0.160
+chosen -> q=0.7497 verdicts=6/7 stability=1.00 on 1 margin=0.250
+overlay proposal: {"arena": {"quorum": 0.7497}}
+inert genes (carried, not tuned): max_age_days (no row in this corpus constrains it); truncation_strict (no row in this corpus constrains it)
+artifact: ARC/cain/hyper_edge_rc_evolution_r9.json

@@ -1,0 +1,184 @@
+{
+ "adopt_order_note": "One package per process. Never two builds in one tree. Each adoption: fetch pinned sdist, keep pristine, patch, build, verify (import+functional+suite), land wheel+patch+manifest+recipe+bake row. Autonomy bound: 3 build attempts; unknown failure writes a recipe stub and stops.",
+ "c_libraries": {
+  "jpeg": {
+   "built_from": "libjpeg-turbo-3.1.1.tar.gz",
+   "cmake_args": [
+    "-DWITH_SIMD=OFF",
+    "-DENABLE_STATIC=ON",
+    "-DENABLE_SHARED=OFF"
+   ],
+   "headers": [
+    "jpeglib.h",
+    "jmorecfg.h",
+    "jconfig.h"
+   ],
+   "lib": "jpeg.lib",
+   "needs": "cmake + ninja; SDK bin on PATH for rc.exe; headers live in turbo src/, NOT root",
+   "staged_as": "deps/lib/jpeg.lib + headers in deps/include/"
+  },
+  "zlib": {
+   "built_from": "zlib-1.3.1.tar.gz",
+   "lib": "zlib.lib",
+   "notes": "nmake -f win32/Makefile.msc; rc resource step fails but zlib.lib still lands",
+   "staged_as": "deps/lib/zlib.lib + zlib.h/zconf.h in deps/include/"
+  }
+ },
+ "packages": {
+  "MarkupSafe": {
+   "backend": "setuptools",
+   "build_cmd": "pip wheel --no-build-isolation --no-deps",
+   "status": "landed",
+   "version": "3.0.4",
+   "verify": "from markupsafe import _speedups",
+   "sdist": "https://files.pythonhosted.org/packages/38/9b/e422a865e1d5d57d0e509b4e0bf1c1a70a7f6382c29a5aa428df994c8bc8/markupsafe-3.0.4.tar.gz",
+   "landed": "markupsafe-3.0.4-cp316-cp316t-win_amd64.whl",
+   "note": "engine self-test target: loop proven fetch->build->install->probe; probe-gating + probe-compile-check + churn-exclusion fixes added after first run"
+  },
+  "Pillow": {
+   "backend": "setuptools",
+   "build_cmd": "pip wheel --no-build-isolation --no-deps",
+   "c_libs": [
+    "zlib",
+    "jpeg"
+   ],
+   "env_extra": {
+    "JPEG_ROOT": "deps",
+    "ZLIB_ROOT": "deps"
+   },
+   "landed": "pillow-13.0.0-cp316-cp316t-win_amd64.whl",
+   "patch": "comment out 'prune Tests/errors' in MANIFEST.in (upstreamed)",
+   "status": "landed",
+   "verify": "JPEG roundtrip green",
+   "version": "13.0.0"
+  },
+  "cffi": {
+   "backend": "setuptools",
+   "build_cmd": "pip wheel --no-build-isolation --no-deps",
+   "landed": "cffi-2.1.1-cp316-cp316t-win_amd64.whl",
+   "patch": "et+Py_FileSystemDefaultEncoding -> O&+PyUnicode_FSConverter in _cffi_backend.c (universal, upstreamed)",
+   "status": "landed",
+   "verify": "FFI dlopen kernel32 green on 3.16t AND 3.15t",
+   "version": "2.1.1"
+  },
+  "greenlet": {
+   "note": "adopted as-is, no source changes; root cause of earlier failure was our dev-layout, not upstream",
+   "status": "landed",
+   "version": "3.5.6"
+  },
+  "numpy": {
+   "env_extra": {},
+   "landed": "numpy-2.5.4-cp316-cp316t-win_amd64.whl",
+   "meson_setup": [
+    "-Dblas=mkl",
+    "-Dlapack=mkl",
+    "-Dmkl-threading=seq"
+   ],
+   "needs": [
+    "cpython-316/libs/python316t.lib staged",
+    "PC/pyconfig.h -> Include/",
+    "meson>=1.8.3, Cython, cython.exe on PATH for probe"
+   ],
+   "status": "landed",
+   "verify": "matmul green, 291/291 compiled",
+   "version": "2.5.4"
+  },
+  "psutil": {
+   "note": "adopted as-is, no source changes",
+   "status": "landed",
+   "version": "7.2.2"
+  },
+  "scikit-learn": {
+   "blocked_on": [
+    "scipy"
+   ],
+   "status": "queued"
+  },
+  "scipy": {
+   "backend": "meson-python",
+   "blocked_by_was": "pythran 0.19.0 headers rejected by VS 18 MSVC 19.51 (C2559/C2244) even with /std:c++17 and zero /permissive-",
+   "build_cmd": "pip wheel --no-build-isolation --no-deps -Csetup-args=...",
+   "env_extra": {},
+   "landed_wheel": "pending (ninja EXIT:0, wheel building)",
+   "meson_setup": [
+    "-Dblas=mkl",
+    "-Dlapack=mkl",
+    "-Dmkl-threading=seq",
+    "-Duse-pythran=false"
+   ],
+   "patch": "sparsetools/dia.h: 3x 'or' -> '||' (MSVC has no alternative tokens; upstreamable)",
+   "status": "landed",
+   "tradeoff": "pure-python linalg paths until upstream pythran fixes VS18; reported in oxenford-upstream/README.md",
+   "verify": "import scipy; from scipy.sparse import csr_matrix; from scipy.sparse.linalg import spsolve; import numpy as np; assert spsolve(csr_matrix(np.array([[3.,1.],[1.,2.]])), np.array([9.,8.])).tolist() == [2.0, 3.0]",
+   "version": "1.18.1",
+   "landed": "scipy-1.18.1-cp316-cp316t-win_amd64.whl",
+   "runtime_dlls": [
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_rt.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_core.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_sequential.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_intel_thread.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_def.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_avx2.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_avx512.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_avx10.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/mkl_mc3.3.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin/libimalloc.dll",
+    "C:/Program Files (x86)/Intel/oneAPI/compiler/2026.0/bin/libiomp5md.dll"
+   ],
+   "runtime_note": "MKL DLLs staged next to the REAL exe (PCbuild/amd64t), NOT venv Scripts. Verified in clean env (System32-only PATH)."
+  },
+  "reportlab": {
+   "version": "5.1.0",
+   "backend": "setuptools",
+   "status": "landed",
+   "landed": "reportlab-5.1.0-py3-none-any.whl",
+   "note": "pure wheel, no C ext; powers forge pdf kind",
+   "verify": "import reportlab"
+  }
+ },
+ "toolchain": {
+  "PATH_prepend": [
+   "C:/Azazael/.venvs/py316t/Scripts",
+   "C:/Program Files (x86)/Intel/oneAPI/compiler/2026.0/bin",
+   "C:/Program Files (x86)/Intel/oneAPI/mkl/latest/bin",
+   "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/HostX64/x64",
+   "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64",
+   "C:/Program Files/CMake/bin"
+  ],
+  "cmake_notes": "SDK bin dir must be on PATH or cmake's compiler check fails on missing rc.exe",
+  "interpreters": {
+   "py315t": "C:/Azazael/.venvs/py315t/Scripts/python.exe (3.15.0rc3, gil=False; commit gates stay here)",
+   "py316": "C:/Azazael/.venvs/py316 (3.16.0a1, gil=True sidecar)",
+   "py316t": "C:/Azazael/.venvs/py316t/Scripts/python.exe (3.16.0a1 free-threaded, gil=False)"
+  },
+  "known_falsifications": [
+   "-Dcpp_std=vc++17 does NOT save pythran on VS 18 (failing line has zero /permissive-)",
+   "numpy>=1.8.3 meson + cython.exe on PATH required for probe; venv meson reinstall restores features module"
+  ],
+  "msvc": "14.51.36231 + SDK 10.0.26100.0",
+  "oneapi": "2026.0 (ifx + MKL); LIB must include oneAPI/compiler/2026.0/lib for ifconsol.lib",
+  "app_dir_rule": "venv Scripts/python.exe is a redirector; the loader app dir is pyvenv.cfg home (PCbuild/amd64t). Runtime DLLs go there. Verified 2026-11-06: _fblas failed until 10 MKL DLLs staged at the real image.",
+  "clean_env_rule": "every verify probe runs under System32-only PATH; a probe that needs toolchain PATH on is a finding, not a pass",
+  "child_path_search_rule": "CreateProcess misses exes shutil.which finds from some drivers; forge/adopt must resolve tools to absolute paths (tool()) and never rely on child PATH search. Seen 2026-11-06: cl.exe."
+ },
+ "artifacts": {
+  "hello316": {
+   "kind": "exe",
+   "sha256": "73551cb61ced2d79626d621ddce11a1cdad0aa21b297a0be711df8ac98059f6c",
+   "verify": "ran exit 0, stdout='OXENFORD hello316: native exe, MSVC 19.51, free-threaded target 3.16t'",
+   "status": "landed"
+  },
+  "wheelhouse-2026-11-06": {
+   "kind": "bundle",
+   "sha256": "10e77b58d0bfd5ac37abd790054aa3041d8db6f6bb22f87a7ebe24d5d2f4da2d",
+   "verify": "9 files, manifest inside, 0 empty",
+   "status": "landed"
+  },
+  "wheelhouse-manifest": {
+   "kind": "pdf",
+   "sha256": "bbb32ab5aa5f3b1c8912f30e8ee9e83c40f27a5a5df5e5d797558b73c2c063ea",
+   "verify": "%PDF header green, 2418 bytes",
+   "status": "landed"
+  }
+ }
+}

@@ -41,6 +41,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 from CORE.failure_ledger import note_failure
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 
 _log = logging.getLogger(__name__)
 
@@ -108,7 +113,8 @@ def _task_sig(payload: Dict[str, Any]):
             return v
         try:
             return json.dumps(v, sort_keys=True, default=str)
-        except Exception:
+        except Exception as exc:
+            note_failure("_task_sig.norm", exc)
             return str(v)
 
     return (tid, norm(payload.get("action")), norm(payload.get("detail")))
@@ -122,13 +128,23 @@ class LaneMessageBoard:
     for opencode / kilo / freebuff lanes.
     """
 
-    VALID_LANES = ("opencode", "kilo", "freebuff")
+    # One tuple drives every lane check in this class (init, post, status,
+    # claim, retire, release, broadcast). It carried three lanes while the
+    # reader that fronts it advertised four: _board.py is documented as a
+    # reader/poster for crush, kilo, agy and opencode, and the poster refused
+    # crush and agy with "dst_lane must be one of ('opencode', 'kilo',
+    # 'freebuff')" (measured 2026-11-05, rows 47672-47676). A lane the reader
+    # names and the writer refuses has no queue, so the set is widened here
+    # rather than left to a second copy: docs/scripts/lane_kit.py holds the
+    # tutorial copy of this tuple, and tests/test_lane_kit.py pins the two
+    # to each other so they cannot drift apart again.
+    VALID_LANES = ("opencode", "kilo", "freebuff", "crush", "agy")
 
     def __init__(
         self,
         session_id: Optional[str] = None,
         pams_url: Optional[str] = None,
-        lane: str = None,
+        lane: Optional[str] = None,
     ):
         if lane is None:
             raise ValueError("lane is required - omitting it silently writes as 'opencode' (see dive-laneboard-default-lane). Pass lane explicitly.")
@@ -141,6 +157,14 @@ class LaneMessageBoard:
             lane: [] for lane in self.VALID_LANES
         }
         self._callbacks["all"] = []
+
+        # Read coordination config from defaults
+        self._coord_board_enabled = read_default("coordination.board_enabled", True)
+        self._coord_claim_lease_seconds = read_default("coordination.claim_lease_seconds", 1800)
+        self._coord_max_claim_limit = read_default("coordination.max_claim_limit", 10)
+        self._coord_push_hook_enabled = read_default("coordination.push_hook_enabled", True)
+        self._coord_dispatch_non_reasoning = read_default("coordination.dispatch_non_reasoning", True)
+        self._coord_valid_lanes = read_default("coordination.valid_lanes", ["kilo", "freebuff", "opencode"])
 
     # -- topic helpers -------------------------------------------------------
 
@@ -459,7 +483,8 @@ class LaneMessageBoard:
             try:
                 task = LaneTask.from_dict(msg.content if isinstance(msg.content, dict)
                                           else json.loads(msg.content))
-            except Exception:
+            except Exception as exc:
+                note_failure("LaneMessageBoard:subscribe_tasks-adapter", exc)
                 return  # malformed message; skip
             callback(task)
 
@@ -597,8 +622,8 @@ class LaneMessageBoard:
                 except Exception as exc:
                     note_failure("LaneMessageBoard:search_messages", exc)
                     continue
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("_poll_persistent_queue outer", exc)
         return results
 
     def poll_tasks(
@@ -1097,8 +1122,8 @@ class LaneMessageBoard:
                 {"type": "release", "lane": lane, "source": self.lane},
                 "release_task",
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("LaneMessageBoard:release_task-audit", exc)
         return True
 
     def archive_backlog(
@@ -1273,6 +1298,39 @@ class LaneMessageBoard:
         finally:
             conn.close()
 
+    def recent_transitions(self, lane: Optional[str] = None,
+                           limit: int = 20) -> List[Dict[str, Any]]:
+        """Newest-first state-table transitions — the sight layer (2026-11-09).
+
+        Status rows are voluntary: a lane can do a day's work (kilo retired 3
+        rows the morning of 2026-11-09) without posting one, and a reader of
+        poll_status alone then reports the lane dark. The state table is not
+        voluntary — every claim/done/block writes here — so it is the ground
+        truth for who did what, when. Read-only; newest first.
+
+        Returns dicts: {board_id, lane, task_id, state, claimed_by,
+        retired_at, attempts, note (first 300 chars)}.
+        """
+        conn = self._state_conn()
+        try:
+            where, args = (("WHERE s.lane = ?", (lane,)) if lane else ("", ()))
+            rows = conn.execute(
+                "SELECT s.board_id, s.lane, s.task_id, s.state, s.claimed_by, "
+                "       s.claimed_at, s.retired_at, s.attempts, "
+                "       substr(s.note, 1, 300) "
+                "FROM lane_task_state s " + where +
+                " ORDER BY s.board_id DESC LIMIT ?",
+                args + (int(limit),),
+            ).fetchall()
+            return [
+                {"board_id": r[0], "lane": r[1], "task_id": r[2],
+                 "state": r[3], "claimed_by": r[4], "claimed_at": r[5],
+                 "retired_at": r[6], "attempts": r[7], "note": r[8]}
+                for r in rows
+            ]
+        finally:
+            conn.close()
+
     def poll_and_deliver(self) -> int:
         """Poll all lanes' task topics and deliver to subscribers.
 
@@ -1315,7 +1373,8 @@ class LaneMessageBoard:
         try:
             with open(chat_log_path, "r", encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
-        except Exception:
+        except Exception as exc:
+            note_failure("LaneMessageBoard:import_from_chat_log", exc)
             return 0
 
         if not isinstance(data, list):

@@ -1,0 +1,9 @@
+  [1/6] J1-ARCHITECTUR C4  BLOCKED      47.5s
+  [2/6] J2-LEGAL       C4  PARTIAL      24.4s
+  [3/6] J3-ECONOMIC    C4  UNSUPPORTED  51.0s
+  [4/6] J4-TECHNICAL   C4  UNSUPPORTED  44.2s
+  [5/6] J5-ETHICAL     C4  PARTIAL      28.5s
+  [6/6] J6-STRATEGIC   C4  UNSUPPORTED  20.8s
+model=local  calls=6  blind=0  -> ARC/cain/arena_llm_judgments_r9_c4_recheck.json
+  C4  NO_QUORUM   no quorum: {"SUPPORTED": 0, "PARTIAL": 2, "UNSUPPORTED": 3, "BLOCKED": 1} (0.50 < 0.66 needed)
+no verdict obtained for: C4

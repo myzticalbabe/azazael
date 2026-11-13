@@ -1,0 +1,139 @@
+########################################################################
+# PORTAL CENSUS — 15 portals, timeout 12s
+# log: C:\Azazael\azazael\Project_Scribe\logs\portal_census_20261103_173735.log
+# read-only: one GET per portal, nothing is opened, filled or submitted
+########################################################################
+
+=== grants_gov_search  [academic_federal]  https://www.grants.gov/search-grants
+    SEARCH_ONLY  NEEDS_HOP              http=200 41889B 241ms fields=6  (client-rendered)
+      select   dateRange
+      input    inp-CFDA
+      input    inp-keywords
+      input    inp-opportunity-number
+      input    search maxlen=100
+      select   sortby
+
+=== nsf_funding  [academic_federal]  https://www.nsf.gov/funding/
+    SEARCH_ONLY  NEEDS_HOP              http=200 79686B 430ms fields=1
+      input    query
+      redirected to https://www.nsf.gov/funding
+
+=== research_gov  [academic_federal]  https://www.research.gov/
+    NO_FIELDS    NEEDS_HOP_OR_BROWSER   http=200 22325B 457ms fields=0
+      redirected to https://www.research.gov/research-web/
+
+=== nih_grants  [academic_federal]  https://grants.nih.gov/funding/index.htm
+    SEARCH_ONLY  NEEDS_HOP              http=200 474913B 780ms fields=1
+      input    query required maxlen=128
+      redirected to https://grants.nih.gov/funding
+
+=== nsf_grfp  [academic_federal]  https://www.nsfgrfp.org/
+    ERROR        INVESTIGATE            http=0 0B 213ms fields=0
+      error: RemoteDisconnected: Remote end closed connection without response
+
+=== ukri_funding  [academic_international]  https://www.ukri.org/opportunity/
+    SEARCH_ONLY  NEEDS_HOP              http=200 106849B 1204ms fields=2
+      input    keywords
+      input    st
+
+=== eu_funding_tenders  [academic_international]  https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/home
+    NO_FIELDS    NEEDS_HOP_OR_BROWSER   http=200 59960B 642ms fields=0
+
+=== wellcome  [academic_private]  https://wellcome.org/grant-funding
+    SEARCH_ONLY  NEEDS_HOP              http=200 157275B 524ms fields=5  (client-rendered)
+      input    search
+      input    subscriberEmailAddress required
+      input    subscriberFirstName required
+      input    subscriberLastName required
+      select   subscriberResearch
+      redirected to https://wellcome.org/research-funding
+
+=== gates_grantseekers  [academic_private]  https://www.gatesfoundation.org/about/committed-grants
+    NO_FIELDS    NEEDS_HOP_OR_BROWSER   http=200 133646B 889ms fields=0
+
+=== sloan_apply  [academic_private]  https://sloan.org/grants/apply
+    REFUSED      NEEDS_STEALTH          http=403 5723B 244ms fields=0
+      error: HTTP 403 Forbidden
+
+=== emergent_ventures  [individual_entrepreneur]  https://mercatus.tfaforms.net/5099527
+    FORM_STATIC  DRIVE_NOW              http=200 112284B 597ms fields=18  (client-rendered)
+      input    tfa_1115 maxlen=195
+      input    tfa_1118 required maxlen=40
+      input    tfa_18 maxlen=49
+      select   tfa_22 required
+      select   tfa_26 required
+      input    tfa_298 maxlen=29
+      ... 12 more
+
+=== awesome_foundation  [individual_entrepreneur]  https://www.awesomefoundation.org/en/submissions/new
+    FORM_STATIC  DRIVE_NOW              http=200 146832B 461ms fields=14
+      input    a_comment_body
+      textarea project[about_me] required maxlen=500
+      textarea project[about_project] required maxlen=2000
+      select   project[chapter_id] required
+      input    project[email] required
+      textarea project[extra_answer_1]
+      ... 8 more
+
+=== pollination_project  [individual_entrepreneur]  https://thepollinationproject.org/grants/
+    SEARCH_ONLY  NEEDS_HOP              http=200 265408B 1089ms fields=3
+      input    et_pb_signup_email
+      input    et_pb_signup_firstname
+      input    s
+      redirected to https://thepollinationproject.org/our-work/
+
+=== otf_iff  [nonprofit_oss]  https://www.opentech.fund/funds/internet-freedom-fund/
+    SEARCH_ONLY  NEEDS_HOP              http=200 130472B 1299ms fields=2
+      input    et_pb_signup_email
+      input    s
+
+=== nlnet_propose  [nonprofit_oss]  https://nlnet.nl/propose/
+    FORM_STATIC  DRIVE_NOW              http=200 43907B 530ms fields=26
+      textarea abstract required maxlen=1000
+      textarea ai_prompt maxlen=8000
+      input    amount
+      select   call required
+      textarea challenges maxlen=4000
+      textarea codebase_ai_clarification maxlen=1000
+      ... 20 more
+
+========================================================================
+PORTAL                     CATEGORY                   STATE         ACTION
+------------------------------------------------------------------------
+grants_gov_search          academic_federal           SEARCH_ONLY   NEEDS_HOP
+nsf_funding                academic_federal           SEARCH_ONLY   NEEDS_HOP
+research_gov               academic_federal           NO_FIELDS     NEEDS_HOP_OR_BROWSER
+nih_grants                 academic_federal           SEARCH_ONLY   NEEDS_HOP
+nsf_grfp                   academic_federal           ERROR         INVESTIGATE
+ukri_funding               academic_international     SEARCH_ONLY   NEEDS_HOP
+eu_funding_tenders         academic_international     NO_FIELDS     NEEDS_HOP_OR_BROWSER
+wellcome                   academic_private           SEARCH_ONLY   NEEDS_HOP
+gates_grantseekers         academic_private           NO_FIELDS     NEEDS_HOP_OR_BROWSER
+sloan_apply                academic_private           REFUSED       NEEDS_STEALTH
+emergent_ventures          individual_entrepreneur    FORM_STATIC   DRIVE_NOW
+awesome_foundation         individual_entrepreneur    FORM_STATIC   DRIVE_NOW
+pollination_project        individual_entrepreneur    SEARCH_ONLY   NEEDS_HOP
+otf_iff                    nonprofit_oss              SEARCH_ONLY   NEEDS_HOP
+nlnet_propose              nonprofit_oss              FORM_STATIC   DRIVE_NOW
+
+========================================================================
+BY CATEGORY
+  academic_federal           SEARCH_ONLY=3, NO_FIELDS=1, ERROR=1
+  academic_international     SEARCH_ONLY=1, NO_FIELDS=1
+  academic_private           SEARCH_ONLY=1, NO_FIELDS=1, REFUSED=1
+  individual_entrepreneur    FORM_STATIC=2, SEARCH_ONLY=1
+  nonprofit_oss              FORM_STATIC=1, SEARCH_ONLY=1
+
+Scribe can drive today (3): emergent_ventures, awesome_foundation, nlnet_propose
+  REFUSED      -> NEEDS_STEALTH          sloan_apply
+  ERROR        -> INVESTIGATE            nsf_grfp
+  SEARCH_ONLY  -> NEEDS_HOP              grants_gov_search, nsf_funding, nih_grants, ukri_funding, wellcome, pollination_project, otf_iff
+  NO_FIELDS    -> NEEDS_HOP_OR_BROWSER   research_gov, eu_funding_tenders, gates_grantseekers
+[EXPECT] ok   expect nlnet_propose = FORM_STATIC -> got FORM_STATIC
+[EXPECT] ok   expect sloan_apply = REFUSED -> got REFUSED
+
+wrote portal_census.json
+
+3 drivable | 0 credential-walled | 1 refused | 10 need a hop | 1 error
+unreachable (recorded, not fatal): nsf_grfp
+log: C:\Azazael\azazael\Project_Scribe\logs\portal_census_20261103_173735.log

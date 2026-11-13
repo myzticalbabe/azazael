@@ -1,0 +1,30 @@
+{
+ "kali": {
+  "artifact_id": "f6485b6c485b2a9f:a55d0400000068000000000000000000",
+  "at": "2026-11-07T06:35:31+00:00",
+  "corpus": "f8c26bf6f6b99b45c9d24e3cc0630c193c62b09da39cbbceb3647e3110f9ce7c",
+  "policy": "C:\\Azazael\\azazael\\config\\microcode.json",
+  "status": "converged"
+ },
+ "rc": {
+  "artifact_id": "f6485b6c485b2a9f:a55d0400000068000000000000000000",
+  "at": "2026-11-07T06:35:31+00:00",
+  "corpus": "f8c26bf6f6b99b45c9d24e3cc0630c193c62b09da39cbbceb3647e3110f9ce7c",
+  "policy": "C:\\Azazael\\azazael\\config\\microcode.json",
+  "status": "converged"
+ },
+ "windows": {
+  "artifact_id": "f6485b6c485b2a9f:a55d0400000068000000000000000000",
+  "at": "2026-11-07T06:35:31+00:00",
+  "corpus": "f8c26bf6f6b99b45c9d24e3cc0630c193c62b09da39cbbceb3647e3110f9ce7c",
+  "policy": "C:\\Azazael\\azazael\\config\\microcode.json",
+  "status": "converged"
+ },
+ "wsl": {
+  "artifact_id": "f6485b6c485b2a9f:a55d0400000068000000000000000000",
+  "at": "2026-11-07T06:35:31+00:00",
+  "corpus": "f8c26bf6f6b99b45c9d24e3cc0630c193c62b09da39cbbceb3647e3110f9ce7c",
+  "policy": "C:\\Azazael\\azazael\\config\\microcode.json",
+  "status": "converged"
+ }
+}

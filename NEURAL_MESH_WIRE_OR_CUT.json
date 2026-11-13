@@ -1,11 +1,11 @@
 {
- "generated_at": "2026-11-01T12:34:02.948304",
+ "generated_at": "2026-11-07T00:35:43.919068",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 4,
+  "wired": 5,
   "retired": 61,
-  "dispatched": 149,
+  "dispatched": 148,
   "accepted_gap": 161,
   "rejected": 5,
   "pending": 0
@@ -1036,7 +1036,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1203"
    ],
-   "line": 366,
+   "line": 370,
    "module": "config",
    "qualname": "FeatureFlagCtrl.is_enabled",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1047,7 +1047,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1203"
    ],
-   "line": 362,
+   "line": 366,
    "module": "config",
    "qualname": "FeatureFlagCtrl.set_flag",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1530,7 +1530,7 @@
   },
   "cppn:CPPNGenome.mutate": {
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'mutate' in 6 file(s) [scripts/mesh_trusted_key.py, src/CORE/WORMS/expansion/arena.py, src/CORE/WORMS/expansion/diversity.py, src/CORE/technique_wiring/_b01_05.py, src/eve_unleashed/self_modifying_worms.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'mutate' in 10 file(s) [scripts/mesh_trusted_key.py, src/CORE/WORMS/expansion/arena.py, src/CORE/WORMS/expansion/diversity.py, src/CORE/technique_wiring/_b01_05.py, src/HYPER_EDGE/cli.py]; module-linked: yes",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: Environment"
@@ -1893,7 +1893,7 @@
   },
   "engram:CoherenceValidatorWorm.check": {
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 57 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'check' in 99 file(s) [scripts/_compages_study.py, scripts/benchmark_evolution.py, scripts/build_gap_index.py, scripts/build_runtime_baseline.py, scripts/make_task_xml_utf16.py]; module-linked: yes",
    "decider": "protocol_or_override",
    "decider_evidence": [
     "also defined by: DriftAlert, HEALTHZ, StepMonitor"
@@ -2205,7 +2205,7 @@
   },
   "evidence:EraEvidence.reason": {
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reason' in 61 file(s) [scripts/audit_loop_liveness.py, scripts/budget_policy.py, scripts/build_runtime_baseline.py, scripts/check_runtime_baseline.py, scripts/env_drift_alarm.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'accepted_gap' carried; bare token 'reason' in 86 file(s) [scripts/audit_loop_liveness.py, scripts/budget_policy.py, scripts/build_runtime_baseline.py, scripts/check_runtime_baseline.py, scripts/env_drift_alarm.py]; module-linked: yes",
    "decider": "declared_in_data",
    "decider_evidence": [
     "named by src/CODEX/ENVIRONMENT_INFO.json:37",
@@ -2780,7 +2780,7 @@
     "src/CORE/WORMS/expansion/cutting_edge_model.py:2841",
     "src/CORE/WORMS/expansion/learning_features.py:439"
    ],
-   "line": 1309,
+   "line": 1319,
    "link_kind": "registry",
    "module": "learning_grpo",
    "qualname": "ABTestRunner.get_summary",
@@ -3812,7 +3812,7 @@
    "module": "oracle",
    "qualname": "FitnessOracle.overlapping_holdout_uncertainty",
    "reason": "ACCEPT-GAP: reached only by 3 test calls (tests/test_kilo_arxiv_qd.py); no production caller; missing production consumer.",
-   "seg": "def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],\n                                        y: Sequence[float],\n                                        n_holds: int = 5, holdout_frac: float = 0.3,\n                                        seed: int = 0) -> dict:\n        \"\"\"Overlapping holdout uncertainty for tiny-pool designs.\n\n        Draws n_holds random holdout subsets (each holdout_frac of rows), fits\n        a fresh ensemble on the complement, predicts on the holdout, and returns\n        the variance of holdout predictions plus per-holdout errors. Overlap\n        between holdouts (controlled by seed + random draw) gives more stable\n        estimates than k-fold when the pool is tiny.\n        \"\"\"\n        n = len(X)\n        if n < 4 or n_holds < 2:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"pool too small\"}\n        rng = random.Random(seed)\n        hold_size = max(1, int(n * holdout_frac))\n        hold_size = min(hold_size, n - 1)\n        errors = []\n        for h in range(n_holds):\n            idx = list(range(n))\n            rng.shuffle(idx)\n            hold_idx = set(idx[:hold_size])\n            train_rows = [X[i] for i in range(n) if i not in hold_idx]\n            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]\n            hold_rows = [X[i] for i in range(n) if i in hold_idx]\n            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]\n            if not train_rows or not hold_rows:\n                continue\n            # Fit a fresh ensemble on the train complement\n            try:\n                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,\n                                       self.n_models, self.seed + h)\n                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),\n                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))\n                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)\n                for j, hi in enumerate(sorted(hold_idx)):\n                    errors.append(abs(mean[j] - hold_y[j]))\n            except Exception:\n                continue\n        if not errors:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"all holds failed\"}\n        m = sum(errors) / len(errors)\n        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)\n        return {\"holds\": errors, \"holdout_var\": round(var, 6),\n                \"mean_abs_error\": round(m, 6), \"n_holds\": len(errors),\n                \"note\": \"overlapping holdout protocol (U2)\"}",
+   "seg": "def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],\n                                        y: Sequence[float],\n                                        n_holds: int = 5, holdout_frac: float = 0.3,\n                                        seed: int = 0) -> dict:\n        \"\"\"Overlapping holdout uncertainty for tiny-pool designs.\n\n        Draws n_holds random holdout subsets (each holdout_frac of rows), fits\n        a fresh ensemble on the complement, predicts on the holdout, and returns\n        the variance of holdout predictions plus per-holdout errors. Overlap\n        between holdouts (controlled by seed + random draw) gives more stable\n        estimates than k-fold when the pool is tiny.\n        \"\"\"\n        n = len(X)\n        if n < 4 or n_holds < 2:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"pool too small\"}\n        rng = random.Random(seed)\n        hold_size = max(1, int(n * holdout_frac))\n        hold_size = min(hold_size, n - 1)\n        errors = []\n        for h in range(n_holds):\n            idx = list(range(n))\n            rng.shuffle(idx)\n            hold_idx = set(idx[:hold_size])\n            train_rows = [X[i] for i in range(n) if i not in hold_idx]\n            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]\n            hold_rows = [X[i] for i in range(n) if i in hold_idx]\n            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]\n            if not train_rows or not hold_rows:\n                continue\n            # Fit a fresh ensemble on the train complement\n            try:\n                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,\n                                       self.n_models, self.seed + h)\n                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),\n                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))\n                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)\n                for j, hi in enumerate(sorted(hold_idx)):\n                    errors.append(abs(mean[j] - hold_y[j]))\n            except Exception as exc:\n                # A hold that failed here is dropped from BOTH the error list\n                # and its length, so the holdout variance reads tighter than\n                # the ensemble actually was. Count the drop.\n                note_failure(\"oracle:holdout-fit\", exc)\n                continue\n        if not errors:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"all holds failed\"}\n        m = sum(errors) / len(errors)\n        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)\n        return {\"holds\": errors, \"holdout_var\": round(var, 6),\n                \"mean_abs_error\": round(m, 6), \"n_holds\": len(errors),\n                \"note\": \"overlapping holdout protocol (U2)\"}",
    "status": "accepted_gap"
   },
   "oracle:build_dataset": {
@@ -3826,7 +3826,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/oracle.py:45"
    ],
-   "line": 695,
+   "line": 699,
    "module": "oracle",
    "qualname": "build_dataset",
    "reason": "NO-CALLER: no committed production caller of this member against HEAD (post-landing re-derivation); missing piece = production consumer.",
@@ -4432,9 +4432,9 @@
    "status": "accepted_gap"
   },
   "servemesh:ModelShardServerWorm.verify": {
-   "decider": "protocol_or_override",
+   "decider": "auto:preflight",
    "decider_evidence": [
-    "also defined by: FormalVerifier, MathematicalCertaintySystem, PurePythonVerifier"
+    "static caller found by mesh_function_preflight regeneration 2026-11-07"
    ],
    "evidence": [
     "scripts/mesh_trusted_key.py:239",
@@ -4445,9 +4445,12 @@
    "link_kind": "registry",
    "module": "servemesh",
    "qualname": "ModelShardServerWorm.verify",
-   "reason": "re-disposed 2026-10-31: the only production reference is a string literal, so no module-linked caller can exist; string dispatch is recorded in evidence",
+   "reason": "status moved dispatched to wired: static caller found in evidence",
    "seg": "def verify(self, model: str, shard: str) -> dict[str, Any]:\n        with self._lock:\n            entry = self._shards.get(f\"{model}:{shard}\")\n            if entry is None:\n                return {\"verified\": False, \"reason\": \"shard not published\"}\n            if \"bytes\" in entry:\n                return {\"verified\": True, \"bytes\": entry[\"bytes\"]}\n            return {\"verified\": True, \"bytes\": 0}",
-   "status": "dispatched"
+   "status": "wired",
+   "carried": true,
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 27 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: yes",
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm"
   },
   "session_state:SessionStateManager.__init__": {
    "decider": "protocol_or_override",
@@ -4612,7 +4615,7 @@
     "src/CORE/WORMS/expansion/spine.py"
    ],
    "disposition": "ACCEPT-GAP",
-   "line": 3870,
+   "line": 3887,
    "module": "spine",
    "qualname": "MorphogenesisWorm.retrieve_staged",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -4638,7 +4641,7 @@
     "src/CORE/WORMS/expansion/spine.py"
    ],
    "disposition": "ACCEPT-GAP",
-   "line": 4033,
+   "line": 4050,
    "module": "spine",
    "qualname": "measure_skill_lift",
    "reason": "ACCEPT-GAP: no production (cross-module) caller; missing piece = production consumer. decider=dynamic_call, triage=test_reached_only.",
@@ -5711,16 +5714,5 @@
    "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
    "status": "retired"
   }
- },
- "triage_counts": {
-  "test_reached_only": 0,
-  "no_reference_anywhere": 0
- },
- "decider_counts": {
-  "protocol_or_override": 0,
-  "declared_in_data": 0,
-  "dynamic_call": 0,
-  "test_is_the_wire": 0,
-  "dead_candidate": 0
  }
 }

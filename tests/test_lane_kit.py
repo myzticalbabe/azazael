@@ -67,10 +67,29 @@ class TestClaims:
         assert state == "blocked"
         assert "cap" in note
 
-    @pytest.mark.parametrize("bad", ["agy", "Freebuff", ""])
+    @pytest.mark.parametrize("bad", ["staging", "Freebuff", ""])
     def test_unknown_lane_is_refused(self, bad):
         with pytest.raises(ValueError, match="lane must be one of"):
             board().claim(bad)
+
+    def test_kit_lane_set_matches_production(self):
+        """Two copies of one lane set is how a reader and a writer drift apart.
+
+        Measured 2026-11-05: _board.py was documented for crush and agy and
+        refused both, while this kit and the production board each held their
+        own three-name tuple and neither noticed the other. Pinning set
+        equality here means a lane added to one and not the other fails a test
+        instead of failing a delivery.
+        """
+        from CORE.LaneMessageBoard import LaneMessageBoard
+
+        import lane_kit
+
+        assert set(lane_kit.LANES) == set(LaneMessageBoard.VALID_LANES), (
+            "lane_kit.LANES and LaneMessageBoard.VALID_LANES must accept the "
+            "same lanes; a reader that names a lane the writer refuses has no "
+            "queue"
+        )
 
 
 class TestRetirement:

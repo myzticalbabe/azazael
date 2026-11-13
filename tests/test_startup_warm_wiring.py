@@ -20,6 +20,10 @@ import pytest
 
 pytestmark = pytest.mark.env  # type: ignore[import-not-found]
 
+# Ceiling for "the warm call did not block", not a performance budget. A
+# blocked init shows up as seconds-to-minutes, never as tens of milliseconds.
+PREWARM_HANG_CEILING_S = 5.0
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 
@@ -211,18 +215,41 @@ class TestPrewarmErrorHandling:
         dm.end({"test": "runtime_error_handling"})
 
     def test_prewarm_does_not_block_on_missing_module(self):
-        """DirectMemory init should be fast even when startup_warm module is unimportable."""
+        """Init must return when startup_warm raises — a hang ceiling, not a stopwatch.
+
+        The contract in direct_memory._prewarm_registry is "never raise and
+        never block": the warm call is attempted and any Exception is recorded
+        rather than propagated. This test used to assert ``elapsed < 0.1`` from
+        a SINGLE sample, which measures the machine's load rather than the code
+        — it failed at 13.4s inside a full-suite run (96 processes on 16 cores)
+        while passing at ~30ms alone, and was green alone and under 12 CPU
+        burners (measured 2026-11-04). The invariants below are load-independent:
+        the patched warm path was actually exercised, the ImportError did not
+        escape, and init returned well inside a hang ceiling.
+        """
         from unittest.mock import patch
         from CORE.direct_memory import DirectMemory
 
-        # Patch at the module level rather than global __import__
-        with patch("CORE.startup_warm.ensure_registry_warm", side_effect=ImportError("Simulated missing module")):
-            t0 = time.perf_counter()
+        attempts = []
+
+        def _broken_warm():
+            attempts.append(1)
+            raise ImportError("Simulated missing module")
+
+        t0 = time.perf_counter()
+        with patch("CORE.startup_warm.ensure_registry_warm", side_effect=_broken_warm):
             dm = DirectMemory()
             elapsed = time.perf_counter() - t0
-            assert elapsed < 0.1, (
-                f"Init with missing startup_warm took {elapsed*1000:.1f}ms"
+        try:
+            assert attempts == [1], "the patched warm path was never called"
+            assert elapsed < PREWARM_HANG_CEILING_S, (
+                f"Init with a failing startup_warm took {elapsed:.1f}s — "
+                "the warm call blocked instead of failing fast"
             )
+            assert dm.session_id is not None
+            row_id = dm.record("test_missing_module", {"note": "init survived"})
+            assert row_id > 0
+        finally:
             dm.end({"test": "missing_module"})
 
 

@@ -68,3 +68,4 @@ Verify the interpreter before running anything:
 Run: `C:/Azazael/.venvs/py315t/Scripts/python.exe timesfm_pilot_314t.py --metrics revenue expenses officer_comp`
 (script filename keeps the historical `_314t` suffix; it is the same file)
 Run: `C:/Azazael/.venvs/py315t/Scripts/python.exe azazael/scripts/bai_perron_breakpoints.py --series bcc_990_series.json --out bcc_bai_perron_results.json`
+> **FROZEN on 3.14t (2026-11-09):** measurements above are provenance for venv-314t and were deliberately NOT re-run on 3.16t (torch/timesfm have no cp316t wheels). Do not "upgrade" the numbers without a fresh measured run on 316t.

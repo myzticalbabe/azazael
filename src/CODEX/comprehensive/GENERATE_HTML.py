@@ -7,6 +7,13 @@ from pathlib import Path
 from datetime import datetime
 from typing import List
 
+try:
+    from CORE.paths import get_desktop_dir
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from CORE.paths import get_desktop_dir
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
@@ -17,7 +24,10 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
-def generate_html():
+def generate_html(desktop_dir=None):
+    if desktop_dir is None:
+        desktop_dir = get_desktop_dir()
+    
     html = (
         """<!DOCTYPE html>
 <html lang="en">
@@ -402,7 +412,7 @@ def generate_html():
         <div class="footer">
             <p style="color: #00ff88; font-size: 1.2em;">Azazael ECOSYSTEM - ALL SYSTEMS OPERATIONAL</p>
             <p style="color: #666; margin-top: 10px;">
-                CODEX: C:\\Users\\clint\\Desktop\\CODEX\\comprehensive\\
+                CODEX: {desktop_dir}\\CODEX\\comprehensive\\
             </p>
         </div>
     </div>
@@ -410,7 +420,7 @@ def generate_html():
 </html>
 """
     )
-    return html
+    return html.format(desktop_dir=desktop_dir)
 
 
 def main():

@@ -70,3 +70,52 @@ def test_git_returns_bytes(monkeypatch):
     out = gate._git("rev-parse", "--is-inside-work-tree")
     assert isinstance(out, bytes)
     assert out.strip() == b"true"
+
+
+def _stage_commit_mode(monkeypatch, base, before, after):
+    """Commit mode: paths come from `base..HEAD`, sides are named blobs."""
+    asked: list[str] = []
+    monkeypatch.setattr(gate, "_staged_py_files",
+                        lambda b=None: ["x.py"])
+
+    def _show(rev):
+        asked.append(rev)
+        return before if rev.startswith(f"{base}:") else after
+
+    monkeypatch.setattr(gate, "_show", _show)
+    monkeypatch.setattr(sys, "argv",
+                        ["staged_scanner_gate", "--base", base])
+    return asked
+
+
+def test_commit_mode_compares_base_to_head_not_the_index(monkeypatch, capsys):
+    """The index is another lane's desk drawer at push time -- never read.
+
+    Measured 2026-11-03: a 2-file commit was refused in index mode over 7
+    forensic files staged elsewhere. Commit mode must ask git for
+    `base:path` and `HEAD:path`, and for `:0:` not at all.
+    """
+    asked = _stage_commit_mode(monkeypatch, "HEAD~1",
+                               before=_CLEAN, after=_CLEAN)
+    assert gate.main() == 0
+    assert asked == ["HEAD~1:x.py", "HEAD:x.py"]
+    assert not any(r.startswith(":0:") for r in asked)
+    assert "HEAD~1..HEAD" in capsys.readouterr().out
+
+
+def test_commit_mode_blocks_a_finding_added_by_the_commit(monkeypatch, capsys):
+    """The fix this test was written for: `before` used to stay at HEAD, so
+    commit mode compared HEAD against HEAD and could never fire."""
+    _stage_commit_mode(monkeypatch, "HEAD~1",
+                       before=_CLEAN, after=_WITH_SILENT_PASS)
+    assert gate.main() == 1
+    out = capsys.readouterr().out
+    assert "silent_except_pass" in out and "+1" in out
+
+
+def test_unresolvable_base_refuses_instead_of_passing(monkeypatch, capsys):
+    """`git diff NOSUCH HEAD` prints nothing, which reads as 'no changes'."""
+    monkeypatch.setattr(sys, "argv",
+                        ["staged_scanner_gate", "--base", "nosuchrev"])
+    assert gate.main() == 2
+    assert "does not resolve" in capsys.readouterr().out

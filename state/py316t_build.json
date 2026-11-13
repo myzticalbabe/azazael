@@ -1,0 +1,21 @@
+{
+  "branch": "3.16",
+  "sha": "22d79d9840a275ed6ed36cd590dc74edc61765fb",
+  "configure_line": "PCbuild/build.bat -p x64 -c Release --disable-gil -v",
+  "sys_version": "3.16.0a1 free-threading build (tags/v3.16.0a1-dirty:22d79d9, Nov  7 2026, 00:27:28) [MSC v.1951 64 bit (AMD64)]",
+  "Py_GIL_DISABLED": 1,
+  "gil_enabled": false,
+  "capabilities": "HYPER_EDGE compat: python 3.16.0alpha (cpython) free-threaded | cpu=16 workers=16 | pool=CORE.freethreading.FreeThreadPool | live=free_threading,tomllib,exception_groups,per_interpreter_gil,concurrent (re-verified)",
+  "selftest": "selftest: 33 check(s), 0 failed, 0 skipped (re-verified)",
+  "pytest_count": "51 passed (re-verified)",
+  "packages_refused": [],
+  "interpreter": "C:/Azazael/.venvs/py316t/Scripts/python.exe",
+  "build_log": "C:/Azazael/.build/py316t_build.log",
+  "date": "2026-11-07",
+  "reverified": {
+    "candidate": "C:/Azazael/.py316t/python.exe",
+    "report": "C:\\Azazael\\azazael\\state\\interp_verify.json"
+  },
+  "dirty_cause": " M Programs/test_frozenmain.h; ?? Include/pyconfig.h; ?? libs/ \u2014 build-generated only, no source edit",
+  "dirty_verdict": "BENIGN"
+}

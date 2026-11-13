@@ -24,6 +24,18 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT_MERGED = ROOT / "state" / "bake_merged.jsonl"
 OUT_REPORT = ROOT / "state" / "bake_merge_report.txt"
 REQUIRED = ("source", "item_id", "title", "body", "kind")
+#: A `landing` row is an accomplishment record: the artifact it landed plus
+#: the proof. The three verify fields are mandatory for this kind -- a
+#: landing without its sha and verify command is a claim, not evidence
+#: (harness improvement #1, 2026-11-06; the forge rows that used to hide
+#: under kind "fact" now live here with their proof attached).
+LANDING_REQUIRED = ("artifact", "sha", "verify")
+#: Optional fields carried through the merge untouched. `evidence_cmd` /
+#: `exit_code` / `digest` answer "what command proved this" (#2);
+#: `superseded_by` names the newer row that retires this one (#7: history
+#: stays in the merged set, but consumers can tell settled rows apart).
+OPT_FIELDS = ("artifact", "sha", "verify", "evidence_cmd", "exit_code",
+              "digest", "superseded_by", "supersedes")
 
 #: Absolute paths of the lane file(s) under validation. Populated by
 #: merge_lanes() before base_rows() runs so input rows are never mistaken for
@@ -31,7 +43,8 @@ REQUIRED = ("source", "item_id", "title", "body", "kind")
 #: base_rows(report) arity is load-bearing (see its docstring).
 _EXCLUDE_FILES = set()  # lane file NAMES (see below: Path equality is
                              # unreliable across C:/ vs c:/ spellings)
-KINDS = {"error_fix", "lesson", "mandate", "sop_rule", "violation", "anti_pattern"}
+KINDS = {"error_fix", "lesson", "mandate", "sop_rule", "violation",
+         "anti_pattern", "landing"}
 
 
 def norm_title(t):
@@ -116,6 +129,11 @@ def merge_lanes(lanes):
             if r.get("kind") not in KINDS:
                 dropped.append((where, "BAD_KIND", str(r.get("kind"))[:40]))
                 continue
+            if r.get("kind") == "landing" and \
+                    any(not str(r.get(k, "")).strip() for k in LANDING_REQUIRED):
+                dropped.append((where, "landing-incomplete",
+                                "needs artifact+sha+verify"))
+                continue
             if len(str(r.get("body", ""))) < 40:
                 dropped.append((where, "too-short", str(r.get("title", ""))[:60]))
                 continue
@@ -132,9 +150,14 @@ def merge_lanes(lanes):
             # truncated merged rows -- no marker, no drop row (D1 site,
             # truncation sweep 2026-10-22). Point-count validation above
             # (body >= 40) is the size floor; a size is not a reason to cut.
-            merged.append({"source": str(r["source"]), "item_id": str(r["item_id"]),
-                           "title": str(r["title"]), "body": str(r["body"]),
-                           "kind": r["kind"]})
+            out = {"source": str(r["source"]),
+                   "item_id": str(r["item_id"]),
+                   "title": str(r["title"]), "body": str(r["body"]),
+                   "kind": r["kind"]}
+            for k in OPT_FIELDS:
+                if r.get(k) not in (None, ""):
+                    out[k] = r[k]
+            merged.append(out)
             accepted += 1
     return merged, dropped, accepted, len(base)
 
@@ -159,7 +182,12 @@ def main():
     lanes = args.lane or [str(ROOT / "state" / "bake_deepseek_712.jsonl")]
 
     merged, dropped, accepted, base_n = merge_lanes(lanes)
-    print("BASE=%d ACCEPTED=%d MERGED=%d DROPPED=%d" % (base_n, accepted, len(merged), len(dropped)))
+    retired = [(r["item_id"], r.get("superseded_by", "")) for r in merged
+               if r.get("superseded_by")]
+    print("BASE=%d ACCEPTED=%d MERGED=%d DROPPED=%d SUPERSEDED=%d"
+          % (base_n, accepted, len(merged), len(dropped), len(retired)))
+    for old, new in retired[:10]:
+        print("  retired %s -> %s" % (old, new))
     why = {}
     for _, _, w in dropped:
         why[w] = why.get(w, 0) + 1

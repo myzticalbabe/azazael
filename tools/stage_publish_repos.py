@@ -59,22 +59,10 @@ PROJECTS: list[tuple[str, str, str, str]] = [
         "Publish Nurse Ratchet: therapeutic conversation engine",
     ),
     (
-        "Project_SHARDEX",
-        "shardex",
-        "Deterministic shard minting, mesh scene composition and mirror/shatter/forge.",
-        "Publish SHARDEX: deterministic shard minting and mesh composition",
-    ),
-    (
         "Project_CRADLE",
         "cradle",
         "Chain validator: proves an ordered set of operations reproduces a final artifact.",
         "Publish CRADLE: chain validation",
-    ),
-    (
-        "Project_FLAME",
-        "flame-engine",
-        "Local model runtime adapter.",
-        "Publish FLAME: local model runtime adapter",
     ),
 ]
 

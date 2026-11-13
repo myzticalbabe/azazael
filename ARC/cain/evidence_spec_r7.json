@@ -1,0 +1,208 @@
+{
+ "round": "r7",
+ "generated_at": "2026-11-05",
+ "note": "Round 7 changes evidence, not instrument: the judge tooling, prompts, windows and grading rules are those of round 6. Two vendor primaries were retrieved (HP support document on dynamic security via the Wayback capture 20260216063002 because the live page is a JavaScript shell; Sonos support article on Recycle Mode). C5 and C7 claims were narrowed to what those documents state and re-graded; C1, C2, C3, C4 and C6 are the round-6 objects unchanged, including the four measured PARTIAL residuals (C1, C2, C4) and the three SUPPORTED results (C3, C6).",
+ "pins": [
+  {
+   "pin": "C1",
+   "vendor": "Microsoft",
+   "claim": "Windows 10 end of support is gated on TPM 2.0, and Microsoft's list of supported Intel processors carries no Core-branded entry below 8th Generation, leaving pre-8th-generation Core hardware off the supported list",
+   "elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0",
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "evidence": [
+    {
+     "sha16": "eeeb0a9ba75e13b5",
+     "anchor": "will reach end of support on October 14, 2025"
+    },
+    {
+     "sha16": "c77b461e6a900b2e",
+     "anchor": "TPM 2.0"
+    },
+    {
+     "sha16": "4e1a658c49405ad0",
+     "anchor": "8th Generation Core i3",
+     "before": 120,
+     "after": 520
+    },
+    {
+     "sha16": "4e1a658c49405ad0",
+     "anchor": "that meet the minimum system requirements for Windows 11",
+     "before": 60,
+     "after": 460
+    }
+   ],
+   "proof": {
+    "method": "full-text enumeration of the saved page ARC/cain/raw/beam1_20261104_235644_B_learn_microsoft_com_en_us_windows_hardware_design_minimum_supported_windows_11_24h2_supported_intel_processors.html: every '<n>th Generation' token counted (re.findall) and each generation string tested for presence (in)",
+    "document_chars": 6579,
+    "document_complete": "ends with 'Last updated on 2025-10-30' and the site footer; no pagination control",
+    "core_generations_present": [
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14
+    ],
+    "core_generations_absent": [
+     "7th",
+     "6th",
+     "5th",
+     "4th",
+     "3rd",
+     "2nd",
+     "Core 2"
+    ],
+    "listed_before_the_first_core_entry": [
+     "Atom X7000 Series",
+     "Celeron 3000 Series",
+     "Celeron 4000 Series",
+     "Celeron 5000 Series",
+     "Celeron 6000 Series",
+     "Celeron 7000 Series",
+     "Celeron G4000 Series"
+    ],
+    "does_not_prove": "that no pre-8th-generation processor of ANY brand is supported: the same page lists Atom X7000 and Celeron N4000/N5000 parts, which are not Core-branded and whose introduction dates the page does not state"
+   }
+  },
+  {
+   "pin": "C2",
+   "vendor": "Apple",
+   "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries, and a regulator found the updates were pushed without adequate information and without any means of restoring original functionality",
+   "elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "evidence": [
+    {
+     "sha16": "32e91c649d43a4a4",
+     "anchor": "improves power management during peak workloads"
+    },
+    {
+     "sha16": "cfa8a9e588dd7729",
+     "anchor": "unexpected by the user"
+    },
+    {
+     "sha16": "187092e6240904c1",
+     "anchor": "senza fornire adeguate informazioni",
+     "before": 420,
+     "after": 760,
+     "gloss": "[analyst translation, non-authoritative] ...to install updates on devices not capable of supporting them adequately, WITHOUT PROVIDING ADEQUATE INFORMATION, NOR ANY MEANS OF RESTORING THE PRODUCTS' ORIGINAL FUNCTIONALITY. In particular, Samsung repeatedly proposed, from May 2016, to consumers who had bought a Note 4 (placed on the market in September 2014), that they install the new Android firmware..."
+    }
+   ]
+  },
+  {
+   "pin": "C3",
+   "vendor": "Intel",
+   "claim": "Intel attributes 13th/14th-generation Core instability to elevated core voltage requests and ships microcode 0x12B, which encompasses 0x125 and 0x129, as the mitigation",
+   "elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "evidence": [
+    {
+     "sha16": "f0de7b1ed8d255ef",
+     "anchor": "Microcode and BIOS code requesting elevated core voltages",
+     "before": 300,
+     "after": 820
+    }
+   ]
+  },
+  {
+   "pin": "C4",
+   "vendor": "Google",
+   "claim": "The Play Integrity API returns a verdict about the device itself, and an application may act on that verdict by denying access outright, making continued function a vendor decision rather than a property of the hardware",
+   "elements": [
+    "the API returns an integrity verdict about the device",
+    "an app may act on that verdict by denying access"
+   ],
+   "evidence": [
+    {
+     "sha16": "190d4160a7eed781",
+     "anchor": "instead of denying access outright",
+     "before": 300,
+     "after": 520
+    },
+    {
+     "sha16": "6b05562fff28c57c",
+     "anchor": "Device integrity field"
+    }
+   ]
+  },
+  {
+   "pin": "C5",
+   "vendor": "HP",
+   "claim": "HP distributes firmware updates under its 'dynamic security' policy that can stop a printer working with cartridges that do not carry a new or reused HP chip or electronic circuitry, including cartridges that work in the printer today",
+   "elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "evidence": [
+    {
+     "sha16": "057e1afc3552dfb6",
+     "anchor": "The printers use the dynamic security measures to block cartridges using non-HP chips",
+     "before": 250,
+     "after": 820
+    },
+    {
+     "sha16": "f2ca2fc4f39b4c67",
+     "anchor": "dynamic security",
+     "before": 300,
+     "after": 820
+    }
+   ],
+   "tier_note": "tier B: HP's own support document states the policy and its effect. Secondary reporting (PCWorld, tier C) is carried as corroboration only.",
+   "does_not_prove": "the document does not say the printer fails silently or without a warning; it says the cartridge is blocked from working. The 'no warning' element is not claimed here."
+  },
+  {
+   "pin": "C6",
+   "vendor": "John Deere",
+   "claim": "A software tool is required to perform all repairs on Deere equipment, and Deere makes that tool available only to its authorized dealers, forcing farmers to rely on dealers for critical repairs",
+   "elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "evidence": [
+    {
+     "sha16": "c8a59a4566c4afd7",
+     "anchor": "only fully functional software repair tool"
+    },
+    {
+     "sha16": "3bdc0690bb094f43",
+     "anchor": "Mechanized Agricultural Vehicles"
+    }
+   ]
+  },
+  {
+   "pin": "C7",
+   "vendor": "Sonos",
+   "claim": "Sonos states that a Sonos product placed in Recycle Mode cannot be set up in a Sonos system, and directs owners of such a product to dispose of it",
+   "elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "evidence": [
+    {
+     "sha16": "c90afd535aa4ece0",
+     "anchor": "Recycle Mode cannot be set up in a Sonos system",
+     "before": 200,
+     "after": 500
+    },
+    {
+     "sha16": "f23fb076d41e8859",
+     "anchor": "Recycle Mode is a state your device enters",
+     "before": 300,
+     "after": 820
+    }
+   ],
+   "tier_note": "tier B: Sonos' own support article states the outcome. The 21-day countdown and the 'cannot be reactivated by factory reset' wording remain tier C reporting and are NOT part of this claim.",
+   "does_not_prove": "the article does not state a countdown, a deadline, or that a factory reset cannot recover the device; those elements are carried by secondary reporting and are excluded from the claim graded here."
+  }
+ ]
+}

@@ -39,6 +39,28 @@ needs_atlas = pytest.mark.skipif(
            "against the tree it describes" % ATLAS)
 
 
+def test_an_absent_census_is_exit_2_not_drift(tmp_path, capsys):
+    """The control for the third state, and the reason it exists.
+
+    The atlas lives outside the repo, so a host that never ran the Kali census
+    cannot judge this surface. That used to arrive as ``SystemExit`` -- exit 1,
+    byte-identical to "the stubs disagree with the atlas" -- and the commit gate
+    would have refused a healthy tree for a reason that was about the host. Exit 2
+    means COULD NOT PERFORM THE RUN, and it has to stay distinguishable from the
+    drift exit for the tier stanza to tell the reader which one happened.
+    """
+    absent = tmp_path / "no_atlas_here.json"
+    assert intake.main(["--atlas", str(absent), "--check"]) == 2
+    assert "CANNOT JUDGE" in capsys.readouterr().err
+
+
+def test_an_unreadable_census_is_also_exit_2(tmp_path):
+    """Corrupt input is a missing judgement, not a drifted surface."""
+    broken = tmp_path / "atlas.json"
+    broken.write_text("{not json", encoding="utf-8")
+    assert intake.main(["--atlas", str(broken), "--check"]) == 2
+
+
 @needs_atlas
 def test_the_surface_is_clean_against_the_real_atlas():
     ok, problems, counts = intake.check(intake.read_atlas(ATLAS))
@@ -154,6 +176,34 @@ def test_a_wired_shard_is_allowed_to_return(tmp_path):
 
 
 @needs_atlas
+def test_a_wired_shard_may_import_the_module_it_points_at(tmp_path):
+    """The no-imports rule is about stubs, not about adopted shards.
+
+    Adoption has two documented shapes, and the preferred one implements in a
+    proper module and lets ``load()`` return it. A gate that refuses that import
+    refuses the documented path, while still accepting a shard that returns a
+    literal -- which is the shape a fake has. Measured 2026-11-03: the import
+    walk ran for wired and unwired shards alike, so both shapes were refused.
+    """
+    entry = intake.units(intake.read_atlas(ATLAS))[0]
+    fake = tmp_path / "wired_import.py"
+    source = (
+        "WIRED = True\nSHARD_ID = %r\nCLASS_NAME = %r\n\n"
+        "def load(*a, **k):\n"
+        "    from eliza.psyche import affect\n"
+        "    return affect\n" % (entry["shard_id"], entry["class"]))
+    fake.write_text(source, encoding="utf-8")
+
+    wired = intake._stub_problems(
+        fake, entry, {"test": "tests/test_shard_intake.py", "commit": "0" * 7})
+    assert not [p for p in wired if "imports" in p], wired
+
+    # ...and the identical file with no ledger claim is still a stub, so the
+    # dependency rule still holds where it was written to hold.
+    assert any("imports" in p for p in intake._stub_problems(fake, entry))
+
+
+@needs_atlas
 def test_an_unknown_shard_is_refused_and_close_names_are_offered(capsys):
     assert intake.adopt("kali:NOPE/absent.py#Nothing", intake.read_atlas(ATLAS)) == 1
     assert "no shard" in capsys.readouterr().err
@@ -166,10 +216,12 @@ def test_the_registry_describes_a_shard_without_importing_it():
     import shards
     entries = shards.index()
     assert len(entries) > 1000
-    described = shards.describe(entries[0]["shard_id"])
+    unwired = [e for e in entries if not shards.describe(e["shard_id"]).get("wired", False)]
+    assert unwired, "no unwired shards to test"
+    described = shards.describe(unwired[0]["shard_id"])
     assert described["wired"] is False
     assert described["source_environment"] == "kali-linux"
-    module = shards.load(entries[0]["shard_id"])
+    module = shards.load(unwired[0]["shard_id"])
     assert module.WIRED is False
     with pytest.raises(NotImplementedError):
         module.load()

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_TARBABY_FileSearch: File search, forensic file operations, forensic file search, file system forensics."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  File search, forensic file operations, forensic file search, file system forensics.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - file-search
+  - forensics
+  - file-operations
+  - digital-forensics
+  - search
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

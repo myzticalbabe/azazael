@@ -121,15 +121,28 @@ INDEX_KEYS = ("shard_id", "kind", "tree", "module", "class", "lines",
               "public_api", "unnamed", "path")
 
 
+class AtlasUnavailable(RuntimeError):
+    """The census this gate READS is absent or unreadable -- not drift.
+
+    The atlas lives outside the repo (``~/yggdrasil_forest/atlas_kali-linux.json``,
+    written by ``tools/domain_trees.py`` on the Kali lane), so a host that has
+    never run that census cannot judge the stub surface at all. That state used to
+    arrive as ``SystemExit`` -- exit 1, the same code as real drift -- so the only
+    two available readings were "the stubs are wrong" and "the gate is broken",
+    and the truthful third ("nothing was judged") had no way to be said. It is a
+    separate exception so ``main`` can exit 2: could not perform the run.
+    """
+
+
 def read_atlas(path: Path) -> Dict:
     if not path.is_file():
-        raise SystemExit("atlas not found: %s\n"
-                         "Pass --atlas, or run tools/domain_trees.py on the Kali lane."
-                         % path)
+        raise AtlasUnavailable("atlas not found: %s\n"
+                               "Pass --atlas, or run tools/domain_trees.py on the Kali lane."
+                               % path)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise SystemExit("%s is not valid JSON: %s" % (path, exc))
+        raise AtlasUnavailable("%s is not valid JSON: %s" % (path, exc))
 
 
 def units(atlas: Dict) -> List[Dict]:
@@ -306,15 +319,22 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
                                for node in ast.walk(loader[0])):
         problems.append("%s load() does not raise: a stub that returns is a fake"
                         % entry["path"])
-    imports = [node for node in ast.walk(tree)
-               if isinstance(node, (ast.Import, ast.ImportFrom))]
-    for node in imports:
-        names = [alias.name for alias in node.names] if isinstance(node, ast.Import) \
-            else [node.module or ""]
-        for name in names:
-            if name.split(".")[0] not in ("", "__future__"):
-                problems.append("%s imports %r: a stub drags no dependencies"
-                                % (entry["path"], name))
+    #: Only an UNWIRED stub is held to "imports nothing". That rule exists so a
+    #: generated stub cannot smuggle a copy in behind a name -- it was never a
+    #: ban on an adopted shard reaching its implementation, and applying it to
+    #: wired shards made the documented adoption shape (implement in a module,
+    #: point load() at it) impossible to pass. Measured 2026-11-03: both a
+    #: deferred and a module-level import were refused for a wired shard.
+    if not wired:
+        imports = [node for node in ast.walk(tree)
+                   if isinstance(node, (ast.Import, ast.ImportFrom))]
+        for node in imports:
+            names = [alias.name for alias in node.names] \
+                if isinstance(node, ast.Import) else [node.module or ""]
+            for name in names:
+                if name.split(".")[0] not in ("", "__future__"):
+                    problems.append("%s imports %r: a stub drags no dependencies"
+                                    % (entry["path"], name))
     return problems
 
 
@@ -326,6 +346,7 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     on_disk = {entry["path"]: {key: entry.get(key) for key in INDEX_KEYS}
                for entry in index.get("shards", [])}
+    units_by_path = {entry["path"]: entry for entry in units(atlas)}
     expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
                 for entry in units(atlas)}
     for path in sorted(set(expected) - set(on_disk)):
@@ -343,8 +364,14 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
             continue
         problems.extend(_stub_problems(file_path, entry,
                                        assigned.get(entry["shard_id"])))
+    #: The surface index above is keyed by PATH; a ledger entry is an ID.
+    #: Comparing the id to that dict reported every wired shard as "not in the
+    #: atlas", which no gate run could catch while the ledger was empty -- the
+    #: first adoption exercised the branch (measured 2026-11-03: five real ids,
+    #: five false defects).
+    unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
     for shard_id, claim in sorted(assigned.items()):
-        if shard_id not in expected:
+        if shard_id not in unit_ids:
             problems.append("WIRED.json names %r, which is not in the atlas" % shard_id)
             continue
         test = claim.get("test") if isinstance(claim, dict) else None
@@ -403,7 +430,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--adopt", metavar="SHARD_ID")
     args = parser.parse_args(argv)
 
-    atlas = read_atlas(Path(args.atlas))
+    # Exit 2, not 1: `2` means "the run could not be performed", which is neither
+    # a pass nor a verdict on the tree. Collapsing it into 1 let a missing input
+    # read as a drifted surface, and the commit gate would then refuse a healthy
+    # tree for a reason that has nothing to do with the tree.
+    try:
+        atlas = read_atlas(Path(args.atlas))
+    except AtlasUnavailable as exc:
+        print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
+        return 2
     entries = units(atlas)
 
     if args.write:
