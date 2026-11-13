@@ -187,7 +187,8 @@ def screenshot_region_net(path: Path, rect: tuple[int, int, int, int] | None = N
           f"$g.CopyFromScreen({x},{y},0,0,$b.Size);"
           f"$b.Save('{path}');$g.Dispose();$b.Dispose()")
     done = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
-                          capture_output=True, text=True, timeout=120, check=False)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace",
+                          timeout=120, check=False)
     if done.returncode != 0 or not path.exists():
         raise RuntimeError(f"pixel capture failed: {done.stderr.strip()[-200:]}")
     return path
@@ -205,7 +206,8 @@ def ocr_text(image: Path) -> str:
     if not tesseract:
         raise RuntimeError("tesseract binary not found — Rule 2 cannot be met")
     done = subprocess.run([tesseract, str(image), "stdout", "--psm", "6"],
-                          capture_output=True, text=True, timeout=120, check=False)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace",
+                          timeout=120, check=False)
     if done.returncode != 0:
         raise RuntimeError(f"tesseract failed: {done.stderr.strip()[-200:]}")
     return done.stdout

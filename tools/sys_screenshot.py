@@ -78,7 +78,8 @@ def take_screenshot(out_dir: Path, pictures_style: bool = False) -> Path:
         out = out_dir / f"shot_{stamp}.png"
     script = PS_SNIP.format(out=str(out))
     done = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
-                          capture_output=True, text=True, timeout=120, check=False)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace",
+                          timeout=120, check=False)
     if done.returncode != 0:
         raise RuntimeError(f"screenshot backend failed: {done.stderr.strip()[-300:]}")
     if not out.exists() or out.stat().st_size == 0:
