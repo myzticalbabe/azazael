@@ -14,7 +14,12 @@ unified verdict. This server puts an MCP face on the existing oracle logic:
   triage_plan     open items with a suggested evidence check each, for resolution
   refusal_log     idempotent refusal-ledger append (ER-01: one event, one row)
 
-Server mode needs the `mcp` package (run it under py315t, which has it).
+Server mode needs a WORKING `mcp` package. mcp 1.10.1 does
+`from pydantic._internal._typing_extra import eval_type_backport`, and
+pydantic 2.14 deleted that name, so a bare `import mcp` raises ImportError.
+The vendored backfill `tools/compat_pydantic214.py` must therefore be imported
+BEFORE mcp (see the import block below); it is a no-op alias on 3.16, where
+`typing._eval_type` already covers every syntax the backport handled.
 --verdict and the other CLI paths import no mcp and run under py316t:
   C:/Azazael/.venvs/py316t/Scripts/python.exe tools/supervisor_mcp.py --verdict
 Registered in ~/.agents/mcp.json as stdio server "supervisor".
@@ -33,24 +38,58 @@ sys.path.insert(0, str(HERE))
 import engram_supervise as sup  # noqa: E402
 
 
-class _NoMCPServer:
-    """Fallback when `mcp` is not installed (e.g. py316t).
+class _LazyServer:
+    """Builds the real MCP server only when server mode is entered.
 
-    @server.tool() degrades to an identity decorator, so every CLI path
-    (--verdict, --log-refusal, --selftest) keeps working with plain
-    functions; main() already calls verdict.fn() if decorated else
-    verdict(). Only server mode raises, loudly, naming the fix.
+    The CLI paths (--verdict, --log-refusal, --selftest-refusal-dedupe) must
+    import no `mcp` at all: the import costs ~350 ms and pulls in
+    pydantic-settings, which emits an IncompleteFieldDefinitionWarning under
+    pydantic 2.14. The original design relied on `mcp` FAILING to import so an
+    identity decorator could stand in -- but mcp 1.10.1 + pydantic 2.14 fails
+    for a reason that ALSO breaks server mode, so that fallback could not be
+    the answer.
+
+    So the tool functions are collected here (the decorator returns the plain
+    function, so every CLI path keeps a directly callable `verdict`), and are
+    registered with the real FastMCP at run() time -- after the vendored
+    pydantic-2.14 backfill has been applied and `mcp` imports cleanly.
     """
 
+    def __init__(self) -> None:
+        self._functions = []
+
     def tool(self, *args, **kwargs):
-        def _identity(fn):
+        def _collect(fn):
+            self._functions.append((args, kwargs, fn))
             return fn
-        return _identity
+        return _collect
 
     def run(self, *args, **kwargs):
+        real = _build_real_server(self._functions)
+        return real.run(*args, **kwargs)
+
+
+def _build_real_server(functions):
+    """Import `mcp` (with the pydantic-2.14 backfill) and register the tools."""
+    # mcp 1.10.1 does `from pydantic._internal._typing_extra import
+    # eval_type_backport`; pydantic 2.14 deleted that name, so `import mcp`
+    # raises ImportError. The vendored backfill must be imported BEFORE mcp
+    # (HERE is already on sys.path above). Same pattern as barta_scrape_mcp.py,
+    # which is why that server always worked.
+    import compat_pydantic214  # noqa: F401 -- vendored pydantic-2.14 backfill
+    try:
+        try:
+            from mcp.server import MCPServer as FastMCP  # mcp 2.x
+        except ImportError:
+            from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
+        real = FastMCP("supervisor")
+    except ImportError as exc:
         raise RuntimeError(
-            "supervisor server mode needs the 'mcp' package "
-            "(run under py315t, which has it)")
+            "supervisor server mode needs a working 'mcp' package: "
+            "%s: %s" % (type(exc).__name__, exc)) from exc
+    for args, kwargs, fn in functions:
+        real.tool(*args, **kwargs)(fn)
+    return real
 
 
 import datetime
@@ -226,14 +265,10 @@ def append_refusal(tool, detail, client="opencode", session="",
             return "refusal: WRITE FAILED (%s: %s)" % (type(exc).__name__, exc)
 
 
-try:
-    try:
-        from mcp.server import MCPServer as FastMCP  # mcp 2.x
-    except ImportError:
-        from mcp.server.fastmcp import FastMCP  # mcp 1.x  # noqa: E402
-    server = FastMCP("supervisor")
-except ImportError:
-    server = _NoMCPServer()
+# The real MCP server is built lazily, in _LazyServer.run(): the CLI paths
+# import no `mcp` at all, and server mode gets a working FastMCP because the
+# vendored pydantic-2.14 backfill is applied before `mcp` is imported.
+server = _LazyServer()
 
 
 def _pams_honest() -> tuple:
