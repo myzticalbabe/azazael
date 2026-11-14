@@ -669,6 +669,12 @@ class LaneMessageBoard:
         Without it the two still disagreed: freebuff polled 12 against 5
         claimable. An expired lease is not a claim — that row is available, and
         `claim_tasks` will hand it back.
+
+        The default view also drops stale COPIES -- rows that say exactly what
+        an already-retired row said. `claim_tasks` retires those instead of
+        offering them, so a reader that showed them was showing work the
+        claim would refuse. Measured 2026-11-14 on the real opencode board:
+        37 rows on offer, 31 copies, 6 pieces of real work.
         """
         if lane not in self.VALID_LANES:
             raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
@@ -718,6 +724,32 @@ class LaneMessageBoard:
             except Exception as exc:
                 note_failure("LaneMessageBoard:poll_tasks-bus-row", exc)
                 continue
+
+        # The reader must ask the same question the writer asks. Retired rows
+        # and live leases were already filtered in SQL; stale COPIES were
+        # not, so the reader showed 37 rows for 6 pieces of work (measured on
+        # the real opencode board 2026-11-14) while the claim handed out
+        # nothing. The audit views -- include_retired and include_claimed --
+        # still show everything, because showing everything is what they are
+        # for.
+        if not include_retired and not include_claimed:
+            try:
+                sconn = self._state_conn()
+            except Exception as exc:
+                note_failure("LaneMessageBoard:poll_tasks-state-conn", exc)
+                sconn = None
+            if sconn is not None:
+                try:
+                    pcut = (int(datetime.now(timezone.utc).timestamp())
+                            - self.CLAIM_LEASE_SECONDS)
+                    claimable, _stale = self._split_stale(
+                        sconn, lane, pcut,
+                        [(int(p["id"]), p["content"]) for p in persistent],
+                    )
+                    keep_ids = {bid for bid, _ in claimable}
+                    persistent = [p for p in persistent if int(p["id"]) in keep_ids]
+                finally:
+                    sconn.close()
 
         for p in persistent:
             mid = p["id"]
