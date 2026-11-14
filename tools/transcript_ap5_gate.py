@@ -94,6 +94,7 @@ import glob
 import json
 import os
 import sqlite3
+import subprocess
 import sys
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
@@ -176,6 +177,58 @@ def save_acks(acks: dict, path: str | None = None) -> str:
         json.dump(body, handle, indent=1)
         handle.write("\n")
     return path
+
+
+#: The ledger lives under ``logs/``, which is ignored, so a plain ``git add``
+#: never reaches it and an acknowledgement that is only written to disk is not
+#: an acknowledgement anyone else can read: a fresh clone re-reads those
+#: emissions as new, which is indistinguishable from the gate never having run.
+#: This asks git whether the record is actually in HEAD, and UNKNOWN is not a
+#: pass -- no git or no repository is not evidence that it travelled.
+LEDGER_COMMITTED = "COMMITTED"
+LEDGER_DIRTY = "DIRTY"
+LEDGER_UNTRACKED = "UNTRACKED"
+LEDGER_UNKNOWN = "UNKNOWN"
+
+
+#: Why the last git question could not be asked. UNKNOWN is returned with a
+#: reason rather than a shrug: "git said no" and "there is no git" are
+#: different facts and the operator needs to know which one they have.
+LEDGER_UNKNOWN_REASONS: list[str] = []
+
+
+def ledger_travel_state(path: str | None = None) -> str:
+    """Is this ledger's content in HEAD? Reported, never assumed."""
+    path = path or ACK_PATH
+    repo = os.path.dirname(os.path.abspath(path))
+
+    def _git(*argv: str) -> subprocess.CompletedProcess | None:
+        try:
+            return subprocess.run(
+                ["git", "-C", repo, *argv],
+                capture_output=True, text=True, timeout=30,
+                encoding="utf-8", errors="replace",
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            LEDGER_UNKNOWN_REASONS.append("%s: %s" % (type(exc).__name__, exc))
+            return None
+
+    del LEDGER_UNKNOWN_REASONS[:]
+    tracked = _git("ls-files", "--error-unmatch", "--", path)
+    if tracked is None:
+        return LEDGER_UNKNOWN
+    if tracked.returncode != 0:
+        return LEDGER_UNTRACKED
+    clean = _git("diff", "--quiet", "HEAD", "--", path)
+    if clean is None:
+        return LEDGER_UNKNOWN
+    return LEDGER_COMMITTED if clean.returncode == 0 else LEDGER_DIRTY
+
+
+def ledger_unknown_reason() -> str:
+    """The recorded reason git could not be asked, or a plain fallback."""
+    return LEDGER_UNKNOWN_REASONS[-1] if LEDGER_UNKNOWN_REASONS else "git unavailable"
+
 
 #: Per-store statuses. Kept as plain strings so they survive JSON round-trips
 #: and read the same in the human output.
@@ -979,6 +1032,18 @@ def main(argv: list[str] | None = None) -> int:
             print("  [%s] %s %s msg=%s line=%d %r"
                   % (f.rule, f.source, f.session_id, f.message_id, f.line,
                      f.match))
+        travel = ledger_travel_state(path)
+        if travel == LEDGER_COMMITTED:
+            print("ledger state: %s -- these records are in HEAD, so they "
+                  "travel" % travel)
+        elif travel == LEDGER_UNKNOWN:
+            print("ledger state: %s -- git could not be asked (%s), so "
+                  "travel is UNPROVEN (not a pass)"
+                  % (travel, ledger_unknown_reason()))
+        else:
+            print("ledger state: %s -- NOT in HEAD. A fresh clone re-reads "
+                  "them as new." % travel)
+            print("            land it: git add -f %s" % path)
         return 0
 
     if args.json:
@@ -1048,9 +1113,26 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if acked:
+        # An acknowledgement that is only on this disk is not one anyone else
+        # can read: a fresh clone re-reads those emissions as new, which is
+        # indistinguishable from the gate never having run. So the ledger's
+        # travel state is printed on EVERY run, not only when someone acks --
+        # the risk is live exactly when nobody is looking at the flag.
+        travel = ledger_travel_state(ACK_PATH)
         print("  acknowledged: %d prior emission(s) (recorded in %s; "
               "reported on every run, not gating)"
               % (len(acked), ACK_PATH))
+        if travel == LEDGER_COMMITTED:
+            print("      ledger state: %s -- these records are in HEAD, so "
+                  "they travel" % travel)
+        elif travel == LEDGER_UNKNOWN:
+            print("      ledger state: %s -- git could not be asked (%s), so "
+                  "travel is UNPROVEN (not a pass)"
+                  % (travel, ledger_unknown_reason()))
+        else:
+            print("      ledger state: %s -- NOT in HEAD. A fresh clone "
+                  "re-reads them as new." % travel)
+            print("      land it: git add -f %s" % ACK_PATH)
 
     if not report.findings:
         print("")

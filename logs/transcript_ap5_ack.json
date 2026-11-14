@@ -249,6 +249,32 @@
    "acked_at": "2026-11-12T22:49:28.384441+00:00"
   },
   {
+   "key": "opencode|ses_e28943f97ffe9JZh00ZZsRBe5z|msg_1d78b5ef8001vgyCdEDuJVd0T8|1173|want_me_to|6|Should I fix",
+   "source": "opencode",
+   "session": "ses_e28943f97ffe9JZh00ZZsRBe5z",
+   "message": "msg_1d78b5ef8001vgyCdEDuJVd0T8",
+   "part": "1173",
+   "rule": "want_me_to",
+   "line": 6,
+   "match": "Should I fix",
+   "excerpt": "- `docs_index.py` never writes when CORE imports successfully (the `sys.exit(main())` is \u2026",
+   "why": "Historical opencode emissions from sessions ses_e28943f9 and ses_e2895ac2 (Nov 2026). The transcript is immutable and no assistant-output hook exists, so they cannot be un-said. Recorded per emission; the gate stays live for all new prose.",
+   "acked_at": "2026-11-14T16:56:07.299923+00:00"
+  },
+  {
+   "key": "opencode|ses_e2895ac2dffeAmfwmksRl1qO84|msg_1d76d8d78001DcX0uKXaj9mtJm|325|want_me_to|44|Want me to",
+   "source": "opencode",
+   "session": "ses_e2895ac2dffeAmfwmksRl1qO84",
+   "message": "msg_1d76d8d78001DcX0uKXaj9mtJm",
+   "part": "325",
+   "rule": "want_me_to",
+   "line": 44,
+   "match": "Want me to",
+   "excerpt": "Want me to write `C_CIRCLE_FLOOR.md` (the overdue lane deliverable), or re-run the sweep \u2026",
+   "why": "Historical opencode emissions from sessions ses_e28943f9 and ses_e2895ac2 (Nov 2026). The transcript is immutable and no assistant-output hook exists, so they cannot be un-said. Recorded per emission; the gate stays live for all new prose.",
+   "acked_at": "2026-11-14T16:56:07.299923+00:00"
+  },
+  {
    "key": "opencode|ses_eb6edc411ffeehc7zu7TnY51rA|msg_14a4e3995001BwxVAX2baZqn5p|prt_14a4e5cc8001sZDqbKm3w9xqC7|want_me_to|34|Want me to",
    "source": "opencode",
    "session": "ses_eb6edc411ffeehc7zu7TnY51rA",
