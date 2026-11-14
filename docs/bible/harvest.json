@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2224,
+  "as_of_id": 2233,
   "path": "~/.engram/engram.db",
-  "records": 1332,
+  "records": 1339,
   "types": [
    "bugfix",
    "decision",
@@ -6325,6 +6325,72 @@
   },
   {
    "cause": "",
+   "id": "project-codex-videoengine-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "CODEX Video Engine provides a complete video generation pipeline:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L14",
+   "kind": "limitation",
+   "line": 14,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L20",
+   "kind": "limitation",
+   "line": 20,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "python -m codex_video_engine --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L26",
+   "kind": "limitation",
+   "line": 26,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L30",
+   "kind": "limitation",
+   "line": 30,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L61",
+   "kind": "limitation",
+   "line": 61,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
    "id": "project-cradle-readme-md-L10",
    "kind": "limitation",
    "line": 10,
@@ -6355,6 +6421,72 @@
    "surface": "Project_CRADLE/README.md",
    "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "Ecosystem Orchestrator provides ML platform installation and orchestration:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "python -m ecosystem_orchestrator --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L60",
+   "kind": "limitation",
+   "line": 60,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
   },
   {
    "cause": "",
@@ -6501,9 +6633,9 @@
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L287",
+   "id": "project-eliza-readme-md-L312",
    "kind": "limitation",
-   "line": 287,
+   "line": 312,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
@@ -6677,6 +6809,127 @@
   },
   {
    "cause": "",
+   "id": "project-grantforge-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GrantForge/README.md",
+   "symptom": "GrantForge provides AI-native grant tooling:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-grantforge-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GrantForge/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-grantforge-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GrantForge/README.md",
+   "symptom": "python -m grantforge --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-grantforge-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GrantForge/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-grantforge-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GrantForge/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "HYDRA MLCluster provides adaptive ML cluster processing:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "python -m hydra_mlcluster --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L60",
+   "kind": "limitation",
+   "line": 60,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
    "id": "project-jaeger-readme-md-L9",
    "kind": "limitation",
    "line": 9,
@@ -6765,6 +7018,193 @@
   },
   {
    "cause": "",
+   "id": "project-madi-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MADI/README.md",
+   "symptom": "MADI provides a comprehensive browsing instrument:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-madi-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MADI/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-madi-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MADI/README.md",
+   "symptom": "python -m madi --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-madi-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MADI/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-madi-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MADI/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "Persephone provides bidirectional environment synchronization across multiple platforms:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "python -m persephone_sync --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L60",
+   "kind": "limitation",
+   "line": 60,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "Scribe provides automated documentation generation for Python projects:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L13",
+   "kind": "limitation",
+   "line": 13,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "pip install -e .",
+   "title": "Installation"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L19",
+   "kind": "limitation",
+   "line": 19,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "python -m scribe --help",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "See [Domain Atlas](https://myzticalbabe.github.io) for interactive visualization.",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L29",
+   "kind": "limitation",
+   "line": 29,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L60",
+   "kind": "limitation",
+   "line": 60,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
    "id": "project-shardex-readme-md-L20",
    "kind": "limitation",
    "line": 20,
@@ -6795,6 +7235,127 @@
    "surface": "Project_SHARDEX/README.md",
    "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
    "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "This platform provides WebAssembly-powered educational modules for higher education and advanced developer learning. Each module is designed with:",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L15",
+   "kind": "limitation",
+   "line": 15,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "🌐 Interactive Platform: [https://myzticalbabe.github.io/wasm-education/](https://myzticalbabe.github.io/wasm-education/)",
+   "title": "Live Demo"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L28",
+   "kind": "limitation",
+   "line": 28,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "wasm-education/ ├── rust-wasm/ # Rust → WASM (wasm-bindgen, serde, nalgebra, petgraph) ├── go-wasm/ # Go → WASM (TinyGo, wazero, syscall/js) ├── demo-pages/ # Vanilla JS interactive demo platform ├── docs/ # Documentation └── .github/workflows/ # CI/CD pipelines",
+   "title": "Architecture"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L41",
+   "kind": "limitation",
+   "line": 41,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "Prerequisites",
+   "title": "Prerequisites"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L48",
+   "kind": "limitation",
+   "line": 48,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "cd rust-wasm wasm-pack build --target web --out-dir pkg",
+   "title": "Build Rust WASM"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L55",
+   "kind": "limitation",
+   "line": 55,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "cd go-wasm tinygo build -o main.wasm -target wasm -no-debug -opt=s .",
+   "title": "Build Go WASM"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L62",
+   "kind": "limitation",
+   "line": 62,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "cd demo-pages npx http-server .",
+   "title": "Run Demo Pages"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "Each module exports a JavaScript API:",
+   "title": "Usage"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L97",
+   "kind": "limitation",
+   "line": 97,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "Each module includes:",
+   "title": "Learning Objectives"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L114",
+   "kind": "limitation",
+   "line": 114,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "This project is licensed under the SOUL FORGE License v1.0 — see [LICENSE](LICENSE) for details.",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-education-readme-md-L145",
+   "kind": "limitation",
+   "line": 145,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Education/README.md",
+   "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
+   "title": "Contributing"
   },
   {
    "cause": "",
@@ -22779,6 +23340,90 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Exercised the whole cursor-scheme lifecycle through the compiled binary rather than the script: `dist/SOULFORGE.exe --uninstall` (exit 0: \"cursor 11 live value(s) cleared to the system default\", \"scheme Vulcan Swarm removed\", \"uninstalled 10 file(s)\"), `--status` (exit 0: installed 0 file(s), live 0 slot(s), scheme ''), `--defaults` (exit 0: 15 Aero slot defaults), `--apply` (exit 0: 10 artefacts, 10 files installed, 11 live values, scheme 'Vulcan Swarm'), `--check` (exit 0: \"artefacts 10 read back, 10 installed copy(ies), 11 live value(s) in vulcan-swarm\", \"clean 0 defect(s)\").",
    "title": "SOULFORGE exe lifecycle proved end to end (uninstall → defaults → apply → check)"
+  },
+  {
+   "cause": "A Nuitka onefile exe cannot re-invoke itself from argv[0] or sys.executable — both point at the unpacked temp dir, and a child spawn raised FileNotFoundError [WinError 2] ...onefile_21916_...\\python.exe. Resolution now: SOULFORGE_SELF → bootstrap-parent image via NUITKA_ONEFILE_PARENT + QueryFullProcessImageNameW → argv[0] → sys.executable, and an empty list reports `DEFECT no runnable self` rather than passing. Three other real defects fell out: recursive reload_pointers(), --apply refusing a missing Cursors key (now CreateKeyEx), and subprocess.run(text=True) with no encoding. Tier verdict: PASS at tree 5e27c027 (== HEAD a8817267's tree), 14 checks, marker logs/hook_evidence.json ran_at 2…",
+   "date": "2026-11-14",
+   "id": "engram-2225",
+   "kind": "engram:bugfix",
+   "line": 2225,
+   "rationale": "What: Finished the SOULFORGE (tools/swarm_arena) work and re-ran the evidence tier to a verdict. (1) `--selftest` verb added: build/install/check/uninstall against a throwaway HKCU key via env overrides SOULFORGE_CURSOR_KEY / SOULFORGE_SCHEME_DIR / SOULFORGE_OUT, children are the same binary, and reload_pointers() prints `skip SPI_SETCURSORS under a throwaway key` instead of repainting the live scheme. (2) Busy/wave retuned to a Vulcan-salute arc: ±24°, BUSY_CANVAS 192, MOTION_FLOOR 8.5; measured from the built .ani palm travel 9.71 px = 51.1% of 19 px ink, per-frame ink [20,20,19,20,20,23,23,23] (was 3.05 px / 10.2%). (3) Evidence tier re-run to completion against HEAD a8817267. Why: Stand…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished the SOULFORGE (tools/swarm_arena) work and re-ran the evidence tier to a verdict. (1) `--selftest` verb added: build/install/check/uninstall against a throwaway HKCU key via env overrides SOULFORGE_CURSOR_KEY / SOULFORGE_SCHEME_DIR / SOULFORGE_OUT, children are the same binary, and reload_pointers() prints `skip SPI_SETCURSORS under a throwaway key` instead of repainting the live scheme. (2) Busy/wave retuned to a Vulcan-salute arc: ±24°, BUSY_CANVAS 192, MOTION_FLOOR 8.5; measured from the built .ani palm travel 9.71 px = 51.1% of 19 px ink, per-frame ink [20,20,19,20,20,23,23,23] (was 3.05 px / 10.2%). (3) Evidence tier re-run to completion against HEAD a8817267.",
+   "title": "SOULFORGE selftest + onefile self-resolution; evidence tier PASS at a8817267"
+  },
+  {
+   "cause": "Restore must be typed. The old snapshot stored bare strings, so REG_EXPAND_SZ cursor paths came back as REG_SZ. soulforge-snapshot-2 records per-value kind; an untyped legacy snapshot still restores and prints \"predates recorded types\". - Empty fields in a registered scheme blank the slot. Help/NWPen/UpArrow came back empty when the scheme was selected in Mouse Properties, so non-swarm slots now inherit the account's current value (fallback: the HKLM \"Windows Aero\" string). - A check may not validate a contract only when its own condition holds. --check validated the scheme entry and account default only when at least one live slot was ours, so a Windows theme overwriting all eleven pointer…",
+   "date": "2026-11-14",
+   "id": "engram-2226",
+   "kind": "engram:bugfix",
+   "line": 2226,
+   "rationale": "What: Made the shipped Vulcan-salute cursor scheme the live account default through a reversible one-command install, and fixed three defects the shipped binary exposed. Why: The request was \"make the shipped Vulcan Swarm scheme the default for the live account through a reversible one-command install, with the live key snapshotted first\" — so the install must snapshot before its first write and carry its own undo. Where: tools/swarm_arena/make_cursors.py (do_apply/do_restore/do_check/do_install, SNAPSHOT_FORMAT soulforge-snapshot-2), tools/swarm_arena/soulforge.py (status prints snapshot line; verb text), tools/swarm_arena/README.md. Commit 80043d3e, 3 files, +274/-56. Learned: - Restore m…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Made the shipped Vulcan-salute cursor scheme the live account default through a reversible one-command install, and fixed three defects the shipped binary exposed.",
+   "title": "Vulcan Swarm as default: snapshot-first reversible install, 3 defects fixed"
+  },
+  {
+   "cause": "(a) A gate that asks \"what does this project publish\" must enumerate with `git ls-files -c -o --exclude-standard` and print the ignored count it excluded -- 4504 measured files against 5196 not scanned -- because a worktree walk measures the filesystem, not the repository. (b) A `never_ship` glob matched by bare basename denies every same-named file in the tree: `requiem.py` also hit the canonical `../src/PSYCHE/requiem.py` and turned `denied_paths` red, so the glob is now path-qualified and was proved with an `fnmatch` probe (`project_eliza/requiem.py` -> True, `src/psyche/requiem.py` -> False). (c) The tier reads `33 ran, 1 failed (0 blocking)`, TIER_RC=0 -- the single non-PASS is `arc-co…",
+   "date": "2026-11-14",
+   "id": "engram-2227",
+   "kind": "engram:bugfix",
+   "line": 2227,
+   "rationale": "What: Cleared the two failing preflight checks named in the request. (1) The eliza publication gate read five failures; the cause was one instrument defect, and after repair it prints `PASS: 0 failure(s)`, RC=0, with all seven sections ok. (2) The historical AP-5 phrases were cleared through the gate's own `--ack` ledger, and every run now prints `AP-5: no NEW finding (2 already-acknowledged emission(s) remain on record)`. Why: `publication_inventory()` walked the worktree with `rglob`, so `Project_ELIZA/adopted/kali/` -- gitignored at `.gitignore:10` -- counted as undeclared content; and `check_undeclared()` demanded a `ship` entry for a path whose own manifest said `never_ship`, which is…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Cleared the two failing preflight checks named in the request. (1) The eliza publication gate read five failures; the cause was one instrument defect, and after repair it prints `PASS: 0 failure(s)`, RC=0, with all seven sections ok. (2) The historical AP-5 phrases were cleared through the gate's own `--ack` ledger, and every run now prints `AP-5: no NEW finding (2 already-acknowledged emission(s) remain on record)`.",
+   "title": "eliza publication gate measured from git inventory; AP-5 acknowledged"
+  },
+  {
+   "cause": "nurse-ratchet serves as the gold-standard template with 14 community health files + release gate enforcement. Standards must be codified, not just documented. Every repo needs: 14 governance files, CI/Pages workflows, GitHub metadata, cross-repo table, branch protection, Dependabot/CodeQL.",
+   "date": "2026-11-14",
+   "id": "engram-2230",
+   "kind": "engram:architecture",
+   "line": 2230,
+   "rationale": "What: Established mandatory professional-grade public adoption standards for all 20 myzticalbabe repositories based on gap analysis of GitHub org Why: Audit revealed 3 critical gaps blocking professional adoption: landing hub repo missing all metadata, wasm-education missing About metadata, 19/20 repos missing community health files (only nurse-ratchet has full set) Where: C:/Azazael/azazael/ - all project repos in monorepo; myzticalbabe.github.io (landing hub); wasm-education (separate repo) Learned: nurse-ratchet serves as the gold-standard template with 14 community health files + release gate enforcement. Standards must be codified, not just documented. Every repo needs: 14 governance f…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Established mandatory professional-grade public adoption standards for all 20 myzticalbabe repositories based on gap analysis of GitHub org",
+   "title": "PROFESSIONAL-GRADE PUBLIC ADOPTION STANDARDS — default for all myzticalbabe repos"
+  },
+  {
+   "cause": "nurse-ratchet serves as gold standard template with 14/14 governance files + 2 workflows + templates + cross-repo table. Verification tool proves compliance. Next phase: propagate to 19 repos via automated script.",
+   "date": "2026-11-14",
+   "id": "engram-2231",
+   "kind": "engram:decision",
+   "line": 2231,
+   "rationale": "What: Codified PROFESSIONAL-PUBLIC-STANDARDS.md as mandatory default for all 20 myzticalbabe repositories; created verification tool; gold standard now passes 100% Why: Gap analysis revealed 3 critical gaps blocking professional-grade public adoption; standards must be codified not just documented Where: C:/Azazael/azazael/PROFESSIONAL_PUBLIC_STANDARDS.md, C:/Azazael/azazael/tools/verify_public_standards.py, C:/Azazael/azazael/Project_Nurse_Ratchet/.github/workflows/pages-deploy.yml, C:/Azazael/azazael/Project_Nurse_Ratchet/README.md Learned: nurse-ratchet serves as gold standard template with 14/14 governance files + 2 workflows + templates + cross-repo table. Verification tool proves comp…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Codified PROFESSIONAL-PUBLIC-STANDARDS.md as mandatory default for all 20 myzticalbabe repositories; created verification tool; gold standard now passes 100%",
+   "title": "PROFESSIONAL-PUBLIC-STANDARDS codified and verified"
+  },
+  {
+   "cause": "Three bias mechanisms require different interventions: Masculine Defaults (culture redesign), Differential Treatment (bias interrupters + structured evals), Stereotype Threat (matched role models + soft skills). Five mandatory tiers with 17 requirements + enforcement gates. All 20 myzticalbabe repos must implement equity infrastructure in PROFESSIONAL_PUBLIC_STANDARDS compliance.",
+   "date": "2026-11-14",
+   "id": "engram-2232",
+   "kind": "engram:decision",
+   "line": 2232,
+   "rationale": "What: Codified RULE 0Z-R as mandatory mandate for female STEM advancement professional standards Why: Differential analysis of 20+ studies proved structural interventions succeed (sponsorship, bias interrupters, clear metrics, top-down mandates) while bottom-up approaches fail (mentoring, diversity training, \"fix the woman\" programs) Where: C:/Azazael/azazael/MANDATES.md (commit ec868b58) Learned: Three bias mechanisms require different interventions: Masculine Defaults (culture redesign), Differential Treatment (bias interrupters + structured evals), Stereotype Threat (matched role models + soft skills). Five mandatory tiers with 17 requirements + enforcement gates. All 20 myzticalbabe rep…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Codified RULE 0Z-R as mandatory mandate for female STEM advancement professional standards",
+   "title": "RULE 0Z-R: Female STEM Advancement Professional Standards mandated"
+  },
+  {
+   "cause": "100% verification pass rate achieved. Every repo now has: 14 governance files (CODE_OF_CONDUCT.md, SECURITY.md, CITATION.cff, DISCLOSURE_POLICY.md, NOTICE, PUBLIC_MANIFEST.json, HARDWARE.md, MANIFEST_NOTES.md, requiem.py, certification.json, LICENSE, CONTRIBUTING.md, CHANGELOG.md, README.md), 2 CI/CD workflows (ci.yml, pages-deploy.yml), 4 GitHub templates, cross-repo table, equity-evaluation-gate.yml (RULE 0Z-R compliance). MADI and GrantForge projects created locally and made compliant.",
+   "date": "2026-11-14",
+   "id": "engram-2233",
+   "kind": "engram:decision",
+   "line": 2233,
+   "rationale": "What: Implemented PROFESSIONAL_PUBLIC_STANDARDS and RULE 0Z-R across all 25 myzticalbabe repositories (20 unique) Why: Complete the mandate to unblock professional-grade public adoption and implement female STEM advancement professional standards Where: All repos in C:/Azazael/publish_repos/, C:/Azazael/azazael/Project_*, C:/Azazael/EveUnleashed, C:/Azazael/krampus, C:/Azazael/azazael, C:/Azazael/azazael/packages/azazael-core, plus new Project_MADI and Project_GrantForge Learned: 100% verification pass rate achieved. Every repo now has: 14 governance files (CODE_OF_CONDUCT.md, SECURITY.md, CITATION.cff, DISCLOSURE_POLICY.md, NOTICE, PUBLIC_MANIFEST.json, HARDWARE.md, MANIFEST_NOTES.md, requ…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Implemented PROFESSIONAL_PUBLIC_STANDARDS and RULE 0Z-R across all 25 myzticalbabe repositories (20 unique)",
+   "title": "ALL PROFESSIONAL STANDARDS IMPLEMENTED - 100% VERIFICATION PASS"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -22786,92 +23431,154 @@
   {
    "path": "ERROR_LOG.md",
    "records": 276,
-   "sha": "901526c0e1e6d21e6b0fd8b7dab1abed3a7ef7920b9b61c17a469d8f01b61168"
+   "sha": "901526c0e1e6d21e6b0fd8b7dab1abed3a7ef7920b9b61c17a469d8f01b61168",
+   "worktree_differs": false
   },
   {
    "path": "LESSONS_MASTER.md",
    "records": 117,
-   "sha": "b66b7380b1a0d665edc8c5be254c7778ca47592b3a8b52e1877d28d8431942fb"
+   "sha": "b66b7380b1a0d665edc8c5be254c7778ca47592b3a8b52e1877d28d8431942fb",
+   "worktree_differs": false
   },
   {
    "path": "MEMORIES.md",
    "records": 71,
-   "sha": "53f7b45566119ccf801c68f0580d1333b9733b3662407e47ad9f113561390be8"
+   "sha": "53f7b45566119ccf801c68f0580d1333b9733b3662407e47ad9f113561390be8",
+   "worktree_differs": false
   },
   {
    "path": "SESSION_STARTUP.md",
    "records": 30,
-   "sha": "dd2c45efce92db5294ba634e9e3f915dcf420a79e7f46b8a7d9ceafacff97398"
+   "sha": "dd2c45efce92db5294ba634e9e3f915dcf420a79e7f46b8a7d9ceafacff97398",
+   "worktree_differs": false
   },
   {
    "path": "docs/GIT_FLEET_BLEEDING_EDGE_2026-11-01.md",
    "records": 14,
-   "sha": "44f49a56bd79842cb866aa5f64ae1c116167c72cbb8c067112355bb3d66a1c92"
+   "sha": "44f49a56bd79842cb866aa5f64ae1c116167c72cbb8c067112355bb3d66a1c92",
+   "worktree_differs": false
   },
   {
    "path": "docs/PACKAGING_PLAN.md",
    "records": 5,
-   "sha": "07bbcbe7bef70be14ec84f14bffaa528ecced29934791008a63c5ff9f382da25"
+   "sha": "07bbcbe7bef70be14ec84f14bffaa528ecced29934791008a63c5ff9f382da25",
+   "worktree_differs": false
   },
   {
    "path": "docs/AZAZAEL_TREE_OF_LIFE.md",
    "records": 5,
-   "sha": "9b78704e94fd4eac7dd2f6a04fb50069280ced78f2f67ccfe73c03ce64a140f4"
+   "sha": "9b78704e94fd4eac7dd2f6a04fb50069280ced78f2f67ccfe73c03ce64a140f4",
+   "worktree_differs": false
   },
   {
    "path": "Project_Nurse_Ratchet/README.md",
    "records": 10,
-   "sha": "ab443109ce680e03a72fba5189b45951ed603f8469431c67001ae8fc50af2c61"
+   "sha": "426da942906aea81238cb002a42497bf8ac5d3c87055a75c7c1ac1d466cecac1",
+   "worktree_differs": false
+  },
+  {
+   "path": "Project_CODEX_VideoEngine/README.md",
+   "records": 6,
+   "sha": "dc09671e2c8436ea3f5ddd7d4b9e6a6df5d2794154788ee43407c5efd23a1eec",
+   "worktree_differs": false
   },
   {
    "path": "Project_CRADLE/README.md",
    "records": 3,
-   "sha": "390b629b9d8a745ce76f079a23ba7076a37b015165bb672b4407216397737e6c"
+   "sha": "390b629b9d8a745ce76f079a23ba7076a37b015165bb672b4407216397737e6c",
+   "worktree_differs": true
+  },
+  {
+   "path": "Project_EcosystemOrchestrator/README.md",
+   "records": 6,
+   "sha": "eabc9997524b9e7da98e675b0245c7dd58435ced3ba66da680b97b1cc2b8d1a8",
+   "worktree_differs": false
   },
   {
    "path": "Project_ELIZA/README.md",
    "records": 14,
-   "sha": "0e7a1cb48af3cff079f61d5738f52be99fea1db7765aaad141629373c1ce3037"
+   "sha": "0e7a1cb48af3cff079f61d5738f52be99fea1db7765aaad141629373c1ce3037",
+   "worktree_differs": true
   },
   {
    "path": "Project_FLAME/README.md",
    "records": 5,
-   "sha": "71c2adbf0ccace9a256e760c051acace0af5cbd0382ce222cb5d8acf2c2f3622"
+   "sha": "71c2adbf0ccace9a256e760c051acace0af5cbd0382ce222cb5d8acf2c2f3622",
+   "worktree_differs": true
   },
   {
    "path": "Project_FLAMING_SWORD/README.md",
    "records": 10,
-   "sha": "931a85afc689542a6cfb19a50c6af79ee27355f2312769103c1a648da0ce3387"
+   "sha": "931a85afc689542a6cfb19a50c6af79ee27355f2312769103c1a648da0ce3387",
+   "worktree_differs": true
+  },
+  {
+   "path": "Project_GrantForge/README.md",
+   "records": 5,
+   "sha": "b013eb97c844d0694cd89ae78cb3e46171ec39195cdf0e8f73aca783ea4eb579",
+   "worktree_differs": false
+  },
+  {
+   "path": "Project_HYDRA_MLCluster/README.md",
+   "records": 6,
+   "sha": "c4c539292f275784f66b9f940c10728fa4b76d93ac8d46dc465ddd6509f49c76",
+   "worktree_differs": false
   },
   {
    "path": "Project_JAEGER/README.md",
    "records": 8,
-   "sha": "2fc45e5b0fcca01dd6374440dfd4bc712101dbfe5dc54a11dfeca12723a9ae04"
+   "sha": "2fc45e5b0fcca01dd6374440dfd4bc712101dbfe5dc54a11dfeca12723a9ae04",
+   "worktree_differs": true
+  },
+  {
+   "path": "Project_MADI/README.md",
+   "records": 5,
+   "sha": "9833d201d31385b8b088cc1c2a19e696b04c5ef1d0fcf1f93ce4009e587734ab",
+   "worktree_differs": false
+  },
+  {
+   "path": "Project_PERSEPHONE_Sync/README.md",
+   "records": 6,
+   "sha": "350241ab95d4905ec3edf8603bd635a4f5ae591b29b8a58d64b9355cecccf3d6",
+   "worktree_differs": false
+  },
+  {
+   "path": "Project_Scribe/README.md",
+   "records": 6,
+   "sha": "2eedaa06ddc80fe8f48715805b4aa44ff4b2161495c13542cda5da1476cbcdc2",
+   "worktree_differs": false
   },
   {
    "path": "Project_SHARDEX/README.md",
    "records": 3,
-   "sha": "0ad1b3206334ace50f891c2bb8545cfc25e14d4b75f2f09ccb53f0a8e1efa4d4"
+   "sha": "0ad1b3206334ace50f891c2bb8545cfc25e14d4b75f2f09ccb53f0a8e1efa4d4",
+   "worktree_differs": true
+  },
+  {
+   "path": "Project_WASM_Education/README.md",
+   "records": 11,
+   "sha": "7ea700675e779f84cf7119c0c179088c1659f7a1260d9fd4b22c35bceaed60d7",
+   "worktree_differs": false
   }
  ],
  "totals": {
   "by_kind": {
-   "engram:architecture": 35,
-   "engram:bugfix": 178,
+   "engram:architecture": 36,
+   "engram:bugfix": 181,
    "engram:config": 14,
-   "engram:decision": 479,
+   "engram:decision": 482,
    "engram:discovery": 262,
    "engram:learning": 287,
    "engram:lesson": 62,
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 53,
+   "limitation": 104,
    "measurement": 24,
    "memory": 71,
    "practice": 30
   },
-  "records": 1903,
-  "surfaces": 14
+  "records": 1961,
+  "surfaces": 22
  }
 }
