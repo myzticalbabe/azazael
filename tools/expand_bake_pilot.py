@@ -15,6 +15,7 @@ from CORE.inference.providers import get_provider
 from CORE.sentinel_enforcer import permit_here
 
 CORPUS = ROOT / "state" / "bake_corpus.jsonl"
+MERGED = ROOT / "state" / "bake_merged.jsonl"
 OUT = ROOT / "state" / "bake_pilot.jsonl"
 PILOT_PROVIDERS = ["groq", "openrouter", "pollinations", "nvidia_nim", "cohere"]
 
@@ -23,9 +24,30 @@ PROMPT = ("Turn this real incident into ONE training demonstration for a coding 
           "Incident:\n")
 
 
+def pick_corpus():
+    """The pre-merge or the merged corpus, whichever the loop actually has.
+
+    merge_bake_lane.py writes state/bake_merged.jsonl and calls it "the single
+    file the demo-expansion step reads"; this pilot used to read bake_corpus
+    (505 rows) unconditionally and print DEMOS= with no row count or file name,
+    so a run against the smaller input looked identical to one against the
+    merged set. Returns None when neither exists -- the caller must not treat
+    that as an empty corpus.
+    """
+    for path in (MERGED, CORPUS):
+        if path.is_file():
+            return path
+    return None
+
+
 def main():
     n = int(sys.argv[sys.argv.index("--n") + 1]) if "--n" in sys.argv else 10
-    rows = [json.loads(l) for l in open(CORPUS, encoding="utf-8")]
+    corpus = pick_corpus()
+    if corpus is None:
+        print("SOURCE=- rows=0 -- neither %s nor %s exists; "
+              "run tools/merge_bake_lane.py --apply first" % (MERGED.name, CORPUS.name))
+        return 2
+    rows = [json.loads(l) for l in open(corpus, encoding="utf-8")]
     errs = [r for r in rows if r["kind"] == "error_fix"][:n]
     demos = []
     for i, rec in enumerate(errs):
@@ -47,8 +69,10 @@ def main():
         with open(OUT, "w", encoding="utf-8") as fh:
             for d in demos:
                 fh.write(json.dumps(d, ensure_ascii=False) + "\n")
-    print("DEMOS=%d -> %s" % (len(demos), OUT.name))
+    print("SOURCE=%s rows=%d error_fix=%d DEMOS=%d -> %s" % (
+        corpus.name, len(rows), len(errs), len(demos), OUT.name))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
