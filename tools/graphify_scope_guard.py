@@ -29,18 +29,31 @@ side refuse instead of producing the orphan.
 
 What is guarded
 ---------------
-The three commands that build/write a graph, plus the bare-path form:
+Every command that builds or writes a graph, plus the bare-path form:
 
 * ``update [path]``   — cli.py:2407
 * ``extract <path> [--out DIR|--output DIR]`` — cli.py:3227, out at cli.py:3431
 * ``watch [path]``    — cli.py:1982
 * ``graphify <path>`` — rewritten to ``extract <path>`` at cli.py:4859
+* ``cluster-only [path] [--graph G]`` / ``label [path] [--graph G]``
+  — cli.py:1995, out at cli.py:2132-2135
 
-``label`` / ``cluster-only`` are deliberately NOT guarded: they read
-``watch_path / GRAPHIFY_OUT / "graph.json"`` and exit 1 with "no graph found"
-when it is absent (cli.py:3452), so they cannot create an orphan graph
-silently. Reading commands (``query``, ``god-nodes``, ``explain``, ...) are
-untouched — the guard exits 0 without output.
+``cluster-only``/``label`` were left unguarded in the first version on the
+theory that they only refresh a store that already exists. That theory is half
+right, and the wrong half writes a store. Measured 2026-11-14 in a scratch tree
+(graphify 0.9.72): with no ``--graph`` they do exit 1 with "no graph found"
+when ``<watch_path>/graphify-out/graph.json`` is absent (cli.py:2063-2068) —
+but when ``--graph`` names a graph.json whose parent is NOT a ``graphify-out``
+dir, ``out`` falls back to ``watch_path / GRAPHIFY_OUT`` and is then
+``mkdir(parents=True)``-ed (cli.py:2134-2135)::
+
+    cd <repo>/src/CORE
+    graphify cluster-only --graph /tmp/backup/graph.json --no-label --no-viz
+    # rc=0, created <repo>/src/CORE/graphify-out/{graph.json,GRAPH_REPORT.md}
+
+A run started in a subdirectory therefore rebuilt the exact orphan this
+guard exists to prevent, one command over. Reading commands (``query``,
+``god-nodes``, ``explain``, ...) are untouched — exit 0, no output.
 
 The rule
 --------
@@ -75,7 +88,17 @@ EXIT_USAGE = 2
 EXIT_DRIFT = 3
 
 # Commands that write a graph. Anything else passes through untouched.
-WRITE_COMMANDS = frozenset({"update", "extract", "watch"})
+WRITE_COMMANDS = frozenset({"update", "extract", "watch", "cluster-only", "label"})
+
+# ``cluster-only`` / ``label`` write ``watch_path / GRAPHIFY_OUT`` (cli.py:2135)
+# and read the graph beside it (cli.py:2063), so the guard needs that command's
+# own positional/flag parse rather than the ``update`` one. These are the flags
+# cli.py:2043-2060 consumes a value for; every other ``-``-leading token is a
+# switch (``--no-viz``, ``--missing-only``, ``--timing``, ``--min-community-size=N``).
+VALUE_FLAGS = frozenset({
+    "--graph", "--backend", "--model", "--resolution",
+    "--exclude-hubs", "--max-concurrency", "--batch-size",
+})
 
 # The only out dir codegraph reads, relative to the repo root.
 CANONICAL_PARTS = ("src", "graphify-out")
@@ -129,6 +152,34 @@ def _extract_out_override(args: list[str]) -> Path | None:
     return out_dir
 
 
+def _label_scope(args: list[str]) -> tuple[Path, Path | None]:
+    """``(watch_path, --graph override)`` as cli.py:2043-2062 parses them.
+
+    ``watch_path`` defaults to ``.``; the first bare token wins and later bare
+    tokens are ignored, exactly as the parser does. Only the separate-value
+    form of ``--graph`` exists in graphify (``--graph=PATH`` would be consumed
+    as an unknown switch), so accepting the ``=`` form here would let the guard
+    allow a write graphify then ignores.
+    """
+    watch: Path | None = None
+    graph: Path | None = None
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in VALUE_FLAGS:
+            if arg == "--graph" and i + 1 < len(args):
+                graph = Path(args[i + 1])
+            i += 2
+            continue
+        if arg.startswith("-"):
+            i += 1
+            continue
+        if watch is None:
+            watch = Path(arg)
+        i += 1
+    return (watch if watch is not None else Path(".")), graph
+
+
 def _update_watch_path(args: list[str]) -> Path | None:
     """Watch path ``update`` will use, or None when it will error out first."""
     watch_arg: str | None = None
@@ -180,6 +231,26 @@ def resolve_out_dir(command: str, args: list[str]) -> Path | None:
         root = out_root.resolve() if out_root is not None else target
         return (root / name).resolve()
 
+    if command in ("cluster-only", "label"):
+        watch, graph_override = _label_scope(args)
+        out_name = Path(name).name  # cli.py:2131 compares on .name
+        if graph_override is not None:
+            if not graph_override.exists():
+                # cli.py:2063-2068 — "no graph found at ...", exit 1, no write.
+                return None
+            if graph_override.parent.name == out_name:
+                # cli.py:2132 — write beside the graph it read.
+                return graph_override.parent.resolve()
+        elif not (watch / name / "graph.json").exists():
+            # Default read path is absent, so the same "no graph found" exit.
+            return None
+        out = watch / name
+        if not out.is_absolute():
+            # No _stabilize_rebuild_cwd on this path (watch.py:1448 only), so
+            # ``out`` is relative to the process cwd, not GRAPHIFY_REPO_ROOT.
+            out = Path.cwd() / out
+        return out.resolve()
+
     if command == "update":
         watch = _update_watch_path(args)
     else:  # watch
@@ -211,8 +282,58 @@ def decide(out: Path, repo_root: Path) -> tuple[bool, str]:
     return False, "inside this repo but not the store codegraph reads"
 
 
-def _refuse(out: Path, canonical: Path, argv: list[str]) -> str:
+def _retarget_args(args: list[str]) -> str:
+    """The caller's flags with the path and ``--graph`` removed.
+
+    A remedy must not carry the refused ``--graph`` forward: graphify keeps the
+    LAST one (cli.py:2043 walks argv in order), so appending the canonical path
+    to the caller's argv would still name the wrong graph -- and the guard would
+    refuse the fix it just printed.
+    """
+    kept: list[str] = []
+    dropped_path = False
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--graph":
+            i += 2  # flag + value
+            continue
+        if arg in VALUE_FLAGS:
+            kept.extend(args[i:i + 2])
+            i += 2
+            continue
+        if not arg.startswith("-") and not dropped_path:
+            dropped_path = True  # first bare token is the path being replaced
+            i += 1
+            continue
+        kept.append(arg)
+        i += 1
+    return (" " + " ".join(kept)) if kept else ""
+
+
+def _refuse(
+    out: Path, canonical: Path, argv: list[str], command: str
+) -> str:
     joined = " ".join(argv) if argv else "<graphify args>"
+    if command in ("cluster-only", "label"):
+        rest = _retarget_args(argv[1:])
+        fixes = (
+            f"  graphify {command} src{rest}\n"
+            f"  cd src && graphify {command}{rest}\n"
+            f"  graphify {command} --graph {canonical / 'graph.json'}{rest}\n"
+        )
+        stake = (
+            f"This command writes a whole store -- graph.json, GRAPH_REPORT.md and\n"
+            f"the labels/analysis sidecars -- so a second one is a second graph to\n"
+            f"keep in step, not a scratch file.\n"
+        )
+    else:
+        fixes = (
+            f"  graphify update src\n"
+            f"  cd src && graphify update\n"
+            f"  GRAPHIFY_OUT={canonical} graphify {joined}\n"
+        )
+        stake = ""
     return (
         "graphify scope guard: REFUSED — nothing was written.\n"
         f"\n"
@@ -224,11 +345,11 @@ def _refuse(out: Path, canonical: Path, argv: list[str]) -> str:
         f"the first path is invisible: the write succeeds, the store stays\n"
         f"stale, and nothing reports it.\n"
         f"\n"
-        f"Fix — name the read store explicitly (any one of these):\n"
+        f"{stake}"
         f"\n"
-        f"  graphify update src\n"
-        f"  cd src && graphify update\n"
-        f"  GRAPHIFY_OUT={canonical} graphify {joined}\n"
+        f"Fix — point the run at the store codegraph reads (any one of these):\n"
+        f"\n"
+        f"{fixes}"
         f"\n"
         f"Deliberate override (states itself in the transcript):\n"
         f"\n"
@@ -298,7 +419,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         return EXIT_OK
 
-    print(_refuse(out, (repo_root / "src" / "graphify-out").resolve(), rest), file=sys.stderr)
+    canonical = (repo_root / "src" / "graphify-out").resolve()
+    print(_refuse(out, canonical, rest, command), file=sys.stderr)
     return EXIT_DRIFT
 
 
