@@ -47,6 +47,12 @@ CURSOR_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft",
 SCHEME_DIR = os.path.join(CURSOR_DIR, "vulcan-swarm")
 SCHEME_NAME = "Vulcan Swarm"
 CURSORS_KEY = r"Control Panel\Cursors"
+# Where Windows keeps the machine-wide scheme definitions this tool falls back
+# to. `--defaults` reads a real scheme from here rather than inventing paths, so
+# every value it writes is one Windows already resolves on this machine.
+SCHEME_KEY = (r"SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel"
+              r"\Cursors\Schemes")
+DEFAULT_SCHEME = "Windows Aero"
 
 # The 15 scheme slots, in the order Windows writes them.
 SLOTS = ("Arrow", "Help", "AppStarting", "Wait", "Crosshair", "IBeam", "NWPen",
@@ -464,6 +470,39 @@ def backup_path():
     return os.path.join(OUT, "cursors_backup.json")
 
 
+def owns(path):
+    """True when a live cursor path names a file this tool installs."""
+    if not path:
+        return False
+    root = os.path.normcase(os.path.abspath(SCHEME_DIR)) + os.sep
+    return os.path.normcase(os.path.abspath(str(path))).startswith(root)
+
+
+def live_is_ours(values):
+    """True when the live pointers this tool sets already name its own files."""
+    mine = [values.get(slot, "") for slot in PROGRAMS]
+    return any(owns(v) for v in mine) and all(not v or owns(v) for v in mine)
+
+
+def _write_backup(values, path):
+    """Keep the first pre-install reading; never overwrite it with our own state.
+
+    `--apply` used to rewrite this file on every run. A second run therefore
+    replaced the only record of the pre-Vulcan pointers with Vulcan ones, and
+    `--restore` became a no-op that still reported success -- it was lost that
+    way once, in this tree. When the live pointers are already ours there is
+    nothing to save, and `--defaults` is the undo path.
+    """
+    if live_is_ours(values):
+        print("backup      kept %s: the live pointers are already this scheme"
+              % os.path.basename(path))
+        return False
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(values, fh, indent=1)
+    print("backup      %s (%d values)" % (path, len(values)))
+    return True
+
+
 def load_masters(reg):
     """{role: {size: (markup, hotspot)}} — the registry is the only source.
 
@@ -721,9 +760,9 @@ def do_install(args):
 def do_apply(args):
     os.makedirs(OUT, exist_ok=True)
     current = read_scheme()
-    with open(backup_path(), "w", encoding="utf-8") as fh:
-        json.dump(current, fh, indent=1)
-    print("backup      %s (%d values)" % (backup_path(), len(current)))
+    if not _write_backup(current, backup_path()):
+        print("undo        no pre-install backup exists for this state; "
+              "--defaults returns to %s" % DEFAULT_SCHEME)
     do_install(args)
     live = {slot: os.path.join(SCHEME_DIR, name)
             for slot, name in PROGRAMS.items()}
@@ -743,26 +782,98 @@ def do_apply(args):
 
 
 def do_restore(args):
+    """Put back the pointers a first `--apply` found.
+
+    A backup holds somebody else's state. One that holds this scheme is not an
+    undo record, and restoring it would report success while changing nothing,
+    so it is refused with the remedy named. Each value is written back at the
+    type it was read at: a string written as REG_DWORD is a value Windows keeps
+    and ignores, which is a restore that looks complete and is not.
+    """
     path = backup_path()
     if not os.path.exists(path):
         raise SystemExit("make_cursors: no backup at %s" % path)
     with open(path, encoding="utf-8") as fh:
         saved = json.load(fh)
+    if live_is_ours(saved):
+        raise SystemExit("make_cursors: %s holds this scheme, not a pre-install "
+                         "state; --defaults returns to %s"
+                         % (path, DEFAULT_SCHEME))
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
                         winreg.KEY_SET_VALUE) as key:
         for name, value in saved.items():
-            winreg.SetValueEx(key, name, 0, winreg.REG_EXPAND_SZ, value)
-    ctypes.WinDLL("user32", use_last_error=True).SystemParametersInfoW(0x57, 0, None, 0)
-    print("restored    %d values from %s" % (len(saved), path))
+            kind = winreg.REG_SZ if isinstance(value, str) else winreg.REG_DWORD
+            winreg.SetValueEx(key, name, 0, kind, value)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
+        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
+                         % ctypes.get_last_error())
+    now = read_scheme()
+    for slot in PROGRAMS:
+        print("restored    %-11s %s" % (slot, now.get(slot, "<missing>")))
+    print("scheme      %s" % now.get("", ""))
+
+
+def do_defaults(args):
+    """Return every salute pointer to the machine's own named scheme.
+
+    The undo path that does not need a backup, because the backup can be lost
+    or can be this scheme already. The values come from HKLM's scheme table
+    rather than from paths written into this file: they are the strings Control
+    Panel itself applies, so they resolve, and a scheme named in the dropdown
+    is what the user sees afterwards.
+    """
+    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, SCHEME_KEY, 0,
+                        winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
+        raw = str(winreg.QueryValueEx(key, DEFAULT_SCHEME)[0])
+    fields = raw.split(",")
+    if len(fields) < len(SLOTS):
+        raise SystemExit("make_cursors: %s holds %d field(s), %d slots"
+                         % (DEFAULT_SCHEME, len(fields), len(SLOTS)))
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
+                        winreg.KEY_SET_VALUE) as key:
+        for slot, value in zip(SLOTS, fields):
+            winreg.SetValueEx(key, slot, 0, winreg.REG_EXPAND_SZ, value)
+        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, DEFAULT_SCHEME)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
+        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
+                         % ctypes.get_last_error())
+    now = read_scheme()
+    print("scheme      %s" % now.get("", ""))
+    for slot in SLOTS:
+        print("default     %-11s %s" % (slot, now.get(slot, "<missing>")))
 
 
 def do_uninstall(args):
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY + r"\Schemes", 0,
-                        winreg.KEY_SET_VALUE) as key:
-        try:
+    """Remove the scheme without leaving a pointer aimed at a deleted file.
+
+    The files used to go first, while the live Cursors values still named
+    them, so every pointer in the session that followed was a dead path and the
+    only copy was gone. The live values are cleared to the system default and
+    reloaded before a single file is removed.
+    """
+    live = read_scheme()
+    ours = [slot for slot, value in live.items() if owns(value)]
+    if ours:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
+                            winreg.KEY_SET_VALUE) as key:
+            for slot in ours:
+                winreg.SetValueEx(key, slot, 0, winreg.REG_SZ, "")
+            winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "")
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+        if not user32.SystemParametersInfoW(0x57, 0, None, 0):
+            raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
+                             % ctypes.get_last_error())
+        print("cursor      %d live value(s) cleared to the system default"
+              % len(ours))
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY + r"\Schemes",
+                            0, winreg.KEY_SET_VALUE) as key:
             winreg.DeleteValue(key, SCHEME_NAME)
-        except FileNotFoundError as exc:
-            print("uninstall   scheme value was not registered: %s" % exc)
+            print("scheme      %s removed" % SCHEME_NAME)
+    except FileNotFoundError as exc:
+        print("uninstall   no scheme entry to remove: %s" % exc)
     removed = 0
     if os.path.isdir(SCHEME_DIR):
         for name in os.listdir(SCHEME_DIR):
@@ -778,8 +889,11 @@ def main():
     ap.add_argument("--install", action="store_true")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--restore", action="store_true")
+    ap.add_argument("--defaults", action="store_true")
     ap.add_argument("--uninstall", action="store_true")
     args = ap.parse_args()
+    if args.defaults:
+        return do_defaults(args)
     if args.restore:
         return do_restore(args)
     if args.uninstall:
