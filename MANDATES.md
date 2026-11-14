@@ -1667,6 +1667,6 @@ command), HED-9 (a denominator is part of the reading), §0.2 step 3 (verify by 
 
 ---
 
-*End of MANDATES.md — 43 total mandates codified (37 RULEs 0A-0Z-S + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+*End of MANDATES.md — counts measured 2026-11-14, not carried forward: **51 RULE headings / 50 distinct RULE ids** (0A through 0Z-S; `## RULE 0E` is headed twice), plus 1 mandatory enforcement mechanism and 5 promoted RULEs 0B-0F. The "36 RULEs / 42 total" pair this line used to carry was a running total nobody re-derived and no longer matched the file. Re-derive with `grep -cE "^#{2,3} RULE 0" MANDATES.md` and the same pattern through `sort -u`.*
 
 *Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Nov 14, 2026 — RULE 0Z-S (Assertion Is Not Evidence) codified.*
