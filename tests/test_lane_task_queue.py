@@ -451,3 +451,89 @@ def test_churned_names_rows_handed_out_three_times_and_never_retired(board):
     b.claim_tasks("freebuff", limit=1, agent="laneA")
     b.complete_task(rid, "done", "retired")
     assert b.task_stats("freebuff")["churned"] == 0
+
+
+def test_a_wall_of_stale_duplicates_does_not_hide_real_work(board):
+    """The claim window is taken BEFORE duplicate detection.
+
+    Measured on the real opencode board 2026-11-14: 31 stale re-posts stood
+    in front of 6 real tasks. The claim walked its 10-row window, retired
+    every row in it as a duplicate, returned NOTHING, and the CLI printed
+    "NO OPEN TASKS" while `task_stats` counted 47 available. The lane could
+    not get work it was entitled to.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(30):
+        _post(db, "freebuff", "STALE", action="old")
+    real = _post(db, "freebuff", "REAL", action="real")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    ids = {r["board_id"] for r in claimed}
+    assert real in ids, "the duplicate wall hid the real task"
+    assert b.last_claim_stats["duplicates_retired"] == 30
+    assert b.last_claim_stats["claimed"] == 1
+
+
+def test_claim_reports_what_it_did_including_the_duplicates_it_retired(board):
+    """A claim that retired 10 copies and found no work must not read as
+    "NO OPEN TASKS" with no reason attached."""
+    b, db = board
+    anchor = _post(db, "freebuff", "SAME")
+    b.claim_tasks("freebuff", limit=10, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    _post(db, "freebuff", "SAME")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    assert claimed == []
+    stats = b.last_claim_stats
+    assert stats["duplicates_retired"] == 1
+    assert stats["claimed"] == 0
+    assert stats["scanned"] >= 1
+
+
+def test_stats_available_is_the_work_a_claim_would_hand_out(board):
+    """`available` counted every row on offer, including stale copies.
+
+    The canon says `available` is "what claim_tasks can hand out right now",
+    and it was not: 37 rows on offer, 31 of them copies of retired work, 6
+    pieces of real work. The number has to agree with the claim or a lane
+    plans work it cannot get.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(5):
+        _post(db, "freebuff", "STALE", action="old")
+    _post(db, "freebuff", "REAL", action="real")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 1, "stale copies were counted as work"
+    assert stats["stale_duplicates"] == 5, "the removed count was hidden"
+    assert stats["open"] == 1
+    # And the number agrees with behaviour.
+    assert len(b.claim_tasks("freebuff", limit=10, agent="laneA")) == 1
+
+
+def test_a_revised_task_is_not_counted_as_a_stale_duplicate(board):
+    """Same task_id, different detail: a revision, not a copy.
+
+    Keyed on the full signature (task_id + action + detail), never on
+    task_id alone -- the 2026-10-31 bug that retired a revision as a
+    duplicate of the brief it superseded.
+    """
+    b, db = board
+    old = _post(db, "freebuff", "REV", action="do", detail="v1")
+    b.claim_tasks("freebuff", limit=10, agent="laneA")
+    b.complete_task(old, state="done", note="done")
+    _post(db, "freebuff", "REV", action="do", detail="v2")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 1, "a revision was counted as a stale copy"
+    assert stats["stale_duplicates"] == 0
+    assert [r["task_id"] for r in b.claim_tasks("freebuff", limit=10, agent="a")] == ["REV"]
+
+
