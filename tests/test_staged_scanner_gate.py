@@ -119,3 +119,20 @@ def test_unresolvable_base_refuses_instead_of_passing(monkeypatch, capsys):
                         ["staged_scanner_gate", "--base", "nosuchrev"])
     assert gate.main() == 2
     assert "does not resolve" in capsys.readouterr().out
+
+
+def test_unimportable_scanner_refuses_instead_of_passing(monkeypatch, capsys):
+    """A check whose scanner never loaded certified nothing -- exit 2, not 0.
+
+    This was the last tool-level fail-open on the commit path: the guard printed
+    'passing loud' and returned 0, while the `--base` guard eight lines earlier
+    returned 2 for exactly the same class of blindness. Two blind conditions,
+    two verdicts, one of them a pass.
+    """
+    # `None` in sys.modules makes `from CORE.compliance.scanner import ...`
+    # raise ImportError even though the real module is importable on this box.
+    monkeypatch.setitem(sys.modules, "CORE.compliance.scanner", None)
+    monkeypatch.setattr(sys, "argv", ["staged_scanner_gate"])
+    assert gate.main() == 2
+    out = capsys.readouterr().out
+    assert "scanner unavailable" in out and "BLIND" in out
