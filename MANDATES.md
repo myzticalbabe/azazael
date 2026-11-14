@@ -1603,6 +1603,70 @@ All 20 myzticalbabe repositories MUST include in their PROFESSIONAL_PUBLIC_STAND
 
 ---
 
-*End of MANDATES.md — 42 total mandates codified (36 RULEs 0A-0Z-R + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+## RULE 0Z-S: ASSERTION IS NOT EVIDENCE — EVERY ACTION CARRIES ITS INSTRUMENT (CRITICAL — Nov 14, 2026)
 
-*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Nov 14, 2026 — RULE 0Z-R (Female STEM Advancement Professional Standards) codified.*
+**THE RULE.** For **each and every action**, the statement that the action happened,
+worked, or passed is **not evidence** that it did. Evidence is the invocation that
+produced the observation: **the command, its exit status, and the line it printed.**
+A claim with no invocation is `UNVERIFIED`, and an `UNVERIFIED` claim may not license
+the next action — not a commit, not a board retirement, not a "done", not an acceptance.
+
+**WHY THIS IS SEPARATE FROM 0Z-K AND HED-7.** Those two already demand a command for a
+claim. This rule closes the gap between them, which is *granularity*. 0Z-K is written
+about development and HED-7 about a claim; both are read as "did I verify this piece of
+work", which lets one verified probe cover a batch of unverified neighbours. The unit
+here is the **single action**, and coverage never propagates: a session that verified
+action 1 has verified action 1, not action 2 that used the same instrument on a
+different input.
+
+**FOUR STATES, NEVER COLLAPSED.** Every action ends in exactly one of these, and the
+word used in the report is the state, not an adjective:
+
+| state | meaning | may license the next action? |
+| --- | --- | --- |
+| `UNVERIFIED` | no invocation; the claim is prose, a recollection, or another session's result | **no** |
+| `RAN` | the invocation executed and its outcome line is quoted | yes, for the action the instrument actually covered |
+| `BLIND` | the instrument could not run (tool absent, transport dead, host unreachable) | **no** — `BLIND` is not a pass |
+| `FALSIFIED` | the invocation contradicted the claim | **no** — and it triggers §0.7's ratchet |
+
+**FORBIDDEN SHAPES** (each is a violation on sight, not a style note):
+- `done`, `fixed`, `passes`, `verified`, `landed` with no command beside it.
+- A pass count with no denominator (HED-9): `4/5` and `1/1` are not the same number.
+- A result quoted from a prior session or from memory as if it were measured now.
+- A summary line (gate verdict, test total, census count) used to answer a *narrower*
+  question than the one the instrument asked.
+- "The file exists" inferred from a listing that did not include its directory.
+- An absence claim that does not name the surface searched (path, root, depth, exclusions).
+
+**MECHANICAL SURFACES** (this is where the rule bites; the prose above is the reason):
+- `tools/session_start.py` prints the rule at startup, before any task work, so every
+  session opens with it loaded rather than with it recalled.
+- Board retirement: `_board.py done|block <id> "<command + exit + output line>" <lane>`.
+- Bake harvest rows carry `evidence_cmd`; a row without it is a recollection.
+- `tools/evidence_gate.py` and the commit hooks decide on artifacts, not statements.
+
+**THE HONEST LIMIT.** This rule does not make verification complete, and it must not be
+quoted as if it did. It makes the *absence* of verification **visible** — which is the
+only thing a rule can do about a claim nobody has checked yet.
+
+**FIRST PROOF (why this exists).** 2026-11-14, this lane: a board row was retired as
+"done" for a file that `compile()` could not parse at HEAD; the repair was real, the
+earlier claim was not evidence, and only re-running the instrument showed the file had
+been broken the whole time. In the same session a render task named
+`yggdrasil_forest/render_tree.py` — a tool that exists nowhere on the host, only in canon
+prose — and `find` over the named roots is what established that, not any recollection
+of having seen it.
+
+**Enforcement:** a claim without its invocation = process violation (RULE 0Z-S); a
+`BLIND` reported as a pass = CRITICAL; presenting another session's number as this
+session's measurement = CRITICAL.
+
+**Related:** RULE 0Z-K (live proof), RULE 0Z-G (no busy work), HED-7 (a claim needs its
+command), HED-9 (a denominator is part of the reading), §0.2 step 3 (verify by running),
+§0.7 (ratchet after one falsification).
+
+---
+
+*End of MANDATES.md — 43 total mandates codified (37 RULEs 0A-0Z-S + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+
+*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Nov 14, 2026 — RULE 0Z-S (Assertion Is Not Evidence) codified.*
