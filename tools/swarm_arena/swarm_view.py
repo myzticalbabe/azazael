@@ -16,17 +16,23 @@ view's own, because a cursor either has a row or it does not:
   absent — the plan asked for more cursors than the run produced (I3)
   blind  — a shard cast no vote at all, so "agreement" would be an invention (I4)
 
-Plan rules enforced here, before anything is drawn (I2, I6):
+Plan rules enforced here, before anything is drawn (I1, I2, I5, I6):
   * every cursor target is disjoint — one node, one cursor;
   * the cursor count is under SCOPE_CEILING, and the emitted animation
     schedule provably finishes inside BUDGET_MS (the sub-second claim is a
-    computed number on the page, not a hope).
+    computed number on the page, not a hope);
+  * the scope is enumerated through `git ls-files`, so a denominator counts what
+    the commit will contain, and a scope with no index entry is refused with a
+    named remedy instead of being counted from the worktree;
+  * rollback is proved structurally — `git ls-tree -r HEAD` object ids plus an
+    empty `git status --porcelain` — not by hashing the whole worktree.
 
 Usage:
   python swarm_view.py [--results F] [--elo F] [--out F] [--ledger F]
-                       [--top N] [--field WxH]
+                       [--top N] [--field WxH] [--scope P ...] [--prove]
 Exit: 0 rendered; 2 could not render (registry/hotspot mismatch, rejected plan,
-missing import). 2 is not a pass.
+scope outside the index, missing import, or --prove over a dirty worktree).
+2 is not a pass.
 """
 import argparse
 import hashlib
@@ -35,6 +41,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -45,6 +52,9 @@ SHARDS = ("rust", "go", "py")
 SCOPE_CEILING = 24        # I6: a plan larger than this cannot meet the budget
 BUDGET_MS = 900           # the A8 "sub-second" claim, per swarm
 MOVE_MS = 300             # one cursor's travel, before staggering
+
+REPO = os.path.dirname(os.path.dirname(HERE))            # tools/swarm_arena -> repo root
+DEFAULT_SCOPE = (os.path.relpath(HERE, REPO).replace(os.sep, "/"),)
 
 sys.path.insert(0, os.path.dirname(HERE))
 try:
@@ -81,6 +91,91 @@ def load_registry():
     if not glyphs:
         raise SystemExit("swarm_view: registry holds no cursors")
     return reg, glyphs
+
+
+# ── scope + rollback (I1, I5) ────────────────────────────────────────────
+
+def refuse(message):
+    """Exit 2: the documented "could not render", distinct from a Python failure (1)."""
+    print(message, file=sys.stderr)
+    sys.exit(2)
+
+
+def git_text(args, root=REPO):
+    """One git command's stdout, or exit 2 — an unreadable index is not an empty one."""
+    try:
+        out = subprocess.run(["git", "-C", root, *args], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=30)
+    except OSError as exc:
+        refuse("swarm_view: cannot run git (%s) — remedy: put git on PATH" % exc)
+    except subprocess.TimeoutExpired:
+        refuse("swarm_view: git %s did not answer in 30 s — remedy: check .git for a lock "
+               "another process holds" % " ".join(args))
+    if out.returncode != 0:
+        refuse("swarm_view: git %s failed (rc=%d): %s"
+               % (" ".join(args), out.returncode, out.stderr.strip()[:200]))
+    return out.stdout
+
+
+def read_scope(paths, root=REPO):
+    """I1 — a cursor's universe is the INDEX, never the worktree.
+
+    Measured in the audit: 10 112 `.py` files on disk under `.` against 4 437
+    tracked, so a verdict's denominator was not the scope's denominator. The
+    index is what the commit will contain; a scope with no index entry is
+    refused here, naming the remedy, rather than silently counted from disk.
+    """
+    files = sorted(p for p in git_text(["ls-files", "-z", "--", *paths], root).split("\0") if p)
+    missing = [p for p in paths
+               if not any(f == p or f.startswith(p.rstrip("/") + "/") for f in files)]
+    if missing:
+        present = [p for p in missing if os.path.exists(os.path.join(root, p))]
+        remedy = (("`git add %s` — read_scope counts the index, and an untracked path is "
+                   "content the commit will not contain" % " ".join(present))
+                  if present else
+                  "name a tracked path that exists (checked: %s)" % ", ".join(missing))
+        refuse("swarm_view: scope outside the index: %s — remedy: %s"
+               % (", ".join(missing), remedy))
+    return files
+
+def disk_modules(paths, root=REPO):
+    """`.py` files on disk under the scope — the worktree count, quoted for contrast only."""
+    found = 0
+    for path in paths:
+        full = os.path.join(root, path)
+        if os.path.isfile(full):
+            found += 1 if path.endswith(".py") else 0
+            continue
+        for _dirpath, dirnames, filenames in os.walk(full):
+            dirnames[:] = [d for d in dirnames if d not in ("__pycache__", ".git")]
+            found += sum(1 for name in filenames if name.endswith(".py"))
+    return found
+
+
+def rollback_proof(paths, root=REPO):
+    """I5/C2 — rollback proved structurally, not by hashing the whole worktree.
+
+    `git ls-tree -r HEAD` object ids name the committed content of every file in
+    the scope and cannot change without HEAD changing; empty `git status
+    --porcelain` proves the worktree matches the index. The design's whole-tree
+    sha256 races any concurrent writer and is the most expensive assertion in
+    the suite; this pair is exact, cheap, and race-free.
+    """
+    tree = {}
+    for record in git_text(["ls-tree", "-r", "-z", "HEAD", "--", *paths], root).split("\0"):
+        if not record:
+            continue
+        meta, path = record.split("\t", 1)
+        tree[path] = meta.split()[2]
+    if not tree:
+        refuse("swarm_view: rollback proof found no HEAD entry under %s — remedy: name a "
+               "tracked path" % ", ".join(paths))
+    dirty = [line for line in
+             git_text(["status", "--porcelain", "--", *paths], root).splitlines() if line.strip()]
+    digest = hashlib.sha256(
+        "\n".join("%s %s" % (p, tree[p]) for p in sorted(tree)).encode("utf-8")).hexdigest()
+    return {"head": git_text(["rev-parse", "--short", "HEAD"], root).strip(),
+            "blobs": len(tree), "digest": digest, "dirty": dirty, "clean": not dirty}
 
 
 # ── verdicts ─────────────────────────────────────────────────────────────
@@ -418,10 +513,25 @@ def main():
     ap.add_argument("--ledger", default=os.path.join(HERE, "out", "swarm_view_frames.jsonl"))
     ap.add_argument("--top", type=int, default=12)
     ap.add_argument("--field", default="960x420")
+    ap.add_argument("--scope", action="append", metavar="PATH",
+                    help="repo-relative path this view may read (repeatable; default: %s)"
+                         % DEFAULT_SCOPE[0])
+    ap.add_argument("--prove", action="store_true",
+                    help="strict rollback proof: refuse to render unless HEAD's scope ids and "
+                         "a clean worktree both hold")
     args = ap.parse_args()
+    scope = tuple(args.scope) if args.scope else DEFAULT_SCOPE
 
     width, height = (float(v) for v in args.field.lower().split("x"))
     reg, glyphs = load_registry()
+    tracked = read_scope(scope)
+    proof = rollback_proof(scope)
+    if args.prove and not proof["clean"]:
+        print("swarm_view: rollback proof failed — %d path(s) differ from HEAD: %s"
+              % (len(proof["dirty"]), "; ".join(proof["dirty"])))
+        print("swarm_view: remedy: commit or stash them, then re-run --prove — the proof is "
+              "exact only over a clean worktree")
+        sys.exit(2)
     with open(args.results, encoding="utf-8") as fh:
         pairs = json.load(fh)
     with open(args.elo, encoding="utf-8") as fh:
@@ -440,14 +550,23 @@ def main():
 
     absent = sum(1 for c in plan if c["state"] == "absent")
     drawn = len(plan) - absent - (len(plan) if blind else 0)
+    modules = sum(1 for p in tracked if p.endswith(".py"))
+    on_disk = disk_modules(scope)
     denominator = (
         "denominator — %d pairs, %d candidates; <b>%d of %d candidates drawn</b>%s; absent %d; "
-        "blind %d%s; shard votes %d/%d/%d" % (
+        "blind %d%s; shard votes %d/%d/%d"
+        "<br>scope — <b>%d files / %d modules</b> in the index under <code>%s</code> "
+        "(%d modules on disk, %d untracked — the index is what the commit contains)"
+        "<br>rollback — HEAD %s, %d blobs, scope hash <code>%s</code>, <b>%s</b>" % (
             len(pairs), len(board), len(plan) - absent, min(args.top, len(board)),
             " (all blind)" if blind else "",
             absent, len(plan) if blind else 0,
             (" (" + ",".join(blind) + ")") if blind else "",
-            votes.get("rust", 0), votes.get("go", 0), votes.get("py", 0)))
+            votes.get("rust", 0), votes.get("go", 0), votes.get("py", 0),
+            len(tracked), modules, " , ".join(scope), on_disk, max(0, on_disk - modules),
+            proof["head"], proof["blobs"], proof["digest"][:16],
+            "unchanged (0 dirty)" if proof["clean"] else
+            "NOT PROVEN (%d dirty)" % len(proof["dirty"])))
 
     meta = {"source": "%s + %s" % (os.path.basename(args.results),
                                    os.path.basename(args.elo)),
@@ -466,6 +585,12 @@ def main():
     print("schedule: %d ms slowest of %d ms budget (stagger %d ms)" % (slowest, BUDGET_MS,
                                                                        stagger))
     print("quarantine: %d" % len(quarantine))
+    print("scope: %s — %d files, %d modules in the index (%d on disk)"
+          % (", ".join(scope), len(tracked), modules, on_disk))
+    print("rollback: HEAD %s · %d blobs · scope hash %s · %s"
+          % (proof["head"], proof["blobs"], proof["digest"][:16],
+             "PROVEN (clean worktree)" if proof["clean"] else
+             "NOT PROVEN — %s" % "; ".join(proof["dirty"])))
     print("page: %s" % args.out)
     print("ledger: %s (%d rows, %s)" % (args.ledger, len(rows), rows[-1]["hash"][:12]))
     if quarantine:

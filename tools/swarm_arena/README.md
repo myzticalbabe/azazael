@@ -70,6 +70,28 @@ line — `hotspot_misaligned` is the count of cursors whose tip drifted more tha
 0.01 px from the node it claims, and `CHAIN` is `MISMATCH` when that count is
 non-zero or the slowest cursor exceeds the budget.
 
+### Scope and rollback proof (audit I1, I5)
+
+```bash
+python swarm_view.py                                  # scope defaults to tools/swarm_arena
+python swarm_view.py --scope tools/swarm_arena --prove # strict: exit 2 unless clean
+```
+
+`read_scope` enumerates **`git ls-files`**, not the worktree, so the denominator
+counts what the commit will contain. The worktree count is printed beside it
+(`4 modules in the index (4 on disk)`) so the two are never mistaken for each
+other. A scope with no index entry is refused with the remedy named and exit 2:
+`` `git add <path>` `` when the path exists untracked, "name a tracked path that
+exists" when it does not.
+
+The rollback proof (the C2 replacement for hashing the whole worktree) is
+`git ls-tree -r HEAD` object ids plus an empty `git status --porcelain` over the
+same scope — exact, cheap, and unable to race a concurrent writer. It prints
+`PROVEN (clean worktree)` or `NOT PROVEN` with every dirty path named, and
+`--prove` refuses to render in the latter state. `scope hash` is a sha256 over
+`path object-id` pairs, i.e. **committed content only** — the same value the
+design's `scope_hash_before` / `scope_hash_after` needs, without a worktree read.
+
 ## Compiling the salute into a Windows pointer
 
 `make_cursors.py` turns the same SVG masters into a real cursor scheme, with no

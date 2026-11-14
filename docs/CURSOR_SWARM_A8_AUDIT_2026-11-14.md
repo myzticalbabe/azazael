@@ -323,3 +323,52 @@ The nine steps stand, with five changes:
 
 The numbered migration for `claim_agreement.py`'s hash rule (C1) is a prerequisite for step
 5 and must be counted, not assumed clean.
+
+---
+
+## 9. Closed after the audit (2026-11-14)
+
+Two of the six §5 improvements touch the arena view that draws the cursors. Both are now
+instruments in `tools/swarm_arena/swarm_view.py`, not recommendations. The other four
+(I2, I3, I4, I6) were already enforced by the same module when it was written — the §5 list
+is ordered by cost, not by when it landed.
+
+**I1 / B1 — index-based `read_scope`.** `read_scope(paths)` enumerates
+`git ls-files -z -- <paths>`, so a cursor's universe is what the commit will contain.
+Measured on the view's own scope, 2026-11-14:
+
+```
+scope: tools/swarm_arena — 13 files, 4 modules in the index (4 on disk)
+```
+
+The page prints the index count and the worktree count side by side, so
+`85 key(s) read across 10 112 module(s)` can no longer be read as the scope's
+denominator. Refusal was verified in both directions, and each exits **2** (the module's
+documented "could not render"), not 1:
+
+```
+--scope tools/swarm_arena/out/swarm_view.html   (exists, untracked)
+  scope outside the index: … remedy: `git add tools/swarm_arena/out/swarm_view.html` —
+  read_scope counts the index, and an untracked path is content the commit will not contain
+--scope tools/swarm_arena/nope.py               (absent)
+  scope outside the index: … remedy: name a tracked path that exists (checked: …nope.py)
+```
+
+**I5 / C2 — rollback proved structurally.** `rollback_proof(paths)` reads
+`git ls-tree -r HEAD` object ids plus `git status --porcelain` over the same scope.
+Negative control, run with this file edited and uncommitted:
+
+```
+rollback: HEAD fe526e1b · 13 blobs · scope hash 2118690a621a49a3 · NOT PROVEN —  M tools/swarm_arena/swarm_view.py
+$ python tools/swarm_arena/swarm_view.py --prove   → exit 2
+```
+
+The positive control is the same command after the change is committed: `unchanged
+(0 dirty)` and exit 0. `scope hash` is a digest over `path object-id` pairs, so it names
+committed content and cannot race a writer the way a whole-worktree content hash can —
+which is what §7 step 6 needs for `scope_hash_before` / `scope_hash_after`.
+
+**Not closed here.** B5 / build step 1 — extracting `read_scope` out of the four auditors —
+is unchanged. `grep -rn "def read_scope" tools/ src/` returned nothing at audit time and now
+returns only `tools/swarm_arena/swarm_view.py`. The auditors still own their extraction, and
+their CLI output must stay byte-identical when it happens.
