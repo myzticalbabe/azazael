@@ -93,4 +93,23 @@ fi
 # exec and produce exactly the orphan graph the guard exists to prevent.
 "$PY" "$ROOT/tools/graphify_scope_guard.py" --repo-root "$ROOT" -- "$@" || exit $?
 
-exec "$PY" -m graphify "$@"
+"$PY" -m graphify "$@"
+rc=$?
+
+# Post-write provenance (2026-11-14). graphify mints an `external` placeholder
+# node for every import whose target has no node, and normalize_id() is lossy
+# (`PIL` -> `pil`, `concurrent.futures` -> `concurrent_futures`, Rust `HashMap`
+# -> `hashmap`). After a rebuild the store alone cannot say whether a placeholder
+# was stdlib, an uninstalled package, or a non-Python import.
+# tools/placeholder_provenance.py records that classification beside the store;
+# it is a reading instrument separate from the guard's write decision. It never
+# changes graphify's exit status, and a failure is announced rather than
+# swallowed.
+case "${1:-}" in
+    update|extract|watch|cluster-only|label)
+        "$PY" "$ROOT/tools/placeholder_provenance.py" --repo-root "$ROOT" \
+            >&2 || echo \
+            "graphify_bin.sh: placeholder record failed (graph itself unaffected)" >&2
+        ;;
+esac
+exit "$rc"
