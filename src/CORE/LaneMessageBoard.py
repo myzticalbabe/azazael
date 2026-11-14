@@ -1447,6 +1447,18 @@ class LaneMessageBoard:
         come back each time. A row there is not waiting on a lane — it is
         waiting on a decision, so it is named rather than left to inflate
         `available` forever.
+
+        `available` counts the work a claim would actually hand out, which
+        means it EXCLUDES copies of work already retired or already held
+        under a live lease -- the rows `claim_tasks` retires instead of
+        offering them. Those are counted separately as `stale_duplicates`,
+        because a number that hides what it dropped cannot be audited.
+        Measured 2026-11-14 on the real opencode board: 37 rows on offer, 31
+        of them copies, 6 pieces of real work; `available` read 47 while the
+        claim handed out nothing, because the claim's candidate window was
+        taken before duplicate detection and stopped inside the copies.
+        `available_exact` is False when a lane had more candidate rows than
+        the scan cap, so a capped number is never read as a whole one.
         """
         conn = self._state_conn()
         try:
@@ -1481,19 +1493,13 @@ class LaneMessageBoard:
                 ).fetchone()
                 churned += int(churn[0] or 0)
             avail = 0
+            stale_total = 0
+            exact = True
             for ln in lanes:
-                row = conn.execute(
-                    "SELECT COUNT(*) FROM memorybus_queue q "
-                    "LEFT JOIN lane_task_state s ON s.board_id = q.id "
-                    "WHERE q.topic = ? "
-                    "  AND (s.state IS NULL OR s.state = 'available' "
-                    "       OR (s.state = 'claimed' "
-                    "           AND (s.claimed_at IS NULL "
-                    "                OR CAST(strftime('%s', s.claimed_at) "
-                    "                        AS INTEGER) < ?)))",
-                    (self._task_topic(ln), cutoff),
-                ).fetchone()
-                avail += int(row[0] or 0)
+                c, s, ex = self._count_claimable(conn, ln, cutoff)
+                avail += c
+                stale_total += s
+                exact = exact and ex
             claimed_all = counts.get("claimed", 0)
             counts["claimed_all"] = claimed_all
             counts["claimed"] = claimed_live
@@ -1502,6 +1508,15 @@ class LaneMessageBoard:
             counts["churned"] = churned
             counts["available"] = avail
             counts["open"] = avail
+            # The rows on offer that are COPIES of work already retired or
+            # already held under a live lease. `claim_tasks` retires those
+            # instead of offering them, so counting them inside `available`
+            # made the number promise work the claim would never deliver --
+            # measured 2026-11-14 on the real opencode board: 37 rows on
+            # offer, 31 of them copies, 6 pieces of real work. The removed
+            # count is NAMED rather than folded away.
+            counts["stale_duplicates"] = stale_total
+            counts["available_exact"] = exact
             # avail already includes lapsed leases, so pairing it with the live
             # count is the only form that does not double-count them.
             counts["open_incl_claimed"] = avail + claimed_live
