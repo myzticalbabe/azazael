@@ -1267,8 +1267,18 @@ class LaneMessageBoard:
         board_id: int,
         state: str = "done",
         note: str = "",
+        lane: Optional[str] = None,
     ) -> bool:
         """Retire a claimed task. state is 'done' or 'blocked'.
+
+        The lane is part of the predicate: a lane may retire work on its OWN
+        queue only. Without that term the UPDATE matched any claimed row in
+        the table, so one lane's `done` could retire another lane's claimed
+        work and that work would vanish -- it was never finished, only
+        marked finished, and the lane that owned it would never see it again.
+
+        `lane` overrides the acting lane for a caller deliberately acting for
+        another lane (a migration, say); it defaults to this board's lane.
 
         Returns True only when a row moved; False means the id was never
         claimed (so nothing was retired and the caller must not report it as
@@ -1276,20 +1286,21 @@ class LaneMessageBoard:
         """
         if state not in ("done", "blocked"):
             raise ValueError("state must be 'done' or 'blocked'")
+        owner = self.lane if lane is None else str(lane)
         stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
         conn = self._state_conn()
         try:
             cur = conn.execute(
                 "UPDATE lane_task_state SET state=?, retired_at=?, note=? "
-                "WHERE board_id=? AND state='claimed'",
-                (state, stamp, note[:4000], int(board_id)),
+                "WHERE board_id=? AND state='claimed' AND lane=?",
+                (state, stamp, note[:4000], int(board_id), owner),
             )
             conn.commit()
             return cur.rowcount > 0
         finally:
             conn.close()
 
-    def release_task(self, board_id: int) -> bool:
+    def release_task(self, board_id: int, lane: Optional[str] = None) -> bool:
         """Hand a claimed task back to the queue unretired.
 
         `complete_task` is for work that is finished or blocked. A lane that
@@ -1298,13 +1309,19 @@ class LaneMessageBoard:
         without waiting out the 30-minute lease and without pretending it is
         done. Only a live claim can be released; a retired row is refused so a
         release can never resurrect completed work.
+
+        The lane is part of the predicate, for the same reason it is in
+        `complete_task`: a lane may hand back only what it holds. A release
+        that reached another lane's claim would quietly take work out of a
+        queue the other lane is relying on.
         """
+        owner = self.lane if lane is None else str(lane)
         conn = self._state_conn()
         try:
             row = conn.execute(
                 "SELECT lane, claimed_by, attempts FROM lane_task_state "
-                "WHERE board_id=? AND state='claimed'",
-                (int(board_id),),
+                "WHERE board_id=? AND state='claimed' AND lane=?",
+                (int(board_id), owner),
             ).fetchone()
             if row is None:
                 return False
@@ -1651,7 +1668,10 @@ def main() -> int:
     tasks = board.poll_tasks("kilo")
     print(f"Kilo tasks: {len(tasks)}")
     for t in tasks:
-        print(f"  #{t.task_id} {t.action}: {t.detail[:60]}")
+        # detail is a STRING on modern rows and a DICT on legacy ones, so
+        # t.detail[:60] raised KeyError: slice(None, 60, None) on a dict
+        # detail. str() first, then slice.
+        print(f"  #{t.task_id} {t.action}: {str(t.detail or '')[:60]}")
 
     stats = board.get_stats()
     print(f"Bus stats: {stats}")

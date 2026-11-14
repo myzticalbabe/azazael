@@ -25,7 +25,13 @@ from CORE.LaneMessageBoard import LaneMessageBoard  # noqa: E402
 
 @pytest.fixture()
 def board(tmp_path, monkeypatch):
-    """A board pointed at a throwaway store, seeded with real queue rows."""
+    """A board pointed at a throwaway store, seeded with real queue rows.
+
+    The board's lane is `freebuff` because that is the lane these tests
+    claim and retire work on. It matters: `complete_task` and
+    `release_task` now require the acting lane to match the row's lane, so a
+    board scoped to one lane cannot retire another lane's claimed work.
+    """
     db = tmp_path / "telemetry_store.db"
     con = sqlite3.connect(str(db), timeout=5)
     con.execute(
@@ -37,7 +43,7 @@ def board(tmp_path, monkeypatch):
     con.commit()
     con.close()
     monkeypatch.setattr(lmb_mod, "_MEMORYBUS_DB_PATH", db, raising=False)
-    return LaneMessageBoard(lane="opencode"), db
+    return LaneMessageBoard(lane="freebuff"), db
 
 
 def _post(db, lane, task_id, action="do", detail="x", created="2026-10-31T00:00:00+00:00"):
@@ -386,7 +392,7 @@ def test_post_status_returns_the_durable_row_id(board):
     row = b.post_status("WORKING", "second write")
     con = sqlite3.connect(str(db), timeout=5)
     top = con.execute("SELECT MAX(id) FROM memorybus_queue "
-                      "WHERE topic='lane.opencode.status'").fetchone()[0]
+                      "WHERE topic='lane.freebuff.status'").fetchone()[0]
     con.close()
 
     assert row == top, "post_status did not return its own durable row id"
@@ -562,6 +568,42 @@ def test_a_copy_of_work_another_lane_holds_live_is_not_offered_as_work(board):
     con.close()
     assert state == "done"
     assert "already claimed" in note
+
+
+def test_a_lane_cannot_retire_another_lanes_claimed_work(board):
+    """`complete_task` had no lane predicate, so any lane's `done` could
+    retire another lane's claimed row.
+
+    That work then vanished: it was never finished, only marked finished,
+    and the lane that owned it would never see it again.
+    """
+    b, db = board
+    rid = _post(db, "freebuff", "OTHER-LANE")
+    b.claim_tasks("freebuff", limit=1, agent="freebuff")
+
+    other = LaneMessageBoard(lane="opencode")   # a different lane, same store
+    assert other.complete_task(rid, state="done", note="not mine") is False, \
+        "one lane retired another lane's claimed work"
+    # The row is still claimed, so its owner can still retire it.
+    assert b.complete_task(rid, state="done", note="mine") is True
+    con = sqlite3.connect(str(db), timeout=5)
+    state = con.execute("SELECT state FROM lane_task_state WHERE board_id=?",
+                         (rid,)).fetchone()[0]
+    con.close()
+    assert state == "done"
+
+
+def test_a_lane_cannot_release_another_lanes_claimed_work(board):
+    """The same hole in `release_task`: handing back work you do not hold
+    takes it out of the queue the owning lane is relying on."""
+    b, db = board
+    rid = _post(db, "freebuff", "HELD-BY-THEM")
+    b.claim_tasks("freebuff", limit=1, agent="freebuff")
+
+    other = LaneMessageBoard(lane="opencode")
+    assert other.release_task(rid) is False, \
+        "one lane released another lane's claim"
+    assert b.release_task(rid) is True
 
 
 def test_a_malformed_row_does_not_abort_the_claim(board):
