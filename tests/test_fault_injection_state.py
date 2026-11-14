@@ -242,3 +242,100 @@ def test_a_lane_that_never_loaded_is_blind_and_writes_nothing(tmp_path, monkeypa
 
     assert rc == 2, "an unreadable input lane means the run could not be performed"
     assert not merged_out.exists(), "a blind run must not write the merged corpus"
+
+
+def test_a_drifted_base_row_is_excluded_end_to_end_and_named(tmp_path, monkeypatch):
+    """``base_rows`` is only half the guard: the merge must not admit the row.
+
+    The drill above pins the report entry in isolation. This one runs the real
+    consumer, ``merge_lanes([lane])``, because the damage is what reaches
+    ``bake_merged.jsonl``: a row admitted there is a row a title-keyed consumer
+    reads as "" forever. Asserted: the drifted row is absent from ``merged`` by
+    both title shape and its own keys, it is named in the ``dropped`` list the
+    caller prints, and the returned base count is the number of rows admitted
+    rather than the number of files seen.
+    """
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "bake_corpus.jsonl").write_text(
+        json.dumps(VALID_ROW) + "\n", encoding="utf-8")
+    (state / "bake_harvest_drift.jsonl").write_text(
+        json.dumps({"angle": "a", "arxiv": "1", "note": "n",
+                    "technique": "t", "verdict": "CONCEPT"}) + "\n",
+        encoding="utf-8")
+    lane = state / "bake_harvest_new_2026-11-14.jsonl"
+    lane.write_text(json.dumps({
+        "source": "new-lane", "item_id": "new-1",
+        "title": "A lane row that must survive next to the drift",
+        "body": "y" * 80, "kind": "lesson"}) + "\n", encoding="utf-8")
+    monkeypatch.setattr(merge_bake_lane, "ROOT", tmp_path)
+
+    merged, dropped, accepted, base_count = merge_bake_lane.merge_lanes([lane])
+
+    titles = _normalised_titles(merged)
+    assert "" not in titles, "a title-less row reached the merged set"
+    assert not any("angle" in row for row in merged), (
+        "the drifted row's own keys reached the merged set")
+    assert ("bake_harvest_drift.jsonl:1", "base-no-title") in [
+        (where, reason) for where, reason, _detail in dropped]
+    assert base_count == 1, "the base count must count admitted rows, not files"
+    assert accepted == 1
+    assert len(merged) == 2, "corpus row + lane row, and nothing else"
+
+
+def test_a_base_harvest_file_with_a_bad_line_is_refused_whole(tmp_path, monkeypatch):
+    """One unparseable line means the FILE contributed nothing -- and says so.
+
+    ``load_jsonl`` parses a whole file, so a bad line loses every row in it, not
+    just that line. That is a whole-file fact and must be reported as one
+    (``base-unreadable`` naming the file) rather than as a run whose base set
+    quietly shrank. The name is asserted in full because a clipped path named a
+    ``.js`` file that was never written (measured 2026-11-14).
+    """
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "bake_corpus.jsonl").write_text(
+        json.dumps(VALID_ROW) + "\n", encoding="utf-8")
+    (state / "bake_harvest_broken.jsonl").write_text(
+        json.dumps({"title": "a row that is unreachable",
+                    "body": "z" * 80}) + "\n" + "{not json at all\n",
+        encoding="utf-8")
+    monkeypatch.setattr(merge_bake_lane, "ROOT", tmp_path)
+
+    merged, dropped, _accepted, base_count = merge_bake_lane.merge_lanes([])
+
+    assert base_count == 1, "the broken file's rows were never admitted"
+    assert _normalised_titles(merged) == {
+        merge_bake_lane.norm_title(VALID_ROW["title"])}, (
+            "only the corpus row may survive a broken base file")
+    assert ("bake_harvest_broken.jsonl", "base-unreadable") in [
+        (where, reason) for where, reason, _detail in dropped]
+
+
+def test_every_base_drift_shape_is_named_with_its_line(tmp_path, monkeypatch):
+    """Non-dict rows and whitespace titles are the other two shapes in the wild.
+
+    A JSON *string* line parses fine and is therefore not ``base-unreadable``:
+    it is a row that fails the title contract at a known line. The report must
+    carry the line so the harvester can be pointed at it, and the type or keys
+    in the detail so the fix is visible without reopening the file.
+    """
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "bake_corpus.jsonl").write_text(
+        json.dumps(VALID_ROW) + "\n", encoding="utf-8")
+    (state / "bake_harvest_shapes.jsonl").write_text(
+        json.dumps("just a string, not a row") + "\n"
+        + json.dumps({"title": "   ", "body": "b" * 80}) + "\n",
+        encoding="utf-8")
+    monkeypatch.setattr(merge_bake_lane, "ROOT", tmp_path)
+
+    report = []
+    rows = merge_bake_lane.base_rows(report)
+
+    assert len(rows) == 1, "neither drift shape may be admitted"
+    assert [(where, reason) for where, reason, _detail in report] == [
+        ("bake_harvest_shapes.jsonl:1", "base-no-title"),
+        ("bake_harvest_shapes.jsonl:2", "base-no-title")]
+    assert [detail for _where, _reason, detail in report] == [
+        "str", "['body', 'title']"]
