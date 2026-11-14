@@ -931,6 +931,75 @@ class LaneMessageBoard:
         conn.execute(self.STATE_SCHEMA)
         return conn
 
+    # -- what counts as a stale copy ----------------------------------------
+    #
+    # ONE definition, used by the claim, the stats and the reader. When the
+    # writer and the reader each had their own idea of "duplicate", they
+    # disagreed: `task_stats` counted 47 available while `claim_tasks` handed
+    # out nothing, because the claim retires copies instead of offering them.
+
+    def _payload_of(self, content: Any) -> Optional[Dict[str, Any]]:
+        """A queue row's content as a dict, or None when it is not one.
+
+        `claim_tasks` read `payload.get("task_id")` OUTSIDE its parse guard,
+        so a row whose content was a JSON list raised AttributeError and
+        rolled the whole claim back: one malformed row could not be claimed
+        past. None means "this row is not a task", not "this row crashed".
+        """
+        if isinstance(content, dict):
+            return content
+        if isinstance(content, str):
+            try:
+                parsed = json.loads(content or "{}")
+            except Exception as exc:
+                note_failure("LaneMessageBoard:_payload_of", exc)
+                return None
+            return parsed if isinstance(parsed, dict) else None
+        return None
+
+    def _stale_sigs(self, conn, lane: str, cutoff: int) -> Tuple[Dict[Any, int], Set[Any]]:
+        """The signatures this lane will not hand out again, and who holds them.
+
+        Two different things, deliberately kept apart:
+
+          * retired -- a row this lane already completed or blocked. A copy of
+            it is retired as "duplicate of Board-N" instead of being handed
+            out. Mapped to the board_id of the original so the note names it.
+          * active -- a row another agent holds a LIVE lease on right now. A
+            copy of it is retired as "duplicate: same task_id is already
+            claimed".
+
+        Both are matched on the FULL `_task_sig` (task_id + action + detail),
+        never on task_id alone -- see `_task_sig` for the revision that made
+        that necessary. The scope is ONE lane, because `claim_tasks` scopes
+        its duplicate check to the lane it is claiming for.
+        """
+        retired: Dict[Any, int] = {}
+        active: Set[Any] = set()
+        rows = conn.execute(
+            "SELECT s.board_id, q.content, s.state FROM lane_task_state s "
+            "JOIN memorybus_queue q ON q.id = s.board_id "
+            "WHERE s.lane = ? AND ("
+            "  s.state IN ('done','blocked') "
+            "  OR (s.state = 'claimed' AND s.claimed_at IS NOT NULL "
+            "      AND CAST(strftime('%s', s.claimed_at) AS INTEGER) >= ?))",
+            (lane, int(cutoff)),
+        ).fetchall()
+        for r in rows:
+            payload = self._payload_of(r[1])
+            if payload is None:
+                continue
+            sig = _task_sig(payload)
+            if not sig:
+                continue
+            if r[2] == "claimed":
+                active.add(sig)
+            else:
+                bid = int(r[0])
+                if sig not in retired or bid < retired[sig]:
+                    retired[sig] = bid
+        return retired, active
+
     def claim_tasks(
         self,
         lane: str,
