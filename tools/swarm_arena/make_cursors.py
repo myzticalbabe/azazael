@@ -74,6 +74,10 @@ JIF = 6  # frame duration in 1/60 s -> 100 ms per frame
 BUSY_PX = 32       # the size the .ani ships as
 BUSY_CANVAS = 96   # supersampled raster: an exact 3:1 box filter reduces it
 BUSY_MARGIN = 2    # canvas pixels kept clear on every side of the arc
+# Below this much palm spread the busy slot is a still picture with jitter: the
+# +/-6 degree wave shipped at 3.05 px and was never seen to animate. --check
+# fails under it, measured from the file rather than from WAVE.
+MOTION_FLOOR = 4.0
 
 # ── the remaining slots, composed from the one master ────────────────────
 #
@@ -429,6 +433,98 @@ def ani_file(name, frames, size, hotspot):
     fram = riff_chunk(b"LIST", b"fram" + b"".join(riff_chunk(b"icon", c) for c in curs))
     body = b"ACON" + info + anih + rate + fram
     return b"RIFF" + struct.pack("<I", len(body)) + body
+
+
+# ── read back ────────────────────────────────────────────────────────────
+#
+# The artefacts that matter are the ones on disk and the ones installed, and
+# nothing here could read either. A .ani whose anih declared 0 steps loaded as
+# NULL with no other symptom; a cursor whose hotspot had escaped its image
+# passed every check; a scheme applied from files that no longer matched out/
+# reported success. These readers are what --check stands on.
+
+def dib_rgba(blob, size):
+    """Top-down RGBA from one 32bpp bottom-up DIB, header already skipped."""
+    out = bytearray(size * size * 4)
+    for y in range(size):
+        row = size - 1 - y
+        for x in range(size):
+            o = (row * size + x) * 4
+            d = (y * size + x) * 4
+            out[d] = blob[o + 2]
+            out[d + 1] = blob[o + 1]
+            out[d + 2] = blob[o]
+            out[d + 3] = blob[o + 3]
+    return bytes(out)
+
+
+def cur_entries(blob):
+    """[(size, x_hot, y_hot, rgba)] from a .cur, or an embedded icon chunk."""
+    _reserved, kind, count = struct.unpack("<HHH", blob[:6])
+    if kind != 2:
+        raise SystemExit("make_cursors: a .cur is type 2, not %d" % kind)
+    entries = []
+    for i in range(count):
+        head = 6 + 16 * i
+        _w, _h, _colours, _pad, hx, hy, length, offset = struct.unpack(
+            "<BBBBHHII", blob[head:head + 16])
+        dib = blob[offset:offset + length]
+        (header,) = struct.unpack("<I", dib[:4])
+        width, _height, _planes, bits = struct.unpack("<iiHH", dib[4:16])
+        if bits != 32:
+            raise SystemExit("make_cursors: a frame is %d bpp, not 32" % bits)
+        entries.append((width, hx, hy, dib_rgba(dib[header:], width)))
+    return entries
+
+
+def chunks(blob, start):
+    """[(tag, body)] walked from `start` to the end of the RIFF payload."""
+    out, i = [], start
+    while i + 8 <= len(blob):
+        tag = blob[i:i + 4]
+        (length,) = struct.unpack("<I", blob[i + 4:i + 8])
+        out.append((tag, blob[i + 8:i + 8 + length]))
+        i += 8 + length + (length & 1)
+    return out
+
+
+def ani_frames(path):
+    """(steps, declared frames, [[(size, hx, hy, rgba), ...], ...]) of an .ani."""
+    with open(path, "rb") as fh:
+        blob = fh.read()
+    if blob[:4] != b"RIFF" or blob[8:12] != b"ACON":
+        raise SystemExit("make_cursors: %s is not a RIFF/ACON animation"
+                         % os.path.basename(path))
+    header = [body for tag, body in chunks(blob, 12) if tag == b"anih"]
+    if not header:
+        raise SystemExit("make_cursors: %s holds no anih header"
+                         % os.path.basename(path))
+    fields = struct.unpack("<9I", header[0][:36])
+    frames = []
+    for tag, body in chunks(blob, 12):
+        if tag == b"LIST" and body[:4] == b"fram":
+            for sub, icon in chunks(body, 4):
+                if sub == b"icon":
+                    frames.append(cur_entries(icon))
+    return fields[1], fields[2], frames
+
+
+def palm_travel(size, frames):
+    """(widest spread of the ink centre, its shortest ink height) in px.
+
+    Measured from the shipped frames rather than from the WAVE table: the table
+    says what was asked for, and the file says what a user will see.
+    """
+    centres, heights = [], []
+    for rgba in frames:
+        x0, y0, x1, y1 = alpha_bbox(rgba, size)
+        centres.append(((x0 + x1) / 2.0, (y0 + y1) / 2.0))
+        heights.append(y1 - y0)
+    spread = 0.0
+    for i, a in enumerate(centres):
+        for b in centres[i + 1:]:
+            spread = max(spread, math.hypot(b[0] - a[0], b[1] - a[1]))
+    return spread, (min(heights) if heights else 0.0)
 
 
 # ── verify / install ─────────────────────────────────────────────────────
