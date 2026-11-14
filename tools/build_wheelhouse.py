@@ -62,7 +62,10 @@ def main() -> int:
                   flush=True)
             failed += 1
     print(f"DONE built={built} failed={failed} skipped={skipped}")
-    return 0
+    # The DONE line is a verdict: it names what did not build. Returning 0
+    # regardless made a wheelhouse with 40 failed packages indistinguishable
+    # from a complete one, so every `&&` after this call ran anyway.
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
