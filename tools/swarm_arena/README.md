@@ -69,3 +69,43 @@ The page prints its own denominator (`X of Y candidates drawn`) and a self-test
 line — `hotspot_misaligned` is the count of cursors whose tip drifted more than
 0.01 px from the node it claims, and `CHAIN` is `MISMATCH` when that count is
 non-zero or the slowest cursor exceeds the budget.
+
+## Compiling the salute into a Windows pointer
+
+`make_cursors.py` turns the same SVG masters into a real cursor scheme, with no
+new dependency: Chrome rasterises the glyph (PIL and cairosvg are both absent
+from the 3.16t venv), and `struct`+`zlib` build the PNG decode and the
+`.cur` / `.ani` containers.
+
+```bash
+python make_cursors.py --build     # -> out/cursors/*.cur, *.ani, preview.png
+python make_cursors.py --install   # copy to %LOCALAPPDATA%\...\Cursors\vulcan-swarm,
+                                   # register scheme "Vulcan Swarm" (HKCU)
+python make_cursors.py --apply     # back up the live scheme, install, go live
+python make_cursors.py --restore   # put the backed-up scheme back
+python make_cursors.py --uninstall # remove the scheme and its files
+```
+
+Sizes: the arrow carries 16, 32 and 48 px, each from the master that suits it
+(the hand-tuned 16 px master at 16, the 32 px master at 32 and scaled at 48), so
+the small rendition is not a squeezed copy of the large one. `Wait` and
+`AppStarting` share an 8-frame `.ani` in which the salute waves with its
+tip pinned.
+
+Two things this file had to get right, both measured rather than assumed:
+
+- **`anih.iSteps` must equal `iFrames`.** The format lets 0 mean "same as
+  `iFrames`", and Windows does not: with `steps=0` an otherwise correct file is
+  refused by `LoadCursorFromFileW` with `GetLastError=87`
+  (`ERROR_INVALID_PARAMETER`) and no other clue.
+- **A rotating frame needs headroom inside its tile.** The glyph sits flush
+  against the left edge of its viewBox, so a swing cut pixels off at the canvas
+  edge during rasterisation — and no later pass can put them back. The wave tiles
+  therefore render with an in-tile offset, and the hotspot moves with the glyph
+  so the reported point stays on the fingertip.
+
+`--install` refuses to copy anything unless every artefact comes back from
+`LoadCursorFromFileW` as a real `HCURSOR`; `--apply` reads the live registry
+values back after `SPI_SETCURSORS` and prints them. The hardware pointer is drawn
+by the compositor and does not appear in a GDI screenshot, so `preview.png` —
+the actual bytes, at 16/32/48 and all 8 frames — is the pixel evidence.
