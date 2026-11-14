@@ -214,3 +214,31 @@ def test_a_drifted_base_harvest_row_is_excluded_and_reported(tmp_path, monkeypat
     assert [reason for _where, reason, _detail in report] == ["base-no-title"]
     assert [where for where, _reason, _detail in report] == [
         "bake_harvest_drift.jsonl:1"]
+
+
+def test_a_lane_that_never_loaded_is_blind_and_writes_nothing(tmp_path, monkeypatch):
+    """A run whose input lane is absent must not look like a run that checked rows.
+
+    Measured 2026-11-14: ``--lane state/bake_harvest_freebuff_2026-11-14.jsonl``
+    against a path that did not exist printed ``MERGED=11170 DROPPED=1`` and
+    exited 0, and the DROPPED=1 is what made a run that read none of its input
+    look survivable. Both halves are asserted: the exit code, and the absence of
+    the output file, because a merge that writes a corpus without one of its
+    lanes is the damage the exit code is standing in front of.
+    """
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "bake_corpus.jsonl").write_text(
+        json.dumps(VALID_ROW) + "\n", encoding="utf-8")
+    merged_out = state / "bake_merged.jsonl"
+    monkeypatch.setattr(merge_bake_lane, "ROOT", tmp_path)
+    monkeypatch.setattr(merge_bake_lane, "OUT_MERGED", merged_out)
+    monkeypatch.setattr(merge_bake_lane, "OUT_REPORT", state / "report.txt")
+    monkeypatch.setattr(sys, "argv", [
+        "merge_bake_lane.py", "--lane",
+        str(tmp_path / "absent_2026-11-14.jsonl"), "--apply"])
+
+    rc = merge_bake_lane.main()
+
+    assert rc == 2, "an unreadable input lane means the run could not be performed"
+    assert not merged_out.exists(), "a blind run must not write the merged corpus"
