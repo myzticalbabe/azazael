@@ -36,8 +36,20 @@ import winreg
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CURSORS = os.path.join(HERE, "cursors")
-OUT = os.path.join(HERE, "out", "cursors")
+
+# Where the masters are and where the artefacts go are two questions once this
+# runs as a compiled binary. Nuitka's onefile unpacks the module and its data
+# into a temp directory that is deleted when the process exits, and
+# sys.executable points at that same directory -- so __file__ is the only handle
+# on the masters, and a build written beside it would vanish with the temp dir.
+# SOULFORGE reads the masters from HERE and writes to %LOCALAPPDATA%, unless
+# SOULFORGE_OUT says otherwise; run from the repo, nothing changes.
+COMPILED = "__compiled__" in globals()
+CURSORS = os.path.join(os.environ.get("SOULFORGE_HOME") or HERE, "cursors")
+OUT = os.environ.get("SOULFORGE_OUT") or (
+    os.path.join(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir(),
+                 "SOULFORGE", "out", "cursors")
+    if COMPILED else os.path.join(HERE, "out", "cursors"))
 CHROME_CANDIDATES = (
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
@@ -951,14 +963,14 @@ def do_check(args):
     if not os.path.isdir(OUT):
         print("cannot check %s is not there; run --build" % OUT)
         raise SystemExit(2)
-    defects, checked = [], 0
+    defects, checked = [], set()
     for slot, name in sorted(PROGRAMS.items()):
         path = os.path.join(OUT, name)
         if not os.path.exists(path):
             defects.append("%s: %s is missing" % (slot, name))
             continue
         ok, detail = windows_loads(path)
-        checked += 1
+        checked.add(path)  # distinct files: Wait and AppStarting share one .ani
         if not ok:
             defects.append("%s: Windows refuses %s (%s)" % (slot, name, detail))
             continue
@@ -1010,7 +1022,8 @@ def do_check(args):
         if not os.path.exists(str(live[slot])):
             defects.append("live %s -> %s does not exist" % (slot, live[slot]))
     print("artefacts   %d read back, %d installed copy(ies), %d live value(s) "
-          "in %s" % (checked, installed, len(bound), os.path.basename(SCHEME_DIR)))
+          "in %s" % (len(checked), installed, len(bound),
+                      os.path.basename(SCHEME_DIR)))
     if defects:
         for line in defects:
             print("DEFECT      %s" % line)
