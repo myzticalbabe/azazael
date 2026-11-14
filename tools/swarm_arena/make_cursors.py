@@ -54,12 +54,20 @@ SLOTS = ("Arrow", "Help", "AppStarting", "Wait", "Crosshair", "IBeam", "NWPen",
          "Hand")
 
 # One animation frame per entry, in degrees, sampled from the CSS keyframes the
-# on-screen page uses (0%%, 32%%, 66%%, 100%%) at eight steps.
-WAVE = (0.0, -4.2, -6.0, -4.0, -1.0, 1.8, 4.6, 2.4)
+# on-screen page uses (0%%, 32%%, 66%%, 100%%) at eight steps and then widened.
+# At the previous +/-6 degrees the palm travelled 3.05 px at 32 px, 10% of the
+# glyph's ink height, which the eye reads as a tremble rather than a wave. At
+# +/-14 it travels 6.24 px, 24% -- measured from the built frames, not predicted.
+# The cost is that the arc no longer fits a 32 px tile by any placement: the
+# union of the eight rotated ink boxes is 37.3 x 35.2 units against 32, because
+# the glyph hangs 27 units below a pivot two units under its top. So the frames
+# are rasterised on a larger canvas and box-filtered down -- widening the wave
+# is a size problem before it is an animation problem.
+WAVE = (0.0, -9.0, -14.0, -9.5, 0.0, 9.5, 13.5, 6.5)
 JIF = 6  # frame duration in 1/60 s -> 100 ms per frame
-# The salute glyph is flush against x=0, so a swinging frame would be cut at
-# the tile edge; shift it right by half the tile's spare width before rotating.
-WAVE_OFF = (2.0, 0.0)
+BUSY_PX = 32       # the size the .ani ships as
+BUSY_CANVAS = 96   # supersampled raster: an exact 3:1 box filter reduces it
+BUSY_MARGIN = 2    # canvas pixels kept clear on every side of the arc
 
 # ── the remaining slots, composed from the one master ────────────────────
 #
@@ -222,29 +230,32 @@ def chrome():
 
 
 def rasterise(svg_markup, native, hotspot, target, angles, workdir,
-              offset=(0.0, 0.0)):
+              offset=(0.0, 0.0), glyph=None):
     """One screenshot of N tiles -> N RGBA frames at `target` px.
 
-    `offset` nudges the glyph inside its tile, in target pixels, before the
-    rotation is applied. A swinging frame needs headroom or the renderer cuts
-    it at the tile edge, and no later pass can put those pixels back; the
-    hotspot moves with the glyph so the reported point stays on the salute tip.
+    `offset` is where the glyph's box sits inside its tile, in target pixels,
+    and `glyph` is how large that box is drawn (the whole tile by default). A
+    swinging frame needs headroom the tile does not have, and no later pass can
+    put back pixels the renderer cut, so the busy frames are drawn smaller than
+    their canvas; the hotspot moves with the glyph so the reported point stays
+    on the salute tip.
     """
-    scale = target / float(native)
-    ox = hotspot[0] * scale + offset[0]
-    oy = hotspot[1] * scale + offset[1]
+    box = float(target if glyph is None else glyph)
+    scale = box / float(native)
+    ox = hotspot[0] * scale
+    oy = hotspot[1] * scale
     tiles = "".join(
         '<div class="tile"><div class="rot" style="transform:rotate(%.2fdeg)">%s</div></div>'
         % (a, svg_markup) for a in angles)
     page = """<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;background:transparent;overflow:hidden}
 .tile{width:%dpx;height:%dpx;position:relative;overflow:hidden;float:left}
-.rot{position:absolute;left:%.3fpx;top:%.3fpx;width:%dpx;height:%dpx;
+.rot{position:absolute;left:%.3fpx;top:%.3fpx;width:%.3fpx;height:%.3fpx;
      transform-origin:%.4fpx %.4fpx}
-.rot svg{display:block;width:%dpx;height:%dpx}
+.rot svg{display:block;width:%.3fpx;height:%.3fpx}
 </style></head><body>%s</body></html>""" % (
-        target, target, offset[0], offset[1], target, target, ox, oy,
-        target, target, tiles)
+        target, target, offset[0], offset[1], box, box, ox, oy,
+        box, box, tiles)
     html = os.path.join(workdir, "r%d.html" % target)
     png = os.path.join(workdir, "r%d.png" % target)
     with open(html, "w", encoding="utf-8") as fh:
@@ -268,6 +279,92 @@ html,body{margin:0;padding:0;background:transparent;overflow:hidden}
             frame[y * target * 4:(y + 1) * target * 4] = rgba[row:row + target * 4]
         frames.append(bytes(frame))
     return frames
+
+
+def alpha_bbox(rgba, size):
+    """(x0, y0, x1, y1) of the painted pixels, right/bottom exclusive.
+
+    Measured from a frame the renderer produced rather than from a box someone
+    wrote down while reading the drawing: the wave layout is only as honest as
+    the ink it was told to fit.
+    """
+    xs, ys = [], []
+    for y in range(size):
+        row = y * size * 4
+        for x in range(size):
+            if rgba[row + x * 4 + 3]:
+                xs.append(x)
+                ys.append(y)
+    if not xs:
+        raise SystemExit("make_cursors: a rendered frame is blank")
+    return (float(min(xs)), float(min(ys)),
+            float(max(xs) + 1), float(max(ys) + 1))
+
+
+def wave_layout(ink, hotspot, angles, canvas, margin, native):
+    """Glyph size, translate and hotspot for a swing too wide to sit in a tile.
+
+    The pivot is two units below the top of the glyph and the ink is flush left,
+    so a wide swing throws pixels out on three sides at once. This solves for
+    the largest square glyph whose whole arc fits `canvas` with `margin` to
+    spare, returns the translate that centres that arc, and the hotspot that
+    rides with the glyph. Returns (glyph_px, (left, top), (hotspot_x, hotspot_y))
+    with the last pair already in canvas pixels.
+    """
+    x0, y0, x1, y1 = ink
+    px, py = hotspot
+    xs, ys = [], []
+    for angle in angles:
+        rad = math.radians(angle)
+        cos, sin = math.cos(rad), math.sin(rad)
+        for x, y in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
+            dx, dy = x - px, y - py
+            xs.append(px + dx * cos - dy * sin)
+            ys.append(py + dx * sin + dy * cos)
+    span = max(max(xs) - min(xs), max(ys) - min(ys))
+    scale = (canvas - 2.0 * margin) / span
+    off = (canvas / 2.0 - scale * (min(xs) + max(xs)) / 2.0,
+           canvas / 2.0 - scale * (min(ys) + max(ys)) / 2.0)
+    return native * scale, off, (off[0] + scale * px, off[1] + scale * py)
+
+
+def assert_unclipped(frame, size, angle):
+    """A frame whose outer ring carries ink was cut by the renderer, not by art."""
+    ring = [frame[(size - 1) * size * 4 + i * 4 + 3] for i in range(size)]
+    ring += [frame[i * size * 4 + 3] for i in range(size)]
+    ring += [frame[(i * size + size - 1) * 4 + 3] for i in range(size)]
+    ring += [frame[i * 4 + 3] for i in range(size)]
+    if any(ring):
+        raise SystemExit("make_cursors: the %+.1f degree busy frame reaches its "
+                         "canvas edge; raise BUSY_MARGIN or lower WAVE" % angle)
+
+
+def downsample(rgba, src, dst):
+    """Exact integer box filter, alpha-weighted so edges keep their colour."""
+    if src % dst or src < dst:
+        raise SystemExit("make_cursors: %d -> %d is not an integer box filter"
+                         % (src, dst))
+    k = src // dst
+    area = k * k
+    out = bytearray(dst * dst * 4)
+    for y in range(dst):
+        for x in range(dst):
+            r = g = b = a = 0
+            for yy in range(y * k, y * k + k):
+                row = yy * src
+                for xx in range(x * k, x * k + k):
+                    o = (row + xx) * 4
+                    al = rgba[o + 3]
+                    if al:
+                        r += rgba[o] * al
+                        g += rgba[o + 1] * al
+                        b += rgba[o + 2] * al
+                        a += al
+            o = (y * dst + x) * 4
+            if a:
+                out[o], out[o + 1], out[o + 2], out[o + 3] = (
+                    r // a, g // a, b // a, a // area)
+    return bytes(out)
 
 
 # ── containers ───────────────────────────────────────────────────────────
@@ -469,6 +566,8 @@ def do_build(args):
 
     # Static arrow: every size its masters can serve natively, plus 48 from 32.
     images, painted = build_images(pointer, work)
+    # The 32 px render measures the ink the wave has to fit -- see the busy slot.
+    arrow_ink = alpha_bbox(dict(painted)[32], 32)
     arrow = os.path.join(OUT, "vulcan-arrow.cur")
     with open(arrow, "wb") as fh:
         fh.write(cur_file(images))
@@ -483,16 +582,28 @@ def do_build(args):
     built.append((hand, "link select", painted))
 
     # Busy / working-in-background: the salute waves, tip pinned to the hotspot.
+    # Drawn on BUSY_CANVAS with the glyph sized by wave_layout, then filtered
+    # down to BUSY_PX: the arc is wider than the pointer it ships as, and the
+    # ring check below proves no frame lost ink to the canvas edge.
     markup, hotspot = pointer[max(pointer)]
-    frames = rasterise(markup, max(pointer), hotspot, 32, WAVE, work,
-                       offset=WAVE_OFF)
-    bhot = (hotspot[0] + WAVE_OFF[0], hotspot[1] + WAVE_OFF[1])
+    native = float(max(pointer))
+    box, offset, frame_hot = wave_layout(
+        tuple(v * native / 32.0 for v in arrow_ink), hotspot, WAVE,
+        BUSY_CANVAS, BUSY_MARGIN, native)
+    wide = rasterise(markup, native, hotspot, BUSY_CANVAS, WAVE, work,
+                     offset=offset, glyph=box)
+    frames = []
+    for angle, frame in zip(WAVE, wide):
+        assert_unclipped(frame, BUSY_CANVAS, angle)
+        frames.append(downsample(frame, BUSY_CANVAS, BUSY_PX))
+    shrink = BUSY_PX / float(BUSY_CANVAS)
+    bhot = (min(int(round(frame_hot[0] * shrink)), BUSY_PX - 1),
+            min(int(round(frame_hot[1] * shrink)), BUSY_PX - 1))
     busy = os.path.join(OUT, "vulcan-busy.ani")
     with open(busy, "wb") as fh:
-        fh.write(ani_file(SCHEME_NAME, frames, 32,
-                          (int(round(bhot[0])), int(round(bhot[1])))))
+        fh.write(ani_file(SCHEME_NAME, frames, BUSY_PX, bhot))
     built.append((busy, "busy (%d frames)" % len(frames),
-                  [(32, f) for f in frames]))
+                  [(BUSY_PX, f) for f in frames]))
 
     # The other seven Windows slots, all composed from that same master.
     pmarkup, phot = pointer[max(pointer)]

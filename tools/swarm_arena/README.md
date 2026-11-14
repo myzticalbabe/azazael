@@ -111,8 +111,9 @@ python make_cursors.py --uninstall # remove the scheme and its files
 Sizes: the arrow carries 16, 32 and 48 px, each from the master that suits it
 (the hand-tuned 16 px master at 16, the 32 px master at 32 and scaled at 48), so
 the small rendition is not a squeezed copy of the large one. `Wait` and
-`AppStarting` share an 8-frame `.ani` in which the salute waves with its
-tip pinned.
+`AppStarting` share an 8-frame `.ani` in which the salute swings ±14° with its
+tip pinned — wide enough that the palm travels six pixels, which took a larger
+raster canvas to draw (see the three notes at the end of this file).
 
 **Slot coverage — 11 of the 15 scheme slots carry salute art.** Windows draws
 four more whether or not a scheme supplies them (a crosshair has no pointer tip
@@ -123,7 +124,7 @@ defaults and the scheme leaves their registry values empty.
 | --- | --- | --- | --- |
 | Arrow | `vulcan-arrow.cur` | `pointer` master, 16/32/48 px | tip `8.5,2` |
 | Hand | `vulcan-hand.cur` | `link` master, 16/32/48 px | tip `6,4` |
-| AppStarting / Wait | `vulcan-busy.ani` | `pointer` master, 8 frames, ±6° wave | tip |
+| AppStarting / Wait | `vulcan-busy.ani` | `pointer` master, 8 frames, ±14° swing, 96 px raster → 32 px | tip |
 | IBeam | `vulcan-text.cur` | `pointer`, rotated 180° | fingertip (now pointing down) |
 | SizeAll | `vulcan-move.cur` | `pointer` ×4 at 0/90/180/270°, s 0.42, off ±7.0 | centre |
 | SizeNS | `vulcan-ns.cur` | `pointer` ×2 at 0°/180°, s 0.48, dy ±7.5 | centre |
@@ -169,17 +170,27 @@ into the geometry rather than rotated in at build time. Until this existed,
 `.cur` files were byte-identical; `do_build()` now refuses to build when the
 registry holds no `link` master, so that silent reuse cannot come back.
 
-Two things this file had to get right, both measured rather than assumed:
+Three things this file had to get right, all measured rather than assumed:
 
 - **`anih.iSteps` must equal `iFrames`.** The format lets 0 mean "same as
   `iFrames`", and Windows does not: with `steps=0` an otherwise correct file is
   refused by `LoadCursorFromFileW` with `GetLastError=87`
   (`ERROR_INVALID_PARAMETER`) and no other clue.
-- **A rotating frame needs headroom inside its tile.** The glyph sits flush
-  against the left edge of its viewBox, so a swing cut pixels off at the canvas
-  edge during rasterisation — and no later pass can put them back. The wave tiles
-  therefore render with an in-tile offset, and the hotspot moves with the glyph
-  so the reported point stays on the fingertip.
+- **A wide swing does not fit its tile, and a bigger canvas does not fix a
+  ratio.** The glyph hangs about 27 units below a pivot two units under its top,
+  so at ±14° the union of the eight rotated ink boxes is 37.3 × 35.2 units
+  against a 32-unit tile: no placement fits it, and the in-tile offset that
+  served ±6° stopped being enough. The busy frames are now rasterised at 96 px
+  with the glyph scaled to fit its own arc plus a 2 px margin (`wave_layout`),
+  every frame is refused if its outer ring carries ink (`assert_unclipped` — a
+  cut frame cannot be repaired later), and the canvas is box-filtered 3:1 back
+  to 32 px. Scaling the canvas up alone would change nothing: canvas and art
+  grow together, so the fit is a ratio and the glyph has to be drawn smaller.
+- **The wave had to be wide enough to read as motion.** Measured from the built
+  frames: ±6° moved the palm 3.05 px, 10.2% of the glyph's own ink height — a
+  tremble. ±14° moves it 6.24 px, 24.0%. The price is a glyph 4 px shorter than
+  the static arrow's (26 px of ink against 30), which is why the wave was widened
+  rather than the frames stretched.
 
 `--install` refuses to copy anything unless every artefact comes back from
 `LoadCursorFromFileW` as a real `HCURSOR`; `--apply` reads the live registry
