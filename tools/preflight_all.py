@@ -913,6 +913,46 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=("Project_CRADLE/cradle.py",),
     ),
+    Gate(
+        name="soulforge-selftest",
+        # The artefact is a Nuitka onefile build in `dist/`, which `.gitignore:8`
+        # keeps out of the tree: no other row in this registry can see it, and
+        # `python soulforge.py --selftest` proves the SOURCE while the thing a
+        # person installs stays broken. This row runs the built exe's own
+        # selftest, so the reading is about the bytes on disk (the tool prints
+        # their sha256) rather than the script beside them.
+        #
+        # Absence of the binary is BLIND (exit 2), never a pass -- but the row is
+        # not blocking, because `dist/` is a build output and a fresh clone
+        # legitimately has none; a permanent red row would be switched off before
+        # it ever caught anything. What blocks is the COMMIT: the entry point
+        # `.githooks/pre-commit` already runs (scripts/commit_gate.py --hook)
+        # delegates here with `--staged`, so a staged `tools/swarm_arena/` path
+        # cannot land on a binary that was never built, is older than its inputs,
+        # or no longer passes.
+        argv=("tools/soulforge_gate.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=False,
+        blocking=False,
+        slow=False,
+        reads=(
+            "the built binary tools/swarm_arena/dist/SOULFORGE.exe, plus its build "
+            "inputs: the entry point's local import closure, build_soulforge.py and "
+            "cursors/"
+        ),
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "the gate runs its own classifier fixtures on every invocation (five "
+            "rc/output cases plus a staleness fixture) and refuses to report a "
+            "verdict when they do not fail as required, so fail-ability is "
+            "demonstrated in the same process as the verdict; the binary's rc-3 "
+            "refusal path adds a live negative control. No pytest file is named "
+            "because the fixtures need no exe and no temp install to run"
+        ),
+        requires=(),  # dist/ is a build output: its absence is this gate's own BLIND
+    ),
 )
 
 

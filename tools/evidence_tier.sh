@@ -41,6 +41,7 @@
 #   6e.    at-risk systems register      (tools/at_risk_register.py --check)
 #   7.     paradigm rule 1 (advisory)    (tools/paradigm_gate.py --check)
 #   9.     unified gate registry         (tools/preflight_all.py --check)
+#   9b.    SOULFORGE built-binary proof  (tools/soulforge_gate.py, via row 9)
 #   AP-5.  persisted assistant prose     (tools/transcript_ap5_gate.py, advisory)
 #
 # A PASS writes logs/hook_evidence.json (tree sha + time). pre-commit quotes it as

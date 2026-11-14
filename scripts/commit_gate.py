@@ -38,6 +38,14 @@ from pathlib import Path
 DEFAULT_MAX_LINES = 150
 DEFAULT_MAX_FILES = 8
 
+REPO = Path(__file__).resolve().parents[1]
+#: The same tool `tools/preflight_all.py` registers as `soulforge-selftest`, so
+#: the command this hook runs is the command the evidence tier runs.
+SOULFORGE_GATE = REPO / "tools" / "soulforge_gate.py"
+#: Bounded below the hook's own `timeout 300` around this file: a wedged exe
+#: must be named by the gate, not inherited by the commit.
+SOULFORGE_BUDGET = 280
+
 GENERATED_SUFFIXES = (".ppm", ".png", ".log", ".jsonl", ".html")
 GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 #: Dated machine snapshots: state/<name>-YYYY-MM-DD.json. These are
@@ -215,6 +223,45 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     return problems
 
 
+def soulforge_proof() -> int:
+    """Prove SOULFORGE from the built binary when this commit touches it.
+
+    WHY IT IS DELEGATED AND NOT INLINED. `.githooks/pre-commit` runs this file as
+    its first check, which makes `cmd_hook` the one surface that executes before
+    every commit -- so a proof placed here cannot be skipped by a lane that never
+    reads the tier. The proof itself lives in `tools/soulforge_gate.py` because
+    the tier registers the same file: one implementation, two callers. A second
+    copy here would drift, and the tier would keep certifying a binary the commit
+    path had stopped checking.
+
+    A MISSING SCRIPT PASSES LOUD, like every other unreadable gate in this file:
+    refusing all commits because an untracked helper is absent would block the
+    very commit that adds it. The tool returns 0 with a printed skip when the
+    index touches nothing under `tools/swarm_arena/`, so an unrelated commit
+    pays one subprocess and one line.
+    """
+    if not SOULFORGE_GATE.is_file():
+        print("commit-gate: %s is absent -- the SOULFORGE proof did not run"
+              % SOULFORGE_GATE)
+        return 0
+    try:
+        result = subprocess.run(
+            [sys.executable, str(SOULFORGE_GATE), "--staged"],
+            cwd=str(REPO), capture_output=True, text=True, timeout=SOULFORGE_BUDGET,
+            encoding="utf-8", errors="replace",
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print("commit-gate: the SOULFORGE proof could not finish (%s)" % exc)
+        return 1
+    for line in (result.stdout or "").strip().splitlines():
+        print("  %s" % line)
+    if result.returncode == 0:
+        return 0
+    print("  Fix: python tools/swarm_arena/build_soulforge.py"
+          " (a stale or missing binary has to be rebuilt, not declared)")
+    return 1
+
+
 def cmd_hook(base: str | None = None) -> int:
     """Judge a changeset. `base` names a commit (`base..HEAD`); None = the index.
 
@@ -225,6 +272,15 @@ def cmd_hook(base: str | None = None) -> int:
     adding to it -- a run that judged both would still be refused by the
     neighbour's desk drawer, which is the defect --base exists to remove.
     """
+    # Before the bulk checks and before ALLOW_BULK_COMMIT: declaring a bulk op
+    # makes a changeset big, it does not make a stale binary proved. A push
+    # range (`base`) is left to the tier's own row, which proves the same binary
+    # from the tree -- the index at push time also holds whatever another lane
+    # staged, and this proof must be about the commit's paths.
+    if base is None:
+        soulforge = soulforge_proof()
+        if soulforge:
+            return soulforge
     max_lines = int(os.environ.get("COMMIT_GATE_MAX_LINES",
                                    str(DEFAULT_MAX_LINES)))
     max_files = int(os.environ.get("COMMIT_GATE_MAX_FILES",
