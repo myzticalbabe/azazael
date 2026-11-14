@@ -126,8 +126,8 @@ changes, which is the only thing that should expire it.
 container: INCOMPLETE
 esquire    READY       pins=20     errors=0
 cain       READY       pins=8      errors=0
-eliza      INCOMPLETE  pins=14     errors=0
-provenance INCOMPLETE  pins=42     errors=0
+eliza      INCOMPLETE  pins=15     errors=0
+provenance INCOMPLETE  pins=43     errors=0
 blocked: none
 undeclared: none
 <!-- ARC:STATE END -->

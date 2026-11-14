@@ -74,6 +74,11 @@
    "kind": "instrument"
   },
   {
+   "from": "tools/figures.py",
+   "to": "tools/figures.py",
+   "kind": "instrument"
+  },
+  {
    "from": "../tests/test_psyche_network.py",
    "to": "tests/test_psyche_network.py",
    "kind": "test"
