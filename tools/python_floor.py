@@ -33,6 +33,7 @@ move a project's floor.
   python tools/python_floor.py --strict-os    # OS coupling is a finding too
   python tools/python_floor.py --json out.json
   python tools/python_floor.py --target 3.6   # report distance to a target floor
+  python tools/python_floor.py --only Project_ELIZA   # one tree, its own denominator
 """
 import ast
 import json
@@ -206,8 +207,14 @@ def root_default(declared):
     return None
 
 
-def census(repo):
-    """Measure every tracked Python file and fold it into its root."""
+def census(repo, only=None):
+    """Measure every tracked Python file and fold it into its root.
+
+    `only` restricts the census to one tree (a directory prefix), so a CI job
+    can report on its own subtree.  Without it the measurement is repo-wide and
+    a per-tree job would either re-measure all roots or quote a repo number as
+    its own -- the denominator defect the report header exists to prevent.
+    """
     try:
         listed = subprocess.run(
             ["git", "ls-files"], cwd=str(repo), timeout=LIST_TIMEOUT,
@@ -220,7 +227,12 @@ def census(repo):
         raise SystemExit("python_floor: git ls-files failed (rc=%d)" % listed.returncode)
     tracked = [p for p in listed.stdout.splitlines()
                if p and not any(s in "/" + p for s in SKIP)]
-    paths = [p for p in tracked if p.endswith(".py")]
+    if only:
+        prefix = only.strip("/") + "/"
+        in_scope = [p for p in tracked if p.startswith(prefix)]
+    else:
+        in_scope = tracked
+    paths = [p for p in in_scope if p.endswith(".py")]
 
     roots = defaultdict(lambda: {
         "files": 0, "unparsed": 0, "floor": "3.6", "above": defaultdict(int),
@@ -257,7 +269,7 @@ def census(repo):
             row["coupled"] += 1
             row["hits"] += len(hits)
             coupled.append((rel, len(hits)))
-    return dict(roots), unparsed, unreadable, coupled, tracked
+    return dict(roots), unparsed, unreadable, coupled, in_scope, tracked
 
 
 def classify(roots, declared, strict_os):
@@ -388,19 +400,28 @@ def main(argv):
 
     target = None
     json_out = None
+    only = None
     for index, arg in enumerate(argv):
         if arg == "--target" and index + 1 < len(argv):
             target = argv[index + 1]
         if arg == "--json" and index + 1 < len(argv):
             json_out = argv[index + 1]
+        if arg == "--only" and index + 1 < len(argv):
+            only = argv[index + 1]
 
     if not (repo / ".git").exists():
         print("python_floor: BLIND -- %s is not a git work tree" % repo)
         return 2
 
-    roots, unparsed, unreadable, coupled, tracked = census(repo)
+    roots, unparsed, unreadable, coupled, tracked, declared_source = census(repo, only)
     total = len(tracked)
-    declared = read_declared(repo, tracked, unreadable)
+    if only:
+        print("python_floor: scoped to %s" % only.strip("/"))
+    # Declarations are read from the whole tracked tree even when the census is
+    # scoped: the repo-root `pyproject.toml` governs every root that states no
+    # floor of its own, and scoring only the scope reported 69 roots as
+    # `undeclared` under `--only src` -- a finding created by the filter.
+    declared = read_declared(repo, declared_source, unreadable)
     findings = classify(roots, declared, "--strict-os" in argv)
     print(report(roots, declared, findings, total, target, argv))
     if unreadable:
