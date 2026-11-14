@@ -160,7 +160,7 @@ def root_of(path):
 MANIFESTS = ("pyproject.toml", "setup.cfg", "setup.py")
 
 
-def read_declared(repo, tracked, unreadable):
+def read_declared(repo, tracked, unreadable, missing=None):
     """{root: (declared_version, source_file)} for every root that declares one.
 
     `git ls-files "pyproject.toml"` is a pathspec with no wildcard, so it
@@ -175,6 +175,13 @@ def read_declared(repo, tracked, unreadable):
             continue
         try:
             text = (repo / rel).read_text(encoding="utf-8", errors="replace")
+        except FileNotFoundError:
+            # Tracked but absent from the worktree: a deletion or a stale index.
+            # That is a different fact from "cannot be read", and reporting it
+            # as unreadable sends the reader hunting a permission problem that
+            # does not exist.  Keep the two apart wherever a reader can tell.
+            (unreadable if missing is None else missing).append(rel)
+            continue
         except OSError:
             # A manifest that cannot be read is a root whose claim is unknown,
             # not a root that makes none.  Name it rather than skipping it.
@@ -240,10 +247,17 @@ def census(repo, only=None):
     })
     unparsed = []
     unreadable = []
+    missing = []
     coupled = []
     for rel in paths:
         try:
             text = (repo / rel).read_text(encoding="utf-8", errors="replace")
+        except FileNotFoundError:
+            # Tracked but absent from the worktree.  It still belongs to the
+            # denominator, and it is not the same finding as a file that exists
+            # and cannot be opened, so it is counted apart from `unreadable`.
+            missing.append(rel)
+            continue
         except OSError:
             # Tracked but unreadable: it still belongs to the denominator, and
             # leaving it out silently would report a cleaner tree than exists.
@@ -269,7 +283,7 @@ def census(repo, only=None):
             row["coupled"] += 1
             row["hits"] += len(hits)
             coupled.append((rel, len(hits)))
-    return dict(roots), unparsed, unreadable, coupled, in_scope, tracked
+    return dict(roots), unparsed, unreadable, missing, coupled, in_scope, tracked
 
 
 def classify(roots, declared, strict_os):
@@ -413,7 +427,8 @@ def main(argv):
         print("python_floor: BLIND -- %s is not a git work tree" % repo)
         return 2
 
-    roots, unparsed, unreadable, coupled, tracked, declared_source = census(repo, only)
+    (roots, unparsed, unreadable, missing, coupled, tracked,
+     declared_source) = census(repo, only)
     total = len(tracked)
     if only:
         print("python_floor: scoped to %s" % only.strip("/"))
@@ -421,9 +436,13 @@ def main(argv):
     # scoped: the repo-root `pyproject.toml` governs every root that states no
     # floor of its own, and scoring only the scope reported 69 roots as
     # `undeclared` under `--only src` -- a finding created by the filter.
-    declared = read_declared(repo, declared_source, unreadable)
+    declared = read_declared(repo, declared_source, unreadable, missing)
     findings = classify(roots, declared, "--strict-os" in argv)
     print(report(roots, declared, findings, total, target, argv))
+    if missing:
+        print("\nmissing from the worktree (tracked, not on disk), so their claim "
+              "is UNKNOWN not absent: %d -- %s"
+              % (len(missing), ", ".join(missing[:10])))
     if unreadable:
         print("\nunreadable, so their claim is UNKNOWN not absent: %d -- %s"
               % (len(unreadable), ", ".join(unreadable[:10])))
@@ -439,6 +458,7 @@ def main(argv):
             "declared": {n: list(v) for n, v in declared.items()},
             "findings": findings,
             "unparsed_files": unparsed,
+            "missing_files": missing,
             "coupled_files": coupled[:200],
             "total_files": total,
         }, indent=1, sort_keys=True), encoding="utf-8")
