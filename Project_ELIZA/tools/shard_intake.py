@@ -72,7 +72,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = {wired}
 SHARD_ID = "{shard_id}"
 KIND = "{kind}"
 SOURCE_ENVIRONMENT = "kali-linux"
@@ -224,6 +224,12 @@ def render_index(entries: Sequence[Dict], atlas: Dict) -> str:
 
 def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
     written = 0
+    # Adoption survives regeneration. WIRED.json is the ledger and it is never
+    # rewritten here, so a --write that emitted WIRED = False for an adopted
+    # shard would put the tree and the ledger into disagreement: measured
+    # 2026-11-14, 1152 of 4085 stubs declare WIRED = True and every one of them
+    # is listed in WIRED.json. Regeneration must reproduce that, not undo it.
+    wired_ids = wired_registry()
     trees = {entry["tree"] for entry in entries}
     # Tree directories are generated wholesale: a shard that left the atlas must
     # not survive as an orphan file a reader can import.
@@ -257,7 +263,8 @@ def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
                            klass_literal=literal, unnamed=entry.get("unnamed", 0),
                            kind=entry["kind"], source=entry["module"],
                            lines=entry["lines"], public_api=entry["public_api"],
-                           generated=entry["generated"], shard_id=entry["shard_id"])
+                           generated=entry["generated"], shard_id=entry["shard_id"],
+                           wired="True" if entry["shard_id"] in wired_ids else "False")
         path.write_text(text, encoding="utf-8", newline="\n")
         written += 1
     INDEX.write_text(render_index(entries, atlas), encoding="utf-8", newline="\n")
