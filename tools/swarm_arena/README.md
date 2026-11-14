@@ -213,6 +213,37 @@ claims from disk on demand: it parses every `.cur` index and `.ani` fram list,
 compares each installed copy against `out/`, measures the palm's spread from the
 shipped frames, and fails on a hotspot outside its image, an `anih` that
 disagrees with the fram list, a spread under `MOTION_FLOOR`, or a live value
-aimed at a file that is not there. The hardware pointer is drawn
+aimed at a file that is not there.
+
+## SOULFORGE — the same swarm as one Windows binary
+
+`soulforge.py` is the front end; `build_soulforge.py` compiles it with Nuitka
+(MSVC 14.5, the same 3.16t interpreter as everything else here):
+
+```bash
+python build_soulforge.py   # -> dist/SOULFORGE.exe, then runs it --status
+dist/SOULFORGE.exe          # status, then the menu (double-clickable)
+dist/SOULFORGE.exe --apply  # build from its own masters, install, go live
+dist/SOULFORGE.exe --check  # read it all back; exit 1 names each defect
+```
+
+The binary carries the SVG masters as data (`--include-data-dir=cursors=cursors`)
+and no third-party library at all. Onefile unpacks to a temp directory that is
+deleted on exit, and that directory is the only handle on the masters —
+`sys.executable` points at the same temp path, and Nuitka sets `__compiled__`
+rather than `sys.frozen`. So `make_cursors` reads masters beside the module and
+writes artefacts to `%LOCALAPPDATA%\SOULFORGE\out\cursors`, which outlives the
+process; `SOULFORGE_OUT` overrides that. Run from the repo, both paths are what
+they always were.
+
+Measured here on 2026-11-14: `dist/SOULFORGE.exe` is 8 242 176 B; `--apply`
+built 10 artefacts from the packed masters, installed 10 files, wrote 11 live
+values and ended `scheme      Vulcan Swarm` at exit 0; `--check` printed
+`10 read back, 10 installed copy(ies), 11 live value(s)` and `clean 0 defect(s)`.
+That check is not vacuous inside the binary either: XOR-ing one byte of the built
+`vulcan-no.cur` (md5 `5328883c…` → `c09cde29…`) made the exe print
+`DEFECT installed … differs from …` and exit 1. The first attempt at that control
+wrote `0xff` over a byte that was already `0xff` and read clean — an unchanged
+fixture proves nothing, which is why the hash is printed before and after now. The hardware pointer is drawn
 by the compositor and does not appear in a GDI screenshot, so `preview.png` —
 the actual bytes, at 16/32/48 and all 8 frames — is the pixel evidence.
