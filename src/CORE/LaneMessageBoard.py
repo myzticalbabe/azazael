@@ -1113,6 +1113,14 @@ class LaneMessageBoard:
         lanes polling at once cannot both receive the same row. Rows claimed
         more than `CLAIM_LEASE_SECONDS` ago are treated as abandoned and are
         handed out again, with `attempts` incremented.
+
+        Rows that are COPIES of work already retired, already held under a
+        live lease, or already handed out earlier in this batch are retired as
+        duplicates instead of being offered. That retirement is a side effect,
+        so the outcome is published on `self.last_claim_stats`:
+        {lane, claimed, duplicates_retired, scanned, scan_limit, agent}. A
+        claim that found nothing after retiring 30 copies must not be
+        indistinguishable from a claim that found nothing at all.
         """
         if lane not in self.VALID_LANES:
             raise ValueError(f"lane must be one of {self.VALID_LANES}, got {lane!r}")
@@ -1129,6 +1137,17 @@ class LaneMessageBoard:
             # Candidate rows: on this lane's topic, not done/blocked, and not
             # claimed by a live claim. Oldest first so a backlog drains in the
             # order it was posted rather than reverse.
+            #
+            # The window is WIDER than `limit` on purpose: duplicate detection
+            # happens after the rows are fetched, so a window of exactly
+            # `limit` lets a wall of stale re-posts decide what the claim
+            # sees. Measured on the real opencode board 2026-11-14: 31 stale
+            # copies stood ahead of 6 real tasks, the claim retired the 10
+            # rows in its window, returned nothing, and the CLI printed "NO
+            # OPEN TASKS". The window is never smaller than the batch asked
+            # for, so an explicit large request is not silently truncated.
+            cap = max(1, int(self._coord_claim_scan_cap))
+            scan_limit = max(int(limit), min(cap, max(int(limit) * 5, int(limit) + 50)))
             rows = conn.execute(
                 "SELECT q.id AS board_id, q.content AS content "
                 "FROM memorybus_queue q "
@@ -1138,83 +1157,35 @@ class LaneMessageBoard:
                 "  AND (s.claimed_at IS NULL OR "
                 "       CAST(strftime('%s', s.claimed_at) AS INTEGER) < ?) "
                 "ORDER BY q.id ASC LIMIT ?",
-                (self._task_topic(lane), int(cutoff), int(limit)),
+                (self._task_topic(lane), int(cutoff), int(scan_limit)),
             ).fetchall()
-            # task_ids already live (claimed elsewhere) for this lane. A second
-            # copy of a live task_id is a duplicate: handing it out too means two
-            # agents doing one piece of work.
-            # LIVE claims only. An expired claim is up for grabs, so counting it
-            # as active would make a lease expiry indistinguishable from a
-            # duplicate and the abandoned row could never be reclaimed.
-            # The key is (task_id, action, detail), NOT task_id alone: measured
-            # 2026-10-31, a deliberately revised task (same id, new detail) was
-            # retired as "duplicate of Board-46849" and the revision was lost,
-            # because the id alone cannot tell a re-post from an update.
-            active = set()
-            for _r in conn.execute(
-                "SELECT q.content "
-                "FROM lane_task_state s "
-                "JOIN memorybus_queue q ON q.id = s.board_id "
-                "WHERE s.lane = ? AND s.state = 'claimed' "
-                "AND s.task_id IS NOT NULL AND s.claimed_at IS NOT NULL "
-                "AND CAST(strftime('%s', s.claimed_at) AS INTEGER) >= ?",
-                (lane, int(cutoff)),
-            ).fetchall():
-                try:
-                    _p = json.loads(_r[0] or "{}")
-                except Exception as exc:
-                    note_failure("LaneMessageBoard:claim-active-scan", exc)
-                    continue
-                _s = _task_sig(_p)
-                if _s:
-                    active.add(_s)
-            seen_in_batch: dict[tuple, int] = {}
-            for row in rows:
-                bid = int(row["board_id"])
-                try:
-                    payload = json.loads(row["content"] or "{}")
-                except Exception as exc:
-                    note_failure("LaneMessageBoard:claim-row-payload", exc)
-                    continue
-                # The same task re-posted by several sessions (mcp_config_fix
-                # appears 76 times) must not become 76 pieces of work. A copy is
-                # a duplicate when its CONTENT is already retired, already claimed
-                # elsewhere, or already handed out earlier in this batch.
-                tid = payload.get("task_id")
-                sig = _task_sig(payload)
-                dup_of = None
-                if sig and sig in seen_in_batch:
-                    dup_of = seen_in_batch[sig]
-                elif sig and sig in active:
-                    dup_of = -1          # a live claim elsewhere holds this work
-                elif sig:
-                    for _d in conn.execute(
-                        "SELECT s.board_id, q.content FROM lane_task_state s "
-                        "JOIN memorybus_queue q ON q.id = s.board_id "
-                        "WHERE s.lane = ? AND s.task_id = ? "
-                        "  AND s.state IN ('done','blocked')",
-                        (lane, tid),
-                    ).fetchall():
-                        try:
-                            _dp = json.loads(_d[1] or "{}")
-                        except Exception:
-                            _dp = {}
-                        if _task_sig(_dp) == sig:
-                            dup_of = int(_d[0])
-                            break
-                if dup_of is not None:
-                    conn.execute(
-                        "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
-                        "  retired_at, note, attempts) VALUES (?, ?, ?, 'done', ?, ?, 1) "
-                        "ON CONFLICT(board_id) DO UPDATE SET state='done', "
-                        "  retired_at=excluded.retired_at, note=excluded.note",
-                        (bid, lane, tid, stamp,
-                         f"duplicate of Board-{dup_of}" if dup_of >= 0
-                         else "duplicate: same task_id is already claimed"),
-                    )
-                    continue
-                if sig:
-                    seen_in_batch[sig] = bid
+            # ONE definition of "a copy of work that is already done". The
+            # same task re-posted by several sessions (mcp_config_fix appears
+            # 76 times) must not become 76 pieces of work. A copy is a
+            # duplicate when its CONTENT is already retired, already claimed
+            # elsewhere, or already handed out earlier in this batch -- keyed
+            # on (task_id, action, detail), NOT task_id alone: measured
+            # 2026-10-31, a deliberately revised task (same id, new detail)
+            # was retired as "duplicate of Board-46849" and the revision was
+            # lost, because the id alone cannot tell a re-post from an update.
+            items = [(int(r["board_id"]), r["content"]) for r in rows]
+            claimable, stale = self._split_stale(conn, lane, cutoff, items)
+            for bid, payload, dup_of in stale:
+                tid = (payload or {}).get("task_id")
+                if dup_of is None:
+                    note = "unreadable task row: not a task object, not offered"
+                elif dup_of >= 0:
+                    note = f"duplicate of Board-{dup_of}"
+                else:
+                    note = "duplicate: same task_id is already claimed"
+                conn.execute(
+                    "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
+                    "  retired_at, note, attempts) VALUES (?, ?, ?, 'done', ?, ?, 1) "
+                    "ON CONFLICT(board_id) DO UPDATE SET state='done', "
+                    "  retired_at=excluded.retired_at, note=excluded.note",
+                    (bid, lane, tid, stamp, note),
+                )
+            for bid, payload in claimable[:int(limit)]:
                 conn.execute(
                     "INSERT INTO lane_task_state (board_id, lane, task_id, state, "
                     "  claimed_by, claimed_at, attempts) VALUES (?, ?, ?, 'claimed', ?, ?, 1) "
@@ -1233,6 +1204,18 @@ class LaneMessageBoard:
                     "created_at": payload.get("created_at", ""),
                 })
             conn.execute("COMMIT")
+            # What this claim actually did. Retiring copies is a side effect
+            # the caller used to be unable to see, so "no work" and "work
+            # hidden behind copies" read the same. A reader cannot tell them
+            # apart without this.
+            self.last_claim_stats = {
+                "lane": lane,
+                "claimed": len(out),
+                "duplicates_retired": len(stale),
+                "scanned": len(items),
+                "scan_limit": scan_limit,
+                "agent": agent,
+            }
         except Exception as exc:
             try:
                 conn.execute("ROLLBACK")
