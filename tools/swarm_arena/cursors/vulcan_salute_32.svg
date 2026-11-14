@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+     data-hotspot="8.5,2" data-role="cursor" data-name="vulcan-salute-32">
+  <title>Vulcan salute cursor, 32x32</title>
+  <desc>Palm forward. Index and middle read as one pair, ring and little as the
+        other; the V is cut between the pairs down to the palm, the pairs sit at
+        different heights, and the thumb lobe crosses the palm low and left.
+        Hotspot is the index fingertip at (8.5,2).</desc>
+  <path d="M 8.5 2 L 13.5 3 L 14 7 L 16 16 L 18 7 L 18.5 6 L 23 7 L 23.5 16
+           L 24 20 L 25 27 Q 25 28.5 23.5 28.5 L 9.5 28.5
+           Q 7.5 28.5 7.5 27 L 7.5 22 L 2 19.5 Q 1.2 18.3 2.4 17.9
+           L 7.5 16.5 L 7.5 16 Z"
+        fill="#ffffff" stroke="#141414" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>
