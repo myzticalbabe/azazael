@@ -77,6 +77,10 @@
     "web_timeout_s": 20,
     "max_queries": 3
   },
+  "swarm_view": {
+    "enabled": true,
+    "timeout_s": 180
+  },
   "fallback": {
     "on_error": "record-and-continue",
     "record": "logs/deep_dive.json"
