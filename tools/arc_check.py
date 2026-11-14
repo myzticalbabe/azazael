@@ -34,11 +34,11 @@ What it does NOT do, and must never do:
   verdict disagrees with its own exit code or its own JSON report all grade
   ``BLIND`` for that wing. ``BLIND`` is a state to fix first, not a failure to
   average away.
-* It does not hide a wing. A declared wing with no inhabitant (``golgotha``) is
-  printed as ``BLOCKED`` every run, and a directory that appears under ``ARC/``
-  without being declared is printed as ``UNDECLARED`` and caps the container
-  below ``READY``. Otherwise a new, unchecked wing enters the container silently
-  and the container's verdict keeps describing a smaller tree than the one that
+* It does not hide a wing. A declared wing with no inhabitant is printed as
+  ``BLOCKED`` every run, and a directory that appears under ``ARC/`` without
+  being declared is printed as ``UNDECLARED`` and caps the container below
+  ``READY``. Otherwise a new, unchecked wing enters the container silently and
+  the container's verdict keeps describing a smaller tree than the one that
   exists.
 
 Verdict and exit contract, shared with the wings themselves:
@@ -134,12 +134,17 @@ WINGS: Tuple[Dict[str, str], ...] = (
     },
 )
 
-BLOCKED_WINGS: Dict[str, str] = {
-    "golgotha": (
-        "the term has no referent in the tree, the git history, or the telemetry "
-        "store, so there is nothing to grade"
-    ),
-}
+# A wing someone declares but cannot yet inhabit is printed BLOCKED every run, so
+# it cannot be forgotten into a pass. The registry is empty on purpose: its only
+# entry was ``golgotha``, retired 2026-11-14 because the term never had a referent
+# anywhere. It entered at 6717428b as contrast prose -- the counter-example of what
+# does NOT qualify as a wing, "no inhabitant at all" -- and was then promoted into
+# a wing-index row (2cbcb97f) and this dict (13412e09). No ``ARC/golgotha/``
+# directory, mark, ledger, checker or inhabitant existed in any commit, so there was
+# nothing to grade: the entry only capped the container below READY for a wing that
+# never existed. The mechanism stays. The bar for an entry is a named inhabitant
+# somebody is actually blocked on, not a word carried forward from a counter-example.
+BLOCKED_WINGS: Dict[str, str] = {}
 
 # Directories under ARC/ that are evidence about the container rather than a
 # graded wing. Named explicitly so the undeclared check stays meaningful.

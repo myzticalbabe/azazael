@@ -16,8 +16,9 @@ An inhabitant enters ARC only when all three are present:
 
 An artifact carrying assertions without a checker is a draft and stays outside.
 That is the whole test: `esquire/`, `cain/` and `eliza/` are built because each has
-a mark, a ledger and a checker; `golgotha/` is not, because it has no inhabitant at
-all.
+a mark, a ledger and a checker. A term with none of the three is not a wing, and
+naming one in this table does not make it one — `golgotha/` was named here and has
+since been retired (*Retired declarations*, below).
 
 ### The identity test — a wing is not a case file
 
@@ -53,13 +54,33 @@ to measure.
 | `esquire/` | What a court demands before it hears a machine's account | 2026-11-04 | `pins.json` (20 pins) + `ADMISSIBILITY_PINS.md` + `tools/esquire_pins.py` |
 | `cain/` | Accountability mark for AI systems and planned obsolescence | 2026-11-04 | `marks.json` (8 pins, 21 figures) + `ACCOUNTABILITY_MARKS.md` + `tools/cain_obsolescence_pins.py` |
 | `eliza/` | What a conversational agent may claim, and what it must refuse to claim | 2026-11-04 | `marks.json` (14 pins, 2 declared gaps) + `ACCOUNTABILITY_MARKS.md` + `tools/eliza_arc_pins.py` |
-| `golgotha/` | Undefined | **BLOCKED** | the term has no referent in the tree, the git history, or the telemetry store |
 
 **No verdict is written in this table.** A state typed beside a wing is a reading
 with no date and no command behind it, and this table carried three of them: `cain`
 was still described as `GAPS (4 errors)` two runs after its checker returned
 `READY`. The state block in the next section is generated from a run and checked
 for drift; this section names what each wing *is*.
+
+### Retired declarations
+
+| term | retired | why |
+| --- | --- | --- |
+| `golgotha/` | 2026-11-14 | never had a referent; it was a counter-example that got promoted into a wing |
+
+`golgotha` entered the tree at `6717428b` as contrast prose — the example of an
+artifact that does **not** qualify, because it has "no inhabitant at all". Nothing
+about the term changed after that. It was promoted into a wing-index row at
+`2cbcb97f` and into the `BLOCKED_WINGS` registry at `13412e09`, and from then on
+every container run printed a `BLOCKED` row and capped the container at
+`INCOMPLETE` for a wing no commit ever contained: there is no `ARC/golgotha/`
+directory, mark, ledger, checker or inhabitant in the tree or in its history.
+
+So it is retired rather than populated. Inventing an inhabitant to satisfy a table
+would manufacture accountability, which is the one thing this container exists to
+refuse. The declaration is removed, `BLOCKED_WINGS` is empty, and the reason is
+recorded here so the next session does not rediscover the name and re-promote it.
+The registry itself is kept: a wing someone is genuinely blocked on still belongs
+in it, and that is the bar — a named inhabitant, not a word carried forward.
 
 ## Container verdict — one command
 
@@ -91,8 +112,9 @@ its own state consistently is not quoted in the container's.
 `READY` requires every declared wing `READY` **and** nothing undeclared. A directory
 under `ARC/` with no row in `tools/arc_check.py` is reported `UNDECLARED` and caps the
 container below `READY`, so a new unchecked wing cannot enter the container silently
-and leave the verdict describing a smaller tree than the one that exists. `golgotha/`
-is printed `BLOCKED` on every run for the same reason.
+and leave the verdict describing a smaller tree than the one that exists. A wing
+declared in `BLOCKED_WINGS` is printed `BLOCKED` on every run for the same reason;
+that registry is empty today, because its only entry had no referent to grade.
 
 The block below is **generated**, never typed. `--write-readme` replaces exactly
 what sits between the markers and leaves the rest of the file alone; `--check-readme`
@@ -106,7 +128,7 @@ esquire    READY       pins=20     errors=0
 cain       READY       pins=8      errors=0
 eliza      INCOMPLETE  pins=14     errors=0
 provenance INCOMPLETE  pins=42     errors=0
-blocked: golgotha
+blocked: none
 undeclared: none
 <!-- ARC:STATE END -->
 
