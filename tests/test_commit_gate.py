@@ -9,7 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
 
 import commit_gate as cg
 
@@ -64,6 +65,27 @@ def test_generated_exempt_from_both_tallies():
     rows = [(900, 0, "graphify-out/graph.json"),
             (5000, 10, "output/render/frames.log")]
     assert cg.evaluate(rows, 150, 8) == []
+
+
+def test_generated_path_is_an_owned_whole_file_artifact():
+    # 2026-11-14: regenerating the index touched 218 lines of a generated file
+    # and needed ALLOW_BULK_COMMIT=1 to land -- a declaration spent on a
+    # non-event, and the reason this rule exists.
+    assert cg.is_generated("docs/INDEX.md")
+    assert cg.evaluate([(200, 18, "docs/INDEX.md")], 150, 8) == []
+
+    # The claim is verified against the GENERATOR's source, not this table:
+    # an entry whose tool stopped writing the file fails here instead of
+    # quietly exempting a hand-edited document forever.
+    for path, generator in cg.GENERATED_PATHS.items():
+        source = (ROOT / generator).read_text(encoding="utf-8")
+        assert Path(path).name in source, (path, generator)
+
+    # Exact paths only: siblings and case variants stay judged like source.
+    assert not cg.is_generated("docs/HANDOFF_2026-11-14.md")
+    assert not cg.is_generated("docs/index.md")
+    assert not cg.is_generated("docs/INDEX.md.bak")
+    assert cg.evaluate([(200, 18, "docs/HANDOFF_2026-11-14.md")], 150, 8) != []
 
 
 def test_state_snapshot_classification():

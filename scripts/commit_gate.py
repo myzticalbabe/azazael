@@ -57,6 +57,22 @@ GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 STATE_SNAPSHOT_RE = re.compile(
     r"^state/[A-Za-z0-9_][A-Za-z0-9_.-]*-\d{4}-\d{2}-\d{2}\.json$")
 
+#: Whole-file generators, keyed by the exact repo-relative path they OWN.
+#:
+#: An entry is a claim that one named tool rewrites this file top to bottom, so
+#: a large diff is the generator doing its job rather than hidden dirt -- the
+#: same reasoning as STATE_SNAPSHOT_RE, measured 2026-11-14: regenerating
+#: ``docs/INDEX.md`` touched 218 lines of a file no human edited and needed
+#: ``ALLOW_BULK_COMMIT=1`` to land, which is a declaration spent on a non-event.
+#:
+#: **Exact paths only.** No globs, no suffixes: ``docs/*.md`` would exempt every
+#: hand-written document in the tree, and a suffix rule would exempt the next
+#: one silently. The generator is named so tests/test_commit_gate.py can verify
+#: the claim against that tool's own source instead of trusting this table.
+GENERATED_PATHS = {
+    "docs/INDEX.md": "tools/docs_index.py",
+}
+
 
 def _git(*args: str) -> str:
     r = subprocess.run(["git", *args], capture_output=True, text=True,
@@ -167,6 +183,8 @@ def worktree_status() -> list[tuple[str, str]]:
 
 def is_generated(path: str) -> bool:
     p = path.replace("\\", "/")
+    if p in GENERATED_PATHS:
+        return True
     if any(p.startswith(d) for d in GENERATED_DIRS):
         return True
     if STATE_SNAPSHOT_RE.match(p):
