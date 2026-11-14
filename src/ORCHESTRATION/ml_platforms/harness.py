@@ -1,7 +1,12 @@
 import sys
 import os
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # src/ORCHESTRATION
+# No module-level sys.path insert here. ``src/ORCHESTRATION`` contains HYDRA.py,
+# so putting it at sys.path[0] made a later ``import HYDRA`` bind that single
+# module and break the ``HYDRA`` *package* for the rest of the process
+# (measured 2026-11-14: ORCHESTRATION.ml_platforms.harness then
+# HYDRA.ml_platforms -> "'HYDRA' is not a package"). The script-mode fallback
+# below appends the root instead, and only when the relative import fails.
 
 # coding: utf-8
 """
@@ -178,7 +183,13 @@ def cmd_monitor(args):
     print("Running health monitor...")
 
     try:
-        from ml_platforms.health_monitor import PlatformHealthMonitor
+        try:
+            from .health_monitor import PlatformHealthMonitor
+        except ImportError:  # script mode: run as harness.py, no package context
+            _pkg_root = str(Path(__file__).resolve().parent.parent)  # src/ORCHESTRATION
+            if _pkg_root not in sys.path:
+                sys.path.append(_pkg_root)  # append: inserting would shadow HYDRA
+            from ml_platforms.health_monitor import PlatformHealthMonitor
 
         monitor = PlatformHealthMonitor()
 
