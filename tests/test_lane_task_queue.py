@@ -537,3 +537,71 @@ def test_a_revised_task_is_not_counted_as_a_stale_duplicate(board):
     assert [r["task_id"] for r in b.claim_tasks("freebuff", limit=10, agent="a")] == ["REV"]
 
 
+def test_a_copy_of_work_another_lane_holds_live_is_not_offered_as_work(board):
+    """The third duplicate rule: another agent holds this work right now.
+
+    `claim_tasks` retires such a copy with the note "duplicate: same
+    task_id is already claimed" and never hands it out, so `available` must
+    not count it either.
+    """
+    b, db = board
+    _post(db, "freebuff", "HELD")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")   # live lease
+    copy = _post(db, "freebuff", "HELD")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 0, "a copy of live-held work was offered"
+    assert stats["stale_duplicates"] == 1
+    # The claim does not hand it out either, and retires the copy.
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneB")
+    assert copy not in {r["board_id"] for r in claimed}
+    con = sqlite3.connect(str(db), timeout=5)
+    state, note = con.execute(
+        "SELECT state, note FROM lane_task_state WHERE board_id=?", (copy,)
+    ).fetchone()
+    con.close()
+    assert state == "done"
+    assert "already claimed" in note
+
+
+def test_a_malformed_row_does_not_abort_the_claim(board):
+    """One unreadable row must not take the whole lane's batch with it.
+
+    `claim_tasks` read `payload.get("task_id")` outside its parse guard, so a
+    row whose content is a JSON list raised AttributeError and rolled the
+    whole claim back.
+    """
+    b, db = board
+    con = sqlite3.connect(str(db), timeout=5)
+    con.execute("INSERT INTO memorybus_queue (topic, content) VALUES (?, ?)",
+                ("lane.freebuff.tasks", json.dumps([1, 2, 3])))
+    con.commit()
+    con.close()
+    good = _post(db, "freebuff", "GOOD")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    assert good in {r["board_id"] for r in claimed}
+
+
+def test_poll_tasks_shows_the_work_a_claim_would_hand_out(board):
+    """The reader and the writer must ask the same question.
+
+    The canon at LaneMessageBoard.poll_tasks claims the poll number equals
+    what `claim` hands out. Retired rows and live leases were already
+    filtered; stale copies were not, so the reader showed 37 rows for 6
+    pieces of work.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(4):
+        _post(db, "freebuff", "STALE", action="old")
+    real = _post(db, "freebuff", "REAL", action="real")
+
+    ids = {(t.metadata or {}).get("_row_id") for t in b.poll_tasks("freebuff", limit=50)}
+    assert ids == {real}, "the reader showed copies as work"
+    # The audit view still shows everything.
+    audit = {(t.metadata or {}).get("_row_id")
+             for t in b.poll_tasks("freebuff", limit=50, include_retired=True)}
+    assert len(audit) == 6
