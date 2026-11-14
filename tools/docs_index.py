@@ -83,13 +83,14 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    import sys
-
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
     def note_failure(where, exc=None):
         pass  # ledger missing; the swallow is still named at the call site
 
-sys.exit(main())
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())
