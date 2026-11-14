@@ -442,6 +442,14 @@ def check_wired_claims(root: Path, baseline: dict) -> dict:
         wired += 1
         mod, _, qual = key.partition(":")
         name = qual.rsplit(".", 1)[-1]
+        # This check is deliberately STRICTER than the dead-control check: a
+        # call inside the defining file is reachability, not wiring, and `wired`
+        # in the mesh ledger means "a caller in another module exists".
+        # tests/test_evidence_gate.py pins both directions
+        # (test_a_wired_rows_own_definition_does_not_wire_it), and the two
+        # private helpers this flags are correctly flagged: _policy_advice is
+        # reached only by its own class, and servemesh's verify is reached by
+        # nothing at all.
         linked = False
         for rel, info in usage.items():
             if rel.startswith("tests/") or name not in info["names"]:
@@ -458,7 +466,9 @@ def check_wired_claims(root: Path, baseline: dict) -> dict:
         "status": "pass" if not new else "fail",
         "measured": f"{wired - len(unverified)}/{wired} wired rows module-linked, "
                     f"{len(unverified)} token-only ({len(new)} new)",
-        "detail": "a `wired` row must be reached from a file that imports its module",
+        "detail": ("a `wired` row must be reached from a file that imports its "
+                   "module; a call inside the defining file is reachability, "
+                   "not wiring"),
         "offenders": new,
         "known": sorted(set(unverified) & known),
     }

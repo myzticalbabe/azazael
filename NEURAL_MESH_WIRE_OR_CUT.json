@@ -3,10 +3,10 @@
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 5,
+  "wired": 3,
   "retired": 61,
   "dispatched": 148,
-  "accepted_gap": 161,
+  "accepted_gap": 163,
   "rejected": 5,
   "pending": 0
  },
@@ -1581,9 +1581,14 @@
    "link_kind": "module",
    "module": "db_monitor",
    "qualname": "DatabaseMonitorWorm._policy_advice",
-   "reason": "STATIC (refutes sibling downgrade): committed same-class callers db_monitor.py:513 (_alert_report) and :528 (_maybe_policy_alert), both self._policy_advice(...) in live code.",
+   "reason": "re-disposed 2026-11-14: reached only from its own class (db_monitor.py:523 _alert_report, :538 _maybe_policy_alert, both self._policy_advice(...)). A call inside the defining file is reachability, not wiring, so the mesh ledger cannot call it wired; the method is genuinely used, so it is not dead either. accepted_gap = missing piece is a cross-module caller, which this private helper should not have. Mechanism: the worm entry point is run().",
    "seg": "def _policy_advice(self, severity: str, source: str = \"db\") -> dict:\n        \"\"\"Attach learned-policy advice WITHOUT changing firing.\n\n        Pure query: delegates to RLTrainLoop.recommend (itself read-only\n        and never-raising) and returns its envelope. No alerts are\n        recorded, no cooldowns touched, no thresholds moved \u2014 a wrong\n        table therefore cannot trigger anything by itself. Works on a\n        partially constructed worm: any failure degrades to unknown.\n        \"\"\"\n        try:\n            loop = getattr(self, \"_rl_loop\", None)\n            if loop is None:\n                try:\n                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop\n                    loop = RLTrainLoop()\n                except Exception as exc:\n                    note_failure(\"db_monitor:L435\", exc)\n                    loop = None\n            if loop is None:\n                raise RuntimeError(\"no policy loop available\")\n            out = loop.recommend(severity, source=source)\n            if out.get(\"action_name\") not in (\n                    \"ignore\", \"log\", \"alert\", \"remediate\", \"unknown\"):\n                out[\"action_name\"] = \"unknown\"\n            return out\n        except Exception as exc:\n            note_failure(\"db_monitor:L444\", exc)\n            return {\"action\": -1, \"action_name\": \"unknown\", \"known\": False,\n                    \"state_key\": \"%s:%s\" % (source, severity),\n                    \"source\": source}",
-   "status": "wired"
+   "status": "accepted_gap",
+   "evidence": [
+    "src/CORE/WORMS/expansion/db_monitor.py:523",
+    "src/CORE/WORMS/expansion/db_monitor.py:538"
+   ],
+   "ruled_utc": "2026-11-14"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "carried": true,
@@ -4437,20 +4442,19 @@
     "static caller found by mesh_function_preflight regeneration 2026-11-07"
    ],
    "evidence": [
-    "scripts/mesh_trusted_key.py:239",
-    "scripts/mesh_trusted_key.py:251",
-    "scripts/meta_evolution_cycle.py:703"
+    "tools/evidence_gate.py check wired_claims 2026-11-14: 0/28 token files module-linked"
    ],
    "line": 628,
    "link_kind": "registry",
    "module": "servemesh",
    "qualname": "ModelShardServerWorm.verify",
-   "reason": "status moved dispatched to wired: static caller found in evidence",
+   "reason": "re-disposed 2026-11-14: no caller of any kind. The evidence this row carried (scripts/mesh_trusted_key.py:239, :251 and scripts/meta_evolution_cycle.py:703) is not a call: :239 is verify.add_argument(...) on a CLI subparser and :703 is life.transition(\"verify\"), a string. Measured: 0 files import servemesh and call verify; 28 files merely contain the token. accepted_gap = missing piece is a production caller; keep the method until one exists or it is retired.",
    "seg": "def verify(self, model: str, shard: str) -> dict[str, Any]:\n        with self._lock:\n            entry = self._shards.get(f\"{model}:{shard}\")\n            if entry is None:\n                return {\"verified\": False, \"reason\": \"shard not published\"}\n            if \"bytes\" in entry:\n                return {\"verified\": True, \"bytes\": entry[\"bytes\"]}\n            return {\"verified\": True, \"bytes\": 0}",
-   "status": "wired",
+   "status": "accepted_gap",
    "carried": true,
    "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'verify' in 27 file(s) [scripts/build_all_concurrent.py, scripts/mesh_trusted_key.py, scripts/sync_all.py, scripts/sync_g_drive.py, src/CODEX/CORE/AUTO_DOWNLOADER.py]; module-linked: yes",
-   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm"
+   "link_evidence": "C:/Azazael/azazael/src/CORE/WORMS/expansion/servemesh.py:593 @register_worm on ModelShardServerWorm",
+   "ruled_utc": "2026-11-14"
   },
   "session_state:SessionStateManager.__init__": {
    "decider": "protocol_or_override",

@@ -44,8 +44,5 @@
     "tools/esquire_admissibility.py:730 gate_10_forum_standard"
   ],
   "store_growth_max_mb": 600,
-  "wired_token_only": [
-    "db_monitor:DatabaseMonitorWorm._policy_advice",
-    "servemesh:ModelShardServerWorm.verify"
-  ]
+  "wired_token_only": []
 }
