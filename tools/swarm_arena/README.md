@@ -123,9 +123,10 @@ order leaves Windows holding pointers into files that are gone.
 Sizes: the arrow carries 16, 32 and 48 px, each from the master that suits it
 (the hand-tuned 16 px master at 16, the 32 px master at 32 and scaled at 48), so
 the small rendition is not a squeezed copy of the large one. `Wait` and
-`AppStarting` share an 8-frame `.ani` in which the salute swings ±14° with its
-tip pinned — wide enough that the palm travels six pixels, which took a larger
-raster canvas to draw (see the three notes at the end of this file).
+`AppStarting` share an 8-frame `.ani` in which the salute swings ±24° with its
+tip pinned — the palm travels 9.71 px at 32 px, 51% of the glyph's own ink
+height, which took a six-times-larger raster canvas to draw (see the three notes
+at the end of this file).
 
 **Slot coverage — 11 of the 15 scheme slots carry salute art.** Windows draws
 four more whether or not a scheme supplies them (a crosshair has no pointer tip
@@ -136,7 +137,7 @@ defaults and the scheme leaves their registry values empty.
 | --- | --- | --- | --- |
 | Arrow | `vulcan-arrow.cur` | `pointer` master, 16/32/48 px | tip `8.5,2` |
 | Hand | `vulcan-hand.cur` | `link` master, 16/32/48 px | tip `6,4` |
-| AppStarting / Wait | `vulcan-busy.ani` | `pointer` master, 8 frames, ±14° swing, 96 px raster → 32 px | tip |
+| AppStarting / Wait | `vulcan-busy.ani` | `pointer` master, 8 frames, ±24° swing, 192 px raster → 32 px | tip |
 | IBeam | `vulcan-text.cur` | `pointer`, rotated 180° | fingertip (now pointing down) |
 | SizeAll | `vulcan-move.cur` | `pointer` ×4 at 0/90/180/270°, s 0.42, off ±7.0 | centre |
 | SizeNS | `vulcan-ns.cur` | `pointer` ×2 at 0°/180°, s 0.48, dy ±7.5 | centre |
@@ -190,21 +191,24 @@ Three things this file had to get right, all measured rather than assumed:
   (`ERROR_INVALID_PARAMETER`) and no other clue.
 - **A wide swing does not fit its tile, and a bigger canvas does not fix a
   ratio.** The glyph hangs about 27 units below a pivot two units under its top,
-  so at ±14° the union of the eight rotated ink boxes is 37.3 × 35.2 units
+  so at ±24° the union of the eight rotated ink boxes is 46.5 × 40.7 units
   against a 32-unit tile: no placement fits it, and the in-tile offset that
-  served ±6° stopped being enough. The busy frames are now rasterised at 96 px
-  with the glyph scaled to fit its own arc plus a 2 px margin (`wave_layout`),
+  served ±6° stopped being enough. The busy frames are now rasterised at 192 px
+  with the glyph scaled to fit its own arc plus a 1 px margin (`wave_layout`),
   every frame is refused if its outer ring carries ink (`assert_unclipped` — a
-  cut frame cannot be repaired later), and the canvas is box-filtered 3:1 back
+  cut frame cannot be repaired later), and the canvas is box-filtered 6:1 back
   to 32 px. Scaling the canvas up alone would change nothing: canvas and art
   grow together, so the fit is a ratio and the glyph has to be drawn smaller.
-- **The wave had to be wide enough to read as motion.** Measured from the built
-  frames: ±6° moved the palm 3.05 px, 10.2% of the glyph's own ink height — a
-  tremble. ±14° moves it 6.24 px, 24.0% step to step (6.67 px and 29.0% between
-  the two extreme frames, which is the metric `--check` reports). The price is a
-  glyph 4 px shorter than
-  the static arrow's (26 px of ink against 30), which is why the wave was widened
-  rather than the frames stretched.
+- **The wave had to be wide enough to read as motion, and the arc is the only
+  lever that pays.** Measured from the built frames: ±6° moved the palm
+  3.05 px, 10.2% of the glyph's own ink height — a tremble. ±24° moves it
+  9.71 px, 51.1% of a 19 px ink height, and the same 9.71 px separates the two
+  extreme frames, which is the metric `--check` reports against `MOTION_FLOOR`.
+  A vertical bob was tried first and measured worse, because a bob has to be
+  added to the layout margin: at 6 canvas px it bought 8.32 px of travel and
+  cost the salute 6 px of height (a 20 px glyph), so the bob was removed and
+  the arc widened instead — 9.71 px of travel on a 19 px glyph is the better
+  trade. The price is a glyph 7 px shorter than the static arrow's 26 × 29.
 
 `--install` refuses to copy anything unless every artefact comes back from
 `LoadCursorFromFileW` as a real `HCURSOR`; `--apply` reads the live registry
@@ -225,6 +229,7 @@ python build_soulforge.py   # -> dist/SOULFORGE.exe, then runs it --status
 dist/SOULFORGE.exe          # status, then the menu (double-clickable)
 dist/SOULFORGE.exe --apply  # build from its own masters, install, go live
 dist/SOULFORGE.exe --check  # read it all back; exit 1 names each defect
+dist/SOULFORGE.exe --selftest # build, install, check, uninstall on a throwaway key
 ```
 
 The binary carries the SVG masters as data (`--include-data-dir=cursors=cursors`)
@@ -236,7 +241,34 @@ writes artefacts to `%LOCALAPPDATA%\SOULFORGE\out\cursors`, which outlives the
 process; `SOULFORGE_OUT` overrides that. Run from the repo, both paths are what
 they always were.
 
-Measured here on 2026-11-14: `dist/SOULFORGE.exe` is 8 242 176 B; `--apply`
+### `--selftest` — proving the binary without moving the user's pointer
+
+The four verbs change the desktop, so testing them by hand means testing them on
+the person using it. `--selftest` runs each as a child of itself with
+`SOULFORGE_CURSOR_KEY`, `SOULFORGE_SCHEME_DIR` and `SOULFORGE_OUT` pointed at
+`HKCU\Software\SOULFORGE\selftest-<pid>` and a temp folder, snapshots the live
+`Cursors` key before and after, and fails if any value moved. Negative control:
+patching the second read so it differs prints `DEFECT the live Cursors key
+changed: Arrow` and exits 1. `reload_pointers()` prints `skip SPI_SETCURSORS
+under a throwaway key` rather than repainting the live scheme, and `--apply`
+creates the throwaway key instead of refusing a missing one.
+
+The part a source run cannot reveal is re-running itself: a onefile build leaves
+`sys.executable` inside its extraction folder at a path that never exists
+(`...\onefile_21916_...\python.exe`, `FileNotFoundError WinError 2`, measured
+2026-11-14), so the identical code passed `python soulforge.py --selftest` and
+failed as an exe — which is the reason the verb exists. `self_command()` takes
+the real program from `SOULFORGE_SELF`, then the bootstrap parent's image
+(`NUITKA_ONEFILE_PARENT` plus `QueryFullProcessImageNameW`), then `argv[0]`, then
+`sys.executable`, and prints `DEFECT no runnable self` when none is a file
+rather than reporting a pass it did not have.
+
+Measured here on 2026-11-14: `dist\SOULFORGE.exe --selftest` printed `selftest
+self ...\dist\SOULFORGE.exe`, its `--check` child printed `motion AppStarting 8
+frame(s), 32 px, palm 9.71 px = 51.1% of 19 px ink` and `clean 0 defect(s)`, and
+the verb ended `selftest PASS ... live key untouched (20 value(s))`, exit 0.
+
+The exe itself. Measured the same day, `dist/SOULFORGE.exe` is 8 263 168 B; `--apply`
 built 10 artefacts from the packed masters, installed 10 files, wrote 11 live
 values and ended `scheme      Vulcan Swarm` at exit 0; `--check` printed
 `10 read back, 10 installed copy(ies), 11 live value(s)` and `clean 0 defect(s)`.

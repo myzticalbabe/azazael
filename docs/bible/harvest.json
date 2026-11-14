@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2203,
+  "as_of_id": 2224,
   "path": "~/.engram/engram.db",
-  "records": 1325,
+  "records": 1332,
   "types": [
    "bugfix",
    "decision",
@@ -22695,6 +22695,90 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Live-tested all 11 Gamora-win10.exe functions on 316t. 10 clean: doctor READY 8/8, lilith 14 tables, eve oracle SUPPORTED 1.0, kilo 7.8.27, opencode v2.2.6, freebuff 0.2.36 (all with spans, 4/4 matched in otel_spans), swarm CHECKABLE, berzerker audit 23/23, inject emitted under span, lucy therapy live. Cradle executes but degraded: eve-vessel-316t.gguf sidecar exit 1 (adopted=1 failed=1) + frozen z3 missing libz3.dll warning.",
    "title": "All 11 Gamora functions live-tested: 10 clean, cradle degraded"
+  },
+  {
+   "cause": "ESP read-back with S: mounted showed SecureBoot=False (so an unsigned MELLI stub is not signature-blocked), EFI\\MELLI\\vmlinuz.efi 14758912 B sha E73DC060…, EFI\\ubuntu\\grub.cfg 3138 B sha 272A6596… with 4 menuentries and no top-level configfile. But `chainloader /EFI/MELLI/vmlinuz.efi` passes neither cmdline nor initramfs — the MELLI entry needs `linuxefi … root=PARTUUID=<new>` + `initrdefi …` once P4 holds the rootfs. Also: probe_melli.log's \"P4 PARTUUID drifted\" is a false positive (the live GUID equals the expected e4ff9384-…), and firmware contains a mislabeled duplicate {b7173bfa-…} pointing at shimx64.efi but described \"UEFI: HTTP IPv4 Network Card\", harmless because it is not in fwboo…",
+   "date": "2026-11-13",
+   "id": "engram-2218",
+   "kind": "engram:bugfix",
+   "line": 2218,
+   "rationale": "What: Removed Windows BCD object {b7173bfb-dbd1-11f0-8e4f-aa2261939d2d} — type \"Real-mode Boot Sector\", path \\EFI\\MELLI\\vmlinuz.efi, description \"MELLI-OS 1.0 (hyper-edge)\". Why: Selecting it in Windows Boot Manager returned 0xc000007b. A Real-mode Boot Sector object is a 16-bit/legacy loader type; it cannot start an EFI PE image, so the stub could never load. bcdedit also cannot create the correct \"Firmware Application (101fffff)\" type, so this entry had no path to working. Where: Windows BCD store on Disk0 P1 (ESP). Verified with elevated `bcdedit /enum` at 2026-11-13 15:51 — only `{bootmgr}` (Windows Boot Manager) and `{current}` (Windows 11) remain, `displayorder {current}`, no Real-mod…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Removed Windows BCD object {b7173bfb-dbd1-11f0-8e4f-aa2261939d2d} — type \"Real-mode Boot Sector\", path \\EFI\\MELLI\\vmlinuz.efi, description \"MELLI-OS 1.0 (hyper-edge)\".",
+   "title": "Deleted MELLI BCD Real-mode entry that caused 0xc000007b"
+  },
+  {
+   "cause": "`0xc000007b` on a Linux EFI stub means the BCD object type is wrong. `Real-mode Boot Sector` cannot launch an EFI PE image, and `bcdedit` cannot create the correct `Firmware Application (101fffff)`, so such an entry has no repair path — delete it, reach the stub via GRUB. 2. Default `bcdedit /enum` renders only the bootmgr-reachable chain: 2 objects out of a 21-object store. An entry can be absent from the default view and from the F12 menu (not in `fwbootmgr displayorder`) while still on disk. `/enum all`, `/enum firmware`, and `HKLM\\BCD00000000\\Objects` are three different questions. 3. Two Firmware Application objects targeting one file is the signature of a bad `bcdedit` copy/set — expo…",
+   "date": "2026-11-13",
+   "id": "engram-2219",
+   "kind": "engram:learning",
+   "line": 2219,
+   "rationale": "What: Recorded 13 lessons from the 2026-11-13 GRUB/BCD repair into `bake_harvest_grubfix_2026-11-13.jsonl` (project root, existing lane schema {source,item_id,title,body,kind}); validation pass printed `OK 13 BAD 0 KINDS {anti_pattern:3, lesson:4, error_fix:3, violation:2, mandate:1}`. Why: Four defect classes were earned in one session and each cost a cycle: a misdiagnosed boot error, three wrong readings from one instrument, two shell hazards that damaged state, and one file destroyed by careless cleanup. Where: `bake_harvest_grubfix_2026-11-13.jsonl`; Windows BCD store (ESP P1); `p8_postboot/grub_winfirst.cfg`; `MELLI_OS/INSTALL_191G.md`. Learned: 1. `0xc000007b` on a Linux EFI stub mean…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Recorded 13 lessons from the 2026-11-13 GRUB/BCD repair into `bake_harvest_grubfix_2026-11-13.jsonl` (project root, existing lane schema {source,item_id,title,body,kind}); validation pass printed `OK 13 BAD 0 KINDS {anti_pattern:3, lesson:4, error_fix:3, violation:2, mandate:1}`.",
+   "title": "GRUB/BCD repair lessons: instrument surfaces, elevation traps, shell hazards"
+  },
+  {
+   "cause": "(1) The daemon 409 body is the real diagnostic - the MCP error text hides it; always curl /project/current?cwd= with the raw cwd to see code/available_projects. (2) A directory under a HOME-rooted git repo needs its own .engram/config.json to be addressable; gitignored subtrees are exactly the ones that fail. (3) mem_current_project can report a project that mem_save refuses to use - the two read different resolution paths (process env vs daemon). (4) The opencode lane's ~/.config/opencode/opencode.json still points at the OLD engram.exe (3.6.0 lineage) while ~/.agents/mcp.json points at engram_3.7.1.exe; the running daemon is engram.exe serve (older). Aligning that is a separate change nee…",
+   "date": "2026-11-14",
+   "id": "engram-2220",
+   "kind": "engram:bugfix",
+   "line": 2220,
+   "rationale": "What: mem_save failed every call with 'gentle-engram could not resolve a safe project identity'. Root cause was NOT the MCP client: the embedded JS resolver calls GET /project/current?cwd=<dir> on the engram daemon (:7437/7439 range, pid 14060 engram.exe serve) and rejects the answer unless project is non-empty, != 'unknown', has no error_hint and contains no path separator. Why: cwd was C:\\Users\\clint\\Desktop, which sits inside the HOME-rooted git repo C:\\Users\\clint. Daemon resolution order is explicit -> ENGRAM_PROJECT env override -> cwd detection; detection order is config (.engram/config.json) -> git binding -> child scan. Desktop had no .engram/config.json, so it fell to the git bind…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "mem_save failed every call with 'gentle-engram could not resolve a safe project identity'. Root cause was NOT the MCP client: the embedded JS resolver calls GET /project/current?cwd=<dir> on the engram daemon (:7437/7439 range, pid 14060 engram.exe serve) and rejects the answer unless project is non-empty, != 'unknown', has no error_hint and contains no path separator.",
+   "title": "Engram mem_save failed on Desktop cwd: daemon 409 explicit_project_required"
+  },
+  {
+   "cause": "(1) MEASURED FLOOR (2026-11-13, 3.16t, saved to C:/Users/clint/AppData/Local/Temp/opencode/cursor_timings.txt): interpreter 50ms, leg_ledger 62ms, settings_shadow narrow 69ms, reading_audit 86ms, head_audit 395ms, settings_shadow broad 4035ms, golden_arrow --file light test 1039ms and heavy test 8781ms. (2) SCOPE IS THE WHOLE COST STORY: settings_shadow on src/CORE/trace = 69ms vs src/CORE = 4035ms, 58x from scope alone, same code - no optimisation beats scoping. (3) The test gate is SECONDS not milliseconds, so 'sub-second' can only mean the VERDICT (target <=250ms p95, in-process, ZERO subprocess spawns), never the whole swarm; the memo already resolved this by gating once per swarm inten…",
+   "date": "2026-11-14",
+   "id": "engram-2221",
+   "kind": "engram:architecture",
+   "line": 2221,
+   "rationale": "What: Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table. Why: User asked for a cursor swarm with extended functionality. The memo (PMB 001a1d0897ff5_9bf9827a) was one paragraph; this makes it buildable with acceptance commands per phase. Where: C:/Azazael/azaz…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table.",
+   "title": "Cursor swarm v2 design landed: measured floor, atomic transaction, 12-point extended functionality"
+  },
+  {
+   "cause": "(1) THE SUB-SECOND WIN IS SCOPING, NOT RUST: settings_shadow over 6 modules measures 73 ms vs 105,044 ms over the whole tree - 1439x, same binary, same code path. The four HED auditors already accept --root/--glob. (2) The spawn floor is 34 ms median (python -c pass), so per-cursor subprocesses cost 4x34 ms before any work. (3) Only settings_shadow has an inherently per-cursor subject; head_audit audits the whole repo, reading_audit audits report artifacts, leg_ledger audits one report - so 'four verdicts per cursor' needs per-auditor scoped semantics written down or green is green about a question nobody asked. (4) A8's parenthetical 'ms via native Rust worm_manifest' names the WRONG bottl…",
+   "date": "2026-11-14",
+   "id": "engram-2222",
+   "kind": "engram:architecture",
+   "line": 2222,
+   "rationale": "What: Designed and landed the A8 sub-second cursor swarm: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md (commit eec3c25d, 604 insertions). Also fixed tools/docs_index.py, whose output was written outside the try block so the generated docs index never appeared (INDEX.md was 12 days stale: 168 docs vs 287 now). Why: The user asked to design a cursor swarm with extended functionality. A8 in docs/ADAPTATIONS_HYPER_EDGE_2026-11-07.md asked for it in one paragraph with no architecture. Where: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md; tools/docs_index.py; measurement capture C:/Users/clint/AppData/Local/Temp/opencode/cursor_swarm_measurements.txt Learned: (1) THE SUB-SECOND WIN IS SCOPING, NOT RUST:…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Designed and landed the A8 sub-second cursor swarm: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md (commit eec3c25d, 604 insertions). Also fixed tools/docs_index.py, whose output was written outside the try block so the generated docs index never appeared (INDEX.md was 12 days stale: 168 docs vs 287 now).",
+   "title": "Cursor swarm A8 design landed: scoping is the sub-second win, not Rust"
+  },
+  {
+   "cause": "(1) The staged scanner rejects any new `subprocess.run` with `subprocess_no_timeout`; `timeout=30` plus an `except subprocess.TimeoutExpired:` branch calling `refuse(...)` passes — the second statement is the structural fix, no rebaseline. (2) The scope hash is over committed content, so it necessarily moves when HEAD moves: 2118690a at fe526e1b, 881331a3 at 97305f70. Do not read that as drift. (3) Both controls were run: dirty tree printed `NOT PROVEN` with the dirty paths and exited 2; clean tree printed `PROVEN (clean worktree)` and exited 0. (4) `_board.py tasks` has no `--claimed` flag despite the canon's prose; `stats` reports `claimed_live` instead.",
+   "date": "2026-11-14",
+   "id": "engram-2223",
+   "kind": "engram:bugfix",
+   "line": 2223,
+   "rationale": "What: Closed the two audit items still open on the cursor view, as instruments rather than prose. I1: `read_scope()` now enumerates a scope through `git ls-files` and refuses a scope with no index entry, printing a named remedy (`git add <path>`) and exiting 2. Index count and worktree count print side by side. I5: `rollback_proof()` reads `git ls-tree -r HEAD` object ids plus the `git status --porcelain` dirty set over the same scope, and the scope hash is sha256 over `path object-id` pairs; `--prove` is the strict form (exit 2 unless clean). Also added `--scope` (repeatable), `refuse()`, `git_text()`, `disk_modules()`. Why: I1's census defect was countable: the audit quoted 10,112 files w…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the two audit items still open on the cursor view, as instruments rather than prose. I1: `read_scope()` now enumerates a scope through `git ls-files` and refuses a scope with no index entry, printing a named remedy (`git add <path>`) and exiting 2. Index count and worktree count print side by side. I5: `rollback_proof()` reads `git ls-tree -r HEAD` object ids plus the `git status --porcelain` dirty set over the same scope, and the scope hash is sha256 over `path object-id` pairs; `--prove` is the strict form (exit 2 unless clean). Also added `--scope` (repeatable), `refuse()`, `git_text()`, `disk_modules()`.",
+   "title": "Closed swarm_view audit I1 and I5: index-based scope, ls-tree rollback proof"
+  },
+  {
+   "cause": "Independent confirmation outside the tool — after uninstall the scheme dir is gone (os.path.isdir False) and HKCU\\Control Panel\\Cursors holds 20 values (Aero). `--apply` then printed \"backup … (20 values)\" instead of \"backup kept\"; that is correct, because _write_backup only prints \"kept\" when live_is_ours(values) is True, and after uninstall the live state was Aero. Verified the rewritten backup is honest: 20 values, 0 vulcan-swarm paths, 14 aero paths, scheme field 'Windows Aero'. Reading \"backup\" as a regression of the c06dc991 fix would have been a false finding. Every HCURSOR handle returned non-zero (0x134071d … 0xd205d2), so Windows loaded all ten.",
+   "date": "2026-11-14",
+   "id": "engram-2224",
+   "kind": "engram:discovery",
+   "line": 2224,
+   "rationale": "What: Exercised the whole cursor-scheme lifecycle through the compiled binary rather than the script: `dist/SOULFORGE.exe --uninstall` (exit 0: \"cursor 11 live value(s) cleared to the system default\", \"scheme Vulcan Swarm removed\", \"uninstalled 10 file(s)\"), `--status` (exit 0: installed 0 file(s), live 0 slot(s), scheme ''), `--defaults` (exit 0: 15 Aero slot defaults), `--apply` (exit 0: 10 artefacts, 10 files installed, 11 live values, scheme 'Vulcan Swarm'), `--check` (exit 0: \"artefacts 10 read back, 10 installed copy(ies), 11 live value(s) in vulcan-swarm\", \"clean 0 defect(s)\"). Why: The exe had only been proved for build/apply/check; uninstall and the post-uninstall reinstall were un…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Exercised the whole cursor-scheme lifecycle through the compiled binary rather than the script: `dist/SOULFORGE.exe --uninstall` (exit 0: \"cursor 11 live value(s) cleared to the system default\", \"scheme Vulcan Swarm removed\", \"uninstalled 10 file(s)\"), `--status` (exit 0: installed 0 file(s), live 0 slot(s), scheme ''), `--defaults` (exit 0: 15 Aero slot defaults), `--apply` (exit 0: 10 artefacts, 10 files installed, 11 live values, scheme 'Vulcan Swarm'), `--check` (exit 0: \"artefacts 10 read back, 10 installed copy(ies), 11 live value(s) in vulcan-swarm\", \"clean 0 defect(s)\").",
+   "title": "SOULFORGE exe lifecycle proved end to end (uninstall → defaults → apply → check)"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -22772,12 +22856,12 @@
  ],
  "totals": {
   "by_kind": {
-   "engram:architecture": 33,
-   "engram:bugfix": 175,
+   "engram:architecture": 35,
+   "engram:bugfix": 178,
    "engram:config": 14,
    "engram:decision": 479,
-   "engram:discovery": 261,
-   "engram:learning": 286,
+   "engram:discovery": 262,
+   "engram:learning": 287,
    "engram:lesson": 62,
    "engram:pattern": 15,
    "error": 276,
@@ -22787,7 +22871,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1896,
+  "records": 1903,
   "surfaces": 14
  }
 }

@@ -277,6 +277,20 @@ class Finding:
     excerpt: str
     source: str = "opencode"
 
+    def __post_init__(self):
+        """The three ids are keys, whatever the store handed back.
+
+        A transcript store types its ids however its schema felt: the manicode
+        reader yields an int part id and the opencode reader a string, so an
+        annotated `str` field received both and finding_key's join died on the
+        first int (TypeError: sequence item 3: expected str instance, int
+        found, measured 2026-11-14). Coerce once here instead of at each join,
+        so the annotation is true for every emission.
+        """
+        self.session_id = str(self.session_id)
+        self.message_id = str(self.message_id)
+        self.part_id = str(self.part_id)
+
 
 def finding_key(f: "Finding") -> str:
     """Identity of one emission. Stable, because the emission is frozen.

@@ -56,9 +56,14 @@ CHROME_CANDIDATES = (
 )
 CURSOR_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft",
                           "Windows", "Cursors")
-SCHEME_DIR = os.path.join(CURSOR_DIR, "vulcan-swarm")
+# --selftest runs every verb with a throwaway key and folder, so proving the
+# binary cannot move the pointers the desktop is using. The live key stays
+# named here, so a run can show it was not the one that changed.
+LIVE_CURSORS_KEY = r"Control Panel\Cursors"
+CURSORS_KEY = os.environ.get("SOULFORGE_CURSOR_KEY") or LIVE_CURSORS_KEY
+SCHEME_DIR = (os.environ.get("SOULFORGE_SCHEME_DIR")
+              or os.path.join(CURSOR_DIR, "vulcan-swarm"))
 SCHEME_NAME = "Vulcan Swarm"
-CURSORS_KEY = r"Control Panel\Cursors"
 # Where Windows keeps the machine-wide scheme definitions this tool falls back
 # to. `--defaults` reads a real scheme from here rather than inventing paths, so
 # every value it writes is one Windows already resolves on this machine.
@@ -73,23 +78,31 @@ SLOTS = ("Arrow", "Help", "AppStarting", "Wait", "Crosshair", "IBeam", "NWPen",
 
 # One animation frame per entry, in degrees, sampled from the CSS keyframes the
 # on-screen page uses (0%%, 32%%, 66%%, 100%%) at eight steps and then widened.
-# At the previous +/-6 degrees the palm travelled 3.05 px at 32 px, 10% of the
-# glyph's ink height, which the eye reads as a tremble rather than a wave. At
-# +/-14 it travels 6.24 px, 24% -- measured from the built frames, not predicted.
-# The cost is that the arc no longer fits a 32 px tile by any placement: the
-# union of the eight rotated ink boxes is 37.3 x 35.2 units against 32, because
-# the glyph hangs 27 units below a pivot two units under its top. So the frames
-# are rasterised on a larger canvas and box-filtered down -- widening the wave
-# is a size problem before it is an animation problem.
-WAVE = (0.0, -9.0, -14.0, -9.5, 0.0, 9.5, 13.5, 6.5)
+# The shipped arc is a sine sampled at eight points, so the loop closes without
+# a repeated frame: no two neighbours are equal and no hold interrupts the beat.
+#
+# Widening is the only lever that pays. A +/-6 degree wave travelled 3.05 px at
+# 32 px (10% of the glyph's ink height -- a tremble, not a wave). A vertical bob
+# was tried and measured worse: every pixel of bob costs ~1.4 px of glyph height
+# (it has to be added to the layout margin) and buys ~1.8 px of travel, so at 6
+# canvas px of bob the salute shrank to 14 px of ink to gain 8.3 px of sway.
+# The arc alone is the better trade -- measured on this table: 9.71 px of palm
+# travel on 19 px of ink, 51.1% of the glyph, with the salute still full-bodied.
+#
+# The cost is that the arc cannot fit a 32 px tile by any placement: the union
+# of the eight rotated ink boxes beats 32 units, because the glyph hangs 27
+# units below a pivot two units under its top. So the frames are rasterised on
+# a larger canvas and box-filtered down -- widening the wave is a size problem
+# before it is an animation problem.
+WAVE = (0.0, -17.0, -24.0, -17.0, 0.0, 17.0, 24.0, 17.0)
 JIF = 6  # frame duration in 1/60 s -> 100 ms per frame
 BUSY_PX = 32       # the size the .ani ships as
-BUSY_CANVAS = 96   # supersampled raster: an exact 3:1 box filter reduces it
-BUSY_MARGIN = 2    # canvas pixels kept clear on every side of the arc
+BUSY_CANVAS = 192  # supersampled raster: an exact 6:1 box filter reduces it
+BUSY_MARGIN = 1    # canvas pixels kept clear on every side of the arc
 # Below this much palm spread the busy slot is a still picture with jitter: the
 # +/-6 degree wave shipped at 3.05 px and was never seen to animate. --check
 # fails under it, measured from the file rather than from WAVE.
-MOTION_FLOOR = 4.0
+MOTION_FLOOR = 8.5
 
 # ── the remaining slots, composed from the one master ────────────────────
 #
@@ -267,17 +280,18 @@ def rasterise(svg_markup, native, hotspot, target, angles, workdir,
     ox = hotspot[0] * scale
     oy = hotspot[1] * scale
     tiles = "".join(
-        '<div class="tile"><div class="rot" style="transform:rotate(%.2fdeg)">%s</div></div>'
-        % (a, svg_markup) for a in angles)
+        '<div class="tile"><div class="rot" style="left:%.3fpx;top:%.3fpx;'
+        'transform:rotate(%.2fdeg)">%s</div></div>'
+        % (offset[0], offset[1], a, svg_markup)
+        for a in angles)
     page = """<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;background:transparent;overflow:hidden}
 .tile{width:%dpx;height:%dpx;position:relative;overflow:hidden;float:left}
-.rot{position:absolute;left:%.3fpx;top:%.3fpx;width:%.3fpx;height:%.3fpx;
+.rot{position:absolute;width:%.3fpx;height:%.3fpx;
      transform-origin:%.4fpx %.4fpx}
 .rot svg{display:block;width:%.3fpx;height:%.3fpx}
 </style></head><body>%s</body></html>""" % (
-        target, target, offset[0], offset[1], box, box, ox, oy,
-        box, box, tiles)
+        target, target, box, box, ox, oy, box, box, tiles)
     html = os.path.join(workdir, "r%d.html" % target)
     png = os.path.join(workdir, "r%d.png" % target)
     with open(html, "w", encoding="utf-8") as fh:
@@ -555,12 +569,17 @@ def windows_loads(path):
         return False, "user32 unavailable: %s" % exc
 
 
-def read_scheme():
+def read_scheme(missing_ok=False):
     """Every live value under the Cursors key, or a refusal naming the key.
 
     A missing key used to reach the caller as a bare FileNotFoundError
     traceback raised from inside `--apply`, which reads as a bug in this tool
     rather than as a registry this account cannot see.
+
+    `--apply` alone passes missing_ok: a key that holds no pointers has no
+    state to save and nothing to protect, so the back-up is empty and the
+    install creates the key. Every read-back verb keeps the refusal, because
+    there 'nothing to read' is the defect and a fresh throwaway key is not.
     """
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY) as key:
@@ -570,6 +589,9 @@ def read_scheme():
                 out[name] = value
             return out
     except FileNotFoundError:
+        if missing_ok:
+            print("absent      HKCU\\%s holds no pointers yet" % CURSORS_KEY)
+            return {}
         raise SystemExit("make_cursors: HKCU\\%s does not exist; nothing to read"
                          % CURSORS_KEY)
 
@@ -590,6 +612,25 @@ def live_is_ours(values):
     """True when the live pointers this tool sets already name its own files."""
     mine = [values.get(slot, "") for slot in PROGRAMS]
     return any(owns(v) for v in mine) and all(not v or owns(v) for v in mine)
+
+
+def reload_pointers():
+    """Tell Windows to re-read the pointers, or say why it was not asked.
+
+    Under a throwaway key (--selftest) the desktop never reads what was just
+    written, so a reload would repaint the live scheme and prove nothing about
+    the key under test. Saying so is the difference between a step that was
+    skipped on purpose and one that silently did nothing.
+    """
+    if CURSORS_KEY != LIVE_CURSORS_KEY:
+        print("skip        SPI_SETCURSORS under a throwaway key (%s)"
+              % CURSORS_KEY)
+        return False
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
+        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
+                         % ctypes.get_last_error())
+    return True
 
 
 def _write_backup(values, path):
@@ -867,22 +908,19 @@ def do_install(args):
 
 def do_apply(args):
     os.makedirs(OUT, exist_ok=True)
-    current = read_scheme()
+    current = read_scheme(missing_ok=True)
     if not _write_backup(current, backup_path()):
         print("undo        no pre-install backup exists for this state; "
               "--defaults returns to %s" % DEFAULT_SCHEME)
     do_install(args)
     live = {slot: os.path.join(SCHEME_DIR, name)
             for slot, name in PROGRAMS.items()}
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
-                        winreg.KEY_SET_VALUE) as key:
+    with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
+                           winreg.KEY_SET_VALUE) as key:
         for slot, path in live.items():
             winreg.SetValueEx(key, slot, 0, winreg.REG_EXPAND_SZ, path)
         winreg.SetValueEx(key, "", 0, winreg.REG_SZ, SCHEME_NAME)
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
-        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
-                         % ctypes.get_last_error())
+    reload_pointers()
     now = read_scheme()
     for slot in live:
         print("live        %-11s %s" % (slot, now.get(slot, "<missing>")))
@@ -912,10 +950,7 @@ def do_restore(args):
         for name, value in saved.items():
             kind = winreg.REG_SZ if isinstance(value, str) else winreg.REG_DWORD
             winreg.SetValueEx(key, name, 0, kind, value)
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
-        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
-                         % ctypes.get_last_error())
+    reload_pointers()
     now = read_scheme()
     for slot in PROGRAMS:
         print("restored    %-11s %s" % (slot, now.get(slot, "<missing>")))
@@ -943,10 +978,7 @@ def do_defaults(args):
         for slot, value in zip(SLOTS, fields):
             winreg.SetValueEx(key, slot, 0, winreg.REG_EXPAND_SZ, value)
         winreg.SetValueEx(key, "", 0, winreg.REG_SZ, DEFAULT_SCHEME)
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    if not user32.SystemParametersInfoW(0x57, 0, None, 0):
-        raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
-                         % ctypes.get_last_error())
+    reload_pointers()
     now = read_scheme()
     print("scheme      %s" % now.get("", ""))
     for slot in SLOTS:
@@ -1048,10 +1080,7 @@ def do_uninstall(args):
             for slot in ours:
                 winreg.SetValueEx(key, slot, 0, winreg.REG_SZ, "")
             winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "")
-        user32 = ctypes.WinDLL("user32", use_last_error=True)
-        if not user32.SystemParametersInfoW(0x57, 0, None, 0):
-            raise SystemExit("make_cursors: SPI_SETCURSORS failed (error %d)"
-                             % ctypes.get_last_error())
+        reload_pointers()
         print("cursor      %d live value(s) cleared to the system default"
               % len(ours))
     try:

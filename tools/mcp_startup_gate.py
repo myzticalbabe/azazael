@@ -1033,7 +1033,8 @@ def _git(root, *args):
     """(returncode, stdout-stripped). A git that will not run is recorded."""
     try:
         proc = subprocess.run(["git", "-C", str(root)] + list(args),
-                              capture_output=True, text=True, timeout=60)
+                              capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
         _note("git %s failed: %s" % (" ".join(args), exc))
         return 1, ""
