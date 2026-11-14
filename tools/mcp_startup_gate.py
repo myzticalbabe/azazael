@@ -39,6 +39,12 @@ WHAT IT CHECKS (behaviour first, config second)
                        credential authenticates. A lane with NO baked token is
                        fine: the proxy resolves the live one at request time.
   9  lane-context      engram / codegraph / barta present (WARN only)
+ 10  codegraph-staleness  every lane's --graph resolves to the ONE canonical
+                       store, and that store's own `built_at_commit` still
+                       describes HEAD (added 2026-11-14: a lane config names
+                       a PATH, and a path never expires, so a graph built
+                       hundreds of commits ago resolved and answered while
+                       the stale build was recorded in the file all along)
 
 USAGE
   python mcp_startup_gate.py            check, exit 1 on any FAIL
@@ -81,6 +87,12 @@ FREEBUFF_CONF = HOME / ".agents" / "mcp.json"
 OPENCODE_CONF = HOME / ".config" / "opencode" / "opencode.json"
 OPENCODE_KILO_CONF = HOME / ".config" / "opencode" / "kilo.jsonc"
 ORDERS_SYNC = Path("C:/Azazael/azazael/tools/agent_orders_sync.py")
+#: This checkout. The gate lives in <root>/tools/, so parents[1] is the repo.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+#: The ONE graph store every lane must serve. A generation directory
+#: (`src/graphify-out/2026-11-13/graph.json`) is a copy that stops moving the
+#: day it is written, which is the drift this check exists to name.
+CODEGRAPH_STORE = REPO_ROOT / "src" / "graphify-out" / "graph.json"
 PROXY_STAMP = HOME / ".pmb" / "floor_proxy_runtime.json"
 PROXY_STARTUP = (HOME / "AppData" / "Roaming" / "Microsoft" / "Windows" /
                  "Start Menu" / "Programs" / "Startup" / "pmb-floor-proxy.vbs")
@@ -951,6 +963,179 @@ def check_context_servers(procs):
 
 
 # --------------------------------------------------------------------------
+# codegraph freshness
+# --------------------------------------------------------------------------
+def codegraph_graphs(doc):
+    """[(entry name, --graph value or None)] for every codegraph-ish entry.
+
+    A list, not a dict: two lanes share the entry name `codegraph`, and a dict
+    would silently keep only the last one -- which is exactly how one lane
+    stays wrong while the check reports on another.
+    """
+    found = []
+    if not isinstance(doc, dict):
+        return found
+    for holder in ("mcp", "mcpServers"):
+        servers = doc.get(holder)
+        if not isinstance(servers, dict):
+            continue
+        for name, entry in servers.items():
+            if "codegraph" not in str(name).lower() or not isinstance(entry, dict):
+                continue
+            parts = []
+            command = entry.get("command")
+            if isinstance(command, (list, tuple)):
+                parts.extend(str(p) for p in command)
+            elif command:
+                parts.append(str(command))
+            args = entry.get("args")
+            if isinstance(args, (list, tuple)):
+                parts.extend(str(a) for a in args)
+            match = re.search(r"--graph[= ]+(\S+)", " ".join(parts))
+            found.append((str(name), match.group(1) if match else None))
+    return found
+
+
+def _graph_built_commit(path):
+    """(sha, why) -- `built_at_commit` via a 64 KB tail, full parse as fallback.
+
+    The key is the LAST top-level member of graph.json (measured 2026-11-14:
+    it ends 31,737,683 bytes of file at offset ~65,470 from the end), so the
+    tail costs 64 KB instead of a 31 MB parse. The full `json.loads` runs only
+    when the tail does not carry the key, so a store written by an older
+    graphify still answers instead of failing this check for its shape.
+
+    (None, reason) when it cannot be read. Never a silent default: a missing
+    build commit is a fact the caller has to report.
+    """
+    try:
+        size = path.stat().st_size
+        with open(path, "rb") as handle:
+            handle.seek(max(0, size - 65536))
+            tail = handle.read().decode("utf-8", "replace")
+    except OSError as exc:
+        return None, "unreadable (%s)" % exc
+    hits = re.findall(r'"built_at_commit"\s*:\s*"([0-9a-fA-F]{7,40})"', tail)
+    if hits:
+        return hits[-1].lower(), ""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as handle:
+            doc = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return None, "no built_at_commit in the tail, full parse failed (%s)" % exc
+    sha = doc.get("built_at_commit") if isinstance(doc, dict) else None
+    if not sha:
+        return None, "no built_at_commit recorded in the store"
+    return str(sha).lower(), ""
+
+
+def _git(root, *args):
+    """(returncode, stdout-stripped). A git that will not run is recorded."""
+    try:
+        proc = subprocess.run(["git", "-C", str(root)] + list(args),
+                              capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        _note("git %s failed: %s" % (" ".join(args), exc))
+        return 1, ""
+    return proc.returncode, proc.stdout.strip()
+
+
+def check_codegraph_freshness():
+    """The codegraph every lane serves describes HEAD, not a commit HEAD passed.
+
+    WHY THIS EXISTS
+    `graph.json` records `built_at_commit`. Nothing read it. A graph built
+    three hundred commits ago still resolves, still answers, and is wrong --
+    and the stale build was written into the file the whole time, so the
+    evidence was present and unread. A lane config cannot fix that: it names a
+    PATH, and a path is a promise that never expires. Hence a check, not a
+    config: a wrong path and a stale store are different faults and only a
+    check can go red on both.
+
+    DECISION TABLE
+      PASS  every lane's --graph is the canonical store AND the store's
+            built_at_commit is HEAD -- or HEAD has moved but
+            `git diff <built>..HEAD -- src` is empty, in which case the graph
+            still describes the same content and is not stale.
+      FAIL  a lane points at a different graph file; the store is missing; the
+            commit range shows changed files under src/; or the recorded build
+            commit is not a commit of this repo (a phantom sha nothing can
+            diff against, which would otherwise read as "cannot tell" forever).
+      WARN  no codegraph entry in any lane, or the build commit cannot be read.
+            Neither is a pass: an unreadable reading is not evidence of
+            freshness, and absence of the check is how this drifted before.
+
+    SCOPE, stated so it cannot be over-read: the staleness leg compares
+    COMMITTED content (`git diff <built>..HEAD`). An uncommitted edit under
+    src/ is outside the question "has HEAD moved past the graph", and treating
+    a dirty worktree as staleness would make this check red on this tree by
+    default, which is how a gate gets switched off.
+    """
+    if not CODEGRAPH_STORE.exists():
+        return (FAIL, "graph store missing: %s" % CODEGRAPH_STORE,
+                "build it: scripts/graphify_bin.sh update C:/Azazael/azazael")
+
+    lanes = []
+    for path, label in ((KILO_CONF, "kilo"), (FREEBUFF_CONF, "freebuff"),
+                        (OPENCODE_CONF, "opencode"), (OPENCODE_KILO_CONF, "opencode-kilo")):
+        if not path.exists():
+            continue
+        doc, err = read_config(path)
+        if doc is None:
+            lanes.append((label, None, "config %s" % err))
+            continue
+        for _name, graph in codegraph_graphs(doc):
+            lanes.append((label, graph, ""))
+
+    if not lanes:
+        return (WARN, "no codegraph entry in any lane config",
+                "add one whose --graph is %s" % CODEGRAPH_STORE)
+
+    wanted = os.path.normcase(os.path.normpath(str(CODEGRAPH_STORE)))
+    wrong = []
+    for label, graph, note in lanes:
+        if graph is None:
+            wrong.append("%s: %s" % (label, note or "entry has no --graph argument"))
+            continue
+        if os.path.normcase(os.path.normpath(graph.replace("\\", "/"))) != wanted:
+            wrong.append("%s -> %s" % (label, graph))
+    if wrong:
+        return (FAIL, "lane(s) not aimed at %s (%s)" % (CODEGRAPH_STORE, "; ".join(wrong)),
+                "set every codegraph entry's --graph to %s" % CODEGRAPH_STORE)
+
+    built, why = _graph_built_commit(CODEGRAPH_STORE)
+    if not built:
+        return (WARN, "build commit unreadable: %s" % why,
+                "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+
+    rc, head = _git(REPO_ROOT, "rev-parse", "HEAD")
+    head = head.strip()
+    if rc != 0 or not head:
+        return (WARN, "git rev-parse HEAD failed in %s" % REPO_ROOT,
+                "run this gate from a git checkout of this repo")
+
+    if head.startswith(built) or built.startswith(head):
+        return (PASS, "built at %s = HEAD; %d lane(s) on the canonical store" % (
+                    built[:8], len(lanes)), "")
+
+    rc, _ = _git(REPO_ROOT, "cat-file", "-e", built + "^{commit}")
+    if rc != 0:
+        return (FAIL, "recorded build commit %s is not a commit of this repo" % built[:8],
+                "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+
+    rc, changed = _git(REPO_ROOT, "diff", "--name-only", "%s..%s" % (built, head), "--", "src")
+    if rc != 0:
+        return (WARN, "git diff %s..%s failed" % (built[:8], head[:8]),
+                "inspect the repo state by hand; the graph's freshness is unknown")
+    if not changed:
+        return (PASS, "built at %s; HEAD %s moved but src/ is unchanged since the build" % (
+                    built[:8], head[:8]), "")
+    return (FAIL, "built at %s but HEAD is %s and %d src file(s) changed since" % (
+                built[:8], head[:8], len(changed.splitlines())),
+            "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+
+
+# --------------------------------------------------------------------------
 # main
 # --------------------------------------------------------------------------
 def run(fix=False):
@@ -969,6 +1154,7 @@ def run(fix=False):
     results.append(("lane-credentials",) + check_lane_credentials())
     results.append(("orders-in-sync",) + check_agent_orders(fix))
     results.append(("lane-context",) + check_context_servers(procs))
+    results.append(("codegraph-staleness",) + check_codegraph_freshness())
     return results
 
 
