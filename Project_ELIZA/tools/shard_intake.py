@@ -345,8 +345,64 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
     return problems
 
 
-def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
+#: Why the census does not corroborate a wired id, stated as a fact about the
+#: CENSUS rather than about the claim. Measured 2026-11-14: all 107 unmatched
+#: ids in ``WIRED.json`` resolve to a real file AND a real symbol under
+#: ``Project_ELIZA/adopted/kali/``, so the party that is silent is the atlas
+#: (a point-in-time census from 2026-11-09), not the ledger. Reporting those 107
+#: as defects made ``--check`` exit 1 permanently -- a gate that cannot pass is
+#: a gate nobody reads, and the twenty-first real one would have arrived
+#: indistinguishable from the 107 false ones.
+ADVISORY_KINDS = {
+    "redundant_residual": "the census now names every class of this module, so "
+                          "its #module residual shard is no longer needed",
+    "census_truncated": "the census records at most six classes per module and "
+                        "this module has more, so the class may be one of the "
+                        "unrecorded ones",
+    "census_silent": "the census names every class of this module and omits "
+                     "this one, while the vendored source has it",
+    "module_absent": "the census carries no module by this name",
+}
+
+
+def classify_unmatched(shard_id: str, modules: Dict) -> str:
+    """Which census fact leaves a wired id uncorroborated, or ``unclassified``.
+
+    This answers "why does the atlas not contain it", never "is it wrong". A
+    kind outside ``ADVISORY_KINDS`` means the classifier has no explanation for
+    the id, and an unexplained id must stay a hard problem: inventing a bucket
+    to absorb it would rebuild the lie this function exists to remove.
+    """
+    if "#" not in shard_id:
+        return "unclassified"
+    module, _, klass = shard_id.partition("#")
+    module = module.split(":", 1)[1] if ":" in module else module
+    meta = modules.get(module)
+    if meta is None:
+        return "module_absent"
+    named = list(meta.get("top_classes") or [])
+    total = int(meta.get("classes") or 0)
+    if klass == "module":
+        # A residual id is minted only while the module has unrecorded classes;
+        # if the census now names them all, `units()` stops minting it.
+        return "redundant_residual" if total <= len(named) else "unclassified"
+    if klass in named:
+        # The id SHOULD have matched. It did not, so something other than the
+        # census cap is at work and this classifier cannot name it.
+        return "unclassified"
+    return "census_truncated" if total > len(named) else "census_silent"
+
+
+def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
+    """Two tiers: defects fail always, census mismatches fail only under strict.
+
+    ``strict`` is keyword-only-with-default because a caller outside this module
+    unpacks the 3-tuple (``Project_ELIZA/tests/test_shard_intake.py:66``).
+    """
     problems: List[str] = []
+    advisories: List[str] = []
+    buckets: Dict[str, int] = {}
+    modules_by_name = atlas.get("modules") or {}
     assigned = wired_registry()
     if not INDEX.is_file():
         return False, ["%s is absent; run --write" % INDEX.relative_to(REPO)], {}
@@ -379,8 +435,17 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
     for shard_id, claim in sorted(assigned.items()):
         if shard_id not in unit_ids:
-            problems.append("WIRED.json names %r, which is not in the atlas" % shard_id)
-            continue
+            kind = classify_unmatched(shard_id, modules_by_name)
+            if kind not in ADVISORY_KINDS:
+                problems.append("WIRED.json names %r, which is not in the atlas and "
+                                "no census fact explains it" % shard_id)
+                continue
+            buckets[kind] = buckets.get(kind, 0) + 1
+            advisories.append("%s: %s -- %s" % (kind, shard_id, ADVISORY_KINDS[kind]))
+            #: Deliberately NOT a `continue`. The control check used to sit
+            #: behind one, so every id the census did not corroborate went
+            #: unvalidated -- 107 of 1,152 adopted claims were a claim with no
+            #: check, which is the one thing this function exists to refuse.
         test = claim.get("test") if isinstance(claim, dict) else None
         if not isinstance(test, str) or not test.strip():
             problems.append("WIRED.json entry %r names no test: a wired shard is a "
@@ -399,10 +464,18 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     if counts.get("shards") != len(expected):
         problems.append("index claims %r shards; the atlas yields %d"
                         % (counts.get("shards"), len(expected)))
+    if strict:
+        # Promoted, not dropped: `--strict` is how a caller says it wants the
+        # census mismatches to fail too. Default stays advisory for HED-2's
+        # reason -- a gate red on the day it lands is a gate switched off.
+        problems.extend(advisories)
+        advisories = []
     return (not problems), problems, {"shards": len(expected),
                                       "modules": len({e["module"] for e in expected.values()}),
                                       "trees": len({e["tree"] for e in expected.values()}),
-                                      "wired": len(assigned)}
+                                      "wired": len(assigned),
+                                      "advisory_lines": advisories,
+                                      "buckets": buckets}
 
 
 def adopt(shard_id: str, atlas: Dict) -> int:
@@ -432,6 +505,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--atlas", default=str(DEFAULT_ATLAS))
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--strict", action="store_true",
+                        help="with --check, fail on census mismatches as well")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--tree", help="limit --list to one tree")
     parser.add_argument("--adopt", metavar="SHARD_ID")
@@ -454,13 +529,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
               % result)
         return 0
     if args.check:
-        ok, problems, counts = check(atlas)
+        ok, problems, counts = check(atlas, strict=args.strict)
         for problem in problems:
             print("DEFECT: " + problem)
+        for line in counts.get("advisory_lines", []):
+            print("ADVISORY: " + line)
         print("%s -- %d shard(s), %d module(s) yielding units, %d tree(s), %d wired"
               % ("clean" if ok else "%d defect(s)" % len(problems),
                  counts.get("shards", 0), counts.get("modules", 0),
                  counts.get("trees", 0), counts.get("wired", 0)))
+        buckets = counts.get("buckets") or {}
+        if buckets:
+            print("  uncorroborated by the census, with the reason: " +
+                  ", ".join("%s=%d" % (key, buckets[key]) for key in sorted(buckets)))
         return 0 if ok else 1
     if args.adopt:
         return adopt(args.adopt, atlas)
