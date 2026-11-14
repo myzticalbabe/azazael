@@ -92,4 +92,4 @@ except ImportError:                               # never break the host
     def note_failure(where, exc=None):
         pass  # ledger missing; the swallow is still named at the call site
 
-    sys.exit(main())
+sys.exit(main())
