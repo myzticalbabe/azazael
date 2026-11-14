@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import json
+import math
 import os
 import re
 import struct
@@ -59,6 +60,66 @@ JIF = 6  # frame duration in 1/60 s -> 100 ms per frame
 # The salute glyph is flush against x=0, so a swinging frame would be cut at
 # the tile edge; shift it right by half the tile's spare width before rotating.
 WAVE_OFF = (2.0, 0.0)
+
+# ── the remaining slots, composed from the one master ────────────────────
+#
+# Windows asks for fifteen pointers and the salute ships two masters, so the
+# other slots are composed here rather than drawn again: each is the same
+# 32 px glyph moved, turned or hollowed inside a single 32-unit viewBox. Draw
+# the master once and every salute slot follows it.
+#
+# GLYPH_CENTRE is the measured ink centre of vulcan_salute_32.svg (ink spans
+# x 0..25, y 1..29), so a turn rotates the hand about itself instead of
+# sweeping it out of the tile. A layer is (angle, dx, dy, scale): the glyph
+# centre lands at (16+dx, 16+dy), scaled, then turned `angle` degrees
+# clockwise. `hotspot` is "layer" when one hand carries the point (follow the
+# master's own tip through the same matrix) and "centre" when the slot is
+# symmetric and no single hand owns the click.
+GLYPH_CENTRE = (12.5, 15.0)
+
+DERIVED = (
+    # Inverted salute: text wants a pointer that cannot be mistaken for the
+    # arrow, and the fingertip down reads as one at a glance.
+    dict(slot="IBeam", file="vulcan-text.cur", label="text (inverted)",
+         layers=((180.0, 0.0, 0.0, 1.0),), hotspot="layer"),
+    dict(slot="SizeAll", file="vulcan-move.cur", label="move (four ways)",
+         layers=((0.0, 0.0, -7.0, 0.42), (90.0, 7.0, 0.0, 0.42),
+                 (180.0, 0.0, 7.0, 0.42), (270.0, -7.0, 0.0, 0.42)),
+         hotspot="centre"),
+    dict(slot="SizeNS", file="vulcan-ns.cur", label="resize N-S",
+         layers=((0.0, 0.0, -7.5, 0.48), (180.0, 0.0, 7.5, 0.48)),
+         hotspot="centre"),
+    dict(slot="SizeWE", file="vulcan-we.cur", label="resize E-W",
+         layers=((90.0, 7.5, 0.0, 0.48), (270.0, -7.5, 0.0, 0.48)),
+         hotspot="centre"),
+    # One hand, not two, on the diagonals: a hand turned 45 degrees occupies a
+    # diagonal band 39/32 of the tile wide, so a pair can only fit by shrinking
+    # until the finger notch closes and the two merge into one smear (measured
+    # at 0.40 shared scale). The single hand keeps its notch, and its fingertip
+    # names the corner the resize runs toward.
+    dict(slot="SizeNWSE", file="vulcan-nwse.cur", label="resize NW-SE",
+         layers=((315.0, 0.0, 0.0, 0.66),), hotspot="centre"),
+    dict(slot="SizeNESW", file="vulcan-nesw.cur", label="resize NE-SW",
+         layers=((45.0, 0.0, 0.0, 0.66),), hotspot="centre"),
+    # Unavailable: the same white hand every other slot uses, with a bar
+    # through it. An outline-only hand was measured first and discarded: empty
+    # of fill it keeps no silhouette at 16 px, so the slot read as a crossed-out
+    # box rather than a crossed-out salute.
+    dict(slot="No", file="vulcan-no.cur", label="unavailable",
+         layers=((0.0, 0.0, 0.0, 1.0),), hotspot="layer", slash=True),
+)
+
+# Windows scheme slot -> the container installed for it. One table, because
+# install and apply disagreeing about a slot is a pointer that changes on the
+# scheme you save and not on the one you switch to.
+PROGRAMS = {
+    "Arrow": "vulcan-arrow.cur",
+    "Hand": "vulcan-hand.cur",
+    "AppStarting": "vulcan-busy.ani",
+    "Wait": "vulcan-busy.ani",
+}
+for _spec in DERIVED:
+    PROGRAMS[_spec["slot"]] = _spec["file"]
 
 
 # ── png in, rgba out ─────────────────────────────────────────────────────
@@ -337,6 +398,62 @@ def build_images(masters, work):
     return images, painted
 
 
+def _body(markup):
+    """The master's drawable body: its paths, without the <title>/<desc>."""
+    inner = re.search(r"<svg\b[^>]*>(.*)</svg>", markup, re.S)
+    if not inner:
+        raise SystemExit("make_cursors: a master is not an <svg> document")
+    return re.sub(r"<(title|desc)\b.*?</\1>", "", inner.group(1), flags=re.S).strip()
+
+
+SLASH = ('<path d="M 5 29 L 27 3" fill="none" stroke="#101010"'
+         ' stroke-width="5.4" stroke-linecap="round"/>'
+         '<path d="M 5 29 L 27 3" fill="none" stroke="#ffffff"'
+         ' stroke-width="2.6" stroke-linecap="round"/>')
+
+
+def _hotspot(spec, hotspot):
+    """Where the click lands once the glyph has been moved and turned."""
+    if spec["hotspot"] == "centre":
+        return (16.0, 16.0)
+    angle, dx, dy, scale = spec["layers"][0]
+    rad = math.radians(angle)
+    px = hotspot[0] - GLYPH_CENTRE[0]
+    py = hotspot[1] - GLYPH_CENTRE[1]
+    return (16.0 + dx + scale * (px * math.cos(rad) - py * math.sin(rad)),
+            16.0 + dy + scale * (px * math.sin(rad) + py * math.cos(rad)))
+
+
+def compose(spec, markup, hotspot):
+    """(markup, hotspot) for one derived slot, built from the 32 px master."""
+    body = _body(markup)
+    layers = "".join(
+        '<g transform="translate(%.2f,%.2f) scale(%.3f) rotate(%.2f)'
+        ' translate(%.2f,%.2f)">%s</g>'
+        % (16.0 + dx, 16.0 + dy, scale, angle,
+           -GLYPH_CENTRE[0], -GLYPH_CENTRE[1], body)
+        for angle, dx, dy, scale in spec["layers"])
+    if spec.get("slash"):
+        layers += SLASH
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"'
+            ' viewBox="0 0 32 32" data-role="derived" data-name="%s">%s</svg>'
+            % (spec["slot"], layers), _hotspot(spec, hotspot))
+
+
+def build_derived(spec, markup, hotspot, work):
+    """One composed slot's images; the 32-unit composition is the native size."""
+    composed, spot = compose(spec, markup, hotspot)
+    images, painted = [], []
+    for size in (16, 32, 48):
+        frame = rasterise(composed, 32, spot, size, (0.0,), work)[0]
+        hx = int(round(spot[0] * size / 32.0))
+        hy = int(round(spot[1] * size / 32.0))
+        images.append((size, min(hx, size - 1), min(hy, size - 1),
+                       bmp_entry(frame, size)))
+        painted.append((size, frame))
+    return images, painted
+
+
 def do_build(args):
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(CURSORS, "registry.json"), encoding="utf-8") as fh:
@@ -376,6 +493,15 @@ def do_build(args):
                           (int(round(bhot[0])), int(round(bhot[1])))))
     built.append((busy, "busy (%d frames)" % len(frames),
                   [(32, f) for f in frames]))
+
+    # The other seven Windows slots, all composed from that same master.
+    pmarkup, phot = pointer[max(pointer)]
+    for spec in DERIVED:
+        images, painted = build_derived(spec, pmarkup, phot, work)
+        path = os.path.join(OUT, spec["file"])
+        with open(path, "wb") as fh:
+            fh.write(cur_file(images))
+        built.append((path, spec["label"], painted))
 
     preview = os.path.join(OUT, "preview.png")
     with open(preview, "wb") as fh:
@@ -437,12 +563,9 @@ def do_install(args):
                                                         os.path.basename(path)),
                                            "wb") as dst:
             dst.write(src.read())
-    scheme = ",".join({
-        "Arrow": os.path.join(SCHEME_DIR, "vulcan-arrow.cur"),
-        "Hand": os.path.join(SCHEME_DIR, "vulcan-hand.cur"),
-        "AppStarting": os.path.join(SCHEME_DIR, "vulcan-busy.ani"),
-        "Wait": os.path.join(SCHEME_DIR, "vulcan-busy.ani"),
-    }.get(slot, "") for slot in SLOTS)
+    scheme = ",".join(
+        os.path.join(SCHEME_DIR, PROGRAMS[slot]) if slot in PROGRAMS else ""
+        for slot in SLOTS)
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY + r"\Schemes") as key:
         winreg.SetValueEx(key, SCHEME_NAME, 0, winreg.REG_EXPAND_SZ, scheme)
     print("scheme      %s -> %s" % (SCHEME_NAME, SCHEME_DIR))
@@ -457,12 +580,8 @@ def do_apply(args):
         json.dump(current, fh, indent=1)
     print("backup      %s (%d values)" % (backup_path(), len(current)))
     do_install(args)
-    live = {
-        "Arrow": os.path.join(SCHEME_DIR, "vulcan-arrow.cur"),
-        "Hand": os.path.join(SCHEME_DIR, "vulcan-hand.cur"),
-        "AppStarting": os.path.join(SCHEME_DIR, "vulcan-busy.ani"),
-        "Wait": os.path.join(SCHEME_DIR, "vulcan-busy.ani"),
-    }
+    live = {slot: os.path.join(SCHEME_DIR, name)
+            for slot, name in PROGRAMS.items()}
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
                         winreg.KEY_SET_VALUE) as key:
         for slot, path in live.items():

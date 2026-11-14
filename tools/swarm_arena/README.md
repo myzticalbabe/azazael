@@ -114,6 +114,50 @@ the small rendition is not a squeezed copy of the large one. `Wait` and
 `AppStarting` share an 8-frame `.ani` in which the salute waves with its
 tip pinned.
 
+**Slot coverage — 11 of the 15 scheme slots carry salute art.** Windows draws
+four more whether or not a scheme supplies them (a crosshair has no pointer tip
+to hang a hand on, and a pen cursor already *is* a hand), so those stay system
+defaults and the scheme leaves their registry values empty.
+
+| slot | artefact | built from | hotspot |
+| --- | --- | --- | --- |
+| Arrow | `vulcan-arrow.cur` | `pointer` master, 16/32/48 px | tip `8.5,2` |
+| Hand | `vulcan-hand.cur` | `link` master, 16/32/48 px | tip `6,4` |
+| AppStarting / Wait | `vulcan-busy.ani` | `pointer` master, 8 frames, ±6° wave | tip |
+| IBeam | `vulcan-text.cur` | `pointer`, rotated 180° | fingertip (now pointing down) |
+| SizeAll | `vulcan-move.cur` | `pointer` ×4 at 0/90/180/270°, s 0.42, off ±7.0 | centre |
+| SizeNS | `vulcan-ns.cur` | `pointer` ×2 at 0°/180°, s 0.48, dy ±7.5 | centre |
+| SizeWE | `vulcan-we.cur` | `pointer` ×2 at 90°/270°, s 0.48, dx ±7.5 | centre |
+| SizeNWSE | `vulcan-nwse.cur` | `pointer` ×1 at 315°, s 0.66 | centre |
+| SizeNESW | `vulcan-nesw.cur` | `pointer` ×1 at 45°, s 0.66 | centre |
+| No | `vulcan-no.cur` | `pointer` + corner-to-corner bar | tip `8.5,2` |
+| Help, Crosshair, NWPen, UpArrow | *(unset)* | Windows default | — |
+
+The derived slots are **composed at build time** from the 32 px pointer master
+inside one 32-unit viewBox (`translate(16+dx,16+dy) scale(s) rotate(a)
+translate(-12.5,-15)`), never authored as separate SVGs: one glyph, ten cursors,
+so a change to the salute reaches every slot on the next `--build`. Rotations turn
+the hand about its own ink centre `(12.5,15)` and the composition re-centres it in
+the box, because the glyph is 26×29 and flush left — without that step every
+rotated copy clips.
+
+Two of those compositions were decided by rendering, not by taste:
+
+- **The diagonals use one hand, not two.** At scale 0.40 the two-copy NW-SE pair
+  merged into a single smear at 32 px, and every larger scale that kept the two
+  notches apart pushed ink out of the tile. One hand at 0.66 reads as a single
+  diagonal limb with a clear notch, which is what a resize diagonal needs to be
+  legible at 16 px.
+- **`No` is a filled hand with a bar through it, not an outlined one.** An
+  outline-plus-halo was rendered at four stroke widths; at 16 px every one
+  dissolved into a crossed-out box with no hand silhouette left. Filled ink
+  survives, so the negation is carried by a `M 5 29 L 27 3` bar (dark 5.4 under
+  white 2.6) laid over an intact salute.
+
+`PROGRAMS` is the single slot→container table that both `--install` and
+`--apply` read, so what gets registered and what gets switched on live cannot
+drift apart.
+
 **Two roles, two sets of pixels.** `cursors/registry.json` marks every master
 with a `role`: `pointer` is the upright salute, `link` is a salute leaned 30° so
 the pairs reach up-left and the palm trails bottom-right, which is what tells a
