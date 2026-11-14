@@ -114,6 +114,17 @@ the small rendition is not a squeezed copy of the large one. `Wait` and
 `AppStarting` share an 8-frame `.ani` in which the salute waves with its
 tip pinned.
 
+**Two roles, two sets of pixels.** `cursors/registry.json` marks every master
+with a `role`: `pointer` is the upright salute, `link` is a salute leaned 30° so
+the pairs reach up-left and the palm trails bottom-right, which is what tells a
+clickable link apart from the arrow at a glance. Both roles are authored as their
+own masters with their own hotspots (arrow `8.5,2` / `4.25,1`, link `6,4` /
+`3,2`) — the lean and a deliberately deeper V and longer thumb lobe are drawn
+into the geometry rather than rotated in at build time. Until this existed,
+`make_cursors.py` reproduced the arrow's DIBs verbatim for the hand, so the two
+`.cur` files were byte-identical; `do_build()` now refuses to build when the
+registry holds no `link` master, so that silent reuse cannot come back.
+
 Two things this file had to get right, both measured rather than assumed:
 
 - **`anih.iSteps` must equal `iFrames`.** The format lets 0 mean "same as

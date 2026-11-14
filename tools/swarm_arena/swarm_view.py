@@ -56,6 +56,21 @@ MOVE_MS = 300             # one cursor's travel, before staggering
 REPO = os.path.dirname(os.path.dirname(HERE))            # tools/swarm_arena -> repo root
 DEFAULT_SCOPE = (os.path.relpath(HERE, REPO).replace(os.sep, "/"),)
 
+# Its own stdout is declared UTF-8 rather than inherited from the console:
+# the deep_dive leg captures this child with encoding="utf-8", so a cp1252
+# console writes bytes the parent replaces with U+FFFD, and the parent then
+# dies trying to print that replacement char on the same cp1252 stdout.
+for _stream in (sys.stdout, sys.stderr):
+    _reconfigure = getattr(_stream, "reconfigure", None)
+    if _reconfigure is None:
+        continue  # a stream without reconfigure keeps the encoding it was given
+    try:
+        _reconfigure(encoding="utf-8", errors="replace")
+    except ValueError as exc:
+        print("swarm_view: %s kept its console encoding (%s), so a non-ASCII "
+              "glyph may arrive as U+FFFD"
+              % (getattr(_stream, "name", "stream"), exc), file=sys.stderr)
+
 sys.path.insert(0, os.path.dirname(HERE))
 try:
     from monitor_theme import SEMANTIC
@@ -86,6 +101,9 @@ def load_registry():
         if declared != listed:
             raise SystemExit("swarm_view: registry says %s hotspots %s, the SVG says %s"
                              % (entry["file"], listed, declared))
+        if entry.get("role", "pointer") != "pointer":
+            continue  # the link masters are Windows pointers, not view glyphs;
+            # both roles carry a 16 and a 32, so a size-keyed map would collide.
         glyphs[entry["size"]] = {"name": entry["name"], "size": entry["size"],
                                  "hotspot": declared, "markup": markup}
     if not glyphs:

@@ -26,6 +26,7 @@ import argparse
 import ctypes
 import json
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -295,26 +296,37 @@ def backup_path():
     return os.path.join(OUT, "cursors_backup.json")
 
 
-def do_build(args):
-    os.makedirs(OUT, exist_ok=True)
-    with open(os.path.join(CURSORS, "registry.json"), encoding="utf-8") as fh:
-        reg = json.load(fh)
-    masters = {}
+def load_masters(reg):
+    """{role: {size: (markup, hotspot)}} — the registry is the only source.
+
+    The SVG's own `data-hotspot` must agree with the registry: a disagreement is
+    a cursor whose click point sits somewhere the artist never drew, which no
+    later pass can see. The roles are kept apart because pointer and link each
+    ship a 16 and a 32 — a flat size-keyed map would let one overwrite the other.
+    """
+    roles = {}
     for entry in reg["cursors"]:
         with open(os.path.join(CURSORS, entry["file"]), encoding="utf-8") as fh:
-            masters[entry["size"]] = (fh.read(), entry["hotspot"])
-    smallest = min(masters)
-    biggest = max(masters)
-    arrow_sizes = [s for s in (16, 32, 48) if s in (smallest, 32) or s == 48]
+            markup = fh.read()
+        found = re.search(r'data-hotspot="([\d.]+),([\d.]+)"', markup)
+        if not found:
+            raise SystemExit("make_cursors: %s declares no data-hotspot"
+                             % entry["file"])
+        declared = (float(found.group(1)), float(found.group(2)))
+        listed = tuple(float(v) for v in entry["hotspot"])
+        if declared != listed:
+            raise SystemExit("make_cursors: registry says %s hotspots %s, the SVG "
+                             "says %s" % (entry["file"], listed, declared))
+        roles.setdefault(entry.get("role", "pointer"), {})[entry["size"]] = (
+            markup, declared)
+    return roles
 
-    work = tempfile.mkdtemp(prefix="vulcan-cursors-")
-    built = []
 
-    # Static arrow: every size each master can serve natively, plus 48 from 32.
-    images = []
-    painted = []
-    for size in sorted(set([smallest, 32, 48])):
-        native = size if size in masters else biggest
+def build_images(masters, work):
+    """One role's static .cur images: 16 and 32 native, 48 from the biggest."""
+    images, painted = [], []
+    for size in sorted(set([min(masters), 32, 48])):
+        native = size if size in masters else max(masters)
         markup, hotspot = masters[native]
         frames = rasterise(markup, native, hotspot, size, (0.0,), work)
         hx = int(round(hotspot[0] * size / float(native)))
@@ -322,20 +334,41 @@ def do_build(args):
         images.append((size, min(hx, size - 1), min(hy, size - 1),
                        bmp_entry(frames[0], size)))
         painted.append((size, frames[0]))
+    return images, painted
+
+
+def do_build(args):
+    os.makedirs(OUT, exist_ok=True)
+    with open(os.path.join(CURSORS, "registry.json"), encoding="utf-8") as fh:
+        roles = load_masters(json.load(fh))
+    if "link" not in roles:
+        raise SystemExit("make_cursors: the registry holds no role=link masters; "
+                         "the link pointer refuses to fall back to the arrow's "
+                         "pixels")
+    pointer, link = roles["pointer"], roles["link"]
+
+    work = tempfile.mkdtemp(prefix="vulcan-cursors-")
+    built = []
+
+    # Static arrow: every size its masters can serve natively, plus 48 from 32.
+    images, painted = build_images(pointer, work)
     arrow = os.path.join(OUT, "vulcan-arrow.cur")
     with open(arrow, "wb") as fh:
         fh.write(cur_file(images))
     built.append((arrow, "static arrow", painted))
 
-    # Hand (link select) reuses the arrow pixels for every size.
+    # Hand (link select): its own masters and its own hotspot, so a clickable
+    # link is visibly a different gesture from the arrow rather than a copy.
+    images, painted = build_images(link, work)
     hand = os.path.join(OUT, "vulcan-hand.cur")
     with open(hand, "wb") as fh:
         fh.write(cur_file(images))
     built.append((hand, "link select", painted))
 
     # Busy / working-in-background: the salute waves, tip pinned to the hotspot.
-    markup, hotspot = masters[biggest]
-    frames = rasterise(markup, biggest, hotspot, 32, WAVE, work, offset=WAVE_OFF)
+    markup, hotspot = pointer[max(pointer)]
+    frames = rasterise(markup, max(pointer), hotspot, 32, WAVE, work,
+                       offset=WAVE_OFF)
     bhot = (hotspot[0] + WAVE_OFF[0], hotspot[1] + WAVE_OFF[1])
     busy = os.path.join(OUT, "vulcan-busy.ani")
     with open(busy, "wb") as fh:

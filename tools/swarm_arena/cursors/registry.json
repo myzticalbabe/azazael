@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "gesture": "vulcan-salute",
   "unicode": "U+1F596",
   "reference": "https://en.wikipedia.org/wiki/Vulcan_salute",
@@ -10,8 +10,14 @@
     "thumb": "extended, away from the palm (Nimoy's change from the priestly blessing)",
     "note": "double-fingered version of Churchill's victory sign; pairs sit at different heights so the V survives being shrunk"
   },
+  "roles": {
+    "pointer": "the upright salute — Arrow, the default pointer",
+    "link": "the salute leaned 30 degrees, pairs reaching up-left, palm trailing bottom-right — Hand, the link-select pointer; two masters so the hand is not the arrow's pixels"
+  },
   "cursors": [
-    {"name": "vulcan-salute-32", "file": "vulcan_salute_32.svg", "size": 32, "hotspot": [8.5, 2]},
-    {"name": "vulcan-salute-16", "file": "vulcan_salute_16.svg", "size": 16, "hotspot": [4.25, 1]}
+    {"name": "vulcan-salute-32", "role": "pointer", "file": "vulcan_salute_32.svg", "size": 32, "hotspot": [8.5, 2]},
+    {"name": "vulcan-salute-16", "role": "pointer", "file": "vulcan_salute_16.svg", "size": 16, "hotspot": [4.25, 1]},
+    {"name": "vulcan-point-32", "role": "link", "file": "vulcan_point_32.svg", "size": 32, "hotspot": [6, 4]},
+    {"name": "vulcan-point-16", "role": "link", "file": "vulcan_point_16.svg", "size": 16, "hotspot": [3, 2]}
   ]
 }
