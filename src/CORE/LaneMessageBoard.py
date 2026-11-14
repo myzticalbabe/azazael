@@ -37,7 +37,7 @@ import sqlite3
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
 from CORE.failure_ledger import note_failure
@@ -164,6 +164,20 @@ class LaneMessageBoard:
         self._coord_max_claim_limit = read_default("coordination.max_claim_limit", 10)
         self._coord_push_hook_enabled = read_default("coordination.push_hook_enabled", True)
         self._coord_dispatch_non_reasoning = read_default("coordination.dispatch_non_reasoning", True)
+
+        # How far a single claim may look for work that is NOT a stale copy.
+        # Read through the one settings surface so the knob is visible to
+        # `tools/settings_shadow.py`; the class constant below is the fallback
+        # for a missing or corrupt config.
+        self._coord_claim_scan_cap = int(
+            read_default("coordination.claim_scan_cap", self.CLAIM_SCAN_CAP))
+
+        # What the last claim actually did. `claim_tasks` retires stale copies
+        # as a side effect, and that was invisible: the CLI printed "NO OPEN
+        # TASKS" for a claim that had just retired 10 rows. A reader cannot
+        # tell "no work" from "work hidden behind duplicates" without this.
+        self.last_claim_stats: Dict[str, Any] = {}
+
         self._coord_valid_lanes = read_default("coordination.valid_lanes", ["kilo", "freebuff", "opencode"])
 
     # -- topic helpers -------------------------------------------------------
@@ -894,6 +908,22 @@ class LaneMessageBoard:
     # A claim older than this is reclaimable. Without an expiry a lane that
     # dies mid-batch strands its tasks forever and the queue silently stalls.
     CLAIM_LEASE_SECONDS = 1800
+
+    # How many candidate rows one claim may LOOK at. The candidate window is
+    # taken BEFORE duplicate detection, so a window of exactly `limit` lets a
+    # wall of stale re-posts in front of real work decide what the claim
+    # sees. Measured on the real opencode board 2026-11-14: 31 stale copies
+    # stood ahead of 6 real tasks; the claim walked its 10-row window,
+    # retired every row in it as a duplicate, returned NOTHING, and the CLI
+    # printed "NO OPEN TASKS" while `task_stats` counted 47 available. The
+    # window is widened so the scan can walk past the wall, and capped so one
+    # claim cannot rewrite an unbounded part of the queue.
+    CLAIM_SCAN_CAP = 200
+
+    # The most candidate rows a stats or poll scan will classify. Past this
+    # the numbers become a lower bound and are reported as not exact, rather
+    # than being quietly approximate.
+    SCAN_CAP = 5000
 
     def _state_conn(self):
         conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=10)

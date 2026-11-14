@@ -58,6 +58,7 @@
       "freebuff",
       "opencode"
     ],
+    "claim_scan_cap": 200,
     "claim_lease_seconds": 1800,
     "max_claim_limit": 10,
     "push_hook_enabled": true,
