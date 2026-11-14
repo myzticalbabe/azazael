@@ -278,7 +278,16 @@ and were discarded after looking at them, not after reasoning about them.
 
 **What this is not:** an anatomically faithful hand, or a substitute for the platform
 `.cur`/`.ani` a real cursor needs. It is the vector master a build step would compile. No
-build step exists yet and nothing loads these files.
+`.cur` build step exists.
+
+**Superseded 2026-11-14 — something loads them now.** `tools/swarm_arena/swarm_view.py`
+reads both SVGs through `cursors/registry.json`, takes the hotspot from each file's own
+`data-hotspot` (a registry/file disagreement exits 2), and renders the swarm as an
+on-screen page of salute cursors whose fingertips sit on the nodes they scored. Measured
+on the arena corpus: `cursors: 12 drawn: 12 absent: 0 blind: none`, selftest
+`hotspot_misaligned=0 … CHAIN=OK`, slowest cursor 685 ms of a 900 ms budget, 0 rows
+quarantined. The graphics claim is therefore a rendered artifact, not a description; the
+`.cur` claim above is unchanged.
 
 ---
 
