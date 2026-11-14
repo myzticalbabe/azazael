@@ -1000,6 +1000,105 @@ class LaneMessageBoard:
                     retired[sig] = bid
         return retired, active
 
+    def _split_stale(
+        self,
+        conn,
+        lane: str,
+        cutoff: int,
+        items: List[Tuple[int, Any]],
+    ) -> Tuple[List[Tuple[int, Dict[str, Any]]], List[Tuple[int, Optional[Dict[str, Any]], Optional[int]]]]:
+        """Split candidate rows into the work a claim would hand out and the rest.
+
+        `items` are (board_id, content) pairs and MUST be ordered by board_id
+        ASC -- the order `claim_tasks` walks them in -- because the FIRST
+        copy of a repeated signature is the real work and every later copy is
+        what the claim retires as "duplicate of Board-N".
+
+        A row is STALE when:
+          * its content is not a task object -- the claim cannot read it and
+            never hands it out;
+          * its signature matches a row this lane already retired;
+          * its signature matches a row another agent holds a live lease on;
+          * its signature matches an EARLIER candidate -- the second copy of
+            the same work.
+
+        A row with NO task_id is not stale: the claim hands it out, because a
+        task with no identity is not a copy of anything.
+
+        Returns (claimable, stale) where each stale entry is
+        (board_id, payload, dup_of) and dup_of is the board_id of the row
+        this copy duplicates, -1 when another agent holds the work live, or
+        None when the row could not be read as a task at all.
+        """
+        retired, active = self._stale_sigs(conn, lane, cutoff)
+        claimable: List[Tuple[int, Dict[str, Any]]] = []
+        stale: List[Tuple[int, Optional[Dict[str, Any]], Optional[int]]] = []
+        seen: Dict[Any, int] = {}
+        for board_id, content in items:
+            payload = self._payload_of(content)
+            if payload is None:
+                stale.append((board_id, None, None))
+                continue
+            sig = _task_sig(payload)
+            if not sig:
+                claimable.append((board_id, payload))
+                continue
+            if sig in active:
+                stale.append((board_id, payload, -1))
+                continue
+            if sig in retired:
+                stale.append((board_id, payload, retired[sig]))
+                continue
+            if sig in seen:
+                stale.append((board_id, payload, seen[sig]))
+                continue
+            seen[sig] = board_id
+            claimable.append((board_id, payload))
+        return claimable, stale
+
+    def _count_claimable(self, conn, lane: str, cutoff: int) -> Tuple[int, int, bool]:
+        """(claimable, stale_duplicates, exact) for one lane.
+
+        `claimable` is what `claim_tasks` would hand out. `stale_duplicates`
+        is the rows on offer that the claim would retire as copies instead.
+        The second number is NAMED rather than folded into the first: a count
+        that hides what it dropped cannot be audited, and the whole point of
+        the split is that the two are different facts.
+        """
+        topic = self._task_topic(lane)
+        rows = conn.execute(
+            "SELECT q.id AS board_id, q.content AS content "
+            "FROM memorybus_queue q "
+            "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+            "WHERE q.topic = ? "
+            "  AND (s.state IS NULL OR s.state = 'available' "
+            "       OR (s.state = 'claimed' "
+            "           AND (s.claimed_at IS NULL "
+            "                OR CAST(strftime('%s', s.claimed_at) "
+            "                        AS INTEGER) < ?))) "
+            "ORDER BY q.id ASC LIMIT ?",
+            (topic, int(cutoff), int(self.SCAN_CAP)),
+        ).fetchall()
+        exact = len(rows) < self.SCAN_CAP
+        if not exact:
+            total = conn.execute(
+                "SELECT COUNT(*) FROM memorybus_queue q "
+                "LEFT JOIN lane_task_state s ON s.board_id = q.id "
+                "WHERE q.topic = ? "
+                "  AND (s.state IS NULL OR s.state = 'available' "
+                "       OR (s.state = 'claimed' "
+                "           AND (s.claimed_at IS NULL "
+                "                OR CAST(strftime('%s', s.claimed_at) "
+                "                        AS INTEGER) < ?)))",
+                (topic, int(cutoff)),
+            ).fetchone()[0]
+            exact = int(total or 0) <= len(rows)
+        claimable, stale = self._split_stale(
+            conn, lane, cutoff,
+            [(int(r["board_id"]), r["content"]) for r in rows],
+        )
+        return len(claimable), len(stale), exact
+
     def claim_tasks(
         self,
         lane: str,
