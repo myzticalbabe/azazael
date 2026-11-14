@@ -103,22 +103,47 @@ from the 3.16t venv), and `struct`+`zlib` build the PNG decode and the
 python make_cursors.py --build     # -> out/cursors/*.cur, *.ani, preview.png
 python make_cursors.py --install   # copy to %LOCALAPPDATA%\...\Cursors\vulcan-swarm,
                                    # register scheme "Vulcan Swarm" (HKCU)
-python make_cursors.py --apply     # back up the live scheme, install, go live
-python make_cursors.py --restore   # put the backed-up scheme back
-python make_cursors.py --defaults  # write Windows Aero back, backup or not
+python make_cursors.py --apply     # snapshot the live scheme, install, make it the default
+python make_cursors.py --restore   # one-command undo: put the snapshot back, typed
+python make_cursors.py --defaults  # write Windows Aero back, snapshot or not
 python make_cursors.py --check     # read back what is built and installed
 python make_cursors.py --uninstall # remove the scheme and its files
 ```
 
 Three of those verbs exist because of one ordering fact each. `--apply` writes
-`cursors_backup.json` **only when the live pointers are not already this
-scheme**, so a second `--apply` cannot replace the genuine pre-install reading
-with the scheme itself — the overwrite that loses a user's arrows happens on the
-second run, not the first. `--defaults` is the undo that needs no backup: it
-reads the `Windows Aero` string out of `HKLM` ...\Control Panel\Cursors\Schemes
-and writes those 15 paths into the live slots. `--uninstall` clears the live
-values and calls `SPI_SETCURSORS` **before** it deletes a file, because the other
-order leaves Windows holding pointers into files that are gone.
+`cursors_backup.json` **before its first write**, reads the file back and
+sha256-checks it, and prints the undo line last; it rewrites the snapshot **only
+when the live pointers are not already this scheme**, so a second `--apply`
+cannot replace the genuine pre-install reading with the scheme itself — the
+overwrite that loses a user's arrows happens on the second run, not the first.
+`--restore` is the one-command undo, and it is typed: the snapshot records each
+value's registry type (`soulforge-snapshot-2`, per-value `kind`), because a
+restore that wrote `REG_EXPAND_SZ` cursor paths back as `REG_SZ` returned the
+right strings with the wrong types. A snapshot taken before types were recorded
+still restores — it prints `predates recorded types` and infers them
+(`%SystemRoot%` paths expand, integers DWORD). `--defaults` is the undo that
+needs no snapshot: it reads the `Windows Aero` string out of `HKLM` ...\Control
+Panel\Cursors\Schemes and writes those 15 paths into the live slots.
+`--uninstall` clears the live values and calls `SPI_SETCURSORS` **before** it
+deletes a file, because the other order leaves Windows holding pointers into
+files that are gone.
+
+**The install is one command and the account default is part of it.** `--apply`
+names `Vulcan Swarm` in the unnamed `(Default)` value of
+`HKCU\Control Panel\Cursors` — that value is what `Control Panel` displays as the
+selected scheme — and reports both ends of the contract on exit:
+
+```
+default     Vulcan Swarm  (11 slot(s) replaced, 4 kept, scheme registered)
+undo        --restore  (snapshot C:\...\SOULFORGE\out\cursors\cursors_backup.json)
+```
+
+`--check` validates the same contract in the other direction: the scheme entry
+must exist, agree field for field with the live key, and the account default must
+still name it. A Windows theme that carries its own cursor scheme overwrites
+these pointers (and the default name) when it is applied; that is the one case
+where the scheme stops being live without `--uninstall` being run, and `--check`
+says so by naming the slot whose live value no longer matches.
 
 Sizes: the arrow carries 16, 32 and 48 px, each from the master that suits it
 (the hand-tuned 16 px master at 16, the 32 px master at 32 and scaled at 48), so
@@ -131,7 +156,12 @@ at the end of this file).
 **Slot coverage — 11 of the 15 scheme slots carry salute art.** Windows draws
 four more whether or not a scheme supplies them (a crosshair has no pointer tip
 to hang a hand on, and a pen cursor already *is* a hand), so those stay system
-defaults and the scheme leaves their registry values empty.
+defaults. The scheme does **not** leave their fields empty: an empty field in a
+registered scheme blanks the slot when the scheme is picked in Mouse Properties
+(measured — `Help`, `NWPen` and `UpArrow` came back empty), so the unset slots
+inherit whatever the account has right now, falling back to the `Windows Aero`
+string in `HKLM`. One account's `Crosshair` is still empty, because aero has no
+crosshair to inherit.
 
 | slot | artefact | built from | hotspot |
 | --- | --- | --- | --- |
@@ -145,7 +175,7 @@ defaults and the scheme leaves their registry values empty.
 | SizeNWSE | `vulcan-nwse.cur` | `pointer` ×1 at 315°, s 0.66 | centre |
 | SizeNESW | `vulcan-nesw.cur` | `pointer` ×1 at 45°, s 0.66 | centre |
 | No | `vulcan-no.cur` | `pointer` + corner-to-corner bar | tip `8.5,2` |
-| Help, Crosshair, NWPen, UpArrow | *(unset)* | Windows default | — |
+| Help, Crosshair, NWPen, UpArrow | *(unset)* | inherits the account's current value | — |
 
 The derived slots are **composed at build time** from the 32 px pointer master
 inside one 32-unit viewBox (`translate(16+dx,16+dy) scale(s) rotate(a)
@@ -268,10 +298,14 @@ self ...\dist\SOULFORGE.exe`, its `--check` child printed `motion AppStarting 8
 frame(s), 32 px, palm 9.71 px = 51.1% of 19 px ink` and `clean 0 defect(s)`, and
 the verb ended `selftest PASS ... live key untouched (20 value(s))`, exit 0.
 
-The exe itself. Measured the same day, `dist/SOULFORGE.exe` is 8 263 168 B; `--apply`
+The exe itself. Measured the same day, `dist/SOULFORGE.exe` is 8 276 480 B; `--apply`
 built 10 artefacts from the packed masters, installed 10 files, wrote 11 live
-values and ended `scheme      Vulcan Swarm` at exit 0; `--check` printed
+values, printed `snapshot ... (20 value(s), 2026-11-14T16:43:07Z, sha256
+a8ff98953949)` and `default Vulcan Swarm`, and ended exit 0; `--check` printed
 `10 read back, 10 installed copy(ies), 11 live value(s)` and `clean 0 defect(s)`.
+`--restore` from the same binary put back 20 typed values, and an independent
+registry probe then read `expand_sz=13 sz=3 dword=4`, `default='Windows Aero'`
+and no `vulcan` path in any slot.
 That check is not vacuous inside the binary either: XOR-ing one byte of the built
 `vulcan-no.cur` (md5 `5328883c…` → `c09cde29…`) made the exe print
 `DEFECT installed … differs from …` and exit 1. The first attempt at that control

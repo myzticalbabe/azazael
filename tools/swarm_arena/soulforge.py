@@ -6,10 +6,13 @@ what is wrong, then offers the verbs. Give it a flag for a scripted one-shot.
 
   SOULFORGE.exe                 status, then the menu
   SOULFORGE.exe --build         rasterise the masters into out\cursors
-  SOULFORGE.exe --apply         build, install, switch the pointers, go live
-  SOULFORGE.exe --check         read every artefact and live pointer back
-  SOULFORGE.exe --restore       put the saved scheme back
-  SOULFORGE.exe --defaults      Windows Aero back, backup or not
+  SOULFORGE.exe --apply         snapshot the live key, then build, install,
+                               switch the pointers and register the scheme as
+                               this account's default -- one command
+  SOULFORGE.exe --check         read every artefact, live pointer and the
+                               registered scheme back
+  SOULFORGE.exe --restore       put the snapshotted scheme back (one command)
+  SOULFORGE.exe --defaults      Windows Aero back, snapshot or not
   SOULFORGE.exe --uninstall     remove the files, the scheme and the pointers
   SOULFORGE.exe --selftest      run build, install, check and uninstall on a
                                throwaway key, proving the binary without
@@ -25,6 +28,7 @@ chooses between them.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -36,10 +40,10 @@ import make_cursors as mc
 
 VERBS = (
     ("1", "--build      rasterise the masters into the output folder"),
-    ("2", "--apply      build it, install it, switch the pointers, go live"),
+    ("2", "--apply      snapshot first, then make it the account default"),
     ("3", "--check      read everything back and name every defect"),
-    ("4", "--restore    put the pre-install scheme back"),
-    ("5", "--defaults   write Windows Aero back, backup or not"),
+    ("4", "--restore    put the snapshotted scheme back"),
+    ("5", "--defaults   write Windows Aero back, snapshot or not"),
     ("6", "--uninstall  remove the files, the scheme and the pointers"),
     ("7", "--preview    open the actual pixels"),
     ("8", "--selftest   prove it on a throwaway key, live scheme untouched"),
@@ -232,6 +236,17 @@ def status():
           % (mc.SCHEME_DIR, _count(mc.SCHEME_DIR, (".cur", ".ani"))))
     print("  live      %d slot(s) in %s; scheme %r"
           % (len(bound), os.path.basename(mc.SCHEME_DIR), live.get("", "")))
+    snap = mc.backup_path()
+    if os.path.exists(snap):
+        with open(snap, encoding="utf-8") as fh:
+            saved = json.load(fh)
+        typed = isinstance(saved, dict) and saved.get("format") == mc.SNAPSHOT_FORMAT
+        print("  snapshot  %s  (%d value(s)%s)"
+              % (snap, len(saved["values"]) if typed else len(saved),
+                 ", taken %s" % saved["taken_at"] if typed else ", untyped"))
+    else:
+        print("  snapshot  none; the first --apply writes one before it writes "
+              "anything")
     if not os.path.isdir(mc.OUT):
         print("  note      nothing is built yet; 2 or --apply does that first")
 

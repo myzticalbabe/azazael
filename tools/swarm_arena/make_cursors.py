@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import hashlib
 import json
 import math
 import os
@@ -32,6 +33,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 import winreg
 import zlib
 
@@ -596,6 +598,64 @@ def read_scheme(missing_ok=False):
                          % CURSORS_KEY)
 
 
+def read_live_typed(missing_ok=True):
+    """{name: {"value": ..., "kind": ...}} -- every live value and its type.
+
+    The type is not decoration. Cursor paths are REG_EXPAND_SZ, so a restore
+    that writes them back as REG_SZ leaves `%SystemRoot%` literal and leaves
+    the account naming a folder called `%SystemRoot%` -- a restore that reads
+    as complete and is not.
+    """
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY) as key:
+            out = {}
+            for i in range(winreg.QueryInfoKey(key)[1]):
+                name, value, kind = winreg.EnumValue(key, i)
+                out[name] = {"kind": int(kind), "value": value}
+            return out
+    except FileNotFoundError:
+        if not missing_ok:
+            raise SystemExit("make_cursors: HKCU\\%s does not exist; nothing "
+                             "to read" % CURSORS_KEY)
+        print("absent      HKCU\\%s holds no pointers yet" % CURSORS_KEY)
+        return {}
+
+
+def machine_scheme(name=DEFAULT_SCHEME):
+    """The 15 fields HKLM stores for one of Windows' own schemes."""
+    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, SCHEME_KEY, 0,
+                        winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
+        raw = str(winreg.QueryValueEx(key, name)[0])
+    fields = raw.split(",")
+    if len(fields) < len(SLOTS):
+        raise SystemExit("make_cursors: %s holds %d field(s), %d slots"
+                         % (name, len(fields), len(SLOTS)))
+    return fields
+
+
+def scheme_string(live):
+    """One field per slot -- what the account has after choosing this scheme.
+
+    A slot this scheme does not replace keeps the account's current value.
+    Writing "" there is not "leave it alone": choosing the scheme in Mouse
+    Properties writes every field, so Help, NWPen, UpArrow and Crosshair were
+    blanked by selecting a scheme that never meant to touch them. The fallback
+    is the machine's own %s, so a fresh account still gets a complete
+    scheme rather than four empty fields. `--check` compares this string with
+    the live key slot by slot, so the scheme that is saved and the scheme that
+    is switched to cannot drift apart.
+    """ % DEFAULT_SCHEME
+    fallback = machine_scheme()
+    fields = []
+    for index, slot in enumerate(SLOTS):
+        if slot in PROGRAMS:
+            fields.append(os.path.join(SCHEME_DIR, PROGRAMS[slot]))
+            continue
+        value = str(live.get(slot, "") or "")
+        fields.append(value or fallback[index])
+    return ",".join(fields)
+
+
 def backup_path():
     return os.path.join(OUT, "cursors_backup.json")
 
@@ -633,22 +693,48 @@ def reload_pointers():
     return True
 
 
-def _write_backup(values, path):
-    """Keep the first pre-install reading; never overwrite it with our own state.
+SNAPSHOT_FORMAT = "soulforge-snapshot-2"
+
+
+def _write_snapshot(typed, path):
+    """Keep the first pre-install reading, typed, and prove it landed.
 
     `--apply` used to rewrite this file on every run. A second run therefore
     replaced the only record of the pre-Vulcan pointers with Vulcan ones, and
     `--restore` became a no-op that still reported success -- it was lost that
-    way once, in this tree. When the live pointers are already ours there is
-    nothing to save, and `--defaults` is the undo path.
+    way once, in this tree. It also stored bare values, so a REG_EXPAND_SZ path
+    came back as REG_SZ. Both are fixed here: the file is rewritten only from a
+    state that is not this scheme (so a second `--apply` cannot bury the record
+    under its own output), carries each value's own type and the time it was
+    taken, and is read back from disk and compared before anything writes to the
+    live key. When the live pointers are already ours there is nothing to save,
+    and `--defaults` is the undo.
     """
-    if live_is_ours(values):
-        print("backup      kept %s: the live pointers are already this scheme"
+    live = {name: str(item["value"]) for name, item in typed.items()}
+    if not typed:
+        print("snapshot    nothing to save: %s holds no value yet" % CURSORS_KEY)
+        return False
+    if live_is_ours(live):
+        print("snapshot    kept %s: the live pointers are already this scheme"
               % os.path.basename(path))
         return False
+    payload = {"format": SNAPSHOT_FORMAT,
+               "key": CURSORS_KEY,
+               "taken_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+               "values": typed}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
-        json.dump(values, fh, indent=1)
-    print("backup      %s (%d values)" % (path, len(values)))
+        json.dump(payload, fh, indent=1, sort_keys=True)
+    with open(path, "rb") as fh:
+        blob = fh.read()
+    back = json.loads(blob.decode("utf-8"))
+    if back.get("values") != typed:
+        raise SystemExit("make_cursors: the snapshot at %s did not read back "
+                         "identically; nothing was written to the live key"
+                         % path)
+    print("snapshot    %s (%d value(s), %s, sha256 %s)"
+          % (path, len(typed), payload["taken_at"],
+             hashlib.sha256(blob).hexdigest()[:12]))
     return True
 
 
@@ -866,8 +952,11 @@ def make_preview(built):
     return encode_png(w, h, rgba)
 
 
-def do_install(args):
+def do_install(args, live=None):
     built, preview = do_build(args)
+    if live is None:
+        live = {name: item["value"]
+                for name, item in read_live_typed().items()}
     os.makedirs(SCHEME_DIR, exist_ok=True)
     rows = []
     for path, label, _images in built:
@@ -896,9 +985,7 @@ def do_install(args):
         if not ok:
             raise SystemExit("make_cursors: the copy at %s does not load: %s"
                              % (target, detail))
-    scheme = ",".join(
-        os.path.join(SCHEME_DIR, PROGRAMS[slot]) if slot in PROGRAMS else ""
-        for slot in SLOTS)
+    scheme = scheme_string(live)
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY + r"\Schemes") as key:
         winreg.SetValueEx(key, SCHEME_NAME, 0, winreg.REG_EXPAND_SZ, scheme)
     print("scheme      %s -> %s" % (SCHEME_NAME, SCHEME_DIR))
@@ -907,24 +994,39 @@ def do_install(args):
 
 
 def do_apply(args):
+    """The one command: snapshot, build, install, and name it the default.
+
+    The snapshot comes first and is verified before the first write, because a
+    record taken after the change is not an undo record. The revert is a
+    single command too, and it is printed last so it is the last thing on
+    screen rather than something to look up.
+    """
     os.makedirs(OUT, exist_ok=True)
-    current = read_scheme(missing_ok=True)
-    if not _write_backup(current, backup_path()):
-        print("undo        no pre-install backup exists for this state; "
-              "--defaults returns to %s" % DEFAULT_SCHEME)
-    do_install(args)
+    typed = read_live_typed()
+    snap = backup_path()
+    if not _write_snapshot(typed, snap):
+        if typed:
+            print("undo        no new snapshot taken; --defaults returns to %s, "
+                  "and %s still holds the last state that was not this scheme"
+                  % (DEFAULT_SCHEME, os.path.basename(snap)))
+        else:
+            print("undo        nothing to undo: the key held no pointers before "
+                  "this install")
+    do_install(args, live={name: item["value"] for name, item in typed.items()})
     live = {slot: os.path.join(SCHEME_DIR, name)
             for slot, name in PROGRAMS.items()}
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
                            winreg.KEY_SET_VALUE) as key:
-        for slot, path in live.items():
-            winreg.SetValueEx(key, slot, 0, winreg.REG_EXPAND_SZ, path)
+        for slot, target in live.items():
+            winreg.SetValueEx(key, slot, 0, winreg.REG_EXPAND_SZ, target)
         winreg.SetValueEx(key, "", 0, winreg.REG_SZ, SCHEME_NAME)
     reload_pointers()
     now = read_scheme()
     for slot in live:
         print("live        %-11s %s" % (slot, now.get(slot, "<missing>")))
-    print("scheme      %s" % now.get("", ""))
+    print("default     %s  (%d slot(s) replaced, %d kept, scheme registered)"
+          % (now.get("", ""), len(live), len(SLOTS) - len(live)))
+    print("undo        --restore  (snapshot %s)" % snap)
 
 
 def do_restore(args):
@@ -938,18 +1040,34 @@ def do_restore(args):
     """
     path = backup_path()
     if not os.path.exists(path):
-        raise SystemExit("make_cursors: no backup at %s" % path)
+        raise SystemExit("make_cursors: no snapshot at %s; --defaults returns "
+                         "to %s without one" % (path, DEFAULT_SCHEME))
     with open(path, encoding="utf-8") as fh:
         saved = json.load(fh)
-    if live_is_ours(saved):
+    typed = isinstance(saved, dict) and saved.get("format") == SNAPSHOT_FORMAT
+    if typed:
+        items = saved["values"]
+    else:
+        items = {name: {"kind": None, "value": value}
+                 for name, value in saved.items()}
+        print("restore     %s predates recorded types; %%SystemRoot%% paths "
+              "are written REG_EXPAND_SZ, integers REG_DWORD"
+              % os.path.basename(path))
+    flat = {name: str(item["value"]) for name, item in items.items()}
+    if live_is_ours(flat):
         raise SystemExit("make_cursors: %s holds this scheme, not a pre-install "
                          "state; --defaults returns to %s"
                          % (path, DEFAULT_SCHEME))
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
                         winreg.KEY_SET_VALUE) as key:
-        for name, value in saved.items():
-            kind = winreg.REG_SZ if isinstance(value, str) else winreg.REG_DWORD
-            winreg.SetValueEx(key, name, 0, kind, value)
+        for name, item in sorted(items.items()):
+            kind = item["kind"]
+            if kind is None:
+                value = item["value"]
+                kind = (winreg.REG_DWORD if isinstance(value, int)
+                        else winreg.REG_EXPAND_SZ if "%" in str(value)
+                        else winreg.REG_SZ)
+            winreg.SetValueEx(key, name, 0, int(kind), item["value"])
     reload_pointers()
     now = read_scheme()
     for slot in PROGRAMS:
@@ -966,13 +1084,7 @@ def do_defaults(args):
     Panel itself applies, so they resolve, and a scheme named in the dropdown
     is what the user sees afterwards.
     """
-    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, SCHEME_KEY, 0,
-                        winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
-        raw = str(winreg.QueryValueEx(key, DEFAULT_SCHEME)[0])
-    fields = raw.split(",")
-    if len(fields) < len(SLOTS):
-        raise SystemExit("make_cursors: %s holds %d field(s), %d slots"
-                         % (DEFAULT_SCHEME, len(fields), len(SLOTS)))
+    fields = machine_scheme()
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0,
                         winreg.KEY_SET_VALUE) as key:
         for slot, value in zip(SLOTS, fields):
@@ -1053,9 +1165,66 @@ def do_check(args):
     for slot in bound:
         if not os.path.exists(str(live[slot])):
             defects.append("live %s -> %s does not exist" % (slot, live[slot]))
+    if not bound and live.get("", "") == SCHEME_NAME:
+        # The other half of the same contract: the account default says this
+        # scheme while not one slot carries it -- exactly the state a Windows
+        # theme leaves behind when it applies cursors of its own. Validating
+        # the scheme entry only when a slot is ours made that state read clean
+        # at `0 live value(s)`, which is the one reading a user would trust.
+        defects.append("the account default names %r but 0 live slot(s) carry "
+                       "it; a theme or another tool overwrote the pointers "
+                       "(--apply puts them back)" % SCHEME_NAME)
+    if bound:
+        # The scheme entry is what Mouse Properties shows and re-applies, so it
+        # must describe this account exactly: every slot it does not replace
+        # has to carry the value the account already has, not an empty field.
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                CURSORS_KEY + r"\Schemes", 0,
+                                winreg.KEY_READ) as key:
+                raw = str(winreg.QueryValueEx(key, SCHEME_NAME)[0])
+        except FileNotFoundError:
+            raw = ""
+            defects.append("the scheme %r is not registered; Mouse Properties "
+                           "has no entry to select" % SCHEME_NAME)
+        fields = raw.split(",") if raw else []
+        if raw and len(fields) != len(SLOTS):
+            defects.append("the registered scheme holds %d field(s), %d slots"
+                           % (len(fields), len(SLOTS)))
+        fallback = None
+        for slot, field in zip(SLOTS, fields):
+            if slot in PROGRAMS:
+                want = os.path.join(SCHEME_DIR, PROGRAMS[slot])
+                if os.path.normcase(field) != os.path.normcase(want):
+                    defects.append("scheme %s names %r, not %r"
+                                   % (slot, field, want))
+                continue
+            # A slot this scheme does not replace must carry what the account
+            # has now. Under a throwaway key there is nothing to carry, so the
+            # machine's own value is what the field names -- and then it has to
+            # be a path Windows can actually resolve, not any string at all.
+            have = str(live.get(slot, "") or "")
+            if have:
+                if os.path.normcase(field) != os.path.normcase(have):
+                    defects.append("scheme %s names %r, the live pointer is %r"
+                                   % (slot, field, have))
+                continue
+            fallback = machine_scheme() if fallback is None else fallback
+            index = SLOTS.index(slot)
+            if os.path.normcase(field) != os.path.normcase(fallback[index]):
+                defects.append("scheme %s names %r with no live value to "
+                               "carry; %r is what %s holds"
+                               % (slot, field, fallback[index], DEFAULT_SCHEME))
+            elif field and not os.path.exists(os.path.expandvars(field)):
+                defects.append("scheme %s names %r, which is not on disk"
+                               % (slot, field))
+        if live.get("", "") != SCHEME_NAME:
+            defects.append("the account default reads %r, not %r"
+                           % (live.get("", ""), SCHEME_NAME))
     print("artefacts   %d read back, %d installed copy(ies), %d live value(s) "
-          "in %s" % (len(checked), installed, len(bound),
-                      os.path.basename(SCHEME_DIR)))
+          "in %s; scheme %r"
+          % (len(checked), installed, len(bound),
+             os.path.basename(SCHEME_DIR), live.get("", "")))
     if defects:
         for line in defects:
             print("DEFECT      %s" % line)
