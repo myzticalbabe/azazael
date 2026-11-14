@@ -171,11 +171,20 @@ def units(atlas: Dict) -> List[Dict]:
             })
         total = int(meta.get("classes") or 0)
         if total > len(named):
-            # The atlas lists at most six classes per module (52 of 679 exceed it,
-            # holding 143 classes between them). Those classes are in the tree and
-            # reachable from the module, but the atlas never recorded their names,
-            # so they get one residual shard that states the count instead of
-            # fabricated per-class stubs.
+            # The atlas lists at most six classes per module. Measured 2026-11-14
+            # against atlas_kali-linux.json: 141 of 6 928 modules exceed the cap,
+            # holding 520 classes between them (the previous parenthetical here
+            # said "52 of 679", a reading of an atlas one tenth this size). Those
+            # classes are in the tree and reachable from the module, but the atlas
+            # never recorded their names, so they get one residual shard that
+            # states the count instead of fabricated per-class stubs.
+            #
+            # This guard cannot fire when the census under-reports: a module the
+            # census scores `classes: 0` that really defines nine yields NO shard
+            # at all, and `check()` cannot see it because the index and the atlas
+            # are read from the same census. Measured 2026-11-14: one such module
+            # among the 603 with a vendored copy, CODEX/CORE/azazael_pygame.py
+            # (census 0, source 9). Fixing it means re-censusing, not editing here.
             out.append({
                 "shard_id": "kali:%s#module" % module_name,
                 "kind": "module",
