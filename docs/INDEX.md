@@ -1,6 +1,6 @@
 # Documentation Index
 
-Generated 2026-11-14 01:17 UTC by `tools/docs_index.py`. Re-run to refresh.
+Generated 2026-11-14 01:18 UTC by `tools/docs_index.py`. Re-run to refresh.
 
 **286 documents**
 
