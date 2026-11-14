@@ -941,6 +941,84 @@ def do_defaults(args):
         print("default     %-11s %s" % (slot, now.get(slot, "<missing>")))
 
 
+def do_check(args):
+    """Read back what is built and what is installed. Exit 1 on any defect.
+
+    Exit 2 when there is nothing to read, because "could not check" is not a
+    pass. Each defect is printed on its own line and the run fails on the count,
+    so a single broken slot cannot hide behind a clean one.
+    """
+    if not os.path.isdir(OUT):
+        print("cannot check %s is not there; run --build" % OUT)
+        raise SystemExit(2)
+    defects, checked = [], 0
+    for slot, name in sorted(PROGRAMS.items()):
+        path = os.path.join(OUT, name)
+        if not os.path.exists(path):
+            defects.append("%s: %s is missing" % (slot, name))
+            continue
+        ok, detail = windows_loads(path)
+        checked += 1
+        if not ok:
+            defects.append("%s: Windows refuses %s (%s)" % (slot, name, detail))
+            continue
+        if not name.endswith(".ani"):
+            with open(path, "rb") as fh:
+                blob = fh.read()
+            for fsize, hx, hy, _rgba in cur_entries(blob):
+                if not (0 <= hx < fsize and 0 <= hy < fsize):
+                    defects.append("%s: hotspot %d,%d outside a %d px image"
+                                   % (slot, hx, hy, fsize))
+            continue
+        steps, count, frames = ani_frames(path)
+        if steps != count or count != len(WAVE):
+            defects.append("%s: anih declares %d step(s) for %d frame(s); the "
+                           "wave has %d" % (slot, steps, count, len(WAVE)))
+        if not frames:
+            defects.append("%s: no icon chunk in the fram list" % slot)
+            continue
+        size = frames[0][0][0]
+        spread, ink = palm_travel(size, [f[0][3] for f in frames])
+        print("motion      %-11s %d frame(s), %d px, palm %.2f px = %.1f%% of "
+              "%d px ink" % (slot, len(frames), size, spread,
+                             100.0 * spread / max(ink, 1.0), ink))
+        if spread < MOTION_FLOOR:
+            defects.append("%s: the palm moves %.2f px, under the %.1f px "
+                           "floor; it reads as a tremble"
+                           % (slot, spread, MOTION_FLOOR))
+        for index, entries in enumerate(frames):
+            for fsize, hx, hy, _rgba in entries:
+                if not (0 <= hx < fsize and 0 <= hy < fsize):
+                    defects.append("%s frame %d: hotspot %d,%d outside a %d px "
+                                   "image" % (slot, index, hx, hy, fsize))
+    installed = 0
+    for name in sorted(set(PROGRAMS.values())):
+        source = os.path.join(OUT, name)
+        target = os.path.join(SCHEME_DIR, name)
+        if not os.path.exists(target):
+            continue
+        installed += 1
+        with open(source, "rb") as a, open(target, "rb") as b:
+            if a.read() != b.read():
+                defects.append("installed %s differs from %s" % (target, source))
+        ok, detail = windows_loads(target)
+        if not ok:
+            defects.append("installed %s: %s" % (target, detail))
+    live = read_scheme()
+    bound = [slot for slot, value in live.items() if owns(value)]
+    for slot in bound:
+        if not os.path.exists(str(live[slot])):
+            defects.append("live %s -> %s does not exist" % (slot, live[slot]))
+    print("artefacts   %d read back, %d installed copy(ies), %d live value(s) "
+          "in %s" % (checked, installed, len(bound), os.path.basename(SCHEME_DIR)))
+    if defects:
+        for line in defects:
+            print("DEFECT      %s" % line)
+        raise SystemExit("make_cursors: %d defect(s) in the shipped scheme"
+                         % len(defects))
+    print("clean       0 defect(s)")
+
+
 def do_uninstall(args):
     """Remove the scheme without leaving a pointer aimed at a deleted file.
 
@@ -982,12 +1060,15 @@ def do_uninstall(args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", action="store_true")
+    ap.add_argument("--check", action="store_true")
     ap.add_argument("--install", action="store_true")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--restore", action="store_true")
     ap.add_argument("--defaults", action="store_true")
     ap.add_argument("--uninstall", action="store_true")
     args = ap.parse_args()
+    if args.check:
+        return do_check(args)
     if args.defaults:
         return do_defaults(args)
     if args.restore:

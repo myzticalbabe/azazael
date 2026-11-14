@@ -105,8 +105,20 @@ python make_cursors.py --install   # copy to %LOCALAPPDATA%\...\Cursors\vulcan-s
                                    # register scheme "Vulcan Swarm" (HKCU)
 python make_cursors.py --apply     # back up the live scheme, install, go live
 python make_cursors.py --restore   # put the backed-up scheme back
+python make_cursors.py --defaults  # write Windows Aero back, backup or not
+python make_cursors.py --check     # read back what is built and installed
 python make_cursors.py --uninstall # remove the scheme and its files
 ```
+
+Three of those verbs exist because of one ordering fact each. `--apply` writes
+`cursors_backup.json` **only when the live pointers are not already this
+scheme**, so a second `--apply` cannot replace the genuine pre-install reading
+with the scheme itself — the overwrite that loses a user's arrows happens on the
+second run, not the first. `--defaults` is the undo that needs no backup: it
+reads the `Windows Aero` string out of `HKLM` ...\Control Panel\Cursors\Schemes
+and writes those 15 paths into the live slots. `--uninstall` clears the live
+values and calls `SPI_SETCURSORS` **before** it deletes a file, because the other
+order leaves Windows holding pointers into files that are gone.
 
 Sizes: the arrow carries 16, 32 and 48 px, each from the master that suits it
 (the hand-tuned 16 px master at 16, the 32 px master at 32 and scaled at 48), so
@@ -188,12 +200,19 @@ Three things this file had to get right, all measured rather than assumed:
   grow together, so the fit is a ratio and the glyph has to be drawn smaller.
 - **The wave had to be wide enough to read as motion.** Measured from the built
   frames: ±6° moved the palm 3.05 px, 10.2% of the glyph's own ink height — a
-  tremble. ±14° moves it 6.24 px, 24.0%. The price is a glyph 4 px shorter than
+  tremble. ±14° moves it 6.24 px, 24.0% step to step (6.67 px and 29.0% between
+  the two extreme frames, which is the metric `--check` reports). The price is a
+  glyph 4 px shorter than
   the static arrow's (26 px of ink against 30), which is why the wave was widened
   rather than the frames stretched.
 
 `--install` refuses to copy anything unless every artefact comes back from
 `LoadCursorFromFileW` as a real `HCURSOR`; `--apply` reads the live registry
-values back after `SPI_SETCURSORS` and prints them. The hardware pointer is drawn
+values back after `SPI_SETCURSORS` and prints them. `--check` re-derives both
+claims from disk on demand: it parses every `.cur` index and `.ani` fram list,
+compares each installed copy against `out/`, measures the palm's spread from the
+shipped frames, and fails on a hotspot outside its image, an `anih` that
+disagrees with the fram list, a spread under `MOTION_FLOOR`, or a live value
+aimed at a file that is not there. The hardware pointer is drawn
 by the compositor and does not appear in a GDI screenshot, so `preview.png` —
 the actual bytes, at 16/32/48 and all 8 frames — is the pixel evidence.
