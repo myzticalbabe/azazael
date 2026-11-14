@@ -1,14 +1,15 @@
 """mend.py -- persistent evolution: fix issues through the ledger.
 
 Evolution that lives only in chat history is not evolution; it is
-mood. Mend closes the loop natively: scan for open issues
-(pytest's last-failed cache plus error rows in the bake lane),
-record each fix as an error_fix row in the same lane, and verify
-by re-running the touched tests. The lane is the memory; the
-re-run is the proof; a fix with neither is a rumor.
+mood. Mend closes the loop natively: scan for open issues (pytest's
+last-failed cache), record each fix as an error_fix row in the bake
+lane, and verify by re-running the touched tests. The lane is the
+memory; the re-run is the proof; a fix with neither is a rumor.
 
-- scan(): open issues from .pytest_cache lastfailed plus bake
-  lane error rows. Machine-read, never asserted.
+- scan(): open issues from .pytest_cache lastfailed. The bake lane is
+  opened only to prove it is readable -- a recorded fix is history, not
+  an open issue (counting rows as issues inflated a 2-item backlog to
+  62 and buried the live failures). Machine-read, never asserted.
 - record_fix(title, body): append an error_fix row (body 40+
   chars, enforced) to this agent's bake lane.
 - verify(scope): re-run the eve test files and report green/red
