@@ -442,12 +442,22 @@ def windows_loads(path):
 
 
 def read_scheme():
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY) as key:
-        out = {}
-        for i in range(winreg.QueryInfoKey(key)[1]):
-            name, value, _kind = winreg.EnumValue(key, i)
-            out[name] = value
-        return out
+    """Every live value under the Cursors key, or a refusal naming the key.
+
+    A missing key used to reach the caller as a bare FileNotFoundError
+    traceback raised from inside `--apply`, which reads as a bug in this tool
+    rather than as a registry this account cannot see.
+    """
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY) as key:
+            out = {}
+            for i in range(winreg.QueryInfoKey(key)[1]):
+                name, value, _kind = winreg.EnumValue(key, i)
+                out[name] = value
+            return out
+    except FileNotFoundError:
+        raise SystemExit("make_cursors: HKCU\\%s does not exist; nothing to read"
+                         % CURSORS_KEY)
 
 
 def backup_path():
@@ -480,6 +490,21 @@ def load_masters(reg):
     return roles
 
 
+def spot_int(value, size, label):
+    """A hotspot in whole pixels, or a refusal.
+
+    This was `min(v, size - 1)`, which moved a hotspot that had escaped its
+    image back inside it: the cursor then clicks where the glyph was not drawn,
+    and no preview can show that. A hotspot outside its image is a layout
+    error, so it is raised rather than clamped.
+    """
+    whole = int(round(value))
+    if not 0 <= whole <= size - 1:
+        raise SystemExit("make_cursors: %s hotspot %s is outside a %d px cursor"
+                         % (label, value, size))
+    return whole
+
+
 def build_images(masters, work):
     """One role's static .cur images: 16 and 32 native, 48 from the biggest."""
     images, painted = [], []
@@ -487,10 +512,10 @@ def build_images(masters, work):
         native = size if size in masters else max(masters)
         markup, hotspot = masters[native]
         frames = rasterise(markup, native, hotspot, size, (0.0,), work)
-        hx = int(round(hotspot[0] * size / float(native)))
-        hy = int(round(hotspot[1] * size / float(native)))
-        images.append((size, min(hx, size - 1), min(hy, size - 1),
-                       bmp_entry(frames[0], size)))
+        label = "%d px master" % native
+        hx = spot_int(hotspot[0] * size / float(native), size, label)
+        hy = spot_int(hotspot[1] * size / float(native), size, label)
+        images.append((size, hx, hy, bmp_entry(frames[0], size)))
         painted.append((size, frames[0]))
     return images, painted
 
@@ -543,10 +568,9 @@ def build_derived(spec, markup, hotspot, work):
     images, painted = [], []
     for size in (16, 32, 48):
         frame = rasterise(composed, 32, spot, size, (0.0,), work)[0]
-        hx = int(round(spot[0] * size / 32.0))
-        hy = int(round(spot[1] * size / 32.0))
-        images.append((size, min(hx, size - 1), min(hy, size - 1),
-                       bmp_entry(frame, size)))
+        hx = spot_int(spot[0] * size / 32.0, size, spec["slot"])
+        hy = spot_int(spot[1] * size / 32.0, size, spec["slot"])
+        images.append((size, hx, hy, bmp_entry(frame, size)))
         painted.append((size, frame))
     return images, painted
 
@@ -597,8 +621,8 @@ def do_build(args):
         assert_unclipped(frame, BUSY_CANVAS, angle)
         frames.append(downsample(frame, BUSY_CANVAS, BUSY_PX))
     shrink = BUSY_PX / float(BUSY_CANVAS)
-    bhot = (min(int(round(frame_hot[0] * shrink)), BUSY_PX - 1),
-            min(int(round(frame_hot[1] * shrink)), BUSY_PX - 1))
+    bhot = (spot_int(frame_hot[0] * shrink, BUSY_PX, "busy"),
+            spot_int(frame_hot[1] * shrink, BUSY_PX, "busy"))
     busy = os.path.join(OUT, "vulcan-busy.ani")
     with open(busy, "wb") as fh:
         fh.write(ani_file(SCHEME_NAME, frames, BUSY_PX, bhot))
@@ -669,11 +693,21 @@ def do_install(args):
     if bad:
         raise SystemExit("make_cursors: %d artefact(s) Windows would not load; "
                          "nothing installed" % len(bad))
+    # Verify the copies, not just the originals: a truncated or half-written
+    # file in SCHEME_DIR is the one the live pointers name, and it is the only
+    # one the next logon reads.
     for path, _label, _images in built:
-        with open(path, "rb") as src, open(os.path.join(SCHEME_DIR,
-                                                        os.path.basename(path)),
-                                           "wb") as dst:
+        target = os.path.join(SCHEME_DIR, os.path.basename(path))
+        with open(path, "rb") as src, open(target, "wb") as dst:
             dst.write(src.read())
+        if os.path.getsize(target) != os.path.getsize(path):
+            raise SystemExit("make_cursors: the copy at %s is %d B, not %d B"
+                             % (target, os.path.getsize(target),
+                                os.path.getsize(path)))
+        ok, detail = windows_loads(target)
+        if not ok:
+            raise SystemExit("make_cursors: the copy at %s does not load: %s"
+                             % (target, detail))
     scheme = ",".join(
         os.path.join(SCHEME_DIR, PROGRAMS[slot]) if slot in PROGRAMS else ""
         for slot in SLOTS)
