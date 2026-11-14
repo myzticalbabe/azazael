@@ -1,7 +1,7 @@
 import sys
 import os
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # src/ORCHESTRATION
 
 # coding: utf-8
 """
@@ -178,7 +178,7 @@ def cmd_monitor(args):
     print("Running health monitor...")
 
     try:
-        from health_monitor import PlatformHealthMonitor
+        from ml_platforms.health_monitor import PlatformHealthMonitor
 
         monitor = PlatformHealthMonitor()
 
