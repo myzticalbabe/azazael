@@ -39,6 +39,10 @@ WHAT IT CHECKS (behaviour first, config second)
                        credential authenticates. A lane with NO baked token is
                        fine: the proxy resolves the live one at request time.
   9  lane-context      engram / codegraph / barta present (WARN only)
+ 10  orders-in-sync    every generated standing-order block still matches its one
+                       source, across the WSL lanes too
+ 11  workflow-yaml     .github/workflows/*.yml and dependabot.yml parse, and use
+                       keys GitHub actually accepts
 
 USAGE
   python mcp_startup_gate.py            check, exit 1 on any FAIL
@@ -69,6 +73,15 @@ from datetime import datetime
 from typing import Dict, List
 from pathlib import Path
 
+# Run-as-script guard: `python tools/mcp_startup_gate.py` puts tools/ on
+# sys.path instead of the repo root, so `from tools.defaults_profile import
+# read_default` raised ModuleNotFoundError and the whole stack silently fell
+# back to hardcoded ports. Prepending the repo root makes config/defaults.json
+# actually load.
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 HOME = Path.home()
 PMB_TOKEN = HOME / ".pmb" / "daemon.token"
 PMB_VENV_PY = Path("C:/Users/clint/.pmb-venv/Scripts/python.exe")
@@ -91,8 +104,10 @@ PROXY_STARTUP = (HOME / "AppData" / "Roaming" / "Microsoft" / "Windows" /
 #: returning the same value keeps the caller's contract and the reason.
 #:
 #: Defined HERE, above `_mcp_stack_config`, because that function calls
-#: `_note` when the config cannot be read -- a helper defined further down
-#: would not exist yet at the moment it is needed.
+#: `_note` at import time when the config cannot be read -- a helper defined
+#: further down would not exist yet at the moment it is needed, and every
+#: config-read failure became `NameError: name '_note' is not defined`,
+#: which crashed the gate before a single check ran.
 NOTES: list[str] = []
 
 
@@ -969,7 +984,116 @@ def run(fix=False):
     results.append(("lane-credentials",) + check_lane_credentials())
     results.append(("orders-in-sync",) + check_agent_orders(fix))
     results.append(("lane-context",) + check_context_servers(procs))
+    results.append(("workflow-yaml",) + check_workflow_yaml(fix))
     return results
+
+
+#: Keys Dependabot actually accepts inside one `updates:` entry. GitHub
+#: validates this file strictly and, on an unknown key, rejects the WHOLE file
+#: -- which does not error, it just stops dependency updates and security PRs
+#: from ever being generated again. Nothing in the repository observes that.
+#: Measured 2026-11-15: `vulnerability-alerts` was nested under a pip update
+#: entry. It is a repository setting, not a config key, so every update block
+#: in the file was inert.
+_DEPENDABOT_UPDATE_KEYS = frozenset({
+    "package-ecosystem", "directory", "directories", "schedule", "allow",
+    "ignore", "labels", "assignees", "reviewers", "milestone",
+    "target-branch", "vendor", "open-pull-requests-limit", "commit-message",
+    "groups", "insecure-external-code-execution", "versioning-strategy",
+    "rebase-strategy", "pull-request-branch-name", "exclude-paths",
+    "cooldown", "multi-ecosystem-group",
+})
+_DEPENDABOT_TOP_KEYS = frozenset({"version", "updates", "registries", "enable-beta-ecosystems"})
+
+
+def check_workflow_yaml(fix):
+    """Every workflow and the Dependabot config must PARSE, and use real keys.
+
+    Why this is a gate check: three defects of exactly this shape were found on
+    2026-11-15 and none of them raised anything. A `branches: [main]` filter
+    that never matches `master` means the job is skipped, not failed. An
+    unknown Dependabot key disables the automation outright. A YAML rewrite
+    (the `sed` indentation flatten in standards-auto-sync) can move `steps` to
+    be a sibling of the job it belongs to -- still valid YAML, no longer a
+    workflow. None of these are visible by reading; they only show up on the
+    next push, as silence.
+
+    Not repairable automatically: guessing the intended tree structure is how
+    the sed bug happened in the first place. Reported with the file named.
+    """
+    try:
+        import yaml
+    except ImportError:
+        return WARN, "pyyaml not installed; workflows unverified", "pip install pyyaml"
+
+    wf_dir = Path(_REPO_ROOT) / ".github" / "workflows"
+    targets = sorted(wf_dir.glob("*.yml")) + sorted(wf_dir.glob("*.yaml"))
+    dependabot = Path(_REPO_ROOT) / ".github" / "dependabot.yml"
+    if dependabot.is_file():
+        targets.append(dependabot)
+    if not targets:
+        return WARN, "no workflow files found", ""
+
+    problems = []
+    for path in targets:
+        rel = path.name
+        try:
+            doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:
+            first = str(exc).splitlines()[0] if str(exc) else exc.__class__.__name__
+            problems.append("%s: %s" % (rel, first))
+            continue
+        if not isinstance(doc, dict):
+            problems.append("%s: top level is not a mapping" % rel)
+            continue
+
+        if path.name.startswith("dependabot"):
+            unknown = sorted(set(doc) - _DEPENDABOT_TOP_KEYS)
+            if unknown:
+                problems.append("%s: unknown top-level key(s) %s" % (rel, ", ".join(unknown)))
+            for idx, entry in enumerate(doc.get("updates") or []):
+                if not isinstance(entry, dict):
+                    problems.append("%s: updates[%d] is not a mapping" % (rel, idx))
+                    continue
+                bad = sorted(set(entry) - _DEPENDABOT_UPDATE_KEYS)
+                if bad:
+                    problems.append("%s: updates[%d] has unknown key(s) %s" % (rel, idx, ", ".join(bad)))
+                if "package-ecosystem" not in entry:
+                    problems.append("%s: updates[%d] has no package-ecosystem" % (rel, idx))
+            continue
+
+        # Workflows: PyYAML reads a bare `on:` as the boolean True, so a plain
+        # `"on" in doc` test reports every valid workflow as missing its trigger.
+        if "on" not in doc and True not in doc:
+            problems.append("%s: no trigger (`on`)" % rel)
+        if "jobs" not in doc:
+            problems.append("%s: no jobs" % rel)
+        elif not isinstance(doc["jobs"], dict) or not doc["jobs"]:
+            problems.append("%s: jobs is empty" % rel)
+        else:
+            # Shape check, not just presence. Reindenting YAML can leave a job
+            # key with a null body and promote its former child keys to
+            # siblings: `build:` empty and `steps:` sitting beside it as its
+            # own job. That document loads without complaint and contains no
+            # runnable job, which is precisely how the sed flatten above would
+            # have broken every workflow while still parsing.
+            for job_name, job in doc["jobs"].items():
+                where = "%s: job %r" % (rel, job_name)
+                if not isinstance(job, dict):
+                    problems.append("%s is not a mapping (empty job key, or a list promoted into jobs)" % where)
+                    continue
+                if "runs-on" not in job and "uses" not in job:
+                    problems.append("%s has neither runs-on nor uses" % where)
+                steps = job.get("steps")
+                if steps is not None and not isinstance(steps, list):
+                    problems.append("%s steps is not a list" % where)
+
+    if problems:
+        detail = "; ".join(problems[:3])
+        if len(problems) > 3:
+            detail += "; +%d more" % (len(problems) - 3)
+        return FAIL, detail, "fix by hand: an unknown key or bad indent cannot be guessed"
+    return PASS, "%d file(s) parse, keys valid" % len(targets), ""
 
 
 def _label(status):
