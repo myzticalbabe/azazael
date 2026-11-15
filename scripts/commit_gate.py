@@ -24,6 +24,11 @@ Two parts:
      (pushing a commit that later commits sit on, or a ref that is not the
      checked-out one) fell back to the index, so the changeset that actually left
      the machine was never the one judged. The hook now names both ends.
+  1d. A push that carries several commits is judged COMMIT BY COMMIT, each
+     against the same caps pre-commit applies. Measuring the union of a push
+     charges it for a changeset no message describes -- measured 2026-11-15,
+     three commits of 2, 7 and 3 files were refused as "12 files". Nothing is
+     exempted: every commit still has to fit the caps on its own.
   2. `commit_gate.py review`: interactive worktree review -- groups changed
      files (source vs generated), shows per-file +/- and lets the operator
      stage exactly what the commit message will describe.
@@ -151,6 +156,52 @@ def single_commit_bulk_declaration(base: str, tip: str = "HEAD") -> str | None:
     return sha if declares_bulk(message) else None
 
 
+def range_commits(base: str, tip: str = "HEAD") -> list[tuple[str, str]]:
+    """[(sha, subject)] for the commits in `base..tip`, oldest first."""
+    raw = _git("log", "--reverse", "--format=%H%x1f%s%x1e",
+               "%s..%s" % (base, tip))
+    commits = []
+    for chunk in raw.split("\x1e"):
+        chunk = chunk.strip("\n")
+        if not chunk:
+            continue
+        sha, _, subject = chunk.partition("\x1f")
+        commits.append((sha.strip(), subject.strip()))
+    return commits
+
+
+def commit_numstat(sha: str) -> list[tuple[int, int, str]]:
+    """[(added, deleted, path)] for one commit against its parent.
+
+    `diff-tree --root` works for the first commit of a repository, where
+    `sha^` does not exist -- a range that starts at a root commit must still be
+    judged.
+    """
+    rows = []
+    for line in _git("diff-tree", "--no-commit-id", "--numstat", "-r",
+                     "--root", sha).splitlines():
+        parts = line.split("\t")
+        if len(parts) != 3:
+            continue
+        try:
+            added, deleted = int(parts[0]), int(parts[1])
+        except ValueError:
+            added, deleted = -1, -1  # binary
+        rows.append((added, deleted, parts[2]))
+    return rows
+
+
+def commit_statuses(sha: str) -> dict[str, str]:
+    """path -> status letter for one commit (A = created by that commit)."""
+    out: dict[str, str] = {}
+    for line in _git("diff-tree", "--no-commit-id", "--name-status", "-r",
+                     "--root", sha).splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            out[parts[-1].strip()] = parts[0].strip()
+    return out
+
+
 def range_statuses(base: str, tip: str = "HEAD") -> dict[str, str]:
     """path -> status letter for the same range (A = created by it)."""
     out: dict[str, str] = {}
@@ -230,6 +281,53 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     return problems
 
 
+def judge_commits(commits: list[tuple[str, str]], max_lines: int,
+                  max_files: int, scope: str = "the push") -> int:
+    """Judge each pushed commit against the same caps pre-commit applies.
+
+    The caps are per commit -- pre-commit asks "is the commit I am writing too
+    big" -- so a push is the wrong unit to measure. Judging the union charges
+    a push for a changeset no message describes: measured 2026-11-15, three
+    commits of 2, 7 and 3 files (every one under the 8-file cap) were refused
+    as "12 files in ff51d36c..8aa36fed", and the only remedies were a false
+    bulk declaration or three separate pushes. Each commit is measured on its
+    own diff instead, and a commit whose message declares bulk passes exactly
+    as it would have passed alone.
+    """
+    problems: list[str] = []
+    blocked = 0
+    for sha, subject in commits:
+        try:
+            message = _git("log", "-1", "--format=%B", sha)
+        except Exception as exc:  # noqa: BLE001 - a commit that cannot be read
+            print("commit-gate: cannot read the message of %s (%s) -- refusing "
+                  "to pass on a commit that was not read" % (sha[:8], exc))
+            return 1
+        if declares_bulk(message):
+            continue
+        rows = commit_numstat(sha)
+        if not rows:
+            continue
+        created = {p for p, s in commit_statuses(sha).items() if "A" in s}
+        found = evaluate(
+            rows, max_lines, max_files, created,
+            changeset="files in commit %s (%s)" % (sha[:8], subject or "no subject"),
+            remedy="Split that commit, or declare the bulk op in its message "
+                   "(ALLOW_BULK_COMMIT=1).",
+            file_remedy="Split that commit, or declare the bulk op in its message.")
+        if found:
+            blocked += 1
+            problems.extend(found)
+    if not problems:
+        return 0
+    print("commit-gate: BULK COMMIT BLOCKED (%d of %d commit(s) in %s exceed "
+          "the caps)" % (blocked, len(commits), scope))
+    for p in problems:
+        print("  - " + p)
+    print("  Review with: git show --stat <sha>  # the commit named above")
+    return 1
+
+
 def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
     """Judge a changeset. `base` names a commit (`base..HEAD`); None = the index.
 
@@ -260,6 +358,15 @@ def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
             print("commit-gate: bulk declared in the message of %s, passing "
                   "(%s)" % (declared[:8], scope))
             return 0
+        # A push is usually several commits; measure each one, not the union.
+        try:
+            commits = range_commits(base, tip)
+        except Exception as exc:  # noqa: BLE001 - a named range must be read
+            print("commit-gate: cannot list the commits of %s (%s) -- refusing "
+                  "to pass on a range that was not read" % (scope, exc))
+            return 1
+        if len(commits) > 1:
+            return judge_commits(commits, max_lines, max_files, scope)
     try:
         if base:
             rows = range_numstat(base, tip)

@@ -221,3 +221,53 @@ def test_tip_without_a_base_is_refused(tmp_path, monkeypatch):
 def test_tip_needs_a_revision(tmp_path, monkeypatch):
     _repo(tmp_path, monkeypatch)
     assert cg.main(["--hook", "--base", "HEAD~1", "--tip"]) == 2
+
+
+# ── a multi-commit push is judged commit by commit (2026-11-15) ─────────────
+# The caps are per commit. Measuring the union of a push refused three healthy
+# commits (2, 7 and 3 files) as "12 files", and the only ways out were a false
+# bulk declaration or three separate pushes.
+
+def test_multi_commit_push_measures_each_commit(tmp_path, monkeypatch):
+    """Three commits, 1+2+0 files: the union is over the cap, no commit is."""
+    run, p = _repo(tmp_path, monkeypatch)        # a.txt, then b.txt
+    (p / "c.txt").write_text("c", encoding="utf-8")
+    (p / "d.txt").write_text("d", encoding="utf-8")
+    run("add", "c.txt", "d.txt")
+    run("commit", "-q", "-m", "third: two files")
+    monkeypatch.setenv("COMMIT_GATE_MAX_FILES", "2")
+    assert cg.main(["--hook", "--base", "HEAD~2"]) == 0
+
+
+def test_oversized_commit_inside_a_push_still_blocks(tmp_path, monkeypatch, capsys):
+    """NEGATIVE CONTROL: one commit over the cap fails the push, by name."""
+    run, p = _repo(tmp_path, monkeypatch)
+    for name in ("c.txt", "d.txt", "e.txt"):
+        (p / name).write_text(name, encoding="utf-8")
+    run("add", "c.txt", "d.txt", "e.txt")
+    run("commit", "-q", "-m", "third: three files")
+    sha = cg._git("rev-parse", "HEAD").strip()[:8]
+    monkeypatch.setenv("COMMIT_GATE_MAX_FILES", "2")
+    assert cg.main(["--hook", "--base", "HEAD~2"]) == 1
+    out = capsys.readouterr().out
+    assert "BULK COMMIT BLOCKED" in out
+    assert "files in commit %s" % sha in out
+
+
+def test_declaration_authorises_its_own_commit_inside_a_push(tmp_path, monkeypatch):
+    """A declared commit passes; its neighbours are still measured."""
+    run, p = _repo(tmp_path, monkeypatch)
+    for name in ("c.txt", "d.txt", "e.txt"):
+        (p / name).write_text(name, encoding="utf-8")
+    run("add", "c.txt", "d.txt", "e.txt")
+    run("commit", "-q", "-m", "sweep: ALLOW_BULK_COMMIT=1 (three files)")
+    (p / "f.txt").write_text("f", encoding="utf-8")
+    (p / "g.txt").write_text("g", encoding="utf-8")
+    run("add", "f.txt", "g.txt")
+    run("commit", "-q", "-m", "fourth: two files")
+    monkeypatch.setenv("COMMIT_GATE_MAX_FILES", "2")
+    assert cg.main(["--hook", "--base", "HEAD~3"]) == 0
+
+    # the neighbour is still measured: only the declaring commit is exempt
+    monkeypatch.setenv("COMMIT_GATE_MAX_FILES", "1")
+    assert cg.main(["--hook", "--base", "HEAD~3"]) == 1
