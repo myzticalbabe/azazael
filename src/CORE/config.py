@@ -23,6 +23,7 @@ Version: 1.0.0
 """
 
 import os
+import subprocess
 import threading
 from pathlib import Path
 # from typing import Optional, Dict, List  # removed — all names have native equivalents
@@ -463,7 +464,6 @@ def _find_config_file() -> (Path | None):
 
     # 5. Git repository root (robust for CI)
     try:
-        import subprocess
         result = subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
             capture_output=True, text=True, timeout=5
