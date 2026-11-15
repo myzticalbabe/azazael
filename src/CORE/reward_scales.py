@@ -9,7 +9,9 @@ fitness point outweighs a whole [0,1] rate, and an unbounded -ms/10000 tail
 vetoes a reliable worm.
 
 This module is the meeting point, not another normalizer:
-- SCALES: registry of named scales (units, range, higher_better).
+- SCALES: registry of named scales (units, range, higher_better, producer).
+  `producer` names the emit site, or None when the scale is defined but
+  unwritten; `producerless_scales()` is that split, measured not assumed.
 - canonical_reward(...): validated record {value, scale_id, provenance}.
 - to_common_scale(record, baseline): z-space mapping that REFUSES (None)
   without a measured baseline instead of inventing one.
@@ -34,28 +36,61 @@ except ImportError:                               # never break the host
     LocalMemoryStore = None  # type: ignore
 
 
+# `producer` is the module that actually calls an emit path with this scale id,
+# measured in this tree — not a guess about who *could*. None means the scale is
+# a validated definition with a real upstream quantity and no emit site yet, so
+# `scale_distributions()` will never report a baseline for it and
+# `to_common_scale()` must keep refusing it. Declaring that here stops a consumer
+# from reading an empty bucket as "this space is quiet" instead of "nothing
+# writes it". A registry that names ten scales while three are written is a claim
+# of coverage, and the claim is what gets checked (measured 2026-11-15: only
+# rate_01, millis and count had a call site).
 SCALES: Dict[str, Dict[str, Any]] = {
     "rate_01": {"units": "fraction", "range": (0.0, 1.0), "higher_better": True,
+                "producer": ("src/CORE/WORMS/expansion/learning_grpo.py",
+                             "src/CORE/WORMS/expansion/queens.py"),
                 "notes": "success rates, accuracies, Wilson means, LLM scores, rubric scores"},
     "boolean": {"units": "flag", "range": (0, 1), "higher_better": True,
+                "producer": ("src/CORE/WORMS/expansion/queens.py",),
                 "notes": "accept/deny, valid/invalid, pass/fail"},
     "count": {"units": "items", "range": (0, None), "higher_better": None,
+              "producer": ("src/CORE/WORMS/expansion/queens.py",),
               "notes": "extensive: support counts, savings slots, pulls; direction is contextual"},
     "millis": {"units": "milliseconds", "range": (0.0, None), "higher_better": False,
+               "producer": ("src/CORE/WORMS/expansion/learning_grpo.py",),
                "notes": "durations; never average against rates (documented harm)"},
     "fitness_points": {"units": "avg_reward sums", "range": (None, None), "higher_better": True,
-                       "notes": "evolution totals; unbounded, pool-relative only"},
+                       "producer": None,
+                       "notes": "evolution totals (WORMS/expansion/evolution.py evaluate_population); unbounded, pool-relative only"},
     "zscore": {"units": "std from group mean", "range": (None, None), "higher_better": True,
-               "notes": "GRPO/DAPO advantages; comparable only within their group"},
+               "producer": None,
+               "notes": "GRPO/DAPO advantages (learning_grpo.compute_advantages); comparable only within their group"},
     "loss": {"units": "nats", "range": (0.0, None), "higher_better": False,
-             "notes": "DPO-style losses; lower is better — negate before ranking with rewards"},
+             "producer": None,
+             "notes": "DPO-style losses (CORE/dpo_losses.py); lower is better — negate before ranking with rewards"},
     "margin": {"units": "native", "range": (None, None), "higher_better": True,
-               "notes": "raw margins; prefer bounded_margin form for cross-use"},
+               "producer": None,
+               "notes": "raw margins (rappo_filter input); prefer bounded_margin form for cross-use"},
     "probability": {"units": "probability", "range": (0.0, 1.0), "higher_better": True,
+                    "producer": None,
                     "notes": "calibrated beliefs; rank recall prefers scored rows"},
-    "severity_payoff": {"units": "table units", "range": (-1.4, 1.4), "higher_better": True,
-                        "notes": "RL per-step table values; action-indexed, not cross-action comparable"},
 }
+
+
+def producerless_scales() -> tuple:
+    """Scale ids with no emit site in this tree, sorted.
+
+    These are validated definitions, not measured spaces: nothing writes them,
+    so no baseline can exist. Consumers must not read their absence as a value.
+    """
+    return tuple(sorted(sid for sid, entry in SCALES.items()
+                        if not entry.get("producer")))
+
+
+def emitting_scales() -> tuple:
+    """Scale ids some module actually writes, sorted."""
+    return tuple(sorted(sid for sid, entry in SCALES.items()
+                        if entry.get("producer")))
 
 
 def describe_scale(scale_id: str) -> Dict[str, Any]:

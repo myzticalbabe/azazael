@@ -881,6 +881,12 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
         result["hook_kept"] = _rainbow_hook(team, subject, ok)
         result["reward_kept"] = _rainbow_reward(store, team, reward_value,
                                                 reward_scale)
+        # The verdict is itself a measured outcome, and `boolean` is the scale
+        # defined for exactly it. Without this the pass/fail signal existed only
+        # in the join row while the co-tabulated ledger showed rates and counts
+        # and nothing that said "this team passed" — a scale in the registry
+        # with no writer reads as silence rather than as an absent producer.
+        result["verdict_kept"] = _rainbow_reward(store, team, bool(ok), "boolean")
         out["teams"][team] = result
         if not ok:
             out["ok"] = False
