@@ -168,17 +168,25 @@ def main(argv=None) -> int:
     ap.add_argument("--floor", type=float, default=None)
     ap.add_argument("--rung-floor", type=float, default=None)
     args = ap.parse_args(argv)
-    ledger = args.ledger or _default_ledger()
+    # An explicit --log asks about that log. The ambient cursor ledger is a
+    # preference only when the caller named no source: a host file must not
+    # answer for a run that asked about a different one.
+    ledger = args.ledger
+    if ledger is None and args.log is None:
+        ledger = _default_ledger()
     if ledger is not None:
         if args.ledger is None:
             print("claim_agreement: live ledger present, claims read from "
                   "ledger rows (%s)" % ledger)
         return ledger_main(ledger)
-    import os
-    print("claim_agreement: no ledger at %s -- falling back to live-log "
-          "replay" % ([os.environ["AZAZAEL_CURSOR_LEDGER"]]
-                         if "AZAZAEL_CURSOR_LEDGER" in os.environ
-                         else LEDGER_CANDIDATES))
+    if args.log:
+        print("claim_agreement: replaying live log %s" % args.log)
+    else:
+        import os
+        print("claim_agreement: no ledger at %s -- falling back to live-log "
+              "replay" % ([os.environ["AZAZAEL_CURSOR_LEDGER"]]
+                             if "AZAZAEL_CURSOR_LEDGER" in os.environ
+                             else LEDGER_CANDIDATES))
     floor = args.floor if args.floor is not None else floor_default()
     rung_floor = args.rung_floor if args.rung_floor is not None \
         else floor_default("rung")
