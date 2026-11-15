@@ -108,7 +108,9 @@
     "kernel_timeout_s": 180,
     "strict": false,
     "strict_after_clean": 3,
-    "leg_timeout_s": 300
+    "leg_timeout_s": 300,
+    "citation_audit": true,
+    "reading_freshness": true
   },
   "reading_audit": {
     "min_coverage": 0.0

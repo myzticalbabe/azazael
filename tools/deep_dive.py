@@ -153,6 +153,9 @@ def hyper_edge_flags() -> dict:
         "drift_audit": bool(setting("hyper_edge.drift_audit", True)),
         # Literal like the rest: a computed key would read as orphan_knob.
         "fusion": bool(setting("hyper_edge.fusion", True)),
+        # Literal like the rest: a computed key would read as orphan_knob.
+        "citation_audit": bool(setting("hyper_edge.citation_audit", True)),
+        "reading_freshness": bool(setting("hyper_edge.reading_freshness", True)),
     }
 
 
@@ -166,6 +169,12 @@ HYPER_EDGE_TOOLS = [
     ("claim_agreement", "tools/claim_agreement.py", "hyper_edge.claim_agreement"),
     ("drift_audit", "tools/drift_audit.py", "hyper_edge.drift_audit"),
     ("fusion", "tools/fusion_status.py", "hyper_edge.fusion"),
+    # The two readings a verdict decays without: is the prose still pointing at
+    # instruments that exist, and was the reading taken about the tree it is
+    # quoted against. Both advisory, both ratcheted by the same block below.
+    ("citation_audit", "tools/citation_audit.py", "hyper_edge.citation_audit"),
+    ("reading_freshness", "tools/reading_freshness.py",
+     "hyper_edge.reading_freshness"),
 ]
 
 
