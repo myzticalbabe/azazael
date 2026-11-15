@@ -71,6 +71,12 @@ STATE_SNAPSHOT_RE = re.compile(
 #: the claim against that tool's own source instead of trusting this table.
 GENERATED_PATHS = {
     "docs/INDEX.md": "tools/docs_index.py",
+    # 2026-11-14: same shape, different owner. `shard_intake.py` rewrites the
+    # index top to bottom (`INDEX.write_text(render_index(...))`), so a
+    # regeneration of it measured 43,345 lines against a 150/file cap -- a
+    # declaration demanded for bytes no human wrote. Canon already names
+    # SHARD_INDEX.json among the files nobody hand-edits.
+    "Project_ELIZA/shards/SHARD_INDEX.json": "Project_ELIZA/tools/shard_intake.py",
 }
 
 
