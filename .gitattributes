@@ -8,3 +8,11 @@ archived/2026-05-31/onnxruntime-source/onnxruntime.tar.gz filter=lfs diff=lfs me
 # working tree the files were written in. Pin the licence files to LF so the
 # checked-out bytes are the canonical bytes on every platform.
 LICENSE text eol=lf
+
+# The METTHEW reference shards are bundles: each shard.json declares the sha256
+# and size_bytes of main.py and SHARD.md, and tools/metthew_validate.py compares
+# the file on disk with that declaration. With core.autocrlf=true a checkout
+# rewrites both as CRLF (one byte per line larger), so every bundle was refused
+# for bytes its manifest never declared while the committed blobs were correct.
+# Pin the shard tree to LF so the checked-out bytes are the declared bytes.
+docs/METTHEW/reference-shards/** text eol=lf
