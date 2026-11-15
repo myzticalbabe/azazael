@@ -73,12 +73,21 @@ def test_cmd_infer_bad_model():
     assert rc == 1
 
 
-def test_cmd_infer_json_output(tmp_path):
-    # create a real tiny model file? skip - just test parse path returns 0 (swarm fallback)
+def test_cmd_infer_missing_model_refuses_with_json_output(tmp_path):
+    """A model FILE that is not there is refused; the swarm is for a missing
+    FRAMEWORK.
+
+    `cmd_infer` enters the swarm fallback only when the loader reports that the
+    local framework is "not installed". "Model not found: /nope.pt" is a
+    different failure: the operator named a file that does not exist, so routing
+    the prompt to a remote provider would answer a question nobody asked. This
+    asserted rc == 0 for one commit (4c225ac0) and the fallback it named was
+    never reachable from this path.
+    """
     from eve_unleashed.cli import cmd_infer
     args = type("A", (), {"model": "/nope.pt", "input": "hello", "framework": "auto", "output": "json"})()
     rc = cmd_infer(args)
-    assert rc == 0  # swarm fallback succeeds
+    assert rc == 1
 
 
 def test_main_stats():

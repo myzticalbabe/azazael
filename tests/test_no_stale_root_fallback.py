@@ -287,6 +287,11 @@ def test_canonical_resolver_never_raises_on_a_sentinel_failure(monkeypatch) -> N
         "the fallback branch must return the tree it ships in, not a home-relative "
         "guess; got %s" % root
     )
-    assert os.path.basename(str(root)) == "azazael" or str(root).endswith("azazael"), (
-        "fallback root %s does not look like this repo" % root
+    # “Looks like this repo” is the module's OWN tree root, not a directory called
+    # `azazael`: the documented contract is parents[3] of this file, and tying it to
+    # the name failed on every renamed checkout (`_azazael_fix`) while the resolver
+    # was behaving exactly as written.
+    from CORE.paths import internal
+    assert Path(root).resolve() == Path(internal.__file__).resolve().parents[3], (
+        "fallback root %s is not the tree this resolver ships in" % root
     )

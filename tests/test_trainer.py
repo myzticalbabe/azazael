@@ -195,9 +195,16 @@ def test_load_or_seed_fresh_carries_dream_seeds(tmp_path):
 
 
 def test_shape_gene_defaults_and_rejects_unknown_solids():
-    assert WormDNA(worm_id="s", worm_type="fetcher").shape == "dodecahedron"
+    from eve_unleashed.dodeca_recall import SHAPES
+    # Default is the moved one: commit 7cc51bc3 took the live-trained genome's
+    # shape (dodecahedron -> g40). An unknown solid still lands on the
+    # balanced default, and a registered one is kept as named.
+    default = WormDNA(worm_id="s", worm_type="fetcher")
+    assert default.shape == "g40"
+    assert default.shape in SHAPES
     d = WormDNA(worm_id="s", worm_type="fetcher", shape="flatland")
     assert d.shape == "dodecahedron"
+    assert d.shape in SHAPES
     d2 = WormDNA(worm_id="s", worm_type="fetcher", shape="icosahedron")
     assert d2.shape == "icosahedron"
 
@@ -246,8 +253,16 @@ def test_mutate_never_moves_off_registered_solids():
         assert d.shape in SHAPES
 
 
-def test_train_config_defaults_pop_eight():
-    assert TrainConfig().pop == 8
+def test_train_config_defaults_match_the_published_evolution_profile():
+    """The evolved population size lives in two places and they must agree.
+
+    Commit 7cc51bc3 moved pop 8 -> 6 in BOTH `TrainConfig` and
+    config/defaults.json. A later training run that edits only one of them is
+    exactly the drift this asserts against.
+    """
+    from tools.defaults_profile import read_default
+    assert TrainConfig().pop == 6
+    assert read_default("evolution.population_size", None) == TrainConfig().pop
 
 
 def test_save_load_pop_roundtrip(tmp_path):
