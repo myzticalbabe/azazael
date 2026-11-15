@@ -307,6 +307,36 @@ namespace LumenRefresh
             { "deepsea", "ramp=#000308,#03243b,#0a7f8f,#79f2d0,#f2fffb" },
             { "toxic",   "ramp=#020600,#123d0a,#79ff3d,#eaffb0" },
             { "rose",    "ramp=#0a0002,#3d0518,#ff2f6e,#ffc2d4,#fff5f8" },
+
+            // NEON: near-black grounds with one screaming accent, so the plumes read as
+            // signage rather than smoke.
+            { "neon-cyan", "ramp=#00040a,#00303f,#00e5ff,#b9f6ff,#ffffff" },
+            { "neon-pink", "ramp=#0a0010,#3d0033,#ff00a0,#ff8ae0,#fff0fa" },
+            { "neon-lime", "ramp=#000a00,#0b3300,#39ff14,#c6ff8a,#f7fff0" },
+
+            // FLUORESCENT: acid-bright, blown highlights, the ink pushed past what the
+            // source actually contains.
+            { "fluoro-sun",    "hue=-22 sat=2.1 gain=1.55,1.4,0.3 contrast=1.3 lift=0.06" },
+            { "fluoro-mint",   "hue=150 sat=2.0 gain=0.45,1.65,1.25 contrast=1.25 lift=0.07" },
+            { "fluoro-violet", "hue=-100 sat=2.1 gain=1.05,0.45,1.7 contrast=1.28 lift=0.06" },
+
+            // PASTEL: washed and lifted, low contrast, but with enough chroma left that the
+            // two inks stay apart.
+            { "pastel",      "sat=0.55 gain=1.05 lift=0.16 contrast=0.85" },
+            { "pastel-mint", "hue=150 sat=0.5 gain=0.95,1.1,1.05 lift=0.18 contrast=0.82" },
+            { "pastel-rose", "hue=-40 sat=0.55 gain=1.1,0.93,1.0 lift=0.18 contrast=0.82" },
+
+            // ELECTRICS: indigo ground, periwinkle sheath, hard cyan arc, white core.
+            { "electric",    "ramp=#00020a,#1a00cc,#4d5cff,#00eaff,#ffffff" },
+            { "elec-violet", "ramp=#06000f,#3a00c8,#a02bff,#e9ccff,#ffffff" },
+
+            // SUNSET CLOUDS: coral and lavender, the way lit cloud banks actually stack.
+            { "sunset",        "ramp=#14002b,#5c1a4a,#c2410c,#ff9e64,#ffe7c2" },
+            { "sunset-clouds", "duo=#ff9e64,#8f6bd8" },
+
+            // YOUTUBE BLUE: the light UI blue (#3EA6FF) and the deep brand blue (#065FD4).
+            { "yt-blue", "ramp=#00060f,#0b2c4d,#3ea6ff,#cfeaff,#ffffff" },
+            { "yt-deep", "ramp=#000208,#00204d,#065fd4,#6ea8ff,#eaf4ff" },
         };
 
         public static Grade FromName(string name)
@@ -682,11 +712,15 @@ namespace LumenRefresh
         public string Progress = null;       // palette to ramp toward over the session
         public double ProgressMinutes = 0;
 
+
         // pattern / motion
         public bool TriadShift = true;       // --shift counts RGB triads, not raw pixels
         public bool Orbit = false;           // step the crop centre 90 deg each loop
         public bool Dwell = false;           // bias the orbit toward least-exercised regions
         public int RotateQuadrant = -1;      // force a starting crop quadrant
+        public float Ripple = 0f;            // px of animated wave displacement
+        public float Scan = 0f;              // 0..1 scanline darkening
+        public float Bloom = 0f;             // 0..1 glow add-back
 
         // output
         public string Export = null;         // write a video instead of playing
@@ -734,6 +768,9 @@ namespace LumenRefresh
                     case "--orbit": o.Orbit = true; break;
                     case "--dwell": o.Dwell = true; break;
                     case "--quadrant": if (next != null) { o.RotateQuadrant = (int)ParseF(next, 0); i++; } break;
+                    case "--ripple": if (next != null) { o.Ripple = ParseF(next, 0f); i++; } break;
+                    case "--scan": if (next != null) { o.Scan = ParseF(next, 0f); i++; } break;
+                    case "--bloom": if (next != null) { o.Bloom = ParseF(next, 0f); i++; } break;
                     case "--export": if (next != null) { o.Export = next; i++; } break;
                     case "--export-size": if (next != null) { o.ExportSize = next; i++; } break;
                     case "--ffmpeg": if (next != null) { o.Ffmpeg = next; i++; } break;
@@ -1000,6 +1037,27 @@ namespace LumenRefresh
         /// never leaves the decoded frame (a clamp in the sampler would smear the edge).</summary>
         public float OrbitX, OrbitY;
 
+        /// <summary>Seconds into the clip. The animated effects read only this, so the
+        /// export and the live player agree frame for frame.</summary>
+        public float Time;
+
+        // effect scratch. Reused across frames: at 1080p the ripple tables are two
+        // ~2k-entry arrays and the bloom buffer is 240x135, so per-frame allocation
+        // would be pure garbage.
+        private float[] _ripX, _ripY;
+        private int[] _scanMul;
+        private int _scanH;
+        private float _scanS = -1f;
+        // Bloom is built from the frame being written and added back on the NEXT one.
+        // One frame of lag at 24 fps is invisible behind an 8x8 blur, and it removes a
+        // whole full-resolution pass: the candle is cheaper than the read-back.
+        private float[] _accR = new float[1], _accG = new float[1], _accB = new float[1], _accW = new float[1], _blurTmp;
+        private byte[] _glowR = new byte[1], _glowG = new byte[1], _glowB = new byte[1];
+        private int _bmW, _bmH, _bmDW, _bmDH;
+        private bool _glowReady;
+        private int _bloomFrame;
+        private int[] _gX0, _gX1, _gY0, _gY1, _gWX, _gWY;
+
         /// <summary>Moves the crop window to one of four positions around centre. The
         /// window only has room on the axis the cover-crop trimmed, so a position with no
         /// room degrades to centre rather than to a smeared edge.</summary>
@@ -1064,13 +1122,54 @@ namespace LumenRefresh
                 byte* db = (byte*)bd.Scan0;
                 int dstride = bd.Stride;
 
+                // Effect tables are rebuilt once per frame, never per pixel: a sin() in
+                // the inner loop would cost more than the whole grade does.
+                float[] ripX = _opt.Ripple > 0.01f ? BuildRippleX(dw) : null;
+                float[] ripY = _opt.Ripple > 0.01f ? BuildRippleY(dh) : null;
+                int[] scanMul = _opt.Scan > 0.001f ? BuildScan(dh) : null;
+
+                // The glow field is rebuilt on every other frame. It lives behind an
+                // 8x blur and is added back for 2-3 frames anyway, so at 24 fps the
+                // difference is invisible - and it halves the one cost that scales with
+                // pixel count on a 2880x1800 panel.
+                bool bloom = _opt.Bloom > 0.001f;
+                int bw = 0, bh = 0, addGlow = 0;
+                bool accumulating = false, useGlow = false;
+                if (bloom)
+                {
+                    bw = (dw + 7) >> 3; bh = (dh + 7) >> 3;
+                    accumulating = (_bloomFrame++ & 1) == 0;
+                    BeginBloom(bw, bh, dw, dh, accumulating);
+                    // 1.0x of the blurred bright field is already a lot on a palette that
+                    // is bright to begin with; the default is deliberately short of that.
+                    addGlow = (int)((_opt.Bloom > 1f ? 1f : _opt.Bloom) * 256f);
+                    useGlow = _glowReady;
+                }
+
+                // Raw pointers for the effect buffers too: these are read once per
+                // pixel, and the bounds check on a managed array read cost more than
+                // the arithmetic it guarded (~30 ms/frame at 1080p).
                 fixed (byte* sb = src)
+                fixed (byte* gRp = _glowR)
+                fixed (byte* gGp = _glowG)
+                fixed (byte* gBp = _glowB)
+                fixed (float* acR = _accR)
+                fixed (float* acG = _accG)
+                fixed (float* acB = _accB)
+                fixed (float* acW = _accW)
+                fixed (int* gX0p = _gX0)
+                fixed (int* gX1p = _gX1)
+                fixed (int* gWXp = _gWX)
                 {
                     for (int y = 0; y < dh; y++)
                     {
+                        // vertically nearest: the plane is already blurred at 8x, so a
+                        // second vertical lerp costs as much as it buys (nothing).
+                        int glowRow = useGlow ? _gY0[y] * bw : 0;
+                        int accRow = accumulating ? (y >> 3) * bw : 0;
                         byte* row = db + y * dstride;
                         // source row through zoom + shift + mirror/kaleido
-                        float sy = cy + (y - dh * 0.5f) / zoom + shiftY;
+                        float sy = cy + (y - dh * 0.5f) / zoom + shiftY + (ripY != null ? ripY[y] : 0f);
                         int y0 = (int)sy;
                         if (_opt.Mirror && (loopParity & 1) == 1) y0 = _h - 1 - y0;
                         if (_opt.Kaleido) y0 = Fold(y0, _h);
@@ -1080,7 +1179,7 @@ namespace LumenRefresh
 
                         for (int x = 0; x < dw; x++)
                         {
-                            float sx = cx + (x - dw * 0.5f) / zoom + shiftX;
+                            float sx = cx + (x - dw * 0.5f) / zoom + shiftX + (ripX != null ? ripX[x] : 0f);
                             int x0 = (int)sx;
                             if (_opt.Mirror && (loopParity & 1) == 1) x0 = _w - 1 - x0;
                             if (_opt.Kaleido) x0 = Fold(x0, _w);
@@ -1144,6 +1243,39 @@ namespace LumenRefresh
                                 ob = (ob * mix + b * (256 - mix)) >> 8;
                             }
 
+                            if (scanMul != null)
+                            {
+                                int sm = scanMul[y];
+                                orr = (orr * sm) >> 8; og = (og * sm) >> 8; ob = (ob * sm) >> 8;
+                            }
+
+                            // glow from the previous frame's blurred bright pass
+                            if (useGlow)
+                            {
+                                int gx0 = gX0p[x], gx1 = gX1p[x], wx = gWXp[x], aw = 256 - wx;
+                                int gi = glowRow + gx0, gj = glowRow + gx1;
+                                int gr = (gRp[gi] * aw + gRp[gj] * wx) >> 8;
+                                int gg = (gGp[gi] * aw + gGp[gj] * wx) >> 8;
+                                int gb = (gBp[gi] * aw + gBp[gj] * wx) >> 8;
+                                orr += (gr * addGlow) >> 8; if (orr > 255) orr = 255;
+                                og += (gg * addGlow) >> 8; if (og > 255) og = 255;
+                                ob += (gb * addGlow) >> 8; if (ob > 255) ob = 255;
+                            }
+
+                            if (accumulating)
+                            {
+                                int lum2 = (orr * 77 + og * 150 + ob * 29) >> 8;
+                                int tt = lum2 - 120;
+                                if (tt > 0)
+                                {
+                                    if (tt > 135) tt = 135;
+                                    float w2 = tt * 0.0074074f;              // 1/135
+                                    int bi = accRow + (x >> 3);
+                                    acR[bi] += orr * w2; acG[bi] += og * w2;
+                                    acB[bi] += ob * w2;  acW[bi] += w2;
+                                }
+                            }
+
                             byte* dp = row + x * 4;
                             dp[0] = (byte)ob;
                             dp[1] = (byte)og;
@@ -1152,6 +1284,8 @@ namespace LumenRefresh
                         }
                     }
                 }
+
+                if (accumulating) EndBloom();
             }
             finally
             {
@@ -1164,6 +1298,160 @@ namespace LumenRefresh
             int period = n * 2;
             int t = ((v % period) + period) % period;
             return t < n ? t : period - 1 - t;
+        }
+
+        // ---- --ripple: a slow travelling wave through the sample coordinates.
+        // Two long wavelengths crossed at different speeds, so the plumes shear
+        // against each other instead of sliding as one sheet.
+
+        private float[] BuildRippleX(int dw)
+        {
+            if (_ripX == null || _ripX.Length < dw) _ripX = new float[dw];
+            float amp = _opt.Ripple;
+            float k = 6.2831853f / 320f;
+            float ph = Time * 0.85f;
+            for (int x = 0; x < dw; x++) _ripX[x] = amp * (float)Math.Sin(x * k + ph);
+            return _ripX;
+        }
+
+        private float[] BuildRippleY(int dh)
+        {
+            if (_ripY == null || _ripY.Length < dh) _ripY = new float[dh];
+            float amp = _opt.Ripple * 0.45f;
+            float k = 6.2831853f / 230f;
+            float ph = Time * 0.62f + 1.7f;
+            for (int y = 0; y < dh; y++) _ripY[y] = amp * (float)Math.Sin(y * k - ph);
+            return _ripY;
+        }
+
+        // ---- --scan: per-row multiplier, 4-row period, cached on (height, strength).
+
+        private int[] BuildScan(int dh)
+        {
+            float s = _opt.Scan;
+            if (s > 1f) s = 1f;
+            if (_scanMul == null || _scanH != dh || _scanS != s)
+            {
+                _scanMul = new int[dh];
+                _scanH = dh;
+                _scanS = s;
+                for (int y = 0; y < dh; y++)
+                {
+                    float t = 0.5f + 0.5f * (float)Math.Cos(y * 1.5707963);  // 0..1, period 4
+                    _scanMul[y] = 256 - (int)(s * 118f * t);
+                }
+            }
+            return _scanMul;
+        }
+
+        // ---- --bloom: bright-pass into a 1/8 buffer, box-blur it, bilinear add-back.
+        // The blur runs on a 240x135 plane, so its cost is noise next to the two
+        // full-resolution sweeps.
+
+        private void BeginBloom(int bw, int bh, int dw, int dh, bool clear)
+        {
+            if (_accR == null || _bmW != bw || _bmH != bh)
+            {
+                _bmW = bw; _bmH = bh;
+                _accR = new float[bw * bh]; _accG = new float[bw * bh];
+                _accB = new float[bw * bh]; _accW = new float[bw * bh];
+                _glowR = new byte[bw * bh]; _glowG = new byte[bw * bh]; _glowB = new byte[bw * bh];
+                _glowReady = false;
+            }
+            if (_bmDW != dw || _bmDH != dh)
+            {
+                _bmDW = dw; _bmDH = dh;
+                _gX0 = new int[dw]; _gX1 = new int[dw]; _gWX = new int[dw];
+                _gY0 = new int[dh]; _gY1 = new int[dh]; _gWY = new int[dh];
+                for (int x = 0; x < dw; x++) MapTap(x, 8, bw, out _gX0[x], out _gX1[x], out _gWX[x]);
+                for (int y = 0; y < dh; y++) MapTap(y, 8, bh, out _gY0[y], out _gY1[y], out _gWY[y]);
+            }
+            if (clear)
+            {
+                Array.Clear(_accR, 0, _accR.Length);
+                Array.Clear(_accG, 0, _accG.Length);
+                Array.Clear(_accB, 0, _accB.Length);
+                Array.Clear(_accW, 0, _accW.Length);
+            }
+        }
+
+        /// <summary>Bilinear tap for the 8x upscale: two row/col indices and a 0..256 weight.</summary>
+        private static void MapTap(int i, int block, int n, out int i0, out int i1, out int w)
+        {
+            float f = (i + 0.5f) / block - 0.5f;
+            int a = (int)f;
+            float t = f - a;
+            if (a < 0) { a = 0; t = 0f; }
+            int b = a + 1;
+            if (b >= n) { b = n - 1; t = 0f; }
+            if (a >= n) a = n - 1;
+            i0 = a; i1 = b; w = (int)(t * 256f);
+            if (w > 256) w = 256;
+        }
+
+        /// <summary>Normalises what the sampling loop accumulated, blurs it, and parks it
+        /// for the next frame to add back.</summary>
+        private void EndBloom()
+        {
+            int n = _bmW * _bmH;
+            for (int i = 0; i < n; i++)
+            {
+                float w = _accW[i];
+                if (w > 0.001f)
+                {
+                    _accR[i] /= w; _accG[i] /= w; _accB[i] /= w;
+                }
+                else { _accR[i] = 0f; _accG[i] = 0f; _accB[i] = 0f; }
+            }
+            Blur(_accR, _bmW, _bmH);
+            Blur(_accG, _bmW, _bmH);
+            Blur(_accB, _bmW, _bmH);
+            for (int i = 0; i < n; i++)
+            {
+                int v;
+                v = (int)_accR[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowR[i] = (byte)v;
+                v = (int)_accG[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowG[i] = (byte)v;
+                v = (int)_accB[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowB[i] = (byte)v;
+            }
+            _glowReady = true;
+        }
+
+        /// <summary>Two box-blur passes, separable, radius 1 and 3. Cheap because the
+        /// plane is 1/64 of the frame; a gaussian would look the same here.</summary>
+        private void Blur(float[] a, int w, int h)
+        {
+            int n = w > h ? w : h;
+            if (_blurTmp == null || _blurTmp.Length < n) _blurTmp = new float[n];
+
+            for (int pass = 0; pass < 2; pass++)
+            {
+                int rad = pass == 0 ? 1 : 3;
+                for (int y = 0; y < h; y++)
+                {
+                    int baseI = y * w;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int x0 = x - rad; if (x0 < 0) x0 = 0;
+                        int x1 = x + rad; if (x1 >= w) x1 = w - 1;
+                        float s = 0f;
+                        for (int k = x0; k <= x1; k++) s += a[baseI + k];
+                        _blurTmp[x] = s / (x1 - x0 + 1);
+                    }
+                    for (int x = 0; x < w; x++) a[baseI + x] = _blurTmp[x];
+                }
+                for (int x = 0; x < w; x++)
+                {
+                    for (int y = 0; y < h; y++)
+                    {
+                        int y0 = y - rad; if (y0 < 0) y0 = 0;
+                        int y1 = y + rad; if (y1 >= h) y1 = h - 1;
+                        float s = 0f;
+                        for (int k = y0; k <= y1; k++) s += a[k * w + x];
+                        _blurTmp[y] = s / (y1 - y0 + 1);
+                    }
+                    for (int y = 0; y < h; y++) a[y * w + x] = _blurTmp[y];
+                }
+            }
         }
     }
 
@@ -1660,6 +1948,7 @@ namespace LumenRefresh
                         }
 
                         Bitmap next = takeBuf();
+                        rend.Time = rendered / 24f;
                         rend.Blit(frame, src.BottomUp, next, pulse, shiftX, shiftY, loopParity);
                         giveBack(form.PostFrame(next));
                         rendered++;
@@ -1761,6 +2050,7 @@ namespace LumenRefresh
                 if (t + 1e-9 >= times[ti])
                 {
                     Bitmap bmp = new Bitmap(w, h, PixelFormat.Format32bppRgb);
+                    rend.Time = (float)(frameIndex * frameTime);
                     rend.Blit(frame, src.BottomUp, bmp, 1f, 0, 0, 0);
                     string name = Path.Combine(outDir, string.Format(CultureInfo.InvariantCulture,
                         "{0}_t{1:00}.png", grade.Name, (int)times[ti]));
@@ -1884,6 +2174,7 @@ namespace LumenRefresh
                         double t = (double)i / 24.0 / progressSpan;
                         rend.SetGrade(Grade.Blend(fromGrade, toGrade, (float)Math.Min(1.0, t)));
                     }
+                    rend.Time = i / 24f;
                     rend.Blit(frame, src.BottomUp, bmp, 1f, 0, 0, i / 1440);
 
                     BitmapData bd = bmp.LockBits(new Rectangle(0, 0, w, h),
@@ -2058,7 +2349,12 @@ namespace LumenRefresh
             string[] palettes = new string[] { "native", "ember", "teal", "magma", "ice", "violet", "lime",
                                                "ruby", "amber", "mono", "thermal", "ash", "venom", "neon",
                                                "prism", "duo-cyan", "duo-violet", "duo-blood", "duo-sun",
-                                               "solaris", "deepsea", "toxic", "rose" };
+                                               "solaris", "deepsea", "toxic", "rose",
+                                               "neon-cyan", "neon-pink", "neon-lime",
+                                               "fluoro-sun", "fluoro-mint", "fluoro-violet",
+                                               "pastel", "pastel-mint", "pastel-rose",
+                                               "electric", "elec-violet",
+                                               "sunset", "sunset-clouds", "yt-blue", "yt-deep" };
             for (int i = 0; i < palettes.Length; i++)
             {
                 Grade g = Grade.FromName(palettes[i]);
@@ -2153,6 +2449,79 @@ namespace LumenRefresh
                               roomX.ToString("0.0", CultureInfo.InvariantCulture) + " px)");
             if (!orbitOk) failures++;
 
+            // 2g. effects: each must move the frame, and in the right direction
+            {
+                int ew = 160, eh = 90;
+                byte[] ef = new byte[ew * eh * 4];
+                for (int i = 0; i < ew * eh; i++)
+                {
+                    int x = i % ew, y = i / ew;
+                    int b = 40, g = 24, r = 16;                          // dim ground
+                    int dx = x - 80, dy = y - 45;
+                    if (dx * dx + dy * dy < 260) { b = 210; g = 200; r = 190; }   // bright blob
+                    ef[i * 4] = (byte)b; ef[i * 4 + 1] = (byte)g; ef[i * 4 + 2] = (byte)r; ef[i * 4 + 3] = 255;
+                }
+
+                Grade eg = Grade.FromName("mono");
+                eg.Compile();
+
+                Options eo = new Options(); eo.Palette = "mono";
+
+                Renderer rb2 = new Renderer(eg, eo, ew, eh);
+                Bitmap plainB = new Bitmap(ew, eh, PixelFormat.Format32bppRgb);
+                rb2.Time = 0.7f;
+                rb2.Blit(ef, false, plainB, 1f, 0, 0, 0);
+
+                Options eoR = new Options(); eoR.Palette = "mono"; eoR.Ripple = 14f;
+                Renderer rr2 = new Renderer(eg, eoR, ew, eh);
+                Bitmap ripB = new Bitmap(ew, eh, PixelFormat.Format32bppRgb);
+                rr2.Time = 0.7f;
+                rr2.Blit(ef, false, ripB, 1f, 0, 0, 0);
+                int moved = 0;
+                for (int y = 0; y < eh; y++)
+                    for (int x = 0; x < ew; x++)
+                        if (plainB.GetPixel(x, y).ToArgb() != ripB.GetPixel(x, y).ToArgb()) moved++;
+                bool rippleOk = moved > 500;
+                Console.WriteLine((rippleOk ? "PASS" : "FAIL") + "  ripple displaces the frame (" + moved + " px)");
+                if (!rippleOk) failures++;
+
+                Options eoS = new Options(); eoS.Palette = "mono"; eoS.Scan = 1f;
+                Renderer sr2 = new Renderer(eg, eoS, ew, eh);
+                Bitmap scanB = new Bitmap(ew, eh, PixelFormat.Format32bppRgb);
+                sr2.Blit(ef, false, scanB, 1f, 0, 0, 0);
+
+                Options eoB = new Options(); eoB.Palette = "mono"; eoB.Bloom = 0.9f;
+                Renderer br2 = new Renderer(eg, eoB, ew, eh);
+                Bitmap glowB = new Bitmap(ew, eh, PixelFormat.Format32bppRgb);
+                br2.Blit(ef, false, glowB, 1f, 0, 0, 0);   // seeds the glow buffer
+                br2.Blit(ef, false, glowB, 1f, 0, 0, 0);   // and this frame adds it back
+
+                long pPlain = 0, pScan = 0, pGlow = 0;
+                for (int y = 0; y < eh; y++)
+                {
+                    for (int x = 0; x < ew; x++)
+                    {
+                        Color cp = plainB.GetPixel(x, y), cs = scanB.GetPixel(x, y), cg = glowB.GetPixel(x, y);
+                        pPlain += (cp.R * 77 + cp.G * 150 + cp.B * 29) >> 8;
+                        pScan += (cs.R * 77 + cs.G * 150 + cs.B * 29) >> 8;
+                        pGlow += (cg.R * 77 + cg.G * 150 + cg.B * 29) >> 8;
+                    }
+                }
+                // scan must darken, but a little: it is a texture, not a dimmer
+                bool scanOk = pScan < pPlain * 95 / 100 && pScan > pPlain * 60 / 100;
+                Console.WriteLine((scanOk ? "PASS" : "FAIL") + "  scan darkens without dimming (" +
+                                  (pScan * 100 / pPlain) + "% of plain)");
+                if (!scanOk) failures++;
+
+                // bloom must add light, without clipping the frame to white
+                bool bloomOk = pGlow > pPlain * 102 / 100 && pGlow < pPlain * 300 / 100;
+                Console.WriteLine((bloomOk ? "PASS" : "FAIL") + "  bloom adds glow without washing out (" +
+                                  (pGlow * 100 / pPlain) + "% of plain)");
+                if (!bloomOk) failures++;
+
+                plainB.Dispose(); ripB.Dispose(); scanB.Dispose(); glowB.Dispose();
+            }
+
             // 3. decode path works
             try
             {
@@ -2228,6 +2597,11 @@ namespace LumenRefresh
             Console.WriteLine("  --shift <n>            OLED pixel-shift amplitude (0 disables)");
             Console.WriteLine("  --shift-px             shift raw pixels instead of whole RGB triads");
             Console.WriteLine("  --no-shift             disable pixel shift");
+            Console.WriteLine("  --ripple <px>          travelling wave through the sample grid");
+            Console.WriteLine("  --scan <0..1>          soft scanline darkening");
+            Console.WriteLine("  --bloom <0..1>         glow around the bright passages (costs a second");
+            Console.WriteLine("                         full-frame sweep: free in --export, ~9 fps live at");
+            Console.WriteLine("                         panel size, so pair it with --render 1920x1080 live)");
             Console.WriteLine();
             Console.WriteLine("RUN CONTROL");
             Console.WriteLine("  --minutes <f>          auto-exit after N minutes");
