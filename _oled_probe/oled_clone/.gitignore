@@ -1,0 +1,3 @@
+# build outputs - rebuilt with csc / --export
+*.exe
+smoke60.mp4
