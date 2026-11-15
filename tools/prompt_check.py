@@ -47,6 +47,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -111,6 +112,48 @@ def _norm(path: str) -> str:
     return path.replace("\\", "/")
 
 
+@lru_cache(maxsize=8)
+def _project_names(repo: Path) -> Tuple[str, ...]:
+    """The names a prompt uses for the SECOND segment when it roots at the repo.
+
+    The Kilo lane runs with cwd=C:/Azazael and writes `azazael/MANDATES.md`; on
+    that box the repo directory really is `azazael`, so the address happens to be
+    right. In a renamed checkout (`_azazael_fix`) the same prompt names a directory
+    that does not exist and the gate called dozens of correct commands dead.
+
+    The name is read from the tree -- pyproject `name`, then the git origin's
+    basename -- instead of being hard-coded, so a renamed clone resolves the same
+    way and a fork that renames the project does not inherit a stale alias. The
+    checkout's own directory name is excluded: when it already equals the project
+    name the normal candidate list handles the path and no stripping is needed.
+    """
+    names: List[str] = []
+    try:
+        import tomllib
+        declared = tomllib.loads((repo / "pyproject.toml").read_text(
+            encoding="utf-8")).get("project", {}).get("name")
+    except (OSError, ValueError, ImportError):
+        declared = None
+    if isinstance(declared, str) and declared.strip():
+        names.append(declared.strip())
+    try:
+        url = subprocess.run(
+            ["git", "-C", str(repo), "config", "--get", "remote.origin.url"],
+            capture_output=True, text=True, timeout=10,
+            encoding="utf-8", errors="replace",
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        url = ""
+    if url:
+        tail = url.rstrip("/").rsplit("/", 1)[-1]
+        if tail.endswith(".git"):
+            tail = tail[: -len(".git")]
+        if tail:
+            names.append(tail)
+    own = repo.name
+    return tuple(n for n in dict.fromkeys(names) if n and n != own)
+
+
 def _roots(repo: Path) -> Tuple[Path, ...]:
     """Every base a lane prompt legitimately writes a path against.
 
@@ -160,7 +203,15 @@ def resolve(path: str, repo: Path = REPO) -> Optional[bool]:
     candidate = Path(cleaned)
     if candidate.is_absolute():
         return candidate.exists()
-    return any((root / cleaned).exists() for root in _roots(repo))
+    # `azazael/MANDATES.md` roots at the repo by NAME, which only works while the
+    # checkout directory carries that name. Strip the leading project name and
+    # judge the remainder against the same roots, so the address survives a rename
+    # without turning every first segment into an alias.
+    forms = [cleaned]
+    head, _, rest = cleaned.partition("/")
+    if rest and head in _project_names(repo):
+        forms.append(rest)
+    return any((root / form).exists() for root in _roots(repo) for form in forms)
 
 
 def _load_state(path: Path) -> Dict[str, object]:
