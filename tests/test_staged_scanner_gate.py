@@ -87,7 +87,7 @@ def _stage_commit_mode(monkeypatch, base, before, after):
     """Commit mode: paths come from `base..HEAD`, sides are named blobs."""
     asked: list[str] = []
     monkeypatch.setattr(gate, "_staged_py_files",
-                        lambda b=None: ["x.py"])
+                        lambda b=None, t=None: ["x.py"])
 
     def _show(rev):
         asked.append(rev)
@@ -130,3 +130,31 @@ def test_unresolvable_base_refuses_instead_of_passing(monkeypatch, capsys):
                         ["staged_scanner_gate", "--base", "nosuchrev"])
     assert gate.main() == 2
     assert "does not resolve" in capsys.readouterr().out
+
+def test_tip_scopes_the_range_to_the_commit_being_pushed(monkeypatch, capsys):
+    """A push of an ancestor sends base..sha, so HEAD must not be scanned."""
+    asked: list[tuple] = []
+
+    def _files(b=None, t=None):
+        asked.append((b, t))
+        return ["x.py"]
+
+    # Real revisions: the gate refuses an unresolvable range before it scans, so
+    # placeholder refs would exercise the refusal instead of the plumbing.
+    base = gate._git("rev-list", "--max-parents=0", "HEAD").decode().split()[0]
+    tip = gate._git("rev-parse", "HEAD~1").decode().strip()
+    monkeypatch.setattr(gate, "_staged_py_files", _files)
+    monkeypatch.setattr(gate, "_show", lambda rev: _CLEAN)
+    monkeypatch.setattr(sys, "argv",
+                        ["staged_scanner_gate", "--base", base, "--tip", tip])
+    assert gate.main() == 0
+    assert asked == [(base, tip)]
+    assert "%s..%s" % (base, tip) in capsys.readouterr().out
+
+
+def test_tip_without_base_refuses(monkeypatch, capsys):
+    """Without a base the scan would be index-scoped, silently answering a
+    different question than the caller asked."""
+    monkeypatch.setattr(sys, "argv", ["staged_scanner_gate", "--tip", "HEAD~1"])
+    assert gate.main() == 2
+    assert "--tip only means something with --base" in capsys.readouterr().out

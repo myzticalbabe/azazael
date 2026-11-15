@@ -58,6 +58,14 @@
 # cannot distinguish "my change is too big" from "somebody else's desk drawer is".
 # `--base REV` makes the registry judge REV..HEAD and says which scope it used.
 # Without it the behaviour is unchanged (pre-commit still wants the index).
+#
+# `--tip REV` (2026-11-15) names the END of that range, for the case the pre-push
+# hook actually hits: a worktree that moved on between `git commit` and `git push`
+# pushes an ancestor of HEAD. The hook used to pass --base only when the pushed
+# sha WAS HEAD, so every other push fell back to the index -- measured 2026-11-15,
+# a 26-commit push ran the tier index-scoped and its bulk refusal named files no
+# commit contained. `--tip` judges the range that is actually leaving. It is
+# meaningless without --base and refused there rather than guessed.
 
 # One level up: this file is tools/evidence_tier.sh, so dirname/.. is the root.
 # (It was `.githooks/lib/evidence.sh` -- two levels -- until the tier moved to a
@@ -81,10 +89,12 @@ fi
 # ── Changeset scope (2026-11-03) ──
 #   sh tools/evidence_tier.sh               # judge the git index (pre-commit)
 #   sh tools/evidence_tier.sh --base <rev>  # judge <rev>..HEAD (push of a commit)
+#   sh tools/evidence_tier.sh --base <rev> --tip <rev>  # judge <rev>..<rev>
 # The base is validated rather than trusted: an empty value, or a second argument
 # this script does not understand, exits 2 -- "could not judge" is not a pass, and
 # a typo that silently fell back to index mode would reproduce the hijack.
 EV_BASE=""
+EV_TIP=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --base)
@@ -95,8 +105,16 @@ while [ $# -gt 0 ]; do
         --base=*)
             EV_BASE="${1#--base=}"
             ;;
+        --tip)
+            shift
+            [ $# -ge 1 ] || { echo "[Evidence] --tip needs a revision"; exit 2; }
+            EV_TIP="$1"
+            ;;
+        --tip=*)
+            EV_TIP="${1#--tip=}"
+            ;;
         *)
-            echo "[Evidence] unknown argument: $1 (known: --base REV)"
+            echo "[Evidence] unknown argument: $1 (known: --base REV [--tip REV])"
             exit 2
             ;;
     esac
@@ -109,8 +127,22 @@ case "$EV_BASE" in
         exit 2
         ;;
 esac
+case "$EV_TIP" in
+    "") ;;
+    *" "*)
+        echo "[Evidence] --tip must be a single ref, got: $EV_TIP"
+        exit 2
+        ;;
+esac
+if [ -n "$EV_TIP" ] && [ -z "$EV_BASE" ]; then
+    # A tip narrows a range; it cannot replace the base it narrows. Accepting it
+    # alone would leave the run index-scoped while the caller believes a commit
+    # was judged -- the confusion --base exists to end.
+    echo "[Evidence] --tip only means something with --base REV"
+    exit 2
+fi
 if [ -n "$EV_BASE" ]; then
-    echo "[Evidence] changeset scope: $EV_BASE..HEAD (commit mode -- the index is NOT judged)"
+    echo "[Evidence] changeset scope: $EV_BASE..${EV_TIP:-HEAD} (commit mode -- the index is NOT judged)"
 else
     echo "[Evidence] changeset scope: the git index (no --base given)"
 fi
@@ -610,7 +642,9 @@ if [ "${ALLOW_PREFLIGHT:-}" != "1" ]; then
             # Scope reaches the registry as an ARGUMENT, never as an env var:
             # gate_fingerprint() hashes argv, so a recorded PASS from index mode
             # cannot be reused to answer a commit-mode question.
-            if [ -n "$EV_BASE" ]; then
+            if [ -n "$EV_BASE" ] && [ -n "$EV_TIP" ]; then
+                set -- --base "$EV_BASE" --tip "$EV_TIP"
+            elif [ -n "$EV_BASE" ]; then
                 set -- --base "$EV_BASE"
             else
                 set --

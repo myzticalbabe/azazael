@@ -18,6 +18,12 @@ Two parts:
      index-scoped run refuses a push over files the commit never touched
      (measured 2026-11-03: a 2-file commit blocked by 7 forensic files staged
      by another lane). `REV..HEAD` is the commit being pushed.
+  1c. `commit_gate.py --hook --base REV --tip REV`: judge `base..tip`. The tip
+     exists because a push is not always a push of HEAD. `.githooks/pre-push`
+     only used to name a base when the pushed sha WAS HEAD; every other push
+     (pushing a commit that later commits sit on, or a ref that is not the
+     checked-out one) fell back to the index, so the changeset that actually left
+     the machine was never the one judged. The hook now names both ends.
   2. `commit_gate.py review`: interactive worktree review -- groups changed
      files (source vs generated), shows per-file +/- and lets the operator
      stage exactly what the commit message will describe.
@@ -89,10 +95,10 @@ def staged_statuses() -> dict[str, str]:
     return out
 
 
-def range_numstat(base: str) -> list[tuple[int, int, str]]:
-    """[(added, deleted, path)] for `base..HEAD` -- a commit, not the index."""
+def range_numstat(base: str, tip: str = "HEAD") -> list[tuple[int, int, str]]:
+    """[(added, deleted, path)] for `base..tip` -- commits, not the index."""
     rows = []
-    for line in _git("diff", "--numstat", base, "HEAD").splitlines():
+    for line in _git("diff", "--numstat", base, tip).splitlines():
         parts = line.split("\t")
         if len(parts) != 3:
             continue
@@ -119,7 +125,7 @@ def declares_bulk(message: str) -> bool:
     return "ALLOW_BULK_COMMIT=1" in (message or "")
 
 
-def single_commit_bulk_declaration(base: str) -> str | None:
+def single_commit_bulk_declaration(base: str, tip: str = "HEAD") -> str | None:
     """The pushed commit's sha if it is exactly one commit that declares bulk.
 
     NARROW ON PURPOSE. The first version accepted a declaration from ANY commit
@@ -131,7 +137,7 @@ def single_commit_bulk_declaration(base: str) -> str | None:
     (`base..HEAD` = 1). A multi-commit push has no single message describing it
     and is judged by the caps like anything else.
     """
-    raw = _git("log", "--format=%H%x1f%B%x1e", "%s..HEAD" % base)
+    raw = _git("log", "--format=%H%x1f%B%x1e", "%s..%s" % (base, tip))
     commits = []
     for chunk in raw.split("\x1e"):
         chunk = chunk.strip("\n")
@@ -145,10 +151,10 @@ def single_commit_bulk_declaration(base: str) -> str | None:
     return sha if declares_bulk(message) else None
 
 
-def range_statuses(base: str) -> dict[str, str]:
+def range_statuses(base: str, tip: str = "HEAD") -> dict[str, str]:
     """path -> status letter for the same range (A = created by it)."""
     out: dict[str, str] = {}
-    for line in _git("diff", "--name-status", base, "HEAD").splitlines():
+    for line in _git("diff", "--name-status", base, tip).splitlines():
         parts = line.split("\t")
         if len(parts) >= 2:
             out[parts[-1].strip()] = parts[0].strip()
@@ -224,7 +230,7 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     return problems
 
 
-def cmd_hook(base: str | None = None) -> int:
+def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
     """Judge a changeset. `base` names a commit (`base..HEAD`); None = the index.
 
     The two scopes are different questions. Pre-commit asks "is what I am about
@@ -241,10 +247,11 @@ def cmd_hook(base: str | None = None) -> int:
     if os.environ.get("ALLOW_BULK_COMMIT") == "1":
         print("commit-gate: bulk declared via ALLOW_BULK_COMMIT=1, passing")
         return 0
-    scope = "%s..HEAD" % base if base else "the staged index"
+    tip = tip or "HEAD"
+    scope = "%s..%s" % (base, tip) if base else "the staged index"
     if base:
         try:
-            declared = single_commit_bulk_declaration(base)
+            declared = single_commit_bulk_declaration(base, tip)
         except Exception as exc:  # noqa: BLE001 - a named range must be readable
             print("commit-gate: cannot read the messages of %s (%s) -- refusing "
                   "to pass on a range that was not read" % (scope, exc))
@@ -255,8 +262,8 @@ def cmd_hook(base: str | None = None) -> int:
             return 0
     try:
         if base:
-            rows = range_numstat(base)
-            statuses = range_statuses(base)
+            rows = range_numstat(base, tip)
+            statuses = range_statuses(base, tip)
         else:
             rows = staged_numstat()
             statuses = staged_statuses()
@@ -285,7 +292,7 @@ def cmd_hook(base: str | None = None) -> int:
     if base:
         problems = evaluate(
             rows, max_lines, max_files, created,
-            changeset="files in %s..HEAD" % base,
+            changeset="files in %s..%s" % (base, tip),
             remedy="Declare the bulk op in the message of the single commit "
                    "being pushed (a commit message is the surface this gate "
                    "reads), or push the commits separately.",
@@ -298,7 +305,7 @@ def cmd_hook(base: str | None = None) -> int:
     print("commit-gate: BULK CHANGESET BLOCKED")
     for p in problems:
         print("  - " + p)
-    print("  Review with: %s" % ("git show --stat %s..HEAD" % base if base
+    print("  Review with: %s" % ("git show --stat %s" % scope if base
                                  else "python scripts/commit_gate.py review"))
     return 1
 
@@ -336,12 +343,25 @@ def main(argv=None) -> int:
             return 2
         base = args[at + 1]
         del args[at:at + 2]
+    tip = None
+    if "--tip" in args:
+        at = args.index("--tip")
+        if at + 1 >= len(args):
+            print("commit_gate.py: --tip needs a revision")
+            return 2
+        tip = args[at + 1]
+        del args[at:at + 2]
+    if tip and not base:
+        # A tip narrows a range; it cannot replace the base it narrows. Accepting
+        # it alone would silently judge the index and report a range's verdict.
+        print("commit_gate.py: --tip only means something with --base REV")
+        return 2
     if "--hook" in args:
-        return cmd_hook(base)
+        return cmd_hook(base, tip)
     if "review" in args:
         return cmd_review()
     print(__doc__.strip().splitlines()[0])
-    print("usage: commit_gate.py [--hook [--base REV] | review]")
+    print("usage: commit_gate.py [--hook [--base REV [--tip REV]] | review]")
     return 2
 
 

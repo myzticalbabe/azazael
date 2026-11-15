@@ -102,15 +102,26 @@ fi
 # With no such ref (a brand-new branch, or a push of a local ref that is not HEAD)
 # the tier stays index-scoped and says so, because a guessed base would judge a
 # changeset nobody asked about -- worse than the hijack it replaces.
-head_sha=$(git rev-parse HEAD 2>/dev/null)
+# The base is the REMOTE sha of the ref being pushed and the tip is its LOCAL
+# sha: `remote..local` is the changeset actually leaving, whichever commit that
+# is. Until 2026-11-15 it also required that local sha to BE this worktree's
+# HEAD, so a push of an ancestor -- a worktree that moved on between `git commit`
+# and `git push` -- fell back to the index. Measured that day: a 26-commit push
+# ran the tier index-scoped and its bulk refusal named files no commit contained.
+# A new branch (all-zero remote sha) still has no base to name, so that case stays
+# index-scoped and says so: a guessed base would judge a changeset nobody asked
+# about, which is worse than the hijack it replaced.
 ev_base=""
-if [ -n "$refs" ] && [ -n "$head_sha" ]; then
-    ev_base=$(printf '%s
-' "$refs" | awk -v h="$head_sha" '$2 == h { print $4; exit }')
-    case "$ev_base" in
+ev_tip=""
+if [ -n "$refs" ]; then
+    # stdin is CRLF here. `tr` strips the trailing CR: invisible on field 2, but
+    # on field 4 it becomes a revision git cannot resolve.
+    ev_pair=$(printf '%s\n' "$refs" | tr -d '\r' \
+        | awk '$2 != "" && $4 != "" && $4 !~ /^0+$/ { print $4 " " $2; exit }')
+    case "$ev_pair" in
         "") ;;
-        *[!0]*) ;;                 # a real sha: judge ev_base..HEAD
-        *) ev_base="" ;;           # all zeroes: the remote has no such ref yet
+        *" "*) ev_base=${ev_pair%% *}; ev_tip=${ev_pair#* } ;;
+        *) ev_base="" ;;
     esac
 fi
 # Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ...
@@ -119,10 +130,11 @@ if [ "${EVIDENCE_TIER_BYPASS:-}" = "1" ]; then
     echo "[Evidence] the tree is leaving this machine with its evidence unread."
 elif [ -f "$root/tools/evidence_tier.sh" ]; then
     ev_t0=$(date +%s)
-    if [ -n "$ev_base" ]; then
-        sh "$root/tools/evidence_tier.sh" --base "$ev_base"
+    if [ -n "$ev_base" ] && [ -n "$ev_tip" ]; then
+        echo "[Evidence] pushed changeset: $ev_base..$ev_tip"
+        sh "$root/tools/evidence_tier.sh" --base "$ev_base" --tip "$ev_tip"
     else
-        echo "[Evidence] no pushed commit matched HEAD -- judging the git index."
+        echo "[Evidence] no pushed ref names a remote sha -- judging the git index."
         sh "$root/tools/evidence_tier.sh"
     fi
     ev_rc=$?
@@ -133,6 +145,7 @@ elif [ -f "$root/tools/evidence_tier.sh" ]; then
         echo "[Evidence] The refusal above names the gate. Run it alone to iterate:"
         echo "[Evidence]   sh tools/evidence_tier.sh"
         echo "[Evidence]   sh tools/evidence_tier.sh --base <rev>   # judge a commit"
+        echo "[Evidence]   sh tools/evidence_tier.sh --base <rev> --tip <rev>  # a pushed commit"
         echo "[Evidence] Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ..."
         exit 1
     fi

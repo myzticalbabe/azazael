@@ -1166,15 +1166,26 @@ def save_evidence(evidence: Dict[str, dict]) -> None:
 CHANGESET_GATES: Tuple[str, ...] = ("changeset-focus", "staged-scanner")
 
 
-def with_changeset_base(gate: Gate, base: Optional[str]) -> Gate:
-    """`gate`, pointed at BASE..HEAD when a commit is named and the row reads one.
+def with_changeset_base(gate: Gate, base: Optional[str],
+                        tip: Optional[str] = None) -> Gate:
+    """`gate`, pointed at BASE..TIP when a commit is named and the row reads one.
+
+    `tip` defaults to None, which leaves the range at BASE..HEAD -- the shape
+    every caller before 2026-11-15 asked for. A push is the reason it exists: on
+    a worktree that moved on between `git commit` and `git push` the pushed sha
+    is an ancestor of HEAD, and judging BASE..HEAD would judge commits the push
+    does not contain (measured 2026-11-15: 26 commits, the multi-commit refusal
+    named work that had not left the machine yet).
 
     Every other row is returned untouched, so --base cannot narrow the run to
     two gates: the tree-scoped checks still judge the tree.
     """
     if not base or gate.name not in CHANGESET_GATES:
         return gate
-    return gate._replace(argv=gate.argv + ("--base", base))
+    argv = gate.argv + ("--base", base)
+    if tip:
+        argv = argv + ("--tip", tip)
+    return gate._replace(argv=argv)
 
 
 class Result(NamedTuple):
@@ -1520,7 +1531,8 @@ def cmd_list(gates: Sequence[Gate], as_json: bool) -> int:
 
 
 def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
-              allow_unrunnable: Sequence[str], base: Optional[str] = None) -> int:
+              allow_unrunnable: Sequence[str], base: Optional[str] = None,
+              tip: Optional[str] = None) -> int:
     ok, message = hook_parity(gates, read_hook())
     print("[preflight] hook parity: %s" % message)
     if not ok:
@@ -1537,8 +1549,8 @@ def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
     # index" and "a commit" are different questions, and a run that does not say
     # which one it answered cannot be cited for either.
     if base:
-        print("[preflight] changeset scope: %s..HEAD (%s)"
-              % (base, ", ".join(CHANGESET_GATES)))
+        print("[preflight] changeset scope: %s..%s (%s)"
+              % (base, tip or "HEAD", ", ".join(CHANGESET_GATES)))
     else:
         print("[preflight] changeset scope: the git index -- no commit named "
               "(--base REV to judge a commit)")
@@ -1549,7 +1561,7 @@ def cmd_check(gates: Sequence[Gate], force: bool, include_slow: bool,
     for gate in gates:
         if gate.slow and not include_slow:
             continue
-        gate = with_changeset_base(gate, base)
+        gate = with_changeset_base(gate, base, tip)
         interpreter_path = resolve_interpreter(gate.interpreter)
         if interpreter_path is None:
             if gate.name in allow_unrunnable:
@@ -1918,6 +1930,9 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
     parser.add_argument("--base", metavar="REV", default=None,
                         help="judge REV..HEAD instead of the git index "
                              "(changeset-focus, staged-scanner)")
+    parser.add_argument("--tip", metavar="REV", default=None,
+                        help="with --base: judge REV..TIP rather than REV..HEAD "
+                             "(a push of a commit that is not HEAD)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if not (REPO / "tools").is_dir():
@@ -1931,29 +1946,39 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
               file=sys.stderr)
         return 2
 
+    if args.tip and not args.base:
+        # A tip narrows a range; it cannot replace the base it narrows. Accepting
+        # it alone would leave the rows index-scoped while the caller believes a
+        # commit was judged -- the confusion --base exists to end.
+        print("[preflight] --tip only means something with --base REV",
+              file=sys.stderr)
+        return 2
     if args.base:
         if args.list or args.self_test:
             print("[preflight] --base applies to --check", file=sys.stderr)
             return 2
-        probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
-                                "%s^{commit}" % args.base],
-                               cwd=str(REPO), capture_output=True, text=True,
-                               timeout=30, encoding="utf-8", errors="replace")
-        if probe.returncode != 0:
-            # An unresolvable base would hand the gates an empty range, which
-            # reads as PASS. Refusing here is the difference between "no
-            # changes to worry about" and "the question was never asked".
-            print("[preflight] --base %r does not resolve to a commit in this "
-                  "clone -- refusing to judge an empty range" % args.base,
-                  file=sys.stderr)
-            return 2
+        for flag, rev in (("--base", args.base), ("--tip", args.tip)):
+            if not rev:
+                continue
+            probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
+                                    "%s^{commit}" % rev],
+                                   cwd=str(REPO), capture_output=True, text=True,
+                                   timeout=30, encoding="utf-8", errors="replace")
+            if probe.returncode != 0:
+                # An unresolvable revision would hand the gates an empty range,
+                # which reads as PASS. Refusing here is the difference between
+                # "no changes to worry about" and "the question was never asked".
+                print("[preflight] %s %r does not resolve to a commit in this "
+                      "clone -- refusing to judge an empty range" % (flag, rev),
+                      file=sys.stderr)
+                return 2
 
     if args.list:
         return cmd_list(gates, args.json)
     if args.self_test:
         return cmd_self_test(gates, args.run_controls, args.strict, args.allow_blind)
     return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable,
-                     args.base)
+                     args.base, args.tip)
 
 
 if __name__ == "__main__":

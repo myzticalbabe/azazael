@@ -195,3 +195,29 @@ def test_declaration_does_not_authorise_a_wider_range(tmp_path, monkeypatch):
     run("commit", "-q", "-m", "untrack: ALLOW_BULK_COMMIT=1 (frame sweep)")
     assert cg.single_commit_bulk_declaration("HEAD~1") is not None
     assert cg.single_commit_bulk_declaration("HEAD~2") is None
+
+# ── the pushed commit, not the checkout (2026-11-15) ───────────────────────
+# A worktree that moved on between `git commit` and `git push` pushes an
+# ANCESTOR of HEAD. Judging base..HEAD there judges commits the push does not
+# contain -- measured 2026-11-15, a 26-commit push whose bulk refusal named
+# files no commit in it touched.
+
+def test_tip_measures_the_commit_being_pushed_not_head(tmp_path, monkeypatch):
+    """HEAD~2..HEAD~1 is one commit, not the whole checkout."""
+    run, p = _repo(tmp_path, monkeypatch)          # a.txt, then b.txt as HEAD
+    (p / "c.txt").write_text("c", encoding="utf-8")
+    run("add", "c.txt")
+    run("commit", "-q", "-m", "third")
+    assert [r[2] for r in cg.range_numstat("HEAD~2", "HEAD~1")] == ["b.txt"]
+    assert sorted(r[2] for r in cg.range_numstat("HEAD~2")) == ["b.txt", "c.txt"]
+
+
+def test_tip_without_a_base_is_refused(tmp_path, monkeypatch):
+    """A tip narrows a range; it must never stand in for the base."""
+    _repo(tmp_path, monkeypatch)
+    assert cg.main(["--hook", "--tip", "HEAD"]) == 2
+
+
+def test_tip_needs_a_revision(tmp_path, monkeypatch):
+    _repo(tmp_path, monkeypatch)
+    assert cg.main(["--hook", "--base", "HEAD~1", "--tip"]) == 2

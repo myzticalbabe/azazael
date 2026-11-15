@@ -27,6 +27,7 @@ Check 4 (`tools/anti_pattern_gate.py --check`) still ratchets the repo-wide
 Usage:
     python tools/staged_scanner_gate.py            # gate staged .py files
     python tools/staged_scanner_gate.py --base REV # gate REV..HEAD instead
+    python tools/staged_scanner_gate.py --base REV --tip REV2  # gate REV..REV2
     python tools/staged_scanner_gate.py --verbose
 
 `--base` exists because at PUSH time the index is not the changeset: on a
@@ -34,6 +35,12 @@ worktree several lanes share, it holds whatever a concurrent lane staged, so an
 index-scoped run can refuse a push over files the commit never touched (measured
 2026-11-03). With a base, each changed `.py` is compared `REV:path` -> `HEAD:path`
 and the index is not read at all.
+
+`--tip` exists because a PUSH is not always a push of HEAD: on a worktree that
+moved on between `git commit` and `git push`, the pushed sha is an ancestor.
+Judging `base..HEAD` there would judge commits the push does not contain, and a
+refusal would name a changeset nobody is sending. With `--tip` the range is the
+one actually leaving the machine.
 """
 from __future__ import annotations
 
@@ -62,10 +69,10 @@ def _git(*args: str) -> bytes:
                           timeout=60).stdout
 
 
-def _staged_py_files(base: str | None = None) -> list[str]:
-    """Changed `.py` paths: the index, or `base..HEAD` when a base is named."""
+def _staged_py_files(base: str | None = None, tip: str = "HEAD") -> list[str]:
+    """Changed `.py` paths: the index, or `base..tip` when a base is named."""
     if base:
-        out = _git("diff", "--name-only", "--diff-filter=ACMR", base, "HEAD")
+        out = _git("diff", "--name-only", "--diff-filter=ACMR", base, tip)
     else:
         out = _git("diff", "--cached", "--name-only", "--diff-filter=ACMR")
     return [ln.strip() for ln in out.decode("utf-8", errors="replace").splitlines()
@@ -96,19 +103,32 @@ def main() -> int:
                     choices=["error", "warning", "info"])
     ap.add_argument("--base", default=None, metavar="REV",
                     help="scan REV..HEAD instead of the git index")
+    ap.add_argument("--tip", default=None, metavar="REV",
+                    help="with --base: scan BASE..REV instead of BASE..HEAD")
     args = ap.parse_args()
 
+    # None, not "HEAD", is the sentinel: `--tip HEAD` typed by a caller is the
+    # same range as the default, but it is still a tip given without a base and
+    # must be refused, not silently answered with an index scan.
+    if args.tip and not args.base:
+        # A tip narrows a range; it cannot replace the base it narrows. Accepting
+        # it alone would silently scan the index while the caller believes a
+        # commit was judged -- the confusion --base exists to end.
+        print("[StagedScanner] --tip only means something with --base REV")
+        return 2
     if args.base:
-        # An unresolvable base makes `git diff BASE HEAD` print nothing, which
+        # An unresolvable revision makes `git diff BASE TIP` print nothing, which
         # reads exactly like "no files changed". Refuse instead: exit 2 is
         # "could not judge", and the gate must never answer that with a pass.
-        probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
-                                f"{args.base}^{{commit}}"],
-                               cwd=str(ROOT), capture_output=True, timeout=60)
-        if probe.returncode != 0:
-            print(f"[StagedScanner] --base {args.base!r} does not resolve to a "
-                  f"commit here - refusing to scan an empty range")
-            return 2
+        for flag, rev in (("--base", args.base),
+                          ("--tip", args.tip or "HEAD")):
+            probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
+                                    f"{rev}^{{commit}}"],
+                                   cwd=str(ROOT), capture_output=True, timeout=60)
+            if probe.returncode != 0:
+                print(f"[StagedScanner] {flag} {rev!r} does not resolve to a "
+                      f"commit here - refusing to scan an empty range")
+                return 2
 
     try:
         from CORE.compliance.scanner import ASTAntiPatternScanner  # noqa: F401
@@ -121,18 +141,20 @@ def main() -> int:
     # Both sides must be named explicitly: deriving only `after` from the base
     # left `before` at HEAD, which compares HEAD against HEAD and turns commit
     # mode into a gate that can never fire.
+    tip = args.tip or "HEAD"
     before_ref = args.base if args.base else "HEAD"
-    after_ref = "HEAD" if args.base else ":0"
+    after_ref = tip if args.base else ":0"
     # Called with no argument in index mode: `_staged_py_files` is the seam the
     # tests replace with a zero-argument stub, and an index run must keep asking
     # the index question through exactly that seam.
-    files = _staged_py_files(args.base) if args.base else _staged_py_files()
+    files = (_staged_py_files(args.base, tip) if args.base
+             else _staged_py_files())
     if not files:
-        scope = f"{args.base}..HEAD" if args.base else "the index"
+        scope = f"{args.base}..{tip}" if args.base else "the index"
         print(f"[StagedScanner] No .py files in {scope}, skipping.")
         return 0
     if args.base:
-        print(f"[StagedScanner] scope: {args.base}..HEAD (commit mode)")
+        print(f"[StagedScanner] scope: {args.base}..{tip} (commit mode)")
 
     regressions: list[str] = []
     for path in files:
