@@ -126,3 +126,20 @@
 *.7z
 *.bin
 *.db
+
+# Cython-transpiled C, not source anyone edits (verified 2026-11-15).
+# .c IS a code extension here (`.c` in tree-sitter detect CODE_EXTENSIONS), so a
+# Cython build emits 400 KB of machine-generated C that tree-sitter-c parses
+# into hundreds of ERROR/MISSING nodes, and the graph absorbs them as project
+# symbols. Nothing in the tree matches *_cy.c right now, so this is a guard for
+# the next build rather than a fix to a present failure.
+#
+# Deliberately NOT listed, because it would be dead configuration:
+#   *.pyx, *.pxd   graphify has no Cython extractor. Neither is in
+#                  CODE_EXTENSIONS nor DOC_EXTENSIONS, so the 2 .pyx files in
+#                  src/eve_unleashed are never indexed and never raise. Hiding
+#                  them would look like the gap was handled when it is only
+#                  invisible.
+#   pyproject.toml .toml is likewise in neither extension set, so all 12
+#                  pyproject.toml files are already unindexed.
+*_cy.c
