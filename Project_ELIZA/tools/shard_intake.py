@@ -145,6 +145,49 @@ def read_atlas(path: Path) -> Dict:
         raise AtlasUnavailable("%s is not valid JSON: %s" % (path, exc))
 
 
+def recorded_atlas() -> Dict:
+    """The census provenance the checked-in index was generated from."""
+    if not INDEX.is_file():
+        return {}
+    try:
+        return json.loads(INDEX.read_text(encoding="utf-8")).get("atlas") or {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def same_census(atlas: Dict) -> bool:
+    """True when this atlas describes the tree the index was generated from.
+
+    The atlas is written on the Kali lane and is not in this repo, so the file at
+    ``DEFAULT_ATLAS`` is whatever the last census left there. Measured 2026-11-15:
+    it had been overwritten by the Windows census -- same filename, ``root
+    /mnt/c/Azazael/azazael/src``, 26 trees -- while the index records ``root
+    /root/azazael/src``, 18 trees. ``--check`` compared 1,183 Kali shards against
+    4,085 units from a different tree and reported 4,623 defects, every one of
+    them a fact about the instrument rather than the surface.
+
+    A *refresh* of the same tree (same root, later date) is still compared, so the
+    drift gate keeps its teeth. Only a different root -- a different tree -- is
+    refused, because no comparison across two trees can be a verdict about one.
+    """
+    recorded = str(recorded_atlas().get("root") or "").rstrip("/").lower()
+    present = str(atlas.get("root") or "").rstrip("/").lower()
+    if not recorded or not present:
+        return True     # nothing recorded to contradict: judge as before
+    return recorded == present
+
+
+def _census_mismatch(atlas: Dict) -> str:
+    recorded = recorded_atlas()
+    return ("%s describes %r (%r), but %s was generated from %r (%r): a different "
+            "tree, so any defect found against it would describe the census and "
+            "not the surface. Point --atlas at the census the index records, or "
+            "delete %s first if the surface is genuinely being re-targeted."
+            % ("the atlas", atlas.get("root"), atlas.get("generated_at"),
+               INDEX.name, recorded.get("root"), recorded.get("generated_at"),
+               INDEX.name))
+
+
 def units(atlas: Dict) -> List[Dict]:
     """One entry per named class unit in the atlas, sorted for a stable diff."""
     modules = atlas.get("modules") or {}
@@ -340,6 +383,10 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
 
 def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     problems: List[str] = []
+    if not same_census(atlas):
+        # Guarded here as well as in `main`: a library caller comparing two trees
+        # must be told it cannot, not handed 4,623 defects to triage.
+        raise AtlasUnavailable(_census_mismatch(atlas))
     assigned = wired_registry()
     if not INDEX.is_file():
         return False, ["%s is absent; run --write" % INDEX.relative_to(REPO)], {}
@@ -438,6 +485,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         atlas = read_atlas(Path(args.atlas))
     except AtlasUnavailable as exc:
         print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
+        return 2
+    # A census from a different tree is exit 2 for the two modes that JUDGE the
+    # surface. `--write` is included because it deletes every tree directory under
+    # shards/ and rewrites the index: run against the wrong census it would erase
+    # 1,183 Kali shards and 1,152 recorded adoptions while reporting success.
+    if (args.write or args.check) and not same_census(atlas):
+        print("CANNOT JUDGE: %s" % _census_mismatch(atlas), file=sys.stderr)
         return 2
     entries = units(atlas)
 

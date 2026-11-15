@@ -10,6 +10,7 @@ has never met the tree it describes.
 """
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import json
 from pathlib import Path
@@ -33,10 +34,37 @@ def _load():
 intake = _load()
 ATLAS = intake.DEFAULT_ATLAS
 
+
+def _atlas_is_the_indexed_census() -> bool:
+    """The atlas must be the census the index records -- a file is not enough.
+
+    The atlas is written on the Kali lane, so the file at the default path is
+    whatever the last census left there. Measured 2026-11-15: it had been
+    overwritten by the Windows census (root /mnt/c/Azazael/azazael/src, 26 trees)
+    while SHARD_INDEX.json records /root/azazael/src, 18 trees. Comparing the two
+    reported 4,623 defects that described the census, not the surface, and a drift
+    assertion run against it would be a verdict about the wrong tree -- so these
+    tests skip BY NAME here, and the tool refuses the same input with exit 2.
+    """
+    if not ATLAS.is_file():
+        return False
+    atlas = None
+    with contextlib.suppress(intake.AtlasUnavailable):
+        atlas = intake.read_atlas(ATLAS)
+    return atlas is not None and intake.same_census(atlas)
+
+
+#: The registry tests read the committed index, not the census, so they hold on any
+#: host and are not made conditional by the atlas provenance above.
+needs_index = pytest.mark.skipif(
+    not intake.INDEX.is_file(),
+    reason="%s is absent; the surface cannot be described" % intake.INDEX.name)
+
 needs_atlas = pytest.mark.skipif(
-    not ATLAS.is_file(),
-    reason="the Kali atlas is not on this host (%s); the surface cannot be checked "
-           "against the tree it describes" % ATLAS)
+    not _atlas_is_the_indexed_census(),
+    reason="no atlas on this host describes the census %s records (root %r); the "
+           "surface cannot be checked against a different tree"
+           % (intake.INDEX.name, intake.recorded_atlas().get("root")))
 
 
 def test_an_absent_census_is_exit_2_not_drift(tmp_path, capsys):
@@ -59,6 +87,47 @@ def test_an_unreadable_census_is_also_exit_2(tmp_path):
     broken = tmp_path / "atlas.json"
     broken.write_text("{not json", encoding="utf-8")
     assert intake.main(["--atlas", str(broken), "--check"]) == 2
+
+
+@pytest.mark.skipif(not intake.recorded_atlas().get("root"),
+                    reason="the index records no atlas provenance to contradict")
+def test_a_census_from_another_tree_is_exit_2_not_drift(tmp_path, capsys):
+    """The wrong census is a missing judgement, not thousands of defects.
+
+    Measured 2026-11-15: the file at the default atlas path had been overwritten
+    by the Windows census, and ``--check`` reported "4,623 defect(s)" -- 1,183
+    real Kali shards called stale because the atlas described a different tree.
+    The exit code was 1, byte-identical to real drift, so the commit gate would
+    have refused a healthy surface for a reason that was about the host.
+    """
+    other = tmp_path / "other_tree.json"
+    other.write_text(json.dumps({"root": "/somewhere/else/src",
+                                 "generated_at": "2026-11-15T00:00:00+00:00",
+                                 "modules": {}}), encoding="utf-8")
+    assert intake.main(["--atlas", str(other), "--check"]) == 2
+    err = capsys.readouterr().err
+    assert "CANNOT JUDGE" in err
+    assert "different tree" in err
+    # `--write` deletes every tree directory under shards/ and rewrites the index;
+    # against the wrong census it would erase 1,183 shards while reporting success.
+    assert intake.main(["--atlas", str(other), "--write"]) == 2
+
+
+@pytest.mark.skipif(not intake.recorded_atlas().get("root"),
+                    reason="the index records no atlas provenance to contradict")
+def test_a_refresh_of_the_same_tree_is_still_judged(tmp_path):
+    """Provenance must refuse a different tree without switching the gate off.
+
+    A later census of the SAME root is a refresh, and a refresh is exactly when
+    drift appears. If the guard also suppressed that, it would buy quiet by
+    removing the check.
+    """
+    refresh = tmp_path / "refresh.json"
+    refresh.write_text(json.dumps({"root": intake.recorded_atlas()["root"],
+                                   "generated_at": "2099-01-01T00:00:00+00:00",
+                                   "modules": {}}), encoding="utf-8")
+    # An empty module map drifts against all 1,183 shards: judged, and refused.
+    assert intake.main(["--atlas", str(refresh), "--check"]) == 1
 
 
 @needs_atlas
@@ -209,7 +278,7 @@ def test_an_unknown_shard_is_refused_and_close_names_are_offered(capsys):
     assert "no shard" in capsys.readouterr().err
 
 
-@needs_atlas
+@needs_index
 def test_the_registry_describes_a_shard_without_importing_it():
     import sys
     sys.path.insert(0, str(ELIZA))
@@ -229,7 +298,7 @@ def test_the_registry_describes_a_shard_without_importing_it():
         shards.describe("kali:none/absent.py#Nothing")
 
 
-@needs_atlas
+@needs_index
 def test_the_registry_counts_trees_not_just_shards():
     import sys
     sys.path.insert(0, str(ELIZA))
