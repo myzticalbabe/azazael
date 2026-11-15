@@ -192,18 +192,31 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", metavar="FILE",
                     help="where --run writes the receipt (default: stdout); "
                          "must precede --run")
-    ap.add_argument("--run", nargs=argparse.REMAINDER,
-                    help="run CMD, write its receipt to --out, then validate it")
+    ap.add_argument("--run", action="store_true",
+                    help="run CMD (everything after --run), write its receipt "
+                         "to --out, then validate it")
     ap.add_argument("--selftest", action="store_true",
                     help="prove the guard rejects malformed receipts and "
                          "accepts a valid one")
+    # `--run` is a BOUNDARY, not an option, so it is split before argparse sees
+    # the argv. nargs=REMAINDER cannot deliver that on 3.13+: given
+    # `--run -- python -c ...` it stops AT the `--` and hands the command back
+    # as "unrecognised arguments", which made the documented spelling fail with
+    # exit 2 before the command ever ran (measured on 3.14.7). Splitting here
+    # keeps both spellings — with and without the `--` — working everywhere.
+    argv = list(sys.argv[1:] if argv is None else argv)
+    command: list[str] = []
+    if "--run" in argv:
+        at = argv.index("--run")
+        command = argv[at + 1:]
+        argv = argv[:at + 1]  # the flag stays; only the command words move out
     args = ap.parse_args(argv)
 
     if args.selftest:
         return selftest()
 
-    if args.run is not None:
-        cmd = args.run[1:] if args.run[:1] == ["--"] else args.run
+    if args.run:
+        cmd = command[1:] if command[:1] == ["--"] else command
         if not cmd:
             print("REFUSED: --run needs a command after --")
             return 1
