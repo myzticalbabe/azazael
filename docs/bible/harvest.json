@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2203,
+  "as_of_id": 2253,
   "path": "~/.engram/engram.db",
-  "records": 1325,
+  "records": 1357,
   "types": [
    "bugfix",
    "decision",
@@ -6105,9 +6105,9 @@
   },
   {
    "cause": "",
-   "id": "docs-packaging-plan-md-L7",
+   "id": "docs-packaging-plan-md-L12",
    "kind": "measurement",
-   "line": 7,
+   "line": 12,
    "rationale": "",
    "remedy": "",
    "surface": "docs/PACKAGING_PLAN.md",
@@ -6116,9 +6116,9 @@
   },
   {
    "cause": "",
-   "id": "docs-packaging-plan-md-L43",
+   "id": "docs-packaging-plan-md-L48",
    "kind": "measurement",
-   "line": 43,
+   "line": 48,
    "rationale": "",
    "remedy": "",
    "surface": "docs/PACKAGING_PLAN.md",
@@ -6127,9 +6127,9 @@
   },
   {
    "cause": "",
-   "id": "docs-packaging-plan-md-L65",
+   "id": "docs-packaging-plan-md-L70",
    "kind": "measurement",
-   "line": 65,
+   "line": 70,
    "rationale": "",
    "remedy": "",
    "surface": "docs/PACKAGING_PLAN.md",
@@ -6138,9 +6138,9 @@
   },
   {
    "cause": "",
-   "id": "docs-packaging-plan-md-L86",
+   "id": "docs-packaging-plan-md-L91",
    "kind": "measurement",
-   "line": 86,
+   "line": 91,
    "rationale": "",
    "remedy": "",
    "surface": "docs/PACKAGING_PLAN.md",
@@ -6149,9 +6149,9 @@
   },
   {
    "cause": "",
-   "id": "docs-packaging-plan-md-L96",
+   "id": "docs-packaging-plan-md-L101",
    "kind": "measurement",
-   "line": 96,
+   "line": 101,
    "rationale": "",
    "remedy": "",
    "surface": "docs/PACKAGING_PLAN.md",
@@ -6309,19 +6309,118 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_Nurse_Ratchet/README.md",
-   "symptom": "See `CITATION.cff`. Licensed CDDL-1.1; see `NOTICE` for attribution. License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
+   "symptom": "See `CITATION.cff`. Licensed under the Soul Forge License v1.0; see `NOTICE` for attribution. The Soul Forge License v1.0 governs every tree; see `LICENSE` and `NOTICE`.",
    "title": "Citing"
   },
   {
    "cause": "",
-   "id": "project-nurse-ratchet-readme-md-L255",
+   "id": "project-nurse-ratchet-readme-md-L280",
    "kind": "limitation",
-   "line": 255,
+   "line": 280,
    "rationale": "",
    "remedy": "",
    "surface": "Project_Nurse_Ratchet/README.md",
    "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
    "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-nurse-ratchet-readme-md-L285",
+   "kind": "limitation",
+   "line": 285,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Nurse_Ratchet/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-autodiffengine-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_AutoDiffEngine/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-bibl-bibliographic-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_BIBL_Bibliographic/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "CODEX Video Engine provides the desktop application (CODEX Studio) and the video generation pipeline for creating animated technical content from HTML templates.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "python -m pytest tests/ -q python -m codex.studio --demo",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-codex-videoengine-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_CODEX_VideoEngine/README.md",
+   "symptom": "Links",
+   "title": "Links"
+  },
+  {
+   "cause": "",
+   "id": "project-compliance-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Compliance/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
   },
   {
    "cause": "",
@@ -6353,8 +6452,63 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_CRADLE/README.md",
-   "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
    "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "ECOSYSTEM-ORCHESTRATOR manages the deployment, configuration, and operation of the Azazael ML platform across environments. It handles service lifecycle, dependency resolution, and health monitoring.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "python -m pytest tests/ -q python -m orchestrator.deploy --plan platform.yaml",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-ecosystemorchestrator-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_EcosystemOrchestrator/README.md",
+   "symptom": "Links",
+   "title": "Links"
   },
   {
    "cause": "",
@@ -6496,19 +6650,30 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
-   "symptom": "See `CITATION.cff`. Licensed CDDL-1.1; see `NOTICE` for attribution. License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
+   "symptom": "See `CITATION.cff`. Licensed under the Soul Forge License v1.0; see `NOTICE` for attribution. The Soul Forge License v1.0 governs every tree; see `LICENSE` and `NOTICE`.",
    "title": "Citing"
   },
   {
    "cause": "",
-   "id": "project-eliza-readme-md-L287",
+   "id": "project-eliza-readme-md-L312",
    "kind": "limitation",
-   "line": 287,
+   "line": 312,
    "rationale": "",
    "remedy": "",
    "surface": "Project_ELIZA/README.md",
    "symptom": "Read `CONTRIBUTING.md` first. The short version: bring a negative control. This project does not accept a claim that has no test able to show it false.",
    "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-eliza-readme-md-L317",
+   "kind": "limitation",
+   "line": 317,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ELIZA/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
   },
   {
    "cause": "",
@@ -6564,6 +6729,17 @@
    "surface": "Project_FLAME/README.md",
    "symptom": "No renderer, no shader, no asset pipeline, and no networking. Presentation tiers are M-36 and they are gated on one state hash across tiers, so a tier that cannot prove it left the sim alone is not a tier.",
    "title": "Deliberately not here"
+  },
+  {
+   "cause": "",
+   "id": "project-flame-readme-md-L99",
+   "kind": "limitation",
+   "line": 99,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAME/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
   },
   {
    "cause": "",
@@ -6677,6 +6853,116 @@
   },
   {
    "cause": "",
+   "id": "project-flaming-sword-readme-md-L222",
+   "kind": "limitation",
+   "line": 222,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FLAMING_SWORD/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-freethreadedruntime-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_FreeThreadedRuntime/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-gamora-readme-md-L3",
+   "kind": "limitation",
+   "line": 3,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GAMORA/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-gosp-governance-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_GOSP_Governance/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-horus-monitoring-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HORUS_Monitoring/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "HYDRA is the adaptive ML cluster that provides dynamic workload distribution, model routing, and resource-aware scheduling across heterogeneous compute. It integrates with the Azazael worm registry for autonomous operation.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "python -m pytest tests/ -q python -m hydra.cluster --demo",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-hydra-mlcluster-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_HYDRA_MLCluster/README.md",
+   "symptom": "Links",
+   "title": "Links"
+  },
+  {
+   "cause": "",
    "id": "project-jaeger-readme-md-L9",
    "kind": "limitation",
    "line": 9,
@@ -6760,7 +7046,282 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_JAEGER/README.md",
-   "symptom": "CDDL-1.1 — see `LICENSE`.",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-klink-protocol-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_KLINK_Protocol/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-loggers-telemetry-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Loggers_Telemetry/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-lucy-readme-md-L3",
+   "kind": "limitation",
+   "line": 3,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_LUCY/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-ml-platform-integration-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ML_Platform_Integration/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-multiproviderinference-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_MultiProviderInference/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-neuralwiring-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_NeuralWiring/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-nsga-optimizer-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_NSGA_Optimizer/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-oxenford-readme-md-L3",
+   "kind": "limitation",
+   "line": 3,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Oxenford/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-pams-daemon-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PAMS_Daemon/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "PERSEPHONE handles bidirectional synchronization of code, configs, and environments across Windows, WSL2 Ubuntu, bare metal Linux, and Kali. It manages the sync topology and integrity verification.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "python -m pytest tests/ -q python -m persephone.sync --status",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-persephone-sync-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PERSEPHONE_Sync/README.md",
+   "symptom": "Links",
+   "title": "Links"
+  },
+  {
+   "cause": "",
+   "id": "project-poindexter-indexer-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_POINDEXTER_Indexer/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-polyglotinterpreters-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PolyglotInterpreters/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-psyche-consciousness-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_PSYCHE_Consciousness/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-rendering-pipeline-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Rendering_Pipeline/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-rustaccelerator-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_RustAccelerator/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "SCRIBE generates documentation from code, configs, and runtime artifacts. It produces Markdown, HTML, and interactive diagrams for the Azazael ecosystem.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "python -m pytest tests/ -q python -m scribe.render --source src --output docs",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-scribe-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_Scribe/README.md",
+   "symptom": "Links",
+   "title": "Links"
+  },
+  {
+   "cause": "",
+   "id": "project-shardengine-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_ShardEngine/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
    "title": "License"
   },
   {
@@ -6793,8 +7354,85 @@
    "rationale": "",
    "remedy": "",
    "surface": "Project_SHARDEX/README.md",
-   "symptom": "CDDL-1.1. See [LICENSE](LICENSE) and [NOTICE](NOTICE). License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
    "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-tarbaby-filesearch-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_TARBABY_FileSearch/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-terence-oracle-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_TERENCE_Oracle/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-compiler-readme-md-L5",
+   "kind": "limitation",
+   "line": 5,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Compiler/README.md",
+   "symptom": "WASM Compiler provides the Rust/Go/TinyGo toolchain and build system for compiling Azazael components to WebAssembly for browser deployment and edge computing.",
+   "title": "Overview"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-compiler-readme-md-L18",
+   "kind": "limitation",
+   "line": 18,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Compiler/README.md",
+   "symptom": "python -m pytest tests/ -q python -m wasm.compile --target wasm32-unknown-unknown --release",
+   "title": "Quickstart"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-compiler-readme-md-L25",
+   "kind": "limitation",
+   "line": 25,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Compiler/README.md",
+   "symptom": "This project is licensed under the Soul Forge License v1.0 — a covenant, not a contract. The full text is in [LICENSE](LICENSE).",
+   "title": "License"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-compiler-readme-md-L70",
+   "kind": "limitation",
+   "line": 70,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Compiler/README.md",
+   "symptom": "See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.",
+   "title": "Contributing"
+  },
+  {
+   "cause": "",
+   "id": "project-wasm-compiler-readme-md-L74",
+   "kind": "limitation",
+   "line": 74,
+   "rationale": "",
+   "remedy": "",
+   "surface": "Project_WASM_Compiler/README.md",
+   "symptom": "Links",
+   "title": "Links"
   },
   {
    "cause": "",
@@ -22695,6 +23333,390 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Live-tested all 11 Gamora-win10.exe functions on 316t. 10 clean: doctor READY 8/8, lilith 14 tables, eve oracle SUPPORTED 1.0, kilo 7.8.27, opencode v2.2.6, freebuff 0.2.36 (all with spans, 4/4 matched in otel_spans), swarm CHECKABLE, berzerker audit 23/23, inject emitted under span, lucy therapy live. Cradle executes but degraded: eve-vessel-316t.gguf sidecar exit 1 (adopted=1 failed=1) + frozen z3 missing libz3.dll warning.",
    "title": "All 11 Gamora functions live-tested: 10 clean, cradle degraded"
+  },
+  {
+   "cause": "ESP read-back with S: mounted showed SecureBoot=False (so an unsigned MELLI stub is not signature-blocked), EFI\\MELLI\\vmlinuz.efi 14758912 B sha E73DC060…, EFI\\ubuntu\\grub.cfg 3138 B sha 272A6596… with 4 menuentries and no top-level configfile. But `chainloader /EFI/MELLI/vmlinuz.efi` passes neither cmdline nor initramfs — the MELLI entry needs `linuxefi … root=PARTUUID=<new>` + `initrdefi …` once P4 holds the rootfs. Also: probe_melli.log's \"P4 PARTUUID drifted\" is a false positive (the live GUID equals the expected e4ff9384-…), and firmware contains a mislabeled duplicate {b7173bfa-…} pointing at shimx64.efi but described \"UEFI: HTTP IPv4 Network Card\", harmless because it is not in fwboo…",
+   "date": "2026-11-13",
+   "id": "engram-2218",
+   "kind": "engram:bugfix",
+   "line": 2218,
+   "rationale": "What: Removed Windows BCD object {b7173bfb-dbd1-11f0-8e4f-aa2261939d2d} — type \"Real-mode Boot Sector\", path \\EFI\\MELLI\\vmlinuz.efi, description \"MELLI-OS 1.0 (hyper-edge)\". Why: Selecting it in Windows Boot Manager returned 0xc000007b. A Real-mode Boot Sector object is a 16-bit/legacy loader type; it cannot start an EFI PE image, so the stub could never load. bcdedit also cannot create the correct \"Firmware Application (101fffff)\" type, so this entry had no path to working. Where: Windows BCD store on Disk0 P1 (ESP). Verified with elevated `bcdedit /enum` at 2026-11-13 15:51 — only `{bootmgr}` (Windows Boot Manager) and `{current}` (Windows 11) remain, `displayorder {current}`, no Real-mod…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Removed Windows BCD object {b7173bfb-dbd1-11f0-8e4f-aa2261939d2d} — type \"Real-mode Boot Sector\", path \\EFI\\MELLI\\vmlinuz.efi, description \"MELLI-OS 1.0 (hyper-edge)\".",
+   "title": "Deleted MELLI BCD Real-mode entry that caused 0xc000007b"
+  },
+  {
+   "cause": "`0xc000007b` on a Linux EFI stub means the BCD object type is wrong. `Real-mode Boot Sector` cannot launch an EFI PE image, and `bcdedit` cannot create the correct `Firmware Application (101fffff)`, so such an entry has no repair path — delete it, reach the stub via GRUB. 2. Default `bcdedit /enum` renders only the bootmgr-reachable chain: 2 objects out of a 21-object store. An entry can be absent from the default view and from the F12 menu (not in `fwbootmgr displayorder`) while still on disk. `/enum all`, `/enum firmware`, and `HKLM\\BCD00000000\\Objects` are three different questions. 3. Two Firmware Application objects targeting one file is the signature of a bad `bcdedit` copy/set — expo…",
+   "date": "2026-11-13",
+   "id": "engram-2219",
+   "kind": "engram:learning",
+   "line": 2219,
+   "rationale": "What: Recorded 13 lessons from the 2026-11-13 GRUB/BCD repair into `bake_harvest_grubfix_2026-11-13.jsonl` (project root, existing lane schema {source,item_id,title,body,kind}); validation pass printed `OK 13 BAD 0 KINDS {anti_pattern:3, lesson:4, error_fix:3, violation:2, mandate:1}`. Why: Four defect classes were earned in one session and each cost a cycle: a misdiagnosed boot error, three wrong readings from one instrument, two shell hazards that damaged state, and one file destroyed by careless cleanup. Where: `bake_harvest_grubfix_2026-11-13.jsonl`; Windows BCD store (ESP P1); `p8_postboot/grub_winfirst.cfg`; `MELLI_OS/INSTALL_191G.md`. Learned: 1. `0xc000007b` on a Linux EFI stub mean…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Recorded 13 lessons from the 2026-11-13 GRUB/BCD repair into `bake_harvest_grubfix_2026-11-13.jsonl` (project root, existing lane schema {source,item_id,title,body,kind}); validation pass printed `OK 13 BAD 0 KINDS {anti_pattern:3, lesson:4, error_fix:3, violation:2, mandate:1}`.",
+   "title": "GRUB/BCD repair lessons: instrument surfaces, elevation traps, shell hazards"
+  },
+  {
+   "cause": "(1) The daemon 409 body is the real diagnostic - the MCP error text hides it; always curl /project/current?cwd= with the raw cwd to see code/available_projects. (2) A directory under a HOME-rooted git repo needs its own .engram/config.json to be addressable; gitignored subtrees are exactly the ones that fail. (3) mem_current_project can report a project that mem_save refuses to use - the two read different resolution paths (process env vs daemon). (4) The opencode lane's ~/.config/opencode/opencode.json still points at the OLD engram.exe (3.6.0 lineage) while ~/.agents/mcp.json points at engram_3.7.1.exe; the running daemon is engram.exe serve (older). Aligning that is a separate change nee…",
+   "date": "2026-11-14",
+   "id": "engram-2220",
+   "kind": "engram:bugfix",
+   "line": 2220,
+   "rationale": "What: mem_save failed every call with 'gentle-engram could not resolve a safe project identity'. Root cause was NOT the MCP client: the embedded JS resolver calls GET /project/current?cwd=<dir> on the engram daemon (:7437/7439 range, pid 14060 engram.exe serve) and rejects the answer unless project is non-empty, != 'unknown', has no error_hint and contains no path separator. Why: cwd was C:\\Users\\clint\\Desktop, which sits inside the HOME-rooted git repo C:\\Users\\clint. Daemon resolution order is explicit -> ENGRAM_PROJECT env override -> cwd detection; detection order is config (.engram/config.json) -> git binding -> child scan. Desktop had no .engram/config.json, so it fell to the git bind…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "mem_save failed every call with 'gentle-engram could not resolve a safe project identity'. Root cause was NOT the MCP client: the embedded JS resolver calls GET /project/current?cwd=<dir> on the engram daemon (:7437/7439 range, pid 14060 engram.exe serve) and rejects the answer unless project is non-empty, != 'unknown', has no error_hint and contains no path separator.",
+   "title": "Engram mem_save failed on Desktop cwd: daemon 409 explicit_project_required"
+  },
+  {
+   "cause": "(1) MEASURED FLOOR (2026-11-13, 3.16t, saved to C:/Users/clint/AppData/Local/Temp/opencode/cursor_timings.txt): interpreter 50ms, leg_ledger 62ms, settings_shadow narrow 69ms, reading_audit 86ms, head_audit 395ms, settings_shadow broad 4035ms, golden_arrow --file light test 1039ms and heavy test 8781ms. (2) SCOPE IS THE WHOLE COST STORY: settings_shadow on src/CORE/trace = 69ms vs src/CORE = 4035ms, 58x from scope alone, same code - no optimisation beats scoping. (3) The test gate is SECONDS not milliseconds, so 'sub-second' can only mean the VERDICT (target <=250ms p95, in-process, ZERO subprocess spawns), never the whole swarm; the memo already resolved this by gating once per swarm inten…",
+   "date": "2026-11-14",
+   "id": "engram-2221",
+   "kind": "engram:architecture",
+   "line": 2221,
+   "rationale": "What: Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table. Why: User asked for a cursor swarm with extended functionality. The memo (PMB 001a1d0897ff5_9bf9827a) was one paragraph; this makes it buildable with acceptance commands per phase. Where: C:/Azazael/azaz…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table.",
+   "title": "Cursor swarm v2 design landed: measured floor, atomic transaction, 12-point extended functionality"
+  },
+  {
+   "cause": "(1) THE SUB-SECOND WIN IS SCOPING, NOT RUST: settings_shadow over 6 modules measures 73 ms vs 105,044 ms over the whole tree - 1439x, same binary, same code path. The four HED auditors already accept --root/--glob. (2) The spawn floor is 34 ms median (python -c pass), so per-cursor subprocesses cost 4x34 ms before any work. (3) Only settings_shadow has an inherently per-cursor subject; head_audit audits the whole repo, reading_audit audits report artifacts, leg_ledger audits one report - so 'four verdicts per cursor' needs per-auditor scoped semantics written down or green is green about a question nobody asked. (4) A8's parenthetical 'ms via native Rust worm_manifest' names the WRONG bottl…",
+   "date": "2026-11-14",
+   "id": "engram-2222",
+   "kind": "engram:architecture",
+   "line": 2222,
+   "rationale": "What: Designed and landed the A8 sub-second cursor swarm: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md (commit eec3c25d, 604 insertions). Also fixed tools/docs_index.py, whose output was written outside the try block so the generated docs index never appeared (INDEX.md was 12 days stale: 168 docs vs 287 now). Why: The user asked to design a cursor swarm with extended functionality. A8 in docs/ADAPTATIONS_HYPER_EDGE_2026-11-07.md asked for it in one paragraph with no architecture. Where: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md; tools/docs_index.py; measurement capture C:/Users/clint/AppData/Local/Temp/opencode/cursor_swarm_measurements.txt Learned: (1) THE SUB-SECOND WIN IS SCOPING, NOT RUST:…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Designed and landed the A8 sub-second cursor swarm: docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md (commit eec3c25d, 604 insertions). Also fixed tools/docs_index.py, whose output was written outside the try block so the generated docs index never appeared (INDEX.md was 12 days stale: 168 docs vs 287 now).",
+   "title": "Cursor swarm A8 design landed: scoping is the sub-second win, not Rust"
+  },
+  {
+   "cause": "(1) The staged scanner rejects any new `subprocess.run` with `subprocess_no_timeout`; `timeout=30` plus an `except subprocess.TimeoutExpired:` branch calling `refuse(...)` passes — the second statement is the structural fix, no rebaseline. (2) The scope hash is over committed content, so it necessarily moves when HEAD moves: 2118690a at fe526e1b, 881331a3 at 97305f70. Do not read that as drift. (3) Both controls were run: dirty tree printed `NOT PROVEN` with the dirty paths and exited 2; clean tree printed `PROVEN (clean worktree)` and exited 0. (4) `_board.py tasks` has no `--claimed` flag despite the canon's prose; `stats` reports `claimed_live` instead.",
+   "date": "2026-11-14",
+   "id": "engram-2223",
+   "kind": "engram:bugfix",
+   "line": 2223,
+   "rationale": "What: Closed the two audit items still open on the cursor view, as instruments rather than prose. I1: `read_scope()` now enumerates a scope through `git ls-files` and refuses a scope with no index entry, printing a named remedy (`git add <path>`) and exiting 2. Index count and worktree count print side by side. I5: `rollback_proof()` reads `git ls-tree -r HEAD` object ids plus the `git status --porcelain` dirty set over the same scope, and the scope hash is sha256 over `path object-id` pairs; `--prove` is the strict form (exit 2 unless clean). Also added `--scope` (repeatable), `refuse()`, `git_text()`, `disk_modules()`. Why: I1's census defect was countable: the audit quoted 10,112 files w…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the two audit items still open on the cursor view, as instruments rather than prose. I1: `read_scope()` now enumerates a scope through `git ls-files` and refuses a scope with no index entry, printing a named remedy (`git add <path>`) and exiting 2. Index count and worktree count print side by side. I5: `rollback_proof()` reads `git ls-tree -r HEAD` object ids plus the `git status --porcelain` dirty set over the same scope, and the scope hash is sha256 over `path object-id` pairs; `--prove` is the strict form (exit 2 unless clean). Also added `--scope` (repeatable), `refuse()`, `git_text()`, `disk_modules()`.",
+   "title": "Closed swarm_view audit I1 and I5: index-based scope, ls-tree rollback proof"
+  },
+  {
+   "cause": "Independent confirmation outside the tool — after uninstall the scheme dir is gone (os.path.isdir False) and HKCU\\Control Panel\\Cursors holds 20 values (Aero). `--apply` then printed \"backup … (20 values)\" instead of \"backup kept\"; that is correct, because _write_backup only prints \"kept\" when live_is_ours(values) is True, and after uninstall the live state was Aero. Verified the rewritten backup is honest: 20 values, 0 vulcan-swarm paths, 14 aero paths, scheme field 'Windows Aero'. Reading \"backup\" as a regression of the c06dc991 fix would have been a false finding. Every HCURSOR handle returned non-zero (0x134071d … 0xd205d2), so Windows loaded all ten.",
+   "date": "2026-11-14",
+   "id": "engram-2224",
+   "kind": "engram:discovery",
+   "line": 2224,
+   "rationale": "What: Exercised the whole cursor-scheme lifecycle through the compiled binary rather than the script: `dist/SOULFORGE.exe --uninstall` (exit 0: \"cursor 11 live value(s) cleared to the system default\", \"scheme Vulcan Swarm removed\", \"uninstalled 10 file(s)\"), `--status` (exit 0: installed 0 file(s), live 0 slot(s), scheme ''), `--defaults` (exit 0: 15 Aero slot defaults), `--apply` (exit 0: 10 artefacts, 10 files installed, 11 live values, scheme 'Vulcan Swarm'), `--check` (exit 0: \"artefacts 10 read back, 10 installed copy(ies), 11 live value(s) in vulcan-swarm\", \"clean 0 defect(s)\"). Why: The exe had only been proved for build/apply/check; uninstall and the post-uninstall reinstall were un…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Exercised the whole cursor-scheme lifecycle through the compiled binary rather than the script: `dist/SOULFORGE.exe --uninstall` (exit 0: \"cursor 11 live value(s) cleared to the system default\", \"scheme Vulcan Swarm removed\", \"uninstalled 10 file(s)\"), `--status` (exit 0: installed 0 file(s), live 0 slot(s), scheme ''), `--defaults` (exit 0: 15 Aero slot defaults), `--apply` (exit 0: 10 artefacts, 10 files installed, 11 live values, scheme 'Vulcan Swarm'), `--check` (exit 0: \"artefacts 10 read back, 10 installed copy(ies), 11 live value(s) in vulcan-swarm\", \"clean 0 defect(s)\").",
+   "title": "SOULFORGE exe lifecycle proved end to end (uninstall → defaults → apply → check)"
+  },
+  {
+   "cause": "A Nuitka onefile exe cannot re-invoke itself from argv[0] or sys.executable — both point at the unpacked temp dir, and a child spawn raised FileNotFoundError [WinError 2] ...onefile_21916_...\\python.exe. Resolution now: SOULFORGE_SELF → bootstrap-parent image via NUITKA_ONEFILE_PARENT + QueryFullProcessImageNameW → argv[0] → sys.executable, and an empty list reports `DEFECT no runnable self` rather than passing. Three other real defects fell out: recursive reload_pointers(), --apply refusing a missing Cursors key (now CreateKeyEx), and subprocess.run(text=True) with no encoding. Tier verdict: PASS at tree 5e27c027 (== HEAD a8817267's tree), 14 checks, marker logs/hook_evidence.json ran_at 2…",
+   "date": "2026-11-14",
+   "id": "engram-2225",
+   "kind": "engram:bugfix",
+   "line": 2225,
+   "rationale": "What: Finished the SOULFORGE (tools/swarm_arena) work and re-ran the evidence tier to a verdict. (1) `--selftest` verb added: build/install/check/uninstall against a throwaway HKCU key via env overrides SOULFORGE_CURSOR_KEY / SOULFORGE_SCHEME_DIR / SOULFORGE_OUT, children are the same binary, and reload_pointers() prints `skip SPI_SETCURSORS under a throwaway key` instead of repainting the live scheme. (2) Busy/wave retuned to a Vulcan-salute arc: ±24°, BUSY_CANVAS 192, MOTION_FLOOR 8.5; measured from the built .ani palm travel 9.71 px = 51.1% of 19 px ink, per-frame ink [20,20,19,20,20,23,23,23] (was 3.05 px / 10.2%). (3) Evidence tier re-run to completion against HEAD a8817267. Why: Stand…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished the SOULFORGE (tools/swarm_arena) work and re-ran the evidence tier to a verdict. (1) `--selftest` verb added: build/install/check/uninstall against a throwaway HKCU key via env overrides SOULFORGE_CURSOR_KEY / SOULFORGE_SCHEME_DIR / SOULFORGE_OUT, children are the same binary, and reload_pointers() prints `skip SPI_SETCURSORS under a throwaway key` instead of repainting the live scheme. (2) Busy/wave retuned to a Vulcan-salute arc: ±24°, BUSY_CANVAS 192, MOTION_FLOOR 8.5; measured from the built .ani palm travel 9.71 px = 51.1% of 19 px ink, per-frame ink [20,20,19,20,20,23,23,23] (was 3.05 px / 10.2%). (3) Evidence tier re-run to completion against HEAD a8817267.",
+   "title": "SOULFORGE selftest + onefile self-resolution; evidence tier PASS at a8817267"
+  },
+  {
+   "cause": "Restore must be typed. The old snapshot stored bare strings, so REG_EXPAND_SZ cursor paths came back as REG_SZ. soulforge-snapshot-2 records per-value kind; an untyped legacy snapshot still restores and prints \"predates recorded types\". - Empty fields in a registered scheme blank the slot. Help/NWPen/UpArrow came back empty when the scheme was selected in Mouse Properties, so non-swarm slots now inherit the account's current value (fallback: the HKLM \"Windows Aero\" string). - A check may not validate a contract only when its own condition holds. --check validated the scheme entry and account default only when at least one live slot was ours, so a Windows theme overwriting all eleven pointer…",
+   "date": "2026-11-14",
+   "id": "engram-2226",
+   "kind": "engram:bugfix",
+   "line": 2226,
+   "rationale": "What: Made the shipped Vulcan-salute cursor scheme the live account default through a reversible one-command install, and fixed three defects the shipped binary exposed. Why: The request was \"make the shipped Vulcan Swarm scheme the default for the live account through a reversible one-command install, with the live key snapshotted first\" — so the install must snapshot before its first write and carry its own undo. Where: tools/swarm_arena/make_cursors.py (do_apply/do_restore/do_check/do_install, SNAPSHOT_FORMAT soulforge-snapshot-2), tools/swarm_arena/soulforge.py (status prints snapshot line; verb text), tools/swarm_arena/README.md. Commit 80043d3e, 3 files, +274/-56. Learned: - Restore m…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Made the shipped Vulcan-salute cursor scheme the live account default through a reversible one-command install, and fixed three defects the shipped binary exposed.",
+   "title": "Vulcan Swarm as default: snapshot-first reversible install, 3 defects fixed"
+  },
+  {
+   "cause": "(a) A gate that asks \"what does this project publish\" must enumerate with `git ls-files -c -o --exclude-standard` and print the ignored count it excluded -- 4504 measured files against 5196 not scanned -- because a worktree walk measures the filesystem, not the repository. (b) A `never_ship` glob matched by bare basename denies every same-named file in the tree: `requiem.py` also hit the canonical `../src/PSYCHE/requiem.py` and turned `denied_paths` red, so the glob is now path-qualified and was proved with an `fnmatch` probe (`project_eliza/requiem.py` -> True, `src/psyche/requiem.py` -> False). (c) The tier reads `33 ran, 1 failed (0 blocking)`, TIER_RC=0 -- the single non-PASS is `arc-co…",
+   "date": "2026-11-14",
+   "id": "engram-2227",
+   "kind": "engram:bugfix",
+   "line": 2227,
+   "rationale": "What: Cleared the two failing preflight checks named in the request. (1) The eliza publication gate read five failures; the cause was one instrument defect, and after repair it prints `PASS: 0 failure(s)`, RC=0, with all seven sections ok. (2) The historical AP-5 phrases were cleared through the gate's own `--ack` ledger, and every run now prints `AP-5: no NEW finding (2 already-acknowledged emission(s) remain on record)`. Why: `publication_inventory()` walked the worktree with `rglob`, so `Project_ELIZA/adopted/kali/` -- gitignored at `.gitignore:10` -- counted as undeclared content; and `check_undeclared()` demanded a `ship` entry for a path whose own manifest said `never_ship`, which is…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Cleared the two failing preflight checks named in the request. (1) The eliza publication gate read five failures; the cause was one instrument defect, and after repair it prints `PASS: 0 failure(s)`, RC=0, with all seven sections ok. (2) The historical AP-5 phrases were cleared through the gate's own `--ack` ledger, and every run now prints `AP-5: no NEW finding (2 already-acknowledged emission(s) remain on record)`.",
+   "title": "eliza publication gate measured from git inventory; AP-5 acknowledged"
+  },
+  {
+   "cause": "nurse-ratchet serves as the gold-standard template with 14 community health files + release gate enforcement. Standards must be codified, not just documented. Every repo needs: 14 governance files, CI/Pages workflows, GitHub metadata, cross-repo table, branch protection, Dependabot/CodeQL.",
+   "date": "2026-11-14",
+   "id": "engram-2230",
+   "kind": "engram:architecture",
+   "line": 2230,
+   "rationale": "What: Established mandatory professional-grade public adoption standards for all 20 myzticalbabe repositories based on gap analysis of GitHub org Why: Audit revealed 3 critical gaps blocking professional adoption: landing hub repo missing all metadata, wasm-education missing About metadata, 19/20 repos missing community health files (only nurse-ratchet has full set) Where: C:/Azazael/azazael/ - all project repos in monorepo; myzticalbabe.github.io (landing hub); wasm-education (separate repo) Learned: nurse-ratchet serves as the gold-standard template with 14 community health files + release gate enforcement. Standards must be codified, not just documented. Every repo needs: 14 governance f…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Established mandatory professional-grade public adoption standards for all 20 myzticalbabe repositories based on gap analysis of GitHub org",
+   "title": "PROFESSIONAL-GRADE PUBLIC ADOPTION STANDARDS — default for all myzticalbabe repos"
+  },
+  {
+   "cause": "nurse-ratchet serves as gold standard template with 14/14 governance files + 2 workflows + templates + cross-repo table. Verification tool proves compliance. Next phase: propagate to 19 repos via automated script.",
+   "date": "2026-11-14",
+   "id": "engram-2231",
+   "kind": "engram:decision",
+   "line": 2231,
+   "rationale": "What: Codified PROFESSIONAL-PUBLIC-STANDARDS.md as mandatory default for all 20 myzticalbabe repositories; created verification tool; gold standard now passes 100% Why: Gap analysis revealed 3 critical gaps blocking professional-grade public adoption; standards must be codified not just documented Where: C:/Azazael/azazael/PROFESSIONAL_PUBLIC_STANDARDS.md, C:/Azazael/azazael/tools/verify_public_standards.py, C:/Azazael/azazael/Project_Nurse_Ratchet/.github/workflows/pages-deploy.yml, C:/Azazael/azazael/Project_Nurse_Ratchet/README.md Learned: nurse-ratchet serves as gold standard template with 14/14 governance files + 2 workflows + templates + cross-repo table. Verification tool proves comp…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Codified PROFESSIONAL-PUBLIC-STANDARDS.md as mandatory default for all 20 myzticalbabe repositories; created verification tool; gold standard now passes 100%",
+   "title": "PROFESSIONAL-PUBLIC-STANDARDS codified and verified"
+  },
+  {
+   "cause": "Three bias mechanisms require different interventions: Masculine Defaults (culture redesign), Differential Treatment (bias interrupters + structured evals), Stereotype Threat (matched role models + soft skills). Five mandatory tiers with 17 requirements + enforcement gates. All 20 myzticalbabe repos must implement equity infrastructure in PROFESSIONAL_PUBLIC_STANDARDS compliance.",
+   "date": "2026-11-14",
+   "id": "engram-2232",
+   "kind": "engram:decision",
+   "line": 2232,
+   "rationale": "What: Codified RULE 0Z-R as mandatory mandate for female STEM advancement professional standards Why: Differential analysis of 20+ studies proved structural interventions succeed (sponsorship, bias interrupters, clear metrics, top-down mandates) while bottom-up approaches fail (mentoring, diversity training, \"fix the woman\" programs) Where: C:/Azazael/azazael/MANDATES.md (commit ec868b58) Learned: Three bias mechanisms require different interventions: Masculine Defaults (culture redesign), Differential Treatment (bias interrupters + structured evals), Stereotype Threat (matched role models + soft skills). Five mandatory tiers with 17 requirements + enforcement gates. All 20 myzticalbabe rep…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Codified RULE 0Z-R as mandatory mandate for female STEM advancement professional standards",
+   "title": "RULE 0Z-R: Female STEM Advancement Professional Standards mandated"
+  },
+  {
+   "cause": "100% verification pass rate achieved. Every repo now has: 14 governance files (CODE_OF_CONDUCT.md, SECURITY.md, CITATION.cff, DISCLOSURE_POLICY.md, NOTICE, PUBLIC_MANIFEST.json, HARDWARE.md, MANIFEST_NOTES.md, requiem.py, certification.json, LICENSE, CONTRIBUTING.md, CHANGELOG.md, README.md), 2 CI/CD workflows (ci.yml, pages-deploy.yml), 4 GitHub templates, cross-repo table, equity-evaluation-gate.yml (RULE 0Z-R compliance). MADI and GrantForge projects created locally and made compliant.",
+   "date": "2026-11-14",
+   "id": "engram-2233",
+   "kind": "engram:decision",
+   "line": 2233,
+   "rationale": "What: Implemented PROFESSIONAL_PUBLIC_STANDARDS and RULE 0Z-R across all 25 myzticalbabe repositories (20 unique) Why: Complete the mandate to unblock professional-grade public adoption and implement female STEM advancement professional standards Where: All repos in C:/Azazael/publish_repos/, C:/Azazael/azazael/Project_*, C:/Azazael/EveUnleashed, C:/Azazael/krampus, C:/Azazael/azazael, C:/Azazael/azazael/packages/azazael-core, plus new Project_MADI and Project_GrantForge Learned: 100% verification pass rate achieved. Every repo now has: 14 governance files (CODE_OF_CONDUCT.md, SECURITY.md, CITATION.cff, DISCLOSURE_POLICY.md, NOTICE, PUBLIC_MANIFEST.json, HARDWARE.md, MANIFEST_NOTES.md, requ…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Implemented PROFESSIONAL_PUBLIC_STANDARDS and RULE 0Z-R across all 25 myzticalbabe repositories (20 unique)",
+   "title": "ALL PROFESSIONAL STANDARDS IMPLEMENTED - 100% VERIFICATION PASS"
+  },
+  {
+   "cause": "Three distinct failures from one missing return: (1) claim_tasks does `conn = self._state_conn()` then `conn.isolation_level = None` -> AttributeError, so every claim raises; (2) poll_tasks' probe `self._state_conn().close()` raises, is swallowed, and sets exclude_retired = exclude_claimed = False -> the poll silently shows RETIRED and CLAIMED rows as live work (the BOARD-POLL-STATEFILTER defect of 2026-10-31 returns); (3) task_stats does conn.execute on None -> AttributeError. Diagnose a missing `return` by looking for its SECOND-order effect, not just the crash. Note: this file was being edited concurrently (SHA changed every ~40s); verify at fix time.",
+   "date": "2026-11-14",
+   "id": "engram-2234",
+   "kind": "engram:bugfix",
+   "line": 2234,
+   "rationale": "What: In the C:\\Azazael\\azazael working tree, LaneMessageBoard._state_conn() lost its `return conn` line (present in commit 22b6ec94, absent in the uncommitted diff). The method now returns None. Why: Found while reviewing the _board.py fix; it silently breaks three CLI paths. Where: C:\\Azazael\\azazael\\src\\CORE\\LaneMessageBoard.py, _state_conn (~line 959). Learned: Three distinct failures from one missing return: (1) claim_tasks does `conn = self._state_conn()` then `conn.isolation_level = None` -> AttributeError, so every claim raises; (2) poll_tasks' probe `self._state_conn().close()` raises, is swallowed, and sets exclude_retired = exclude_claimed = False -> the poll silently shows RETIR…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "In the C:\\Azazael\\azazael working tree, LaneMessageBoard._state_conn() lost its `return conn` line (present in commit 22b6ec94, absent in the uncommitted diff). The method now returns None.",
+   "title": "LaneMessageBoard._state_conn missing return conn breaks claim/poll/stats"
+  },
+  {
+   "cause": "(1) LaneTask.metadata CAN be None or non-dict - from_dict does metadata=d.get('metadata', {}) and the default only applies when the key is ABSENT, so a payload with 'metadata': null yields None; upstream itself guards with isinstance(task.metadata, dict) before setdefault. (2) LaneTask.detail CAN be a dict - live row Board-46179 on lane.freebuff.tasks has detail={'action': 'ping_ack', ...}; `t.detail[:120]` raises KeyError: slice(None, 120, None), so `str(t.detail or '')[:120]` is required, not optional. (3) claim_tasks sets self.last_claim_stats = {lane, claimed, duplicates_retired, scanned, scan_limit, agent} (added in azazael commit 22b6ec94 + follow-on work) - the key for reporting that…",
+   "date": "2026-11-14",
+   "id": "engram-2235",
+   "kind": "engram:discovery",
+   "line": 2235,
+   "rationale": "What: LaneMessageBoard.poll_tasks() returns List[LaneTask] dataclasses (fields: lane, task_id, action, detail, source_lane, created_at, status, metadata), while claim_tasks() returns List[Dict] with a board_id key. C:\\Users\\clint\\_board.py cmd_tasks called .get() on the dataclass and crashed 100% of the time. Why: Two different return shapes behind one class name; the durable row id lives only in t.metadata['_row_id'] for poll results, while claim results carry 'board_id' directly. Where: C:\\Azazael\\azazael\\src\\CORE\\LaneMessageBoard.py (LaneTask ~line 54, from_dict ~line 80, poll_tasks ~line 629, claim_tasks ~line 1101); C:\\Users\\clint\\_board.py cmd_tasks/cmd_claim. Learned: (1) LaneTask.me…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "LaneMessageBoard.poll_tasks() returns List[LaneTask] dataclasses (fields: lane, task_id, action, detail, source_lane, created_at, status, metadata), while claim_tasks() returns List[Dict] with a board_id key. C:\\Users\\clint\\_board.py cmd_tasks called .get() on the dataclass and crashed 100% of the time.",
+   "title": "LaneTask is a dataclass - board readers must use attribute access"
+  },
+  {
+   "cause": "poll_tasks' include_retired=True implies include_claimed (exclude_claimed = not (include_claimed or include_retired)), so --all is a superset of --claimed. Measured on the live board: default poll = claimable only (opencode 7, freebuff 87); --claimed opencode 38; --all opencode 249 / freebuff 562. The default limit=50 SILENTLY TRUNCATES freebuff (87 available -> 50 shown), so `total: N` is a truncated count and must be labelled against task_stats(lane)['available'].",
+   "date": "2026-11-14",
+   "id": "engram-2236",
+   "kind": "engram:discovery",
+   "line": 2236,
+   "rationale": "What: The canon in C:\\Users\\clint\\.config\\opencode\\AGENTS.md (AO:lane-queue block, source azazael/docs/agent_orders/03_lane_queue.md) documents `_board.py tasks --all` and `--claimed`, but C:\\Users\\clint\\_board.py has only `tasks [lane] [since]` (argparse p_tasks). git log --all -- _board.py shows ONE commit (cc0e5d0) and that commit has no such flags - the flags existed in an untracked working copy on 2026-10-31 and were lost when the file was first committed. Why: orders-in-sync only checks byte-identity between lane instruction copies, never truth against the tree, so the canon kept advertising flags the code never had. Where: C:\\Users\\clint\\_board.py (p_tasks parser); azazael/docs/agent…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "The canon in C:\\Users\\clint\\.config\\opencode\\AGENTS.md (AO:lane-queue block, source azazael/docs/agent_orders/03_lane_queue.md) documents `_board.py tasks --all` and `--claimed`, but C:\\Users\\clint\\_board.py has only `tasks [lane] [since]` (argparse p_tasks). git log --all -- _board.py shows ONE commit (cc0e5d0) and that commit has no such flags - the flags existed in an untracked working copy on 2026-10-31 and were lost when the file was first committed.",
+   "title": "_board.py tasks misses --all/--claimed and truncates at 50 rows"
+  },
+  {
+   "cause": "a scheduled CHECK detects arrivals and posts a status row naming them, but the PICKUP stays a session's --drain - a scheduled claim takes a 30-minute lease that expires, so the item returns to available and the next minute re-claims it, driving attempts past 3 and turning the queue into churn. When a deleted tool's .pyc survives, marshal.load it and read co_consts/co_names: the docstring recovered the whole CLI contract including the exit codes and the Task Scheduler command.",
+   "date": "2026-11-14",
+   "id": "engram-2238",
+   "kind": "engram:decision",
+   "line": 2238,
+   "rationale": "What: board_watch.py had been DELETED from C:/Users/clint - its .pyc survived in __pycache__ for three interpreters (cpython-313/314/315) and board_watch.log kept writing until 2026-11-07, but the canon still named `python C:/Users/clint/board_watch.py --drain` / `--peek`. Rebuilt it against the contract recovered from the bytecode (same paths: ~/.azazael/board_watch_state.json, ~/board_watch.log, board_watch_inbox.json, board_watch_dashboard.html, board_watch_live.json, ~/board_spool/<lane>.jsonl; same exit codes 0/2/1; same --check/--loop/--reset/--daemon; stdlib sqlite3 only so a broken tree cannot stop the watcher noticing an arrival) and added the --peek and --drain the canon names. Re…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "board_watch.py had been DELETED from C:/Users/clint - its .pyc survived in __pycache__ for three interpreters (cpython-313/314/315) and board_watch.log kept writing until 2026-11-07, but the canon still named `python C:/Users/clint/board_watch.py --drain` / `--peek`. Rebuilt it against the contract recovered from the bytecode (same paths: ~/.azazael/board_watch_state.json, ~/board_watch.log, board_watch_inbox.json, board_watch_dashboard.html, board_watch_live.json, ~/board_spool/<lane>.jsonl; same exit codes 0/2/1; same --check/--loop/--reset/--daemon; stdlib sqlite3 only so a broken tree cannot stop the watcher noticing an arrival) and added the --peek and --drain the canon names. Register…",
+   "title": "Rebuilt board_watch.py from its orphaned .pyc and scheduled it every minute"
+  },
+  {
+   "cause": "check the push audit topic, not the task rows, to learn WHO sent work - a lane's task queue can hold rows posted by several source_lanes, and only lane.push.<src>-><dst> names the delivery. Nothing was posted to any board topic between 2026-11-12T17:29 and 2026-11-14T16:08, so 'nothing happened' and 'the lane was idle' are the same reading.",
+   "date": "2026-11-14",
+   "id": "engram-2239",
+   "kind": "engram:discovery",
+   "line": 2239,
+   "rationale": "What: The principal said 'kilo sent you tasks'. The board push graph has NO lane.push.kilo->opencode topic at all - kilo has only ever pushed to freebuff (2 rows, 2026-10-31). The only kilo-sourced rows in lane.opencode.tasks are 6 from 2026-10-23/24, all long retired. The 7 tasks this lane actually held were pushed by FREEBUFF (Board-49510, 'bible-concordance-2026-11-14', 2026-11-14T16:08), and the lane.pull side (lane.push.freebuff->opencode, Board-49511) confirms the delivery. Why: the premise shaped what work to pick up, and acting on it unexamined would have chased a lane that never sent anything. Where: C:/Users/clint/.azazael/telemetry_store.db, topics lane.push.* and lane.*.tasks. L…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "The principal said 'kilo sent you tasks'. The board push graph has NO lane.push.kilo->opencode topic at all - kilo has only ever pushed to freebuff (2 rows, 2026-10-31). The only kilo-sourced rows in lane.opencode.tasks are 6 from 2026-10-23/24, all long retired. The 7 tasks this lane actually held were pushed by FREEBUFF (Board-49510, 'bible-concordance-2026-11-14', 2026-11-14T16:08), and the lane.pull side (lane.push.freebuff->opencode, Board-49511) confirms the delivery.",
+   "title": "Kilo pushed no tasks to opencode; freebuff's push did"
+  },
+  {
+   "cause": "three board instruments disagreed at once and none of them raised - the claim returned an empty list, the stats promised 47, and `_board.py tasks` crashed on every call because poll_tasks returns LaneTask dataclasses and the CLI called .get() on them. Also: the canon's --all/--claimed flags named a reader that never existed, because orders-in-sync checks bytes between lane copies and never truth against the tree. And _board.py was being edited concurrently by another session in the shared C:/Users/clint repo - read before writing, and commit by path.",
+   "date": "2026-11-14",
+   "id": "engram-2240",
+   "kind": "engram:bugfix",
+   "line": 2240,
+   "rationale": "What: LaneMessageBoard.claim_tasks took its candidate window (ORDER BY id ASC LIMIT limit) BEFORE duplicate detection. On the live opencode board the first 10 candidates were all stale re-posts of already-retired rows, so the claim retired them, returned [], and _board.py printed NO OPEN TASKS while task_stats counted 47 available and 6 real tasks sat behind a wall of 31 copies. Repaired with one shared definition of a stale copy (_payload_of / _stale_sigs / _split_stale / _count_claimable) now serving the claim, the stats AND the reader; the window is wider than the batch but never smaller; the claim publishes last_claim_stats; task_stats.available counts claimable work with the dropped ro…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "LaneMessageBoard.claim_tasks took its candidate window (ORDER BY id ASC LIMIT limit) BEFORE duplicate detection. On the live opencode board the first 10 candidates were all stale re-posts of already-retired rows, so the claim retired them, returned [], and _board.py printed NO OPEN TASKS while task_stats counted 47 available and 6 real tasks sat behind a wall of 31 copies. Repaired with one shared definition of a stale copy (_payload_of / _stale_sigs / _split_stale / _count_claimable) now serving the claim, the stats AND the reader; the window is wider than the batch but never smaller; the claim publishes last_claim_stats; task_stats.available counts claimable work with the dropped rows nam…",
+   "title": "Fixed board claim: window taken before duplicate detection hid all work"
+  },
+  {
+   "cause": "(1) Two denominator traps nearly hid the tree: `git ls-files '*/.github/workflows/*.yml'` returns 3 of 17 because the glob needs a leading directory component, and a Python substring test for `/.github/workflows/` misses the 11 root paths with no leading separator — 92 + 11 = 103, not 92. (2) 120 workflow files on disk, 17 tracked, 103 untracked, 31 unparseable (15 equity-evaluation-gate.yml + 16 sbom-generation.yml); `git check-ignore --stdin` over all 103 returns 0 ignored, so \"not in the repository\" is the accurate claim and they were left alone as inert foreign turf. (3) The VERSION rule false-fired on jobs that install nothing; it now fires only when the job installs the tree's own pac…",
+   "date": "2026-11-15",
+   "id": "engram-2242",
+   "kind": "engram:architecture",
+   "line": 2242,
+   "rationale": "What: Audited every tracked GitHub workflow in this tree (17 files: 14 root, Project_ELIZA/ci.yml, Project_Nurse_Ratchet/{ci,pages-deploy}.yml) and every step's auth scope (166 steps), then repaired every defect in ten commits on `professional-public-standards-rule-0z-r`: 8b42d02f (three auditor repairs), fc3ff53d (canon part-name paths), 751b9f96 (four broken heredocs), 56bf9a0c (3.16 pin + allow-prereleases, publicize repoint, dev extra), 5cb45543 (permissions on 7 files), 2d3021dd (standards gate wiring, destructive sed removed), 64b3479f (sbom scopes), fb6e08ae (two mkdocs.yml + doc link repairs), 691adb85 (audit record), 9851e5e5 (19 harvest rows). Why: User asked for a full audit of C…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Audited every tracked GitHub workflow in this tree (17 files: 14 root, Project_ELIZA/ci.yml, Project_Nurse_Ratchet/{ci,pages-deploy}.yml) and every step's auth scope (166 steps), then repaired every defect in ten commits on `professional-public-standards-rule-0z-r`: 8b42d02f (three auditor repairs), fc3ff53d (canon part-name paths), 751b9f96 (four broken heredocs), 56bf9a0c (3.16 pin + allow-prereleases, publicize repoint, dev extra), 5cb45543 (permissions on 7 files), 2d3021dd (standards gate wiring, destructive sed removed), 64b3479f (sbom scopes), fb6e08ae (two mkdocs.yml + doc link repairs), 691adb85 (audit record), 9851e5e5 (19 harvest rows).",
+   "title": "CI/CD workflow audit: 10 commits, 43 findings to 0, auth scope 166 steps"
+  },
+  {
+   "cause": "single_commit_bulk_declaration(base) returns a sha only when base..HEAD is exactly one commit, on purpose: the earlier any-commit version made the range check unable to fail. So \"declare the bulk op in the message of the single commit being pushed\" is structurally impossible for a 22-commit push, and \"push the commits separately\" is impossible when the bulk commits are ancestors. ALLOW_BULK_COMMIT=1 is the only declared surface there, and it is a declaration to defend in prose, not a repair. - arc-container's eliza GAPS is three untracked-not-ignored foreign files (Project_ELIZA/.github/workflows/equity-evaluation-gate.yml, .../standards-auto-sync.yml, Project_ELIZA/certification.json). Pub…",
+   "date": "2026-11-15",
+   "id": "engram-2243",
+   "kind": "engram:bugfix",
+   "line": 2243,
+   "rationale": "What: Finished the CI/CD + auth audit push on branch professional-public-standards-rule-0z-r in two steps: 379e2aad..cbbb3a29 with ALLOW_BULK_COMMIT=1 declared, then cbbb3a29..e76e5238 clean. Also repaired a real gate gap at cbbb3a29: GENERATED_PATHS in scripts/commit_gate.py knew only docs/INDEX.md, so Project_ELIZA/shards/SHARD_INDEX.json was judged like source (43345 lines vs a 150/file cap) even though Project_ELIZA/tools/shard_intake.py:279 rewrites it whole with INDEX.write_text(render_index(...)). Why: The first push was refused by the pre-push evidence tier with `[Evidence] PUSH ABORTED`, exit 1. Re-running `sh tools/evidence_tier.sh --base 379e2aad` named two failures of which exac…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished the CI/CD + auth audit push on branch professional-public-standards-rule-0z-r in two steps: 379e2aad..cbbb3a29 with ALLOW_BULK_COMMIT=1 declared, then cbbb3a29..e76e5238 clean. Also repaired a real gate gap at cbbb3a29: GENERATED_PATHS in scripts/commit_gate.py knew only docs/INDEX.md, so Project_ELIZA/shards/SHARD_INDEX.json was judged like source (43345 lines vs a 150/file cap) even though Project_ELIZA/tools/shard_intake.py:279 rewrites it whole with INDEX.write_text(render_index(...)).",
+   "title": "CI/CD + auth audit pushed; bulk gate's message surface does not exist for multi-commit pushes"
+  },
+  {
+   "cause": "Re-run the scan against the *recorded base*, not `<origin..HEAD>`, so the denominator and the scan come from one run: `gitleaks detect --log-opts=379e2aad..e76e5238` printed 21 commits scanned while the range held 23, and the difference is exactly the merge `2fa5828f` plus the empty `3aa044d3`. The file count is 31 (not 30) and `grep -c package-lock.json` over the range returns 0, which makes the trivy lockfile findings structurally outside the pushed diff rather than merely \"not noticed\". An audit record is an artifact that can go stale between writing and publishing; measure it again at publication time.",
+   "date": "2026-11-15",
+   "id": "engram-2244",
+   "kind": "engram:bugfix",
+   "line": 2244,
+   "rationale": "What: Re-measured and corrected §6 of `docs/AUDIT_CI_2026-11-14.md`, then committed `4f94781b` and pushed it (`e76e5238..4f94781b`, PUSH_EXIT=0, tier exit=0, 34 ran / 1 failed / 0 blocking). Why: §6 quoted three readings taken before the commits it described joined the range — \"20 commits\", \"18 commits scanned\", \"the 30 files this change touches\" — and all three were false by push time, because `cbbb3a29` (gate repair) and `e76e5238` (harvest) landed after the scan. Where: `docs/AUDIT_CI_2026-11-14.md` (§6 gitleaks row + reconciliation bullet + lockfile paragraph; header line; §7 reproduce command). Learned: Re-run the scan against the *recorded base*, not `<origin..HEAD>`, so the denominat…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Re-measured and corrected §6 of `docs/AUDIT_CI_2026-11-14.md`, then committed `4f94781b` and pushed it (`e76e5238..4f94781b`, PUSH_EXIT=0, tier exit=0, 34 ran / 1 failed / 0 blocking).",
+   "title": "Corrected stale §6 readings in CI audit record (4f94781b)"
+  },
+  {
+   "cause": "(1) `publication_inventory()` uses `git ls-files -c -o`, so committing an undeclared file does NOT clear the finding -- only a `ship` or `never_ship` decision does. (2) `fnmatch` `*` crosses `/` and `_denied` also tries `\"*/\" + glob`, so any path-scoped or basename glob matches anywhere; the globs are therefore path-qualified (a bare `certification.json` also matched Nurse Ratchet's tracked file, and a bare `*.yml` would deny the root workflows). (3) The wing's verdict function returns GAPS when a gate errors but INCOMPLETE when pins are merely carried (tier B/C/UNVERIFIABLE-HERE) -- both exit 1, so the evidence tier still prints \"34 ran, 1 failed (0 blocking)\" after the defect is genuinely…",
+   "date": "2026-11-15",
+   "id": "engram-2245",
+   "kind": "engram:bugfix",
+   "line": 2245,
+   "rationale": "What: Declared the three untracked Project_ELIZA files as `never_ship` in Project_ELIZA/PUBLIC_MANIFEST.json (+12 lines, 3 entries) instead of deleting them, closing the publication gate's undeclared-file finding and with it the ARC eliza wing's two GAP defects. Why: `python Project_ELIZA/tools/eliza_release_gate.py --check --json` reported `failures: 3`, `result: FAIL`, exit 1. The wing's `publication-gate-passes` gate forwards that exit, so the wing graded GAPS with two named lines: \"publication gate exits 1\" and \"the banner claims a publishable tree; the project's own gate refuses it\". Each file is a stray, not a publication target: equity-evaluation-gate.yml is a superseded HR gate whos…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Declared the three untracked Project_ELIZA files as `never_ship` in Project_ELIZA/PUBLIC_MANIFEST.json (+12 lines, 3 entries) instead of deleting them, closing the publication gate's undeclared-file finding and with it the ARC eliza wing's two GAP defects.",
+   "title": "ELIZA wing: three undeclared files declared never_ship, GAPS closed but tier row stays INCOMPLETE"
+  },
+  {
+   "cause": "Triage separated dated snapshots from live claims — HEAD_AUDIT_2026-11-05, KNOBS_AUDIT_2026-11-07, the 2026-11-02 audits, and the SUPERSEDED/frozen docs answer for their own tip and were left alone; CURSOR_SWARM_A8_AUDIT_2026-11-14 verified accurate as written (def read_scope exists only at tools/swarm_arena/swarm_view.py:138); HANDOFF_2026-11-12_REBOOT already carried its own expiry and its 23-commit lead now measures \"71 0\", so no edit. Did NOT stage docs/HANDOFF_2026-11-14_GRAPHIFY_LABELS.md: it is the only untracked handoff and docs/INDEX.md:146 records its date column as untracked, so committing it would force an edit to that INDEX cell — that lane's call. Also left AUDIT_CI's push-tim…",
+   "date": "2026-11-15",
+   "id": "engram-2246",
+   "kind": "engram:bugfix",
+   "line": 2246,
+   "rationale": "What: Swept the audit records and handoff docs under docs/ for present-tense readings falsified by later commits and re-measured each. Corrected docs/AUDIT_CI_2026-11-14.md (header now names the two later commits; §6 arc-container paragraph rewritten so GAPS is labelled push-time, with a re-measured table beneath; range counts 31→32 files, 3→4 Project_ELIZA, \"grew to 24\"→25; §7 gitleaks comment now reads \"23 at ff04f606 (25 - 1 merge - 1 empty)\") and docs/AUDIT_ELIZA_2026-11-02.md:51 (manifest row now dated 2026-11-02 with the ff04f606 re-measure 50 ship / 31 never_ship / 6 deny_substrings). Why: commit ff04f606 (ELIZA never_ship declaration) and the push that followed changed the numbers t…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Swept the audit records and handoff docs under docs/ for present-tense readings falsified by later commits and re-measured each. Corrected docs/AUDIT_CI_2026-11-14.md (header now names the two later commits; §6 arc-container paragraph rewritten so GAPS is labelled push-time, with a re-measured table beneath; range counts 31→32 files, 3→4 Project_ELIZA, \"grew to 24\"→25; §7 gitleaks comment now reads \"23 at ff04f606 (25 - 1 merge - 1 empty)\") and docs/AUDIT_ELIZA_2026-11-02.md:51 (manifest row now dated 2026-11-02 with the ff04f606 re-measure 50 ship / 31 never_ship / 6 deny_substrings).",
+   "title": "Docs audit sweep: re-measured readings stale after ff04f606, committed 160593a7"
+  },
+  {
+   "cause": "The MCP server process predates `_DONE_MARKERS`, so the live `triage_plan` still shows no `done-in-title` bucket even though the source has one. Source and running process must be checked separately; the relation writes above are what make the fix effective, and they survive a restart.",
+   "date": "2026-11-15",
+   "id": "engram-2247",
+   "kind": "engram:decision",
+   "line": 2247,
+   "rationale": "What: Closed the 11 open task records whose own titles assert the work finished (the TRIAGE-006/007 batch) by writing one consolidation record and persisting a `supersedes` relation from it to each. This is the action `tools/supervisor_mcp.py::triage_plan` has been asking for since `_DONE_MARKERS` landed: a title that claims completion needs a relation, not another investigation. Why: `triage_plan` counted 193 open items with 11 of them in the `done-in-title` bucket. `_open_items()` filters on `engram conflicts list` via `_superseded_task_ids`, so a closure record that is never linked leaves the original item OPEN forever and the report keeps listing week-old finished work as ordinary backl…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the 11 open task records whose own titles assert the work finished (the TRIAGE-006/007 batch) by writing one consolidation record and persisting a `supersedes` relation from it to each. This is the action `tools/supervisor_mcp.py::triage_plan` has been asking for since `_DONE_MARKERS` landed: a title that claims completion needs a relation, not another investigation.",
+   "title": "TRIAGE-008: 11 done-in-title closure records consolidated and closed"
+  },
+  {
+   "cause": "The checker answers \"does THIS repo root meet PROFESSIONAL_PUBLIC_STANDARDS.md\" — running it against a monorepo root reports 14 files that cannot exist there, so the driver applies the same unmodified verify_repo() to each */PUBLIC_MANIFEST.json root and aggregates. Measured verdict on this tree: 8 of 8 publication roots unmet, 11 items — 7 x governance:certification.json (these are the copies item 1 deliberately deleted, so this is an owner policy call, not work), 2 x workflow:.github/workflows/pages-deploy.yml (Project_ELIZA, Project_Nurse_Ratchet), 2 x cross_repo_table (Project_ELIZA missing 18 repos, Project_Nurse_Ratchet missing 19). Every root is otherwise governance 13/14 or 14/14, w…",
+   "date": "2026-11-15",
+   "id": "engram-2248",
+   "kind": "engram:decision",
+   "line": 2248,
+   "rationale": "What: Vendored the canonical tools/verify_public_standards.py (byte-identical, cmp-verified against the hub copy at C:/Azazael/azazael/tools/) into this repository, added tools/verify_public_standards_tree.py as a thin monorepo driver, and rewired .github/workflows/standards-auto-sync.yml to prefer the checked-out copy over the network fetch. Why: The workflow downloaded the tool from https://raw.githubusercontent.com/myzticalbabe/azazael/main/tools/verify_public_standards.py — which is THIS repository (`git remote -v` = myzticalbabe/azazael) and which returned HTTP 404 when measured 2026-11-15. The probe failed, so the step reported SKIP on every run: the standards gate has never gated any…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Vendored the canonical tools/verify_public_standards.py (byte-identical, cmp-verified against the hub copy at C:/Azazael/azazael/tools/) into this repository, added tools/verify_public_standards_tree.py as a thin monorepo driver, and rewired .github/workflows/standards-auto-sync.yml to prefer the checked-out copy over the network fetch.",
+   "title": "verify_public_standards.py belongs in tools/ (CI fetched it from its own repo and 404'd)"
+  },
+  {
+   "cause": "A declared scale with no producer is indistinguishable from a dead feature — emitting_scales()/producerless_scales() make the difference countable instead of assumed.",
+   "date": "2026-11-15",
+   "id": "engram-2249",
+   "kind": "engram:bugfix",
+   "line": 2249,
+   "rationale": "What: (2) Re-pointed the WSL kali environment to C:\\wsl\\kali-linux; rewrote tools/adopt_queue.py --relink so it regenerated 31 adoption stubs; tests/test_adopted_kali_vendored.py reports 30 passed. (3) Added producer metadata to reward scales with producerless_scales() and emitting_scales(), removed the unused severity_payoff, and made queens.py::_finish actually emit verdict_kept so a scale has a live producer; tests/test_reward_scales.py reports 7 passed. Why: The kali mirror had been orphaned by the move and 31 stubs pointed at paths that no longer existed; reward scales were declared but several had no code path emitting them, so a scale's presence proved nothing. Where: tools/adopt_que…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "(2) Re-pointed the WSL kali environment to C:\\wsl\\kali-linux; rewrote tools/adopt_queue.py --relink so it regenerated 31 adoption stubs; tests/test_adopted_kali_vendored.py reports 30 passed. (3) Added producer metadata to reward scales with producerless_scales() and emitting_scales(), removed the unused severity_payoff, and made queens.py::_finish actually emit verdict_kept so a scale has a live producer; tests/test_reward_scales.py reports 7 passed.",
+   "title": "Items 2/3: WSL kali relink and reward_scales producer metadata"
+  },
+  {
+   "cause": "(a) 3,123 \"in atlas but not index\" — the files are ABSENT on disk, so this is adoption work, not corruption. (b) 950 \"disagrees with the atlas\" — files exist and the index entry is stale; 60 sampled rows show atlas_lines > index_lines by +3,241 total and atlas_api > index_api by +525, i.e. the index lags the atlas monotonically. (c) 221 \"index but not atlas (stale stub)\" are the SAME exact 221 paths as the must-be-wired file check (comm -12 = 221) — one defect wearing two names, not two defects. (d) 107 WIRED.json entries name symbols absent from the atlas. Actionable drift ~1,278. No pass condition was redefined; shard_intake was left as-is.",
+   "date": "2026-11-15",
+   "id": "engram-2250",
+   "kind": "engram:discovery",
+   "line": 2250,
+   "rationale": "What: Classified every defect Project_ELIZA/tools/shard_intake.py::check() reports (4,623 lines) into causes instead of treating them as one corruption number. Why: The raw count was being read as corruption; most of it is an adoption backlog over files that do not exist, and one bucket was double-counted with a different check. Where: Project_ELIZA/tools/shard_intake.py (check() ~line 341), atlas at ~/yggdrasil_forest/atlas_kali-linux.json (131 trees / 4085 units). Learned: (a) 3,123 \"in atlas but not index\" — the files are ABSENT on disk, so this is adoption work, not corruption. (b) 950 \"disagrees with the atlas\" — files exist and the index entry is stale; 60 sampled rows show atlas_line…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Classified every defect Project_ELIZA/tools/shard_intake.py::check() reports (4,623 lines) into causes instead of treating them as one corruption number.",
+   "title": "Item 6: 4,623 shard-intake defects classified — ~1,278 are real drift"
+  },
+  {
+   "cause": "The audit that started item 9 looked for a filter referencing a nonexistent master; the defect was the reverse — filters omitted the branch that exists and receives the work. Measured after the change: `python tools/mcp_startup_gate.py` -> PASS=11 in 7.8s (workflow-yaml: 11 files parse, keys valid); `python tools/health_check_azazael.py` -> 10/10 healthy, 0 warned, 0 failed. PyYAML reads a bare `on:` as boolean True, so the leg must assert `\"on\" not in doc and True not in doc` rather than testing for the string.",
+   "date": "2026-11-15",
+   "id": "engram-2251",
+   "kind": "engram:bugfix",
+   "line": 2251,
+   "rationale": "What: (8) Added tests/test_workflow_yaml_leg.py, 7 tests, all passing in 0.50s, covering the gate's workflow-yaml leg. (9) Added azazael-intel-ultra-9-evo to the `branches` filter of .github/workflows/codeql-analysis.yml, sbom-generation.yml and standards-auto-sync.yml and replaced a comment that falsely claimed \"the repository's branches are master\". (11) Re-ran the gate and health check in fresh processes. Why: (8) The leg had no test, so a YAML change could break it silently. (9) `git branch -a` in this repo shows azazael-intel-ultra-9-evo, backup/pre-rebase-20261115, origin/azazael-intel-ultra-9-evo and origin/main — there is no master, so the filter that named only main/master excluded…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "(8) Added tests/test_workflow_yaml_leg.py, 7 tests, all passing in 0.50s, covering the gate's workflow-yaml leg. (9) Added azazael-intel-ultra-9-evo to the `branches` filter of .github/workflows/codeql-analysis.yml, sbom-generation.yml and standards-auto-sync.yml and replaced a comment that falsely claimed \"the repository's branches are master\". (11) Re-ran the gate and health check in fresh processes.",
+   "title": "Items 8/9/11: workflow-yaml leg tests, real branch filters, fresh gate and health verification"
+  },
+  {
+   "cause": "Baseline was 173 defects: 34 CITATION.cff claimed CDDL-1.1, 32 CONTRIBUTING.md had two CDDL lines each, 8 PUBLIC_MANIFEST.json said Apache-2.0, 13 NOTICE carried CDDL plus the old ruling citation. All 14 pre-existing LICENSE files were byte-identical CDDL-1.1 (sha 6466067853bf4d26, 13106 bytes). - Third-party material must NOT be relicensed - that would be a false statement. Contributor Covenant v2.1 (CC BY 4.0), package-lock.json, nuitka_build_backup (scons MIT, hedley.h CC0) and .agents/skills/archify (MIT) keep upstream licenses and are named as exemptions in NOTICE and the new ruling doc. - `Project_Scribe/CODE_OF_CONDUCT.md` has no \"CC BY 4.0\" string, so never repeat Nurse_Ratchet's NO…",
+   "date": "2026-11-15",
+   "id": "engram-2252",
+   "kind": "engram:decision",
+   "line": 2252,
+   "rationale": "What: Made SOUL FORGE LICENSE v1.0 the only license in the tree. Commit 2bc68dcc (222 files, 8702+/1456-) on branch azazael-intel-ultra-9-evo, pushed. `tools/soul_license_audit.py --audit` reports 38 trees audited, 0 with defects. Why: User standing order: \"ALL PROJECTS SHALL HAVE ONLY SOUL LICENSE. REMOVE ALL OTHER LICENSE REFERENCES. FORENSIC AUDIT.\" This supersedes the earlier ruling that kept Project_ELIZA and Project_Nurse_Ratchet on CDDL-1.1. Where: `tools/soul_license_audit.py` (new, audit + idempotent `--apply` migration), `tests/test_soul_license_only.py` (new, 202 passed / 66 skipped), `docs/LICENSE_SOUL_FORGE_2026-11-15.md` (new adoption ruling), `LICENSE` + 37 `Project_*/LICENSE…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Made SOUL FORGE LICENSE v1.0 the only license in the tree. Commit 2bc68dcc (222 files, 8702+/1456-) on branch azazael-intel-ultra-9-evo, pushed. `tools/soul_license_audit.py --audit` reports 38 trees audited, 0 with defects.",
+   "title": "Soul Forge License: 38 trees, 173 to 0 defects"
+  },
+  {
+   "cause": "`verify_public_standards.py` is existence-only, so untracked files made it print \"workflows 2/2 templates 4/4 PASS\" for trees where a fresh clone fails. That is how six trees came to hold a verbatim Nurse_Ratchet ci.yml unremarked. The warning now shrinks from 8 roots/69 files to 6 roots/36 and is a visible ledger. - The 30 remaining contaminated files reference `tools/nurse_ratchet_release_gate.py` and `tools/publicize.py`, neither of which exists in those six trees — committing them would ship CI that fails on the first run. Deliberately left untracked. - Honest SBOM without installing: `cyclonedx_py environment --pyproject pyproject.toml` gives root component azazael 1.0.0 plus installed…",
+   "date": "2026-11-15",
+   "id": "engram-2253",
+   "kind": "engram:bugfix",
+   "line": 2253,
+   "rationale": "What: Committed and pushed 11551580 (116 files) closing the license-sweep follow-ups, and made the standards driver report a defect it had been hiding. Why: The standing order was to implement all suggested follow-ups, fix defects found, and record. Four CI workflow defects were named-file fiction and could never run; six scaffolds carried another project's release tooling. Where: - .github/workflows/sbom-generation.yml — `pip install .` replaced (pyproject declares requires-python \">=3.16\", so no runner could ever install it); `CycloneDX/github-action@v1` x2 replaced with `python -m cyclonedx_py environment --pyproject pyproject.toml --of JSON|XML`; `github/dependency-submission-action@v4`…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Committed and pushed 11551580 (116 files) closing the license-sweep follow-ups, and made the standards driver report a defect it had been hiding.",
+   "title": "License-sweep follow-ups: 4 CI defects, 30 contaminated governance files left untracked"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -22727,7 +23749,7 @@
   {
    "path": "docs/PACKAGING_PLAN.md",
    "records": 5,
-   "sha": "07bbcbe7bef70be14ec84f14bffaa528ecced29934791008a63c5ff9f382da25"
+   "sha": "e481f977275377cc1026b05b4823f828d2062ba135f28784661a636a289a669e"
   },
   {
    "path": "docs/AZAZAEL_TREE_OF_LIFE.md",
@@ -22736,58 +23758,208 @@
   },
   {
    "path": "Project_Nurse_Ratchet/README.md",
-   "records": 10,
-   "sha": "ab443109ce680e03a72fba5189b45951ed603f8469431c67001ae8fc50af2c61"
+   "records": 11,
+   "sha": "6a25c264b4515819dc1fdae425f4e7ae71595f3452933e0c2f5cb02410ee3025"
+  },
+  {
+   "path": "Project_AutoDiffEngine/README.md",
+   "records": 1,
+   "sha": "d92d81b95b5e847493f249820990df8cdd1701960e41b31a983282bb6d9590d3"
+  },
+  {
+   "path": "Project_BIBL_Bibliographic/README.md",
+   "records": 1,
+   "sha": "cd592609e1430a73cd51fc55a03be21a8669b2a517d6c13953c6eb437a596819"
+  },
+  {
+   "path": "Project_CODEX_VideoEngine/README.md",
+   "records": 5,
+   "sha": "8bedd307769b9652929654a328b3158bcb6acd44919368fa794fc17672ec98cc"
+  },
+  {
+   "path": "Project_Compliance/README.md",
+   "records": 1,
+   "sha": "27d4314169d131c6ff29cb73da3e881a6d6576a625fd204cb4648a9cf8f515f8"
   },
   {
    "path": "Project_CRADLE/README.md",
    "records": 3,
-   "sha": "390b629b9d8a745ce76f079a23ba7076a37b015165bb672b4407216397737e6c"
+   "sha": "522175f4ebaad54daf173108e866f50d14883a77b0f6bf51025225cb70c69cc8"
+  },
+  {
+   "path": "Project_EcosystemOrchestrator/README.md",
+   "records": 5,
+   "sha": "15c319134b1e278533f0c59da1d74fee815d019f324c5f93e166a7edcbe21d07"
   },
   {
    "path": "Project_ELIZA/README.md",
-   "records": 14,
-   "sha": "0e7a1cb48af3cff079f61d5738f52be99fea1db7765aaad141629373c1ce3037"
+   "records": 15,
+   "sha": "e25647524fbce050ab9ca89848064ccfaa47b5c70c69d8d8fc50bcea62acc134"
   },
   {
    "path": "Project_FLAME/README.md",
-   "records": 5,
-   "sha": "71c2adbf0ccace9a256e760c051acace0af5cbd0382ce222cb5d8acf2c2f3622"
+   "records": 6,
+   "sha": "aae4cea187b088730dfd93bdaaa3c99a1ad15a6fb46347baaafe0aa3d8b443a3"
   },
   {
    "path": "Project_FLAMING_SWORD/README.md",
-   "records": 10,
-   "sha": "931a85afc689542a6cfb19a50c6af79ee27355f2312769103c1a648da0ce3387"
+   "records": 11,
+   "sha": "df8b560990e1ddb8d88c6aefd7f3bc97a660c28cffe0ebc064b2c410816e4eb0"
+  },
+  {
+   "path": "Project_FreeThreadedRuntime/README.md",
+   "records": 1,
+   "sha": "4abe87d62a3b1a94c068587b2c494046e817bc4e6d3c2fe2734cf6861f8e607f"
+  },
+  {
+   "path": "Project_GAMORA/README.md",
+   "records": 1,
+   "sha": "5e14f66bb665123f81f82c04c40a3bfe74765e353890fbd8d30f36f0cd51fc89"
+  },
+  {
+   "path": "Project_GOSP_Governance/README.md",
+   "records": 1,
+   "sha": "256b6368457b392397bbb5f996d81dc95bd453ae0f85cb994c234b88c6395f5b"
+  },
+  {
+   "path": "Project_HORUS_Monitoring/README.md",
+   "records": 1,
+   "sha": "82fb17ac2f85068be4a9f58bd2efb184923dee10e85ca075dc46429839f4df7d"
+  },
+  {
+   "path": "Project_HYDRA_MLCluster/README.md",
+   "records": 5,
+   "sha": "16b6df2fa5b67ac303c6fcb8e87c848d414489999a81789b7507966213ad5635"
   },
   {
    "path": "Project_JAEGER/README.md",
    "records": 8,
-   "sha": "2fc45e5b0fcca01dd6374440dfd4bc712101dbfe5dc54a11dfeca12723a9ae04"
+   "sha": "26e88beb47d28da07efed831d618dc165e2b3321cda04b07f2118ea3948e9d1d"
+  },
+  {
+   "path": "Project_KLINK_Protocol/README.md",
+   "records": 1,
+   "sha": "138fccde006545b4f89dc0869b2f4f16cf31b32a8d461555f8a4f338cd33acc1"
+  },
+  {
+   "path": "Project_Loggers_Telemetry/README.md",
+   "records": 1,
+   "sha": "c76484c8b8d63a847f8f0f338ff61d6ab1a44a66f718b5244f21a23a211080dc"
+  },
+  {
+   "path": "Project_LUCY/README.md",
+   "records": 1,
+   "sha": "468b0c66b4b54040a7015d8065cb4c78598738f608095d2c2d2a06c5d2111bbe"
+  },
+  {
+   "path": "Project_ML_Platform_Integration/README.md",
+   "records": 1,
+   "sha": "d255d132de10657648a18104ac05824a3ef6a2f9a436b2e2e1146258baf11945"
+  },
+  {
+   "path": "Project_MultiProviderInference/README.md",
+   "records": 1,
+   "sha": "062dfc81a02ac034295d0d58e2bd3b30c9eccfece1a224e1158bc131ec2eaf22"
+  },
+  {
+   "path": "Project_NeuralWiring/README.md",
+   "records": 1,
+   "sha": "72143f55250b3c37a6cbc19a75defd5676e6768443123e6477ec638ffd9056bb"
+  },
+  {
+   "path": "Project_NSGA_Optimizer/README.md",
+   "records": 1,
+   "sha": "ffcc839f58d4261c66f501a81ae4f37ad56bac94726e4d66af5e44cc9e9d7ff1"
+  },
+  {
+   "path": "Project_Oxenford/README.md",
+   "records": 1,
+   "sha": "15a21a9fcbc0dfd7db21be3ff5b77f03c89306f1dee8f1af7ad9c1b02c12465f"
+  },
+  {
+   "path": "Project_PAMS_Daemon/README.md",
+   "records": 1,
+   "sha": "7f47b9829a2ce14b5ffa880ac89f3cfb3520332d6d73d2f0a734ec6260fba224"
+  },
+  {
+   "path": "Project_PERSEPHONE_Sync/README.md",
+   "records": 5,
+   "sha": "afc90debdb00a3ee0a77bd31aebc3b45ff3f336034b868006c64dba4101f60dd"
+  },
+  {
+   "path": "Project_POINDEXTER_Indexer/README.md",
+   "records": 1,
+   "sha": "d4bbedec4b504c0f0403a2d442ed023f572312660b1c9d0d2a1cccb789f9f852"
+  },
+  {
+   "path": "Project_PolyglotInterpreters/README.md",
+   "records": 1,
+   "sha": "83bf28e03d7af96104e98eae949f5a1c5bf1dc2cbfb76fb3d2e6bc6a318e3440"
+  },
+  {
+   "path": "Project_PSYCHE_Consciousness/README.md",
+   "records": 1,
+   "sha": "950e56e58c7c2e84dfb96576a1eaf6723745e3f7a73a058d61f35764df37ec4b"
+  },
+  {
+   "path": "Project_Rendering_Pipeline/README.md",
+   "records": 1,
+   "sha": "8d06ad3984f09a403bc5af719bc901e20801c072cdaee48a6b0bdc530a3450cb"
+  },
+  {
+   "path": "Project_RustAccelerator/README.md",
+   "records": 1,
+   "sha": "8dd8c3f37cb0acd7475abfac612fb2cbadc9daf82ab5a018a5c88cc6c0332a5b"
+  },
+  {
+   "path": "Project_Scribe/README.md",
+   "records": 5,
+   "sha": "1d2a2da5e3eeb7c67c188ee5480af072dbdff7e6b959be766a651a7d9d189acd"
+  },
+  {
+   "path": "Project_ShardEngine/README.md",
+   "records": 1,
+   "sha": "208a53a931219c9f00fd24ecbfda4d435517e6a27157f0f95f18d81cf756b761"
   },
   {
    "path": "Project_SHARDEX/README.md",
    "records": 3,
-   "sha": "0ad1b3206334ace50f891c2bb8545cfc25e14d4b75f2f09ccb53f0a8e1efa4d4"
+   "sha": "3d19416398f959676e1596f3a1fe38502cdd680479b3a07205b1ba2fb30eddff"
+  },
+  {
+   "path": "Project_TARBABY_FileSearch/README.md",
+   "records": 1,
+   "sha": "b63dd6b21f78749f4a277acca02194f749befd71496acce6cb6429e901554f06"
+  },
+  {
+   "path": "Project_TERENCE_Oracle/README.md",
+   "records": 1,
+   "sha": "9bfe81f0992870134a6468aa719ccb620d4e4ea40f1c5be35bf5a4aaf25d7b6d"
+  },
+  {
+   "path": "Project_WASM_Compiler/README.md",
+   "records": 5,
+   "sha": "0e31aa5e5d9f947e8845892ffa28c28825a0b14f5fc568d74b4d775ddb028db4"
   }
  ],
  "totals": {
   "by_kind": {
-   "engram:architecture": 33,
-   "engram:bugfix": 175,
+   "engram:architecture": 37,
+   "engram:bugfix": 190,
    "engram:config": 14,
-   "engram:decision": 479,
-   "engram:discovery": 261,
-   "engram:learning": 286,
+   "engram:decision": 486,
+   "engram:discovery": 266,
+   "engram:learning": 287,
    "engram:lesson": 62,
    "engram:pattern": 15,
    "error": 276,
    "lesson": 117,
-   "limitation": 53,
+   "limitation": 111,
    "measurement": 24,
    "memory": 71,
    "practice": 30
   },
-  "records": 1896,
-  "surfaces": 14
+  "records": 1986,
+  "surfaces": 44
  }
 }
