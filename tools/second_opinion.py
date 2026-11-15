@@ -50,6 +50,13 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -197,12 +204,6 @@ def review(text: str, args) -> Dict[str, Any]:
         _append_log(row)
         return row
 
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     if not isinstance(resp, dict) or resp.get("error"):
         row.update({"status": "error",

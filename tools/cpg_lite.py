@@ -25,6 +25,13 @@ import sys
 from collections import defaultdict, deque
 from pathlib import Path
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
 # ── CPG node types ────────────────────────────────────────────────────────
 
 NODE_TYPES = {
@@ -191,12 +198,6 @@ def analyze_file(filepath):
             for u in uses:
                 edges.append({"from": d, "to": u, "type": "data_flow"})
 
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     return {
         "path": str(filepath),

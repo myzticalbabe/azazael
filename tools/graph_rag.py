@@ -25,6 +25,13 @@ import sys
 from collections import defaultdict, deque
 from pathlib import Path
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
 # ── Symbol extraction ──────────────────────────────────────────────────────
 
 def extract_symbols(filepath):
@@ -194,12 +201,6 @@ def search_graph(graph, query, top_k=10, bidirectional=True):
     queue = deque([(s, 0) for s in seeds[:20]])
     results = []
 
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     while queue and len(results) < top_k * 3:
         sid, depth = queue.popleft()

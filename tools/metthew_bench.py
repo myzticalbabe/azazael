@@ -55,6 +55,13 @@ from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
 REPO = Path(__file__).resolve().parents[1]
 METTHEW = REPO / "docs" / "METTHEW"
 SCHEMA_PATH = METTHEW / "shard.schema.json"
@@ -194,11 +201,6 @@ def measure_shard(manifest_path: Path, repeats: int = 5) -> dict:
 
     # Payload and file count gates
 
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     tier = manifest.get("tier") or "any"
     lowend = tier in ("lowend", "any")

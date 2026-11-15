@@ -26,6 +26,13 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
+
 REPO = Path(__file__).resolve().parent.parent
 SRC = REPO / "src"
 BASELINE = REPO / "state" / "cleave_baseline.json"
@@ -185,12 +192,6 @@ def snapshot(with_tests=False):
     # value is a LIST of unresolved imports, [] when clean — comparing it to
     # "ok" marks all 253 modules as broken and the exemption list becomes
     # meaningless (measured, then fixed).
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     broken = {(u, m): v for u, mods in smoke.items() for m, v in mods.items() if v}
     tests = None
