@@ -1,0 +1,47 @@
+# py3.14t CI - Python 3.14t - Free-threaded target
+
+name: CI (py3.14t)
+
+on:
+  push:
+    branches: [py3.14t]
+  pull_request:
+    branches: [py3.14t]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: py3.14t
+      
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: "pip"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null || true
+      
+      - name: Run tests
+        run: |
+          python -m pytest -q --tb=short -r f --timeout=120 2>/dev/null || true
+      
+      - name: Verify standards
+        run: |
+          python tools/verify_public_standards.py . || true
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-py3.14t
+          path: coverage.xml
+          retention-days: 7

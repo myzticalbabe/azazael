@@ -1,11 +1,18 @@
-# RULE_AUDIT_TODO.md — Review All 39 Canonical Rules
+# RULE_AUDIT_TODO.md — Review All 39 Canonical Rules (scope dated 2026-09-30)
 
 > *Created: September 30, 2026 — by user directive: "WE WILL HAVE TO REVIEW
 > ALL THE RULES. MAKE A TODO"*
-> *Scope: `azazael/MANDATES.md` (39 rules), `azazael/SYSTEM_INSTRUCTIONS.md`
-> (gate + 0K reading order), `azazael/ERROR_LOG.md` (210 errors), skill copies
+> *Scope: `azazael/MANDATES.md` (39 rules then; **51** RULE-headed rules
+> re-measured 2026-11-14 at `160593a7`), `azazael/SYSTEM_INSTRUCTIONS.md`
+> (gate + 0K reading order), `azazael/ERROR_LOG.md` (210 errors then; **161
+> distinct numbered entries, highest #218**, re-measured 2026-11-14), skill copies
 > under `azazael/skills/` and `azazael/.agents/skills/`*
 > *Canonical status: **DRAFT — this document proposes. It does not decide.**
+> The 11 / 11 / 28 enforcement-class tallies below are **not** re-measured: they
+> are a classification judgement on the Sep 30 rule set, not a figure any
+> command reproduces. Re-measure commands: the `domain_trees._count_canon`
+> counter (headings whose stripped form starts `RULE`) and
+> `grep -cE '^#{1,3} .*Error #[0-9]+' ERROR_LOG.md`.
 
 ---
 

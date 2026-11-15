@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
-"""Verify a repository meets PROFESSIONAL_PUBLIC_STANDARDS.md"""
+"""Verify a repository meets PROFESSIONAL_PUBLIC_STANDARDS.md
+
+Negative controls (run with --negative-control):
+  - empty directory: should fail all governance/workflows/templates
+  - directory with only README.md: should fail governance/workflows/templates
+  - directory with missing cross-repo table: should fail cross_repo_table
+"""
 
 import sys
+import tempfile
 from pathlib import Path
 
 REQUIRED_GOVERNANCE = [
@@ -110,10 +117,84 @@ def verify_repo(repo_path: Path) -> dict:
     return results
 
 
+def run_negative_controls() -> bool:
+    """Run negative controls: known-bad fixtures that should FAIL verification.
+
+    Returns True if all negative controls correctly fail (verifier is working).
+    Returns False if any negative control incorrectly passes (verifier is broken).
+    """
+    print("\n=== NEGATIVE CONTROLS ===")
+    all_passed = True
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+
+        # Control 1: Empty directory should fail everything
+        empty_dir = tmp / "empty"
+        empty_dir.mkdir()
+        result = verify_repo(empty_dir)
+        if result["ok"]:
+            print(f"  FAIL: empty directory incorrectly PASSED")
+            all_passed = False
+        else:
+            print(f"  PASS: empty directory correctly FAILED ({len(result['missing'])} missing)")
+
+        # Control 2: Only README.md should fail governance/workflows/templates
+        readme_only = tmp / "readme_only"
+        readme_only.mkdir()
+        (readme_only / "README.md").write_text("# Test\n")
+        result = verify_repo(readme_only)
+        if result["ok"]:
+            print(f"  FAIL: readme-only directory incorrectly PASSED")
+            all_passed = False
+        else:
+            missing_gov = [m for m in result["missing"] if m.startswith("governance:")]
+            missing_wf = [m for m in result["missing"] if m.startswith("workflow:")]
+            missing_tmpl = [m for m in result["missing"] if m.startswith("template:")]
+            if missing_gov and missing_wf and missing_tmpl:
+                print(f"  PASS: readme-only correctly FAILED (gov:{len(missing_gov)} wf:{len(missing_wf)} tmpl:{len(missing_tmpl)})")
+            else:
+                print(f"  FAIL: readme-only missing expected failures: {result['missing']}")
+                all_passed = False
+
+        # Control 3: Complete repo but missing cross-repo table
+        cross_repo_missing = tmp / "cross_repo_missing"
+        cross_repo_missing.mkdir()
+        for f in REQUIRED_GOVERNANCE:
+            (cross_repo_missing / f).write_text("# placeholder\n")
+        (cross_repo_missing / ".github" / "workflows").mkdir(parents=True)
+        for f in REQUIRED_WORKFLOWS:
+            (cross_repo_missing / f).write_text("# placeholder\n")
+        (cross_repo_missing / ".github" / "ISSUE_TEMPLATE").mkdir(parents=True)
+        for f in REQUIRED_TEMPLATES:
+            (cross_repo_missing / f).write_text("# placeholder\n")
+        (cross_repo_missing / "README.md").write_text("# Test Repo\n\nNo cross-repo table here.\n")
+        result = verify_repo(cross_repo_missing)
+        if result["ok"]:
+            print(f"  FAIL: missing cross-repo table incorrectly PASSED")
+            all_passed = False
+        elif not result["cross_repo_table"]:
+            print(f"  PASS: missing cross-repo table correctly FAILED")
+        else:
+            print(f"  FAIL: missing cross-repo table but cross_repo_table=True: {result}")
+            all_passed = False
+
+    return all_passed
+
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python verify_public_standards.py <repo-path>")
+        print("Usage: python verify_public_standards.py <repo-path> [--negative-control]")
         sys.exit(1)
+
+    if sys.argv[1] == "--negative-control":
+        ok = run_negative_controls()
+        if ok:
+            print("\n=== ALL NEGATIVE CONTROLS PASSED ===")
+            sys.exit(0)
+        else:
+            print("\n=== NEGATIVE CONTROLS FAILED ===")
+            sys.exit(1)
 
     repo_path = sys.argv[1]
     result = verify_repo(repo_path)

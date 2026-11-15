@@ -31,9 +31,13 @@ per-root results below are those runs.
 
 ## Results
 
+Re-measured 2026-11-14: **the Windows row only.** The WSL and G: roots are not
+reachable from this session (Kali reports unresponsive, and G: sits outside this
+repository), so those four rows still describe 2026-11-04.
+
 | environment | root | Esquire matches | CAIN matches | verdict |
 | --- | --- | ---: | ---: | --- |
-| Windows production | `C:/Azazael/azazael` | 4 (host) | present | **INCLUDED** |
+| Windows production | `C:/Azazael/azazael` | 4 (host); **38** on 2026-11-14 | present; **51** at depth ≤2 on 2026-11-14 | **INCLUDED** |
 | WSL Kali | `//wsl$/kali-linux/root/azazael` | 0 | 5 | **DEFERRED** |
 | WSL Ubuntu | `//wsl$/Ubuntu-26.04/root/azazael` | 0 | 40 | **DEFERRED** |
 | G: archive | `/g/AZAZAEL` | 0 | 4 | **DEFERRED** |

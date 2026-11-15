@@ -126,3 +126,14 @@
 *.7z
 *.bin
 *.db
+
+# Generated code and manifests graphify cannot resolve.
+# `*_cy.c` is Cython 3.3.1 output: it parses as a single ERROR node from line 1
+# (478 error/missing nodes measured 2026-11-15) while the .pyx it was compiled
+# from sits beside it. Extracting it puts a broken transcript of generated code
+# in the graph; graphify has no Cython grammar, so the .pyx stays unreadable and
+# the generated C is the only copy that would be graphed -- wrongly.
+# pyproject.toml is TOML; graphify has no TOML grammar, so it yields zero nodes
+# and warns on every rebuild.
+*_cy.c
+pyproject.toml

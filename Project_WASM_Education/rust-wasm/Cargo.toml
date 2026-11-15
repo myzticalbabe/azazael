@@ -1,0 +1,51 @@
+[package]
+name = "wasm_education"
+version = "0.1.0"
+edition = "2021"
+description = "Educational WASM modules for cognitive/semantic learning — Rust & Go"
+license = "SOUL_FORGE-1.0"
+repository = "https://github.com/myzticalbabe/wasm-education"
+categories = ["education", "wasm", "visualization", "science"]
+keywords = ["education", "wasm", "cognitive", "semantic", "rust", "go"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "wasm_education"
+
+[dependencies]
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+web-sys = { version = "0.3", features = [
+    "Document", "Element", "HtmlElement", "CanvasRenderingContext2d",
+    "Window", "Console", "EventTarget", "MouseEvent", "KeyboardEvent",
+    "HtmlCanvasElement", "RequestAnimationFrame"
+] }
+js-sys = "0.3"
+rand = { version = "0.8", features = ["wasm-bindgen", "std"] }
+nalgebra = { version = "0.32", features = ["serde-serialize"] }
+petgraph = { version = "0.6", features = ["serde", "stable_graph"] }
+fixedbitset = "0.4"
+rayon = { version = "1.10", features = ["wasm-bindgen"] }
+lol_html = "0.6"
+pulldown-cmark = { version = "0.10", features = ["simd"] }
+katex = "0.4"
+web-time = "1.0"
+
+[dependencies.wasm-bindgen-test]
+version = "0.3"
+optional = true
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[features]
+default = ["console_error_panic_hook"]
+console_error_panic_hook = ["wasm-bindgen/console_error_panic_hook"]
+wee_alloc = ["wasm-bindgen/wee_alloc"]

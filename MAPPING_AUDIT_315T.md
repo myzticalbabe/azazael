@@ -8,6 +8,22 @@ over.
 
 ---
 
+> **SUPERSEDED ON THE INTERPRETER QUESTION — 2026-11-14.** The tables below
+> describe the 2026-10-09 tip, when py315t was the production target. Production
+> is now **py316t** (`C:/Azazael/.venvs/py316t/Scripts/python.exe`, measured this
+> session: `3.16.0a1`, `sys._is_gil_enabled()` = `False`), recorded in
+> `docs/BUILD_PYTHON_316T_2026-11-05.md`, and 3.15t is the GIL sidecar. Read every
+> "production" cell below as "production on 2026-10-09".
+>
+> Nothing in §1 or §2 was re-run whole: the rows name `~/.agents/mcp.json`,
+> `run_chain_live.bat` and the venv paths, which sit outside this repository, and
+> `run_chain_live.bat` is not present at the repo root. One row is still literally
+> true and now contradicts canon: `config/config.yaml:32`
+> `free_threading.python_path` still names py315t (`grep -n "python_path"
+> config/config.yaml` → line 32), while session start, the test suite and the commit
+> hooks all run 3.16t. Whether that line is stale or a deliberate sidecar pointer
+> was not established, so the config was not changed here.
+
 ## 1. Interpreter map — what exists, and what production is
 
 | Interpreter | Path | Version | Role now |
