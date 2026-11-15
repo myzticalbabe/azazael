@@ -172,8 +172,14 @@ PROJECT_REPOS = {
 
 def run_cmd(cmd, cwd=None, check=True):
     """Run command and return result."""
-    print(f"  $ {cmd}")
-    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=120)
+    if isinstance(cmd, str):
+        # Split shell command into list for security
+        import shlex
+        cmd_list = shlex.split(cmd)
+    else:
+        cmd_list = cmd
+    print(f"  $ {' '.join(cmd_list)}")
+    result = subprocess.run(cmd_list, cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=120)
     if result.stdout:
         print(f"    {result.stdout.strip()}")
     if result.stderr and check:

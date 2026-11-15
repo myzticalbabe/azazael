@@ -69,12 +69,12 @@ def _init_repo(path: Path) -> None:
         GIT_COMMITTER_NAME="t",
         GIT_COMMITTER_EMAIL="t@t",
     )
-    subprocess.run(["git", "init", "-q"], cwd=path, check=True, env=env)
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True, env=env, timeout=30)
     (path / "tools").mkdir()
     (path / "tools" / "lane_forensics.py").write_text("x = 1\n")
-    subprocess.run(["git", "add", "."], cwd=path, check=True, env=env)
+    subprocess.run(["git", "add", "."], cwd=path, check=True, env=env, timeout=30)
     subprocess.run(["git", "commit", "-qm", "lane commit subject"],
-                   cwd=path, check=True, env=env)
+                   cwd=path, check=True, env=env, timeout=30)
 
 
 def test_annotate_against_throwaway_repo(tmp_path, monkeypatch):

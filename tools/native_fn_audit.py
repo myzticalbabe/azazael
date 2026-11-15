@@ -129,6 +129,7 @@ def main(argv=None) -> int:
                             s.value for s in node.value.elts
                             if isinstance(s, __import__("ast").Constant))
     except (OSError, SyntaxError):
+        # scanner:ignore -- expected when build_native.py is unreadable
         pass
 
     missing_built = sorted(

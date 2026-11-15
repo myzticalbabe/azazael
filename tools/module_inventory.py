@@ -83,6 +83,7 @@ def scan_module(module_path: Path) -> Tuple[int, List[str], int, int]:
     try:
         content = module_path.read_text(encoding="utf-8", errors="ignore")
     except Exception:
+        # scanner:ignore -- expected for unreadable files, return zeros
         return 0, [], 0, 0
 
     lines = len(content.splitlines())
@@ -196,7 +197,7 @@ def main():
         # Validate against SHARD_INDEX.json
         shard_index = Path("Project_ELIZA/shards/SHARD_INDEX.json")
         if shard_index.exists():
-            with open(shard_index, "r") as f:
+            with open(shard_index, "r", encoding="utf-8") as f:
                 idx = json.load(f)
             indexed_shards = {s["shard_id"] for s in idx.get("shards", [])}
             print(f"Indexed shards: {len(indexed_shards)}", file=sys.stderr)
