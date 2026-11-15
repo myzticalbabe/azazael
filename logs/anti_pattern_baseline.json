@@ -1,16 +1,16 @@
 {
-  "recorded_at": "2026-11-12T18:39:07+00:00",
+  "recorded_at": "2026-11-15T00:33:04+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 870,
+  "files_scanned": 874,
   "category_counts": {
-    "import_inside_function": 1059,
+    "import_inside_function": 1065,
     "unicode_emoji": 1219
   },
-  "total_findings": 2278,
+  "total_findings": 2284,
   "tracked_only": true,
-  "writer_pid": 18500,
+  "writer_pid": 12260,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -916,11 +916,14 @@
     "eve_unleashed\\cognition.py": {
       "import_inside_function": 1
     },
+    "eve_unleashed\\commands\\edit_metadata.py": {
+      "import_inside_function": 2
+    },
     "eve_unleashed\\consciousness.py": {
       "import_inside_function": 5
     },
     "eve_unleashed\\core.py": {
-      "import_inside_function": 6
+      "import_inside_function": 5
     },
     "eve_unleashed\\cradle.py": {
       "import_inside_function": 3
@@ -930,6 +933,12 @@
     },
     "eve_unleashed\\engine.py": {
       "import_inside_function": 7
+    },
+    "eve_unleashed\\engine\\kv_quant.py": {
+      "import_inside_function": 4
+    },
+    "eve_unleashed\\engine\\speculative.py": {
+      "import_inside_function": 1
     },
     "eve_unleashed\\factcheck.py": {
       "import_inside_function": 2
