@@ -48,6 +48,13 @@ GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 #: and undated names stay judged like source.
 STATE_SNAPSHOT_RE = re.compile(
     r"^state/[A-Za-z0-9_][A-Za-z0-9_.-]*-\d{4}-\d{2}-\d{2}\.json$")
+#: Ledgers that a tool rewrites whole from the tree: its size IS the number of
+#: surfaces it describes, so a legitimate regeneration is 1000+ lines (measured
+#: 2026-11-15: `tools/bible_harvest.py --write` after a licence sweep rewrote
+#: eight READMEs produced 1,231 added lines in docs/bible/harvest.json). Held
+#: to an explicit list rather than a `docs/**/*.json` glob: a hand-written doc is
+#: still judged.
+GENERATED_LEDGERS = ("docs/bible/harvest.json",)
 
 
 def _git(*args: str) -> str:
@@ -162,6 +169,8 @@ def is_generated(path: str) -> bool:
     if any(p.startswith(d) for d in GENERATED_DIRS):
         return True
     if STATE_SNAPSHOT_RE.match(p):
+        return True
+    if p in GENERATED_LEDGERS:
         return True
     return p.lower().endswith(GENERATED_SUFFIXES)
 
