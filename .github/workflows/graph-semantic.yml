@@ -23,6 +23,12 @@ on:
       - '.github/workflows/graph-semantic.yml'
   workflow_dispatch:
 
+# Least privilege, stated rather than inherited: the pipeline reads the
+# checkout and produces build output. It writes nothing back to the repository,
+# so a write-capable default token would be a scope it never uses.
+permissions:
+  contents: read
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest

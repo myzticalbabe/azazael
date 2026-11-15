@@ -79,6 +79,12 @@ on:
       - migration/baseline-20261001
   workflow_dispatch:
 
+# Least privilege, stated rather than inherited: the job checks out the repo,
+# installs, runs the suite and uploads artifacts. It writes nothing back to
+# repository contents, so a write-capable default token would be unused.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: windows-latest

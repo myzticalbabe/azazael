@@ -11,6 +11,12 @@ on:
       - 'scripts/**/*.py'
   workflow_dispatch:
 
+# Least privilege, stated rather than inherited: this job checks out the repo
+# and fails or passes. It writes nothing, so a write-capable default token
+# would be a scope it never uses.
+permissions:
+  contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest

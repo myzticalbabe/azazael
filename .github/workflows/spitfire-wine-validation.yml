@@ -12,6 +12,12 @@ on:
       - ".github/workflows/spitfire-build.yml"
       - ".github/workflows/spitfire-wine-validation.yml"
 
+# Least privilege, stated rather than inherited: every job here downloads or
+# uploads artifacts and runs Wine against a prebuilt binary. Nothing writes to
+# repository contents, so the default token's write scopes are unused.
+permissions:
+  contents: read
+
 jobs:
   wine-test:
     name: Wine Test ${{ matrix.target }}

@@ -20,6 +20,14 @@ on:
 env:
   NUITKA_VERSION: "latest"
 
+# The `release` job runs `softprops/action-gh-release@v2`, which publishes a
+# GitHub Release and therefore needs write access to repository contents. The
+# `build` job needs nothing beyond the checkout, but a workflow-level block
+# cannot be narrower than its widest job -- so this is the minimum that lets
+# the release job work without granting scopes neither job uses.
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.target }}

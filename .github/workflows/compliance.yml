@@ -16,6 +16,12 @@ on:
       - '.agents/skills/**'
       - 'logs/anti_pattern_baseline.json'
 
+# Least privilege, stated rather than inherited: the job checks out the repo,
+# runs the scanner and uploads artifacts. Artifact upload uses the run's own
+# token, not a repository-content scope, so read access is the whole grant.
+permissions:
+  contents: read
+
 jobs:
   compliance:
     runs-on: ubuntu-latest
