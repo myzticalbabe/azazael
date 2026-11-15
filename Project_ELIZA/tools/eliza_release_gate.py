@@ -31,10 +31,12 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 #: The gate runs in two layouts: the monorepo, where the public tree is a
@@ -85,8 +87,15 @@ SECRET_PATTERNS: Tuple[Tuple[str, str], ...] = (
     ("github_token", r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
     ("slack_token", r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),
     ("openai_key", r"\bsk-[A-Za-z0-9]{32,}\b"),
+    #: A hardcoded secret is a QUOTED literal. The first version accepted a
+    #: bare run of 16+ word characters, so `token = CancellationToken()` and
+    #: `api_key = _read_config_key(name)` -- a class and a function call, i.e.
+    #: the two shapes every credentialed module uses -- were reported as
+    #: secrets (measured 2026-11-15: 4 of 6 findings). A rule that fires on the
+    #: correct code is not caught by ignoring it later; it is narrowed here, and
+    #: the quoted-literal shape it now demands is what a real leak looks like.
     ("assigned_secret", r"(?i)\b(api[_-]?key|secret|password|passwd|token)\b\s*[:=]\s*"
-                        r"[\"']?[A-Za-z0-9_\-]{16,}[\"']?"),
+                        r"(?P<quote>[\"'])[^\"'\s]{16,}(?P=quote)"),
 )
 
 #: Extensions worth reading for secrets. Binary and vendored blobs are skipped.
@@ -183,12 +192,88 @@ def scan_secrets(path: Path) -> List[Dict]:
     return findings
 
 
-def check_undeclared(manifest: Dict, project: Path = PROJECT) -> List[str]:
+def ignored_paths(paths: Iterable[Path], project: Path = PROJECT) -> Set[Path]:
+    """Paths git itself reports as untracked AND ignored.
+
+    Ignored content is not published, so it cannot be declared either: adding
+    `adopted/kali` to PUBLIC_MANIFEST.json would assert that content ships when
+    it does not, which is the same class of false statement this gate exists to
+    catch. Judged as "undeclared" instead, these paths produced a permanent
+    failure that no correct edit could clear -- measured 2026-11-15: 2,052
+    findings, every one under `adopted/`, none of them git-tracked.
+
+    Fail-closed. Outside a repository, with git absent, or on any git error
+    other than "nothing here is ignored" (exit 1), the returned set is empty and
+    every path is judged exactly as before: an unavailable git must never be
+    able to widen what ships.
+    """
+    wanted = sorted({path.resolve() for path in paths})
+    if not wanted:
+        return set()
+    #: Bytes, not text. Paths in this tree are not all ASCII, and `text=True`
+    #: decoded the stdin payload with the console code page (cp1252 on Windows):
+    #: the writer thread died on the first non-encodable name, git saw a
+    #: truncated stream and reported nothing ignored -- so 2,052 files stayed
+    #: "undeclared" and the failure looked like a missing .gitignore rule.
+    payload = b"".join(os.fsencode(str(path)) + b"\0" for path in wanted)
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(project), "check-ignore", "--stdin", "-z"],
+            input=payload, capture_output=True, timeout=120,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    if completed.returncode not in (0, 1):
+        return set()
+    return {Path(os.fsdecode(chunk)).resolve()
+            for chunk in completed.stdout.split(b"\0") if chunk}
+
+
+def not_published_paths(manifest: Dict, project: Path = PROJECT) -> Set[Path]:
+    """Files the manifest records as deliberately outside this publication.
+
+    A list of explicit paths, never a glob: a glob would admit a whole new
+    directory without a decision, which is the fail-open shape the manifest
+    exists to avoid. `check_not_published` then refuses an entry whose path no
+    longer exists, so the record cannot quietly describe a tree that moved on.
+    """
+    return {
+        (project / str(entry["path"])).resolve()
+        for entry in manifest.get("not_published", [])
+        if isinstance(entry, dict) and entry.get("path")
+    }
+
+
+def check_not_published(manifest: Dict, project: Path = PROJECT) -> List[str]:
+    """Every `not_published` entry names a real path and says why.
+
+    The gate passes only while each recorded decision still matches the tree: a
+    deleted file leaves a stale exemption behind, and a stale exemption is how a
+    list of decisions turns into decoration.
+    """
+    problems: List[str] = []
+    for entry in manifest.get("not_published", []):
+        if not isinstance(entry, dict) or not str(entry.get("path") or "").strip():
+            problems.append("not_published carries an entry with no path")
+            continue
+        relative = str(entry["path"])
+        if not (project / relative).exists():
+            problems.append("not_published names a path that does not exist: %s" % relative)
+        elif not str(entry.get("why") or "").strip():
+            problems.append("not_published names %s without saying why" % relative)
+    return problems
+
+
+def check_undeclared(manifest: Dict, project: Path = PROJECT,
+                     ignored: Iterable[Path] = frozenset(),
+                     exempt: Iterable[Path] = frozenset()) -> List[str]:
     """Files above the size floor that no manifest entry claims.
 
     This is the half that fails CLOSED: a new evidence directory shows up here
     the moment it is added, without anyone remembering to deny it.
     """
+    ignored_set = {Path(path).resolve() for path in ignored}
+    exempt_set = {Path(path).resolve() for path in exempt}
     declared = set()
     for entry in manifest.get("ship", []):
         source = (project / entry["from"]).resolve()
@@ -206,6 +291,13 @@ def check_undeclared(manifest: Dict, project: Path = PROJECT) -> List[str]:
         if not path.is_file():
             continue
         if ".git" in path.parts:
+            continue
+        # Ignored by git => not published => not declarable. See ignored_paths().
+        if path.resolve() in ignored_set:
+            continue
+        # Recorded as "considered and not published". Still a decision, just not
+        # a shipped one -- and check_not_published() keeps the record honest.
+        if path.resolve() in exempt_set:
             continue
         # Byte-compiled, cached and build output is not content: it is derived
         # from declared files and differs per interpreter. Demanding it be
@@ -229,11 +321,17 @@ def run_checks(project: Path = PROJECT, manifest_path: Optional[Path] = None) ->
     disclosure = check_readme_disclosure(project)
     templates = check_issue_templates(project)
     manifest_problems, denied = check_manifest_paths(manifest, project)
-    undeclared = check_undeclared(manifest, project)
+    files = [path for path in sorted(project.rglob("*"))
+             if path.is_file() and ".git" not in path.parts]
+    ignored = ignored_paths(files, project)
+    undeclared = check_undeclared(manifest, project, ignored=ignored,
+                                  exempt=not_published_paths(manifest, project))
+    not_published = check_not_published(manifest, project)
     secrets_found: List[Dict] = []
-    for path in sorted(project.rglob("*")):
-        if path.is_file() and ".git" not in path.parts:
-            secrets_found.extend(scan_secrets(path))
+    for path in files:
+        if path.resolve() in ignored:
+            continue
+        secrets_found.extend(scan_secrets(path))
     checks = {
         "required_files": missing,
         "readme_disclosure": disclosure,
@@ -241,10 +339,12 @@ def run_checks(project: Path = PROJECT, manifest_path: Optional[Path] = None) ->
         "manifest_paths": manifest_problems,
         "denied_paths": denied,
         "undeclared_files": undeclared,
+        "not_published": not_published,
         "secrets": secrets_found,
     }
     failures = sum(len(v) for v in checks.values())
     return {"project": str(project), "checks": checks, "failures": failures,
+            "git_ignored_skipped": len(ignored),
             "result": "PASS" if failures == 0 else "FAIL"}
 
 
@@ -262,6 +362,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(json.dumps(report, indent=1))
     else:
         print("eliza publication gate -- %s" % report["project"])
+        if report["git_ignored_skipped"]:
+            print("  %-18s %d file(s) not published (git-ignored)"
+                  % ("git_ignored", report["git_ignored_skipped"]))
         for name, findings in report["checks"].items():
             status = "ok" if not findings else "%d problem(s)" % len(findings)
             print("  %-18s %s" % (name, status))

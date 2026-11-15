@@ -99,14 +99,25 @@ MANIFEST = {
 # --- the shipped ledger ------------------------------------------------------
 
 
-def test_shipped_ledger_is_readable_and_gaps():
-    """The real ledger grades GAPS because the project's own gate refuses to publish."""
+def test_shipped_ledger_is_readable_and_incomplete():
+    """The real ledger grades INCOMPLETE: no defect, seven carried pins.
+
+    Until 2026-11-15 this asserted GAPS, because `publication-gate-passes` was red.
+    That reading was the publication gate's own defect and not a publication
+    problem: it counted 3,180 git-ignored files of the vendored Kali mirror and 25
+    undecided files as "undeclared", which no correct edit to the project could
+    clear (the mirror is not published, so declaring it would assert something
+    false). The gate now skips what git ignores and requires a per-path decision
+    for the rest, so it passes -- and what is left is the carried pins, which is
+    INCOMPLETE in this wing's own vocabulary. A return to GAPS means a real gate
+    failure, and this test is where that shows up.
+    """
     ledger = load_ledger()
     errors, warnings, carried = check(ledger)
-    assert verdict(errors, carried) == VERDICT_GAPS
+    assert errors == [], errors
+    assert verdict(errors, carried) == VERDICT_INCOMPLETE
     assert len(ledger["pins"]) == 14
     assert carried == ["E1", "E2", "E3", "E4", "E12", "E13", "E14"]
-    assert any("publication gate exits" in err for err in errors), errors
 
 
 def test_shipped_ledger_declares_exactly_the_implemented_gates():
@@ -360,11 +371,16 @@ def test_publication_gate_fires_when_the_script_is_absent(tmp_path):
     assert errors and "does not exist" in errors[0]
 
 
-def test_publication_gate_reports_the_real_tree_as_red():
-    """The shipped project's gate is red as of 2026-11-04; a green reading here
-    would mean the stub or the path is wrong, not that publication was fixed."""
-    errors = gate_publication_gate_passes(_ledger(), [_pin()], PROJECT, MANIFEST)
-    assert errors, "the real publication gate is recorded as failing"
+def test_publication_gate_reports_the_real_tree_as_green():
+    """The shipped project's gate passes as of 2026-11-15.
+
+    It was recorded red from 2026-11-04 for a defect in the gate itself (git-ignored
+    mirror files judged as undeclared), not in the tree. This asserts the gate
+    really exits 0 on this tree: a green reading here is the gate's verdict, and a
+    regression -- an exact `is red` stub, a wrong path, a new undeclared file --
+    fails here rather than being read as publication having been fixed.
+    """
+    assert gate_publication_gate_passes(_ledger(), [_pin()], PROJECT, MANIFEST) == []
 
 
 # --- structural validation ---------------------------------------------------
@@ -478,9 +494,10 @@ def test_pin_table_marks_proof_and_carried():
 # --- main() never raises ----------------------------------------------------
 
 
-def test_main_reports_gaps_for_the_shipped_ledger(capsys):
+def test_main_reports_incomplete_for_the_shipped_ledger(capsys):
+    """Exit 1 for INCOMPLETE, and the printed verdict names which 1 it is."""
     assert main([]) == 1
-    assert "verdict: GAPS" in capsys.readouterr().out
+    assert "verdict: INCOMPLETE" in capsys.readouterr().out
 
 
 def test_main_is_blind_on_a_missing_ledger(tmp_path, capsys):
@@ -516,7 +533,7 @@ def test_main_writes_a_json_report(tmp_path, capsys):
     out = tmp_path / "report.json"
     assert main(["--json", str(out)]) == 1
     report = json.loads(out.read_text(encoding="utf-8"))
-    assert report["verdict"] == VERDICT_GAPS
+    assert report["verdict"] == VERDICT_INCOMPLETE
     assert report["pins"] == 14
     assert report["carried"] == ["E1", "E2", "E3", "E4", "E12", "E13", "E14"]
     assert sorted(report["declared_gates"]) == sorted(GATES)
