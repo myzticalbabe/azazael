@@ -229,11 +229,19 @@ def test_shipped_tree_declares_a_pin_for_every_esquire_and_cain_surface():
     assert rows["cain"]["orphans"] == [], rows["cain"]["orphans"]
 
 
-def test_shipped_tree_eliza_rows_without_a_pin_are_exactly_three():
-    """A ratchet on the eliza gap: a fourth unpinned reading fails this test."""
+def test_shipped_tree_eliza_rows_without_a_pin_are_exactly_none():
+    """The eliza gap ratchet, now at zero.
+
+    README.md:32-34 (bypass, ultra-loose, concurrent) once published a
+    measurement with no pin answering for it. They are bound to E12-E14, so
+    the gap this test used to ratchet at three is closed and the expectation
+    is zero -- a fourth unpinned reading fails just as loudly as before. The
+    three surfaces must still be read as claims, so the ratchet cannot be
+    satisfied by deleting the rows it counts.
+    """
     rows = {row["wing"]: row for row in audit.audit()}
-    assert rows["eliza"]["missing"] == [
-        "README.md:32 bypass",
-        "README.md:33 ultra-loose",
-        "README.md:34 concurrent",
-    ]
+    assert rows["eliza"]["missing"] == [], rows["eliza"]["missing"]
+    surfaces = dict(rows["eliza"]["_supporters"])
+    assert surfaces["README.md:32"] == ["E12"], surfaces
+    assert surfaces["README.md:33"] == ["E13"], surfaces
+    assert surfaces["README.md:34"] == ["E14"], surfaces

@@ -15,6 +15,7 @@ import asyncio
 import gzip
 import hashlib
 import importlib.util
+import sys
 import threading
 import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -31,6 +32,8 @@ def bypass(tmp_path_factory, monkeypatch_module):
     spec = importlib.util.spec_from_file_location("bcc_bypass_under_test", MODULE_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
+    # dataclasses resolves annotations through sys.modules[cls.__module__].
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 

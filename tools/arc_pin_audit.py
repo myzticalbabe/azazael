@@ -82,9 +82,14 @@ def load_module(name: str) -> Any:
     if spec is None or spec.loader is None:
         raise Blinded("module could not be loaded: %s" % path)
     module = importlib.util.module_from_spec(spec)
+    # Register the module before executing it. dataclasses resolves a field's
+    # annotation through sys.modules[cls.__module__]; an unregistered module makes
+    # that None and the load dies inside the stdlib, blaming the artifact.
+    sys.modules[spec.name] = module
     try:
         spec.loader.exec_module(module)
     except Exception as exc:  # noqa: BLE001 - a module that will not load is BLIND
+        sys.modules.pop(spec.name, None)
         raise Blinded("%s failed to import: %s: %s" % (name, type(exc).__name__, exc))
     return module
 

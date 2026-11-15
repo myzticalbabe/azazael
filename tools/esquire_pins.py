@@ -80,9 +80,14 @@ def load_instrument_gates(path: Path = INSTRUMENT) -> List[Dict[str, str]]:
     if spec is None or spec.loader is None:
         raise Blinded("instrument could not be loaded: %s" % path)
     module = importlib.util.module_from_spec(spec)
+    # Register the module before executing it. dataclasses resolves a field's
+    # annotation through sys.modules[cls.__module__]; an unregistered module makes
+    # that None and the load dies inside the stdlib, blaming the artifact.
+    sys.modules[spec.name] = module
     try:
         spec.loader.exec_module(module)
     except Exception as exc:  # noqa: BLE001 - a load failure is BLIND, and is named
+        sys.modules.pop(spec.name, None)
         raise Blinded("instrument raised on load: %s: %s" % (type(exc).__name__, exc))
     gates = getattr(module, "GATE_METADATA", None)
     if not gates:
