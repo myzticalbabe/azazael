@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a capability, starting from the problem it solves.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A feature request is a problem statement first and a design second.
+        If the problem is not stated, the proposal cannot be evaluated.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What cannot be done today, and what it costs.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What the tool should do, concretely enough to test.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including doing nothing, and why that is not enough.
+    validations:
+      required: false
+  - type: textarea
+    id: cost
+    attributes:
+      label: What this would add
+      description: New dependencies, new failure modes, or new configuration.
+    validations:
+      required: false

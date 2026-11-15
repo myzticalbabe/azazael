@@ -1,0 +1,9 @@
+# No `contact_links` here on purpose.
+#
+# The file this replaces carried a link to
+# github.com/OWNER/nurse_ratchet/security/advisories/new -- a placeholder
+# owner and another project's private advisory queue -- plus a crisis-line
+# link that belongs to a clinical tool. This tree has no public repository
+# URL yet, so the honest state is no link at all: SECURITY.md is the
+# channel, and a link that goes nowhere useful is worse than none.
+blank_issues_enabled: false

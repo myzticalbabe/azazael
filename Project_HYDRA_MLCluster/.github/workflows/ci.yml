@@ -1,0 +1,60 @@
+name: ci
+# Project_HYDRA_MLCluster exercises the local ML stack (numpy, scipy, torch, sklearn).
+#
+# This tree is a tool tree, not a Python package: there is no pyproject.toml
+# and no tests/ directory here, so the gates are structural and syntactic.
+# The governance files must be present, and every source file must parse.
+#
+# The workflow that used to sit at this path was copied verbatim from
+# Project_Nurse_Ratchet and ran `python tools/publicize.py`,
+# `tools/triage_eval.py` and `tools/fit_affect_bridge.py`. None of those
+# exist in this tree, so every job failed on its first command.
+#
+# Measured on 2026-11-15: 13 Python file(s).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  structure:
+    name: governance files and licence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Required files are present
+        run: |
+          set -eu
+          missing=0
+          if [ ! -f "LICENSE" ]; then echo "MISSING: LICENSE"; missing=1; fi
+          if [ ! -f "NOTICE" ]; then echo "MISSING: NOTICE"; missing=1; fi
+          if [ ! -f "README.md" ]; then echo "MISSING: README.md"; missing=1; fi
+          if [ ! -f "SECURITY.md" ]; then echo "MISSING: SECURITY.md"; missing=1; fi
+          if [ ! -f "CONTRIBUTING.md" ]; then echo "MISSING: CONTRIBUTING.md"; missing=1; fi
+          if [ ! -f "CODE_OF_CONDUCT.md" ]; then echo "MISSING: CODE_OF_CONDUCT.md"; missing=1; fi
+          if [ ! -f "CITATION.cff" ]; then echo "MISSING: CITATION.cff"; missing=1; fi
+          if [ ! -f "PUBLIC_MANIFEST.json" ]; then echo "MISSING: PUBLIC_MANIFEST.json"; missing=1; fi
+          exit "$missing"
+      - name: LICENSE is the Soul Forge License v1.0
+        run: |
+          set -eu
+          head -2 LICENSE | grep -q 'SOUL FORGE LICENSE'
+          grep -q "Version 1.0" LICENSE
+
+  python:
+    name: every Python file parses (13)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: compileall
+        # Byte-compile only, no execution: this checks that every module
+        # parses. Importing them needs the optional ML/network stack, which
+        # is not installed here and would make the job fail on the runner's
+        # missing packages rather than on the code.
+        run: python -m compileall -q .
