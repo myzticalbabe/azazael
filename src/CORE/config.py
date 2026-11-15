@@ -435,7 +435,8 @@ def _find_config_file() -> (Path | None):
       1. Relative to this file's location (3 levels up = azazael/)
       2. Parent of src/ (for tests running from src/)
       3. Current working directory (CWD guard — works from any subdirectory)
-      4. Walk up from CWD looking for azazael.yaml in parent dirs
+      4. Walk up from CWD looking for azazael.yaml in parent dirs (max 5 levels)
+      5. Git repository root (for CI environments where CWD may differ)
 
     Returns None (not raises) if no valid config file found.
     """
@@ -459,6 +460,19 @@ def _find_config_file() -> (Path | None):
         if i >= 5:
             break
         candidates.append(parent / "azazael.yaml")
+
+    # 5. Git repository root (robust for CI)
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            git_root = Path(result.stdout.strip())
+            candidates.append(git_root / "azazael.yaml")
+    except Exception as exc:
+        note_failure("config:git-root", exc)
 
     for path in candidates:
         try:
