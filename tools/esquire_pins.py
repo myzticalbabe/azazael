@@ -76,10 +76,15 @@ def load_instrument_gates(path: Path = INSTRUMENT) -> List[Dict[str, str]]:
     """Load GATE_METADATA from the instrument by path, without importing a package."""
     if not path.is_file():
         raise Blinded("instrument not found: %s" % path)
-    spec = importlib.util.spec_from_file_location("_esquire_admissibility_pins", path)
+    module_name = "_esquire_admissibility_pins"
+    spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
         raise Blinded("instrument could not be loaded: %s" % path)
     module = importlib.util.module_from_spec(spec)
+    # Must add to sys.modules BEFORE exec_module so dataclass can find the module
+    # (Python 3.14+ dataclass bug: needs module in sys.modules for annotation resolution)
+    import sys
+    sys.modules[module_name] = module
     try:
         spec.loader.exec_module(module)
     except Exception as exc:  # noqa: BLE001 - a load failure is BLIND, and is named

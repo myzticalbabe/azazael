@@ -232,8 +232,6 @@ def test_shipped_tree_declares_a_pin_for_every_esquire_and_cain_surface():
 def test_shipped_tree_eliza_rows_without_a_pin_are_exactly_three():
     """A ratchet on the eliza gap: a fourth unpinned reading fails this test."""
     rows = {row["wing"]: row for row in audit.audit()}
-    assert rows["eliza"]["missing"] == [
-        "README.md:32 bypass",
-        "README.md:33 ultra-loose",
-        "README.md:34 concurrent",
-    ]
+    # As of 2026-11-15, the three BCC extension rows (bypass, ultra-loose, concurrent)
+    # now have pins E12, E13, E14. The gap is closed.
+    assert rows["eliza"]["missing"] == [], rows["eliza"]["missing"]

@@ -1074,7 +1074,7 @@ def check_codegraph_freshness():
     """
     if not CODEGRAPH_STORE.exists():
         return (FAIL, "graph store missing: %s" % CODEGRAPH_STORE,
-                "build it: scripts/graphify_bin.sh update C:/Azazael/azazael")
+                "build it: scripts/graphify_bin.sh update src (a repo-root path writes an orphan no lane reads)")
 
     lanes = []
     for path, label in ((KILO_CONF, "kilo"), (FREEBUFF_CONF, "freebuff"),
@@ -1107,7 +1107,7 @@ def check_codegraph_freshness():
     built, why = _graph_built_commit(CODEGRAPH_STORE)
     if not built:
         return (WARN, "build commit unreadable: %s" % why,
-                "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+                "rebuild: scripts/graphify_bin.sh update src (a repo-root path writes an orphan no lane reads)")
 
     rc, head = _git(REPO_ROOT, "rev-parse", "HEAD")
     head = head.strip()
@@ -1122,7 +1122,7 @@ def check_codegraph_freshness():
     rc, _ = _git(REPO_ROOT, "cat-file", "-e", built + "^{commit}")
     if rc != 0:
         return (FAIL, "recorded build commit %s is not a commit of this repo" % built[:8],
-                "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+                "rebuild: scripts/graphify_bin.sh update src (a repo-root path writes an orphan no lane reads)")
 
     rc, changed = _git(REPO_ROOT, "diff", "--name-only", "%s..%s" % (built, head), "--", "src")
     if rc != 0:
@@ -1133,7 +1133,7 @@ def check_codegraph_freshness():
                     built[:8], head[:8]), "")
     return (FAIL, "built at %s but HEAD is %s and %d src file(s) changed since" % (
                 built[:8], head[:8], len(changed.splitlines())),
-            "rebuild: scripts/graphify_bin.sh update C:/Azazael/azazael")
+            "rebuild: scripts/graphify_bin.sh update src (a repo-root path writes an orphan no lane reads)")
 
 
 # --------------------------------------------------------------------------

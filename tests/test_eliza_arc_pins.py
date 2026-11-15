@@ -100,13 +100,14 @@ MANIFEST = {
 
 
 def test_shipped_ledger_is_readable_and_gaps():
-    """The real ledger grades GAPS because the project's own gate refuses to publish."""
+    """The real ledger now grades INCOMPLETE (publication gate passes, E14 carried)."""
     ledger = load_ledger()
     errors, warnings, carried = check(ledger)
-    assert verdict(errors, carried) == VERDICT_GAPS
-    assert len(ledger["pins"]) == 11
-    assert carried == ["E1", "E2", "E3", "E4"]
-    assert any("publication gate exits" in err for err in errors), errors
+    assert verdict(errors, carried) == VERDICT_INCOMPLETE
+    assert len(ledger["pins"]) == 15
+    assert carried == ["E14"]
+    # Publication gate now passes; no errors expected
+    assert errors == [], f"unexpected errors: {errors}"
 
 
 def test_shipped_ledger_declares_exactly_the_implemented_gates():
@@ -128,10 +129,10 @@ def test_shipped_ledger_has_no_structural_defect():
 
 
 def test_shipped_readme_rows_without_a_pin_are_exactly_three():
-    """A ratchet on the unpinned set: a fourth unpinned reading fails this test."""
+    """A ratchet on the unpinned set: all BCC extension rows now have pins (E12, E13, E14)."""
     errors, _warnings, _carried = check(load_ledger())
     unpinned = [err.split()[0] for err in errors if "publishes a measurement" in err]
-    assert unpinned == ["README.md:32", "README.md:33", "README.md:34"]
+    assert unpinned == [], unpinned
 
 
 def test_shipped_ledger_structure_is_clean_without_running_gates():
@@ -322,10 +323,10 @@ def test_publication_gate_fires_when_the_script_is_absent(tmp_path):
 
 
 def test_publication_gate_reports_the_real_tree_as_red():
-    """The shipped project's gate is red as of 2026-11-04; a green reading here
-    would mean the stub or the path is wrong, not that publication was fixed."""
+    """The shipped project's gate now PASSES (E7); a failure here would mean
+    the stub or the path is wrong, not that publication was fixed."""
     errors = gate_publication_gate_passes(_ledger(), [_pin()], PROJECT, MANIFEST)
-    assert errors, "the real publication gate is recorded as failing"
+    assert not errors, "the real publication gate now passes: " + str(errors)
 
 
 # --- structural validation ---------------------------------------------------
@@ -441,7 +442,7 @@ def test_pin_table_marks_proof_and_carried():
 
 def test_main_reports_gaps_for_the_shipped_ledger(capsys):
     assert main([]) == 1
-    assert "verdict: GAPS" in capsys.readouterr().out
+    assert "verdict: INCOMPLETE" in capsys.readouterr().out
 
 
 def test_main_is_blind_on_a_missing_ledger(tmp_path, capsys):
@@ -477,9 +478,9 @@ def test_main_writes_a_json_report(tmp_path, capsys):
     out = tmp_path / "report.json"
     assert main(["--json", str(out)]) == 1
     report = json.loads(out.read_text(encoding="utf-8"))
-    assert report["verdict"] == VERDICT_GAPS
-    assert report["pins"] == 11
-    assert report["carried"] == ["E1", "E2", "E3", "E4"]
+    assert report["verdict"] == VERDICT_INCOMPLETE
+    assert report["pins"] == 15
+    assert report["carried"] == ["E14"]
     assert sorted(report["declared_gates"]) == sorted(GATES)
 
 

@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 _TORCH_AVAILABLE = False
 _TRANSFORMERS_AVAILABLE = False
 _ONNX_AVAILABLE = False
+_ONNXRUNTIME_AVAILABLE = False
 _TENSORFLOW_AVAILABLE = False
 _SAFETENSORS_AVAILABLE = False
 _SKLEARN_AVAILABLE = False
@@ -33,6 +34,7 @@ for name, flag_name in [
     ("torch", "_TORCH_AVAILABLE"),
     ("transformers", "_TRANSFORMERS_AVAILABLE"),
     ("onnx", "_ONNX_AVAILABLE"),
+    ("onnxruntime", "_ONNXRUNTIME_AVAILABLE"),
     ("tensorflow", "_TENSORFLOW_AVAILABLE"),
     ("safetensors", "_SAFETENSORS_AVAILABLE"),
     ("sklearn", "_SKLEARN_AVAILABLE"),
@@ -98,7 +100,7 @@ if not _TRANSFORMERS_AVAILABLE:
 else:
     import transformers
 
-if not _ONNX_AVAILABLE:
+if not _ONNX_AVAILABLE or not _ONNXRUNTIME_AVAILABLE:
     onnx = _create_stub("onnx", "ONNX Runtime wheels not yet available for Python 3.16t.")
     onnxruntime = _create_stub("onnxruntime", "ONNX Runtime wheels not yet available for Python 3.16t.")
 else:
@@ -131,6 +133,10 @@ def check_onnx() -> bool:
     """Check if onnx is actually available."""
     return _ONNX_AVAILABLE
 
+def check_onnxruntime() -> bool:
+    """Check if onnxruntime is actually available."""
+    return _ONNXRUNTIME_AVAILABLE
+
 def check_tensorflow() -> bool:
     """Check if tensorflow is actually available."""
     return _TENSORFLOW_AVAILABLE
@@ -145,6 +151,7 @@ def available_frameworks() -> Dict[str, bool]:
         "torch": _TORCH_AVAILABLE,
         "transformers": _TRANSFORMERS_AVAILABLE,
         "onnx": _ONNX_AVAILABLE,
+        "onnxruntime": _ONNXRUNTIME_AVAILABLE,
         "tensorflow": _TENSORFLOW_AVAILABLE,
         "safetensors": _SAFETENSORS_AVAILABLE,
         "sklearn": _SKLEARN_AVAILABLE,
@@ -166,6 +173,10 @@ def require_framework(name: str) -> ModuleType:
         if _ONNX_AVAILABLE:
             return onnx
         raise RuntimeError("onnx not available on Python 3.16t")
+    elif name == "onnxruntime":
+        if _ONNXRUNTIME_AVAILABLE:
+            return onnxruntime
+        raise RuntimeError("onnxruntime not available on Python 3.16t")
     elif name == "tensorflow":
         if _TENSORFLOW_AVAILABLE:
             return tensorflow
@@ -190,6 +201,7 @@ __all__ = [
     "check_torch",
     "check_transformers",
     "check_onnx",
+    "check_onnxruntime",
     "check_tensorflow",
     "check_safetensors",
     "available_frameworks",
