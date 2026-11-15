@@ -142,23 +142,57 @@ def _persist_run_record(record):
         print(msg, file=sys.stderr)
 
 
+# Lines that carry the reason a run failed. Matched against the per-file
+# output so the evidence survives even when it scrolls out of the tail.
+_FAILURE_MARKERS = (
+    "[FAIL]", "[ERROR]", "Traceback (most recent call last)",
+    "AssertionError", "Errors:", "FAILED (", "FAIL: ", "Error: ",
+    "SUBProcess", "SUBPROCESS ERROR", "TIMEOUT",
+)
+
+
+def _failure_evidence(lines, limit=120):
+    """Pick the lines that explain a failure, never only the last 200.
+
+    Measured 2026-11-15 (CI run 43747420974): test_clusterworms_unit.py ran
+    its slow classes first, printed two [FAIL] lines with their tracebacks in
+    the middle of the stream, then the remaining classes filled the tail with
+    [OK] lines. The persisted log was the tail only, so the two failures
+    arrived as "Passed: 104, Failed: 2" with no traceback -- the exact
+    evidence this log exists to carry. Failure lines are pulled out first and
+    printed ahead of the tail; `limit` bounds the artifact the same way the
+    tail does.
+    """
+    if len(lines) <= 200:
+        return []
+    cutoff = len(lines) - 200
+    picked = [ln for ln in lines[:cutoff] if any(m in ln for m in _FAILURE_MARKERS)]
+    return picked[-limit:]
+
+
 def _persist_file_log(filename, status, returncode, elapsed, output):
     """Write per-file output to logs/test_<name>.log for CI artifacts (#CI-debug).
 
     run_tests.py prints only a one-line summary per file, so a CI-only
-    failure arrives with no evidence. The tail (last 200 lines) is enough
-    to see the traceback while bounding artifact size.
+    failure arrives with no evidence. The tail (last 200 lines) shows the
+    verdict, and any failure lines that scrolled past it are kept ahead of
+    the tail so a middle-of-run failure still arrives with its traceback.
     """
     try:
         log_dir = os.path.join(PROJECT_ROOT, "logs")
         os.makedirs(log_dir, exist_ok=True)
         lines = output.splitlines()
         tail = lines[-200:]
+        evidence = _failure_evidence(lines)
         with open(os.path.join(log_dir, filename.replace(".py", ".log"),),
                   "w", encoding="utf-8", errors="replace") as fh:
             fh.write("file: {}\nstatus: {}\nreturncode: {}\nduration_s: {}\n".format(
                 filename, status, returncode, elapsed))
             fh.write("=" * 60 + "\n")
+            if evidence:
+                fh.write("-- failure lines from earlier in the run --\n")
+                fh.write("\n".join(evidence))
+                fh.write("\n-- last 200 lines --\n")
             fh.write("\n".join(tail))
             fh.write("\n")
     except Exception as e:

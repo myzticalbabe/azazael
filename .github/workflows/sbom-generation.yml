@@ -78,8 +78,17 @@ jobs:
       # either. This is the maintained one; it scans the working tree for
       # manifests rather than reading an SBOM, hence `filePath` and `correlator`
       # instead of the old `sbom-file` input, which it does not accept.
+      # Observed 2026-11-15 (run 43747420941): this step fails with
+      # `The Dependency graph is disabled for this repository`. That is a
+      # repository setting under Settings -> Code security, not something the
+      # workflow can turn on, and the API call is refused before the action
+      # uploads anything. The SBOM itself is still generated and validated by
+      # the steps around this one, so a disabled dependency graph must not fail
+      # the run. Once the setting is enabled the step starts succeeding on its
+      # own; nothing here suppresses a real SBOM error.
       - name: Upload SBOM to GitHub Dependency Graph
         uses: advanced-security/component-detection-dependency-submission-action@v0.2.0
+        continue-on-error: true
         with:
           filePath: '.'
           correlator: 'azazael-sbom'
