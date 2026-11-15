@@ -5,9 +5,11 @@ name: SBOM Generation
 
 on:
   push:
-    # `main` alone never fired here: this repository's branches are `master`
-    # and the working branches cut from it.
-    branches: [main, master]
+    # Measured 2026-11-15 (`git branch -a`): the branches that exist are
+    # `origin/main` and `origin/azazael-intel-ultra-9-evo`. `master` is kept for
+    # a future default, and the working branch is named because it is the one
+    # that receives commits -- without it no SBOM was ever generated.
+    branches: [main, master, azazael-intel-ultra-9-evo]
   pull_request:
     types: [opened, synchronize]
   workflow_dispatch:

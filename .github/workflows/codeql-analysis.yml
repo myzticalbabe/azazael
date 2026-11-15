@@ -5,9 +5,11 @@ name: CodeQL Analysis
 
 on:
   push:
-    # `main` alone never fired here: this repository's branches are `master`
-    # and the working branches cut from it.
-    branches: [main, master]
+    # Measured 2026-11-15 (`git branch -a`): the branches that exist are
+    # `origin/main` and `origin/azazael-intel-ultra-9-evo`. This filter used to
+    # name `master`, which exists nowhere, and omitted the working branch, where
+    # every commit actually lands -- so the analysis ran on neither.
+    branches: [main, master, azazael-intel-ultra-9-evo]
   pull_request:
     types: [opened, synchronize]
   schedule:

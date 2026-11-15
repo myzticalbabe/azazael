@@ -4,9 +4,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    # `main` alone never fired here: this repository's branches are `master`
-    # and the working branches cut from it.
-    branches: [main, master]
+    # Measured 2026-11-15 (`git branch -a`): the branches that exist are
+    # `origin/main` and `origin/azazael-intel-ultra-9-evo`. `master` is kept for
+    # a future default, and the working branch is named because it is the one
+    # that receives commits -- without it the sync never ran.
+    branches: [main, master, azazael-intel-ultra-9-evo]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +25,12 @@ jobs:
     # always empty and the dependent job could never run.
     outputs:
       result: ${{ steps.check.outputs.result }}
+      # Whether the auto-fix job could actually repair this FAIL. It only
+      # trims trailing whitespace and adds a final newline; a missing
+      # governance file is not one of its fixes, and letting it run anyway
+      # opens a large "auto-fix formatting" PR that fixes none of the named
+      # failures while rewriting a thousand unrelated files.
+      fixable: ${{ steps.check.outputs.fixable }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,26 +47,43 @@ jobs:
         run: |
           pip install --quiet pyyaml
 
-      - name: Download verify_public_standards.py
+      - name: Resolve verify_public_standards
         id: fetch
         run: |
+          # Local copy FIRST. The URL below is this same repository
+          # (myzticalbabe/azazael) and returned 404 when measured on
+          # 2026-11-15, so the old download-only step probed, found nothing and
+          # reported SKIP on every run: the gate has never gated anything.
+          # The checked-out copy is authoritative whenever it exists; the
+          # network is only a fallback for a checkout that lacks it.
+          #
+          # tools/verify_public_standards_tree.py is preferred because this
+          # repository is a monorepo: its own root is not one of the published
+          # projects, so the single-repo checker run against `.` reports files
+          # that cannot exist there. The driver runs the same checker, 
+          # unmodified, against each */PUBLIC_MANIFEST.json root.
+          #
           # -f is load-bearing: without it curl writes a 404 page to disk and
           # `python` then runs that page as source. The parse check makes the
           # failure name itself instead of surfacing as a SyntaxError.
-          #
-          # The tool is published from a different repository, so this URL can
-          # legitimately 404. That used to abort the whole job at its own first
-          # step, on every run, with no statement of what was missing. Probe
-          # first and record the answer, so a missing tool is reported as a
-          # missing tool instead of as a standards failure.
+          for candidate in tools/verify_public_standards_tree.py tools/verify_public_standards.py; do
+            if [ -f "$candidate" ] \
+               && python -c "import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))" "$candidate"; then
+              echo "path=$candidate" >> "$GITHUB_OUTPUT"
+              echo "have_tool=true" >> "$GITHUB_OUTPUT"
+              echo "Using the checked-out $candidate"
+              exit 0
+            fi
+          done
           if curl -fsSL -o verify_public_standards.py \
                https://raw.githubusercontent.com/myzticalbabe/azazael/main/tools/verify_public_standards.py \
              && python -c "import ast, pathlib; ast.parse(pathlib.Path('verify_public_standards.py').read_text(encoding='utf-8'))"; then
+            echo "path=verify_public_standards.py" >> "$GITHUB_OUTPUT"
             echo "have_tool=true" >> "$GITHUB_OUTPUT"
           else
             rm -f verify_public_standards.py
             echo "have_tool=false" >> "$GITHUB_OUTPUT"
-            echo "::warning file=.github/workflows/standards-auto-sync.yml::verify_public_standards.py is not available from myzticalbabe/azazael; standards verification skipped, NOT passed."
+            echo "::warning file=.github/workflows/standards-auto-sync.yml::no verify_public_standards is in the checkout and myzticalbabe/azazael does not serve one; standards verification skipped, NOT passed."
           fi
 
       - name: Run standards verification
@@ -67,7 +92,7 @@ jobs:
         run: |
           # `tee` creates verify_output.txt. The tool never wrote that file
           # itself, so every later grep read a path that did not exist.
-          python verify_public_standards.py . 2>&1 | tee verify_output.txt || true
+          python "${{ steps.fetch.outputs.path }}" . 2>&1 | tee verify_output.txt || true
 
       - name: Check verification result
         id: check
@@ -78,12 +103,21 @@ jobs:
             # and reporting success here is the failure this repo keeps paying
             # for: green output over an unanswered question.
             echo "result=SKIP" >> "$GITHUB_OUTPUT"
+            echo "fixable=false" >> "$GITHUB_OUTPUT"
             echo "SKIP: verification tool unavailable -- standards NOT verified" >> "$GITHUB_STEP_SUMMARY"
           elif grep -q "PASS -- Repository meets all professional standards" verify_output.txt 2>/dev/null; then
             echo "result=PASS" >> "$GITHUB_OUTPUT"
+            echo "fixable=false" >> "$GITHUB_OUTPUT"
             echo "PASS: Standards verification PASSED" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "result=FAIL" >> "$GITHUB_OUTPUT"
+            # The checker names every unmet item as `governance:`, `workflow:`,
+            # `template:` or `cross_repo_table:`. None of those is whitespace.
+            if grep -qE "(governance|workflow|template|cross_repo_table|error):" verify_output.txt 2>/dev/null; then
+              echo "fixable=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "fixable=true" >> "$GITHUB_OUTPUT"
+            fi
             echo "FAIL: Standards verification FAILED" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "## Missing items:" >> "$GITHUB_STEP_SUMMARY"
@@ -118,7 +152,8 @@ jobs:
 
   auto-fix:
     needs: standards-check
-    if: github.event_name == 'push' && needs.standards-check.outputs.result == 'FAIL'
+    # Only when the fixer can repair what failed. See the `fixable` output.
+    if: github.event_name == 'push' && needs.standards-check.outputs.result == 'FAIL' && needs.standards-check.outputs.fixable == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
