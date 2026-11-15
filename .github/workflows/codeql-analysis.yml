@@ -31,7 +31,9 @@ jobs:
       fail-fast: false
       matrix:
         language: [python]
-        python-version: ["3.12"]
+        # Root package floor is `>=3.16`; the install below targets the root, so
+        # a 3.12 job could never have had the package installed.
+        python-version: ["3.16"]
 
     steps:
       - name: Checkout repository
@@ -47,11 +49,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: Install dependencies
+        # `2>/dev/null || true` made a REFUSED install indistinguishable from a
+        # successful one. On 3.12 the only line that reported the real problem
+        # ("Package 'azazael' requires a different Python: 3.12.x not in '>=3.16'")
+        # was the one being discarded, so the job scanned a checkout whose package
+        # had never installed, and said nothing. CodeQL needs no install to scan,
+        # so the step stays non-blocking -- but a failure is now RECORDED as a
+        # warning annotation rather than swallowed.
         run: |
-          pip install --quiet -e . 2>/dev/null || true
-          pip install --quiet pytest 2>/dev/null || true
+          pip install --quiet -e . || echo "::warning::pip install -e . failed; CodeQL scanned the checkout without the package installed"
+          pip install --quiet pytest || echo "::warning::pip install pytest failed; pytest-dependent steps would fail"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

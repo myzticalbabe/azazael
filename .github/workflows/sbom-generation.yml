@@ -28,7 +28,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          # This job runs `pip install --quiet .` against the ROOT package, whose
+          # `requires-python` is `>=3.16`; on 3.12 that install is refused outright
+          # ("requires a different Python"), so the SBOM was generated from a tree
+          # with none of the package's dependencies resolvable. allow-prereleases
+          # is required because 3.16 is published as a pre-release.
+          python-version: "3.16"
+          allow-prereleases: true
           cache: "pip"
 
       - name: Install dependencies
