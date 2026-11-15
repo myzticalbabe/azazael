@@ -75,19 +75,25 @@ jobs:
         run: |
           if [ ! -f "equity_tracking.json" ]; then
             echo "::warning::Equity tracking file not found - creating template"
+            # The heredoc body MUST be indented to the block scalar's own
+            # indentation. Measured 2026-11-14: written flush-left, the body
+            # ended the `run: |` scalar and PyYAML refused the file at this
+            # line ("could not find expected ':'"), so the workflow never ran
+            # at all. YAML strips the common indent, so the file still lands
+            # flush-left.
             cat > equity_tracking.json << 'EOF'
-{
-  "evaluation_cycle": "${{ github.event.inputs.evaluation_type || 'manual' }}",
-  "candidate_demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
-  "bias_interrupter": "$BIAS_INTERRUPTER",
-  "evaluators": "$EVALUATORS",
-  "performance_rating": "$PERFORMANCE_RATING",
-  "potential_rating": "$POTENTIAL_RATING",
-  "skill_rating": "$SKILL_RATING",
-  "personality_rating": "$PERSONALITY_RATING",
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-}
-EOF
+          {
+            "evaluation_cycle": "${{ github.event.inputs.evaluation_type || 'manual' }}",
+            "candidate_demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
+            "bias_interrupter": "$BIAS_INTERRUPTER",
+            "evaluators": "$EVALUATORS",
+            "performance_rating": "$PERFORMANCE_RATING",
+            "potential_rating": "$POTENTIAL_RATING",
+            "skill_rating": "$SKILL_RATING",
+            "personality_rating": "$PERSONALITY_RATING",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
           fi
           echo "Equity tracking recorded"
 
@@ -105,13 +111,13 @@ EOF
           if [ ! -f "service_accounting.json" ]; then
             echo "::warning::Service accounting not found - creating template"
             cat > service_accounting.json << 'EOF'
-{
-  "internal_service_hours": 0,
-  "external_service_hours": 0,
-  "service_roles": [],
-  "rewarded_equally": true
-}
-EOF
+          {
+            "internal_service_hours": 0,
+            "external_service_hours": 0,
+            "service_roles": [],
+            "rewarded_equally": true
+          }
+          EOF
           fi
           echo "Service accounting verified"
 
@@ -120,25 +126,25 @@ EOF
           if [ ! -f "accomplishment_sharing.md" ]; then
             echo "::warning::Accomplishment sharing system not found - creating template"
             cat > accomplishment_sharing.md << 'EOF'
-# Accomplishment Sharing System
-
-Monthly accomplishment emails sent by managers to team.
-Formal system for sharing successes without self-promotion penalty.
-EOF
+          # Accomplishment Sharing System
+          
+          Monthly accomplishment emails sent by managers to team.
+          Formal system for sharing successes without self-promotion penalty.
+          EOF
           fi
           echo "Self-promotion alternatives verified"
 
       - name: Record intersectional equity data
         run: |
           cat > intersectional_equity_report.json << 'EOF'
-{
-  "evaluation_type": "${{ github.event.inputs.evaluation_type || 'manual' }}",
-  "demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
-  "outcome": "pending",
-  "disparities_flagged": false,
-  "audit_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-}
-EOF
+          {
+            "evaluation_type": "${{ github.event.inputs.evaluation_type || 'manual' }}",
+            "demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
+            "outcome": "pending",
+            "disparities_flagged": false,
+            "audit_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
           echo "Intersectional equity data recorded"
 
       - name: Post evaluation summary
