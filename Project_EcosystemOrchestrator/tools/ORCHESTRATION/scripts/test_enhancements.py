@@ -1,8 +1,3 @@
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))
-
 # coding: utf-8
 """
 Property-Based Testing for Azazael Enhancements
@@ -15,11 +10,21 @@ Usage:
     python test_enhancements.py --verbose # Verbose output
 """
 
+# The coding cookie and this docstring have to come first. They used to sit
+# below a copy of the imports and the sys.path bootstrap, which made the
+# cookie inert (it is only honoured on the first two lines) and left
+# `__doc__` as None because the string was no longer the first statement.
+
 import sys
 from pathlib import Path
 from typing import List
 from dataclasses import dataclass
 import json
+import tempfile
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))
+
+import numpy as np
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -486,8 +491,13 @@ def test_multi_agent():
     consensus = agents.get_consensus(5)
     print(f"  Consensus distribution has {len(consensus)} actions")
 
-    agents.save("multi_agent_test.json")
-    agents.load("multi_agent_test.json")
+    # Round-trip through a temporary directory. This used to write
+    # multi_agent_test.json into whatever directory the script was started
+    # from, so every run deposited an untracked artefact in the repo root.
+    with tempfile.TemporaryDirectory() as tmp:
+        blob = str(Path(tmp) / "multi_agent_test.json")
+        agents.save(blob)
+        agents.load(blob)
     print("  Saved and loaded successfully")
 
     print("\n=== Multi-Agent Test Complete ===\n")

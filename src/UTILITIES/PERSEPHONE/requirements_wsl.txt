@@ -17,7 +17,9 @@ requests>=2.25.0
 colorama>=0.4.4
 rich>=10.0.0
 click>=8.0.0
-argparse>=1.4.0
+# argparse removed: it is the standard library module since Python 3.2. The
+# PyPI `argparse` is a 2009 Python 2 backport that would shadow the stdlib.
+
 prompt-toolkit>=3.0.0
 
 # =============================================================================
@@ -47,17 +49,24 @@ pylint>=2.13.0
 # WSL SPECIFIC UTILITIES
 # =============================================================================
 
-# WSL interop tools
-wslview>=1.0.0; platform_system == "Linux"
-wslu>=0.1.0; platform_system == "Linux"
+# WSL interop tools: wslview and wslu are NOT Python distributions. Neither
+# name exists on PyPI, and both were skipped on a Windows interpreter by the
+# platform_system marker, so the breakage only showed on the WSL host this
+# file is written for. They are distro packages; install them with apt:
+#     sudo apt install wslu        # wslu provides wslview
+# Removed from this list 2026-11-15.
 
 # Path handling for Windows paths in WSL
-pathlib2>=2.3.0
+# pathlib2 removed: pathlib is standard library since Python 3.4.
+
 pathspec>=0.9.0
 
 # File synchronization
 watchdog>=2.1.0
-rsync>=0.1.0; platform_system == "Linux"
+# rsync is a system binary, not a Python distribution: no PyPI project by that
+# name exists, so `rsync>=0.1.0` could never resolve on Linux.
+#     sudo apt install rsync
+# Removed from this list 2026-11-15.
 
 # SSH for remote connections
 paramiko>=2.10.0
@@ -200,7 +209,10 @@ django>=4.0.0
 
 # WebSocket
 websockets>=10.0
-socketio>=0.8.0
+# The PyPI name `socketio` is the 2011 client that python-socketio replaced;
+# it was never published past 0.2.1, so `socketio>=0.8.0` could not resolve
+# at all. The maintained distribution is python-socketio (import socketio).
+python-socketio>=5.0.0
 
 # =============================================================================
 # DATABASE
@@ -251,7 +263,7 @@ pyarrow>=8.0.0
 
 cryptography>=36.0.0
 pyopenssl>=22.0.0
-cryptography>=36.0.0
+# (duplicate pin removed 2026-11-15: it was listed twice)
 
 # =============================================================================
 # LOGGING
@@ -264,7 +276,9 @@ structlog>=22.0.0
 # CONCURRENCY
 # =============================================================================
 
-asyncio>=3.4.0
+# asyncio removed: it is standard library since Python 3.4, and the PyPI
+# `asyncio` backport installs a top-level module that shadows the stdlib.
+
 aiofiles>=22.0.0
 aiomultiprocess>=0.9.0
 
@@ -293,21 +307,24 @@ aiomultiprocess>=0.9.0
 # WSL: /mnt/c/Users/clint/Desktop/Azazael
 # Windows: C:\Users\clint\Desktop\Azazael
 
-def wsl_to_windows(path: str) -> str:
-    """Convert WSL path to Windows path."""
-    if path.startswith("/mnt/"):
-        drive = path[5].upper()
-        windows_path = f"{drive}:{path[6:]}"
-        return windows_path.replace("/", "\\")
-    return path
+# The lines below were Python source filed inside a requirements list, which made
+# `pip install -r` fail to parse this file at all. Commented out 2026-11-15; the
+# translation they implemented belongs in PERSEPHONE's lib/path_manager.py.
+# def wsl_to_windows(path: str) -> str:
+#     """Convert WSL path to Windows path."""
+#     if path.startswith("/mnt/"):
+#         drive = path[5].upper()
+#         windows_path = f"{drive}:{path[6:]}"
+#         return windows_path.replace("/", "\\")
+#     return path
 
-def windows_to_wsl(path: str) -> str:
-    """Convert Windows path to WSL path."""
-    if path[1] == ":":
-        drive = path[0].lower()
-        wsl_path = f"/mnt/{drive}{path[2:]}"
-        return wsl_path.replace("\\", "/")
-    return path
+# def windows_to_wsl(path: str) -> str:
+#     """Convert Windows path to WSL path."""
+#     if path[1] == ":":
+#         drive = path[0].lower()
+#         wsl_path = f"/mnt/{drive}{path[2:]}"
+#         return wsl_path.replace("\\", "/")
+#     return path
 
 # =============================================================================
 # VERIFICATION COMMANDS

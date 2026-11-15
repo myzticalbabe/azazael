@@ -4,6 +4,7 @@ HYDRA Cluster ML Execution Test
 Tests basic ML operations with available frameworks.
 """
 
+import os
 import sys
 import time
 from typing import List
@@ -16,6 +17,30 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+
+class FrameworkMissing(Exception):
+    """An optional ML framework is absent: report it, do not fail on it."""
+
+
+def _framework(name: str):
+    """Import an optional ML framework, or report that it is absent.
+
+    These tests answer "does this machine have a working <framework>", so an
+    absent framework is a fact about the machine, not a failure of the code
+    under test -- as a pytest failure it made this whole file red on any box
+    without TensorFlow installed. Under pytest the test is skipped; run
+    standalone (`python ml_test.py`) there is no session to skip in, so
+    FrameworkMissing lets main() report it and carry on.
+    """
+    try:
+        return __import__(name)
+    except ImportError:
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            import pytest
+
+            pytest.skip(f"{name} is not installed")
+        raise FrameworkMissing(f"{name} is not installed") from None
 
 
 def test_numpy():
@@ -56,7 +81,7 @@ def test_scipy():
 def test_torch():
     """Test PyTorch operations."""
     print("\n[PYTORCH] Testing...")
-    import torch
+    torch = _framework("torch")
 
     x = torch.randn(100, 100)
     y = torch.randn(100, 100)
@@ -74,7 +99,7 @@ def test_torch():
 def test_tensorflow():
     """Test TensorFlow operations."""
     print("\n[TENSORFLOW] Testing...")
-    import tensorflow as tf  # type: ignore[reportMissingModuleSource]
+    tf = _framework("tensorflow")
 
     x = tf.random.normal([100, 100])
     y = tf.random.normal([100, 100])
@@ -119,39 +144,48 @@ def main():
     results = {}
 
     tests = [
-    ("numpy", test_numpy),
-    ("scipy", test_scipy),
-    ("torch", test_torch),
-    ("tensorflow", test_tensorflow),
-    ("sklearn", test_sklearn),
+        ("numpy", test_numpy),
+        ("scipy", test_scipy),
+        ("torch", test_torch),
+        ("tensorflow", test_tensorflow),
+        ("sklearn", test_sklearn),
     ]
 
     for name, test_func in tests:
         try:
             results[name] = test_func()
+        except FrameworkMissing as exc:
+            print(f"  [SKIP] {name}: {exc}")
+            results[name] = None
         except Exception as e:
             print(f"  [FAIL] {name}: {e}")
             results[name] = False
 
-            duration = time.time() - start
+    # The summary used to live inside the `except` above and inside this loop, so
+    # it printed only when something failed and then returned on the first
+    # result. With every test passing, main() fell off the end returning None,
+    # and `sys.exit(0 if success else 1)` reported failure for a clean run.
+    duration = time.time() - start
 
-            print("\n" + "=" * 60)
-            print("  ML TEST RESULTS")
-            print("=" * 60)
+    print("\n" + "=" * 60)
+    print("  ML TEST RESULTS")
+    print("=" * 60)
 
-            passed = sum(1 for v in results.values() if v)
-            total = len(results)
+    failed = sum(1 for v in results.values() if v is False)
+    skipped = sum(1 for v in results.values() if v is None)
+    passed = len(results) - failed - skipped
+    total = len(results)
 
-            print(f"Tests Passed: {passed}/{total}")
-            print(f"Duration: {duration:.2f}s")
+    print(f"Tests Passed: {passed}/{total} (skipped {skipped}, failed {failed})")
+    print(f"Duration: {duration:.2f}s")
 
-            for name, passed in results.items():
-                status = "[OK]" if passed else "[FAIL]"
-                print(f"  {status} {name}")
+    for name, ok in results.items():
+        status = "[FAIL]" if ok is False else ("[SKIP]" if ok is None else "[OK]")
+        print(f"  {status} {name}")
 
-                print("=" * 60)
+    print("=" * 60)
 
-                return passed == total
+    return failed == 0
 
 
 if __name__ == "__main__":
