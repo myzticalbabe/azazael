@@ -287,8 +287,10 @@ def finding_key(f: "Finding") -> str:
     acknowledgement needs. A key that survived editing would silence the
     rewritten sentence too.
     """
-    return "|".join((f.source, f.session_id, f.message_id, f.part_id,
-                     f.rule, str(f.line), f.match))
+    # Every field is coerced: the identity is TEXT, and a manicode transcript
+    return "|".join(str(part) for part in (
+        f.source, f.session_id, f.message_id, f.part_id,
+        f.rule, f.line, f.match))
 
 
 @dataclass
