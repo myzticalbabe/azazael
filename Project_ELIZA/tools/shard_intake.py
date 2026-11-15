@@ -37,6 +37,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -476,6 +477,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--tree", help="limit --list to one tree")
     parser.add_argument("--adopt", metavar="SHARD_ID")
     args = parser.parse_args(argv)
+
+    # The declared escape the tier and the gate registry both advertise
+    # (ALLOW_SHARD_INTAKE=1). It lives HERE and not only in the tier stanza
+    # because `tools/preflight_all.py` runs this tool directly, so the escape
+    # the registry documented could not actually be used from the registry.
+    # Declared aloud at the moment it is taken, never silent.
+    if os.environ.get("ALLOW_SHARD_INTAKE") == "1":
+        print("ALLOW_SHARD_INTAKE=1 declared -- the shard surface was NOT judged.",
+              file=sys.stderr)
+        return 0
 
     # Exit 2, not 1: `2` means "the run could not be performed", which is neither
     # a pass nor a verdict on the tree. Collapsing it into 1 let a missing input
