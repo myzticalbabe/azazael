@@ -371,6 +371,18 @@
   {
    "glob": "test_shard_intake.py",
    "why": "test of the shard intake tool; both the generator and the shard surface are internal"
+  },
+  {
+   "glob": ".github/workflows/equity-evaluation-gate.yml",
+   "why": "an HR-process gate superseded by the root workflow; the PROMOTION_CRITERIA.md and EVALUATION_CRITERIA.md it reads do not exist in this project, so it cannot run. Scoped to this path on purpose: a bare '*.yml' rule would also deny the root workflows this manifest publishes (measured 2026-11-14)"
+  },
+  {
+   "glob": ".github/workflows/standards-auto-sync.yml",
+   "why": "pre-fix copy: it still curls https://raw.githubusercontent.com/myzticalbabe/azazael/main/tools/verify_public_standards.py from the moving branch, the exact fetch the root standards workflow records as repaired, and pins python-version 3.12. Publishing it would reinstate the defect the fix removed"
+  },
+  {
+   "glob": "project_eliza/certification.json",
+   "why": "staging-root copy, byte-identical to ../Project_Nurse_Ratchet/certification.json (sha256 ad873315fec1fd5dfc61725d011d04cf053b2c267b856a425f1f11c68859dc8c); its only reader is Project_Nurse_Ratchet/tools/certification_bar.py. Path-qualified on purpose: a bare 'certification.json' rule also matched that project's tracked file (measured 2026-11-14)"
   }
  ],
  "deny_substrings": [
