@@ -3,11 +3,14 @@
 // The footage is the real vendor routine lifted from this machine
 // (%LOCALAPPDATA%\Temp\OLED_ScreenSaver_2024_v2_Ending_Logo.wmv, 3840x2160 24fps),
 // trimmed to its 60s loopable body and re-encoded with ffmpeg into the embedded asset.
+// The embedded copy is 720p (17.7 MB, 23% below the 1080p one) purely to keep the exe
+// small - the app scales it up. For full-resolution deliverables render with
+// --source smoke_1080.mp4 instead.
 //
 // Everything after decode is ours: colour grading, pattern effects, OLED pixel shift.
 //
 // Build:  csc /target:winexe /platform:x64 /optimize+ /unsafe+ /out:LumenRefresh.exe
-//             LumenRefresh.cs /resource:smoke_1080.mp4
+//             LumenRefresh.cs /resource:smoke_720.mp4,smoke.mp4
 //             /r:System.Windows.Forms.dll /r:System.Drawing.dll
 //
 // Run:    LumenRefresh.exe --palette ember --speed 0.85
@@ -647,33 +650,59 @@ namespace LumenRefresh
             }
             for (int i = 0; i < 9; i++) g._m[i] = (int)Math.Round(a._m[i] + (b._m[i] - a._m[i]) * t);
 
-            if (a._rampR != null && b._rampR != null)
+            // Ramp and duo grades are both "colour = f(luminance, selector)", so a pair of
+            // them - in any combination - can be mixed exactly: a ramp is a duo whose two
+            // dyes are equal. Mixing only the ramp tables, as this used to do, silently
+            // returned grade A whenever the other side was a duo palette.
+            bool aExp = a._rampR != null || a._duoAR != null;
+            bool bExp = b._rampR != null || b._duoAR != null;
+            if (aExp && bExp)
             {
-                g._rampR = new int[256]; g._rampG = new int[256]; g._rampB = new int[256];
-                for (int i = 0; i < 256; i++)
-                {
-                    g._rampR[i] = (int)Math.Round(a._rampR[i] + (b._rampR[i] - a._rampR[i]) * t);
-                    g._rampG[i] = (int)Math.Round(a._rampG[i] + (b._rampG[i] - a._rampG[i]) * t);
-                    g._rampB[i] = (int)Math.Round(a._rampB[i] + (b._rampB[i] - a._rampB[i]) * t);
-                }
-            }
-            if (a._duoAR != null && b._duoAR != null)
-            {
+                int[] aLoR = a._duoAR != null ? a._duoAR : a._rampR;
+                int[] aLoG = a._duoAR != null ? a._duoAG : a._rampG;
+                int[] aLoB = a._duoAR != null ? a._duoAB : a._rampB;
+                int[] aHiR = a._duoAR != null ? a._duoBR : a._rampR;
+                int[] aHiG = a._duoAR != null ? a._duoBG : a._rampG;
+                int[] aHiB = a._duoAR != null ? a._duoBB : a._rampB;
+                int[] bLoR = b._duoAR != null ? b._duoAR : b._rampR;
+                int[] bLoG = b._duoAR != null ? b._duoAG : b._rampG;
+                int[] bLoB = b._duoAR != null ? b._duoAB : b._rampB;
+                int[] bHiR = b._duoAR != null ? b._duoBR : b._rampR;
+                int[] bHiG = b._duoAR != null ? b._duoBG : b._rampG;
+                int[] bHiB = b._duoAR != null ? b._duoBB : b._rampB;
+
                 g._duoAR = new int[256]; g._duoAG = new int[256]; g._duoAB = new int[256];
                 g._duoBR = new int[256]; g._duoBG = new int[256]; g._duoBB = new int[256];
                 for (int i = 0; i < 256; i++)
                 {
-                    g._duoAR[i] = (int)Math.Round(a._duoAR[i] + (b._duoAR[i] - a._duoAR[i]) * t);
-                    g._duoAG[i] = (int)Math.Round(a._duoAG[i] + (b._duoAG[i] - a._duoAG[i]) * t);
-                    g._duoAB[i] = (int)Math.Round(a._duoAB[i] + (b._duoAB[i] - a._duoAB[i]) * t);
-                    g._duoBR[i] = (int)Math.Round(a._duoBR[i] + (b._duoBR[i] - a._duoBR[i]) * t);
-                    g._duoBG[i] = (int)Math.Round(a._duoBG[i] + (b._duoBG[i] - a._duoBG[i]) * t);
-                    g._duoBB[i] = (int)Math.Round(a._duoBB[i] + (b._duoBB[i] - a._duoBB[i]) * t);
+                    g._duoAR[i] = LerpI(aLoR[i], bLoR[i], t);
+                    g._duoAG[i] = LerpI(aLoG[i], bLoG[i], t);
+                    g._duoAB[i] = LerpI(aLoB[i], bLoB[i], t);
+                    g._duoBR[i] = LerpI(aHiR[i], bHiR[i], t);
+                    g._duoBG[i] = LerpI(aHiG[i], bHiG[i], t);
+                    g._duoBB[i] = LerpI(aHiB[i], bHiB[i], t);
                 }
                 g.RebuildDuoDelta();
+                // HasDuo is a plain field that Compile() sets, and the clone inherited
+                // false from a ramp grade, so SampleCore would have taken the identity
+                // path and returned the input untouched.
+                g.HasDuo = true;
+                g._rampR = null; g._rampG = null; g._rampB = null;
+                g._luma256 = (int)Math.Round(a._luma256 + (b._luma256 - a._luma256) * t);
+                return g;
             }
+
             g._luma256 = (int)Math.Round(a._luma256 + (b._luma256 - a._luma256) * t);
             return g;
+        }
+
+        /// <summary>True when the grade maps luminance (and at most a selector) to colour,
+        /// i.e. it is a ramp or a duo - the two forms that can be crossfaded exactly.</summary>
+        internal bool IsRampOrDuo { get { return _rampR != null || _duoAR != null; } }
+
+        private static int LerpI(int x, int y, float t)
+        {
+            return (int)Math.Round(x + (y - x) * t);
         }
 
         private static byte LerpB(byte x, byte y, float t)
@@ -721,12 +750,18 @@ namespace LumenRefresh
         public float Ripple = 0f;            // px of animated wave displacement
         public float Scan = 0f;              // 0..1 scanline darkening
         public float Bloom = 0f;             // 0..1 glow add-back
+        public float Grain = 0f;             // 0..1 film grain
+        public float Gamma = 1f;             // extra gamma on top of the palette
+        public float Heal = 0f;              // 0..1 dissolve across the source's black gaps
+        public float BlendPeriod = 60f;      // seconds for a "a+b" palette sweep
 
         // output
         public string Export = null;         // write a video instead of playing
         public string ExportSize = "1920x1080";
         public double ExportSeconds = 60;
         public string Ffmpeg = null;
+        public string ExportAll = null;      // batch: one clip per palette into this dir
+        public string Palettes = null;       // batch: restrict to these palette names
 
         // shell integration
         public bool InstallScr = false;
@@ -771,8 +806,15 @@ namespace LumenRefresh
                     case "--ripple": if (next != null) { o.Ripple = ParseF(next, 0f); i++; } break;
                     case "--scan": if (next != null) { o.Scan = ParseF(next, 0f); i++; } break;
                     case "--bloom": if (next != null) { o.Bloom = ParseF(next, 0f); i++; } break;
+                    case "--grain": if (next != null) { o.Grain = ParseF(next, 0f); i++; } break;
+                    case "--gamma": if (next != null) { o.Gamma = ParseF(next, 1f); i++; } break;
+                    case "--heal": if (next != null) { o.Heal = ParseF(next, 0f); i++; } break;
+                    case "--blend-period": if (next != null) { o.BlendPeriod = ParseF(next, 60f); i++; } break;
                     case "--export": if (next != null) { o.Export = next; i++; } break;
                     case "--export-size": if (next != null) { o.ExportSize = next; i++; } break;
+                    case "--export-seconds": if (next != null) { o.ExportSeconds = ParseF(next, 60f); i++; } break;
+                    case "--export-all": if (next != null) { o.ExportAll = next; i++; } break;
+                    case "--palettes": if (next != null) { o.Palettes = next; i++; } break;
                     case "--ffmpeg": if (next != null) { o.Ffmpeg = next; i++; } break;
                     case "--install-scr": o.InstallScr = true; break;
                     case "--uninstall-scr": o.UninstallScr = true; break;
@@ -834,6 +876,97 @@ namespace LumenRefresh
     }
 
     // ---------------------------------------------------------------- decoder
+
+    /// <summary>
+    /// The vendor footage dips to black at every 15 s junction - that is its own
+    /// crossfade, not a decode failure. --heal dissolves across those dips: it holds the
+    /// last fully-lit frame and hands it back in proportion to how dark the incoming one
+    /// is, so the gap reads as a slow push through the smoke instead of a cut to black.
+    /// The hold is only refreshed on well-lit frames: holding at the gap threshold itself
+    /// would freeze the frame that is already halfway to black, and the healed stretch
+    /// would come out dim.
+    /// </summary>
+    internal sealed class Healer
+    {
+        private readonly int _w, _h, _bytes;
+        private readonly float _strength;
+        private readonly byte[] _hold, _emit;
+        private bool _haveHold;
+        private const float DarkY = 0.055f;     // mean luminance below this is a gap
+        private const float LitY = 0.20f;       // ...and above this a frame is worth holding
+
+        public Healer(int w, int h, float strength)
+        {
+            _w = w; _h = h; _bytes = w * h * 4;
+            _strength = strength > 1f ? 1f : (strength < 0f ? 0f : strength);
+            _hold = new byte[_bytes];
+            _emit = new byte[_bytes];
+        }
+
+        public bool HaveHold { get { return _haveHold; } }
+
+        /// <summary>Seeds the hold from a known-lit frame, so the leading dip at t=0 is
+        /// covered too. Without this the first quarter-second stays black.</summary>
+        public void Seed(byte[] src)
+        {
+            if (src.Length < _bytes) return;
+            Buffer.BlockCopy(src, 0, _hold, 0, _bytes);
+            _haveHold = true;
+        }
+
+        /// <summary>Returns the buffer to grade: the frame itself, or the healed stand-in.</summary>
+        public byte[] Feed(byte[] src)
+        {
+            if (src.Length < _bytes) return src;
+            double lum = Luma(src);
+            if (lum >= LitY)
+            {
+                Buffer.BlockCopy(src, 0, _hold, 0, _bytes);
+                _haveHold = true;
+            }
+
+            // k runs 1..0 across the fade rather than switching at the gap threshold, so
+            // there is no pop the moment a frame is declared dark.
+            float k = (float)((lum - DarkY) / (LitY - DarkY));
+            if (k > 1f) k = 1f;
+            if (k < 0f) k = 0f;
+            if (k >= 0.999f) return src;
+            if (!_haveHold) return src;
+
+            // strength 1 holds fully; 0 leaves the dip exactly as the vendor cut it
+            float t = k + (1f - k) * (1f - _strength);
+            if (t >= 0.999f) return src;
+            Blend(_hold, src, _emit, t);
+            return _emit;
+        }
+
+        private static void Blend(byte[] a, byte[] b, byte[] dst, float t)
+        {
+            int ti = (int)(t * 256f);
+            int ai = 256 - ti;
+            for (int i = 0; i < dst.Length; i++)
+                dst[i] = (byte)((b[i] * ti + a[i] * ai) >> 8);
+        }
+
+        /// <summary>Sparse mean luminance: an eighth of the rows and columns is plenty to
+        /// tell a dip from a lit frame, and a full pass would cost as much as the blit.</summary>
+        private double Luma(byte[] f)
+        {
+            long sum = 0;
+            int n = 0;
+            for (int y = 0; y < _h; y += 8)
+            {
+                int row = y * _w * 4;
+                for (int x = 0; x < _w; x += 8)
+                {
+                    int i = row + x * 4;
+                    sum += (f[i] * 29 + f[i + 1] * 150 + f[i + 2] * 77) >> 8;
+                    n++;
+                }
+            }
+            return n == 0 ? 0.0 : (double)sum / (n * 255.0);
+        }
+    }
 
     internal sealed class SmokeSource : IDisposable
     {
@@ -1032,6 +1165,34 @@ namespace LumenRefresh
         /// thread that owns the render loop.</summary>
         public void SetGrade(Grade g) { _grade = g; }
 
+        /// <summary>Crossfades the grade toward <paramref name="b"/> and back over one
+        /// loop. The sweep is a raised cosine, so t=0 at the seam and at the wrap - a
+        /// linear ramp would jump from b straight back to a every time the clip loops.
+        /// The blend happens in the baked tables, so the pixel cost stays a single grade.</summary>
+        public void SetBlendPair(Grade b)
+        {
+            _blendA = _grade;
+            _blendB = b;
+            _blendPeriod = _opt.BlendPeriod > 1f ? _opt.BlendPeriod : 60f;
+            _blendStep = -1;
+            // A hue/sat/gain palette is not a function of luminance, so it cannot be
+            // crossfaded with a ramp or duo one (two of those mix fine, and so do two
+            // hue/sat/gain ones). Say so rather than rendering a frame that quietly
+            // belongs to the first palette.
+            if (_grade.IsRampOrDuo != b.IsRampOrDuo)
+            {
+                _blendB = null;
+                try
+                {
+                    Console.Error.WriteLine("note: --palette \"a+b\" needs both sides to be ramp or " +
+                                            "duo palettes (e.g. neon-cyan+yt-deep, duo-cyan+duo-sun); " +
+                                            _grade.Name + " + " + b.Name + " cannot crossfade, using " +
+                                            _grade.Name);
+                }
+                catch (Exception) { }
+            }
+        }
+
         /// <summary>Source-space offset of the sampling centre, used by --orbit to move
         /// the crop window without stretching anything. Clamped per frame so the window
         /// never leaves the decoded frame (a clamp in the sampler would smear the edge).</summary>
@@ -1052,11 +1213,25 @@ namespace LumenRefresh
         // One frame of lag at 24 fps is invisible behind an 8x8 blur, and it removes a
         // whole full-resolution pass: the candle is cheaper than the read-back.
         private float[] _accR = new float[1], _accG = new float[1], _accB = new float[1], _accW = new float[1], _blurTmp;
-        private byte[] _glowR = new byte[1], _glowG = new byte[1], _glowB = new byte[1];
-        private int _bmW, _bmH, _bmDW, _bmDH;
+        // The glow plane is a power-of-two block, so mapping a pixel to its cell is a
+        // shift instead of a table lookup. At 1/8 the three byte planes were 243 KB at
+        // panel size - outside L2 - and the per-pixel bilinear tap cost six reads into
+        // them. Packing the three channels into one uint and dropping the tap (the plane
+        // is already blurred, so nearest cannot show) took bloom from 107 ms to ~20 ms.
+        private const int BloomShift = 4;
+        private const int BloomBlock = 1 << BloomShift;
+        private uint[] _glow = new uint[1];   // packed 0xRRGGBB, pre-scaled by the add amount
+        private int _bmW, _bmH;
         private bool _glowReady;
         private int _bloomFrame;
-        private int[] _gX0, _gX1, _gY0, _gY1, _gWX, _gWY;
+        private int _glowAdd = 256;
+        // grain: a 128x128 signed-noise tile, so the per-pixel cost is one load
+        private sbyte[] _grainTab = new sbyte[1];
+        private float _grainS = -1f;
+        // palette blend: --palette "a+b" sweeps a to b and back over the loop
+        private Grade _blendA, _blendB;
+        private float _blendPeriod = 60f;
+        private int _blendStep = -1;
 
         /// <summary>Moves the crop window to one of four positions around centre. The
         /// window only has room on the axis the cover-crop trimmed, so a position with no
@@ -1083,6 +1258,21 @@ namespace LumenRefresh
         /// <summary>Grades one decoded RGB32 frame into a 32bpp bitmap.</summary>
         public unsafe void Blit(byte[] src, bool bottomUp, Bitmap dst, float pulse, int shiftX, int shiftY, int loopParity)
         {
+            // Palette sweep. Rebuilding the baked tables 128 times per loop is ~40 us a
+            // rebuild, i.e. nothing, and quantising to 128 steps keeps it near 128/s once
+            // the drift is that slow.
+            if (_blendB != null)
+            {
+                double ph = (Time / _blendPeriod) * Math.PI * 2.0;
+                float bt = (float)(0.5 - 0.5 * Math.Cos(ph));
+                int step = (int)(bt * 128f);
+                if (step != _blendStep)
+                {
+                    _blendStep = step;
+                    _grade = Grade.Blend(_blendA, _blendB, step / 128f);
+                }
+            }
+
             BitmapData bd = dst.LockBits(new Rectangle(0, 0, dst.Width, dst.Height),
                                          ImageLockMode.WriteOnly, PixelFormat.Format32bppRgb);
             try
@@ -1133,40 +1323,53 @@ namespace LumenRefresh
                 // difference is invisible - and it halves the one cost that scales with
                 // pixel count on a 2880x1800 panel.
                 bool bloom = _opt.Bloom > 0.001f;
-                int bw = 0, bh = 0, addGlow = 0;
+                int bw = 0;
                 bool accumulating = false, useGlow = false;
                 if (bloom)
                 {
-                    bw = (dw + 7) >> 3; bh = (dh + 7) >> 3;
+                    bw = (dw + BloomBlock - 1) >> BloomShift;
+                    int bh = (dh + BloomBlock - 1) >> BloomShift;
                     accumulating = (_bloomFrame++ & 1) == 0;
-                    BeginBloom(bw, bh, dw, dh, accumulating);
-                    // 1.0x of the blurred bright field is already a lot on a palette that
-                    // is bright to begin with; the default is deliberately short of that.
-                    addGlow = (int)((_opt.Bloom > 1f ? 1f : _opt.Bloom) * 256f);
+                    _glowAdd = (int)((_opt.Bloom > 1f ? 1f : _opt.Bloom) * 256f);
+                    BeginBloom(bw, bh, accumulating);
                     useGlow = _glowReady;
+                }
+
+                // Grain is a monochrome delta from a tiled table - a per-pixel hash would
+                // cost a multiply and a store the inner loop cannot spare.
+                sbyte[] grainTab = _grainTab;
+                float grainAmt = _opt.Grain > 1f ? 1f : _opt.Grain;
+                bool grainOn = grainAmt > 0.001f;
+                if (grainOn) grainTab = BuildGrain(grainAmt);
+                int gShiftX = 0, gShiftY = 0;
+                if (grainOn)
+                {
+                    int gs = (int)(Time * 61f);       // 61 steps/s: the tile never marches
+                    gShiftX = (gs * 37) & 127;
+                    gShiftY = (gs * 11) & 127;
                 }
 
                 // Raw pointers for the effect buffers too: these are read once per
                 // pixel, and the bounds check on a managed array read cost more than
                 // the arithmetic it guarded (~30 ms/frame at 1080p).
                 fixed (byte* sb = src)
-                fixed (byte* gRp = _glowR)
-                fixed (byte* gGp = _glowG)
-                fixed (byte* gBp = _glowB)
+                fixed (uint* glowp = _glow)
                 fixed (float* acR = _accR)
                 fixed (float* acG = _accG)
                 fixed (float* acB = _accB)
                 fixed (float* acW = _accW)
-                fixed (int* gX0p = _gX0)
-                fixed (int* gX1p = _gX1)
-                fixed (int* gWXp = _gWX)
+                fixed (sbyte* grainp = grainTab)
                 {
                     for (int y = 0; y < dh; y++)
                     {
                         // vertically nearest: the plane is already blurred at 8x, so a
                         // second vertical lerp costs as much as it buys (nothing).
-                        int glowRow = useGlow ? _gY0[y] * bw : 0;
-                        int accRow = accumulating ? (y >> 3) * bw : 0;
+                        int glowRow = (y >> BloomShift) * bw;
+                        int accRow = (y >> BloomShift) * bw;
+                        // The bright pass runs on every other row and column: a 1/16 cell
+                        // still gets 64 samples, and the plane is blurred before it is used.
+                        bool accHere = accumulating && ((y & 1) == 0);
+                        sbyte* grow = grainOn ? grainp + (((y + gShiftY) & 127) << 7) : grainp;
                         byte* row = db + y * dstride;
                         // source row through zoom + shift + mirror/kaleido
                         float sy = cy + (y - dh * 0.5f) / zoom + shiftY + (ripY != null ? ripY[y] : 0f);
@@ -1247,22 +1450,32 @@ namespace LumenRefresh
                             {
                                 int sm = scanMul[y];
                                 orr = (orr * sm) >> 8; og = (og * sm) >> 8; ob = (ob * sm) >> 8;
-                            }
-
-                            // glow from the previous frame's blurred bright pass
+                            }                            // glow from the previous frame's blurred bright pass. One packed
+                            // load replaces the six across three byte planes, and the scale
+                            // was folded in when the plane was packed.
                             if (useGlow)
                             {
-                                int gx0 = gX0p[x], gx1 = gX1p[x], wx = gWXp[x], aw = 256 - wx;
-                                int gi = glowRow + gx0, gj = glowRow + gx1;
-                                int gr = (gRp[gi] * aw + gRp[gj] * wx) >> 8;
-                                int gg = (gGp[gi] * aw + gGp[gj] * wx) >> 8;
-                                int gb = (gBp[gi] * aw + gBp[gj] * wx) >> 8;
-                                orr += (gr * addGlow) >> 8; if (orr > 255) orr = 255;
-                                og += (gg * addGlow) >> 8; if (og > 255) og = 255;
-                                ob += (gb * addGlow) >> 8; if (ob > 255) ob = 255;
+                                uint gp = glowp[glowRow + (x >> BloomShift)];
+                                int v, d2;
+                                v = orr + (int)((gp >> 16) & 0xFF);
+                                d2 = v - 255; orr = v - (d2 & ~(d2 >> 31));
+                                v = og + (int)((gp >> 8) & 0xFF);
+                                d2 = v - 255; og = v - (d2 & ~(d2 >> 31));
+                                v = ob + (int)(gp & 0xFF);
+                                d2 = v - 255; ob = v - (d2 & ~(d2 >> 31));
                             }
 
-                            if (accumulating)
+                            // grain is signed, so it needs both ends clamped
+                            if (grainOn)
+                            {
+                                int gv = grow[(x + gShiftX) & 127];
+                                int v, lo, d2;
+                                v = orr + gv; lo = v >> 31; v &= ~lo; d2 = v - 255; orr = v - (d2 & ~(d2 >> 31));
+                                v = og + gv; lo = v >> 31; v &= ~lo; d2 = v - 255; og = v - (d2 & ~(d2 >> 31));
+                                v = ob + gv; lo = v >> 31; v &= ~lo; d2 = v - 255; ob = v - (d2 & ~(d2 >> 31));
+                            }
+
+                            if (accHere && (x & 1) == 0)
                             {
                                 int lum2 = (orr * 77 + og * 150 + ob * 29) >> 8;
                                 int tt = lum2 - 120;
@@ -1270,7 +1483,7 @@ namespace LumenRefresh
                                 {
                                     if (tt > 135) tt = 135;
                                     float w2 = tt * 0.0074074f;              // 1/135
-                                    int bi = accRow + (x >> 3);
+                                    int bi = accRow + (x >> BloomShift);
                                     acR[bi] += orr * w2; acG[bi] += og * w2;
                                     acB[bi] += ob * w2;  acW[bi] += w2;
                                 }
@@ -1344,27 +1557,19 @@ namespace LumenRefresh
             return _scanMul;
         }
 
-        // ---- --bloom: bright-pass into a 1/8 buffer, box-blur it, bilinear add-back.
-        // The blur runs on a 240x135 plane, so its cost is noise next to the two
-        // full-resolution sweeps.
+        // ---- --bloom: bright-pass into a 1/16 plane, box-blur it, nearest add-back.
+        // The plane is 180x113 at panel size (81 KB packed), so it stays resident instead
+        // of being re-fetched from L3 on every pixel.
 
-        private void BeginBloom(int bw, int bh, int dw, int dh, bool clear)
+        private void BeginBloom(int bw, int bh, bool clear)
         {
-            if (_accR == null || _bmW != bw || _bmH != bh)
+            if (_bmW != bw || _bmH != bh)
             {
                 _bmW = bw; _bmH = bh;
                 _accR = new float[bw * bh]; _accG = new float[bw * bh];
                 _accB = new float[bw * bh]; _accW = new float[bw * bh];
-                _glowR = new byte[bw * bh]; _glowG = new byte[bw * bh]; _glowB = new byte[bw * bh];
+                _glow = new uint[bw * bh];
                 _glowReady = false;
-            }
-            if (_bmDW != dw || _bmDH != dh)
-            {
-                _bmDW = dw; _bmDH = dh;
-                _gX0 = new int[dw]; _gX1 = new int[dw]; _gWX = new int[dw];
-                _gY0 = new int[dh]; _gY1 = new int[dh]; _gWY = new int[dh];
-                for (int x = 0; x < dw; x++) MapTap(x, 8, bw, out _gX0[x], out _gX1[x], out _gWX[x]);
-                for (int y = 0; y < dh; y++) MapTap(y, 8, bh, out _gY0[y], out _gY1[y], out _gWY[y]);
             }
             if (clear)
             {
@@ -1375,22 +1580,9 @@ namespace LumenRefresh
             }
         }
 
-        /// <summary>Bilinear tap for the 8x upscale: two row/col indices and a 0..256 weight.</summary>
-        private static void MapTap(int i, int block, int n, out int i0, out int i1, out int w)
-        {
-            float f = (i + 0.5f) / block - 0.5f;
-            int a = (int)f;
-            float t = f - a;
-            if (a < 0) { a = 0; t = 0f; }
-            int b = a + 1;
-            if (b >= n) { b = n - 1; t = 0f; }
-            if (a >= n) a = n - 1;
-            i0 = a; i1 = b; w = (int)(t * 256f);
-            if (w > 256) w = 256;
-        }
-
         /// <summary>Normalises what the sampling loop accumulated, blurs it, and parks it
-        /// for the next frame to add back.</summary>
+        /// for the next frame to add back. The add amount is folded in here because it is
+        /// constant for a run - so the inner loop only has to add bytes.</summary>
         private void EndBloom()
         {
             int n = _bmW * _bmH;
@@ -1406,14 +1598,36 @@ namespace LumenRefresh
             Blur(_accR, _bmW, _bmH);
             Blur(_accG, _bmW, _bmH);
             Blur(_accB, _bmW, _bmH);
+            float a = _glowAdd * 0.00390625f;
             for (int i = 0; i < n; i++)
             {
-                int v;
-                v = (int)_accR[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowR[i] = (byte)v;
-                v = (int)_accG[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowG[i] = (byte)v;
-                v = (int)_accB[i]; if (v < 0) v = 0; if (v > 255) v = 255; _glowB[i] = (byte)v;
+                int r = (int)(_accR[i] * a);
+                int g = (int)(_accG[i] * a);
+                int b = (int)(_accB[i] * a);
+                if (r > 255) r = 255; else if (r < 0) r = 0;
+                if (g > 255) g = 255; else if (g < 0) g = 0;
+                if (b > 255) b = 255; else if (b < 0) b = 0;
+                _glow[i] = ((uint)r << 16) | ((uint)g << 8) | (uint)b;
             }
             _glowReady = true;
+        }
+
+        /// <summary>Monochrome grain tile. Seeded once per strength, then scrolled by the
+        /// frame offset, so a still frame cannot look like a fixed dither pattern.</summary>
+        private sbyte[] BuildGrain(float amount)
+        {
+            if (_grainS == amount && _grainTab.Length == 16384) return _grainTab;
+            if (_grainTab.Length != 16384) _grainTab = new sbyte[16384];
+            uint s = 0x9E3779B9u;
+            float k = amount * 46f;
+            for (int i = 0; i < 16384; i++)
+            {
+                s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+                int v = (int)((s >> 24) & 0xFF) - 128;
+                _grainTab[i] = (sbyte)(int)(v * k * 0.0078125f);
+            }
+            _grainS = amount;
+            return _grainTab;
         }
 
         /// <summary>Two box-blur passes, separable, radius 1 and 3. Cheap because the
@@ -1594,7 +1808,7 @@ namespace LumenRefresh
 
     internal static class Program
     {
-        private const string ResourceName = "smoke_1080.mp4";
+        private const string ResourceName = "smoke.mp4";
 
         [DllImport("kernel32.dll")]
         private static extern bool AttachConsole(int dwProcessId);
@@ -1668,6 +1882,7 @@ namespace LumenRefresh
             if (args.Length > 0 && args[0] == "--dump") return Dump(opt, args);
             if (args.Length > 0 && args[0] == "--bench") return Bench(opt, args);
             if (args.Length > 0 && args[0] == "--export") return Export(opt);
+            if (args.Length > 0 && args[0] == "--export-all") return ExportAll(opt);
             if (args.Length > 0 && args[0] == "--watch") return Watch(opt);
             if (args.Length > 0 && args[0] == "--install-scr") return InstallScr(opt);
             if (args.Length > 0 && args[0] == "--uninstall-scr") return UninstallScr();
@@ -1770,7 +1985,34 @@ namespace LumenRefresh
             return new Size(dw, dh);
         }
 
-        private static Grade BuildGrade(Options opt) { return BuildGrade(opt, opt.Palette); }
+        private static Grade BuildGrade(Options opt)
+        {
+            string a, b;
+            SplitPalette(opt.Palette, out a, out b);
+            return BuildGrade(opt, a);
+        }
+
+        /// <summary>Splits "a+b" into the two halves of a palette blend. No '+' means a
+        /// single static grade.</summary>
+        private static void SplitPalette(string spec, out string a, out string b)
+        {
+            a = spec; b = null;
+            if (spec == null) return;
+            int plus = spec.IndexOf('+');
+            if (plus > 0 && plus < spec.Length - 1)
+            {
+                a = spec.Substring(0, plus);
+                b = spec.Substring(plus + 1);
+            }
+        }
+
+        /// <summary>The far end of a "a+b" blend, or null for a single palette.</summary>
+        private static Grade BuildBlendTo(Options opt)
+        {
+            string a, b;
+            SplitPalette(opt.Palette, out a, out b);
+            return b == null ? null : BuildGrade(opt, b);
+        }
 
         private static Grade BuildGrade(Options opt, string palette)
         {
@@ -1779,6 +2021,9 @@ namespace LumenRefresh
             if (opt.Pulse > 0) g.PulseAmount = opt.Pulse;
             if (!string.IsNullOrEmpty(opt.Duo)) g.ApplySpec("duo=" + opt.Duo);
             if (opt.Luma > 0) g.TargetLuma = opt.Luma;
+            // --gamma rides on top of whatever the palette already asked for, so it can
+            // be stacked onto a preset instead of replacing its curve.
+            if (opt.Gamma > 0.01f && Math.Abs(opt.Gamma - 1f) > 0.0001f) g.Gamma *= opt.Gamma;
             g.Compile();
             return g;
         }
@@ -1794,6 +2039,7 @@ namespace LumenRefresh
         private static int Play(Options opt)
         {
             Grade fromGrade = BuildGrade(opt);
+            Grade blendTo = BuildBlendTo(opt);
             // Progress ramp: two compiled grades, mixed by session time. The mix happens in
             // the baked tables, so the loop stays exactly as fast as a static grade.
             Grade toGrade = string.IsNullOrEmpty(opt.Progress) ? null : BuildGrade(opt, opt.Progress);
@@ -1837,7 +2083,23 @@ namespace LumenRefresh
                     src = SmokeSource.Open(asset, target.Width, target.Height);
                     int w = src.Width, h = src.Height;
                     Renderer rend = new Renderer(grade, opt, w, h);
+                    if (blendTo != null) rend.SetBlendPair(blendTo);
                     int loopParity = 0;
+
+                    // --heal needs a lit frame to hold before the first dip, and the clip
+                    // opens on one. Decode past it once, then rewind to the real start.
+                    Healer healer = null;
+                    if (opt.Heal > 0.001f)
+                    {
+                        healer = new Healer(w, h, opt.Heal);
+                        for (int i = 0; i < 48 && !healer.HaveHold; i++)
+                        {
+                            byte[] pf = src.Next();
+                            if (pf == null) break;
+                            healer.Feed(pf);
+                        }
+                        src.Rewind();
+                    }
 
                     // Grade straight into panel-sized frames so the paint is a 1:1 copy.
                     // Scaling in GDI+ at paint time cost ~120 ms/frame at 2880x1800 and
@@ -1878,6 +2140,7 @@ namespace LumenRefresh
                     int doseN = 0, lastProgressSec = -1;
 
                     byte[] frame = src.Next();
+                    if (frame != null && healer != null) frame = healer.Feed(frame);
                     if (frame != null)
                     {
                         Bitmap first = takeBuf();
@@ -1901,6 +2164,7 @@ namespace LumenRefresh
                             doseSum = 0; doseN = 0;
                             src.Rewind();
                             frame = src.Next();
+                            if (frame != null && healer != null) frame = healer.Feed(frame);
                             loopParity++;
                             loopStart = DateTime.UtcNow;
                             if (frame == null) break;
@@ -1975,6 +2239,7 @@ namespace LumenRefresh
                         if (waitMs > 0) Thread.Sleep((int)waitMs);
                         else if (waitMs < -1000) nextAt = DateTime.UtcNow;  // fell behind; resync
                         frame = src.Next();
+                        if (frame != null && healer != null) frame = healer.Feed(frame);
                     }
                 }
                 catch (Exception ex)
@@ -2025,6 +2290,7 @@ namespace LumenRefresh
             if (times.Count == 0) { times.Add(2); times.Add(18); times.Add(34); times.Add(50); }
 
             Grade grade = BuildGrade(opt);
+            Grade blendTo = BuildBlendTo(opt);
             string asset = opt.Source != null ? opt.Source : EnsureAsset(opt.Verbose);
 
             SmokeSource src;
@@ -2036,6 +2302,7 @@ namespace LumenRefresh
             }
 
             Renderer rend = new Renderer(grade, opt, src.Width, src.Height);
+            if (blendTo != null) rend.SetBlendPair(blendTo);
             int w = src.Width, h = src.Height;
             int frameIndex = 0;
             double frameTime = 1.0 / 24.0;
@@ -2143,8 +2410,23 @@ namespace LumenRefresh
 
             Grade fromGrade = BuildGrade(opt);
             Grade toGrade = string.IsNullOrEmpty(opt.Progress) ? null : BuildGrade(opt, opt.Progress);
+            Grade blendTo = BuildBlendTo(opt);
             double progressSpan = opt.ProgressMinutes > 0 ? opt.ProgressMinutes * 60.0 : 600.0;
             Renderer rend = new Renderer(fromGrade, opt, src.Width, src.Height);
+            if (blendTo != null) rend.SetBlendPair(blendTo);
+
+            Healer healer = null;
+            if (opt.Heal > 0.001f)
+            {
+                healer = new Healer(src.Width, src.Height, opt.Heal);
+                for (int i = 0; i < 48 && !healer.HaveHold; i++)
+                {
+                    byte[] pf = src.Next();
+                    if (pf == null) break;
+                    healer.Feed(pf);
+                }
+                src.Rewind();
+            }
 
             string outPath = Path.GetFullPath(opt.Export);
             ProcessStartInfo psi = new ProcessStartInfo(ff);
@@ -2167,6 +2449,7 @@ namespace LumenRefresh
                 Bitmap bmp = new Bitmap(w, h, PixelFormat.Format32bppRgb);
                 byte[] row = new byte[w * 4];
                 byte[] frame = src.Next();
+                if (frame != null && healer != null) frame = healer.Feed(frame);
                 for (int i = 0; i < total && frame != null; i++)
                 {
                     if (toGrade != null)
@@ -2200,6 +2483,7 @@ namespace LumenRefresh
                         src.Rewind();
                         frame = src.Next();
                     }
+                    if (frame != null && healer != null) frame = healer.Feed(frame);
                 }
                 bmp.Dispose();
                 stdin.Flush();
@@ -2221,6 +2505,78 @@ namespace LumenRefresh
             Console.WriteLine("wrote " + outPath + "  " + w + "x" + h + "  " + wrote + " frames  " +
                               (wrote / 24.0).ToString("0.0", CultureInfo.InvariantCulture) + " s");
             return 0;
+        }
+
+        /// <summary>
+        /// One clip per palette. Each palette reopens the source, so a failure on one
+        /// cannot take the batch down, and an existing file is skipped rather than
+        /// re-encoded - that is what makes an interrupted 42-palette run resumable.
+        /// </summary>
+        private static int ExportAll(Options opt)
+        {
+            string dir;
+            try
+            {
+                dir = Path.GetFullPath(opt.ExportAll);
+                Directory.CreateDirectory(dir);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("bad --export-all directory: " + ex.Message);
+                return 2;
+            }
+
+            List<string> names = new List<string>();
+            if (!string.IsNullOrEmpty(opt.Palettes))
+            {
+                string[] parts = opt.Palettes.Split(',');
+                for (int k = 0; k < parts.Length; k++)
+                {
+                    string n = parts[k].Trim();
+                    if (n.Length > 0) names.Add(n);
+                }
+            }
+            else
+            {
+                string[] all = new string[Grade.Presets.Count];
+                Grade.Presets.Keys.CopyTo(all, 0);
+                Array.Sort(all);
+                for (int k = 0; k < all.Length; k++) names.Add(all[k]);
+            }
+            if (names.Count == 0) { Console.Error.WriteLine("no palettes to export"); return 2; }
+
+            Console.Error.WriteLine("exporting " + names.Count + " palette(s) into " + dir);
+            int ok = 0, failed = 0;
+            for (int i = 0; i < names.Count; i++)
+            {
+                string name = names[i];
+                string file = Path.Combine(dir, name + ".mp4");
+                if (File.Exists(file))
+                {
+                    Console.Error.WriteLine("  [" + (i + 1) + "/" + names.Count + "] " + name + "  exists, skipped");
+                    ok++;
+                    continue;
+                }
+                Console.Error.WriteLine("  [" + (i + 1) + "/" + names.Count + "] " + name);
+                Options one = opt;
+                one.Palette = name;
+                one.Palettes = null;
+                one.ExportAll = null;
+                one.Export = file;
+                try
+                {
+                    int rc = Export(one);
+                    if (rc == 0) ok++;
+                    else { failed++; Console.Error.WriteLine("  " + name + " failed (rc=" + rc + ")"); }
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    Console.Error.WriteLine("  " + name + " failed: " + ex.Message);
+                }
+            }
+            Console.WriteLine("batch: " + ok + " ok, " + failed + " failed, into " + dir);
+            return failed == 0 ? 0 : 3;
         }
 
         // ------------------------------------------------------- shell integration
@@ -2522,6 +2878,139 @@ namespace LumenRefresh
                 plainB.Dispose(); ripB.Dispose(); scanB.Dispose(); glowB.Dispose();
             }
 
+            // 2h. --gamma must lift the midtones without moving black
+            {
+                Options gm1 = new Options(); gm1.Palette = "native";
+                Options gm2 = new Options(); gm2.Palette = "native"; gm2.Gamma = 1.8f;
+                int gv1 = BuildGrade(gm1).Map(96, 96, 96, 1f).R;
+                int gv2 = BuildGrade(gm2).Map(96, 96, 96, 1f).R;
+                int gv0 = BuildGrade(gm2).Map(0, 0, 0, 1f).R;
+                bool gammaOk = gv2 > gv1 + 8 && gv0 < 4;
+                Console.WriteLine((gammaOk ? "PASS" : "FAIL") + "  gamma lifts midtones only (" +
+                                  gv1 + " -> " + gv2 + ", black " + gv0 + ")");
+                if (!gammaOk) failures++;
+            }
+
+            // 2i. --grain must perturb the frame, and roughly preserve its mean
+            {
+                int nw = 160, nh = 90;
+                byte[] nf = new byte[nw * nh * 4];
+                for (int i = 0; i < nw * nh; i++)
+                {
+                    nf[i * 4] = 90; nf[i * 4 + 1] = 90; nf[i * 4 + 2] = 90; nf[i * 4 + 3] = 255;
+                }
+                Grade ng = Grade.FromName("native"); ng.Compile();
+                Options no0 = new Options(); no0.Palette = "native";
+                Options no1 = new Options(); no1.Palette = "native"; no1.Grain = 1f;
+                Bitmap nb0 = new Bitmap(nw, nh, PixelFormat.Format32bppRgb);
+                Bitmap nb1 = new Bitmap(nw, nh, PixelFormat.Format32bppRgb);
+                Renderer nr0 = new Renderer(ng, no0, nw, nh);
+                Renderer nr1 = new Renderer(ng, no1, nw, nh);
+                nr0.Time = 0f; nr0.Blit(nf, false, nb0, 1f, 0, 0, 0);
+                nr1.Time = 0f; nr1.Blit(nf, false, nb1, 1f, 0, 0, 0);
+                int nchanged = 0;
+                long nsum0 = 0, nsum1 = 0;
+                for (int y = 0; y < nh; y++)
+                {
+                    for (int x = 0; x < nw; x++)
+                    {
+                        int a0 = nb0.GetPixel(x, y).R, a1 = nb1.GetPixel(x, y).R;
+                        if (a0 != a1) nchanged++;
+                        nsum0 += a0; nsum1 += a1;
+                    }
+                }
+                int npx = nw * nh;
+                long nBias = nsum1 - nsum0;
+                bool grainOk = nchanged > npx / 2 && Math.Abs(nBias) < npx * 2;
+                Console.WriteLine((grainOk ? "PASS" : "FAIL") + "  grain perturbs " +
+                                  (nchanged * 100 / npx) + "% of pixels, mean drift " +
+                                  (nBias / (double)npx).ToString("0.00", CultureInfo.InvariantCulture));
+                if (!grainOk) failures++;
+                nb0.Dispose(); nb1.Dispose();
+            }
+
+            // 2j. an a+b blend must sweep, and must meet itself at the loop seam
+            {
+                int sw2 = 64, sh2 = 36;
+                byte[] sf = new byte[sw2 * sh2 * 4];
+                for (int i = 0; i < sw2 * sh2; i++)
+                {
+                    sf[i * 4] = 150; sf[i * 4 + 1] = 120; sf[i * 4 + 2] = 100; sf[i * 4 + 3] = 255;
+                }
+                Grade sga = Grade.FromName("ember"); sga.Compile();
+                Grade sgb = Grade.FromName("ice"); sgb.Compile();
+                Options so = new Options(); so.Palette = "ember+ice"; so.BlendPeriod = 60f;
+                Renderer sr = new Renderer(sga, so, sw2, sh2);
+                sr.SetBlendPair(sgb);
+                Bitmap sb0 = new Bitmap(sw2, sh2, PixelFormat.Format32bppRgb);
+                Bitmap sbm = new Bitmap(sw2, sh2, PixelFormat.Format32bppRgb);
+                Bitmap sb1 = new Bitmap(sw2, sh2, PixelFormat.Format32bppRgb);
+                sr.Time = 0f; sr.Blit(sf, false, sb0, 1f, 0, 0, 0);
+                sr.Time = 30f; sr.Blit(sf, false, sbm, 1f, 0, 0, 0);
+                sr.Time = 59.9f; sr.Blit(sf, false, sb1, 1f, 0, 0, 0);
+                Color sc0 = sb0.GetPixel(32, 18), scm = sbm.GetPixel(32, 18), sc1 = sb1.GetPixel(32, 18);
+                int seamGap = Math.Abs(sc0.R - sc1.R) + Math.Abs(sc0.G - sc1.G) + Math.Abs(sc0.B - sc1.B);
+                int swing = Math.Abs(sc0.R - scm.R) + Math.Abs(sc0.G - scm.G) + Math.Abs(sc0.B - scm.B);
+                bool sweepOk = seamGap <= 6 && swing > 20;
+                Console.WriteLine((sweepOk ? "PASS" : "FAIL") + "  palette blend sweeps (" + swing +
+                                  ") and closes the seam (" + seamGap + ")");
+                if (!sweepOk) failures++;
+                sb0.Dispose(); sbm.Dispose(); sb1.Dispose();
+            }
+
+            // 2j-b. a ramp palette and a duo palette must crossfade. Mixing only the ramp
+            // tables returned grade A here, so the sweep above (two hue/sat palettes)
+            // passed while "neon-cyan+sunset-clouds" rendered as plain neon-cyan.
+            {
+                Grade xa = Grade.FromName("neon-cyan"); xa.Compile();
+                Grade xb = Grade.FromName("sunset-clouds"); xb.Compile();
+                Grade xEnd = Grade.Blend(xa, xb, 1f);
+                Grade xMid = Grade.Blend(xa, xb, 0.4f);
+                int[] qR = { 40, 120, 200, 90 };
+                int[] qG = { 60, 90, 200, 30 };
+                int[] qB = { 80, 40, 30, 210 };
+                int dToB = 0, dFromA = 0, dToA = 0;
+                for (int q = 0; q < 4; q++)
+                {
+                    Color cb = xb.Map(qR[q], qG[q], qB[q], 1f);
+                    Color ca = xa.Map(qR[q], qG[q], qB[q], 1f);
+                    Color ce = xEnd.Map(qR[q], qG[q], qB[q], 1f);
+                    Color cm = xMid.Map(qR[q], qG[q], qB[q], 1f);
+                    dToB += Math.Abs(ce.R - cb.R) + Math.Abs(ce.G - cb.G) + Math.Abs(ce.B - cb.B);
+                    dToA += Math.Abs(ce.R - ca.R) + Math.Abs(ce.G - ca.G) + Math.Abs(ce.B - ca.B);
+                    dFromA += Math.Abs(cm.R - ca.R) + Math.Abs(cm.G - ca.G) + Math.Abs(cm.B - ca.B);
+                }
+                bool mixOk = dToB <= 2 && dFromA > 30 && dToA > 30;
+                Console.WriteLine((mixOk ? "PASS" : "FAIL") + "  ramp and duo crossfade (ends on B: " +
+                                  dToB + ", mid moved from A: " + dFromA + ")");
+                if (!mixOk) failures++;
+            }
+
+            // 2k. --heal must pass a lit frame through and cover a black gap with the hold
+            {
+                int hw2 = 96, hh2 = 54;
+                byte[] lit = new byte[hw2 * hh2 * 4];
+                for (int i = 0; i < hw2 * hh2; i++)
+                {
+                    lit[i * 4] = 60; lit[i * 4 + 1] = 120; lit[i * 4 + 2] = 180; lit[i * 4 + 3] = 255;
+                }
+                byte[] blk = new byte[hw2 * hh2 * 4];
+                for (int i = 0; i < hw2 * hh2; i++) blk[i * 4 + 3] = 255;
+                Healer hf = new Healer(hw2, hh2, 1f);
+                bool passthru = ReferenceEquals(hf.Feed(lit), lit);
+                byte[] got = hf.Feed(blk);
+                bool swapped = !ReferenceEquals(got, blk);
+                long litR = 0, gotR = 0;
+                for (int i = 0; i < hw2 * hh2; i++) { litR += lit[i * 4 + 2]; gotR += got[i * 4 + 2]; }
+                Healer hz = new Healer(hw2, hh2, 0f);
+                hz.Feed(lit);
+                bool inert = ReferenceEquals(hz.Feed(blk), blk);
+                bool healOk = passthru && swapped && inert && gotR > litR * 95 / 100;
+                Console.WriteLine((healOk ? "PASS" : "FAIL") + "  heal holds the lit frame across a gap (" +
+                                  (gotR * 100 / litR) + "% of it), strength 0 leaves the gap");
+                if (!healOk) failures++;
+            }
+
             // 3. decode path works
             try
             {
@@ -2581,6 +3070,10 @@ namespace LumenRefresh
             Console.WriteLine("                         palette delivers a comparable refresh dose");
             Console.WriteLine("  --progress <name>      ramp from --palette toward this one over the session");
             Console.WriteLine("  --progress-minutes <f> ramp length, default 10");
+            Console.WriteLine("  --palette \"a+b\"         crossfade a into b and back once per loop, so the seam");
+            Console.WriteLine("                         is invisible at both ends");
+            Console.WriteLine("  --blend-period <n>     loops per a+b sweep, default 1");
+            Console.WriteLine("  --gamma <f>            multiply the grade's gamma (1.0 = untouched)");
             Console.WriteLine();
             Console.WriteLine("PATTERN");
             Console.WriteLine("  --speed <f>            playback speed, default 1.0");
@@ -2599,9 +3092,12 @@ namespace LumenRefresh
             Console.WriteLine("  --no-shift             disable pixel shift");
             Console.WriteLine("  --ripple <px>          travelling wave through the sample grid");
             Console.WriteLine("  --scan <0..1>          soft scanline darkening");
-            Console.WriteLine("  --bloom <0..1>         glow around the bright passages (costs a second");
-            Console.WriteLine("                         full-frame sweep: free in --export, ~9 fps live at");
-            Console.WriteLine("                         panel size, so pair it with --render 1920x1080 live)");
+            Console.WriteLine("  --bloom <0..1>         glow around the bright passages, blurred at 1/16 and");
+            Console.WriteLine("                         added back; free in --export, live it is the frame");
+            Console.WriteLine("                         budget, so lower --render to 1920x1080 if it drops");
+            Console.WriteLine("  --grain <0..1>         static film grain, scrolled per frame");
+            Console.WriteLine("  --heal [s]             dissolve the source's black gaps into the last lit");
+            Console.WriteLine("                         frame instead of cutting to black");
             Console.WriteLine();
             Console.WriteLine("RUN CONTROL");
             Console.WriteLine("  --minutes <f>          auto-exit after N minutes");
@@ -2615,6 +3111,9 @@ namespace LumenRefresh
             Console.WriteLine("  --export <file.mp4>    render instead of playing (needs ffmpeg on PATH,");
             Console.WriteLine("                         or --ffmpeg <path>)");
             Console.WriteLine("  --export-size <WxH>    export resolution, default 1920x1080");
+            Console.WriteLine("  --export-seconds <f>   export length, default is the full loop");
+            Console.WriteLine("  --export-all <dir>     one clip per palette, named <dir>/<palette>.mp4");
+            Console.WriteLine("  --palettes <a,b,c>     the subset --export-all renders, default every one");
             Console.WriteLine();
             Console.WriteLine("SHELL");
             Console.WriteLine("  --install-scr [--scr-timeout n]   register as the current user's screen");
