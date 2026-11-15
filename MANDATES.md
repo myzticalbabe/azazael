@@ -1342,10 +1342,10 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 | name | the part | what the name requires of it |
 |---|---|---|
 | **CRADLE** | `Project_CRADLE/cradle.py` | holds the work and hands it to the user's own model; adds no judgement of its own |
-| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
-| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
-| **THE REAPER** | `tools/sentinel.py` | **acts** on a frame whose claims do not resolve: takes it out of play and names the failing claim. A sentinel watches; this one reaps |
-| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: one line per thing that failed or was refused, written **at the moment it failed**, read back by the next frame, or reported UNMEMORED with its reason |
+| **FLAMING SWORD** | `Project_CRADLE/tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `Project_CRADLE/tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `Project_CRADLE/tools/sentinel.py` | **acts** on a frame whose claims do not resolve: takes it out of play and names the failing claim. A sentinel watches; this one reaps |
+| **THE GRIMOIRE** | `Project_CRADLE/tools/memory_bridge.py` → `lessons.jsonl` | the book: one line per thing that failed or was refused, written **at the moment it failed**, read back by the next frame, or reported UNMEMORED with its reason |
 
 **ACTION — the names are vocabulary, not file names:**
 1. `sentinel.py` and `lessons.jsonl` keep their paths. A rename that breaks the gates quoting those paths is forbidden (**RULE 0B**: the instruction governs, and the instruction was to name the parts, not to move them).

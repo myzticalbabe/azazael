@@ -2345,10 +2345,15 @@ python -c "import sys; sys.path.insert(0, 'src'); from CORE.worm_registry import
 - Python 3.13 is not installed on this system for development purposes
 
 ### Rule 3.14t-2: All Nuitka Builds on 3.14t
-- Before any Nuitka build, run `python azazael/docs/scripts/patch_nuitka_314t.py --apply`
-- This applies 9 C-level patches to Nuitka 4.1.2 for 3.14t compatibility
+- Before any Nuitka build, run `python3.15t docs/scripts/patch_nuitka_315t.py --apply`
+- This applies 9 C-level patches to Nuitka 4.1.2 for free-threading compatibility
 - Never fall back to Python 3.13 for Nuitka builds
-- The patch script is at `azazael/docs/scripts/patch_nuitka_314t.py`
+- The patch script is at `docs/scripts/patch_nuitka_315t.py`. There is no
+  `patch_nuitka_314t.py` on this tree (measured 2026-11-14: `find . -name
+  "patch_nuitka*"` returns `docs/scripts/patch_nuitka_315t.py` alone), so this
+  rule named a command that could not run. The script's own header states the
+  patches are authored against 3.14t and NOT re-validated against 3.15 headers,
+  and that Nuitka is absent from the 3.15t venv — `.exe` builds are SUSPENDED.
 
 ### Rule 3.14t-3: Package Installation on 3.14t
 - Always verify `cp314t` wheel tag: `pip install` picks the right wheel automatically
@@ -2621,10 +2626,10 @@ here because this file is the primary and a name that lives in one document is f
 | name | the part | the claim the name makes |
 |---|---|---|
 | **CRADLE** | `Project_CRADLE/cradle.py` | holds the work, hands it to the user's own model, adds no judgement of its own |
-| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
-| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
-| **THE REAPER** | `tools/sentinel.py` | acts on an unresolved frame: takes it out of play, names the failing claim |
-| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: written at the moment of failure, read by the next frame, or UNMEMORED with a reason |
+| **FLAMING SWORD** | `Project_CRADLE/tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `Project_CRADLE/tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `Project_CRADLE/tools/sentinel.py` | acts on an unresolved frame: takes it out of play, names the failing claim |
+| **THE GRIMOIRE** | `Project_CRADLE/tools/memory_bridge.py` → `lessons.jsonl` | the book: written at the moment of failure, read by the next frame, or UNMEMORED with a reason |
 
 **The names are vocabulary, not paths.** `sentinel.py` and `lessons.jsonl` keep their
 file names because gates, tasks and documents quote those paths; a rename to match a
