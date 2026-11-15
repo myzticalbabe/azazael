@@ -40,5 +40,5 @@ def load(*args, **kwargs):
     """Return the vendored unit. Importing the module is the adoption."""
     import importlib
 
-    vendored = importlib.import_module('adopted.kali.SCRIPTS.environ_updater')
+    vendored = importlib.import_module('adopted.kali.scripts.environ_updater')
     return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)

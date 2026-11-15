@@ -40,5 +40,5 @@ def load(*args, **kwargs):
     """Return the vendored unit. Importing the module is the adoption."""
     import importlib
 
-    vendored = importlib.import_module('adopted.aoa.event_bus')
+    vendored = importlib.import_module('adopted.kali.AOA.core.event_bus')
     return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)

@@ -5738,29 +5738,29 @@
    "mode": "vendored"
   },
   "kali:AOA/core/event_bus.py#EventBus": {
-   "test": "tests/test_adopted_event_bus.py",
-   "commit": "256722e3",
-   "mode": "adopted"
+   "test": "tests/test_adopted_kali_vendored.py",
+   "commit": "vendored",
+   "mode": "vendored"
   },
   "kali:AOA/core/event_bus.py#AOEvent": {
-   "test": "tests/test_adopted_event_bus.py",
-   "commit": "256722e3",
-   "mode": "adopted"
+   "test": "tests/test_adopted_kali_vendored.py",
+   "commit": "vendored",
+   "mode": "vendored"
   },
   "kali:AOA/core/event_bus.py#AOEventType": {
-   "test": "tests/test_adopted_event_bus.py",
-   "commit": "256722e3",
-   "mode": "adopted"
+   "test": "tests/test_adopted_kali_vendored.py",
+   "commit": "vendored",
+   "mode": "vendored"
   },
   "kali:AOA/core/event_bus.py#EventPipeline": {
-   "test": "tests/test_adopted_event_bus.py",
-   "commit": "256722e3",
-   "mode": "adopted"
+   "test": "tests/test_adopted_kali_vendored.py",
+   "commit": "vendored",
+   "mode": "vendored"
   },
   "kali:AOA/core/event_bus.py#EventPriority": {
-   "test": "tests/test_adopted_event_bus.py",
-   "commit": "256722e3",
-   "mode": "adopted"
+   "test": "tests/test_adopted_kali_vendored.py",
+   "commit": "vendored",
+   "mode": "vendored"
   }
  }
 }

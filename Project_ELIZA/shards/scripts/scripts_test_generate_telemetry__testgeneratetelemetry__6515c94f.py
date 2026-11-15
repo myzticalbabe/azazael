@@ -40,5 +40,5 @@ def load(*args, **kwargs):
     """Return the vendored unit. Importing the module is the adoption."""
     import importlib
 
-    vendored = importlib.import_module('adopted.kali.SCRIPTS.test_generate_telemetry')
+    vendored = importlib.import_module('adopted.kali.scripts.test_generate_telemetry')
     return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)

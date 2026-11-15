@@ -12,6 +12,7 @@ the remainder explicitly:
   python tools/adopt_queue.py --vendor         # mirror + normalise the source
   python tools/adopt_queue.py --run 20         # adopt the next 20 modules
   python tools/adopt_queue.py --retry-blocked  # try the blocked rows again
+  python tools/adopt_queue.py --relink         # re-emit load() from today's spelling
 
 **How a row is adopted.** The row is a Kali module. The worker vendors the whole
 Kali source tree once (verbatim, imports normalised to the vendored root), then
@@ -604,6 +605,40 @@ def _wire(row: Dict) -> None:
     }, indent=1) + "\n", encoding="utf-8", newline="\n")
 
 
+def relink() -> int:
+    """Re-emit the generated `load()` body for rows already marked done.
+
+    A stub bakes its dotted name at the moment it is written, so a later fix to
+    `_real_case` cannot reach the file already on disk: `vendor()` extracted the
+    tree with the directory spelled `scripts` while the stubs had been written
+    against a host that spelled it `SCRIPTS`, and 52 shards imported a package
+    that exists under no such name (measured 2026-11-15). `run()` skips done
+    rows and `verify()` would demote them, so neither repairs the spelling.
+
+    Only the generated tail is rewritten -- everything above `def load(` is kept
+    verbatim, because that part is authored and this is not.
+    """
+    payload = read_queue()
+    relinked = 0
+    for row in payload["rows"]:
+        if row["status"] != "done":
+            continue
+        expected = "importlib.import_module(%r)" % _dotted(row["module"])
+        stale = []
+        for shard in row["shards"]:
+            path = REPO / shard["path"]
+            if not path.is_file():
+                continue
+            if expected not in path.read_text(encoding="utf-8"):
+                stale.append(shard)
+        if not stale:
+            continue
+        _wire({"module": row["module"], "shards": stale})
+        relinked += len(stale)
+    print("relinked %d stub(s)" % relinked)
+    return status()
+
+
 def run(limit: int, retry_blocked: bool = False) -> int:
     if not VENDOR.is_dir():
         print("no vendored tree; run --vendor first", file=sys.stderr)
@@ -646,6 +681,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--run", type=int, metavar="N")
     parser.add_argument("--retry-blocked", action="store_true")
     parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--relink", action="store_true")
     args = parser.parse_args(argv)
     if args.build:
         return build()
@@ -655,6 +691,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return run(args.run, args.retry_blocked)
     if args.verify:
         return verify()
+    if args.relink:
+        return relink()
     return status()
 
 
