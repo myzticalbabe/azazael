@@ -12,7 +12,18 @@ legacy file. The contract these tests lock:
 import sys
 from pathlib import Path
 
-import tools.staged_scanner_gate as gate
+# Import by file location, the same way the other gate tests do. `import
+# tools.staged_scanner_gate` looks identical and is not: `tools/` carries no
+# __init__.py on purpose (the per-project trees are separate portions of the
+# same namespace), so a regular `tools` package installed in site-packages --
+# present on the 3.13 interpreter this gate's control runs under -- wins the
+# lookup and this file fails at COLLECTION with ModuleNotFoundError. The
+# preflight control reported that as a dead gate, which is what it was.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tools"))
+
+import staged_scanner_gate as gate  # noqa: E402
 
 
 _CLEAN = "x = 1\n"
