@@ -3,8 +3,10 @@
 **Proposal to the NLnet Foundation / NGI Zero**
 **Applicant:** Clint Oxford (individual), United States
 **Project:** Project CRADLE — `https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE`
-**Licence:** CDDL-1.1 (see `LICENSE`, `NOTICE`, and the licence ruling recorded in
-`docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md`)
+**Licence:** Soul Forge License v1.0, adopted 2026-11-14 — later than the draft date
+below, which is why this field states the licence in force now rather than the one in
+force when the draft was written (see `LICENSE`, `NOTICE`, and the ruling recorded in
+`docs/LICENSE_SOUL_FORGE_2026-11-15.md`)
 **Amount requested:** €49,500 over 12 months
 **Document date:** 2026-11-03
 
@@ -67,7 +69,7 @@ failed claims and no prompt** when a frame does not resolve. `POST /ask` returns
   verification layer cannot itself become the supply-chain risk it audits.
 - **Vendor-neutral by construction.** The same claim-check runs against any model
   the user already has, including the next one they install.
-- **A commons artefact, not a service.** CDDL-1.1, with the failure vocabulary and
+- **A commons artefact, not a service.** Soul Forge License v1.0, with the failure vocabulary and
   the lesson format documented as a spec that other tools can implement.
 
 ## 4. Current state — what exists and what does not
@@ -130,7 +132,7 @@ own catch rate is unmeasured is a claim, not a control.
 The four parts ship today and run today; CRADLE composes them and reports a missing
 sibling rather than failing (a part that was never going to be in this repository is
 not a defect in this repository). The surrounding ecosystem — FLAMING SWORD,
-SHARDEX, FLAME — is public in the same repository under CDDL-1.1. This proposal
+SHARDEX, FLAME — is public in the same repository under Soul Forge License v1.0. This proposal
 concerns CRADLE only.
 
 ## 8. Budget

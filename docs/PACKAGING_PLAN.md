@@ -1,9 +1,9 @@
 # What ships with the tree — the packaging plan
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License note (2026-11-15).** This document was drafted before the Soul Forge
+> License v1.0 was adopted (2026-11-14). Where it names a license, it records the
+> state on the date above and does not govern this code. The operative license for
+> every tree here is the Soul Forge License v1.0 (`LICENSE`).
 
 **Status: proposal, 2026-11-01.** Every state in this document was measured in
 this tree on this date; nothing here is a roadmap dressed as an inventory. Where

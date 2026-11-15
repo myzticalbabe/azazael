@@ -1,9 +1,13 @@
 # AUDIT — Project_SHARDEX standalone publish readiness (2026-11-02)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 Read-only audit. **Nothing was executed** (this auditor had no terminal), so every
 statement below is a reading of source, not a test result. Test *status* is therefore
@@ -115,7 +119,7 @@ failure, not a cosmetic difference.
    visitor looks for. Also no `.github/`, no `CITATION.cff`, whereas the sibling
    therapeutic project ships all three.
 3. **`LICENSE` and `NOTICE` were added today by another worker** (not by this audit) —
-   present in the tree now; Soul Forge License v1.0.
+   present in the tree now; Apache-2.0.
 4. **The `tools/*.js` harness must move into the tree** (e.g. `Project_SHARDEX/tools/`) or
    the L2-live section of `SHARDEX.md` must be marked monorepo-only. The first is better:
    it is 249 lines of the verifying half of the claim.

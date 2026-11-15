@@ -1,9 +1,13 @@
 # AUDIT — Project_FLAMING_SWORD (standalone publish candidate)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 **Date:** 2026-11-02 · **Auditor:** worker 2 of 18, FULL AUDIT fan-out
 **Target:** `C:/Azazael/azazael/Project_FLAMING_SWORD`
@@ -23,7 +27,7 @@ no import, no git. Verdicts rest on reading source, not on observing behaviour.
 | `aio/` | `flaming_sword.aio.json` (the instruction object `--brief` prints) |
 | root files | `README.md`, `config.example.json`, `LICENSE`, `NOTICE` |
 
-`LICENSE` and `NOTICE` (Soul Forge License v1.0) are **new as of today** and were not in the
+`LICENSE` and `NOTICE` (Apache-2.0) are **new as of today** and were not in the
 tree before this audit; they are present now. There is **no `pyproject.toml`,
 `setup.py` or `setup.cfg`** — see §4.
 

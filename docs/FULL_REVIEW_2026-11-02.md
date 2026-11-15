@@ -1,9 +1,13 @@
 # Full review — 2026-11-02, pre-push gate
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 Every row below comes from a command that ran against a **clean `git clone`** of the
 staged repo, not against the source tree. A working tree can hold gitignored files a
@@ -22,7 +26,7 @@ session.
 | ELIZA | `eliza` | yes | yes | **FAIL** | 9 errors | clean |
 
 **316 tests pass** across five repos; 9 skip with a stated reason. Total staged size
-3.0 MB. Every repo carries Soul Forge License v1.0, a NOTICE, and a renderable README.
+3.0 MB. Every repo carries Apache-2.0, a NOTICE, and a renderable README.
 
 ## Two fixes applied during this review
 

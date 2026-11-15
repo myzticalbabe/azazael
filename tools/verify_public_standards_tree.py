@@ -20,10 +20,12 @@ passed.
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
-from verify_public_standards import verify_repo
+from verify_public_standards import REQUIRED_GOVERNANCE, REQUIRED_TEMPLATES
+from verify_public_standards import REQUIRED_WORKFLOWS, verify_repo
 
 PASS_LINE = "PASS -- Repository meets all professional standards"
 BAR = "=" * 66
@@ -35,6 +37,40 @@ def publication_roots(root: Path) -> list[Path]:
         for candidate in root.glob("*/PUBLIC_MANIFEST.json")
         if candidate.is_file()
     )
+
+
+def tracked_files(root: Path) -> set[str] | None:
+    """Repository-relative paths git knows about, or None if git is unavailable."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=root,
+            capture_output=True,
+            check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return {p.replace("\\", "/") for p in out.decode("utf-8", "replace").split("\0") if p}
+
+
+def uncommitted_required(project: Path, root: Path, tracked: set[str]) -> list[str]:
+    """Required files that exist on disk but are not in the repository.
+
+    verify_repo() asks whether a file exists, which is the right question for a
+    gate that runs after `tools/publicize.py`. It is not enough on its own: a
+    required file that only exists in someone's working tree makes this driver
+    print PASS for a tree that a fresh clone renders FAIL. That gap is how six
+    scaffolds came to carry verbatim copies of another project's ci.yml without
+    anything objecting -- so it is reported here rather than inferred by hand.
+    """
+    out: list[str] = []
+    for name in (*REQUIRED_GOVERNANCE, *REQUIRED_WORKFLOWS, *REQUIRED_TEMPLATES):
+        if not (project / name).exists():
+            continue
+        rel = (project / name).relative_to(root).as_posix()
+        if rel not in tracked:
+            out.append(name)
+    return out
 
 
 def main(argv: list[str]) -> int:
@@ -51,6 +87,8 @@ def main(argv: list[str]) -> int:
     print(f"verify_public_standards_tree: {root}")
     print(f"  {len(roots)} publication root(s)")
 
+    tracked = tracked_files(root)
+    uncommitted: list[tuple[str, list[str]]] = []
     unmet: list[tuple[str, list[str]]] = []
     graded: list[tuple[Path, dict]] = []
     for project in roots:
@@ -76,8 +114,27 @@ def main(argv: list[str]) -> int:
         )
         for item in result.get("missing", []):
             print(f"       MISSING {project.name}: {item}")
+        if tracked is not None:
+            loose = uncommitted_required(project, root, tracked)
+            if loose:
+                uncommitted.append((project.name, loose))
+                print(
+                    f"       NOT COMMITTED {project.name}: {len(loose)} required "
+                    f"file(s) exist only in the working tree "
+                    f"({', '.join(loose)})"
+                )
 
     print(BAR)
+    if uncommitted:
+        total = sum(len(items) for _, items in uncommitted)
+        print(
+            f"WARN -- {len(uncommitted)} root(s) meet the standard on disk with "
+            f"{total} required file(s) that are untracked; a fresh clone of "
+            f"those roots would FAIL this same check."
+        )
+        for name, items in uncommitted:
+            print(f"  - {name}: {len(items)} untracked")
+        print(BAR)
     if unmet:
         print(f"FAIL -- {len(unmet)} of {len(roots)} publication root(s) unmet:")
         for name, items in unmet:

@@ -72,7 +72,12 @@ jobs:
       security-events: write
       actions: read
       contents: read
-    if: "hashFiles('**/*.js', '**/*.ts', '**/*.html') != ''"
+    # This job was gated on `if: "hashFiles('**/*.js', ...) != ''"`, which cannot
+    # work at job level: `hashFiles` needs a checked-out workspace and the job
+    # level is evaluated before checkout, so the expression always evaluated
+    # empty and the analysis never ran. Measured 2026-11-15 (`git ls-files`):
+    # 149 tracked `.js` files (plus 462 `.html`), so there is always JavaScript
+    # to analyse and no guard is needed.
 
     steps:
       - name: Checkout repository

@@ -1,9 +1,9 @@
 # License — Soul Forge License v1.0 (adopted 2026-11-15)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): current.** This is the operative ruling, not a
+> historical record. Every tree in this repository is licensed under the Soul Forge
+> License v1.0 (`LICENSE`). Where this document describes an earlier license it is
+> describing what it replaced, not what applies.
 
 **Ruling:** every tree in this repository — the repository root and all 37
 `Project_*` directories — is licensed under the **Soul Forge License v1.0**.
@@ -18,10 +18,11 @@ Source: https://github.com/myzticalbabe/<repository>
 Spirit: "Code is crystallized intention. Tend the fire."
 ```
 
-This supersedes every earlier license decision in this tree, including
-commit `b49dfc2fef0178d1984437de577bfa00de8a4c32` (2026-11-03) and the
-Soul Forge License v1.0 state that preceded it. Those commits remain in history; they no
-longer describe the license of any file here.
+This supersedes every earlier license decision in this tree, including commit
+`b49dfc2fef0178d1984437de577bfa00de8a4c32` (2026-11-03), which unified four Projects
+under CDDL-1.1, and the Apache-2.0 state that preceded it — a state the root did not
+even declare, so GitHub reported `license: null`. Those commits remain in history;
+they no longer describe the license of any file here.
 
 ## Why one license
 

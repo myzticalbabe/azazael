@@ -1,9 +1,13 @@
 # AUDIT — Project_CRADLE (2026-11-02)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 **Target:** `C:/Azazael/azazael/Project_CRADLE`
 **Question:** can this publish as its own standalone GitHub repo, usable with no monorepo present?
@@ -18,7 +22,7 @@
 |---|---|---|
 | `cradle.py` | yes | entry point, 1 file |
 | `CRADLE.md` | yes | the document (there is no `README.md`) |
-| `LICENSE` | yes | Soul Forge License v1.0, added this session |
+| `LICENSE` | yes | Apache-2.0, added this session |
 | `NOTICE` | yes | added this session; already declares the sibling dependency |
 | `tests/test_cradle.py` | yes | 12 test functions |
 | `pyproject.toml` | **no** | none in the directory listing |

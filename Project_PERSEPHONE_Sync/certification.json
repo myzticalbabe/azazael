@@ -1,0 +1,104 @@
+{
+ "schema": "persephone-sync/certification@1",
+ "updated": "2026-11-15",
+ "note": "There is no tools/certification_bar.py in this tree, so no gate computes these numbers: `bar` below is derived from the criteria by tools/_fix_scaffold_metadata.py, and `--check` re-derives it so it cannot drift. Treat each `done` as a claim that names a path you can open. `deployable` stays false until every required requirement is fully met; a partial requirement is not a partial licence to ship.",
+ "computed_by": null,
+ "held": [],
+ "bar": {
+  "criteria_done": 5,
+  "criteria_total": 9,
+  "percent": 55.6,
+  "required_requirements": 2,
+  "required_requirements_met": 0,
+  "deployable": false
+ },
+ "requirements": [
+  {
+   "id": "path_resolution",
+   "title": "Path translation that is implemented, not shelled out",
+   "short": "paths",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "Windows and WSL path translation lives in the library",
+     "done": true,
+     "evidence": {
+      "path": "tools/PERSEPHONE/lib/path_manager.py",
+      "note": "converts a Windows path to its WSL mount and back inside the library, so no caller has to shell out to do it"
+     }
+    },
+    {
+     "text": "Environment detection exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/PERSEPHONE/lib/environment.py",
+      "note": "answers which environment it is running in; every sync decision downstream depends on that answer"
+     }
+    },
+    {
+     "text": "A round-trip test covers a path that exists on only one side",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "sync_is_safe",
+   "title": "A sync that cannot destroy the thing it is syncing",
+   "short": "safe sync",
+   "weight": 4,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A sync manager exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/PERSEPHONE/lib/sync_manager.py",
+      "note": "moves code and configs between environments; the open criteria are what it refuses to do"
+     }
+    },
+    {
+     "text": "A delete is refused unless the operator asked for it by name",
+     "done": false,
+     "evidence": ""
+    },
+    {
+     "text": "An interrupted sync leaves a state that can be resumed",
+     "done": false,
+     "evidence": ""
+    },
+    {
+     "text": "The sync is exercised against a dry run in CI",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "operator_can_drive_it",
+   "title": "An operator interface that is tested",
+   "short": "operator CLI",
+   "weight": 2,
+   "required": false,
+   "criteria": [
+    {
+     "text": "A CLI exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/PERSEPHONE/bin/persephone_cli.py",
+      "note": "the operator entry point and the only supported way to drive a sync"
+     }
+    },
+    {
+     "text": "The declared requirements file is parseable by pip",
+     "done": true,
+     "evidence": {
+      "path": "tools/PERSEPHONE/requirements_wsl.txt",
+      "note": "ten lines of Python source were filed inside the requirement list, so pip could not parse the file at all; they are commented out as of 2026-11-15. pip now parses it and fails later, on socketio>=0.8.0, which is not a PyPI distribution name (the package is python-socketio). That is a second, open defect."
+     }
+    }
+   ]
+  }
+ ]
+}

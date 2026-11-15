@@ -11,9 +11,12 @@ Two scopes:
 1. **Dir budget mode** (CI): walks the production dirs, AST-parses every
    ``.py``, and compares counts against a fixed baseline budget. A bare except
    always fails (MAX_BARE, default 0). Broad handlers are budgeted with
-   MAX_BROAD (default 1242 = the current live src/+scripts/ count). The guard
-   fails whenever the counted broad handlers exceed the budget, i.e. the count
-   grows. Lower ``--max-broad`` as refactoring shrinks the surface.
+   MAX_BROAD, whose default is the live src/+scripts/ count recorded beside the
+   constant below. The guard fails whenever the counted broad handlers exceed
+   the budget, i.e. the count grows. Lower ``--max-broad`` as refactoring
+   shrinks the surface; if the surface legitimately grows, mark the reviewed
+   handler with ``# noqa: BLE001`` and a reason rather than raising the budget,
+   so the ratchet stays closed and each exception is argued where it lives.
 
 2. **Files mode** (local pre-commit): check an explicit list of files. Bare
    excepts fail; broad handlers are reported (warning) unless ``--strict``.
@@ -39,7 +42,13 @@ import warnings
 
 DEFAULT_DIRS = ("src", "scripts")
 DEFAULT_MAX_BARE = 0
-DEFAULT_MAX_BROAD = 2926  # live src/+scripts/ count 2026-11-11 (branch azazael-intel-ultra-9-evo, bare=0); lower as refactoring shrinks it
+# live src/+scripts/ count 2026-11-11 (branch azazael-intel-ultra-9-evo, bare=0).
+# Deliberately NOT raised on 2026-11-15 when the live count read 2928: the two
+# extra handlers were reviewed (src/win32_shim/__init__.py available() probe and
+# src/eve_unleashed/mcml_gpu.py bench_shapes() row) and marked # noqa: BLE001 in
+# place, so the budget still describes the surface it was measured against.
+# Lower as refactoring shrinks it.
+DEFAULT_MAX_BROAD = 2926
 
 # Scanned files may contain unrelated invalid-escape / deprecation warnings;
 # suppress them so the guard's own output stays focused.

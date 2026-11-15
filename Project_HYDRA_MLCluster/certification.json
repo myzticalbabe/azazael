@@ -1,0 +1,99 @@
+{
+ "schema": "hydra-mlcluster/certification@1",
+ "updated": "2026-11-15",
+ "note": "There is no tools/certification_bar.py in this tree, so no gate computes these numbers: `bar` below is derived from the criteria by tools/_fix_scaffold_metadata.py, and `--check` re-derives it so it cannot drift. Treat each `done` as a claim that names a path you can open. `deployable` stays false until every required requirement is fully met; a partial requirement is not a partial licence to ship.",
+ "computed_by": null,
+ "held": [],
+ "bar": {
+  "criteria_done": 5,
+  "criteria_total": 8,
+  "percent": 62.5,
+  "required_requirements": 2,
+  "required_requirements_met": 0,
+  "deployable": false
+ },
+ "requirements": [
+  {
+   "id": "cluster_can_start",
+   "title": "A cluster that starts from configuration",
+   "short": "cold start",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A launcher exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/HYDRA/hydra_launcher.py",
+      "note": "starts the platform set named in ml_config.ini"
+     }
+    },
+    {
+     "text": "Cluster configuration is data rather than code",
+     "done": true,
+     "evidence": {
+      "path": "tools/HYDRA/ml_config.ini",
+      "note": "the platform set and its settings live in an ini file, so changing clusters does not mean changing code"
+     }
+    },
+    {
+     "text": "A cold start is recorded, naming the platforms it brought up",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "work_is_measured",
+   "title": "A run whose result can be attributed",
+   "short": "measured run",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A test harness exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/HYDRA/ml_test.py",
+      "note": "drives a run and records what happened, which is what produced the stored result below"
+     }
+    },
+    {
+     "text": "A run result is stored in the tree",
+     "done": true,
+     "evidence": {
+      "path": "tools/HYDRA/10min_test_results.json",
+      "note": "a ten-minute run's results, kept as data next to the code that produced them"
+     }
+    },
+    {
+     "text": "The stored result names the configuration it was produced under",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "platform_health",
+   "title": "Unhealthy platforms handled rather than ignored",
+   "short": "health",
+   "weight": 2,
+   "required": false,
+   "criteria": [
+    {
+     "text": "A health monitor exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/HYDRA/ml_platforms/health_monitor.py",
+      "note": "watches platform health from inside the ml_platforms package; the open criterion is what it does with a bad answer"
+     }
+    },
+    {
+     "text": "An unhealthy platform is drained mid-run instead of dropped",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  }
+ ]
+}

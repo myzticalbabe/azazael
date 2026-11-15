@@ -1,9 +1,13 @@
 # GAMING-INDUSTRY POSITIONING — falsifiable argument of record, 2026-11-03
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 Complements `docs/NO_PUBLIC_EQUIVALENT_DOCTRINE_2026-11-03.md` (NPE-PRECEDENT-2026-11-03)
 and `docs/AI_PANEL_OPINIONS_2026-11-03.md`. Same rule as precedent §5: every claim
@@ -67,7 +71,7 @@ The MAAT package (commit 54db1561) presently computes panel tallies. The Q1 lane
 commits it to a narrower first deliverable: a rule-extractor module whose output
 format is defined before code — rules as data (seeded declarative), versioned, so
 that Q2's mutation loop and Q3's arena can consume the same format. Skeleton
-stays Soul Forge License v1.0 skeleton; the licensing-structure question raised in the
+stays Apache-2.0 skeleton; the licensing-structure question raised in the
 precedent chain is answered by the stack (copyright + trademark + contract +
 dated DCT proof), not by licensing code that does not exist yet.
 

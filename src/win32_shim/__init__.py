@@ -76,7 +76,7 @@ def available() -> bool:
         for name in PROVIDES:
             importlib.import_module(name)
         return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - importability probe: every failure to bind is a recorded False, never a silent one
         FAILURES.append("available(): %s: %s" % (type(exc).__name__, exc))
         return False
 

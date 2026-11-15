@@ -1,9 +1,13 @@
 # AUDIT — Project FLAME (standalone-publish readiness)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 **Date:** 2026-11-02
 **Auditor:** 3 of 18, FULL AUDIT fan-out
@@ -119,7 +123,7 @@ this repository records elsewhere as "a broken instrument reported OK".
 
 | Item | State |
 |---|---|
-| `LICENSE` | **present** — Soul Forge License v1.0, added this session |
+| `LICENSE` | **present** — Apache-2.0, added this session |
 | `NOTICE` | **present**, added this session; makes no dependency claim (correct — none verified) |
 | `README.md` | present and unusually good: states what the project *refuses* to claim (`:57-71`) |
 | `pyproject.toml` | **ABSENT** — no packaging metadata, no declared entry point, no Python floor |

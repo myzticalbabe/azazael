@@ -1,11 +1,15 @@
 # Audit — licensing (auditor 14 of 18, 2026-11-02)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
-**Scope:** verify the Soul Forge License v1.0 licensing files across the six publishable projects,
+**Scope:** verify the Apache-2.0 licensing files across the six publishable projects,
 including four `LICENSE`/`NOTICE` pairs created earlier in this session and the
 `Project_ELIZA` set restored from commit `3fd0b463`.
 
@@ -13,7 +17,7 @@ including four `LICENSE`/`NOTICE` pairs created earlier in this session and the
 2 `CITATION.cff`, both `CODE_OF_CONDUCT.md` files. Nothing was executed; this is a
 reading audit. No file outside the scope was modified.
 
-**Headline:** every `LICENSE` is the complete, unmodified Soul Forge License v1.0 2.0. One real
+**Headline:** every `LICENSE` is the complete, unmodified Apache License 2.0. One real
 defect, one documentation error, and three cosmetic inconsistencies — none of them a
 license defect.
 
@@ -62,14 +66,14 @@ than byte-equal.
 
 | File | Project named in it | Correct project? | License stated | Defect |
 |---|---|---|---|---|
-| `Project_Nurse_Ratchet/NOTICE` | Project Nurse Ratchet | **✓** | Soul Forge License v1.0 ✓ | none — and it explicitly disambiguates ELIZA as "a SEPARATE project … the forensic investigation suite … It is not this package." The earlier conflation is repaired in this direction. |
-| `Project_Nurse_Ratchet/CITATION.cff` | Project Nurse Ratchet | **✓** | Soul Forge License v1.0 ✓ | none. Title is now "Project Nurse Ratchet: a therapeutic agent loop…"; the Weizenbaum reference note correctly says "The name itself is Nurse Ratched's, not ELIZA's". |
-| `Project_FLAMING_SWORD/NOTICE` | Project FLAMING SWORD | **✓** | Soul Forge License v1.0 ✓ | none. Quotes its own README for the runtime basis and explicitly declines to claim any unverified third-party component. |
-| `Project_FLAME/NOTICE` | Project FLAME | **✓** | Soul Forge License v1.0 ✓ | thinnest of the six — no runtime basis stated, no fidelity line. Truthful, just sparse. |
-| `Project_SHARDEX/NOTICE` | PROJECT SHARDEX | **✓** | Soul Forge License v1.0 ✓ | project name in ALL CAPS while siblings use Title Case (cosmetic). Content is the strongest: names gitignored generated output, carries a fidelity statement, and an uninstall path. |
-| `Project_CRADLE/NOTICE` | PROJECT CRADLE | **✓** | Soul Forge License v1.0 ✓ | ALL CAPS (cosmetic). Correctly names the sibling dependency `Project_FLAMING_SWORD` and identifies `tools/sentinel.py` as **THE REAPER** — which settles an open question from the publish manifest: REAPER is a component, not a tree. |
-| `Project_ELIZA/NOTICE` | Project ELIZA | name correct, **subject wrong** | Soul Forge License v1.0 ✓ | **DEFECT L1** — see §3. |
-| `Project_ELIZA/CITATION.cff` | Project ELIZA | name correct, **subject wrong** | Soul Forge License v1.0 ✓ | **DEFECT L2** — see §3. |
+| `Project_Nurse_Ratchet/NOTICE` | Project Nurse Ratchet | **✓** | Apache-2.0 ✓ | none — and it explicitly disambiguates ELIZA as "a SEPARATE project … the forensic investigation suite … It is not this package." The earlier conflation is repaired in this direction. |
+| `Project_Nurse_Ratchet/CITATION.cff` | Project Nurse Ratchet | **✓** | Apache-2.0 ✓ | none. Title is now "Project Nurse Ratchet: a therapeutic agent loop…"; the Weizenbaum reference note correctly says "The name itself is Nurse Ratched's, not ELIZA's". |
+| `Project_FLAMING_SWORD/NOTICE` | Project FLAMING SWORD | **✓** | Apache-2.0 ✓ | none. Quotes its own README for the runtime basis and explicitly declines to claim any unverified third-party component. |
+| `Project_FLAME/NOTICE` | Project FLAME | **✓** | Apache-2.0 ✓ | thinnest of the six — no runtime basis stated, no fidelity line. Truthful, just sparse. |
+| `Project_SHARDEX/NOTICE` | PROJECT SHARDEX | **✓** | Apache-2.0 ✓ | project name in ALL CAPS while siblings use Title Case (cosmetic). Content is the strongest: names gitignored generated output, carries a fidelity statement, and an uninstall path. |
+| `Project_CRADLE/NOTICE` | PROJECT CRADLE | **✓** | Apache-2.0 ✓ | ALL CAPS (cosmetic). Correctly names the sibling dependency `Project_FLAMING_SWORD` and identifies `tools/sentinel.py` as **THE REAPER** — which settles an open question from the publish manifest: REAPER is a component, not a tree. |
+| `Project_ELIZA/NOTICE` | Project ELIZA | name correct, **subject wrong** | Apache-2.0 ✓ | **DEFECT L1** — see §3. |
+| `Project_ELIZA/CITATION.cff` | Project ELIZA | name correct, **subject wrong** | Apache-2.0 ✓ | **DEFECT L2** — see §3. |
 
 **Wrong-project attribution, both directions:** clean for Nurse Ratchet (it no longer
 claims to be ELIZA). Clean for ELIZA in the sense that it does not claim to be Nurse

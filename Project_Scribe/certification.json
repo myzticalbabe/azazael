@@ -1,0 +1,112 @@
+{
+ "schema": "scribe/certification@1",
+ "updated": "2026-11-15",
+ "note": "There is no tools/certification_bar.py in this tree, so no gate computes these numbers: `bar` below is derived from the criteria by tools/_fix_scaffold_metadata.py, and `--check` re-derives it so it cannot drift. Treat each `done` as a claim that names a path you can open. `deployable` stays false until every required requirement is fully met; a partial requirement is not a partial licence to ship.",
+ "computed_by": null,
+ "held": [],
+ "bar": {
+  "criteria_done": 6,
+  "criteria_total": 10,
+  "percent": 60.0,
+  "required_requirements": 2,
+  "required_requirements_met": 0,
+  "deployable": false
+ },
+ "requirements": [
+  {
+   "id": "docs_are_generated",
+   "title": "Documentation that is generated, not typed twice",
+   "short": "generated docs",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A documentation generator exists",
+     "done": true,
+     "evidence": {
+      "path": "scribe.py",
+      "note": "generates documentation from source rather than from a second hand-written copy"
+     }
+    },
+    {
+     "text": "A doc entry point exists",
+     "done": true,
+     "evidence": {
+      "path": "gen_doc.py",
+      "note": "the command that produces the document set"
+     }
+    },
+    {
+     "text": "Generated output is diffed in CI so it cannot drift from its source",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "census_claims_are_cited",
+   "title": "A census whose every count has a capture behind it",
+   "short": "cited census",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A census tool exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/portal_census.py",
+      "note": "walks funding portals and records what it found"
+     }
+    },
+    {
+     "text": "Census output is stored as data",
+     "done": true,
+     "evidence": {
+      "path": "data/portal_census.json",
+      "note": "the census result kept as data beside the tool that produced it"
+     }
+    },
+    {
+     "text": "A country-eligibility dataset is stored next to the census",
+     "done": true,
+     "evidence": {
+      "path": "data/eligible_countries.json",
+      "note": "the eligibility table the census is read against"
+     }
+    },
+    {
+     "text": "Every portal counted in the census has a stored capture behind it",
+     "done": false,
+     "evidence": ""
+    },
+    {
+     "text": "The census records the date it was taken",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "profiles_are_reproducible",
+   "title": "A profile set that one script can rebuild",
+   "short": "profiles",
+   "weight": 2,
+   "required": false,
+   "criteria": [
+    {
+     "text": "Profiles are generated from one script",
+     "done": true,
+     "evidence": {
+      "path": "update_profiles.py",
+      "note": "one script writes the profile set, so a profile is not hand-edited per funder"
+     }
+    },
+    {
+     "text": "Every file in `profiles/` can be regenerated from that script",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  }
+ ]
+}

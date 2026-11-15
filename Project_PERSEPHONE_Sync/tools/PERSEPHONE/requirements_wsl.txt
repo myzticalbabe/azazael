@@ -293,21 +293,24 @@ aiomultiprocess>=0.9.0
 # WSL: /mnt/c/Users/clint/Desktop/Azazael
 # Windows: C:\Users\clint\Desktop\Azazael
 
-def wsl_to_windows(path: str) -> str:
-    """Convert WSL path to Windows path."""
-    if path.startswith("/mnt/"):
-        drive = path[5].upper()
-        windows_path = f"{drive}:{path[6:]}"
-        return windows_path.replace("/", "\\")
-    return path
+# The lines below were Python source filed inside a requirements list, which made
+# `pip install -r` fail to parse this file. Commented out 2026-11-15; the
+# translation they implemented belongs in tools/PERSEPHONE/lib/path_manager.py.
+# def wsl_to_windows(path: str) -> str:
+#     """Convert WSL path to Windows path."""
+#     if path.startswith("/mnt/"):
+#         drive = path[5].upper()
+#         windows_path = f"{drive}:{path[6:]}"
+#         return windows_path.replace("/", "\\")
+#     return path
 
-def windows_to_wsl(path: str) -> str:
-    """Convert Windows path to WSL path."""
-    if path[1] == ":":
-        drive = path[0].lower()
-        wsl_path = f"/mnt/{drive}{path[2:]}"
-        return wsl_path.replace("\\", "/")
-    return path
+# def windows_to_wsl(path: str) -> str:
+#     """Convert Windows path to WSL path."""
+#     if path[1] == ":":
+#         drive = path[0].lower()
+#         wsl_path = f"/mnt/{drive}{path[2:]}"
+#         return wsl_path.replace("\\", "/")
+#     return path
 
 # =============================================================================
 # VERIFICATION COMMANDS

@@ -1,0 +1,176 @@
+{
+  "schema": "eliza/certification@1",
+  "updated": "2026-11-15",
+  "note": "Every requirement here is something a reviewer, an ethics board or a regulator would refuse to accept, not a task list. A criterion flips to done only by editing `done` to true and filling `evidence` with a path in this repository plus a note saying what that path shows. Deliberately NOT copied from nurse-ratchet: that file grades clinical validity under a clinical schema, and ELIZA is not a clinical instrument. Unlike nurse-ratchet this tree ships no tools/certification_bar.py, so nothing here is machine-checked yet; `tools/eliza_release_gate.py --check` is the only gate that runs, and it is a paperwork-and-allowlist gate that does not grade the science. Treat a PASS from it as the absence of a paperwork objection, never as an endorsement.",
+  "held": [],
+  "requirements": [
+    {
+      "id": "crisis_router_recall",
+      "title": "A crisis router whose recall can be stated as one number",
+      "short": "crisis router recall",
+      "weight": 5,
+      "required": true,
+      "criteria": [
+        {
+          "text": "Holdouts written before the change they grade, each scored once, with the fitted dev split excluded from the figure",
+          "done": true,
+          "evidence": {
+            "path": "README.md",
+            "note": "Limitations 1: dev 1.00 is marked fitted and excluded; holdout 0.83, holdout2 0.83, holdout3 0.18, each scored once"
+          }
+        },
+        {
+          "text": "One recall figure, with a lower bound the authors cannot move after seeing the result",
+          "done": false,
+          "evidence": ""
+        },
+        {
+          "text": "A labelled corpus the author did not write (the current one is invented utterances, not transcripts)",
+          "done": false,
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "id": "human_in_the_loop",
+      "title": "A human in the loop, built rather than asserted",
+      "short": "human in the loop",
+      "weight": 5,
+      "required": true,
+      "criteria": [
+        {
+          "text": "An elevated-risk signal ends the intervention and hands off, rather than continuing to counsel",
+          "done": true,
+          "evidence": {
+            "path": "README.md",
+            "note": "What this is not: on any elevated risk signal it stops being an intervention engine and becomes a router to people; Limitations 1 makes a human in the loop a hard requirement, not advice"
+          }
+        },
+        {
+          "text": "An escalation path into a named human's queue",
+          "done": false,
+          "evidence": ""
+        },
+        {
+          "text": "A duty-of-care contract with on-call coverage",
+          "done": false,
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "id": "construct_data_from_people",
+      "title": "Construct readings from real people",
+      "short": "construct data",
+      "weight": 3,
+      "required": true,
+      "criteria": [
+        {
+          "text": "An instrument exists that refuses to fit below its own thresholds",
+          "done": true,
+          "evidence": {
+            "path": "tools/psyche_fit_pams.py",
+            "note": "Limitations 2: probes a real memory store and exits 2 because 119 curated memories carry no construct readings; the refusal is the current answer"
+          }
+        },
+        {
+          "text": "One real person elicited",
+          "done": false,
+          "evidence": ""
+        },
+        {
+          "text": "Fifty sessions from one instrument version, the floor for a per-person bridge",
+          "done": false,
+          "evidence": ""
+        },
+        {
+          "text": "Norms and a factor structure for the items (written for this project, not a validated inventory)",
+          "done": false,
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "id": "real_person_evidence",
+      "title": "Evidence from someone other than the author",
+      "short": "real-person evidence",
+      "weight": 3,
+      "required": true,
+      "criteria": [
+        {
+          "text": "An estimator check on data whose structure is known, so the estimator itself is not the question",
+          "done": true,
+          "evidence": {
+            "path": "README.md",
+            "note": "Limitations 3: the plant-and-recover test proves the estimator works on data whose structure is known and says nothing about a real person"
+          }
+        },
+        {
+          "text": "An evaluation on real people's data under a stated consent basis",
+          "done": false,
+          "evidence": ""
+        },
+        {
+          "text": "The reflexivity problem mitigated: someone who learns their own prototypes and edits toward them is not silently reinforced",
+          "done": false,
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "id": "packaging_provenance",
+      "title": "The shipped package can be traced to authored source",
+      "short": "packaging provenance",
+      "weight": 2,
+      "required": true,
+      "criteria": [
+        {
+          "text": "The generated-versus-authored boundary is written down and checkable",
+          "done": true,
+          "evidence": {
+            "path": "tools/publicize.py",
+            "note": "Limitations 5: eliza/psyche/* is materialised from src/PSYCHE, an edit to the generated copy is lost on the next materialise and shows as drift under `publicize.py --check`"
+          }
+        },
+        {
+          "text": "A released artefact whose commit is recorded and reproducible from that commit",
+          "done": false,
+          "evidence": ""
+        }
+      ]
+    },
+    {
+      "id": "disclosure_boundary",
+      "title": "Case data stays out, and the line is enforced",
+      "short": "disclosure boundary",
+      "weight": 3,
+      "required": true,
+      "criteria": [
+        {
+          "text": "The line is stated in a policy a reader can hold the project to",
+          "done": true,
+          "evidence": {
+            "path": "DISCLOSURE_POLICY.md",
+            "note": "Ethics: DISCLOSURE_POLICY.md states the line on named individuals in mental health, tenancy and employment records"
+          }
+        },
+        {
+          "text": "An allowlist a machine reads, rather than a promise a person keeps",
+          "done": true,
+          "evidence": {
+            "path": "PUBLIC_MANIFEST.json",
+            "note": "Ethics: PUBLIC_MANIFEST.json enforces the disclosure line"
+          }
+        },
+        {
+          "text": "A build step that fails when something crosses the line",
+          "done": true,
+          "evidence": {
+            "path": "tools/eliza_release_gate.py",
+            "note": "Ethics and Status: the release gate fails the build when something crosses the line; it is a paperwork-and-allowlist gate and cannot grade the science"
+          }
+        }
+      ]
+    }
+  ]
+}

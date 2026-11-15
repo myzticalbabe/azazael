@@ -16,9 +16,11 @@ on:
   schedule:
     - cron: '0 2 * * 0'  # Weekly Sunday 2AM
 
+# The dependency-submission job writes a snapshot to the repository's dependency
+# graph, which the API rejects without `contents: write`. It was `read`, so that
+# step could not have succeeded either.
 permissions:
-  contents: read
-  id-token: write
+  contents: write
   security-events: write
 
 jobs:
@@ -35,22 +37,33 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install dependencies
+      - name: Install SBOM tool and declared runtime dependencies
+        # This step used to run `pip install .`, which could never succeed:
+        # pyproject.toml declares `requires-python = ">=3.16"`, so the runner's
+        # interpreter rejected the package before installing it and no SBOM was
+        # ever produced. The tool is installed directly and the project's own
+        # declared dependencies are read out of pyproject.toml, so the SBOM still
+        # describes what the project needs to run.
         run: |
           pip install --quiet cyclonedx-bom
-          pip install --quiet .
+          python - <<'PY' > runtime-requirements.txt
+          import pathlib, tomllib
+          project = tomllib.loads(pathlib.Path("pyproject.toml").read_text(encoding="utf-8"))["project"]
+          print("\n".join(project.get("dependencies", [])))
+          PY
+          pip install --quiet -r runtime-requirements.txt
 
+      # `CycloneDX/github-action@v1` is not a published action, so both of these
+      # steps failed to resolve. The generator it wrapped is already a pip
+      # package, so it is invoked directly. `--pyproject` supplies the root
+      # component (`azazael 1.0.0`) without installing the package.
       - name: Generate CycloneDX SBOM (JSON)
-        uses: CycloneDX/github-action@v1
-        with:
-          output-format: json
-          output-file: sbom.json
+        run: |
+          python -m cyclonedx_py environment --pyproject pyproject.toml --of JSON -o sbom.json
 
       - name: Generate CycloneDX SBOM (XML)
-        uses: CycloneDX/github-action@v1
-        with:
-          output-format: xml
-          output-file: sbom.xml
+        run: |
+          python -m cyclonedx_py environment --pyproject pyproject.toml --of XML -o sbom.xml
 
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v4
@@ -61,10 +74,15 @@ jobs:
             sbom.xml
           retention-days: 90
 
+      # `github/dependency-submission-action@v4` is not a published action
+      # either. This is the maintained one; it scans the working tree for
+      # manifests rather than reading an SBOM, hence `filePath` and `correlator`
+      # instead of the old `sbom-file` input, which it does not accept.
       - name: Upload SBOM to GitHub Dependency Graph
-        uses: github/dependency-submission-action@v4
+        uses: advanced-security/component-detection-dependency-submission-action@v0.2.0
         with:
-          sbom-file: sbom.json
+          filePath: '.'
+          correlator: 'azazael-sbom'
 
       - name: Validate SBOM
         run: |

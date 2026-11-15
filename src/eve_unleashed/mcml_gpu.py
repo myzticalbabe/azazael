@@ -651,7 +651,7 @@ def bench_shapes():
             gpu_ms = (time.perf_counter() - t0) * 1000 / 100
             ratio = cpu_ms / gpu_ms if gpu_ms > 0 else float('inf')
             print(f"{in_dim}->{out_dim:4d} | {cpu_ms:12.2f} | {gpu_ms:9.2f} | {ratio:.2f}x")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - benchmark row: one shape failing on the GPU prints ERROR and the sweep continues
             print(f"{in_dim}->{out_dim:4d} | {cpu_ms:12.2f} | {'ERROR':>9} | {'N/A':>4}")
             print(f"  GPU error: {e}")
 

@@ -1,9 +1,13 @@
 # Audit 13/18 — Packaging readiness of the six publishable projects (2026-11-02)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 Auditor 13 of 18. **Read-only.** No project file was modified; no command was executed
 (this auditor has no terminal). Every claim below is either read from a file (cited
@@ -179,7 +183,7 @@ needs Node + puppeteer + Chrome and two harness scripts that live in the monorep
 ## 4. Minimum `pyproject.toml` per project
 
 Shape follows the two existing files in this repo, so the six stay consistent:
-`requires-python = ">=3.10"`, `version = "0.1.0"`, `license = { text = "Soul Forge License v1.0" }`,
+`requires-python = ">=3.10"`, `version = "0.1.0"`, `license = { text = "Apache-2.0" }`,
 `dependencies = []` **only where the stdlib claim is true**.
 
 ### 4.1 Project_CRADLE
@@ -195,7 +199,7 @@ version = "0.1.0"
 description = "One command over sword, defender, reaper and grimoire — the composition, not a fifth part."
 readme = "CRADLE.md"          # NOTE: there is no README.md in this tree
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+license = { text = "Apache-2.0" }
 dependencies = []              # stdlib only; the SIBLING directory is not a pip dependency
 
 [project.scripts]
@@ -221,7 +225,7 @@ version = "0.1.0"
 description = "Fixed-step orchestrator for accelerated play: integer timebase, no dropped ticks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+license = { text = "Apache-2.0" }
 dependencies = []
 
 [project.scripts]
@@ -246,7 +250,7 @@ version = "0.1.0"
 description = "Find, queue, fix, prove and land a sweep of one codebase."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+license = { text = "Apache-2.0" }
 dependencies = []              # stdlib + the `git` EXECUTABLE, which pip cannot install
 
 [project.scripts]
@@ -274,7 +278,7 @@ version = "0.1.0"
 description = "Mirror a codebase, shatter it into content-addressed shards, forge a shard into a FLAME arena."
 readme = "SHARDEX.md"          # NOTE: there is no README.md in this tree
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+license = { text = "Apache-2.0" }
 dependencies = []              # Python side is stdlib; Node/puppeteer/Chrome are NOT pip-installable
 
 [project.scripts]

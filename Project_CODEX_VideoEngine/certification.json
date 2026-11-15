@@ -1,0 +1,96 @@
+{
+ "schema": "codex-video-engine/certification@1",
+ "updated": "2026-11-15",
+ "note": "There is no tools/certification_bar.py in this tree, so no gate computes these numbers: `bar` below is derived from the criteria by tools/_fix_scaffold_metadata.py, and `--check` re-derives it so it cannot drift. Treat each `done` as a claim that names a path you can open. `deployable` stays false until every required requirement is fully met; a partial requirement is not a partial licence to ship.",
+ "computed_by": null,
+ "held": [],
+ "bar": {
+  "criteria_done": 4,
+  "criteria_total": 8,
+  "percent": 50.0,
+  "required_requirements": 2,
+  "required_requirements_met": 0,
+  "deployable": false
+ },
+ "requirements": [
+  {
+   "id": "render_path_exists",
+   "title": "A capture path that runs, not one that is described",
+   "short": "capture path",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A browser-capture dependency is declared",
+     "done": true,
+     "evidence": {
+      "path": "tools/CODEX/package.json",
+      "note": "puppeteer ^19.0.0 and puppeteer-screen-recorder ^3.0.6 — capture is done by a browser, not by drawing frames in PIL"
+     }
+    },
+    {
+     "text": "A scene template exists that a session can be injected into",
+     "done": true,
+     "evidence": {
+      "path": "tools/CODEX/AZAAZEL_VIDEO.html",
+      "note": "the template is HTML and data, so a session's content is injected rather than edited into the markup"
+     }
+    },
+    {
+     "text": "The encode step is a script in this tree rather than a step in a document",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "output_is_verifiable",
+   "title": "An output whose parameters are asserted",
+   "short": "verifiable output",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A test covers session injection into a template",
+     "done": true,
+     "evidence": {
+      "path": "tools/CODEX/test_inject_session_cain.py",
+      "note": "exercises the injection path a render depends on"
+     }
+    },
+    {
+     "text": "A rendered artifact is recorded together with the encode parameters that made it",
+     "done": false,
+     "evidence": ""
+    },
+    {
+     "text": "Frame rate and duration are asserted rather than eyeballed",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "desktop_app",
+   "title": "The desktop app can be built by someone else",
+   "short": "desktop app",
+   "weight": 2,
+   "required": false,
+   "criteria": [
+    {
+     "text": "A packaging configuration for the desktop app exists",
+     "done": true,
+     "evidence": {
+      "path": "tools/CODEX/TESTING/pyproject.toml",
+      "note": "declares the Python side of the app"
+     }
+    },
+    {
+     "text": "A built binary exists in the tree",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  }
+ ]
+}

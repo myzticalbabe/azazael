@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Changed from Apache-2.0 to **CDDL-1.1** (Common Development and Distribution License 1.1).
 
+Superseded 2026-11-15: every tree now carries the **Soul Forge License v1.0**
+and no other license. This entry stays as written because a changelog records
+what happened, not what is current; `LICENSE` and `NOTICE` state the current
+terms.
+
 ---
 
 ## [Unreleased]

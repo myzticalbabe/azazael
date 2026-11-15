@@ -1,0 +1,99 @@
+{
+ "schema": "wasm-compiler/certification@1",
+ "updated": "2026-11-15",
+ "note": "There is no tools/certification_bar.py in this tree, so no gate computes these numbers: `bar` below is derived from the criteria by tools/_fix_scaffold_metadata.py, and `--check` re-derives it so it cannot drift. Treat each `done` as a claim that names a path you can open. `deployable` stays false until every required requirement is fully met; a partial requirement is not a partial licence to ship.",
+ "computed_by": null,
+ "held": [],
+ "bar": {
+  "criteria_done": 5,
+  "criteria_total": 8,
+  "percent": 62.5,
+  "required_requirements": 2,
+  "required_requirements_met": 0,
+  "deployable": false
+ },
+ "requirements": [
+  {
+   "id": "build_is_reproducible",
+   "title": "A build that another machine can repeat",
+   "short": "repeatable build",
+   "weight": 2,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A crate is declared that produces a wasm cdylib",
+     "done": true,
+     "evidence": {
+      "path": "tools/RUST_WASM/Cargo.toml",
+      "note": "crate-type = [\"cdylib\"]; wasm-bindgen 0.2 + js-sys 0.3; opt-level 3, lto = true, codegen-units = 1"
+     }
+    },
+    {
+     "text": "A SIMD target feature can reach rustc",
+     "done": true,
+     "evidence": {
+      "path": "tools/RUST_WASM/.cargo/config.toml",
+      "note": "without a .cargo/config.toml no target-feature=+simd128 reaches the compiler, which the measurement record names as one of the original defects"
+     }
+    },
+    {
+     "text": "A build from a clean checkout is recorded with its exact tool versions",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "claim_is_attributable",
+   "title": "A number that can be attributed to the build that produced it",
+   "short": "attributable numbers",
+   "weight": 3,
+   "required": true,
+   "criteria": [
+    {
+     "text": "A benchmark harness ships with the crate",
+     "done": true,
+     "evidence": {
+      "path": "tools/RUST_WASM/bench.mjs",
+      "note": "node bench.mjs <pkg>: timed calls over Float32Array pairs, warm-up separated from measurement"
+     }
+    },
+    {
+     "text": "Each figure is separated by the build that produced it",
+     "done": true,
+     "evidence": {
+      "path": "tools/RUST_WASM/MEASURED_2026-11-01.md",
+      "note": "before / copy+scalar / copy+SIMD kept apart: 16.688 -> 0.892 -> 0.523 us at 1536 dim, 20,000 timed calls after 2,000 warm-up"
+     }
+    },
+    {
+     "text": "A second machine reproduces the ordering",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  },
+  {
+   "id": "learner_can_follow",
+   "title": "An explanation, not only a result",
+   "short": "explained",
+   "weight": 2,
+   "required": false,
+   "criteria": [
+    {
+     "text": "The record says why the old name was wrong, not only what the new number is",
+     "done": true,
+     "evidence": {
+      "path": "tools/RUST_WASM/MEASURED_2026-11-01.md",
+      "note": "names three independent reasons no vectoriser could have helped, including that FP addition is not associative"
+     }
+    },
+    {
+     "text": "A test fails when the SIMD path silently falls back to the scalar body",
+     "done": false,
+     "evidence": ""
+    }
+   ]
+  }
+ ]
+}

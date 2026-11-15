@@ -394,3 +394,9 @@ src/RUST_WASM/pkg*/
 /*.rcgu.o
 /dist-native/
 /.worktree-snapshots/
+
+# GitHub Pages output, batch 4 (2026-11-15). `.github/scripts/render_site.py`
+# in each publication root writes `_site/` for the Pages workflow; that is a
+# build artifact rebuilt on every deploy, not authored content. Left the
+# pattern unanchored so the eight Project_* roots are covered by one rule.
+_site/

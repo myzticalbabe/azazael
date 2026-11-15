@@ -1,9 +1,13 @@
 # AUDIT — Project_ELIZA (restored from 3fd0b463)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 **Date:** 2026-11-02 · **Auditor:** worker 6 of 18 · **Mode:** READ-ONLY, no file in `Project_ELIZA/` was modified.
 
@@ -50,9 +54,9 @@ Do **not** read this as "the restore was wrong". The restore recovered a real, c
 | Path | Kind | What it does |
 |---|---|---|
 | `README.md` | governance | States what it is, four layers, limitations, ethics, status. Leads with the router recall spread rather than a single figure. |
-| `CITATION.cff` | governance | CFF 1.2.0, Soul Forge License v1.0, v0.1.0, released 2026-11-01, 4 references. No `repository-code`/`url` — deliberate, commented as "a citation file that points at a URL nobody has reserved is worse than one that says it will be added." |
-| `LICENSE` | governance | Soul Forge License v1.0 2.0, full text. |
-| `NOTICE` | governance | Names Project ELIZA + Soul Forge License v1.0; attributes the *name* to Weizenbaum 1966 with "No code from that program is included here"; states the corpus is invented utterances. |
+| `CITATION.cff` | governance | CFF 1.2.0, Apache-2.0, v0.1.0, released 2026-11-01, 4 references. No `repository-code`/`url` — deliberate, commented as "a citation file that points at a URL nobody has reserved is worse than one that says it will be added." |
+| `LICENSE` | governance | Apache License 2.0, full text. |
+| `NOTICE` | governance | Names Project ELIZA + Apache-2.0; attributes the *name* to Weizenbaum 1966 with "No code from that program is included here"; states the corpus is invented utterances. |
 | `PUBLIC_MANIFEST.json` | governance/machine | The allowlist: `ship_roots: ["Project_ELIZA"]`, ~45 `ship` entries, 14 `never_ship` globs, 6 `deny_substrings`. |
 | `MANIFEST_NOTES.md` | docs | Why allowlist-not-denylist; why files are copied not moved; why imports are rewritten. |
 | `DISCLOSURE_POLICY.md` | governance | The line: "The method ships. The case does not." Six never-publish classes with reasons. |
@@ -94,7 +98,7 @@ So the tree is **stdlib-pure but source-dependent**: it needs `src/PSYCHE/` pres
 
 ## 4. LICENSE / NOTICE / CITATION state
 
-Complete and consistent. Soul Forge License v1.0 in `LICENSE`, `pyproject.toml` (`license = { text = "Soul Forge License v1.0" }`), `PUBLIC_MANIFEST.json` (`"license": "Soul Forge License v1.0"`), `CITATION.cff` (`license: Soul Forge License v1.0`) and `NOTICE`. This is the precedent that makes Soul Forge License v1.0-everywhere the consistent choice for the sibling projects — ELIZA already shipped it, so nothing is being invented.
+Complete and consistent. Apache-2.0 in `LICENSE`, `pyproject.toml` (`license = { text = "Apache-2.0" }`), `PUBLIC_MANIFEST.json` (`"license": "Apache-2.0"`), `CITATION.cff` (`license: Apache-2.0`) and `NOTICE`. This is the precedent that makes Apache-2.0-everywhere the consistent choice for the sibling projects — ELIZA already shipped it, so nothing is being invented.
 
 One gap the file itself admits: `pyproject.toml` has no `authors`, commented "Fill `authors` in before a PyPI upload — a placeholder name is worse than none." That is correct as written and blocks only a PyPI upload, not a GitHub publish.
 

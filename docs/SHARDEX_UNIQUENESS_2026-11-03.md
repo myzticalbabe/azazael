@@ -1,10 +1,19 @@
 # SHARDEX SETTLEMENT RULING — 2026-11-03
 
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
+
 **Court:** project decision machinery (house judge), consistent with
 docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md
 **Precedential ruling relied on:** commit
 `b49dfc2fef0178d1984437de577bfa00de8a4c32` — "license: unify 4 projects under
-Soul Forge License v1.0" (2026-11-03), opinions O1–O4 there.
+CDDL-1.1" (2026-11-03), opinions O1–O4 there.
 **Request:** user stated *"look at SHARDEX. it has capabilities that haven't been
 reproducible anywhere in the world except this box environment. this is my work.
 deep dive research. settle this"*, then *"i want a detailed ruling"*.
@@ -88,14 +97,14 @@ decided by F1 and settled in R1.
 to the sibling project LICENSEs unified by the precedential ruling. Commit
 `12e316cf5977ff83422dbd02d79388108c87cf78` resolved all SHARDEX dispute sites
 consistent with the precedent file. The Apache classifier is gone; every
-ad-topic dispute surface points at Soul Forge License v1.0 and this document chain.
+ad-topic dispute surface points at CDDL-1.1 and this document chain.
 
 ### F6 — Observed anomaly, recorded not resolved: `{CDCL}`
 
 `Project_SHARDEX/HARDWARE.md` lines 27–29 and line 99 assert a
 "**CARPE DIEMIC CREATIVE LICENCE {CDCL}**" — a free-modification ethos clause
-alongside its License section (now correctly reading Soul Forge License v1.0 at line 94 post-
-`12e316cf`). A reader might argue it conflicts with Soul Forge License v1.0's obligations; the
+alongside its License section (now correctly reading CDDL-1.1 at line 94 post-
+`12e316cf`). A reader might argue it conflicts with CDDL-1.1's obligations; the
 clause is prose, not a license declaration, and both references survive the
 diff. **Ruled: the {CDCL} clause stands as an observed decorative anomaly,
 recorded here verbatim in reference, and is out of scope of this ruling; it is
@@ -165,7 +174,7 @@ rerun each and reach the same record.
 `myzticalbabe <clintonoxford47@gmail.com>`; (2) a capability set without a
 public equivalent as of 2026-11-03; (3) **portable by construction**, and not
 bound to this box — only its measured artifacts are; (4) license custody is
-Soul Forge License v1.0 under the precedential ruling of
+CDDL-1.1 under the precedential ruling of
 `b49dfc2fef0178d1984437de577bfa00de8a4c32`; (5) the {CDCL} prose anomaly is
 recorded untouched. Every future SHARDEX dispute must cite this document and
 the precedent doc per R4. The ruling is relieved of the per-day web basis: the
@@ -214,7 +223,7 @@ Six checks, all in one command batch against branch `deepseek-engram-813 [rename
 - **import union (both files)**: adds `dataclasses` and `time` to the F3 list —
   still stdlib, which *strengthens* the portability finding; see Judge III (b).
 - **ruling text at HEAD**: `git show HEAD:docs/SHARDEX_UNIQUENESS_2026-11-03.md`
-  → present; `HARDWARE.md:94` reads Soul Forge License v1.0 with the b49dfc2f citation.
+  → present; `HARDWARE.md:94` reads CDDL-1.1 with the b49dfc2f citation.
 
 ### Judge II — memory-contradiction sweep (Engram + PMB fanout): AFFIRM, DISSENT IN PART on F2/R5 strength
 

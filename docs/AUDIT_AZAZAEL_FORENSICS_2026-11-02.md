@@ -1,9 +1,13 @@
 # AUDIT — azazael-forensics (auditor 15 of 18, FULL AUDIT 2026-11-02)
 
-> **License status (2026-11-15): superseded.** Every tree in this repository is
-> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
-> describe an earlier license describe the state on the date in the filename; they
-> do not govern this code.
+> **License status (2026-11-15): superseded historical record.**
+> This document reports the state of the trees on the date in its filename. Where
+> it names a license, it names the license in force on that date, or a license it
+> found on disk then. It is not a current license statement and must not be cited
+> as one. The only license in this repository today is the Soul Forge License v1.0
+> (`LICENSE`, `NOTICE`, `docs/LICENSE_SOUL_FORGE_2026-11-15.md`).
+> The names below are kept deliberately: an audit record that rewrites its own
+> findings is not an audit record.
 
 **Target:** `C:/Azazael/azazael-forensics` — standalone tree, own `.git`, landed 2026-10-28
 as "Yggdrasil Cleave #11".
@@ -128,7 +132,7 @@ Two blocking gaps for a public repo:
 - **No `LICENSE` file anywhere in the tree**, and **no `license` field** in `pyproject.toml`.
   Publishing without one makes the code legally non-reusable (all rights reserved), which
   contradicts the purpose of open-sourcing it. For consistency with the sibling projects, use
-  Soul Forge License v1.0 — `Project_Nurse_Ratchet/LICENSE` in the monorepo is the canonical copy already in
+  Apache-2.0 — `Project_Nurse_Ratchet/LICENSE` in the monorepo is the canonical copy already in
   this repo's ecosystem.
 - **No `NOTICE`**, so any future third-party material has no declared place to be attributed.
 
@@ -147,7 +151,7 @@ It does not publish *as described* until three things are done:
 1. Fix `portable.py` — remove the `~/.azazael` default and the swallowed `CORE.MemoryBus` import
    (§2), so the "no machine-default paths" sentence becomes true.
 2. Correct the count — 52, not 49, in `home.py:5` and `README.md` (§3).
-3. Add `LICENSE` (Soul Forge License v1.0) + `NOTICE`, and state up front that 48 of 52 tools need a separate
+3. Add `LICENSE` (Apache-2.0) + `NOTICE`, and state up front that 48 of 52 tools need a separate
    `azazael` checkout (§3, §5).
 
 **Is it "the forensic investigation suite"? NO.**
