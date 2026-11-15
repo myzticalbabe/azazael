@@ -1,8 +1,8 @@
 # coding: utf-8
-"""(root) / HORUS_INTEGRATION.py :: HORUSAnimationBridge -- INTAKE STUB. Not an implementation.
+"""HORUS_INTEGRATION.py / HORUS_INTEGRATION.py :: HORUSAnimationBridge -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux HORUS_INTEGRATION.py (class HORUSAnimationBridge, 206 lines in the module, 2 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux HORUS_INTEGRATION.py (class HORUSAnimationBridge, 216 lines in the module, 6 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:HORUS_INTEGRATION.py#HORUSAnimationBridge"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -19,7 +19,7 @@ SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "HORUS_INTEGRATION.py"
 CLASS_NAME = 'HORUSAnimationBridge'
 UNNAMED_CLASSES = 0
-TREE = "(root)"
+TREE = "HORUS_INTEGRATION.py"
 
 
 def describe() -> dict:
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.HORUS_INTEGRATION')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

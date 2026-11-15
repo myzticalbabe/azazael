@@ -1,8 +1,8 @@
 # coding: utf-8
-"""(root) / session_memory.py :: SessionRecord -- INTAKE STUB. Not an implementation.
+"""session_memory.py / session_memory.py :: SessionRecord -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux session_memory.py (class SessionRecord, 1735 lines in the module, 9 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux session_memory.py (class SessionRecord, 1750 lines in the module, 38 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:session_memory.py#SessionRecord"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -19,7 +19,7 @@ SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "session_memory.py"
 CLASS_NAME = 'SessionRecord'
 UNNAMED_CLASSES = 0
-TREE = "(root)"
+TREE = "session_memory.py"
 
 
 def describe() -> dict:
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.session_memory')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

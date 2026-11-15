@@ -1,8 +1,8 @@
 # coding: utf-8
-"""(root) / MISSING_TOOLS.py :: module residual -- INTAKE STUB. Not an implementation.
+"""MISSING_TOOLS.py / MISSING_TOOLS.py :: module residual -- INTAKE STUB. Not an implementation.
 
 Source: kali-linux MISSING_TOOLS.py (3 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:MISSING_TOOLS.py#module"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -19,7 +19,7 @@ SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "MISSING_TOOLS.py"
 CLASS_NAME = None
 UNNAMED_CLASSES = 3
-TREE = "(root)"
+TREE = "MISSING_TOOLS.py"
 
 
 def describe() -> dict:
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.MISSING_TOOLS')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

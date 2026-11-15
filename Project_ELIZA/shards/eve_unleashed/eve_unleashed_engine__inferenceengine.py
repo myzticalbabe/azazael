@@ -1,8 +1,8 @@
 # coding: utf-8
 """eve_unleashed / eve_unleashed/engine.py :: InferenceEngine -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux eve_unleashed/engine.py (class InferenceEngine, 557 lines in the module, 2 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux eve_unleashed/engine.py (class InferenceEngine, 580 lines in the module, 15 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:eve_unleashed/engine.py#InferenceEngine"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.eve_unleashed.engine')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

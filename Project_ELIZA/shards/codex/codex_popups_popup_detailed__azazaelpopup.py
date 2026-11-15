@@ -1,8 +1,8 @@
 # coding: utf-8
 """CODEX / CODEX/POPUPS/POPUP_DETAILED.py :: AzazaelPopup -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CODEX/POPUPS/POPUP_DETAILED.py (class AzazaelPopup, 686 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CODEX/POPUPS/POPUP_DETAILED.py (class AzazaelPopup, 700 lines in the module, 13 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CODEX/POPUPS/POPUP_DETAILED.py#AzazaelPopup"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no

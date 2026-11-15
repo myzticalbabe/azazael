@@ -1,8 +1,8 @@
 # coding: utf-8
-"""(root) / CHANGELOG_GENERATOR.py :: ChangelogGenerator -- INTAKE STUB. Not an implementation.
+"""CHANGELOG_GENERATOR.py / CHANGELOG_GENERATOR.py :: ChangelogGenerator -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CHANGELOG_GENERATOR.py (class ChangelogGenerator, 148 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CHANGELOG_GENERATOR.py (class ChangelogGenerator, 159 lines in the module, 4 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CHANGELOG_GENERATOR.py#ChangelogGenerator"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -19,7 +19,7 @@ SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "CHANGELOG_GENERATOR.py"
 CLASS_NAME = 'ChangelogGenerator'
 UNNAMED_CLASSES = 0
-TREE = "(root)"
+TREE = "CHANGELOG_GENERATOR.py"
 
 
 def describe() -> dict:
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.CHANGELOG_GENERATOR')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

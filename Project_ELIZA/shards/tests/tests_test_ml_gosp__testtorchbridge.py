@@ -1,8 +1,8 @@
 # coding: utf-8
 """tests / tests/test_ml_gosp.py :: TestTorchBridge -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux tests/test_ml_gosp.py (class TestTorchBridge, 69 lines in the module, 2 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux tests/test_ml_gosp.py (class TestTorchBridge, 79 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:tests/test_ml_gosp.py#TestTorchBridge"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.tests.test_ml_gosp')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

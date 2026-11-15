@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/WORMS/METACLUSTER.py :: MetaCluster -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/WORMS/METACLUSTER.py (class MetaCluster, 1282 lines in the module, 4 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/WORMS/METACLUSTER.py (class MetaCluster, 1282 lines in the module, 21 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/WORMS/METACLUSTER.py#MetaCluster"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no

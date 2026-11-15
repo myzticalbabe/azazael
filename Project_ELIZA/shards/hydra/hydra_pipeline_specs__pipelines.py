@@ -1,8 +1,8 @@
 # coding: utf-8
 """HYDRA / HYDRA/pipeline_specs.py :: PIPELINES -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux HYDRA/pipeline_specs.py (class PIPELINES, 187 lines in the module, 5 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux HYDRA/pipeline_specs.py (class PIPELINES, 196 lines in the module, 6 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:HYDRA/pipeline_specs.py#PIPELINES"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.HYDRA.pipeline_specs')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

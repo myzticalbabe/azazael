@@ -1,8 +1,8 @@
 # coding: utf-8
 """tests / tests/test_ecosystem.py :: TestCONCURRENCY -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux tests/test_ecosystem.py (class TestCONCURRENCY, 364 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux tests/test_ecosystem.py (class TestCONCURRENCY, 387 lines in the module, 34 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:tests/test_ecosystem.py#TestCONCURRENCY"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.tests.test_ecosystem')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )

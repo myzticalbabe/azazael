@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/postgres_memory.py :: PostgresMemoryStore -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/postgres_memory.py (class PostgresMemoryStore, 944 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/postgres_memory.py (class PostgresMemoryStore, 969 lines in the module, 24 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/postgres_memory.py#PostgresMemoryStore"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -37,8 +37,9 @@ def describe() -> dict:
 
 
 def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module('adopted.kali.CORE.postgres_memory')
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
+    """Refuse, loudly, with the reason and the place to start reading."""
+    raise NotImplementedError(
+        "shard %s is an intake stub: %s is not implemented in ELIZA. "
+        "Read the Kali source at %s, then see "
+        "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
+    )
