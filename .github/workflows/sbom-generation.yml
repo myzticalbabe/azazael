@@ -12,10 +12,15 @@ on:
   schedule:
     - cron: '0 2 * * 0'  # Weekly Sunday 2AM
 
+# The two steps that write both need a scope this block used to withhold: the
+# dependency snapshot endpoint requires contents: write (GitHub's REST docs for
+# "Create a snapshot of dependencies for a repository"), and the PR-summary step
+# calls issues.createComment, which requires pull-requests: write. id-token and
+# security-events had no consumer here -- nothing in this file signs or uploads
+# SARIF -- so both grants are gone rather than widened around.
 permissions:
-  contents: read
-  id-token: write
-  security-events: write
+  contents: write
+  pull-requests: write
 
 jobs:
   sbom:
