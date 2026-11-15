@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,11 @@ version = "0.1.0"
 description = "Fixed-step orchestrator for accelerated play: integer timebase, no dropped ticks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+# Soul Forge License v1.0, expressed as a PEP 639 SPDX `LicenseRef-` id
+# because it is not an SPDX-listed licence. The older `{ text = ... }` table
+# form is deprecated and setuptools refuses it from 2027-02-18.
+license = "LicenseRef-Soul-Forge-1.0"
+license-files = ["LICENSE"]
 # No Python runtime dependencies: the engine is stdlib-only, and the fixed-step
 # claim is arithmetic over an integer timebase rather than a library call.
 #

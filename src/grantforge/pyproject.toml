@@ -4,12 +4,18 @@ version = "2.0.0"
 description = "AI-native grant tooling: discover → assess → draft → review → collaborate → export → submit"
 readme = "README.md"
 authors = [{name = "Azazael"}]
-license = {text = "Soul Forge License v1.0"}
+# Soul Forge License v1.0, expressed as a PEP 639 SPDX `LicenseRef-` id
+# because it is not an SPDX-listed licence. The older `{ text = ... }` table
+# form is deprecated and setuptools refuses it from 2027-02-18.
+license = "LicenseRef-Soul-Forge-1.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.13"  # Python 3.14t free-threaded
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    # No "License ::" classifier: Soul Forge License v1.0 is not OSI-approved.
+    # The "Apache Software License" entry that used to sit here was a leftover
+    # from the CDDL-era metadata and contradicted the actual licence.
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -75,16 +81,38 @@ test = [
 ]
 
 [build-system]
-requires = ["setuptools>=75", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["grantforge*"]
+# This pyproject sits INSIDE the package directory: `src/grantforge/` holds
+# `__init__.py` and the six subpackages, so there is no `src/grantforge/src/`
+# to discover from. `where = ["src"]` therefore aborted the build with
+# "error in 'egg_base' option: 'src' does not exist or is not a directory",
+# and every `pip install`/`pip wheel` from this directory failed.
+#
+# The packages are enumerated and this directory is mapped to the `grantforge`
+# package, which is the same remapping the root pyproject performs from the
+# other direction (`where = ["src"]` sees this directory as top-level
+# `grantforge`). Enumerating rather than find() also keeps the build from
+# silently picking up any stray directory that later gains an `__init__.py`.
+[tool.setuptools]
+packages = [
+    "grantforge",
+    "grantforge.collaboration",
+    "grantforge.compliance",
+    "grantforge.discovery",
+    "grantforge.drafting",
+    "grantforge.eligibility",
+    "grantforge.export",
+]
+package-dir = { "grantforge" = "." }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+# No `testpaths`: this tree ships no tests/ directory, and a testpaths entry
+# pointing at a missing directory makes every bare `pytest` invocation exit 4
+# with "file or directory not found" instead of collecting nothing.
+testpaths = []
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 

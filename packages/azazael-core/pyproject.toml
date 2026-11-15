@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=75.0", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,8 +7,14 @@ name = "azazael-core"
 version = "3.1.0"
 description = "AZAZAEL Core — Path resolution, worm registry, free-threading, and configuration engine"
 readme = "README.md"
-license = {text = "Soul Forge License v1.0"}
-requires-python = ">=3.15"
+# Soul Forge License v1.0, expressed as a PEP 639 SPDX `LicenseRef-` id
+# because it is not an SPDX-listed licence. The older `{ text = ... }` table
+# form is deprecated and setuptools refuses it from 2027-02-18.
+license = "LicenseRef-Soul-Forge-1.0"
+license-files = ["LICENSE"]
+# 3.14 is the highest interpreter this tree is verified on; the previous
+# ">=3.15" floor excluded it for a version nothing here was measured against.
+requires-python = ">=3.14"
 authors = [
     {name = "AZAZAEL Project"}
 ]
@@ -16,9 +22,11 @@ keywords = ["azazael", "core", "worm-registry", "free-threading", "paths"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.15",
+    # No "License ::" classifier: Soul Forge License v1.0 is not OSI-approved,
+    # and the "MIT License" entry that used to sit here contradicted the actual
+    # licence. The SPDX expression above is the authoritative declaration.
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",

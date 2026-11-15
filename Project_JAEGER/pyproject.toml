@@ -1,29 +1,47 @@
-{
-  "project": "jaeger",
-  "version": "0.1.0",
-  "description": "Azazael's internal tracer — consumes AOA DelegationSpec + ArmResult, emits spans within the tree. Not an OTLP client.",
-  "readme": "README.md",
-  "requires-python": ">=3.10",
-  "license": { "text": "Soul Forge License v1.0" },
-  "dependencies": [
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jaeger"
+version = "0.1.0"
+description = "Azazael's internal tracer — consumes AOA DelegationSpec + ArmResult, emits spans within the tree. Not an OTLP client."
+readme = "README.md"
+requires-python = ">=3.10"
+# PEP 639 SPDX expression; the `{ text = ... }` table form is deprecated and
+# setuptools refuses it from 2027-02-18.
+license = "LicenseRef-Soul-Forge-1.0"
+license-files = ["LICENSE"]
+dependencies = [
     "opentelemetry-api>=1.20",
     "opentelemetry-sdk>=1.20",
-    "opentelemetry-exporter-otlp>=1.20"
-  ],
-  "classifiers": [
+    "opentelemetry-exporter-otlp>=1.20",
+]
+classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Common Development and Distribution License 1.1 (Soul Forge License v1.0)",
+    # No "License ::" classifier: Soul Forge License v1.0 is not OSI-approved.
+    # This slot used to read "OSI Approved :: Common Development and Distribution
+    # License 1.1 (Soul Forge License v1.0)" -- an invalid classifier string left
+    # behind by a CDDL-to-Soul-Forge rename that pasted the new name inside the
+    # old one.
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: System :: Monitoring"
-  ],
-  "optional-dependencies": {
-    "dev": ["pytest>=7", "pytest-asyncio", "pytest-cov"]
-  },
-  "scripts": {
-    "jaeger-tracer": "jaeger.tracer:main",
-    "jaeger-export": "jaeger.export:main"
-  }
-}
+    "Topic :: System :: Monitoring",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-asyncio", "pytest-cov"]
+
+# This tree ships documentation, not an importable package: there is no
+# `jaeger/` module here, so the previous `[project.scripts]` entries
+# (`jaeger-tracer = "jaeger.tracer:main"`, `jaeger-export = "jaeger.export:main"`)
+# resolved to nothing and would have installed two broken console scripts.
+#
+# The tracer they described is implemented in the root package at
+# src/AOA/core/delegation_tracer.py (`emit_delegation`), and GAMORA reaches it
+# through AOA.core rather than through a console script. Nothing imports
+# `jaeger.*`, so no replacement entry point is declared.
+[tool.setuptools]
+packages = []

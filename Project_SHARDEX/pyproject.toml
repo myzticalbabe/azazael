@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,7 +9,11 @@ description = "Mirror a codebase, shatter it into content-addressed shards, forg
 # There is no README.md in this tree: the document is SHARDEX.md.
 readme = "SHARDEX.md"
 requires-python = ">=3.10"
-license = { text = "Soul Forge License v1.0" }
+# Soul Forge License v1.0, expressed as a PEP 639 SPDX `LicenseRef-` id
+# because it is not an SPDX-listed licence. The older `{ text = ... }` table
+# form is deprecated and setuptools refuses it from 2027-02-18.
+license = "LicenseRef-Soul-Forge-1.0"
+license-files = ["LICENSE"]
 # No Python runtime dependencies: the Python side is stdlib-only.
 #
 # Three non-pip dependencies are real and not expressible here:
