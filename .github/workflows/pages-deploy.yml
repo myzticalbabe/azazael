@@ -34,14 +34,16 @@ jobs:
           python -m pip install -e ".[dev]"
 
       - name: Documentation site config exists (fails closed)
-        # No mkdocs.yml exists anywhere in this tree, and docs/ holds evidence
+        # No mkdocs.yml exists at this root, and docs/ holds evidence
         # documents rather than a site with a nav. The previous version installed
         # mkdocs and ran `build --strict` against no config at all, so the one
         # outcome it could produce was a config error nobody could act on. This
         # names the missing file instead of inventing a site in a workflow.
+        # The sub-trees are a different case: Project_ELIZA and Project_Nurse_Ratchet hold real
+        # Diataxis sites and carry their own mkdocs.yml, read by their own pages jobs.
         run: |
           if [ ! -f mkdocs.yml ]; then
-            echo "::error::pages-deploy requires mkdocs.yml; none exists in this tree."
+            echo "::error::pages-deploy requires mkdocs.yml; none exists at this root."
             echo "::error::docs/ is evidence documents, not a site. Author mkdocs.yml with a nav in the owning lane."
             exit 1
           fi
