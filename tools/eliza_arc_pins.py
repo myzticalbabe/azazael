@@ -146,20 +146,50 @@ def pins_of(ledger: Dict[str, Any]) -> List[Dict[str, Any]]:
 # cannot run reports why rather than passing: silence is never a success.
 
 
+def projected_instruments(project: Path, manifest: Dict[str, Any]) -> Dict[str, Path]:
+    """Map every materialisation target in the manifest to the source that fills it."""
+    out: Dict[str, Path] = {}
+    for item in manifest.get("ship") or []:
+        if not isinstance(item, dict):
+            continue
+        target = str(item.get("to") or "").strip().replace("\\", "/")
+        source = str(item.get("from") or "").strip()
+        if target and source:
+            out[target] = (project / source).resolve()
+    return out
+
+
 def gate_instrument_exists(
     ledger: Dict[str, Any], pins: List[Dict[str, Any]], project: Path, manifest: Dict[str, Any]
 ) -> List[str]:
-    """Every pin must name a file in the project a reader can open."""
+    """Every pin must name a file a reader can open -- in the tree, or in what fills it.
+
+    `eliza/psyche/` is generated: PUBLIC_MANIFEST.json declares which source fills
+    each target and tools/publicize.py materialises it, so a clean checkout does not
+    carry those files. A pin naming such a target is still reproducible when the
+    manifest declares it and the source it copies from is present; a declared
+    target whose source is gone is a gap like any other, and a file the manifest
+    never mentions must exist on disk.
+    """
     errors: List[str] = []
+    projected = projected_instruments(project, manifest)
     for pin in pins:
         rel = str(pin.get("instrument") or "").strip()
         pin_id = str(pin.get("id") or "?")
         if not rel:
             errors.append("%s names no instrument" % pin_id)
             continue
-        if not (project / rel).exists():
+        if (project / rel).exists():
+            continue
+        source = projected.get(rel.replace("\\", "/"))
+        if source is None:
             errors.append(
                 "%s names instrument %s, which does not exist under Project_ELIZA" % (pin_id, rel)
+            )
+        elif not source.exists():
+            errors.append(
+                "%s names instrument %s, whose declared source %s is missing"
+                % (pin_id, rel, source)
             )
     return errors
 

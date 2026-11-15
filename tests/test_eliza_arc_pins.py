@@ -104,8 +104,8 @@ def test_shipped_ledger_is_readable_and_gaps():
     ledger = load_ledger()
     errors, warnings, carried = check(ledger)
     assert verdict(errors, carried) == VERDICT_GAPS
-    assert len(ledger["pins"]) == 11
-    assert carried == ["E1", "E2", "E3", "E4"]
+    assert len(ledger["pins"]) == 14
+    assert carried == ["E1", "E2", "E3", "E4", "E12", "E13", "E14"]
     assert any("publication gate exits" in err for err in errors), errors
 
 
@@ -127,11 +127,19 @@ def test_shipped_ledger_has_no_structural_defect():
     assert others == []
 
 
-def test_shipped_readme_rows_without_a_pin_are_exactly_three():
-    """A ratchet on the unpinned set: a fourth unpinned reading fails this test."""
+def test_shipped_readme_rows_without_a_pin_are_exactly_none():
+    """The unpinned ratchet, now at zero.
+
+    README.md:32-34 were the gate's first finding. E12-E14 now answer for them, so
+    the expectation is zero and a fourth unpinned reading fails as loudly as the
+    first three did. The three rows must still be read as claims, so the ratchet
+    cannot be satisfied by deleting the rows it used to count.
+    """
     errors, _warnings, _carried = check(load_ledger())
     unpinned = [err.split()[0] for err in errors if "publishes a measurement" in err]
-    assert unpinned == ["README.md:32", "README.md:33", "README.md:34"]
+    assert unpinned == []
+    measured_lines = {int(row["line"]) for row in readme_claim_rows(PROJECT)}
+    assert {32, 33, 34} <= measured_lines, sorted(measured_lines)
 
 
 def test_shipped_ledger_structure_is_clean_without_running_gates():
@@ -154,6 +162,37 @@ def test_instrument_gate_fires_on_a_missing_file():
 def test_instrument_gate_fires_on_an_empty_instrument():
     errors = gate_instrument_exists(_ledger(), [_pin(instrument="")], PROJECT, MANIFEST)
     assert errors and "names no instrument" in errors[0]
+
+
+def _projected(tmp_path, with_source=True):
+    """A project where eliza/psyche/rt_agent.py exists only as a manifest target."""
+    if with_source:
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "rt_agent.py").write_text("# the instrument\n", encoding="utf-8")
+    return {"ship": [{"from": "src/rt_agent.py", "to": "eliza/psyche/rt_agent.py"}]}
+
+
+def test_instrument_gate_accepts_a_manifest_materialised_target(tmp_path):
+    """eliza/psyche/ is generated, so the target is absent while its source is present."""
+    manifest = _projected(tmp_path)
+    pin = _pin(instrument="eliza/psyche/rt_agent.py")
+    assert gate_instrument_exists(_ledger(), [pin], tmp_path, manifest) == []
+
+
+def test_instrument_gate_fires_when_a_declared_source_is_missing(tmp_path):
+    manifest = _projected(tmp_path, with_source=False)
+    pin = _pin(instrument="eliza/psyche/rt_agent.py")
+    errors = gate_instrument_exists(_ledger(), [pin], tmp_path, manifest)
+    assert len(errors) == 1
+    assert "declared source" in errors[0] and "missing" in errors[0]
+
+
+def test_instrument_gate_fires_on_an_undeclared_generated_path(tmp_path):
+    """The manifest excuse covers the targets it names, not the whole directory."""
+    manifest = _projected(tmp_path)
+    pin = _pin(instrument="eliza/psyche/intuition.py")
+    errors = gate_instrument_exists(_ledger(), [pin], tmp_path, manifest)
+    assert len(errors) == 1 and "does not exist" in errors[0]
 
 
 # --- gate: claim-number-was-measured ----------------------------------------
@@ -478,8 +517,8 @@ def test_main_writes_a_json_report(tmp_path, capsys):
     assert main(["--json", str(out)]) == 1
     report = json.loads(out.read_text(encoding="utf-8"))
     assert report["verdict"] == VERDICT_GAPS
-    assert report["pins"] == 11
-    assert report["carried"] == ["E1", "E2", "E3", "E4"]
+    assert report["pins"] == 14
+    assert report["carried"] == ["E1", "E2", "E3", "E4", "E12", "E13", "E14"]
     assert sorted(report["declared_gates"]) == sorted(GATES)
 
 
