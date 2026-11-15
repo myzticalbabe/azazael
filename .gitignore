@@ -99,6 +99,13 @@ coverage_inference_html/
 # while tracked. Excluding the CONTENTS instead lets the negation land, so the
 # gate ships in a fresh clone with no force-add.
 !.githooks/pre-commit
+# ...and the push hook, for the same reason (2026-11-15): tools/bible_ship.py
+# plants `.githooks/pre-push`, and tests/test_preflight_gate_wiring.py asserts
+# the hook on disk RUNS the merge gate. While it was ignored, only a machine
+# that had run the installer carried it, so the wiring gate was satisfiable
+# from this disk and unsatisfiable from a clone. The hook derives $root from
+# `git rev-parse --show-toplevel`, so the committed copy is machine-neutral.
+!.githooks/pre-push
 nul
 
 # Generated diagnostics (pyright/mypy dumps, session logs)
