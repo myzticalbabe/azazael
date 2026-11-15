@@ -401,13 +401,40 @@ def test_a_reissued_artefact_is_cut_although_its_bytes_are_identical(tmp_path):
 
 
 def test_kernel_accounting_sees_concurrency_the_wall_clock_cannot():
+    """The numerator is per-thread CPU, so it can exceed the wall -- as far as the
+    runtime allows, and no further.
+
+    Measured 2026-11-15 on this host (16 cores), four 0.25 s tasks:
+
+      free-threaded 3.14t   sum_cpu 1.000 s over a 0.250 s span -> ratio 3.92-3.99
+      GIL build 3.14.7      sum_cpu 0.438 s over a 0.450 s span -> ratio 0.94-1.01
+
+    The bar used to be ``> 1.0`` on every interpreter, which a GIL build cannot
+    meet for CPU-bound Python: four threads share one core, so ~1.0 is the HONEST
+    reading and the failure was a claim about the host rather than about the code.
+    Asserting the correct answer in each world is stricter than the old bar, not
+    looser -- an instrument that multiplied by the worker count would read ~4 on
+    the GIL build and fail here.
+
+    The span denominator matters too: dividing by the pool-inclusive wall read
+    0.94 for four fully concurrent workers on 3.14t, because building the pool
+    cost more than the 30 ms each thread did.
+    """
     if not kernel.available():
         pytest.skip("GetThreadTimes is a Windows kernel answer")
-    measured = kernel.parallelism(workers=4, work_s=0.03)
-    # A wall-clock-only instrument reads ~1.0 by construction on an idle box; the
-    # kernel numerator is what can exceed it. Under load by other lanes it lands
-    # between 2 and 4.6 on this host, so the bar is >1, not ==workers.
-    assert measured["par_ratio"] > 1.0
+    work_s = 0.25   # ~16 GetThreadTimes ticks; below ~4 the numerator is noise
+    measured = kernel.parallelism(workers=4, work_s=work_s)
+    requested = measured["workers"] * work_s
+
+    # The numerator is CPU the threads consumed, never elapsed time: it cannot
+    # exceed what was asked for, whatever the scheduler did.
+    assert 0.0 < measured["sum_cpu_s"] <= requested * 1.15, measured
+    assert len(measured["cpu_per_task"]) == measured["workers"], measured
+
+    if compat.supports("free_threading"):
+        assert measured["par_ratio"] > 1.0, measured
+    else:
+        assert 0.5 < measured["par_ratio"] <= 1.15, measured
 
 
 def test_an_environment_without_evidence_is_blind_not_optimised(skip_undated):

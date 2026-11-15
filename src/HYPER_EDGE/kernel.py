@@ -200,22 +200,34 @@ def parallelism(workers: int = 4, work_s: float = 0.08) -> Dict[str, Any]:
     A serial run reads ~1.0 under this instrument and a concurrent run reads
     ~workers, on any machine, because the numerator is per-thread kernel
     accounting rather than an inference from elapsed time.
+
+    The denominator is the span of the WORK (earliest task start to latest task
+    end), not the span of the pool. Measured 2026-11-15: dividing by the
+    pool-inclusive wall read 0.94 for four perfectly concurrent workers, because
+    building and tearing down the pool cost more than the 30 ms of work each
+    thread did -- so the instrument reported *less* than serial for a run that was
+    fully parallel. Pool cost is a property of the harness, not of the tasks, and
+    a ratio meant to describe the tasks must not be diluted by it. ``elapsed_s``
+    still reports the pool-inclusive figure for a caller that wants it.
     """
     from HYPER_EDGE import compat
 
-    def burn(_: int) -> float:
+    def burn(_: int) -> tuple:
         start_cpu = thread_cpu() or 0.0
         start = time.perf_counter()
         while time.perf_counter() - start < work_s:
             pass
-        return (thread_cpu() or 0.0) - start_cpu
+        return ((thread_cpu() or 0.0) - start_cpu, start, time.perf_counter())
 
     tasks = list(range(workers))
     t0 = time.perf_counter()
-    cpu = compat.parallel_map(burn, tasks, workers=workers, min_items=2)
-    wall = time.perf_counter() - t0
+    rows = compat.parallel_map(burn, tasks, workers=workers, min_items=2)
+    elapsed = time.perf_counter() - t0
+    cpu = [row[0] for row in rows]
     total = sum(cpu)
+    wall = (max(row[2] for row in rows) - min(row[1] for row in rows)) if rows else 0.0
     return {"workers": workers, "sum_cpu_s": total, "wall_s": wall,
+            "elapsed_s": elapsed,
             "par_ratio": (total / wall) if wall else 0.0,
             "cpu_per_task": list(cpu)}
 
