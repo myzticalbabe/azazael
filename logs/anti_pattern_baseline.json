@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-15T14:31:20+00:00",
+  "recorded_at": "2026-11-15T15:10:19+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
@@ -14,7 +14,7 @@
   },
   "total_findings": 2331,
   "tracked_only": true,
-  "writer_pid": 24240,
+  "writer_pid": 14568,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
