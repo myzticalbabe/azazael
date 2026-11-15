@@ -992,6 +992,36 @@ def record_outcome(title: str, body: str, kind: str = "lesson") -> str:
     return "\n".join(results)
 
 
+#: Markers that appear in an item's own title when whoever filed it already
+#: considers the work finished. Measured 2026-11-15: 11 of 193 open items were
+#: in this state (the TRIAGE-006/007 batch) and the report listed them as
+#: ordinary week-old work, because only age decided the bucket. A title that
+#: claims completion is the cheapest item to close -- it needs a supersedes
+#: relation, not another investigation.
+_DONE_MARKERS = (" done ", "done:", "superseded:", "completed:", "phantom:",
+                 " correct #")
+
+#: A title can claim completion and disclaim landing in the same sentence --
+#: #594 reads "repair DONE and UNCOMMITTED". That is not closeable: the work
+#: is asserted to be outside the tree, so the check is "land it or prove it
+#: landed", which is a different action from "close via supersedes".
+_UNLANDED_MARKERS = ("uncommitted", "not landed", "never landed")
+
+
+def _declares_unlanded(title: str) -> bool:
+    """True when the title claims done-but-not-in-the-tree."""
+    low = " %s " % title.lower()
+    return any(marker in low for marker in _UNLANDED_MARKERS)
+
+
+def _declares_done(title: str) -> bool:
+    """True when the title itself asserts the work is finished and landed."""
+    if _declares_unlanded(title):
+        return False
+    low = " %s " % title.lower()
+    return any(marker in low for marker in _DONE_MARKERS)
+
+
 @server.tool()
 def triage_plan() -> str:
     """Open items each paired with the evidence check that resolves it."""
@@ -1001,7 +1031,8 @@ def triage_plan() -> str:
     lines = ["triage: %d open items (%s)" % (len(items), note),
              "Resolve each by verifying the evidence, saving a DONE record,",
              "and judging the supersedes pair. Format: id|title => check"]
-    buckets = {"fresh<7d": 0, "week-old": 0, "stale>30d": 0, "age-unknown": 0}
+    buckets = {"fresh<7d": 0, "week-old": 0, "stale>30d": 0,
+               "age-unknown": 0, "done-in-title": 0, "done-unlanded": 0}
     for tid, title in items:
         low = title.lower()
         if "checkbox" in low or ".md" in low:
@@ -1014,6 +1045,12 @@ def triage_plan() -> str:
             check = "re-derive counts at HEAD; record fresh measurement"
         else:
             check = "verify against HEAD; execute or dead-with-proof"
+        if _declares_unlanded(title):
+            buckets["done-unlanded"] += 1
+            check += "; title claims done but unlanded -- prove in tree or land"
+        elif _declares_done(title):
+            buckets["done-in-title"] += 1
+            check += "; title claims done -- close via supersedes"
         age = _item_age_days(_OPEN_DATES.get(tid, ""))
         if age < 0:
             buckets["age-unknown"] += 1
