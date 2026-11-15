@@ -373,9 +373,20 @@ else
     echo "$SHARD_OUT" | tail -8
     if [ $SHARD_EXIT -eq 2 ]; then
         echo ""
-        echo "[ShardIntake] BLOCKED: the atlas exists and could not be read (above)."
-        echo "[ShardIntake] This is a corrupt input, not a drifted surface: fix it,"
-        echo "[ShardIntake] or regenerate the census, rather than committing past it."
+        # Exit 2 has two causes and they need different remedies. A census of a
+        # DIFFERENT tree is not corrupt: it is a verdict about another root, and
+        # regenerating against it would erase the index it disagrees with.
+        if echo "$SHARD_OUT" | grep -q "CANNOT JUDGE"; then
+            echo "[ShardIntake] BLOCKED: the atlas is a census of a DIFFERENT tree (above)."
+            echo "[ShardIntake] Any defect found against it describes the census, not the" 
+            echo "[ShardIntake] surface, and --write would delete the index it disagrees with."
+            echo "[ShardIntake] Regenerate the census on the Kali lane for the root"
+            echo "[ShardIntake] SHARD_INDEX.json records, or declare ALLOW_SHARD_INTAKE=1."
+        else
+            echo "[ShardIntake] BLOCKED: the atlas exists and could not be read (above)."
+            echo "[ShardIntake] This is a corrupt input, not a drifted surface: fix it,"
+            echo "[ShardIntake] or regenerate the census, rather than committing past it."
+        fi
         exit 1
     elif [ $SHARD_EXIT -ne 0 ]; then
         echo ""
