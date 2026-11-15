@@ -382,29 +382,52 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
     return problems
 
 
-def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
+def check(atlas: Optional[Dict] = None) -> Tuple[bool, List[str], Dict]:
+    """Judge the shard surface. ``atlas=None`` judges the index-anchored half.
+
+    Two halves, answering different questions. The CENSUS half asks whether the
+    checked-in index still describes the Kali tree the census measured. The INDEX
+    half asks whether the stub files on disk are the stubs the index describes:
+    WIRED = False, the declared SHARD_ID and CLASS_NAME, a load() that raises, no
+    imports, no strays, and every WIRED.json claim naming a test that exists.
+
+    Only the first needs the Kali census, which lives outside this repo
+    (``~/yggdrasil_forest/atlas_kali-linux.json``, written on the Kali lane). The
+    second needs nothing but the index and this tree, so it can be judged on any
+    host. Refusing the whole gate for a missing census made the useful half
+    unreachable everywhere but the Kali lane, and the only green run there was
+    ``ALLOW_SHARD_INTAKE=1`` -- which judges NOTHING, including the half that was
+    available. Naming the census NOT JUDGED and judging the rest is strictly more
+    than the bypass did, and it is still not a claim that the census matched.
+
+    A MATCHING census is still compared in full. A mismatched one is refused here
+    for a library caller that handed it over on purpose -- the same refusal
+    ``main`` gives ``--write``, which deletes the surface such a check describes.
+    """
     problems: List[str] = []
-    if not same_census(atlas):
-        # Guarded here as well as in `main`: a library caller comparing two trees
-        # must be told it cannot, not handed 4,623 defects to triage.
-        raise AtlasUnavailable(_census_mismatch(atlas))
+    expected: Dict[str, Dict] = {}
+    if atlas is not None:
+        if not same_census(atlas):
+            # Guarded here as well as in `main`: a library caller comparing two trees
+            # must be told it cannot, not handed 4,623 defects to triage.
+            raise AtlasUnavailable(_census_mismatch(atlas))
+        expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
+                    for entry in units(atlas)}
     assigned = wired_registry()
     if not INDEX.is_file():
         return False, ["%s is absent; run --write" % INDEX.relative_to(REPO)], {}
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     on_disk = {entry["path"]: {key: entry.get(key) for key in INDEX_KEYS}
                for entry in index.get("shards", [])}
-    units_by_path = {entry["path"]: entry for entry in units(atlas)}
-    expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
-                for entry in units(atlas)}
-    for path in sorted(set(expected) - set(on_disk)):
-        problems.append("%s is in the atlas but not the index" % path)
-    for path in sorted(set(on_disk) - set(expected)):
-        problems.append("%s is in the index but not the atlas (stale stub)" % path)
-    for path in sorted(set(on_disk) & set(expected)):
-        if on_disk[path] != expected[path]:
-            problems.append("%s disagrees with the atlas: index %r, atlas %r"
-                            % (path, on_disk[path], expected[path]))
+    if atlas is not None:
+        for path in sorted(set(expected) - set(on_disk)):
+            problems.append("%s is in the atlas but not the index" % path)
+        for path in sorted(set(on_disk) - set(expected)):
+            problems.append("%s is in the index but not the atlas (stale stub)" % path)
+        for path in sorted(set(on_disk) & set(expected)):
+            if on_disk[path] != expected[path]:
+                problems.append("%s disagrees with the atlas: index %r, atlas %r"
+                                % (path, on_disk[path], expected[path]))
     for entry in index.get("shards", []):
         file_path = REPO / entry["path"]
         if not file_path.is_file():
@@ -417,7 +440,11 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     #: atlas", which no gate run could catch while the ledger was empty -- the
     #: first adoption exercised the branch (measured 2026-11-03: five real ids,
     #: five false defects).
-    unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
+    #: The ids a claim may name: the census's own when there is a census, the
+    #: index's otherwise. An id the index does not carry is not addressable, so
+    #: it is still refused -- the ledger is checked either way.
+    unit_ids = ({entry["shard_id"] for entry in units(atlas)} if atlas is not None
+                else {entry["shard_id"] for entry in index.get("shards", [])})
     for shard_id, claim in sorted(assigned.items()):
         if shard_id not in unit_ids:
             problems.append("WIRED.json names %r, which is not in the atlas" % shard_id)
@@ -429,20 +456,22 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
         elif not (REPO / test).is_file():
             problems.append("WIRED.json entry %r names %r, which does not exist"
                             % (shard_id, test))
+    known = set(expected) if expected else set(on_disk)
     stray = [p for p in SHARDS.rglob("*.py")
              if p.name != "__init__.py"
-             and str(p.relative_to(REPO)).replace("\\", "/") not in expected]
+             and str(p.relative_to(REPO)).replace("\\", "/") not in known]
     for path in sorted(stray):
         problems.append("%s is not in the atlas: an adopted shard must be wired "
                         "deliberately, not left as a generated file"
                         % path.relative_to(REPO))
     counts = index.get("counts", {})
-    if counts.get("shards") != len(expected):
-        problems.append("index claims %r shards; the atlas yields %d"
-                        % (counts.get("shards"), len(expected)))
-    return (not problems), problems, {"shards": len(expected),
-                                      "modules": len({e["module"] for e in expected.values()}),
-                                      "trees": len({e["tree"] for e in expected.values()}),
+    surface = expected if expected else on_disk
+    if counts.get("shards") != len(surface):
+        problems.append("index claims %r shards; its own entries number %d"
+                        % (counts.get("shards"), len(surface)))
+    return (not problems), problems, {"shards": len(surface),
+                                      "modules": len({e["module"] for e in surface.values()}),
+                                      "trees": len({e["tree"] for e in surface.values()}),
                                       "wired": len(assigned)}
 
 
@@ -492,21 +521,33 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # a pass nor a verdict on the tree. Collapsing it into 1 let a missing input
     # read as a drifted surface, and the commit gate would then refuse a healthy
     # tree for a reason that has nothing to do with the tree.
+    # `--check` is the one mode that can say something without the census (see
+    # `check`), so a missing or mismatched census is NAMED there rather than
+    # turned into a refusal that reads like drift. Every mode that WRITES or
+    # ADOPTS against the census still refuses to run without the right one:
+    # `--write` deletes every tree directory under shards/ and rewrites the index,
+    # so against the wrong census it would erase 1,183 Kali shards and 1,152
+    # recorded adoptions while reporting success.
+    atlas: Optional[Dict] = None
+    census_note = ""
     try:
-        atlas = read_atlas(Path(args.atlas))
+        loaded = read_atlas(Path(args.atlas))
     except AtlasUnavailable as exc:
-        print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
-        return 2
-    # A census from a different tree is exit 2 for the two modes that JUDGE the
-    # surface. `--write` is included because it deletes every tree directory under
-    # shards/ and rewrites the index: run against the wrong census it would erase
-    # 1,183 Kali shards and 1,152 recorded adoptions while reporting success.
-    if (args.write or args.check) and not same_census(atlas):
-        print("CANNOT JUDGE: %s" % _census_mismatch(atlas), file=sys.stderr)
-        return 2
-    entries = units(atlas)
+        census_note = str(exc)
+    else:
+        if same_census(loaded):
+            atlas = loaded
+        else:
+            census_note = _census_mismatch(loaded)
+    if atlas is None:
+        if not args.check:
+            print("CANNOT JUDGE: %s" % census_note, file=sys.stderr)
+            return 2
+        print("census NOT JUDGED: %s" % census_note, file=sys.stderr)
+    entries = units(atlas) if atlas is not None else []
 
     if args.write:
+        assert atlas is not None      # `main` returned 2 without a census
         result = write(entries, atlas)
         print("wrote %(written)d stub(s) across %(trees)d tree(s); index %(index)s"
               % result)
@@ -521,6 +562,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                  counts.get("trees", 0), counts.get("wired", 0)))
         return 0 if ok else 1
     if args.adopt:
+        assert atlas is not None      # `main` returned 2 without a census
         return adopt(args.adopt, atlas)
     grouped: Dict[str, int] = {}
     for entry in entries:

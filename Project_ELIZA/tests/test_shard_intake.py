@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import json
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -67,50 +68,63 @@ needs_atlas = pytest.mark.skipif(
            % (intake.INDEX.name, intake.recorded_atlas().get("root")))
 
 
-def test_an_absent_census_is_exit_2_not_drift(tmp_path, capsys):
-    """The control for the third state, and the reason it exists.
+def test_an_absent_census_is_named_and_the_index_is_still_judged(tmp_path, capsys):
+    """The third state now has a use: judge the half that needs no census.
 
-    The atlas lives outside the repo, so a host that never ran the Kali census
-    cannot judge this surface. That used to arrive as ``SystemExit`` -- exit 1,
-    byte-identical to "the stubs disagree with the atlas" -- and the commit gate
-    would have refused a healthy tree for a reason that was about the host. Exit 2
-    means COULD NOT PERFORM THE RUN, and it has to stay distinguishable from the
-    drift exit for the tier stanza to tell the reader which one happened.
+    The atlas lives outside the repo, so on any host but the Kali lane the gate
+    could previously only be silenced -- ALLOW_SHARD_INTAKE=1, which judges
+    nothing at all, including the stub files sitting right here. `--check` now
+    names the census NOT JUDGED and holds the stubs to the committed index, so the
+    escape buys nothing the gate cannot already say out loud. The modes that
+    WRITE keep exit 2 (COULD NOT PERFORM THE RUN): against the wrong census
+    `--write` would erase 1,183 shards and report success.
     """
     absent = tmp_path / "no_atlas_here.json"
-    assert intake.main(["--atlas", str(absent), "--check"]) == 2
+    assert intake.main(["--atlas", str(absent), "--check"]) == 0
+    err = capsys.readouterr().err
+    assert "census NOT JUDGED" in err
+    assert "atlas not found" in err
+    assert intake.main(["--atlas", str(absent), "--write"]) == 2
     assert "CANNOT JUDGE" in capsys.readouterr().err
 
 
-def test_an_unreadable_census_is_also_exit_2(tmp_path):
+def test_an_unreadable_census_is_named_and_only_writing_refuses(tmp_path, capsys):
     """Corrupt input is a missing judgement, not a drifted surface."""
     broken = tmp_path / "atlas.json"
     broken.write_text("{not json", encoding="utf-8")
-    assert intake.main(["--atlas", str(broken), "--check"]) == 2
+    assert intake.main(["--atlas", str(broken), "--check"]) == 0
+    err = capsys.readouterr().err
+    assert "census NOT JUDGED" in err
+    assert "not valid JSON" in err
+    assert intake.main(["--atlas", str(broken), "--write"]) == 2
 
 
 @pytest.mark.skipif(not intake.recorded_atlas().get("root"),
                     reason="the index records no atlas provenance to contradict")
-def test_a_census_from_another_tree_is_exit_2_not_drift(tmp_path, capsys):
+def test_a_census_from_another_tree_is_named_not_reported_as_drift(tmp_path, capsys):
     """The wrong census is a missing judgement, not thousands of defects.
 
     Measured 2026-11-15: the file at the default atlas path had been overwritten
     by the Windows census, and ``--check`` reported "4,623 defect(s)" -- 1,183
     real Kali shards called stale because the atlas described a different tree.
     The exit code was 1, byte-identical to real drift, so the commit gate would
-    have refused a healthy surface for a reason that was about the host.
+    have refused a healthy surface for a reason that was about the host. Now the
+    census is named unjudged and the stubs are still held to the index.
     """
     other = tmp_path / "other_tree.json"
     other.write_text(json.dumps({"root": "/somewhere/else/src",
                                  "generated_at": "2026-11-15T00:00:00+00:00",
                                  "modules": {}}), encoding="utf-8")
-    assert intake.main(["--atlas", str(other), "--check"]) == 2
+    assert intake.main(["--atlas", str(other), "--check"]) == 0
     err = capsys.readouterr().err
-    assert "CANNOT JUDGE" in err
+    assert "census NOT JUDGED" in err
     assert "different tree" in err
     # `--write` deletes every tree directory under shards/ and rewrites the index;
     # against the wrong census it would erase 1,183 shards while reporting success.
     assert intake.main(["--atlas", str(other), "--write"]) == 2
+    # ...and the library entry point refuses to compare two trees on request.
+    with pytest.raises(intake.AtlasUnavailable):
+        intake.check(json.loads(other.read_text(encoding="utf-8")))
 
 
 @pytest.mark.skipif(not intake.recorded_atlas().get("root"),
@@ -128,6 +142,51 @@ def test_a_refresh_of_the_same_tree_is_still_judged(tmp_path):
                                    "modules": {}}), encoding="utf-8")
     # An empty module map drifts against all 1,183 shards: judged, and refused.
     assert intake.main(["--atlas", str(refresh), "--check"]) == 1
+
+
+def test_a_census_less_run_is_not_a_bypass_in_disguise(tmp_path, monkeypatch):
+    """The index-anchored half must still refuse a stub that behaves.
+
+    If ``check(None)`` were a green no-op, the new mode would be the same bypass
+    wearing a verdict's clothes. One index entry and one honest stub: clean. The
+    same stub with WIRED flipped: refused, by name.
+    """
+    root = tmp_path / "eliza"
+    shards = root / "shards"
+    shards.mkdir(parents=True)
+    entry = {"shard_id": "kali:CORE/paths.py#Paths", "kind": "class",
+             "tree": "CORE", "module": "CORE/paths.py", "class": "Paths",
+             "lines": 3, "public_api": 1, "unnamed": 0,
+             "path": "shards/core__paths__paths.py"}
+    stub = shards / "core__paths__paths.py"
+    stub.write_text(textwrap.dedent("""\
+        WIRED = False
+        SHARD_ID = 'kali:CORE/paths.py#Paths'
+        CLASS_NAME = 'Paths'
+        UNNAMED_CLASSES = 0
+
+
+        def load(*args, **kwargs):
+            raise NotImplementedError('stub')
+        """), encoding="utf-8")
+    (shards / "SHARD_INDEX.json").write_text(
+        json.dumps({"atlas": {}, "counts": {"shards": 1}, "shards": [entry]}),
+        encoding="utf-8")
+    (shards / "WIRED.json").write_text(json.dumps({}), encoding="utf-8")
+    monkeypatch.setattr(intake, "REPO", root)
+    monkeypatch.setattr(intake, "SHARDS", shards)
+    monkeypatch.setattr(intake, "INDEX", shards / "SHARD_INDEX.json")
+    monkeypatch.setattr(intake, "WIRED", shards / "WIRED.json")
+
+    ok, problems, counts = intake.check(None)
+    assert ok, problems
+    assert counts == {"shards": 1, "modules": 1, "trees": 1, "wired": 0}, counts
+
+    stub.write_text(stub.read_text(encoding="utf-8")
+                    .replace("WIRED = False", "WIRED = True"), encoding="utf-8")
+    ok, problems, _counts = intake.check(None)
+    assert not ok
+    assert any("WIRED = False" in problem for problem in problems), problems
 
 
 @needs_atlas
