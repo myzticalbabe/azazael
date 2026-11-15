@@ -537,10 +537,22 @@ def _open_items() -> tuple[list[tuple[str, str]] | None, str]:
     done_ids = sup._superseded_task_ids(raw_rels)
     if done_ids is None:
         return None, "unrecognized relations output"
+    # A closure record written as its own task ("TRIAGE-007 DONE #593") can
+    # never be closed by `done_ids`, which keys on the number in the TITLE:
+    # the record's own id is 1902 and its title carries 593. So every closure
+    # statement became a permanent open item -- measured 2026-11-15: 11 of 194,
+    # and growing. An edge whose endpoint IS the record's own title closes it;
+    # the title must also claim the work finished, so a relation that merely
+    # quotes an open title cannot retire it.
+    endpoint_titles = sup._superseded_endpoint_titles(raw_rels)
+    closed_own = {tid for tid, (t, _d) in tasks.items()
+                  if sup._title_claims_finished(t)
+                  and sup._closed_by_own_title(t, endpoint_titles)}
     open_items = [(tid, t) for tid, (t, _d) in tasks.items()
-                  if tid not in done_ids]
+                  if tid not in done_ids and tid not in closed_own]
     open_items.sort(key=lambda x: -int(x[0]))
-    return open_items, "union of %d queries; lower bound" % len(queries)
+    return open_items, ("union of %d queries; lower bound; %d closed via "
+                        "own-title relation" % (len(queries), len(closed_own)))
 
 
 @server.tool()
@@ -993,19 +1005,11 @@ def record_outcome(title: str, body: str, kind: str = "lesson") -> str:
 
 
 #: Markers that appear in an item's own title when whoever filed it already
-#: considers the work finished. Measured 2026-11-15: 11 of 193 open items were
-#: in this state (the TRIAGE-006/007 batch) and the report listed them as
-#: ordinary week-old work, because only age decided the bucket. A title that
-#: claims completion is the cheapest item to close -- it needs a supersedes
-#: relation, not another investigation.
-_DONE_MARKERS = (" done ", "done:", "superseded:", "completed:", "phantom:",
-                 " correct #")
-
-#: A title can claim completion and disclaim landing in the same sentence --
-#: #594 reads "repair DONE and UNCOMMITTED". That is not closeable: the work
-#: is asserted to be outside the tree, so the check is "land it or prove it
-#: landed", which is a different action from "close via supersedes".
-_UNLANDED_MARKERS = ("uncommitted", "not landed", "never landed")
+#: considers the work finished. Both vocabularies live in engram_supervise so
+#: the gate (`check_plan`) and this report use ONE rule; the split is kept only
+#: so the buckets below can flag the unlanded ones for proof.
+_DONE_MARKERS = sup._DONE_MARKERS
+_UNLANDED_MARKERS = sup._UNLANDED_MARKERS
 
 
 def _declares_unlanded(title: str) -> bool:

@@ -299,6 +299,85 @@ def _superseded_task_ids(text):
     return ids
 
 
+#: Markers in an item's own title meaning whoever filed it already considers the
+#: work finished. Measured 2026-11-15: 11 of 194 open items carried one.
+_DONE_MARKERS = (" done ", "done:", "superseded:", "completed:", "phantom:",
+                 " correct #")
+
+#: A title can claim completion AND disclaim landing in one sentence -- #594
+#: reads "repair DONE and UNCOMMITTED". That is not closeable on its own: the
+#: work is asserted to be outside the tree, so the check is "land it or prove it
+#: landed", a different action from "close via supersedes".
+_UNLANDED_MARKERS = ("uncommitted", "not landed", "never landed")
+
+
+def _title_claims_finished(title):
+    """True when the title asserts the work is finished, landed or not.
+
+    Both vocabularies count here because a closure record only has to NAME
+    itself: whether it says "DONE" or "DONE and UNCOMMITTED" is a statement
+    about the past, and a judged relation is the present-tense verdict that
+    settles it. The two markers stay separate so the report can still split
+    the buckets and flag the unlanded ones for proof rather than silently
+    retiring them.
+    """
+    low = " %s " % (title or "").lower()
+    return any(m in low for m in _DONE_MARKERS + _UNLANDED_MARKERS)
+
+
+def _superseded_endpoint_titles(text):
+    """Endpoint titles of every judged `supersedes` relation.
+
+    `_superseded_task_ids` closes a task by the NUMBER its closure title
+    carries ("DONE #593" -> 593). A closure record written as its own task
+    ("TRIAGE-007 DONE #593", observation 1902) carries 593, so no edge can
+    ever close 1902 and every closure statement becomes a permanent open
+    item -- measured 2026-11-15: 11 such records, the whole TRIAGE-006/007
+    batch, and the count only grows.
+
+    This returns the endpoint TEXT so a relation can close the record it
+    names. Matching is by exact prefix of the record's own title (the
+    listing truncates endpoints at ~60 chars and appends "..."), which is
+    sound here where title-prefix matching was NOT: an endpoint here IS the
+    record's own title, not a different sentence that merely mentions it.
+    """
+    titles = []
+    relation = status = ""
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("relation:"):
+            relation = s.split(":", 1)[1].strip()
+        elif s.startswith("judgment_status:"):
+            status = s.split(":", 1)[1].strip()
+        elif s.startswith("target:"):
+            if relation == "supersedes" and status == "judged" and "—" in s:
+                ep = s.split("—", 1)[1].strip()
+                if ep.endswith("..."):
+                    ep = ep[:-3].rstrip()
+                if len(ep) >= 12:
+                    titles.append(ep)
+            relation = status = ""
+    return titles
+
+
+def _closed_by_own_title(title, endpoint_titles):
+    """True when a judged supersedes edge names this very record.
+
+    The floor of 12 characters is what keeps a truncated stub from matching
+    half the list; below it the endpoint carries too little of the title to
+    identify anything. The floor applies to the ENDPOINT, not to the record's
+    own title: a short title is fully known, a short endpoint is a fragment.
+    """
+    if len(endpoint_titles) == 0:
+        return False
+    for ep in endpoint_titles:
+        if len(ep) < 12:
+            continue
+        if title.startswith(ep) or ep.startswith(title):
+            return True
+    return False
+
+
 def check_plan():
     """Open plan items = tasks with no judged `supersedes` pointing at them.
 
@@ -355,8 +434,11 @@ def check_plan():
     # signal. Every unjudged task is listed; closing dead ones is triage
     # work (judge them superseded), not display work. Dates are still
     # captured per task for future use.
+    endpoint_titles = _superseded_endpoint_titles(raw_rels)
     open_items = [(tid, t) for tid, (t, d) in tasks.items()
-                  if tid not in done_ids]
+                  if tid not in done_ids
+                  and not (_title_claims_finished(t)
+                           and _closed_by_own_title(t, endpoint_titles))]
     lines = ["open plan items: %d (union of %d queries; lower bound)"
              % (len(open_items), len(queries))]
     # Newest first: the current lane lives at the top of the numbering,
