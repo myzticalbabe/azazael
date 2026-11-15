@@ -1,5 +1,10 @@
 # The FLAMING SWORD dissects game code into Shards — goals and tasks (2026-11-01)
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 Recorded at the user's instruction, 2026-11-01. The machine-readable version of this
 document is **Track E in [`tasks.json`](tasks.json)** (`M-13` … `M-18`); this page is the
 reasoning copy, and every task's acceptance in `tasks.json` is phrased in terms of something
@@ -84,7 +89,7 @@ unverified until a native host exists; M-18's risk line says exactly that.
 Dissecting game code is lawful in proportion to what the extractor can show. So the sword is
 a **rights-aware** extractor, and M-15 lands **before** minting, never after:
 
-- **Allowed:** your own games; permissively licensed code (MIT / Apache-2.0 / BSD / public
+- **Allowed:** your own games; permissively licensed code (MIT / Soul Forge License v1.0 / BSD / public
   domain) with the licence file and commit recorded; a unit you re-implemented from a
   description.
 - **Refused:** a unit whose licence is unknown, whose `source_commit` is absent, or whose

@@ -3,7 +3,7 @@ message: "If you use this software, cite it as below. If you cite a measured fig
 title: "Project_GOSP_Governance: 3-script governance system, evidence directories, compliance scripts, governance orchestration."
 version: "0.1.0"
 date-released: "2026-11-03"
-license: "CDDL-1.1"
+license: "Soul Forge License v1.0"
 type: software
 abstract: >-
   3-script governance system, evidence directories, compliance scripts, governance orchestration.

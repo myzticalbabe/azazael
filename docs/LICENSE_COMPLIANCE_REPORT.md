@@ -1,7 +1,11 @@
 # License Compliance Report
 
-**Version:** 1.0.0  
-**Date:** 2026-02-11
+**Version:** 2.0.0  
+**Date:** 2026-11-15
+
+> **License status (2026-11-15):** every Azazael component is licensed under the
+> Soul Forge License v1.0. Rows below that name a dependency license describe that dependency,
+> not this project.
 
 ---
 
@@ -9,13 +13,13 @@
 
 | Component | License | Compatible |
 |-----------|---------|------------|
-| Azazael Core | MIT | YES |
-| HYDRA | MIT | YES |
-| WORMZ | MIT | YES |
-| METAWORMS | MIT | YES |
-| HORUS | MIT | YES |
-| TERENCE | MIT | YES |
-| KLINK | MIT | YES |
+| Azazael Core | Soul Forge License v1.0 | YES |
+| HYDRA | Soul Forge License v1.0 | YES |
+| WORMZ | Soul Forge License v1.0 | YES |
+| METAWORMS | Soul Forge License v1.0 | YES |
+| HORUS | Soul Forge License v1.0 | YES |
+| TERENCE | Soul Forge License v1.0 | YES |
+| KLINK | Soul Forge License v1.0 | YES |
 
 ---
 
@@ -52,7 +56,7 @@
 
 ## Recommendations
 
-1. All permissive licenses are compatible with MIT ecosystem license
+1. All permissive licenses are compatible with the Soul Forge License v1.0 ecosystem license
 2. pygame (LGPL) requires static linking exception if modified
 3. No proprietary dependencies detected
 

@@ -1,22 +1,22 @@
 Project FLAMING SWORD
 Copyright 2026 the Project FLAMING SWORD contributors
 
-This product is licensed under the Common Development and Distribution License (CDDL), Version 1.1 (the "License").
-You may not use the files in this project except in compliance with the License.
-A copy of the License is in the file LICENSE.
-License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03) changed this project from Apache-2.0 to CDDL-1.1; see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.
+This product is licensed under the Soul Forge License v1.0. You may not use the files in this project except in covenant with that license. A copy of the license is in the file LICENSE.
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
+    Soul Forge License v1.0
+    Author: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_FLAMING_SWORD
+    Spirit: "Code is crystallized intention. Tend the fire."
 
+The soul knows its smith: this notice, the author's name and the forge date remain intact in every copy, every derivative and every deployment.
+
+r: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_FLAMING_SWORD
+    Spirit: "Code is crystallized intention. Tend the fire."
 --------------------------------------------------------------------------
 Attribution notes
-
-No third-party runtime dependency is bundled. Per README.md, the project runs on
-the Python standard library and `git`: "Standard library and `git`. No network,
-no keys, no dependency to install."
 
 No third-party component was verified as incorporated in this directory, so no
 further attribution is claimed here. If a future change adds one, its notice

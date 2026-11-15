@@ -1,3 +1,8 @@
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 # SHARDEX Community Shard Contribution Protocol
 **Date:** November 2, 2026  
 **Task:** SHARDEX-COMMUNITY-SHARDS (board_id=47302)  
@@ -363,7 +368,7 @@ shardex install shardex://community/space_arena/v1.0.0 --target ./my_game/assets
 ## Legal & Ethics
 
 ### Licensing
-- Tool: MIT/Apache-2.0
+- Tool: MIT/Soul Forge License v1.0
 - Shards: Respect original game licenses
 - Contributors retain copyright on their manifests
 - Community registry: CC0 for index data

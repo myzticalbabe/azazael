@@ -249,10 +249,30 @@ the science, and a PASS from it is not an endorsement.
 
 ## Citing
 
-See `CITATION.cff`. Licensed CDDL-1.1; see `NOTICE` for attribution.
-License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03); see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.
+See `CITATION.cff`. Licensed under the Soul Forge License v1.0; see `NOTICE` for attribution.
+The Soul Forge License v1.0 governs every tree; see `LICENSE` and `NOTICE`.
 
 ## Contributing
 
 Read `CONTRIBUTING.md` first. The short version: bring a negative control. This
 project does not accept a claim that has no test able to show it false.
+
+## License
+
+This project is licensed under the **Soul Forge License v1.0** — a covenant, not a
+contract. The full text is in [LICENSE](LICENSE).
+
+You may use, copy, modify, merge, publish, distribute, sublicense and/or
+sell copies of the software, provided you keep the maker's mark intact,
+do not wrap the code in DRM or obfuscation, and return your modifications
+under this same license.
+
+```
+    Soul Forge License v1.0
+    Author: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_Nurse_Ratchet
+    Spirit: "Code is crystallized intention. Tend the fire."
+```
+
+Author: myzticalbabe · Forged: 2026-11-14 · Spirit: "Code is crystallized intention. Tend the fire."

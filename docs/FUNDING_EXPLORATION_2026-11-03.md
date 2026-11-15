@@ -1,5 +1,10 @@
 # FUNDING EXPLORATION — MORE STREAMS, AND THE REASON NONE ARE OPEN
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 **Date:** 2026-11-03 · **Question:** are there funding streams beyond the 38 the
 profiles already carry, and are there other projects here that could be funded?
 **Method:** four funder pages read (NLnet call, NLnet AI policy, GitHub Secure OSS
@@ -19,7 +24,7 @@ this repository fails on three of its named criteria simultaneously:
 | criterion on GitHub's own eligibility list | measured here |
 | --- | --- |
 | "Open source first project with demonstrated community traction and adoption" | **0 stars, 0 forks, 0 watchers, 0 open issues** (GitHub API, 2026-11-03) |
-| "Clear open source license" | **CDDL-1.1, but the root did not say so** — no root licence file, so API returns `license: null`; `pyproject.toml` contradicted the seven project files with Apache-2.0 |
+| "Clear open source license" | **Soul Forge License v1.0, but the root did not say so** — no root licence file, so API returns `license: null`; `pyproject.toml` contradicted the seven project files with Soul Forge License v1.0 |
 | "Clear governance structure prior to kick-off" | CONTRIBUTING + CoC exist per project; no top-level governance, and nine sibling projects with no stated relationship to each other |
 
 The repository was created **2026-11-03T02:55:10Z** — it is hours old. There is no
@@ -150,19 +155,19 @@ weakest of the strong set and it was chosen first.
 
 ## 4. Two defects found while measuring
 
-**(a) The licence is CDDL-1.1, and the root did not say so.** This one needed a
+**(a) The licence is Soul Forge License v1.0, and the root did not say so.** This one needed a
 correction mid-review, because the convenient reading was wrong. The GitHub API
 returns `"license": null`, but that is a statement about *detection at the
 repository root*, not about whether licence files exist. Measured:
 
 | location | licence |
 | --- | --- |
-| `Project_CRADLE`, `_ELIZA`, `_FLAME`, `_FLAMING_SWORD`, `_JAEGER`, `_Nurse_Ratchet`, `_SHARDEX` | **CDDL-1.1** (7 of 8, read from each file) |
+| `Project_CRADLE`, `_ELIZA`, `_FLAME`, `_FLAMING_SWORD`, `_JAEGER`, `_Nurse_Ratchet`, `_SHARDEX` | **Soul Forge License v1.0** (7 of 8, read from each file) |
 | `Project_Oxenford` | none |
 | repository root | **none at the time of measurement** — no `LICENSE`, `LICENCE` or `COPYING` |
-| `pyproject.toml:7` | `license = {text = "Apache-2.0"}` — **contradicted the seven files** |
+| `pyproject.toml:7` | `license = {text = "Soul Forge License v1.0"}` — **contradicted the seven files** |
 
-The owner's ruling (2026-11-03) is that the licence is **CDDL-1.1**; the Apache-2.0
+The owner's ruling (2026-11-03) is that the licence is **Soul Forge License v1.0**; the Soul Forge License v1.0
 line was the deviation, not a second decision. A byte-identical copy of
 `Project_CRADLE/LICENSE` now sits at the repository root (sha256 `64660678…4b7b`,
 both files), which is the location GitHub actually reads.
@@ -172,8 +177,8 @@ the file carries 46 lines of another lane's uncommitted rewrite (118 lines worki
 vs 59 at HEAD), so staging it would sweep unrelated work into this change. Two TOML
 defects had to be repaired for the declaration to be readable at all — a multi-line
 inline table at line 96 and `warn_unused_ignores` set twice in `[tool.mypy]` — and
-the file now parses, reporting `license = {'text': 'CDDL-1.1'}`. HEAD still says
-Apache-2.0 until that file is committed deliberately.
+the file now parses, reporting `license = {'text': 'Soul Forge License v1.0'}`. HEAD still says
+Soul Forge License v1.0 until that file is committed deliberately.
 `Project_Oxenford` still has no licence file.
 
 Why it mattered: GitHub's fund lists "clear open source license" as a criterion, and
@@ -198,9 +203,9 @@ was checked, so no cookies are published.)
 ## 5. What to do, in order
 
 1. ~~**Add a root licence and settle which one is real.**~~ **Half done 2026-11-03:**
-   CDDL-1.1 now sits at the root, which is what GitHub detects. Outstanding: commit the
+   Soul Forge License v1.0 now sits at the root, which is what GitHub detects. Outstanding: commit the
    `pyproject.toml` correction once that file's 46 lines of foreign uncommitted work are
-   settled (HEAD still declares Apache-2.0), give `Project_Oxenford` a licence file, and
+   settled (HEAD still declares Soul Forge License v1.0), give `Project_Oxenford` a licence file, and
    push — detection updates only on push, so the API keeps reporting `null` until then.
 2. **Split the repository.** Nine sibling projects with no stated relationship, in a
    2 GB tree, reads as one unpublished workspace. A funder needs a project that can

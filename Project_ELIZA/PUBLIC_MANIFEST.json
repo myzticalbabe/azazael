@@ -1,7 +1,7 @@
 {
  "project": "eliza",
  "version": "0.1.0",
- "license": "Apache-2.0",
+ "license": "Soul Forge License v1.0",
  "status": "PRE-PUBLICATION",
  "summary": "A therapeutic-agent loop, the psychological network it reasons over, the compiled-inference layer that makes it fast, and the evaluation instruments that grade all three. Published with its limitations, including a measured crisis-router recall that ranges from 0.83 to 0.18 across three self-authored holdouts -- a spread that says the single number does not exist yet.",
  "ship_roots": [

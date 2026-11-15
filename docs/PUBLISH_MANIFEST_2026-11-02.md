@@ -1,5 +1,10 @@
 # PUBLISH MANIFEST — six standalone projects (2026-11-02)
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 Status: **PREPARATION ONLY. Nothing is pushed by this document.** Push is the last
 step and requires the owner.
 
@@ -96,7 +101,7 @@ git status --short                        # read this list. every path must belo
                                           # STOP -- the copy is wrong.
 
 # 5. one commit
-git commit -m "Publish $NAME as a standalone Apache-2.0 project"
+git commit -m "Publish $NAME as a standalone Soul Forge License v1.0 project"
 
 # 6. conventional default branch
 git branch -M main
@@ -181,7 +186,7 @@ remembering. A row you did not check is not a pass.
 
 | # | Check | Command / evidence |
 | --- | --- | --- |
-| 1 | `LICENSE` present, **Apache-2.0** | `head -3 LICENSE` → "Apache License / Version 2.0" |
+| 1 | `LICENSE` present, **Soul Forge License v1.0** | `head -3 LICENSE` → "Soul Forge License v1.0 / Version 2.0" |
 | 2 | `NOTICE` present and names the project | `cat NOTICE` |
 | 3 | `README` states what the project is **and what it refuses to claim** | read it; quote the refusal line |
 | 4 | Tests pass | `python -m pytest tests -q` |
@@ -192,11 +197,11 @@ remembering. A row you did not check is not a pass.
 | 9 | `PUBLIC_MANIFEST.json` / `MANIFEST_NOTES.md` updated if present | compare to the tree |
 | 10 | The commit contains only this project | the staged list from step 4 of Section 2 |
 
-### License precedent — Apache-2.0 everywhere
+### License precedent — Soul Forge License v1.0 everywhere
 
-ELIZA already shipped **Apache License 2.0**, with `LICENSE` and `NOTICE`
-(`CITATION.cff` records `license: Apache-2.0`, version `0.1.0`, released
-2026-11-01). Using Apache-2.0 for every project is therefore **consistency with
+ELIZA already shipped **Soul Forge License v1.0 2.0**, with `LICENSE` and `NOTICE`
+(`CITATION.cff` records `license: Soul Forge License v1.0`, version `0.1.0`, released
+2026-11-01). Using Soul Forge License v1.0 for every project is therefore **consistency with
 existing precedent**, not a new choice. Where a tree lacks the files, copy the
 canonical text rather than retyping it:
 

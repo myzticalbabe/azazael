@@ -10,7 +10,7 @@ description = "One command over sword, defender, sentinel and memory — the com
 # README.md (as the sibling projects do) fails the build with a missing-file error.
 readme = "CRADLE.md"
 requires-python = ">=3.10"
-license = { text = "CDDL-1.1" }
+license = { text = "Soul Forge License v1.0" }
 # No Python runtime dependencies: the Python side is stdlib-only.
 #
 # The composition DOES need a non-pip dependency that metadata cannot express:

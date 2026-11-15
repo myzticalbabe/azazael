@@ -1,5 +1,10 @@
 # AUDIT — docs/ publish suitability (2026-11-02)
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 Auditor 18 of 18, FULL AUDIT fan-out. **Read-only**: no file in `docs/` was modified by this
 audit, and nothing was executed.
 
@@ -40,7 +45,7 @@ tree during this session even where matches exist. No "not found" claim below re
 ## What a public reader needs that is absent
 
 1. **No `LICENSE`.** Neither the repo root nor `docs/` holds one (an earlier audit in this session
-   confirmed `LICENSE*` resolves to zero files). The owner has decided Apache-2.0; the file is
+   confirmed `LICENSE*` resolves to zero files). The owner has decided Soul Forge License v1.0; the file is
    still missing.
 2. **No `SECURITY.md`.** `SECURITY_AUDIT_CHECKLIST.md` is a blank self-audit form, not a
    vulnerability-disclosure policy, and it would be wrong to offer it as one.

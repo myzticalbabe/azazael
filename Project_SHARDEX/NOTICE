@@ -1,25 +1,22 @@
 PROJECT SHARDEX
 Copyright 2026 the Project SHARDEX contributors
 
-This product is licensed under the Common Development and Distribution License (CDDL), Version 1.1 (the "License").
-You may not use the files in this project except in compliance with the License.
-A copy of the License is in the file LICENSE.
-License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03) changed this project from Apache-2.0 to CDDL-1.1; see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.
+This product is licensed under the Soul Forge License v1.0. You may not use the files in this project except in covenant with that license. A copy of the license is in the file LICENSE.
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
+    Soul Forge License v1.0
+    Author: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_SHARDEX
+    Spirit: "Code is crystallized intention. Tend the fire."
 
+The soul knows its smith: this notice, the author's name and the forge date remain intact in every copy, every derivative and every deployment.
+
+r: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_SHARDEX
+    Spirit: "Code is crystallized intention. Tend the fire."
 --------------------------------------------------------------------------
 Attribution notes
-
-No third-party runtime dependency is bundled. SHARDEX.md states the contract
-this is measured against: "Stdlib only. No key, no build, no network." The
-mirror, shatter, forge, tune and verify rungs (`shardex.py`, `ops.py`,
-`meshscene.py`, `transubstantiate.py`) run on the Python standard library, and
-the forged `flame.html` shell runs on the browser's own JavaScript with no
-external script, font or stylesheet reference.
 
 The rendered artefacts this project can produce (`flame/`, `.shardex/`,
 `.transub/`, `.live/` and any `*.mp4` or captured frame) are generated output,

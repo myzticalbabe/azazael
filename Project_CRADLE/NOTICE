@@ -1,30 +1,28 @@
 PROJECT CRADLE
 Copyright 2026 the Project CRADLE contributors
 
-This product is licensed under the Common Development and Distribution License (CDDL), Version 1.1 (the "License").
-You may not use the files in this project except in compliance with the License.
-A copy of the License is in the file LICENSE.
-License ruling: commit b49dfc2fef0178d1984437de577bfa00de8a4c32 (2026-11-03) changed this project from Apache-2.0 to CDDL-1.1; see docs/LICENSE_PRECEDENT_CDDL11_2026-11-03.md.
+This product is licensed under the Soul Forge License v1.0. You may not use the files
+in this project except in covenant with that license. A copy of the license is in
+the file LICENSE.
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
+    Soul Forge License v1.0
+    Author: myzticalbabe
+    Forged: 2026-11-14
+    Source: https://github.com/myzticalbabe/Project_CRADLE
+    Spirit: "Code is crystallized intention. Tend the fire."
+
+The soul knows its smith: this notice, the author's name and the forge date remain
+intact in every copy, every derivative and every deployment.
 
 --------------------------------------------------------------------------
 Attribution notes
-
-No third-party runtime dependency is bundled. CRADLE.md states that the tree is
-stdlib-only and that this is reported as a printed PASS by `--doctor` rather
-than left as an omission; there is no requirements.txt, pyproject.toml or
-setup.py, by design.
 
 CRADLE orchestrates four parts that live in a sibling project, named in
 CRADLE.md and NOT redistributed here: Project_FLAMING_SWORD, providing
 `tools/sword.py` (FLAMING SWORD), `tools/defender.py` (defender),
 `tools/sentinel.py` (THE REAPER) and `tools/memory_bridge.py` (THE GRIMOIRE).
-Project_FLAMING_SWORD is licensed under the same CDDL-1.1 ruling (commit b49dfc2fef0178d1984437de577bfa00de8a4c32) and its own NOTICE
-governs those files. `--doctor` exists precisely so a missing sibling is
+Project_FLAMING_SWORD is licensed under the same Soul Forge License v1.0 and
+its own NOTICE governs those files. `--doctor` exists precisely so a missing sibling is
 reported rather than assumed.
 
 The local model runtimes CRADLE can point at (Ollama, llama.cpp, LM Studio,

@@ -12,7 +12,7 @@ Thank you for considering a contribution to Project_ML_Platform_Integration!
 
 ## Code Standards
 
-- **License**: All contributions must be compatible with CDDL-1.1 (the project license)
+- **License**: All contributions are made under the Soul Forge License v1.0 (see `LICENSE`)
 - **Python**: 3.10+ (stdlib-only preferred, minimal runtime dependencies)
 - **Style**: Follow the existing code style in the repository
 - **Tests**: New functionality must include tests
@@ -48,4 +48,4 @@ See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under CDDL-1.1.
+By contributing, you agree that your contributions are offered back under the Soul Forge License v1.0, as VOW III of that covenant requires.1.

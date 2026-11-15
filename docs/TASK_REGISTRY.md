@@ -1712,7 +1712,7 @@ Audit all third-party dependencies for license compliance.
 
 | File | License | Compatible |
 |------|---------|------------|
-| Azazael Core | MIT | YES |
+| Azazael Core | Soul Forge License v1.0 | YES |
 | Third-Party Dependencies | Various | VERIFY |
 
 ## Dependency Inventory

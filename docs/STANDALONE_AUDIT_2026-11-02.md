@@ -1,5 +1,10 @@
 # STANDALONE AUDIT — do the publishable trees actually run without the monorepo?
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 **Date:** 2026-11-02
 **Scope:** `Project_FLAMING_SWORD`, `Project_FLAME`, `Project_SHARDEX`, `Project_CRADLE`, `Project_Nurse_Ratchet`
 **Method:** read-only. Every Python file listed below was read and its import block inspected;
@@ -43,7 +48,7 @@ CRADLE is a launcher. Its four parts are **not in its own tree** — they are fi
 | `cradle.py:201` | `target = "Project_FLAMING_SWORD/tools/sword.py"` | the demo's subject lives outside the tree |
 | `cradle.py:206, 208` | `evidence=` / `must_not_break=` name `Project_FLAMING_SWORD/tests/test_defender.py` | acceptance command points at another repo's tests |
 | `cradle.py:250, 252` | same, second demo path | same |
-| `NOTICE:22-25` | *"CRADLE.md and NOT redistributed here: Project_FLAMING_SWORD … licensed separately (Apache-2.0)"* | honest — but it confirms the dependency is by design |
+| `NOTICE:22-25` | *"CRADLE.md and NOT redistributed here: Project_FLAMING_SWORD … licensed separately (Soul Forge License v1.0)"* | honest — but it confirms the dependency is by design |
 
 CRADLE's own imports are clean (stdlib only: `argparse`, `importlib.util`, `json`, `shutil`, `sys`,
 `tempfile`, `urllib`, `pathlib`, `typing`). It therefore **imports** fine in a fresh clone and

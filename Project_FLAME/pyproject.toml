@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Fixed-step orchestrator for accelerated play: integer timebase, no dropped ticks."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "CDDL-1.1" }
+license = { text = "Soul Forge License v1.0" }
 # No Python runtime dependencies: the engine is stdlib-only, and the fixed-step
 # claim is arithmetic over an integer timebase rather than a library call.
 #

@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Find, queue, fix, prove and land a sweep of one codebase."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "CDDL-1.1" }
+license = { text = "Soul Forge License v1.0" }
 # No Python runtime dependencies: the sweep is stdlib-only.
 #
 # One non-pip dependency is real and invisible to `dependencies`: the `git`

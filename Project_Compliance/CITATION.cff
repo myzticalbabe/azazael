@@ -3,7 +3,7 @@ message: "If you use this software, cite it as below. If you cite a measured fig
 title: "Project_Compliance: 13-component ComplianceOrchestrator: policy engine, formal verifier, state machine, sentinel gates, dual-ledger validation. Enterprise-grade compliance infrastructure."
 version: "0.1.0"
 date-released: "2026-11-03"
-license: "CDDL-1.1"
+license: "Soul Forge License v1.0"
 type: software
 abstract: >-
   13-component ComplianceOrchestrator: policy engine, formal verifier, state machine, sentinel gates, dual-ledger validation. Enterprise-grade compliance infrastructure.

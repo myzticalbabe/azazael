@@ -1,5 +1,10 @@
 # What ships with the tree — the packaging plan
 
+> **License status (2026-11-15): superseded.** Every tree in this repository is
+> licensed under the Soul Forge License v1.0 (`LICENSE`). Facts recorded below that
+> describe an earlier license describe the state on the date in the filename; they
+> do not govern this code.
+
 **Status: proposal, 2026-11-01.** Every state in this document was measured in
 this tree on this date; nothing here is a roadmap dressed as an inventory. Where
 a thing does not exist, the count is `0` and it stays `0` until a file lands.
@@ -27,7 +32,7 @@ whole of the gap section below.
 | layer | package | state today (measured) | to ship it needs |
 |---|---|---|---|
 | **L0 node** | `tools/box_profile.py` + `docs/platforms/` + `scripts/box/` | 3-state profiler (`available`/`unavailable`/`unknown`), 10 tests, writes `box_profile.json`, `--check` catches drift | nothing — this is the most finished thing here |
-| **L0 node** | PAMS/PMB local store | in use every session; `~/.pmb/workspaces/<ws>/events.sqlite`, local-only, Apache-2.0 | a documented export/import so a person's memory is portable off the tool |
+| **L0 node** | PAMS/PMB local store | in use every session; `~/.pmb/workspaces/<ws>/events.sqlite`, local-only, Soul Forge License v1.0 | a documented export/import so a person's memory is portable off the tool |
 | **L0 node** | DirectMemory + audit trail + failure ledger | `src/CORE/direct_memory.py`, `audit_trail.py`, `failure_ledger.py` | a single "what is on this node" listing a user can read |
 | **L1 person** | `Project_Nurse_Ratchet` 0.1.0 | the **packaging template for everything else**: `pyproject.toml`, CHANGELOG, CITATION, SECURITY, `PUBLIC_MANIFEST.json`, and `tools/publicize.py` — an allowlist copy tool that refuses any path the manifest does not name and re-imports the result in a fresh subprocess before calling it published. Recall floor **0.83 / 0.83 / 0.18** across its own three holdouts; and `certification.json` + `tools/certification_bar.py`, which publish a computed certifiability percentage and refuse a criterion marked done without evidence | real construct data; the 0.18 holdout is the honest one |
 | **L1 person** | `Project_ELIZA` | **declared only** — there is no `Project_ELIZA/` directory in this tree yet, and its sources (`.bcc_audit/`, `behavior_lint.py`, `behavior_trace.py`) are in the `G:/AZAZAEL*` archives | source restoration, then its own allowlist gate built on the Nurse Ratchet pattern |

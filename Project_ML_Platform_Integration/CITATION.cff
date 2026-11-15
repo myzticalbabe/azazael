@@ -3,7 +3,7 @@ message: "If you use this software, cite it as below. If you cite a measured fig
 title: "Project_ML_Platform_Integration: LM Studio integration, Q-learning, ONNX, Ray, harness, diagnostics, health monitoring, model analysis."
 version: "0.1.0"
 date-released: "2026-11-03"
-license: "CDDL-1.1"
+license: "Soul Forge License v1.0"
 type: software
 abstract: >-
   LM Studio integration, Q-learning, ONNX, Ray, harness, diagnostics, health monitoring, model analysis.

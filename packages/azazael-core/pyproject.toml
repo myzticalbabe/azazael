@@ -7,7 +7,7 @@ name = "azazael-core"
 version = "3.1.0"
 description = "AZAZAEL Core — Path resolution, worm registry, free-threading, and configuration engine"
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "Soul Forge License v1.0"}
 requires-python = ">=3.15"
 authors = [
     {name = "AZAZAEL Project"}
