@@ -24,7 +24,6 @@ class of mistake returning -- a one-sided test is passed by a no-op classifier.
 
 from __future__ import annotations
 
-import importlib
 import os
 import sys
 from pathlib import Path
@@ -48,7 +47,14 @@ _HABITAT = _habitat()
 if _HABITAT is not None and str(_HABITAT) not in sys.path:
     sys.path.insert(0, str(_HABITAT))
 
-ot = importlib.import_module("azazael_operator_task")
+# The instrument lives beside its tree (the home-dir hub or the drive-root
+# flat tree), not in this repo. When no ancestor holds it, skip this module
+# rather than aborting collection for every other test in the suite
+# (measured 2026-11-15: one missing module hid 7,775 tests).
+ot = pytest.importorskip(
+    "azazael_operator_task",
+    reason="operator instrument not present in this tree",
+)
 ROOT = ot.AZAZAEL_ROOT
 
 CORRECT = os.path.join(ROOT, "src", "CORE", "worm_registry.py")
