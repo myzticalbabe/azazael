@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import calendar
 import json
+import re
 import subprocess
 import sys
 import time
@@ -56,8 +57,26 @@ BUDGET_S = 120
 INPUTS = ("src", "tools")
 
 #: Keys artifacts in this tree actually use for "when was this taken".
+#: Measured 2026-11-14 over 181 artifacts in logs/ and state/: 156 were undatable
+#: with the first vocabulary, and the three shapes it missed were not exotic --
+#: `at` (20 files, ISO), `when` (1, ISO) and `time` (7, epoch MILLIseconds as a
+#: string). A reading vocabulary that omits the key a sub-tree actually writes
+#: reports its dates as absent, which is the stronger and wrong claim.
+# A stamp shape is recognised by what it LOOKS like, before strptime is asked.
+DATE_SHAPES = (
+    (re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"), "%Y-%m-%dT%H:%M:%S"),
+    (re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"), "%Y-%m-%d %H:%M:%S"),
+    (re.compile(r"^\d{4}-\d{2}-\d{2}"), "%Y-%m-%d"),
+)
+
 TIME_KEYS = ("generated", "generated_at", "ran_at", "built_at", "timestamp",
-             "ts", "date", "updated", "updated_at", "collected_at")
+             "ts", "date", "updated", "updated_at", "collected_at",
+             "at", "when", "time")
+
+#: Plausible epoch range (2001-09-09 .. 2100-01-01): an epoch-looking string is
+#: only a timestamp inside it, so a `time` field holding a duration or a counter
+#: is refused rather than reported as a 1970-era reading.
+EPOCH_MIN, EPOCH_MAX = 1_000_000_000, 4_102_444_800
 
 SEARCH = ("logs/*.json", "state/*.json")
 
@@ -145,6 +164,13 @@ def artifact_time(data, unparsed: list[str] | None = None) -> float | None:
             # string (``"generated": "'2026-10-17'"``), so the quote is part of
             # the value and strptime refuses it. Normalise before parsing.
             text = value.strip().strip("'\"")
+            # Epoch seconds (10 digits) or milliseconds (13) stored as a string.
+            # Measured 2026-11-14: 7 artifacts carry `time: '1793683625085'`, and
+            # reading that as a date string made a written stamp look absent.
+            if text.isdigit() and len(text) in (10, 13):
+                seconds = int(text) / (1000.0 if len(text) == 13 else 1.0)
+                if EPOCH_MIN <= seconds <= EPOCH_MAX:
+                    return seconds
             # ``Z`` is UTC; mktime() would read it as local time and skew every
             # comparison by the zone offset (measured: -0500 here).
             utc = text.endswith("Z")
@@ -152,16 +178,31 @@ def artifact_time(data, unparsed: list[str] | None = None) -> float | None:
             # Date-only is a real timestamp in this tree (measured: 12 artifacts
             # carry ``generated: 2026-10-17``); refusing it would report a date
             # as an absent one, which is the stronger and wrong claim.
-            for shape, width in (("%Y-%m-%dT%H:%M:%S", 19),
-                                 ("%Y-%m-%d %H:%M:%S", 19),
-                                 ("%Y-%m-%d", 10)):
-                try:
-                    parsed = time.strptime(text[:width], shape)
-                except ValueError:
-                    unparsed.append("%s=%r" % (key, text[:24]))
-                    continue
-                return float(calendar.timegm(parsed) if utc
-                             else time.mktime(parsed))
+            #
+            # The failure is recorded ONLY when every shape failed. Measured
+            # 2026-11-14: appending inside the loop counted a date-only stamp as
+            # two unparsable values before the 10-character shape matched, so the
+            # reading reported 18 unparsable stamps that had all parsed -- a
+            # count inflated by the order the shapes are tried is a wrong number,
+            # not a conservative one.
+            # A regex decides WHICH shape applies, so strptime is only called on
+            # a string that already matches it and cannot raise. Measured
+            # 2026-11-14: probing shapes with try/except and `continue` added a
+            # silent_except_continue the staged scanner blocks -- and the
+            # blocker was right, because a swallowed ValueError is how a stamp
+            # silently becomes "absent". The shape test is a match, not an
+            # exception.
+            parsed = None
+            for pattern, shape in DATE_SHAPES:
+                hit = pattern.match(text)
+                if hit is not None:
+                    parsed = time.strptime(hit.group(0), shape)
+                    break
+            if parsed is None:
+                unparsed.append("%s=%r" % (key, text[:24]))
+                continue
+            return float(calendar.timegm(parsed) if utc
+                         else time.mktime(parsed))
     return None
 
 

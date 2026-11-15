@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -155,6 +156,33 @@ def audit_file(path: Path) -> list[dict]:
     return findings
 
 
+def classify_ignored(tokens: list[str], notes: list[str]) -> set[str]:
+    """Citations a .gitignore rule covers: runtime artifacts, not broken pointers.
+
+    Measured 2026-11-14: `docs/agent_orders/05_hyper_edge_defaults.md` cites
+    `logs/golden_arrow_staged.json` while describing what `--staged` writes, and
+    `logs/` is deliberately untracked -- so "does not resolve" accused canon of
+    naming a file that is produced on demand, and a presence test can never
+    settle it. The state is NAMED and COUNTED rather than dropped: a citation
+    quietly removed from the denominator is HED-9's defect.
+    """
+    if not tokens:
+        return set()
+    try:
+        proc = subprocess.run(["git", "check-ignore", "--stdin"], cwd=str(ROOT),
+                              input="\n".join(tokens), capture_output=True,
+                              text=True, encoding="utf-8", errors="replace",
+                              timeout=20)
+    except (OSError, subprocess.SubprocessError) as exc:
+        notes.append("git check-ignore unavailable (%s)" % type(exc).__name__)
+        return set()
+    if proc.returncode not in (0, 1):
+        notes.append("git check-ignore exit %d" % proc.returncode)
+        return set()
+    return {line.strip() for line in (proc.stdout or "").splitlines()
+            if line.strip()}
+
+
 def run(strict: bool = False) -> tuple[int, list[dict], dict]:
     files = surfaces()
     if not files:
@@ -163,16 +191,32 @@ def run(strict: bool = False) -> tuple[int, list[dict], dict]:
     findings: list[dict] = []
     for path in files:
         findings.extend(audit_file(path))
+    notes: list[str] = []
+    ignored = classify_ignored(
+        [f["token"] for f in findings if f["state"] == "unresolved"], notes)
+    for f in findings:
+        if f["state"] == "unresolved" and f["token"] in ignored:
+            f["state"] = "gitignored"
+            f["reason"] = ("git-ignored runtime artifact "
+                           "(produced on demand, never shipped)")
     unresolved = [f for f in findings if f["state"] == "unresolved"]
     unverifiable = [f for f in findings if f["state"] == "other-os"]
+    gitignored = [f for f in findings if f["state"] == "gitignored"]
     stats = {"scanned": len(files), "findings": len(findings),
-             "unresolved": len(unresolved), "unverifiable": len(unverifiable)}
+             "unresolved": len(unresolved), "unverifiable": len(unverifiable),
+             "gitignored": len(gitignored)}
     for f in findings:
+        if f["state"] == "gitignored":
+            continue
         print("  %s:%d  %s  (%s)" % (f["file"], f["line"], f["token"],
                                     f["reason"]))
+    for note in notes:
+        print("  NOTE %s" % note)
     print("citation_audit: %d file(s), %d citation(s) unresolved, "
-          "%d unverifiable, %d finding(s) | bases: repo, parent, home, src/<pkg>"
-          % (len(files), len(unresolved), len(unverifiable), len(findings)))
+          "%d unverifiable, %d git-ignored, %d finding(s) "
+          "| bases: repo, parent, home, src/<pkg>"
+          % (len(files), len(unresolved), len(unverifiable), len(gitignored),
+             len(unresolved) + len(unverifiable)))
     if strict and unresolved:
         return 1, findings, stats
     return 0, findings, stats

@@ -128,6 +128,29 @@ def _call_name(node: ast.Call) -> str:
     return func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
 
 
+def imported_aliases(tree: ast.AST) -> set:
+    """Names this module bound to a shared reader through `import ... as`.
+
+    Measured 2026-11-14: `tools/pmb_floor_proxy.py` reads
+    `mcp_stack.floor_auth_mode` through
+    `from tools.defaults_profile import read_default as _read_default`, and this
+    scan called that knob an orphan because the alias never matched the
+    vocabulary. A false orphan is the most expensive finding this audit can
+    make: it accuses a working knob of being dead, and the fix it invites is
+    deleting a live setting. Only `from ... import name as alias` needs this --
+    `import defaults_profile as dp` already resolves, because `_call_name`
+    returns the attribute (`dp.read_default` -> `read_default`).
+    """
+    names = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        for alias in node.names:
+            if alias.name in READERS and alias.asname:
+                names.add(alias.asname)
+    return names
+
+
 def local_wrappers(tree: ast.AST) -> set:
     """Function names in this module that wrap the shared reader.
 
@@ -185,7 +208,8 @@ def readers_in(path: Path, declared: set | None = None) -> tuple:
                   "%s: %s" % (type(exc).__name__, str(exc)),
                   getattr(exc, "lineno", 0) or 0)], set())
     wrappers = local_wrappers(tree)
-    targets = READERS | wrappers
+    aliases = imported_aliases(tree)
+    targets = READERS | wrappers | aliases
     found = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
