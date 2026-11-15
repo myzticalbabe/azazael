@@ -32,7 +32,7 @@ if str(ELIZA) not in sys.path:
     sys.path.insert(0, str(ELIZA))
 
 import shards  # noqa: E402
-from tools.adopt_queue import check_shards  # noqa: E402
+from tools.adopt_queue import VENDOR, check_shards  # noqa: E402
 
 VENDORED_TEST = "tests/test_adopted_kali_vendored.py"
 BATCH = 40
@@ -52,6 +52,13 @@ pytestmark = pytest.mark.skipif(
     reason="no vendored adoptions yet; run python tools/adopt_queue.py --vendor "
            "then --run N")
 
+# Only the batch control needs the mirror on disk. The ledger test above reads
+# WIRED.json alone, so it keeps running on a checkout that has not vendored.
+_vendor_required = pytest.mark.skipif(
+    not VENDOR.is_dir(),
+    reason="the vendored mirror %s is absent; run python tools/adopt_queue.py "
+           "--vendor" % VENDOR)
+
 
 def test_the_ledger_entry_names_this_file_for_every_vendored_row():
     assert ENTRIES, "the ledger has no vendored rows"
@@ -62,6 +69,7 @@ def test_the_ledger_entry_names_this_file_for_every_vendored_row():
 
 @pytest.mark.parametrize("batch", BATCHES,
                          ids=lambda batch: "%d shard(s) from %s" % (len(batch), batch[0]))
+@_vendor_required
 def test_each_batch_returns_the_units_its_shards_name(batch):
     report = check_shards(batch, batch=BATCH)
     failures = {shard_id: report[shard_id]["error"]
