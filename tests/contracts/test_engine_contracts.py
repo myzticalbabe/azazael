@@ -257,6 +257,16 @@ class TestEngineContracts:
 
 
 # Performance Budget Tests (marked as benchmark)
+#
+# Every test below is a placeholder: no engine fixture exists in this tree, and
+# the bodies never asserted anything, so their only possible outcome was a setup
+# error. They are recorded as skips -- the budget is unmeasured, which is not the
+# same claim as met -- and each keeps its fixture name so the day an engine lands
+# the skip is the only line to delete.
+UNMEASURED = "no engine fixture in this tree: the budget is unmeasured, not met"
+
+
+@pytest.mark.skip(reason=UNMEASURED)
 class TestPerformanceBudgets:
     """Performance budgets for each engine (when fully implemented)."""
 
