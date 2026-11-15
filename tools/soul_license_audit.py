@@ -245,6 +245,19 @@ def fix_coc_line(notice: str) -> str:
 # ── audit ────────────────────────────────────────────────────────────────────
 
 
+def _same_text(a: bytes, b: bytes) -> bool:
+    """Compare two texts by content, ignoring how they were checked out.
+
+    The canonical text is measured with LF endings. A clone on a machine with
+    `core.autocrlf = true` (or a `* text=auto` attribute) writes every line as
+    CRLF, so a byte comparison against the canonical file failed for all 38
+    trees on a fresh checkout -- the gate passed in the working tree that
+    created the files and failed everywhere else. Line endings are checkout
+    detail, not licence content, so they are normalised before comparing.
+    """
+    return a.replace(b"\r\n", b"\n") == b.replace(b"\r\n", b"\n")
+
+
 def trees(root: Path) -> list[Path]:
     found = [root]
     found.extend(sorted(p for p in root.glob("Project_*") if p.is_dir()))
@@ -261,7 +274,9 @@ def scan_tree(tree: Path, root: Path) -> dict:
     }
     lic = tree / "LICENSE"
     if lic.exists():
-        row["license_is_soul"] = canonical is not None and lic.read_bytes() == canonical
+        row["license_is_soul"] = canonical is not None and _same_text(
+            lic.read_bytes(), canonical
+        )
 
     def cite(rel: str) -> None:
         row["defects"].append(rel)
