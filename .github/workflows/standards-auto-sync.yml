@@ -1,0 +1,180 @@
+name: Standards Auto-Sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    # `main` alone never fired here: this repository's branches are `master`
+    # and the working branches cut from it.
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  standards-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The auto-fix job gates on this. Without the job-level mapping the step
+    # output was written and then discarded, so `needs.*.outputs.result` was
+    # always empty and the dependent job could never run.
+    outputs:
+      result: ${{ steps.check.outputs.result }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install verification tool
+        run: |
+          pip install --quiet pyyaml
+
+      - name: Download verify_public_standards.py
+        id: fetch
+        run: |
+          # -f is load-bearing: without it curl writes a 404 page to disk and
+          # `python` then runs that page as source. The parse check makes the
+          # failure name itself instead of surfacing as a SyntaxError.
+          #
+          # The tool is published from a different repository, so this URL can
+          # legitimately 404. That used to abort the whole job at its own first
+          # step, on every run, with no statement of what was missing. Probe
+          # first and record the answer, so a missing tool is reported as a
+          # missing tool instead of as a standards failure.
+          if curl -fsSL -o verify_public_standards.py \
+               https://raw.githubusercontent.com/myzticalbabe/azazael/main/tools/verify_public_standards.py \
+             && python -c "import ast, pathlib; ast.parse(pathlib.Path('verify_public_standards.py').read_text(encoding='utf-8'))"; then
+            echo "have_tool=true" >> "$GITHUB_OUTPUT"
+          else
+            rm -f verify_public_standards.py
+            echo "have_tool=false" >> "$GITHUB_OUTPUT"
+            echo "::warning file=.github/workflows/standards-auto-sync.yml::verify_public_standards.py is not available from myzticalbabe/azazael; standards verification skipped, NOT passed."
+          fi
+
+      - name: Run standards verification
+        id: verify
+        if: steps.fetch.outputs.have_tool == 'true'
+        run: |
+          # `tee` creates verify_output.txt. The tool never wrote that file
+          # itself, so every later grep read a path that did not exist.
+          python verify_public_standards.py . 2>&1 | tee verify_output.txt || true
+
+      - name: Check verification result
+        id: check
+        if: always()
+        run: |
+          if [ "${{ steps.fetch.outputs.have_tool }}" != "true" ]; then
+            # SKIP, never PASS. A gate that could not run has proved nothing,
+            # and reporting success here is the failure this repo keeps paying
+            # for: green output over an unanswered question.
+            echo "result=SKIP" >> "$GITHUB_OUTPUT"
+            echo "SKIP: verification tool unavailable -- standards NOT verified" >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q "PASS -- Repository meets all professional standards" verify_output.txt 2>/dev/null; then
+            echo "result=PASS" >> "$GITHUB_OUTPUT"
+            echo "PASS: Standards verification PASSED" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "result=FAIL" >> "$GITHUB_OUTPUT"
+            echo "FAIL: Standards verification FAILED" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "## Missing items:" >> "$GITHUB_STEP_SUMMARY"
+            grep -E "(MISSING|FAIL)" verify_output.txt | head -20 >> "$GITHUB_STEP_SUMMARY" || true
+          fi
+
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.existsSync('verify_output.txt') ? fs.readFileSync('verify_output.txt', 'utf8') : 'No output';
+            const result = '${{ steps.check.outputs.result }}';
+            const icon = result === 'PASS' ? '[PASS]' : (result === 'SKIP' ? '[SKIP]' : '[FAIL]');
+            const body = `## ${icon} Professional Standards Check\n\n` +
+              `**Result**: ${result}\n\n` +
+              `\`\`\`\n${output.slice(0, 3000)}\n\`\`\`\n\n` +
+              `*Triggered by: ${{ github.event_name }}*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail workflow on FAIL
+        if: steps.check.outputs.result == 'FAIL'
+        run: |
+          echo "Standards verification failed. See PR comment for details."
+          exit 1
+
+  auto-fix:
+    needs: standards-check
+    if: github.event_name == 'push' && needs.standards-check.outputs.result == 'FAIL'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Auto-fix common issues
+        run: |
+          # Scoped to files, never .git, NUL-delimited so a path with a space
+          # does not split into two arguments.
+          #
+          # The YAML indentation rewrite that used to live here was removed on
+          # purpose. `sed -i 's/^  */  /'` rewrites EVERY leading run of spaces
+          # to exactly two, which flattens every nesting level in every
+          # workflow in the repository -- a valid file becomes a different
+          # document, and nested lists lose their parent. It ran under a
+          # condition that could never be true, which is the only reason it
+          # never fired; fixing the condition above would have armed it.
+          # Reindenting YAML needs a parser, not a regex, and is out of scope
+          # for a formatting bot.
+          find . -type d -name .git -prune -o -type f \
+            \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \) \
+            -print0 | xargs -0 -r sed -i 's/[[:space:]]*$//'
+          find . -type d -name .git -prune -o -type f \
+            \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \) \
+            -print0 | xargs -0 -r -I {} sh -c 'tail -c1 "$1" | read -r _ || echo >> "$1"' _ {}
+
+      - name: Check if changes made
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create auto-fix PR
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Explicit paths instead of `git add -A`: this repository's own
+          # convention forbids the blanket staging form.
+          git add -- '*.md' '*.yml' '*.yaml' '*.json'
+          git commit -m "chore: auto-fix formatting [standards-bot]"
+          BRANCH="standards-auto-fix-$(date +%s)"
+          git push origin "HEAD:$BRANCH"
+          gh pr create --title "chore: auto-fix formatting [standards-bot]" \
+            --body "Automated formatting fixes from standards auto-sync bot." \
+            --base "${{ github.event.repository.default_branch }}" --head "$BRANCH" \
+            --label "auto-fix,standards"

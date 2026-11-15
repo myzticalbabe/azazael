@@ -1,0 +1,44 @@
+# Dependabot Configuration
+# Enables automated dependency updates and security alerts
+
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    ignore:
+      - dependency-name: "*"
+        update-type: "version-update:semver-major"
+    # `vulnerability-alerts` used to sit here as a nested key. It is not part
+    # of the Dependabot config schema -- an unknown key makes GitHub reject the
+    # whole file, which silently turns dependency updates off. Security updates
+    # are enabled per-repository in settings and are not configured here.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
