@@ -75,6 +75,57 @@ def test_a_citation_into_the_other_corpus_is_refused() -> None:
         B.validate(data, ROOT)
 
 
+def _manifest_repo(tmp_path: Path, *, declare: bool = True,
+                   source: bool = True) -> Path:
+    """A scratch tree with one generated project and a corpus config to judge."""
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "x.py").write_text("", encoding="utf-8")
+    project = tmp_path / "Project_X"
+    (project / "generated").mkdir(parents=True)
+    if source:
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "affect.py").write_text("", encoding="utf-8")
+    ship = [{"from": "../src/affect.py", "to": "generated/affect.py"}] if declare else []
+    (project / "PUBLIC_MANIFEST.json").write_text(
+        json.dumps({"ship": ship}), encoding="utf-8")
+    return tmp_path
+
+
+def _path_config(target: str) -> dict:
+    return {"id": "gen", "name": "a generated target", "scope": "repo",
+            "kind": "path", "value": target, "governs": "x",
+            "remedy": "tools/x.py"}
+
+
+def test_a_manifest_materialised_path_is_not_called_missing(tmp_path: Path) -> None:
+    """The measured defect: a generated target was scored as an absent file.
+
+    `Project_ELIZA/eliza/psyche/` is written by tools/publicize.py from
+    PUBLIC_MANIFEST.json, so a clean checkout legitimately has none of it and two
+    shipped corpora went red for citing modules the tree will build.
+    """
+    repo = _manifest_repo(tmp_path)
+    problems, _ = B._config_problems(
+        [_path_config("Project_X/generated/affect.py")], repo)
+    assert problems == []
+
+
+def test_a_declared_target_whose_source_is_gone_still_fails(tmp_path: Path) -> None:
+    """The exemption is the manifest AND its source, never the manifest alone."""
+    repo = _manifest_repo(tmp_path, source=False)
+    problems, _ = B._config_problems(
+        [_path_config("Project_X/generated/affect.py")], repo)
+    assert any("source is missing" in p for p in problems)
+
+
+def test_a_generated_path_the_manifest_never_declares_still_fails(tmp_path: Path) -> None:
+    """Only declared materialisations are exempt: an unlisted path is a real gap."""
+    repo = _manifest_repo(tmp_path, declare=False)
+    problems, _ = B._config_problems(
+        [_path_config("Project_X/generated/affect.py")], repo)
+    assert any("does not exist here" in p for p in problems)
+
+
 def test_edition_path_belongs_to_its_corpus() -> None:
     """One generated file per corpus; the canon keeps its historical name."""
     assert B.edition_path(B.CORPUS).name == "BOOK_OF_THE_TREE.md"

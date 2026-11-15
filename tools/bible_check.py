@@ -194,6 +194,36 @@ def _paths_in(text: str) -> List[str]:
     return PATH_RE.findall(text or "")
 
 
+def _projected_source(repo: Path, rel: str) -> Optional[Path]:
+    """The source a `PUBLIC_MANIFEST.json` declares for a generated path.
+
+    `Project_ELIZA/eliza/psyche/` is generated: `Project_ELIZA/PUBLIC_MANIFEST.json`
+    declares which source fills each `to:` target and `tools/publicize.py` writes
+    it, so a clean checkout does not carry those files. A corpus entry naming such
+    a target is still reproducible while the manifest declares it AND the source it
+    copies from is present. A path the manifest never mentions returns None, so the
+    caller keeps refusing it: only declared materialisations are exempt.
+    """
+    rel = (rel or "").replace("\\", "/").strip("/")
+    head, _, tail = rel.partition("/")
+    if not head or not tail:
+        return None
+    manifest_path = repo / head / "PUBLIC_MANIFEST.json"
+    if not manifest_path.is_file():
+        return None
+    manifest = load(manifest_path)
+    if not isinstance(manifest, dict):
+        return None
+    for item in manifest.get("ship") or []:
+        if not isinstance(item, dict):
+            continue
+        target = str(item.get("to") or "").replace("\\", "/").strip("/")
+        source = str(item.get("from") or "").strip()
+        if target == tail and source:
+            return (manifest_path.parent / source).resolve()
+    return None
+
+
 def _provenance_problems(source, where: str, repo: Path) -> List[str]:
     """A figure must name a command that exists. Verbs alone do not count.
 
@@ -492,6 +522,15 @@ def _config_problems(configs, repo: Path) -> Tuple[List[str], List[str]]:
             # a directory, a store. Checked once, outside the file loop.
             text = str(value)
             if not ((Path(repo) / text).exists() or Path(text).exists()):
+                projected = _projected_source(Path(repo), text)
+                if projected is not None:
+                    if projected.exists():
+                        continue
+                    message = ("%s: declared path does not exist here: %s -- its "
+                               "manifest names %s as the source, and that source is "
+                               "missing" % (where, text, projected))
+                    problems.append(message)
+                    continue
                 message = "%s: declared path does not exist here: %s" % (where, text)
                 if scope == "host":
                     warnings.append("HOST-DIFFERS " + message)
