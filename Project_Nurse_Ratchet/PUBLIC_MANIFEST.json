@@ -243,6 +243,16 @@
    "to": ".github/workflows/ci.yml",
    "kind": "governance"
   },
+  {
+   "from": ".github/workflows/pages-deploy.yml",
+   "to": ".github/workflows/pages-deploy.yml",
+   "kind": "governance"
+  },
+  {
+   "from": ".github/scripts/render_site.py",
+   "to": ".github/scripts/render_site.py",
+   "kind": "governance"
+  },
 {
     "from": "docs/reference/recall-floor-protocol.md",
     "to": "docs/reference/recall-floor-protocol.md",
