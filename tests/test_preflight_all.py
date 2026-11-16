@@ -529,6 +529,17 @@ def _control_artifact(tmp_path, body):
 
 class TestRunControls:
 
+    # Same budget as its sibling below, for the same measured reason: this test
+    # DELEGATES to a subprocess whose own bound is RUN_TIMEOUT (3600 s), so the
+    # global 120 s bound can kill the parent before it reports a single
+    # assertion. Measured 2026-11-16: 174 passed standalone (106.40 s for the
+    # whole file), but one loaded 608-file run recorded this node as failed with
+    # a faulthandler tail and a teardown error and no assertion message -- the
+    # exact shape the sibling's 2026-11-02 comment describes. The assertion is
+    # untouched; only the wall bound now matches the file's stated policy that a
+    # subprocess-delegating control states its own budget rather than silently
+    # inheriting a bound meant for a pure test.
+    @pytest.mark.timeout(300)
     def test_a_passing_control_artifact_is_demonstrated(self, tmp_path, monkeypatch, capsys):
         control = _control_artifact(tmp_path, "def test_ok():\n    assert True\n")
         gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
