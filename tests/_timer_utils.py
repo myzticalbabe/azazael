@@ -51,7 +51,11 @@ import sys
 import os
 
 # Change to project root so config file detection works
-os.chdir({str(project_root)!r})
+try:
+    os.chdir({str(project_root)!r})
+    print(f"[RUNNER DEBUG] chdir to project root OK: {{os.getcwd()}}", file=sys.stderr, flush=True)
+except Exception as e:
+    print(f"[RUNNER DEBUG] chdir FAILED: {{e}}", file=sys.stderr, flush=True)
 
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
