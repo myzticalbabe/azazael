@@ -5,6 +5,16 @@ Each engine must satisfy these interface contracts.
 
 from __future__ import annotations
 import pytest
+
+# grantforge ships as its own distribution. Importing it unconditionally made
+# this module a collection ERROR on any interpreter that does not have it
+# installed -- which includes CI, where only this project is installed. An
+# absent optional dependency is a skipped check, not a broken suite.
+pytest.importorskip(
+    "grantforge.engine",
+    reason="grantforge is a separate distribution; these contracts only apply where it is installed",
+)
+
 from grantforge.engine import Engine, EngineInput, EngineOutput, EngineRegistry
 from grantforge.discovery import DiscoveryEngine, DiscoveryInput, DiscoveryOutput
 from grantforge.eligibility import EligibilityEngine, EligibilityInput, EligibilityOutput

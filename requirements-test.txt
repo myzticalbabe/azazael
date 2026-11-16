@@ -1,0 +1,14 @@
+# Test-only dependencies for `python -m pytest tests/`.
+#
+# Why this file exists: `.github/workflows/ci.yml` installs `.[test]`, silently
+# falls back to `pip install -e .` when that extra does not exist, then runs
+# `python -m pytest`. `pyproject.toml` declares no `[project.optional-dependencies]`,
+# so pytest was never installed and the job died before collecting a single test:
+#
+#   /usr/bin/python: No module named pytest   (exit 1)
+#
+# The workflow already looks for this exact filename, so adding it is the fix the
+# CI was written to expect rather than a change to the gate.
+pytest==9.1.1
+hypothesis==6.168.4
+pytest-timeout==2.4.0

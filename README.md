@@ -66,5 +66,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - **Monorepo**: https://github.com/myzticalbabe/azazael
 - **Landing Hub**: https://myzticalbabe.github.io
 - **Domain Atlas**: https://myzticalbabe.github.io/index.html
+- **STEM & Accessibility Guide**: [STEM.md](STEM.md) | [ACCESSIBILITY.md](ACCESSIBILITY.md)
 - **Issues**: https://github.com/myzticalbabe/azazael/issues
 - **Discussions**: https://github.com/myzticalbabe/azazael/discussions
