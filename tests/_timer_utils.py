@@ -50,13 +50,6 @@ def run_class_with_timeout(
 import sys
 import os
 
-# Change to project root so config file detection works
-try:
-    os.chdir({str(project_root)!r})
-    print(f"[RUNNER DEBUG] chdir to project root OK: {{os.getcwd()}}", file=sys.stderr, flush=True)
-except Exception as e:
-    print(f"[RUNNER DEBUG] chdir FAILED: {{e}}", file=sys.stderr, flush=True)
-
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
 
@@ -92,11 +85,12 @@ sys.exit(failed)
         with os.fdopen(fd, 'w', encoding='utf-8') as f:
             f.write(runner_code)
 
-        # Run the temp file with timeout
+        # Run the temp file with timeout, starting in project root
         proc = subprocess.run(
             [sys.executable, tmp_path],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout_sec,
+            cwd=project_root,
         )
 
         # Parse subprocess output and print, also count results
