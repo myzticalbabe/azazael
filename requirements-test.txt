@@ -9,6 +9,6 @@
 #
 # The workflow already looks for this exact filename, so adding it is the fix the
 # CI was written to expect rather than a change to the gate.
-pytest==9.1.1
-hypothesis==6.168.4
+pytest==9.2.0
+hypothesis==6.170.15
 pytest-timeout==2.4.0
