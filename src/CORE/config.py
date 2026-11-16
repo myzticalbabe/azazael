@@ -509,6 +509,24 @@ def _find_config_file() -> (Path | None):
     return None
 
 
+def _find_config_file_with_retry(max_attempts: int = 5, delay: float = 0.5) -> (Path | None):
+    """Find config file with retry for CI environments where filesystem may not be ready."""
+    import time
+    import os
+    
+    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
+    attempts = max_attempts if is_ci else 1
+    
+    for attempt in range(attempts):
+        result = _find_config_file()
+        if result is not None:
+            return result
+        if attempt < attempts - 1:
+            time.sleep(delay)
+    
+    return _find_config_file()  # Final attempt without delay
+
+
 def _load_yaml(path: Path) -> dict:
     """Load and parse azazael.yaml."""
     if not _HAS_YAML:
@@ -548,7 +566,7 @@ def get_config(reload: bool = False) -> AzazaelConfig:
             return _config
 
         # Entire config loading block under lock to prevent TOCTOU race
-        config_file = _find_config_file()
+        config_file = _find_config_file_with_retry()
 
         if config_file:
             try:
