@@ -179,7 +179,7 @@ spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 SQLAlchemy==2.0.46
 sqlparse==0.5.5
-srsly==2.5.2
+srsly==3.0.1
 stack-data==0.6.3
 starlette==0.52.1
 sympy==1.14.0
