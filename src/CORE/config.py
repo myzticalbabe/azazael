@@ -432,40 +432,42 @@ class AzazaelConfig:
 def _find_config_file() -> (Path | None):
     """Find azazael.yaml from the project root with validation.
 
-    Search order:
-      1. Relative to this file's location (3 levels up = azazael/)
-      2. Parent of src/ (for tests running from src/)
-      3. Current working directory (CWD guard — works from any subdirectory)
-      4. Walk up from CWD looking for azazael.yaml in parent dirs (max 10 levels)
+    Search order (prioritizing working directory and CI workspace):
+      1. Current working directory (CWD guard — works from any subdirectory)
+      2. Walk up from CWD looking for azazael.yaml in parent dirs (max 15 levels)
+      3. GitHub Actions workspace (CI environments)
+      4. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
       5. Git repository root (for CI environments where CWD may differ)
-      6. GitHub Actions workspace (CI environments)
-      7. GitHub Actions workspace with repo name (standard checkout layout)
+      6. Relative to this file's location (3 levels up = azazael/)
+      7. Parent of src/ (for tests running from src/)
       8. Runner temp directory parent (fallback for some CI setups)
 
     Returns None (not raises) if no valid config file found.
     """
     candidates: list[Path] = []
 
-    try:
-        this_file = Path(__file__).resolve()
-        # 1. 3 levels up from src/CORE/config.py = azazael/
-        candidates.append(this_file.parent.parent.parent / "azazael.yaml")
-        # 2. 2 levels up from src/CORE/config.py = src/
-        candidates.append(this_file.parent.parent / "azazael.yaml")
-    except (OSError, RuntimeError) as exc:
-        note_failure("config:L436", exc)
-
-    # 3. Current working directory
+    # 1. Current working directory (highest priority — works from repo root)
     candidates.append(Path.cwd() / "azazael.yaml")
 
-    # 4. Walk up from CWD looking for azazael.yaml (max 10 parent levels)
+    # 2. Walk up from CWD looking for azazael.yaml (max 15 parent levels)
     cwd = Path.cwd()
     for i, parent in enumerate(cwd.parents):
-        if i >= 10:
+        if i >= 15:
             break
         candidates.append(parent / "azazael.yaml")
 
-    # 5. Git repository root (robust for CI)
+    # 3. GitHub Actions workspace (CI environments)
+    github_workspace = os.environ.get("GITHUB_WORKSPACE")
+    if github_workspace:
+        candidates.append(Path(github_workspace) / "azazael.yaml")
+
+    # 4. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
+    if github_workspace:
+        repo_name = os.environ.get("GITHUB_REPOSITORY", "").split("/")[-1]
+        if repo_name:
+            candidates.append(Path(github_workspace) / repo_name / "azazael.yaml")
+
+    # 5. Git repository root (for CI environments where CWD may differ)
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
@@ -477,16 +479,19 @@ def _find_config_file() -> (Path | None):
     except Exception as exc:
         note_failure("config:git-root", exc)
 
-    # 6. GitHub Actions workspace (CI environments)
-    github_workspace = os.environ.get("GITHUB_WORKSPACE")
-    if github_workspace:
-        candidates.append(Path(github_workspace) / "azazael.yaml")
+    # 6. Relative to this file's location (3 levels up = azazael/)
+    try:
+        this_file = Path(__file__).resolve()
+        candidates.append(this_file.parent.parent.parent / "azazael.yaml")
+    except (OSError, RuntimeError) as exc:
+        note_failure("config:L436", exc)
 
-    # 7. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
-    if github_workspace:
-        repo_name = os.environ.get("GITHUB_REPOSITORY", "").split("/")[-1]
-        if repo_name:
-            candidates.append(Path(github_workspace) / repo_name / "azazael.yaml")
+    # 7. Parent of src/ (for tests running from src/)
+    try:
+        this_file = Path(__file__).resolve()
+        candidates.append(this_file.parent.parent / "azazael.yaml")
+    except (OSError, RuntimeError) as exc:
+        note_failure("config:L436", exc)
 
     # 8. Runner temp directory parent (fallback for some CI setups)
     runner_temp = os.environ.get("RUNNER_TEMP")
