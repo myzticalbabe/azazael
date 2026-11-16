@@ -92,12 +92,11 @@ sys.exit(failed)
         with os.fdopen(fd, 'w', encoding='utf-8') as f:
             f.write(runner_code)
 
-        # Run the temp file with timeout, starting in project root
+        # Run the temp file with timeout, inheriting cwd (project root)
         proc = subprocess.run(
             [sys.executable, tmp_path],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=timeout_sec,
-            cwd=str(project_root),
         )
 
         # Parse subprocess output and print, also count results
