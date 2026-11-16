@@ -436,8 +436,11 @@ def _find_config_file() -> (Path | None):
       1. Relative to this file's location (3 levels up = azazael/)
       2. Parent of src/ (for tests running from src/)
       3. Current working directory (CWD guard — works from any subdirectory)
-      4. Walk up from CWD looking for azazael.yaml in parent dirs (max 5 levels)
+      4. Walk up from CWD looking for azazael.yaml in parent dirs (max 10 levels)
       5. Git repository root (for CI environments where CWD may differ)
+      6. GitHub Actions workspace (CI environments)
+      7. GitHub Actions workspace with repo name (standard checkout layout)
+      8. Runner temp directory parent (fallback for some CI setups)
 
     Returns None (not raises) if no valid config file found.
     """
@@ -455,10 +458,10 @@ def _find_config_file() -> (Path | None):
     # 3. Current working directory
     candidates.append(Path.cwd() / "azazael.yaml")
 
-    # 4. Walk up from CWD looking for azazael.yaml (max 5 parent levels)
+    # 4. Walk up from CWD looking for azazael.yaml (max 10 parent levels)
     cwd = Path.cwd()
     for i, parent in enumerate(cwd.parents):
-        if i >= 5:
+        if i >= 10:
             break
         candidates.append(parent / "azazael.yaml")
 
@@ -479,7 +482,13 @@ def _find_config_file() -> (Path | None):
     if github_workspace:
         candidates.append(Path(github_workspace) / "azazael.yaml")
 
-    # 7. Runner temp directory (fallback for some CI setups)
+    # 7. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
+    if github_workspace:
+        repo_name = os.environ.get("GITHUB_REPOSITORY", "").split("/")[-1]
+        if repo_name:
+            candidates.append(Path(github_workspace) / repo_name / "azazael.yaml")
+
+    # 8. Runner temp directory parent (fallback for some CI setups)
     runner_temp = os.environ.get("RUNNER_TEMP")
     if runner_temp:
         candidates.append(Path(runner_temp).parent / "azazael.yaml")
