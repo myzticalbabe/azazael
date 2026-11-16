@@ -30,7 +30,7 @@
       "lead": 9,
       "blind": 0,
       "cut": 0,
-      "sources": 18
+      "sources": 21
     },
     "counts_note": "Derived, never typed: tools/validate_female_needs_corpus.py recomputes every field here and fails when this block disagrees with the data. The first draft carried edges=20, sources=15, verified=17, lead=3 against a file holding 22, 18, 13 and 9 -- hand-kept count blocks drift silently, which is why the validator owns them."
   },
@@ -183,6 +183,33 @@
       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6292143",
       "tier": "B",
       "kind": "qualitative study reporting its own denominators"
+    },
+    "S-PMC-TH-APPLICANTS": {
+      "publisher": "PMC / Frontiers in Women's Health (peer-reviewed)",
+      "title": "The socio-demographic characteristics and health needs of incarcerated women applying to a transitional housing re-entry program",
+      "date": "2018-03-02",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11388805",
+      "tier": "B",
+      "kind": "peer-reviewed review of 177 programme applications",
+      "note": "Raber et al., Front Womens Health 3(1):136; doi:10.15761/fwh.1000136; author manuscript PMC11388805, PMID 39263582"
+    },
+    "S-PMC-OXFORD-WAGES": {
+      "publisher": "PMC / Alcoholism Treatment Quarterly (peer-reviewed)",
+      "title": "Reducing Economic Disparities for Female Offenders: The Oxford House Model",
+      "date": "2016-06-21",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5004742",
+      "tier": "B",
+      "kind": "peer-reviewed moderated regression on 135 residents",
+      "note": "Callahan et al., Alcoholism Treatment Quarterly 34(3):292-302; doi:10.1080/07347324.2016.1182814"
+    },
+    "S-NPHL-BLEEDING": {
+      "publisher": "Network for Public Health Law",
+      "title": "Bleeding Behind Bars: It Costs to Menstruate",
+      "date": "2026-07-22",
+      "url": "https://www.networkforphl.org/resources/bleeding-behind-bars-it-costs-to-menstruate/",
+      "tier": "C",
+      "kind": "advocacy fact sheet (50-state legal survey)",
+      "note": "by Naisha Mercury; PDF at networkforphl.org/wp-content/uploads/2026/07/Bleeding-Behind-Bars_It-Costs-to-Menstruate-1.pdf"
     }
   },
   "needs": [
@@ -538,7 +565,7 @@
           "quorum": "single state, primary survey, with a published 2023 follow-up showing improvement after free tampons were supplied",
           "blind": false,
           "trunc": false,
-          "provenance": "retrieved 2026-11-16; the 81.1% response rate figure and the denominators are the survey's own"
+          "provenance": "retrieved 2026-11-16; the 91.1% response rate figure and the denominators are the survey's own (C:/tmp/fn_sources/S-MO-APPLESEED.layout.txt:20)"
         },
         {
           "edge_id": "E-MENSES-03",
@@ -549,15 +576,15 @@
           "tier": "C",
           "state": "LEAD",
           "ground": {
-            "quote": "a box of tampons and pads from the canteen cost $5.63 and $5.38 respectively, while women in Missouri prisons earned between $7.50 or $8.50 per month",
-            "source_id": "S-MO-APPLESEED"
+            "quote": "According to the Missouri Times, at the time of the study, a box of tampons and pads from the canteen cost $5.63 and $5.38 respectively, while women in Missouri prisons earned between $7.50 or $8.50 per month.",
+            "source_id": "S-NPHL-BLEEDING"
           },
-          "denominator": "$5.63 per box against $7.50-$8.50 monthly wage",
-          "universe": "Missouri prisons at the time of the 2018 survey",
-          "quorum": "the price is quoted from a newspaper (Missouri Times) inside a legal-advocacy brief, not from DOC records",
+          "denominator": "$5.63 per box of tampons and $5.38 per box of pads against a $7.50-$8.50 monthly prison wage",
+          "universe": "Missouri state prisons at the time of the 2018 Appleseed survey, as reported in a 2026 fact sheet",
+          "quorum": "the fact sheet attributes the price to a 2023 newspaper opinion piece, not to DOC records, so the figure is third-hand",
           "blind": false,
           "trunc": false,
-          "provenance": "retrieved 2026-11-16; LEAD because the price is second-hand even though the wage comes from the survey"
+          "provenance": "retrieved 2026-11-16 from the Network for Public Health Law fact sheet (2026-07-22), p.2; the price is quoted from the Missouri Times inside that fact sheet, which is why this stays LEAD on tier C"
         }
       ]
     },
@@ -605,18 +632,18 @@
           "claim_type": "prevalence",
           "claim": "In one reentry programme sample, four in five women had never received supplemental security income, and most had been incarcerated more than once.",
           "intervention": "Enrol for benefits before release; do not wait for the woman to apply alone.",
-          "tier": "C",
+          "tier": "B",
           "state": "LEAD",
           "ground": {
-            "quote": "most (80%) women in the sample have never received any type of supplemental security income",
-            "source_id": "S-PMC-MOTHERS-VOICE"
+            "quote": "Our data found most (80%) women in the sample have never received any type of supplemental security income, possibly due to the high level of multiple incarcerations (85% listed more than one incarceration and 46.9% report more than 6 incarcerations).",
+            "source_id": "S-PMC-TH-APPLICANTS"
           },
-          "denominator": "80% never received SSI; 85% more than one incarceration; 46.9% more than six incarcerations",
-          "universe": "applicants to ONE transitional housing re-entry programme; not a national sample",
-          "quorum": "single programme, single site",
+          "denominator": "177 applications reviewed, one per unique applicant; 80% never received supplemental security income / disability income, 85% reported more than one incarceration, 46.9% more than six",
+          "universe": "women applying to Angela House, a female-only transitional housing and re-entry programme in Houston, Texas, 2013-2016",
+          "quorum": "single programme, single site; applications reviewed rather than a population survey",
           "blind": false,
           "trunc": false,
-          "provenance": "retrieved 2026-11-16; LEAD because a single programme's applicant pool cannot stand for the population"
+          "provenance": "retrieved 2026-11-16 from PMC11388805 (Raber et al., Front Womens Health 3(1):136, 2018, doi:10.15761/fwh.1000136); re-grounded this session after the quote was found in this paper and not in S-PMC-MOTHERS-VOICE; LEAD because a single programme's applicant pool cannot stand for the population"
         },
         {
           "edge_id": "E-ECON-03",
@@ -624,18 +651,18 @@
           "claim_type": "qualitative",
           "claim": "Longer stays in a sober-living setting were associated with higher wages, and more so for women with convictions.",
           "intervention": "Treat stable housing as an economic intervention with a wage effect, not only a recovery intervention.",
-          "tier": "C",
+          "tier": "B",
           "state": "LEAD",
           "ground": {
-            "quote": "There was a positive relationship between length of stay and wages. Criminal history modified the association between length of stay and wages",
-            "source_id": "S-GENDER-DYNAMICS"
+            "quote": "There was a positive relationship between length of stay and wages. Criminal history modified the association between length of stay and wages, and length of stay had a significantly greater impact on wages for women with criminal convictions.",
+            "source_id": "S-PMC-OXFORD-WAGES"
           },
-          "denominator": "n/a in the retrieved text - no sample size or effect size was captured",
-          "universe": "Oxford House sober-living residents, as summarised in a review",
-          "quorum": "single summary; no numbers retrieved",
-          "blind": true,
-          "trunc": true,
-          "provenance": "retrieved 2026-11-16 from a search snippet only; blind=true because the underlying table was never retrieved, which is why this is LEAD despite sounding strong"
+          "denominator": "151 women surveyed, 135 used in the moderated regression (N=135); 79% of the sample reported criminal convictions",
+          "universe": "female Oxford House residents from across the United States, surveyed at a recovery conference in Washington, D.C.",
+          "quorum": "single study, one conference sample; the finding is an association, not an experiment",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from PMC5004742 (Callahan et al., Alcoholism Treatment Quarterly 34(3):292-302, 2016, doi:10.1080/07347324.2016.1182814); the abstract's 'nationwide sample of 136 women' and the methods' 135-of-151 regression sample are both the paper's own; blind/trunc cleared this session when the full text replaced the search snippet"
         }
       ]
     },
@@ -681,20 +708,20 @@
           "edge_id": "E-HOUSE-02",
           "nodes": ["NEED:N-HOUSING", "POP:JUSTICE", "LEVER:SAFE-ADDRESS-OPTION"],
           "claim_type": "qualitative",
-          "claim": "With housing options closed, women are pushed back toward addresses where they previously faced violence.",
+          "claim": "For women leaving incarceration, the family address offered at release can be complicated by past interpersonal violence and by the pressure to reunify with children.",
           "intervention": "Ask at release planning whether the default address is safe, and hold a bed for the answer 'no'.",
-          "tier": "C",
+          "tier": "A",
           "state": "LEAD",
           "ground": {
-            "quote": "Many women are forced to return to homes where they previously faced violence or abuse.",
-            "source_id": "S-MO-APPLESEED"
+            "quote": "For returning women, living with family may be complicated by histories of interpersonal violence and efforts to accommodate reunification with their children.",
+            "source_id": "S-ASPE-HOUSING"
           },
-          "denominator": "not stated - 'many women' carries no denominator in the retrieved text",
-          "universe": "global civil-society submission to OHCHR, 2025",
-          "quorum": "single advocacy submission, no sampling frame",
+          "denominator": "not stated - the report describes a mechanism for returning women, not a measured share",
+          "universe": "returning women with children, as described in a U.S. federal reentry-and-housing review",
+          "quorum": "single federal report; the sentence synthesises the studies it cites rather than measuring a population itself",
           "blind": false,
           "trunc": false,
-          "provenance": "retrieved 2026-11-16; LEAD because an advocacy submission is testimony, not a measured population"
+          "provenance": "retrieved 2026-11-16 from ASPE/RTI 'Reentry and Housing Stability: Final Report' (2024-12-11); the quote previously used here (\"Many women are forced to return to homes where they previously faced violence or abuse.\") could not be located in S-MO-APPLESEED or anywhere on the open web, so it was rejected as a ground and the claim narrowed to this verbatim ASPE sentence; LEAD because the report synthesises others' findings"
         }
       ]
     },
