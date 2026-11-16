@@ -50,6 +50,9 @@ def run_class_with_timeout(
 import sys
 import os
 
+# Set config directory BEFORE any imports so config module finds azazael.yaml
+os.environ["AZAZAEL_CONFIG_DIR"] = {str(project_root)!r}
+
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
 

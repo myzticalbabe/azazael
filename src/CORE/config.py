@@ -434,42 +434,48 @@ def _find_config_file() -> (Path | None):
     """Find azazael.yaml from the project root with validation.
 
     Search order (prioritizing working directory and CI workspace):
-      1. Current working directory (CWD guard — works from any subdirectory)
-      2. Walk up from CWD looking for azazael.yaml in parent dirs (max 15 levels)
-      3. GitHub Actions workspace (CI environments)
-      4. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
-      5. Git repository root (for CI environments where CWD may differ)
-      6. Relative to this file's location (3 levels up = azazael/)
-      7. Parent of src/ (for tests running from src/)
-      8. Runner temp directory parent (fallback for some CI setups)
-      9. Caller's module location (for test subprocesses)
+      1. AZAZAEL_CONFIG_DIR environment variable (explicit override for test subprocesses)
+      2. Current working directory (CWD guard — works from any subdirectory)
+      3. Walk up from CWD looking for azazael.yaml in parent dirs (max 15 levels)
+      4. GitHub Actions workspace (CI environments)
+      5. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
+      6. Git repository root (for CI environments where CWD may differ)
+      7. Relative to this file's location (3 levels up = azazael/)
+      8. Parent of src/ (for tests running from src/)
+      9. Runner temp directory parent (fallback for some CI setups)
+      10. Caller's module location (for test subprocesses)
 
     Returns None (not raises) if no valid config file found.
     """
     candidates: list[Path] = []
 
-    # 1. Current working directory (highest priority — works from repo root)
+    # 1. AZAZAEL_CONFIG_DIR environment variable (explicit override for test subprocesses)
+    config_dir = os.environ.get("AZAZAEL_CONFIG_DIR")
+    if config_dir:
+        candidates.append(Path(config_dir) / "azazael.yaml")
+
+    # 2. Current working directory (highest priority — works from repo root)
     candidates.append(Path.cwd() / "azazael.yaml")
 
-    # 2. Walk up from CWD looking for azazael.yaml (max 15 parent levels)
+    # 3. Walk up from CWD looking for azazael.yaml (max 15 parent levels)
     cwd = Path.cwd()
     for i, parent in enumerate(cwd.parents):
         if i >= 15:
             break
         candidates.append(parent / "azazael.yaml")
 
-    # 3. GitHub Actions workspace (CI environments)
+    # 4. GitHub Actions workspace (CI environments)
     github_workspace = os.environ.get("GITHUB_WORKSPACE")
     if github_workspace:
         candidates.append(Path(github_workspace) / "azazael.yaml")
 
-    # 4. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
+    # 5. GitHub Actions workspace with repo name (standard checkout: workspace/repo)
     if github_workspace:
         repo_name = os.environ.get("GITHUB_REPOSITORY", "").split("/")[-1]
         if repo_name:
             candidates.append(Path(github_workspace) / repo_name / "azazael.yaml")
 
-    # 5. Git repository root (for CI environments where CWD may differ)
+    # 6. Git repository root (for CI environments where CWD may differ)
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
@@ -481,26 +487,26 @@ def _find_config_file() -> (Path | None):
     except Exception as exc:
         note_failure("config:git-root", exc)
 
-    # 6. Relative to this file's location (3 levels up = azazael/)
+    # 7. Relative to this file's location (3 levels up = azazael/)
     try:
         this_file = Path(__file__).resolve()
         candidates.append(this_file.parent.parent.parent / "azazael.yaml")
     except (OSError, RuntimeError) as exc:
         note_failure("config:L436", exc)
 
-    # 7. Parent of src/ (for tests running from src/)
+    # 8. Parent of src/ (for tests running from src/)
     try:
         this_file = Path(__file__).resolve()
         candidates.append(this_file.parent.parent / "azazael.yaml")
     except (OSError, RuntimeError) as exc:
         note_failure("config:L436", exc)
 
-    # 8. Runner temp directory parent (fallback for some CI setups)
+    # 9. Runner temp directory parent (fallback for some CI setups)
     runner_temp = os.environ.get("RUNNER_TEMP")
     if runner_temp:
         candidates.append(Path(runner_temp).parent / "azazael.yaml")
 
-    # 9. Caller's module location (for test subprocesses)
+    # 10. Caller's module location (for test subprocesses)
     # Look up the stack for a caller outside this module
     try:
         import inspect
