@@ -95,11 +95,20 @@ argument parsing — before collection, so nothing is reported at all (not a ski
 
 | interpreter | xdist | how to run tests here |
 | --- | --- | --- |
-| `py316t` (production) | **absent** — `ModuleNotFoundError: No module named 'xdist'` | `-m pytest ... -q`, **never** with `-n` |
+| `py316t` (production) | **3.8.0** — installed 2026-11-16 (execnet 2.1.2) | `-m pytest ... -q -n auto` (16 cpus) |
 | `py315t` (GIL sidecar) | **3.8.0**, pytest 9.2.0 | `-m pytest ... -q -n auto` |
+| bare `python` on PATH (3.14.7) | absent | `-m pytest ... -q`, **never** with `-n` |
 
-So the acceptance commands below are serial on production and parallel on the sidecar. A command
-that dies on an unrecognised `-n` is a wrong command, not a red suite.
+Both production and the sidecar now run in parallel, so the acceptance commands below may use
+`-n auto` wherever they name py316t. `-n` stays out of the committed addopts because bare
+`python` on PATH is 3.14.7 with no xdist and still reads this file. A command that dies on an
+unrecognised `-n` is a wrong command, not a red suite.
+
+**Proven on py316t 2026-11-16** (`pytest-xdist 3.8.0`, `execnet 2.1.2`): `pytest tests -q --co -n 2`
+collected 7,719 tests (RC=0, 10.16 s); `pytest tests/test_calc.py tests/test_qd_alert_weight.py
+-v -n 2` reported `[gw0]`/`[gw1]` interleaved and `6 passed in 1.46s` (RC=0); `-n auto` resolved to
+16 workers and ran `2 passed in 2.73s` (RC=0). A flag that parses is not a worker that runs, so
+the `[gw0]`/`[gw1]` pair is the evidence this row rests on.
 
 ## Acceptance as commands
 
