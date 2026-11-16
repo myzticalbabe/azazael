@@ -195,7 +195,11 @@ def test_load_or_seed_fresh_carries_dream_seeds(tmp_path):
 
 
 def test_shape_gene_defaults_and_rejects_unknown_solids():
-    assert WormDNA(worm_id="s", worm_type="fetcher").shape == "dodecahedron"
+    from eve_unleashed.dodeca_recall import SHAPES
+
+    # The default solid is a tuning decision (g40 since 7cc51bc3), so assert
+    # it is a registered solid rather than pinning one name here.
+    assert WormDNA(worm_id="s", worm_type="fetcher").shape in SHAPES
     d = WormDNA(worm_id="s", worm_type="fetcher", shape="flatland")
     assert d.shape == "dodecahedron"
     d2 = WormDNA(worm_id="s", worm_type="fetcher", shape="icosahedron")
@@ -246,8 +250,13 @@ def test_mutate_never_moves_off_registered_solids():
         assert d.shape in SHAPES
 
 
-def test_train_config_defaults_pop_eight():
-    assert TrainConfig().pop == 8
+def test_train_config_defaults_pop_matches_declared_evolution_population():
+    from eve_unleashed.trainer import EVOLUTION_POPULATION_SIZE
+
+    # pop was 8 before 7cc51bc3 applied the live training results (pop=6).
+    # The invariant is that the dataclass default and the declared evolution
+    # knob cannot drift apart, not that either one equals a magic number.
+    assert TrainConfig().pop == EVOLUTION_POPULATION_SIZE
 
 
 def test_save_load_pop_roundtrip(tmp_path):

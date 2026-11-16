@@ -37,7 +37,15 @@ import sys
 import time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STORE = r"C:\Users\clint\.azazael\telemetry_store.db"
+def _store_path() -> str:
+    """Board DB path: AZAZAEL_MEMORY_DIR first, so bare metal needs no C: path."""
+    env = os.environ.get("AZAZAEL_MEMORY_DIR")
+    if env:
+        return os.path.join(env, "telemetry_store.db")
+    return r"C:\Users\clint\.azazael\telemetry_store.db"
+
+
+STORE = _store_path()
 BUILD_BIN = (
     r"C:\Azazael\.build\cpython-316\PCbuild\amd64t\python.exe"
 )
@@ -52,19 +60,29 @@ def _env() -> dict:
 
 
 def procs() -> list[str]:
-    """Agent/runtime processes alive right now (plain TABLE output only)."""
-    try:
-        out = subprocess.run(
-            ["tasklist.exe"], capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=60, env=_env(),
-        ).stdout
-    except Exception as exc:  # noqa: BLE001 -- forensics must not die
-        return [f"tasklist failed: {exc}"]
-    hits = [
-        line for line in out.splitlines()
-        if any(name in line.lower() for name in AGENT_NAMES)
-    ]
-    return hits or ["no lane agent processes running"]
+    """Agent/runtime processes alive right now.
+
+    `tasklist.exe` first (Windows), `ps` second (bare metal / WSL). A host
+    with no tasklist used to read as 'nothing running' -- a false clean on a
+    machine full of live lanes. Only when BOTH readers fail does the function
+    say it is blind, and it says which failure it saw.
+    """
+    errors: list[str] = []
+    for cmd in (["tasklist.exe"], ["ps", "-eo", "comm=,args="]):
+        try:
+            out = subprocess.run(
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                timeout=60, env=_env(),
+            ).stdout
+        except Exception as exc:  # noqa: BLE001 -- forensics must not die
+            errors.append(str(exc))
+            continue
+        hits = [
+            line for line in out.splitlines()
+            if any(name in line.lower() for name in AGENT_NAMES)
+        ]
+        return hits or ["no lane agent processes running"]
+    return [f"process list unavailable: {errors[-1]}"]
 
 
 def board_tail(n: int = 8) -> list[str]:

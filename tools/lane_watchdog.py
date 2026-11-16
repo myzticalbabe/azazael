@@ -13,8 +13,10 @@ agent process for that lane exists. A live process with old claims is STUCK
 (named, not paged). Exit 0 always on a completed scan; exit 2 when the scan
 itself could not run (store missing/unreadable) -- that is not a clean bill.
 
---report posts via _board.py `report <lane> dead ...` (read back, as always).
-Read-only without it.
+--report posts one page per dead lane through LaneMessageBoard, which lands
+it on `lane.<lane>.tasks` and returns the durable row id (read back, as
+always). The old `_board.py report` verb never existed, so the previous
+--report path printed 'reported' while writing nothing. Read-only without it.
 """
 from __future__ import annotations
 
@@ -26,7 +28,15 @@ import subprocess
 import sys
 import time
 
-STORE = r"C:\Users\clint\.azazael\telemetry_store.db"
+def _store_path() -> str:
+    """Board DB path: AZAZAEL_MEMORY_DIR first, so bare metal needs no C: path."""
+    env = os.environ.get("AZAZAEL_MEMORY_DIR")
+    if env:
+        return os.path.join(env, "telemetry_store.db")
+    return r"C:\Users\clint\.azazael\telemetry_store.db"
+
+
+STORE = _store_path()
 LEASE_S = 30 * 60  # CLAIM_LEASE_SECONDS, per the lane-queue canon
 LANE_PROC = {"kilo": ("kilo",), "opencode": ("opencode",),
              "freebuff": ("freebuff", "codebuff")}
@@ -45,13 +55,24 @@ class ProcListBlind(RuntimeError):
 
 
 def live_procs() -> set[str]:
-    """Lower-cased process image names alive right now (plain TABLE output)."""
-    try:
-        out = subprocess.run(["tasklist.exe"], capture_output=True, text=True, encoding="utf-8", errors="replace",
-                             timeout=60, env=_env()).stdout.lower()
-    except Exception as exc:  # noqa: BLE001 -- becomes BLIND, not empty
-        raise ProcListBlind(f"tasklist failed: {exc}") from exc
-    return set(out.split())
+    """Lower-cased process image names alive right now.
+
+    `tasklist.exe` first (Windows), `ps` second (bare metal / WSL). A host
+    with no tasklist used to raise ProcListBlind on every pass; blindness is
+    still raised, but only after both readers have actually failed.
+    """
+    errors: list[str] = []
+    for cmd in (["tasklist.exe"], ["ps", "-eo", "comm="]):
+        try:
+            out = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                 timeout=60, env=_env()).stdout.lower()
+        except Exception as exc:  # noqa: BLE001 -- becomes BLIND, not empty
+            errors.append(str(exc))
+            continue
+        if cmd[0] == "ps":
+            return {line.strip() for line in out.splitlines() if line.strip()}
+        return set(out.split())
+    raise ProcListBlind(f"process list unavailable: {errors[-1]}")
 
 
 def held_claims() -> list[tuple]:
@@ -91,10 +112,33 @@ def scan(now: float | None = None) -> tuple[list[str], list[str]]:
     return dead, stuck
 
 
+def report_dead(dead: list[str]) -> list[int]:
+    """Post one watchdog page per dead lane; return the durable row ids.
+
+    Posts through LaneMessageBoard so the page lands on the dead lane's own
+    `lane.<lane>.tasks` topic. Raises if a row cannot be read back -- a page
+    that did not land is not a page.
+    """
+    src = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
+    if src not in sys.path:
+        sys.path.insert(0, src)
+    from CORE.LaneMessageBoard import LaneMessageBoard
+
+    board = LaneMessageBoard(lane="freebuff")
+    posted: list[int] = []
+    for line in dead:
+        lane = line.split("lane=")[1].split()[0]
+        detail = ("WATCHDOG page: agent process gone with claim past lease. "
+                  + line + ". Re-claim or release, then check waiting work.")
+        posted.append(board.post_task(lane=lane, action="Watchdog page",
+                                      detail=detail, source_lane="freebuff"))
+    return posted
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Page dead lanes, name stuck ones.")
     ap.add_argument("--report", action="store_true",
-                    help="post dead-lane row(s) via _board.py report")
+                    help="post dead-lane row(s) to lane.<lane>.tasks")
     args = ap.parse_args()
     try:
         dead, stuck = scan()
@@ -108,15 +152,12 @@ def main() -> int:
     if not dead and not stuck:
         print("watchdog: all held claims within lease (or none held)")
     if args.report and dead:
-        board = r"C:\Users\clint\_board.py"
-        for line in dead:
-            lane = line.split("lane=")[1].split()[0]
-            detail = ("WATCHDOG page: agent process gone with claim past lease. "
-                      + line + ". Re-claim or release, then check waiting work.")
-            subprocess.run([sys.executable, board, "report", lane, "dead",
-                            detail], capture_output=True, timeout=90,
-                           env=_env())
-            print(f"reported: {lane} dead")
+        try:
+            rows = report_dead(dead)
+        except Exception as exc:  # noqa: BLE001 -- an unposted page is a failure
+            print(f"report FAILED: {exc}")
+            return 3
+        print(f"reported: {len(rows)} watchdog page(s), read back as {rows}")
     return 0
 
 

@@ -186,16 +186,26 @@ def main(argv=None) -> int:
                     help="no-op: findings already fail (kept for the leg contract)")
     ap.add_argument("--floor", type=float, default=None)
     ap.add_argument("--rung-floor", type=float, default=None)
-    args = ap.parse_args(argv)
-    ledger = args.ledger or _default_ledger()
+    args = ap.parse_args(argv)    # An explicit --log is a request to replay THAT log. The live ledger is a
+    # DEFAULT source, not an override: before this, any host carrying the
+    # ledger returned the ledger verdict and silently ignored --log, --floor
+    # and --rung-floor (measured 2026-11-16 -- three aether tests caught it,
+    # and every operator who passed --log got an answer about another file).
+    if args.ledger:
+        ledger = args.ledger
+    elif args.log:
+        ledger = None
+    else:
+        ledger = _default_ledger()
     if ledger is not None:
         if args.ledger is None:
             print("claim_agreement: live ledger present, claims read from "
                   "ledger rows (%s)" % ledger)
         return ledger_main(ledger)
     import os
-    print("claim_agreement: no ledger at %s -- falling back to live-log "
-          "replay" % ([os.environ["AZAZAEL_CURSOR_LEDGER"]]
+    if args.log is None:
+        print("claim_agreement: no ledger at %s -- falling back to live-log "
+              "replay" % ([os.environ["AZAZAEL_CURSOR_LEDGER"]]
                          if "AZAZAEL_CURSOR_LEDGER" in os.environ
                          else LEDGER_CANDIDATES))
     floor = args.floor if args.floor is not None else floor_default()

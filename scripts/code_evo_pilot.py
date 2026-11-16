@@ -176,7 +176,13 @@ def _root_pytest_addopts() -> list:
         import configparser
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(str(ROOT / "pytest.ini"), encoding="utf-8")
-        raw = parser.get("pytest", "addopts", fallback="").split()
+        # shlex, not str.split(): pytest.ini carries `-k "not
+        # py316t_incompatible"`, and a whitespace split turns the marker into
+        # a positional argument -- the gate then dies with `ERROR: file or
+        # directory not found: py316t_incompatible` before one test runs.
+        # Measured 2026-11-16.
+        import shlex
+        raw = shlex.split(parser.get("pytest", "addopts", fallback=""))
         # Strip -n/--numprocesses: sandbox has no pytest.ini and xdist
         # workers collect different tests (sandbox has only the patched
         # file), causing "Different tests were collected" errors.
