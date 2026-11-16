@@ -1,8 +1,8 @@
 # coding: utf-8
 """tests / tests/test_evolution_accuracy.py :: TestImportSafety -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux tests/test_evolution_accuracy.py (class TestImportSafety, 204 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux tests/test_evolution_accuracy.py (class TestImportSafety, 239 lines in the module, 16 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:tests/test_evolution_accuracy.py#TestImportSafety"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:tests/test_evolution_accuracy.py#TestImportSafety"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

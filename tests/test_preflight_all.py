@@ -37,6 +37,10 @@ import preflight_all as pf  # noqa: E402
 #: failure_evidence_gate when it landed), so it is now the list the hook actually
 #: runs rather than the list it ran when the file was written.
 HOOK_SCRIPTS = {
+    "Project_ELIZA/tools/shard_intake.py",   # --check; tier 5c. Registered 2026-11-03,
+                                             # and the first gate in the set that lives
+                                             # outside tools/ or scripts/ -- the derivation
+                                             # used to truncate it to tools/shard_intake.py.
     "scripts/commit_gate.py",
     "tools/agent_orders_sync.py",
     "tools/anti_pattern_gate.py",

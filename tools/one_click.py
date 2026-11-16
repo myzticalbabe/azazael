@@ -51,7 +51,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "logs" / "one_click.json"
-PY = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+PY = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
 
 
 def interpreter() -> str:

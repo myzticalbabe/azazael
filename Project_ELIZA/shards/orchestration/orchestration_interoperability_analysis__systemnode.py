@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py :: SystemNode -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py (class SystemNode, 559 lines in the module, 14 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py (class SystemNode, 571 lines in the module, 13 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py#SystemNode"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no

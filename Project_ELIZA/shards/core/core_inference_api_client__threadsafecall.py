@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/inference/api_client.py :: ThreadSafeCall -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/inference/api_client.py (class ThreadSafeCall, 287 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/inference/api_client.py (class ThreadSafeCall, 298 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/inference/api_client.py#ThreadSafeCall"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/inference/api_client.py#ThreadSafeCall"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -13,6 +13,11 @@ from concurrent workers. This tool is the coordinator-side merge gate:
 Usage: python tools/merge_bake_lane.py --lane state/bake_deepseek_712.jsonl [--apply]
   default = dry run (counts only). --apply writes state/bake_merged.jsonl
   + state/bake_merge_report.txt. --lane is repeatable.
+
+Exit codes: 0 = every lane loaded and its rows were validated; 2 = at least
+one --lane file could not be read or parsed, so the run could not be performed
+and NOTHING was written (a merged set that silently omits a whole input lane
+is a successful-looking reading of inputs that never arrived).
 """
 import argparse
 import json
@@ -24,6 +29,18 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT_MERGED = ROOT / "state" / "bake_merged.jsonl"
 OUT_REPORT = ROOT / "state" / "bake_merge_report.txt"
 REQUIRED = ("source", "item_id", "title", "body", "kind")
+#: A `landing` row is an accomplishment record: the artifact it landed plus
+#: the proof. The three verify fields are mandatory for this kind -- a
+#: landing without its sha and verify command is a claim, not evidence
+#: (harness improvement #1, 2026-11-06; the forge rows that used to hide
+#: under kind "fact" now live here with their proof attached).
+LANDING_REQUIRED = ("artifact", "sha", "verify")
+#: Optional fields carried through the merge untouched. `evidence_cmd` /
+#: `exit_code` / `digest` answer "what command proved this" (#2);
+#: `superseded_by` names the newer row that retires this one (#7: history
+#: stays in the merged set, but consumers can tell settled rows apart).
+OPT_FIELDS = ("artifact", "sha", "verify", "evidence_cmd", "exit_code",
+              "digest", "superseded_by", "supersedes")
 
 #: Absolute paths of the lane file(s) under validation. Populated by
 #: merge_lanes() before base_rows() runs so input rows are never mistaken for
@@ -31,7 +48,8 @@ REQUIRED = ("source", "item_id", "title", "body", "kind")
 #: base_rows(report) arity is load-bearing (see its docstring).
 _EXCLUDE_FILES = set()  # lane file NAMES (see below: Path equality is
                              # unreliable across C:/ vs c:/ spellings)
-KINDS = {"error_fix", "lesson", "mandate", "sop_rule", "violation", "anti_pattern"}
+KINDS = {"error_fix", "lesson", "mandate", "sop_rule", "violation",
+         "anti_pattern", "landing"}
 
 
 def norm_title(t):
@@ -45,6 +63,27 @@ def load_jsonl(fp):
         if line:
             rows.append(json.loads(line))
     return rows
+
+
+#: Reasons that describe a whole input FILE rather than a row inside one.
+#: A lane carrying one of these contributed nothing to the merge.
+LANE_LEVEL_REASONS = frozenset({"UNREADABLE", "BAD_JSON"})
+
+
+def _clip(text, limit=80):
+    """Clip a message while keeping its TAIL.
+
+    `str(e)[:80]` cut "No such file or directory: 'state/x_2026-11-14.jsonl'"
+    down to "...x_2026-11-14.js" (measured 2026-11-14): an 85-char message lost
+    five characters off the end, and the drop report named a file that does not
+    exist -- so the operator chases a `.js` that was never written. The head
+    names the error class and the tail names the path; keep both.
+    """
+    s = str(text)
+    if len(s) <= limit:
+        return s
+    head = limit - 24
+    return "%s...%s" % (s[:head], s[-(limit - head - 3):])
 
 
 def base_rows(report=None):
@@ -76,7 +115,7 @@ def base_rows(report=None):
             loaded = load_jsonl(fp)
         except (OSError, ValueError) as e:
             if report is not None:
-                report.append((fp.name, "base-unreadable", str(e)[:80]))
+                report.append((fp.name, "base-unreadable", _clip(e)))
             continue
         for i, r in enumerate(loaded):
             if not isinstance(r, dict) or not str(r.get("title", "")).strip():
@@ -89,7 +128,15 @@ def base_rows(report=None):
     return rows
 
 
-def merge_lanes(lanes):
+def merge_lanes(lanes, lane_failures=None):
+    """Merge lane files. `lane_failures`, if given, collects whole-file failures.
+
+    A row-level defect belongs in the returned `dropped` list. A lane that
+    could not be OPENED is a different fact: nothing in it was examined, so it
+    is reported in both places but counted separately by main(). The list is
+    mutated in place rather than returned, so the 4-tuple every caller already
+    unpacks keeps its arity (same contract as `base_rows(report)`).
+    """
     dropped = []
     _EXCLUDE_FILES.clear()
     for _lane in lanes:
@@ -102,10 +149,16 @@ def merge_lanes(lanes):
         try:
             rows = load_jsonl(lane)
         except OSError as e:
-            dropped.append((str(lane), "UNREADABLE", str(e)[:80]))
+            entry = (str(lane), "UNREADABLE", _clip(e))
+            dropped.append(entry)
+            if lane_failures is not None:
+                lane_failures.append(entry)
             continue
         except ValueError as e:
-            dropped.append((str(lane), "BAD_JSON", str(e)[:80]))
+            entry = (str(lane), "BAD_JSON", _clip(e))
+            dropped.append(entry)
+            if lane_failures is not None:
+                lane_failures.append(entry)
             continue
         lane_seen = set()
         for i, r in enumerate(rows):
@@ -115,6 +168,11 @@ def merge_lanes(lanes):
                 continue
             if r.get("kind") not in KINDS:
                 dropped.append((where, "BAD_KIND", str(r.get("kind"))[:40]))
+                continue
+            if r.get("kind") == "landing" and \
+                    any(not str(r.get(k, "")).strip() for k in LANDING_REQUIRED):
+                dropped.append((where, "landing-incomplete",
+                                "needs artifact+sha+verify"))
                 continue
             if len(str(r.get("body", ""))) < 40:
                 dropped.append((where, "too-short", str(r.get("title", ""))[:60]))
@@ -132,9 +190,14 @@ def merge_lanes(lanes):
             # truncated merged rows -- no marker, no drop row (D1 site,
             # truncation sweep 2026-10-22). Point-count validation above
             # (body >= 40) is the size floor; a size is not a reason to cut.
-            merged.append({"source": str(r["source"]), "item_id": str(r["item_id"]),
-                           "title": str(r["title"]), "body": str(r["body"]),
-                           "kind": r["kind"]})
+            out = {"source": str(r["source"]),
+                   "item_id": str(r["item_id"]),
+                   "title": str(r["title"]), "body": str(r["body"]),
+                   "kind": r["kind"]}
+            for k in OPT_FIELDS:
+                if r.get(k) not in (None, ""):
+                    out[k] = r[k]
+            merged.append(out)
             accepted += 1
     return merged, dropped, accepted, len(base)
 
@@ -158,15 +221,36 @@ def main():
 
     lanes = args.lane or [str(ROOT / "state" / "bake_deepseek_712.jsonl")]
 
-    merged, dropped, accepted, base_n = merge_lanes(lanes)
-    print("BASE=%d ACCEPTED=%d MERGED=%d DROPPED=%d" % (base_n, accepted, len(merged), len(dropped)))
+    lane_failures = []
+    merged, dropped, accepted, base_n = merge_lanes(lanes, lane_failures)
+    # A lane that never loaded is not a dropped row: DROPPED counts defects
+    # found INSIDE inputs that were read. It is named separately, because the
+    # two used to share one number -- a run whose only lane was absent printed
+    # `DROPPED=1`, exited 0, and read as "one bad row" (2026-11-14).
+    row_drops = [d for d in dropped if d[1] not in LANE_LEVEL_REASONS]
+    retired = [(r["item_id"], r.get("superseded_by", "")) for r in merged
+               if r.get("superseded_by")]
+    print("BASE=%d ACCEPTED=%d MERGED=%d DROPPED=%d SUPERSEDED=%d"
+          % (base_n, accepted, len(merged), len(row_drops), len(retired)))
+    for old, new in retired[:10]:
+        print("  retired %s -> %s" % (old, new))
     why = {}
-    for _, _, w in dropped:
+    for _, _, w in row_drops:
         why[w] = why.get(w, 0) + 1
     print("DROP_REASONS=%s" % json.dumps(why))
-    for f, i, w in dropped[:25]:
+    for f, i, w in row_drops[:25]:
         print("  drop %s %s (%s)" % (f, i, w))
-    if args.apply:
+    if lane_failures:
+        print("LANES_NOT_LOADED=%d of %d -- a whole input file is missing or"
+              " unparseable; none of its rows are in MERGED"
+              % (len(lane_failures), len(lanes)))
+        for f, reason, detail in lane_failures:
+            print("  lane-not-loaded %s (%s) %s" % (f, reason, detail))
+    if args.apply and lane_failures:
+        print("REFUSING to write %s: %d lane(s) never loaded, so the merged set"
+              " would silently omit their rows" % (OUT_MERGED.name,
+                                                    len(lane_failures)))
+    elif args.apply:
         sys.path.insert(0, str(ROOT / "src"))
         from CORE.sentinel_enforcer import permit_here
         with permit_here("bake merge output"):
@@ -177,7 +261,12 @@ def main():
                 for f, i, w in dropped:
                     fh.write("%s\t%s\t%s\n" % (f, i, w))
         print("WROTE %s + %s" % (OUT_MERGED.name, OUT_REPORT.name))
+    if lane_failures:
+        print("VERDICT: BLIND -- %d of %d lane(s) never loaded; nothing written"
+              % (len(lane_failures), len(lanes)))
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

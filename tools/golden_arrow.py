@@ -113,7 +113,7 @@ def interpreter() -> str:
     3.15t free-threaded is production (AGENTS.md). A gate that runs the suite on
     a different interpreter is measuring a program nobody ships.
     """
-    pinned = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+    pinned = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
     if pinned.exists():
         return str(pinned)
     return sys.executable
@@ -189,6 +189,15 @@ def run_one(path: Path, timeout: float, py: str) -> dict:
         "no_verdict": no_verdict,
         "seconds": seconds,
         "counts": counts,
+        # The six-line tail below is usually faulthandler frames (pytest.ini sets
+        # faulthandler_timeout=20), so it names the THREAD that was busy and not
+        # the test that failed. Measured 2026-11-04: a full run reported
+        # tests/test_preflight_all.py as FAIL with no way to tell which of its
+        # 165 tests failed, because the only recorded lines were stack frames.
+        # pytest's own short summary carries the node id and the reason; record
+        # it alongside the tail so a failure can name itself.
+        "failed_tests": [line.strip()[:300] for line in out.splitlines()
+                         if line.startswith(("FAILED ", "ERROR "))][:20],
         "tail": out.strip().splitlines()[-6:] if out.strip() else [],
     }
 
@@ -198,6 +207,8 @@ def summarise(rows: list, elapsed: float, argv) -> dict:
     hung = [r for r in rows if r["hung"]]
     killed = [r for r in rows if r.get("no_verdict")]
     passed = [r for r in rows if r["rc"] in (0, 5)]
+    named = [{"file": r["file"], "test": t}
+             for r in rows for t in r.get("failed_tests", [])]
     return {
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "mode": "staged" if argv.staged else ("file" if argv.file else "full"),
@@ -218,13 +229,19 @@ def summarise(rows: list, elapsed: float, argv) -> dict:
         },
         "failed": failed,
         "hung": hung,
+        # Flat, greppable list of every test pytest named as FAILED/ERROR.
+        "failures": named,
         "files": rows,
     }
 
 
 def write_baseline(rep: dict) -> dict:
     """Record the report's failing files as known debt. Returns the known map."""
-    known = {r["file"]: {"counts": r["counts"], "since": rep["generated"]}
+    # `tests` names what the debt actually is, so paying a file down does not
+    # require re-running it to rediscover which test was failing.
+    known = {r["file"]: {"counts": r["counts"],
+                          "tests": r.get("failed_tests", []),
+                          "since": rep["generated"]}
              for r in rep["failed"]}
     BASELINE.parent.mkdir(parents=True, exist_ok=True)
     BASELINE.write_text(json.dumps({
@@ -307,8 +324,14 @@ def print_report(rep: dict, verbose: bool, known: dict = None, strict: bool = Fa
             if row.get("no_verdict") else " -- NOT in the baseline"
         print("  %s  %s (rc=%s, %ss)%s"
               % (mark, row["file"], row["rc"], row["seconds"], reason))
-        for line in (row["tail"][-3:] if not row["hung"] else []):
+        named = row.get("failed_tests") or []
+        for line in named:
             print("        %s" % line)
+        if not named:
+            # No node id: the file died before pytest could name a test. Say so
+            # rather than printing stack frames as if they were the diagnosis.
+            for line in (row["tail"][-3:] if not row["hung"] else []):
+                print("        %s" % line)
     if debt:
         print("  DEBT: %d file(s) recorded in %s" % (len(debt), BASELINE.name))
         for row in debt:
@@ -344,8 +367,15 @@ def main(argv=None) -> int:
                     help="where the report lands (default: logs/golden_arrow[_mode].json)")
     ap.add_argument("--baseline", action="store_true",
                     help="record this run's failing files as known debt")
-    ap.add_argument("--strict", action="store_true",
-                    help="fail on recorded debt as well as new failures")
+    # `--no-strict` exists so a config-level `golden_arrow.strict=true` can still
+    # be relaxed for one run: a flag that can only turn a gate ON leaves the
+    # operator editing the shared file other lanes read.
+    ap.add_argument("--strict", action=argparse.BooleanOptionalAction,
+                    default=bool(_profile("golden_arrow.strict", False)),
+                    help="fail on recorded debt as well as new failures "
+                         "(default: golden_arrow.strict)")
+    ap.add_argument("--force", action="store_true",
+                    help="run even when golden_arrow.enabled is false")
     ap.add_argument("--status", action="store_true", help="print the last report only")
     ap.add_argument("--no-deep-dive", action="store_true",
                     help="skip the forensic + web stage after the suite")
@@ -364,6 +394,16 @@ def main(argv=None) -> int:
             # how a gate gets switched off.
             write_baseline(last)
         return print_report(last, args.verbose, load_baseline(), args.strict)
+
+    # HED-8: the switch that turns the arrow off lives in the shared config, and
+    # it reports its own state. Exiting 2 is deliberate -- `could not run` is the
+    # one code a caller must not read as success, and a disabled gate is exactly
+    # that. --force is the escape hatch, so nobody has to edit the shared file.
+    if not args.force and not bool(_profile("golden_arrow.enabled", True)):
+        print("GOLDEN ARROW: disabled by golden_arrow.enabled=false. Nothing ran -- "
+              "a switched-off gate is not a pass. Re-enable with `defaults_profile.py "
+              "--set golden_arrow.enabled true`, or run --force.")
+        return 2
 
     py = interpreter()
     files = test_files(args)

@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/WORMS/INFERENCE_SUBSCRIBER.py :: InferenceSubscriberWorm -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/WORMS/INFERENCE_SUBSCRIBER.py (class InferenceSubscriberWorm, 344 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/WORMS/INFERENCE_SUBSCRIBER.py (class InferenceSubscriberWorm, 357 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/WORMS/INFERENCE_SUBSCRIBER.py#InferenceSubscriberWorm"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/WORMS/INFERENCE_SUBSCRIBER.py#InferenceSubscriberWorm"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

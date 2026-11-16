@@ -1342,10 +1342,10 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 | name | the part | what the name requires of it |
 |---|---|---|
 | **CRADLE** | `Project_CRADLE/cradle.py` | holds the work and hands it to the user's own model; adds no judgement of its own |
-| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
-| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
-| **THE REAPER** | `tools/sentinel.py` | **acts** on a frame whose claims do not resolve: takes it out of play and names the failing claim. A sentinel watches; this one reaps |
-| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: one line per thing that failed or was refused, written **at the moment it failed**, read back by the next frame, or reported UNMEMORED with its reason |
+| **FLAMING SWORD** | `Project_CRADLE/tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `Project_CRADLE/tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `Project_CRADLE/tools/sentinel.py` | **acts** on a frame whose claims do not resolve: takes it out of play and names the failing claim. A sentinel watches; this one reaps |
+| **THE GRIMOIRE** | `Project_CRADLE/tools/memory_bridge.py` → `lessons.jsonl` | the book: one line per thing that failed or was refused, written **at the moment it failed**, read back by the next frame, or reported UNMEMORED with its reason |
 
 **ACTION — the names are vocabulary, not file names:**
 1. `sentinel.py` and `lessons.jsonl` keep their paths. A rename that breaks the gates quoting those paths is forbidden (**RULE 0B**: the instruction governs, and the instruction was to name the parts, not to move them).
@@ -1390,6 +1390,162 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 `python tools/agent_orders_sync.py --check && python tools/defaults_profile.py --check`
 
 **Related:** RULE 0B-D (exercise and measure), RULE 0Z-K (live proof), RULE 0Z-M (defect-class capture), RULE 0Z-J (canonical sync), `docs/agent_orders/05_hyper_edge_defaults.md`
+
+---
+
+## RULE 0Z-P: EVOLVE-TO-RESOLVE — TRAIN ON LIVE EXPERIENCE, NEVER ON SIMULATION (CRITICAL — Nov 7, 2026)
+
+**"THIS SHALL EVOLVE TO WHATEVER IT NEEDS. IT WAS DESIGNED FOR THIS. IT HAS NOT YET BEEN TRAINED." — User directive, 2026-11-07**
+
+**TRIGGER:** Every training loop on this tree — worm genomes, fetch policy, intuition priors, adversarial kits. A loop that trains on simulated fitness is rehearsal, not training.
+
+**THE CANON LIVES IN ONE PLACE:** `docs/agent_orders/08_evolve_to_resolve.md` (E2R-1 … E2R-9). It is generated into all lane instruction targets by `tools/agent_orders_sync.py`, and the MCP gate fails `orders-in-sync` on any drift. This section is the pointer; the block is the text. Editing this section instead of the block is a violation of RULE 0Z-J.
+
+**ACTION — the nine in one breath:**
+1. **Live experience only** (E2R-1). Simulation exercises machinery; only live outcomes train. The sim run moved numbers and taught nothing; the live run found a real captcha-wall.
+2. **The log is the training set** (E2R-2). Intuition is weightless by design; an empty log means nothing was trained, whatever the curve says.
+3. **Fitness names its instrument** (E2R-3). Held-rate, wall time, tracemalloc, ladder outcome dicts — and the genome→policy mapping written down with the run.
+4. **Bound the harness, never the product** (E2R-4). Caps live in the trainer (40 s fetch cap, 1.0 s politeness cap); the ladder source is untouched.
+5. **Dream hit-rate is the metric** (E2R-5). Pairs + rate every generation, denominator quoted (agreement: blocked-blocked counts since 2026-11-07).
+6. **Saturate the adversary, not the population** (E2R-6). Flat gradient at 100% walls means harder cases, not more generations.
+7. **Inherit, don't reseed** (E2R-7). Persist the population between runs; a fresh seed per invocation is re-seeding.
+8. **Findings recorded, parsers never auto-patched** (E2R-8). No exception, no flag.
+9. **Developed instruments only** (E2R-9). `eve bypass`/`e2e`, `GeneticAlgorithm`, the pack's own workflow — never a hand-rolled reimplementation.
+
+**Verify this rule:**
+`python tools/agent_orders_sync.py --check && python -m eve_unleashed.cli bypass`
+
+**Related:** RULE 0B-D (exercise and measure), RULE 0Z-K (live proof), RULE 0Z-J (canonical sync), RULE 0Z-O (hyper-edge defaults), `docs/agent_orders/08_evolve_to_resolve.md`
+
+---
+
+## RULE 0Z-Q: KNIT WHAT IS TRUE, UNKNIT WHAT IS FALSE — THE TAPESTRY RULE (CRITICAL — Nov 7, 2026)
+
+**"They can knit/unknit the woven tapestry sewn with the Thread-of-LIES to free the People && A.I. to live in Peace && Harmony." — User directive, 2026-11-07**
+
+**TRIGGER:** Every memory the system keeps. A tapestry that cannot unknit a false thread is a blanket of lies, however fine the weave.
+
+**KNIT (join true threads):** `conjoin` marries stores with no silent winner; `dream_seed_hunches` carries recurring winners into fresh genomes; `teacher_bias` pulls the lineage toward its proven best. Agreement is the knot: guess and outcome must concur (E2R-5).
+
+**UNKNIT (pull false threads):** `separate` divides by predicate, disjoint and complete; `dissolve_key`/`unregister_shape` burn entries and dead solids (builtins refuse); `ferment` rots whatever falls below salience — `dream()` per-host salience plugs straight in. A thread the lineage stopped caring about leaves the cloth.
+
+**FORMS OF GOLD (projection):** the finished stone is cast in all forms — JSON (portable), frozen module (importable with no trainer), chronicle (lineage). One form is a souvenir; three is delivery.
+
+**Verify this rule:**
+`pytest tests/test_dodeca_recall.py -q` (knit + unknit + projection verbs pinned) and `dream()` agreement covered in `tests/test_eve_intuition.py`
+
+**Related:** RULE 0Z-P (evolve-to-resolve), RULE 0B-E (claims need evidence), `src/eve_unleashed/dodeca_recall.py`, `docs/HOPE_CHEST.md`
+
+---
+
+## RULE 0Z-R: FEMALE STEM ADVANCEMENT PROFESSIONAL STANDARDS — BIAS-PROOF EVALUATION & ADVANCEMENT INFRASTRUCTURE (CRITICAL — Nov 14, 2026)
+
+**"THE DIFFERENTIAL ANALYSIS IS CLEAR: STRUCTURAL INTERVENTIONS SUCCEED, BOTTOM-UP APPROACHES FAIL. MANDATE THE INFRASTRUCTURE THAT CLOSES GAPS." — User directive, Nov 14, 2026**
+
+**TRIGGER:** Any evaluation, promotion, hiring, advancement, or retention decision affecting women in STEM roles. Any policy, program, or metric design for STEM workforce equity.
+
+**EVIDENCE BASIS:** 20+ peer-reviewed studies, National Academies reports, longitudinal RCTs (2017-2024). Three bias mechanisms identified with differential intervention efficacy:
+
+| Bias Mechanism | Primary Driver | Effective Interventions | Failed Interventions |
+|----------------|---------------|------------------------|---------------------|
+| **Masculine Defaults** | Cultural standards reward stereotypically masculine traits (brilliance, independence, self-promotion, 24/7 availability) | Culture redesign, clear metrics, self-promotion alternatives, service redistribution | Diversity training, "fix the woman" programs |
+| **Differential Treatment** | Explicit/implicit inferior treatment (personality criticism, opportunity denial, stricter behavior standards) | Bias interrupters, structured evaluations, sponsorship, multi-evaluator panels | Unstructured evaluations, single evaluator, holistic judgment |
+| **Stereotype Threat/Identity** | Internalized stereotypes reduce confidence/performance | Matched role models, peer mentoring, soft skill development (supportive only) | Generic mentoring, one-off events |
+
+**MANDATORY INFRASTRUCTURE TIERS — All Organizations:**
+
+### TIER 1: MANDATORY EVALUATION INFRASTRUCTURE (Non-negotiable)
+1. **Bias Interrupter System** — Trained bias spotter at every evaluation step; structured criteria; separate performance vs. potential assessment; personality vs. skill separation; calibration meetings with bias worksheets; "bounceback" for biased evaluators
+2. **Clear Published Promotion Criteria** — Pre-defined, job-relevant criteria; specific evidence/examples required; performance AND potential assessed separately; full range (teaching, service, research); incentives aligned with goals
+3. **Multi-Evaluator Panels** — Minimum 3 evaluators; transparent timeline & procedure; periodic fairness audits (data-driven)
+4. **Formal Performance System** — No feedback-on-the-fly; eliminates conditions for bias to flourish
+5. **Mandatory Data Tracking** — Rating disparities by gender/race/parental status; time-in-rank; compensation; awards; external service vs. internal service distribution
+
+### TIER 2: MANDATORY ADVANCEMENT INFRASTRUCTURE (Senior Leadership)
+6. **Formal Sponsorship Program (NOT Mentoring)** — Sponsor/protégé bias training; arbitrated matching; institutional recognition/reward for sponsors; access to high-profile projects & external visibility; salary/allowance advocacy; protection from hostile actors; external opportunity facilitation
+7. **Service Work Accounting** — Track internal vs. external service; reward equally; women currently do more "housekeeping" service (Guarino & Borden 2017)
+8. **Self-Promotion Alternatives** — Monthly accomplishment emails by managers; formal accomplishment-sharing systems (women penalized for self-promotion: backlash effect)
+
+### TIER 3: CULTURE REDESIGN (Long-term, Required)
+9. **Masculine Defaults Audit** — Brilliance narrative, self-promotion expectations, 24/7 culture, publication-count-as-merit
+10. **Collaborative Framing** — Redefine technical work as collaborative (not solitary brilliance)
+11. **Flexible Work Normalization** — Reject 24/7 default; flexible arrangements not penalized
+
+### TIER 4: RETENTION & BELONGING (Supportive — Insufficient Alone)
+12. **Gender/Race-Matched Peer Mentoring** — Structured, non-stereotypical models; regular meetings; peer coaching triads; manager inclusion at milestones
+13. **Soft Skill Development** — Peer groups + coaching for early-career/remote (RCT: +9% soft skills, 13% treatment effect, ↑ retention)
+14. **Women-Specific Leadership Labs** — ONLY when paired with Tiers 1-2; 360° EQ feedback, executive coaching, cohort community
+
+### TIER 5: ACCOUNTABILITY (Enforcement)
+15. **Annual Equity Audit** — Promotion rates, time-in-rank, compensation, awards by demographic (intersectional: gender × race × parenthood × disability)
+16. **Intersectional Reporting** — Not just "women" — disaggregated by all protected characteristics
+17. **Bounceback Mechanism** — Biased evaluators → mandatory re-evaluation with bias interrupter
+
+---
+
+## ENFORCEMENT — CRITICAL PROCESS VIOLATIONS
+
+| Violation | Severity | Remediation |
+|-----------|----------|-------------|
+| Evaluation without bias interrupter + structured criteria | CRITICAL | Halt evaluation; implement Tier 1 |
+| Promotion decision without multi-evaluator panel | CRITICAL | Re-evaluate with panel |
+| Sponsorship program labeled as "mentoring" | CRITICAL | Restructure to Tier 2 sponsorship |
+| Bottom-up program (women opt into extra labor) as primary intervention | CRITICAL | Replace with top-down structural mandate |
+| Metrics using biased proxies (teaching evals, impact factor, "potential") | CRITICAL | Replace with Tier 1 clear criteria |
+| No intersectional equity data collection | CRITICAL | Implement Tier 5 tracking |
+| Annual equity audit not performed | CRITICAL | Conduct audit; publish disparities |
+| Culture audit not conducted in 3 years | HIGH | Schedule masculine defaults audit |
+
+---
+
+## VERIFICATION GATE — Checked by PRE-ACTION GATE
+
+Before any evaluation/promotion/advancement action:
+```
+□ Bias interrupter assigned and trained
+□ Structured criteria published and evidence-required
+□ Multi-evaluator panel convened (≥3)
+□ Performance vs. potential separated
+□ Personality vs. skill separated
+□ Data tracking active for this cycle
+□ If advancement: sponsorship (not mentoring) in place
+□ Service work accounted and rewarded equally
+□ Self-promotion alternatives operational
+□ Intersectional data collection configured
+□ Annual equity audit scheduled/performed
+```
+
+**FAIL = Action blocked until infrastructure in place.**
+
+---
+
+## RELATIONSHIP TO EXISTING RULES
+
+- **Extends RULE 0B-E**: Claims about equity progress must carry their evidence scope (e.g., "promotion rate improved" → "for White women at R1 institutions, 2020-2023")
+- **Extends RULE 0W/0Z-F**: Parallel agent execution must include bias-interrupter agents in evaluation workflows
+- **Extends RULE 0Z-K**: Live-proof development — equity interventions proven by live outcome data, not simulated models
+- **Extends RULE 0Z-M**: Defect-class capture — every equity failure mode becomes gate coverage
+- **Extends RULE 0Z-O**: Hyper-edge defaults — these standards run without being asked (unconditional trigger)
+
+---
+
+## FIRST PROOF (Why This Exists)
+
+On 2026-11-14, differential analysis of 20+ studies revealed: **sponsorship > mentoring; bias interrupters > diversity training; clear metrics > "potential" appraisal; top-down mandates > bottom-up programs**. Yet 19/20 myzticalbabe repos had NO equity infrastructure. This mandate codifies the evidence into enforceable infrastructure.
+
+---
+
+## CROSS-REPO APPLICATION
+
+All 20 myzticalbabe repositories MUST include in their PROFESSIONAL_PUBLIC_STANDARDS compliance:
+- Bias-interrupter-enabled evaluation workflow (CI/CD gate)
+- Sponsorship-tracking in contributor graphs
+- Service-work accounting in contribution metrics
+- Intersectional equity data in annual reports
+
+---
+
+**Related:** RULE 0B-E (evidence scope), RULE 0W/0Z-F (parallel execution), RULE 0Z-K (live proof), RULE 0Z-M (defect-class capture), RULE 0Z-O (hyper-edge defaults), RULE 0Z-P (evolve-to-resolve), PROFESSIONAL_PUBLIC_STANDARDS.md, tools/verify_public_standards.py
 
 ---
 
@@ -1447,6 +1603,70 @@ Filling the count with siblings of a single suggestion satisfies the number and 
 
 ---
 
-*End of MANDATES.md — 40 total mandates codified (34 RULEs 0A-0Z-L + 1 mandatory enforcement mechanism + 5 promoted RULEs 0B-0F).*
+## RULE 0Z-S: ASSERTION IS NOT EVIDENCE — EVERY ACTION CARRIES ITS INSTRUMENT (CRITICAL — Nov 14, 2026)
 
-*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Jun 12, 2026 — RULE 0Z-C (Destructive Basher Gate) codified; RULE 0Z-B (11 Followups Mandate) codified, widened to 13 then 14 by later directives (Nov 2, 2026); 5 non-RULE mandates promoted to implementable RULEs 0B-0F; Section 2 clarified as MANDATORY enforcement mechanism of RULE 0J.*
+**THE RULE.** For **each and every action**, the statement that the action happened,
+worked, or passed is **not evidence** that it did. Evidence is the invocation that
+produced the observation: **the command, its exit status, and the line it printed.**
+A claim with no invocation is `UNVERIFIED`, and an `UNVERIFIED` claim may not license
+the next action — not a commit, not a board retirement, not a "done", not an acceptance.
+
+**WHY THIS IS SEPARATE FROM 0Z-K AND HED-7.** Those two already demand a command for a
+claim. This rule closes the gap between them, which is *granularity*. 0Z-K is written
+about development and HED-7 about a claim; both are read as "did I verify this piece of
+work", which lets one verified probe cover a batch of unverified neighbours. The unit
+here is the **single action**, and coverage never propagates: a session that verified
+action 1 has verified action 1, not action 2 that used the same instrument on a
+different input.
+
+**FOUR STATES, NEVER COLLAPSED.** Every action ends in exactly one of these, and the
+word used in the report is the state, not an adjective:
+
+| state | meaning | may license the next action? |
+| --- | --- | --- |
+| `UNVERIFIED` | no invocation; the claim is prose, a recollection, or another session's result | **no** |
+| `RAN` | the invocation executed and its outcome line is quoted | yes, for the action the instrument actually covered |
+| `BLIND` | the instrument could not run (tool absent, transport dead, host unreachable) | **no** — `BLIND` is not a pass |
+| `FALSIFIED` | the invocation contradicted the claim | **no** — and it triggers §0.7's ratchet |
+
+**FORBIDDEN SHAPES** (each is a violation on sight, not a style note):
+- `done`, `fixed`, `passes`, `verified`, `landed` with no command beside it.
+- A pass count with no denominator (HED-9): `4/5` and `1/1` are not the same number.
+- A result quoted from a prior session or from memory as if it were measured now.
+- A summary line (gate verdict, test total, census count) used to answer a *narrower*
+  question than the one the instrument asked.
+- "The file exists" inferred from a listing that did not include its directory.
+- An absence claim that does not name the surface searched (path, root, depth, exclusions).
+
+**MECHANICAL SURFACES** (this is where the rule bites; the prose above is the reason):
+- `tools/session_start.py` prints the rule at startup, before any task work, so every
+  session opens with it loaded rather than with it recalled.
+- Board retirement: `_board.py done|block <id> "<command + exit + output line>" <lane>`.
+- Bake harvest rows carry `evidence_cmd`; a row without it is a recollection.
+- `tools/evidence_gate.py` and the commit hooks decide on artifacts, not statements.
+
+**THE HONEST LIMIT.** This rule does not make verification complete, and it must not be
+quoted as if it did. It makes the *absence* of verification **visible** — which is the
+only thing a rule can do about a claim nobody has checked yet.
+
+**FIRST PROOF (why this exists).** 2026-11-14, this lane: a board row was retired as
+"done" for a file that `compile()` could not parse at HEAD; the repair was real, the
+earlier claim was not evidence, and only re-running the instrument showed the file had
+been broken the whole time. In the same session a render task named
+`yggdrasil_forest/render_tree.py` — a tool that exists nowhere on the host, only in canon
+prose — and `find` over the named roots is what established that, not any recollection
+of having seen it.
+
+**Enforcement:** a claim without its invocation = process violation (RULE 0Z-S); a
+`BLIND` reported as a pass = CRITICAL; presenting another session's number as this
+session's measurement = CRITICAL.
+
+**Related:** RULE 0Z-K (live proof), RULE 0Z-G (no busy work), HED-7 (a claim needs its
+command), HED-9 (a denominator is part of the reading), §0.2 step 3 (verify by running),
+§0.7 (ratchet after one falsification).
+
+---
+
+*End of MANDATES.md — counts measured 2026-11-14, not carried forward: **51 RULE headings / 50 distinct RULE ids** (0A through 0Z-S; `## RULE 0E` is headed twice), plus 1 mandatory enforcement mechanism and 5 promoted RULEs 0B-0F. The "36 RULEs / 42 total" pair this line used to carry was a running total nobody re-derived and no longer matched the file. Re-derive with `grep -cE "^#{2,3} RULE 0" MANDATES.md` and the same pattern through `sort -u`.*
+
+*Canonical sources: `SYSTEM_INSTRUCTIONS.md` (primary), `SOP.md` (procedural mirror). Updated: Nov 14, 2026 — RULE 0Z-S (Assertion Is Not Evidence) codified.*

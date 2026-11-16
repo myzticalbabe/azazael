@@ -1,8 +1,8 @@
 # coding: utf-8
 """UTILITIES / UTILITIES/TERENCE/TERENCE.py :: Fix -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux UTILITIES/TERENCE/TERENCE.py (class Fix, 902 lines in the module, 4 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux UTILITIES/TERENCE/TERENCE.py (class Fix, 1043 lines in the module, 9 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:UTILITIES/TERENCE/TERENCE.py#Fix"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:UTILITIES/TERENCE/TERENCE.py#Fix"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

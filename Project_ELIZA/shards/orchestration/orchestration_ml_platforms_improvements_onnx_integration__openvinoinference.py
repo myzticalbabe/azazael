@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/ml_platforms/improvements/onnx_integration.py :: OpenVINOInference -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/ml_platforms/improvements/onnx_integration.py (class OpenVINOInference, 673 lines in the module, 5 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/ml_platforms/improvements/onnx_integration.py (class OpenVINOInference, 718 lines in the module, 15 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/ml_platforms/improvements/onnx_integration.py#OpenVINOInference"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ORCHESTRATION/ml_platforms/improvements/onnx_integration.py#OpenVINOInference"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

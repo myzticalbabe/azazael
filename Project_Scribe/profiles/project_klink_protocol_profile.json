@@ -1,0 +1,269 @@
+{
+  "project_name": "Project_KLINK_Protocol",
+  "project_description": "Klink protocol implementation, protocol libraries, network protocol libraries.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_KLINK_Protocol",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_KLINK_Protocol",
+  "team_size": 1,
+  "funding_amount": "$50,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/project_klink_protocol_pitch.pdf",
+  "prototype_video": "profiles/project_klink_protocol_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_KLINK_Protocol",
+  "proposal": "profiles/project_klink_protocol_proposal.md",
+  "budget": "profiles/project_klink_protocol_budget.xlsx",
+  "timeline": "profiles/project_klink_protocol_timeline.md",
+  "security_audit": "",
+  "threat_model": "",
+  "adoption_metrics": "",
+  "maintenance_plan": "",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "epic_megagrants": {
+      "max_amount": 150000,
+      "type": "cash_grant",
+      "deadline": "2026-09-04",
+      "priority": "high"
+    },
+    "nlnet": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-03",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "high"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "medium"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ospo": {
+      "max_amount": 750000,
+      "type": "cash_grant",
+      "deadline": "loi_cycle",
+      "priority": "medium"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "high"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "high"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "high"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "medium"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "low"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "medium"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "high"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "low"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "nlnet": {
+      "project_description": "Klink protocol implementation, protocol libraries, network protocol libraries.",
+      "call": "Open_Call",
+      "website": "https://github.com/myzticalbabe/azazael/tree/main/Project_KLINK_Protocol",
+      "abstract": "Klink protocol implementation, protocol libraries, network protocol libraries.",
+      "requested_amount": "50000",
+      "equipment_budget": "10000",
+      "equipment_justification": "Hyper-Edge DEV box: RTX 4090 (24GB) + 128GB DDR5 + 4TB NVMe for Project_KLINK_Protocol. NLnet NGI0 allows \u20ac50K total; \u20ac10K equipment.",
+      "use": "Klink protocol implementation, protocol libraries, network protocol libraries.",
+      "comparison": "Unlike monolithic tools, this component is modular, stdlib-only, and composes with the Azazael ecosystem.",
+      "challenges": "Ensuring zero-dependency stdlib compatibility across Python versions.",
+      "ecosystem": "Integrates with Azazael core, composes with 26 other extractable components.",
+      "experience": "Team has built forensic investigation, code quality, game engine, and ML infrastructure tools.",
+      "other_funding": "No other funding currently.",
+      "requestor_name": "Clint Oxford",
+      "contact_email": "clintonoxford47@gmail.com",
+      "organization": "Azazael",
+      "country": "US",
+      "used_ai": "I have used generative AI in writing this proposal",
+      "ai_prompt": "Used AI for Project_KLINK_Protocol architecture design and component extraction logic.",
+      "codebase_used_ai": "yes",
+      "entity": "Individual"
+    }
+  },
+  "project": "Project_KLINK_Protocol",
+  "amount": "50000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

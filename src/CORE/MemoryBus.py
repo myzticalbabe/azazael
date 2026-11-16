@@ -38,6 +38,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
 from collections import defaultdict
+try:
+    from tools.defaults_profile import read_default
+except ImportError:
+    def read_default(dotted, fallback=None):
+        return fallback
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -78,6 +83,14 @@ except ImportError as exc:
 
 PAMS_URL = os.environ.get("PAMS_URL", "http://127.0.0.1:21434")
 PAMS_TIMEOUT = float(os.environ.get("PAMS_TIMEOUT", "2.0"))
+# Probe-only budget for the _pams_probe reachability check. A localhost
+# health check answers in milliseconds when PAMS is up, so a short probe
+# timeout only hurries the answer when the resolved port is dead -- and a
+# dead port used to cost every one-shot CLI invocation the full
+# PAMS_TIMEOUT (measured 2026-11-12: `board stats` spent 2.002s of 2.365s
+# in one socket connect to a 15-day-old port file's port). Real API traffic
+# keeps PAMS_TIMEOUT; only the availability probe uses this knob.
+PAMS_PROBE_TIMEOUT = float(os.environ.get("PAMS_PROBE_TIMEOUT", "0.4"))
 #: Promote does server-side classification – seconds, not milliseconds.
 #: The 2s check timeout never fit it: every post timed out client-side
 #: (server may still have stored it → retry duplicates). 2026-09-28.
@@ -99,6 +112,15 @@ PAMS_POST_MAX_CHARS = int(os.environ.get("PAMS_POST_MAX_CHARS", "8000"))
 #: Flushed rows are IN PAMS already -- delete them after this many days so
 #: the queue table cannot grow forever (was 214MB, zero rows ever flushed).
 FLUSHED_TTL_DAYS = int(os.environ.get("PAMS_FLUSHED_TTL_DAYS", "7"))
+
+# Read memory config from defaults
+MEMORY_PRIMARY = read_default("memory.primary", "pmb")
+MEMORY_PMB_WORKSPACE = read_default("memory.pmb_workspace", "personal")
+MEMORY_ENGRAM_PROJECT = read_default("memory.engram_project", "azazael")
+MEMORY_ENGRAM_ALL_PROJECTS = read_default("memory.engram_all_projects", True)
+MEMORY_PAMS_ENABLED = read_default("memory.pams_enabled", True)
+MEMORY_PAMS_USER_ID = read_default("memory.pams_user_id", "clint")
+MEMORY_PAMS_MODEL_ID = read_default("memory.pams_model_id", "mcp-client")
 
 #: PAMS serves its HTTP API under /api (mcp_server.py: /api/health,
 #: /api/memories/promote, ...). The bare paths (/health, /memories) 404,
@@ -893,11 +915,11 @@ class MemoryBus:
         """One reachability attempt against the CURRENT self.pams_url."""
         try:
             if HAS_REQUESTS:
-                resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_TIMEOUT)
+                resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_PROBE_TIMEOUT)
                 return resp.status_code == 200
             else:
                 req = urllib.request.Request(f"{self.pams_url}{PAMS_API_PREFIX}/health")
-                with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
+                with urllib.request.urlopen(req, timeout=PAMS_PROBE_TIMEOUT) as resp:
                     return resp.status == 200
         except Exception as exc:
             note_failure("MemoryBus:L773", exc)

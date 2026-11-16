@@ -1,8 +1,8 @@
 # coding: utf-8
 """tests / tests/test_nuclei_bridge.py :: TestAvailability -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux tests/test_nuclei_bridge.py (class TestAvailability, 95 lines in the module, 3 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux tests/test_nuclei_bridge.py (class TestAvailability, 104 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:tests/test_nuclei_bridge.py#TestAvailability"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:tests/test_nuclei_bridge.py#TestAvailability"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

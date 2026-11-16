@@ -47,11 +47,36 @@ from __future__ import annotations
 import hashlib
 import random
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 #: Bumped whenever item text or scoring changes. A record without a version is a
 #: record whose meaning changes underneath the fit that used it.
 INSTRUMENT_VERSION = "psyche-constructs-1"
+
+#: A stored row is JSON: the values arrive as `object`, and every reader has to
+#: narrow them before use. These three do the narrowing once, so a malformed row
+#: degrades to an empty field instead of raising `AttributeError: 'dict' object
+#: has no attribute 'items'` from inside a comprehension.
+
+def _as_mapping(value: object) -> Dict[str, Any]:
+    """A JSON object from a stored row, or {} when the row is malformed."""
+    return value if isinstance(value, dict) else {}
+
+
+def _as_sequence(value: object) -> List[Any]:
+    """A JSON array from a stored row, or [] when the row is malformed."""
+    return list(value) if isinstance(value, (list, tuple)) else []
+
+
+def _triple(values: object) -> Tuple[float, float, float]:
+    """PAD is three floats by definition; a malformed row fails here, loudly.
+
+    The old code built `tuple(float(v) for v in ...)`, which is `tuple[float,
+    ...]` -- a length the field does not promise -- and then suppressed the
+    mismatch with a `type: ignore`. Unpacking checks the length at runtime too.
+    """
+    first, second, third = _as_sequence(values)
+    return (float(first), float(second), float(third))
 
 #: Answer scale. 0..4 with a stated midpoint, so "3" means the same thing in every
 #: session and a shift in scale cannot masquerade as a shift in construct.
@@ -216,12 +241,12 @@ class Record:
     @classmethod
     def from_row(cls, row: Dict[str, object]) -> "Record":
         return cls(taken_at=str(row["taken_at"]),
-                   pad=tuple(float(v) for v in row["pad"]),  # type: ignore[arg-type]
+                   pad=_triple(row.get("pad")),
                    constructs={str(k): float(v)
-                               for k, v in (row.get("constructs") or {}).items()},
+                               for k, v in _as_mapping(row.get("constructs")).items()},
                    answers={str(k): int(v)
-                            for k, v in (row.get("answers") or {}).items()},
-                   order=[str(k) for k in (row.get("order") or [])],
+                            for k, v in _as_mapping(row.get("answers")).items()},
+                   order=[str(k) for k in _as_sequence(row.get("order"))],
                    instrument=str(row.get("instrument", INSTRUMENT_VERSION)),
                    note=str(row.get("note", "")),
                    stored_digest=str(row.get("digest", "")))

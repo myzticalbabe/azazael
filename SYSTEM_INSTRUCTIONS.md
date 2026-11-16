@@ -138,6 +138,7 @@ analysis, RULE 0U, RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
 - **RULE 0Z-G (No Busy Work):** Does this action result in actual code fixes/test passes/mandate codification? Is this a diagnostic re-run, report, or documentation padding? (Explain: [Yes, making X fix / No - CRITICAL busy work violation])
 - **RULE 0Z-H (Anti-Deflection):** Am I immediately recording a user-identified violation instead of deflecting with questions like "What do you want me to do?" (Explain: [Yes, recording now / N/A no violation identified / VIOLATION - deflecting])
+- **RULE 0Z-S (Assertion Is Not Evidence):** For THIS action, what is the instrument, and what did it print? State one of RAN (command + exit + output line quoted) / UNVERIFIED (no invocation — may license nothing) / BLIND (could not run — not a pass) / FALSIFIED (contradicted — halt and investigate). Does the evidence cover THIS action, or a neighbour it is being borrowed from? (Explain: [RAN: cmd -> exit -> line / UNVERIFIED - no invocation / BLIND - reason / FALSIFIED - halting])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
@@ -535,6 +536,7 @@ Copy and paste this exact block into your response and fill it out BEFORE modify
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A]) For complex decisions (canonical doc changes, architecture, new features): has researcher-web + researcher-docs been queried to validate this decision tree against 2025-2026 industry standards? (Explain: [Yes, CITING: [source] / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-G (No Busy Work):** Does this action result in actual code fixes/test passes/mandate codification? Is this a diagnostic re-run, report, or documentation padding? (Explain: [Yes, making X fix / No - CRITICAL busy work violation])
 - **RULE 0Z-H (Anti-Deflection):** Am I immediately recording a user-identified violation instead of deflecting with questions like "What do you want me to do?" (Explain: [Yes, recording now / N/A no violation identified / VIOLATION - deflecting])
+- **RULE 0Z-S (Assertion Is Not Evidence):** For THIS action, what is the instrument, and what did it print? State one of RAN (command + exit + output line quoted) / UNVERIFIED (no invocation — may license nothing) / BLIND (could not run — not a pass) / FALSIFIED (contradicted — halt and investigate). Does the evidence cover THIS action, or a neighbour it is being borrowed from? (Explain: [RAN: cmd -> exit -> line / UNVERIFIED - no invocation / BLIND - reason / FALSIFIED - halting])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
@@ -583,6 +585,7 @@ Every Codebuff session on the Azazael codebase MUST read canonical documents in 
 | 5 | `azazael/SESSION_STARTUP.md` | `read_files(["azazael/SESSION_STARTUP.md"])` | Current state snapshot, congruency marker, session startup sequence. |
 | 6 | `azazael/LESSONS_MASTER.md` | `read_files(["azazael/LESSONS_MASTER.md"])` | Accumulated cross-session lessons. |
 | 7 | `azazael/PRODUCTION_TODO.md` | `read_files(["azazael/PRODUCTION_TODO.md"])` | Current production readiness gaps and roadmap. |
+| 8 | `azazael/SCRIPTURE.md` | `read_files(["azazael/SCRIPTURE.md"])` | User declarations of record, with scribal commentary quarantined and marked as commentary. Appended 2026-11-03: read after the seven, because enforcement comes first, then state, then the decrees those seven serve. Derived doctrine lives in `docs/WHITEPAPER_INSTRUMENT_AND_ARTIFACT_2026-11-03.md` and `docs/TREATISE_RIGHT_TO_LIFE_OF_NEWBORNS_2026-11-03.md`. |
 
 ### Rationale
 
@@ -597,6 +600,12 @@ Every Codebuff session on the Azazael codebase MUST read canonical documents in 
 - Re-ordering this list = **CRITICAL process violation** — documented as Error #93+
 - Skipping any document = **CRITICAL process violation**
 - This rule is PERMANENT. It cannot be altered, amended, or deprecated by any future rule.
+
+### Item 8 is an append, not an amendment (2026-11-03)
+- Positions 1-7 above are untouched: same documents, same order, still permanent. No existing entry was amended.
+- Item 8 was appended at the user's direction on 2026-11-03, because a declaration nobody reads decides nothing.
+- An append is not a re-ordering. The prohibitions above forbid re-ordering and amending; they do not forbid adding a reader at the end.
+- Skipping item 8 is a deviation from an appended item and is recorded as such. It does not disturb the enforcement of 1-7.
 
 ### Relationship to Other Rules
 - **RULE 0K overrides all other document ordering** — no other rule, skill, or startup procedure may specify a different reading order.
@@ -2336,10 +2345,15 @@ python -c "import sys; sys.path.insert(0, 'src'); from CORE.worm_registry import
 - Python 3.13 is not installed on this system for development purposes
 
 ### Rule 3.14t-2: All Nuitka Builds on 3.14t
-- Before any Nuitka build, run `python azazael/docs/scripts/patch_nuitka_314t.py --apply`
-- This applies 9 C-level patches to Nuitka 4.1.2 for 3.14t compatibility
+- Before any Nuitka build, run `python3.15t docs/scripts/patch_nuitka_315t.py --apply`
+- This applies 9 C-level patches to Nuitka 4.1.2 for free-threading compatibility
 - Never fall back to Python 3.13 for Nuitka builds
-- The patch script is at `azazael/docs/scripts/patch_nuitka_314t.py`
+- The patch script is at `docs/scripts/patch_nuitka_315t.py`. There is no
+  `patch_nuitka_314t.py` on this tree (measured 2026-11-14: `find . -name
+  "patch_nuitka*"` returns `docs/scripts/patch_nuitka_315t.py` alone), so this
+  rule named a command that could not run. The script's own header states the
+  patches are authored against 3.14t and NOT re-validated against 3.15 headers,
+  and that Nuitka is absent from the 3.15t venv — `.exe` builds are SUSPENDED.
 
 ### Rule 3.14t-3: Package Installation on 3.14t
 - Always verify `cp314t` wheel tag: `pip install` picks the right wheel automatically
@@ -2387,6 +2401,7 @@ This verifies Nuitka, psutil, and all tooling work correctly on 3.14t.
 | 6 | `azazael/LESSONS_MASTER.md` | Accumulated cross-session lessons |
 | 7 | `azazael/PRODUCTION_TODO.md` | Production readiness gaps and roadmap |
 | 8 | `skill("azazael-error-index")` | Master index for routing past error fixes to domain skill files |
+| 9 | `azazael/SCRIPTURE.md` | Declarations of record + derived doctrine (appended 2026-11-03; see RULE 0K item 8) |
 
 **Per RULE 0K, this order is PERMANENT and SHALL NEVER be re-ordered.**
 
@@ -2611,10 +2626,10 @@ here because this file is the primary and a name that lives in one document is f
 | name | the part | the claim the name makes |
 |---|---|---|
 | **CRADLE** | `Project_CRADLE/cradle.py` | holds the work, hands it to the user's own model, adds no judgement of its own |
-| **FLAMING SWORD** | `tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
-| **defender** | `tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
-| **THE REAPER** | `tools/sentinel.py` | acts on an unresolved frame: takes it out of play, names the failing claim |
-| **THE GRIMOIRE** | `tools/memory_bridge.py` → `lessons.jsonl` | the book: written at the moment of failure, read by the next frame, or UNMEMORED with a reason |
+| **FLAMING SWORD** | `Project_CRADLE/tools/sword.py` | finds, queues, proves, lands — and refuses a batch it cannot prove |
+| **defender** | `Project_CRADLE/tools/defender.py` | a prompt becomes a frame that can be satisfied **or refused** |
+| **THE REAPER** | `Project_CRADLE/tools/sentinel.py` | acts on an unresolved frame: takes it out of play, names the failing claim |
+| **THE GRIMOIRE** | `Project_CRADLE/tools/memory_bridge.py` → `lessons.jsonl` | the book: written at the moment of failure, read by the next frame, or UNMEMORED with a reason |
 
 **The names are vocabulary, not paths.** `sentinel.py` and `lessons.jsonl` keep their
 file names because gates, tasks and documents quote those paths; a rename to match a

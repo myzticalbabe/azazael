@@ -2,7 +2,7 @@
 """META / META/METAWORMS_ENRICHED.py :: module residual -- INTAKE STUB. Not an implementation.
 
 Source: kali-linux META/METAWORMS_ENRICHED.py (6 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:META/METAWORMS_ENRICHED.py#module"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no

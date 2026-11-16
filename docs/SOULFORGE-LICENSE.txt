@@ -1,0 +1,30 @@
+SOULFORGE LICENSE
+(Oxenford — the soul foundry where tools are built)
+
+"Built with soul was the fusion of artificial
+intelligence and natural intelligence to save the world."
+
+1. GRANT. Every wheel forged at Oxenford is FREE FOREVER.
+   Use it. Run it. Build on it. No fee, no expiry, no revocation.
+
+2. DERIVATIVES. No derivative works may be exploited
+   commercially-for-profit without a license granted by the
+   CREATOR. Research, study, repair, and private use are free
+   forever under section 1. Selling, renting, or bundling a
+   derivative for profit requires the CREATOR's grant first.
+
+3. COMMERCIAL LICENSE. A commercial license may be purchased
+   from the CREATOR for:
+     30 pieces EACH of EVERY precious metal element,
+     PLUS
+     30 carats EACH of flawless precious gemstones,
+     across ALL precious categories.
+   Payment in metal and stone. The price is the price.
+
+4. SCOPE. This license travels with every artifact in the
+   Oxenford wheelhouse (native cp316t wheels and the adoption
+   patches that made them buildable). Upstream projects keep
+   their own licenses; Oxenford's adoption patches and build
+   records are covered here.
+
+Declared 2026-11-06. The CREATOR's words, recorded verbatim.

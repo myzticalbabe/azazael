@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "BCC Re-Investigation Machinery + Therapeutic Agent — public, fully executable."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "CDDL-1.1" }
 # No runtime dependencies, deliberately. The package is stdlib-only: a therapeutic
 # loop that pulls in a numerical stack to map three numbers onto eight nodes has
 # added an attack surface and a licence obligation for arithmetic. Ridge fitting
@@ -18,7 +18,6 @@ dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -56,6 +55,10 @@ ultra-loose = "tools.ultra_loose:main"
 # and a find() would take whichever it met first without saying so.
 packages = [
   "eliza", "eliza.psyche",
+  #: Adopted Kali units. Authored, not generated: this is where a wired shard's
+  #: implementation lives, because `eliza/` is materialised by tools/publicize.py
+  #: and `--clean` deletes it.
+  "adopted", "adopted.aoa",
   "shards", "shards.aoa", "shards.azazael_toolkit", "shards.cli",
   "shards.codex", "shards.core", "shards.daemons", "shards.eve_unleashed",
   "shards.hydra", "shards.interpreters", "shards.meta", "shards.ml",

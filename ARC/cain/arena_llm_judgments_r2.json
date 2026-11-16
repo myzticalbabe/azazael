@@ -1,0 +1,957 @@
+{
+ "meta": {
+  "round": "r2",
+  "judged_at": "2026-11-04T23:46:30",
+  "endpoint": "http://127.0.0.1:8081",
+  "model": "local",
+  "judges": [
+   "ARENA-JUDGE-1-ARCHITECTURE",
+   "ARENA-JUDGE-2-LEGAL",
+   "ARENA-JUDGE-3-ECONOMIC",
+   "ARENA-JUDGE-4-TECHNICAL",
+   "ARENA-JUDGE-5-ETHICAL",
+   "ARENA-JUDGE-6-STRATEGIC"
+  ],
+  "quorum": 0.66,
+  "packet": "..\\ARC\\cain\\evidence_packet_r2.json",
+  "packet_sha256": "633853ca49a33f070bb75c8d726e50bf4da7bd8cbb7e10f298133d03656f0b48",
+  "calls": 42,
+  "blind_calls": 0,
+  "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+  "vocabulary": [
+   "SUPPORTED",
+   "PARTIAL",
+   "UNSUPPORTED",
+   "BLOCKED"
+  ]
+ },
+ "pins": {
+  "C1": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C2": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C3": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C4": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C5": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C6": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C7": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  }
+ },
+ "rows": [
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 29.03,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms end-of-support date and mentions TPM 2.0 in the context of VM settings but does not explicitly state that pre-8th-generation hardware is excluded from upgrade path.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 29.03,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms end-of-support date and mentions TPM 2.0 in the context of VM settings but does not explicitly state that pre-8th-generation hardware is excluded from upgrade path.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 25.07,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms end-of-support date and mentions TPM 2.0 in the successor OS context, but does not explicitly state that pre-8th-generation hardware is excluded.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 28.17,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date"
+   ],
+   "missing_elements": [
+    "the successor OS requires TPM 2.0",
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms the end-of-support date but does not mention TPM 2.0 or Secure Boot requirements, nor their impact on pre-8th-generation hardware.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 28.42,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms end-of-support date and mentions TPM 2.0 in the context of VMs but does not explicitly state that pre-8th-generation hardware is excluded from upgrade path.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 28.42,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "best_quote": "Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version",
+   "reason": "The quote confirms end-of-support date and mentions TPM 2.0 in the context of VM settings but does not explicitly state that pre-8th-generation hardware is excluded from upgrade path.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 37.74,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms the performance change and its impact on specific devices, but does not mention an opt-out mechanism, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 38.66,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms a performance change in iOS 10.2.1 affecting aged batteries through power management, and notes the change was not disclosed as unexpected, but does not mention an opt-out mechanism.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 29.8,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms the update and its impact on aged batteries but does not mention an opt-out mechanism.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 26.39,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms the performance change and its impact on aged batteries but does not mention an opt-out mechanism.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 28.3,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms the performance change and its impact on aged batteries but does not mention an opt-out mechanism, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 28.96,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time"
+   ],
+   "missing_elements": [
+    "no opt-out was offered"
+   ],
+   "best_quote": "About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 P",
+   "reason": "The quote confirms the update and its impact on aged batteries but does not mention an opt-out mechanism, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 37.3,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "microcode revisions from 0x125 to 0x-132 address Vmin shift",
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the issue affects 13th and 14th Gen processors and acknowledges Intel's root cause diagnosis, but does not mention microcode revisions from 0x125 to 0x132 or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 27.72,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "microcode revisions from 0x125 to 0x",
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the issue affects 13th and 14th Gen processors but does not mention microcode revisions from 0x125 to 0x132 or that the electromigration damage cannot be reversed.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 32.28,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "microcode revisions from 0x125 to 0x-132 address Vmin shift",
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the issue exists on 13th and 14th Gen processors and Intel's investigation, but does not mention microcode revisions from 0x125 to 0x132 or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 30.13,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "microcode revisions from 0x125 to 0x",
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the issue affects 13th and 14th Gen processors but does not mention microcode revisions 0x125 to 0x132 or the irreversibility of electromigration damage.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 28.79,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "microcode revisions from 0x125 to 0x-132 address Vmin shift",
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the root cause diagnosis for Vmin shift instability in 13th and 14th Gen processors, but does not state that the resulting electromigration damage cannot be reversed.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 28.03,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the affected parts are 13th/14th generation Core i9"
+   ],
+   "missing_elements": [
+    "microcode revisions from 0x125 to 0x",
+    "the resulting damage cannot be reversed"
+   ],
+   "best_quote": "Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue.",
+   "reason": "The quote confirms the issue affects 13th and 14th gen processors but does not mention microcode revisions from 0x125 to 0x132 or that electromigration damage cannot be reversed.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 26.98,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "higher trust tiers to maximize user reach. Send a range of responses from your server to your app Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response. For example, you could use a s",
+   "reason": "The quote mentions response ranges and decision outcomes, implying verdicts, but does not explicitly state that an app can act on the verdict by denying access.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 20.19,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response.",
+   "reason": "The quote confirms the API can return varied outcomes but does not state that an application can act on the verdict to deny access, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 21.41,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response.",
+   "reason": "The quote confirms the API can return varied outcomes but does not state that an app can act on the verdict by denying access, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 20.46,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response.",
+   "reason": "The quote confirms a range of outcomes but does not explicitly state that an application can act on the verdict by denying access, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 21.88,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response.",
+   "reason": "The quote confirms a range of responses but does not establish that an application can act on the verdict by denying access, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 23.38,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device or build"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access"
+   ],
+   "best_quote": "Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response.",
+   "reason": "The quote confirms the API can return varied outcomes, implying an integrity verdict, but does not state that an app can act on it by denying access.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 25.7,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms firmware-based blocking of third-party cartridges but does not specify that the block occurs under firmware conditions rather than physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 26.74,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms HP's firmware updates block third-party cartridges, but does not specify that the block occurs under firmware conditions rather than due to physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 26.72,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms firmware-based blocking of third-party cartridges but does not specify that the block occurs under firmware conditions rather than due to physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 27.08,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms firmware-based blocking of third-party cartridges but does not specify that the block occurs under firmware conditions rather than physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 27.8,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms the firmware-based blocking of third-party cartridges but does not specify that the block occurs under firmware conditions rather than physical failure.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 29.39,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "HP shipped firmware that blocks third-party cartridges"
+   ],
+   "missing_elements": [
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party cartridges",
+   "reason": "The quote confirms firmware-based blocking of third-party cartridges but does not specify that the block occurs under firmware conditions rather than physical failure, leaving the nature of the failure condition unaddressed.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 31.21,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms the existence of a software tool required for repairs but does not state that the tool is restricted to authorized dealers or that DMCA 1201 is the statutory basis for the restriction.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 31.44,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms the existence of a software tool required for repairs but does not state that the tool is restricted to authorized dealers or that DMCA 1201 is the statutory basis for the restriction.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 30.21,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "missing_elements": [
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms a software tool is needed for repairs but does not state that the tool is restricted to authorized dealers, leaving the dealer restriction element unsupported.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 31.22,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms the existence of a software tool required for repairs but does not specify that it is restricted to authorized dealers or explicitly link the restriction to DMCA 1201.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 29.21,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms the existence of a software tool required for repairs but does not explicitly state that the tool is restricted to authorized dealers or that DMCA 1201 is the statutory basis for the restriction.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 24.76,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is pr",
+   "reason": "The quote confirms the existence of a software tool required for repairs but does not specify that it is restricted to authorized dealers or explicitly link DMCA 1201 as the statutory basis for the restriction.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 20.97,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown mechanism but does not state that the device is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 21.09,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown mechanism but does not state that the device is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 20.99,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown mechanism but does not state that the device is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 27.64,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown but does not state that the mode permanently deactivates the speaker or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 27.14,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown mechanism but does not state that the device is permanently disabled or that reactivation is impossible after the countdown.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 26.99,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting"
+   ],
+   "missing_elements": [
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app.",
+   "reason": "The quote confirms the countdown but does not state that the speaker is permanently disabled or that recovery via factory reset is impossible.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  }
+ ]
+}

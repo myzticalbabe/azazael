@@ -1,0 +1,798 @@
+{
+  "_meta": {
+    "corpus_id": "female-needs-hyperedges-v1",
+    "authored": "2026-11-16",
+    "purpose": "An evidence-gated hyper-edge corpus answering one question: what do females need? Each edge joins a NEED node to a POPULATION node and a LEVER node, and carries the eight gates this tree already uses for evidence (TIER, GROUND, DENOM, UNIVERSE, QUORUM, BLIND, TRUNC, PROVENANCE).",
+    "epistemic_status": "This corpus records WHAT PUBLISHED SOURCES SAY. It is not a clinical instrument, not a needs assessment, and not a validation of any program. No claim here was measured on a patient by this author. The population focus is women in, or returning from, behavioural-health and justice systems, because that is the population this project serves; the general-population claims are labelled GENERAL and kept separate so a reader cannot mistake one universe for the other.",
+    "what_this_cannot_tell_you": [
+      "Whether a specific local provider delivers any of these levers.",
+      "Prevalence in Berks County, PA, or in any single facility: every prevalence figure here is national or from the named study's own setting.",
+      "Whether an intervention WORKS. Most edges record that a need exists and that a guidance body names a lever; effect sizes are out of scope and would need their own corpus.",
+      "Anything from a woman who was not already inside a study, a survey, or a review."
+    ],
+    "gate_vocabulary_source": "ARC/cain/hyper_edge_dreams.json (states NO_QUORUM | BLIND | CUT) and MANDATES.md TIER/GROUND/DENOM/UNIVERSE rules.",
+    "states": {
+      "VERIFIED": "tier A or B, a quotation retrieved from the cited source, and (for prevalence claims) a denominator.",
+      "LEAD": "real but under-powered here: tier C or D, single-source, unstated denominator, or a summary of a summary. Never upgraded without a second independent source.",
+      "BLIND": "the source could not be retrieved, so the claim is recorded as unanswered rather than guessed.",
+      "CUT": "retrieved and rejected. Kept in the file so the rejection is auditable and cannot be silently re-derived."
+    },
+    "claim_types": [
+      "guidance",
+      "prevalence",
+      "policy",
+      "qualitative"
+    ],
+    "counts": {
+      "needs": 8,
+      "edges": 22,
+      "verified": 13,
+      "lead": 9,
+      "blind": 0,
+      "cut": 0,
+      "sources": 21
+    },
+    "counts_note": "Derived, never typed: tools/validate_female_needs_corpus.py recomputes every field here and fails when this block disagrees with the data. The first draft carried edges=20, sources=15, verified=17, lead=3 against a file holding 22, 18, 13 and 9 -- hand-kept count blocks drift silently, which is why the validator owns them."
+  },
+  "sources": {
+    "S-TIP51-KAP": {
+      "publisher": "SAMHSA",
+      "title": "KAP Keys For Clinicians Based on TIP 51",
+      "id": "SMA14-4844",
+      "date": "2014-05-02",
+      "url": "https://library.samhsa.gov/sites/default/files/sma14-4844.pdf",
+      "tier": "A",
+      "kind": "primary guidance"
+    },
+    "S-TIP51-QG-CLIN": {
+      "publisher": "SAMHSA",
+      "title": "Quick Guide for Clinicians Based on TIP 51: Addressing the Specific Needs of Women",
+      "id": "SMA13-4789",
+      "date": "2013-10-29",
+      "url": "https://library.samhsa.gov/sites/default/files/sma13-4789.pdf",
+      "tier": "A",
+      "kind": "primary guidance"
+    },
+    "S-TIP57": {
+      "publisher": "SAMHSA",
+      "title": "TIP 57: Trauma-Informed Care in Behavioral Health Services",
+      "id": "SMA14-4816",
+      "date": "2014-03-31",
+      "url": "https://samhsa.gov/resource/dbhis/tip-57-trauma-informed-care-behavioral-health-services",
+      "tier": "A",
+      "kind": "primary guidance"
+    },
+    "S-SAMHSA-TIA": {
+      "publisher": "SAMHSA",
+      "title": "Trauma-Informed Approaches and Programs",
+      "date": "2024-03-12",
+      "url": "https://www.samhsa.gov/mental-health/trauma-violence/trauma-informed-approaches-programs",
+      "tier": "A",
+      "kind": "agency programme definition"
+    },
+    "S-GENDER-DYNAMICS": {
+      "publisher": "PMC / peer-reviewed review",
+      "title": "Gender Dynamics in Substance Use and Treatment: A Women's Focused Approach",
+      "date": "2022",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8881090",
+      "tier": "C",
+      "kind": "review article, tiered C because only its abstract body was retrieved, not its methods",
+      "note": "Tiered C deliberately: a review that restates other studies is a credible secondary source, not a primary one."
+    },
+    "S-WGIC": {
+      "publisher": "Justice Research (D-Space)",
+      "title": "Women and Girls in Corrections",
+      "date": "2021-06-21",
+      "url": "https://justiceresearch.dspacedirect.org/server/api/core/bitstreams/9a8e6938-8fd6-4f67-b561-f47d66867ae1/content",
+      "tier": "C",
+      "kind": "policy brief quoting BJS/Lynch figures",
+      "note": "Tiered C: the underlying BJS tables were not retrieved, so these figures are second-hand and are cross-checked against S-CCJ below, which is why the edges built on them are VERIFIED only where both agree."
+    },
+    "S-CCJ-2024": {
+      "publisher": "Council on Criminal Justice",
+      "title": "Women's Justice: A Preliminary Assessment of Women in the Criminal Justice System",
+      "date": "2024-07-09",
+      "url": "https://counciloncj.org/womens-justice-a-preliminary-assessment-of-women-in-the-criminal-justice-system",
+      "tier": "B",
+      "kind": "official index / assessment report"
+    },
+    "S-HJ-MOTHERS": {
+      "publisher": "Health & Justice (BMC)",
+      "title": "The needs and experiences of mothers while in prison and post-release: a rapid review and thematic synthesis",
+      "date": "2021-11-12",
+      "url": "https://healthandjusticejournal.biomedcentral.com/articles/10.1186/s40352-021-00153-7",
+      "tier": "C",
+      "kind": "rapid review, 12 studies / 22 publications"
+    },
+    "S-HJ-GRT": {
+      "publisher": "Health & Justice (BMC)",
+      "title": "Gender-responsive treatment to improve outcomes for women and girls in correctional settings: foundations, limitations and innovations",
+      "date": "2025-03-03",
+      "url": "https://link.springer.com/article/10.1186/s40352-025-00316-w",
+      "tier": "C",
+      "kind": "review"
+    },
+    "S-HJ-VOICES": {
+      "publisher": "Health & Justice (BMC)",
+      "title": "'You're setting a lot of people up for failure': what formerly incarcerated women would tell healthcare decision makers",
+      "date": "2022-02-01",
+      "url": "https://healthandjusticejournal.biomedcentral.com/articles/10.1186/s40352-022-00166-w",
+      "tier": "B",
+      "kind": "qualitative study reporting its own denominators"
+    },
+    "S-URBAN-TRAUMA": {
+      "publisher": "Urban Institute",
+      "title": "Addressing Trauma and Victimization in Women's Prisons",
+      "date": "2021-04-07",
+      "url": "https://www.urban.org/sites/default/files/publication/103017/addressing-trauma-and-victimization-in-womens-prisons.pdf",
+      "tier": "A",
+      "kind": "primary survey of 41 state DOCs"
+    },
+    "S-MCH-MENSES": {
+      "publisher": "University of Minnesota LEND / MCH",
+      "title": "State Laws on Access to Menstrual Products for Incarcerated People",
+      "date": "2025-11-11",
+      "url": "https://mch.umn.edu/jiwcnews/jiwc-menstrual-products/",
+      "tier": "B",
+      "kind": "legislative scan"
+    },
+    "S-GAO-MENSES": {
+      "publisher": "U.S. Government Accountability Office",
+      "title": "Federal Custody: Bureau of Prisons and ICE Should Take Actions to Improve Access to Menstrual Products",
+      "id": "GAO-26-107694",
+      "url": "https://www.gao.gov/products/gao-26-107694",
+      "tier": "A",
+      "kind": "primary federal audit"
+    },
+    "S-MO-APPLESEED": {
+      "publisher": "Missouri Appleseed",
+      "title": "Access to Menstrual Hygiene Products in Missouri Prisons",
+      "date": "2023-06-05",
+      "url": "https://missouriappleseed.org/wp-content/uploads/2023/06/23_MoApp_Menstrual-Hyg-Research.pdf",
+      "tier": "A",
+      "kind": "primary survey, 90 respondents, 91.1% response"
+    },
+    "S-NIJ-EMPLOY": {
+      "publisher": "National Institute of Justice",
+      "title": "Updated Trends, Challenges, and Recommendations for Research and Policy (women's reentry)",
+      "date": "2025-01-10",
+      "url": "https://www.ojp.gov/pdffiles1/nij/310062.pdf",
+      "tier": "A",
+      "kind": "agency research report"
+    },
+    "S-NIJ-HOUSING": {
+      "publisher": "National Institute of Justice",
+      "title": "FY 2020 Report to the Committees on Appropriations: Formerly Incarcerated Women and Reentry",
+      "date": "2021-10-14",
+      "url": "https://ojp.gov/pdffiles1/nij/303933.pdf",
+      "tier": "A",
+      "kind": "agency report to Congress"
+    },
+    "S-ASPE-HOUSING": {
+      "publisher": "HHS ASPE",
+      "title": "Reentry and Housing Stability: Final Report",
+      "date": "2024-12-11",
+      "url": "https://aspe.hhs.gov/sites/default/files/documents/49f0895779c6b984a9261c96f747e707/reentry-housing-stability.pdf",
+      "tier": "A",
+      "kind": "federal report"
+    },
+    "S-PMC-MOTHERS-VOICE": {
+      "publisher": "PMC / peer-reviewed",
+      "title": "Social Determinants of Health and What Mothers Say They Need and Want After Release From Jail",
+      "date": "2018-12-06",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6292143",
+      "tier": "B",
+      "kind": "qualitative study reporting its own denominators"
+    },
+    "S-PMC-TH-APPLICANTS": {
+      "publisher": "PMC / Frontiers in Women's Health (peer-reviewed)",
+      "title": "The socio-demographic characteristics and health needs of incarcerated women applying to a transitional housing re-entry program",
+      "date": "2018-03-02",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11388805",
+      "tier": "B",
+      "kind": "peer-reviewed review of 177 programme applications",
+      "note": "Raber et al., Front Womens Health 3(1):136; doi:10.15761/fwh.1000136; author manuscript PMC11388805, PMID 39263582"
+    },
+    "S-PMC-OXFORD-WAGES": {
+      "publisher": "PMC / Alcoholism Treatment Quarterly (peer-reviewed)",
+      "title": "Reducing Economic Disparities for Female Offenders: The Oxford House Model",
+      "date": "2016-06-21",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5004742",
+      "tier": "B",
+      "kind": "peer-reviewed moderated regression on 135 residents",
+      "note": "Callahan et al., Alcoholism Treatment Quarterly 34(3):292-302; doi:10.1080/07347324.2016.1182814"
+    },
+    "S-NPHL-BLEEDING": {
+      "publisher": "Network for Public Health Law",
+      "title": "Bleeding Behind Bars: It Costs to Menstruate",
+      "date": "2026-07-22",
+      "url": "https://www.networkforphl.org/resources/bleeding-behind-bars-it-costs-to-menstruate/",
+      "tier": "C",
+      "kind": "advocacy fact sheet (50-state legal survey)",
+      "note": "by Naisha Mercury; PDF at networkforphl.org/wp-content/uploads/2026/07/Bleeding-Behind-Bars_It-Costs-to-Menstruate-1.pdf"
+    }
+  },
+  "needs": [
+    {
+      "need_id": "N-SAFETY",
+      "label": "Safety from retraumatisation, not just the absence of an incident",
+      "domain": "safety",
+      "module": {
+        "title": "What safety actually means in a care setting",
+        "objectives": [
+          "Distinguish trauma-informed from trauma-specific care",
+          "Name the six SAMHSA principles and where each shows up in a waiting room",
+          "Identify one retraumatising practice in a setting the learner knows"
+        ],
+        "misconception": "That safety means a locked door and a camera. Both are present in settings this corpus cites as retraumatising."
+      },
+      "edges": [
+        {
+          "edge_id": "E-SAFETY-01",
+          "nodes": ["NEED:N-SAFETY", "POP:JUSTICE", "LEVER:TRAUMA-INFORMED-TRAINING"],
+          "claim_type": "guidance",
+          "claim": "A trauma-informed programme must actively resist retraumatisation, not merely acknowledge trauma exists.",
+          "intervention": "Train every staff role, including front desk and security, on retraumatisation and give clients a route to report it.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "responds by fully integrating knowledge about trauma into policies, procedures, and practices, while seeking to actively resist retraumatization",
+            "source_id": "S-SAMHSA-TIA"
+          },
+          "denominator": "n/a - guidance, not a prevalence claim",
+          "universe": "U.S. behavioural-health service settings, 2024 SAMHSA programme definition",
+          "quorum": "single authoritative body",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from the SAMHSA programme page; the page defines the approach, it does not measure compliance anywhere"
+        },
+        {
+          "edge_id": "E-SAFETY-02",
+          "nodes": ["NEED:N-SAFETY", "POP:JUSTICE", "LEVER:SCREENING-AT-INTAKE"],
+          "claim_type": "prevalence",
+          "claim": "Women in prison report PTSD at roughly three and a half times the rate men in prison do.",
+          "intervention": "Screen for trauma at intake and re-assess during custody, not once at the gate.",
+          "tier": "B",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "women in prison report much higher rates of post-traumatic stress disorder (PTSD; 21% of women versus 6% of men)",
+            "source_id": "S-CCJ-2024"
+          },
+          "denominator": "21% of women in prison vs 6% of men in prison",
+          "universe": "incarcerated U.S. population, national survey data as reported by CCJ 2024",
+          "quorum": "corroborated: S-WGIC reports 1 in 3 justice-involved women meeting PTSD criteria and 50% lifetime, same direction, different cut",
+          "corroboration": {
+            "source_id": "S-WGIC",
+            "quote": "Looking more broadly across the criminal justice system, one in three of all justice-involved women have been shown to meet criteria for post-traumatic stress disorder (PTSD), and 50% report PTSD over their lifetime (Lynch et al., 2017).",
+            "note": "verbatim in pdftotext -enc UTF-8 (reading order) from the PDF at the cited URL on 2026-11-16 -- -layout interleaves this brief's two columns, so layout text does not reproduce the sentence; the brief is quoting Lynch et al. 2017, so this is a second-hand figure corroborating a tier-B assessment, not a primary measurement"
+          },
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from the CCJ assessment page; the underlying BJS table was not opened, so the edge cites CCJ as its ground"
+        },
+        {
+          "edge_id": "E-SAFETY-03",
+          "nodes": ["NEED:N-SAFETY", "POP:JUSTICE", "LEVER:GENDER-RESPONSIVE-ASSESSMENT"],
+          "claim_type": "policy",
+          "claim": "Most state corrections systems assess for victimisation risk; fewer than half use a tool that is gender-responsive or trauma-specific.",
+          "intervention": "Adopt a validated women's instrument (WRNA, SPIn-W, or SRAG-R) rather than a male-normed tool.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "Of the 41 participating state DOCs, 15 reported using a risk assessment tool that is either gender responsive and/or assesses for past trauma.",
+            "source_id": "S-URBAN-TRAUMA"
+          },
+          "denominator": "15 of 41 participating state departments of corrections",
+          "universe": "state DOCs that responded to the Urban Institute survey, 2021",
+          "quorum": "single survey, primary",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the other 26 systems' tooling is not characterised in the retrieved text, so no claim is made about them"
+        }
+      ]
+    },
+    {
+      "need_id": "N-COOCCURRING",
+      "label": "Mental health and substance use treated together, by people who expect both",
+      "domain": "health",
+      "module": {
+        "title": "Why separating mental health from addiction fails women first",
+        "objectives": [
+          "State the prevalence gap between women and men in custody",
+          "Explain why sequential (not concurrent) treatment drops the person most likely to return",
+          "Name one integrated model"
+        ],
+        "misconception": "That a woman must be 'stable' before trauma work begins. The stability is what the trauma work is for."
+      },
+      "edges": [
+        {
+          "edge_id": "E-COOC-01",
+          "nodes": ["NEED:N-COOCCURRING", "POP:JUSTICE", "LEVER:INTEGRATED-TREATMENT"],
+          "claim_type": "prevalence",
+          "claim": "Two thirds of women in prison and in jail carry a mental health diagnosis, roughly double the male rate.",
+          "intervention": "Co-locate mental health and substance use treatment; do not route a woman to one and waitlist the other.",
+          "tier": "B",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "66% of women in prison and 68% of women in jail were diagnosed with a mental health disorder, compared to 35% of men in prison and 41% of men in jail",
+            "source_id": "S-CCJ-2024"
+          },
+          "denominator": "66% (prison women) and 68% (jail women) vs 35% and 41% (men)",
+          "universe": "U.S. prisons and jails, national data for 2011-2012, as reported by CCJ 2024",
+          "quorum": "corroborated by S-WGIC (66% prison / 68% jail, Bronsky & Berzofsky 2017) - independent write-up, same figures",
+          "corroboration": {
+            "source_id": "S-WGIC",
+            "quote": "In prisons, 66% of females had a history of mental health diagnosis compared to 35% of males (Bronsky and Berzofsky, 2017). Similarly, in jails, 68% of females had a history of mental health diagnosis compared to 41% of males (Bronsky and Berzofsky, 2017).",
+            "note": "same brief, different paragraph, extracted 2026-11-16; its citation reads 'Bronsky and Berzofsky', the BJS spelling of the name"
+          },
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; two documents agree on the numbers, which is why the edge is VERIFIED with a C-tier corroborator rather than LEAD"
+        },
+        {
+          "edge_id": "E-COOC-02",
+          "nodes": ["NEED:N-COOCCURRING", "POP:GENERAL-WOMEN", "LEVER:SINGLE-GENDER-GROUP"],
+          "claim_type": "qualitative",
+          "claim": "Some women report single-gender group therapy creates a safer environment for co-occurring trauma work.",
+          "intervention": "Offer at least one single-gender therapy group alongside mixed programming; do not make it the only route.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "including considering single-gender group therapy, which some women report creates a safer environment",
+            "source_id": "S-GENDER-DYNAMICS"
+          },
+          "denominator": "not stated - 'some women report' carries no denominator in the retrieved text",
+          "universe": "women in SUD treatment, review of mixed settings",
+          "quorum": "single review; no effect size retrieved",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; deliberately LEAD because a hedged 'some women report' is a preference signal, not an outcome"
+        },
+        {
+          "edge_id": "E-COOC-03",
+          "nodes": ["NEED:N-COOCCURRING", "POP:JUSTICE", "LEVER:CONTINUITY-OF-CARE"],
+          "claim_type": "guidance",
+          "claim": "Treatment should maintain relationships through step-down transitions rather than discharge to nothing.",
+          "intervention": "Assign a named continuity contact who survives the level-of-care change.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "Relationships or connections that are maintained throughout treatment and during step-down transitions from more to less intensive treatment",
+            "source_id": "S-TIP51-QG-CLIN"
+          },
+          "denominator": "n/a - guidance",
+          "universe": "SAMHSA TIP 51 clinical guidance, 2013",
+          "quorum": "single authoritative body",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from the TIP 51 quick guide, in its list of what women report wanting"
+        }
+      ]
+    },
+    {
+      "need_id": "N-MOTHERHOOD",
+      "label": "To be treated as a mother, not as a risk to be managed",
+      "domain": "family",
+      "module": {
+        "title": "Parenting as a clinical variable",
+        "objectives": [
+          "Explain how separation changes maternal identity",
+          "Name the two barriers that stop parenting programmes reaching the women who want them",
+          "Design one intake question that surfaces a parenting need"
+        ],
+        "misconception": "That parenting support is an add-on for the motivated. The review found it acceptable and beneficial, and access-limited."
+      },
+      "edges": [
+        {
+          "edge_id": "E-MOTHER-01",
+          "nodes": ["NEED:N-MOTHERHOOD", "POP:JUSTICE", "LEVER:KEEP-CHILDREN-IN-TREATMENT"],
+          "claim_type": "guidance",
+          "claim": "Women name the ability to keep their children with them during treatment as a service feature they want.",
+          "intervention": "Provide children's services on site so residential treatment does not require relinquishing care.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "The ability to keep their children with them while in treatment.",
+            "source_id": "S-TIP51-QG-CLIN"
+          },
+          "denominator": "n/a - guidance listing client-reported preferences",
+          "universe": "SAMHSA TIP 51, 2013",
+          "quorum": "single authoritative body",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; corroborated in the administrator guide (SMA13-4788) which repeats the same list"
+        },
+        {
+          "edge_id": "E-MOTHER-02",
+          "nodes": ["NEED:N-MOTHERHOOD", "POP:JUSTICE", "LEVER:PARENTING-PROGRAM-ACCESS"],
+          "claim_type": "qualitative",
+          "claim": "Parenting programmes in prison are acceptable and beneficial to participants, but access barriers cap how many women reach them.",
+          "intervention": "Remove scheduling, transport and eligibility barriers before adding new curriculum.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "Evaluations of parenting programs in prison found them to be acceptable and beneficial to participants but barriers to access limit the number of women who can participate.",
+            "source_id": "S-HJ-MOTHERS"
+          },
+          "denominator": "22 publications from 12 studies met the inclusion criteria",
+          "universe": "rapid review of mothers in prison and post-release",
+          "quorum": "single synthesis of 12 studies",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; tiered C because a synthesis is secondary evidence. Previously recorded as VERIFIED on the reasoning that its own denominator was stated -- that reasoning was wrong: a denominator makes a figure checkable, it does not raise a secondary synthesis to tier A or B, and the corpus' own states rule caps VERIFIED at A/B. Downgraded to LEAD with no second source to corroborate it."
+        },
+        {
+          "edge_id": "E-MOTHER-03",
+          "nodes": ["NEED:N-MOTHERHOOD", "POP:JUSTICE", "LEVER:STIGMA-REDUCTION"],
+          "claim_type": "qualitative",
+          "claim": "The stigma of having been in prison is a named barrier to employment and housing after release.",
+          "intervention": "Train employers and landlords, not only the returning woman.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "the stigma associated with having been in prison is a significant barrier to transitions into the community, including finding employment and housing",
+            "source_id": "S-HJ-MOTHERS"
+          },
+          "denominator": "22 publications from 12 studies",
+          "universe": "rapid review, mothers in prison and post-release",
+          "quorum": "single synthesis; a separate NIJ report on women's reentry, already cited under E-ECON-01, documents PRACTICAL employment barriers (transport, childcare) -- a related but distinct mechanism from stigma, so it does not corroborate the claim in this quoted line",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; this edge previously named S-NIJ-EMPLOY in quorum as a corroborator. The cited NIJ line is about transport and childcare, not stigma, so the corroboration was asserted in prose and absent from the evidence. Downgraded to LEAD rather than keeping an uncorroborated C claim labelled VERIFIED."
+        }
+      ]
+    },
+    {
+      "need_id": "N-HEALTH",
+      "label": "Health care that starts from the fact that female bodies respond differently",
+      "domain": "health",
+      "module": {
+        "title": "The clinical differences that get averaged away",
+        "objectives": [
+          "Name two ways substance use trajectories differ by sex",
+          "Explain why reproductive health provision increases treatment engagement",
+          "List the screenings a women's intake should trigger"
+        ],
+        "misconception": "That a women's track is a men's curriculum with different leaflets."
+      },
+      "edges": [
+        {
+          "edge_id": "E-HEALTH-01",
+          "nodes": ["NEED:N-HEALTH", "POP:GENERAL-WOMEN", "LEVER:SEX-SPECIFIC-CLINICAL-PROTOCOL"],
+          "claim_type": "guidance",
+          "claim": "Women have different physical responses to substances and reach serious medical harm earlier.",
+          "intervention": "Screen physical health at intake rather than after a crisis; treat an earlier threshold as the clinical threshold.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "Women with substance use disorders have greater susceptibility to as well as earlier onset of serious medical problems and disorders.",
+            "source_id": "S-TIP51-KAP"
+          },
+          "denominator": "n/a - guidance",
+          "universe": "SAMHSA TIP 51 KAP Keys, 2014",
+          "quorum": "single authoritative body",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; 'greater susceptibility' is the document's own wording, with no effect size given"
+        },
+        {
+          "edge_id": "E-HEALTH-02",
+          "nodes": ["NEED:N-HEALTH", "POP:GENERAL-WOMEN", "LEVER:REPRODUCTIVE-HEALTH-ON-SITE"],
+          "claim_type": "guidance",
+          "claim": "Addressing sexual and reproductive health needs increases engagement with addiction treatment.",
+          "intervention": "Offer STI screening, cervical screening, pregnancy-intent counselling and contraception on the treatment site.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "Addressing the sexual and reproductive health needs of women increases engagement with addiction treatment.",
+            "source_id": "S-GENDER-DYNAMICS"
+          },
+          "denominator": "n/a - the retrieved text cites a single reference (ref 96) and states no effect size",
+          "universe": "women in SUD treatment, review",
+          "quorum": "single review citing a single study; not independently corroborated here",
+          "blind": false,
+          "trunc": true,
+          "provenance": "retrieved 2026-11-16; trunc=true because the cited study itself was not retrieved, so this is a second-hand causal claim and stays LEAD"
+        },
+        {
+          "edge_id": "E-HEALTH-03",
+          "nodes": ["NEED:N-HEALTH", "POP:JUSTICE", "LEVER:COMPASSIONATE-PROVIDER"],
+          "claim_type": "qualitative",
+          "claim": "Formerly incarcerated women name provider compassion and recognition of their specific needs as things they want from care.",
+          "intervention": "Select and train for manner, not only credential; measure it with the people receiving care.",
+          "tier": "B",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "They also described a need for compassionate providers (27%; n = 17) and a need for providers who recognize the specific and unique healthcare needs of this population (17%; n = 11).",
+            "source_id": "S-HJ-VOICES"
+          },
+          "denominator": "27% (n=17) and 17% (n=11) of respondents; access and availability of care was the most-cited theme at 52% (n=33)",
+          "universe": "formerly incarcerated women interviewed in one U.S. state study, 2022",
+          "quorum": "single qualitative study; the study's total N is not stated in the retrieved text, so the n counts are reported as given",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the denominator is reported exactly as the source prints it, including the missing total"
+        }
+      ]
+    },
+    {
+      "need_id": "N-MENSTRUAL",
+      "label": "Menstrual products as a necessity with a quantity, a quality and a cost",
+      "domain": "dignity",
+      "module": {
+        "title": "Period poverty inside an institution",
+        "objectives": [
+          "State the cost of a product against a prison wage",
+          "Explain why 'upon request' is an access failure",
+          "Write an access standard with quantity, quality and replenishment in it"
+        ],
+        "misconception": "That free products settle the question. Free, poor-quality and rationed is still a failure."
+      },
+      "edges": [
+        {
+          "edge_id": "E-MENSES-01",
+          "nodes": ["NEED:N-MENSTRUAL", "POP:JUSTICE", "LEVER:FREE-UNRESTRICTED-ACCESS"],
+          "claim_type": "policy",
+          "claim": "Most states that legislate menstrual access specify free product, but only a handful require it be available without requesting it.",
+          "intervention": "Legislate availability without request, not just zero price.",
+          "tier": "B",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "Products are available in accessible locations without request needed, in five states, while twelve states only provide menstrual products \"upon request.\"",
+            "source_id": "S-MCH-MENSES"
+          },
+          "denominator": "5 states without-request access; 12 states upon-request only; 28 states plus BOP free of cost",
+          "universe": "U.S. state legislation and BOP policy, scanned 2025",
+          "quorum": "single legislative scan",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the scan counts statutes, so it says nothing about compliance in any facility"
+        },
+        {
+          "edge_id": "E-MENSES-02",
+          "nodes": ["NEED:N-MENSTRUAL", "POP:JUSTICE", "LEVER:QUANTITY-AND-QUALITY-STANDARD"],
+          "claim_type": "prevalence",
+          "claim": "Half of women using the free pads in one state reported needing to change them every 30 minutes on heavy-flow days, and four in five had improvised tampons.",
+          "intervention": "Write a quantity floor tied to flow and a quality floor, and audit against both.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "50.0% of respondents who used the free DOC pads reported needing to change them every 30 minutes or more frequently on days of heavy flow.",
+            "source_id": "S-MO-APPLESEED"
+          },
+          "denominator": "90 randomly selected respondents, 91.1% response rate; 50.0% on change frequency, 80.3% on homemade tampons, 22.5% reporting a vaginal infection in the past 6 months",
+          "universe": "Missouri women's prisons, 2018 survey",
+          "quorum": "single state, primary survey, with a published 2023 follow-up showing improvement after free tampons were supplied",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the 91.1% response rate figure and the denominators are the survey's own (C:/tmp/fn_sources/S-MO-APPLESEED.layout.txt:20)"
+        },
+        {
+          "edge_id": "E-MENSES-03",
+          "nodes": ["NEED:N-MENSTRUAL", "POP:JUSTICE", "LEVER:COST-REMOVAL"],
+          "claim_type": "policy",
+          "claim": "Where products must be bought, the price can exceed half a woman's monthly prison wage.",
+          "intervention": "Treat the canteen price as part of the access standard, and publish wages beside it.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "According to the Missouri Times, at the time of the study, a box of tampons and pads from the canteen cost $5.63 and $5.38 respectively, while women in Missouri prisons earned between $7.50 or $8.50 per month.",
+            "source_id": "S-NPHL-BLEEDING"
+          },
+          "denominator": "$5.63 per box of tampons and $5.38 per box of pads against a $7.50-$8.50 monthly prison wage",
+          "universe": "Missouri state prisons at the time of the 2018 Appleseed survey, as reported in a 2026 fact sheet",
+          "quorum": "the fact sheet attributes the price to a 2023 newspaper opinion piece, not to DOC records, so the figure is third-hand",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from the Network for Public Health Law fact sheet (2026-07-22), p.2; the price is quoted from the Missouri Times inside that fact sheet, which is why this stays LEAD on tier C"
+        }
+      ]
+    },
+    {
+      "need_id": "N-ECONOMIC",
+      "label": "Money, a job that survives a record, and childcare to get to it",
+      "domain": "economic",
+      "module": {
+        "title": "The three things that stop a job from starting",
+        "objectives": [
+          "Separate legal barriers from practical ones",
+          "Explain why childcare is an employment intervention",
+          "Name the benefit most applicants had never received"
+        ],
+        "misconception": "That employment fails because of motivation. The named barriers are transport, childcare and the record itself."
+      },
+      "edges": [
+        {
+          "edge_id": "E-ECON-01",
+          "nodes": ["NEED:N-ECONOMIC", "POP:JUSTICE", "LEVER:TRANSPORT-AND-CHILDCARE"],
+          "claim_type": "qualitative",
+          "claim": "Transport difficulty and inability to obtain childcare are named practical hardships in finding and keeping work.",
+          "intervention": "Fund transport and childcare as employment services rather than as welfare follow-ups.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "returning women face practical hardships in relation to finding and keeping employment, such as transportation difficulties or inability to obtain childcare (Roddy, 2023)",
+            "source_id": "S-NIJ-EMPLOY"
+          },
+          "denominator": "n/a - research report synthesising cited studies",
+          "universe": "U.S. reentry research, NIJ 2025",
+          "quorum": "corroborated by S-PMC-MOTHERS-VOICE, whose participants name employment and material resources among eight reentry domains",
+          "corroboration": {
+            "source_id": "S-PMC-MOTHERS-VOICE",
+            "quote": "Eight domains of community reentry emerged through analysis: behavioral health services, education, employment, housing, material resources, medical care, relationships with children, and social support.",
+            "note": "same verbatim line already transcribed under E-VOICE-01 in this corpus; employment and material resources are two of the eight"
+          },
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; NIJ states the finding and cites Roddy 2023, which was not separately opened"
+        },
+        {
+          "edge_id": "E-ECON-02",
+          "nodes": ["NEED:N-ECONOMIC", "POP:JUSTICE", "LEVER:LEGAL-RELIEF-AND-BENEFITS"],
+          "claim_type": "prevalence",
+          "claim": "In one reentry programme sample, four in five women had never received supplemental security income, and most had been incarcerated more than once.",
+          "intervention": "Enrol for benefits before release; do not wait for the woman to apply alone.",
+          "tier": "B",
+          "state": "LEAD",
+          "ground": {
+            "quote": "Our data found most (80%) women in the sample have never received any type of supplemental security income, possibly due to the high level of multiple incarcerations (85% listed more than one incarceration and 46.9% report more than 6 incarcerations).",
+            "source_id": "S-PMC-TH-APPLICANTS"
+          },
+          "denominator": "177 applications reviewed, one per unique applicant; 80% never received supplemental security income / disability income, 85% reported more than one incarceration, 46.9% more than six",
+          "universe": "women applying to Angela House, a female-only transitional housing and re-entry programme in Houston, Texas, 2013-2016",
+          "quorum": "single programme, single site; applications reviewed rather than a population survey",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from PMC11388805 (Raber et al., Front Womens Health 3(1):136, 2018, doi:10.15761/fwh.1000136); re-grounded this session after the quote was found in this paper and not in S-PMC-MOTHERS-VOICE; LEAD because a single programme's applicant pool cannot stand for the population"
+        },
+        {
+          "edge_id": "E-ECON-03",
+          "nodes": ["NEED:N-ECONOMIC", "POP:JUSTICE", "LEVER:SOBER-LIVING-STAY"],
+          "claim_type": "qualitative",
+          "claim": "Longer stays in a sober-living setting were associated with higher wages, and more so for women with convictions.",
+          "intervention": "Treat stable housing as an economic intervention with a wage effect, not only a recovery intervention.",
+          "tier": "B",
+          "state": "LEAD",
+          "ground": {
+            "quote": "There was a positive relationship between length of stay and wages. Criminal history modified the association between length of stay and wages, and length of stay had a significantly greater impact on wages for women with criminal convictions.",
+            "source_id": "S-PMC-OXFORD-WAGES"
+          },
+          "denominator": "151 women surveyed, 135 used in the moderated regression (N=135); 79% of the sample reported criminal convictions",
+          "universe": "female Oxford House residents from across the United States, surveyed at a recovery conference in Washington, D.C.",
+          "quorum": "single study, one conference sample; the finding is an association, not an experiment",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from PMC5004742 (Callahan et al., Alcoholism Treatment Quarterly 34(3):292-302, 2016, doi:10.1080/07347324.2016.1182814); the abstract's 'nationwide sample of 136 women' and the methods' 135-of-151 regression sample are both the paper's own; blind/trunc cleared this session when the full text replaced the search snippet"
+        }
+      ]
+    },
+    {
+      "need_id": "N-HOUSING",
+      "label": "A bed that is not the house the violence happened in",
+      "domain": "housing",
+      "module": {
+        "title": "Housing as the precondition, not the reward",
+        "objectives": [
+          "Distinguish affordability, stigma and policy exclusion as three separate barriers",
+          "Explain why returning to a violent address is a housing outcome",
+          "Name the federal policy lever that excludes conviction histories"
+        ],
+        "misconception": "That housing help means a list. The named barriers include rules that forbid the placement outright."
+      },
+      "edges": [
+        {
+          "edge_id": "E-HOUSE-01",
+          "nodes": ["NEED:N-HOUSING", "POP:JUSTICE", "LEVER:SUBSIDY-ACCESS-REFORM"],
+          "claim_type": "policy",
+          "claim": "Federal and state policies often bar the formerly incarcerated from the public housing that would be their only economic option.",
+          "intervention": "Use the discretion that exists in admission policy; publish it so applicants can rely on it.",
+          "tier": "A",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "federal and state policies often prohibit the formerly incarcerated from accessing the public housing that may be the only practical economic choice for these individuals (Roman & Travis, 2006)",
+            "source_id": "S-NIJ-HOUSING"
+          },
+          "denominator": "n/a - policy report",
+          "universe": "U.S. housing policy, NIJ report to Congress 2021",
+          "quorum": "corroborated by S-ASPE-HOUSING, which names subsidised housing policies that exclude conviction histories",
+          "corroboration": {
+            "source_id": "S-ASPE-HOUSING",
+            "quote": "Subsidized housing policies and practices that exclude individuals with conviction histories and prevent living with family members.",
+            "note": "extracted with pdftotext -layout on 2026-11-16; the PDF's superscript footnote markers (4,10 / 11-14) were flattened by extraction and are omitted here rather than guessed at"
+          },
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16"
+        },
+        {
+          "edge_id": "E-HOUSE-02",
+          "nodes": ["NEED:N-HOUSING", "POP:JUSTICE", "LEVER:SAFE-ADDRESS-OPTION"],
+          "claim_type": "qualitative",
+          "claim": "For women leaving incarceration, the family address offered at release can be complicated by past interpersonal violence and by the pressure to reunify with children.",
+          "intervention": "Ask at release planning whether the default address is safe, and hold a bed for the answer 'no'.",
+          "tier": "A",
+          "state": "LEAD",
+          "ground": {
+            "quote": "For returning women, living with family may be complicated by histories of interpersonal violence and efforts to accommodate reunification with their children.",
+            "source_id": "S-ASPE-HOUSING"
+          },
+          "denominator": "not stated - the report describes a mechanism for returning women, not a measured share",
+          "universe": "returning women with children, as described in a U.S. federal reentry-and-housing review",
+          "quorum": "single federal report; the sentence synthesises the studies it cites rather than measuring a population itself",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16 from ASPE/RTI 'Reentry and Housing Stability: Final Report' (2024-12-11); the quote previously used here (\"Many women are forced to return to homes where they previously faced violence or abuse.\") could not be located in S-MO-APPLESEED or anywhere on the open web, so it was rejected as a ground and the claim narrowed to this verbatim ASPE sentence; LEAD because the report synthesises others' findings"
+        }
+      ]
+    },
+    {
+      "need_id": "N-VOICE",
+      "label": "A hand in designing the thing that is meant to help her",
+      "domain": "agency",
+      "module": {
+        "title": "Who decided what she needs",
+        "objectives": [
+          "Compare a provider's list of needs with the list women gave",
+          "Explain why 'hard to reach' can mean 'we asked once, badly'",
+          "Write one question that invites a woman to name her own priority"
+        ],
+        "misconception": "That non-participation means no need. One study reached 15 of 137 identified mothers."
+      },
+      "edges": [
+        {
+          "edge_id": "E-VOICE-01",
+          "nodes": ["NEED:N-VOICE", "POP:JUSTICE", "LEVER:PARTICIPATORY-DESIGN"],
+          "claim_type": "qualitative",
+          "claim": "Asked directly, mothers named eight reentry domains themselves, spanning health, housing, money, work, education, children and support.",
+          "intervention": "Build the service plan from the woman's own ranked list, then map it to available levers.",
+          "tier": "B",
+          "state": "VERIFIED",
+          "ground": {
+            "quote": "Eight domains of community reentry emerged through analysis: behavioral health services, education, employment, housing, material resources, medical care, relationships with children, and social support.",
+            "source_id": "S-PMC-MOTHERS-VOICE"
+          },
+          "denominator": "137 mothers identified; 95 (69%) could not be reached; 15 completed interviews; average age 28",
+          "universe": "mothers released from one U.S. jail, 2018 qualitative study",
+          "quorum": "single qualitative study, but with a published recruitment funnel",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the 69% unreachable rate is reported as the study's own finding and is the reason this edge is about design rather than about any single domain"
+        },
+        {
+          "edge_id": "E-VOICE-02",
+          "nodes": ["NEED:N-VOICE", "POP:JUSTICE", "LEVER:GENDER-RESPONSIVE-STANDARD"],
+          "claim_type": "policy",
+          "claim": "A gender-responsive risk and needs instrument exists, is validated for women, and is endorsed against the Bangkok Rules.",
+          "intervention": "Adopt the standard rather than localising a male-normed tool.",
+          "tier": "C",
+          "state": "LEAD",
+          "ground": {
+            "quote": "The Women's Risk Need Assessment (WRNA) was one of the first gender-responsive actuarial risk assessments available for justice agencies (Van Voorhis et al., 2010) [...] and is endorsed by the United Nations Office on Drugs and Crime to adhere to the Bangkok Rules",
+            "source_id": "S-HJ-GRT"
+          },
+          "denominator": "n/a - policy review",
+          "universe": "international corrections policy, review 2025",
+          "quorum": "single review; no independent source retrieved here names WRNA, and the national survey that counts gender-responsive assessment use in state DOCs counts the tools without naming which ones",
+          "blind": false,
+          "trunc": false,
+          "provenance": "retrieved 2026-11-16; the review's own bracketed citation is preserved in the quote. Previously VERIFIED on a corroboration that the cited line does not support, so it is recorded as LEAD: the instrument and its UNODC endorsement are real, and the tier-C review is the only source here that says so."
+        }
+      ]
+    }
+  ],
+  "answer": {
+    "question": "What do females need?",
+    "one_line": "Safety first, then a relationship that survives the transition; care that treats her as a mother and a body with its own clinical trajectory; product, money, childcare and a bed as clinical necessities; and a say in the design.",
+    "ranked": [
+      {"rank": 1, "need": "N-SAFETY", "why": "Everything else is retraumatising if this is absent; PTSD prevalence is 21% vs 6% among incarcerated men."},
+      {"rank": 2, "need": "N-COOCCURRING", "why": "Two thirds carry a diagnosis; treating one half and waiting on the other loses her."},
+      {"rank": 3, "need": "N-MOTHERHOOD", "why": "Children are the reason women cite for engaging and the reason they are refused a bed that takes them."},
+      {"rank": 4, "need": "N-HEALTH", "why": "Earlier onset of serious harm means the same threshold is not the same care."},
+      {"rank": 5, "need": "N-MENSTRUAL", "why": "A material need with a measurable failure: 50% changing every 30 minutes on free pads."},
+      {"rank": 6, "need": "N-ECONOMIC", "why": "Transport and childcare, not motivation, are the named employment barriers."},
+      {"rank": 7, "need": "N-HOUSING", "why": "Policy exclusion, not affordability alone, closes the door."},
+      {"rank": 8, "need": "N-VOICE", "why": "Women can name the eight domains themselves; services that ask still reach only 15 of 137."}
+    ],
+    "ordering_note": "The rank is an argument from the evidence's own logic (safety underlies the rest), NOT a measured effect ranking. No study here compared these eight against each other, and none should be read as saying need 5 is less urgent than need 2 for a particular woman."
+  }
+}

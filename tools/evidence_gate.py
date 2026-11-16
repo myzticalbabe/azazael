@@ -257,11 +257,147 @@ def _module_public_names(root: Path) -> dict[str, set[str]]:
     return out
 
 
+DISPATCH_READERS = {"get", "pop", "values", "items", "keys", "__getitem__"}
+
+
+def _container_refs(value: ast.AST, known: dict[str, tuple[int, list[str]]]) -> list[str]:
+    """Function objects a registry expression names, one level of aliasing deep.
+
+    A registry is extended by concatenation as often as it is written as a
+    literal (`CRIMINAL_GATES = CIVIL_GATES + (gate_8, gate_9)`), so an
+    expression that is not a bare literal still dispatches what it names -- and
+    a name that is already a container is expanded to what IT names, which is
+    how gate_8 and gate_9 reach the dispatcher through CIVIL_GATES.
+    """
+    if isinstance(value, ast.Dict):
+        elems: list[ast.AST] = [e for e in list(value.keys) + list(value.values) if e is not None]
+    elif isinstance(value, (ast.List, ast.Tuple, ast.Set)):
+        elems = list(value.elts)
+    elif isinstance(value, ast.BinOp):
+        elems = [value.left, value.right]
+    else:
+        elems = []
+    refs: list[str] = []
+    for elt in elems:
+        if isinstance(elt, ast.Name):
+            if elt.id in known:
+                refs.extend(known[elt.id][1])
+            else:
+                refs.append(elt.id)
+        elif isinstance(elt, ast.Attribute):
+            refs.append(elt.attr)
+        elif isinstance(elt, (ast.Dict, ast.List, ast.Tuple, ast.Set, ast.BinOp)):
+            refs.extend(_container_refs(elt, known))
+    return refs
+
+
+def _returned_containers(tree: ast.AST, containers: set[str]) -> dict[str, set[str]]:
+    """{function name: module-level containers its body returns}.
+
+    A registry is often handed to a caller instead of being subscripted where it
+    is written: `applicable_gates(forum)` returns CIVIL_GATES and the caller
+    iterates the result, so the gate call is `gate(record)` and no call site
+    names the gate. That is the same dispatch as `GATES.get(name)` one hop away,
+    and reading it as dead reported all ten FRE gates in
+    tools/esquire_admissibility.py as unreachable on 2026-11-14.
+
+    Credit still needs a reader: the caller only counts when a `for` or a
+    comprehension in THIS file iterates a call to the returning function. A
+    container returned to nowhere earns nothing.
+    """
+    out: dict[str, set[str]] = {}
+    for node in tree.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for sub in ast.walk(node):
+            if isinstance(sub, ast.Return) and isinstance(sub.value, ast.Name):
+                if sub.value.id in containers:
+                    out.setdefault(node.name, set()).add(sub.value.id)
+    return out
+
+
+def _registry_dispatch(root: Path) -> dict[str, list[str]]:
+    """Control names reachable through a dispatched registry (tier T2).
+
+    A call graph cannot see `GATES = {"x": gate_x}` dispatched by
+    `GATES.get(name)`: the call is `gate(...)`, where `gate` came out of a dict.
+    That is real reachability, and calling it dead pushed a reader toward
+    deleting a live gate.
+
+    Crediting it is not a bypass because three conditions must hold at once:
+
+      * the reference is a bare `Name` or `mod.attr` (a function object), not a
+        string in prose -- a docstring or comment naming the gate satisfies
+        nothing here;
+      * it sits in a module-level container assignment (a registry), not an
+        incidental inline literal;
+      * the same file *reads that container for dispatch* -- a subscript, a
+        `.get/.pop/.values/.items/.keys` call on it, or a function in this file
+        that returns it while the file iterates a call to that function. A
+        registry nothing reads is not a dispatcher, so it does not grant credit.
+
+    Registered names are returned in their own bucket and counted separately in
+    the check's `measured` line, so the credit is visible rather than silent.
+    """
+    found: dict[str, list[str]] = {}
+    for path in _iter_py(root):
+        rel = _rel(path, root)
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError as exc:
+            note_failure("tools/evidence_gate.py", exc)
+            continue
+        containers: dict[str, tuple[int, list[str]]] = {}
+        for node in tree.body:
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [t.id for t in targets if isinstance(t, ast.Name)]
+            value = node.value
+            if not names:
+                continue
+            if not isinstance(value, (ast.Dict, ast.List, ast.Tuple, ast.Set, ast.BinOp)):
+                continue
+            if isinstance(value, ast.BinOp) and not isinstance(value.op, ast.Add):
+                continue
+            refs = _container_refs(value, containers)
+            for cname in names:
+                containers[cname] = (node.lineno, refs)
+        if not containers:
+            continue
+        dispatched: set[str] = set()
+        returned = _returned_containers(tree, set(containers))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
+                dispatched.add(node.value.id)
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                if node.func.attr in DISPATCH_READERS and isinstance(node.func.value, ast.Name):
+                    dispatched.add(node.func.value.id)
+            elif isinstance(node, ast.comprehension) and isinstance(node.iter, ast.Call):
+                fn = node.iter.func
+                if (isinstance(fn, ast.Attribute) and fn.attr in DISPATCH_READERS
+                        and isinstance(fn.value, ast.Name)):
+                    dispatched.add(fn.value.id)
+                elif isinstance(fn, ast.Name) and fn.id in returned:
+                    dispatched |= returned[fn.id]
+            elif isinstance(node, ast.For) and isinstance(node.iter, ast.Call):
+                fn = node.iter.func
+                if isinstance(fn, ast.Name) and fn.id in returned:
+                    dispatched |= returned[fn.id]
+        for cname in sorted(dispatched & set(containers)):
+            line, refs = containers[cname]
+            for ref in refs:
+                found.setdefault(ref, []).append(f"{rel}:{line} registry {cname}")
+    return found
+
+
 def check_dead_controls(root: Path, baseline: dict) -> dict:
     definitions, usage = _scan_functions_with_quals(root)
     public = _module_public_names(root)
+    dispatch = _registry_dispatch(root)
     dead: list[str] = []
     exported: list[str] = []
+    registered: list[str] = []
     for (_mod, qual), info in sorted(definitions.items()):
         name = qual.rsplit(".", 1)[-1]
         if not (name.startswith(CONTROL_PREFIXES) or name in CONTROL_NAMES):
@@ -274,7 +410,9 @@ def check_dead_controls(root: Path, baseline: dict) -> dict:
         if hits:
             continue
         row = f"{info['file']}:{info['line']} {qual}"
-        if name in public.get(info["file"], set()):
+        if dispatch.get(name):
+            registered.append(f"{row} <- {dispatch[name][0]}")
+        elif name in public.get(info["file"], set()):
             exported.append(row)
         else:
             dead.append(row)
@@ -284,13 +422,17 @@ def check_dead_controls(root: Path, baseline: dict) -> dict:
         "id": "dead_control",
         "status": "pass" if not new else "fail",
         "measured": (f"{len(dead)} unreachable control(s) ({len(new)} new), "
-                     f"{len(exported)} exported-but-uncalled"),
+                     f"{len(exported)} exported-but-uncalled, "
+                     f"{len(registered)} dispatch-registered (T2)"),
         "detail": ("control-named function with no module-linked caller outside "
                    "tests; exported names are reported separately because their "
-                   "caller is outside this repo"),
+                   "caller is outside this repo; dispatch-registered names sit in "
+                   "a module-level registry this file actually reads, so the "
+                   "caller is a dict lookup rather than a call site"),
         "offenders": new,
         "known": sorted(set(dead) & known),
         "exported_uncalled": sorted(exported),
+        "dispatch_registered": sorted(registered),
     }
 
 
@@ -359,6 +501,14 @@ def check_wired_claims(root: Path, baseline: dict) -> dict:
         wired += 1
         mod, _, qual = key.partition(":")
         name = qual.rsplit(".", 1)[-1]
+        # This check is deliberately STRICTER than the dead-control check: a
+        # call inside the defining file is reachability, not wiring, and `wired`
+        # in the mesh ledger means "a caller in another module exists".
+        # tests/test_evidence_gate.py pins both directions
+        # (test_a_wired_rows_own_definition_does_not_wire_it), and the two
+        # private helpers this flags are correctly flagged: _policy_advice is
+        # reached only by its own class, and servemesh's verify is reached by
+        # nothing at all.
         linked = False
         for rel, info in usage.items():
             if rel.startswith("tests/") or name not in info["names"]:
@@ -375,7 +525,9 @@ def check_wired_claims(root: Path, baseline: dict) -> dict:
         "status": "pass" if not new else "fail",
         "measured": f"{wired - len(unverified)}/{wired} wired rows module-linked, "
                     f"{len(unverified)} token-only ({len(new)} new)",
-        "detail": "a `wired` row must be reached from a file that imports its module",
+        "detail": ("a `wired` row must be reached from a file that imports its "
+                   "module; a call inside the defining file is reachability, "
+                   "not wiring"),
         "offenders": new,
         "known": sorted(set(unverified) & known),
     }

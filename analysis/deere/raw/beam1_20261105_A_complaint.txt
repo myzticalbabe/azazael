@@ -1,0 +1,990 @@
+1
+UNITED STATES DISTRICT COURT 
+FOR THE NORTHERN DISTRICT OF ILLINOIS 
+WESTERN DIVISION 
+FEDERAL TRADE COMMISSION, 
+STATE OF ILLINOIS, 
+and  
+STATE OF MINNESOTA, 
+P l a i n t i f f s ,  
+v. 
+DEERE & COMPANY, 
+Defendant. 
+Case No.  3:25-cv-50017 
+COMPLAINT 
+[REDACTED VERSION OF DOCUMENT 
+SOUGHT TO BE SEALED] 
+1. For decades, Defendant Deere & Company, a manufacturer of larg
+e agricultural
+equipment including tractors and combines, has throttled the ability of farmers and independent 
+repair providers (“IRPs”) to repair Deere equipment, leaving farmers wholly reliant upon 
+Deere’s network of authorized dealers (“Deere dealers”) for many key repairs. Deere’s 
+increasingly sophisticated agricultural equipment requires a software tool to diagnose and repair 
+problems that relate to electronic functions, and only Deere has the information and knowledge 
+to create this essential tool. By making this tool available only to Deere dealers, Deere forces 
+farmers to turn to Deere dealers for critical repairs rather than complete the repairs themselves or 
+choose an IRP that may be cheaper, closer, faster, or more trusted. Deere’s unlawful business 
+practices have inflated farmers’ repair costs and degraded farmers’ ability to obtain timely 
+repairs, which is especially critical in times of planting and harvesting.  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 1 of 37 PageID #:1
+ 2
+2. Plaintiffs Federal Trade Commission (“FTC”), the State of Illinois, and the State 
+of Minnesota petition this Court, pursuant to Section 13(b) of the Federal Trade Commission Act 
+(“FTC Act”), 15 U.S.C. § 53(b), Section 16 of the Clayton Act, 15 U.S.C. § 26, the Illinois 
+Antitrust Act, 740 ILCS 10/3(3), and the Minnesota Antitrust Law of 1971, Minn. Stat. Sections 
+325D.49 to 325D.66, to enter a permanent injunction and other equitable relief against Deere to 
+prevent its unlawful conduct in or affecting commerce in violation of Section 5(a) of the FTC 
+Act, 15 U.S.C. § 45(a), Section 2 of the Sherman Act, 15 U.S.C. § 2, the Illinois Antitrust Act, 
+740 ILCS 10/3(3), and the Minnesota Antitrust Law, Minn. Stat. Sections 325D.49 to 325D.66, 
+and Minnesota Statutes Section 8.31.  
+I. NATURE OF THE CASE 
+3. Deere is the world’s leading manufacturer of agricultural equipment like large 
+tractors and combine harvesters, and Deere enjoys a dominant share of large tractor and combine 
+sales in the United States. Deere distributes its equipment and related parts in the United States 
+through a network of authorized Deere dealers that promote and sell equipment and parts and 
+provide repair services to farmers. Deere appoints dealers to act as its authorized dealers, 
+oversees changes to its dealers’ ownership and business structures, and has contractual rights to 
+. As part of this contractual relationship, Deere dealers are also 
+required to “actively and aggressively promote” Deere parts. 
+4. Durable, reliable, and easily repairable agricultural equipment is critical to 
+American farmers’ ability to profitably produce their crops. Planting, spraying, and harvesting 
+are all weather-dependent and time-sensitive processes. When these activities are interrupted by 
+equipment malfunction, farmers must be able to restore their equipment and resume work 
+quickly. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 2 of 37 PageID #:2
+ 3
+5. Farming is also a seasonal business, with periods of downtime during which 
+farmers can make use of their own labor and know-how to perform maintenance and repair of 
+their agricultural equipment to minimize the risk of equipment malfunction when the equipment 
+is needed most. 
+6. For these and other reasons, many farmers have historically developed and relied 
+on their own ability to repair equipment in the field or on the farm. Farmers have also relied 
+historically on local IRPs, which offer competitive advantages compared to Deere dealers, 
+including lower cost, proximity, speed, and/or reliability. And in the past, those farmers who 
+chose to rely on Deere dealers have benefited from the competition those dealers faced from 
+IRPs and the ability of farmers to self-repair.  
+7. In recent decades, Deere has increasingly computerized its agricultural 
+equipment, with numerous functions being performed, monitored, and/or regulated by 
+computerized components referred to as “electronic control units” or “ECUs.” As a result, repair 
+of Deere equipment is no longer purely mechanical; such repair now commonly requires 
+interacting with onboard equipment software to diagnose a problem and/or to calibrate and 
+reprogram any affected ECUs contained in the equipment or replacement parts. This in turn 
+requires the use of an interactive software tool (“repair tool”) that is able to communicate with 
+the equipment’s onboard systems to perform diagnosis and repair.  
+8. Deere has monopoly power in the market for fully functional repair tools capable 
+of enabling all repairs on Deere agricultural equipment. Only Deere has the requisite information 
+and knowledge to develop a fully functional repair tool for Deere equipment. Deere has 
+developed such a tool, which Deere calls Service ADVISOR™ (“Full-Function Service 
+ADVISOR”) and which Deere makes available only to its authorized dealers. Deere has also 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 3 of 37 PageID #:3
+ 4
+developed an inferior repair tool that is not capable of enabling all repairs on Deere agricultural 
+equipment, which Deere calls Customer Service ADVISOR™ and which is now available to 
+farmers and IRPs. This tool lacks many of the key functions necessary to enable comprehensive 
+repair. 
+9. Deere also fails to  
+, as equipment manufacturers in 
+the automotive and trucking industries do. 
+10. Because Deere makes its fully functional repair tool available only to its dealer 
+network, farmers and IRPs are unable to perform certain essential repairs—and thus unable to 
+competitively constrain Deere dealers in the provision of these and other key repair services. 
+Farmers are forced to turn to Deere dealers for repairs that they would do themselves or take to 
+an IRP but for Deere’s restrictions.  
+11. As a result, Deere has acquired and maintained monopoly power in a relevant 
+market for the provision of repair services that require the use of a fully functional repair tool. 
+Through its limited distribution of the repair tool, Deere controls entry into, and limits output in, 
+the provision of such services. As a consequence, Deere’s dealers are able to maintain a 100% 
+market share and charge supracompetitive prices for restricted repairs, and Deere itself reaps 
+additional profits through parts sales. And the effects of Deere’s conduct extend beyond the 
+market for restricted repairs. Because farmers and IRPs cannot always know, at the time of 
+equipment malfunction, whether repair will ultimately require dealer involvement, and because 
+farmers sometimes prefer to have all repairs performed by one provider in one trip, Deere’s 
+repair restrictions steer additional (non-restricted) repair business away from self-repair and IRPs 
+and into Deere’s dealer network.  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 4 of 37 PageID #:4
+ 5
+12. Deere’s restrictions deprive farmers of the use of their own repair labor, deny 
+them access to their preferred repair service provider, prevent them from more reliably planting, 
+spraying, or harvesting crops on a schedule that would allow them to maximize yield, and force 
+them to spend more on repair and parts. Deere dealers charge more for service than IRPs, with 
+one internal Deere analysis identifying . And 
+unlike farmers and IRPs, Deere dealers also almost always use more expensive Deere-branded 
+parts in their repairs.  
+13. Deere’s restrictions harm farmers and IRPs while enriching Deere and its dealers. 
+As one Deere executive explained:  
+ 
+ 
+ 
+ 
+ 
+ according to Deere’s documents, Deere’s parts business accounted for % 
+of its total operating profits in FY 2016.  
+14. Deere’s practices have generated an outpouring of public concern from farmers 
+and IRPs. Aggrieved farmers have mounted an extensive state lobbying campaign in support of 
+“right-to-repair” legislation across the United States, leading to recent legislation in Colorado. 
+15. Deere has responded to public outcry regarding its restrictive repair practices with 
+its own intensive lobbying against such “right-to-repair” legislation, accompanied by a series of 
+half measures and unfulfilled commitments.  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 5 of 37 PageID #:5
+I 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 6 of 37 PageID #:6
+16. For example, instead of making a fully functional repair tool available to faimers 
+and IRPs, Deere released Customer Service ADVISOR. Deere knew when it released Customer 
+Service ADVISOR that, 
+. One Deere employee candidly explained that 
+17. With great fanfare , Deere entered into a Memorandum of Understanding 
+("MOU") with the American Faim Bmeau Federation regai·ding repairability of agricultural 
+equipmen t. But still, Deere did not make a fully functional repair tool available to fanners or 
+IRPs, claiming that the MOU required only the provision of the degraded Customer Service 
+ADVISOR tool. 
+18. Deere invoked its release of Customer Service ADVISOR and its MOU with the 
+Faim Bmeau to stymie state "right-to-repair" legislation that would othe1wise have required 
+Deere to make fully functional repair tools available to customers and IRPs. Deere viewed "right 
+to repair" 
+- 19. Deere has also raised unfoun ded environmental , safety , and intellectual property 
+concerns as a strategy to publicly defend its repair restrictions and to combat state right-to-repair 
+legislative initiatives. Deere 's continuing invocation of these concerns is pretex tual. For 
+example, Deere employees 
+6 
+ 7
+ 
+ invoke environmental compliance to fight state legislation that would require Deere 
+to make such tools available. As one Deere dealer candidly explained,  
+ A Deere employee similarly observed 
+that  Like 
+Deere does elsewhere in the world, and like original equipment manufacturers do in the 
+automobile and diesel truck industries in the United States, Deere could enable repair by 
+equipment owners and IRPs without undue risk of violating environmental laws, risking operator 
+safety, or compromising its intellectual property rights. 
+20. In light of the unfair and anticompetitive conduct alleged herein, Plaintiffs seek an 
+order from this Court (a) enjoining Deere from engaging in such conduct, (b) ordering Deere to 
+make all repair resources that it makes available to its dealers, including Full-Function Service 
+ADVISOR and any similar future repair tools, available to agricultural equipment owners and 
+IRPs on reasonable and nondiscriminatory terms, and (c) ordering such other equitable relief as 
+the Court may deem appropriate.  
+II. JURISDICTION AND VENUE 
+21. This Court has subject matter jurisdiction over this action pursuant to Section 5(a) 
+of the FTC Act, 15 U.S.C. § 45(a), 28 U.S.C. §§ 1331, 1337(a), and 1345, and 15 U.S.C. § 26, as 
+well as supplemental jurisdiction pursuant to 28 U.S.C. § 1367(a). This Court’s exercise of 
+supplemental jurisdiction over the state law claims will avoid unnecessary duplication and 
+multiplicity of actions and will promote the interests of judicial economy, convenience, and 
+fairness. 
+22. This Court has personal jurisdiction over Deere because Deere has the requisite 
+constitutional contacts with the United States pursuant to 15 U.S.C. § 53(b). This Court also has 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 7 of 37 PageID #:7
+-
+ 8
+personal jurisdiction over Deere because Deere maintains its corporate headquarters in Illinois, 
+does business in Illinois, and has engaged in the illegal conduct alleged herein in Illinois. 
+23. Deere’s general business practices and the unfair methods of competition alleged 
+herein are activities in or affecting “commerce” within the meaning of Section 4 of the FTC Act, 
+15 U.S.C. § 44, and Section 1 of the Clayton Act, 15 U.S.C. § 12. 
+24. Deere is, and at all times relevant herein has been, a corporation, as the term is 
+defined in Section 4 of the FTC Act, 15 U.S.C. § 44.  
+25. Venue in this district is proper under 15 U.S.C. § 22, Section 13(b) of the FTC 
+Act, 15 U.S.C. § 53(b), and 28 U.S.C. §§ 1391(b), (c) and (d). Deere is found, resides, transacts 
+business, and/or has agents in this state and district, and a portion of the affected commerce 
+described herein has been carried out in this state and district. 
+III. THE PARTIES 
+26. Plaintiff Federal Trade Commission (“FTC”) is an independent administrative 
+agency of the United States government established, organized, and existing pursuant to the FTC 
+Act, 15 U.S.C. §§ 41 et seq., with its principal offices in Washington, D.C. The FTC is vested 
+with authority and responsibility for enforcing, inter alia, Section 5 of the FTC Act, 15 U.S.C. 
+§ 45, and is authorized under Section 13(b) of the FTC Act, 15 U.S.C. § 53(b), to initiate court 
+proceedings to enjoin violations of any law the FTC enforces. This case is proper under Section 
+13(b) of the FTC Act, 15 U.S.C. § 53(b), because the FTC has reason to believe that Deere is 
+violating, or is about to violate, Section 5 of the FTC Act, making it appropriate, efficient, and 
+suitable to file this action in federal court to seek the requested relief. 
+27. Plaintiff State of Illinois is a sovereign state. Kwame Raoul is the Attorney 
+General of the State of Illinois, the chief legal officer for the state, and brings this action on 
+behalf of the people of the State of Illinois to protect the state, its general economy, and its 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 8 of 37 PageID #:8
+ 9
+residents from Deere’s unlawful business practices. The Illinois Attorney General has authority 
+under federal and state law to pursue injunctive and other equitable relief to prevent and remedy 
+the harms caused by anticompetitive conduct. The Illinois Attorney General also has authority to 
+seek civil penalties under state law to punish and deter those engaged in unlawful conduct. 
+28. Plaintiff State of Minnesota is a sovereign state. Keith Ellison is the Attorney 
+General of the State of Minnesota, the chief legal officer for the state, and brings this action on 
+behalf of the people of the State of Minnesota to protect the state, its general economy, and its 
+residents from Deere’s unlawful business practices. The Minnesota Attorney General has 
+authority under federal and state law to pursue injunctive and other equitable relief to prevent 
+and remedy the harms caused by anticompetitive conduct. The Minnesota Attorney General also 
+has authority to seek civil penalties under state law to punish and deter those engaged in 
+unlawful conduct. 
+29. Defendant Deere & Company is a manufacturer of agricultural equipment and 
+other machinery and conducts business throughout the United States and worldwide. Deere is 
+headquartered in Moline, Illinois, with its principal place of business at One John Deere Place, 
+Moline, Illinois, 61265, and is organized and existing under the laws of Delaware. Unless 
+otherwise specified, “Deere” refers to Deere & Company and all corporate predecessors, 
+subsidiaries, successors, and affiliates. 
+IV. THE ECOSYSTEM FOR DEERE EQUIPMENT 
+30. Large agricultural equipment, such as tractors and combines, is indispensable to 
+the production of numerous staple crops that are critical to the American food supply, including 
+corn, soybeans, wheat, oats, and barley. Farmers rely on functioning agricultural equipment in 
+order to timely plant, care for, and harvest these crops. As of September 2023, there were at least 
+ pieces of Deere agricultural equipment in the United States. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 9 of 37 PageID #:9
+-
+ 10
+31. At least four types of products and services are relevant to this Complaint: (1) the 
+agricultural equipment itself; (2) electronic repair tools used to diagnose equipment problems 
+and facilitate repair; (3) repair services for the equipment; and (4) parts used in the course of 
+performing repairs. 
+A. Agricultural Equipment 
+32. Deere is the largest manufacturer of agricultural equipment in the United States. 
+Deere organizes its agricultural equipment business into two segments: “Production and 
+Precision Agriculture” (PPA) and “Small Agriculture and Turf.” The PPA segment includes 
+tractors with  (“Large Tractors”) and combine harvesters (“Combines”), 
+among other equipment types. In fiscal year 2023, Deere’s PPA segment generated $26.8 billion 
+in net sales globally and $7.0 billion in operating profit. 
+33. A new Large Tractor or Combine costs hundreds of thousands of dollars. When 
+properly maintained and repaired, a Large Tractor or Combine can be used for 20 years or 
+longer. Deere estimates that the average lifespan of a Combine is  years and considers a 
+machine . 
+34. Today, Deere’s Large Tractors and Combines rely heavily on electronic 
+components. Many functions that were performed through physical or mechanical means on 
+older models are now—on newer models—performed electronically and controlled through 
+ECUs. 
+35. Deere generally does not sell equipment directly to farmers. Rather, Deere 
+distributes its products through a network of authorized dealers, who purchase new equipment 
+from Deere and re-sell the equipment to farmers and other equipment owners. As of March 2023, 
+Deere’s dealer network comprised  dealer organizations w ith  locations in the United 
+States and Canada.  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 10 of 37 PageID #:10
+I 
+■ -
+ 11
+36. At all times relevant to this Complaint, Deere possessed monopoly and market 
+power in the sale of Large Tractors and Combines in the United States. Deere’s monopoly and 
+market power as to Large Tractors and Combines are shown directly through Deere’s ability to 
+raise prices, reduce output, and degrade quality in those markets (including through imposition 
+of the challenged restraints on repairability), and indirectly through Deere’s dominant market 
+shares in those markets, as to which the barriers to entry are substantial. 
+37. Large Tractors have particular characteristics and uses that differentiate them 
+from other types of agricultural equipment, including Combines and smaller tractors. Large 
+Tractors are generally used to pull or push other agricultural machinery, such as seeding, 
+planting, and tillage equipment. Smaller tractors generally lack the power needed to perform, in a 
+comparable amount of time and with comparable quality, the tasks that are performed using 
+Large Tractors. From the perspective of an equipment owner, smaller tractors and other 
+agricultural equipment are not reasonable substitutes for Large Tractors. 
+38. Combines have particular characteristics and uses that differentiate them from 
+other types of agricultural equipment, including tractors. Combines are generally used for the 
+specific purpose of harvesting grain and, as a result, are not used outside of harvest season. From 
+the perspective of an equipment owner, other agricultural equipment is not a reasonable 
+substitute for Combines. 
+39. The relevant geographic market for the sale of Large Tractors and Combines is no 
+broader than the United States. Agricultural equipment is largely regulated on a national basis, 
+including by the EPA. In internal documents, Deere  
+ 
+. Although an equipment owner is not limited to a 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 11 of 37 PageID #:11
+ 12
+local dealer when buying equipment, and equipment purchased in one part of the country may be 
+moved to and used in another part of the country, the costs of transporting large pieces of 
+agricultural equipment limits the area within which equipment owners are willing to purchase 
+equipment.  
+40. For each fiscal year from at least 2012 to 2021, Deere’s share of Large Tractors 
+sold in the United States exceeded %. For eac h fiscal year from at least 2012 to 2021, Deere’s 
+share of Combines sold in the United States ranged between % and %. These shares exceed 
+ 
+41. Deere describes itself as having  in large agricultural equipment in 
+the United States, including Large Tractors and Combines. Deere has maintained an internal goal 
+of  
+. 
+42. Deere’s competitors view Deere  
+. Deere’s competitors, including CNH 
+Industrial and AGCO Corp.,  
+. 
+43. Equipment owners cannot switch from Deere agricultural equipment to other 
+manufacturers’ equipment without incurring significant costs. These costs and barriers to 
+switching can include the cost of acquiring replacement equipment (often hundreds of thousands 
+of dollars per machine), the cost of learning how to operate new equipment, and the cost of 
+losing data generated by existing Deere equipment. Equipment owners switching only some of 
+their equipment from Deere to other manufacturers also incur the costs of making their “mixed 
+fleets” interoperable. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 12 of 37 PageID #:12
+I 
+I 
+-
+ 13
+44. There are substantial barriers to entry into the Large Tractor and Combine 
+markets. Entry is difficult, costly, and time-consuming. Potential entrants face significant capital, 
+technical, logistical, and regulatory barriers. These barriers include developing manufacturing 
+processes and capabilities, obtaining regulatory approvals, developing distribution networks, the 
+lack of an established reputation, and interoperability issues across “mixed” fleets of agricultural 
+equipment produced by different manufacturers. 
+B. Repair Tools 
+45. Because Deere equipment has become increasingly computerized, software tools 
+capable of interacting with the electronic components of the equipment are increasingly 
+necessary to diagnose and repair Deere agricultural equipment. Deere offers two versions of its 
+electronic repair tool: (1) Full-Function Service ADVISOR, a fully functional repair tool that 
+Deere makes available only to Deere dealers, and (2) a degraded Customer Service ADVISOR, 
+which Deere licenses to equipment owners, IRPs, and others. 
+46. Full-Function Service ADVISOR can communicate with agricultural equipment 
+software through a cable or, in some cases, wirelessly. Dealers currently pay Deere  
+ to license Full-Function Service ADVISOR. Service technicians at 
+Deere dealers rely on Full-Function Service ADVISOR for critical repair tasks: to perform 
+diagnostic tests; to identify and clear error codes (known as “diagnostic trouble codes” or 
+“DTCs”) being returned by equipment; to calibrate ECUs; to download from a Deere server and 
+install customized ECU software code (referred to as “payload files”); and to access diagnostic 
+and troubleshooting information on Deere’s Case and Contact Management System (“CCMS”), 
+formerly referred to as Dealer Technical Assistance Center (“DTAC”). 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 13 of 37 PageID #:13
+-
+ 14
+47. CCMS/DTAC contains both a repository of established solutions to commonly 
+experienced equipment problems and a “helpdesk” component whereby problems are submitted 
+to Deere engineers, who attempt to resolve them.  
+48. Installing payload files, performing tests and calibrations, and accessing 
+CCMS/DTAC are critical to the ability of a repair technician to fully diagnose equipment issues 
+and complete repairs on Deere equipment.  
+49. The installation of payload files provided by Deere onto ECUs is sometimes 
+referred to as “reprogramming.” Reprogramming is required for repairs that involve replacement 
+of ECUs, including some corresponding sensors and valves (sometimes referred to as “parts 
+pairing”), or reinstallation of an ECU’s software (sometimes referred to as ECU “flashing”). 
+Full-Function Service ADVISOR’s reprogramming function does not require or enable a dealer 
+technician to modify the software payload received from Deere or access the source code 
+contained therein.  
+50. Deere initially launched Customer Service ADVISOR for agricultural equipment 
+in 2017. Customer Service ADVISOR’s functionalities are limited compared to Full-Function 
+Service ADVISOR’s functionalities. Among other differences, users of Customer Service 
+ADVISOR receive more limited diagnostic information, cannot perform reprogramming of 
+ECUs, and cannot access either CCMS/DTAC solutions or the CCMS/DTAC “helpdesk” 
+feature. As a result, users of Customer Service ADVISOR cannot perform many key repairs that 
+Deere dealers can perform using Full-Function Service ADVISOR. 
+51. Deere makes Customer Service ADVISOR available only in one-year increments. 
+Deere currently charges $3,160 for a one-year subscription to Customer Service ADVISOR for 
+agricultural and turf equipment, and $2,560 for a one-year renewal of an existing Customer 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 14 of 37 PageID #:14
+ 15
+Service ADVISOR subscription. One Deere employee observed that  
+ 
+He continued,  
+ 
+ 
+52. Farmers and IRPs do not consider Customer Service ADVISOR as a reasonable 
+substitute for Full-Function Service ADVISOR due to the degraded functionality of the former.  
+53. Several third-party developers, including Bosch, Cojali, and Texa, also offer 
+repair tools that can interoperate to varying degrees with Deere equipment. These third-party 
+developers cannot develop the capabilities to read and clear all of the diagnostic trouble codes on 
+Deere equipment, to reprogram ECUs on Deere equipment, or to access either CCMS/DTAC 
+solutions or the CCMS/DTAC “helpdesk” feature. Deere does not view these third-party repair 
+tools  
+. 
+54. Farmers and IRPs do not consider third-party repair tools as reasonable substitutes 
+for Full-Function Service ADVISOR due to their limited functionality.  
+55. At all times relevant to this Complaint, Deere possessed monopoly and market 
+power with respect to fully functional repair tools capable of enabling all repairs for Deere Large 
+Tractors and Combines (“Fully Functional Repair Tools”) in the United States. 
+56. Full-Function Service ADVISOR is the only Fully Functional Repair Tool that is 
+currently available in the United States. Only Deere has the requisite information and knowledge 
+to develop a fully functional repair tool for Deere equipment. Other makers of repair tools for 
+agricultural equipment are unable to make a fully functional repair tool capable of repairing 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 15 of 37 PageID #:15
+-
+ 16
+Deere equipment without affirmative assistance from Deere,  
+. 
+57. Full-Function Service ADVISOR has particular uses and characteristics that 
+differentiate it from other electronic repair tools for Deere equipment, including Customer 
+Service ADVISOR. Other electronic repair tools cannot be used to reprogram ECUs, complete 
+certain tests and repairs, or access CCMS/DTAC. Other electronic repair tools thus cannot 
+complete a significant number of repairs. 
+58. When setting prices for repair tools, Deere does not consider the potential impact 
+of those prices on competition in markets for Large Tractors and Combines. 
+59. The relevant geographic market for Fully Functional Repair Tools is at least as 
+broad as the United States. Deere’s License Agreement for Full-Function Service ADVISOR 
+asserts that  
+. Internal Deere documents indicate that 
+Deere’s decision making with respect to the availability of Full-Function Service ADVISOR  
+. 
+60. Deere is the only supplier of Full-Function Service ADVISOR. Deere thus holds a 
+100% share of the market for Fully Functional Repair Tools. 
+61. Competition in the markets for Large Tractors and Combines does not constrain 
+Deere’s harmful behavior in the market for Fully Functional Repair Tools, including because 
+Deere possesses market and monopoly power in the markets for Large Tractors and Combines, 
+because equipment owners face significant switching costs, and because, as described further 
+below, customers have only limited ability to conduct lifecycle pricing.  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 16 of 37 PageID #:16
+■ 
+ 17
+C. Repair Services 
+62. Repair services are typically performed by Deere dealers, by equipment owners 
+themselves (known as “DIY” or “self-repair”), or by IRPs.  
+63. Deere dealers perform repair services “in shop” at a dealership location or “in the 
+field.” As of 2024, hourly rates for service provided by a Deere dealer generally range between 
+$130 to $200 per hour, with dealers’ field rates generally higher than shop rates. 
+64. When work is performed in shop at a Deere dealer, an equipment owner must 
+spend the time and fuel to transport the equipment to and from the dealership location. When 
+work is performed by a Deere dealer in the field, the dealer generally charges for technician time 
+spent traveling to and from the field location and may also charge a per-mile travel fee. Given 
+these costs, the vast majority of equipment repaired by a Deere dealer organization comes from 
+the local geographic area surrounding the dealer organization’s locations—generally within a 
+distance of 30 to 60 miles. 
+65. Equipment owners engaged in self-repair also perform service labor on Deere 
+equipment. Some farms have in-house service capabilities, and equipment owners gain the 
+expertise to perform repair services through myriad means, including formal or informal training, 
+prior experience as a service technician at Deere dealers, and other prior technical experience. As 
+an internal Deere analysis explains,  
+ 
+66. Finally, IRPs perform service labor on Deere equipment. Many IRPs are former 
+Deere dealer technicians, and others come from other technical backgrounds. Although IRP labor 
+rates vary, they are almost always substantially lower than Deere dealers’ rates. A Deere internal 
+analysis identified  
+. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 17 of 37 PageID #:17
+ 18
+67. Not all repairs are created equal, and repairs can range from something as simple 
+as replacing a battery or filter, to replacing a blade or a sensor, to replacing a transmission or 
+rebuilding an engine. Different repairs require different inputs and incur different total costs. 
+Large Tractors and Combines are the most expensive equipment to repair, and an internal Deere 
+analysis acknowledges that  
+. 
+68. Critically, certain repairs, including those involving reprogramming or engine re-
+calibration, require the use of a Fully Functional Repair Tool. Provision of these “restricted 
+repairs” for Deere Large Tractors and Combines is a relevant service market in which to assess 
+Deere’s conduct. Restricted repair services include a broad cluster of repair services for which 
+competitive conditions are substantially similar. In particular, each type of restricted repair 
+service involves an equipment issue that can be diagnosed and repaired only with a Fully 
+Functional Repair Tool, and thus currently only by Deere dealers. Repair services that do not 
+require a Fully Functional Repair Tool are not included in the relevant service market. 
+69. At all times relevant to this Complaint, Deere possessed monopoly and market 
+power with respect to the market for restricted repairs because Deere held the power to exclude 
+competition. By choosing whom to empower with a Fully Functional Repair Tool—only Deere 
+dealers—Deere has excluded other providers of repair services from providing restricted repairs. 
+As a result of Deere’s exercise of monopoly power, Deere dealers collectively have a 100% 
+share of restricted repairs. 
+70. Relevant geographic markets for assessing the effects of Deere’s exclusionary 
+conduct on the sale of repair services include the United States and potentially regional or local 
+submarkets within the United States. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 18 of 37 PageID #:18
+-
+ 19
+71. Competition in the markets for Large Tractors and Combines does not constrain 
+Deere’s harmful behavior in the market for restricted repair services, including because Deere 
+possesses market and monopoly power in the markets for Large Tractors and Combines, because 
+equipment owners face significant switching costs, and because customers have only limited 
+ability to conduct lifecycle pricing.  
+72. Deere’s customers cannot calculate lifecycle pricing—that is, fully determine in 
+advance the total cost of ownership over the life of the equipment, which includes the costs of 
+repairs and parts over time—and only some customers make the attempt. Deere does not 
+consistently make the lifecycle pricing information that it has available to customers. Moreover, 
+repairs do not arise consistently or predictably, and the need for repairs (and the extent and cost 
+of repairs needed, including whether a dealer will need to be involved) can vary based on factors, 
+such as weather and field conditions, that cannot be estimated with certainty over the lifespan of 
+a piece of agricultural equipment.  
+73. Deere has asserted that even it cannot easily identify the universe of equipment 
+issues (and corresponding DTCs) requiring Full-Function Service ADVISOR, and thus dealer 
+involvement, to resolve. A Deere witness stated that Deere “does not maintain in the ordinary 
+course of business a dictionary or reference guide for whether each DTC can be resolved by the 
+customer without intervention by a John Deere authorized dealer.” She further asserted that 
+defining the universe of DTCs requiring dealer involvement would require “a multi-departmental 
+team to manually analyze the DTCs,” including, for each equipment model, sixteen hours of 
+effort from “[i]nfrastructure or enterprise engineers [with] expertise in enterprise diagnostic 
+strategy and tools.” Equipment owners are even less able to perform this analysis. An 
+examination of DTCs  shows that, while some DTCs are 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 19 of 37 PageID #:19
+ 20
+accompanied by a message telling the equipment owner to contact a Deere dealer, this message 
+accompanies only  
+.  
+74. As a result, equipment owners faced with a repair face uncertainty as to whether 
+they or an IRP can complete the necessary repairs. An equipment owner may seek an IRP’s 
+assistance or attempt self-repair, only to later discover that the repair can be completed only by a 
+Deere dealer. Customers’ ability to lifecycle price is further degraded by these difficulties in 
+identifying whether a repair will require Deere dealer intervention.  
+D. Repair Parts 
+75. Deere sells several lines of repair parts for agricultural equipment in the United 
+States. These include “genuine” or Deere “OE” parts, which are manufactured to the same 
+specifications as parts used in new equipment, remanufactured or “Reman” parts, which are 
+complex components that have been refurbished, and “all-makes” parts that have been 
+reengineered and are built to different specifications, which are marketed by Deere primarily 
+under the A&I brand. 
+76. Deere offers approximately  different  OE parts for sale in the United 
+States. Deere OE parts account for approximately % of Deere’ s agricultural equipment parts 
+sales in the United States. 
+77. In fiscal year 2023, Deere sold  in parts in Deere’s geographic Region 
+4 (consisting of the United States, Canada, Australia, and New Zealand). This volume 
+corresponds to % to % of all parts sold for Deere agricultural equipment in that region that 
+fiscal year. 
+78. The remaining % to % is comprised of  non-Deere or “generic” parts used on 
+Deere agricultural equipment, which are often referred to as “aftermarket” or “all-makes” parts. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 20 of 37 PageID #:20
+-
+- I 
+-
+I I 
+I I 
+ 21
+Deere OE parts are generally priced at a premium to the corresponding generic parts. Generic 
+parts are typically % to % less expensive than their Deere OE counterparts. Generic parts 
+sellers may use the same manufacturer as Deere, and  
+. 
+79. Deere distributes its OE parts only through its authorized dealers, who resell them 
+to customers, either in the course of providing repair services or in an “over-the-counter” retail 
+transaction. Deere emphasizes , 
+identifying to dealers  and explaining that  
+ Indeed, both Deere and Deere dealers  
+. 
+80. Certain state laws prohibit Deere from requiring that Deere dealers purchase parts 
+exclusively from Deere. The dealership agreement between Deere and its dealers, however, does 
+require Deere dealers to “actively and aggressively promote the sale of Parts and Service” and 
+“maintain . . . inventories of Parts”  
+. Moreover, Deere has the right to  
+ 
+. 
+81. Deere dealers source the vast majority of parts from Deere. According to surveys 
+and analyses conducted by Deere, dealer  as to parts (also referred to as parts “capture”) 
+is approximately %.  
+, and Deere’s parts capture is significantly higher when its dealers perform repairs 
+compared to other repair channels. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 21 of 37 PageID #:21
+I I 
+--
+I 
+ 22
+82. Deere dealers’ almost exclusive use of Deere OE parts when performing repairs 
+on Deere equipment stands in sharp contrast to Deere’s overall % to % share of parts for 
+agricultural equipment and in even sharper contrast to equipment owners’ and IRPs’ usage of 
+Deere parts, which is significantly lower. By one estimate, equipment owners engaging in self-
+repair of Deere equipment use %  Deere OE parts and IRPs repairing Deere 
+equipment use % Deere OE parts. 
+83. Deere reaps massive profits from its parts business.  
+ 
+ 
+ 
+84. Deere dealers also reap massive profits from reselling parts for Deere agricultural 
+equipment. On average, each Deere dealer sells  in Deere pa rts per year, earning 
+gross margins of  and operating margins of . Deere 
+dealers describe reselling Deere OE parts as a highly lucrative and reliable line of business.  
+V. DEERE IMPOSES UNLAWFUL RESTRICTIONS ON REPAIRS, HARMING 
+COMPETITION FOR REPAIR SERVICES AND INCREASING COSTS TO 
+EQUIPMENT OWNERS 
+A. Deere Computerizes Its Agricultural Equipment, But Does Not Make a 
+Repair Tool Available to Equipment Owners or IRPs 
+85. Starting in , Deere began installing ECUs (sometimes called 
+“controllers”) on its Large Tractors and Combines. ECUs are akin to small computers that 
+monitor and control particular functions of agricultural equipment. Today, a Large Tractor or 
+Combine can have upwards of 20 ECUs that monitor and control various functions. As of 
+September 2023, there are more than  pieces of Deere agricultural equipment in the 
+United States and  ECUs on that equipment. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 22 of 37 PageID #:22
+I I 
+--
+- -
+--
+ 23
+86. As Large Tractors and Combines became more computerized during the 21st 
+century, farmers began noticing problems with the repairability of this new equipment. Whereas 
+farmers historically could complete repairs through mechanical means, the digitization of farm 
+equipment necessitated software tools to repair issues related to ECUs. 
+87. In or around , Deere developed Full-Function Service ADVISOR as one such 
+tool for Deere dealers to use to diagnose and repair issues with or observable through agricultural 
+equipment software. Deere’s Full-Function Service ADVISOR has become a critical input for 
+repair technicians providing repair services on Deere Large Tractors and Combines. Deere has 
+continuously developed, maintained, and updated Full-Function Service ADVISOR, and has 
+made Full-Function Service ADVISOR available as a resource for its dealers between  and 
+the present.  
+88. Despite having the technology developed and available, at no time has Deere 
+made Full-Function Service ADVISOR or any other fully functional repair tool for Deere 
+agricultural equipment generally available to equipment owners or IRPs in the United States.  
+89. As a result, repairs related to ECUs became the exclusive domain of Deere 
+dealers. This includes repairs equivalent to those that farmers historically completed themselves, 
+such as replacing mechanical parts on the machines.  
+90. The inability of consumers and independent repair shops to complete repairs 
+related to ECUs has deprived Deere equipment owners of their historical ability to select a repair 
+solution based upon cost, timeliness, and quality. Instead, Deere equipment owners are 
+compelled to seek Deere dealer intervention to complete these repairs, regardless of their 
+preference or of the differences in cost, timeliness, or quality. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 23 of 37 PageID #:23
+-
+-
+ 24
+B. Deere Identifies Parts as a Business Opportunity and Seeks to  
+ Using Its Dealer Network in Order to Increase Parts Sales 
+91. During the 2010s,  
+ 
+ 
+92. Deere had long recognized the importance of its parts sales to the company’s 
+profitability. But the parts landscape was evolving, with the ascendance of new generic parts 
+suppliers and distribution channels threatening Deere’s OE parts share.  
+ 
+ 
+ 
+93. Deere commenced  
+ 
+ 
+ 
+94. A key pillar of  
+ 
+ 
+. Deere’s internal documents refer to this strategic objective as  
+ 
+ 
+ As one Deere executive explained,  
+  
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 24 of 37 PageID #:24
+-
+-
+-
+-
+ 25
+95. By contrast, an equipment owner or IRP performing a repair is more likely to use 
+non-Deere generic parts. The same Deere executive observed,  
+ A consultant supporting 
+Deere  (and who later became a Deere executive) 
+observed that  
+ 
+  
+96. Thus, Deere seeks to steer service business away from equipment owners and 
+IRPs and towards its dealer network, so as to generate increased parts revenue and profit. As the 
+consultant noted,  
+97.  translates 
+into more profits for Deere and its dealers. By one estimate, increasing Deere dealers’ service 
+capture by just % to % increases profits by $  to $  
+. 
+98. One significant way in which Deere  
+ is by withholding from equipment owners and IRPs Deere’s Full-Function Customer 
+Service ADVISOR repair tool and making available only the degraded Customer Service 
+ADVISOR tool. 
+C. Deere Continues to Unlawfully Withhold a Fully Functional Repair Tool 
+from Equipment Owners and IRPs, While Making Only Partial Solutions 
+Available in the United States 
+99. At various times, Deere has made the less capable Customer Service ADVISOR 
+available to equipment owners and IRPs. Despite its clear inferiority, Deere and its dealers have 
+been reluctant to make even this degraded tool available to equipment owners and IRPs due to 
+concerns that enabling repair would disadvantage Deere’s and its dealers’ businesses. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 25 of 37 PageID #:25
+I I -
+-
+ 26
+100. , Deere made an early version of Customer Service ADVISOR 
+available for construction and forestry equipment, but not for its agricultural equipment. 
+According to Deere documents, Deere withheld Customer Service ADVISOR for agricultural 
+equipment 
+ 
+  
+101. It was not until August 2017 that Deere made Customer Service ADVISOR for 
+agricultural equipment available to equipment owners and IRPs via Deere’s dealer network. 
+After  
+ 
+, Deere in May 2022 made Customer Service ADVISOR available to agricultural equipment 
+owners and IRPs directly via Deere’s website. 
+102. Deere made the less-than-fully functional Customer Service ADVISOR available 
+to agricultural equipment owners and IRPs in an effort to placate so-called “right-to-repair” 
+advocates and thereby avoid legislative or regulatory intervention without relinquishing the 
+commercial advantage that exclusive access to Full-Function Service ADVISOR confers on 
+Deere and its dealer network in parts and repair aftermarkets. Deere viewed such legislative or 
+regulatory intervention as a significant threat because  
+ 
+103. In 2018, the Association of Equipment Manufacturers (“AEM”), a trade 
+association of which Deere is a member, issued a statement of principles regarding right to repair 
+(“2018 Statement”). Despite the 2018 Statement, in which AEM committed on behalf of its 
+members “to provide end users with the information and tools needed to maintain, diagnose, and 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 26 of 37 PageID #:26
+• 
+ 27
+repair their equipment,” Deere still does not make Full-Function Service ADVISOR available to 
+agricultural equipment owners or IRPs.  
+104. In 2023, Deere entered into a Memorandum of Understanding with the American 
+Farm Bureau Federation regarding access to repair tools (“2023 MOU”). Despite the 2023 MOU, 
+in which Deere committed to “assure the timely availability, on Fair and Reasonable terms, of 
+Tools, Specialty Tools, Software and Documentation” originating from Deere, Deere still does 
+not make Full-Function Service ADVISOR available to agricultural equipment owners or IRPs. 
+105. In 2023, Colorado enacted legislation requiring that agricultural equipment 
+manufacturers make embedded software and repair tools available to equipment owners and 
+IRPs, among other obligations. See Colo. Rev. Stat. § 6-1-1503(1). Despite this enacted 
+legislation, Deere has not changed its repair offerings in Colorado: Deere does not make Full-
+Function Service ADVISOR available to agricultural equipment owners or IRPs in Colorado, 
+and the repair tool it does offer in Colorado—Customer Service ADVISOR—is not different 
+from that offered in other states. 
+106. The version of Customer Service ADVISOR that Deere makes available to 
+agricultural equipment owners and IRPs in the United States today still lacks essential functions 
+necessary for repair, including reprogramming, the ability to conduct certain tests and 
+calibrations, and the ability to access either CCMS/DTAC solutions or the CCMS/DTAC 
+“helpdesk” feature. As one Deere employee observed, even with degraded functionality, 
+Customer Service ADVISOR is  
+D. Deere’s Repair Restrictions Benefit Its Dealers and Its Parts Business While 
+Harming IRPs and Equipment Owners 
+107. Because Deere withholds Full-Function Service ADVISOR from equipment 
+owners and IRPs and removes critical features from Customer Service ADVISOR, certain 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 27 of 37 PageID #:27
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 28 of 37 PageID #:28
+repairs can be perfo1med only by Deere dealers ("restricted repairs"). Restricted repairs include 
+eve1y repair that requires reprogramming of any ECU, ce1iain tests and calibrations, and any 
+repairs for equipment issues that require access to CCMS/DTAC solutions or the CCMS/DTAC 
+helpdesk function to troubleshoot or diagnose. Restricted repairs are significant in volume . For 
+example, in the 12 months ending June 2023, _ reprogramming events were perfonned 
+on Deere agricultural equipment globally. 
+108. Deere's withholding of Full-Function Service ADVISOR from equipment owners 
+and IRPs haim s competition in the mai·ket for restricted repair services. Deere dealers view IRPs 
+and self-repair as significant competitive threats, and as threats that would increase substantially 
+with the removal of Deere's repair restrictions. One dealer 
+109. Because Deere dealers ai·e the only providers of repair services that have access to 
+Full-Function Service ADVISOR and thus can perfonn restricted repairs, Deere dealers gain a 
+competitive advantage over other providers of repair services. Equipment owners cannot repair 
+their equipment or take their equipment to an IRP when a restricted repair needs to be perfo1med. 
+Equipment owners and IRPs themselves are thus denied the ability to compete for restricted 
+repairs, and Deere dealers perfo1m a greater shai·e of repairs on Deere equipment than they 
+would absent Deere 's repair restrictions. 
+110. This steering effect is compounded by unce1iainty- and Deere's lack of 
+transparency- as to whether a given equipment issue will require a restricted repair. As 
+described above, when equipment owners encounter an issue and are prompted with a DTC code, 
+28 
+ 29
+they often do not know with certainty (and the DTC code does not indicate) whether, for 
+example, repairing the machine will require reprogramming, performing restricted tests or 
+calibrations, or accessing CCMS/DTAC. Some equipment owners therefore bring their 
+equipment to Deere dealers for repairs that do not actually require dealer involvement. Full-
+Function Service ADVISOR thus confers an incremental competitive advantage on Deere 
+dealers (and Deere) as to repair services and parts beyond those needed for restricted repairs. 
+111. This steering effect is also compounded by the fact that multiple repairs are 
+commonly performed in a single visit, and equipment owners value the efficiency of one-stop 
+shopping for repairs. Thus, if any restricted repair is (or may be) required for a piece of 
+equipment, Full-Function Service ADVISOR confers an incremental competitive advantage on 
+the dealer (and Deere) as to all repair services and parts needed for that equipment. 
+112. In addition to being disadvantaged in competing to perform repair services on 
+Deere agricultural equipment, equipment owners also incur additional service costs. Instead of 
+being free to choose to rely on their own capabilities or those of an IRP to complete repairs in the 
+most economical and expeditious manner, equipment owners must pay Deere dealers’ 
+substantially higher hourly labor rates, and often are unable to obtain timely dealer service. 
+113. The advantage that Deere’s repair restrictions confer on Deere dealers inures to 
+Deere’s benefit as well. Deere sells more parts and earns more profits than it would otherwise. 
+This is because Deere dealers use a greater proportion of Deere parts in repairs than IRPs or 
+equipment owners. 
+114. Deere continues to withhold Full-Function Service ADVISOR from customers 
+and IRPs and to remove key functions from Customer Service ADVISOR. Absent entry of 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 29 of 37 PageID #:29
+ 30
+injunctive relief by the Court, Deere is likely to continue to engage in unfair methods of 
+competition that harm the public interest. 
+E. The Repair Restrictions Imposed by Deere Are Not Reasonably Necessary to 
+Achieve Any Cognizable Procompetitive Benefits 
+115. Deere’s practices as alleged herein are not reasonably necessary to achieve any 
+cognizable procompetitive benefits. The harm from those practices outweighs any 
+procompetitive benefits, and Deere could reasonably achieve any procompetitive objectives 
+through less restrictive means. 
+COUNT I 
+MONOPOLIZATION OF RESTRICTED REPAIR SERVICES MARKET ARISING 
+UNDER SECTION 2 OF THE SHERMAN ACT 
+116. Plaintiffs re-allege and incorporate by reference the allegations in all of the 
+paragraphs above. 
+117. At all times relevant to this Complaint, Deere has had monopoly power in the 
+United States in the market for restricted repairs for Deere Large Tractors and Combines.  
+118. Deere has willfully maintained its monopoly power in the market for restricted 
+repairs for Deere Large Tractors and Combines through its course of anticompetitive and 
+exclusionary conduct, including Deere’s repair restrictions. 
+119. Deere’s conduct has harmed price and non-price competition and the competitive 
+process. 
+120. There is no sufficient procompetitive justification for Deere’s conduct. 
+121. Deere’s anticompetitive course of conduct constitutes unlawful monopolization of 
+the market for restricted repairs of Deere Large Tractors and Combines in violation of Section 2 
+of the Sherman Act, 15 U.S.C. § 2, and an unfair method of competition in violation of Section 
+5(a) of the FTC Act, 15 U.S.C. § 45(a). 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 30 of 37 PageID #:30
+ 31
+COUNT II 
+UNFAIR METHOD OF COMPETITION 
+IN VIOLATION OF SECTION 5 OF THE FTC ACT 
+122. Plaintiff FTC re-alleges and incorporates by reference the allegations in all of the 
+paragraphs above. 
+123. At all times relevant to this Complaint, Deere has had monopoly power in the 
+United States with respect to Fully Functional Repair Tools. 
+124. Deere leverages its monopoly power in the United States with respect to Fully 
+Functional Repair Tools to harm competitive conditions in the market for restricted repairs for 
+Deere Large Tractors and Combines by unfairly disadvantaging equipment owners performing 
+self-repair and IRPs seeking to compete with Deere dealers in the supply of repair services. 
+125. Deere derives an economic benefit from the degradation of competitive conditions 
+in the market for restricted repairs for Deere Large Tractors and Combines because that 
+degradation increases Deere’s parts sales. 
+126. There is no sufficient procompetitive justification for Deere’s conduct. 
+127. Deere’s anticompetitive course of conduct constitutes an unfair method of 
+competition in violation of Section 5(a) of the FTC Act, 15 U.S.C. § 45(a). 
+COUNT III 
+VIOLATIONS OF THE ILLINOIS ANTITRUST ACT 
+128. Plaintiff State of Illinois re-alleges and incorporates by reference the allegations 
+in all of the paragraphs above. 
+129. Deere’s conduct as alleged herein was done with the purpose of maintaining 
+monopoly power over a substantial part of trade or commerce of Illinois in the market for 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 31 of 37 PageID #:31
+ 32
+restricted repairs for Deere Large Tractors and Combines in violation of the Illinois Antitrust 
+Act, 740 ILCS 10/3(3). 
+130. Many hundreds of farmers and IRPs in Illinois have purchased Deere’s products 
+and related services and have paid supracompetitive prices and otherwise been harmed by the 
+Deere’s unlawful conduct. 
+131. Plaintiff State of Illinois, under its antitrust enforcement authority in 740 ILCS 
+10/7, seeks and is entitled to injunctive relief, civil penalties, fees and costs, and any other 
+remedy available for these violations under Sections 7(1), 7(2), and 7(4) of the Illinois Antitrust 
+Act. 740 ILCS 10/1 et seq. 
+COUNT IV 
+VIOLATIONS OF THE MINNESOTA ANTITRUST LAW 
+132. Plaintiff State of Minnesota re-alleges and incorporate by reference the allegations 
+above. 
+133. Deere’s conduct alleged herein was done with the purpose of maintaining 
+monopoly power over repairs for agricultural equipment in violation of Minnesota Statutes 
+section 325D.52. 
+134. Many hundreds of farmers and IRPs in Minnesota have purchased Deere’s 
+products and related services and have paid supracompetitive prices and otherwise been harmed 
+by the Deere’s unlawful conduct. 
+135. Plaintiff State of Minnesota, under its authority in Minnesota Statutes Section 
+8.31 and the Minnesota Antitrust Law, seeks and is entitled to injunctive relief, civil penalties, 
+fees and costs, and any other remedy available for these violations under Minnesota law. 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 32 of 37 PageID #:32
+ 33
+PRAYER FOR RELIEF 
+WHEREFORE, Plaintiffs FTC, the State of Illinois, and the State of Minnesota 
+respectfully request that this Court, as authorized by Section 13(b) of the FTC Act, 15 U.S.C. 
+§ 53(b), Section 16 of the Clayton Act, 15 U.S.C. § 26, Section 7 of the Illinois Antitrust Act, 
+740 ILCS 10/1 et seq., the Minnesota Antitrust Law, Minn. Stat. Sections 325D.49 to 325D.66, 
+and as authorized by its own equitable powers, enter final judgment against Deere, declaring, 
+ordering, and adjudging:  
+1. that Deere’s conduct violates Section 2 of the Sherman Act, 15 U.S.C. § 2; 
+2. that Deere’s conduct violates Section 5(a) of the FTC Act, 15 U.S.C. § 45(a);  
+3. that Deere’s conduct violates the Illinois Antitrust Act, 740 ILCS 10/3(3); 
+4. that Deere’s conduct violates the Minnesota Antitrust Law, Minn. Stat. Sections 
+325D.49 to 325D.66; 
+5. that Deere is permanently enjoined from engaging in its unlawful conduct; 
+6. that Deere is permanently enjoined from engaging in similar and related conduct, 
+or any conduct with the same or similar purpose and effect; and 
+7. that Deere is ordered to make available to owners of Deere Large Tractors and 
+Combines and IRPs on reasonable and nondiscriminatory terms Full-Function Service 
+ADVISOR and any other repair resource that Deere makes available to its dealers, so as to 
+enable agricultural equipment owners and IRPs to perform the full range of repairs that a Deere 
+dealer can perform on Deere Large Tractors and Combines, including without limitation access 
+to reprogramming capabilities, the ability to conduct all tests and calibrations, and the ability to 
+access CCMS/DTAC solutions and the CCMS/DTAC “helpdesk” feature and other similar 
+resources; 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 33 of 37 PageID #:33
+ 34
+8. any preliminary or permanent equitable relief necessary to redress and prevent 
+recurrence of Deere’s violations of the law, as alleged herein; 
+9. any preliminary or permanent equitable relief necessary to restore fair competition 
+and remedy the harm to competition caused by Deere’s violations of the law;  
+10. the issuance of civil penalties as sought by Plaintiff State of Illinois and Plaintiff 
+State of Minnesota; 
+11. the award to Plaintiff State of Illinois and Plaintiff State of Minnesota of the costs 
+of suit, including reasonable attorneys’ fees and costs; and 
+12. any additional relief that the Court finds just and proper. 
+ 
+*  *  * 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 34 of 37 PageID #:34
+ 35
+Dated: January 15, 2025 
+ 
+ 
+Of Counsel: 
+ 
+HENRY LIU 
+Director 
+ 
+LAURA ALEXANDER 
+Deputy Director 
+ 
+SHAOUL SUSSMAN 
+Associate Director 
+ 
+G. MITCHELL LONDON 
+Counsel to the Director 
+ 
+Federal Trade Commission 
+Bureau of Competition 
+Respectfully submitted, 
+ 
+  /s/ Melissa Westman-Cherry    
+MELISSA WESTMAN-CHERRY 
+Federal Trade Commission 
+600 Pennsylvania Avenue, N.W. 
+Washington, DC 20580  
+Telephone: (202) 326-2338  
+Email: mwestman@ftc.gov 
+ 
+JEFFREY CAO  
+JOSEPH M. CONRAD  
+LAURA R. HALL 
+AUSTIN HEYROTH  
+PATRICIA JERJIAN  
+CRYSTAL LIU  
+ALOK NARAHARI  
+SOPHIA QASIR  
+SUSAN RAITT  
+JOHN REN  
+LAUREN SILLMAN  
+ETHAN STEVENSON  
+NINA THANAWALA  
+ELAN WEINBERGER 
+Attorneys 
+ 
+GEOFFREY M. GREEN  
+Assistant Director 
+ 
+JOSEPH R. BAKER  
+Deputy Assistant Director 
+ 
+Bureau of Competition 
+ 
+Attorneys for Plaintiff Federal Trade 
+Commission 
+ 
+RACHEL F. SIFUENTES 
+Federal Trade Commission 
+230 South Dearborn St., Suite 3030 
+Chicago, IL 60604 
+Telephone: (312) 960-5617 
+Email: rsifuentes@ftc.gov 
+  
+Local Counsel for Plaintiff Federal Trade 
+Commission 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 35 of 37 PageID #:35
+ 36
+ FOR PLAINTIFF STATE OF ILLINOIS 
+ 
+KWAME RAOUL 
+Attorney General 
+ 
+  /s/ Brian M. Yost     
+BRIAN M. YOST 
+Assistant Attorney General, Antitrust 
+ELIZABETH L. MAXEINER 
+Bureau Chief, Antitrust 
+Office of the Illinois Attorney General 
+115 S. LaSalle Street 
+Chicago, IL 60603 
+Telephone: (872) 276-3598 
+Email: Brian.yost@ilag.gov 
+ Elizabeth.maxeiner@ilag.gov 
+ 
+Attorneys for Plaintiff State of Illinois 
+ 
+  
+ 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 36 of 37 PageID #:36
+ 37
+ FOR PLAINTIFF STATE OF MINNESOTA 
+ 
+KEITH ELLISON 
+Attorney General 
+ 
+JAMES CANADAY 
+Deputy Attorney General 
+ 
+  /s/ Katherine A. Moerke    
+KATHERINE A. MOERKE (pro hac vice 
+motion forthcoming) 
+Assistant Attorney General, Antitrust Division 
+ELIZABETH ODETTE (pro hac vice motion 
+forthcoming) 
+Manager, Assistant Attorney General, Antitrust 
+Division 
+Office of the Minnesota Attorney General 
+Suite 1400 
+445 Minnesota Street 
+St. Paul, MN 55101 
+Telephone: (651) 757-1257 
+Email:  katherine.moerke@ag.state.mn.us 
+ elizabeth.odette @ag.state.mn.us 
+ 
+Attorneys for Plaintiff State of Minnesota 
+ 
+Case: 3:25-cv-50017 Document #: 1 Filed: 01/15/25 Page 37 of 37 PageID #:37

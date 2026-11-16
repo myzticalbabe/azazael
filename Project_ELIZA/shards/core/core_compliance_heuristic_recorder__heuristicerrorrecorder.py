@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/compliance/heuristic_recorder.py :: HeuristicErrorRecorder -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/compliance/heuristic_recorder.py (class HeuristicErrorRecorder, 1095 lines in the module, 3 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/compliance/heuristic_recorder.py (class HeuristicErrorRecorder, 1114 lines in the module, 9 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/compliance/heuristic_recorder.py#HeuristicErrorRecorder"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/compliance/heuristic_recorder.py#HeuristicErrorRecorder"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

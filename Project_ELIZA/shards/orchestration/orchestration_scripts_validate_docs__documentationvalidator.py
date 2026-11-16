@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/scripts/validate_docs.py :: DocumentationValidator -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/scripts/validate_docs.py (class DocumentationValidator, 790 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/scripts/validate_docs.py (class DocumentationValidator, 803 lines in the module, 14 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/scripts/validate_docs.py#DocumentationValidator"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ORCHESTRATION/scripts/validate_docs.py#DocumentationValidator"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

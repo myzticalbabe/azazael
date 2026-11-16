@@ -32,7 +32,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, AsyncGenerator
+from typing import (TYPE_CHECKING, Any, AsyncGenerator, Callable, Dict, List,
+                    Optional, Union)
 from enum import Enum
 
 import ray
@@ -52,19 +53,33 @@ try:
 except ImportError:
     SGLANG_AVAILABLE = False
 
-# Local imports
-try:
-    from CORE.feast_feature_store import FeastFeatureStore, get_feast_store
-    from CORE.langgraph_integration import LangGraphWormRegistry, get_langgraph_registry
-    from CORE.async_core import AsyncWormRegistry, get_async_registry
-except ImportError:
-    FeastFeatureStore = LangGraphWormRegistry = AsyncWormRegistry = None
-    get_feast_store = get_langgraph_registry = get_async_registry = None
+# Local imports, for annotations only. Every deployment imports what it needs
+# inside `initialize()`, so the module-level fallback that bound these names to
+# None was dead weight that made each `self.<service>` Optional for the rest of
+# the file.
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from CORE.async_core import AsyncWormRegistry
+    from CORE.feast_feature_store import FeastFeatureStore
+    from CORE.langgraph_integration import LangGraphWormRegistry
+    from CODEX.dit_video_pipeline import DiTVideoPipeline
+    from vllm import AsyncLLMEngine
+
+
+def _serve_deployment(**options: Any) -> Callable[[type], Any]:
+    """Apply ``serve.deployment``.
+
+    Declared as returning ``Any`` on purpose. The decorator grafts ``.bind``
+    onto the decorated class at runtime, but the annotated class type cannot
+    carry it -- which is why six ``X.bind()`` calls were reported as attributes
+    missing from a plain class. One seam here is cheaper and truer than a
+    suppression at each call site.
+    """
+    return serve.deployment(**options)
 
 
 # Ray Serve deployments
 
-@serve.deployment(
+@_serve_deployment(
     name="feast_feature_store",
     num_replicas=2,
     ray_actor_options={"num_cpus": 1, "memory": 2000 * 1024 * 1024},
@@ -73,19 +88,30 @@ class FeastFeatureStoreDeployment:
     """Ray Serve deployment for Feast Feature Store."""
     
     def __init__(self):
-        self.store = None
+        self.store: Optional[FeastFeatureStore] = None
         self._initialized = False
-    
-    async def initialize(self):
+
+    async def initialize(self) -> FeastFeatureStore:
+        """Initialise once, and hand the store back.
+
+        Returning it is what lets every request path prove the store exists:
+        the attribute is Optional because construction is lazy, so a method that
+        only called `await self.initialize()` was still dereferencing None to
+        the type checker -- and would have at runtime if initialisation had
+        declined.
+        """
         if not self._initialized:
-            from CORE.feast_feature_store import get_feast_store
-            self.store = get_feast_store()
-            if not self.store.initialize():
+            from CORE.feast_feature_store import DEFAULT_WORM_SPECS, get_feast_store
+            store = get_feast_store()
+            if not store.initialize():
                 raise RuntimeError("Failed to initialize Feast store")
             # Apply default worm specs
-            from CORE.feast_feature_store import DEFAULT_WORM_SPECS
-            self.store.apply_worm_features(DEFAULT_WORM_SPECS)
+            store.apply_worm_features(DEFAULT_WORM_SPECS)
+            self.store = store
             self._initialized = True
+        if self.store is None:
+            raise RuntimeError("Feast store unavailable after initialize()")
+        return self.store
     
     @serve.batch(max_batch_size=32, batch_wait_timeout_s=0.1)
     async def get_online_features(
@@ -93,12 +119,11 @@ class FeastFeatureStoreDeployment:
         entity_rows: List[Dict[str, str]],
         features: List[str],
     ) -> List[Dict[str, Any]]:
-        if not self._initialized:
-            await self.initialize()
-        
+        store = await self.initialize()
+
         results = []
         for entity_row in entity_rows:
-            result = self.store.get_online_features(
+            result = store.get_online_features(
                 entity_rows=[entity_row],
                 features=features,
             )
@@ -106,19 +131,17 @@ class FeastFeatureStoreDeployment:
         return results
     
     async def materialize(self, worm_id: str, features: Dict[str, Any]) -> Dict[str, Any]:
-        if not self._initialized:
-            await self.initialize()
-        
-        success = self.store.materialize_worm(worm_id, features)
+        store = await self.initialize()
+
+        success = store.materialize_worm(worm_id, features)
         return {"success": success, "worm_id": worm_id}
-    
+
     async def list_features(self) -> Dict[str, List[str]]:
-        if not self._initialized:
-            await self.initialize()
-        return self.store.list_registered_features()
+        store = await self.initialize()
+        return store.list_registered_features()
 
 
-@serve.deployment(
+@_serve_deployment(
     name="langgraph_registry",
     num_replicas=2,
     ray_actor_options={"num_cpus": 2, "memory": 4000 * 1024 * 1024},
@@ -127,50 +150,54 @@ class LangGraphRegistryDeployment:
     """Ray Serve deployment for LangGraph Worm Registry."""
     
     def __init__(self):
-        self.registry = None
+        self.registry: Optional[LangGraphWormRegistry] = None
         self._initialized = False
-    
-    async def initialize(self):
+
+    async def initialize(self) -> LangGraphWormRegistry:
+        """Initialise once, and hand the registry back (see the Feast
+        deployment for why the value is returned rather than only stored)."""
         if not self._initialized:
             from CORE.langgraph_integration import get_langgraph_registry
             self.registry = get_langgraph_registry()
             self._initialized = True
-    
+        if self.registry is None:
+            raise RuntimeError("LangGraph registry unavailable after initialize()")
+        return self.registry
+
     async def run_workflow(
         self,
         workflow_name: str,
         input_data: Dict[str, Any],
         config: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        if not self._initialized:
-            await self.initialize()
-        
-        return self.registry.run_workflow(workflow_name, input_data, config)
-    
+        registry = await self.initialize()
+
+        return registry.run_workflow(workflow_name, input_data, config)
+
     async def stream_workflow(
         self,
         workflow_name: str,
         input_data: Dict[str, Any],
         config: Optional[Dict[str, Any]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        if not self._initialized:
-            await self.initialize()
-        
-        async for chunk in self.registry.stream_workflow(workflow_name, input_data, config):
+        registry = await self.initialize()
+
+        # The registry's stream is a plain iterator; `async for` over it was
+        # iterating a coroutine, which is where the "CoroutineType is not
+        # iterable" finding came from.
+        for chunk in registry.stream_workflow(workflow_name, input_data, config):
             yield chunk
-    
+
     async def list_workflows(self) -> List[str]:
-        if not self._initialized:
-            await self.initialize()
-        return self.registry.list_workflows()
-    
+        registry = await self.initialize()
+        return registry.list_workflows()
+
     async def get_state(self, workflow_name: str, thread_id: str) -> Optional[Dict]:
-        if not self._initialized:
-            await self.initialize()
-        return self.registry.get_workflow_state(workflow_name, thread_id)
+        registry = await self.initialize()
+        return registry.get_workflow_state(workflow_name, thread_id)
 
 
-@serve.deployment(
+@_serve_deployment(
     name="async_worm_registry",
     num_replicas=4,
     ray_actor_options={"num_cpus": 2, "memory": 4000 * 1024 * 1024},
@@ -179,15 +206,19 @@ class AsyncWormRegistryDeployment:
     """Ray Serve deployment for Async Worm Registry."""
     
     def __init__(self):
-        self.registry = None
+        self.registry: Optional[AsyncWormRegistry] = None
         self._initialized = False
-    
-    async def initialize(self):
+
+    async def initialize(self) -> AsyncWormRegistry:
+        """Initialise once, and hand the registry back."""
         if not self._initialized:
             from CORE.async_core import get_async_registry
             self.registry = await get_async_registry()
             self._initialized = True
-    
+        if self.registry is None:
+            raise RuntimeError("Async worm registry unavailable after initialize()")
+        return self.registry
+
     async def execute_worm(
         self,
         worm_type: str,
@@ -195,47 +226,42 @@ class AsyncWormRegistryDeployment:
         params: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
-        if not self._initialized:
-            await self.initialize()
-        
+        registry = await self.initialize()
+
         try:
-            result = await self.registry.execute_async(worm_type, input_data, params, timeout=timeout)
+            result = await registry.execute_async(worm_type, input_data, params, timeout=timeout)
             return {"success": True, "result": result}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     async def spawn_worm(self, worm_type: str, params: Optional[Dict] = None) -> Dict[str, Any]:
-        if not self._initialized:
-            await self.initialize()
-        
+        await self.initialize()
+
         from CORE.async_core import spawn_worm_async
         worm_id = await spawn_worm_async(worm_type, params)
         return {"success": True, "worm_id": worm_id}
-    
+
     async def execute_stream(
         self,
         worm_type: str,
         input_data: Dict[str, Any],
         params: Optional[Dict[str, Any]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        if not self._initialized:
-            await self.initialize()
-        
-        async for chunk in self.registry.execute_stream(worm_type, input_data, params):
+        registry = await self.initialize()
+
+        async for chunk in registry.execute_stream(worm_type, input_data, params):
             yield chunk
-    
+
     async def list_worms(self) -> List[Dict[str, Any]]:
-        if not self._initialized:
-            await self.initialize()
-        return self.registry.list_worms()
-    
+        registry = await self.initialize()
+        return registry.list_worms()
+
     async def get_metrics(self) -> Dict[str, int]:
-        if not self._initialized:
-            await self.initialize()
-        return self.registry.get_metrics()
+        registry = await self.initialize()
+        return registry.get_metrics()
 
 
-@serve.deployment(
+@_serve_deployment(
     name="vllm_engine",
     num_replicas=1,
     ray_actor_options={
@@ -259,10 +285,11 @@ class VLLMEngineDeployment:
         self.tensor_parallel_size = tensor_parallel_size
         self.max_model_len = max_model_len
         self.gpu_memory_utilization = gpu_memory_utilization
-        self.engine = None
+        self.engine: Optional[AsyncLLMEngine] = None
         self._initialized = False
-    
-    async def initialize(self):
+
+    async def initialize(self) -> AsyncLLMEngine:
+        """Initialise once, and hand the engine back."""
         if not self._initialized:
             if not VLLM_AVAILABLE:
                 raise RuntimeError("vLLM not installed. Install with: pip install vllm")
@@ -279,6 +306,9 @@ class VLLMEngineDeployment:
                 )
             )
             self._initialized = True
+        if self.engine is None:
+            raise RuntimeError("vLLM engine unavailable after initialize()")
+        return self.engine
     
     @serve.batch(max_batch_size=16, batch_wait_timeout_s=0.05)
     async def generate(
@@ -286,8 +316,7 @@ class VLLMEngineDeployment:
         prompts: List[str],
         sampling_params: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
-        if not self._initialized:
-            await self.initialize()
+        engine = await self.initialize()
         
         from vllm import SamplingParams
         
@@ -297,11 +326,11 @@ class VLLMEngineDeployment:
             request_id = str(uuid.uuid4())
             
             # Generate
-            async for output in self.engine.generate(prompt, sp, request_id):
+            async for output in engine.generate(prompt, sp, request_id):
                 pass  # streaming handled differently
             
             # For batch, use generate with list
-            outputs = await self.engine.generate(
+            outputs = await engine.generate(
                 prompts=prompts,
                 sampling_params=[SamplingParams(**p) for p in sampling_params],
                 request_ids=[str(uuid.uuid4()) for _ in prompts],
@@ -321,15 +350,14 @@ class VLLMEngineDeployment:
         prompt: str,
         sampling_params: Dict[str, Any],
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        if not self._initialized:
-            await self.initialize()
+        engine = await self.initialize()
         
         from vllm import SamplingParams
         
         sp = SamplingParams(**sampling_params)
         request_id = str(uuid.uuid4())
         
-        async for output in self.engine.generate(prompt, sp, request_id):
+        async for output in engine.generate(prompt, sp, request_id):
             yield {
                 "text": output.outputs[0].text,
                 "tokens": len(output.outputs[0].token_ids),
@@ -337,7 +365,7 @@ class VLLMEngineDeployment:
             }
 
 
-@serve.deployment(
+@_serve_deployment(
     name="dit_video_pipeline",
     num_replicas=1,
     ray_actor_options={
@@ -350,14 +378,18 @@ class DiTVideoPipelineDeployment:
     """Ray Serve deployment for DiT Video Pipeline."""
     
     def __init__(self):
-        self.pipeline = None
+        self.pipeline: Optional[DiTVideoPipeline] = None
         self._initialized = False
-    
-    async def initialize(self):
+
+    async def initialize(self) -> DiTVideoPipeline:
+        """Initialise once, and hand the pipeline back."""
         if not self._initialized:
             from CODEX.dit_video_pipeline import create_dit_pipeline
             self.pipeline = create_dit_pipeline()
             self._initialized = True
+        if self.pipeline is None:
+            raise RuntimeError("DiT video pipeline unavailable after initialize()")
+        return self.pipeline
     
     async def generate_video(
         self,
@@ -366,13 +398,12 @@ class DiTVideoPipelineDeployment:
         expand_prompt: bool = True,
         style: str = "cinematic",
     ) -> Dict[str, Any]:
-        if not self._initialized:
-            await self.initialize()
-        
+        pipeline = await self.initialize()
+
         from CODEX.dit_video_pipeline import VideoGenerationConfig
         
         cfg = VideoGenerationConfig(**(config or {}))
-        result = self.pipeline.generate_video(prompt, cfg, expand_prompt, style)
+        result = pipeline.generate_video(prompt, cfg, expand_prompt, style)
         
         return {
             "success": True,
@@ -394,13 +425,12 @@ class DiTVideoPipelineDeployment:
         config: Optional[Dict[str, Any]] = None,
         style: str = "cinematic",
     ) -> List[Dict[str, Any]]:
-        if not self._initialized:
-            await self.initialize()
-        
+        pipeline = await self.initialize()
+
         from CODEX.dit_video_pipeline import VideoGenerationConfig
         
         cfg = VideoGenerationConfig(**(config or {}))
-        results = self.pipeline.batch_generate(prompts, cfg, style)
+        results = pipeline.batch_generate(prompts, cfg, style)
         
         return [
             {
@@ -414,7 +444,7 @@ class DiTVideoPipelineDeployment:
         ]
 
 
-@serve.deployment(
+@_serve_deployment(
     name="orchestration_gateway",
     num_replicas=2,
     ray_actor_options={"num_cpus": 2, "memory": 4000 * 1024 * 1024},

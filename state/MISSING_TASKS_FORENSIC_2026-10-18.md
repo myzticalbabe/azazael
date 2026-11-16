@@ -179,7 +179,7 @@ no referencing file at HEAD, absent worktree / all 6 envs / G:/AZAZAEL /
 G:/AZAZAEL_SOURCE_OF_TRUTH / G:/source-of-truth incl. dirty-baseline / E: /
 desktop / state backups / the 5,083-row archive manifest (format read first).
 
-**EXECUTED — FU2 cut (commit 314cae20, branch deepseek-engram-813).**
+**EXECUTED — FU2 cut (commit 314cae20, branch deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]).**
 NEURAL_MESH_FUNCTION_TODO.md deleted with 2 consumer-checked companion edits:
 artifact_freshness REGISTRY entry dropped (spine.py:1888 proprioception gate
 reads that module; a missing row reads as stale and would refuse every heart

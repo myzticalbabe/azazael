@@ -1,0 +1,97 @@
+# CodeQL Analysis Workflow
+# Static analysis for security vulnerabilities
+
+name: CodeQL Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly Monday 3AM
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python]
+        # Root package floor is `>=3.16`; the install below targets the root, so
+        # a 3.12 job could never have had the package installed.
+        python-version: ["3.16"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Install dependencies
+        # `2>/dev/null || true` made a REFUSED install indistinguishable from a
+        # successful one. On 3.12 the only line that reported the real problem
+        # ("Package 'azazael' requires a different Python: 3.12.x not in '>=3.16'")
+        # was the one being discarded, so the job scanned a checkout whose package
+        # had never installed, and said nothing. CodeQL needs no install to scan,
+        # so the step stays non-blocking -- but a failure is now RECORDED as a
+        # warning annotation rather than swallowed.
+        run: |
+          pip install --quiet -e . || echo "::warning::pip install -e . failed; CodeQL scanned the checkout without the package installed"
+          pip install --quiet pytest || echo "::warning::pip install pytest failed; pytest-dependent steps would fail"
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: true
+
+  # JavaScript/TypeScript analysis for HTML projects
+  analyze-js:
+    name: Analyze (JavaScript/TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    if: "hashFiles('**/*.js', '**/*.ts', '**/*.html') != ''"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: +security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+          upload: true

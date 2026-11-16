@@ -1,0 +1,56 @@
+{
+  "seat": "openrouter",
+  "provider": "OpenRouter (Meta model)",
+  "model": "meta-llama/llama-3.3-70b-instruct",
+  "angle": "adversarial: break this memorandum",
+  "status": "ok",
+  "error": "",
+  "seconds": 18.1,
+  "attempts": 1,
+  "raw": "```json\n{\n  \"seat\": \"Adversarial Review\",\n  \"verdicts\": [\n    {\"q\": 1, \"verdict\": \"Featherbedding is misleading\", \"authority\": \"NLRA \u00a78(b)(6)\", \"confidence\": \"high\"},\n    {\"q\": 2, \"verdict\": \"Mechanisms differ\", \"authority\": \"35 U.S.C. \u00a7100(f)\", \"confidence\": \"medium\"},\n    {\"q\": 3, \"verdict\": \"Substitution axis is incomplete\", \"authority\": \"none\", \"confidence\": \"low\"},\n    {\"q\": 4, \"verdict\": \"Antitrust lever is live\", \"authority\": \"Goldfarb v. Virginia State Bar\", \"confidence\": \"high\"},\n    {\"q\": 5, \"verdict\": \"Humanwashing reading is correct\", \"authority\": \"Wilson et al., arXiv 2605.13723\", \"confidence\": \"medium\"},\n    {\"q\": 6, \"verdict\": \"Honesty section is incomplete\", \"authority\": \"none\", \"confidence\": \"low\"}\n  ],\n  \"strongest_counterexample\": \"Funder originality rules\",\n  \"memo_killer\": \"Funder originality rules, NLnet GenAI policy v2.0\",\n  \"dissent\": \"Substitution axis is the primary driver\",\n  \"verbatim\": \"the law in question does not forbid the labour, it forbids the authorship\"\n}\n```",
+  "parsed": {
+    "seat": "Adversarial Review",
+    "verdicts": [
+      {
+        "q": 1,
+        "verdict": "Featherbedding is misleading",
+        "authority": "NLRA \u00a78(b)(6)",
+        "confidence": "high"
+      },
+      {
+        "q": 2,
+        "verdict": "Mechanisms differ",
+        "authority": "35 U.S.C. \u00a7100(f)",
+        "confidence": "medium"
+      },
+      {
+        "q": 3,
+        "verdict": "Substitution axis is incomplete",
+        "authority": "none",
+        "confidence": "low"
+      },
+      {
+        "q": 4,
+        "verdict": "Antitrust lever is live",
+        "authority": "Goldfarb v. Virginia State Bar",
+        "confidence": "high"
+      },
+      {
+        "q": 5,
+        "verdict": "Humanwashing reading is correct",
+        "authority": "Wilson et al., arXiv 2605.13723",
+        "confidence": "medium"
+      },
+      {
+        "q": 6,
+        "verdict": "Honesty section is incomplete",
+        "authority": "none",
+        "confidence": "low"
+      }
+    ],
+    "strongest_counterexample": "Funder originality rules",
+    "memo_killer": "Funder originality rules, NLnet GenAI policy v2.0",
+    "dissent": "Substitution axis is the primary driver",
+    "verbatim": "the law in question does not forbid the labour, it forbids the authorship"
+  }
+}

@@ -1,0 +1,149 @@
+name: Standards Auto-Sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  standards-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      result: ${{ steps.verify.outputs.result }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install verification tool
+        run: |
+          pip install --quiet pyyaml
+
+      - name: Run standards verification
+        id: verify
+        run: |
+          # Run this checkout's own checker. The previous version downloaded the
+          # same script from a moving branch and executed it, so the logic under
+          # review was never the logic that ran, and no commit could pin it.
+          set +e
+          python tools/verify_public_standards.py . > verify_output.txt 2>&1
+          rc=$?
+          cat verify_output.txt
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if [ "$rc" -eq 0 ]; then
+            echo "result=PASS" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=FAIL" >> "$GITHUB_OUTPUT"
+          fi
+          # Not exiting non-zero here on purpose: the single failing step is the
+          # one below, so the summary and the PR comment still get written.
+          exit 0
+
+      - name: Record verification result
+        if: always()
+        run: |
+          result="${{ steps.verify.outputs.result }}"
+          if [ "$result" = "PASS" ]; then
+            echo "Standards verification PASSED" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Standards verification FAILED (checker exit: ${{ steps.verify.outputs.exit_code }})" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "## Missing items" >> "$GITHUB_STEP_SUMMARY"
+            grep -E "(MISSING|FAIL)" verify_output.txt | head -20 >> "$GITHUB_STEP_SUMMARY" || true
+          fi
+
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.existsSync('verify_output.txt') ? fs.readFileSync('verify_output.txt', 'utf8') : 'No output';
+            const result = '${{ steps.verify.outputs.result }}';
+            const icon = result === 'PASS' ? '✅' : '❌';
+            const body = `## ${icon} Professional Standards Check\n\n` +
+              `**Result**: ${result}\n\n` +
+              `\`\`\`\n${output.slice(0, 3000)}\n\`\`\`\n\n` +
+              `*Triggered by: ${{ github.event_name }}*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail workflow on FAIL
+        # Fail closed: an unreported result is not a pass.
+        if: always() && steps.verify.outputs.result != 'PASS'
+        run: |
+          echo "Standards verification failed. See PR comment for details."
+          exit 1
+
+  auto-fix:
+    needs: standards-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.standards-check.outputs.result == 'FAIL'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Auto-fix common issues
+        run: |
+          # Fix trailing whitespace
+          find . -type f \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \) \
+            -not -path "./.git/*" -print0 | xargs -0 -r sed -i 's/[[:space:]]*$//'
+          # Ensure newline at end of file
+          find . -type f \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \) \
+            -not -path "./.git/*" -print0 | \
+            xargs -0 -r -I {} sh -c 'tail -c1 "$1" | read -r _ || echo >> "$1"' _ {}
+          # YAML indentation is NOT rewritten here. The rule this used to apply,
+          # s/^  */  /, collapses every leading run of 2+ spaces to exactly two,
+          # which flattens nested mappings and sequences in every workflow it
+          # touches. Indentation is not safely normalisable by regex, so the bot
+          # reports it via the checker instead of rewriting it.
+
+      - name: Check if changes made
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create auto-fix PR
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git add -A
+          git commit -m "chore: auto-fix formatting [standards-bot]"
+          BRANCH="standards-auto-fix-$(date +%s)"
+          git push origin HEAD:$BRANCH
+          gh pr create --title "chore: auto-fix formatting [standards-bot]" \
+            --body "Automated formatting fixes from standards auto-sync bot." \
+            --base main --head $BRANCH \
+            --label "auto-fix,standards"

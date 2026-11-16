@@ -1,0 +1,57 @@
+# Epic MegaGrants Application
+
+**Program:** Epic MegaGrants
+**URL:** https://www.unrealengine.com/megagrants
+**Method:** manual
+**Generated:** 2026-11-03 16:46:24
+**Profile:** Project Nurse Ratchet
+
+## Filled Fields
+
+### project_name
+
+```
+Project Nurse Ratchet
+```
+
+### project_description
+
+```
+A therapeutic-agent loop over a person's construct network with auditable psychological modelling. Four layers: trait/affect model, psychological network (partial correlations), compiled inference (graded prototypes), realtime triage loop. Ships with evaluation instruments (labelled corpus with dev/holdout splits) and a publication gate that refuses to ship evidence about identifiable people.
+```
+
+### project_url
+
+```
+https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet
+```
+
+### github_url
+
+```
+https://github.com/myzticalbabe/azazael/tree/main/Project_Nurse_Ratchet
+```
+
+### team_size
+
+```
+1
+```
+
+### funding_amount
+
+```
+$100,000
+```
+
+### contact_email
+
+```
+clintonoxford47@gmail.com
+```
+
+### contact_name
+
+```
+Clint Oxford
+```

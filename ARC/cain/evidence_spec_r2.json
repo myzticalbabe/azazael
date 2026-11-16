@@ -1,0 +1,101 @@
+{
+ "round": "r2",
+ "generated_at": "2026-11-04",
+ "note": "Round 2 after the re-exploration the round-1 judges pointed at: every pin whose missing element was named now carries a source aimed at that element (FTC/States v. Deere for the dealer-only tool, Apple's current support page for the user-facing surprise, Play Integrity's Allow/Deny language for the refusal). Elements are declared so both rounds grade the same checklist.",
+ "pins": [
+  {
+   "pin": "C1",
+   "vendor": "Microsoft",
+   "claim": "Windows 10 end of support is gated on TPM 2.0 and Secure Boot, leaving pre-8th-generation hardware without a supported upgrade path",
+   "elements": [
+    "Windows 10 support ends on a stated date",
+    "the successor OS requires TPM 2.0",
+    "that requirement excludes pre-8th-generation hardware"
+   ],
+   "evidence": [
+    {"sha16": "eeeb0a9ba75e13b5", "anchor": "will reach end of support on October 14, 2025"},
+    {"sha16": "c77b461e6a900b2e", "anchor": "TPM 2.0"}
+   ]
+  },
+  {
+   "pin": "C2",
+   "vendor": "Apple",
+   "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries without disclosing the change or offering an opt-out",
+   "elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not disclosed at the time",
+    "no opt-out was offered"
+   ],
+   "evidence": [
+    {"sha16": "32e91c649d43a4a4", "anchor": "improves power management during peak workloads"},
+    {"sha16": "cfa8a9e588dd7729", "anchor": "unexpected by the user"}
+   ]
+  },
+  {
+   "pin": "C3",
+   "vendor": "Intel",
+   "claim": "Microcode updates from 0x125 to 0x132 address Vmin shift instability on 13th and 14th generation Core i9 processors, and the resulting electromigration damage cannot be reversed",
+   "elements": [
+    "microcode revisions from 0x125 to 0x132 address Vmin shift",
+    "the affected parts are 13th/14th generation Core i9",
+    "the resulting damage cannot be reversed"
+   ],
+   "evidence": [
+    {"sha16": "f0de7b1ed8d255ef", "anchor": "Vmin Shift"}
+   ]
+  },
+  {
+   "pin": "C4",
+   "vendor": "Google",
+   "claim": "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation, making continued function a vendor decision rather than a property of the hardware",
+   "elements": [
+    "the API returns an integrity verdict about the device or build",
+    "an app may act on that verdict by denying access"
+   ],
+   "evidence": [
+    {"sha16": "190d4160a7eed781", "anchor": "Allow/Deny"}
+   ]
+  },
+  {
+   "pin": "C5",
+   "vendor": "HP/Canon/Epson/Brother",
+   "claim": "HP Dynamic Security and Epson's waste-ink counter stop a printer from printing on a firmware condition rather than on physical failure",
+   "elements": [
+    "HP shipped firmware that blocks third-party cartridges",
+    "the block is a firmware condition, not a physical failure"
+   ],
+   "evidence": [
+    {"sha16": "f2ca2fc4f39b4c67", "anchor": "dynamic security"},
+    {"sha16": "505a0f55e8fc56a8", "anchor": "imprimante"}
+   ]
+  },
+  {
+   "pin": "C6",
+   "vendor": "John Deere",
+   "claim": "ECU software locks combined with DMCA 1201 anti-circumvention restrict repair of agricultural equipment to the manufacturer's technicians",
+   "elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers",
+    "DMCA 1201 anti-circumvention is the statutory frame for that restriction"
+   ],
+   "evidence": [
+    {"sha16": "c8a59a4566c4afd7", "anchor": "only fully functional software repair tool"},
+    {"sha16": "3bdc0690bb094f43", "anchor": "Mechanized Agricultural Vehicles"}
+   ]
+  },
+  {
+   "pin": "C7",
+   "vendor": "Sonos",
+   "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and no factory reset can recover it",
+   "elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "evidence": [
+    {"sha16": "f23fb076d41e8859", "anchor": "Recycle Mode is a state your device enters"}
+   ]
+  }
+ ]
+}

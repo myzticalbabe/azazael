@@ -1350,16 +1350,23 @@ def _run_standalone():
         "TestClusterState",
     }
 
-    # Subprocess timeouts for slow/execution test classes
+    # Subprocess timeouts for slow/execution test classes.
+    # Measured 2026-11-11 (dev box, full file 108s): Sequential 17.9s,
+    # Parallel 14.6s, Aggregation 14.1s, Retry 13.5s, CategoryConfig 7.1s.
+    # CI runners are 2-60x slower per-op (memorybus: 1.6s local vs 103s
+    # CI), so budgets sit at ~8-15x measured: they catch true hangs
+    # (deadlock never finishes) without executing healthy-but-slow runs.
+    # CI killed Sequential (tightest margin, 2.5x) at 50.8s. Never shrink
+    # these below 6x the measured durations above.
     subprocess_timeouts = {
-        "TestClusterWORMZExecutionSequential": 45,
-        "TestClusterWORMZExecutionParallel": 45,
-        "TestClusterWORMZRetry": 60,
-        "TestClusterWORMZAggregation": 45,
-        "TestClusterWORMZIntegration": 300,
-        "TestClusterWORMZCategoryConfig": 30,
-        "TestClusterWORMZBuildFromNature": 30,
-        "TestClusterWORMZBuildFullEcosystem": 30,
+        "TestClusterWORMZExecutionSequential": 240,
+        "TestClusterWORMZExecutionParallel": 180,
+        "TestClusterWORMZRetry": 240,
+        "TestClusterWORMZAggregation": 180,
+        "TestClusterWORMZIntegration": 600,
+        "TestClusterWORMZCategoryConfig": 120,
+        "TestClusterWORMZBuildFromNature": 120,
+        "TestClusterWORMZBuildFullEcosystem": 120,
     }
 
     passed = 0

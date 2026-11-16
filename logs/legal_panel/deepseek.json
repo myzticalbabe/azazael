@@ -1,0 +1,56 @@
+{
+  "seat": "deepseek",
+  "provider": "OpenRouter (DeepSeek model)",
+  "model": "deepseek/deepseek-v3.2",
+  "angle": "professional regulation and licensing",
+  "status": "ok",
+  "error": "",
+  "seconds": 22.9,
+  "attempts": 1,
+  "raw": "{\n  \"seat\": \"Professional-Regulation Specialist\",\n  \"verdicts\": [\n    {\"q\": 1, \"verdict\": \"Featherbedding is misleading; it is a statutory labor term not reaching state-imposed requirements. The better term is 'regulatory rent-seeking' or the memo's own 'human of record.'\", \"authority\": \"NLRA \u00a78(b)(6); American Newspaper Publishers Assn. v. NLRB\", \"confidence\": \"high\"},\n    {\"q\": 2, \"verdict\": \"No. The first four install a human to protect a third party's rights. The fifth (funder originality) installs a human to protect the funder's own capacity, screening rather than protecting the applicant.\", \"authority\": \"Memo's own \u00a71.5 analysis of NOT-OD-25-132 vs. NLnet policy\", \"confidence\": \"high\"},\n    {\"q\": 3, \"verdict\": \"The substitution axis survives but is imperfect. The strongest counter-example is NLnet's ban on AI-generated artefacts, which is a content/generation ban not tied to displacing a human's paid role.\", \"authority\": \"NLnet GenAI policy v2.0 (artefact ban)\", \"confidence\": \"medium\"},\n    {\"q\": 4, \"verdict\": \"The antitrust lever is live and potent for guild-shaped rules. Goldfarb/Dental Examiners would reach a practitioner-dominated board adopting an AI-substitution rule; active supervision is the key defense.\", \"authority\": \"Goldfarb v. Virginia State Bar; NC State Bd. of Dental Examiners v. FTC\", \"confidence\": \"high\"},\n    {\"q\": 5, \"verdict\": \"The humanwashing reading is correct for GDPR-era design. The inserted human can extinguish recourse by removing 'solely automated' status, functioning as a waiver of procedural protections.\", \"authority\": \"Wilson et al., arXiv 2605.13723 (humanwashing preprint)\", \"confidence\": \"medium\"},\n    {\"q\": 6, \"verdict\": \"The honesty section is materially complete. It correctly notes relaxations (EU, Colorado) and the federal preemption push, narrowing the claim to rules protecting licensed, credited, or paid human roles.\", \"authority\": \"Memo \u00a73 (counter-evidence)\", \"confidence\": \"high\"}\n  ],\n  \"strongest_counterexample\": \"NLnet's ban on all AI-generated artefacts is a content/generation prohibition, not a rule triggered by substitution of a human's paid work.\",\n  \"memo_killer\": \"The claim that 'the human-of-record requirement can extinguish the rights of the person it is said to protect' relies on a tier-C preprint (humanwashing) and a withdrawn directive; a court may reject it as speculative.\",\n  \"dissent\": \"The memo understates that professional-responsibility rules (like ABA Opinion 512) exist primarily for client protection, not guild rent-seeking.\",\n  \"verbatim\": \"In funder originality the human is installed for the protection of the funder's own evaluation capacity.\"\n}",
+  "parsed": {
+    "seat": "Professional-Regulation Specialist",
+    "verdicts": [
+      {
+        "q": 1,
+        "verdict": "Featherbedding is misleading; it is a statutory labor term not reaching state-imposed requirements. The better term is 'regulatory rent-seeking' or the memo's own 'human of record.'",
+        "authority": "NLRA \u00a78(b)(6); American Newspaper Publishers Assn. v. NLRB",
+        "confidence": "high"
+      },
+      {
+        "q": 2,
+        "verdict": "No. The first four install a human to protect a third party's rights. The fifth (funder originality) installs a human to protect the funder's own capacity, screening rather than protecting the applicant.",
+        "authority": "Memo's own \u00a71.5 analysis of NOT-OD-25-132 vs. NLnet policy",
+        "confidence": "high"
+      },
+      {
+        "q": 3,
+        "verdict": "The substitution axis survives but is imperfect. The strongest counter-example is NLnet's ban on AI-generated artefacts, which is a content/generation ban not tied to displacing a human's paid role.",
+        "authority": "NLnet GenAI policy v2.0 (artefact ban)",
+        "confidence": "medium"
+      },
+      {
+        "q": 4,
+        "verdict": "The antitrust lever is live and potent for guild-shaped rules. Goldfarb/Dental Examiners would reach a practitioner-dominated board adopting an AI-substitution rule; active supervision is the key defense.",
+        "authority": "Goldfarb v. Virginia State Bar; NC State Bd. of Dental Examiners v. FTC",
+        "confidence": "high"
+      },
+      {
+        "q": 5,
+        "verdict": "The humanwashing reading is correct for GDPR-era design. The inserted human can extinguish recourse by removing 'solely automated' status, functioning as a waiver of procedural protections.",
+        "authority": "Wilson et al., arXiv 2605.13723 (humanwashing preprint)",
+        "confidence": "medium"
+      },
+      {
+        "q": 6,
+        "verdict": "The honesty section is materially complete. It correctly notes relaxations (EU, Colorado) and the federal preemption push, narrowing the claim to rules protecting licensed, credited, or paid human roles.",
+        "authority": "Memo \u00a73 (counter-evidence)",
+        "confidence": "high"
+      }
+    ],
+    "strongest_counterexample": "NLnet's ban on all AI-generated artefacts is a content/generation prohibition, not a rule triggered by substitution of a human's paid work.",
+    "memo_killer": "The claim that 'the human-of-record requirement can extinguish the rights of the person it is said to protect' relies on a tier-C preprint (humanwashing) and a withdrawn directive; a court may reject it as speculative.",
+    "dissent": "The memo understates that professional-responsibility rules (like ABA Opinion 512) exist primarily for client protection, not guild rent-seeking.",
+    "verbatim": "In funder originality the human is installed for the protection of the funder's own evaluation capacity."
+  }
+}

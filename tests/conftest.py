@@ -530,6 +530,38 @@ def run_standalone_script():
     return _run
 
 
+# ── Single-file tool loader (2026-11-03) ──────────────────────────────
+# Three test files re-implement the same importlib dance to load a one-file
+# production tool BY PATH (test_sword_2600.py, test_flaming_sword_reaper.py,
+# tests/test_pmb_floor_apply.py): spec_from_file_location -> module_from_spec
+# -> sys.modules[name] -> exec_module. One loadable copy of that dance lives
+# here, session-cached, because two files loading the same path under the same
+# registered name should not exec it twice per session. The reaper and floor
+# tests consume it now; the next declared-root tool (sword_2600 included when
+# it is next touched) joins by replacing its local `load_tool()`.
+@pytest.fixture(scope="session")
+def load_tool_by_path():
+    """Load a single-file production tool by path; cached per (name, path)."""
+    import importlib.util
+
+    _cache: dict = {}
+
+    def _load(path, name: str):
+        path = pathlib.Path(path)
+        assert path.exists(), "tool not found: %s" % path
+        key = (name, str(path))
+        if key not in _cache:
+            spec = importlib.util.spec_from_file_location(name, path)
+            assert spec and spec.loader, path
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[name] = module
+            spec.loader.exec_module(module)
+            _cache[key] = module
+        return _cache[key]
+
+    return _load
+
+
 # ── Detect free-threading (3.15t production build) ──────────────────
 try:
     _IS_FREE_THREADED = not sys._is_gil_enabled()

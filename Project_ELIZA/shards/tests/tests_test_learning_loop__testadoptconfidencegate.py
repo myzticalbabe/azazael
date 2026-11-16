@@ -1,8 +1,8 @@
 # coding: utf-8
 """tests / tests/test_learning_loop.py :: TestAdoptConfidenceGate -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux tests/test_learning_loop.py (class TestAdoptConfidenceGate, 272 lines in the module, 9 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux tests/test_learning_loop.py (class TestAdoptConfidenceGate, 287 lines in the module, 18 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:tests/test_learning_loop.py#TestAdoptConfidenceGate"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:tests/test_learning_loop.py#TestAdoptConfidenceGate"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -1,8 +1,8 @@
 # coding: utf-8
 """META / META/TELEMETRYZ.py :: CallPath -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux META/TELEMETRYZ.py (class CallPath, 616 lines in the module, 6 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux META/TELEMETRYZ.py (class CallPath, 625 lines in the module, 22 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:META/TELEMETRYZ.py#CallPath"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:META/TELEMETRYZ.py#CallPath"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

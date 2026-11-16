@@ -1,8 +1,8 @@
 # coding: utf-8
 """SCRIPTS / SCRIPTS/environ_updater.py :: MLPatternMatcher -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux SCRIPTS/environ_updater.py (class MLPatternMatcher, 439 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux SCRIPTS/environ_updater.py (class MLPatternMatcher, 453 lines in the module, 10 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:SCRIPTS/environ_updater.py#MLPatternMatcher"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:SCRIPTS/environ_updater.py#MLPatternMatcher"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

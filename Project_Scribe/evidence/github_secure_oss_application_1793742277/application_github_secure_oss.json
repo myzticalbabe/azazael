@@ -1,0 +1,15 @@
+{
+  "program": "GitHub Secure Open Source Fund",
+  "program_key": "github_secure_oss",
+  "url": "https://github.com/securitylab/secure-open-source-fund",
+  "method": "github_issue",
+  "generated_at": "2026-11-03 16:44:37",
+  "profile": "Project Nurse Ratchet",
+  "fields": {
+    "project_description": "Security-focused therapeutic agent: disclosure gate prevents shipping evidence about identifiable people. SLSA build verification for therapeutic model supply chain.",
+    "contact_email": "clintonoxford47@gmail.com",
+    "equipment_budget": "5000",
+    "equipment_justification": "RTX 4090 for SBOM signing + SLSA verification of therapeutic model artifacts.",
+    "requested_amount": "10000"
+  }
+}

@@ -44,11 +44,26 @@ from pathlib import Path
 # TypedDict was used at line 74 (`class WormState(TypedDict)`) and never
 # imported: the module raised NameError on import while every reference to it
 # stayed lazily guarded, so nothing failed until a test actually imported it.
-from typing import Any, Dict, List, Optional, Literal, Union, AsyncGenerator, TypedDict
+from typing import (Any, Callable, Dict, Iterator, List, Optional, Literal, Union,
+                    TYPE_CHECKING, TypedDict)
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
-# LangGraph imports (optional)
+# LangGraph imports (optional).
+#
+# Bound for the type checker under TYPE_CHECKING and for the runtime only when
+# the packages are installed. The `= None` fallback made `StateGraph` a variable
+# rather than a class, which invalidated every annotation that named it and made
+# each `StateGraph(...)`, `@tool` and `MemorySaver()` a call on None.
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from langgraph.graph import END, StateGraph
+    from langgraph.prebuilt import ToolNode, tools_condition
+    from langgraph.checkpoint.memory import MemorySaver
+    from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
+    from langchain_core.tools import BaseTool, tool
+    from langchain_openai import ChatOpenAI
+    from langchain_anthropic import ChatAnthropic
+
 try:
     from langgraph.graph import StateGraph, END
     from langgraph.prebuilt import ToolNode, tools_condition
@@ -60,8 +75,6 @@ try:
     LANGGRAPH_AVAILABLE = True
 except ImportError:
     LANGGRAPH_AVAILABLE = False
-    StateGraph = END = MemorySaver = BaseMessage = HumanMessage = AIMessage = ToolMessage = BaseTool = tool = None
-    ChatOpenAI = ChatAnthropic = None
 
 # Local imports
 try:
@@ -100,7 +113,7 @@ class WormTool:
     """Tool definition for worm operations."""
     name: str
     description: str
-    func: callable
+    func: Callable[..., Any]
     args_schema: Optional[type] = None
 
 
@@ -169,8 +182,11 @@ class LangGraphWormRegistry:
             """Spawn a worm of the given type with parameters."""
             if worm_type not in WORM_REGISTRY:
                 return {"error": f"Unknown worm type: {worm_type}"}
-            
-            worm_class = WORM_REGISTRY[worm_type]
+
+            # WORM_REGISTRY values are descriptor dicts, not classes.
+            worm_class = (WORM_REGISTRY.get(worm_type) or {}).get("class")
+            if worm_class is None:
+                return {"error": f"No class registered for worm type: {worm_type}"}
             worm_id = str(uuid.uuid4())[:8]
             
             try:
@@ -197,10 +213,14 @@ class LangGraphWormRegistry:
         @tool
         def list_worms() -> Dict[str, Any]:
             """List all available worm types."""
+            # `info.get("class")`, not the value itself: each registry entry is a
+            # descriptor dict, so `cls.__name__` raised AttributeError for every
+            # worm the moment the tool was called.
             return {
                 "worms": [
-                    {"name": name, "class": cls.__name__}
-                    for name, cls in WORM_REGISTRY.items()
+                    {"name": name,
+                     "class": getattr(info.get("class"), "__name__", name)}
+                    for name, info in WORM_REGISTRY.items()
                 ]
             }
         
@@ -321,7 +341,9 @@ Respond with just the worm type name."""
             return {**state, "error": f"Unknown worm type: {worm_type}"}
         
         try:
-            worm_class = WORM_REGISTRY[worm_type]
+            worm_class = (WORM_REGISTRY.get(worm_type) or {}).get("class")
+            if worm_class is None:
+                return {**state, "error": f"No class registered for worm type: {worm_type}"}
             worm_id = str(uuid.uuid4())[:8]
             worm_instance = worm_class(**(params or {}))
             
@@ -434,8 +456,14 @@ Respond with just the worm type name."""
         workflow_name: str,
         input_data: Dict[str, Any],
         config: Optional[Dict[str, Any]] = None,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
-        """Stream workflow execution."""
+    ) -> Iterator[Dict[str, Any]]:
+        """Stream workflow execution.
+
+        A plain generator, not an async one: the body iterates the workflow
+        synchronously and yields each chunk. The old annotation promised an ``AsyncGenerator``, so
+        every caller that did ``async for`` over it was waiting on a coroutine
+        that was never created.
+        """
         if workflow_name not in self._workflows:
             raise ValueError(f"Unknown workflow: {workflow_name}")
         

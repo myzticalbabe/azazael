@@ -1,0 +1,17 @@
+# Read by .github/workflows/pages-deploy.yml, which builds this tree with
+# `mkdocs build --strict`. The workflow required a config that did not exist, so
+# the job could only ever fail. Every page named below exists in docs/; a nav
+# entry pointing at a missing file fails the build rather than shipping a
+# broken link, which is what --strict is for.
+site_name: Nurse Ratchet
+site_description: A therapeutic-agent loop over a person's construct network, with the instruments that grade it.
+
+nav:
+  - Home: index.md
+  - Tutorial: tutorial.md
+  - Explanation:
+      - Why Nurse Ratchet: explanation/why-nurse-ratchet.md
+      - Live counselors: explanation/live-counselors.md
+  - Reference:
+      - Psyche: reference/psyche.md
+      - Recall floor protocol: reference/recall-floor-protocol.md

@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_Compliance: 13-component ComplianceOrchestrator: policy engine, formal verifier, state machine, sentinel gates, dual-ledger validation. Enterprise-grade compliance infrastructure."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  13-component ComplianceOrchestrator: policy engine, formal verifier, state machine, sentinel gates, dual-ledger validation. Enterprise-grade compliance infrastructure.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - compliance
+  - policy-engine
+  - formal-verification
+  - state-machine
+  - sentinel
+  - dual-ledger
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

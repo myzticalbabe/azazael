@@ -1,0 +1,211 @@
+{
+ "manifest": "OXENFORD wheelhouse + foundry record",
+ "made_at": "2026-11-06T22:00:19.033190+00:00",
+ "artifacts": [
+  {
+   "path": ".build/wheelhouse-316t/SOULFORGE-LICENSE.txt",
+   "bytes": 1227,
+   "sha256": "fa86b524fc0ccd987bd48130b296872daab9082387348e95bba855f21d4fda0a"
+  },
+  {
+   "path": ".build/wheelhouse-316t/cffi-2.1.1-cp316-cp316t-win_amd64.whl",
+   "bytes": 191111,
+   "sha256": "6fb7a7a12aeec16f4f2cd06a8e7e7c254c6b45bf99f54dca8e2b273d6e33d386"
+  },
+  {
+   "path": ".build/wheelhouse-316t/cloudpickle-3.1.2-py3-none-any.whl",
+   "bytes": 22535,
+   "sha256": "222a3707cea582a3422adb992aa84ac3c6895848ae6d4a614cfa17154aeb935c"
+  },
+  {
+   "path": ".build/wheelhouse-316t/greenlet-3.5.6-cp316-cp316t-win_amd64.whl",
+   "bytes": 250219,
+   "sha256": "8812205b065451b3edf7293ca90f72804db8e4658342e846db82a2dbcd0cfa02"
+  },
+  {
+   "path": ".build/wheelhouse-316t/joblib-1.6.0-py3-none-any.whl",
+   "bytes": 306144,
+   "sha256": "d49407c06366a3504102ae82ec7d4889656f883ae03110dcce2280eb28fe5d61"
+  },
+  {
+   "path": ".build/wheelhouse-316t/markupsafe-3.0.4-cp316-cp316t-win_amd64.whl",
+   "bytes": 14461,
+   "sha256": "7e02caba7c1c11d1606f2b7980e9e9929844483eee7d80f2c344d35ff7752a3d"
+  },
+  {
+   "path": ".build/wheelhouse-316t/narwhals-2.28.0-py3-none-any.whl",
+   "bytes": 490591,
+   "sha256": "7fe627ebc7a361936e27edefc674e11c073ef6f26f4e38ba17b8aa50930735fb"
+  },
+  {
+   "path": ".build/wheelhouse-316t/numpy-2.5.4-cp316-cp316t-win_amd64.whl",
+   "bytes": 6666670,
+   "sha256": "d92052e1228e180260bbf11c4e597601ca48a46893e9f429e4d21f36bc99298f"
+  },
+  {
+   "path": ".build/wheelhouse-316t/pillow-13.0.0-cp316-cp316t-win_amd64.whl",
+   "bytes": 791948,
+   "sha256": "517d387a2a20f0865b88be813a62c3e8e33e0350aa0d8bf0d448979f4b245180"
+  },
+  {
+   "path": ".build/wheelhouse-316t/psutil-7.2.2-cp316-cp316t-win_amd64.whl",
+   "bytes": 139728,
+   "sha256": "e051e2fb9eaa72f7ca563944d0f27a88a0ed86320d0910b07bedd74554af0fb3"
+  },
+  {
+   "path": ".build/wheelhouse-316t/reportlab-5.1.0-py3-none-any.whl",
+   "bytes": 2018647,
+   "sha256": "59fdbaec5efe437095ad1d7292ec9a271c8ca2d3ec75e889c6e61400929b90df"
+  },
+  {
+   "path": ".build/wheelhouse-316t/scikit_learn-1.9.1-cp316-cp316t-win_amd64.whl",
+   "bytes": 7894055,
+   "sha256": "1470fcec90f802e70ea019871f2c070434f43ef22a812edf962660a9e3342aea"
+  },
+  {
+   "path": ".build/wheelhouse-316t/scipy-1.18.1-cp316-cp316t-win_amd64.whl",
+   "bytes": 157257498,
+   "sha256": "9981936db6402de7b0447b6a83fc47ea7db62cd0c28b2bed83ab87e74222ddb6"
+  },
+  {
+   "path": ".build/wheelhouse-316t/threadpoolctl-3.8.0-py3-none-any.whl",
+   "bytes": 32130,
+   "sha256": "8869fe64f05bc9e8f7e721404a23c94197b89a3f72834169f7e6d61213d3cc06"
+  },
+  {
+   "path": ".build/artifacts/artifacts-manifest.json",
+   "bytes": 861,
+   "sha256": "c2d65db66d2a54a105157f024c212c3712cb9708530525075fa41833f53ab3cb"
+  },
+  {
+   "path": ".build/artifacts/hello316.exe",
+   "bytes": 9728,
+   "sha256": "73551cb61ced2d79626d621ddce11a1cdad0aa21b297a0be711df8ac98059f6c"
+  },
+  {
+   "path": ".build/artifacts/wheelhouse-2026-11-06.zip",
+   "bytes": 29475850,
+   "sha256": "10e77b58d0bfd5ac37abd790054aa3041d8db6f6bb22f87a7ebe24d5d2f4da2d"
+  },
+  {
+   "path": ".build/artifacts/wheelhouse-manifest.pdf",
+   "bytes": 2418,
+   "sha256": "bbb32ab5aa5f3b1c8912f30e8ee9e83c40f27a5a5df5e5d797558b73c2c063ea"
+  },
+  {
+   "path": ".build/oxenford-adopt.py",
+   "bytes": 21112,
+   "sha256": "9718d0afdca5db582abc474a4639805aa56eb77ca52518ffdbc38f1ddde03f4d"
+  },
+  {
+   "path": ".build/oxenford-difftest.py",
+   "bytes": 3758,
+   "sha256": "b6cd187933e899189e157337c78dd2d9ae9b325e9307ea8bd1998c6a021ca88f"
+  },
+  {
+   "path": ".build/oxenford-forge.py",
+   "bytes": 8731,
+   "sha256": "d912279550778ae7a379e825f82b6fb78a322c1cccff8bd8fe638244b29fd182"
+  },
+  {
+   "path": ".build/oxenford-install.py",
+   "bytes": 3199,
+   "sha256": "cdddc486bd64f5e2892e8b7d8703f4e8de67f5ea6f287ccf6acab841119b5ea1"
+  },
+  {
+   "path": ".build/oxenford-proffer.py",
+   "bytes": 8745,
+   "sha256": "3813a96737156795cb2485d2cb92578e2250320db3c76ab65ba1fe54d99e6f20"
+  },
+  {
+   "path": ".build/oxenford-upstream-drafts.py",
+   "bytes": 2391,
+   "sha256": "43fcccdee2b5b75f808a2109d8301177b40f897b12059f8dea31489ee93c1187"
+  },
+  {
+   "path": ".build/adopt-recipes.json",
+   "bytes": 14466,
+   "sha256": "bbb7e5ccd2d72dd14eb499a563e495f29c4f190609ccc44c3e85bc11553af64b"
+  },
+  {
+   "path": ".build/oxenford-upstream/cffi-316-pyfilesystemdefaultencoding.patch",
+   "bytes": 1370,
+   "sha256": "5b5013becb3d4576b60bc514b34e80ccbd07bab09be2e9071e09262a6351949d"
+  },
+  {
+   "path": ".build/oxenford-upstream/cloudpickle-3.1.2-oxenford.patch",
+   "bytes": 874,
+   "sha256": "eb392f0df4c36dbdf0030c02b4130b934c65bc945e4ac276a86b3bdc3b06e986"
+  },
+  {
+   "path": ".build/oxenford-upstream/cloudpickle-312-py316-opmap.patch",
+   "bytes": 880,
+   "sha256": "e4ea96562e29c45809e9f8ab2d46992244c0a0eb184bfd73c194648e230c858d"
+  },
+  {
+   "path": ".build/oxenford-upstream/joblib-1.6.0-oxenford.patch",
+   "bytes": 203,
+   "sha256": "d94cf3f36a507bc28b01b7706fddab5474f478edd396842096e082eb6188d26b"
+  },
+  {
+   "path": ".build/oxenford-upstream/pillow-131-manifest-prune.patch",
+   "bytes": 464,
+   "sha256": "7f7f18e4278f337e22974060cbdecc2626a82955351b8c8580376d57ec610a42"
+  },
+  {
+   "path": ".build/cloudpickle-wheel.log",
+   "bytes": 1073,
+   "sha256": "3dabc22f80520307bfa0d2ed52a79c68a2f55c38f64622aefe1fd32650667b0e"
+  },
+  {
+   "path": ".build/joblib-wheel.log",
+   "bytes": 905,
+   "sha256": "69c3a21f82c1639e71825aaee371d3f3561cb8180a01101c79ded1b2b4d86faf"
+  },
+  {
+   "path": ".build/markupsafe-wheel.log",
+   "bytes": 938,
+   "sha256": "66a56af34cab8fc18b8ddb9aa4c30375acc7e2033488c128c7fbe69ca7e74d3e"
+  },
+  {
+   "path": ".build/narwhals-wheel.log",
+   "bytes": 918,
+   "sha256": "ea8f169b8e778e92ba92d6ec0b8625a4ea90ff1c78ebf2229375f0e4b5b4e3ba"
+  },
+  {
+   "path": ".build/numpy-wheel.log",
+   "bytes": 791,
+   "sha256": "64a469b7b5ed5b2d29acc3e6c3dad5be58958c24b4f3dcdbd33f654f39bafc90"
+  },
+  {
+   "path": ".build/pillow-wheel.log",
+   "bytes": 862,
+   "sha256": "d33e03949726868c47ee5420adf348eedfa22527c5b38be2226b4f912bf7c94e"
+  },
+  {
+   "path": ".build/scikit-learn-wheel.log",
+   "bytes": 952,
+   "sha256": "a893da597081c21d0f165d5c74b20707b0155f52953e6c735b63cc2f8c6170e2"
+  },
+  {
+   "path": ".build/scipy-wheel.log",
+   "bytes": 970,
+   "sha256": "5634eb8528e5dab1afc2bb5163923b79eb730c49f6f44c4de60ad5e4a74f4570"
+  },
+  {
+   "path": ".build/threadpoolctl-wheel.log",
+   "bytes": 946,
+   "sha256": "f4b59f5bbe467ae3ee5d5a435b249bef297658d415d3e233e5997a9b437b327e"
+  },
+  {
+   "path": ".build/scipy-ninja.log",
+   "bytes": 100184,
+   "sha256": "8518ef261962abfaa98cc0afea640927a34acf0a392d7f80313b703c0c3c98a6"
+  },
+  {
+   "path": ".build/py316t-explore-live.log",
+   "bytes": 16900,
+   "sha256": "409f63c27b9ad3d414e71bcf9052ab0478f44149b2444891f13542b56fb1d63c"
+  }
+ ]
+}

@@ -48,7 +48,7 @@ Do **not** read this as "the restore was wrong". The restore recovered a real, c
 | `CITATION.cff` | governance | CFF 1.2.0, Apache-2.0, v0.1.0, released 2026-11-01, 4 references. No `repository-code`/`url` — deliberate, commented as "a citation file that points at a URL nobody has reserved is worse than one that says it will be added." |
 | `LICENSE` | governance | Apache License 2.0, full text. |
 | `NOTICE` | governance | Names Project ELIZA + Apache-2.0; attributes the *name* to Weizenbaum 1966 with "No code from that program is included here"; states the corpus is invented utterances. |
-| `PUBLIC_MANIFEST.json` | governance/machine | The allowlist: `ship_roots: ["Project_ELIZA"]`, ~45 `ship` entries, 14 `never_ship` globs, 6 `deny_substrings`. |
+| `PUBLIC_MANIFEST.json` | governance/machine | The allowlist: `ship_roots: ["Project_ELIZA"]`, ~45 `ship` entries, 14 `never_ship` globs, 6 `deny_substrings`. Counted here on 2026-11-02; re-measured at `ff04f606` (2026-11-14) the same file reads **50 / 31 / 6** (`json.load(...)[k].__len__()`), the growth being later lanes' declarations rather than a rewrite of the 14. |
 | `MANIFEST_NOTES.md` | docs | Why allowlist-not-denylist; why files are copied not moved; why imports are rewritten. |
 | `DISCLOSURE_POLICY.md` | governance | The line: "The method ships. The case does not." Six never-publish classes with reasons. |
 | `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` | governance | Community files; CONTRIBUTING carries the negative-control rule. |

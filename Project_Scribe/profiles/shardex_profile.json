@@ -1,0 +1,441 @@
+{
+  "project_name": "Project SHARDEX",
+  "project_description": "Mirror a codebase, shatter it into content-addressed shards, and forge a shard into a FLAME game engine arena. The pipeline runs on Python stdlib (mirror, shatter) with Node+puppeteer+Chrome for the browser forge step. Outputs a deterministic golden-state hash for verification.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_SHARDEX",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_SHARDEX",
+  "team_size": 1,
+  "funding_amount": "$25,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/shardex_pitch.pdf",
+  "prototype_video": "profiles/shardex_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_SHARDEX",
+  "proposal": "profiles/shardex_proposal.md",
+  "budget": "profiles/shardex_budget.xlsx",
+  "timeline": "profiles/shardex_timeline.md",
+  "security_audit": "",
+  "threat_model": "",
+  "adoption_metrics": "",
+  "maintenance_plan": "",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "epic_megagrants": {
+      "max_amount": 150000,
+      "type": "cash_grant",
+      "deadline": "2026-09-04",
+      "priority": "high"
+    },
+    "nlnet": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-03",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "high"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "medium"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ospo": {
+      "max_amount": 750000,
+      "type": "cash_grant",
+      "deadline": "loi_cycle",
+      "priority": "medium"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "high"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "high"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "high"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "medium"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "low"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "medium"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "high"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "low"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "epic_megagrants": {
+      "project_description": "Open-source pipeline to mirror/shatter/forge game code into a playable FLAME engine arena. Advances the open-source 3D graphics ecosystem with content-addressed shards and deterministic golden-state verification.",
+      "equipment_budget": "25000",
+      "equipment_justification": "Hyper-Edge DEV box: 1\u00c3\u2014 RTX 4090 (24GB) for CUDA kernel dev + 1\u00c3\u2014 A100 80GB (cloud burst) for LLM training + 256GB DDR5 + 8TB NVMe. Epic MegaGrants max equipment $25K covers GPU compute for SHARDEX/FLAME pipeline.",
+      "requested_amount": "150000"
+    },
+    "nlnet": {
+      "project_description": "Open-source tooling for code mirroring, content-addressed sharding, and deterministic game engine forging. Stdlib-only core with optional browser forge. Advances open internet infrastructure for game development.",
+      "call": "Open_Call",
+      "project": "Project SHARDEX",
+      "website": "https://github.com/myzticalbabe/azazael/tree/main/Project_SHARDEX",
+      "website2": "",
+      "website3": "",
+      "website4": "",
+      "abstract": "SHARDEX mirrors a codebase, shatters it into content-addressed shards, and forges a shard into a FLAME game engine arena. The pipeline runs on Python stdlib (mirror, shatter) with Node+puppeteer+Chrome for the browser forge step. Outputs a deterministic golden-state hash for verification.",
+      "amount": "50000",
+      "equipment_budget": "15000",
+      "equipment_justification": "Hyper-Edge DEV box: 1\u00c3\u2014 RTX 4090 (24GB) + 128GB DDR5 + 4TB NVMe. NLnet NGI0 allows \u00e2\u201a\u00ac50K total; \u00e2\u201a\u00ac15K equipment for deterministic build verification pipeline.",
+      "use": "Game developers can use SHARDEX to port existing codebases to the FLAME engine, enabling cross-platform deployment and deterministic replay.",
+      "comparison": "Unlike existing game porting tools, SHARDEX uses content-addressed sharding for deterministic, verifiable builds. The golden-state hash provides mathematical proof of correctness.",
+      "challenges": "The browser forge step requires Node+puppeteer+Chrome which adds complexity. Ensuring deterministic output across platforms requires careful handling of floating-point and timing.",
+      "ecosystem": "SHARDEX integrates with the FLAME engine and FLAMING SWORD code quality tools. It advances the open-source game development ecosystem.",
+      "experience": "The team has built multiple game engines and code analysis tools. The Azazael tree includes forensic investigation, code quality, and game engine projects.",
+      "otherfunding": "No other funding currently. This would be the first dedicated grant for SHARDEX development.",
+      "requestor": "Clint Oxford",
+      "email": "clintonoxford47@gmail.com",
+      "pgp": "",
+      "phone": "",
+      "organization": "Azazael",
+      "country": "US",
+      "used_ai": "I have used generative AI in writing this proposal",
+      "ai_prompt": "Used AI for code generation assistance in the shard transubstantiation pipeline and golden-state verification logic.",
+      "codebase_used_ai": "yes",
+      "entity": "Individual"
+    },
+    "github_secure_oss": {
+      "project_description": "Security-focused supply chain: content-addressed sharding prevents supply chain attacks; deterministic golden-state hashes enable reproducible builds.",
+      "equipment_budget": "10000",
+      "equipment_justification": "Hyper-Edge DEV box: RTX 4090 (24GB) for SBOM signing + SLSA build verification. GitHub Secure OSS Fund covers security tooling compute.",
+      "requested_amount": "10000"
+    },
+    "github_accelerator": {
+      "project_description": "10-week accelerator for SHARDEX/FLAME. AI-native open-source game engine tooling on GitHub.",
+      "requested_amount": "40000",
+      "equipment_budget": "15000",
+      "equipment_justification": "GitHub Copilot + Azure AI credits for AI-assisted transubstantiation pipeline development."
+    },
+    "google_cloud_research": {
+      "project_description": "Research compute for SHARDEX golden-state verification pipeline and FLAME engine benchmarking.",
+      "requested_amount": "5000"
+    },
+    "google_startups_ai": {
+      "project_description": "AI-first startup building open-source game engine tooling (SHARDEX/FLAME). Content-addressed sharding enables deterministic, verifiable builds.",
+      "requested_amount": "350000",
+      "equipment_budget": "100000",
+      "equipment_justification": "Hyper-Edge DEV cluster: 4\u00c3\u2014 A100 80GB + 512GB DDR5 + 16TB NVMe for distributed shard processing and FLAME engine CI/CD."
+    },
+    "aws_activate": {
+      "project_description": "SHARDEX/FLAME open-source game engine pipeline on AWS. Content-addressed sharding for reproducible builds.",
+      "requested_amount": "200000",
+      "equipment_budget": "50000",
+      "equipment_justification": "AWS P4de instances (A100 80GB) for shard transubstantiation pipeline. 30,000 GPU-hours for CI/CD golden-state verification."
+    },
+    "microsoft_startups": {
+      "project_description": "SHARDEX/FLAME on Azure. GitHub Codespaces + Azure AI for contributor onboarding and verification.",
+      "requested_amount": "150000",
+      "equipment_budget": "50000",
+      "equipment_justification": "Azure NDv4 (A100) for distributed shard processing. GitHub Codespaces integration."
+    },
+    "cloudflare_startups": {
+      "project_description": "SHARDEX edge deployment: Workers for shard mirroring, D1 for shard metadata, R2 for shard storage.",
+      "requested_amount": "350000",
+      "equipment_budget": "50000",
+      "equipment_justification": "Workers AI ($50K) for edge inference. R2 ($10K) for shard distribution. KV for indexing."
+    },
+    "czi_eoss": {
+      "project_description": "SHARDEX as essential open-source tool for scientific code analysis. Content-addressed sharding enables reproducible computational research.",
+      "requested_amount": "200000"
+    },
+    "openscience_fund": {
+      "project_description": "Track 2: Foundational libraries. SHARDEX content-addressed sharding is cross-cutting infrastructure for AI-ready code analysis.",
+      "requested_amount": "1000000",
+      "equipment_budget": "200000",
+      "equipment_justification": "Distributed shard processing cluster: 8\u00c3\u2014 A100 80GB + 1TB DDR5 + 32TB NVMe for OS4LS Track 2 foundational library development."
+    },
+    "sloan_ospo": {
+      "project_description": "Institutional support for SHARDEX open-source program office. Mirrors, shatters, forges code for research reproducibility.",
+      "requested_amount": "750000"
+    },
+    "sloan_ai_science": {
+      "project_description": "AI in Science: SHARDEX golden-state hashes enable verifiable computational experiments. FLAME engine for reproducible simulation.",
+      "requested_amount": "400000",
+      "equipment_budget": "100000",
+      "equipment_justification": "A100 cluster for AI-assisted transubstantiation pipeline. Verifiable compute for scientific reproducibility."
+    },
+    "nvidia_academic": {
+      "project_description": "AI Training: SHARDEX transubstantiation pipeline using NVIDIA Nemotron. FLAME engine inference on DGX Sparks.",
+      "requested_amount": "30000_h100_hrs",
+      "equipment_budget": "0",
+      "equipment_justification": "30,000 H100 80GB GPU-hours for SHARDEX transubstantiation + FLAME engine training. 2\u00c3\u2014 DGX Sparks for inference."
+    },
+    "nvidia_inception": {
+      "project_description": "SHARDEX/FLAME open-source pipeline. NVIDIA Inception for preferred pricing and cloud credits.",
+      "requested_amount": "free_credits"
+    },
+    "aws_activate_ai": {
+      "project_description": "AI-startup track: SHARDEX/FLAME on AWS. Content-addressed sharding for reproducible AI workloads.",
+      "requested_amount": "200000+",
+      "equipment_budget": "100000",
+      "equipment_justification": "AWS Trainium/Inferentia for shard processing. EC2 P5 (H100) for FLAME engine benchmarking."
+    },
+    "google_startups": {
+      "project_description": "SHARDEX/FLAME on GCP. Vertex AI for golden-state verification. TPU v5e for shard transubstantiation.",
+      "requested_amount": "350000",
+      "equipment_budget": "100000",
+      "equipment_justification": "TPU v5e pods for content-addressed shard processing. Vertex AI pipelines for FLAME engine CI/CD."
+    },
+    "ai_grant_oss": {
+      "project_description": "No-strings grant for open-source AI: SHARDEX content-addressed sharding enables verifiable, reproducible AI workloads.",
+      "requested_amount": "50000"
+    },
+    "raais_foundation": {
+      "project_description": "Open-source AI for common good: SHARDEX deterministic builds advance trustworthy AI infrastructure.",
+      "requested_amount": "3_month_grant"
+    },
+    "prototype_fund": {
+      "project_description": "SHARDEX prototype: mirror \u00e2\u2020\u2019 shatter \u00e2\u2020\u2019 forge pipeline. Open-source game engine tooling for reproducible builds.",
+      "requested_amount": "95000",
+      "equipment_budget": "30000",
+      "equipment_justification": "Prototype Fund \u00e2\u201a\u00ac95K/6mo: RTX 4090 + A100 cloud for SHARDEX transubstantiation pipeline development."
+    },
+    "amazon_security": {
+      "project_description": "FLAMING SWORD security sweep + SHARDEX supply-chain integrity via content-addressed sharding. Amazon Security Research alignment.",
+      "requested_amount": "80000",
+      "equipment_budget": "20000",
+      "equipment_justification": "AWS credits for SBOM signing, SLSA verification, and golden-state hash verification pipeline."
+    },
+    "catalyst_fund": {
+      "project_description": "Research Software Catalyst: SHARDEX trustworthy AI-assisted code analysis via deterministic shard processing.",
+      "requested_amount": "50000"
+    },
+    "opensats": {
+      "project_description": "SHARDEX Bitcoin integration: content-addressed shards for Bitcoin codebase mirroring and deterministic verification.",
+      "requested_amount": "rolling"
+    },
+    "humanity_ai": {
+      "project_description": "Community-led AI: SHARDEX open-source pipeline for community-governed game engine development.",
+      "requested_amount": "1000000"
+    },
+    "unicef_venture": {
+      "project_description": "SHARDEX educational deployment: deterministic game engine for STEM education in underserved regions.",
+      "requested_amount": "100000"
+    },
+    "wellcome_trust": {
+      "project_description": "SHARDEX for computational reproducibility in biomedical research. Golden-state hashes for verifiable compute.",
+      "requested_amount": "large"
+    },
+    "open_science_nl": {
+      "project_description": "Open Science NL: SHARDEX open-source tooling for reproducible computational research in Dutch institutions.",
+      "requested_amount": "15000"
+    },
+    "charted_fund": {
+      "project_description": "CHARTED Fund: SHARDEX dev tools for UK research software engineers. Content-addressed sharding for reproducibility.",
+      "requested_amount": "12500"
+    },
+    "ukomain": {
+      "project_description": "UK Open Multimodal AI Benchmark: SHARDEX content-addressed shards for multimodal game engine evaluation.",
+      "requested_amount": "50000",
+      "equipment_budget": "15000",
+      "equipment_justification": "UKOMAIN \u00c2\u00a350K: RTX 4090 + A100 for multimodal FLAME engine evaluation benchmark."
+    },
+    "linux_australia": {
+      "project_description": "Linux Australia: SHARDEX open-source game engine tooling for Australian developer community.",
+      "requested_amount": "varies"
+    },
+    "freecad_grant": {
+      "project_description": "FreeCAD Grant: SHARDEX CAD integration. Content-addressed shards for parametric model versioning.",
+      "requested_amount": "10000"
+    },
+    "anthropic_claude": {
+      "project_description": "Claude Corps: SHARDEX/FLAME development with AI-assisted coding for transubstantiation pipeline.",
+      "requested_amount": "fellow_plus_10k"
+    },
+    "schmidt_ai_fellowship": {
+      "project_description": "Schmidt AI Fellowship: SHARDEX postdoc for content-addressed sharding in scientific computing.",
+      "requested_amount": "fellowship"
+    },
+    "openai_researcher": {
+      "project_description": "OpenAI Researcher Access: SHARDEX golden-state verification using GPT-4 for code analysis.",
+      "requested_amount": "api_credits"
+    },
+    "anthropic_academic": {
+      "project_description": "Anthropic Academic: SHARDEX/FLAME with Claude for transubstantiation pipeline code generation.",
+      "requested_amount": "api_credits"
+    }
+  },
+  "project": "Project SHARDEX",
+  "amount": "25000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

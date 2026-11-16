@@ -1,0 +1,12 @@
+{
+  "program": "GitHub Secure Open Source Fund",
+  "program_key": "github_secure_oss",
+  "url": "https://github.com/securitylab/secure-open-source-fund",
+  "method": "github_issue",
+  "generated_at": "2026-11-03 13:28:24",
+  "profile": "Project SHARDEX",
+  "fields": {
+    "project_description": "Mirror a codebase, shatter it into content-addressed shards, and forge a shard into a FLAME game engine arena. The pipeline runs on Python stdlib (mirror, shatter) with Node+puppeteer+Chrome for the browser forge step. Outputs a deterministic golden-state hash for verification.",
+    "contact_email": "clintonoxford47@gmail.com"
+  }
+}

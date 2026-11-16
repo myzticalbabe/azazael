@@ -1,8 +1,8 @@
 # coding: utf-8
 """META / META/METAWORMS_ENRICHED.py :: Colors -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux META/METAWORMS_ENRICHED.py (class Colors, 1103 lines in the module, 14 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux META/METAWORMS_ENRICHED.py (class Colors, 1120 lines in the module, 24 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:META/METAWORMS_ENRICHED.py#Colors"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no

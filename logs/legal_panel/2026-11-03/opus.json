@@ -1,0 +1,12 @@
+{
+  "seat": "opus",
+  "provider": "Anthropic via OpenRouter",
+  "model": "anthropic/claude-opus-5.5",
+  "angle": "zero-shot appellate bench",
+  "status": "failed",
+  "error": "HTTP 402: {\"error\":{\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 1400 tokens, but can only afford 247. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\",\"code\":402,\"metadata\":{\"limit_source\":\"openrouter_credits\",\"remedy_hint\":\"A",
+  "seconds": 0.5,
+  "attempts": 1,
+  "raw": "",
+  "parsed": null
+}

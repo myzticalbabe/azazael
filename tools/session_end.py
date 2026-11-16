@@ -41,7 +41,7 @@ def _pams_record(content: str, role: str, session_id: str,
         print(f"   pams conversations record SKIPPED ({exc})")
 
 
-PY315T = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+PY316T = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
 
 
 def _pams_close_delegated(record: str, role: str, session_id: str,

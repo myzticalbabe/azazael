@@ -50,6 +50,12 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where, exc=None):
+        pass  # ledger missing; the swallow is still named at the call site
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -98,6 +104,23 @@ def family_for(provider: str) -> str:
     return FAMILIES.get(provider, "unlabelled")
 
 
+def retired_reason(cfg: Any) -> str:
+    """Why a declared provider cannot answer, or '' when it still can.
+
+    The registry keeps a retired endpoint so the history is not lost (github,
+    shut down 2026-07-30). Keeping the record is right; offering it as a
+    reviewer is not -- a configured GITHUB_TOKEN made it eligible, and the
+    review would then fail on the wire and read as "provider error" instead of
+    the truth, which is that nothing is there. `providers.py` already refuses
+    it inside chat(); this refuses it before a call is spent.
+    """
+    if not isinstance(cfg, dict) or not cfg.get("retired", False):
+        return ""
+    detail = str(cfg.get("retired_reason", "") or "no reason recorded")
+    date = str(cfg.get("retired_date", "") or "date unrecorded")
+    return f"retired {date}: {detail}"
+
+
 def candidates(author_provider: str) -> List[Dict[str, Any]]:
     """Configured providers whose family differs from the author's."""
     p = _providers()
@@ -109,12 +132,14 @@ def candidates(author_provider: str) -> List[Dict[str, Any]]:
             configured = bool(p.provider_credential_configured(name))
         except Exception:
             configured = False
+        retired = retired_reason(cfg)
         out.append({
             "provider": name,
             "family": fam,
             "configured": configured,
+            "retired": retired,
             "model": getattr(cfg, "model", "") or "",
-            "eligible": configured and fam != author_family,
+            "eligible": configured and fam != author_family and not retired,
         })
     return out
 
@@ -159,10 +184,13 @@ def review(text: str, args) -> Dict[str, Any]:
     if args.provider:
         chosen = next((c for c in pool if c["provider"] == args.provider), None)
         if chosen is None:
-            reason = ("not configured" if not any(
-                c["provider"] == args.provider and c["configured"] for c in
-                candidates(author)) else
-                f"same family as author ({family_for(args.provider)})")
+            named = [c for c in candidates(author) if c["provider"] == args.provider]
+            if named and named[0].get("retired"):
+                reason = named[0]["retired"]
+            elif not any(c["configured"] for c in named):
+                reason = "not configured"
+            else:
+                reason = f"same family as author ({family_for(args.provider)})"
             return {"status": "refused", "reason": f"{args.provider}: {reason}",
                     "author_provider": author}
     else:
@@ -196,13 +224,6 @@ def review(text: str, args) -> Dict[str, Any]:
         row.update({"status": "error", "error": f"{type(exc).__name__}: {exc}"})
         _append_log(row)
         return row
-
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where, exc=None):
-        pass  # ledger missing; the swallow is still named at the call site
 
     if not isinstance(resp, dict) or resp.get("error"):
         row.update({"status": "error",
@@ -301,8 +322,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"declared: {len(rows)}  configured: {sum(1 for r in rows if r['configured'])}"
               f"  eligible as reviewer: {len(elig)}")
         for r in rows:
-            mark = "ELIGIBLE" if r["eligible"] else (
-                "same-family" if r["configured"] else "unconfigured")
+            mark = ("RETIRED" if r.get("retired") else
+                    "ELIGIBLE" if r["eligible"] else
+                    "same-family" if r["configured"] else "unconfigured")
             print(f"  {r['provider']:18} {r['family']:13} {mark}")
         return 0 if elig else 1
 

@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-PY = Path(r"C:\Azazael\.venvs\py315t\Scripts\python.exe")
+PY = Path(r"C:\Azazael\.venvs\py316t\Scripts\python.exe")
 FAST = [
     "tests/test_config_and_breaker.py",
     "tests/test_boruta_relevance.py",

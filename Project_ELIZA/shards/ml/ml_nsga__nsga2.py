@@ -1,8 +1,8 @@
 # coding: utf-8
 """ML / ML/nsga.py :: NSGA2 -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ML/nsga.py (class NSGA2, 190 lines in the module, 6 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ML/nsga.py (class NSGA2, 199 lines in the module, 8 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ML/nsga.py#NSGA2"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ML/nsga.py#NSGA2"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

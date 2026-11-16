@@ -5,10 +5,19 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+REPO_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 import numpy as np
 import pytest
+
+# Skip torch tests if not available
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
 
 
 def test_engine_init_no_cache():
@@ -146,6 +155,7 @@ def test_engine_single_infer_gguf():
     e.shutdown()
 
 
+@pytest.mark.skipif(not HAS_TORCH, reason="torch not installed")
 def test_engine_single_infer_torch():
     from eve_unleashed.engine import InferenceEngine
     import torch

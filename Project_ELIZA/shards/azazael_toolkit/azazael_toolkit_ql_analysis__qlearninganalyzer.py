@@ -1,8 +1,8 @@
 # coding: utf-8
 """AZAZAEL_TOOLKIT / AZAZAEL_TOOLKIT/QL_ANALYSIS.py :: QLearningAnalyzer -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux AZAZAEL_TOOLKIT/QL_ANALYSIS.py (class QLearningAnalyzer, 543 lines in the module, 5 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux AZAZAEL_TOOLKIT/QL_ANALYSIS.py (class QLearningAnalyzer, 594 lines in the module, 15 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:AZAZAEL_TOOLKIT/QL_ANALYSIS.py#QLearningAnalyzer"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:AZAZAEL_TOOLKIT/QL_ANALYSIS.py#QLearningAnalyzer"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

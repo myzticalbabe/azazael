@@ -1,8 +1,8 @@
 # coding: utf-8
 """UTILITIES / UTILITIES/TARBABY/TARBABY.py :: PythonVersion -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux UTILITIES/TARBABY/TARBABY.py (class PythonVersion, 530 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux UTILITIES/TARBABY/TARBABY.py (class PythonVersion, 541 lines in the module, 14 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:UTILITIES/TARBABY/TARBABY.py#PythonVersion"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:UTILITIES/TARBABY/TARBABY.py#PythonVersion"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

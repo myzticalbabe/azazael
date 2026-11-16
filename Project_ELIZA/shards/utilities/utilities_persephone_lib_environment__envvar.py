@@ -1,8 +1,8 @@
 # coding: utf-8
 """UTILITIES / UTILITIES/PERSEPHONE/lib/environment.py :: EnvVar -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux UTILITIES/PERSEPHONE/lib/environment.py (class EnvVar, 98 lines in the module, 2 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux UTILITIES/PERSEPHONE/lib/environment.py (class EnvVar, 108 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:UTILITIES/PERSEPHONE/lib/environment.py#EnvVar"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:UTILITIES/PERSEPHONE/lib/environment.py#EnvVar"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

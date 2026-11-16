@@ -65,6 +65,13 @@ def _run_foreground(full_cmd: str) -> int:
 
     The child gets its own process group so the interrupt reaches the tree, not just
     the shell that owns it -- and that is the only bound this dispatcher declares.
+
+    EXEMPTION (dated 2026-11-06): no timeout can be expressed here because the
+    target's lifetime is the operator's, not a deadline. A watchdog thread would
+    kill a legitimately long-running process; SIGTERM forwarding is already handled
+    by the process-group mechanism (Ctrl-C reaches the tree). Lifting this
+    exemption would require a --timeout flag opt-in, which changes the CLI contract.
+    Reviewed: this is a foreground interactive dispatcher, not a batch worker.
     """
     kwargs = {}
     if sys.platform == "win32":

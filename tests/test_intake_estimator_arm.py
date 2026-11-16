@@ -12,11 +12,18 @@ contract hermetically (FakeStore, no live store):
 """
 import sys
 from pathlib import Path
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 for _p in (ROOT / "src", ROOT / "scripts"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
+
+try:
+    import sklearn
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
 
 from CORE.training_intake import build_training_records  # noqa: E402
 from CORE.WORMS.expansion.learning_features import (  # noqa: E402
@@ -53,6 +60,7 @@ def _arm(records):
             "error": "single-class pool (%d rows)" % len(y)}
 
 
+@pytest.mark.skipif(not HAS_SKLEARN, reason="sklearn not installed")
 def test_mixed_pool_yields_agreement(monkeypatch):
     import CORE.training_intake as ti
     # NOTE: the extractor labels info/warning as 1.0 (warning = near-miss, not

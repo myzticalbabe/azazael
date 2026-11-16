@@ -1,0 +1,10 @@
+{
+  "project": "Project Scribe",
+  "paradigm": "OXENFORD v1 — Project_Oxenford/OXENFORD.md",
+  "registry": "data/grant_portals.json",
+  "tool": "tools/portal_census.py",
+  "census": "data/discovered_programs.json",
+  "runtime": "scribe.py",
+  "docs": "docs/SCRIBE_EVOLUTION_2026-11-03.md",
+  "_note": "census names the artifact the runtime actually reads. The human-readable report of the same run is data/portal_census.json; its log is logs/portal_census_<ts>.log."
+}

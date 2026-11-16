@@ -259,6 +259,10 @@ class Probe:
     tools: int = 0
     ms: int = 0
     stderr: str = ""
+    #: The tool NAMES, not just the count. A caller asking "does this server
+    #: expose the tools my surface needs" cannot answer from a number, and a
+    #: count that cannot be checked is the reading HED-9 calls denominator-free.
+    tool_names: List[str] = field(default_factory=list)
 
 
 def _initialize_payload() -> dict:
@@ -374,7 +378,9 @@ def probe_stdio(cmd: Sequence[str], cwd: Optional[str] = None,
         tools = ((frame.get("result") or {}).get("tools")) or []
         name = info.get("name") or Path(str(cmd[0])).name
         return Probe(True, "%s, %d tool(s)" % (name, len(tools)),
-                     tools=len(tools), ms=init_ms)
+                     tools=len(tools), ms=init_ms,
+                     tool_names=[str(t.get("name")) for t in tools
+                                 if isinstance(t, dict) and t.get("name")])
     finally:
         try:
             if proc.poll() is None:

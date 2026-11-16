@@ -1,0 +1,12 @@
+{
+  "seat": "mistral",
+  "provider": "Mistral",
+  "model": "mistral-small-latest",
+  "angle": "EU law and data protection",
+  "status": "failed",
+  "error": "HTTP 429: {\"object\":\"error\",\"message\":\"Rate limit exceeded\",\"type\":\"rate_limited\",\"param\":null,\"code\":\"1300\",\"raw_status_code\":429}",
+  "seconds": 13.0,
+  "attempts": 2,
+  "raw": "",
+  "parsed": null
+}

@@ -3,6 +3,16 @@ COMPLETE Azazael ECOSYSTEM - ALL SYSTEMS
 Including TWITLER now
 """
 
+from pathlib import Path
+
+try:
+    from CORE.paths import get_desktop_dir
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from CORE.paths import get_desktop_dir
+
+
 COMPLETE_SYSTEMS = {
     "core_systems": {
         "HYDRA": {
@@ -128,7 +138,10 @@ COMPLETE_SYSTEMS = {
 }
 
 
-def generate_rich_html():
+def generate_rich_html(desktop_dir=None):
+    if desktop_dir is None:
+        desktop_dir = get_desktop_dir()
+    
     html = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -396,14 +409,14 @@ def generate_rich_html():
         <div class="footer">
             <h2>ALL 11 SYSTEMS OPERATIONAL</h2>
             <p style="color: #888; margin-top: 15px;">
-                CODEX: C:\\Users\\clint\\Desktop\\CODEX\\comprehensive\\
+                CODEX: {desktop_dir}\\CODEX\\comprehensive\\
             </p>
         </div>
     </div>
 </body>
 </html>
 """
-    return html
+    return html.format(desktop_dir=desktop_dir)
 
 
 def main():

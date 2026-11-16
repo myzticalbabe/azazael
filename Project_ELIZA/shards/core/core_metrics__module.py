@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/metrics.py :: module residual -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/metrics.py (4 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/metrics.py (3 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/metrics.py#module"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,13 +12,13 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/metrics.py#module"
 KIND = "module"
 SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "CORE/metrics.py"
 CLASS_NAME = None
-UNNAMED_CLASSES = 4
+UNNAMED_CLASSES = 3
 TREE = "CORE"
 
 

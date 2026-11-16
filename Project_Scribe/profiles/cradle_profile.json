@@ -1,0 +1,293 @@
+{
+  "project_name": "Project CRADLE",
+  "project_description": "Orchestrates Project FLAMING SWORD's four parts: sword (sweep), defender (defense), sentinel (THE REAPER), memory_bridge (THE GRIMOIRE). Composition, not a fifth part. Reports missing siblings via --doctor.",
+  "project_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE",
+  "github_url": "https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE",
+  "team_size": 1,
+  "funding_amount": "$25,000",
+  "contact_name": "Clint Oxford",
+  "contact_email": "clintonoxford47@gmail.com",
+  "license": "CDDL-1.1",
+  "pitch_deck": "profiles/cradle_pitch.pdf",
+  "prototype_video": "profiles/cradle_demo.mp4",
+  "github_repo": "https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE",
+  "proposal": "profiles/cradle_proposal.md",
+  "budget": "profiles/cradle_budget.xlsx",
+  "timeline": "profiles/cradle_timeline.md",
+  "security_audit": "",
+  "threat_model": "",
+  "adoption_metrics": "",
+  "maintenance_plan": "",
+  "budget_breakdown": "",
+  "milestones": "",
+  "funding_targets": {
+    "epic_megagrants": {
+      "max_amount": 150000,
+      "type": "cash_grant",
+      "deadline": "2026-09-04",
+      "priority": "low"
+    },
+    "nlnet": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-03",
+      "priority": "high"
+    },
+    "github_secure_oss": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "github_accelerator": {
+      "max_amount": 40000,
+      "type": "program+credits",
+      "deadline": "next_cohort",
+      "priority": "low"
+    },
+    "google_cloud_research": {
+      "max_amount": 5000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups_ai": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "aws_activate": {
+      "max_amount": 200000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "microsoft_startups": {
+      "max_amount": 150000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "cloudflare_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "czi_eoss": {
+      "max_amount": 200000,
+      "type": "cash_grant",
+      "deadline": "next_cycle",
+      "priority": "medium"
+    },
+    "openscience_fund": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-05-11",
+      "priority": "high"
+    },
+    "sloan_ospo": {
+      "max_amount": 750000,
+      "type": "cash_grant",
+      "deadline": "loi_cycle",
+      "priority": "high"
+    },
+    "sloan_ai_science": {
+      "max_amount": 400000,
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "nvidia_academic": {
+      "max_amount": "30000_h100_hrs",
+      "type": "gpu_compute",
+      "deadline": "quarterly",
+      "priority": "low"
+    },
+    "nvidia_inception": {
+      "max_amount": "free_credits",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "aws_activate_ai": {
+      "max_amount": "200000+",
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "google_startups": {
+      "max_amount": 350000,
+      "type": "cloud_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "ai_grant_oss": {
+      "max_amount": 50000,
+      "type": "cash_or_compute",
+      "deadline": "rolling",
+      "priority": "high"
+    },
+    "raais_foundation": {
+      "max_amount": "3_month_grant",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "prototype_fund": {
+      "max_amount": 95000,
+      "type": "cash_grant",
+      "deadline": "2026-11-30",
+      "priority": "medium"
+    },
+    "amazon_security": {
+      "max_amount": 80000,
+      "type": "cash_plus_credits",
+      "deadline": "2026-11-11",
+      "priority": "medium"
+    },
+    "catalyst_fund": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-12-31",
+      "priority": "high"
+    },
+    "opensats": {
+      "max_amount": "rolling",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "medium"
+    },
+    "humanity_ai": {
+      "max_amount": 1000000,
+      "type": "cash_grant",
+      "deadline": "2026-10-21",
+      "priority": "low"
+    },
+    "unicef_venture": {
+      "max_amount": 100000,
+      "type": "cash_grant",
+      "deadline": "2026-11-11",
+      "priority": "low"
+    },
+    "wellcome_trust": {
+      "max_amount": "large",
+      "type": "cash_grant",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "open_science_nl": {
+      "max_amount": 15000,
+      "type": "cash_grant",
+      "deadline": "2026-12-10",
+      "priority": "medium"
+    },
+    "charted_fund": {
+      "max_amount": 12500,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "medium"
+    },
+    "ukomain": {
+      "max_amount": 50000,
+      "type": "cash_grant",
+      "deadline": "2026-11-06",
+      "priority": "low"
+    },
+    "linux_australia": {
+      "max_amount": "varies",
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "freecad_grant": {
+      "max_amount": 10000,
+      "type": "cash_grant",
+      "deadline": "2026-11-15",
+      "priority": "low"
+    },
+    "anthropic_claude": {
+      "max_amount": "fellow_plus_10k",
+      "type": "fellowship",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "schmidt_ai_fellowship": {
+      "max_amount": "fellowship",
+      "type": "fellowship",
+      "deadline": "2026-10",
+      "priority": "low"
+    },
+    "openai_researcher": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    },
+    "anthropic_academic": {
+      "max_amount": "api_credits",
+      "type": "api_credits",
+      "deadline": "rolling",
+      "priority": "low"
+    }
+  },
+  "overrides": {
+    "nlnet": {
+      "project_description": "CRADLE orchestrates FLAMING SWORD's four parts (sword, defender, sentinel, memory_bridge). Composition tool, not a fifth part. Reports missing siblings via --doctor.",
+      "call": "NGI0",
+      "website": "https://github.com/myzticalbabe/azazael/tree/main/Project_CRADLE",
+      "abstract": "CRADLE is the composition layer that wires FLAMING SWORD's four parts together and reports missing siblings via --doctor.",
+      "requested_amount": "50000",
+      "equipment_budget": "5000",
+      "equipment_justification": "Minimal: CRADLE is stdlib-only orchestration. RTX 4090 for integration testing.",
+      "use": "Developers run CRADLE to orchestrate FLAMING SWORD sweeps and verify all parts present.",
+      "comparison": "Unlike monolithic tools, CRADLE composes independent parts and fails fast if siblings missing.",
+      "challenges": "Ensuring --doctor correctly detects missing siblings across filesystem layouts.",
+      "ecosystem": "CRADLE + FLAMING SWORD + SHARDEX + FLAME = full pipeline.",
+      "experience": "Team has built orchestration, forensic, code quality, and game engine tools.",
+      "other_funding": "No other funding currently.",
+      "requestor_name": "Clint Oxford",
+      "contact_email": "clintonoxford47@gmail.com",
+      "organization": "Azazael",
+      "country": "US",
+      "used_ai": "true",
+      "ai_prompt": "Used AI for orchestration logic and --doctor sibling detection.",
+      "codebase_used_ai": "true",
+      "entity": "individual"
+    },
+    "github_secure_oss": {
+      "project_description": "Security-focused orchestration: CRADLE verifies FLAMING SWORD parts present and SLSA-verified before sweep execution.",
+      "equipment_budget": "5000",
+      "equipment_justification": "RTX 4090 for SBOM signing of orchestrated sweep artifacts.",
+      "requested_amount": "10000"
+    },
+    "sloan_ospo": {
+      "project_description": "Institutional support for CRADLE orchestration layer. Composition tool for FLAMING SWORD sweeps in research codebases.",
+      "equipment_budget": "10000",
+      "equipment_justification": "RTX 4090 for OSPO integration testing of CRADLE + FLAMING SWORD pipeline.",
+      "requested_amount": "750000"
+    },
+    "catalyst_fund": {
+      "project_description": "Research Software Catalyst: CRADLE trustworthy orchestration of FLAMING SWORD sweeps for reproducible code quality.",
+      "equipment_budget": "5000",
+      "equipment_justification": "RTX 4090 for catalyst validation of orchestration pipeline.",
+      "requested_amount": "50000"
+    },
+    "ai_grant_oss": {
+      "project_description": "No-strings grant for open-source AI: CRADLE composition layer enables verifiable FLAMING SWORD sweep orchestration.",
+      "equipment_budget": "5000",
+      "equipment_justification": "RTX 4090 for AI-assisted orchestration logic verification.",
+      "requested_amount": "50000"
+    }
+  },
+  "project": "Project CRADLE",
+  "amount": "25000",
+  "otherfunding": "",
+  "requestor": "Clint Oxford",
+  "email": "clintonoxford47@gmail.com",
+  "pgp": "",
+  "website2": "",
+  "website3": "",
+  "website4": ""
+}

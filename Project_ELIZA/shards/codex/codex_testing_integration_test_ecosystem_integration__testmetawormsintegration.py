@@ -1,8 +1,8 @@
 # coding: utf-8
 """CODEX / CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py :: TestMetaWormsIntegration -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py (class TestMetaWormsIntegration, 79 lines in the module, 3 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py (class TestMetaWormsIntegration, 92 lines in the module, 4 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py#TestMetaWormsIntegration"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py#TestMetaWormsIntegration"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

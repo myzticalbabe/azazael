@@ -10,16 +10,16 @@ Companion docs: `PROTEUS_DEEP_EXPANSION.md` (design), `EVOLUTION_SOTA_EXPANSION_
 
 ## 1. Landed
 
-| Organ | Module | Replaces | Lines |
+| Organ | Module | Replaces | Lines at 2026-09-12 (now, 2026-11-14) |
 |---|---|---|---|
-| **Morph** | `src/CORE/WORMS/expansion/morph.py` | fixed 4-gene vector | 500 |
-| **Oracle** | `src/CORE/WORMS/expansion/oracle.py` | the "one number" gate | 345 |
-| **Arena** | `src/CORE/WORMS/expansion/arena.py` | the fixed pool | 355 |
-| **Nerve** | `src/CORE/WORMS/expansion/nerve.py` | 4 scalar learner HPs | 340 |
-| **Loom** | `src/CORE/WORMS/expansion/loom.py` | scalar QD coverage | 350 |
-| **Chorus** | `src/CORE/WORMS/expansion/chorus.py` | numeric-only variation | 390 |
-| **Cranium** | `src/CORE/WORMS/expansion/evidence.py` | era-PINNED SPRT | 274 |
-| **Circulation** | `src/CORE/WORMS/expansion/allocation.py` | the fixed `2x` arm gate | 195 |
+| **Morph** | `src/CORE/WORMS/expansion/morph.py` | fixed 4-gene vector | 500 (511) |
+| **Oracle** | `src/CORE/WORMS/expansion/oracle.py` | the "one number" gate | 345 (735) |
+| **Arena** | `src/CORE/WORMS/expansion/arena.py` | the fixed pool | 355 (323) |
+| **Nerve** | `src/CORE/WORMS/expansion/nerve.py` | 4 scalar learner HPs | 340 (410) |
+| **Loom** | `src/CORE/WORMS/expansion/loom.py` | scalar QD coverage | 350 (340) |
+| **Chorus** | `src/CORE/WORMS/expansion/chorus.py` | numeric-only variation | 390 (386) |
+| **Cranium** | `src/CORE/WORMS/expansion/evidence.py` | era-PINNED SPRT | 274 (290) |
+| **Circulation** | `src/CORE/WORMS/expansion/allocation.py` | the fixed `2x` arm gate | 195 (513) |
 | **CPPN** | `src/CORE/WORMS/expansion/cppn.py` | genome-size ceiling | 221 |
 | **Device** | `src/CORE/device.py` | scattered `torch.xpu` probes | 217 |
 

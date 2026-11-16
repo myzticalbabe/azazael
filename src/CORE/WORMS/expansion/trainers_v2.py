@@ -363,7 +363,7 @@ class SB3TrainerV2(HookAwareTrainer):
             from stable_baselines3.common.vec_env import DummyVecEnv
             from stable_baselines3.common.callbacks import BaseCallback
         except ImportError as e:
-            return {"error": f"SB3 not available: {e}", "success": False}
+            return {"error": f"SB3 not available: {e}", "success": False, "worm_id": self.context.worm_id}
 
         self._record("sb3_train_start", {"algo": self._algo, "timesteps": total_timesteps})
 

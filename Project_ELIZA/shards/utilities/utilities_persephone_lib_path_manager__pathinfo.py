@@ -1,8 +1,8 @@
 # coding: utf-8
 """UTILITIES / UTILITIES/PERSEPHONE/lib/path_manager.py :: PathInfo -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux UTILITIES/PERSEPHONE/lib/path_manager.py (class PathInfo, 99 lines in the module, 2 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux UTILITIES/PERSEPHONE/lib/path_manager.py (class PathInfo, 109 lines in the module, 8 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:UTILITIES/PERSEPHONE/lib/path_manager.py#PathInfo"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:UTILITIES/PERSEPHONE/lib/path_manager.py#PathInfo"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

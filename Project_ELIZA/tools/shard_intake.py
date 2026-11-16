@@ -72,7 +72,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = {wired}
 SHARD_ID = "{shard_id}"
 KIND = "{kind}"
 SOURCE_ENVIRONMENT = "kali-linux"
@@ -121,15 +121,28 @@ INDEX_KEYS = ("shard_id", "kind", "tree", "module", "class", "lines",
               "public_api", "unnamed", "path")
 
 
+class AtlasUnavailable(RuntimeError):
+    """The census this gate READS is absent or unreadable -- not drift.
+
+    The atlas lives outside the repo (``~/yggdrasil_forest/atlas_kali-linux.json``,
+    written by ``tools/domain_trees.py`` on the Kali lane), so a host that has
+    never run that census cannot judge the stub surface at all. That state used to
+    arrive as ``SystemExit`` -- exit 1, the same code as real drift -- so the only
+    two available readings were "the stubs are wrong" and "the gate is broken",
+    and the truthful third ("nothing was judged") had no way to be said. It is a
+    separate exception so ``main`` can exit 2: could not perform the run.
+    """
+
+
 def read_atlas(path: Path) -> Dict:
     if not path.is_file():
-        raise SystemExit("atlas not found: %s\n"
-                         "Pass --atlas, or run tools/domain_trees.py on the Kali lane."
-                         % path)
+        raise AtlasUnavailable("atlas not found: %s\n"
+                               "Pass --atlas, or run tools/domain_trees.py on the Kali lane."
+                               % path)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise SystemExit("%s is not valid JSON: %s" % (path, exc))
+        raise AtlasUnavailable("%s is not valid JSON: %s" % (path, exc))
 
 
 def units(atlas: Dict) -> List[Dict]:
@@ -158,11 +171,20 @@ def units(atlas: Dict) -> List[Dict]:
             })
         total = int(meta.get("classes") or 0)
         if total > len(named):
-            # The atlas lists at most six classes per module (52 of 679 exceed it,
-            # holding 143 classes between them). Those classes are in the tree and
-            # reachable from the module, but the atlas never recorded their names,
-            # so they get one residual shard that states the count instead of
-            # fabricated per-class stubs.
+            # The atlas lists at most six classes per module. Measured 2026-11-14
+            # against atlas_kali-linux.json: 141 of 6 928 modules exceed the cap,
+            # holding 520 classes between them (the previous parenthetical here
+            # said "52 of 679", a reading of an atlas one tenth this size). Those
+            # classes are in the tree and reachable from the module, but the atlas
+            # never recorded their names, so they get one residual shard that
+            # states the count instead of fabricated per-class stubs.
+            #
+            # This guard cannot fire when the census under-reports: a module the
+            # census scores `classes: 0` that really defines nine yields NO shard
+            # at all, and `check()` cannot see it because the index and the atlas
+            # are read from the same census. Measured 2026-11-14: one such module
+            # among the 603 with a vendored copy, CODEX/CORE/azazael_pygame.py
+            # (census 0, source 9). Fixing it means re-censusing, not editing here.
             out.append({
                 "shard_id": "kali:%s#module" % module_name,
                 "kind": "module",
@@ -211,6 +233,12 @@ def render_index(entries: Sequence[Dict], atlas: Dict) -> str:
 
 def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
     written = 0
+    # Adoption survives regeneration. WIRED.json is the ledger and it is never
+    # rewritten here, so a --write that emitted WIRED = False for an adopted
+    # shard would put the tree and the ledger into disagreement: measured
+    # 2026-11-14, 1152 of 4085 stubs declare WIRED = True and every one of them
+    # is listed in WIRED.json. Regeneration must reproduce that, not undo it.
+    wired_ids = wired_registry()
     trees = {entry["tree"] for entry in entries}
     # Tree directories are generated wholesale: a shard that left the atlas must
     # not survive as an orphan file a reader can import.
@@ -244,7 +272,8 @@ def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
                            klass_literal=literal, unnamed=entry.get("unnamed", 0),
                            kind=entry["kind"], source=entry["module"],
                            lines=entry["lines"], public_api=entry["public_api"],
-                           generated=entry["generated"], shard_id=entry["shard_id"])
+                           generated=entry["generated"], shard_id=entry["shard_id"],
+                           wired="True" if entry["shard_id"] in wired_ids else "False")
         path.write_text(text, encoding="utf-8", newline="\n")
         written += 1
     INDEX.write_text(render_index(entries, atlas), encoding="utf-8", newline="\n")
@@ -306,26 +335,90 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
                                for node in ast.walk(loader[0])):
         problems.append("%s load() does not raise: a stub that returns is a fake"
                         % entry["path"])
-    imports = [node for node in ast.walk(tree)
-               if isinstance(node, (ast.Import, ast.ImportFrom))]
-    for node in imports:
-        names = [alias.name for alias in node.names] if isinstance(node, ast.Import) \
-            else [node.module or ""]
-        for name in names:
-            if name.split(".")[0] not in ("", "__future__"):
-                problems.append("%s imports %r: a stub drags no dependencies"
-                                % (entry["path"], name))
+    #: Only an UNWIRED stub is held to "imports nothing". That rule exists so a
+    #: generated stub cannot smuggle a copy in behind a name -- it was never a
+    #: ban on an adopted shard reaching its implementation, and applying it to
+    #: wired shards made the documented adoption shape (implement in a module,
+    #: point load() at it) impossible to pass. Measured 2026-11-03: both a
+    #: deferred and a module-level import were refused for a wired shard.
+    if not wired:
+        imports = [node for node in ast.walk(tree)
+                   if isinstance(node, (ast.Import, ast.ImportFrom))]
+        for node in imports:
+            names = [alias.name for alias in node.names] \
+                if isinstance(node, ast.Import) else [node.module or ""]
+            for name in names:
+                if name.split(".")[0] not in ("", "__future__"):
+                    problems.append("%s imports %r: a stub drags no dependencies"
+                                    % (entry["path"], name))
     return problems
 
 
-def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
+#: Why the census does not corroborate a wired id, stated as a fact about the
+#: CENSUS rather than about the claim. Measured 2026-11-14: all 107 unmatched
+#: ids in ``WIRED.json`` resolve to a real file AND a real symbol under
+#: ``Project_ELIZA/adopted/kali/``, so the party that is silent is the atlas
+#: (a point-in-time census from 2026-11-09), not the ledger. Reporting those 107
+#: as defects made ``--check`` exit 1 permanently -- a gate that cannot pass is
+#: a gate nobody reads, and the twenty-first real one would have arrived
+#: indistinguishable from the 107 false ones.
+ADVISORY_KINDS = {
+    "redundant_residual": "the census now names every class of this module, so "
+                          "its #module residual shard is no longer needed",
+    "census_truncated": "the census records at most six classes per module and "
+                        "this module has more, so the class may be one of the "
+                        "unrecorded ones",
+    "census_silent": "the census names every class of this module and omits "
+                     "this one, while the vendored source has it",
+    "module_absent": "the census carries no module by this name",
+}
+
+
+def classify_unmatched(shard_id: str, modules: Dict) -> str:
+    """Which census fact leaves a wired id uncorroborated, or ``unclassified``.
+
+    This answers "why does the atlas not contain it", never "is it wrong". A
+    kind outside ``ADVISORY_KINDS`` means the classifier has no explanation for
+    the id, and an unexplained id must stay a hard problem: inventing a bucket
+    to absorb it would rebuild the lie this function exists to remove.
+    """
+    if "#" not in shard_id:
+        return "unclassified"
+    module, _, klass = shard_id.partition("#")
+    module = module.split(":", 1)[1] if ":" in module else module
+    meta = modules.get(module)
+    if meta is None:
+        return "module_absent"
+    named = list(meta.get("top_classes") or [])
+    total = int(meta.get("classes") or 0)
+    if klass == "module":
+        # A residual id is minted only while the module has unrecorded classes;
+        # if the census now names them all, `units()` stops minting it.
+        return "redundant_residual" if total <= len(named) else "unclassified"
+    if klass in named:
+        # The id SHOULD have matched. It did not, so something other than the
+        # census cap is at work and this classifier cannot name it.
+        return "unclassified"
+    return "census_truncated" if total > len(named) else "census_silent"
+
+
+def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
+    """Two tiers: defects fail always, census mismatches fail only under strict.
+
+    ``strict`` is keyword-only-with-default because a caller outside this module
+    unpacks the 3-tuple (``Project_ELIZA/tests/test_shard_intake.py:66``).
+    """
     problems: List[str] = []
+    advisories: List[str] = []
+    buckets: Dict[str, int] = {}
+    modules_by_name = atlas.get("modules") or {}
     assigned = wired_registry()
     if not INDEX.is_file():
         return False, ["%s is absent; run --write" % INDEX.relative_to(REPO)], {}
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     on_disk = {entry["path"]: {key: entry.get(key) for key in INDEX_KEYS}
                for entry in index.get("shards", [])}
+    units_by_path = {entry["path"]: entry for entry in units(atlas)}
     expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
                 for entry in units(atlas)}
     for path in sorted(set(expected) - set(on_disk)):
@@ -343,10 +436,25 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
             continue
         problems.extend(_stub_problems(file_path, entry,
                                        assigned.get(entry["shard_id"])))
+    #: The surface index above is keyed by PATH; a ledger entry is an ID.
+    #: Comparing the id to that dict reported every wired shard as "not in the
+    #: atlas", which no gate run could catch while the ledger was empty -- the
+    #: first adoption exercised the branch (measured 2026-11-03: five real ids,
+    #: five false defects).
+    unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
     for shard_id, claim in sorted(assigned.items()):
-        if shard_id not in expected:
-            problems.append("WIRED.json names %r, which is not in the atlas" % shard_id)
-            continue
+        if shard_id not in unit_ids:
+            kind = classify_unmatched(shard_id, modules_by_name)
+            if kind not in ADVISORY_KINDS:
+                problems.append("WIRED.json names %r, which is not in the atlas and "
+                                "no census fact explains it" % shard_id)
+                continue
+            buckets[kind] = buckets.get(kind, 0) + 1
+            advisories.append("%s: %s -- %s" % (kind, shard_id, ADVISORY_KINDS[kind]))
+            #: Deliberately NOT a `continue`. The control check used to sit
+            #: behind one, so every id the census did not corroborate went
+            #: unvalidated -- 107 of 1,152 adopted claims were a claim with no
+            #: check, which is the one thing this function exists to refuse.
         test = claim.get("test") if isinstance(claim, dict) else None
         if not isinstance(test, str) or not test.strip():
             problems.append("WIRED.json entry %r names no test: a wired shard is a "
@@ -365,10 +473,18 @@ def check(atlas: Dict) -> Tuple[bool, List[str], Dict]:
     if counts.get("shards") != len(expected):
         problems.append("index claims %r shards; the atlas yields %d"
                         % (counts.get("shards"), len(expected)))
+    if strict:
+        # Promoted, not dropped: `--strict` is how a caller says it wants the
+        # census mismatches to fail too. Default stays advisory for HED-2's
+        # reason -- a gate red on the day it lands is a gate switched off.
+        problems.extend(advisories)
+        advisories = []
     return (not problems), problems, {"shards": len(expected),
                                       "modules": len({e["module"] for e in expected.values()}),
                                       "trees": len({e["tree"] for e in expected.values()}),
-                                      "wired": len(assigned)}
+                                      "wired": len(assigned),
+                                      "advisory_lines": advisories,
+                                      "buckets": buckets}
 
 
 def adopt(shard_id: str, atlas: Dict) -> int:
@@ -398,12 +514,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--atlas", default=str(DEFAULT_ATLAS))
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--strict", action="store_true",
+                        help="with --check, fail on census mismatches as well")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--tree", help="limit --list to one tree")
     parser.add_argument("--adopt", metavar="SHARD_ID")
     args = parser.parse_args(argv)
 
-    atlas = read_atlas(Path(args.atlas))
+    # Exit 2, not 1: `2` means "the run could not be performed", which is neither
+    # a pass nor a verdict on the tree. Collapsing it into 1 let a missing input
+    # read as a drifted surface, and the commit gate would then refuse a healthy
+    # tree for a reason that has nothing to do with the tree.
+    try:
+        atlas = read_atlas(Path(args.atlas))
+    except AtlasUnavailable as exc:
+        print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
+        return 2
     entries = units(atlas)
 
     if args.write:
@@ -412,13 +538,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
               % result)
         return 0
     if args.check:
-        ok, problems, counts = check(atlas)
+        ok, problems, counts = check(atlas, strict=args.strict)
         for problem in problems:
             print("DEFECT: " + problem)
+        for line in counts.get("advisory_lines", []):
+            print("ADVISORY: " + line)
         print("%s -- %d shard(s), %d module(s) yielding units, %d tree(s), %d wired"
               % ("clean" if ok else "%d defect(s)" % len(problems),
                  counts.get("shards", 0), counts.get("modules", 0),
                  counts.get("trees", 0), counts.get("wired", 0)))
+        buckets = counts.get("buckets") or {}
+        if buckets:
+            print("  uncorroborated by the census, with the reason: " +
+                  ", ".join("%s=%d" % (key, buckets[key]) for key in sorted(buckets)))
         return 0 if ok else 1
     if args.adopt:
         return adopt(args.adopt, atlas)

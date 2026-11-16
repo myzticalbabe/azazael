@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CRADLE — pitch</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0d1117; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: #e8e4dc;
+    -webkit-font-smoothing: antialiased;
+  }
+  .slide {
+    width: 1280px; height: 720px;
+    padding: 64px 76px 56px;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+    background: #0d1117;
+  }
+  .slide:last-child { page-break-after: auto; }
+  .kicker {
+    font-size: 15px; letter-spacing: .22em; text-transform: uppercase;
+    color: #c8963e; font-weight: 600; margin-bottom: 26px;
+  }
+  h1 { font-size: 62px; line-height: 1.06; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 44px; line-height: 1.1; font-weight: 700; letter-spacing: -.015em; }
+  h3 { font-size: 22px; font-weight: 600; color: #c8963e; margin-bottom: 10px; letter-spacing: .01em; }
+  p { font-size: 21px; line-height: 1.5; color: #c7c2b8; }
+  .lead { font-size: 25px; line-height: 1.45; color: #ded9cf; }
+  .mono {
+    font-family: "Consolas", "SF Mono", "Courier New", monospace;
+    font-size: 17px; color: #9fd3a8;
+  }
+  .rule { height: 2px; background: #2a3038; margin: 30px 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 46px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+  .card {
+    border: 1px solid #2a3038; border-radius: 4px; padding: 24px 24px 22px;
+    background: #12171f;
+  }
+  .card p { font-size: 18px; line-height: 1.45; }
+  ul { list-style: none; }
+  li { font-size: 20px; line-height: 1.5; color: #c7c2b8; padding-left: 26px; position: relative; margin-bottom: 14px; }
+  li::before { content: "—"; position: absolute; left: 0; color: #c8963e; }
+  .bad li::before { content: "×"; color: #e05252; font-weight: 700; }
+  .good li::before { content: "✓"; color: #6bbf7b; font-weight: 700; }
+  .foot {
+    position: absolute; left: 76px; right: 76px; bottom: 26px;
+    display: flex; justify-content: space-between;
+    font-size: 14px; color: #5c646f; letter-spacing: .1em;
+  }
+  .big { font-size: 92px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+  .stat { border-left: 3px solid #c8963e; padding-left: 20px; }
+  .stat .n { font-size: 46px; font-weight: 700; color: #e8e4dc; line-height: 1; }
+  .stat .l { font-size: 16px; color: #8a919c; margin-top: 8px; line-height: 1.3; }
+  .refuse {
+    border: 1px solid #e05252; border-radius: 4px; padding: 18px 22px;
+    background: #1a1113;
+  }
+  .refuse .mono { color: #e05252; }
+  .refuse p { font-size: 17px; color: #b9a3a5; margin-top: 8px; }
+  svg { display: block; }
+  .row { display: flex; align-items: center; gap: 16px; }
+  .tag {
+    display: inline-block; font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+    border: 1px solid #3a424d; border-radius: 2px; padding: 5px 10px; color: #8a919c;
+  }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide">
+  <div class="kicker">NGI Zero · proposal 2026</div>
+  <h1>CRADLE</h1>
+  <p class="lead" style="margin-top:22px; max-width: 900px;">
+    The claims an AI agent makes, checked before you read them —
+    every path resolved, every act from a closed vocabulary,
+    a frame that does not hold taken out of play.
+  </p>
+  <div class="rule"></div>
+  <div class="grid3">
+    <div class="stat"><div class="n">4</div><div class="l">parts composed:<br>sword · defender · sentinel · memory</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">third-party Python<br>dependencies</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">hardware purchased<br>by this grant</div></div>
+  </div>
+  <div class="foot"><span>PROJECT CRADLE</span><span>CDDL-1.1</span><span>1 / 7</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="kicker">The failure</div>
+  <h2>A sentence that reads verified<br>and checks nothing.</h2>
+  <div class="grid3" style="margin-top:44px;">
+    <div class="card">
+      <h3>A path</h3>
+      <p class="mono">"I updated the config at<br>src/core/settings.py"</p>
+      <p style="margin-top:12px;">The file does not exist. Nothing in the loop stats it.</p>
+    </div>
+    <div class="card">
+      <h3>A command</h3>
+      <p class="mono">"tests pass"</p>
+      <p style="margin-top:12px;">No command was run, or a different one was, or it failed and the summary did not.</p>
+    </div>
+    <div class="card">
+      <h3>An outcome</h3>
+      <p class="mono">"the issue is fixed"</p>
+      <p style="margin-top:12px;">The edit landed; the behaviour was never observed. Those are two different claims.</p>
+    </div>
+  </div>
+  <p style="margin-top:40px;">Bigger models lower the rate. They do not make the claim checkable.</p>
+  <div class="foot"><span>PROJECT CRADLE</span><span>2 / 7</span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="kicker">The chain</div>
+  <h2>One command. Four parts.<br>A refusal with a name on it.</h2>
+  <svg width="1128" height="280" viewBox="0 0 1128 280" style="margin-top:34px;">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="#4b5563"/>
+      </marker>
+    </defs>
+    <!-- boxes -->
+    <g font-family="Segoe UI, Arial" >
+      <rect x="0" y="76" width="236" height="128" rx="4" fill="#12171f" stroke="#2a3038"/>
+      <text x="24" y="112" fill="#c8963e" font-size="14" letter-spacing="2">REQUEST</text>
+      <text x="24" y="146" fill="#e8e4dc" font-size="21" font-weight="600">A prompt</text>
+      <text x="24" y="174" fill="#8a919c" font-size="15">becomes a frame that</text>
+      <text x="24" y="194" fill="#8a919c" font-size="15">can be refused</text>
+
+      <rect x="296" y="76" width="236" height="128" rx="4" fill="#12171f" stroke="#c8963e"/>
+      <text x="320" y="112" fill="#c8963e" font-size="14" letter-spacing="2">SENTINEL</text>
+      <text x="320" y="146" fill="#e8e4dc" font-size="21" font-weight="600">Every claim</text>
+      <text x="320" y="174" fill="#8a919c" font-size="15">each path stat'ed,</text>
+      <text x="320" y="194" fill="#8a919c" font-size="15">each act in vocabulary</text>
+
+      <rect x="592" y="76" width="236" height="128" rx="4" fill="#12171f" stroke="#2a3038"/>
+      <text x="616" y="112" fill="#c8963e" font-size="14" letter-spacing="2">DECISION</text>
+      <text x="616" y="146" fill="#e8e4dc" font-size="21" font-weight="600">Resolve or refuse</text>
+      <text x="616" y="174" fill="#8a919c" font-size="15">a frame that does not</text>
+      <text x="616" y="194" fill="#8a919c" font-size="15">hold is taken out of play</text>
+
+      <rect x="888" y="76" width="240" height="128" rx="4" fill="#12171f" stroke="#6bbf7b"/>
+      <text x="912" y="112" fill="#6bbf7b" font-size="14" letter-spacing="2">GRIMOIRE</text>
+      <text x="912" y="146" fill="#e8e4dc" font-size="21" font-weight="600">One line</text>
+      <text x="912" y="174" fill="#8a919c" font-size="15">written when it failed,</text>
+      <text x="912" y="194" fill="#8a919c" font-size="15">not reconstructed after</text>
+
+      <line x1="236" y1="140" x2="290" y2="140" stroke="#4b5563" stroke-width="2" marker-end="url(#ar)"/>
+      <line x1="532" y1="140" x2="586" y2="140" stroke="#4b5563" stroke-width="2" marker-end="url(#ar)"/>
+      <line x1="828" y1="140" x2="882" y2="140" stroke="#4b5563" stroke-width="2" marker-end="url(#ar)"/>
+    </g>
+  </svg>
+  <div class="refuse" style="margin-top:26px;">
+    <span class="mono">POST /aio → 422 { state, problems }</span>
+    <p>Refused, and <strong>no prompt is returned</strong>. The caller learns which claim failed, not a softer version of the answer.</p>
+  </div>
+  <div class="foot"><span>PROJECT CRADLE</span><span>3 / 7</span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="kicker">Why it is infrastructure</div>
+  <h2>Local, vendor-neutral,<br>and it cannot become the risk it audits.</h2>
+  <div class="grid2" style="margin-top:40px;">
+    <div>
+      <ul class="good">
+        <li>Never holds weights, never needs an API key</li>
+        <li>Speaks the OpenAI chat shape — Ollama, llama.cpp, LM Studio, vLLM</li>
+        <li>Standard library only, so the verifier adds no supply chain</li>
+        <li>Same check against whatever model you install next</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card">
+        <h3>The three commands</h3>
+        <p class="mono" style="line-height:2;">
+          cradle.py --doctor<br>
+          cradle.py --demo<br>
+          cradle.py --serve --model-url …
+        </p>
+        <p style="margin-top:14px; font-size:16px; color:#8a919c;">
+          <span class="mono">--demo</span> includes a deliberate failed verification,
+          so a lesson is seen to be written and then recalled.
+        </p>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:34px;">A commons artefact: the vocabulary and the lesson format published as a spec others can implement.</p>
+  <div class="foot"><span>PROJECT CRADLE</span><span>4 / 7</span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="kicker">Where it actually stands</div>
+  <h2>Both halves, or neither is true.</h2>
+  <div class="grid2" style="margin-top:36px;">
+    <div>
+      <h3 style="color:#6bbf7b;">Exists and is measurable</h3>
+      <ul class="good" style="font-size:18px;">
+        <li>Four parts, composition, three commands, five endpoints</li>
+        <li>Eight chain tests that <strong>skip</strong> when a sibling is absent — never weakened</li>
+        <li>Reference platform documented: Core Ultra 9 285H, Arc 140T 8&nbsp;GB, 32&nbsp;GB</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:#e05252;">Does not exist yet</h3>
+      <ul class="bad" style="font-size:18px;">
+        <li>No independent security review — the refusal path has never been read by anyone else</li>
+        <li>One maintainer; docs assume the author's machine</li>
+        <li>Windows-first; Linux and macOS untested</li>
+        <li><strong>No measured catch rate</strong> — so no efficacy claim is made</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:8px; color:#8a919c; font-size:17px;">The last line is the reason for this application.</p>
+  <div class="foot"><span>PROJECT CRADLE</span><span>5 / 7</span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="kicker">What the grant buys</div>
+  <h2>Six deliverables, each written<br>so that it can fail.</h2>
+  <div class="grid3" style="margin-top:34px;">
+    <div class="card">
+      <h3>D1 · Corpus</h3>
+      <p>300 labelled agent claims, 150 resolving / 150 not, provenance per claim.</p>
+    </div>
+    <div class="card" style="border-color:#c8963e;">
+      <h3>D2 · Catch rate</h3>
+      <p>Confusion matrix with a lower bound. <strong>A poor number is published as it stands.</strong></p>
+    </div>
+    <div class="card">
+      <h3>D3 · Portability</h3>
+      <p>Linux and macOS pass <span class="mono">--doctor</span> and <span class="mono">--demo</span>; interpreter matrix per platform.</p>
+    </div>
+    <div class="card">
+      <h3>D4 · Review</h3>
+      <p>Independent reviewer, findings published in full — including the unfixed ones.</p>
+    </div>
+    <div class="card">
+      <h3>D5 · Spec</h3>
+      <p>Vocabulary, frame lifecycle, refusal reasons, lesson format. A third party implements from it.</p>
+    </div>
+    <div class="card">
+      <h3>D6 · First run</h3>
+      <p>A stranger reaches a refusal and can say why, without reading the source.</p>
+    </div>
+  </div>
+  <div class="foot"><span>PROJECT CRADLE</span><span>6 / 7</span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="kicker">The ask</div>
+  <div class="row" style="align-items:flex-end; gap:34px; margin-top:12px;">
+    <div class="big">€49,500</div>
+    <div style="padding-bottom:14px;"><span class="tag">12 months</span></div>
+  </div>
+  <div class="rule" style="margin:26px 0 24px;"></div>
+  <div class="grid2">
+    <div>
+      <ul style="font-size:18px;">
+        <li>Personnel, half time — <span class="mono">€31,000</span></li>
+        <li>Independent review — <span class="mono">€6,000</span></li>
+        <li>Docs, spec, packaging — <span class="mono">€3,500</span></li>
+        <li>Rented compute — <span class="mono">€2,500</span></li>
+        <li>Dissemination — <span class="mono">€2,000</span></li>
+        <li>Contingency 10% — <span class="mono">€4,500</span></li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:#3a424d;">
+      <h3>Equipment: €0</h3>
+      <p style="font-size:18px;">
+        No GPU is requested. CRADLE has no training step and no GPU code path;
+        the compute line is rented serving hours at published on-demand rates.
+      </p>
+      <p style="font-size:16px; color:#8a919c; margin-top:14px;">
+        A justification of the form “RTX 4090 for stdlib-only orchestration” would be
+        neither true nor necessary, and is not made.
+      </p>
+    </div>
+  </div>
+  <div class="rule" style="margin:26px 0 18px;"></div>
+  <p style="font-size:18px;">
+    Clint Oxford · individual applicant · United States ·
+    <span class="mono">github.com/myzticalbabe/azazael</span> · CDDL-1.1
+  </p>
+  <div class="foot"><span>PROJECT CRADLE</span><span>7 / 7</span></div>
+</section>
+
+</body>
+</html>

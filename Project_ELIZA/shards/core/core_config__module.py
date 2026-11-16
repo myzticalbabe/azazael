@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/config.py :: module residual -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/config.py (9 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/config.py (10 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/config.py#module"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,13 +12,13 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/config.py#module"
 KIND = "module"
 SOURCE_ENVIRONMENT = "kali-linux"
 SOURCE_MODULE = "CORE/config.py"
 CLASS_NAME = None
-UNNAMED_CLASSES = 9
+UNNAMED_CLASSES = 10
 TREE = "CORE"
 
 

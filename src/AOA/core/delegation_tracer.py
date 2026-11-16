@@ -196,7 +196,8 @@ def build_attributes(
     the draft defines it as three states -- true, false, and null for
     *undecidable* -- so null there is a reading rather than a missing value.
     """
-    outcome = flat.get("outcome") if isinstance(flat.get("outcome"), dict) else {}
+    _raw_outcome = flat.get("outcome")
+    outcome: Dict[str, Any] = _raw_outcome if isinstance(_raw_outcome, dict) else {}
     status = flat.get("status") or "error"
     if duration_ms is None:
         duration_ms = outcome.get("duration_ms")
@@ -245,7 +246,9 @@ def build_attributes(
         attrs[A_DELEGATION_DURATION_MS] = float(duration_ms)
 
     # -- the Arm's own claim, and whether it agrees with the router ----------
-    arm_verdict = flat.get("arm_verdict") if isinstance(flat.get("arm_verdict"), dict) else None
+    _raw_arm_verdict = flat.get("arm_verdict")
+    arm_verdict: Optional[Dict[str, Any]] = (
+        _raw_arm_verdict if isinstance(_raw_arm_verdict, dict) else None)
     if arm_verdict:
         claimed = arm_verdict.get("verdict")
         if claimed is not None:

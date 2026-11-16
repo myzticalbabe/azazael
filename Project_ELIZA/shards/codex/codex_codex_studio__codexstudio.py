@@ -1,8 +1,8 @@
 # coding: utf-8
 """CODEX / CODEX/CODEX_Studio.py :: CODEXStudio -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CODEX/CODEX_Studio.py (class CODEXStudio, 1381 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CODEX/CODEX_Studio.py (class CODEXStudio, 1402 lines in the module, 18 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CODEX/CODEX_Studio.py#CODEXStudio"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CODEX/CODEX_Studio.py#CODEXStudio"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

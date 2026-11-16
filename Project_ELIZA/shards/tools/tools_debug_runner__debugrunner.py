@@ -1,8 +1,8 @@
 # coding: utf-8
 """TOOLS / TOOLS/debug_runner.py :: DebugRunner -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux TOOLS/debug_runner.py (class DebugRunner, 400 lines in the module, 3 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux TOOLS/debug_runner.py (class DebugRunner, 414 lines in the module, 14 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:TOOLS/debug_runner.py#DebugRunner"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:TOOLS/debug_runner.py#DebugRunner"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

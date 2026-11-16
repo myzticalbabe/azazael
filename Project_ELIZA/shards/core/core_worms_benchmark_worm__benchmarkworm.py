@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/WORMS/BENCHMARK_WORM.py :: BenchmarkWorm -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/WORMS/BENCHMARK_WORM.py (class BenchmarkWorm, 30 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/WORMS/BENCHMARK_WORM.py (class BenchmarkWorm, 41 lines in the module, 3 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/WORMS/BENCHMARK_WORM.py#BenchmarkWorm"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/WORMS/BENCHMARK_WORM.py#BenchmarkWorm"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

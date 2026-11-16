@@ -1,0 +1,913 @@
+{
+  "_meta": {
+    "schema": "scribe/portal-census@1",
+    "registry": "grant_portals.json",
+    "ran_at": "2026-11-03T17:37:44",
+    "portals": 15,
+    "counts": {
+      "FORM_STATIC": 3,
+      "SEARCH_ONLY": 7,
+      "NO_FIELDS": 3,
+      "AUTH_WALL": 0,
+      "REFUSED": 1,
+      "ERROR": 1
+    },
+    "log": "portal_census_20261103_173735.log",
+    "notes": "Read-only census. A state is a measurement of one page at one moment; a funder redesign invalidates it, so re-run before trusting a row."
+  },
+  "portals": [
+    {
+      "id": "grants_gov_search",
+      "name": "Grants.gov — Search Grants",
+      "category": "academic_federal",
+      "audience": [
+        "academic",
+        "nonprofit"
+      ],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.grants.gov/search-grants",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 41889,
+      "ms": 241,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": true,
+      "field_count": 6,
+      "fields": {
+        "dateRange": {
+          "tag": "select",
+          "type": "select",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "inp-CFDA": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "inp-keywords": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "inp-opportunity-number": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "search": {
+          "tag": "input",
+          "type": "search",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "sortby": {
+          "tag": "select",
+          "type": "select",
+          "required": false,
+          "maxlength": 0,
+          "options": 10
+        }
+      },
+      "checked_at": "2026-11-03T17:37:35"
+    },
+    {
+      "id": "nsf_funding",
+      "name": "NSF — Funding Search",
+      "category": "academic_federal",
+      "audience": [
+        "academic"
+      ],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.nsf.gov/funding/",
+      "final_url": "https://www.nsf.gov/funding",
+      "http_status": 200,
+      "bytes": 79686,
+      "ms": 430,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": false,
+      "field_count": 1,
+      "fields": {
+        "query": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:35"
+    },
+    {
+      "id": "research_gov",
+      "name": "Research.gov (NSF submission)",
+      "category": "academic_federal",
+      "audience": [
+        "academic"
+      ],
+      "region": "US",
+      "role": "apply",
+      "url": "https://www.research.gov/",
+      "final_url": "https://www.research.gov/research-web/",
+      "http_status": 200,
+      "bytes": 22325,
+      "ms": 457,
+      "error": "",
+      "state": "NO_FIELDS",
+      "action": "NEEDS_HOP_OR_BROWSER",
+      "client_rendered": false,
+      "field_count": 0,
+      "fields": {},
+      "checked_at": "2026-11-03T17:37:36"
+    },
+    {
+      "id": "nih_grants",
+      "name": "NIH — Find a Funding Opportunity",
+      "category": "academic_federal",
+      "audience": [
+        "academic"
+      ],
+      "region": "US",
+      "role": "index",
+      "url": "https://grants.nih.gov/funding/index.htm",
+      "final_url": "https://grants.nih.gov/funding",
+      "http_status": 200,
+      "bytes": 474913,
+      "ms": 780,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": false,
+      "field_count": 1,
+      "fields": {
+        "query": {
+          "tag": "input",
+          "type": "search",
+          "required": true,
+          "maxlength": 128,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:37"
+    },
+    {
+      "id": "nsf_grfp",
+      "name": "NSF Graduate Research Fellowship Program",
+      "category": "academic_federal",
+      "audience": [
+        "individual",
+        "academic"
+      ],
+      "region": "US",
+      "role": "index",
+      "url": "https://www.nsfgrfp.org/",
+      "final_url": "",
+      "http_status": 0,
+      "bytes": 0,
+      "ms": 213,
+      "error": "RemoteDisconnected: Remote end closed connection without response",
+      "state": "ERROR",
+      "action": "INVESTIGATE",
+      "client_rendered": false,
+      "field_count": 0,
+      "fields": {},
+      "checked_at": "2026-11-03T17:37:37"
+    },
+    {
+      "id": "ukri_funding",
+      "name": "UK Research and Innovation — Funding Finder",
+      "category": "academic_international",
+      "audience": [
+        "academic"
+      ],
+      "region": "UK",
+      "role": "index",
+      "url": "https://www.ukri.org/opportunity/",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 106849,
+      "ms": 1204,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": false,
+      "field_count": 2,
+      "fields": {
+        "keywords": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "st": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:38"
+    },
+    {
+      "id": "eu_funding_tenders",
+      "name": "EU Funding & Tenders Portal",
+      "category": "academic_international",
+      "audience": [
+        "academic",
+        "nonprofit"
+      ],
+      "region": "EU",
+      "role": "index",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/home",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 59960,
+      "ms": 642,
+      "error": "",
+      "state": "NO_FIELDS",
+      "action": "NEEDS_HOP_OR_BROWSER",
+      "client_rendered": false,
+      "field_count": 0,
+      "fields": {},
+      "checked_at": "2026-11-03T17:37:39"
+    },
+    {
+      "id": "wellcome",
+      "name": "Wellcome Trust — Funding schemes",
+      "category": "academic_private",
+      "audience": [
+        "academic"
+      ],
+      "region": "UK/global",
+      "role": "index",
+      "url": "https://wellcome.org/grant-funding",
+      "final_url": "https://wellcome.org/research-funding",
+      "http_status": 200,
+      "bytes": 157275,
+      "ms": 524,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": true,
+      "field_count": 5,
+      "fields": {
+        "search": {
+          "tag": "input",
+          "type": "search",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "subscriberEmailAddress": {
+          "tag": "input",
+          "type": "email",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "subscriberFirstName": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "subscriberLastName": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "subscriberResearch": {
+          "tag": "select",
+          "type": "select",
+          "required": false,
+          "maxlength": 0,
+          "options": 4
+        }
+      },
+      "checked_at": "2026-11-03T17:37:39"
+    },
+    {
+      "id": "gates_grantseekers",
+      "name": "Gates Foundation — Committed grants",
+      "category": "academic_private",
+      "audience": [
+        "nonprofit",
+        "academic"
+      ],
+      "region": "global",
+      "role": "index",
+      "url": "https://www.gatesfoundation.org/about/committed-grants",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 133646,
+      "ms": 889,
+      "error": "",
+      "state": "NO_FIELDS",
+      "action": "NEEDS_HOP_OR_BROWSER",
+      "client_rendered": false,
+      "field_count": 0,
+      "fields": {},
+      "checked_at": "2026-11-03T17:37:40"
+    },
+    {
+      "id": "sloan_apply",
+      "name": "Alfred P. Sloan Foundation — Apply",
+      "category": "academic_private",
+      "audience": [
+        "academic"
+      ],
+      "region": "US",
+      "role": "apply",
+      "url": "https://sloan.org/grants/apply",
+      "final_url": "",
+      "http_status": 403,
+      "bytes": 5723,
+      "ms": 244,
+      "error": "HTTP 403 Forbidden",
+      "state": "REFUSED",
+      "action": "NEEDS_STEALTH",
+      "client_rendered": false,
+      "field_count": 0,
+      "fields": {},
+      "checked_at": "2026-11-03T17:37:40"
+    },
+    {
+      "id": "emergent_ventures",
+      "name": "Emergent Ventures (Mercatus) — Grant application",
+      "category": "individual_entrepreneur",
+      "audience": [
+        "individual"
+      ],
+      "region": "global",
+      "role": "apply",
+      "url": "https://mercatus.tfaforms.net/5099527",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 112284,
+      "ms": 597,
+      "error": "",
+      "state": "FORM_STATIC",
+      "action": "DRIVE_NOW",
+      "client_rendered": true,
+      "field_count": 18,
+      "fields": {
+        "tfa_1115": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 195,
+          "options": 0
+        },
+        "tfa_1118": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 40,
+          "options": 0
+        },
+        "tfa_18": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 49,
+          "options": 0
+        },
+        "tfa_22": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 237
+        },
+        "tfa_26": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 334
+        },
+        "tfa_298": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 29,
+          "options": 0
+        },
+        "tfa_3016": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 195,
+          "options": 0
+        },
+        "tfa_3019": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "tfa_3021": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "tfa_3022": {
+          "tag": "select",
+          "type": "select",
+          "required": false,
+          "maxlength": 0,
+          "options": 4
+        },
+        "tfa_303": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 110,
+          "options": 0
+        },
+        "tfa_309": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 19,
+          "options": 0
+        },
+        "tfa_35": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 32750,
+          "options": 0
+        },
+        "tfa_36": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 295,
+          "options": 0
+        },
+        "tfa_37": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 250,
+          "options": 0
+        },
+        "tfa_5": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "tfa_6": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 14
+        },
+        "tfa_60": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 110,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:41"
+    },
+    {
+      "id": "awesome_foundation",
+      "name": "Awesome Foundation — Submit a chapter application",
+      "category": "individual_entrepreneur",
+      "audience": [
+        "individual"
+      ],
+      "region": "global",
+      "role": "apply",
+      "url": "https://www.awesomefoundation.org/en/submissions/new",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 146832,
+      "ms": 461,
+      "error": "",
+      "state": "FORM_STATIC",
+      "action": "DRIVE_NOW",
+      "client_rendered": false,
+      "field_count": 14,
+      "fields": {
+        "a_comment_body": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[about_me]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 500,
+          "options": 0
+        },
+        "project[about_project]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 2000,
+          "options": 0
+        },
+        "project[chapter_id]": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 70
+        },
+        "project[email]": {
+          "tag": "input",
+          "type": "email",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[extra_answer_1]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[extra_answer_2]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[extra_answer_3]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[name]": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[phone]": {
+          "tag": "input",
+          "type": "tel",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[photos_attributes][0][caption]": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[title]": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 50,
+          "options": 0
+        },
+        "project[url]": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "project[use_for_money]": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 500,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:41"
+    },
+    {
+      "id": "pollination_project",
+      "name": "The Pollination Project — Seed grants",
+      "category": "individual_entrepreneur",
+      "audience": [
+        "individual"
+      ],
+      "region": "global",
+      "role": "index",
+      "url": "https://thepollinationproject.org/grants/",
+      "final_url": "https://thepollinationproject.org/our-work/",
+      "http_status": 200,
+      "bytes": 265408,
+      "ms": 1089,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": false,
+      "field_count": 3,
+      "fields": {
+        "et_pb_signup_email": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "et_pb_signup_firstname": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "s": {
+          "tag": "input",
+          "type": "search",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:42"
+    },
+    {
+      "id": "otf_iff",
+      "name": "OTF — Internet Freedom Fund",
+      "category": "nonprofit_oss",
+      "audience": [
+        "individual",
+        "nonprofit"
+      ],
+      "region": "global (US-based funder)",
+      "role": "index",
+      "url": "https://www.opentech.fund/funds/internet-freedom-fund/",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 130472,
+      "ms": 1299,
+      "error": "",
+      "state": "SEARCH_ONLY",
+      "action": "NEEDS_HOP",
+      "client_rendered": false,
+      "field_count": 2,
+      "fields": {
+        "et_pb_signup_email": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "s": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:44"
+    },
+    {
+      "id": "nlnet_propose",
+      "name": "NLnet — Propose a project",
+      "category": "nonprofit_oss",
+      "audience": [
+        "individual",
+        "nonprofit",
+        "academic"
+      ],
+      "region": "EU (Horizon Europe 60% rule)",
+      "role": "apply",
+      "url": "https://nlnet.nl/propose/",
+      "final_url": "",
+      "http_status": 200,
+      "bytes": 43907,
+      "ms": 530,
+      "error": "",
+      "state": "FORM_STATIC",
+      "action": "DRIVE_NOW",
+      "client_rendered": false,
+      "field_count": 26,
+      "fields": {
+        "abstract": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 1000,
+          "options": 0
+        },
+        "ai_prompt": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 8000,
+          "options": 0
+        },
+        "amount": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "call": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 4
+        },
+        "challenges": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 4000,
+          "options": 0
+        },
+        "codebase_ai_clarification": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 1000,
+          "options": 0
+        },
+        "codebase_used_ai": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 2
+        },
+        "comparison": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 4000,
+          "options": 0
+        },
+        "country": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 250
+        },
+        "ecosystem": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 2000,
+          "options": 0
+        },
+        "email": {
+          "tag": "input",
+          "type": "email",
+          "required": true,
+          "maxlength": 100,
+          "options": 0
+        },
+        "entity": {
+          "tag": "select",
+          "type": "select",
+          "required": false,
+          "maxlength": 0,
+          "options": 11
+        },
+        "experience": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 2000,
+          "options": 0
+        },
+        "organization": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "otherfunding": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 1000,
+          "options": 0
+        },
+        "pgp": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": false,
+          "maxlength": 10000,
+          "options": 0
+        },
+        "phone": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "project": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 100,
+          "options": 0
+        },
+        "q": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 0,
+          "options": 0
+        },
+        "requestor": {
+          "tag": "input",
+          "type": "text",
+          "required": true,
+          "maxlength": 100,
+          "options": 0
+        },
+        "use": {
+          "tag": "textarea",
+          "type": "textarea",
+          "required": true,
+          "maxlength": 4000,
+          "options": 0
+        },
+        "used_ai": {
+          "tag": "select",
+          "type": "select",
+          "required": true,
+          "maxlength": 0,
+          "options": 2
+        },
+        "website": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "website2": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "website3": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        },
+        "website4": {
+          "tag": "input",
+          "type": "text",
+          "required": false,
+          "maxlength": 100,
+          "options": 0
+        }
+      },
+      "checked_at": "2026-11-03T17:37:44"
+    }
+  ]
+}

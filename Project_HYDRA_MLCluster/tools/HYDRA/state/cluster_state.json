@@ -1,0 +1,582 @@
+{
+  "nodes": {
+    "changelog": {
+      "name": "changelog",
+      "group": "core",
+      "priority": 1,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "config": {
+      "name": "config",
+      "group": "core",
+      "priority": 2,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "diagnostics": {
+      "name": "diagnostics",
+      "group": "core",
+      "priority": 3,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "framework_activator": {
+      "name": "framework_activator",
+      "group": "core",
+      "priority": 4,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "harness": {
+      "name": "harness",
+      "group": "core",
+      "priority": 5,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "launcher": {
+      "name": "launcher",
+      "group": "core",
+      "priority": 6,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "openinterpreter_startup": {
+      "name": "openinterpreter_startup",
+      "group": "core",
+      "priority": 7,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "__init__": {
+      "name": "__init__",
+      "group": "improvements",
+      "priority": 35,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "verify_moe": {
+      "name": "verify_moe",
+      "group": "qlearning",
+      "priority": 8,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "deep_learning_qlearning": {
+      "name": "deep_learning_qlearning",
+      "group": "qlearning",
+      "priority": 9,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "enhanced_qlearning": {
+      "name": "enhanced_qlearning",
+      "group": "qlearning",
+      "priority": 10,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "qlearning_table": {
+      "name": "qlearning_table",
+      "group": "qlearning",
+      "priority": 11,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "lm_studio_integration": {
+      "name": "lm_studio_integration",
+      "group": "integration",
+      "priority": 12,
+      "dependencies": [
+        "core",
+        "qlearning"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "mlflow_integration": {
+      "name": "mlflow_integration",
+      "group": "integration",
+      "priority": 13,
+      "dependencies": [
+        "core",
+        "qlearning"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "ml_integration": {
+      "name": "ml_integration",
+      "group": "integration",
+      "priority": 14,
+      "dependencies": [
+        "core",
+        "qlearning"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "onnx_integration": {
+      "name": "onnx_integration",
+      "group": "integration",
+      "priority": 15,
+      "dependencies": [
+        "core",
+        "qlearning"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "ray_integration": {
+      "name": "ray_integration",
+      "group": "integration",
+      "priority": 16,
+      "dependencies": [
+        "core",
+        "qlearning"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "health_monitor": {
+      "name": "health_monitor",
+      "group": "monitoring",
+      "priority": 17,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "lm_studio_autoload": {
+      "name": "lm_studio_autoload",
+      "group": "lm_studio",
+      "priority": 18,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "lm_studio_client": {
+      "name": "lm_studio_client",
+      "group": "lm_studio",
+      "priority": 19,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "lm_studio_server": {
+      "name": "lm_studio_server",
+      "group": "lm_studio",
+      "priority": 20,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "cross_platform_analysis": {
+      "name": "cross_platform_analysis",
+      "group": "analysis",
+      "priority": 21,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "jax_analysis": {
+      "name": "jax_analysis",
+      "group": "analysis",
+      "priority": 22,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "run_qanalysis": {
+      "name": "run_qanalysis",
+      "group": "analysis",
+      "priority": 23,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "run_qanalysis_full": {
+      "name": "run_qanalysis_full",
+      "group": "analysis",
+      "priority": 24,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "run_qanalysis_multi": {
+      "name": "run_qanalysis_multi",
+      "group": "analysis",
+      "priority": 25,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "unified_analysis": {
+      "name": "unified_analysis",
+      "group": "analysis",
+      "priority": 26,
+      "dependencies": [
+        "core",
+        "integration"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "universal_converter": {
+      "name": "universal_converter",
+      "group": "conversion",
+      "priority": 27,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "auto_install": {
+      "name": "auto_install",
+      "group": "installation",
+      "priority": 28,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "installation_debug": {
+      "name": "installation_debug",
+      "group": "installation",
+      "priority": 29,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "install_improvements": {
+      "name": "install_improvements",
+      "group": "installation",
+      "priority": 30,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "install_light": {
+      "name": "install_light",
+      "group": "installation",
+      "priority": 31,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "install_manager": {
+      "name": "install_manager",
+      "group": "installation",
+      "priority": 32,
+      "dependencies": [],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "autoload": {
+      "name": "autoload",
+      "group": "autoload",
+      "priority": 33,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "PERMANENT_LOAD": {
+      "name": "PERMANENT_LOAD",
+      "group": "autoload",
+      "priority": 34,
+      "dependencies": [
+        "core"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "metrics_tracker": {
+      "name": "metrics_tracker",
+      "group": "improvements",
+      "priority": 36,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "qualitative_improvements": {
+      "name": "qualitative_improvements",
+      "group": "improvements",
+      "priority": 37,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "strategic_intelligence": {
+      "name": "strategic_intelligence",
+      "group": "improvements",
+      "priority": 38,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "tensor_utils": {
+      "name": "tensor_utils",
+      "group": "improvements",
+      "priority": 39,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "vectorize_utils": {
+      "name": "vectorize_utils",
+      "group": "improvements",
+      "priority": 40,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    },
+    "weakness_testing": {
+      "name": "weakness_testing",
+      "group": "improvements",
+      "priority": 41,
+      "dependencies": [
+        "core",
+        "analysis"
+      ],
+      "last_run": null,
+      "success_count": 0,
+      "failure_count": 0,
+      "avg_duration": 0.0,
+      "enabled": true
+    }
+  },
+  "stage_history": [
+    {
+      "stage": "Discovery",
+      "success": true,
+      "modules_processed": 41,
+      "duration": 0.079894,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.551449"
+    },
+    {
+      "stage": "Analysis",
+      "success": true,
+      "modules_processed": 42,
+      "duration": 0.079864,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.631343"
+    },
+    {
+      "stage": "Optimization",
+      "success": true,
+      "modules_processed": 41,
+      "duration": 0.0,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.711207"
+    },
+    {
+      "stage": "Validation",
+      "success": true,
+      "modules_processed": 41,
+      "duration": 0.0,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.711207"
+    },
+    {
+      "stage": "Deployment",
+      "success": true,
+      "modules_processed": 41,
+      "duration": 0.0,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.711207"
+    },
+    {
+      "stage": "Feedback",
+      "success": true,
+      "modules_processed": 41,
+      "duration": 0.0,
+      "errors": [],
+      "timestamp": "2026-02-11T01:53:23.711207"
+    }
+  ],
+  "last_updated": "2026-02-11T01:53:23.711207"
+}

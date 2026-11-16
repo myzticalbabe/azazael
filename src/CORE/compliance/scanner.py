@@ -97,6 +97,12 @@ FINDING_SEVERITIES = {
     # the ascii_video.py ffmpeg hang was a bare proc.wait(), not the spawn.
     # Receiver-tracked (threading.Event waits excluded by construction).
     "unbounded_wait": "warning",      # 0 -- kill-then-reap exempt, rest fixed
+    # ── Added 2026-11-04: a spawned repo hook inherits the CALLER's cwd. A test
+    # that spawns `.githooks/pre-push` from a temp dir runs whatever repo that
+    # dir is nested in, so the gate measures the wrong tree -- measured as a
+    # 92 s pre-push in a unit test, and a hook that blocks on `git` failing in a
+    # directory with no `.git`. cwd= is the fix; its absence is the defect.
+    "hook_spawn_without_cwd": "warning",  # 0 -- no live site expected
     "syntax_error": "error",
     "read_error": "error",
 }
@@ -122,6 +128,7 @@ FIX_SUGGESTIONS = {
     "sqlite_no_timeout": "Pass timeout=<seconds> (30 for production paths)",
     "requests_no_timeout": "Pass timeout=<seconds> (30 for client calls)",
     "unbounded_wait": "Pass timeout=<seconds> to .wait()/.communicate() (Popen.wait takes timeout positionally too)",
+    "hook_spawn_without_cwd": "Pass cwd=<the repo the hook must inspect> (a spawned hook inherits the caller's cwd)",
 }
 
 # Explanations for each finding category (used by --explain)
@@ -143,6 +150,7 @@ FINDING_EXPLANATIONS = {
     "sqlite_no_timeout": "A read-write sqlite3.connect() without timeout= waits on a writer lock forever (default is 5s only when timeout is passed; without it a contended COMMIT blocks indefinitely). Read-only mode=ro and :memory: connects cannot contend and are excluded.",
     "requests_no_timeout": "A requests call without timeout= blocks forever on a dead peer. Same hang class as subprocess_no_timeout.",
     "unbounded_wait": "Popen() itself never blocks -- only .wait()/.communicate() do, and the constructor takes no timeout=. A bare proc.wait() on a live child hangs forever (the ascii_video.py ffmpeg stall). Kill-then-reap (.kill()/.terminate() then .wait()) is exempt: reaping a dead process cannot block.",
+    "hook_spawn_without_cwd": "A hook script (`pre-commit`, `pre-push`, `commit-msg`, ...) reads the repository it runs in, and a child process inherits the parent's working directory. Spawning one without cwd= means the hook inspects whatever repo the CALLER's cwd is nested in: from a temp dir inside another checkout it runs that checkout's gates (measured: 92 s pre-push inside a unit test), and from a directory with no .git it fails for a reason unrelated to the code under test. cwd=<path> is the fix; the exemption is a command that names no hook token.",
 }
 
 
@@ -243,6 +251,18 @@ _PATTERN_REQUESTS = re.compile(
 # auditable per-line opt-out is honest about that; a file- or rule-level
 # exemption would also hide real violations.
 _SUPPRESSION_MARKER = "# scanner:ignore"
+
+# Hook script names a spawned process may name. A subprocess call that names one
+# of these and passes no cwd= runs the hook against whatever repository the
+# CALLER's working directory is nested in -- the test-artifact shape that ran a
+# real 92 s pre-push gate from a unit test. `.githooks` alone is deliberately
+# NOT a token: `git config core.hooksPath .githooks` and a `Path(...)/'.githooks'`
+# read are not spawns, and matching the directory name would flag them.
+_HOOK_SCRIPT_NAMES = frozenset({
+    "pre-commit", "pre-push", "commit-msg", "prepare-commit-msg",
+    "post-commit", "post-merge", "pre-rebase",
+})
+_SPAWN_FUNC_NAMES = frozenset({"run", "call", "check_call", "check_output", "Popen"})
 
 
 def _documentation_spans(source: str) -> list[tuple[int, int, int, int]]:
@@ -730,6 +750,42 @@ class ASTAntiPatternScanner:
                         findings.append((_node.lineno, "unbounded_wait",
                                          "unbounded ." + _node.func.attr + "() on Popen handle '"
                                          + _node.func.value.id + "'"))
+            # 6f. A spawn of a repo hook with no cwd= (added 2026-11-04).
+            # A child inherits the parent's working directory, so a hook
+            # spawned from a test's temp dir inspects the repo that dir is
+            # nested in, not the tree under test. Only LITERAL commands are
+            # adjudicated: a Name/attribute command cannot be resolved here,
+            # and guessing would invent findings. Tokens are split on both
+            # separators so a Windows path token matches too.
+            for _node in ast.walk(tree):
+                if not isinstance(_node, ast.Call):
+                    continue
+                _fn = _node.func
+                if isinstance(_fn, ast.Attribute):
+                    if _fn.attr not in _SPAWN_FUNC_NAMES:
+                        continue
+                elif isinstance(_fn, ast.Name):
+                    if _fn.id not in _SPAWN_FUNC_NAMES:
+                        continue
+                else:
+                    continue
+                if any(_kw.arg == "cwd" for _kw in _node.keywords):
+                    continue
+                if not _node.args:
+                    continue
+                _cmd = _node.args[0]
+                _tokens: list[str] = []
+                if isinstance(_cmd, (ast.List, ast.Tuple)):
+                    _tokens = [e.value for e in _cmd.elts
+                               if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+                elif isinstance(_cmd, ast.Constant) and isinstance(_cmd.value, str):
+                    _tokens = _cmd.value.split()
+                _hit = next((t for t in _tokens
+                             if t.replace(chr(92), "/").rsplit("/", 1)[-1] in _HOOK_SCRIPT_NAMES),
+                            None)
+                if _hit is not None:
+                    findings.append((_node.lineno, "hook_spawn_without_cwd",
+                                     "spawns '" + _hit + "' with no cwd="))
         except SyntaxError as exc:
             note_failure("scanner:L494", exc)
             findings.append((0, "syntax_error", "Cannot parse source — syntax error"))

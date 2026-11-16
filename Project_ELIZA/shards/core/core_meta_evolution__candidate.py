@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/meta_evolution.py :: Candidate -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/meta_evolution.py (class Candidate, 514 lines in the module, 12 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/meta_evolution.py (class Candidate, 534 lines in the module, 14 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/meta_evolution.py#Candidate"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/meta_evolution.py#Candidate"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

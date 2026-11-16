@@ -66,7 +66,9 @@ its predicate, so an explicit `--baseline-file` from the other scope is REFUSED
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import subprocess
 import sys
 from collections import Counter
@@ -325,6 +327,10 @@ def baseline_payload(counts: Counter, files: int, target: str,
         #: lane (968 vs 953 import_inside_function, all of it untracked). A
         #: baseline is only comparable to a scan with the same scope.
         "tracked_only": tracked_only,
+        # WHO recorded this, so a rewrite has an attributable author. Two lanes
+        # share this worktree; before this, a baseline that changed under a
+        # running check left no trace of the process that changed it.
+        "writer_pid": os.getpid(),
     }
     if file_counts:
         payload["file_counts"] = {
@@ -332,6 +338,24 @@ def baseline_payload(counts: Counter, files: int, target: str,
             for rel, bucket in sorted(file_counts.items()) if bucket
         }
     return payload
+
+
+def _baseline_fingerprint(path: Path) -> str:
+    """sha256 of the baseline bytes; "" when it cannot be read.
+
+    A count comparison is only meaningful against the bytes this process
+    actually loaded. `cmd_check` takes this before loading and again after
+    scanning; a difference means another writer replaced the file mid-run.
+    """
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as exc:
+        # "" is a legitimate "no reference" value -- an absent baseline and an
+        # unreadable one both leave the comparison nothing to anchor to -- but
+        # the difference between those two is exactly what a reader needs, and
+        # returning silently made a permissions error look like a first run.
+        print("no baseline fingerprint (%s): %s" % (path, exc), file=sys.stderr)
+        return ""
 
 
 def load_baseline(path: Path) -> dict:
@@ -364,10 +388,30 @@ def cmd_baseline(target: str, out: Path, narrowed: bool,
                  tracked_only: bool = False) -> int:
     counts, files, per_file = scan_with_files(target, tracked_only)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(
-        json.dumps(baseline_payload(counts, files, target, per_file, tracked_only),
-                   indent=2),
-        encoding="utf-8")
+    payload = json.dumps(
+        baseline_payload(counts, files, target, per_file, tracked_only), indent=2)
+    # Replace, never truncate-and-write: a reader (another lane's --check, or the
+    # pre-commit hook) that opens this path mid-write used to see a partial JSON
+    # document and die with "baseline is unreadable", which names the symptom and
+    # not the race. A same-directory temp + os.replace makes the swap atomic.
+    tmp = out.with_name("%s.tmp%d" % (out.name, os.getpid()))
+    tmp.write_text(payload, encoding="utf-8")
+    os.replace(tmp, out)
+    # One line per write, beside the baseline: the journal the ratchet did not
+    # have. Append-only, so a rewrite is visible after the fact instead of
+    # surviving only as a changed count.
+    journal = out.with_suffix(".journal.jsonl")
+    entry = {
+        "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "pid": os.getpid(),
+        "argv": sys.argv[:8],
+        "target": target,
+        "tracked_only": tracked_only,
+        "files": files,
+        "total_findings": sum(counts.values()),
+    }
+    with journal.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry) + "\n")
     print("baseline written: %s" % out)
     print("  scope: %s" % ("git-tracked files only" if tracked_only
                             else "every .py under the directory (worktree)"))
@@ -416,7 +460,24 @@ def cmd_check(target: str, baseline_path: Path,
         return 2
 
     recorded: dict = base.get("category_counts") or {}
+    before = _baseline_fingerprint(baseline_path)
     current, files, per_file = scan_with_files(target, tracked_only)
+
+    # The baseline is a shared file in a worktree with many lanes. If it changed
+    # while this scan ran, the counts below are compared against a document this
+    # process no longer holds -- which can read as a clean pass OR as a
+    # regression that belongs to nobody. Refuse, and say which file moved.
+    after = _baseline_fingerprint(baseline_path)
+    if before and after != before:
+        print("REFUSED: %s changed while this scan was running (%s -> %s).\n"
+              "  Another writer replaced the baseline mid-run, so these counts"
+              " were not measured\n  against a file this process still holds."
+              " Refusing to report a pass or a regression.\n"
+              "  Re-run the check (and see %s for who wrote it)."
+              % (baseline_path, before[:12] or "gone", after[:12] or "gone",
+                 baseline_path.with_suffix(".journal.jsonl")),
+              file=sys.stderr)
+        return 2
 
     regressions = []
     for cat, n in current.items():

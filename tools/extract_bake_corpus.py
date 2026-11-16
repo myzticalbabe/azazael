@@ -8,6 +8,11 @@ Dedupes known merge artifacts (ERROR_LOG #92-95 x2, MASTER #55-59 x2,
 Writes state/bake_corpus.jsonl + state/bake_dup_report.txt
 Usage: python tools/extract_bake_corpus.py [--apply]
   default = dry run (counts only). --apply writes files.
+
+Exit codes: 0 = every named source loaded and the run was performed; 2 = at
+least one file named in SOURCES is missing, so --apply refused and NOTHING was
+written (a corpus that silently omits a whole canon file is a successful-
+looking reading of input that never arrived).
 """
 import json
 import re
@@ -69,6 +74,19 @@ def item_id(title):
     return "#" + m.group(1) if m else title[:40]
 
 
+def missing_sources():
+    """Named sources that contribute nothing because the file is not there.
+
+    A renamed or moved canon file used to hit `continue` silently: RECORDS
+    simply came back smaller and --apply overwrote state/bake_corpus.jsonl
+    with the shrunken set, so the base every lane is deduped against changed
+    with no record anywhere. The docs/LESSONS_*.md glob is a different thing:
+    it is dynamic by design, so an empty one is counted and printed (ANNEX=0)
+    rather than treated as a missing source.
+    """
+    return [name for name in SOURCES if not (ROOT / name).exists()]
+
+
 def extract():
     records, dropped, seen = [], [], set()
     files = [(ROOT / f) for f in SOURCES] + ANNEX
@@ -104,14 +122,23 @@ def extract():
 
 def main():
     apply = "--apply" in sys.argv
+    missing = missing_sources()
     records, dropped = extract()
     by_kind: dict = {}
     for r in records:
         by_kind[r["kind"]] = by_kind.get(r["kind"], 0) + 1
     print("RECORDS=%d %s" % (len(records), json.dumps(by_kind)))
     print("DROPPED=%d" % len(dropped))
+    print("SOURCES=%d/%d ANNEX=%d" % (
+        len(SOURCES) - len(missing), len(SOURCES), len(ANNEX)))
+    if missing:
+        print("MISSING_SOURCES=%d %s" % (len(missing), ", ".join(missing)))
     for f, i, why in dropped[:20]:
         print("  drop %s %s (%s)" % (f, i, why))
+    if apply and missing:
+        print("REFUSING to write %s: %d named source(s) did not load, so the "
+              "corpus would shrink silently" % (OUT_JSONL.name, len(missing)))
+        return 2
     if apply:
         OUT_JSONL.parent.mkdir(parents=True, exist_ok=True)
         with open(OUT_JSONL, "w", encoding="utf-8") as fh:
@@ -121,7 +148,8 @@ def main():
             for f, i, why in dropped:
                 fh.write("%s\t%s\t%s\n" % (f, i, why))
         print("WROTE %s + %s" % (OUT_JSONL.name, OUT_REPORT.name))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,57 @@
+name: "Atlas Auto-Sync"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/domain_trees.py'
+      - 'tools/domain_trees/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-atlas:
+    name: Regenerate and Sync Atlas Data
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout azazael monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: myzticalbabe/azazael
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: azazael
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate domain atlases
+        working-directory: azazael
+        run: |
+          python tools/domain_trees.py
+          ls -la ~/yggdrasil_forest/
+
+      - name: Checkout landing hub
+        uses: actions/checkout@v4
+        with:
+          repository: myzticalbabe/myzticalbabe.github.io
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: landing-hub
+
+      - name: Sync atlas data
+        run: |
+          cp ~/yggdrasil_forest/*.json landing-hub/data/
+          cd landing-hub
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-sync atlas data from azazael monorepo"
+            git push
+          else
+            echo "No changes to atlas data"
+          fi

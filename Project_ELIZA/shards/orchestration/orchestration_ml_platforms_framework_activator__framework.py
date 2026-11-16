@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/ml_platforms/framework_activator.py :: Framework -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/ml_platforms/framework_activator.py (class Framework, 931 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/ml_platforms/framework_activator.py (class Framework, 941 lines in the module, 15 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/ml_platforms/framework_activator.py#Framework"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ORCHESTRATION/ml_platforms/framework_activator.py#Framework"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

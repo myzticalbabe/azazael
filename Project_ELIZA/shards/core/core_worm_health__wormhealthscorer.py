@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/worm_health.py :: WormHealthScorer -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/worm_health.py (class WormHealthScorer, 451 lines in the module, 3 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/worm_health.py (class WormHealthScorer, 462 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/worm_health.py#WormHealthScorer"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/worm_health.py#WormHealthScorer"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

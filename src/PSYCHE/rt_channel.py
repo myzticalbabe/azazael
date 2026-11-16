@@ -199,7 +199,10 @@ def demo_loop(turns: int = 3) -> Iterator[Dict]:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    # `__doc__` is Optional: a module run under `python -OO` has no docstring at
+    # all, and the first line of None is an AttributeError at argument parsing.
+    parser = argparse.ArgumentParser(
+        description=(__doc__ or "realtime affective channel").splitlines()[0])
     parser.add_argument("--demo", action="store_true",
                         help="run a self-contained 3-turn script through the channel")
     parser.add_argument("--turns", type=int, default=3,

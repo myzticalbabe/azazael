@@ -16,6 +16,19 @@ pytestmark = pytest.mark.env
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+# Skip tests for optional dependencies
+try:
+    import sklearn
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
+
+try:
+    import pandas
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+
 
 def test_numpy_inference():
     """Test NumPy array operations and linear algebra inference."""
@@ -81,6 +94,7 @@ def test_torch_cpu_inference():
     }
 
 
+@pytest.mark.skipif(not HAS_SKLEARN, reason="sklearn not installed")
 def test_sklearn_inference():
     """Test sklearn model inference (classification)."""
     from sklearn.ensemble import RandomForestClassifier
@@ -149,6 +163,7 @@ def test_transformers_inference():
     }
 
 
+@pytest.mark.skipif(not HAS_PANDAS, reason="pandas not installed")
 def test_pandas_inference():
     """Test pandas DataFrame operations (common inference pre/post-processing)."""
     import pandas as pd

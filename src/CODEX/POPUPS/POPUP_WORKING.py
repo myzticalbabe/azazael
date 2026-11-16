@@ -6,6 +6,7 @@ Smooth animations with all technical details
 import tkinter as tk
 from tkinter import messagebox
 from typing import List
+from CORE.paths import get_desktop_dir
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -15,6 +16,8 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+DESKTOP_DIR = get_desktop_dir()
 
 SYSTEMS = {
     "HYDRA": {
@@ -67,9 +70,9 @@ SYSTEMS = {
         "size": "~20 shortcuts",
         "lines": "Batch files",
         "desc": "Executable Shortcuts Manager with .bat files",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\SHORTY\\",
-            "~20 .bat batch files",
+"details": [
+                "Location: {DESKTOP_DIR}\\SHORTY\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "~20 .bat batch files",
             "Shortcuts: azazael.bat, auto_install.bat, bat_analysis.bat",
             "diagnostics.bat, health_monitor.bat",
             "CLI automation, Quick operations",
@@ -81,9 +84,9 @@ SYSTEMS = {
         "size": "Part of ecosystem",
         "lines": "Module",
         "desc": "Mathematical Indexer with statistical analysis",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\POINDEXTER\\",
-            "Features: Statistical analysis, Index generation",
+"details": [
+                "Location: {DESKTOP_DIR}\\POINDEXTER\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "Features: Statistical analysis, Index generation",
             "Data aggregation, Math computations",
             "Commands: --stats, --index, --aggregate",
         ],
@@ -94,9 +97,9 @@ SYSTEMS = {
         "size": "Part of ecosystem",
         "lines": "Module",
         "desc": "Cross-Platform Utilities with OS abstraction",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\PERSEPHONE\\",
-            "Features: Cross-platform support, OS abstraction",
+"details": [
+                "Location: {DESKTOP_DIR}\\PERSEPHONE\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "Features: Cross-platform support, OS abstraction",
             "Portability functions, System utilities",
             "Commands: --cross-platform, --abstract, --port",
         ],
@@ -107,9 +110,9 @@ SYSTEMS = {
         "size": "9 files",
         "lines": "Multiple scripts",
         "desc": "System Information & Notification System",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\TWITLER\\",
-            "Files: TWITLER.bat, TWITLER_Admin.ps1, install_deps.bat",
+"details": [
+                "Location: {DESKTOP_DIR}\\TWITLER\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "Files: TWITLER.bat, TWITLER_Admin.ps1, install_deps.bat",
             "monitor_system.bat, quick_health.bat, quick_status.bat",
             "RUN_AS_ADMIN.bat, run_wormz_ml.bat",
             "Features: Health monitoring, Quick status, Alerts, Notifications",
@@ -121,9 +124,9 @@ SYSTEMS = {
         "size": "100KB+",
         "lines": "Multiple files",
         "desc": "Functional Worms System - 6 individual worms + 5 clusters",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\WORMZ\\",
-            "WORMZ (25KB) - BIBL terminology crawler",
+"details": [
+                "Location: {DESKTOP_DIR}\\WORMZ\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "WORMZ (25KB) - BIBL terminology crawler",
             "SYSTEMZ (7KB) - System monitoring",
             "PROCESSZ (9KB) - Process management",
             "DISKZ (10KB) - Disk management",
@@ -138,9 +141,9 @@ SYSTEMS = {
         "size": "Part of ecosystem",
         "lines": "Multiple files",
         "desc": "Metaworms Orchestration - 11 metaworms + HYDRAMETA ML",
-        "details": [
-            "Location: C:\\Users\\clint\\Desktop\\METAWORMS\\",
-            "Tier 3: ERRORZ, TRIMZ, METAZ, DEPENDZ, VALIDZ, DEADZ",
+"details": [
+                "Location: {DESKTOP_DIR}\\METAWORMS\\".format(DESKTOP_DIR=DESKTOP_DIR),
+                "Tier 3: ERRORZ, TRIMZ, METAZ, DEPENDZ, VALIDZ, DEADZ",
             "METRICZ, LOGZ, CHANGEZ, OPTIMIZ, HEALTHZ",
             "Tier 4: HYDRAMETA, HYDRAMETA_UV (ML Optimization)",
             "Outputs: errors.json, trim_results.json, metadata.json",
@@ -441,7 +444,7 @@ class AzazaelPopup:
         # Footer
         tk.Label(
             scrollable,
-            text="CODEX: C:\\Users\\clint\\Desktop\\CODEX",
+            text="CODEX: {DESKTOP_DIR}\\CODEX".format(DESKTOP_DIR=DESKTOP_DIR),
             font=("Consolas", 9),
             bg="#0d0d1a",
             fg="#444",

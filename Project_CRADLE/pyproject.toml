@@ -10,7 +10,7 @@ description = "One command over sword, defender, sentinel and memory — the com
 # README.md (as the sibling projects do) fails the build with a missing-file error.
 readme = "CRADLE.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "CDDL-1.1" }
 # No Python runtime dependencies: the Python side is stdlib-only.
 #
 # The composition DOES need a non-pip dependency that metadata cannot express:
@@ -23,7 +23,6 @@ dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",

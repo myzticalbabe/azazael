@@ -37,6 +37,8 @@ artifacts, reviewed by humans, never pushed by automation.
 gitleaks detect --source C:\Users\clint\azazael --no-git
 Both clean (or triaged with reasons on file) before any push or snapshot
 that leaves this machine.
+trivy fs --severity HIGH,CRITICAL C:\Azazael\.venvs\py316t
+BLOCK on Critical. Scan the production 3.16t venv. `C:\Users\clint\venv-314t` is
+RETIRED (2026-10-19) and archived — scanning it now proves nothing about what ships.
 trivy fs --severity HIGH,CRITICAL C:\Azazael\.venvs\py315t
 BLOCK on Critical. Scan the production 3.15t venv. `C:\Users\clint\venv-314t` is
-RETIRED (2026-10-19) and archived — scanning it now proves nothing about what ships.

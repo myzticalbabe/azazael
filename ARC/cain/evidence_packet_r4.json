@@ -1,0 +1,271 @@
+{
+ "generated_at": "2026-11-04",
+ "round": "r4",
+ "note": "Every quote is sliced from bytes saved under ARC/cain/raw/ after its anchor was found in the file; FETCH_LOG.jsonl carries the retrieval row and sha256. Tier A = primary document, B = official page (vendor/agency), C = credible secondary. 'actor' says whether the publisher is the party the claim is about.",
+ "pins": [
+  {
+   "pin": "C1",
+   "vendor": "Microsoft",
+   "claim": "Windows 10 end of support is gated on TPM 2.0, and the supported Intel processor list for Windows 11 begins at 8th generation, leaving earlier hardware without a supported upgrade path",
+   "elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0",
+    "the supported Intel processor list begins at 8th generation"
+   ],
+   "evidence": [
+    {
+     "url": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10-home-and-pro",
+     "final_url": "",
+     "status": 200,
+     "bytes": 31849,
+     "sha256": "eeeb0a9ba75e13b5a03a1193faea24f995b0c7cead36bd769f1e81ad6e1e69d5",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:34:33",
+     "retrieved_by": "http",
+     "raw": "beam1_20261104_223433_B_https_learn_microsoft_com_en_us_lifecycle_products_windows_10_home_and_pro.html",
+     "actor": "publisher",
+     "anchor": "will reach end of support on October 14, 2025",
+     "quote": "me and Pro Windows 10 Home and Pro follows the Modern Lifecycle Policy. This applies to the following editions: Home, Pro, Pro Education, Pro for Workstations Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date. Existing LTSC releases will continue to receive updates beyond that date based on their specific lifecycles. Support dates are shown in the Pacific Time Zone (PT) - Redmond, WA, USA. Support Dates Listing Sta"
+    },
+    {
+     "url": "https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements",
+     "final_url": "",
+     "status": 200,
+     "bytes": 55562,
+     "sha256": "c77b461e6a900b2ec5bef832f22a0d9b9a53447a94b5e9d8afb43b5cf5beb717",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:40:51",
+     "retrieved_by": "http",
+     "raw": "beam1_20261104_224051_B_https_learn_microsoft_com_en_us_windows_whats_new_windows_11_requirements.html",
+     "actor": "publisher",
+     "anchor": "TPM 2.0",
+     "quote": ". Procedures to configure required VM settings depend on the VM host type. For example, VM hosts running Hyper-V, virtualization (VT-x, VT-d) must be enabled in the BIOS. Virtual TPM 2.0 is emulated in the guest VM independent of the Hyper-V host TPM presence or version. Next steps What's new in Windows 11 Plan for Windows 11 Prepare for Windows 11 Windows minimum hardware requirements Feedback Was this page helpful? Yes No No Need help with this topic? Want to try using Ask Learn to clarify or guide you through this topic? Ask Learn Ask Learn Suggest a fix? Additional resources Last updated"
+    },
+    {
+     "url": "https://learn.microsoft.com/en-us/windows-hardware/design/minimum/supported/windows-11-24h2-supported-intel-processors",
+     "final_url": "https://learn.microsoft.com/en-us/windows-hardware/design/minimum/supported/windows-11-24h2-supported-intel-processors",
+     "status": 200,
+     "bytes": 58859,
+     "sha256": "4e1a658c49405ad0a0ab58ea55aaecfd35ba0009312b5247e0a83505180552e7",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:56:44",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_235644_B_learn_microsoft_com_en_us_windows_hardware_design_minimum_supported_windows_11_24h2_supported_intel_processors.html",
+     "actor": "publisher",
+     "anchor": "8th Generation Core i3",
+     "quote": "ntel Intel® Core™ 13th Generation Core i5 Processors Intel Intel® Core™ 13th Generation Core i7 Processors Intel Intel® Core™ 13th Generation Core i9 Processors Intel Intel® Core™ 8th Generation Core i3 Processors Intel Intel® Core™ 8th Generation Core i5 Processors Intel Intel® Core™ 8th Generation Core i7 Processors Intel Intel® Core™ 8th Generation Core i9 Processors Intel Intel® Core™ 8th Generation Core m Processors Intel Intel® Core™ 9th Generation Core i3 Processors Intel Intel® Core™ 9th Generation Core i5 Processors Intel Intel® Core™ 9th Generation Core i7 Processors Intel Intel® Cor"
+    }
+   ]
+  },
+  {
+   "pin": "C2",
+   "vendor": "Apple",
+   "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries, and a regulator found the updates were pushed without adequate information and without any means of restoring original functionality",
+   "elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "evidence": [
+    {
+     "url": "https://web.archive.org/web/2018/https://www.apple.com/iphone-battery-and-performance/",
+     "final_url": "https://web.archive.org/web/20181228214721/https://www.apple.com/iphone-battery-and-performance/",
+     "status": 200,
+     "bytes": 60640,
+     "sha256": "32e91c649d43a4a497d0727e982873658fd5fd869fe78601a96f0b8a0dbb2ee9",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:14:34",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_231434_B_web_archive_org_web_20181228214721_https_www_apple_com_iphone_battery_and_performance.html",
+     "actor": "publisher",
+     "anchor": "improves power management during peak workloads",
+     "quote": "have any other part of their iPhone experience interrupted if we can avoid it. Preventing unexpected shutdowns About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus, iPhone 6s, iPhone 6s Plus, and iPhone SE. With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance. Custome"
+    },
+    {
+     "url": "https://support.apple.com/en-us/101575",
+     "final_url": "",
+     "status": 200,
+     "bytes": 182405,
+     "sha256": "cfa8a9e588dd77293d947a839db1baa50522e2b0af115ae16f65a915e70ef229",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:36:23",
+     "retrieved_by": "http",
+     "raw": "beam1_20261104_223623_B_https_support_apple_com_en_us_101575.html",
+     "actor": "publisher",
+     "anchor": "unexpected by the user",
+     "quote": "he power management system, the system will perform a shutdown to preserve these electronic components. While this shutdown is intentional from the device perspective, it might be unexpected by the user. Preventing unexpected shutdowns You're more likely to experience unexpected shutdowns when your battery has a low state of charge, a higher chemical age, or when you're in colder temperatures. In extreme cases, shutdowns can occur more frequently, making the device unreliable or unusable. For iPhone 6, iPhone 6 Plus, iPhone 6s, iPhone 6s Plus, iPhone SE (1st generation), iPhone 7, and iPhone 7"
+    },
+    {
+     "url": "http://web.archive.org/web/20181110170154id_/http://www.agcm.it:80/media/comunicati-stampa/2018/10/Apple%20e%20Samsung%20sanzionati,%20aggiornamenti%20software%20hanno%20procurato%20gravi%20inconvenienti%20e/o%20ridotto%20le%20funzionalit%C3%A0%20di%20alcuni%20cellulari",
+     "final_url": "http://web.archive.org/web/20181110170154id_/http://www.agcm.it:80/media/comunicati-stampa/2018/10/Apple%20e%20Samsung%20sanzionati,%20aggiornamenti%20software%20hanno%20procurato%20gravi%20inconvenienti%20e/o%20ridotto%20le%20funzionalit%C3%A0%20di%20alcuni%20cellulari",
+     "status": 200,
+     "bytes": 28018,
+     "sha256": "187092e6240904c172d631f267ded85eb88e60a694870dddb1b4bc03acf7d994",
+     "tier": "A",
+     "fetched_at": "2026-11-04T23:58:59",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_235859_A_web_archive_org_web_20181110170154id_http_www_agcm_it_80_media_comunicati_stampa_2018_10_Apple_20e_20Samsung_20sanzionati_20aggiornamenti_20software_2.html",
+     "actor": "publisher",
+     "anchor": "senza fornire adeguate informazioni",
+     "quote": "il download e anche in ragione dell’asimmetria informativa esistente rispetto ai produttori - ad installare aggiornamenti su dispositivi non in grado di supportarli adeguatamente, senza fornire adeguate informazioni, né alcun mezzo di ripristino delle originarie funzionalità dei prodotti. In particolare, Samsung ha insistentemente proposto, dal maggio 2016, ai consumatori che avevano acquistato un Note 4 (immesso sul mercato nel settembre 2014) di procedere ad installare il nuovo firmware di Android denominato Marshmallow predisposto per il nuovo modello di telefono Note 7, senza informare dei"
+    }
+   ]
+  },
+  {
+   "pin": "C3",
+   "vendor": "Intel",
+   "claim": "Intel attributes 13th/14th-generation Core instability to elevated core voltage requests and ships microcode 0x12B, which encompasses 0x125 and 0x129, as the mitigation",
+   "elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "evidence": [
+    {
+     "url": "https://web.archive.org/web/20250805203049/https://community.intel.com/t5/Blogs/Tech-Innovation/Client/Intel-Core-13th-and-14th-Gen-Desktop-Instability-Root-Cause/post/1684378",
+     "final_url": "https://web.archive.org/web/20250805203049/https://community.intel.com/t5/Blogs/Tech-Innovation/Client/Intel-Core-13th-and-14th-Gen-Desktop-Instability-Root-Cause/post/1684378",
+     "status": 200,
+     "bytes": 404756,
+     "sha256": "f0de7b1ed8d255ef92acce10d5550b8dd85eb2ed599590c525fa8211ba7a0340",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:14:34",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_231434_B_web_archive_org_web_20250805203049_https_community_intel_com_t5_Blogs_Tech_Innovation_Client_Intel_Core_13th_and_14th_Gen_Desktop_Instability_Root_Cau.html",
+     "actor": "publisher",
+     "anchor": "Microcode and BIOS code requesting elevated core voltages",
+     "quote": "m requesting high voltages at a frequency and duration which can cause Vmin shift. a. Mitigation: microcode 0x129 (August 2024) addresses high voltages requested by the processor. Microcode and BIOS code requesting elevated core voltages which can cause Vmin shift especially during periods of idle and/or light activity. a. Mitigation: Intel® is releasing microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, and addresses elevated voltage requests by the processor during idle and/or light activity periods. Regarding the 0x12B update, Intel® is working with its partners to roll o"
+    }
+   ]
+  },
+  {
+   "pin": "C4",
+   "vendor": "Google",
+   "claim": "The Play Integrity API returns a verdict about the device itself, and an application may act on that verdict by denying access, making continued function a vendor decision rather than a property of the hardware",
+   "elements": [
+    "the API returns an integrity verdict about the device",
+    "an app may act on that verdict by denying access"
+   ],
+   "evidence": [
+    {
+     "url": "https://developer.android.com/google/play/integrity/overview",
+     "final_url": "https://developer.android.com/google/play/integrity/overview",
+     "status": 200,
+     "bytes": 288118,
+     "sha256": "190d4160a7eed7812fb631759e291044cd5205ce67b26338c7f9d4f5b967d04b",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:38:25",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_233825_B_developer_android_com_google_play_integrity_overview.html",
+     "actor": "publisher",
+     "anchor": "Allow/Deny",
+     "quote": "higher trust tiers to maximize user reach. Send a range of responses from your server to your app Having a range of decision outcomes is harder to replicate than sending a binary Allow/Deny response from the server back to the app for each response. For example, you could use a series of related responses such as Allow, Allow with limits, Allow with limits after CAPTCHA completion, and Deny. Detect repeat abuse using device recall, while preserving user privacy Device recall gives apps the ability to store and recall some custom data associated with a specific device in a way that preserves u"
+    },
+    {
+     "url": "https://developer.android.com/google/play/integrity/verdicts",
+     "final_url": "https://developer.android.com/google/play/integrity/verdicts",
+     "status": 200,
+     "bytes": 359267,
+     "sha256": "6b05562fff28c57c8c93a784aa6d2f87af23baaeb44b48f331dd15ddfd41d8cf",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:56:45",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_235645_B_developer_android_com_google_play_integrity_verdicts.html",
+     "actor": "publisher",
+     "anchor": "Device integrity field",
+     "quote": "itionVerdict\" ); if ( appRecognitionVerdict . equals ( \"PLAY_RECOGNIZED\" )) { // Looks good! } You can also check the app package name, app version, and app certificates manually. Device integrity field The deviceIntegrity field can contain a single value, deviceRecognitionVerdict , that has one or more labels representing how well a device can enforce app integrity. If a device does not meet the criteria of any labels, then the deviceIntegrity field omits deviceRecognitionVerdict . \"deviceIntegrity\" : { // \"MEETS_DEVICE_INTEGRITY\" is one of several possible values. \"deviceRecognitionVerdict\""
+    }
+   ]
+  },
+  {
+   "pin": "C5",
+   "vendor": "HP",
+   "claim": "HP issued firmware updates under its 'dynamic security' policy that block third-party ink, leaving the printer refusing to print rather than warning",
+   "elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "evidence": [
+    {
+     "url": "https://www.pcworld.com/article/1933400/bad-firmware-updates-are-teaching-pc-users-the-wrong-habits.html",
+     "final_url": "https://www.pcworld.com/article/1933400/bad-firmware-updates-are-teaching-pc-users-the-wrong-habits.html",
+     "status": 200,
+     "bytes": 270456,
+     "sha256": "f2ca2fc4f39b4c678f86b5be8bf8f571adbcc058845aa3710c5930884dabdd54",
+     "tier": "C",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_231643_C_www_pcworld_com_article_1933400_bad_firmware_updates_are_teaching_pc_users_the_wrong_habits_html.html",
+     "actor": "secondary",
+     "anchor": "dynamic security",
+     "quote": "n’t always talk them out of the behavior, either. That’s especially the case when the situation is like that with HP printers. Earlier this year, HP doubled down on its so-called “dynamic security” policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work. Understandably, people were put out (including a couple of people I know) about these new draconian measures. They were even more infuriated when they realized that the only thing being protected is HP’s bottom line. HP has taken to l"
+    }
+   ]
+  },
+  {
+   "pin": "C6",
+   "vendor": "John Deere",
+   "claim": "A software tool is required to perform all repairs on Deere equipment, and Deere makes that tool available only to its authorized dealers, forcing farmers to rely on dealers for critical repairs",
+   "elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "evidence": [
+    {
+     "url": "https://www.ftc.gov/news-events/news/press-releases/2025/01/ftc-states-sue-deere-company-protect-farmers-unfair-corporate-tactics-high-repair-costs",
+     "final_url": "https://www.ftc.gov/news-events/news/press-releases/2025/01/ftc-states-sue-deere-company-protect-farmers-unfair-corporate-tactics-high-repair-costs",
+     "status": 200,
+     "bytes": 1002814,
+     "sha256": "c8a59a4566c4afd757c9b42b54d5c006640965fdf3169e5ee761d3ad1c4fdaf4",
+     "tier": "A",
+     "fetched_at": "2026-11-04T23:39:03",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_233903_A_www_ftc_gov_news_events_news_press_releases_2025_01_ftc_states_sue_deere_company_protect_farmers_unfair_corporate_tactics_high_repair_costs.html",
+     "actor": "publisher",
+     "anchor": "only fully functional software repair tool",
+     "quote": "share position across the large agricultural equipment market, has made it difficult for farmers to repair their own equipment or turn to local, independent repair providers. The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs. By creating these restrictions, Deere has unlawfully acquired and maintained monopoly power in the market for certain repair services for Deere"
+    },
+    {
+     "url": "https://www.federalregister.gov/documents/2024/10/28/2024-24563/exemption-to-prohibition-on-circumvention-of-copyright-protection-systems-for-access-control",
+     "final_url": "https://www.federalregister.gov/documents/2024/10/28/2024-24563/exemption-to-prohibition-on-circumvention-of-copyright-protection-systems-for-access-control",
+     "status": 200,
+     "bytes": 238840,
+     "sha256": "3bdc0690bb094f43904b74d1d7edc0f67a32f2a49c9f556226479dcbd8eab7fd",
+     "tier": "A",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_231643_A_www_federalregister_gov_documents_2024_10_28_2024_24563_exemption_to_prohibition_on_circumvention_of_copyright_protection_systems_for_access_control.html",
+     "actor": "publisher",
+     "anchor": "Mechanized Agricultural Vehicles",
+     "quote": "ary Works—Medical Device Data 43 8. Computer Programs—Unlocking 45 9. Computer Programs—Jailbreaking 47 10. Computer Programs—Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48 11. Computer Programs—Repairs of Devices Designed Primarily for Use by Consumers 51 12. Computer Programs—Repair of Medical Devices and Systems 54 13. Computer Programs—Security Research 58 14. Video Games—Preservation and Abandoned Video Games 59 15. Computer Programs—Preservation 61 16. Computer Programs—3D Printers 64 17. Computer Programs—Copyright License Investigat"
+    }
+   ]
+  },
+  {
+   "pin": "C7",
+   "vendor": "Sonos",
+   "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and no factory reset can recover it",
+   "elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "evidence": [
+    {
+     "url": "https://www.techdirt.com/2020/03/13/sonos-backs-off-plan-to-brick-older-still-functioning-speakers/",
+     "final_url": "https://www.techdirt.com/2020/03/13/sonos-backs-off-plan-to-brick-older-still-functioning-speakers/",
+     "status": 200,
+     "bytes": 114795,
+     "sha256": "f23fb076d41e8859f430ad236ad350e84c2f0902a62071c7fd79d74fff9670ae",
+     "tier": "C",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "raw": "beam1_20261104_231643_C_www_techdirt_com_2020_03_13_sonos_backs_off_plan_to_brick_older_still_functioning_speakers.html",
+     "actor": "secondary",
+     "anchor": "Recycle Mode is a state your device enters",
+     "quote": "Sonos, once you apply online you’ll get the discount immediately, but the speaker system you’re trading in goes into a 21 day countdown mode before it’s inevitably made useless: “Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle Mode, it cannot be reactivated.” Everybody including environmental and “right to repair” activists, professional home stereo installers, and ordinary consumers quickly co"
+    }
+   ]
+  }
+ ]
+}

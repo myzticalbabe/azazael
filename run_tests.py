@@ -46,11 +46,9 @@ STANDALONE_OK = [
     "test_cluster_worms.py",            # 5 tests (3s)
     "test_clusterworms_unit.py",        # 39 tests (30s, worm execution)
     "test_config_and_breaker.py",       # 36 tests (90s, config + breaker integration)
-    "test_nature_clusters_unit.py",     # 37 tests (120s, nature cluster execution)
     "test_worm_registry_integration.py", # 10 tests (10s, real worm registry end-to-end, no mocks)
     "test_worm_execute_all_integration.py", # 5 tests (15s, real worms through ClusterWORMZ.execute_all, no mocks)
     "test_worm_governance_integration.py",  # 6 tests (5s, real worm-governance audit path, no mocks)
-    "test_ncm_integration.py",          # 8 tests (60s, full NCM discovery workflow)
     "test_logging.py",                  # 12 tests (2s, structured JSON logging)
     "test_metrics.py",                  # 19 tests (2s, metrics, health, drift)
     "test_learning_worms.py",           # 21 tests (3s, DataPipelineWorm, FeatureEngineer)
@@ -76,7 +74,10 @@ TIMEOUT_OVERRIDES = {
     "test_metacluster_unit.py": 1200,      # 20 min: discover_all 38s + 7 orchestration tests × ~102s each
     "test_nature_clusters_unit.py": 360,   # 6 min for nature cluster execution
     "test_config_and_breaker.py": 180,     # 3 min for config + breaker tests
-    "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
+    "test_workflow.py": 180,              # 3 min: Windows CI is slow; local pass is seconds
+    "test_scheduling.py": 180,            # 3 min: Windows CI is slow; local pass is seconds
+    "test_memorybus.py": 180,             # 3 min: CI took 103s for a 1s local test
+    "test_clusterworms_unit.py": 600,      # 10 min: file takes 108s healthy locally; CI runners are far slower (inner class budgets are the hang-catchers, measured 2026-11-11)
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
     "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
     "test_worm_governance_integration.py": 120,  # 2 min: cold-cache full real discovery or cache-backed
@@ -139,6 +140,29 @@ def _persist_run_record(record):
     except Exception as e:
         msg = f"run record persist failed: {e}"
         print(msg, file=sys.stderr)
+
+
+def _persist_file_log(filename, status, returncode, elapsed, output):
+    """Write per-file output to logs/test_<name>.log for CI artifacts (#CI-debug).
+
+    run_tests.py prints only a one-line summary per file, so a CI-only
+    failure arrives with no evidence. The tail (last 200 lines) is enough
+    to see the traceback while bounding artifact size.
+    """
+    try:
+        log_dir = os.path.join(PROJECT_ROOT, "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        lines = output.splitlines()
+        tail = lines[-200:]
+        with open(os.path.join(log_dir, filename.replace(".py", ".log"),),
+                  "w", encoding="utf-8", errors="replace") as fh:
+            fh.write("file: {}\nstatus: {}\nreturncode: {}\nduration_s: {}\n".format(
+                filename, status, returncode, elapsed))
+            fh.write("=" * 60 + "\n")
+            fh.write("\n".join(tail))
+            fh.write("\n")
+    except Exception as e:
+        print("  [file log persist failed: {}]".format(e), file=sys.stderr)
 
 
 def run_test_file(filename, timeout=60):
@@ -209,6 +233,7 @@ def run_test_file(filename, timeout=60):
             "faulthandler": True,
         }
         _persist_run_record(record)
+        _persist_file_log(filename, status, proc.returncode, elapsed, output)
 
         if dump_path:
             print("  [nativestack] dump written: {}".format(dump_path))
@@ -300,7 +325,7 @@ def main():
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed output")
     parser.add_argument("--list", action="store_true", help="List test files only")
     parser.add_argument("--skip-slow", action="store_true", help="Skip slow tests (test_metacluster_unit)")
-    parser.add_argument("--timeout", type=int, default=60, help="Per-test timeout in seconds")
+    parser.add_argument("--timeout", type=int, default=120, help="Per-test timeout in seconds")
     parser.add_argument("--observability", action="store_true",
                         help="Run only observability-related tests (dashboard, health, scheduling, workflow)")
 

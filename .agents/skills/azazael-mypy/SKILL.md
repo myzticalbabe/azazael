@@ -1,13 +1,13 @@
 # azazael-mypy
 **Category:** Quality / Type Checking
 **Priority:** HIGH
-**Dependencies:** mypy>=2.1.0, Python 3.15t (`C:/Azazael/.venvs/py315t`); the 3.14t venv was retired 2026-10-19
+**Dependencies:** mypy>=2.1.0, Python 3.16t (`C:/Azazael/.venvs/py316t`); the 3.14t venv was retired 2026-10-19
 **Created:** June 14, 2026
 **Reoriented:** 2026-09-22 — SECOND OPINION ONLY; the gate is basedpyright (`azazael-pyright`, `tools/type_check_gate.py`)
 > **This skill is no longer the type-checking gate.**
 >
 > `tools/type_check_gate.py` runs **basedpyright 1.40.1** (installed in the
-> production 3.15t venv `C:/Azazael/.venvs/py315t`, already configured by the committed `pyrightconfig.json`) and
+> production 3.16t venv `C:/Azazael/.venvs/py316t`, already configured by the committed `pyrightconfig.json`) and
 > compares against a committed baseline. Measured 2026-09-22, same tree:
 > | tool | files | findings | wall |
 > |---|---|---|---|
@@ -101,3 +101,5 @@ The `[misc]` error "Source file found twice under different module names" occurs
 **Dependencies:** mypy>=2.1.0, Python 3.14t
 > `tools/type_check_gate.py` runs **basedpyright 1.40.1** (already installed in
 > `venv-314t`, already configured by the committed `pyrightconfig.json`) and
+**Dependencies:** mypy>=2.1.0, Python 3.15t (`C:/Azazael/.venvs/py315t`); the 3.14t venv was retired 2026-10-19
+> production 3.15t venv `C:/Azazael/.venvs/py315t`, already configured by the committed `pyrightconfig.json`) and

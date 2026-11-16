@@ -1378,3 +1378,53 @@ Browser-verified: zero console errors, all 6 changes visually confirmed.
   point-in-time; re-run discovery for fresh numbers.
 - Skill counts: `SKILLS_CATALOG.md` regenerated this date — **1,234** table rows =
   1,234 mirror dirs = 1,234 canonical files. Prior 1,224 / 1,259 claims superseded.
+
+---
+## Correction addendum — 2026-11-03 (a write that reported success and did not land)
+- **Symptom:** `write_file` and `str_replace` both returned success for
+  `azazael/SCRIPTURE.md`; the file was not in this repo. It had landed in a second
+  tree at `C:/Users/clint/azazael/`, because the agent tooling resolves relative paths
+  against `C:/Users/clint`, **not** against this repo root.
+- **Why it is easy to miss:** `C:/Users/clint` is itself a git repo (toplevel reports
+  `C:/Users/clint`) and `C:/Users/clint/azazael` is a real directory, so nothing
+  errors. Only a follow-up `wc`/`find` against `C:/Azazael` exposed it.
+- **Detection:** `python tools/write_target.py <path>` prints the resolved path, the
+  owning git toplevel, and PASS/FAIL against the expected root derived from the tool's
+  own location; `--self-test` runs a control that must PASS inside the repo and must
+  FAIL outside it (validated 2026-11-03, both directions).
+- **Prevention:** after any write, confirm with `git status --porcelain <path>` run from
+  `C:/Azazael/azazael`. A success message is not evidence of landing. Prefer absolute
+  paths into this repo for every write from this client.
+
+---
+## Rule — 2026-11-03 — push scope (USER DIRECTIVE)
+
+**Directive, verbatim, quoted once and not paraphrased:**
+
+> we are not pushing any files not related to the projects already on git hub.
+
+That is the whole rule. Everything below it is agent material, kept in its own
+labelled section so the directive is never read as an inference.
+
+### Agent intentions (agent-authored; NOT part of the directive)
+
+- No push is performed, authored, staged for, or proposed by an agent without a
+  direct instruction in that session. This session pushed nothing.
+- When a push is instructed, the agent intends to: stage by path, run
+  `git diff --cached --name-only`, and drop any path that does not belong to a
+  project already present on the GitHub default branch (scratch scripts, render
+  probes in `C:/tmp`, `.agy-debug-profile/`, `_board` spool, spooled JSONL).
+- The agent intends to say which paths it will push, and why each belongs, before
+  running `git push` — a plan stated separately from the directive above.
+
+### Evidence measured 2026-11-03 (no bearing on the directive; recorded once)
+
+- `myzticalbabe/azazael` is **public** (GitHub API `visibility: public`, HTTP 200),
+  created `2026-11-03T02:55:10Z`, default branch `main`, `pushed_at 2026-11-03T05:13:49Z`,
+  repo size 463,766 KB.
+- `main` HEAD is `a882325f` — a commit **absent** from this clone. The 20 most recent
+  `main` commits are all absent here; `src/RUST_VIDEO_WASM` returns HTTP **404** there.
+- This clone and GitHub `main` are **separate lineages**, not a behind/ahead pair, so
+  a push from here can only be a new branch or a deliberate history decision.
+- This session's commits (`ff4acb92`, `fc64c94f`) exist only on disk, on
+  `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`. The `github` remote advertises no such branch.

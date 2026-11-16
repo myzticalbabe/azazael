@@ -5,9 +5,16 @@ import json
 import sys
 import unittest
 from pathlib import Path
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
+
+try:
+    import sklearn
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
 
 
 def _load():
@@ -30,12 +37,14 @@ class TestPredictor(unittest.TestCase):
         mod = _load()
         self.assertEqual(len(mod.featurize(_row(True))), 5)
 
+    @pytest.mark.skipif(not HAS_SKLEARN, reason="sklearn not installed")
     def test_refuses_single_class(self):
         mod = _load()
         rows = [_row(True) for _ in range(40)]
         rep = mod.train(rows)
         self.assertFalse(rep["ok"])
 
+    @pytest.mark.skipif(not HAS_SKLEARN, reason="sklearn not installed")
     def test_learns_separable_signal(self):
         mod = _load()
         import random

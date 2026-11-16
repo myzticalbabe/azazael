@@ -1,0 +1,330 @@
+{
+ "engine": {
+  "name": "HYPER_EDGE",
+  "version": "0.1.0rc1",
+  "isa": "HYPER_EDGE-ISA-12",
+  "seed": 20261105,
+  "generations": 10,
+  "population": 32,
+  "workers": 16,
+  "ran_at": "2026-11-05T13:01:31"
+ },
+ "evidence": {
+  "path": "ARC\\cain\\arena_llm_judgments_r8.json",
+  "sha256": "4b282e4d7de925b0a284336c4888de6b3a8ed49db109b9fbae2fb7488f00e974",
+  "calls": 42,
+  "round": "r8",
+  "recheck": "ARC\\cain\\arena_llm_judgments_r8_c4_recheck.json",
+  "recheck_sha256": "e9abf06b07ad5d44d37c51b61d9a105a2a5576bcf7a334fccdd3bb46702146ee"
+ },
+ "band": {
+  "must_not_pass": 0.5,
+  "must_not_pass_pin": "C4",
+  "should_pass": 1.0,
+  "should_pass_pin": "C1",
+  "open_interval": [
+   0.5,
+   1.0
+  ]
+ },
+ "shares": {
+  "C1": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  },
+  "C2": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  },
+  "C3": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  },
+  "C4": {
+   "share": 0.5,
+   "tally": {
+    "BLOCKED": 1,
+    "PARTIAL": 2,
+    "UNSUPPORTED": 3
+   },
+   "blind": 0
+  },
+  "C5": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  },
+  "C6": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  },
+  "C7": {
+   "share": 1.0,
+   "tally": {
+    "PARTIAL": 6
+   },
+   "blind": 0
+  }
+ },
+ "history": [
+  {
+   "generation": 0,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7594,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2406,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 1,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7428,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2428,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 2,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7548,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2452,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 3,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7548,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2452,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 4,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 5,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 6,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 7,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 8,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  },
+  {
+   "generation": 9,
+   "evaluated": 32,
+   "frontier": 1,
+   "best": {
+    "quorum": 0.7497,
+    "verdicts": 6,
+    "pins": 7,
+    "stability": 1.0,
+    "stability_pins": 1,
+    "margin": 0.2497,
+    "coercions": [],
+    "admissible": true,
+    "inadmissible_reasons": [],
+    "no_verdict": [
+     "C4"
+    ]
+   }
+  }
+ ],
+ "frontier": [
+  {
+   "quorum": 0.7497,
+   "verdicts": 6,
+   "pins": 7,
+   "stability": 1.0,
+   "stability_pins": 1,
+   "margin": 0.2497,
+   "coercions": [],
+   "admissible": true,
+   "inadmissible_reasons": [],
+   "no_verdict": [
+    "C4"
+   ]
+  }
+ ],
+ "chosen": {
+  "quorum": 0.7497,
+  "verdicts": 6,
+  "pins": 7,
+  "stability": 1.0,
+  "stability_pins": 1,
+  "margin": 0.2497,
+  "coercions": [],
+  "admissible": true,
+  "inadmissible_reasons": [],
+  "no_verdict": [
+   "C4"
+  ]
+ },
+ "shipped": {
+  "quorum": 0.66,
+  "verdicts": 6,
+  "pins": 7,
+  "stability": 1.0,
+  "stability_pins": 1,
+  "margin": 0.16,
+  "coercions": [],
+  "admissible": true,
+  "inadmissible_reasons": [],
+  "no_verdict": [
+   "C4"
+  ]
+ },
+ "shipped_quorum": 0.66,
+ "inert_genes": [
+  "max_age_days (no row in this corpus constrains it)",
+  "truncation_strict (no row in this corpus constrains it)"
+ ],
+ "overlay_proposal": {
+  "arena": {
+   "quorum": 0.7497
+  }
+ },
+ "note": "Frontier entries are equal-evidence choices; 'chosen' is the maximin member (largest margin to both edges of the band). An inert gene is reported with its value and is NOT claimed tuned."
+}

@@ -1,8 +1,7 @@
-C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\site-packages\pluggy\_callers.py:121: RuntimeWarning: SHADOW-SPLIT: CORE resolves under c:\azazael\azazael\src but tests run from c:\azazael\azazael. Tests importing both CORE.* and top-level script modules compare constants from two different TREES. Path-asserting tests must relativize (test_algorithm_observers._treerel pattern); for single-tree runs, run pytest from the tree the editable install points at.
-  res = hook_impl.function(*args)
-........................................................................ [ 38%]
-.................................................ssssssss............... [ 76%]
-.....s.......s..............................                             [100%]
+........................................................................ [ 28%]
+.................................................ssssssss............... [ 57%]
+..................................................................s..... [ 86%]
+..s..............................                                        [100%]
 ============================== warnings summary ===============================
 tests/test_wiring_cycle.py::test_prime_caches_fills_without_raising
   C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
@@ -13,4 +12,4 @@ tests/test_spine_mesh.py::test_spine_cycle_runs_and_never_raises
     import pynvml  # type: ignore[import]
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-178 passed, 11 skipped, 2 warnings in 69.97s (0:01:09)
+239 passed, 10 skipped, 2 warnings in 90.05s (0:01:30)

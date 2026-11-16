@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/inference/sequential_analyzer.py :: SequentialAnalyzer -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/inference/sequential_analyzer.py (class SequentialAnalyzer, 755 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/inference/sequential_analyzer.py (class SequentialAnalyzer, 890 lines in the module, 8 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/inference/sequential_analyzer.py#SequentialAnalyzer"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/inference/sequential_analyzer.py#SequentialAnalyzer"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -941,9 +941,13 @@ def verify_capsule_chain(capsules: list) -> dict:
         if i == 0:
             link_ok = None                       # no predecessor to bind
         else:
-            link_ok = str(cap.get("prev_hash", "")) == prev_sig
-            if not link_ok:
-                broken.append(f"link@{i}")
+            # Key must exist AND match; missing prev_hash breaks the chain
+            if "prev_hash" not in cap:
+                link_ok = False
+            else:
+                link_ok = str(cap.get("prev_hash", "")) == prev_sig
+        if not link_ok:
+            broken.append(f"link@{i}")
         ok = ok and sig_verified and (link_ok is None or link_ok)
         per.append({"index": i, "sealed": bool(cap.get("sealed")),
                     "signature": bool(sig), "sig_verified": sig_verified,
@@ -1622,25 +1626,6 @@ def get_line(audit_filepath: str, line_number: int) -> dict:
     return {}
 
 
-def verify_citation_exists(citation: str) -> bool:
-    """Check if a citation string points to a valid audit entry."""
-    if ":" not in citation:
-        return False
-    parts = citation.rsplit(":", 1)
-    if len(parts) != 2:
-        return False
-    filepath, line_str = parts
-    try:
-        line_num = int(line_str)
-    except ValueError as exc:
-        note_failure("audit_trail:L1451", exc)
-        return False
-    if not Path(filepath).exists():
-        return False
-    data = get_line(filepath, line_num)
-    return bool(data) and not data.get("_corrupt", False)
-
-
 def deduplicate_entries(audit_filepath: str, entry_type: str) -> list:
     """Find unique entries by UUID, discarding duplicates."""
     all_entries = find_entries(audit_filepath, entry_type)
@@ -1656,50 +1641,6 @@ def deduplicate_entries(audit_filepath: str, entry_type: str) -> list:
     return unique
 
 
-def audit_code_review(subject: str, issues_found: int = 0,
-                      issues_fixed: int = 0, summary: str = "") -> str:
-    """Record a code review event.
-
-    Args:
-        subject: What was reviewed (e.g., file path, module name).
-        issues_found: Number of issues identified during review.
-        issues_fixed: Number of issues resolved.
-        summary: Optional summary of the review outcome.
-
-    Returns:
-        Citation string for the audit entry.
-    """
-    _ensure_session()
-    return _append_line({
-        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
-        "type": "code_review",
-        "subject": subject,
-        "issues_found": issues_found,
-        "issues_fixed": issues_fixed,
-        "summary": summary[:500] if summary else "",
-    })
-
-
-def audit_tooling_verify(tools_found: int, tools_missing: int,
-                         details: (dict | None) = None) -> str:
-    """Record a tooling verification event.
-
-    Args:
-        tools_found: Number of required tools found.
-        tools_missing: Number of required tools missing.
-        details: Optional dict with per-tool status (e.g., {'npm': True, 'pip': False}).
-
-    Returns:
-        Citation string for the audit entry.
-    """
-    _ensure_session()
-    return _append_line({
-        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
-        "type": "tooling_verify",
-        "tools_found": tools_found,
-        "tools_missing": tools_missing,
-        "details": details or {},
-    })
 
 
 def audit_error_occurrence(error_id: int, title: str, file_path: str,

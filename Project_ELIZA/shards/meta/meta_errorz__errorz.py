@@ -1,8 +1,8 @@
 # coding: utf-8
 """META / META/ERRORZ.py :: ERRORZ -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux META/ERRORZ.py (class ERRORZ, 672 lines in the module, 6 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux META/ERRORZ.py (class ERRORZ, 684 lines in the module, 7 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:META/ERRORZ.py#ERRORZ"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:META/ERRORZ.py#ERRORZ"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -1,0 +1,927 @@
+{
+  "deadline_ms": 30000,
+  "env": "laptop-8u5msh3g",
+  "scope": "src/CORE",
+  "swarm_id": "cursor-swarm-workers-src-CORE",
+  "workers": [
+    {
+      "id": "w01",
+      "intent": "read 15 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/Agent.py",
+        "src/CORE/AgentPool.py",
+        "src/CORE/ERROR_SCAN_WORM.py",
+        "src/CORE/FREETHREAD_UPGRADE.py",
+        "src/CORE/FreeThreadedAgent.py",
+        "src/CORE/LOCAL_DEV.py",
+        "src/CORE/LaneMessageBoard.py",
+        "src/CORE/MemoryBus.py",
+        "src/CORE/NODE.py",
+        "src/CORE/NeuralPipeline.py",
+        "src/CORE/PYTHON_MANAGER.py",
+        "src/CORE/PamsRecorder.py",
+        "src/CORE/STRESS_TEST.py",
+        "src/CORE/STRUCTURE.py",
+        "src/CORE/WORM_FLEET.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w02",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/__init__.py",
+        "src/CORE/_logging_shim.py",
+        "src/CORE/active_learn.py",
+        "src/CORE/agent_registry.py",
+        "src/CORE/algorithm_qualification.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w03",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/archive_store.py",
+        "src/CORE/arxiv_integration.py",
+        "src/CORE/async_core.py",
+        "src/CORE/atomic_store.py",
+        "src/CORE/audit_compress.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w04",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/audit_export_html.py",
+        "src/CORE/audit_merge.py",
+        "src/CORE/audit_repair.py",
+        "src/CORE/audit_trail.py",
+        "src/CORE/audit_watch.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w05",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/azazael_ctl.py",
+        "src/CORE/azazael_logging.py",
+        "src/CORE/backend_bandit.py",
+        "src/CORE/backup.py",
+        "src/CORE/cascade.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w06",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/cd2_verifier.py",
+        "src/CORE/cd3_exporter.py",
+        "src/CORE/cd4_pipeline.py",
+        "src/CORE/circuit_breaker.py",
+        "src/CORE/cli_audit.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w07",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/cli_completion.py",
+        "src/CORE/cli_crossref.py",
+        "src/CORE/cli_memory.py",
+        "src/CORE/cluster_route.py",
+        "src/CORE/codebase_graph.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w08",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/codebuff_tracker.py",
+        "src/CORE/compliance_auditor.py",
+        "src/CORE/config.py",
+        "src/CORE/cpuid.py",
+        "src/CORE/dashboard.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w09",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/data_retention.py",
+        "src/CORE/device.py",
+        "src/CORE/direct_memory.py",
+        "src/CORE/dispatch_plan.py",
+        "src/CORE/doctor.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w10",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/dpo_losses.py",
+        "src/CORE/dream_arena.py",
+        "src/CORE/dream_policy_bridge.py",
+        "src/CORE/embedding_backend.py",
+        "src/CORE/enforcement_harness.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w11",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/env_id.py",
+        "src/CORE/error_triage.py",
+        "src/CORE/escalation_sft.py",
+        "src/CORE/eval_utils.py",
+        "src/CORE/failure_ledger.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w12",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/failure_shim.py",
+        "src/CORE/feast_feature_store.py",
+        "src/CORE/forecast_baselines.py",
+        "src/CORE/freethreading.py",
+        "src/CORE/fs_probe.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w13",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/full_scan.py",
+        "src/CORE/gguf_census.py",
+        "src/CORE/graph_artifacts.py",
+        "src/CORE/graph_drift.py",
+        "src/CORE/graph_learn.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w14",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/health_server.py",
+        "src/CORE/hlc.py",
+        "src/CORE/inference_pool.py",
+        "src/CORE/l1_wiring_audit.py",
+        "src/CORE/langgraph_integration.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w15",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/latent_align.py",
+        "src/CORE/latent_refine.py",
+        "src/CORE/layerwise.py",
+        "src/CORE/league.py",
+        "src/CORE/local_memory.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w16",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/log_hygiene.py",
+        "src/CORE/logging.py",
+        "src/CORE/logging_config.py",
+        "src/CORE/memory_diagnostic.py",
+        "src/CORE/mesh_transport.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w17",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/meta_evolution.py",
+        "src/CORE/metrics.py",
+        "src/CORE/microcode.py",
+        "src/CORE/microcode_dispatch.py",
+        "src/CORE/morphed_trainers.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w18",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/native_guard.py",
+        "src/CORE/neural_loop.py",
+        "src/CORE/notifier.py",
+        "src/CORE/orkg_integration.py",
+        "src/CORE/pattern_memory.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w19",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/postgres_memory.py",
+        "src/CORE/prm.py",
+        "src/CORE/project_atlas.py",
+        "src/CORE/python_env.py",
+        "src/CORE/qd_bridge.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w20",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/record_session.py",
+        "src/CORE/recorder_guard.py",
+        "src/CORE/redteam.py",
+        "src/CORE/reward_scales.py",
+        "src/CORE/robust.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w21",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/rollback.py",
+        "src/CORE/rubric_evolution.py",
+        "src/CORE/safe_file_ops.py",
+        "src/CORE/safe_sql.py",
+        "src/CORE/sb3_agent.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w22",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/secrets_manager.py",
+        "src/CORE/sentinel_enforcer.py",
+        "src/CORE/skill_library.py",
+        "src/CORE/spine_registry.py",
+        "src/CORE/startup_warm.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w23",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/structured_action.py",
+        "src/CORE/technique_runtime.py",
+        "src/CORE/threading_utils.py",
+        "src/CORE/training_intake.py",
+        "src/CORE/tstrings.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w24",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/ttcompute.py",
+        "src/CORE/uuid7.py",
+        "src/CORE/verification_gate.py",
+        "src/CORE/vocab_migration.py",
+        "src/CORE/web_dashboard.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w25",
+      "intent": "read 5 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/web_search.py",
+        "src/CORE/workflow.py",
+        "src/CORE/worm_governance.py",
+        "src/CORE/worm_health.py",
+        "src/CORE/worm_registry.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w26",
+      "intent": "read 4 module(s) of src/CORE",
+      "node": "src/CORE",
+      "scope": [
+        "src/CORE/worm_registry_cache.py",
+        "src/CORE/xref_auto_link.py",
+        "src/CORE/xref_dashboard.py",
+        "src/CORE/xref_webhook.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w27",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/BENCHMARK_WORM.py",
+        "src/CORE/WORMS/BINARY_ANALYSIS.py",
+        "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py",
+        "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+        "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w28",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py",
+        "src/CORE/WORMS/CAIN_ANALYZER.py",
+        "src/CORE/WORMS/CAIN_DATA.py",
+        "src/CORE/WORMS/CAIN_WORM.py",
+        "src/CORE/WORMS/CLAWBOT.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w29",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/CLOCKZ.py",
+        "src/CORE/WORMS/CLUSTERWORMS.py",
+        "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+        "src/CORE/WORMS/CODEX_TOOLS.py",
+        "src/CORE/WORMS/CONCURRENCY.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w30",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/CONCURRENCY_GATE_WORM.py",
+        "src/CORE/WORMS/DEPENDZ.py",
+        "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+        "src/CORE/WORMS/DISKZ.py",
+        "src/CORE/WORMS/DNSWORM.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w31",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py",
+        "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+        "src/CORE/WORMS/HEALING_WORM.py",
+        "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+        "src/CORE/WORMS/INFERENCE_WORM.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w32",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/KALIWORMS.py",
+        "src/CORE/WORMS/METACLUSTER.py",
+        "src/CORE/WORMS/METAZ.py",
+        "src/CORE/WORMS/MORPHING_WORM.py",
+        "src/CORE/WORMS/MORPHING_WORM_V2.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w33",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/NETWORK_DIAG.py",
+        "src/CORE/WORMS/NETWORXZ.py",
+        "src/CORE/WORMS/NIM_INFERENCE.py",
+        "src/CORE/WORMS/OMNI_WORM.py",
+        "src/CORE/WORMS/OMNI_WORM_V2.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w34",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/OS_CONGRUENCY.py",
+        "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+        "src/CORE/WORMS/PERSEPHONE_WORM.py",
+        "src/CORE/WORMS/PIPELINE_WORM.py",
+        "src/CORE/WORMS/POINDEXTER_WORM.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w35",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/PROCESSZ.py",
+        "src/CORE/WORMS/REVERSE_TOOLS.py",
+        "src/CORE/WORMS/SMARTDISK.py",
+        "src/CORE/WORMS/SPECULATIVE_FORK_WORM.py",
+        "src/CORE/WORMS/STRIDE_VERIFIER_WORM.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w36",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/SYSTEMZ.py",
+        "src/CORE/WORMS/SYSTEMZ_ML.py",
+        "src/CORE/WORMS/TOOLBELTZ.py",
+        "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
+        "src/CORE/WORMS/WORMZ.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w37",
+      "intent": "read 5 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/WORMZ_ML.py",
+        "src/CORE/WORMS/WORMZ_POPUP.py",
+        "src/CORE/WORMS/WORM_FLEET.py",
+        "src/CORE/WORMS/WORM_SELECTOR.py",
+        "src/CORE/WORMS/WSL_RECOVERY_WORM.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w38",
+      "intent": "read 3 module(s) of src/CORE/WORMS",
+      "node": "src/CORE/WORMS",
+      "scope": [
+        "src/CORE/WORMS/__init__.py",
+        "src/CORE/WORMS/dead_letter_queue.py",
+        "src/CORE/WORMS/worm_telemetry.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w39",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/__init__.py",
+        "src/CORE/WORMS/expansion/ablation_study.py",
+        "src/CORE/WORMS/expansion/algorithm_observers.py",
+        "src/CORE/WORMS/expansion/allocation.py",
+        "src/CORE/WORMS/expansion/anchor_retrieval.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w40",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/arena.py",
+        "src/CORE/WORMS/expansion/axon.py",
+        "src/CORE/WORMS/expansion/backup.py",
+        "src/CORE/WORMS/expansion/berks.py",
+        "src/CORE/WORMS/expansion/chaos.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w41",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/chorus.py",
+        "src/CORE/WORMS/expansion/code_audit.py",
+        "src/CORE/WORMS/expansion/communication.py",
+        "src/CORE/WORMS/expansion/config.py",
+        "src/CORE/WORMS/expansion/consensus.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w42",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/consolidation.py",
+        "src/CORE/WORMS/expansion/container.py",
+        "src/CORE/WORMS/expansion/cppn.py",
+        "src/CORE/WORMS/expansion/cutting_edge_model.py",
+        "src/CORE/WORMS/expansion/db_monitor.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w43",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/delegation.py",
+        "src/CORE/WORMS/expansion/dendrite.py",
+        "src/CORE/WORMS/expansion/diversity.py",
+        "src/CORE/WORMS/expansion/dreaming.py",
+        "src/CORE/WORMS/expansion/driver.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w44",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/engram.py",
+        "src/CORE/WORMS/expansion/envmesh.py",
+        "src/CORE/WORMS/expansion/error_recovery.py",
+        "src/CORE/WORMS/expansion/evidence.py",
+        "src/CORE/WORMS/expansion/evolution.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w45",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/evolution_audit.py",
+        "src/CORE/WORMS/expansion/exmachina.py",
+        "src/CORE/WORMS/expansion/exmachina_operators.py",
+        "src/CORE/WORMS/expansion/fabric_state.py",
+        "src/CORE/WORMS/expansion/federated.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w46",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/fencing.py",
+        "src/CORE/WORMS/expansion/glia.py",
+        "src/CORE/WORMS/expansion/hybrid_rewards.py",
+        "src/CORE/WORMS/expansion/hyperopt.py",
+        "src/CORE/WORMS/expansion/immune.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w47",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/jev_advisor.py",
+        "src/CORE/WORMS/expansion/lazy_replan.py",
+        "src/CORE/WORMS/expansion/learning.py",
+        "src/CORE/WORMS/expansion/learning_ab.py",
+        "src/CORE/WORMS/expansion/learning_features.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w48",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/learning_grpo.py",
+        "src/CORE/WORMS/expansion/learning_pipeline.py",
+        "src/CORE/WORMS/expansion/learning_rl.py",
+        "src/CORE/WORMS/expansion/learning_versioner.py",
+        "src/CORE/WORMS/expansion/liveness.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w49",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/loom.py",
+        "src/CORE/WORMS/expansion/mars_claims.py",
+        "src/CORE/WORMS/expansion/mesh.py",
+        "src/CORE/WORMS/expansion/meta_cognition.py",
+        "src/CORE/WORMS/expansion/metabolic.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w50",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/migration.py",
+        "src/CORE/WORMS/expansion/morph.py",
+        "src/CORE/WORMS/expansion/nerve.py",
+        "src/CORE/WORMS/expansion/nuclei.py",
+        "src/CORE/WORMS/expansion/oracle.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w51",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/plasticity.py",
+        "src/CORE/WORMS/expansion/policy_optimization.py",
+        "src/CORE/WORMS/expansion/profiling.py",
+        "src/CORE/WORMS/expansion/proteus_hooks.py",
+        "src/CORE/WORMS/expansion/queens.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w52",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/race_detector.py",
+        "src/CORE/WORMS/expansion/rcpd_early_exit.py",
+        "src/CORE/WORMS/expansion/reflexion.py",
+        "src/CORE/WORMS/expansion/remediation_env.py",
+        "src/CORE/WORMS/expansion/rl_gene_bounds.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w53",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/scheduling.py",
+        "src/CORE/WORMS/expansion/schema_instruction_channel.py",
+        "src/CORE/WORMS/expansion/security.py",
+        "src/CORE/WORMS/expansion/servemesh.py",
+        "src/CORE/WORMS/expansion/session_state.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w54",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/silence.py",
+        "src/CORE/WORMS/expansion/spawn_credit.py",
+        "src/CORE/WORMS/expansion/spine.py",
+        "src/CORE/WORMS/expansion/synapse.py",
+        "src/CORE/WORMS/expansion/telemetry.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w55",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/tensorgene.py",
+        "src/CORE/WORMS/expansion/thalamus.py",
+        "src/CORE/WORMS/expansion/threatmon.py",
+        "src/CORE/WORMS/expansion/trainers_v2.py",
+        "src/CORE/WORMS/expansion/utility_guided_orchestration.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w56",
+      "intent": "read 5 module(s) of src/CORE/WORMS/expansion",
+      "node": "src/CORE/WORMS/expansion",
+      "scope": [
+        "src/CORE/WORMS/expansion/visualization.py",
+        "src/CORE/WORMS/expansion/wiring_audit.py",
+        "src/CORE/WORMS/expansion/wiring_genome.py",
+        "src/CORE/WORMS/expansion/xenomorph.py",
+        "src/CORE/WORMS/expansion/xmemory_decouple_aggregate.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w57",
+      "intent": "read 1 module(s) of src/CORE/WORMS/expansion/generated",
+      "node": "src/CORE/WORMS/expansion/generated",
+      "scope": [
+        "src/CORE/WORMS/expansion/generated/__init__.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w58",
+      "intent": "read 1 module(s) of src/CORE/WORMS/expansion/generated/_staging",
+      "node": "src/CORE/WORMS/expansion/generated/_staging",
+      "scope": [
+        "src/CORE/WORMS/expansion/generated/_staging/gen_windows_mesh_unknown.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w59",
+      "intent": "read 2 module(s) of src/CORE/Widgets",
+      "node": "src/CORE/Widgets",
+      "scope": [
+        "src/CORE/Widgets/BasePopupMonitor.py",
+        "src/CORE/Widgets/__init__.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w60",
+      "intent": "read 5 module(s) of src/CORE/camel",
+      "node": "src/CORE/camel",
+      "scope": [
+        "src/CORE/camel/__init__.py",
+        "src/CORE/camel/__main__.py",
+        "src/CORE/camel/capabilities.py",
+        "src/CORE/camel/guard.py",
+        "src/CORE/camel/interpreter.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w61",
+      "intent": "read 2 module(s) of src/CORE/camel",
+      "node": "src/CORE/camel",
+      "scope": [
+        "src/CORE/camel/policy.py",
+        "src/CORE/camel/quarantine.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w62",
+      "intent": "read 5 module(s) of src/CORE/compliance",
+      "node": "src/CORE/compliance",
+      "scope": [
+        "src/CORE/compliance/__init__.py",
+        "src/CORE/compliance/broker.py",
+        "src/CORE/compliance/dashboard_api.py",
+        "src/CORE/compliance/governance.py",
+        "src/CORE/compliance/heuristic_recorder.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w63",
+      "intent": "read 5 module(s) of src/CORE/compliance",
+      "node": "src/CORE/compliance",
+      "scope": [
+        "src/CORE/compliance/orchestrator.py",
+        "src/CORE/compliance/policy.py",
+        "src/CORE/compliance/pre_action_gate.py",
+        "src/CORE/compliance/run_self_test.py",
+        "src/CORE/compliance/scanner.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w64",
+      "intent": "read 4 module(s) of src/CORE/compliance",
+      "node": "src/CORE/compliance",
+      "scope": [
+        "src/CORE/compliance/scanner_db.py",
+        "src/CORE/compliance/state_machine.py",
+        "src/CORE/compliance/telemetry.py",
+        "src/CORE/compliance/validating.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w65",
+      "intent": "read 5 module(s) of src/CORE/inference",
+      "node": "src/CORE/inference",
+      "scope": [
+        "src/CORE/inference/__init__.py",
+        "src/CORE/inference/api_client.py",
+        "src/CORE/inference/bus_utils.py",
+        "src/CORE/inference/cloud_tab.py",
+        "src/CORE/inference/hyper_optimizer.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w66",
+      "intent": "read 5 module(s) of src/CORE/inference",
+      "node": "src/CORE/inference",
+      "scope": [
+        "src/CORE/inference/inference_cache.py",
+        "src/CORE/inference/inference_memory.py",
+        "src/CORE/inference/nim_client.py",
+        "src/CORE/inference/parallel.py",
+        "src/CORE/inference/providers.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w67",
+      "intent": "read 3 module(s) of src/CORE/inference",
+      "node": "src/CORE/inference",
+      "scope": [
+        "src/CORE/inference/query_loop.py",
+        "src/CORE/inference/sequential_analyzer.py",
+        "src/CORE/inference/threaded.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w68",
+      "intent": "read 2 module(s) of src/CORE/parallel",
+      "node": "src/CORE/parallel",
+      "scope": [
+        "src/CORE/parallel/__init__.py",
+        "src/CORE/parallel/work_stealing.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w69",
+      "intent": "read 5 module(s) of src/CORE/paths",
+      "node": "src/CORE/paths",
+      "scope": [
+        "src/CORE/paths/__init__.py",
+        "src/CORE/paths/__main__.py",
+        "src/CORE/paths/external.py",
+        "src/CORE/paths/internal.py",
+        "src/CORE/paths/state.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w70",
+      "intent": "read 1 module(s) of src/CORE/paths",
+      "node": "src/CORE/paths",
+      "scope": [
+        "src/CORE/paths/targets.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w71",
+      "intent": "read 5 module(s) of src/CORE/technique_wiring",
+      "node": "src/CORE/technique_wiring",
+      "scope": [
+        "src/CORE/technique_wiring/__init__.py",
+        "src/CORE/technique_wiring/_b01_05.py",
+        "src/CORE/technique_wiring/_l0_model.py",
+        "src/CORE/technique_wiring/_l1_memory.py",
+        "src/CORE/technique_wiring/_l2_skills.py"
+      ],
+      "tree": "src/CORE"
+    },
+    {
+      "id": "w72",
+      "intent": "read 5 module(s) of src/CORE/technique_wiring",
+      "node": "src/CORE/technique_wiring",
+      "scope": [
+        "src/CORE/technique_wiring/_l3_verify.py",
+        "src/CORE/technique_wiring/_l4_exec.py",
+        "src/CORE/technique_wiring/_l5_dispatch.py",
+        "src/CORE/technique_wiring/_l6_evolve.py",
+        "src/CORE/technique_wiring/_l7_interface.py"
+      ],
+      "tree": "src/CORE"
+    }
+  ]
+}

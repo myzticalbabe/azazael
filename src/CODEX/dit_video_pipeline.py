@@ -36,16 +36,27 @@ import os
 import sys
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
 
 import torch
 import numpy as np
 
-# Optional imports with graceful fallback
+# Optional imports with graceful fallback.
+#
+# The classes are imported for the type checker under TYPE_CHECKING and only
+# rebound when the package is genuinely present. The old `... = None` fallback
+# made every reference Optional, which is why `CogVideoXPipeline.from_pretrained`
+# was reported as a call on None: the annotation said what the import guard
+# meant, not what the code does.
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from diffusers import CogVideoXPipeline
+    from diffusers.utils import export_to_video
+    from transformers import T5EncoderModel, T5Tokenizer
+
 try:
     from diffusers import CogVideoXPipeline
     from diffusers.utils import export_to_video
@@ -53,7 +64,6 @@ try:
     DIFFUSERS_AVAILABLE = True
 except ImportError:
     DIFFUSERS_AVAILABLE = False
-    CogVideoXPipeline = T5EncoderModel = T5Tokenizer = None
 
 try:
     from tensorrt_llm import LLM

@@ -1,0 +1,20 @@
+{
+  "ok": false,
+  "missing_required": [
+    "project[chapter_id]",
+    "project[use_for_money]",
+    "project[about_me]"
+  ],
+  "overflow": [],
+  "out_of_bounds": [],
+  "filled": [
+    "project[about_project]",
+    "project[email]",
+    "project[name]",
+    "project[title]",
+    "project[url]"
+  ],
+  "field_count": 24,
+  "program": "census_awesome_foundation",
+  "checked_at": "2026-11-03T17:35:37"
+}

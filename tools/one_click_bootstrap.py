@@ -51,7 +51,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "logs" / "one_click_bootstrap.json"
-PY = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
+PY = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
 #: This tree declares its packages as an interpreter-specific requirement file
 #: plus a pyproject. `requirements.txt` does not exist here, and a check that
 #: looks for it reported BLIND forever -- "no requirements" reads as "nothing to

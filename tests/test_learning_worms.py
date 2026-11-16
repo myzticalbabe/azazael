@@ -489,20 +489,27 @@ class TestAutoDiscoverShapes(unittest.TestCase):
         """
         store = self.pipeline._get_store()
         self.assertIsNotNone(store)
+        # Unique event types per run: the store is shared/persistent, so a
+        # fixed name can be drowned out by ambient history under sampling.
+        # A uuid suffix proves *these* writes are discoverable.
+        import uuid as _uuid
+        suffix = _uuid.uuid4().hex[:8]
+        et_exec = "pipeline_probe_executed_" + suffix
+        et_sum = "pipeline_probe_summary_" + suffix
         store.record_event(
             source="learning_pipeline_probe",
-            event_type="pipeline_probe_executed",
+            event_type=et_exec,
             data={"worm": "ProbeWorm", "duration_ms": 1.5},
         )
         store.record_event(
             source="learning_pipeline_probe",
-            event_type="pipeline_probe_summary",
+            event_type=et_sum,
             data={"rounds": 3, "ok": 2},
         )
-        result = self.pipeline.auto_discover_shapes(sample_limit=5)
+        result = self.pipeline.auto_discover_shapes(sample_limit=100)
         self.assertGreater(len(result["discovered"]), 0)
-        self.assertIn("pipeline_probe_executed", result["discovered"])
-        self.assertIn("pipeline_probe_summary", result["discovered"])
+        self.assertIn(et_exec, result["discovered"])
+        self.assertIn(et_sum, result["discovered"])
 
 
 class TestDynamicShapes(unittest.TestCase):

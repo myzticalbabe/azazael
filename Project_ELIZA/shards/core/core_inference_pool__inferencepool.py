@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/inference_pool.py :: InferencePool -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/inference_pool.py (class InferencePool, 493 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/inference_pool.py (class InferencePool, 524 lines in the module, 16 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/inference_pool.py#InferencePool"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/inference_pool.py#InferencePool"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

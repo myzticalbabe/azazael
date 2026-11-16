@@ -22,29 +22,42 @@
 # verify whether free-threading is active.
 
 # ============================================================================
-# CI IS LOCAL-ONLY. NOTHING HERE FIRES TODAY. Read this before debugging a
-# "missing" run (measured 2026-10-31, re-measured 2026-11-01):
+# THIS FILE NOW FIRES, AND IT FAILS. Re-measured 2026-11-14.
+#
+# The block that used to sit here said "CI IS LOCAL-ONLY. NOTHING HERE FIRES
+# TODAY" because `origin` was then `C:\Users\clint\azazael`, a local path. That
+# is no longer true, and leaving it standing hides the failure it causes:
 #
 #   $ git remote -v
-#   origin  C:\Users\clint\azazael (fetch)   <-- a LOCAL PATH, not a host
+#   origin  https://github.com/myzticalbabe/azazael.git (fetch)
 #
-# A workflow runs when a hosted runner receives a push. `origin` is a directory
-# on this machine, so no runner is ever told about a push, and no amount of
-# trigger tuning changes that. This file is kept because it is the correct
-# definition of the job for the day a hosted remote is added -- not because it
-# is the gate.
+# Hosted runs exist (9 workflows on the remote). The last push to `main`
+# produced `Test (3.15+)` run 43622892804 and `CI` run 43622892785, both
+# `failure`.
 #
-# **The gate is `.githooks/pre-commit`** (unified registry:
-# `tools/preflight_all.py --check`, blocking). That is what actually refuses a
-# commit. It does not run the 5,573 tests in `tests/`; nothing does on commit.
-# To run them by hand, use the interpreter they were measured on:
-#   C:/Azazael/.venvs/py315t/Scripts/python.exe -m pytest tests -x -q
+# The cause is a version, not a test. GitHub's hosted runners carry 3.9-3.13
+# and have neither 3.15 nor 3.16. Measured from run 43622892785's log:
+# `setup-python` was asked for '3.15', resolved 3.12.16, and the next step
+# died with
+#   ERROR: Package 'azazael' requires a different Python: 3.12.16 not in '>=3.15'
+# So a hosted job must not install this repo's root package, whose
+# `requires-python` is `>=3.16`. The version and the install step have to move
+# together, or the run fails earlier for the same reason.
+#
+# **Per-tree gate:** `.github/workflows/trees.yml`, one matrix job per tree,
+# registry `ci/trees.json` validated by `python ci/trees.py --check`.
+# **Commit gate:** `.githooks/pre-commit` (unified registry:
+# `tools/preflight_all.py --check`, blocking).
+# Neither runs the root suite: it is wedged (HED-2 -- not finished inside
+# 600 s twice), so `ci/tree_job.py` COLLECTS it and runs the per-tree suites
+# that do finish. To run it by hand on the interpreter it was measured on:
+#   C:/Azazael/.venvs/py316t/Scripts/python.exe -m pytest tests -x -q
 # `run_tests.py` is not the aggregate suite: it covers a hardcoded
-# STANDALONE_OK list (24 files / 471 tests), which is why a green run there has
-# never meant the tests/ tree passes.
+# STANDALONE_OK list, which is why a green run there has never meant the
+# tests/ tree passes.
 #
 # Triggers below name the branches that actually exist and get pushed
-# (`git branch`: deepseek-engram-813, lane-813-recovery,
+# (`git branch`: azazael-intel-ultra-9-evo, lane-813-recovery,
 # migration/baseline-20261001). They previously said `main`, which exists
 # nowhere in this repo -- a second reason this file could not have run.
 # ============================================================================
@@ -55,16 +68,22 @@ on:
   push:
     branches:
       - main                      # kept for the day a hosted remote exists
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - lane-813-recovery
       - migration/baseline-20261001
   pull_request:
     branches:
       - main
-      - deepseek-engram-813
+      - azazael-intel-ultra-9-evo
       - "lane-813-recovery"
       - migration/baseline-20261001
   workflow_dispatch:
+
+# Least privilege, stated rather than inherited: the job checks out the repo,
+# installs, runs the suite and uploads artifacts. It writes nothing back to
+# repository contents, so a write-capable default token would be unused.
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -154,10 +173,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
+          # run_tests.py writes logs/<test>.log per file (tail 200 lines) so a
+          # CI-only failure arrives with its traceback, not just a summary.
           # Was `path: *.log`, which is not a glob to YAML -- a leading `*` is an
           # alias. The file failed to parse at all (yaml.safe_load -> "expected
           # alphabetic or numeric character, but found '.'"), so this workflow
           # had two independent reasons never to run: no hosted remote, and a
           # document that is not valid YAML. Measured 2026-11-01.
-          path: "*.log"
+          path: "logs/*.log"
           retention-days: 7

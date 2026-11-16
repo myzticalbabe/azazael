@@ -1,0 +1,286 @@
+{
+ "meta": {
+  "round": "r7",
+  "judged_at": "2026-11-05T01:04:20",
+  "endpoint": "http://127.0.0.1:8081",
+  "model": "local",
+  "judges": [
+   "ARENA-JUDGE-1-ARCHITECTURE",
+   "ARENA-JUDGE-2-LEGAL",
+   "ARENA-JUDGE-3-ECONOMIC",
+   "ARENA-JUDGE-4-TECHNICAL",
+   "ARENA-JUDGE-5-ETHICAL",
+   "ARENA-JUDGE-6-STRATEGIC"
+  ],
+  "quorum": 0.66,
+  "packet": "ARC\\cain\\evidence_packet_r7.json",
+  "packet_sha256": "03c562ae7abe3a1bef779947b55f380df8ce046aed6731115db6209afbd10bec",
+  "calls": 12,
+  "blind_calls": 0,
+  "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+  "vocabulary": [
+   "SUPPORTED",
+   "PARTIAL",
+   "UNSUPPORTED",
+   "BLOCKED"
+  ]
+ },
+ "pins": {
+  "C5": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  },
+  "C7": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  }
+ },
+ "rows": [
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 59.11,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote explicitly confirms both the firmware update mechanism and the blocking of currently working cartridges, directly addressing each element of the claim with technical precision and without gaps.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 67.31,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote from the tier-B source explicitly confirms both elements of the claim with direct, verbatim language addressing the firmware update mechanism and its impact on currently working cartridges.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 50.18,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates and the blocking of currently working cartridges, including those that previously functioned.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 47.35,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates that block non-HP cartridges and the ability of such updates to affect currently working cartridges.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 55.05,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates and the blocking of currently working cartridges that use non-HP chips or modified electronic circuitry, meeting all material elements of the claim with direct, unambiguous language.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 38.62,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "HP issues firmware updates that block cartridges using a non-HP chip or modified or non-HP electronic circuitry",
+    "the block can reach a cartridge that works in the printer today, so a previously working cartridge stops working"
+   ],
+   "missing_elements": [],
+   "best_quote": "Firmware updates delivered periodically over the internet will maintain the effectiveness of the dynamic security measures. Updates can improve, enhance, or extend the printer’s functionality and features, protect against security threats, and serve other purposes, but these updates can also block c",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates that block non-HP cartridges and the ability of such updates to affect cartridges that currently work in the printer.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 38.24,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The primary source (tier B) explicitly states both the technical limitation and the disposal directive, directly supporting each element of the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 38.27,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The primary source (tier B) explicitly states both the technical limitation and the disposal directive, directly supporting each element of the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 38.08,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The primary source (tier B) explicitly confirms both the technical limitation and the disposal directive, directly supporting each element of the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 38.75,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The official support page directly states both technical and directive elements of the claim with clear, verifiable language.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 32.0,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The primary source (tier B) explicitly confirms both the technical limitation and the disposal directive, with no gaps in material elements.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 24.63,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "a Sonos product in Recycle Mode cannot be set up in a Sonos system",
+    "Sonos directs owners of a Recycle Mode product to responsible disposal rather than to reactivation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Sonos products in Recycle Mode cannot be set up in a Sonos system. We recommend responsibly disposing of Sonos products that have been placed in Recycle Mode.",
+   "reason": "The primary source (tier B) explicitly confirms both the technical limitation and the disposal directive, directly supporting each element of the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  }
+ ]
+}

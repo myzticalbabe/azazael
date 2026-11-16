@@ -1,0 +1,44 @@
+{
+ "cap_s": 40.0,
+ "frozen_at": 1794079555.4107642,
+ "outcomes": {
+  "http://unseen-train.invalid/": {
+   "kind": "live fetch failed",
+   "rung": "commoncrawl",
+   "state": "blocked"
+  },
+  "https://en.wikipedia.org/wiki/Python_(programming_language)": {
+   "kind": null,
+   "rung": "render",
+   "state": "ok"
+  },
+  "https://example.com": {
+   "kind": null,
+   "rung": "plain",
+   "state": "ok"
+  },
+  "https://httpbin.org/status/404": {
+   "kind": "live fetch failed",
+   "rung": "commoncrawl",
+   "state": "blocked"
+  },
+  "https://www.ietf.org/rfc/rfc2616.txt": {
+   "kind": null,
+   "rung": "plain",
+   "state": "ok"
+  },
+  "https://www.python.org": {
+   "kind": null,
+   "rung": "plain",
+   "state": "ok"
+  }
+ },
+ "urls": [
+  "https://example.com",
+  "https://www.python.org",
+  "https://en.wikipedia.org/wiki/Python_(programming_language)",
+  "https://httpbin.org/status/404",
+  "http://unseen-train.invalid/",
+  "https://www.ietf.org/rfc/rfc2616.txt"
+ ]
+}

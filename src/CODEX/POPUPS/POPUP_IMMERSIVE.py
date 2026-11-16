@@ -5,6 +5,7 @@ Full visual experience with all systems
 
 import tkinter as tk
 from typing import List
+from CORE.paths import get_desktop_dir
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -14,6 +15,8 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+DESKTOP_DIR = get_desktop_dir()
 
 
 def create_immersive_popup():
@@ -316,7 +319,7 @@ def create_immersive_popup():
         
         <div class="footer">
             <h2>ALL 11 SYSTEMS OPERATIONAL</h2>
-            <p style="color: #888; margin-top: 10px;">CODEX: C:\\Users\\clint\\Desktop\\CODEX</p>
+            <p style="color: #888; margin-top: 10px;">CODEX: {DESKTOP_DIR}\\CODEX</p>
         </div>
     </div>
 </body>
@@ -386,7 +389,7 @@ SYSTEMS: 11 | TIERS: 7 | ANIMATIONS: 24 | PATTERNS: 26
 |                    ALL SYSTEMS OPERATIONAL                               |
 +--------------------------------------------------------------------------+
 
-CODEX: C:\\Users\\clint\\Desktop\\CODEX
+CODEX: {DESKTOP_DIR}\\CODEX
 """,
         )
         text.config(state="disabled", bg="#0a0a15", fg="#00f5ff")

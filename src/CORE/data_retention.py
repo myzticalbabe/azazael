@@ -43,6 +43,7 @@ __all__ = [
 import json
 import os
 import sqlite3
+import sys
 import gzip
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -409,24 +410,32 @@ def _composite_victims(conn: sqlite3.Connection, victim_type: str,
                               "ranked": len(ranked)}
 
 
-_DEFAULTS_CONFIG = (Path(__file__).resolve().parents[2]
-                    / "config" / "defaults.json")
-
-
 def _composite_eviction_enabled() -> bool:
-    """`retention.composite_eviction` from config/defaults.json (default False).
+    """`retention.composite_eviction` through the shared surface (default False).
 
-    A deletion pass that switches victim SELECTION on is a decision about
-    which rows are lost, so it is opt-in and named here rather than inferred
-    from whether an embedding model happens to be reachable. A missing or
-    corrupt config degrades to the shipped default (legacy, size+age).
+    A deletion pass that switches victim SELECTION on is a decision about which
+    rows are lost, so it is opt-in and named here rather than inferred from
+    whether an embedding model happens to be reachable. A missing reader or an
+    unreadable config degrades to the shipped default (legacy, size+age).
+
+    This used to hand-parse `config/defaults.json` with json.loads, which made
+    the knob invisible to `tools/settings_shadow.py`: a bypass reader's key is
+    not in the audit's read map, so it cannot be checked for an orphan, a
+    fallback drift, or the environment overlay that now decides it. Reading
+    through `read_default` is what puts this switch on the same surface as every
+    other knob (HED-5, measured 2026-11-05).
     """
     try:
-        data = json.loads(_DEFAULTS_CONFIG.read_text(encoding="utf-8"))
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+        from defaults_profile import read_default        # noqa: PLC0415
     except Exception as exc:
         _note_failure("data_retention:composite-default", exc)
         return False
-    return bool((data.get("retention") or {}).get("composite_eviction", False))
+    try:
+        return bool(read_default("retention.composite_eviction", False))
+    except Exception as exc:
+        _note_failure("data_retention:composite-default", exc)
+        return False
 
 
 def enforce_global_quota(quota_mb: int | None = None,

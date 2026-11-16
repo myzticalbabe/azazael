@@ -37,9 +37,19 @@ USAGE
     python tools/sentinel.py --intent "refuse a bad shard" --target tools/sword.py \\
         --break tests/test_defender.py --evidence "pytest -q" --json
     python tools/sentinel.py --selftest
+    python tools/sentinel.py --frame-file frames.json --json
 
 Exit 0 when the action is allowed, 1 when it is BLOCKED (one line per reason), 2 when the
 sentinel itself could not run -- and 2 is never reported as OK.
+
+BATCH MODE (--frame-file)
+    frames.json is either a LIST of frame objects or an object {"root": ..,
+    "frames": [..]}. Every frame must carry the five required fields
+    (intent, target, must_not_break, defends, refusal) -- one malformed frame
+    makes the WHOLE batch cannot-run (exit 2), because a batch that silently
+    skipped entry 3 would let an unchecked frame pass between checked ones.
+    Frames are checked in order and the batch stops at the first BLOCKED one,
+    naming its index, so exit 0 always means "every frame checked".
 """
 from __future__ import annotations
 
@@ -299,6 +309,70 @@ def selftest(root: Optional[Path] = None) -> Tuple[int, List[str]]:
 # CLI
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# Batch mode -- many frames, one process
+# --------------------------------------------------------------------------- #
+
+_FRAME_REQUIRED = ("intent", "target", "must_not_break", "defends", "refusal")
+
+
+def _frame_error(frame_index: int, what: str) -> SentinelError:
+    return SentinelError("frame #%d %s -- the batch cannot run" % (frame_index, what))
+
+
+def run_frames(payload: Any, root: Optional[Path] = None) -> Tuple[int, Dict[str, Any]]:
+    """Check a batch of frames. Returns (exit_code, report); never raises.
+
+    exit 2 is reserved for a malformed batch: unreadable file, not a list (nor
+    {"frames": [...]}, or a frame missing a required field. A batch carrying
+    one such frame must not partially run -- the unchecked remainder would be
+    silent, and silence is the only failure mode a sentinel cannot reap.
+    """
+    if isinstance(payload, dict) and "frames" in payload:
+        if root is None and payload.get("root"):
+            root = Path(payload["root"])
+        payload = payload["frames"]
+    if not isinstance(payload, list) or not payload:
+        return 2, {"mode": "batch", "error": "no frame list: --frame-file must hold a "
+                                                "non-empty list (or {\"frames\": [...]})"}
+
+    verdicts = []
+    for index, frame in enumerate(payload):
+        if not isinstance(frame, dict):
+            return 2, {"mode": "batch", "error": "frame #%d is not an object" % index,
+                       "checked": verdicts}
+        missing = [key for key in _FRAME_REQUIRED
+                   if key not in frame or not isinstance(frame[key], (str, list))]
+        if missing:
+            return 2, {"mode": "batch",
+                       "error": "frame #%d missing/mistyped field(s): %s"
+                                % (index, ", ".join(missing)),
+                       "checked": verdicts}
+        try:
+            verdict = check(root=root,
+                            intent=frame["intent"], target=frame["target"],
+                            must_not_break=frame["must_not_break"],
+                            defends=frame["defends"], refusal=frame["refusal"],
+                            acceptance=frame.get("acceptance", ""),
+                            evidence=frame.get("evidence", ""),
+                            preserve=bool(frame.get("preserve")),
+                            posture=frame.get("posture"),
+                            )
+        except Exception as exc:  # noqa: BLE001 -- surfaced as cannot-run, never swallowed
+            return 2, {"mode": "batch",
+                       "error": "frame #%d could not run (%s: %s)"
+                                % (index, type(exc).__name__, exc),
+                       "checked": verdicts}
+        verdicts.append({"frame": index, "verdict": verdict["verdict"],
+                         "problems": verdict["problems"]})
+        if verdict["verdict"] == "SENTINEL BLOCKED":
+            return 1, {"mode": "batch", "checked": verdicts,
+                       "blocked_at": index,
+                       "remaining": len(payload) - index - 1}
+    return 0, {"mode": "batch", "checked": verdicts, "blocked_at": None,
+               "remaining": 0}
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Pre-action check: does this framed change resolve?")
@@ -313,6 +387,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--root", default=None)
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--frame-file", action="append", default=[],
+                        help="JSON holding one frame list; checked in order")
     args = parser.parse_args(argv)
 
     if args.selftest:
@@ -327,8 +403,40 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                   % ("OK" if not failures else "FAILED", len(lines), failures))
         return 0 if not failures else 1
 
+    if args.frame_file:
+        if args.intent:
+            parser.error("--frame-file is exclusive with --intent (one job at a time)")
+        alive = [Path(p) for p in args.frame_file if Path(p).exists()]
+        if not alive:
+            print("CANNOT RUN: no --frame-file exists on the paths given", file=sys.stderr)
+            return 2
+        code, report = None, None
+        for path in alive:
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                print("CANNOT RUN: %s is not readable JSON (%s)" % (path, exc),
+                      file=sys.stderr)
+                return 2
+            code, report = run_frames(payload, root=Path(args.root) if args.root else None)
+            if code != 0:
+                break
+        if args.json:
+            print(json.dumps(report, indent=1, sort_keys=True))
+        else:
+            if report.get("error"):
+                print(report["error"], file=sys.stderr)
+            for verdict in report.get("checked", []):
+                print("frame #%d %s %s" % (verdict["frame"], verdict["verdict"],
+                                           "; ".join(verdict["problems"]) or ""))
+            if report.get("blocked_at") is not None:
+                print("")
+                print("BATCH BLOCKED at frame %d; %d frame(s) never checked"
+                      % (report["blocked_at"], report.get("remaining", 0)))
+        return code
+
     if not args.intent:
-        parser.error("--intent is required (or --selftest)")
+        parser.error("--intent is required (or --selftest or --frame-file)")
 
     posture = None
     if args.preserve:

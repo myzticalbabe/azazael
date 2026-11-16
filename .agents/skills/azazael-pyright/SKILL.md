@@ -1,7 +1,7 @@
 # azazael-pyright
 **Category:** Quality / Type Checking
 **Priority:** HIGH
-**Dependencies:** **basedpyright 1.40.1 (pip, installed in `C:/Azazael/.venvs/py315t`)**; `pyright` via `npx` is a fallback. The 3.14t venv (`venv-314t`) was retired 2026-10-19.
+**Dependencies:** **basedpyright 1.40.1 (pip, installed in `C:/Azazael/.venvs/py316t`)**; `pyright` via `npx` is a fallback. The 3.14t venv (`venv-314t`) was retired 2026-10-19.
 > **REORIENTED 2026-09-22: basedpyright is the type checker of record.**
 >
 > It is already installed (no setup, no Node) and already reads the repo's
@@ -130,3 +130,4 @@ p.grad[:] *= 0.9
 - Azazael pyrightconfig.json (created June 14, 2026)
 - Python 3.14t typing considerations: PEP 703
 **Dependencies:** **basedpyright 1.40.1 (pip, already installed in `venv-314t`)**; `pyright` via `npx` is a fallback
+**Dependencies:** **basedpyright 1.40.1 (pip, installed in `C:/Azazael/.venvs/py315t`)**; `pyright` via `npx` is a fallback. The 3.14t venv (`venv-314t`) was retired 2026-10-19.

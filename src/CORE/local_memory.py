@@ -1642,8 +1642,13 @@ class LocalMemoryStore:
 
     # -- Statistics (Enhanced) ----------------------------------------------
 
-    def get_stats(self) -> Dict:
+    def get_stats(self, top_n: int = 10) -> Dict:
         """Get memory store statistics with quantitative metrics.
+
+        Args:
+            top_n: Max event types/sources listed. Discovery callers pass a
+                large value: the default top-10 hid brand-new event types
+                from auto-discovery (2026-11-11).
 
         Enhanced over v1.0.0 with:
         - DB size with WAL overhead
@@ -1661,7 +1666,7 @@ class LocalMemoryStore:
                 "SELECT source, COUNT(*) as n FROM memories GROUP BY source ORDER BY n DESC LIMIT 10"
             ).fetchall()
             event_types = conn.execute(
-                "SELECT event_type, COUNT(*) as n FROM memories GROUP BY event_type ORDER BY n DESC LIMIT 10"
+                "SELECT event_type, COUNT(*) as n FROM memories GROUP BY event_type ORDER BY n DESC LIMIT " + str(max(int(top_n), 1)) + ""
             ).fetchall()
             severities = conn.execute(
                 "SELECT severity, COUNT(*) as n FROM memories GROUP BY severity ORDER BY n DESC"

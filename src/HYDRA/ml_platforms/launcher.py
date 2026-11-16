@@ -22,14 +22,21 @@ Unified entry point for ML platform configuration and diagnostics.
 """
 
 try:
-    from ml_platforms.config import (
+    from .config import (
         load_config,
     )
-except ImportError:  # same-dir fallback when ml_platforms/ itself is on sys.path
-    # Bare `config` only resolves at runtime with ml_platforms/ on sys.path
-    # (verified: load_config imports fine from that directory).
-    from config import (
-        load_config,  # pyright: ignore[reportAttributeAccessIssue]
+except ImportError:  # script mode: no package context, so anchor on src/HYDRA
+    # A bare ``from config import ...`` resolved only while ml_platforms/ sat on
+    # sys.path, so the graph builder recorded an *external* placeholder for an
+    # in-tree module (measured 2026-11-14). Name the real module instead.
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    _hydra_root = str(_Path(__file__).resolve().parent.parent)  # src/HYDRA
+    if _hydra_root not in _sys.path:
+        _sys.path.insert(0, _hydra_root)
+    from ml_platforms.config import (
+        load_config,
     )
 from typing import List
 

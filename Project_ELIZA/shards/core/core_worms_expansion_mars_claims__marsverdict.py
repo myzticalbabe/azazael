@@ -2,7 +2,7 @@
 """CORE / CORE/WORMS/expansion/mars_claims.py :: MarsVerdict -- INTAKE STUB. Not an implementation.
 
 Source: kali-linux CORE/WORMS/expansion/mars_claims.py (class MarsVerdict, 594 lines in the module, 16 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/WORMS/expansion/mars_claims.py#MarsVerdict"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/WORMS/expansion/mars_claims.py#MarsVerdict"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

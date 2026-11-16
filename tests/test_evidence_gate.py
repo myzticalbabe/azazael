@@ -132,6 +132,45 @@ def test_tests_do_not_count_as_reachability(tmp_path):
     assert any("cleanup_store" in o for o in res["offenders"])
 
 
+_REGISTRY_SOURCE = (
+    "def gate_alpha(rec):\n    return rec\n\n"
+    "def gate_beta(rec):\n    return rec\n\n"
+    "def gate_gamma(rec):\n    return rec\n\n"
+    "BASE = (gate_alpha, gate_beta)\n"
+    "EXTENDED = BASE + (gate_gamma,)\n\n"
+    "def applicable(forum):\n    return EXTENDED\n"
+)
+
+
+def test_a_registry_returned_by_a_helper_and_iterated_is_dispatch(tmp_path):
+    """`[gate(r) for gate in applicable(f)]` is a dispatch, not ten dead gates.
+
+    tools/esquire_admissibility.py registers its FRE gates this way: the gate
+    objects sit in module-level tuples that a helper returns, and the caller
+    iterates the result. No call site names a gate, so a call graph sees none
+    of them and all ten were reported unreachable on 2026-11-14.
+    """
+    _write(tmp_path, "tools/gates.py",
+           _REGISTRY_SOURCE
+           + "\ndef evaluate(rec):\n"
+             "    return [gate(rec) for gate in applicable('civil')]\n")
+    res = evg.check_dead_controls(tmp_path, {})
+    assert res["status"] == "pass", res
+    credited = " ".join(res["dispatch_registered"])
+    # gate_gamma arrives only through BASE + (gate_gamma,), so crediting it
+    # proves the concatenated registry is read, not just the flat literal.
+    for name in ("gate_alpha", "gate_beta", "gate_gamma"):
+        assert name in credited, res["dispatch_registered"]
+
+
+def test_a_registry_returned_to_nobody_is_still_dead(tmp_path):
+    """The negative control: a container no one iterates grants no credit."""
+    _write(tmp_path, "tools/gates.py", _REGISTRY_SOURCE)
+    res = evg.check_dead_controls(tmp_path, {})
+    assert res["status"] == "fail"
+    assert sum("gate_" in o for o in res["offenders"]) == 3, res["offenders"]
+
+
 def test_baseline_accepts_known_debt_but_new_debt_still_fails(tmp_path):
     _healthy_tree(tmp_path)
     _write(tmp_path, "src/orphan.py",

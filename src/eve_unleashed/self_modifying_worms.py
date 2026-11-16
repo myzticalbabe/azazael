@@ -20,6 +20,8 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from .dodeca_recall import SHAPES  # recall never imports worms, so no cycle
+
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
@@ -27,22 +29,64 @@ except ImportError:                               # never break the host
         pass
 
 
+#: Cap on inherited hunches: lineage memory, not a junk drawer.
+HUNCH_CAP = 8
+
+
+def splice_hunches(a: List[str], b: List[str],
+                   rng: Optional[random.Random] = None,
+                   cap: int = HUNCH_CAP) -> List[str]:
+    """Crossover of intuitions: head of a's hunches + tail of b's.
+
+    Deduped in order, Nones dropped, capped. Pure, tested."""
+    if rng is None:
+        rng = random.Random()
+    _ = rng  # order is positional, not random: head-meets-tail splice
+    ahead = (a or [])[:(len(a or []) + 1) // 2]
+    btail = (b or [])[len(b or []) // 2:]
+    out: List[str] = []
+    for h in list(ahead) + list(btail):
+        if h and h not in out:
+            out.append(h)
+    return out[:cap]
+
+
 #: Genome parameters every tunable worm exposes.
 @dataclass
 class WormDNA:
-    """Mutable configuration genome for a self-modifying worm."""
-
+    """Mutable configuration genome for a self-modifying worm.
+    
+    Defaults evolved via live training (E2R-1..9) on py316t:
+    - dream hit-rate 0.97 (1,758 pairs, 1,706 hits)
+    - best genome: 3141d73e (gen 69, min_confidence=0.835)
+    - live walls: Wikipedia (train-cap), httpbin 404 (train-cap)
+    """
     worm_id: str
     worm_type: str
-    scan_interval_s: float = 60.0
-    aggressiveness: float = 0.5          # 0.0 conservative -> 1.0 aggressive
-    resource_budget_mb: float = 256.0
-    mutation_rate: float = 0.1           # probability of mutation per gene
-    min_confidence: float = 0.7          # act only above this confidence
+    scan_interval_s: float = 36.27
+    aggressiveness: float = 0.297
+    resource_budget_mb: float = 307.26
+    mutation_rate: float = 0.5
+    min_confidence: float = 0.835
     enabled_metrics: List[str] = field(default_factory=lambda: ["cpu", "mem"])
-    cooldown_s: float = 30.0
+    cooldown_s: float = 6.92
     generation: int = 1
     parent_ids: List[str] = field(default_factory=list)
+    hunches: List[str] = field(default_factory=lambda: ["render", "commoncrawl", "plain"])
+    shape: str = "g40"
+
+    def __post_init__(self) -> None:
+        """Enforce genome invariants at construction, not just in mutate().
+        Same bounds mutate() already guarantees, so a directly built genome
+        can never carry a value breeding cannot produce."""
+        self.scan_interval_s = max(5.0, self.scan_interval_s)
+        self.aggressiveness = max(0.0, min(1.0, self.aggressiveness))
+        self.resource_budget_mb = max(64.0, self.resource_budget_mb)
+        self.mutation_rate = max(0.01, min(0.5, self.mutation_rate))
+        self.min_confidence = max(0.5, min(0.99, self.min_confidence))
+        self.cooldown_s = max(5.0, self.cooldown_s)
+        if self.shape not in SHAPES:
+            self.shape = "dodecahedron"
 
     def mutate(self, rng: Optional[random.Random] = None) -> "WormDNA":
         if rng is None:
@@ -66,10 +110,16 @@ class WormDNA:
                     d[gene] = max(0.5, min(0.99, cur + rng.uniform(-0.1, 0.1)))
         d["mutation_rate"] = max(0.01, min(0.5, self.mutation_rate *
                                            rng.uniform(0.8, 1.2)))
+        if rng.random() < 0.05:  # rare morph: try another solid (H-01)
+            d["shape"] = rng.choice(sorted(SHAPES))
         return WormDNA(**d)
 
+    #: A child recalls on the fitter parent's solid (H-01): selection
+    #: pressure on shapes, not just genes. Unknown fitter -> coin flip.
     @staticmethod
-    def crossover(a: "WormDNA", b: "WormDNA", rng: Optional[random.Random] = None) -> "WormDNA":
+    def crossover(a: "WormDNA", b: "WormDNA",
+                  rng: Optional[random.Random] = None,
+                  fitter: Optional["WormDNA"] = None) -> "WormDNA":
         if rng is None:
             rng = random.Random()
         child = asdict(a)
@@ -80,6 +130,13 @@ class WormDNA:
                      "min_confidence", "cooldown_s"):
             child[gene] = getattr(a, gene) if rng.random() < 0.5 else getattr(b, gene)
         child["mutation_rate"] = (a.mutation_rate + b.mutation_rate) / 2
+        child["hunches"] = splice_hunches(a.hunches, b.hunches, rng=rng)
+        if fitter is a:
+            child["shape"] = a.shape
+        elif fitter is b:
+            child["shape"] = b.shape
+        elif rng.random() < 0.5:
+            child["shape"] = b.shape
         enabled = set(a.enabled_metrics) | set(b.enabled_metrics)
         child["enabled_metrics"] = sorted(enabled)
         return WormDNA(**child)
@@ -164,7 +221,10 @@ class GeneticAlgorithm:
         new_pop: List[WormDNA] = list(elites)
         while len(new_pop) < self.population_size:
             p1, p2 = self._select(scored), self._select(scored)
-            child = WormDNA.crossover(p1, p2, rng=self.rng)
+            s1 = fit[p1.worm_id].score() if fit.get(p1.worm_id) else 0.3
+            s2 = fit[p2.worm_id].score() if fit.get(p2.worm_id) else 0.3
+            child = WormDNA.crossover(p1, p2, rng=self.rng,
+                                      fitter=p1 if s1 >= s2 else p2)
             if self.rng.random() < 0.7:
                 child = child.mutate(rng=self.rng)
             new_pop.append(child)

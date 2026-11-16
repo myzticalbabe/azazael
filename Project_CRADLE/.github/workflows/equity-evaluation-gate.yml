@@ -1,0 +1,167 @@
+# Bias-Interrupter Enabled Evaluation Workflow
+# Part of RULE 0Z-R compliance - runs on all evaluation/promotion actions
+
+name: Equity Evaluation Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      evaluation_type:
+        description: 'Type of evaluation'
+        required: true
+        type: choice
+        options:
+          - promotion
+          - hiring
+          - annual-review
+          - award
+      candidate_demographics:
+        description: 'Intersectional demographics (gender, race, parenthood, disability)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  equity-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify bias interrupter assigned
+        run: |
+          if [ -z "$BIAS_INTERRUPTER" ]; then
+            echo "::error::BIAS_INTERRUPTER not assigned - evaluation blocked per RULE 0Z-R Tier 1"
+            exit 1
+          fi
+          echo "Bias interrupter: $BIAS_INTERRUPTER"
+
+      - name: Verify structured criteria published
+        run: |
+          if [ ! -f "PROMOTION_CRITERIA.md" ] && [ ! -f "EVALUATION_CRITERIA.md" ]; then
+            echo "::error::No structured criteria file found - evaluation blocked per RULE 0Z-R Tier 1"
+            exit 1
+          fi
+          echo "Structured criteria found"
+
+      - name: Verify multi-evaluator panel (>=3)
+        run: |
+          if [ -z "$EVALUATORS" ] || [ $(echo "$EVALUATORS" | tr ',' '\n' | wc -l) -lt 3 ]; then
+            echo "::error::Multi-evaluator panel requires >=3 evaluators - evaluation blocked per RULE 0Z-R Tier 1"
+            exit 1
+          fi
+          echo "Evaluators: $EVALUATORS"
+
+      - name: Verify performance vs potential separation
+        run: |
+          if [ -z "$PERFORMANCE_RATING" ] || [ -z "$POTENTIAL_RATING" ]; then
+            echo "::error::Performance and potential must be rated separately - evaluation blocked per RULE 0Z-R Tier 1"
+            exit 1
+          fi
+          echo "Performance: $PERFORMANCE_RATING, Potential: $POTENTIAL_RATING"
+
+      - name: Verify personality vs skill separation
+        run: |
+          if [ -z "$SKILL_RATING" ]; then
+            echo "::error::Skills must be rated separately from personality - evaluation blocked per RULE 0Z-R Tier 1"
+            exit 1
+          fi
+          echo "Skills rated separately from personality"
+
+      - name: Verify data tracking active
+        run: |
+          if [ ! -f "equity_tracking.json" ]; then
+            echo "::warning::Equity tracking file not found - creating template"
+            cat > equity_tracking.json << 'EOF'
+{
+  "evaluation_cycle": "${{ github.event.inputs.evaluation_type || 'manual' }}",
+  "candidate_demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
+  "bias_interrupter": "$BIAS_INTERRUPTER",
+  "evaluators": "$EVALUATORS",
+  "performance_rating": "$PERFORMANCE_RATING",
+  "potential_rating": "$POTENTIAL_RATING",
+  "skill_rating": "$SKILL_RATING",
+  "personality_rating": "$PERSONALITY_RATING",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+          fi
+          echo "Equity tracking recorded"
+
+      - name: Verify sponsorship for advancement
+        if: github.event.inputs.evaluation_type == 'promotion'
+        run: |
+          if [ -z "$SPONSOR" ]; then
+            echo "::error::Formal sponsorship required for promotion (not mentoring) - blocked per RULE 0Z-R Tier 2"
+            exit 1
+          fi
+          echo "Sponsor: $SPONSOR"
+
+      - name: Verify service work accounting
+        run: |
+          if [ ! -f "service_accounting.json" ]; then
+            echo "::warning::Service accounting not found - creating template"
+            cat > service_accounting.json << 'EOF'
+{
+  "internal_service_hours": 0,
+  "external_service_hours": 0,
+  "service_roles": [],
+  "rewarded_equally": true
+}
+EOF
+          fi
+          echo "Service accounting verified"
+
+      - name: Verify self-promotion alternatives
+        run: |
+          if [ ! -f "accomplishment_sharing.md" ]; then
+            echo "::warning::Accomplishment sharing system not found - creating template"
+            cat > accomplishment_sharing.md << 'EOF'
+# Accomplishment Sharing System
+
+Monthly accomplishment emails sent by managers to team.
+Formal system for sharing successes without self-promotion penalty.
+EOF
+          fi
+          echo "Self-promotion alternatives verified"
+
+      - name: Record intersectional equity data
+        run: |
+          cat > intersectional_equity_report.json << 'EOF'
+{
+  "evaluation_type": "${{ github.event.inputs.evaluation_type || 'manual' }}",
+  "demographics": "${{ github.event.inputs.candidate_demographics || 'not-provided' }}",
+  "outcome": "pending",
+  "disparities_flagged": false,
+  "audit_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+          echo "Intersectional equity data recorded"
+
+      - name: Post evaluation summary
+        run: |
+          echo "## Equity Evaluation Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: ${{ github.event.inputs.evaluation_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bias Interrupter**: $BIAS_INTERRUPTER" >> $GITHUB_STEP_SUMMARY
+          echo "- **Evaluators**: $EVALUATORS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance/Potential Separated**: Yes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Skills/Personality Separated**: Yes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Data Tracking**: Active" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.evaluation_type }}" == "promotion" ]; then
+            echo "- **Sponsor**: $SPONSOR" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- **Service Accounting**: Verified" >> $GITHUB_STEP_SUMMARY
+          echo "- **Intersectional Data**: Recorded" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+
+env:
+  BIAS_INTERRUPTER: ${{ vars.BIAS_INTERRUPTER }}
+  EVALUATORS: ${{ vars.EVALUATORS }}
+  PERFORMANCE_RATING: ${{ vars.PERFORMANCE_RATING }}
+  POTENTIAL_RATING: ${{ vars.POTENTIAL_RATING }}
+  SKILL_RATING: ${{ vars.SKILL_RATING }}
+  PERSONALITY_RATING: ${{ vars.PERSONALITY_RATING }}
+  SPONSOR: ${{ vars.SPONSOR }}

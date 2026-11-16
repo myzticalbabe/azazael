@@ -1,8 +1,8 @@
 # coding: utf-8
 """TOOLS / TOOLS/AzazaelDynamicLogger.py :: LogLevel -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux TOOLS/AzazaelDynamicLogger.py (class LogLevel, 195 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux TOOLS/AzazaelDynamicLogger.py (class LogLevel, 206 lines in the module, 21 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:TOOLS/AzazaelDynamicLogger.py#LogLevel"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:TOOLS/AzazaelDynamicLogger.py#LogLevel"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

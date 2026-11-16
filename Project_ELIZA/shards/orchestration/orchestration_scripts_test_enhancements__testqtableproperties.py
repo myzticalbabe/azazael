@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/scripts/test_enhancements.py :: TestQTableProperties -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/scripts/test_enhancements.py (class TestQTableProperties, 501 lines in the module, 8 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/scripts/test_enhancements.py (class TestQTableProperties, 516 lines in the module, 16 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/scripts/test_enhancements.py#TestQTableProperties"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ORCHESTRATION/scripts/test_enhancements.py#TestQTableProperties"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/codebase_graph.py :: GraphNode -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/codebase_graph.py (class GraphNode, 382 lines in the module, 4 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/codebase_graph.py (class GraphNode, 502 lines in the module, 21 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/codebase_graph.py#GraphNode"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/codebase_graph.py#GraphNode"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -2810,7 +2810,8 @@ class SpineCycleWorm:
                 out[name] = fn()
             except Exception as exc:  # never let one organ break the cycle
                 note_failure("spine:L2744", exc)
-                out[name] = {"success": False, "error": str(exc)[:_ERR_CAP]}
+                out[name] = {"success": False, "reason": "organ_error",
+                             "error": str(exc)[:_ERR_CAP]}
         return out
 
     # ProviderFailoverMeshWorm.CHAIN uses short names; the RULE 0D registry
@@ -3331,6 +3332,15 @@ class SpineCycleWorm:
 
         Scope: the load-bearing state files one level under the state dir,
         not the state dir itself (see the staging note below).
+
+        Every non-success return names a `reason` from a closed vocabulary:
+        `no_state_dir` / `no_stageable_state` (the environment declined),
+        `backup_organs_unavailable`, `snapshot_failed`, `verify_failed`,
+        `restore_failed`, and `organ_error` from the stage dispatcher. Before
+        this, the three proof failures returned `success: False` with no
+        reason at all, so a caller could not tell "the environment said no"
+        from "the restore proof failed" -- the organ degraded silently, which
+        is the failure this stage exists to make impossible.
         """
         import shutil
         import tempfile
@@ -3389,6 +3399,7 @@ class SpineCycleWorm:
         made = snap.create_snapshot(str(stage), str(root), label="cycle")
         if not made.get("success"):
             res.update({"success": False, "snapshot_ok": False,
+                        "reason": "snapshot_failed",
                         "error": made.get("error")})
             return res
         archive = str((made.get("snapshot") or {}).get("path") or "")
@@ -3449,7 +3460,7 @@ class SpineCycleWorm:
         res["verified"] = bool(ver.get("valid"))
         res["archive_files"] = ver.get("file_count")
         if not res["verified"]:
-            res.update({"success": False,
+            res.update({"success": False, "reason": "verify_failed",
                         "verify_error": ver.get("error")
                         or ver.get("corrupted_file")})
             return res
@@ -3472,7 +3483,13 @@ class SpineCycleWorm:
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
         res["elapsed_s"] = round(time.time() - started, 3)
-        res["success"] = bool(res.get("restore_ok"))
+        restore_ok = bool(res.get("restore_ok"))
+        res["success"] = restore_ok
+        if not restore_ok:
+            # A snapshot nothing can be restored from is not a backup, and the
+            # cycle's only proof path must say so rather than report a bare
+            # False that a reader has to guess at.
+            res["reason"] = "restore_failed"
         return res
 
     def execute(self) -> dict[str, Any]:

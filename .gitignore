@@ -382,3 +382,15 @@ src/RUST_WASM/pkg*/
 /.shardex-intake/
 /.shardex-real/
 /sbom.spdx.json
+
+# Build junk, batch 3 (housekeeping 2026-11-07). Same class: default output of a
+# build, not authored content. A botched `> nul` redirect in a Rust compile left
+# `nul.a.<hash>-cgu.0.rcgu.o` sitting at the repo root, where it showed up as
+# untracked work in every `git status`; `dist-native/` is the native build tree
+# and `.worktree-snapshots/` is regenerable by the snapshot tool (see also
+# tools/worktree_snapshot.py). Path-anchored (leading slash) so no source path
+# anywhere in the tree can match these.
+/nul.a.*.rcgu.o
+/*.rcgu.o
+/dist-native/
+/.worktree-snapshots/

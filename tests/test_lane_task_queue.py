@@ -25,7 +25,13 @@ from CORE.LaneMessageBoard import LaneMessageBoard  # noqa: E402
 
 @pytest.fixture()
 def board(tmp_path, monkeypatch):
-    """A board pointed at a throwaway store, seeded with real queue rows."""
+    """A board pointed at a throwaway store, seeded with real queue rows.
+
+    The board's lane is `freebuff` because that is the lane these tests
+    claim and retire work on. It matters: `complete_task` and
+    `release_task` now require the acting lane to match the row's lane, so a
+    board scoped to one lane cannot retire another lane's claimed work.
+    """
     db = tmp_path / "telemetry_store.db"
     con = sqlite3.connect(str(db), timeout=5)
     con.execute(
@@ -37,7 +43,7 @@ def board(tmp_path, monkeypatch):
     con.commit()
     con.close()
     monkeypatch.setattr(lmb_mod, "_MEMORYBUS_DB_PATH", db, raising=False)
-    return LaneMessageBoard(lane="opencode"), db
+    return LaneMessageBoard(lane="freebuff"), db
 
 
 def _post(db, lane, task_id, action="do", detail="x", created="2026-10-31T00:00:00+00:00"):
@@ -386,7 +392,7 @@ def test_post_status_returns_the_durable_row_id(board):
     row = b.post_status("WORKING", "second write")
     con = sqlite3.connect(str(db), timeout=5)
     top = con.execute("SELECT MAX(id) FROM memorybus_queue "
-                      "WHERE topic='lane.opencode.status'").fetchone()[0]
+                      "WHERE topic='lane.freebuff.status'").fetchone()[0]
     con.close()
 
     assert row == top, "post_status did not return its own durable row id"
@@ -451,3 +457,193 @@ def test_churned_names_rows_handed_out_three_times_and_never_retired(board):
     b.claim_tasks("freebuff", limit=1, agent="laneA")
     b.complete_task(rid, "done", "retired")
     assert b.task_stats("freebuff")["churned"] == 0
+
+
+def test_a_wall_of_stale_duplicates_does_not_hide_real_work(board):
+    """The claim window is taken BEFORE duplicate detection.
+
+    Measured on the real opencode board 2026-11-14: 31 stale re-posts stood
+    in front of 6 real tasks. The claim walked its 10-row window, retired
+    every row in it as a duplicate, returned NOTHING, and the CLI printed
+    "NO OPEN TASKS" while `task_stats` counted 47 available. The lane could
+    not get work it was entitled to.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(30):
+        _post(db, "freebuff", "STALE", action="old")
+    real = _post(db, "freebuff", "REAL", action="real")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    ids = {r["board_id"] for r in claimed}
+    assert real in ids, "the duplicate wall hid the real task"
+    assert b.last_claim_stats["duplicates_retired"] == 30
+    assert b.last_claim_stats["claimed"] == 1
+
+
+def test_claim_reports_what_it_did_including_the_duplicates_it_retired(board):
+    """A claim that retired 10 copies and found no work must not read as
+    "NO OPEN TASKS" with no reason attached."""
+    b, db = board
+    anchor = _post(db, "freebuff", "SAME")
+    b.claim_tasks("freebuff", limit=10, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    _post(db, "freebuff", "SAME")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    assert claimed == []
+    stats = b.last_claim_stats
+    assert stats["duplicates_retired"] == 1
+    assert stats["claimed"] == 0
+    assert stats["scanned"] >= 1
+
+
+def test_stats_available_is_the_work_a_claim_would_hand_out(board):
+    """`available` counted every row on offer, including stale copies.
+
+    The canon says `available` is "what claim_tasks can hand out right now",
+    and it was not: 37 rows on offer, 31 of them copies of retired work, 6
+    pieces of real work. The number has to agree with the claim or a lane
+    plans work it cannot get.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(5):
+        _post(db, "freebuff", "STALE", action="old")
+    _post(db, "freebuff", "REAL", action="real")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 1, "stale copies were counted as work"
+    assert stats["stale_duplicates"] == 5, "the removed count was hidden"
+    assert stats["open"] == 1
+    # And the number agrees with behaviour.
+    assert len(b.claim_tasks("freebuff", limit=10, agent="laneA")) == 1
+
+
+def test_a_revised_task_is_not_counted_as_a_stale_duplicate(board):
+    """Same task_id, different detail: a revision, not a copy.
+
+    Keyed on the full signature (task_id + action + detail), never on
+    task_id alone -- the 2026-10-31 bug that retired a revision as a
+    duplicate of the brief it superseded.
+    """
+    b, db = board
+    old = _post(db, "freebuff", "REV", action="do", detail="v1")
+    b.claim_tasks("freebuff", limit=10, agent="laneA")
+    b.complete_task(old, state="done", note="done")
+    _post(db, "freebuff", "REV", action="do", detail="v2")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 1, "a revision was counted as a stale copy"
+    assert stats["stale_duplicates"] == 0
+    assert [r["task_id"] for r in b.claim_tasks("freebuff", limit=10, agent="a")] == ["REV"]
+
+
+def test_a_copy_of_work_another_lane_holds_live_is_not_offered_as_work(board):
+    """The third duplicate rule: another agent holds this work right now.
+
+    `claim_tasks` retires such a copy with the note "duplicate: same
+    task_id is already claimed" and never hands it out, so `available` must
+    not count it either.
+    """
+    b, db = board
+    _post(db, "freebuff", "HELD")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")   # live lease
+    copy = _post(db, "freebuff", "HELD")
+
+    stats = b.task_stats("freebuff")
+    assert stats["available"] == 0, "a copy of live-held work was offered"
+    assert stats["stale_duplicates"] == 1
+    # The claim does not hand it out either, and retires the copy.
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneB")
+    assert copy not in {r["board_id"] for r in claimed}
+    con = sqlite3.connect(str(db), timeout=5)
+    state, note = con.execute(
+        "SELECT state, note FROM lane_task_state WHERE board_id=?", (copy,)
+    ).fetchone()
+    con.close()
+    assert state == "done"
+    assert "already claimed" in note
+
+
+def test_a_lane_cannot_retire_another_lanes_claimed_work(board):
+    """`complete_task` had no lane predicate, so any lane's `done` could
+    retire another lane's claimed row.
+
+    That work then vanished: it was never finished, only marked finished,
+    and the lane that owned it would never see it again.
+    """
+    b, db = board
+    rid = _post(db, "freebuff", "OTHER-LANE")
+    b.claim_tasks("freebuff", limit=1, agent="freebuff")
+
+    other = LaneMessageBoard(lane="opencode")   # a different lane, same store
+    assert other.complete_task(rid, state="done", note="not mine") is False, \
+        "one lane retired another lane's claimed work"
+    # The row is still claimed, so its owner can still retire it.
+    assert b.complete_task(rid, state="done", note="mine") is True
+    con = sqlite3.connect(str(db), timeout=5)
+    state = con.execute("SELECT state FROM lane_task_state WHERE board_id=?",
+                         (rid,)).fetchone()[0]
+    con.close()
+    assert state == "done"
+
+
+def test_a_lane_cannot_release_another_lanes_claimed_work(board):
+    """The same hole in `release_task`: handing back work you do not hold
+    takes it out of the queue the owning lane is relying on."""
+    b, db = board
+    rid = _post(db, "freebuff", "HELD-BY-THEM")
+    b.claim_tasks("freebuff", limit=1, agent="freebuff")
+
+    other = LaneMessageBoard(lane="opencode")
+    assert other.release_task(rid) is False, \
+        "one lane released another lane's claim"
+    assert b.release_task(rid) is True
+
+
+def test_a_malformed_row_does_not_abort_the_claim(board):
+    """One unreadable row must not take the whole lane's batch with it.
+
+    `claim_tasks` read `payload.get("task_id")` outside its parse guard, so a
+    row whose content is a JSON list raised AttributeError and rolled the
+    whole claim back.
+    """
+    b, db = board
+    con = sqlite3.connect(str(db), timeout=5)
+    con.execute("INSERT INTO memorybus_queue (topic, content) VALUES (?, ?)",
+                ("lane.freebuff.tasks", json.dumps([1, 2, 3])))
+    con.commit()
+    con.close()
+    good = _post(db, "freebuff", "GOOD")
+
+    claimed = b.claim_tasks("freebuff", limit=10, agent="laneA")
+    assert good in {r["board_id"] for r in claimed}
+
+
+def test_poll_tasks_shows_the_work_a_claim_would_hand_out(board):
+    """The reader and the writer must ask the same question.
+
+    The canon at LaneMessageBoard.poll_tasks claims the poll number equals
+    what `claim` hands out. Retired rows and live leases were already
+    filtered; stale copies were not, so the reader showed 37 rows for 6
+    pieces of work.
+    """
+    b, db = board
+    anchor = _post(db, "freebuff", "STALE", action="old")
+    b.claim_tasks("freebuff", limit=1, agent="laneA")
+    b.complete_task(anchor, state="done", note="done")
+    for _ in range(4):
+        _post(db, "freebuff", "STALE", action="old")
+    real = _post(db, "freebuff", "REAL", action="real")
+
+    ids = {(t.metadata or {}).get("_row_id") for t in b.poll_tasks("freebuff", limit=50)}
+    assert ids == {real}, "the reader showed copies as work"
+    # The audit view still shows everything.
+    audit = {(t.metadata or {}).get("_row_id")
+             for t in b.poll_tasks("freebuff", limit=50, include_retired=True)}
+    assert len(audit) == 6

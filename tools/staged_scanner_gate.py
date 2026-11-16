@@ -26,7 +26,21 @@ Check 4 (`tools/anti_pattern_gate.py --check`) still ratchets the repo-wide
 
 Usage:
     python tools/staged_scanner_gate.py            # gate staged .py files
+    python tools/staged_scanner_gate.py --base REV # gate REV..HEAD instead
     python tools/staged_scanner_gate.py --verbose
+
+`--base` exists because at PUSH time the index is not the changeset: on a
+worktree several lanes share, it holds whatever a concurrent lane staged, so an
+index-scoped run can refuse a push over files the commit never touched (measured
+2026-11-03). With a base, each changed `.py` is compared `REV:path` -> `HEAD:path`
+and the index is not read at all.
+
+Exit codes: `0` clean (or nothing staged), `1` an anti-pattern was ADDED, `2` the
+gate could not judge. `2` is not a pass and is returned for BOTH blind conditions
+- an unresolvable `--base`, and a scanner that cannot be imported. This file used
+to answer the first with `2` and the second with `0` ("passing loud"), which is
+the same blind reading with two different verdicts: a check whose scanner never
+loaded has certified nothing, whatever it printed.
 """
 from __future__ import annotations
 
@@ -55,8 +69,12 @@ def _git(*args: str) -> bytes:
                           timeout=60).stdout
 
 
-def _staged_py_files() -> list[str]:
-    out = _git("diff", "--cached", "--name-only", "--diff-filter=ACMR")
+def _staged_py_files(base: str | None = None) -> list[str]:
+    """Changed `.py` paths: the index, or `base..HEAD` when a base is named."""
+    if base:
+        out = _git("diff", "--name-only", "--diff-filter=ACMR", base, "HEAD")
+    else:
+        out = _git("diff", "--cached", "--name-only", "--diff-filter=ACMR")
     return [ln.strip() for ln in out.decode("utf-8", errors="replace").splitlines()
             if ln.strip().endswith(".py")]
 
@@ -83,23 +101,51 @@ def main() -> int:
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--severity", default="warning",
                     choices=["error", "warning", "info"])
+    ap.add_argument("--base", default=None, metavar="REV",
+                    help="scan REV..HEAD instead of the git index")
     args = ap.parse_args()
+
+    if args.base:
+        # An unresolvable base makes `git diff BASE HEAD` print nothing, which
+        # reads exactly like "no files changed". Refuse instead: exit 2 is
+        # "could not judge", and the gate must never answer that with a pass.
+        probe = subprocess.run(["git", "rev-parse", "--verify", "--quiet",
+                                f"{args.base}^{{commit}}"],
+                               cwd=str(ROOT), capture_output=True, timeout=60)
+        if probe.returncode != 0:
+            print(f"[StagedScanner] --base {args.base!r} does not resolve to a "
+                  f"commit here - refusing to scan an empty range")
+            return 2
 
     try:
         from CORE.compliance.scanner import ASTAntiPatternScanner  # noqa: F401
-    except Exception as exc:  # noqa: BLE001 - pass LOUD, never silently block
-        print(f"[StagedScanner] scanner unavailable ({exc}) - passing loud")
-        return 0
+    except Exception as exc:  # noqa: BLE001 - a check that never ran is not a pass
+        print(f"[StagedScanner] scanner unavailable ({exc}) - BLIND, refusing to "
+              f"pass a check that never ran")
+        return 2
 
-    files = _staged_py_files()
+    # `:0:` is the index. In commit mode the "after" side is HEAD's blob and the
+    # "before" side is the base's, so nothing about the shared index is read.
+    # Both sides must be named explicitly: deriving only `after` from the base
+    # left `before` at HEAD, which compares HEAD against HEAD and turns commit
+    # mode into a gate that can never fire.
+    before_ref = args.base if args.base else "HEAD"
+    after_ref = "HEAD" if args.base else ":0"
+    # Called with no argument in index mode: `_staged_py_files` is the seam the
+    # tests replace with a zero-argument stub, and an index run must keep asking
+    # the index question through exactly that seam.
+    files = _staged_py_files(args.base) if args.base else _staged_py_files()
     if not files:
-        print("[StagedScanner] No .py files staged, skipping.")
+        scope = f"{args.base}..HEAD" if args.base else "the index"
+        print(f"[StagedScanner] No .py files in {scope}, skipping.")
         return 0
+    if args.base:
+        print(f"[StagedScanner] scope: {args.base}..HEAD (commit mode)")
 
     regressions: list[str] = []
     for path in files:
-        before = _counts(_show(f"HEAD:{path}"), path, args.severity)
-        after = _counts(_show(f":0:{path}"), path, args.severity)
+        before = _counts(_show(f"{before_ref}:{path}"), path, args.severity)
+        after = _counts(_show(f"{after_ref}:{path}"), path, args.severity)
         for category, n_after in after.items():
             delta = n_after - before.get(category, 0)
             if delta > 0:
@@ -120,7 +166,7 @@ def main() -> int:
               "--baseline and explain it in the commit message.")
         return 1
 
-    print(f"[StagedScanner] {len(files)} staged .py file(s): no new "
+    print(f"[StagedScanner] {len(files)} .py file(s): no new "
           f"anti-patterns.")
     return 0
 

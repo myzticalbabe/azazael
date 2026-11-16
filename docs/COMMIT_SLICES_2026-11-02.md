@@ -5,7 +5,7 @@ Source of truth: `git status --porcelain` captured at `.live/uncommitted_2026-11
 derived from a status line or from reading the file. Where intent could not be
 established from the tree, the entry says **UNKNOWN** rather than guessing.
 
-Branch at capture: `deepseek-engram-813`. `origin` is a **local path**
+Branch at capture: `deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]`. `origin` is a **local path**
 (`C:\Users\clint\azazael`), not GitHub — see the publish notes at the end.
 
 ---

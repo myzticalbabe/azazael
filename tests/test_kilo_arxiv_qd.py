@@ -28,6 +28,14 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import pytest
+
+# Skip tests for optional dependencies
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
 
 import pytest  # noqa: E402
 
@@ -226,6 +234,7 @@ def test_u2_degenerate_pool_reports_note():
     assert out["n_holds"] == 0
 
 
+@pytest.mark.skipif(not HAS_TORCH, reason="torch not installed")
 def test_u2_deterministic_per_seed():
     import torch  # noqa: F401  (U2 trains; skip where torch is absent)
     o = FitnessOracle(n_gene=2, n_era=1, hidden=2, n_models=2, seed=7)

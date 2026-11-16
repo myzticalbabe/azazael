@@ -6,6 +6,13 @@ on:
       - "v*"
   workflow_dispatch:
 
+# `softprops/action-gh-release@v2` publishes a GitHub Release, and that needs
+# write access to repository contents. Without this block the job inherits the
+# repository default -- which may be read-only (release fails) or, on an older
+# default, write on every scope. Neither is a decision this workflow made.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest

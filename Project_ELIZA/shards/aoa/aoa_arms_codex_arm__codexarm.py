@@ -1,8 +1,8 @@
 # coding: utf-8
 """AOA / AOA/arms/codex_arm.py :: CodexArm -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux AOA/arms/codex_arm.py (class CodexArm, 83 lines in the module, 1 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux AOA/arms/codex_arm.py (class CodexArm, 97 lines in the module, 5 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:AOA/arms/codex_arm.py#CodexArm"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:AOA/arms/codex_arm.py#CodexArm"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

@@ -112,7 +112,7 @@ Applied to this repository: `core.fsmonitor=true`, `core.untrackedCache=true`,
 
 ```
 base: origin/master (b32b0ed2a2ca)
-  deepseek-engram-813          CLEAN   +816/-0   tree f6836a1ded49
+  deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]          CLEAN   +816/-0   tree f6836a1ded49
   lane-813-recovery            CLEAN   +303/-0   tree 0f624c926c3d
   migration/baseline-20261001  CLEAN   +304/-0   tree 77cf86de4706
   CLEAN=3
@@ -124,7 +124,7 @@ base: origin/master (b32b0ed2a2ca)
 lane-813-recovery -> migration/baseline-20261001
     lane-813-recovery              root
     migration/baseline-20261001    on lane-813-recovery (2 commits since fork)
-    ! deepseek-engram-813          parent AMBIGUOUS: lane-813-recovery|migration/baseline-20261001
+    ! deepseek-engram-813 [renamed to azazael-intel-ultra-9-evo 2026-11-04]          parent AMBIGUOUS: lane-813-recovery|migration/baseline-20261001
                                    tie at fork 91528fdd2cd3 -- not guessed
 ```
 

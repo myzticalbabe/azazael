@@ -24,6 +24,7 @@ one.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -84,6 +85,50 @@ class TestCheck:
         rc = gate.cmd_check("src", base_file)
         assert rc == 0
         assert "OK: no anti-pattern regressions" in capsys.readouterr().out
+
+    def test_a_baseline_rewritten_during_the_scan_is_refused(
+            self, base_file, monkeypatch, capsys):
+        """A mid-run rewrite must be refused, not diffed against stale counts.
+
+        The check loads the baseline, scans the tree (seconds to minutes), then
+        compares. Several lanes share this worktree, so the file can be
+        replaced inside that window; the comparison would then be against bytes
+        this process never held, which reads as a pass or as a regression that
+        belongs to no changeset. Measured 2026-11-04.
+        """
+        _write_baseline(base_file, {"unicode_emoji": 5})
+
+        def _scan_while_rewriting(target, *a, **k):
+            _write_baseline(base_file, {"unicode_emoji": 999})
+            return Counter({"unicode_emoji": 5}), 10, {}
+
+        monkeypatch.setattr(gate, "scan_with_files", _scan_while_rewriting)
+        rc = gate.cmd_check("src", base_file)
+        err = capsys.readouterr().err
+        assert rc == 2
+        assert "changed while this scan was running" in err
+
+    def test_baseline_write_is_atomic_and_journalled(self, base_file, monkeypatch):
+        """`--baseline` replaces the file and leaves one journal line.
+
+        A truncate-and-write leaves a window where another reader sees partial
+        JSON and dies with "baseline is unreadable" -- a message that names the
+        symptom and hides the race. The journal is what makes a rewrite
+        attributable after the fact.
+        """
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 2}))
+        assert gate.cmd_baseline("src", base_file, False) == 0
+
+        written = json.loads(base_file.read_text(encoding="utf-8"))
+        assert written["writer_pid"] == os.getpid()
+        assert list(base_file.parent.glob(base_file.name + ".tmp*")) == []
+
+        journal = base_file.with_suffix(".journal.jsonl")
+        assert journal.exists()
+        last = json.loads(journal.read_text(encoding="utf-8").strip().splitlines()[-1])
+        assert last["pid"] == os.getpid()
+        assert last["total_findings"] == 2
 
     def test_increase_fails(self, base_file, monkeypatch, capsys):
         _write_baseline(base_file, {"unicode_emoji": 5})

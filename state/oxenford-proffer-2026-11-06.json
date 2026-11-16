@@ -1,0 +1,411 @@
+{
+ "proffer": {
+  "case": "Oxenford foundry record (no pending case; foundation laid in advance)",
+  "offered_by": "the CREATOR",
+  "purpose": "Machine-built native artifacts: which were built, from which sources, by which method, with what verification",
+  "ai_assistance_disclosed": true
+ },
+ "witness": {
+  "kind": "human",
+  "name": "the CREATOR",
+  "qualifications": [
+   "directed every adoption step live",
+   "observed each build result in-session"
+  ],
+  "reviewed_output": true
+ },
+ "inputs": {
+  "records": [
+   {
+    "id": "r1",
+    "source": ".build/wheelhouse-316t/SOULFORGE-LICENSE.txt",
+    "sha256": "fa86b524fc0ccd987bd48130b296872daab9082387348e95bba855f21d4fda0a"
+   },
+   {
+    "id": "r2",
+    "source": ".build/wheelhouse-316t/cffi-2.1.1-cp316-cp316t-win_amd64.whl",
+    "sha256": "6fb7a7a12aeec16f4f2cd06a8e7e7c254c6b45bf99f54dca8e2b273d6e33d386"
+   },
+   {
+    "id": "r3",
+    "source": ".build/wheelhouse-316t/cloudpickle-3.1.2-py3-none-any.whl",
+    "sha256": "222a3707cea582a3422adb992aa84ac3c6895848ae6d4a614cfa17154aeb935c"
+   },
+   {
+    "id": "r4",
+    "source": ".build/wheelhouse-316t/greenlet-3.5.6-cp316-cp316t-win_amd64.whl",
+    "sha256": "8812205b065451b3edf7293ca90f72804db8e4658342e846db82a2dbcd0cfa02"
+   },
+   {
+    "id": "r5",
+    "source": ".build/wheelhouse-316t/joblib-1.6.0-py3-none-any.whl",
+    "sha256": "d49407c06366a3504102ae82ec7d4889656f883ae03110dcce2280eb28fe5d61"
+   },
+   {
+    "id": "r6",
+    "source": ".build/wheelhouse-316t/markupsafe-3.0.4-cp316-cp316t-win_amd64.whl",
+    "sha256": "7e02caba7c1c11d1606f2b7980e9e9929844483eee7d80f2c344d35ff7752a3d"
+   },
+   {
+    "id": "r7",
+    "source": ".build/wheelhouse-316t/narwhals-2.28.0-py3-none-any.whl",
+    "sha256": "7fe627ebc7a361936e27edefc674e11c073ef6f26f4e38ba17b8aa50930735fb"
+   },
+   {
+    "id": "r8",
+    "source": ".build/wheelhouse-316t/numpy-2.5.4-cp316-cp316t-win_amd64.whl",
+    "sha256": "d92052e1228e180260bbf11c4e597601ca48a46893e9f429e4d21f36bc99298f"
+   },
+   {
+    "id": "r9",
+    "source": ".build/wheelhouse-316t/pillow-13.0.0-cp316-cp316t-win_amd64.whl",
+    "sha256": "517d387a2a20f0865b88be813a62c3e8e33e0350aa0d8bf0d448979f4b245180"
+   },
+   {
+    "id": "r10",
+    "source": ".build/wheelhouse-316t/psutil-7.2.2-cp316-cp316t-win_amd64.whl",
+    "sha256": "e051e2fb9eaa72f7ca563944d0f27a88a0ed86320d0910b07bedd74554af0fb3"
+   },
+   {
+    "id": "r11",
+    "source": ".build/wheelhouse-316t/reportlab-5.1.0-py3-none-any.whl",
+    "sha256": "59fdbaec5efe437095ad1d7292ec9a271c8ca2d3ec75e889c6e61400929b90df"
+   },
+   {
+    "id": "r12",
+    "source": ".build/wheelhouse-316t/scikit_learn-1.9.1-cp316-cp316t-win_amd64.whl",
+    "sha256": "1470fcec90f802e70ea019871f2c070434f43ef22a812edf962660a9e3342aea"
+   },
+   {
+    "id": "r13",
+    "source": ".build/wheelhouse-316t/scipy-1.18.1-cp316-cp316t-win_amd64.whl",
+    "sha256": "9981936db6402de7b0447b6a83fc47ea7db62cd0c28b2bed83ab87e74222ddb6"
+   },
+   {
+    "id": "r14",
+    "source": ".build/wheelhouse-316t/threadpoolctl-3.8.0-py3-none-any.whl",
+    "sha256": "8869fe64f05bc9e8f7e721404a23c94197b89a3f72834169f7e6d61213d3cc06"
+   },
+   {
+    "id": "r15",
+    "source": ".build/artifacts/artifacts-manifest.json",
+    "sha256": "c2d65db66d2a54a105157f024c212c3712cb9708530525075fa41833f53ab3cb"
+   },
+   {
+    "id": "r16",
+    "source": ".build/artifacts/hello316.exe",
+    "sha256": "73551cb61ced2d79626d621ddce11a1cdad0aa21b297a0be711df8ac98059f6c"
+   },
+   {
+    "id": "r17",
+    "source": ".build/artifacts/wheelhouse-2026-11-06.zip",
+    "sha256": "10e77b58d0bfd5ac37abd790054aa3041d8db6f6bb22f87a7ebe24d5d2f4da2d"
+   },
+   {
+    "id": "r18",
+    "source": ".build/artifacts/wheelhouse-manifest.pdf",
+    "sha256": "bbb32ab5aa5f3b1c8912f30e8ee9e83c40f27a5a5df5e5d797558b73c2c063ea"
+   },
+   {
+    "id": "r19",
+    "source": ".build/oxenford-adopt.py",
+    "sha256": "9718d0afdca5db582abc474a4639805aa56eb77ca52518ffdbc38f1ddde03f4d"
+   },
+   {
+    "id": "r20",
+    "source": ".build/oxenford-difftest.py",
+    "sha256": "b6cd187933e899189e157337c78dd2d9ae9b325e9307ea8bd1998c6a021ca88f"
+   },
+   {
+    "id": "r21",
+    "source": ".build/oxenford-forge.py",
+    "sha256": "d912279550778ae7a379e825f82b6fb78a322c1cccff8bd8fe638244b29fd182"
+   },
+   {
+    "id": "r22",
+    "source": ".build/oxenford-install.py",
+    "sha256": "cdddc486bd64f5e2892e8b7d8703f4e8de67f5ea6f287ccf6acab841119b5ea1"
+   },
+   {
+    "id": "r23",
+    "source": ".build/oxenford-proffer.py",
+    "sha256": "3813a96737156795cb2485d2cb92578e2250320db3c76ab65ba1fe54d99e6f20"
+   },
+   {
+    "id": "r24",
+    "source": ".build/oxenford-upstream-drafts.py",
+    "sha256": "43fcccdee2b5b75f808a2109d8301177b40f897b12059f8dea31489ee93c1187"
+   },
+   {
+    "id": "r25",
+    "source": ".build/adopt-recipes.json",
+    "sha256": "bbb7e5ccd2d72dd14eb499a563e495f29c4f190609ccc44c3e85bc11553af64b"
+   },
+   {
+    "id": "r26",
+    "source": ".build/oxenford-upstream/cffi-316-pyfilesystemdefaultencoding.patch",
+    "sha256": "5b5013becb3d4576b60bc514b34e80ccbd07bab09be2e9071e09262a6351949d"
+   },
+   {
+    "id": "r27",
+    "source": ".build/oxenford-upstream/cloudpickle-3.1.2-oxenford.patch",
+    "sha256": "eb392f0df4c36dbdf0030c02b4130b934c65bc945e4ac276a86b3bdc3b06e986"
+   },
+   {
+    "id": "r28",
+    "source": ".build/oxenford-upstream/cloudpickle-312-py316-opmap.patch",
+    "sha256": "e4ea96562e29c45809e9f8ab2d46992244c0a0eb184bfd73c194648e230c858d"
+   },
+   {
+    "id": "r29",
+    "source": ".build/oxenford-upstream/joblib-1.6.0-oxenford.patch",
+    "sha256": "d94cf3f36a507bc28b01b7706fddab5474f478edd396842096e082eb6188d26b"
+   },
+   {
+    "id": "r30",
+    "source": ".build/oxenford-upstream/pillow-131-manifest-prune.patch",
+    "sha256": "7f7f18e4278f337e22974060cbdecc2626a82955351b8c8580376d57ec610a42"
+   },
+   {
+    "id": "r31",
+    "source": ".build/cloudpickle-wheel.log",
+    "sha256": "3dabc22f80520307bfa0d2ed52a79c68a2f55c38f64622aefe1fd32650667b0e"
+   },
+   {
+    "id": "r32",
+    "source": ".build/joblib-wheel.log",
+    "sha256": "69c3a21f82c1639e71825aaee371d3f3561cb8180a01101c79ded1b2b4d86faf"
+   },
+   {
+    "id": "r33",
+    "source": ".build/markupsafe-wheel.log",
+    "sha256": "66a56af34cab8fc18b8ddb9aa4c30375acc7e2033488c128c7fbe69ca7e74d3e"
+   },
+   {
+    "id": "r34",
+    "source": ".build/narwhals-wheel.log",
+    "sha256": "ea8f169b8e778e92ba92d6ec0b8625a4ea90ff1c78ebf2229375f0e4b5b4e3ba"
+   },
+   {
+    "id": "r35",
+    "source": ".build/numpy-wheel.log",
+    "sha256": "64a469b7b5ed5b2d29acc3e6c3dad5be58958c24b4f3dcdbd33f654f39bafc90"
+   },
+   {
+    "id": "r36",
+    "source": ".build/pillow-wheel.log",
+    "sha256": "d33e03949726868c47ee5420adf348eedfa22527c5b38be2226b4f912bf7c94e"
+   },
+   {
+    "id": "r37",
+    "source": ".build/scikit-learn-wheel.log",
+    "sha256": "a893da597081c21d0f165d5c74b20707b0155f52953e6c735b63cc2f8c6170e2"
+   },
+   {
+    "id": "r38",
+    "source": ".build/scipy-wheel.log",
+    "sha256": "5634eb8528e5dab1afc2bb5163923b79eb730c49f6f44c4de60ad5e4a74f4570"
+   },
+   {
+    "id": "r39",
+    "source": ".build/threadpoolctl-wheel.log",
+    "sha256": "f4b59f5bbe467ae3ee5d5a435b249bef297658d415d3e233e5997a9b437b327e"
+   },
+   {
+    "id": "r40",
+    "source": ".build/scipy-ninja.log",
+    "sha256": "8518ef261962abfaa98cc0afea640927a34acf0a392d7f80313b703c0c3c98a6"
+   },
+   {
+    "id": "r41",
+    "source": ".build/py316t-explore-live.log",
+    "sha256": "409f63c27b9ad3d414e71bcf9052ab0478f44149b2444891f13542b56fb1d63c"
+   }
+  ],
+  "sufficiency_statement": "41 hashed artifacts: wheels, patches, scripts, logs, recipes"
+ },
+ "method": {
+  "model": {
+   "name": "CPython 3.16.0a1 free-threaded (Oxenford build 22d79d98) + oxenford-adopt/forge",
+   "version": "3.16.0a1+ox",
+   "provenance": "interpreter selftest 33/33, pytest 51; state/py316t_build.json landed"
+  },
+  "evaluation": {
+   "error_rate": 0.0,
+   "test_set": "104 checks, 0 failures (interpreter 84 + per-artifact verifies)"
+  },
+  "peer_review": false,
+  "general_acceptance": "not accepted - alpha interpreter, experimental method"
+ },
+ "claims": [
+  {
+   "id": "c1",
+   "text": "MarkupSafe 3.0.4 adopted native for cp316t; from markupsafe import _speedups",
+   "inputs": [
+    "r6",
+    "r6",
+    "r33"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c2",
+   "text": "Pillow 13.0.0 adopted native for cp316t; from PIL import Image; import io; im = Image.new('RGB', (16, 16), (0, 255, 0)); b = io.BytesIO(); im.save(b, 'JPEG'); b.seek(0); im2 = Image.open(b); im2.load(); assert im2.size == (16, 16), im2.size; print('pillow JPEG roundtrip green')",
+   "inputs": [
+    "r9",
+    "r9",
+    "r30",
+    "r36"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c3",
+   "text": "cffi 2.1.1 adopted native for cp316t; from cffi import FFI; lib = FFI().dlopen('kernel32'); print('cffi dlopen kernel32 green')",
+   "inputs": [
+    "r2",
+    "r2",
+    "r26"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c4",
+   "text": "greenlet 3.5.6 adopted native for cp316t; verified",
+   "inputs": [
+    "r4"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c5",
+   "text": "numpy 2.5.4 adopted native for cp316t; import numpy as np; a = np.arange(12).reshape(3, 4); c = a @ a.T; assert c.shape == (3, 3), c.shape; print('numpy matmul green', np.__version__)",
+   "inputs": [
+    "r8",
+    "r8",
+    "r35"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c6",
+   "text": "psutil 7.2.2 adopted native for cp316t; verified",
+   "inputs": [
+    "r10"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c7",
+   "text": "scikit-learn 1.9.1 adopted native for cp316t; import sklearn; from sklearn.linear_model import LinearRegression; m = LinearRegression().fit([[0],[1],[2]], [0,1,2]); assert abs(m.coef_[0]-1.0) < 1e-9",
+   "inputs": [
+    "r37"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c8",
+   "text": "scipy 1.18.1 adopted native for cp316t; import scipy; from scipy.sparse import csr_matrix; from scipy.sparse.linalg import spsolve; import numpy as np; assert spsolve(csr_matrix(np.array([[3.,1.],[1.,2.]])), np.array([9.,8.])).tolist() == [2.0, 3.0]",
+   "inputs": [
+    "r13",
+    "r13",
+    "r38",
+    "r40"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c9",
+   "text": "reportlab 5.1.0 adopted native for cp316t; import reportlab",
+   "inputs": [
+    "r11",
+    "r11"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c10",
+   "text": "joblib 1.6.0 adopted native for cp316t; import importlib.metadata as _m; _m.version('joblib')",
+   "inputs": [
+    "r5",
+    "r29",
+    "r32"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c11",
+   "text": "threadpoolctl 3.8.0 adopted native for cp316t; import importlib.metadata as _m; _m.version('threadpoolctl')",
+   "inputs": [
+    "r14",
+    "r39"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c12",
+   "text": "cloudpickle 3.1.2 adopted native for cp316t; import cloudpickle, pickle; f = lambda x: x + 1; assert pickle.loads(cloudpickle.dumps(f))(41) == 42; print('cloudpickle roundtrip green')",
+   "inputs": [
+    "r3",
+    "r27",
+    "r28",
+    "r31"
+   ],
+   "citations": []
+  },
+  {
+   "id": "c13",
+   "text": "narwhals 2.28.0 adopted native for cp316t; import narwhals, narwhals.stable.v2 as nw; print('narwhals', narwhals.__version__)",
+   "inputs": [
+    "r7",
+    "r34"
+   ],
+   "citations": []
+  },
+  {
+   "id": "a1",
+   "text": "forged hello316 (exe); ran exit 0, stdout='OXENFORD hello316: native exe, MSVC 19.51, free-threaded target 3.16t'",
+   "inputs": [
+    "r16"
+   ],
+   "citations": []
+  },
+  {
+   "id": "a2",
+   "text": "forged wheelhouse-2026-11-06 (bundle); 9 files, manifest inside, 0 empty",
+   "inputs": [
+    "r17"
+   ],
+   "citations": []
+  },
+  {
+   "id": "a3",
+   "text": "forged wheelhouse-manifest (pdf); %PDF header green, 2418 bytes",
+   "inputs": [
+    "r18"
+   ],
+   "citations": []
+  }
+ ],
+ "authentication": {
+  "output_sha256": "fa86b524fc0ccd987bd48130b296872daab9082387348e95bba855f21d4fda0a",
+  "custody": [
+   "built on this machine",
+   "hashed in wheelhouse manifest",
+   "manifest force-added to repo"
+  ]
+ },
+ "hearsay": {
+  "posture": "machine_record",
+  "business_records": {
+   "custodian": "the CREATOR",
+   "regular_practice": true
+  }
+ },
+ "review": {
+  "name": "the CREATOR",
+  "authority_to_change": true,
+  "recorded_at": "2026-11-06",
+  "changes_made": 0
+ }
+}

@@ -7,19 +7,31 @@ name = "azazael"
 version = "1.0.0"
 description = "Azazael — self-replicating AI worm ecosystem for autonomous system administration"
 readme = "README.md"
-# REQUIRES Python 3.15t (free-threaded build). The GIL-disabled build is
+# REQUIRES Python 3.16t (free-threaded build). The GIL-disabled build is
 # mandatory for concurrent worm execution (CLUSTERWORMS, CONCURRENCY).
-# Standard Python 3.15 (non-free-threaded) will also work but with
+# Standard Python 3.16 (non-free-threaded) will also work but with
 # degraded parallel performance.
-requires-python = ">=3.15"
+requires-python = ">=3.16"
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: 3.16",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: Microsoft :: Windows",
 ]
 dependencies = [
     "psutil>=7.2.2,<8",
+]
+
+[project.optional-dependencies]
+# `ci.yml` and `pages-deploy.yml` install `.[dev]`, and this table did not exist,
+# so that install could only fail. The entries are what the suite imports at
+# COLLECTION time -- hard imports, not `pytest.importorskip` -- because that is
+# where a missing package aborts the run before a single test executes.
+dev = [
+    "pytest",          # the runner
+    "pytest-timeout",  # pytest.ini sets `timeout` and `timeout_method`
+    "hypothesis",      # tests/test_mars_claims.py and three other PBT files
+    "numpy",           # tests/test_eve_*.py, test_optimizers_convergence, test_sb3_agent
 ]
 
 [tool.coverage.run]

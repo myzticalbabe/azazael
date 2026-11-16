@@ -196,7 +196,10 @@ def test_direct_chat_plain_params_never_request_logits(monkeypatch):
         body = stub.chat_requests[0]
         # THE regression: plain chat-completion parameters only — no logits
         # ever requested, so servers without logits computation never 500.
-        assert set(body.keys()) == {"model", "messages", "temperature", "max_tokens", "stream"}
+        # enable_thinking is a deliberate Qwen3 token-saver (65d664f3),
+        # not a logits request; the banned-keys loop below is the guard.
+        assert set(body.keys()) == {"model", "messages", "temperature",
+                                    "max_tokens", "stream", "enable_thinking"}
         assert body["model"] == model
         assert body["stream"] is False
         assert body["messages"][-1]["role"] == "user"

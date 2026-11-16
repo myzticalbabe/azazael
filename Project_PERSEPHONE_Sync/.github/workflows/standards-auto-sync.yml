@@ -1,0 +1,135 @@
+name: Standards Auto-Sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  standards-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install verification tool
+        run: |
+          pip install --quiet pyyaml
+
+      - name: Download verify_public_standards.py
+        run: |
+          curl -sSL -o verify_public_standards.py \
+            https://raw.githubusercontent.com/myzticalbabe/azazael/main/tools/verify_public_standards.py
+
+      - name: Run standards verification
+        id: verify
+        run: |
+          python verify_public_standards.py . || true
+
+      - name: Check verification result
+        if: always()
+        run: |
+          if grep -q "PASS -- Repository meets all professional standards" verify_output.txt 2>/dev/null; then
+            echo "result=PASS" >> $GITHUB_OUTPUT
+            echo "✅ Standards verification PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "result=FAIL" >> $GITHUB_OUTPUT
+            echo "❌ Standards verification FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Missing items:" >> $GITHUB_STEP_SUMMARY
+            grep -E "(MISSING|FAIL)" verify_output.txt | head -20 >> $GITHUB_STEP_SUMMARY || true
+          fi
+
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.existsSync('verify_output.txt') ? fs.readFileSync('verify_output.txt', 'utf8') : 'No output';
+            const result = '${{ steps.verify.outputs.result }}';
+            const icon = result === 'PASS' ? '✅' : '❌';
+            const body = `## ${icon} Professional Standards Check\n\n` +
+              `**Result**: ${result}\n\n` +
+              `\`\`\`\n${output.slice(0, 3000)}\n\`\`\`\n\n` +
+              `*Triggered by: ${{ github.event_name }}*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail workflow on FAIL
+        if: steps.verify.outputs.result == 'FAIL'
+        run: |
+          echo "Standards verification failed. See PR comment for details."
+          exit 1
+
+  auto-fix:
+    needs: standards-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.standards-check.outputs.result == 'FAIL'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Auto-fix common issues
+        run: |
+          # Fix trailing whitespace
+          find . -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" | \
+            xargs sed -i 's/[[:space:]]*$//'
+          # Ensure newline at end of file
+          find . -name "*.md" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" | \
+            xargs -I {} sh -c 'tail -c1 {} | read -r _ || echo >> {}'
+          # Fix YAML indentation (2 spaces)
+          find . -name "*.yml" -o -name "*.yaml" | \
+            xargs sed -i 's/^  */  /'
+
+      - name: Check if changes made
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create auto-fix PR
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git add -A
+          git commit -m "chore: auto-fix formatting [standards-bot]"
+          BRANCH="standards-auto-fix-$(date +%s)"
+          git push origin HEAD:$BRANCH
+          gh pr create --title "chore: auto-fix formatting [standards-bot]" \
+            --body "Automated formatting fixes from standards auto-sync bot." \
+            --base main --head $BRANCH \
+            --label "auto-fix,standards"

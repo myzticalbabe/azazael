@@ -309,6 +309,13 @@ root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -f "$root/tools/bible_ship.py" ] || exit 0
 py=$(command -v python3 || command -v python)
 [ -n "$py" ] || { echo "[Bible] no python -- injection skipped, passing loud"; exit 0; }
+# ── What is being pushed, read ONCE (2026-11-03) ──
+# stdin carries one line per pushed ref: `<local ref> <local sha> <remote ref>
+# <remote sha>`. It used to be read inside the merge stanza below, so a bypassed
+# merge gate (MERGE_GATE_PUSH_BYPASS=1, or the tool absent) left stdin untouched
+# and every later stanza blind to the push it was gating. Capture it here, before
+# anything else can consume it.
+refs=$(cat)
 # ── Merge readiness (2026-11-01) ──
 # A branch-merge conflict is a property of the PAIR (this branch, the remote tip),
 # so it changes when the other side moves, not when you type. Judged per commit it
@@ -320,7 +327,6 @@ py=$(command -v python3 || command -v python)
 # merge-tree, a shallow clone): say so and PASS LOUD -- blocking every push on a
 # host that cannot run the check is how a gate gets deleted rather than fixed.
 if [ "${MERGE_GATE_PUSH_BYPASS:-}" != "1" ] && [ -f "$root/tools/git_merge_gate.py" ]; then
-    refs=$(cat)
     if [ -n "$refs" ]; then
         merge_out=$(printf '%s\n' "$refs" | "$py" "$root/tools/git_merge_gate.py" --pre-push 2>&1)
         merge_rc=$?
@@ -378,13 +384,40 @@ fi
 # file once it lands. Failing closed is therefore correct here in a way it was
 # not at every commit. An absent tier file PASSES LOUD with its reason, because
 # a host that cannot run it must not be blocked forever by a gate it cannot see.
+#
+# ── WHICH CHANGESET THE TIER JUDGES (2026-11-03) ──
+# Until today the tier judged the git INDEX: whichever files happened to be staged
+# when the push fired. On a worktree several lanes share, that is another lane's
+# work -- commit 12e47073 was refused over 7 forensic files a concurrent lane had
+# staged, none of them in the commit, and the refusal named a gate that could not
+# tell "my change is too big" from "somebody else's directory is dirty".
+# The base is the REMOTE sha of the ref being pushed, and only when that ref's
+# local sha is this worktree's HEAD: that is the changeset actually leaving.
+# With no such ref (a brand-new branch, or a push of a local ref that is not HEAD)
+# the tier stays index-scoped and says so, because a guessed base would judge a
+# changeset nobody asked about -- worse than the hijack it replaces.
+head_sha=$(git rev-parse HEAD 2>/dev/null)
+ev_base=""
+if [ -n "$refs" ] && [ -n "$head_sha" ]; then
+    ev_base=$(printf '%s\n' "$refs" | awk -v h="$head_sha" '$2 == h { print $4; exit }')
+    case "$ev_base" in
+        "") ;;
+        *[!0]*) ;;                 # a real sha: judge ev_base..HEAD
+        *) ev_base="" ;;           # all zeroes: the remote has no such ref yet
+    esac
+fi
 # Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ...
 if [ "${EVIDENCE_TIER_BYPASS:-}" = "1" ]; then
     echo "[Evidence] tier bypassed at push: EVIDENCE_TIER_BYPASS=1 declared."
     echo "[Evidence] the tree is leaving this machine with its evidence unread."
 elif [ -f "$root/tools/evidence_tier.sh" ]; then
     ev_t0=$(date +%s)
-    sh "$root/tools/evidence_tier.sh"
+    if [ -n "$ev_base" ]; then
+        sh "$root/tools/evidence_tier.sh" --base "$ev_base"
+    else
+        echo "[Evidence] no pushed commit matched HEAD -- judging the git index."
+        sh "$root/tools/evidence_tier.sh"
+    fi
     ev_rc=$?
     echo "[Evidence] tier exit=$ev_rc wall=$(( $(date +%s) - ev_t0 ))s"
     if [ $ev_rc -ne 0 ]; then
@@ -392,6 +425,7 @@ elif [ -f "$root/tools/evidence_tier.sh" ]; then
         echo "[Evidence] PUSH ABORTED: the tree does not pass its whole-tree evidence tier."
         echo "[Evidence] The refusal above names the gate. Run it alone to iterate:"
         echo "[Evidence]   sh tools/evidence_tier.sh"
+        echo "[Evidence]   sh tools/evidence_tier.sh --base <rev>   # judge a commit"
         echo "[Evidence] Bypass (declared): EVIDENCE_TIER_BYPASS=1 git push ..."
         exit 1
     fi

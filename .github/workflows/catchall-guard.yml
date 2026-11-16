@@ -11,6 +11,12 @@ on:
       - 'scripts/**/*.py'
   workflow_dispatch:
 
+# Least privilege, stated rather than inherited: this job checks out the repo
+# and fails or passes. It writes nothing, so a write-capable default token
+# would be a scope it never uses.
+permissions:
+  contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest
@@ -22,6 +28,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.15'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
 
       # The guard was wired into CI and its own control was not: nothing proved
       # it could still see a bare `except`. This step is that control -- it fires

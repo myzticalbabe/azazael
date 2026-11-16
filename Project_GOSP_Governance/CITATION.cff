@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_GOSP_Governance: 3-script governance system, evidence directories, compliance scripts, governance orchestration."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  3-script governance system, evidence directories, compliance scripts, governance orchestration.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - governance
+  - evidence
+  - compliance
+  - orchestration
+  - policy
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

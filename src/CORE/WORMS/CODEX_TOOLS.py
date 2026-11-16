@@ -41,7 +41,7 @@ except ImportError:                               # never break the host
 
 # Module-level conditional imports (3.14t safe - no function-body imports)
 try:
-    from CAIN_ANALYZER import run_complete_analysis as _cain_analyze
+    from CODEX.CORE.CAIN_ANALYZER import run_complete_analysis as _cain_analyze
 except ImportError as exc:
     note_failure("CODEX_TOOLS:L36", exc)
     _cain_analyze = None

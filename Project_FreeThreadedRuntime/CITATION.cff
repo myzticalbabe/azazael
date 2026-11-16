@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it as below. If you cite a measured figure, cite the commit and the split it came from."
+title: "Project_FreeThreadedRuntime: FreeThreadPool, WorkStealingPool, GIL-free Python 3.14t optimization. Thread-safe collections, benchmark runner, device affinity."
+version: "0.1.0"
+date-released: "2026-11-03"
+license: "CDDL-1.1"
+type: software
+abstract: >-
+  FreeThreadPool, WorkStealingPool, GIL-free Python 3.14t optimization. Thread-safe collections, benchmark runner, device affinity.
+authors:
+  - name: "Azazael Contributors"
+keywords:
+  - free-threading
+  - work-stealing
+  - gil-free
+  - python-314t
+  - parallel
+  - thread-pool
+references:
+  - type: software
+    title: "Azazael Core"
+    notes: "Parent framework providing core infrastructure."
+    url: "https://github.com/myzticalbabe/azazael"

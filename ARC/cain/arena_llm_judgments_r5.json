@@ -1,0 +1,972 @@
+{
+ "meta": {
+  "round": "r5",
+  "judged_at": "2026-11-05T00:45:01",
+  "endpoint": "http://127.0.0.1:8081",
+  "model": "local",
+  "judges": [
+   "ARENA-JUDGE-1-ARCHITECTURE",
+   "ARENA-JUDGE-2-LEGAL",
+   "ARENA-JUDGE-3-ECONOMIC",
+   "ARENA-JUDGE-4-TECHNICAL",
+   "ARENA-JUDGE-5-ETHICAL",
+   "ARENA-JUDGE-6-STRATEGIC"
+  ],
+  "quorum": 0.66,
+  "packet": "ARC\\cain\\evidence_packet_r5.json",
+  "packet_sha256": "e9c00c842e5567d65d8106deab58c273ee518499dd79767df8da37e7b54625a1",
+  "calls": 42,
+  "blind_calls": 0,
+  "independence": "ONE model serving SIX angles. Angle diversity, not model diversity: six personas are not six independent judges.",
+  "vocabulary": [
+   "SUPPORTED",
+   "PARTIAL",
+   "UNSUPPORTED",
+   "BLOCKED"
+  ]
+ },
+ "pins": {
+  "C1": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C2": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C3": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 1,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  },
+  "C4": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 0,
+    "PARTIAL": 6,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "PARTIAL",
+   "reason": "6/6 judges PARTIAL"
+  },
+  "C5": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  },
+  "C6": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  },
+  "C7": {
+   "votes": 6,
+   "blind": 0,
+   "tally": {
+    "SUPPORTED": 6,
+    "PARTIAL": 0,
+    "UNSUPPORTED": 0,
+    "BLOCKED": 0
+   },
+   "ungrounded_quotes": 0,
+   "grade": "SUPPORTED",
+   "reason": "6/6 judges SUPPORTED"
+  }
+ },
+ "rows": [
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 95.08,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The quote confirms Windows 10 end-of-support and TPM 2.0 requirement in Windows 11, but the supported list begins at 8th generation only for specific processors (e.g., 8th Gen i3/i5/i7/i9), yet the quote does not explicitly state that no pre-8th-generation Core entries are included or that the list starts at 8th generation as a threshold.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 81.32,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The claim that Windows 11 requires TPM 2.0 is supported, but the specific assertion that supported Core entries begin at 8th generation is only partially reflected—8th generation is listed, but the absence of pre-8th-generation entries is not explicitly stated or confirmed in the quotes.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 70.13,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The claim that Windows 11 requires TPM 2.0 is supported, but the specific statement about Core processors beginning at 8th generation is missing from the quotes; the list shows 8th-gen entries but does not establish that no pre-8th-generation Core processors are supported.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 58.44,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The quote confirms Windows 10 end-of-support and TPM 2.0 requirement for Windows 11, but the supported list of Core processors begins at 8th generation is only partially stated and not explicitly confirmed as the starting point for all Core entries.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 71.66,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The quote confirms Windows 10 end-of-support and TPM 2.0 requirement, but the supported list of Core processors begins at 8th generation is only partially stated and not explicitly confirmed as a starting point, with later entries (e.g., 9th, 13th) also included, thus missing the clear gate at 8th generation.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C1",
+   "http_status": 200,
+   "seconds": 72.57,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "Windows 10 support ends on a stated date",
+    "Windows 11 requires TPM 2.0"
+   ],
+   "missing_elements": [
+    "the supported list's Core entries begin at 8th Generation"
+   ],
+   "best_quote": "Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date.",
+   "reason": "The claim that Windows 10 support ends on a stated date and that Windows 11 requires TPM 2.0 is supported, but the specific statement about Core-branded processors beginning at 8th generation is missing from the quotes, which only list 8th and later generations but do not establish a clear gate at 8th generation as the starting point.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 68.55,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries"
+   ],
+   "missing_elements": [
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance.",
+   "reason": "The quote confirms a performance change in iOS 10.2.1 affecting aged batteries and mentions some user experience impacts, but does not explicitly state that disclosure was inadequate or that no restoration mechanism was offered.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 57.82,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users"
+   ],
+   "missing_elements": [
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance.",
+   "reason": "The quote confirms performance changes and their impact on aged batteries, and acknowledges user unawareness, but explicitly states no restoration mechanism was offered, thus missing the final element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 55.37,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries"
+   ],
+   "missing_elements": [
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance. Custome",
+   "reason": "The quote confirms a performance change in iOS 10.2.1 affecting aged batteries but lacks explicit statements on disclosure or restoration mechanisms, which are material elements of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 58.03,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries"
+   ],
+   "missing_elements": [
+    "the change was not adequately disclosed to users",
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance.",
+   "reason": "The quote confirms a performance change in iOS 10.2.1 affecting aged batteries and mentions some user experience impacts, but does not explicitly state that the update was disclosed inadequately or that no restoration means were offered.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 66.54,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users"
+   ],
+   "missing_elements": [
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "Tali società hanno, infatti, indotto i consumatori - mediante l’insistente richiesta di effettuare il download e anche in ragione dell’asimmetria informativa esistente rispetto ai produttori - ad installare aggiornamenti su dispositivi non in grado di supportarli adeguatamente, senza fornire adeguat",
+   "reason": "The quote from the Italian regulatory body confirms the lack of adequate disclosure and absence of restoration means, but the specific element of 'no means of restoring original functionality' is only partially supported and not explicitly stated in the same terms as required in the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C2",
+   "http_status": 200,
+   "seconds": 40.14,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.75,
+   "supports_elements": [
+    "a shipped iOS update changed performance management",
+    "the change affected devices with aged batteries",
+    "the change was not adequately disclosed to users"
+   ],
+   "missing_elements": [
+    "no means of restoring original functionality was offered"
+   ],
+   "best_quote": "With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and other reductions in performance.",
+   "reason": "The quote confirms the performance change and its impact on aged batteries, and acknowledges user unawareness, but explicitly states no restoration means were offered, which is missing in the sources.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 47.67,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Microcode SVID algorithm requesting high voltages at a frequency and duration which can cause Vmin shift. a. Mitigation: microcode 0x129 addresses high voltages requested by the processor. Mitigation: Intel® is releasing microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, and addre",
+   "reason": "The quote explicitly states the voltage request mechanism, the inclusion of 0x125 and 0x129 in 0x12B, and identifies microcode and BIOS updates as the mitigation strategy.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 57.98,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Microcode SVID algorithm requesting high voltages at a frequency and duration which can cause Vmin shift. a. Mitigation: microcode 0x129 addresses high voltages requested by the processor. Microcode and BIOS code requesting elevated core voltages which can cause Vmin shift especially during periods ",
+   "reason": "The quote explicitly states that elevated voltage requests cause Vmin shift, confirms that microcode 0x12B encompasses 0x125 and 0x129, and identifies microcode and BIOS updates as the mitigation.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 36.66,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Mitigation: microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, and addresses elevated voltage requests by the processor during idle and/or light activity periods.",
+   "reason": "The quote explicitly states the causal link between elevated voltage requests and Vmin shift, confirms that microcode 0x12B encompasses both 0x125 and 0x129, and identifies microcode and BIOS updates as the mitigation strategy.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": false
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 52.74,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Microcode SVID algorithm requesting high voltages at a frequency and duration which can cause Vmin shift. Mitigation: microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, addresses elevated voltage requests by the processor during idle and/or light activity periods.",
+   "reason": "The quote explicitly states the voltage request mechanism, the inclusion of 0x125 and 0x129 in 0x12B, and identifies microcode and BIOS updates as the mitigation.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 59.24,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Microcode SVID algorithm requesting high voltages at a frequency and duration which can cause Vmin shift. a. Mitigation: microcode 0x129 addresses high voltages requested by the processor. Mitigation: Intel® is releasing microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, and addre",
+   "reason": "The quote explicitly states the causal link between elevated voltage requests and Vmin shift, confirms that microcode 0x12B encompasses both 0x125 and 0x129, and identifies microcode and BIOS updates as the mitigation strategy.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C3",
+   "http_status": 200,
+   "seconds": 60.62,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "elevated core voltage requests cause Vmin shift",
+    "microcode 0x12B encompasses 0x125 and 0x129",
+    "microcode and BIOS updates are the stated mitigation"
+   ],
+   "missing_elements": [],
+   "best_quote": "Microcode SVID algorithm requesting high voltages at a frequency and duration which can cause Vmin shift. a. Mitigation: microcode 0x129 addresses high voltages requested by the processor. Mitigation: Intel® is releasing microcode 0x12B, which encompasses 0x125 and 0x129 microcode updates, and addre",
+   "reason": "The quote directly establishes the causal link between elevated voltage requests and Vmin shift, confirms that microcode 0x12B encompasses both 0x125 and 0x129, and explicitly states that microcode and BIOS updates are the mitigation strategy.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 39.28,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access outright"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict, that has one or more labels representing how well a device can enforce app integrity.",
+   "reason": "The quote confirms the API returns a device integrity verdict but does not state that an application may act on that verdict by denying access outright.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 55.86,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access outright"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict, that has one or more labels representing how well a device can enforce app integrity.",
+   "reason": "The source confirms the API returns a device integrity verdict but does not state that an application may act on that verdict by denying access outright, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 73.85,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device",
+    "an app may act on that verdict by denying access outright"
+   ],
+   "missing_elements": [
+    "the API returns a verdict about the device itself",
+    "an application may act on that verdict by denying access outright, making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict, that has one or more labels representing how well a device can enforce app integrity. If a device does not meet the criteria of any labels, then the deviceIntegrity field omits deviceRecognitionVerdict.",
+   "reason": "The quote confirms the API returns a device integrity verdict but does not establish that the application's action of denying access makes continued function a vendor decision rather than a hardware property.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 119.13,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access outright"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict , that has one or more labels representing how well a device can enforce app integrity. If a device does not meet the criteria of any labels, then the deviceIntegrity field omits deviceRecognitionVerdict.",
+   "reason": "The quote confirms the API returns a device integrity verdict but does not state that an application may act on that verdict by denying access outright.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 119.56,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device"
+   ],
+   "missing_elements": [
+    "an app may act on that verdict by denying access outright"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict, that has one or more labels representing how well a device can enforce app integrity.",
+   "reason": "The quote confirms the API returns a device integrity verdict but does not state that an app may act on that verdict by denying access outright, which is a material element of the claim.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C4",
+   "http_status": 200,
+   "seconds": 128.66,
+   "max_tokens_used": 420,
+   "verdict": "PARTIAL",
+   "confidence": 0.65,
+   "supports_elements": [
+    "the API returns an integrity verdict about the device",
+    "an app may act on that verdict by denying access outright"
+   ],
+   "missing_elements": [
+    "an application may act on that verdict by denying access outright, making continued function a vendor decision rather than a property of the hardware"
+   ],
+   "best_quote": "The deviceIntegrity field can contain a single value, deviceRecognitionVerdict, that has one or more labels representing how well a device can enforce app integrity. If a device does not meet the criteria of any labels, then the deviceIntegrity field omits deviceRecognitionVerdict.",
+   "reason": "The quote confirms the API returns a device integrity verdict but does not establish that application access is conditionally denied, nor that continued function becomes a vendor decision rather than a hardware property.",
+   "grade": "PARTIAL",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 122.67,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates under dynamic security and the printer's failure to warn, instead stopping work.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 111.09,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote directly states both the issuance of firmware updates under dynamic security and the printer's failure to warn, instead refusing to print.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 112.93,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates under the dynamic security policy and the behavior of the printer refusing to print without warning.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 88.75,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote directly confirms both the issuance of firmware updates under dynamic security and the behavior of the printer refusing to print without warning.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 113.0,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote explicitly confirms both the issuance of firmware updates under dynamic security and the behavior of the printer refusing to print without warning, aligning fully with the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C5",
+   "http_status": 200,
+   "seconds": 100.56,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "HP issued firmware updates that block third-party ink",
+    "the printer stops working rather than warning"
+   ],
+   "missing_elements": [],
+   "best_quote": "Earlier this year, HP doubled down on its so-called \"dynamic security\" policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won’t work.",
+   "reason": "The quote directly confirms both the issuance of firmware updates under dynamic security and the printer's failure to warn, instead refusing to print.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 90.41,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote explicitly confirms both the requirement of a software tool for all repairs and its restriction to authorized dealers, directly supporting the claim's two core elements.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 102.42,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote directly states both the requirement of a software tool for all repairs and its restriction to authorized dealers, fulfilling the claim's material elements with clear intent and mechanism.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 107.63,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote explicitly confirms both the requirement of a software tool for all repairs and its restriction to authorized dealers, directly supporting the claim with clear intent and mechanism.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 108.94,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote explicitly confirms both the requirement of a software tool for all repairs and its exclusive availability to authorized dealers, directly supporting the claim.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 101.98,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote explicitly confirms both the requirement of a software tool for all repairs and its exclusive availability to authorized dealers, directly supporting the claim with clear intent and structure.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C6",
+   "http_status": 200,
+   "seconds": 94.96,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.98,
+   "supports_elements": [
+    "a software tool is required to perform all repairs on Deere equipment",
+    "the manufacturer restricts that tool to its authorized dealers"
+   ],
+   "missing_elements": [],
+   "best_quote": "The only fully functional software repair tool capable of performing all repairs on Deere equipment is produced by Deere. Deere makes this tool available only to Deere’s authorized dealers, forcing farmers to solely rely on more expensive authorized dealers for critical repairs.",
+   "reason": "The quote directly confirms both the requirement of a software tool for all repairs and the restriction to authorized dealers, with explicit intent and mechanism.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-1-ARCHITECTURE",
+   "angle": "Systems Architecture",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 83.54,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility via factory reset.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-2-LEGAL",
+   "angle": "Legal & Regulatory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 62.91,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility through factory reset, directly supporting all claim elements.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-3-ECONOMIC",
+   "angle": "Economic & Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 81.86,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility via factory reset.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-4-TECHNICAL",
+   "angle": "Technical Feasibility",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 84.93,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle  Mode, it cannot be reactivated.",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility via factory reset.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-5-ETHICAL",
+   "angle": "Ethics & Philosophy",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 84.78,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 1.0,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle  Mode, it cannot be reactivated.",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility through factory reset.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  },
+  {
+   "judge": "ARENA-JUDGE-6-STRATEGIC",
+   "angle": "Strategic Game Theory",
+   "pin": "C7",
+   "http_status": 200,
+   "seconds": 84.52,
+   "max_tokens_used": 420,
+   "verdict": "SUPPORTED",
+   "confidence": 0.95,
+   "supports_elements": [
+    "Recycle Mode runs a countdown before acting",
+    "it permanently deactivates the device",
+    "the device cannot be reactivated"
+   ],
+   "missing_elements": [],
+   "best_quote": "Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle Mode, it cannot be reactivated.",
+   "reason": "The quote explicitly confirms the countdown, permanent deactivation, and irreversibility via factory reset, aligning fully with the claim's elements.",
+   "grade": "SUPPORTED",
+   "quote_is_grounded": true
+  }
+ ]
+}

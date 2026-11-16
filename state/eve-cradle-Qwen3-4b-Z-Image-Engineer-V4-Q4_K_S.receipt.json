@@ -1,0 +1,10 @@
+{
+  "model": "Qwen3-4b-Z-Image-Engineer-V4-Q4_K_S.gguf",
+  "bytes": 2383309120,
+  "framework": "gguf",
+  "native_runner": "C:\\Users\\clint\\.lmstudio\\extensions\\backends\\llama.cpp-win-x86_64-vulkan-avx2-2.43.0\\llama-server.exe",
+  "probe_ok": true,
+  "probe_detail": "native completion: The old man was waiting for the",
+  "nsp": "nsp:verified [valid_query_features=verified; valid_provider_selection=verified; no_dead_provider=verified]",
+  "adopted_utc": "2026-11-06T23:24:55Z"
+}

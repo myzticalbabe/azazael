@@ -1,8 +1,8 @@
 # coding: utf-8
 """ORCHESTRATION / ORCHESTRATION/scripts/complete_module_analysis.py :: DependencyAnalyzer -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux ORCHESTRATION/scripts/complete_module_analysis.py (class DependencyAnalyzer, 616 lines in the module, 9 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux ORCHESTRATION/scripts/complete_module_analysis.py (class DependencyAnalyzer, 631 lines in the module, 11 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:ORCHESTRATION/scripts/complete_module_analysis.py#DependencyAnalyzer"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:ORCHESTRATION/scripts/complete_module_analysis.py#DependencyAnalyzer"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

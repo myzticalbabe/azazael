@@ -1,8 +1,8 @@
 # coding: utf-8
 """CORE / CORE/compliance/policy.py :: PolicyEffect -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CORE/compliance/policy.py (class PolicyEffect, 386 lines in the module, 7 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CORE/compliance/policy.py (class PolicyEffect, 703 lines in the module, 33 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CORE/compliance/policy.py#PolicyEffect"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CORE/compliance/policy.py#PolicyEffect"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

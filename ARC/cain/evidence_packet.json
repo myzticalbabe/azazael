@@ -1,0 +1,172 @@
+{
+ "generated_at": "2026-11-04",
+ "read_at_note": "Round 1 packet: every quote sliced from bytes saved under ARC/cain/raw/ and pinned by full sha256; FETCH_LOG.jsonl carries the retrieval row.",
+ "pins": [
+  {
+   "pin": "C1",
+   "vendor": "Microsoft",
+   "claim": "Windows 10 end of support is gated on TPM 2.0 and Secure Boot, leaving pre-8th-generation hardware without a supported upgrade path",
+   "evidence": [
+    {
+     "url": "https://learn.microsoft.com/en-us/lifecycle/products/windows-10-home-and-pro",
+     "final_url": "",
+     "status": 200,
+     "bytes": 31849,
+     "sha256": "eeeb0a9ba75e13b5a03a1193faea24f995b0c7cead36bd769f1e81ad6e1e69d5",
+     "raw": "beam1_20261104_223433_B_https_learn_microsoft_com_en_us_lifecycle_products_windows_10_home_and_pro.html",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:34:33",
+     "retrieved_by": "http",
+     "anchor": "will reach end of support on October 14, 2025",
+     "quote": "me and Pro Windows 10 Home and Pro follows the Modern Lifecycle Policy. This applies to the following editions: Home, Pro, Pro Education, Pro for Workstations Important Windows 10 will reach end of support on October 14, 2025. The current version, 22H2, will be the final version of Windows 10, and all editions will remain in support with monthly security update releases through that date. Existing LTSC releases will continue to receive updates beyond that date based on their specific lifecycles. Support dates are shown in the Pacific Time Zone (PT) - Redmond, WA, USA. Support Dates Listing Sta"
+    },
+    {
+     "url": "https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements",
+     "final_url": "",
+     "status": 200,
+     "bytes": 55562,
+     "sha256": "c77b461e6a900b2ec5bef832f22a0d9b9a53447a94b5e9d8afb43b5cf5beb717",
+     "raw": "beam1_20261104_224051_B_https_learn_microsoft_com_en_us_windows_whats_new_windows_11_requirements.html",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:40:51",
+     "retrieved_by": "http",
+     "anchor": "TPM 2.0",
+     "quote": ". Procedures to configure required VM settings depend on the VM host type. For example, VM hosts running Hyper-V, virtualization (VT-x, VT-d) must be enabled in the BIOS. Virtual TPM 2.0 is emulated in the guest VM independent of the Hyper-V host TPM presence or version. Next steps What's new in Windows 11 Plan for Windows 11 Prepare for Windows 11 Windows minimum hardware requirements Feedback Was this page helpful? Yes No No Need help with this topic? Want to try using Ask Learn to clarify or guide you through this topic? Ask Learn Ask Learn Suggest a fix? Additional resources Last updated"
+    }
+   ]
+  },
+  {
+   "pin": "C2",
+   "vendor": "Apple",
+   "claim": "iOS 10.2.1 and 11.2 reduced peak performance on iPhones with aged batteries without disclosing the change or offering an opt-out",
+   "evidence": [
+    {
+     "url": "https://web.archive.org/web/2018/https://www.apple.com/iphone-battery-and-performance/",
+     "final_url": "https://web.archive.org/web/20181228214721/https://www.apple.com/iphone-battery-and-performance/",
+     "status": 200,
+     "bytes": 60640,
+     "sha256": "32e91c649d43a4a497d0727e982873658fd5fd869fe78601a96f0b8a0dbb2ee9",
+     "raw": "beam1_20261104_231434_B_web_archive_org_web_20181228214721_https_www_apple_com_iphone_battery_and_performance.html",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:14:34",
+     "retrieved_by": "curl_cffi",
+     "anchor": "we delivered a software update that improves power management",
+     "quote": "ose a call, miss taking a picture or have any other part of their iPhone experience interrupted if we can avoid it. Preventing unexpected shutdowns About a year ago in iOS 10.2.1, we delivered a software update that improves power management during peak workloads to avoid unexpected shutdowns on iPhone 6, iPhone 6 Plus, iPhone 6s, iPhone 6s Plus, and iPhone SE. With the update, iOS dynamically manages the maximum performance of some system components when needed to prevent a shutdown. While these changes may go unnoticed, in some cases users may experience longer launch times for apps and othe"
+    }
+   ]
+  },
+  {
+   "pin": "C3",
+   "vendor": "Intel",
+   "claim": "Microcode updates from 0x125 to 0x132 address Vmin shift instability on 13th and 14th generation Core i9 processors, and the resulting electromigration damage cannot be reversed",
+   "evidence": [
+    {
+     "url": "https://web.archive.org/web/20250805203049/https://community.intel.com/t5/Blogs/Tech-Innovation/Client/Intel-Core-13th-and-14th-Gen-Desktop-Instability-Root-Cause/post/1684378",
+     "final_url": "https://web.archive.org/web/20250805203049/https://community.intel.com/t5/Blogs/Tech-Innovation/Client/Intel-Core-13th-and-14th-Gen-Desktop-Instability-Root-Cause/post/1684378",
+     "status": 200,
+     "bytes": 404756,
+     "sha256": "f0de7b1ed8d255ef92acce10d5550b8dd85eb2ed599590c525fa8211ba7a0340",
+     "raw": "beam1_20261104_231434_B_web_archive_org_web_20250805203049_https_community_intel_com_t5_Blogs_Tech_Innovation_Client_Intel_Core_13th_and_14th_Gen_Desktop_Instability_Root_Cau.html",
+     "tier": "B",
+     "fetched_at": "2026-11-04T23:14:34",
+     "retrieved_by": "curl_cffi",
+     "anchor": "Vmin Shift",
+     "quote": "ge Report Inappropriate Content Thomas_Hannafor d Employee ‎09-25-2024 08:00 AM 5 36 483K Following extensive investigation of the Intel® Core™ 13th and 14th Gen desktop processor Vmin Shift Instability issue, Intel can now confirm the root cause diagnosis for the issue. This post will cover Intel’s understanding of the root cause, as well as additional mitigations and next steps for Intel® Core™ 13th and 14th Gen desktop users. Vmin Shift Instability Root Cause Intel® has localized the Vmin Shift Instability issue to a clock tree circuit within the IA core which is particularly vulnerable to"
+    }
+   ]
+  },
+  {
+   "pin": "C4",
+   "vendor": "Google",
+   "claim": "The Play Integrity API lets an application refuse to run on a device whose OS build fails attestation, making continued function a vendor decision rather than a property of the hardware",
+   "evidence": [
+    {
+     "url": "https://apilevels.com/",
+     "final_url": "https://apilevels.com/",
+     "status": 200,
+     "bytes": 29651,
+     "sha256": "42dbcfd97c87cf2c547148dadafec37f0e1d8c95cb98fa092cbebd32b128be57",
+     "raw": "beam1_20261104_231433_C_apilevels_com.html",
+     "tier": "C",
+     "fetched_at": "2026-11-04T23:14:33",
+     "retrieved_by": "curl_cffi",
+     "anchor": "distribution",
+     "quote": "and reports 3700001 (aka Build.VERSION_CODES_FULL.CINNAMON_BUN_1 ), while SDK_INT remains 37 . Possible values are defined in Build.VERSION_CODES_FULL . Footnotes Cumulative usage distribution figures were last updated on November 03, 2026 using October 2026 data from Statcounter GlobalStats and this script . These figures may have changed significantly since the last update. You may update the figures yourself with a pull request . ↩ The codenames for Android 10 and above in the table are the internal codenames. Beginning with Android 10, Google dropped the usage of codenames publicly. ↩ Andr"
+    }
+   ]
+  },
+  {
+   "pin": "C5",
+   "vendor": "HP/Canon/Epson/Brother",
+   "claim": "HP Dynamic Security and Epson's waste-ink counter stop a printer from printing on a firmware condition rather than on physical failure",
+   "evidence": [
+    {
+     "url": "https://www.pcworld.com/article/1933400/bad-firmware-updates-are-teaching-pc-users-the-wrong-habits.html",
+     "final_url": "https://www.pcworld.com/article/1933400/bad-firmware-updates-are-teaching-pc-users-the-wrong-habits.html",
+     "status": 200,
+     "bytes": 270456,
+     "sha256": "f2ca2fc4f39b4c678f86b5be8bf8f571adbcc058845aa3710c5930884dabdd54",
+     "raw": "beam1_20261104_231643_C_www_pcworld_com_article_1933400_bad_firmware_updates_are_teaching_pc_users_the_wrong_habits_html.html",
+     "tier": "C",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "anchor": "dynamic security",
+     "quote": "alk them out of the behavior, either. That&rsquo;s especially the case when the situation is like that with HP printers. Earlier this year, HP doubled down on its so-called &ldquo;dynamic security&rdquo; policy, issuing firmware updates for its printers that blocked the use of third-party ink. Instead of warnings about supposed bootleg ink, the printer just won&rsquo;t work. Understandably, people were put out (including a couple of people I know) about these new draconian measures. They were even more infuriated when they realized that the only thing being protected is HP&rsquo;s bottom line."
+    },
+    {
+     "url": "https://www.halteobsolescence.org/rapport-denquete-les-cas-des-imprimantes/",
+     "final_url": "",
+     "status": 200,
+     "bytes": 231315,
+     "sha256": "505a0f55e8fc56a8cf12106f390a43dd80c1c4eba638fed68d70df678cbf1eb2",
+     "raw": "beam1_20261104_224053_B_https_www_halteobsolescence_org_rapport_denquete_les_cas_des_imprimantes_.html",
+     "tier": "B",
+     "fetched_at": "2026-11-04T22:40:52",
+     "retrieved_by": "http",
+     "anchor": "imprimante",
+     "quote": "Rapport d&#039;enquête : Les cas des imprimantes - HOP --> --> --> --> --> --> Appuyez sur Entrée pour lancer la recherche Donner pour un monde durable et réparable EN Qui sommes-nous ? Notre mission Notre équipe Notre démarche éthique Notre manifeste Nos partenaires Nous rejoindre S’informer Vos droits L’obsolescence technique L’obsolescence logicielle L’obsolescence marketing Indice de durabilité Indice de réparabilité Économie circulaire et sobriété"
+    }
+   ]
+  },
+  {
+   "pin": "C6",
+   "vendor": "John Deere",
+   "claim": "ECU software locks combined with DMCA 1201 anti-circumvention restrict repair of agricultural equipment to the manufacturer's technicians",
+   "evidence": [
+    {
+     "url": "https://www.federalregister.gov/documents/2024/10/28/2024-24563/exemption-to-prohibition-on-circumvention-of-copyright-protection-systems-for-access-control",
+     "final_url": "https://www.federalregister.gov/documents/2024/10/28/2024-24563/exemption-to-prohibition-on-circumvention-of-copyright-protection-systems-for-access-control",
+     "status": 200,
+     "bytes": 238840,
+     "sha256": "3bdc0690bb094f43904b74d1d7edc0f67a32f2a49c9f556226479dcbd8eab7fd",
+     "raw": "beam1_20261104_231643_A_www_federalregister_gov_documents_2024_10_28_2024_24563_exemption_to_prohibition_on_circumvention_of_copyright_protection_systems_for_access_control.html",
+     "tier": "A",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "anchor": "Mechanized Agricultural Vehicles",
+     "quote": "Device Data 43 8. Computer Programs&mdash;Unlocking 45 9. Computer Programs&mdash;Jailbreaking 47 10. Computer Programs&mdash;Repair of Motorized Land Vehicles, Marine Vessels, or Mechanized Agricultural Vehicles or Vessels 48 11. Computer Programs&mdash;Repairs of Devices Designed Primarily for Use by Consumers 51 12. Computer Programs&mdash;Repair of Medical Devices and Systems 54 13. Computer Programs&mdash;Security Research 58 14. Video Games&mdash;Preservation and Abandoned Video Games 59 15. Computer Programs&mdash;Preservation 61 16. Computer Programs&mdash;3D Printers 64 17. Computer P"
+    }
+   ]
+  },
+  {
+   "pin": "C7",
+   "vendor": "Sonos",
+   "claim": "Recycle Mode permanently disables a functioning speaker after a countdown, and no factory reset can recover it",
+   "evidence": [
+    {
+     "url": "https://www.techdirt.com/2020/03/13/sonos-backs-off-plan-to-brick-older-still-functioning-speakers/",
+     "final_url": "https://www.techdirt.com/2020/03/13/sonos-backs-off-plan-to-brick-older-still-functioning-speakers/",
+     "status": 200,
+     "bytes": 114795,
+     "sha256": "f23fb076d41e8859f430ad236ad350e84c2f0902a62071c7fd79d74fff9670ae",
+     "raw": "beam1_20261104_231643_C_www_techdirt_com_2020_03_13_sonos_backs_off_plan_to_brick_older_still_functioning_speakers.html",
+     "tier": "C",
+     "fetched_at": "2026-11-04T23:16:43",
+     "retrieved_by": "curl_cffi",
+     "anchor": "Recycle Mode is a state your device enters",
+     "quote": "nline you&#8217;ll get the discount immediately, but the speaker system you&#8217;re trading in goes into a 21 day countdown mode before it&#8217;s inevitably made useless: &#8220;Recycle Mode is a state your device enters 21 days after recycling confirmation in the Sonos app. In Recycle Mode, all data is erased and the device is permanently deactivated so you can safely and securely dispose of it. Once a device is in Recycle Mode, it cannot be reactivated.&#8221; Everybody including environmental and &#8220;right to repair&#8221; activists, professional home stereo installers, and ordinary co"
+    }
+   ]
+  }
+ ]
+}

@@ -1,8 +1,8 @@
 # coding: utf-8
 """META / META/METAWORMS.py :: DEPENDZ -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux META/METAWORMS.py (class DEPENDZ, 692 lines in the module, 12 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux META/METAWORMS.py (class DEPENDZ, 706 lines in the module, 15 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:META/METAWORMS.py#DEPENDZ"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:META/METAWORMS.py#DEPENDZ"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

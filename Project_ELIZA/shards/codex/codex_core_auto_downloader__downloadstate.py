@@ -1,8 +1,8 @@
 # coding: utf-8
 """CODEX / CODEX/CORE/AUTO_DOWNLOADER.py :: DownloadState -- INTAKE STUB. Not an implementation.
 
-Source: kali-linux CODEX/CORE/AUTO_DOWNLOADER.py (class DownloadState, 712 lines in the module, 36 public API entries)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Source: kali-linux CODEX/CORE/AUTO_DOWNLOADER.py (class DownloadState, 731 lines in the module, 30 public API entries)
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:CODEX/CORE/AUTO_DOWNLOADER.py#DownloadState"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:CODEX/CORE/AUTO_DOWNLOADER.py#DownloadState"
 KIND = "class"
 SOURCE_ENVIRONMENT = "kali-linux"

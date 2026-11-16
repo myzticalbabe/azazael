@@ -1,5 +1,7 @@
 # Restart handoff — 2026-11-02
 
+EXPIRY: 2026-11-12 — after this date, all measured figures (commit counts, test counts, preflight scores) must be re-measured before use.
+
 Written for the next session. **The tree these receipts describe is `b1784556` (2026-11-02).** The
 commit that writes this file is its child: a file cannot record its own sha, so the measured tree is
 always the parent, and that is why the number below is a parent and not "HEAD". Five commits landed

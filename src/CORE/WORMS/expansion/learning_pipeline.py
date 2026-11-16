@@ -631,7 +631,10 @@ class DataPipelineWorm:
         if not store:
             return {"error": "LocalMemoryStore unavailable"}
 
-        stats = store.get_stats()
+        try:
+            stats = store.get_stats(top_n=1000)
+        except TypeError:
+            stats = store.get_stats()
         event_types = stats.get("event_types", {})
 
         discovered = {}

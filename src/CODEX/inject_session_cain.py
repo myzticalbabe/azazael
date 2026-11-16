@@ -456,6 +456,18 @@ def apply_banner(html: str) -> tuple[str, list[str]]:
 #: exact. Sub-cent input is not silently rounded away -- audit() reports it.
 _CENTS = Decimal("0.01")
 
+
+def _fractional_digits(amount: Decimal) -> int:
+    """How many digits sit after the point.
+
+    ``Decimal.as_tuple().exponent`` is typed ``int | Literal['n','N','F']``
+    because it can carry the special-value markers for NaN and Infinity. A row
+    read out of the ledger is a finite amount, so the int branch is the only one
+    that can occur -- but the sum has to say that rather than negate a marker.
+    """
+    exponent = amount.as_tuple().exponent
+    return -exponent if isinstance(exponent, int) else 0
+
 _AMOUNT_ROW = re.compile(r'<td class="amount">\$([0-9][0-9,]*(?:\.[0-9]+)?)</td>')
 _GRAND_TOTAL = re.compile(r'(<td class="amount"><strong>)\$[0-9][0-9,.]*\+?(</strong></td>)')
 _SNAKE_TAIL = re.compile(r'(<span style="color:#ff4444; font-size:2em;">)-\$[0-9][0-9,.]*'
@@ -581,7 +593,7 @@ def audit(html: str) -> tuple[list[str], list[str]]:
             blocking.append(
                 "ledger inconsistent: states $%s but rows sum to $%s"
                 % (format(stated, ".2f"), format(expected, ".2f")))
-        sub_cent = [str(r) for r in rows if -r.as_tuple().exponent > 2]
+        sub_cent = [str(r) for r in rows if _fractional_digits(r) > 2]
         if sub_cent:
             advisory.append(
                 "sub-cent amount row(s) %s: summed and rounded to the cent, so "

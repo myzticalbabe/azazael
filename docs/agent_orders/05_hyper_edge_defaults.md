@@ -5,7 +5,7 @@
 drifts. Edit this file, never a copy.
 
 A best practice that depends on someone remembering it is not a practice, it is
-a hope. These eight are the ones this tree has actually paid for, each with the
+a hope. These twelve are the ones this tree has actually paid for, each with the
 command that proves it and the failure that bought it.
 
 ### HED-1 — Verify by running, never by importing
@@ -138,6 +138,97 @@ A practice that exists in one tool and not in the canon is a practice the next
 session will re-derive — which is the whole cost these eight rules exist to stop
 paying.
 
+### HED-9 — A denominator is part of the reading
+
+```
+python tools/reading_audit.py            # every artifact: pass, or why it cannot
+python tools/reading_audit.py --strict    # findings fail
+```
+
+`4/5` and `1/1` are the same number only to someone who has never asked what the
+five were. An artifact that prints a passing count without the population it was
+drawn from cannot be audited, and the failure is silent in the direction that
+matters: the missing rows are always the ones that would have failed.
+`reading_audit.py` reads the JSON reports under `logs/` and `state/`, and for each
+one either proves a denominator exists or names the artifact as
+`denominator_free`. Measured on the first run, 2026-11-05: 65 files, 5 with a
+verifiable verdict, **4 denominator-free** — `esquire_capture.json` (CLEAN),
+`hook_evidence.json` (PASS), `one_click.json` (PASS), `pin_audit.json` (CLEAN).
+Blindness index 4/5 (80%): four fifths of the verdicts in this tree could not say
+what they were a share of.
+
+**Advisory by default, `--strict` to fail.** A gate red on day one is a gate
+someone switches off, and the point is to make the debt visible every run.
+
+### HED-10 — The settings surface must be able to see itself
+
+```
+python tools/settings_shadow.py          # who reads each knob, and who does not
+python tools/defaults_profile.py --show   # walks the file: every leaf, off ones too
+```
+
+HED-5 said settings live in one file. It did not say anything checked that the
+file was *in force*. Measured 2026-11-05: `--show` printed five hard-coded lines,
+so `preflight.disk_floor_gb`, `retention.composite_eviction` and every knob added
+later were invisible from the only surface that is supposed to show them; five
+knobs (`ast_audit`, `fallback.on_error`, `fallback.record`, `golden_arrow.enabled`,
+`golden_arrow.strict`) are declared and read by no module at all; and
+`src/CORE/data_retention.py:425` hand-parses `defaults.json` instead of going
+through `read_default`, so `retention.composite_eviction` could not be verified
+from the surface by construction. `--show` now **walks** the profile (19 leaves
+today) and `settings_shadow.py` names every orphan knob and every bypassing
+reader, with the line number.
+
+Two false findings were earned building it, and both are recorded because they
+are the same mistake: a detector that trusts a shape instead of behaviour. A
+module was exempted for *naming* a reader (so `deep_dive.py` and
+`PYTHON_MANAGER.py` were skipped for defining a wrapper called `setting`), and a
+key was counted as read when its string merely appeared in the file. A read is a
+reader **called with a literal key**; nothing weaker counts.
+
+### HED-11 — A leg's state is recorded, or the verdict is a guess
+
+```
+python tools/leg_ledger.py               # audits the last logs/deep_dive.json
+python tools/leg_ledger.py --strict      # violations fail
+```
+
+HED-6 named four states — `ok`, `empty`, `skipped`, `error` — and the point was
+that they must never collapse. A report that records only `detail` collapses all
+four into prose: a leg that returned nothing, a leg that never ran and a leg that
+succeeded all read as a line of English. `leg_ledger.py` re-reads the report and
+fails the classes that lose information — `missing_field`, `unknown_state`,
+`state_mismatch` (a leg whose status contradicts its own detail) and
+`verdict_mismatch` (a PASS over a failed leg). Exit 2 when there is no report:
+*nothing audited, which is not a pass*.
+
+### HED-12 — Every head carries a gap
+
+```
+python tools/head_audit.py               # refs, worktrees, lane heads, and the gaps
+python tools/head_audit.py --strict       # exit 1 while any gap is open
+```
+
+A head is where work is *thought* to be. Four kinds drift independently, and none
+of them raises an exception: a local branch can be behind its upstream; a branch
+can hold commits no other ref names (so `git branch -D` is a deletion); a
+worktree can sit detached on a commit no ref contains, surviving only in the
+reflog until `git gc`; and a lane instruction file can stop matching the digest
+`state/head.json` recorded, at which point the lane is obeying bytes nobody
+re-read. Measured on the first run, 2026-11-05: 10 refs, 6 worktrees, 7 lane heads
+(all matching), **16 gaps** — including 4 detached worktree heads that were in
+**no ref at all**, 3 prunable registrations, 4 branches with no upstream
+configured, and the lane branch **+6/−8** against its own published head, which
+means every "verified" claim in that tree was a claim about a tree that is not the
+published one.
+
+Two readings had to be fixed before the numbers were true, and both are the same
+class of defect this rule exists to catch: two refs at one commit were counted as
+each holding commits exclusively (30 reported three times), and `str.strip()` on
+git's stdout ate the leading space of the first porcelain line, so the first path
+in the dirty list came back missing its first character — a wrong name that read
+as a real one.
+
 ### ONE CLICK — the defaults have a single front door
 
 ```
@@ -159,3 +250,10 @@ so when the index is empty rather than narrowing silently.
 
 **Verify this block:**
 `python tools/agent_orders_sync.py --check && python tools/defaults_profile.py --check`
+`python tools/reading_audit.py && python tools/settings_shadow.py && python tools/head_audit.py`
+`python tools/deep_dive.py --forensics` — the `hyper_edge` leg must report `ok`
+
+**The four auditors run as one leg** (`tools/deep_dive.py`, `leg_hyper_edge`) and
+their knobs are `hyper_edge.reading_audit`, `.settings_shadow`, `.leg_ledger`,
+`.head_audit` and `.strict` in `config/defaults.json`. Advisory by default; HED-2's
+debt model, not four more switches to leave off.

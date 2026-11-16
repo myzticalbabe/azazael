@@ -247,22 +247,28 @@ class PromptGuard:
             }
         )
     
-    def guard_call(self, prompt: str, expected_schema: Optional[Dict] = None) -> tuple[str, ValidationResult]:
+    def guard_call(self, prompt: str, expected_schema: Optional[Dict] = None,
+                   response: Optional[str] = None) -> tuple[str, ValidationResult]:
         """Full guard: sanitize input, then validate output after LLM call.
-        
-        Usage:
+
+        Two phases, because the LLM call sits between them:
+
             guard = PromptGuard()
-            clean_prompt, input_result = guard.sanitize(user_prompt)
-            # ... call LLM with clean_prompt ...
-            final_response, output_result = guard.validate(llm_response, expected_schema)
+            clean_prompt, input_result = guard.guard_call(user_prompt)
+            llm_response = call_llm(clean_prompt)
+            _, output_result = guard.guard_call(user_prompt, schema, llm_response)
+
+        Phase one returns the sanitized prompt. When `response` is supplied the
+        output leg runs too and its result is what comes back — the LLM02 leg was
+        previously documented here and never executed, so a caller holding an
+        unvalidated reply had no signal that nothing had checked it.
         """
         input_result = self.sanitize(prompt)
         clean_prompt = input_result.sanitized
-        
-        # This would be called after LLM response
-        # output_result = self.validate(llm_response, expected_schema)
-        
-        return clean_prompt, input_result
+
+        if response is None:
+            return clean_prompt, input_result
+        return clean_prompt, self.validate(response, expected_schema)
 
 
 # ─── Convenience Functions ───
@@ -274,8 +280,17 @@ def sanitize_prompt(prompt: str) -> ValidationResult:
 def validate_response(response: str, schema: Optional[Dict] = None) -> ValidationResult:
     return _default_guard.validate(response, schema)
 
-def guard_llm_call(prompt: str, expected_schema: Optional[Dict] = None) -> tuple[str, ValidationResult]:
-    return _default_guard.guard_call(prompt, expected_schema)
+def guard_llm_call(prompt: str, expected_schema: Optional[Dict] = None,
+                   response: Optional[str] = None) -> tuple[str, ValidationResult]:
+    """Both legs of the guard, composed from the two primitives above.
+
+    With `response` omitted this returns the sanitized prompt and its input
+    verdict; with a response it returns that response's validation instead.
+    """
+    input_result = sanitize_prompt(prompt)
+    if response is None:
+        return input_result.sanitized, input_result
+    return input_result.sanitized, validate_response(response, expected_schema)
 
 
 if __name__ == "__main__":

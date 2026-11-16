@@ -2,7 +2,7 @@
 """UTILITIES / UTILITIES/TERENCE/terence_enhanced.py :: module residual -- INTAKE STUB. Not an implementation.
 
 Source: kali-linux UTILITIES/TERENCE/terence_enhanced.py (1 classes the atlas does not name individually (it lists at most six per module); read the module, do not assume the six are the whole story)
-Atlas:  atlas_kali-linux.json, generated 2026-10-31
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
 Adopt:  python tools/shard_intake.py --adopt "kali:UTILITIES/TERENCE/terence_enhanced.py#module"
 
 This file exists so the unit is *visible and addressable* from ELIZA. It has no
@@ -12,7 +12,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = True
 SHARD_ID = "kali:UTILITIES/TERENCE/terence_enhanced.py#module"
 KIND = "module"
 SOURCE_ENVIRONMENT = "kali-linux"
