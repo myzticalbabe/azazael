@@ -474,6 +474,16 @@ def _find_config_file() -> (Path | None):
     except Exception as exc:
         note_failure("config:git-root", exc)
 
+    # 6. GitHub Actions workspace (CI environments)
+    github_workspace = os.environ.get("GITHUB_WORKSPACE")
+    if github_workspace:
+        candidates.append(Path(github_workspace) / "azazael.yaml")
+
+    # 7. Runner temp directory (fallback for some CI setups)
+    runner_temp = os.environ.get("RUNNER_TEMP")
+    if runner_temp:
+        candidates.append(Path(runner_temp).parent / "azazael.yaml")
+
     for path in candidates:
         try:
             if path.is_file():
