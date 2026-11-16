@@ -445,8 +445,6 @@ def _find_config_file() -> (Path | None):
 
     Returns None (not raises) if no valid config file found.
     """
-    import sys
-    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
     candidates: list[Path] = []
 
     # 1. Current working directory (highest priority — works from repo root)
@@ -501,55 +499,32 @@ def _find_config_file() -> (Path | None):
     if runner_temp:
         candidates.append(Path(runner_temp).parent / "azazael.yaml")
 
-    if is_ci:
-        print(f"[config DEBUG] Checking {len(candidates)} candidate paths:", file=sys.stderr, flush=True)
-        for i, path in enumerate(candidates):
-            exists = path.is_file()
-            print(f"[config DEBUG]   [{i}] {path} -> {'EXISTS' if exists else 'NOT FOUND'}", file=sys.stderr, flush=True)
-
     for path in candidates:
         try:
             if path.is_file():
-                if is_ci:
-                    print(f"[config DEBUG] Found config at: {path}", file=sys.stderr, flush=True)
                 return path
         except (OSError, RuntimeError) as exc:
             note_failure("config:L453", exc)
             continue
 
-    if is_ci:
-        print(f"[config DEBUG] No config file found in any candidate", file=sys.stderr, flush=True)
     return None
 
 
 def _find_config_file_with_retry(max_attempts: int = 10, delay: float = 1.0) -> (Path | None):
     """Find config file with retry for CI environments where filesystem may not be ready."""
-    import sys
     is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
     is_pytest_worker = "PYTEST_XDIST_WORKER" in os.environ
     attempts = max_attempts if (is_ci or is_pytest_worker) else 1
     
-    # ALWAYS print debug to trace execution
-    print(f"[config DEBUG] _find_config_file_with_retry CALLED: is_ci={is_ci}, is_pytest_worker={is_pytest_worker}, attempts={attempts}, CI={os.environ.get('CI')}, GITHUB_ACTIONS={os.environ.get('GITHUB_ACTIONS')}", file=sys.stderr, flush=True)
-    
     for attempt in range(attempts):
         result = _find_config_file()
         if result is not None:
-            if (is_ci or is_pytest_worker) and attempt > 0:
-                print(f"[config] Found config on attempt {attempt + 1}: {result}", file=sys.stderr, flush=True)
             return result
         if is_ci or is_pytest_worker:
-            print(f"[config] Attempt {attempt + 1}/{attempts}: config not found, waiting {delay}s... CWD={Path.cwd()}", file=sys.stderr, flush=True)
-        if attempt < attempts - 1:
             time.sleep(delay)
     
     # Final attempt without delay
-    result = _find_config_file()
-    if (is_ci or is_pytest_worker) and result is None:
-        print(f"[config] All attempts exhausted, config not found. CWD: {Path.cwd()}", file=sys.stderr, flush=True)
-        print(f"[config] GITHUB_WORKSPACE: {os.environ.get('GITHUB_WORKSPACE')}", file=sys.stderr, flush=True)
-        print(f"[config] GITHUB_REPOSITORY: {os.environ.get('GITHUB_REPOSITORY')}", file=sys.stderr, flush=True)
-    return result
+    return _find_config_file()
 
 
 def _load_yaml(path: Path) -> dict:
