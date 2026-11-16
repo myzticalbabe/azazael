@@ -45,7 +45,17 @@ def _habitat():
     return None
 
 _HABITAT = _habitat()
-if _HABITAT is not None and str(_HABITAT) not in sys.path:
+if _HABITAT is None:
+    # The instrument this file grades (azazael_operator_task.py) is not part of
+    # this tree, and no ancestor of the test holds it. Importing it anyway made
+    # the whole module a collection error (ModuleNotFoundError) in CI and on any
+    # checkout that is not the hub. Guarding on its measured absence is honest:
+    # the scoring behaviour cannot be exercised without the instrument.
+    pytest.skip(
+        "azazael_operator_task.py not present in this tree or any ancestor",
+        allow_module_level=True,
+    )
+if str(_HABITAT) not in sys.path:
     sys.path.insert(0, str(_HABITAT))
 
 ot = importlib.import_module("azazael_operator_task")

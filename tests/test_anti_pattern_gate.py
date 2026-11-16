@@ -252,9 +252,26 @@ class TestCommittedBaseline:
         assert worktree["identity_scheme"] == gate.IDENTITY_SCHEME
         assert worktree.get("tracked_only") is False, worktree.get("tracked_only")
         assert tracked.get("tracked_only") is True
-        # Two different scopes cannot be the same measurement of the same tree.
-        assert worktree["category_counts"] != tracked["category_counts"] or \
-            worktree["files_scanned"] != tracked["files_scanned"]
+        # The scope distinction is STRUCTURAL and always true: two predicates,
+        # two baseline files, two `tracked_only` flags.
+        assert gate.baseline_path(False) != gate.baseline_path(True)
+        # The counts are NOT required to differ, and asserting that they must
+        # was this test's own defect: on a clean checkout nothing under `src/`
+        # is untracked, so both predicates walk the same 870 files and report
+        # the same 1059/1219 (measured in CI, 2026-11-16, where the old
+        # assertion failed on `A != A or 870 != 870`). What must hold in every
+        # environment is that each record is internally consistent, and that
+        # two records describing the SAME file set carry the same counts.
+        for name, record in (("worktree", worktree), ("tracked", tracked)):
+            total = sum(record["category_counts"].values())
+            assert total == record["total_findings"], (
+                "%s baseline: category counts sum to %s but it records %s "
+                "finding(s)" % (name, total, record["total_findings"]))
+        if worktree["files_scanned"] == tracked["files_scanned"]:
+            assert worktree["category_counts"] == tracked["category_counts"], (
+                "both baselines describe %s file(s) but disagree on the counts; "
+                "the same file set under the same scanner cannot -- re-record "
+                "the stale one" % worktree["files_scanned"])
 
     def test_baseline_agrees_with_a_live_scan(self):
         """The committed baseline must equal a real scan of the tracked src/ tree.

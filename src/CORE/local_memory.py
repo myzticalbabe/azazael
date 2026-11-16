@@ -1720,6 +1720,30 @@ class LocalMemoryStore:
         finally:
             conn.close()
 
+    def get_event_types(self) -> Dict[str, int]:
+        """Every distinct event_type in the store, with its record count.
+
+        `get_stats()["event_types"]` is a DISPLAY slice -- `ORDER BY n DESC
+        LIMIT 10` -- and callers that need the whole set were reading it as if
+        it were complete. Measured 2026-11-15: `DataPipelineWorm.
+        auto_discover_shapes()` could only ever discover ten event types no
+        matter how many existed, so a type written twice was crowded out by any
+        ten types written more often, and `tests/test_learning_worms.py::
+        TestAutoDiscoverShapes::test_discover_multiple_event_types` failed
+        while the discovery code looked correct. This method has no limit; the
+        stats slice keeps its limit because ten rows is the right size for a
+        dashboard.
+        """
+        conn = self._get_conn()
+        try:
+            rows = conn.execute(
+                "SELECT event_type, COUNT(*) as n FROM memories "
+                "WHERE event_type IS NOT NULL GROUP BY event_type ORDER BY n DESC"
+            ).fetchall()
+            return {r["event_type"]: r["n"] for r in rows}
+        finally:
+            conn.close()
+
     # -- Export -------------------------------------------------------------
 
     def export_json(self, path: Optional[str] = None) -> str:

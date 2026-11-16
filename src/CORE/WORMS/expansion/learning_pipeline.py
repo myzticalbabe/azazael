@@ -631,8 +631,17 @@ class DataPipelineWorm:
         if not store:
             return {"error": "LocalMemoryStore unavailable"}
 
-        stats = store.get_stats()
-        event_types = stats.get("event_types", {})
+        # The whole set, not `get_stats()["event_types"]`: that key is a
+        # top-10 display slice (`ORDER BY n DESC LIMIT 10`), so reading it here
+        # capped discovery at ten event types and silently dropped anything
+        # written less often -- measured 2026-11-15, two freshly seeded types
+        # were absent from the result while ten older ones each showed
+        # `_sample_count: 5`. The stats slice is kept as the fallback for a
+        # store object that predates `get_event_types()`.
+        if hasattr(store, "get_event_types"):
+            event_types = store.get_event_types()
+        else:
+            event_types = store.get_stats().get("event_types", {})
 
         discovered = {}
         for et in sorted(event_types.keys()):
