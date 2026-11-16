@@ -1,7 +1,7 @@
 {
   "version": "STEM-PINS-v1",
   "generated": "2026-11-16",
-  "head": "bb4ccc0c",
+  "head": "af6dbfc9",
   "basis": "One pin per rung of ARC/stem/ladder.json. The pin's text is the rung's standard sentence, copied verbatim from the proposal document so a re-runnable check can locate it. The pin's tier is the banding that document section 3 assigns the rung, and it is the tier the pin can honestly be held to, not a claim that the standard has external standing.",
   "authority_note": "Every pin here cites a document this tree wrote. Locating the sentence proves the registry and the proposal agree and have not drifted; it does not prove the standard has standing with any accreditor, board or professional body, because none was read at source. That is recorded once here rather than repeated as a false strength on each pin.",
   "document": "docs/STEM_EDUCATION_LADDER_2026-11-16.md",

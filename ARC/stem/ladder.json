@@ -1,7 +1,7 @@
 {
   "version": "STEM-LADDER-v1",
   "generated": "2026-11-16",
-  "head": "bb4ccc0c",
+  "head": "af6dbfc9",
   "basis": "One rung per level from K-5 to independent researcher. Each rung states the standard, the artifact, whether a machine can re-read that artifact, the instrument in this tree that grades it (or the word none), the characteristic failure, and the minimum source tier the rung's central artifact can honestly be held to. A rung is not reached until an artifact exists that something can re-read.",
   "authority_note": "This registry is authored in this tree. A pin citing a rung proves that the registry and the proposal document agree, and that the proposal has not drifted from the registry. It does NOT prove that the standard has external standing: no accreditor, board of education or professional body was read at source. Tier A on these pins means 'read in this tree and located verbatim there by a re-runnable check', not 'authoritative outside this tree'.",
   "document": "docs/STEM_EDUCATION_LADDER_2026-11-16.md",
