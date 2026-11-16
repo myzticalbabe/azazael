@@ -12,9 +12,14 @@ jobs:
   # PR #3, 2026-11-15: `gh pr checks 3` listed two `test` runs and no `ci`,
   # while `branches/main/protection` required `contexts: ["ci"]`.
   # The job id below IS the check name; renaming it re-breaks the gate.
+  #
+  # The blocking steps finish in minutes on purpose. The full single-process
+  # suite is NOT one of them: it is not green yet, and keeping it here would
+  # also hold this required check open for however long it takes to drain.
   ci:
     name: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       # `pyproject.toml` declares `requires-python = ">=3.15"`, so pinning the
@@ -61,18 +66,34 @@ jobs:
       - name: Aggregate isolation gate
         run: python tools/aggregate_suite_gate.py --check --profile isolation
 
-      # INFORMATIONAL. The full tree does not pass yet: the single-process run
-      # is still being worked down file by file, and blocking on it today would
-      # only teach people to ignore a red check. It runs here so the number is
-      # visible on every PR instead of living in a log; the two blocking steps
-      # above are the ones that are true. Make this blocking once the count
-      # reaches zero.
-      - name: Full suite (informational)
-        continue-on-error: true
-        run: python -m pytest tests/ -q --tb=no -p no:cacheprovider
-
       - name: Type check
         run: |
           if [ -f pyproject.toml ] && grep -q "basedpyright\|pyright" pyproject.toml; then
             pip install basedpyright && basedpyright --version
           fi
+
+  # NOT required by branch protection, deliberately. The full single-process
+  # suite is still being worked down file by file; blocking on it today would
+  # only teach people to ignore a red check. It runs so the number is visible
+  # on every PR instead of living in a log. Make it required -- and delete the
+  # `continue-on-error` -- once the count reaches zero.
+  full-suite-report:
+    name: full suite (report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.15'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install -e .[test] 2>/dev/null || pip install -e .; fi
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+      - name: Full suite
+        run: |
+          python -m pytest tests/ -q --tb=no -p no:cacheprovider --timeout=120 | tail -40
