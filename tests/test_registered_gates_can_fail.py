@@ -14,8 +14,9 @@ raises. Both halves were proved in-process on 2026-11-14; the point is that the
 producer's exit code alone would have read as a pass.
 
 So this test asks the shell-level question of every script the hook runs: **is
-there a path that exits non-zero?** Measured 2026-11-14, all 36 distinct
-registered scripts answer yes. That reading is the reason for the ratchet --
+there a path that exits non-zero?** Measured 2026-11-16, all 37 distinct
+registered scripts answer yes (36 until tools/golden_arrow.py was wired into the
+hook; the pin moved with the roster, not ahead of it). That reading is the reason for the ratchet --
 nothing in the tree would have failed if one of them had answered no.
 
 What this test **cannot** prove: that the failing branch is REACHABLE. A
@@ -79,7 +80,7 @@ def registered_scripts() -> list[str]:
 def test_the_roster_is_not_empty():
     """An empty loop would pass this file and prove nothing."""
     scripts = registered_scripts()
-    assert len(scripts) == 36, scripts
+    assert len(scripts) == 37, scripts
     assert len(pf.GATES) > len(scripts)  # one script serves several rows
 
 
