@@ -48,10 +48,33 @@ jobs:
         run: |
           python -m pytest tests/test_no_catch_alls.py -q
 
+      # `--dirs` takes ONE whitespace-split argument, not a list of argv values.
+      # `--dirs src scripts` made the second word look like an option and the job
+      # died with `error: unknown option scripts` (exit 2) before the guard had
+      # scanned a single file -- measured 2026-11-15 on PR #3, where the run
+      # looked like a guard failure but was an argument-shape failure. The
+      # quoted form below is the shape the script documents and the shape that
+      # was verified locally: 1030 files, 0 bare, 2801 broad, exit 0.
       - name: Run catch-all regression guard
         run: |
-          python scripts/check_no_catch_alls.py --dirs src scripts --json
+          status=0
+          python scripts/check_no_catch_alls.py --dirs "src scripts" --json > /tmp/catchall.json || status=$?
+          python - <<'PY'
+          import json
+          d = json.load(open('/tmp/catchall.json'))
+          print(f"scanned {d['scanned_files']} files: {d['bare']} bare (max {d['max_bare']}), "
+                f"{d['broad']} broad (max {d['max_broad']}) -> {'OK' if d['ok'] else 'FAIL'}")
+          for loc in d['bare_findings'][:20]:
+              print(f"  bare except: {loc}")
+          over = len(d['broad_findings']) - d['max_broad']
+          if over > 0:
+              print(f"  broad count is {over} over budget; first 20:")
+              for loc in d['broad_findings'][:20]:
+                  print(f"    {loc}")
+          PY
           # Budget is enforced inside the script:
           #   bare excepts -> always fail (MAX_BARE=0)
-          #   broad excepts -> fail if counted count exceeds MAX_BROAD (= current baseline)
+          #   broad excepts -> fail if the counted count exceeds MAX_BROAD, which is
+          #   re-recorded from a stated measurement rather than guessed.
           # Lower MAX_BROAD in scripts/check_no_catch_alls.py as refactoring shrinks the surface.
+          exit $status

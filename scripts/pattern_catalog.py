@@ -179,8 +179,14 @@ def sample_subgraph(G: nx.DiGraph, max_nodes: int = 500,
                 if core.number_of_nodes() >= 100:
                     core_nodes = list(core.nodes())
                     break
-            except:
-                pass
+            # `k_core` raises NetworkXException when the graph has no non-empty
+            # k-core (and NetworkXPointlessConcept on an empty graph). Both are
+            # the probe telling us this k is too high, which is exactly what the
+            # loop is here to try -- the fallback is the next k, then the whole
+            # node set. A bare `except:` would also swallow KeyboardInterrupt and
+            # a typo in `nx.k_core`, and the catch-all guard (MAX_BARE=0) rejects it.
+            except nx.NetworkXException:
+                continue
         else:
             core_nodes = list(G_undir.nodes())
         
