@@ -249,6 +249,19 @@
    "acked_at": "2026-11-12T22:49:28.384441+00:00"
   },
   {
+   "key": "manicode|2026-11-16T12-35-22.122Z|ai-1794832545026-9e4c5236748568|22|say_the_word|14|Say the word and I'll",
+   "source": "manicode",
+   "session": "2026-11-16T12-35-22.122Z",
+   "message": "ai-1794832545026-9e4c5236748568",
+   "part": "22",
+   "rule": "say_the_word",
+   "line": 14,
+   "match": "Say the word and I'll",
+   "excerpt": "1. **The 10 rows are leased, not retired.** `_board.py` here has no `release` verb (usage\u2026",
+   "why": "live emission 2026-11-16T12:35Z in this lane's manicode transcript: prose already emitted, transcript uneditable; gate now runs --source all in preflight so only NEW emissions fail",
+   "acked_at": "2026-11-16T14:55:51.992897+00:00"
+  },
+  {
    "key": "opencode|ses_e28943f97ffe9JZh00ZZsRBe5z|msg_1d78b5ef8001vgyCdEDuJVd0T8|1173|want_me_to|6|Should I fix",
    "source": "opencode",
    "session": "ses_e28943f97ffe9JZh00ZZsRBe5z",
