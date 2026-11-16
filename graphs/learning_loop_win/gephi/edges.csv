@@ -46,10 +46,3 @@ metacog_cycle,ev_mccycle,Undirected,produces
 metacog_cycle,ev_cluster,Undirected,consumes
 evolution_cycle,ev_evoresult,Undirected,produces
 CLUSTERWORMS,ev_cluster,Undirected,produces
-ev_steered,st_conservative,Undirected,leads_to
-ev_steered,st_aggressive,Undirected,leads_to
-ev_adapt,st_aggressive,Undirected,leads_to
-ev_adapt,st_staged,Undirected,leads_to
-ev_adapt,st_batched,Undirected,leads_to
-ev_adapt,st_adaptive,Undirected,leads_to
-ev_adapt,st_conservative,Undirected,leads_to

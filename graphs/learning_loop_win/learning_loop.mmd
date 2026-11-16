@@ -18,15 +18,15 @@ graph TD
     end
       CLUSTERWORMS["CLUSTERWORMS.py"]
     subgraph EVENTS[EVENT]
-      ev_dream["dream_generated (766)"]
-      ev_steered["strategy_steered (22)"]
-      ev_policy["policy_applied (73)"]
-      ev_adapt["strategy_adaptation (74)"]
-      ev_state["state_saved (63)"]
-      ev_mccycle["mc_cycle (12)"]
-      ev_evoresult["evolution_result (9)"]
-      ev_train["training_complete (481)"]
-      ev_qtbl["q_table_persisted (486)"]
+      ev_dream["dream_generated"]
+      ev_steered["strategy_steered"]
+      ev_policy["policy_applied"]
+      ev_adapt["strategy_adaptation"]
+      ev_state["state_saved"]
+      ev_mccycle["mc_cycle"]
+      ev_evoresult["evolution_result"]
+      ev_train["training_complete"]
+      ev_qtbl["q_table_persisted"]
       ev_cluster["clusterwormz_execute_complete"]
     end
     subgraph STRATEGYS[STRATEGY]
@@ -138,20 +138,6 @@ graph TD
     linkStyle 45 stroke:#3fb950
     CLUSTERWORMS --> ev_cluster
     linkStyle 46 stroke:#3fb950
-    ev_steered --> st_conservative
-    linkStyle 47 stroke:#f778ba
-    ev_steered --> st_aggressive
-    linkStyle 48 stroke:#f778ba
-    ev_adapt --> st_aggressive
-    linkStyle 49 stroke:#f778ba
-    ev_adapt --> st_staged
-    linkStyle 50 stroke:#f778ba
-    ev_adapt --> st_batched
-    linkStyle 51 stroke:#f778ba
-    ev_adapt --> st_adaptive
-    linkStyle 52 stroke:#f778ba
-    ev_adapt --> st_conservative
-    linkStyle 53 stroke:#f778ba
     class dreaming,meta_cognition,learning,evolution,bridge,local_memory,monitor,dream_cycle,metacog_cycle,evolution_cycle module
     class CLUSTERWORMS external
     class ev_dream,ev_steered,ev_policy,ev_adapt,ev_state,ev_mccycle,ev_evoresult,ev_train,ev_qtbl,ev_cluster event
