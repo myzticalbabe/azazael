@@ -48,6 +48,13 @@ def run_class_with_timeout(
 
 import sys
 import os
+from pathlib import Path
+
+# DEBUG: Print environment info
+print(f"[RUNNER DEBUG] cwd={{Path.cwd()}}", file=sys.stderr, flush=True)
+print(f"[RUNNER DEBUG] CI={{os.environ.get('CI')}}, GITHUB_ACTIONS={{os.environ.get('GITHUB_ACTIONS')}}", file=sys.stderr, flush=True)
+print(f"[RUNNER DEBUG] azazael.yaml exists at cwd={{ (Path.cwd() / 'azazael.yaml').is_file() }}", file=sys.stderr, flush=True)
+
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
 
