@@ -25,6 +25,7 @@ Version: 1.0.0
 import os
 import subprocess
 import threading
+import time
 from pathlib import Path
 # from typing import Optional, Dict, List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
@@ -511,9 +512,6 @@ def _find_config_file() -> (Path | None):
 
 def _find_config_file_with_retry(max_attempts: int = 10, delay: float = 1.0) -> (Path | None):
     """Find config file with retry for CI environments where filesystem may not be ready."""
-    import time
-    import os
-    
     is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
     attempts = max_attempts if is_ci else 1
     
