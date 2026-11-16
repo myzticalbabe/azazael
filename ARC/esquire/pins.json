@@ -14,9 +14,9 @@
       "demand": "the account must be a 'statement' made by a 'declarant' before the hearsay bar can attach at all",
       "authority": "FRE 801(a)-(b)",
       "cite": "Fed. R. Evid. 801(a), (b)",
-      "text": "\"Statement\" means a person's oral assertion, written assertion, or nonverbal conduct, if the person intended it as an assertion. \"Declarant\" means the person who made the statement.",
+      "text": "(a) Statement. “Statement” means a person’s oral assertion, written assertion, or nonverbal conduct, if the person intended it as an assertion. (b) Declarant. “Declarant” means the person who made the statement.",
       "tier": "A",
-      "verified": "2026-11-04 read at source, HTTP 200, rule text quoted verbatim; 2026-11-16 retained at source: retained ARC/esquire/captures/P1_rule_801.html sha256:36a03e501c66f27b2f3cbbe6052ea863a7fdbde004dd9e049e565f0be94ae967",
+      "verified": "2026-11-04 read at source, HTTP 200, rule text quoted verbatim; 2026-11-16 retained at source: retained ARC/esquire/captures/P1_rule_801.html sha256:36a03e501c66f27b2f3cbbe6052ea863a7fdbde004dd9e049e565f0be94ae967; 2026-11-16 text re-transcribed verbatim from that capture, which had previously fused subsections (a) and (b) into one running sentence and dropped their labels",
       "source": "https://www.law.cornell.edu/rules/fre/rule_801",
       "satisfied_by": [
         "the output itself plus the process record that produced it; there is no person to name, which is the point"
@@ -90,9 +90,9 @@
       "demand": "the original is required to prove content, and output readable by sight that accurately reflects the data is an original",
       "authority": "FRE 1002; FRE 1001(d)",
       "cite": "Fed. R. Evid. 1002, 1001(d)",
-      "text": "An original writing, recording, or photograph is required in order to prove its content unless these rules or a federal statute provides otherwise. ... For electronically stored information, \"original\" means any printout — or other output readable by sight — if it accurately reflects the information.",
+      "text": "Fed. R. Evid. 1002: An original writing, recording, or photograph is required in order to prove its content unless these rules or a federal statute provides otherwise. Fed. R. Evid. 1001(d): For electronically stored information, “original” means any printout — or other output readable by sight — if it accurately reflects the information.",
       "tier": "A",
-      "verified": "2026-11-04 read at source, HTTP 200 for both pages; 2026-11-16 retained at source: retained ARC/esquire/captures/P5_rule_1002.html sha256:3ec768df02968918656695aa81c9cd8ff834eacd7193874c2947f8a6001a5a28; retained ARC/esquire/captures/P5_rule_1001.html sha256:71489ef03a09d775cbb94673e7a862aa717c43b6cd9e20df919acea9e6777230",
+      "verified": "2026-11-04 read at source, HTTP 200 for both pages; 2026-11-16 retained at source: retained ARC/esquire/captures/P5_rule_1002.html sha256:3ec768df02968918656695aa81c9cd8ff834eacd7193874c2947f8a6001a5a28; retained ARC/esquire/captures/P5_rule_1001.html sha256:71489ef03a09d775cbb94673e7a862aa717c43b6cd9e20df919acea9e6777230; 2026-11-16 text re-transcribed verbatim from those two captures, which had previously been joined into one quotation by an ellipsis with no provision labels",
       "source": "https://www.law.cornell.edu/rules/fre/rule_1002 ; https://www.law.cornell.edu/rules/fre/rule_1001",
       "satisfied_by": [
         "the output as generated, or a printout or rendering that accurately reflects the stored information",
@@ -170,9 +170,9 @@
       "demand": "a certificate prepared for litigation is testimonial; a custodian's signature does not cure it",
       "authority": "Melendez-Diaz v. Massachusetts, 557 U.S. 305 (2009)",
       "cite": "557 U.S. 305 (2009)",
-      "text": "Under Crawford, a witness's testimony against a defendant is inadmissible unless the witness appears at trial or, if the witness is unavailable, the defendant had a prior opportunity for cross-examination. ... The certificates here are affidavits, which fall within the 'core class of testimonial statements' covered by the Confrontation Clause.",
+      "text": "Syllabus (a): Under Crawford, a witness’s testimony against a defendant is inadmissible unless the witness appears at trial or, if the witness is unavailable, the defendant had a prior opportunity for cross-examination. Syllabus, certificates: The certificates here are affidavits, which fall within the “core class of testimonial statements” covered by the Confrontation Clause, id., at 51.",
       "tier": "A",
-      "verified": "2026-11-04 read at source, HTTP 200, from the Reporter's syllabus (not the opinion text; the page says the syllabus is no part of the opinion); 2026-11-16 retained at source: retained ARC/esquire/captures/P9_07-591.ZS.html sha256:55f4eccf56aed26c88e1f457bacc117564d1a2ff71bcc132cc31d34a9de126c0",
+      "verified": "2026-11-04 read at source, HTTP 200, from the Reporter's syllabus (not the opinion text; the page says the syllabus is no part of the opinion); 2026-11-16 retained at source: retained ARC/esquire/captures/P9_07-591.ZS.html sha256:55f4eccf56aed26c88e1f457bacc117564d1a2ff71bcc132cc31d34a9de126c0; 2026-11-16 text re-transcribed verbatim from that syllabus, which had previously joined two passages with an ellipsis and flattened the source's inner quotation marks to single quotes; 2026-11-16 restored the dropped pin cite ', id., at 51.' that a presence proof against the retained capture found missing (the quote had substituted a period for it)",
       "source": "https://www.law.cornell.edu/supct/html/07-591.ZS.html",
       "satisfied_by": [
         "a record made in the ordinary course, before litigation was contemplated",
@@ -312,9 +312,9 @@
       "demand": "the reliability inquiry is flexible and its factors are non-exhaustive",
       "authority": "Daubert v. Merrell Dow Pharmaceuticals, Inc., 509 U.S. 579 (1993)",
       "cite": "509 U.S. 579 (1993), as named in FRE 702's Committee Note",
-      "text": "Rule 702 has been amended in response to Daubert v. Merrell Dow Pharmaceuticals, Inc., 509 U.S. 579 (1993), and to the many cases applying Daubert, including Kumho Tire Co. v. Carmichael, 119 S.Ct. 1167 (1999). [Committee Note on Rules-2000 Amendment, read at source]",
+      "text": "Committee Note on Rules—2000 Amendment: Rule 702 has been amended in response to Daubert v. Merrell Dow Pharmaceuticals, Inc., 509 U.S. 579 (1993), and to the many cases applying Daubert, including Kumho Tire Co. v. Carmichael, 119 S.Ct. 1167 (1999).",
       "tier": "A",
-      "verified": "2026-11-04 read at source inside the FRE 702 page's Committee Note, HTTP 200. The opinion itself was not read; the citation is verified, the holding is not quoted; 2026-11-16 retained at source: retained ARC/esquire/captures/P17_rule_702.html sha256:87095728dd124e5248fdd7c7d534f0eaa450e63fd3422790aa37da695fbc1f2d",
+      "verified": "2026-11-04 read at source inside the FRE 702 page's Committee Note, HTTP 200. The opinion itself was not read; the citation is verified, the holding is not quoted; 2026-11-16 retained at source: retained ARC/esquire/captures/P17_rule_702.html sha256:87095728dd124e5248fdd7c7d534f0eaa450e63fd3422790aa37da695fbc1f2d; 2026-11-16 text re-transcribed verbatim from that Committee Note, which had previously carried a bracketed editorial insert inside the quoted text and an ASCII hyphen in the Note's own heading",
       "source": "https://www.law.cornell.edu/rules/fre/rule_702",
       "satisfied_by": [
         "a method evaluation that is not reduced to a checklist; a measured error rate may carry a novel method"

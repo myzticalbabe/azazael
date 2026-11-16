@@ -4,7 +4,7 @@
       "provider": "llama_server",
       "model": "mxbai-embed-large-v1-Q4_k_m.gguf",
       "base_url": "http://127.0.0.1:18082/v1/embeddings",
-      "model_path": "C:\Users\clint\llama-server\models\mxbai-embed-large-v1\mxbai-embed-large-v1-Q4_k_m.gguf",
+      "model_path": "C:\\Users\\clint\\llama-server\\models\\mxbai-embed-large-v1\\mxbai-embed-large-v1-Q4_k_m.gguf",
       "description": "mxbai-embed-large-v1 GGUF — SOTA 335M param, 1024 dim, served via llama-server on port 18082"
     },
     "fallback": {
