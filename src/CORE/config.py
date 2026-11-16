@@ -513,22 +513,25 @@ def _find_config_file() -> (Path | None):
 def _find_config_file_with_retry(max_attempts: int = 10, delay: float = 1.0) -> (Path | None):
     """Find config file with retry for CI environments where filesystem may not be ready."""
     is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
-    attempts = max_attempts if is_ci else 1
+    # Also check if we're in a pytest worker (no CI env vars inherited)
+    is_pytest_worker = "PYTEST_XDIST_WORKER" in os.environ
+    attempts = max_attempts if (is_ci or is_pytest_worker) else 1
     
     for attempt in range(attempts):
         result = _find_config_file()
         if result is not None:
-            if is_ci and attempt > 0:
+            if (is_ci or is_pytest_worker) and attempt > 0:
                 print(f"[config] Found config on attempt {attempt + 1}: {result}", flush=True)
             return result
-        if is_ci:
-            print(f"[config] Attempt {attempt + 1}/{attempts}: config not found, waiting {delay}s...", flush=True)
+        if is_ci or is_pytest_worker:
+            print(f"[config] Attempt {attempt + 1}/{attempts}: config not found, waiting {delay}s... CWD={Path.cwd()}", flush=True)
+            print(f"[config]   CI={os.environ.get('CI')}, GITHUB_ACTIONS={os.environ.get('GITHUB_ACTIONS')}, PYTEST_XDIST_WORKER={os.environ.get('PYTEST_XDIST_WORKER')}", flush=True)
         if attempt < attempts - 1:
             time.sleep(delay)
     
     # Final attempt without delay
     result = _find_config_file()
-    if is_ci and result is None:
+    if (is_ci or is_pytest_worker) and result is None:
         print(f"[config] All attempts exhausted, config not found. CWD: {Path.cwd()}", flush=True)
         print(f"[config] GITHUB_WORKSPACE: {os.environ.get('GITHUB_WORKSPACE')}", flush=True)
         print(f"[config] GITHUB_REPOSITORY: {os.environ.get('GITHUB_REPOSITORY')}", flush=True)
