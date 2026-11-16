@@ -352,14 +352,16 @@ namespace LumenRefresh
             return g;
         }
 
-        /// <summary>Parses "hue=-18 sat=1.45 gain=1.35,1.0,0.62" style strings.</summary>
+        /// <summary>Parses "hue=-18 sat=1.45 gain=1.35,1.0,0.62" style strings. Pairs may be
+        /// separated by spaces or by commas, so "hue=-18,sat=1.45,gain=1.35,1.0,0.62" means the
+        /// same thing.</summary>
         public void ApplySpec(string spec)
         {
             if (string.IsNullOrEmpty(spec)) return;
-            string[] parts = spec.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < parts.Length; i++)
+            string[] pairs = SpecPairs(spec);
+            for (int i = 0; i < pairs.Length; i++)
             {
-                string p = parts[i];
+                string p = pairs[i];
                 int eq = p.IndexOf('=');
                 if (eq < 0) continue;
                 string k = p.Substring(0, eq).ToLowerInvariant();
@@ -398,6 +400,78 @@ namespace LumenRefresh
                         break;
                 }
             }
+        }
+
+        private static readonly string[] SpecKeys = new string[] {
+            "hue", "sat", "contrast", "lift", "gamma", "mix", "pulse", "pulsehz",
+            "gain", "ramp", "luma", "duo" };
+
+        /// <summary>Splits a spec into "key=value" strings. A comma separates pairs only when a
+        /// known key follows it, because gain/ramp/duo carry comma lists as their value
+        /// ("gain=1.35,1.0,0.62" is one pair, "hue=-18,sat=1.45" is two). Splitting on spaces
+        /// alone left the documented comma form parsing as zero pairs, i.e. as no grade at all.</summary>
+        private static string[] SpecPairs(string spec)
+        {
+            List<string> outp = new List<string>();
+            string[] parts = spec.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+                int pos = 0;
+                while (pos < part.Length)
+                {
+                    int at; string key;
+                    if (!FindKey(part, pos, out at, out key)) break;
+                    int vStart = at + key.Length + 1;
+                    int nxt = FindNextKey(part, vStart);
+                    int stop = nxt < 0 ? part.Length : nxt - 1;   // drop the separating comma
+                    outp.Add(part.Substring(at, stop - at));
+                    if (nxt < 0) break;
+                    pos = nxt;
+                }
+            }
+            return outp.ToArray();
+        }
+
+        /// <summary>First known "key=" at a pair boundary at or after <paramref name="from"/>.</summary>
+        private static bool FindKey(string s, int from, out int at, out string key)
+        {
+            for (int p = from; p < s.Length; p++)
+            {
+                if (p > 0 && s[p - 1] != ',') continue;
+                if (MatchKey(s, p, out key)) { at = p; return true; }
+            }
+            at = -1; key = null;
+            return false;
+        }
+
+        /// <summary>Index of the next pair's key, which must sit right behind a comma, or -1.</summary>
+        private static int FindNextKey(string s, int from)
+        {
+            string key;
+            for (int p = from; p < s.Length; p++)
+            {
+                if (p <= 0 || s[p - 1] != ',') continue;
+                if (MatchKey(s, p, out key)) return p;
+            }
+            return -1;
+        }
+
+        private static bool MatchKey(string s, int at, out string key)
+        {
+            for (int k = 0; k < SpecKeys.Length; k++)
+            {
+                string kk = SpecKeys[k];
+                if (at + kk.Length < s.Length
+                    && string.Compare(s, at, kk, 0, kk.Length, StringComparison.OrdinalIgnoreCase) == 0
+                    && s[at + kk.Length] == '=')
+                {
+                    key = kk;
+                    return true;
+                }
+            }
+            key = null;
+            return false;
         }
 
         private static float F(string s)
@@ -689,10 +763,14 @@ namespace LumenRefresh
                 g.HasDuo = true;
                 g._rampR = null; g._rampG = null; g._rampB = null;
                 g._luma256 = (int)Math.Round(a._luma256 + (b._luma256 - a._luma256) * t);
+                g._mix256 = LerpI(a._mix256, b._mix256, t);
                 return g;
             }
 
             g._luma256 = (int)Math.Round(a._luma256 + (b._luma256 - a._luma256) * t);
+            // mix is a per-pixel scalar, not part of the tables above, so a sweep from a
+            // partly mixed grade toward a full one used to keep A's mix for the whole loop.
+            g._mix256 = LerpI(a._mix256, b._mix256, t);
             return g;
         }
 
@@ -2984,6 +3062,43 @@ namespace LumenRefresh
                 Console.WriteLine((mixOk ? "PASS" : "FAIL") + "  ramp and duo crossfade (ends on B: " +
                                   dToB + ", mid moved from A: " + dFromA + ")");
                 if (!mixOk) failures++;
+            }
+
+            // 2j-c. the documented comma form of a spec must parse like the space form
+            {
+                Grade sp1 = Grade.FromName("hue=0,sat=0,contrast=1.2");
+                Grade sp2 = Grade.FromName("hue=0 sat=0 contrast=1.2");
+                sp1.Compile(); sp2.Compile();
+                Color spc1 = sp1.Map(120, 60, 200, 1f);
+                Color spc2 = sp2.Map(120, 60, 200, 1f);
+                Grade spn0 = Grade.FromName("native"); spn0.Compile();
+                Color spn = spn0.Map(120, 60, 200, 1f);
+                bool gray = spc1.R == spc1.G && spc1.G == spc1.B;
+                bool same = spc1.R == spc2.R && spc1.G == spc2.G && spc1.B == spc2.B;
+                bool inert = spc1.R == spn.R && spc1.G == spn.G && spc1.B == spn.B;
+                bool spOk = gray && same && !inert;
+                Console.WriteLine((spOk ? "PASS" : "FAIL") + "  comma spec parses (comma " + spc1.R + "," +
+                                  spc1.G + "," + spc1.B + " vs space " + spc2.R + "," + spc2.G + "," + spc2.B + ");");
+                if (!spOk) failures++;
+            }
+
+            // 2j-d. a sweep must interpolate mix as well; it is a scalar, not a table
+            {
+                Grade mxa = Grade.FromName("hue=0,sat=1,mix=0.2");
+                Grade mxb = Grade.FromName("ice");
+                mxa.Compile(); mxb.Compile();
+                Grade mxe = Grade.Blend(mxa, mxb, 1f);
+                Grade mxh = Grade.Blend(mxa, mxb, 0.5f);
+                Color mcB = mxb.Map(120, 90, 60, 1f);
+                Color mcE = mxe.Map(120, 90, 60, 1f);
+                Color mcA = mxa.Map(120, 90, 60, 1f);
+                Color mcH = mxh.Map(120, 90, 60, 1f);
+                int dEnd = Math.Abs(mcE.R - mcB.R) + Math.Abs(mcE.G - mcB.G) + Math.Abs(mcE.B - mcB.B);
+                int dMid = Math.Abs(mcH.R - mcA.R) + Math.Abs(mcH.G - mcA.G) + Math.Abs(mcH.B - mcA.B);
+                bool mxOk = dEnd <= 2 && dMid > 15;
+                Console.WriteLine((mxOk ? "PASS" : "FAIL") + "  sweep interpolates mix (ends on B: " + dEnd +
+                                  ", mid left A: " + dMid + ")");
+                if (!mxOk) failures++;
             }
 
             // 2k. --heal must pass a lit frame through and cover a black gap with the hold
