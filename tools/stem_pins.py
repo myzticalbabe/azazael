@@ -19,19 +19,46 @@ rather than rounded into the verdict.
 
 Verdicts and exit codes:
 
-    0  READY   every rung has one verbatim-backed pin; declared gaps printed
-    1  GAPS    a rung is unpinned, a pin is malformed, a quote is not verbatim,
-                or a rung's instrument is claimed and missing
+    0  READY   every rung has one verbatim-backed pin, and every rung's own
+                declaration says a machine reads its artifact with a full
+                instrument
+    0  PARTIAL structurally clean, but at least one rung declares less than a
+                full instrument (``declared-blind``, ``partial``, ``external``,
+                or ``machine_readable`` not ``yes``); the rungs are named
+    1  GAPS    a rung is unpinned, a pin is malformed, a quote is not verbatim, a
+                rung's instrument is claimed and missing, or the registry's
+                recorded head cannot be confirmed
     2  BLIND   the ledger, the ladder or the cited document cannot be read
+
+PARTIAL is not READY.  A ladder whose middle rung is graded by an instrument
+that proves a quotation rather than competence is not fully graded, and a
+verdict that printed READY beside that fact would be HED-9's defect: the count
+and its denominator on separate lines, one of them easy to quote.  PARTIAL
+carries exit 0 because it is declared coverage debt rather than a defect, so a
+caller reading only the exit code is not told a defect exists.  The container
+still maps this verdict to its own INCOMPLETE, because missing coverage is
+missing coverage: the exit code answers "is anything broken", the verdict
+answers "is everything graded", and those are different questions.
 
 Declared gaps are debt, not defects: they print as ``[declared]`` lines every
 run and only fail the run under ``--strict``, the way recorded test debt behaves
-in golden_arrow.
+in golden_arrow.  ``--strict`` promotes both the declared gaps and PARTIAL
+coverage to GAPS.
+
+The head check asks whether the provenance line can still be confirmed.  Both
+registries record the commit they were written at, so a head that does not
+resolve in this clone is a claim nobody can check, and ladder and ledger
+disagreeing about it is one provenance record contradicting another.  Either is
+GAPS.  A head that resolves but which the cited sources have moved past is
+printed as a ``[head]`` line naming the files that changed, because the pins
+were verified against a tree that no longer holds them and the reader should not
+have to discover that by hand.
 
 Usage:
     python tools/stem_pins.py --check
     python tools/stem_pins.py --check --json logs/stem_pins.json
     python tools/stem_pins.py --check --strict
+    python tools/stem_pins.py --check --prove   # remove a pin, break a quote
 """
 
 from __future__ import annotations
@@ -39,19 +66,31 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 
 VERDICT_READY = "READY"
+VERDICT_PARTIAL = "PARTIAL"
 VERDICT_GAPS = "GAPS"
 VERDICT_BLIND = "BLIND"
 
 EXIT_READY = 0
+EXIT_PARTIAL = 0  # declared coverage debt: structurally clean, not READY
 EXIT_GAPS = 1
 EXIT_BLIND = 2
+
+# A rung is fully covered only when both of its own declarations say a machine
+# reads the artifact and the instrument that grades it exists in this tree.
+# Read from the rung, never inferred: the verdict reports the ladder's statement
+# about itself rather than improving on it.
+FULL_COVERAGE = (("machine_readable", "yes"), ("instrument_status", "exists"))
+GIT_TIMEOUT = 30
+CHILD_TIMEOUT = 300  # a control run reads two JSON files and one document
 
 TIERS = ("A", "B", "C")
 # Stronger tier, larger number. A pin may not claim less than its rung's floor.
@@ -145,6 +184,153 @@ def banding_tier(ladder: Dict[str, Any]) -> Dict[str, str]:
         for rung in rungs:
             out[str(rung)] = str(tier).upper()
     return out
+
+
+def git_read(*args: str) -> Tuple[bool, Optional[str]]:
+    """One git read, as ``(ran, output)``.
+
+    ``ran`` is False when git itself or this repository could not be used: a
+    tarball, a missing binary, a timeout.  That is "unverified" and the caller
+    prints it, never "clean" -- an absent reading is not a reading (HED-9).
+    ``ran=True, output=None`` means git answered and the answer was "no", which
+    is a fact about the tree rather than a failure of the tool.
+    """
+    command = ["git", "-C", str(ROOT)] + list(args)
+    try:
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=GIT_TIMEOUT,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False, None
+    if proc.returncode != 0:
+        return True, None
+    return True, (proc.stdout or "").strip()
+
+
+def rel_in_tree(path: Path) -> Optional[str]:
+    """The path as a git pathspec, or None when this tree cannot name it.
+
+    Two different failures land here and both leave the caller without a
+    pathspec: ``ValueError`` is ``relative_to`` answering "not under ROOT", and
+    ``OSError`` is the filesystem refusing to resolve the path at all.  Neither
+    is a success value -- the caller counts a path it cannot name as
+    unconfirmable rather than as unchanged, so an unnameable source can never
+    make the head check read cleaner than it is.
+    """
+    relative: Optional[str]
+    try:
+        relative = path.resolve().relative_to(ROOT).as_posix()
+    except (OSError, ValueError):
+        relative = None
+    return relative
+
+
+def check_head(
+    ladder: Dict[str, Any],
+    ledger: Dict[str, Any],
+    sources: List[str],
+) -> Tuple[List[str], List[str], Dict[str, Any]]:
+    """Can the registries' recorded head still be confirmed from this tree?
+
+    Returns ``(errors, notes, reading)``.  A claim that cannot be checked is a
+    defect; a claim that resolves but which the sources have moved past is a
+    reading, printed with the files that changed so nothing is guessed.
+    """
+    errors: List[str] = []
+    notes: List[str] = []
+    reading: Dict[str, Any] = {
+        "recorded": None,
+        "head": None,
+        "resolves": None,
+        "commits_since": None,
+        "files_changed_since": [],
+    }
+
+    recorded = str(ladder.get("head") or "").strip()
+    ledger_head = str(ledger.get("head") or "").strip()
+    reading["recorded"] = recorded or None
+    if not recorded:
+        errors.append("ladder records no head, so its provenance names no tree")
+    if not ledger_head:
+        errors.append("ledger records no head, so its provenance names no tree")
+
+    anchor = recorded or ledger_head
+    ran, head = git_read("rev-parse", "--short", "HEAD")
+    if not ran:
+        notes.append(
+            "unverified: git could not read this tree, so head %r is a claim "
+            "nothing here can confirm" % (anchor or "(unrecorded)")
+        )
+        return errors, notes, reading
+    reading["head"] = head
+    if not anchor:
+        return errors, notes, reading
+
+    # Compare the two recorded heads by what they resolve to, not by how they are
+    # spelled: a short sha and a full sha for one commit are one answer, and a
+    # string comparison would report a disagreement nobody could act on.
+    if recorded and ledger_head and recorded != ledger_head:
+        ran_l, canon_l = git_read("rev-parse", "--short", "%s^{commit}" % ledger_head)
+        ran_r, canon_r = git_read("rev-parse", "--short", "%s^{commit}" % recorded)
+        agreed = bool(ran_l and ran_r and canon_l and canon_r and canon_l == canon_r)
+        if not agreed:
+            errors.append(
+                "ladder records head %s and the ledger records %s; one provenance "
+                "record, two answers" % (recorded, ledger_head)
+            )
+
+    ran_resolve, resolved = git_read("cat-file", "-e", "%s^{commit}" % anchor)
+    if not ran_resolve:
+        notes.append("unverified: git could not test whether %s exists" % anchor)
+        return errors, notes, reading
+    reading["resolves"] = resolved is not None
+    if resolved is None:
+        errors.append(
+            "recorded head %s does not resolve in this clone, so every pin's "
+            "provenance cites a tree nobody can examine" % anchor
+        )
+        return errors, notes, reading
+
+    ran_short, canonical = git_read("rev-parse", "--short", "%s^{commit}" % anchor)
+    canonical = canonical or anchor
+    if head and canonical == head:
+        notes.append("%s is this tree's HEAD" % canonical)
+        return errors, notes, reading
+
+    ran_count, count = git_read("rev-list", "--count", "%s..HEAD" % canonical)
+    if ran_count and count and count.isdigit():
+        reading["commits_since"] = int(count)
+    if sources:
+        ran_diff, changed = git_read("diff", "--name-only", canonical, "HEAD", "--", *sources)
+        if ran_diff and changed:
+            reading["files_changed_since"] = [
+                line.strip() for line in changed.splitlines() if line.strip()
+            ]
+
+    moved = reading["files_changed_since"]
+    behind = reading["commits_since"]
+    notes.append(
+        "%s predates HEAD %s by %s commit(s)%s"
+        % (
+            canonical,
+            head or "(unread)",
+            "an unread number of" if behind is None else str(behind),
+            (
+                "; %d of %d cited source(s) changed since (%s), so the pins were "
+                "verified against a tree this one no longer is"
+                % (len(moved), len(sources), ", ".join(moved))
+            )
+            if moved
+            else "; none of the cited sources changed since, so the quotes still "
+            "describe this tree",
+        )
+    )
+    return errors, notes, reading
 
 
 def check_ladder(ladder: Dict[str, Any]) -> Tuple[List[str], List[str], Dict[str, Any]]:
@@ -392,12 +578,128 @@ def declared_gaps(ladder: Dict[str, Any]) -> List[str]:
     return out
 
 
-def verdict_for(errors: List[str], declared: List[str], strict: bool) -> str:
+def coverage_gaps(table: Dict[str, Any]) -> List[str]:
+    """Rungs whose own declaration says they are not fully graded.
+
+    ``READY`` is reserved for a ladder every rung of which a machine can read and
+    grade.  Four of nine rungs here cannot be, by the ladder's own statement, so
+    the verdict says PARTIAL and names them: a verdict is a summary of a
+    population, and HED-9 says the denominator travels with it.
+    """
+    out: List[str] = []
+    for name in table["order"]:
+        rung = table["rungs"][name]
+        reasons: List[str] = []
+        for key, full in FULL_COVERAGE:
+            value = str(rung.get(key) or "").strip().lower()
+            if value != full:
+                reasons.append("%s=%s" % (key, value or "unset"))
+        if reasons:
+            out.append("%s (%s)" % (name, ", ".join(reasons)))
+    return out
+
+
+def verdict_for(
+    errors: List[str],
+    declared: List[str],
+    coverage: List[str],
+    strict: bool,
+) -> str:
     if errors:
         return VERDICT_GAPS
-    if strict and declared:
+    if strict and (declared or coverage):
         return VERDICT_GAPS
+    if coverage:
+        return VERDICT_PARTIAL
     return VERDICT_READY
+
+
+def exit_code_for(name: str) -> int:
+    if name == VERDICT_READY:
+        return EXIT_READY
+    if name == VERDICT_PARTIAL:
+        return EXIT_PARTIAL
+    if name == VERDICT_BLIND:
+        return EXIT_BLIND
+    return EXIT_GAPS
+
+
+def prove(
+    ledger: Dict[str, Any], ladder_path: Path, ledger_path: Path
+) -> List[Dict[str, Any]]:
+    """Two negative controls: remove a pin, then break a quote.
+
+    A checker nobody can make fail is not a checker.  Each control copies the
+    ledger, damages exactly one claim, and runs *this* tool against the copy, so
+    what is proven is the shipped code path rather than a re-implementation of it
+    inside the proof.  ``BITES`` requires both a non-zero exit and the error line
+    that names the damage: firing for the wrong reason is reported as such.
+    """
+    pins = [p for p in ledger.get("pins") or [] if isinstance(p, dict)]
+    if not pins:
+        raise Blinded("ledger holds no pins, so there is nothing to remove as a control")
+
+    base = json.loads(json.dumps(ledger))
+    base["pins"] = pins
+    rung = str(pins[0].get("rung") or "?")
+    variants: List[Tuple[str, Dict[str, Any], str]] = []
+
+    without = json.loads(json.dumps(base))
+    without["pins"] = without["pins"][1:]
+    variants.append(("pin-removed", without, "has no pin"))
+
+    broken = json.loads(json.dumps(base))
+    broken["pins"][0]["text"] = (
+        "No document in this tree contains this sentence, which is precisely what "
+        "the control is checking."
+    )
+    variants.append(("quote-altered", broken, "not verbatim"))
+
+    controls: List[Dict[str, Any]] = []
+    with tempfile.TemporaryDirectory(prefix="stem_prove_") as tmp:
+        temp_ledger = Path(tmp) / "pins.json"
+        for label, variant, marker in variants:
+            temp_ledger.write_text(json.dumps(variant, indent=2), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--check",
+                "--ledger",
+                str(temp_ledger),
+                "--ladder",
+                str(ladder_path),
+            ]
+            try:
+                proc = subprocess.run(
+                    command,
+                    cwd=str(ROOT),
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=CHILD_TIMEOUT,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                raise Blinded("control %s could not run: %s" % (label, exc))
+            output = (proc.stdout or "") + (proc.stderr or "")
+            named = marker in output
+            if proc.returncode != 0 and named:
+                state = "BITES"
+            elif proc.returncode == 0:
+                state = "SILENT"
+            else:
+                state = "WRONG-REASON"
+            controls.append(
+                {
+                    "control": label,
+                    "rung": rung,
+                    "marker": marker,
+                    "exit": proc.returncode,
+                    "state": state,
+                    "detail": output.strip().splitlines()[:4],
+                }
+            )
+    return controls
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -411,7 +713,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="declared gaps fail the run instead of printing as advisory",
+        help="declared gaps and PARTIAL coverage fail the run instead of printing as advisory",
+    )
+    parser.add_argument(
+        "--prove",
+        action="store_true",
+        help="remove one pin and alter one quote in a copy, and check this tool fires",
     )
     args = parser.parse_args(argv)
 
@@ -438,10 +745,30 @@ def main(argv: Optional[List[str]] = None) -> int:
         pin_errors, pin_warnings, rows = check_pins(
             ledger, ladder, table, document_text, document_rel, quote_presence
         )
-        errors = ladder_errors + pin_errors
+        sources = [
+            rel
+            for rel in (
+                rel_in_tree(Path(args.ladder)),
+                rel_in_tree(Path(args.ledger)),
+                document_rel or None,
+            )
+            if rel
+        ]
+        head_errors, head_notes, head_reading = check_head(ladder, ledger, sources)
+        coverage = coverage_gaps(table)
+        controls: List[Dict[str, Any]] = []
+        if args.prove:
+            controls = prove(ledger, Path(args.ladder), Path(args.ledger))
+        errors = ladder_errors + pin_errors + head_errors
+        for control in controls:
+            if control["state"] != "BITES":
+                errors.append(
+                    "control %s: checker exited %d and did not name %r (%s)"
+                    % (control["control"], control["exit"], control["marker"], control["state"])
+                )
         warnings = ladder_warnings + pin_warnings
         gaps = declared_gaps(ladder)
-        name = verdict_for(errors, gaps, args.strict)
+        name = verdict_for(errors, gaps, coverage, args.strict)
     except Blinded as exc:
         print("verdict: %s" % VERDICT_BLIND)
         print("reason: %s" % exc)
@@ -463,7 +790,10 @@ def main(argv: Optional[List[str]] = None) -> int:
                         "verdict": name,
                         "pins": len(pins),
                         "rungs": rows,
+                        "head": head_reading,
+                        "coverage": coverage,
                         "declared_gaps": gaps,
+                        "controls": controls,
                         "errors": errors,
                         "warnings": warnings,
                         "strict": bool(args.strict),
@@ -483,6 +813,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         "ledger: %d pins, %d rungs, %d declared gaps (document %s)"
         % (len(pins), len(rows), len(gaps), document_rel)
     )
+    for note in head_notes:
+        print("  [head] %s" % note)
     for row in rows:
         print(
             "  %-8s %-3s band %-3s quote %-5s instrument %s (%s)"
@@ -503,13 +835,28 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("declared gaps: %d%s" % (len(gaps), " (failing under --strict)" if args.strict else ""))
         for gap in gaps:
             print("  [declared] %s" % gap)
+    if coverage:
+        print(
+            "coverage: %d of %d rungs declare less than a full instrument%s"
+            % (len(coverage), len(rows), " (failing under --strict)" if args.strict else "")
+        )
+        for item in coverage:
+            print("  [partial] %s" % item)
+    for control in controls:
+        print(
+            "  [CONTROL] %s on %s -> exit %d (%s)"
+            % (control["control"], control["rung"], control["exit"], control["state"])
+        )
+        if control["state"] != "BITES":
+            for line in control["detail"]:
+                print("            %s" % line)
     if warnings:
         for warn in warnings[:8]:
             print("  [note] %s" % warn)
         if len(warnings) > 8:
             print("  [note] ... and %d more (advisory only)" % (len(warnings) - 8))
 
-    return EXIT_READY if name == VERDICT_READY else EXIT_GAPS
+    return exit_code_for(name)
 
 
 if __name__ == "__main__":

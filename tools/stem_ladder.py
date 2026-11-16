@@ -24,7 +24,9 @@ Exit codes:
     2  the ladder or the ledger cannot be read
 
     ``--check`` does not use the codes above.  It returns stem_pins.py's own:
-    0 READY, 1 GAPS, 2 BLIND.
+    0 READY or PARTIAL, 1 GAPS, 2 BLIND.  PARTIAL shares exit 0 with READY by
+    design: it is coverage debt the wing declares in ``declared_gaps``, not a
+    defect, and only ``--strict`` promotes it to a failure.
 """
 
 from __future__ import annotations

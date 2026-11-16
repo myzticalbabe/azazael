@@ -45,8 +45,13 @@ Verdict and exit contract, shared with the wings themselves:
 
     READY       0   every declared wing READY and nothing undeclared
     GAPS        1   a wing reported a defect in evidence it already claims
-    INCOMPLETE  1   no defect, but coverage is missing: a wing is INCOMPLETE, a
-                    declared wing is BLOCKED, or a directory is UNDECLARED
+    PARTIAL     0   a wing is structurally clean but declares its own coverage
+                    incomplete (stem: rungs with no full instrument). The wing
+                    exits 0 because nothing is broken; the container reads it
+                    as INCOMPLETE because something is ungraded
+    INCOMPLETE  1   no defect, but coverage is missing: a wing is INCOMPLETE or
+                    PARTIAL, a declared wing is BLOCKED, or a directory is
+                    UNDECLARED
     BLIND       2   an instrument could not be read -- never a pass
 
 Headline precedence is BLIND > GAPS > INCOMPLETE > READY. A ``BLOCKED`` or
@@ -81,6 +86,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ARC = ROOT / "ARC"
 
 VERDICT_READY = "READY"
+VERDICT_PARTIAL = "PARTIAL"
 VERDICT_GAPS = "GAPS"
 VERDICT_INCOMPLETE = "INCOMPLETE"
 VERDICT_BLIND = "BLIND"
@@ -94,11 +100,14 @@ VERDICT_UNDECLARED = "UNDECLARED"
 EXIT_READY = 0
 EXIT_BAD = 1
 EXIT_BLIND = 2
+# A wing's PARTIAL code: declared coverage debt is not a defect, so it exits 0.
+EXIT_PARTIAL = 0
 
 # Per-verdict exit code the wings themselves promise. Used to detect a checker
 # that prints one verdict and exits in a way that contradicts it.
 WING_EXIT: Dict[str, int] = {
     VERDICT_READY: EXIT_READY,
+    VERDICT_PARTIAL: EXIT_PARTIAL,
     VERDICT_GAPS: EXIT_BAD,
     VERDICT_INCOMPLETE: EXIT_BAD,
     VERDICT_BLIND: EXIT_BLIND,
@@ -445,7 +454,11 @@ def combine(
     Precedence BLIND > GAPS > INCOMPLETE > READY: an unreadable instrument is
     fixed before a defect is argued, and a defect outranks missing coverage.
     BLOCKED and UNDECLARED both cap the container below READY, so a wing that
-    does not exist can never be counted as a passing one.
+    does not exist can never be counted as a passing one.  A wing reporting
+    PARTIAL is coverage-incomplete by its own declaration, so it caps the
+    container for the same reason INCOMPLETE does: the wing's exit code says
+    nothing is broken, and the container's verdict says not everything is graded.
+    The two are not in conflict -- they answer different questions.
     """
     states = {w.get("verdict") for w in wings}
     if VERDICT_BLIND in states:
@@ -454,6 +467,7 @@ def combine(
         return VERDICT_GAPS, EXIT_BAD
     if (
         VERDICT_INCOMPLETE in states
+        or VERDICT_PARTIAL in states
         or blocked
         or undeclared
     ):

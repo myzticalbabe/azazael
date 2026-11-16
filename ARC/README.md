@@ -128,7 +128,8 @@ container: INCOMPLETE
 esquire    READY       pins=20     errors=0
 cain       READY       pins=8      errors=0
 eliza      INCOMPLETE  pins=15     errors=0
-provenance INCOMPLETE  pins=43     errors=0
+stem       PARTIAL     pins=9      errors=0
+provenance READY       pins=52     errors=0
 blocked: none
 undeclared: none
 <!-- ARC:STATE END -->
