@@ -293,6 +293,13 @@ A build that ships a lever above its cap has shipped a defect the evidence alrea
   once a file has enough tests to amortise ~2.5 s of startup — for a single two-test module,
   serial is faster (0.32 s vs 2.79 s, measured). Use `-n auto` on the `test_sarah_*.py` group,
   not on one tiny file.
+- **A full-suite parallel crash is not a Sarah defect.** Engram `#1498` records the *whole* suite
+  dying with `Windows fatal exception: stack overflow` at `-n 16` and again at `-n 8` (2026-10-20,
+  on the then-production interpreter; a carried measurement, not re-run on 2026-11-16). The Sarah
+  group is a handful of files and stays far below that scale, so `-n auto` there is safe; a
+  full-suite `-n auto` run is **not** an acceptance command in this document. If a full-suite
+  parallel run aborts, pin it incrementally (`--junitxml`, `-v`) — `-r` end-of-run output never
+  prints on an abort.
 - **A worker never edits a file outside its brief's allowlist**, and never the six generated
   lane instruction targets (`~/AGENTS.md`, `C:/Azazael/AGENTS.md`, `~/.config/kilo/AGENTS.md`,
   `~/.config/kilo/BEAM_AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.codebuff/rules.md`) —
