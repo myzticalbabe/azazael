@@ -80,6 +80,13 @@ TIMEOUT_OVERRIDES = {
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
     "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
     "test_worm_governance_integration.py": 120,  # 2 min: cold-cache full real discovery or cache-backed
+    # Measured 2026-11-15 on standard CPython 3.15.0rc3, timed as a script:
+    # 103s and 136s. Both were reported as TIMEOUT at the 60s default on CI
+    # (runs 43797115329: 62.6s and 60.1s) -- killed mid-run while making
+    # progress, which reads as a hang and is not one. A timeout is still the
+    # right outcome for a real hang; these two get room to finish.
+    "test_memorybus.py": 300,          # 5 min: measured 103s
+    "test_workflow.py": 360,           # 6 min: measured 136s
 }
 
 
