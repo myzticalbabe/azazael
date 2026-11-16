@@ -54,6 +54,7 @@ to measure.
 | `esquire/` | What a court demands before it hears a machine's account | 2026-11-04 | `pins.json` (20 pins) + `ADMISSIBILITY_PINS.md` + `tools/esquire_pins.py` |
 | `cain/` | Accountability mark for AI systems and planned obsolescence | 2026-11-04 | `marks.json` (8 pins, 21 figures) + `ACCOUNTABILITY_MARKS.md` + `tools/cain_obsolescence_pins.py` |
 | `eliza/` | What a conversational agent may claim, and what it must refuse to claim | 2026-11-04 | `marks.json` (14 pins, 2 declared gaps) + `ACCOUNTABILITY_MARKS.md` + `tools/eliza_arc_pins.py` |
+| `stem/` | What a learner must be able to do at each rung E0–E8, and what in this tree can grade it | 2026-11-16 | `ladder.json` (9 rungs, 5 declared gaps) + `pins.json` (9 pins) + `tools/stem_pins.py` |
 
 **No verdict is written in this table.** A state typed beside a wing is a reading
 with no date and no command behind it, and this table carried three of them: `cain`

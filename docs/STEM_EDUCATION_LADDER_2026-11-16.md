@@ -20,7 +20,7 @@ something can re-read.*
 | E5 | Master's | Registers a question before the data, then answers it | yes | `arc_provenance.py` tier A (retained bytes + digest) |
 | E6 | Doctoral candidacy | Defends a method choice against the alternatives | yes | `reading_audit.py` (denominator on the claim) |
 | E7 | Doctoral dissertation | Original contribution, defended, null results included | yes | `leg_ledger.py` (no leg state collapsed into prose) |
-| E8 | Postdoctoral / independent | A funded line of work that outlives the advisor, with a trainee | yes | `lesson_impact.py` (did the lesson change an outcome) |
+| E8 | Postdoctoral / independent | A funded line of work that outlives the advisor, with a trainee | yes | `pmb__lesson_impact` MCP tool (did the lesson change an outcome) |
 
 **The gap this closes.** Every rung above E2 is normally measured by *inspection
 of prose*: a thesis is read, a defense is attended, a grant is funded. This tree
@@ -152,8 +152,13 @@ possible.
 - **Artifact.** Grant award + first-author work outside the advisor's
   supervision + a trainee's first independent artifact + an external
   replication.
-- **Instrument (exists).** `tools/lesson_impact.py` — which lessons actually
-  moved an outcome, with lift against a no-lesson baseline. A research line is
+- **Instrument (exists, as an MCP tool rather than a file).** `pmb__lesson_impact`
+  — which lessons actually moved an outcome, with lift against a no-lesson
+  baseline. It was written as `tools/lesson_impact.py` in the first draft of this
+  document; no such file exists anywhere in the tree, and `tools/stem_pins.py`
+  failed the rung for it on 2026-11-16. Run live the same day it answered with
+  37,793 outcome turns against 13,213 baseline turns and `signal_sufficiency
+  "ok"`, so the capability is real and the path was not. A research line is
   the same question at career scale: not "was it published" but "did it change
   what happened next".
 - **Characteristic failure.** An empire of trainees doing the work while the
@@ -192,7 +197,7 @@ record**. The recording surface differs by rung, and this tree already has three
 | E0–E2 | predict, measure, compare, explain the difference | none (human record) |
 | E3–E4 | predict, run, diff against the published number | reproduction log + `state/bake_harvest_*.jsonl` for near-misses |
 | E5–E6 | pre-register, run, compare to the registered plan | pre-registration + `pmb` lesson at `META L1` |
-| E7–E8 | run a line, measure what moved, prune what did not | `lesson_impact.py` (retrieval count, never age) |
+| E7–E8 | run a line, measure what moved, prune what did not | `pmb__lesson_impact` (retrieval count, never age) |
 
 The META stop rule applies unchanged: a lesson climbs instance → rule →
 applicability and **stops**. An E8 researcher who states "always verify

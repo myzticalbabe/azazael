@@ -132,6 +132,12 @@ WINGS: Tuple[Dict[str, str], ...] = (
         # directory down (measured 2026-11-05).
         "project_root": "Project_ELIZA",
     },
+    {
+        "wing": "stem",
+        "checker": "tools/stem_pins.py",
+        "ledger": "ARC/stem/pins.json",
+        "inhabitant": "what a learner must be able to do at each rung, and what in this tree can grade it",
+    },
 )
 
 # A wing someone declares but cannot yet inhabit is printed BLOCKED every run, so

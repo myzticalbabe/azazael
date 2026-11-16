@@ -1,0 +1,169 @@
+{
+  "version": "STEM-LADDER-v1",
+  "generated": "2026-11-16",
+  "head": "bb4ccc0c",
+  "basis": "One rung per level from K-5 to independent researcher. Each rung states the standard, the artifact, whether a machine can re-read that artifact, the instrument in this tree that grades it (or the word none), the characteristic failure, and the minimum source tier the rung's central artifact can honestly be held to. A rung is not reached until an artifact exists that something can re-read.",
+  "authority_note": "This registry is authored in this tree. A pin citing a rung proves that the registry and the proposal document agree, and that the proposal has not drifted from the registry. It does NOT prove that the standard has external standing: no accreditor, board of education or professional body was read at source. Tier A on these pins means 'read in this tree and located verbatim there by a re-runnable check', not 'authoritative outside this tree'.",
+  "document": "docs/STEM_EDUCATION_LADDER_2026-11-16.md",
+  "banding": {
+    "C": [
+      "E0",
+      "E1",
+      "E2"
+    ],
+    "B": [
+      "E3",
+      "E4"
+    ],
+    "A": [
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+    ]
+  },
+  "rungs": [
+    {
+      "rung": "E0",
+      "who": "K-5",
+      "standard": "Given a quantity, produces a representation (tally, array, number line) and an explanation a listener can follow.",
+      "artifact": "None that a machine can re-read. A drawing is evidence to a teacher, not to a program.",
+      "machine_readable": "no",
+      "instrument": "none",
+      "instrument_status": "declared-blind",
+      "instrument_note": "There is no learner corpus in this tree. The row says none rather than leaving the cell blank, because a blank reads as fine.",
+      "min_tier": "C",
+      "characteristic_failure": "Answer-getting: the number is right and nothing about it can be explained or reused."
+    },
+    {
+      "rung": "E1",
+      "who": "6-8",
+      "standard": "Takes a measurement, states its unit and its repeat, and distinguishes \"I measured 3.2 cm\" from \"it is big\".",
+      "artifact": "A notebook entry with a prediction, a measurement, and a comparison between them.",
+      "machine_readable": "no",
+      "instrument": "none",
+      "instrument_status": "declared-blind",
+      "instrument_note": "No instrument in this tree reads a notebook entry. Declared blind, not faked.",
+      "min_tier": "C",
+      "characteristic_failure": "Correlation claimed as cause (\"it went up when I did X, so X did it\") with no alternative considered."
+    },
+    {
+      "rung": "E2",
+      "who": "9-12",
+      "standard": "Designs an investigation that could fail, reports uncertainty, and argues from the evidence rather than from authority (NGSS practice 6–8; AP/IB capstone shape).",
+      "artifact": "A lab report with a stated prediction, a method another student could repeat, and an uncertainty statement.",
+      "machine_readable": "partly",
+      "instrument": "tools/check_corpus_quotes.py",
+      "instrument_status": "partial",
+      "instrument_note": "The report is text, so the quote-vs-producer discipline can prove a quotation against the producer's own words. Nothing here reads a lab report for competence, so the instrument covers one narrow slice of the rung.",
+      "recorded_inconsistency": "The proposal's summary table lists E2's instrument as 'none in this tree' while its section 2 names check_corpus_quotes.py as a partial instrument. The section reading is the more specific one and is what this registry records; the table cell is stale.",
+      "min_tier": "C",
+      "characteristic_failure": "Iterating the analysis until it is significant and reporting the iteration as if it were the plan."
+    },
+    {
+      "rung": "E3",
+      "who": "Undergraduate, lower division",
+      "standard": "Reproduces a published result from its stated method, in an environment they did not author.",
+      "artifact": "A reproduction log: source cited, inputs retained, the exact command, and the number that came out, matching or not matching.",
+      "machine_readable": "yes",
+      "instrument": "tools/check_corpus_quotes.py",
+      "instrument_status": "exists",
+      "instrument_note": "The same discipline at document scale: every quoted block is proved against the producer's text and a denominator is printed. A reproduction log is the numeric analogue.",
+      "min_tier": "B",
+      "characteristic_failure": "\"It worked on my machine\" - no environment, no version, no inputs retained."
+    },
+    {
+      "rung": "E4",
+      "who": "Undergraduate, capstone",
+      "standard": "Designs and executes a small study whose data, code and README let someone else get the same table without asking a question.",
+      "artifact": "A repository: raw data retained, one command, one expected output, one hash per input.",
+      "machine_readable": "yes",
+      "instrument": "tools/arc_provenance.py",
+      "instrument_status": "exists",
+      "instrument_note": "Grades exactly this shape: a named file re-hashed against a recorded digest, where 0 defects is possible only when the bytes are actually present. tools/golden_arrow.py supplies the bounded one-command runner.",
+      "min_tier": "B",
+      "characteristic_failure": "Cherry-picked runs: the one seed that produced a clean figure, presented without the nine that did not."
+    },
+    {
+      "rung": "E5",
+      "who": "Master's",
+      "standard": "States a question and its analysis plan *before* collecting data, then reports the answer including the parts that disappointed.",
+      "artifact": "A pre-registration plus a replication package (data, code, digests) plus the thesis.",
+      "machine_readable": "yes",
+      "instrument": "tools/arc_provenance.py",
+      "instrument_status": "exists",
+      "instrument_note": "Tier A as ARC/esquire/pins.json defines it - operative text read at source, retained, and re-hashable - is the standard a replication package must meet, and this is the tool that grades that tier.",
+      "min_tier": "A",
+      "characteristic_failure": "HARKing: the hypothesis is written after the results are known, and the pre-registration is written afterwards too."
+    },
+    {
+      "rung": "E6",
+      "who": "Doctoral candidacy",
+      "standard": "Chooses a method because it answers the question, and can say why the rejected methods would have answered a different one.",
+      "artifact": "A prospectus with a pilot: question, method, alternatives, power/precision argument, and the pilot's actual numbers.",
+      "machine_readable": "yes",
+      "instrument": "tools/reading_audit.py",
+      "instrument_status": "exists",
+      "instrument_note": "A verdict must carry its denominator or it is denominator_free. A prospectus that says 'promising pilot results' without the population is that defect in prose.",
+      "min_tier": "A",
+      "characteristic_failure": "The method is the one the lab already runs."
+    },
+    {
+      "rung": "E7",
+      "who": "Doctoral dissertation",
+      "standard": "An original contribution, defended, with the null and negative results reported at the same prominence as the positive ones.",
+      "artifact": "Dissertation + defense record + replication package + a negative-results appendix.",
+      "machine_readable": "yes",
+      "instrument": "tools/leg_ledger.py",
+      "instrument_status": "exists",
+      "instrument_note": "ok, empty, skipped and error may never collapse into one line of prose, and a PASS over a failed leg is verdict_mismatch. That is the dissertation's honesty requirement, already implemented for pipeline legs.",
+      "min_tier": "A",
+      "characteristic_failure": "Salami slicing, and a methods chapter that omits the four analyses that did not work."
+    },
+    {
+      "rung": "E8",
+      "who": "Postdoctoral / independent",
+      "standard": "A funded line of work that continues without the doctoral advisor, that produces at least one other researcher, and whose claims survive an outside replication.",
+      "artifact": "Grant award + first-author work outside the advisor's supervision + a trainee's first independent artifact + an external replication.",
+      "machine_readable": "yes",
+      "instrument": "pmb__lesson_impact",
+      "instrument_status": "external",
+      "instrument_invoke": "pmb__lesson_impact(window_days=30)",
+      "instrument_note": "Which lessons actually moved an outcome, with lift against a no-lesson baseline. An MCP tool served by the pmb daemon, not a file in this tree: it was named as tools/lesson_impact.py until 2026-11-16, when stem_pins.py failed the rung for an instrument that exists nowhere in the tree. Run live the same day, it answered with 37793 outcome turns against 13213 baseline turns and signal_sufficiency ok, so the capability is real and the path was not. A research line is the same question at career scale: not 'was it published' but 'did it change what happened next'.",
+      "min_tier": "A",
+      "characteristic_failure": "An empire of trainees doing the work while the claims outrun the evidence; independence asserted rather than shown."
+    }
+  ],
+  "declared_gaps": [
+    {
+      "rung": "E0",
+      "title": "No instrument, and none is invented",
+      "why": "A child's reasoning is the primary object and a program cannot read it. A proxy would be a worse defect than the gap.",
+      "would_need": "A real learner corpus with human-scored artifacts and a published rubric, retained with digests."
+    },
+    {
+      "rung": "E1",
+      "title": "No instrument",
+      "why": "Same as E0: the artifact is a notebook entry, not a machine-readable record.",
+      "would_need": "A corpus of scored notebook entries, or a structured data-capture format a school already uses."
+    },
+    {
+      "rung": "E2",
+      "title": "Partial instrument only",
+      "why": "check_corpus_quotes.py proves a quotation, not competence in investigation design.",
+      "would_need": "A rubric applied to retained lab reports, with the rubric itself retained and versioned."
+    },
+    {
+      "rung": "E5-E8",
+      "title": "Tier A here is internal authority",
+      "why": "The standards are authored in this tree. Backing a pin against this tree's own document proves registry/doc agreement and no drift, not standing with any accreditor.",
+      "would_need": "The accreditor's or professional body's own text, read at source, retained and digested, as the esquire wing does for the Federal Rules of Evidence."
+    },
+    {
+      "rung": "ALL",
+      "title": "The standards baseline this ladder cited is now repaired, and still asserts nothing",
+      "why": "docs/INDUSTRY_STANDARDS_BASELINE_2026-11-02.json was unparseable on 2026-11-16 (Invalid \\escape at line 7). It parses as of this commit, but it is a configuration record, not an authority the ladder can cite.",
+      "would_need": "A standards source that is not a local config file."
+    }
+  ]
+}
