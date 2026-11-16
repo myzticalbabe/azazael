@@ -243,6 +243,26 @@
    "to": ".github/workflows/ci.yml",
    "kind": "governance"
   },
+  {
+   "from": ".github/workflows/standards-auto-sync.yml",
+   "to": ".github/workflows/standards-auto-sync.yml",
+   "kind": "governance"
+  },
+  {
+   "from": ".github/workflows/codeql-analysis.yml",
+   "to": ".github/workflows/codeql-analysis.yml",
+   "kind": "governance"
+  },
+  {
+   "from": ".github/workflows/pages-deploy.yml",
+   "to": ".github/workflows/pages-deploy.yml",
+   "kind": "governance"
+  },
+  {
+   "from": ".github/workflows/sbom-generation.yml",
+   "to": ".github/workflows/sbom-generation.yml",
+   "kind": "governance"
+  },
 {
     "from": "docs/reference/recall-floor-protocol.md",
     "to": "docs/reference/recall-floor-protocol.md",
