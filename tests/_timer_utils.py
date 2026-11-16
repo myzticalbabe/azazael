@@ -51,7 +51,8 @@ import sys
 import os
 
 # Set config directory BEFORE any imports so config module finds azazael.yaml
-os.environ["AZAZAEL_CONFIG_DIR"] = {str(project_root)!r}
+# Use "." since subprocess cwd is already project_root
+os.environ["AZAZAEL_CONFIG_DIR"] = "."
 
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
