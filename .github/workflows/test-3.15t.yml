@@ -94,6 +94,19 @@ jobs:
           # Force psutil cp315t wheel for free-threading compatibility
           pip install --force-reinstall --no-deps psutil
           python -c "import psutil; print(f'psutil {psutil.__version__}: OK (cpu={psutil.cpu_count()})')"
+          # The package's DECLARED dependencies, not a hand-picked subset.
+          # This step used to install psutil + basedpyright + pytest only, so
+          # `pyproject.toml`'s PyYAML/numpy/pydantic requirements were absent on
+          # the runner. CORE/config.py degrades silently without PyYAML
+          # (`_HAS_YAML = False` -> every section falls back to its default),
+          # which made `test_clusterworms_unit.py` read timeout 60 for category
+          # "monitor" instead of the 30 in azazael.yaml and fail this job on
+          # 2026-11-16 while passing on any machine that had PyYAML installed
+          # globally. All three resolve to cp315 wheels, so installing them is
+          # not optional work being deferred -- it is the job measuring the code
+          # instead of a missing dependency.
+          pip install -e .
+          python -c "import yaml, numpy, pydantic; print('yaml/numpy/pydantic: OK')"
           # basedpyright is the type checker (mypy cannot read this tree).
           # pytest is needed by the aggregate isolation gate below.
           pip install basedpyright pytest

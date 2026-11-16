@@ -126,8 +126,17 @@ def _parse_test_output(output):
                     failed = total
             passed = total - failed
             break
-        # Custom format: "Passed: X, Failed: Y"
-        match = re.search(r'Passed:\s*(\d+).*?Failed:\s*(\d+)', line)
+        # Custom format: "Passed: X, Failed: Y", as emitted by the standalone
+        # runners in tests/ (e.g. test_clusterworms_unit.py::_run_standalone).
+        # ANCHORED at the start of the line on purpose. The subprocess helper
+        # `_timer_utils.run_class_with_timeout` echoes one "  [ClassName]
+        # Passed: N, Failed: M" line per slow class BEFORE the file-level total,
+        # so an unanchored search reported that class count as the file result:
+        # measured 2026-11-16, a run whose real total was
+        # "Passed: 104, Failed: 2" was summarised as "0 failed ... (of 470)",
+        # i.e. the failing class's six tests, silently. Anchoring keeps the
+        # per-class lines from answering for the file.
+        match = re.search(r'^\s*Passed:\s*(\d+).*?Failed:\s*(\d+)', line)
         if match:
             passed = int(match.group(1))
             failed = int(match.group(2))
@@ -247,6 +256,30 @@ def run_test_file(filename, timeout=60):
         }
 
 
+#: How many trailing output lines to echo for a non-PASS file. The runner used
+#: to capture the subprocess output and then never print it, so a red check
+#: reduced to the single word "FAIL" and could not be diagnosed without a
+#: local re-run at the same interpreter. The excerpt travels with the result.
+FAILURE_TAIL_LINES = 20
+
+#: Substrings that identify the line explaining a failure. Preferred over a
+#: plain tail: a failing test class reports mid-run, so the last 20 lines of a
+#: 100-test file can be entirely green and say nothing about the failure.
+FAILURE_MARKERS = (
+    "[FAIL]", "FAILED", "Traceback (most recent call last)",
+    "Error:", "[SUB] ",
+)
+
+
+def _failure_excerpt(output):
+    """Return the lines that explain a failure, falling back to the tail."""
+    lines = output.splitlines()
+    marked = [ln for ln in lines if any(m in ln for m in FAILURE_MARKERS)]
+    if marked:
+        return marked[-FAILURE_TAIL_LINES:]
+    return lines[-FAILURE_TAIL_LINES:]
+
+
 def print_summary(results):
     """Print a formatted summary of all test results."""
     total_pass = total_fail = total_tests = 0
@@ -264,6 +297,10 @@ def print_summary(results):
         print("  {} {:<35} {:<10}{}  {:.1f}s".format(
             icon, r["file"], r["status"], detail, r.get("duration", 0)
         ))
+
+        if r["status"] != "PASS" and r.get("output"):
+            for out_line in _failure_excerpt(r["output"]):
+                print("      | {}".format(out_line))
 
         if r["status"] == "PASS":
             passed_files += 1
