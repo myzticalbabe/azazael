@@ -115,11 +115,15 @@ def tracked(scope):
 # ── the tree's config surface, read once ─────────────────────────────────
 
 def load_declared():
-    """(declared keys, reader vocabulary). The declared set is the config's leaves."""
-    config = json.loads((ROOT / "config" / "defaults.json").read_text(encoding="utf-8"))
-    declared = {k: v for k, v in settings_shadow.flatten(config) if k}
-    declared.pop("version", None)
-    vocabulary, source = settings_shadow.reader_vocabulary(config)
+    """(declared keys, reader vocabulary, source). The config opens in ONE place.
+
+    This module used to hand-parse `config/defaults.json` for these three values,
+    which made it the tree's only `bypass_reader`: the knobs a cursor took were
+    invisible to the audit that guards them, and its declared set could drift
+    from the audited one silently (measured 2026-11-16). `settings_shadow` owns
+    the parse; this asks it.
+    """
+    _config, declared, vocabulary, source = settings_shadow.load_config()
     settings_shadow.READERS.clear()
     settings_shadow.READERS.update(vocabulary)
     return declared, vocabulary, source

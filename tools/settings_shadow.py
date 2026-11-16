@@ -320,6 +320,28 @@ def bypasses_in(path: Path) -> tuple:
     return (lines, False)
 
 
+def load_config(path=None) -> tuple:
+    """(config, declared, vocabulary, source) -- the ONE place the config opens.
+
+    `swarm.py` used to hand-parse `config/defaults.json` for exactly this tuple,
+    which made it the tree's only `bypass_reader`: the knobs it took were
+    invisible to this audit and its declared set could drift from the one the
+    audit checks (measured 2026-11-16). A consumer that needs the whole tree
+    rather than one dotted value asks the surface instead of becoming a second
+    surface.
+
+    `path` is resolved here, not in the caller: the load argument must stay free
+    of the module-level CONFIG name, or `bypasses_in` reports this function as a
+    hand-parse of the very file it is the reader of.
+    """
+    cfg_path = Path(path) if path is not None else CONFIG
+    config = json.loads(cfg_path.read_text(encoding="utf-8"))
+    declared = {key: value for key, value in flatten(config) if key}
+    declared.pop("version", None)
+    vocabulary, vocab_source = reader_vocabulary(config)
+    return config, declared, vocabulary, vocab_source
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--config", default=str(CONFIG))
@@ -333,14 +355,11 @@ def main(argv=None) -> int:
 
     cfg_path = Path(args.config)
     try:
-        config = json.loads(cfg_path.read_text(encoding="utf-8"))
+        _config, declared, vocabulary, vocab_source = load_config(cfg_path)
     except (OSError, ValueError) as exc:
         print("settings_shadow: cannot read %s (%s). Nothing audited -- that is not "
               "a pass." % (cfg_path, exc))
         return 2
-    declared = {key: value for key, value in flatten(config) if key}
-    declared.pop("version", None)
-    vocabulary, vocab_source = reader_vocabulary(config)
     READERS.clear()
     READERS.update(vocabulary)
 

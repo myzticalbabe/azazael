@@ -749,6 +749,43 @@ def run_leg(name, fn, payload, timeout):
     return out
 
 
+# ── the tree the reading is about ─────────────────────────────────────────
+
+def tree_identity():
+    """(head, branch) as git reports them, or ('unknown', reason).
+
+    A report is a reading about a tree, so it has to name WHICH tree. Two runs a
+    hundred commits apart were otherwise indistinguishable files -- the
+    stale-artifact defect HED-2 records (`logs/golden_arrow.json` answering for a
+    499-file tree it no longer described). An unreadable identity says why: a
+    blank field reads as "no commits", which is a claim, not an absence.
+
+    Two rev-parse calls, not one: `--abbrev-ref` refuses more than one revision
+    (`Needed a single revision`), and combining it with `--short HEAD` printed
+    only the branch. Measured 2026-11-16 -- the first version of this function
+    returned `unknown` against a healthy repo, which is why an unreadable
+    identity reports git's own words instead of a blank.
+    """
+    outs = []
+    for args in (("rev-parse", "--short", "HEAD"), ("rev-parse", "--abbrev-ref", "HEAD")):
+        cmd = ["git", "-C", str(ROOT), *args]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
+                                  errors="replace", timeout=20)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return "unknown", "unreadable: %s" % exc
+        if proc.returncode != 0:
+            return "unknown", ("unreadable: git %s rc=%d %s"
+                               % (" ".join(args), proc.returncode,
+                                  proc.stderr.strip()[:120]))
+        outs.append(proc.stdout.strip())
+    head, branch = outs
+    if not head or not branch:
+        return "unknown", "unreadable: git printed an empty %s" % (
+            "sha" if not head else "branch")
+    return head, branch
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--forensics", action="store_true", help="forensic legs only")
@@ -829,8 +866,12 @@ def main(argv=None) -> int:
 
     forensic_failed = [r for r in results
                        if r["leg"] != "web" and r.get("status") in ("error", "timeout")]
+    head, branch = tree_identity()
     report = {
+        "schema": "deep_dive/2",
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "head": head,
+        "branch": branch,
         "elapsed_s": elapsed,
         "settings": {"enabled": enabled, "forensics": do_forensics, "web": do_web,
                      "timeout_s": timeout, "max_queries": max_q,
