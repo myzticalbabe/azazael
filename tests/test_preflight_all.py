@@ -543,8 +543,14 @@ class TestRunControls:
     def test_a_passing_control_artifact_is_demonstrated(self, tmp_path, monkeypatch, capsys):
         control = _control_artifact(tmp_path, "def test_ok():\n    assert True\n")
         gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
-        assert pf.cmd_self_test((gate,), run_controls=True) == 0
-        assert "OK" in capsys.readouterr().out
+        rc = pf.cmd_self_test((gate,), run_controls=True)
+        # The harness output IS the diagnosis: without it a loaded run records
+        # this node as failed with no assertion message at all (2026-11-16, and
+        # again 2026-11-16 in the 608-file run), which is how the previous repair
+        # came to blame a timeout bound that `faulthandler_timeout` overrides.
+        out = capsys.readouterr().out
+        assert rc == 0, out
+        assert "OK" in out
 
     def test_a_failing_control_artifact_is_a_hard_failure(self, tmp_path, monkeypatch, capsys):
         """The only way the framework can notice a control that stopped working."""
