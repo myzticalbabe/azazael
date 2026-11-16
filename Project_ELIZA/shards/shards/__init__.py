@@ -1,1 +1,1 @@
-"""Intake stubs for the SHARDS tree. Generated; see SHARD_INDEX.json."""
+"""Intake stubs for the shards tree. Generated; see SHARD_INDEX.json."""

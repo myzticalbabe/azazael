@@ -1,0 +1,44 @@
+# coding: utf-8
+"""CORE / CORE/freethreading.py :: TaskCancelledError -- INTAKE STUB. Not an implementation.
+
+Source: kali-linux CORE/freethreading.py (class TaskCancelledError, wired by shards/WIRED.json; the census does not name it, so this stub rests on the ledger and the vendored source (1341 lines))
+Atlas:  atlas_kali-linux.json, generated 2026-11-09
+Adopt:  python tools/shard_intake.py --adopt "kali:CORE/freethreading.py#TaskCancelledError"
+
+This file exists so the unit is *visible and addressable* from ELIZA. It has no
+behaviour: `load()` raises. Wiring it is a deliberate change, made against the
+tutorial in docs/TUTORIAL_SHARD_DEV_2026-11-02.md, and the first step is to read
+the Kali source rather than to import this module.
+"""
+from __future__ import annotations
+
+WIRED = True
+SHARD_ID = "kali:CORE/freethreading.py#TaskCancelledError"
+KIND = "class"
+SOURCE_ENVIRONMENT = "kali-linux"
+SOURCE_MODULE = "CORE/freethreading.py"
+CLASS_NAME = 'TaskCancelledError'
+UNNAMED_CLASSES = 0
+TREE = "CORE"
+
+
+def describe() -> dict:
+    """What this shard is, where it came from, and whether it runs."""
+    return {
+        "shard_id": SHARD_ID,
+        "kind": KIND,
+        "tree": TREE,
+        "source_module": SOURCE_MODULE,
+        "class_name": CLASS_NAME,
+        "unnamed_classes": UNNAMED_CLASSES,
+        "environment": SOURCE_ENVIRONMENT,
+        "wired": WIRED,
+    }
+
+
+def load(*args, **kwargs):
+    """Return the vendored unit. Importing the module is the adoption."""
+    import importlib
+
+    vendored = importlib.import_module('adopted.kali.CORE.freethreading')
+    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
