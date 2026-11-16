@@ -529,12 +529,8 @@ def _find_config_file_with_retry(max_attempts: int = 10, delay: float = 1.0) -> 
     is_pytest_worker = "PYTEST_XDIST_WORKER" in os.environ
     attempts = max_attempts if (is_ci or is_pytest_worker) else 1
     
-    # Always print debug info on CI
-    if is_ci or is_pytest_worker:
-        print(f"[config DEBUG] _find_config_file_with_retry called: is_ci={is_ci}, is_pytest_worker={is_pytest_worker}, attempts={attempts}", file=sys.stderr, flush=True)
-        print(f"[config DEBUG] CWD={Path.cwd()}", file=sys.stderr, flush=True)
-        print(f"[config DEBUG] GITHUB_WORKSPACE={os.environ.get('GITHUB_WORKSPACE')}", file=sys.stderr, flush=True)
-        print(f"[config DEBUG] GITHUB_REPOSITORY={os.environ.get('GITHUB_REPOSITORY')}", file=sys.stderr, flush=True)
+    # ALWAYS print debug to trace execution
+    print(f"[config DEBUG] _find_config_file_with_retry CALLED: is_ci={is_ci}, is_pytest_worker={is_pytest_worker}, attempts={attempts}, CI={os.environ.get('CI')}, GITHUB_ACTIONS={os.environ.get('GITHUB_ACTIONS')}", file=sys.stderr, flush=True)
     
     for attempt in range(attempts):
         result = _find_config_file()

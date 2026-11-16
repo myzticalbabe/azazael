@@ -20,9 +20,10 @@ from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-# Reset config singleton BEFORE importing ClusterWORMZ to force fresh config load
-from CORE.config import reset_config
+# Reset config singleton AND force reload BEFORE importing ClusterWORMZ
+from CORE.config import reset_config, get_config
 reset_config()
+get_config(reload=True)  # Force immediate reload from azazael.yaml
 
 try:
     import pytest
