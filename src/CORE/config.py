@@ -509,7 +509,7 @@ def _find_config_file() -> (Path | None):
     return None
 
 
-def _find_config_file_with_retry(max_attempts: int = 5, delay: float = 0.5) -> (Path | None):
+def _find_config_file_with_retry(max_attempts: int = 10, delay: float = 1.0) -> (Path | None):
     """Find config file with retry for CI environments where filesystem may not be ready."""
     import time
     import os
@@ -520,11 +520,21 @@ def _find_config_file_with_retry(max_attempts: int = 5, delay: float = 0.5) -> (
     for attempt in range(attempts):
         result = _find_config_file()
         if result is not None:
+            if is_ci and attempt > 0:
+                print(f"[config] Found config on attempt {attempt + 1}: {result}", flush=True)
             return result
+        if is_ci:
+            print(f"[config] Attempt {attempt + 1}/{attempts}: config not found, waiting {delay}s...", flush=True)
         if attempt < attempts - 1:
             time.sleep(delay)
     
-    return _find_config_file()  # Final attempt without delay
+    # Final attempt without delay
+    result = _find_config_file()
+    if is_ci and result is None:
+        print(f"[config] All attempts exhausted, config not found. CWD: {Path.cwd()}", flush=True)
+        print(f"[config] GITHUB_WORKSPACE: {os.environ.get('GITHUB_WORKSPACE')}", flush=True)
+        print(f"[config] GITHUB_REPOSITORY: {os.environ.get('GITHUB_REPOSITORY')}", flush=True)
+    return result
 
 
 def _load_yaml(path: Path) -> dict:
