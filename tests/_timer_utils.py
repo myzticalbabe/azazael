@@ -50,7 +50,19 @@ import sys
 import os
 from pathlib import Path
 
-# DEBUG: Print environment info
+# DEBUG: Write to file (bypasses stderr capture issues)
+    debug_path = Path(os.environ.get('RUNNER_TEMP', '.')) / f'_runner_debug_{class_name}.log'
+    try:
+        with open(debug_path, 'w', encoding='utf-8') as f:
+            f.write(f"[RUNNER DEBUG] cwd={Path.cwd()}\n")
+            f.write(f"[RUNNER DEBUG] CI={os.environ.get('CI')}, GITHUB_ACTIONS={os.environ.get('GITHUB_ACTIONS')}\n")
+            f.write(f"[RUNNER DEBUG] azazael.yaml exists at cwd={(Path.cwd() / 'azazael.yaml').is_file()}\n")
+            f.write(f"[RUNNER DEBUG] file_path={str(file_path)!r}\n")
+            f.write(f"[RUNNER DEBUG] sys.executable={sys.executable}\n")
+        except Exception as e:
+            pass
+
+# Also print to stderr (may be captured)
 print(f"[RUNNER DEBUG] cwd={{Path.cwd()}}", file=sys.stderr, flush=True)
 print(f"[RUNNER DEBUG] CI={{os.environ.get('CI')}}, GITHUB_ACTIONS={{os.environ.get('GITHUB_ACTIONS')}}", file=sys.stderr, flush=True)
 print(f"[RUNNER DEBUG] azazael.yaml exists at cwd={{ (Path.cwd() / 'azazael.yaml').is_file() }}", file=sys.stderr, flush=True)
