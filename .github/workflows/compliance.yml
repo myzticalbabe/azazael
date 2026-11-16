@@ -5,16 +5,24 @@ on:
     paths:
       - 'src/**/*.py'
       - 'tools/**/*.py'
+      - 'tests/test_anti_pattern_gate.py'
+      - 'tests/test_canon_drift_check.py'
       - 'skills/**'
       - '.agents/skills/**'
       - 'logs/anti_pattern_baseline.json'
+      - 'requirements-test.txt'
+      - '.github/workflows/compliance.yml'
   pull_request:
     paths:
       - 'src/**/*.py'
       - 'tools/**/*.py'
+      - 'tests/test_anti_pattern_gate.py'
+      - 'tests/test_canon_drift_check.py'
       - 'skills/**'
       - '.agents/skills/**'
       - 'logs/anti_pattern_baseline.json'
+      - 'requirements-test.txt'
+      - '.github/workflows/compliance.yml'
 
 jobs:
   compliance:
@@ -27,27 +35,55 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.15'
+          cache: 'pip'
 
+      # This job installed pip and nothing else, so its "Tests for the gates"
+      # step died on "No module named pytest" (measured 2026-11-15 on PR #3).
+      # The gates themselves are stdlib-only; only their tests need pytest.
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
 
+      # REPORT ONLY, and marked as such.
+      #
+      # scanner.py exits 1 when it FINDS anything (see main(): exit 0 if
+      # total_findings == 0 else 1). Under the workflow's `bash -e` that killed
+      # the job before a single ratchet gate ran -- measured on PR #3: the step
+      # took 40s, the run went red, and the reason was 2,206 findings in 787
+      # files, which is the scanner working, not failing. The blocking decisions
+      # in this workflow are the two ratchet gates at the bottom.
+      #
+      # stderr goes to its own file: merging it into the JSON (`2>&1`) made the
+      # Summary step's json.load read a stream that was not JSON.
       - name: Run compliance scanner (JSON)
         id: scan
+        continue-on-error: true
         run: |
-          python src/CORE/compliance/scanner.py --report --dir src --format json > compliance_report.json 2>&1
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          set +e
+          python src/CORE/compliance/scanner.py --report --dir src --format json \
+            > compliance_report.json 2> compliance_report.stderr.log
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "scanner exit code: $code (1 = findings present, by design)"
+          tail -5 compliance_report.stderr.log || true
+          exit 0
 
       - name: Upload findings artifact
         uses: actions/upload-artifact@v4
         with:
           name: compliance-findings
-          path: compliance_report.json
+          path: |
+            compliance_report.json
+            compliance_report.stderr.log
           if-no-files-found: warn
 
       - name: Generate HTML report
+        continue-on-error: true
         run: |
-          python src/CORE/compliance/scanner.py --report --dir src --format html --output-dir compliance_html
+          python src/CORE/compliance/scanner.py --report --dir src --format html \
+            --output-dir compliance_html
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -58,8 +94,17 @@ jobs:
 
       - name: Summary
         run: |
-          echo "Compliance scan complete. Findings artifact uploaded."
-          cat compliance_report.json | python -c "import sys,json; d=json.load(sys.stdin); print(f'Files: {d[\"total_files\"]}, Findings: {d[\"total_findings\"]}, Files with issues: {d[\"files_with_findings\"]}')"
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("compliance_report.json")
+          try:
+              d = json.loads(p.read_text(encoding="utf-8"))
+              print(f"Files: {d['total_files']}, Findings: {d['total_findings']}, "
+                    f"Files with issues: {d['files_with_findings']}")
+          except Exception as exc:
+              print(f"summary unavailable ({type(exc).__name__}: {exc}); "
+                    "see the compliance-findings artifact")
+          PY
 
       # The scan above only reports; these two steps GATE. They run in CI as
       # well as in the local pre-commit hook because a fresh clone has no hook
@@ -89,4 +134,3 @@ jobs:
 
       - name: Canon drift (skills/ vs .agents/skills/)
         run: python tools/canon_drift_check.py --check
-
