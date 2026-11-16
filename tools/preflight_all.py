@@ -953,6 +953,39 @@ GATES: Tuple[Gate, ...] = (
         ),
         requires=(),  # dist/ is a build output: its absence is this gate's own BLIND
     ),
+    Gate(
+        name="golden-arrow",
+        # Wired 2026-11-16. The tool's own docstring had named this row and the
+        # hook stanza it belongs to since 2026-11-02; neither existed, so the
+        # runner the doctrine calls the commit path was invoked from nowhere.
+        #
+        # BLOCKING, because its whole purpose is to refuse a commit whose own
+        # test files fail. Cheap in the common case: only files the INDEX touches
+        # run, one process each with a wall bound, so a wedged file is NAMED
+        # instead of stalling the commit (HED-2).
+        #
+        # `--allow-empty` is not a relaxation. An index naming no test_*.py is a
+        # normal commit and is recorded as verdict `empty-index`; any other empty
+        # collection still exits 2 and the hook passes it loud. Without that
+        # distinction every ordinary commit would exit 2, which is how a gate
+        # gets switched off.
+        argv=("tools/golden_arrow.py", "--staged", "--allow-empty"),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=False,
+        reads=("the staged test_*.py files in the git index, one process each, vs "
+               "logs/golden_arrow_baseline.json (recorded debt)"),
+        control_test=None,
+        control=None,
+        uncontrolled_because=(
+            "a control for this gate would be a test file that fails on purpose; no "
+            "tests/test_golden_arrow.py exists, and naming an absent artifact is the "
+            "MISSING verification this registry exists to stop"
+        ),
+        requires=("logs/golden_arrow_baseline.json",),
+    ),
 )
 
 

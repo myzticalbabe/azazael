@@ -55,6 +55,10 @@ HOOK_SCRIPTS = {
                                   # runs before anything that writes.
     "tools/evidence_gate.py",
     "tools/failure_evidence_gate.py",
+    "tools/golden_arrow.py",      # --staged --allow-empty; wired 2026-11-16. The tool
+                                  # named this row in its own docstring since
+                                  # 2026-11-02 and neither the row nor the hook
+                                  # stanza existed -- transcription with the stanza.
     "tools/index_drift_check.py",
     "tools/mesh_function_preflight.py",
     "tools/metthew_families.py",

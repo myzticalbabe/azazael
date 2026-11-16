@@ -39,6 +39,7 @@ MODES
 -----
     python tools/golden_arrow.py                # every test file (the default)
     python tools/golden_arrow.py --staged       # only files touched by the index
+    python tools/golden_arrow.py --staged --allow-empty  # commit path: no staged test file is a recorded skip
     python tools/golden_arrow.py --file tests/test_x.py
     python tools/golden_arrow.py --strict      # fail on ANY failing file
     python tools/golden_arrow.py --baseline    # record today's failures as debt
@@ -357,6 +358,12 @@ def print_report(rep: dict, verbose: bool, known: dict = None, strict: bool = Fa
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--staged", action="store_true", help="only test files in the index")
+    # The commit path needs one distinction the plain mode cannot draw: an index
+    # with NO test file is a legitimate commit, while a full run that collects no
+    # test file is a broken tree. Without this flag every ordinary commit exits 2
+    # and the hook is forced to either block them all or ignore the gate.
+    ap.add_argument("--allow-empty", action="store_true",
+                    help="with --staged: an empty test selection is a recorded skip, not exit 2")
     ap.add_argument("--file", default="", help="one test file")
     ap.add_argument("--timeout", type=float,
                     default=float(_profile("golden_arrow.timeout_s", DEFAULT_TIMEOUT)),
@@ -408,6 +415,35 @@ def main(argv=None) -> int:
     py = interpreter()
     files = test_files(args)
     if not files:
+        if args.allow_empty and args.staged:
+            # An index that names no test file is a normal commit, not a failed
+            # run -- but it must not be silent either, or "nothing to check"
+            # becomes indistinguishable from "the arrow never ran" (HED-11's
+            # four states must never collapse). So the state is named in the
+            # output AND written to the report, and the exit code is 0 because
+            # the check performed and found nothing to check.
+            rep = {
+                "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "mode": "staged",
+                "verdict": "empty-index",
+                "interpreter": interpreter(),
+                "timeout_s": args.timeout,
+                "workers": args.workers,
+                "elapsed_s": 0.0,
+                "totals": {
+                    "files": 0, "passed_files": 0, "failed_files": 0,
+                    "hung_files": 0, "killed_files": 0, "tests_passed": 0,
+                    "tests_failed": 0, "tests_error": 0,
+                },
+                "failed": [], "hung": [], "failures": [], "files": [],
+            }
+            empty_out = ROOT / "logs" / "golden_arrow_staged.json"
+            empty_out.parent.mkdir(parents=True, exist_ok=True)
+            empty_out.write_text(json.dumps(rep, indent=2) + "\n", encoding="utf-8")
+            print("GOLDEN ARROW: no test files in the index -- nothing to run "
+                  "(staged mode; this is not a pass for the full suite)")
+            print("report: %s" % empty_out)
+            return 0
         print("GOLDEN ARROW: no test files collected -- the arrow cannot fly empty")
         return 2
 

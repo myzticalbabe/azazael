@@ -47,6 +47,7 @@
 #   3.   canon drift                  (tools/canon_drift_check.py --check)
 #   4.   gate registry + hook parity  (tools/preflight_all.py --self-test)
 #   7b.  testing-paradigm G1          (tools/test_paradigm_gate.py)
+#   11.  golden arrow, staged tests   (tools/golden_arrow.py --staged)
 #   10.  generated instruction blocks (tools/agent_orders_sync.py --hook --wsl)
 #   10b. instruction-file PROSE       (tools/prompt_check.py)
 #   8.   unified supervisor verdict   (tools/supervisor_mcp.py --verdict)
@@ -58,7 +59,8 @@
 #
 # Declared overrides, unchanged and never silent: ALLOW_BULK_COMMIT=1,
 # ALLOW_STALE_INDEX=1, ALLOW_AGENT_ORDERS_DRIFT=1, ALLOW_PROMPT_STALE=1,
-# ALLOW_SUPERVISOR_NOGO=1, ALLOW_PREFLIGHT=1, and COMMIT_TIER=full to run the
+# ALLOW_SUPERVISOR_NOGO=1, ALLOW_PREFLIGHT=1, ALLOW_FAST_COMMIT=1, and
+# COMMIT_TIER=full to run the
 # evidence tier inline.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -241,6 +243,49 @@ if [ -f "$SCRIPT_DIR/tools/test_paradigm_gate.py" ]; then
     else
         echo "[Paradigm] 3.15t python not found -- passing loud (gate unrunnable)"
     fi
+fi
+
+# ─── Check 11 (blocking): golden arrow on the staged test files (HED-2) ───
+# tools/golden_arrow.py's docstring has claimed this stanza since 2026-11-02 --
+# "hook: .githooks/pre-commit runs `--staged` unless ALLOW_FAST_COMMIT=1" -- and
+# no such line existed, so the runner the doctrine calls the commit path ran
+# nowhere. HED-2's shape is one FILE PER PROCESS with its own wall bound: a
+# wedged file is NAMED while the rest still report, which is the difference
+# between a gate and a wish (`pytest tests` was measured WEDGED twice).
+# Only files the INDEX touches run: a commit is checked against its own tests,
+# not the suite. --allow-empty is what keeps that usable -- an index holding no
+# test_*.py is a normal commit and is recorded as verdict `empty-index`, while
+# any other empty collection still exits 2 and passes loud here.
+# Recorded debt is printed, never failed: logs/golden_arrow_baseline.json is a
+# ratchet that can only shrink, and it is force-added to git so a fresh clone
+# does not read the known failures as today's breakage.
+# Declared override, never silent: ALLOW_FAST_COMMIT=1.
+if [ "${ALLOW_FAST_COMMIT:-}" = "1" ]; then
+    echo "[GoldenArrow] skipped: ALLOW_FAST_COMMIT=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_FAST_COMMIT:-}" != "1" ] && [ -f "$SCRIPT_DIR/tools/golden_arrow.py" ]; then
+    echo "[GoldenArrow] Running the staged test files, one process each..."
+    if [ -x "$PY" ]; then
+        GA_OUT=$("$PY" "$SCRIPT_DIR/tools/golden_arrow.py" --staged --allow-empty 2>&1)
+        GA_EXIT=$?
+        echo "$GA_OUT" | tail -14
+        if [ $GA_EXIT -eq 2 ]; then
+            echo "[GoldenArrow] could not run (exit 2) -- passing loud: a missing"
+            echo "[GoldenArrow] reading is not a pass, and a gate that blocks when"
+            echo "[GoldenArrow] it cannot measure denies every commit."
+        elif [ $GA_EXIT -ne 0 ]; then
+            echo ""
+            echo "[GoldenArrow] BLOCKED: a staged test file failed, hung, or errored."
+            echo "[GoldenArrow] The report names each one: logs/golden_arrow_staged.json"
+            echo "[GoldenArrow] A hung file is never a pass and never a skip."
+            echo "[GoldenArrow] Override (declared): ALLOW_FAST_COMMIT=1."
+            exit 1
+        fi
+    else
+        echo "[GoldenArrow] interpreter not found -- passing loud (gate unrunnable)"
+    fi
+    echo ""
 fi
 
 # ─── Check: heredoc-pipe lint (advisory, shell files) ───

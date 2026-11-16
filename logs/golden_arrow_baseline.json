@@ -1,0 +1,84 @@
+{
+  "generated": "2026-11-02T15:48:56Z",
+  "note": "known failing test files. The gate fails on a NEW failure and on any HUNG file; --strict fails on this list too. It may only shrink: pay a file down, run --baseline again, and it leaves the list.",
+  "known": {
+    "tests/test_concurrency_200.py": {
+      "counts": {
+        "passed": 2,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_db_monitor_worm.py": {
+      "counts": {
+        "passed": 41,
+        "failed": 2
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_enforce_global_quota_victim_rule.py": {
+      "counts": {
+        "passed": 3,
+        "failed": 3
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_eve_arm.py": {
+      "counts": {
+        "passed": 14,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_morphed_trainers.py": {
+      "counts": {
+        "passed": 4,
+        "failed": 2
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_orphan_triage.py": {
+      "counts": {
+        "passed": 8,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_pipeline_provenance_capsule.py": {
+      "counts": {
+        "passed": 2,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_race_shared_structures.py": {
+      "counts": {
+        "passed": 4,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_reflexion_sota_rows.py": {
+      "counts": {
+        "passed": 57,
+        "failed": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_thought_corpus_integrity.py": {
+      "counts": {
+        "passed": 5,
+        "failed": 5
+      },
+      "since": "2026-11-02T15:48:56Z"
+    },
+    "tests/test_wal_autocheckpoint_proof.py": {
+      "counts": {
+        "passed": 1,
+        "failed": 1,
+        "skipped": 1
+      },
+      "since": "2026-11-02T15:48:56Z"
+    }
+  }
+}
