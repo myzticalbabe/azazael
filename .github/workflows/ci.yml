@@ -9,9 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # `pyproject.toml` declares `requires-python = ">=3.15"`, so pinning the
+      # job to 3.12 made `pip install -e .` fail before a single test ran
+      # (measured on PR #3: "ERROR: Package 'azazael' requires a different
+      # Python: 3.12.16 not in '>=3.15'"). The interpreter here must match the
+      # one the project says it needs, or the job measures nothing.
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.15'
           cache: 'pip'
       - name: Install dependencies
         run: |
