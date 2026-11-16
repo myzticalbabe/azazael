@@ -297,6 +297,26 @@
    "from": "../tests/test_psyche_elicitation.py",
    "to": "tests/test_psyche_elicitation.py",
    "kind": "test"
+  },
+  {
+   "from": "../src/PSYCHE/data/female_needs_hyperedges.json",
+   "to": "nurse_ratchet/psyche/data/female_needs_hyperedges.json",
+   "kind": "data"
+  },
+  {
+   "from": "../tools/validate_female_needs_corpus.py",
+   "to": "tools/validate_female_needs_corpus.py",
+   "kind": "instrument"
+  },
+  {
+   "from": "../tests/test_female_needs_corpus.py",
+   "to": "tests/test_female_needs_corpus.py",
+   "kind": "test"
+  },
+  {
+   "from": "docs/explanation/female-needs-corpus.md",
+   "to": "docs/explanation/female-needs-corpus.md",
+   "kind": "docs"
   }
  ],
  "never_ship": [
