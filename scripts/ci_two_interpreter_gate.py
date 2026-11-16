@@ -275,7 +275,23 @@ def _print_summary(results: dict[str, dict], problems: list[str]) -> None:
         for problem in problems:
             print(f"  - {problem}")
     else:
-        print("\nPASS: both interpreters are within their recorded envelopes")
+        ran = list(results)
+        if len(ran) >= 2:
+            print(
+                "\nPASS: both interpreters are within their recorded envelopes"
+            )
+        else:
+            # A single role is not a two-interpreter reading. Saying "both"
+            # here reported a denominator the run never had (HED-9), so the
+            # summary names what ran and what it therefore cannot answer.
+            print(
+                f"\nPASS: {ran[0] if ran else 'no role'} is within its recorded "
+                "envelope"
+            )
+            print(
+                "      ONE ROLE ONLY - not a two-interpreter verdict; the "
+                "other role was not run or is not resolvable on this host"
+            )
 
 
 def main(argv: list[str] | None = None) -> int:
