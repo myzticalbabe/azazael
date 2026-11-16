@@ -179,6 +179,44 @@ def test_source_cannot_corroborate_itself(corpus):
     assert any("corroborate itself" in e for e in result.errors)
 
 
+def test_apparatus_declaring_a_removal_still_in_the_quote_is_rejected(corpus):
+    """A declaration that names a token the quote still contains describes nothing."""
+    doc = copy.deepcopy(corpus)
+    target = find(doc, "E-HOUSE-01")
+    target["corroboration"]["apparatus"]["removed"].append("conviction")
+    result = V.validate(doc)
+    assert not result.ok()
+    assert any("[corroboration_apparatus]" in e for e in result.errors)
+
+
+def test_apparatus_with_an_unknown_kind_is_rejected(corpus):
+    doc = copy.deepcopy(corpus)
+    target = find(doc, "E-HOUSE-01")
+    target["corroboration"]["apparatus"]["kind"] = "footnote-markers"
+    result = V.validate(doc)
+    assert not result.ok()
+    assert any("apparatus.kind" in e for e in result.errors)
+
+
+def test_apparatus_without_a_note_is_rejected(corpus):
+    """An unexplained removal is indistinguishable from a quote edited to fit."""
+    doc = copy.deepcopy(corpus)
+    target = find(doc, "E-HOUSE-01")
+    target["corroboration"].pop("note", None)
+    result = V.validate(doc)
+    assert not result.ok()
+    assert any("no note" in e for e in result.errors)
+
+
+def test_apparatus_with_an_empty_removal_list_is_rejected(corpus):
+    doc = copy.deepcopy(corpus)
+    target = find(doc, "E-HOUSE-01")
+    target["corroboration"]["apparatus"]["removed"] = []
+    result = V.validate(doc)
+    assert not result.ok()
+    assert any("non-empty list" in e for e in result.errors)
+
+
 def test_hand_typed_counts_that_drift_are_rejected(corpus):
     doc = copy.deepcopy(corpus)
     doc["_meta"]["counts"]["edges"] += 1
@@ -241,6 +279,32 @@ def test_wrna_edge_does_not_claim_the_urban_survey_as_support(corpus):
     assert "S-URBAN-TRAUMA" not in wrna["quorum"], (
         "quorum names a source whose own quoted line does not mention WRNA"
     )
+
+
+def test_house_corroboration_declares_the_callouts_it_removed(corpus):
+    """E-HOUSE-01's quote is contiguous only after two superscript callouts go.
+
+    The validator cannot prove contiguity -- the source text is not in the corpus
+    -- so this pins the declaration itself: both tokens, genuinely absent from the
+    quoted span, with the reading recorded. Deleting the declaration is the
+    regression it guards, and no shape check would notice it.
+    """
+    corroboration = find(corpus, "E-HOUSE-01")["corroboration"]
+    apparatus = corroboration["apparatus"]
+    assert apparatus["kind"] == "superscript-callouts"
+    assert apparatus["removed"] == ["4,10", "11-14"]
+    for token in apparatus["removed"]:
+        assert token not in corroboration["quote"], (
+            f"{token!r} is declared removed but is still in the quote"
+        )
+    assert "pdftotext" in corroboration["note"]
+
+
+def test_voice_quote_carries_the_source_comma_not_an_elision(corpus):
+    """The WRNA citation is contiguous: no bracketed elision, the source's comma."""
+    quote = find(corpus, "E-VOICE-02")["ground"]["quote"]
+    assert "[" not in quote and "]" not in quote
+    assert "2010), and is endorsed" in quote
 
 
 def test_corroborations_that_do_exist_are_quoted(corpus):

@@ -26,6 +26,19 @@ written, using the checks below:
 The lesson was not "fix four edges"; it was that each of those four is
 mechanically detectable. So they are checks now.
 
+What this cannot check
+----------------------
+Contiguity. Proving a quote is one contiguous span of its source needs the source
+text, which this corpus does not carry -- a source record names publisher, title,
+url, tier and kind, and nothing else. So a ``corroboration.apparatus`` declaration
+is checked for shape, and for honesty *against the quote*: a declared removal must
+be a token genuinely absent from the quoted span, and the removal must carry a
+note saying how the text was read. The re-insertion proof -- remove the declared
+tokens, then require a strict substring match against the saved source text -- is
+run against the source file, and its result belongs in that note. A validator that
+pretended to prove contiguity from the corpus alone would be reporting a match it
+never performed.
+
 Read-only by design
 -------------------
 There is deliberately no --write-counts. A validator that can rewrite the file
@@ -60,6 +73,7 @@ DEFAULT_CORPUS = REPO_ROOT / "src" / "PSYCHE" / "data" / "female_needs_hyperedge
 TIERS = ("A", "B", "C", "D")
 STATES = ("VERIFIED", "LEAD", "BLIND", "CUT")
 CLAIM_TYPES = ("guidance", "prevalence", "policy", "qualitative")
+APPARATUS_KINDS = ("superscript-callouts",)
 MIN_QUOTE_CHARS = 15
 SOURCE_ID_RE = re.compile(r"S-[A-Z0-9]+(?:-[A-Z0-9]+)*")
 
@@ -249,6 +263,48 @@ def validate(doc: dict) -> Findings:
                                f"{csid} is cited as both the ground source and its own "
                                "corroborator -- a source cannot corroborate itself")
 
+                    # ---- APPARATUS: a declared removal must describe the quote --
+                    # A quote lifted out of a printed page carries the page's own
+                    # furniture (superscript callouts). Removing it is legitimate
+                    # only when the removal is declared, and a declaration is only
+                    # checkable when it names tokens that are actually gone.
+                    if "apparatus" in corroboration:
+                        f.check("corroboration_apparatus")
+                        apparatus = corroboration.get("apparatus")
+                        if not isinstance(apparatus, dict):
+                            f.fail("corroboration_apparatus", eid,
+                                   "corroboration.apparatus is not an object")
+                        else:
+                            kind = str(apparatus.get("kind") or "")
+                            if kind not in APPARATUS_KINDS:
+                                f.fail("corroboration_apparatus", eid,
+                                       f"apparatus.kind {kind!r} not one of {APPARATUS_KINDS}")
+                            removed = apparatus.get("removed")
+                            if not isinstance(removed, list) or not removed:
+                                f.fail("corroboration_apparatus", eid,
+                                       "apparatus.removed is not a non-empty list")
+                            else:
+                                declared_tokens: list[str] = []
+                                for token in removed:
+                                    if not isinstance(token, str) or not token.strip():
+                                        f.fail("corroboration_apparatus", eid,
+                                               f"apparatus.removed holds an empty or "
+                                               f"non-string token: {token!r}")
+                                        continue
+                                    if token in declared_tokens:
+                                        f.fail("corroboration_apparatus", eid,
+                                               f"apparatus.removed declares {token!r} twice")
+                                    declared_tokens.append(token)
+                                    if token in cquote:
+                                        f.fail("corroboration_apparatus", eid,
+                                               f"apparatus.removed declares {token!r} removed, but "
+                                               "it is still in the quote -- the declaration does "
+                                               "not describe the text it is attached to")
+                            if not str(corroboration.get("note") or "").strip():
+                                f.fail("corroboration_apparatus", eid,
+                                       "apparatus declared with no note; a removal nobody explained "
+                                       "is indistinguishable from a quote edited to fit")
+
             # ---- TIER: never better than the weakest source cited --------
             f.check("tier_vs_source")
             cite_tiers = [sources[s]["tier"] for s in cited if s in sources]
@@ -383,6 +439,19 @@ def _mut_uncited_corroborator(doc: dict) -> str:
     raise AssertionError("no edge without S-CCJ-2024 to mutate")
 
 
+def _mut_apparatus_declares_a_present_token(doc: dict) -> str:
+    """Declare a removal that is still in the quote -- a declaration that lies."""
+    for _need, edge in iter_edges(doc):
+        corroboration = edge.get("corroboration") or {}
+        apparatus = corroboration.get("apparatus")
+        quote = str(corroboration.get("quote") or "")
+        if isinstance(apparatus, dict) and isinstance(apparatus.get("removed"), list):
+            words = quote.split()
+            apparatus["removed"] = list(apparatus["removed"]) + [words[0] if words else "the"]
+            return edge["edge_id"]
+    raise AssertionError("no corroboration carrying apparatus to mutate")
+
+
 def _mut_wrong_counts(doc: dict) -> str:
     doc["_meta"]["counts"]["edges"] += 1
     return "_meta.counts"
@@ -398,6 +467,8 @@ MUTATORS = [
     ("tier-C edge relabelled VERIFIED", _mut_upgrade_c_tier_to_verified),
     ("ground quote blanked", _mut_blank_quote),
     ("corroborator named in quorum but absent from evidence", _mut_uncited_corroborator),
+    ("apparatus declares a removal still present in the quote",
+     _mut_apparatus_declares_a_present_token),
     ("count block off by one", _mut_wrong_counts),
     ("ranked answer silently drops a need", _mut_ranked_drops_a_need),
 ]

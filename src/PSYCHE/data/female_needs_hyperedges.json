@@ -698,7 +698,14 @@
           "corroboration": {
             "source_id": "S-ASPE-HOUSING",
             "quote": "Subsidized housing policies and practices that exclude individuals with conviction histories and prevent living with family members.",
-            "note": "extracted with pdftotext -layout on 2026-11-16; the PDF's superscript footnote markers (4,10 / 11-14) were flattened by extraction and are omitted here rather than guessed at"
+            "apparatus": {
+              "kind": "superscript-callouts",
+              "removed": [
+                "4,10",
+                "11-14"
+              ]
+            },
+            "note": "extracted with pdftotext -enc UTF-8 in reading order on 2026-11-16. The superscript callouts are printed inside the sentence, not omitted by us: 4,10 falls between 'histories' and 'and', 11-14 falls after the closing period. Both are declared above so the removal is checkable: the raw quote does not occur in the source's saved text while the callouts are inline, and deleting exactly these two tokens leaves a span that occurs there verbatim (checked 2026-11-16 against the same-day pdftotext read)."
           },
           "blind": false,
           "trunc": false,
@@ -767,7 +774,7 @@
           "tier": "C",
           "state": "LEAD",
           "ground": {
-            "quote": "The Women's Risk Need Assessment (WRNA) was one of the first gender-responsive actuarial risk assessments available for justice agencies (Van Voorhis et al., 2010) [...] and is endorsed by the United Nations Office on Drugs and Crime to adhere to the Bangkok Rules",
+            "quote": "The Women's Risk Need Assessment (WRNA) was one of the first gender-responsive actuarial risk assessments available for justice agencies (Van Voorhis et al., 2010), and is endorsed by the United Nations Office on Drugs and Crime to adhere to the Bangkok Rules",
             "source_id": "S-HJ-GRT"
           },
           "denominator": "n/a - policy review",
@@ -775,7 +782,7 @@
           "quorum": "single review; no independent source retrieved here names WRNA, and the national survey that counts gender-responsive assessment use in state DOCs counts the tools without naming which ones",
           "blind": false,
           "trunc": false,
-          "provenance": "retrieved 2026-11-16; the review's own bracketed citation is preserved in the quote. Previously VERIFIED on a corroboration that the cited line does not support, so it is recorded as LEAD: the instrument and its UNODC endorsement are real, and the tier-C review is the only source here that says so."
+          "provenance": "retrieved 2026-11-16; the quote is contiguous in the source's saved text, and the comma after the closing bracket is the source's own. Previously VERIFIED on a corroboration that the cited line does not support, so it is recorded as LEAD: the instrument and its UNODC endorsement are real, and the tier-C review is the only source here that says so."
         }
       ]
     }
