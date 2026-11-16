@@ -20,6 +20,10 @@ from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+# Reset config singleton BEFORE importing ClusterWORMZ to force fresh config load
+from CORE.config import reset_config
+reset_config()
+
 try:
     import pytest
 except ImportError:
@@ -57,7 +61,6 @@ from CORE.WORMS.CLUSTERWORMS import (
     # Registry (shared dict with CORE.worm_registry)
     WORM_REGISTRY,
 )
-from CORE.config import reset_config
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -919,10 +922,6 @@ class TestClusterWORMZBuildFullEcosystem:
 
 class TestClusterWORMZCategoryConfig:
     """Verify nature config overrides from azazael.yaml are wired to ClusterWORMZ."""
-
-    def setup_method(self):
-        """Reset config singleton to force reload of azazael.yaml."""
-        reset_config()
 
     def test_build_from_category_applies_timeout(self):
         """build_from_category('monitor') should apply 30s timeout from azazael.yaml."""
