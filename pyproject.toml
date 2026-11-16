@@ -29,6 +29,14 @@ dependencies = [
     # TestClusterWORMZCategoryConfig` failed on CI's Python 3.15 while passing
     # on a machine that happened to have PyYAML installed globally.
     "PyYAML>=6,<7",
+    # 32 modules under `src/` import numpy at module level and nothing guards
+    # the import, so it is a hard requirement of the installed package, not a
+    # test-only convenience. It was also undeclared until 2026-11-15: on a
+    # clean runner `pytest --collect-only` reported 12 errors -- all of them
+    # `ModuleNotFoundError: No module named 'numpy'` or `'pydantic'` -- which
+    # is a suite that cannot be collected rather than a suite that fails.
+    "numpy>=2,<3",
+    "pydantic>=2,<3",
 ]
 
 [tool.coverage.run]
