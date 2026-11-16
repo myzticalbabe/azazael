@@ -41,7 +41,16 @@ DEFAULT_MAX_FILES = 8
 REPO = Path(__file__).resolve().parents[1]
 #: The same tool `tools/preflight_all.py` registers as `soulforge-selftest`, so
 #: the command this hook runs is the command the evidence tier runs.
-SOULFORGE_GATE = REPO / "tools" / "soulforge_gate.py"
+#:
+#: SPELLED AS A STRING, NOT ASSEMBLED. This path was `REPO / "tools" /
+#: "soulforge_gate.py"` until 2026-11-16, which is correct at runtime and
+#: invisible to every textual audit: the wiring check in
+#: `tests/test_preflight_gate_wiring.py` looks for a literal `tools/<name>.py`
+#: on an executed line, so a real invocation read as an unwired gate for weeks.
+#: The string is the single place the path is written; the argv below is built
+#: from it and `cwd` is `REPO`, so the relative name resolves to the same file.
+SOULFORGE_GATE_PATH = "tools/soulforge_gate.py"
+SOULFORGE_GATE = REPO / SOULFORGE_GATE_PATH
 #: Bounded below the hook's own `timeout 300` around this file: a wedged exe
 #: must be named by the gate, not inherited by the commit.
 SOULFORGE_BUDGET = 280
@@ -270,7 +279,7 @@ def soulforge_proof() -> int:
         return 0
     try:
         result = subprocess.run(
-            [sys.executable, str(SOULFORGE_GATE), "--staged"],
+            [sys.executable, SOULFORGE_GATE_PATH, "--staged"],
             cwd=str(REPO), capture_output=True, text=True, timeout=SOULFORGE_BUDGET,
             encoding="utf-8", errors="replace",
         )

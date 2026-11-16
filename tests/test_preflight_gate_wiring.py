@@ -160,6 +160,22 @@ KNOWN_UNWIRED = {
         "PUBLIC_MANIFEST.json instrument is materialised from",
         "Project_Nurse_Ratchet/.github/workflows/ci.yml",
     ),
+    # soulforge_gate.py is executed by the commit hook's own relay: cmd_hook()
+    # calls soulforge_proof(), which runs it with --staged before the bulk
+    # checks. It is recorded here rather than as a hook stanza because the
+    # relay bounds itself with the hook's timeout budget (280s) and the tool
+    # drives an 8 MB built binary -- absent on a clone without dist/, where the
+    # relay passes loud rather than blocking every commit. 2026-11-16: the
+    # relay's path was assembled from parts (`REPO / "tools" / ...`), so this
+    # matcher reported a wired gate as unwired; the constant is now the literal
+    # string `tools/soulforge_gate.py`.
+    "soulforge_gate.py": (
+        "wired-elsewhere",
+        "executed by the commit hook itself: scripts/commit_gate.py's "
+        "soulforge_proof() runs it with --staged on every commit, bounded to "
+        "280s under the hook's own 300s",
+        "scripts/commit_gate.py",
+    ),
     # tools/cain_render_gate.py is no longer allowlisted because it is no
     # longer here: RETIRED 2026-11-01 with its own target document, archived
     # under archive/retired-tools-20261101/. test_retired_tools_stay_retired
