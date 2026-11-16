@@ -442,6 +442,7 @@ def _find_config_file() -> (Path | None):
       6. Relative to this file's location (3 levels up = azazael/)
       7. Parent of src/ (for tests running from src/)
       8. Runner temp directory parent (fallback for some CI setups)
+      9. Caller's module location (for test subprocesses)
 
     Returns None (not raises) if no valid config file found.
     """
@@ -498,6 +499,21 @@ def _find_config_file() -> (Path | None):
     runner_temp = os.environ.get("RUNNER_TEMP")
     if runner_temp:
         candidates.append(Path(runner_temp).parent / "azazael.yaml")
+
+    # 9. Caller's module location (for test subprocesses)
+    # Look up the stack for a caller outside this module
+    try:
+        import inspect
+        frame = inspect.currentframe()
+        while frame:
+            frame = frame.f_back
+            if frame and frame.f_code.co_filename != __file__:
+                caller_file = Path(frame.f_code.co_filename).resolve()
+                candidates.append(caller_file.parent / "azazael.yaml")
+                candidates.append(caller_file.parent.parent / "azazael.yaml")
+                break
+    except Exception as exc:
+        note_failure("config:caller-location", exc)
 
     for path in candidates:
         try:
