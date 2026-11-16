@@ -109,6 +109,11 @@ SEMANTIC: Dict[str, Tuple[str, str]] = {
     "ok": ("#3fb950", "rgba(63,185,80,0.28)"),
     "warn": ("#d29922", "rgba(210,153,34,0.28)"),
     "advisory": ("#d29922", "rgba(210,153,34,0.28)"),
+    # `held` is its own slot, not `advisory`. The A8 audit (P1) found that
+    # `warn` and `advisory` share a hex, so a cursor held mid-flight and a
+    # warning rendered identically - two different states, one colour. The hue
+    # is the mesh accent's, taken from ACCENTS above rather than invented.
+    "held": (ACCENTS["mesh"][0], "rgba(88,166,255,0.28)"),
     "error": ("#f85149", "rgba(248,81,73,0.28)"),
     "unknown": ("#8b949e", "rgba(139,148,158,0.22)"),
 }

@@ -67,6 +67,17 @@ def weakest_rung(by_rung: dict):
 
 LEDGER_KEYS = {"frame", "cursor_id", "tree", "node", "verdict", "claim",
                "prev_hash", "hash"}
+# Columns a row MAY carry. The A8 audit (docs/CURSOR_SWARM_A8_AUDIT_2026-11-14.md
+# §2.4) checked the design's proposal to restrict the hash to the canonical
+# eight and found it BACKWARDS: restricting the hash would make an added
+# column unauthenticated, so a stalled cursor's timestamp could be rewritten
+# without breaking the chain. The hash therefore stays over every key the row
+# carries, and adding a column authenticates it automatically.
+#
+# `ts` (epoch milliseconds) is the one optional column: the pulse needs the
+# row's age, and an age cannot be derived from a frame number. Old 8-key rows
+# stay valid - they are hashed over exactly the canonical set.
+LEDGER_OPTIONAL_KEYS = {"ts"}
 # In the wild (LIVEVIEW_CURSOR_SWARM_V0.jsonl, 22 rows): landed, held,
 # quarantine, rolledback. Measured 2026-11-12, not quoted from prose.
 LEDGER_VERDICTS = {"landed", "held", "quarantine", "rolledback"}
@@ -95,10 +106,11 @@ def validate_ledger(path):
                 continue
             frame = row.get("frame")
             keys = set(row)
-            if keys != LEDGER_KEYS:
+            if not (LEDGER_KEYS <= keys <= LEDGER_KEYS | LEDGER_OPTIONAL_KEYS):
                 bad.append((lineno, frame,
-                            "keys %s (want exactly %s)"
-                            % (sorted(keys), sorted(LEDGER_KEYS))))
+                            "keys %s (want %s, optionally +%s)"
+                            % (sorted(keys), sorted(LEDGER_KEYS),
+                               sorted(LEDGER_OPTIONAL_KEYS))))
                 continue
             if row.get("verdict") not in LEDGER_VERDICTS:
                 bad.append((lineno, frame,
@@ -120,7 +132,14 @@ def validate_ledger(path):
 # are the brief-named live path first, overridable for tests via
 # AZAZAEL_CURSOR_LEDGER. Absence is not failure: the tool says which source
 # it used and falls back to live-log replay (HED-6 record-and-continue).
-LEDGER_CANDIDATES = ["C:/Users/clint/LIVEVIEW_CURSOR_SWARM_V0.jsonl"]
+# The second candidate is the in-repo twin the A8 audit §3 P2 asked for: a
+# ledger hard-coded to one machine's home directory cannot be written by the
+# Kali or Ubuntu cursor, so the per-environment parity story needs a path that
+# travels with the tree. The home path keeps priority, so a machine that has
+# both keeps reading the live one.
+LEDGER_CANDIDATES = ["C:/Users/clint/LIVEVIEW_CURSOR_SWARM_V0.jsonl",
+                     str(Path(__file__).resolve().parent.parent
+                         / "tools" / "cursor_swarm" / "worker_frames.jsonl")]
 
 
 def _default_ledger():

@@ -1,0 +1,5 @@
+# Generated output: the rendered site and the rolled-back attempts.
+# The ledger is NOT ignored - it is the evidence, and it is committed.
+out/
+worker_attempts.jsonl
+__pycache__/
