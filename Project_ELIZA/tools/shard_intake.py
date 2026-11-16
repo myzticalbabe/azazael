@@ -2,17 +2,29 @@
 # coding: utf-8
 """Stub the Kali codebase into ELIZA as an optional, adoptable shard surface.
 
-`atlas_kali-linux.json` enumerates what the Kali lane actually holds: 18 trees,
-679 modules, 1,274 classes. That inventory is the shard set -- one shard per
-class unit -- and this tool writes one stub module per shard plus an index, so a
-forward developer can pick a unit up deliberately instead of copying from a tree
-they cannot see.
+`atlas_kali-linux.json` enumerates what the Kali lane actually holds: 6,928
+modules across 131 trees, 1,354 of which yield units. That inventory is the shard
+set -- one shard per class unit -- and this tool writes one stub module per shard
+plus an index, so a forward developer can pick a unit up deliberately instead of
+copying from a tree they cannot see. Measured 2026-11-16: 4,085 shards, being
+3,944 named classes plus 141 residuals standing for 520 classes the atlas does
+not name.
 
-The atlas names at most six classes per module, so its `top_classes` lists cover
-1,131 of the 1,274. The remaining 143 live in 52 modules that each get one
-*residual* shard; a residual shard is addressable and says how many classes it
-stands for, because inventing class names the atlas never recorded would be a
-stub that lies about what it knows.
+The atlas names at most six classes per module. A module with more gets one
+*residual* shard beside its named ones; a residual is addressable and says how
+many classes it stands for, because inventing class names the atlas never
+recorded would be a stub that lies about what it knows.
+
+**The census is not the whole surface, and the ledger wins where they disagree.**
+The atlas is a point-in-time reading -- generated 2026-11-09, and not
+refreshable from this host -- so it is silent about units the vendored tree
+really holds. `WIRED.json` is the adoption ledger, and an id in it is a claim a
+human made with a test behind it. A `--check` that treated the census as the
+authority reported all 94 such ids as "not in the atlas" on every run (measured
+2026-11-16): a gate that cannot pass is a gate nobody reads. So `surface()` --
+the set this tool writes, checks and adopts -- is the census **plus** one minted
+entry per wired id the census does not carry, and the gap is still printed as an
+advisory, because minting must not hide its own denominator (HED-9).
 
 **A stub is not an implementation, and this tool refuses to write one that looks
 like one.** Every stub carries its provenance (Kali module, class, atlas date),
@@ -57,6 +69,12 @@ INDEX = SHARDS / "SHARD_INDEX.json"
 #: "wired" is a claim with a control rather than a flipped boolean.
 WIRED = SHARDS / "WIRED.json"
 SCHEMA = "eliza.shard-intake/1"
+#: Where the vendored Kali tree lives. The resolvers below are the single owner
+#: of how a Kali module reference is spelled as an import name: they used to live
+#: in `adopt_queue.py`, so the generator had no way to ask the question the
+#: writer asked, and every regeneration emitted a stub that could not reach the
+#: unit the ledger said it had adopted.
+VENDOR = REPO / "adopted" / "kali"
 
 STUB = '''# coding: utf-8
 """{tree} / {module} :: {subject} -- INTAKE STUB. Not an implementation.
@@ -96,13 +114,28 @@ def describe() -> dict:
     }}
 
 
-def load(*args, **kwargs):
+'''
+
+#: An unwired shard refuses, with the reason and the place to start reading.
+LOAD_REFUSE = '''def load(*args, **kwargs):
     """Refuse, loudly, with the reason and the place to start reading."""
     raise NotImplementedError(
         "shard %s is an intake stub: %s is not implemented in ELIZA. "
         "Read the Kali source at %s, then see "
         "docs/TUTORIAL_SHARD_DEV_2026-11-02.md" % (SHARD_ID, SHARD_ID, SOURCE_MODULE)
     )
+'''
+
+#: A wired shard returns the unit it points at. Regeneration must reproduce this,
+#: never overwrite it: measured 2026-11-14, `--write` rewrote all 1152 wired
+#: shards as raising stubs while keeping `WIRED = True`, so the tree and its
+#: ledger disagreed and five adopted units went red behind a green `--check`.
+LOAD_ADOPTED = '''def load(*args, **kwargs):
+    """Return the vendored unit. Importing the module is the adoption."""
+    import importlib
+
+    vendored = importlib.import_module({dotted!r})
+    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
 '''
 
 
@@ -113,6 +146,62 @@ def slug(text: str) -> str:
     if cleaned[0].isdigit():
         cleaned = "s_" + cleaned
     return cleaned
+
+
+def real_case(parts: Sequence[str]) -> Optional[str]:
+    """The on-disk spelling of a path inside the vendor tree, or None.
+
+    The atlas records `scripts/gate_bash.py`; the directory is `SCRIPTS`. Windows
+    resolves that case-insensitively for a path check, so a path probe was happy
+    and the dotted name was still wrong: `import adopted.kali.scripts` raised
+    `ModuleNotFoundError` because Python matches package **names**, not paths.
+    Eight rows blocked on case alone (measured 2026-11-03).
+    """
+    base = VENDOR
+    resolved: List[str] = []
+    for part in parts:
+        # A resolved `.py` file cannot be descended into (`METAWORMS.py` treated
+        # as a directory raised NotADirectoryError), so the walk stops there.
+        if not base.is_dir():
+            return None
+        # Never trust the spelling: `(base / "scripts").exists()` is True for a
+        # directory actually named `SCRIPTS`, so asking the filesystem whether
+        # the path lives is not the same question as what the entry is called.
+        # A module part arrives without its suffix (`gate_bash`, from
+        # `scripts/gate_bash.py`), so both spellings are candidates and a package
+        # directory wins over a same-named module, as Python's own import does.
+        entries = [child.name for child in base.iterdir()]
+        wanted = [part, part + ".py"]
+        chosen = next((name for name in wanted if name in entries), None)
+        if chosen is None:
+            lowered = {name.lower() for name in wanted}
+            matches = sorted(name for name in entries if name.lower() in lowered)
+            if not matches:
+                return None
+            chosen = matches[0]
+        resolved.append(chosen)
+        base = base / chosen
+    return "/".join(resolved)
+
+
+def module_path(parts: Sequence[str]) -> Optional[str]:
+    """On-disk module path for `parts`, without the source suffix.
+
+    `real_case` answers with what the file is called (`gate_bash.py`); a dotted
+    module name must not carry that suffix, or every emitted import reads
+    `adopted.kali.SCRIPTS.gate_bash.py`.
+    """
+    real = real_case(parts)
+    if real is None:
+        return None
+    return real[:-3] if real.endswith(".py") else real
+
+
+def dotted(module: str) -> str:
+    """The import name for a Kali module reference (`AOA/core/event_bus.py`)."""
+    parts = module[:-3].split("/") if module.endswith(".py") else module.split("/")
+    real = module_path(parts)
+    return "adopted.kali." + (real if real is not None else module[:-3]).replace("/", ".")
 
 
 #: What the index records. The comparison in `check()` uses exactly these, so an
@@ -210,11 +299,141 @@ def units(atlas: Dict) -> List[Dict]:
     return out
 
 
+_LINE_COUNT: Dict[str, int] = {}
+
+
+def vendor_lines(module: Optional[str]) -> int:
+    """How many lines the vendored source for `module` has, or 0 if unreadable.
+
+    Only `ledger_units` asks, and only for a module the census does not describe:
+    a minted stub has to say *something* true about the unit it stands for, and a
+    line count read off the file the import will hit is true in a way the census'
+    silence is not. Cached because `--write` and `--check` walk the same ids.
+    """
+    if not module:
+        return 0
+    if module not in _LINE_COUNT:
+        try:
+            with (VENDOR / module).open("r", encoding="utf-8", errors="replace") as handle:
+                _LINE_COUNT[module] = sum(1 for _ in handle)
+        except OSError:
+            _LINE_COUNT[module] = 0
+    return _LINE_COUNT[module]
+
+
+def ledger_units(census: Sequence[Dict], atlas: Dict) -> List[Dict]:
+    """One entry per wired id the census does not carry.
+
+    The ledger and the atlas answer different questions. `WIRED.json` records what
+    a human adopted, with the test that proves it; the atlas records what one
+    `domain_trees.py` run saw on one day. Where the ledger names a unit the census
+    omits, the unit is real -- measured 2026-11-16 over all 94 remaining ids: each
+    resolves to a file under `adopted/kali/`, 79 are classes and 15 are the module
+    itself -- and the party that is silent is the census. Refusing to give those
+    ids a shard made `--check` fail on 94 rows that were correct, and made every
+    `load()` unreachable for a unit the tree had already adopted.
+
+    Minted entries carry `census: False` and their own `detail` sentence. Neither
+    key is in ``INDEX_KEYS``: a consumer reads what a shard *is*, not which census
+    happened to find it, and `check()` keeps deriving its advisory set from the
+    census alone so the gap cannot disappear into its own repair.
+    """
+    modules = atlas.get("modules") or {}
+    generated = str(atlas.get("generated_at", ""))[:10]
+    known = {entry["shard_id"] for entry in census}
+    seen = {entry["path"].lower() for entry in census}
+    out: List[Dict] = []
+    for shard_id in sorted(wired_registry()):
+        if shard_id in known:
+            continue
+        prefix, _, rest = shard_id.partition(":")
+        module, _, klass = rest.partition("#")
+        if prefix != "kali" or not module or not klass:
+            # A foreign or malformed id is what `check()` reports as unexplained;
+            # minting a shard here would hand an unexplained claim an address and
+            # turn the one hard problem into a green line.
+            continue
+        meta = modules.get(module) or {}
+        parts = module[:-3].split("/") if module.endswith(".py") else module.split("/")
+        real = real_case(parts)
+        tree = str(meta.get("tree")
+                   or (real.split("/")[0] if real and "/" in real else "(root)"))
+        lines = int(meta.get("lines") or 0) or vendor_lines(real)
+        public_api = int(meta.get("public_api") or 0)
+        stem = slug(module.replace("/", "_").replace(".py", ""))
+        reason = classify_unmatched(shard_id, modules)
+        if klass == "module":
+            kind, class_name, unnamed = "module", None, 0
+            subject = "shards/%s/%s__module.py" % (slug(tree), stem)
+            why = ("the module itself, wired by shards/WIRED.json; the census names "
+                   "every class of it, so this shard addresses the module rather "
+                   "than a residual count"
+                   if reason == "redundant_residual" else
+                   "the module itself, wired by shards/WIRED.json; the atlas "
+                   "carries no module by this name")
+        else:
+            kind, class_name, unnamed = "class", klass, 0
+            subject = "shards/%s/%s__%s.py" % (slug(tree), stem, slug(klass))
+            why = ("class %s, wired by shards/WIRED.json; the census does not name "
+                   "it, so this stub rests on the ledger and the vendored source "
+                   "(%d lines)" % (klass, lines))
+        path = subject
+        if path.lower() in seen:
+            digest = hashlib.sha1(shard_id.encode("utf-8")).hexdigest()[:8]
+            path = subject[:-3] + "__%s.py" % digest
+        seen.add(path.lower())
+        out.append({
+            "shard_id": shard_id,
+            "kind": kind,
+            "tree": tree,
+            "module": module,
+            "class": class_name,
+            "lines": lines,
+            "public_api": public_api,
+            "unnamed": unnamed,
+            "path": path,
+            "generated": generated,
+            "detail": why,
+            "census": False,
+        })
+    return out
+
+
+def surface(atlas: Dict, census: Optional[Sequence[Dict]] = None) -> List[Dict]:
+    """The shard set this tool writes, checks and adopts.
+
+    The census' units plus the ledger's uncensused ones. `census` is accepted so a
+    caller that needs both halves does not pay for `units()` twice -- it walks the
+    whole atlas.
+    """
+    census = units(atlas) if census is None else list(census)
+    return census + ledger_units(census, atlas)
+
+
 def render_index(entries: Sequence[Dict], atlas: Dict) -> str:
+    #: A wired row carries its **target**: the dotted module its `load()` returns
+    #: the unit from. `adopt_queue.check_shards` used to infer the owner from the
+    #: path suffix `adopted/kali/<module>`, which cannot work for a row whose
+    #: ledger entry declares a `dotted` -- the five AOA units wave at
+    #: `adopted.aoa.event_bus`, so the inference found no owner at all and
+    #: reported five correct shards as broken (measured 2026-11-16, 5 of 1,139).
+    #: The ledger is the authority for the target; the index is where a consumer
+    #: reads it instead of re-deriving the resolver.
+    wired = wired_registry()
+    rows = []
+    for entry in entries:
+        row = {key: entry[key] for key in INDEX_KEYS}
+        claim = wired.get(entry["shard_id"])
+        if claim is not None:
+            declared = claim.get("dotted") if isinstance(claim, dict) else None
+            row["target"] = declared or dotted(entry["module"])
+        rows.append(row)
     payload = {
         "schema": SCHEMA,
         "note": ("Generated by Project_ELIZA/tools/shard_intake.py from the Kali atlas. "
-                 "Every entry is a stub: WIRED = False. Regenerate, never hand-edit."),
+                 "Every entry is a generated stub; a wired one also carries `target`, "
+                 "the dotted module its load() returns the unit from. Regenerate, "
+                 "never hand-edit."),
         "atlas": {
             "environment": "kali-linux",
             "generated_at": atlas.get("generated_at"),
@@ -226,7 +445,7 @@ def render_index(entries: Sequence[Dict], atlas: Dict) -> str:
             "modules": len({entry["module"] for entry in entries}),
             "trees": sorted({entry["tree"] for entry in entries}),
         },
-        "shards": [{key: entry[key] for key in INDEX_KEYS} for entry in entries],
+        "shards": rows,
     }
     return json.dumps(payload, indent=1, sort_keys=False) + "\n"
 
@@ -255,17 +474,24 @@ def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
     for entry in entries:
         path = REPO / entry["path"]
         path.parent.mkdir(parents=True, exist_ok=True)
+        #: A minted entry brings its own sentence, because the census sentence
+        #: would be a claim the census never made -- "0 public API entries" for a
+        #: module the atlas does not describe is not a measurement, it is the
+        #: absence of one wearing the same clothes.
+        minted = entry.get("census") is False
         if entry["kind"] == "class":
             subject = entry["class"]
             literal = repr(entry["class"])
-            detail = ("class %s, %d lines in the module, %d public API entries"
-                      % (entry["class"], entry["lines"], entry["public_api"]))
+            detail = entry.get("detail") or (
+                "class %s, %d lines in the module, %d public API entries"
+                % (entry["class"], entry["lines"], entry["public_api"]))
         else:
-            subject = "module residual"
+            subject = "the module itself" if minted else "module residual"
             literal = "None"
-            detail = ("%d classes the atlas does not name individually (it lists at "
-                      "most six per module); read the module, do not assume the six "
-                      "are the whole story" % entry["unnamed"])
+            detail = entry.get("detail") or (
+                "%d classes the atlas does not name individually (it lists at "
+                "most six per module); read the module, do not assume the six "
+                "are the whole story" % entry["unnamed"])
         text = STUB.format(tree=entry["tree"], module=entry["module"],
                            subject=subject, detail=detail, literal=literal,
                            klasses=entry.get("unnamed", 0),
@@ -274,6 +500,16 @@ def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
                            lines=entry["lines"], public_api=entry["public_api"],
                            generated=entry["generated"], shard_id=entry["shard_id"],
                            wired="True" if entry["shard_id"] in wired_ids else "False")
+        # An adopted shard keeps its `load()`: the ledger names the module it
+        # waves at, and a row may carry an explicit `dotted` for a target the
+        # path resolver cannot derive (the five AOA units wave at
+        # `adopted.aoa.event_bus`, not at `adopted.kali.AOA.core.event_bus`).
+        claim = wired_ids.get(entry["shard_id"])
+        if claim is None:
+            text += LOAD_REFUSE
+        else:
+            declared = claim.get("dotted") if isinstance(claim, dict) else None
+            text += LOAD_ADOPTED.format(dotted=declared or dotted(entry["module"]))
         path.write_text(text, encoding="utf-8", newline="\n")
         written += 1
     INDEX.write_text(render_index(entries, atlas), encoding="utf-8", newline="\n")
@@ -334,6 +570,13 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
     elif not wired and not any(isinstance(node, ast.Raise)
                                for node in ast.walk(loader[0])):
         problems.append("%s load() does not raise: a stub that returns is a fake"
+                        % entry["path"])
+    elif wired and any(isinstance(node, ast.Raise) for node in ast.walk(loader[0])):
+        # The mirror of the rule above, and the reason it exists: a wired shard
+        # whose `load()` raises is a shard that was adopted and then quietly
+        # un-adopted by a regeneration. `--check` passes only when the tree and
+        # the ledger agree about which one it is.
+        problems.append("%s is listed as wired in WIRED.json but its load() raises"
                         % entry["path"])
     #: Only an UNWIRED stub is held to "imports nothing". That rule exists so a
     #: generated stub cannot smuggle a copy in behind a name -- it was never a
@@ -418,9 +661,14 @@ def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     on_disk = {entry["path"]: {key: entry.get(key) for key in INDEX_KEYS}
                for entry in index.get("shards", [])}
-    units_by_path = {entry["path"]: entry for entry in units(atlas)}
+    census = units(atlas)
+    #: The whole surface, not just the census. A wired id the atlas is silent
+    #: about is still a real shard -- `ledger_units` mints it -- so judging the
+    #: index against the census alone reported all 94 of those stubs as
+    #: "in the index but not the atlas (stale stub)" on every run.
+    entries = surface(atlas, census)
     expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
-                for entry in units(atlas)}
+                for entry in entries}
     for path in sorted(set(expected) - set(on_disk)):
         problems.append("%s is in the atlas but not the index" % path)
     for path in sorted(set(on_disk) - set(expected)):
@@ -441,7 +689,7 @@ def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
     #: atlas", which no gate run could catch while the ledger was empty -- the
     #: first adoption exercised the branch (measured 2026-11-03: five real ids,
     #: five false defects).
-    unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
+    unit_ids = {entry["shard_id"] for entry in census}
     for shard_id, claim in sorted(assigned.items()):
         if shard_id not in unit_ids:
             kind = classify_unmatched(shard_id, modules_by_name)
@@ -488,7 +736,7 @@ def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
 
 
 def adopt(shard_id: str, atlas: Dict) -> int:
-    entries = {entry["shard_id"]: entry for entry in units(atlas)}
+    entries = {entry["shard_id"]: entry for entry in surface(atlas)}
     entry = entries.get(shard_id)
     if entry is None:
         close = [key for key in entries if shard_id.lower() in key.lower()][:5]
@@ -497,7 +745,9 @@ def adopt(shard_id: str, atlas: Dict) -> int:
             print("closest: " + ", ".join(close), file=sys.stderr)
         return 1
     print("Adopt plan for %s" % shard_id)
-    print("  source   kali-linux %s (class %s)" % (entry["module"], entry["class"]))
+    print("  source   kali-linux %s (%s)"
+          % (entry["module"],
+             "class %s" % entry["class"] if entry["class"] else "the module itself"))
     print("  stub     %s" % entry["path"])
     print("  steps")
     print("    1. read the Kali source; list its imports and its side effects")
@@ -530,7 +780,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     except AtlasUnavailable as exc:
         print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
         return 2
-    entries = units(atlas)
+    entries = surface(atlas)
 
     if args.write:
         result = write(entries, atlas)

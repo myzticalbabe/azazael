@@ -5672,95 +5672,35 @@
    "commit": "vendored",
    "mode": "vendored"
   },
-  "kali:scripts/environ_updater.py#AzazaelEnvironment": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/environ_updater.py#Conflict": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/environ_updater.py#ConflictType": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/environ_updater.py#EnvironmentStatus": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/environ_updater.py#MLPatternMatcher": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/environ_updater.py#SpawnResult": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/gate_bash.py#GateBash": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/gate_str_replace.py#GateStrReplace": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/gate_write_file.py#GateWriteFile": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/sentinel_gate.py#SentinelValidator": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/sync_skills.py#SkillsSync": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/test_generate_telemetry.py#TestGenerateTelemetry": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
-  "kali:scripts/test_auto_sync.py#TestAutoSync": {
-   "test": "tests/test_adopted_kali_vendored.py",
-   "commit": "vendored",
-   "mode": "vendored"
-  },
   "kali:AOA/core/event_bus.py#EventBus": {
    "test": "tests/test_adopted_event_bus.py",
    "commit": "256722e3",
-   "mode": "adopted"
+   "mode": "adopted",
+   "dotted": "adopted.aoa.event_bus"
   },
   "kali:AOA/core/event_bus.py#AOEvent": {
    "test": "tests/test_adopted_event_bus.py",
    "commit": "256722e3",
-   "mode": "adopted"
+   "mode": "adopted",
+   "dotted": "adopted.aoa.event_bus"
   },
   "kali:AOA/core/event_bus.py#AOEventType": {
    "test": "tests/test_adopted_event_bus.py",
    "commit": "256722e3",
-   "mode": "adopted"
+   "mode": "adopted",
+   "dotted": "adopted.aoa.event_bus"
   },
   "kali:AOA/core/event_bus.py#EventPipeline": {
    "test": "tests/test_adopted_event_bus.py",
    "commit": "256722e3",
-   "mode": "adopted"
+   "mode": "adopted",
+   "dotted": "adopted.aoa.event_bus"
   },
   "kali:AOA/core/event_bus.py#EventPriority": {
    "test": "tests/test_adopted_event_bus.py",
    "commit": "256722e3",
-   "mode": "adopted"
+   "mode": "adopted",
+   "dotted": "adopted.aoa.event_bus"
   }
  }
 }
