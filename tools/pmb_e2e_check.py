@@ -135,6 +135,40 @@ def main() -> int:
         return ("surface_ids" in cols, "column=%s stamped_rows=%d" % ("surface_ids" in cols, stamped))
     check("agent_actions has surface_ids", surface_ids_present)
 
+    # 9c. the causal arm must not swallow not-applicable surfaces ----------
+    def causal_arm_integrity():
+        """`mark_lesson_not_applicable` stores `followed = -1`, documented in
+        `pmb/core/engine/lessons.py` as "excluded from both the follow (\u2713) and
+        ignored (\u2717) counts everywhere" - a rule that never pertained to the work
+        must not count as not-followed.
+
+        `bool(-1)` is True in Python, so any reader that coerces the column
+        without excluding -1 folds all 298 not-applicable surfaces into the
+        FOLLOWED arm, biasing `causal_verdict`. This check cannot repair that:
+        the reader lives in `.pmb-venv` site-packages, which is pip-owned and
+        is reverted by the next `pip install` (see pmb_daemon_launcher.py's
+        note on the same hazard). So it MEASURES the contamination and names
+        the upstream site, rather than silently diverging from the package.
+        """
+        dbs = list((Path.home() / ".pmb" / "workspaces").glob("*/events.sqlite"))
+        if not dbs:
+            return False, "no events.sqlite"
+        c = sqlite3.connect(str(dbs[0]), timeout=30)
+        counts = dict(c.execute(
+            "SELECT followed, COUNT(*) FROM lesson_surfaces GROUP BY followed").fetchall())
+        followed = counts.get(1, 0)
+        ignored = counts.get(0, 0)
+        not_applicable = counts.get(-1, 0)
+        unmarked = counts.get(None, 0)
+        if not_applicable:
+            return False, (
+                "%d not-applicable (-1) surfaces; bool(-1)=True folds them into "
+                "the followed arm (upstream: pmb/health/earned_memory.py:148)"
+                % not_applicable)
+        return True, ("followed=%d ignored=%d not_applicable=%d unmarked=%d"
+                      % (followed, ignored, not_applicable, unmarked))
+    check("causal arm excludes not-applicable", causal_arm_integrity)
+
     # 10. agent_actions table exists (the loop's input) ---------------------
     def table_exists():
         db = Path.home() / ".pmb" / "workspaces"
