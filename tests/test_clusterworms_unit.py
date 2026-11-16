@@ -57,6 +57,7 @@ from CORE.WORMS.CLUSTERWORMS import (
     # Registry (shared dict with CORE.worm_registry)
     WORM_REGISTRY,
 )
+from CORE.config import reset_config
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -918,6 +919,10 @@ class TestClusterWORMZBuildFullEcosystem:
 
 class TestClusterWORMZCategoryConfig:
     """Verify nature config overrides from azazael.yaml are wired to ClusterWORMZ."""
+
+    def setup_method(self):
+        """Reset config singleton to force reload of azazael.yaml."""
+        reset_config()
 
     def test_build_from_category_applies_timeout(self):
         """build_from_category('monitor') should apply 30s timeout from azazael.yaml."""
