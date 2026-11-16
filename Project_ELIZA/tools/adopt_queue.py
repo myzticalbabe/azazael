@@ -49,7 +49,7 @@ sys.path.insert(0, str(REPO / "tools"))
 import shard_intake as intake  # noqa: E402
 
 QUEUE = intake.SHARDS / "ADOPTION_QUEUE.json"
-VENDOR = REPO / "adopted" / "kali"
+VENDOR = intake.VENDOR
 SHARED_TEST = "tests/test_adopted_kali_vendored.py"
 STUB = '''# coding: utf-8
 """Fed to ELIZA from Kali by tools/adopt_queue.py -- vendored, not re-implemented."""
@@ -85,70 +85,17 @@ def load(*args, **kwargs):
     vendored = importlib.import_module({dotted!r})
     return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
 '''
-LOAD_TAIL = '''def load(*args, **kwargs):
-    """Return the vendored unit. Importing the module is the adoption."""
-    import importlib
-
-    vendored = importlib.import_module({dotted!r})
-    return vendored if CLASS_NAME is None else getattr(vendored, CLASS_NAME)
-'''
+LOAD_TAIL = intake.LOAD_ADOPTED
 
 
-def _real_case(parts: Sequence[str]) -> Optional[str]:
-    """The on-disk spelling of a path inside the vendor tree, or None.
-
-    The atlas records `scripts/gate_bash.py`; the directory is `SCRIPTS`. Windows
-    resolves that case-insensitively for a path check, so `_resolves` was happy
-    and the dotted name was still wrong: `import adopted.kali.scripts` raised
-    `ModuleNotFoundError` because Python matches package **names**, not paths,
-    and `find_spec` returned None for a directory that visibly exists. Eight rows
-    blocked on case alone (measured 2026-11-03). So every emitted name is rebuilt
-    from the real directory entries.
-    """
-    base = VENDOR
-    resolved: List[str] = []
-    for part in parts:
-        # A resolved `.py` file cannot be descended into (`METAWORMS.py` treated
-        # as a directory raised NotADirectoryError), so the walk stops there.
-        if not base.is_dir():
-            return None
-        # Never trust the spelling: `(base / "scripts").exists()` is True for a
-        # directory actually named `SCRIPTS`, so asking the filesystem whether
-        # the path lives is not the same question as what the entry is called.
-        # A module part arrives without its suffix (`gate_bash`, from
-        # `scripts/gate_bash.py`), so both spellings are candidates and a package
-        # directory wins over a same-named module, as Python's own import does.
-        entries = [child.name for child in base.iterdir()]
-        wanted = [part, part + ".py"]
-        chosen = next((name for name in wanted if name in entries), None)
-        if chosen is None:
-            lowered = {name.lower() for name in wanted}
-            matches = sorted(name for name in entries if name.lower() in lowered)
-            if not matches:
-                return None
-            chosen = matches[0]
-        resolved.append(chosen)
-        base = base / chosen
-    return "/".join(resolved)
-
-
-def _module_path(parts: Sequence[str]) -> Optional[str]:
-    """On-disk module path for `parts`, without the source suffix.
-
-    `_real_case` answers with what the file is called (`gate_bash.py`); a dotted
-    module name must not carry that suffix, or every emitted import reads
-    `adopted.kali.SCRIPTS.gate_bash.py`.
-    """
-    real = _real_case(parts)
-    if real is None:
-        return None
-    return real[:-3] if real.endswith(".py") else real
-
-
-def _dotted(module: str) -> str:
-    parts = module[:-3].split("/") if module.endswith(".py") else module.split("/")
-    real = _module_path(parts)
-    return "adopted.kali." + (real if real is not None else module[:-3]).replace("/", ".")
+#: The resolvers live in `shard_intake` so the generator and the writer cannot
+#: disagree about a dotted name. `adopt_queue` re-exports them: it imports
+#: `shard_intake` (never the reverse), so that is the only direction this
+#: dependency can point, and a second copy of the walk is how a regeneration
+#: came to emit `load()` bodies that could not reach the module the ledger named.
+_real_case = intake.real_case
+_module_path = intake.module_path
+_dotted = intake.dotted
 
 
 SOURCE_ROOT = "/root/azazael/src"
@@ -247,8 +194,7 @@ def status() -> int:
     return 0
 
 
-CHECK_SNIPPET = r'''import json, sys, types
-from pathlib import Path
+CHECK_SNIPPET = r'''import importlib, json, sys, types
 sys.path.insert(0, sys.argv[1])
 import shards
 MISSING = object()
@@ -263,15 +209,19 @@ for sid in sys.argv[2:]:
             if not isinstance(unit, types.ModuleType):
                 raise AssertionError("returned %r, expected a module" % (unit,))
         else:
-            suffix = ("adopted/kali/" + entry["module"]).lower()
-            owners = [m for m in list(sys.modules.values())
-                      if getattr(m, "__file__", None)
-                      and Path(m.__file__).as_posix().lower().endswith(suffix)]
-            if not owners:
-                raise AssertionError("no loaded module owns %s" % entry["module"])
-            if not any(getattr(o, entry["class"], MISSING) is unit for o in owners):
+            # The ledger declares the target and the index carries it. The old
+            # form inferred the owner from the path suffix `adopted/kali/<module>`
+            # and cannot: a row with a declared `dotted` (`adopted.aoa.event_bus`)
+            # never ends with that suffix, so five correct shards were reported as
+            # "no loaded module owns ..." (measured 2026-11-16, 5 of 1,139).
+            target = entry.get("target")
+            if not target:
+                raise AssertionError("the index names no target module for %s"
+                                     % entry["module"])
+            owner = importlib.import_module(target)
+            if getattr(owner, entry["class"], MISSING) is not unit:
                 raise AssertionError("load() did not return %s.%s"
-                                     % (entry["module"], entry["class"]))
+                                     % (target, entry["class"]))
             if isinstance(unit, type) and unit.__name__ != entry["class"]:
                 raise AssertionError("class carries the name %r" % unit.__name__)
         print(json.dumps({"id": sid, "ok": True}), flush=True)
@@ -280,6 +230,68 @@ for sid in sys.argv[2:]:
                           "error": ("%s: %s" % (type(error).__name__, error))[:200]}),
               flush=True)
 '''
+
+
+#: Interpreters that exist to hold a package production cannot. AGENTS.md
+#: designates 3.15t as the GIL sidecar for anything with no `cp316t` wheel, and
+#: the emission is measured, not assumed: on 2026-11-16, 20 of 1,134 vendored
+#: shards name a unit that needs `torch`, `matplotlib`, `mygrad` or
+#: `opentelemetry`; **all 1,134 pass under 3.15t and exactly those 20 fail under
+#: 3.16t with `ModuleNotFoundError`**. The shard is not broken and the ledger is
+#: not wrong -- the production interpreter lacks the dependency -- so the control
+#: asks an interpreter that has it instead of calling a correct shard broken, and
+#: says so on stderr rather than passing quietly.
+SIDECAR = ("py315t",)
+
+
+def _sidecar_python() -> Optional[str]:
+    """The sidecar interpreter on this checkout, or None when there is none.
+
+    Walks **up** from `REPO` looking for `.venvs`. The first version used
+    `REPO.parent` and found nothing: `REPO` is `Project_ELIZA`, so the estate's
+    `.venvs` sits two levels up, and a silent `None` made every sidecar-eligible
+    row keep its production error -- the fallback was dead code that read as a
+    fix (measured 2026-11-16, 20 rows still failing with `ModuleNotFoundError`).
+    """
+    for base in (REPO, *REPO.parents):
+        venvs = base / ".venvs"
+        if not venvs.is_dir():
+            continue
+        for name in SIDECAR:
+            candidate = venvs / name / "Scripts" / "python.exe"
+            if candidate.is_file():
+                return str(candidate)
+    return None
+
+
+def _run_batch(python: str, chunk: Sequence[str], env: Dict[str, str],
+               timeout: int) -> Dict[str, Dict]:
+    """One child, one batch: shard id -> {ok, error}. A dead child names itself."""
+    report: Dict[str, Dict] = {}
+    try:
+        child = subprocess.run(
+            [python, "-c", CHECK_SNIPPET, str(REPO), *chunk],
+            cwd=str(REPO), capture_output=True, text=True, timeout=timeout, env=env)
+    except subprocess.TimeoutExpired:
+        return {shard_id: {"ok": False, "error": "batch exceeded %ds" % timeout}
+                for shard_id in chunk}
+    for line in (child.stdout or "").splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            item = json.loads(line)
+        except ValueError as error:
+            print("unparseable child line (%s): %s" % (error, line[:120]),
+                  file=sys.stderr)
+            continue
+        report[item["id"]] = {"ok": bool(item.get("ok")),
+                              "error": item.get("error", "")}
+    missing = [shard_id for shard_id in chunk if shard_id not in report]
+    for shard_id in missing:
+        tail = (child.stderr or "").strip().splitlines()[-1:] or ["exit %d" % child.returncode]
+        report[shard_id] = {"ok": False, "error": "child died: " + tail[0][:160]}
+    return report
 
 
 def check_shards(shard_ids: Sequence[str], batch: int = 40,
@@ -303,30 +315,29 @@ def check_shards(shard_ids: Sequence[str], batch: int = 40,
     ids = list(shard_ids)
     for start in range(0, len(ids), batch):
         chunk = ids[start:start + batch]
-        try:
-            child = subprocess.run(
-                [sys.executable, "-c", CHECK_SNIPPET, str(REPO), *chunk],
-                cwd=str(REPO), capture_output=True, text=True, timeout=timeout, env=env)
-        except subprocess.TimeoutExpired:
-            for shard_id in chunk:
-                report[shard_id] = {"ok": False, "error": "batch exceeded %ds" % timeout}
+        report.update(_run_batch(sys.executable, chunk, env, timeout))
+        failed = [s for s in chunk if not report.get(s, {}).get("ok")]
+        #: A missing package is a fact about the interpreter, not a verdict about
+        #: the shard (see `SIDECAR`). Re-run **only** the rows that failed this
+        #: way, and only under an interpreter that exists; a row that still fails
+        #: there keeps its failure, so the whole control -- WIRED, identity, class
+        #: name -- has to pass, just somewhere that can import what it needs.
+        if not failed or not all("ModuleNotFoundError" in report[s]["error"]
+                                 for s in failed):
             continue
-        for line in (child.stdout or "").splitlines():
-            line = line.strip()
-            if not line.startswith("{"):
-                continue
-            try:
-                item = json.loads(line)
-            except ValueError as error:
-                print("unparseable child line (%s): %s" % (error, line[:120]),
-                      file=sys.stderr)
-                continue
-            report[item["id"]] = {"ok": bool(item.get("ok")),
-                                  "error": item.get("error", "")}
-        missing = [shard_id for shard_id in chunk if shard_id not in report]
-        for shard_id in missing:
-            tail = (child.stderr or "").strip().splitlines()[-1:] or ["exit %d" % child.returncode]
-            report[shard_id] = {"ok": False, "error": "child died: " + tail[0][:160]}
+        sidecar = _sidecar_python()
+        if sidecar is None:
+            continue
+        second = _run_batch(sidecar, failed, env, timeout)
+        moved = 0
+        for shard_id in failed:
+            if second.get(shard_id, {}).get("ok"):
+                report[shard_id] = {"ok": True, "error": "", "via": "sidecar"}
+                moved += 1
+        if moved:
+            print("sidecar: %d shard(s) of this batch need a package production "
+                  "lacks; checked under %s" % (moved, Path(sidecar).parts[-3]),
+                  file=sys.stderr)
     return report
 
 
@@ -591,10 +602,21 @@ def _wire(row: Dict) -> None:
         text = path.read_text(encoding="utf-8")
         head, _, _ = text.partition("def load(")
         head = head.replace("WIRED = False", "WIRED = True", 1)
-        path.write_text(head + LOAD_TAIL.format(dotted=_dotted(row["module"])),
+        # A ledger row may carry an explicit `dotted` for a target the path
+        # resolver cannot derive: the five AOA units wave at
+        # `adopted.aoa.event_bus`, while `_dotted("AOA/core/event_bus.py")`
+        # derives `adopted.kali.AOA.core.event_bus` -- a module that exists and
+        # is a DIFFERENT object, so `tests/test_adopted_event_bus.py`'s identity
+        # assertion would fail. Re-wiring must therefore neither ignore that
+        # override nor erase it, which is why the entry below is UPDATED rather
+        # than replaced.
+        previous = ledger.get(shard["shard_id"])
+        declared = previous.get("dotted") if isinstance(previous, dict) else None
+        path.write_text(head + LOAD_TAIL.format(dotted=declared or _dotted(row["module"])),
                         encoding="utf-8", newline="\n")
-        ledger[shard["shard_id"]] = {"test": SHARED_TEST,
-                                     "commit": "vendored", "mode": "vendored"}
+        entry = dict(previous) if isinstance(previous, dict) else {}
+        entry.update({"test": SHARED_TEST, "commit": "vendored", "mode": "vendored"})
+        ledger[shard["shard_id"]] = entry
     intake.WIRED.write_text(json.dumps({
         "schema": intake.SCHEMA,
         "note": ("Shard id -> {test, commit}. A shard listed here has been wired "

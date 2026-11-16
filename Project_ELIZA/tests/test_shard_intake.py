@@ -94,12 +94,29 @@ def test_every_census_mismatch_is_explained_and_strict_fails_on_them():
 
 
 @needs_atlas
-def test_every_unit_in_the_atlas_has_a_stub():
+def test_every_unit_on_the_surface_has_a_stub():
+    """The index is the whole surface, and the surface is census PLUS ledger.
+
+    This asserted `units(atlas) == index` until 2026-11-16, which encoded the bug
+    it was meant to catch: the atlas is a point-in-time census, so 94 ids the
+    ledger had adopted and the vendored tree really held were absent from the
+    index and every one of their `load()`s was unreachable. The chain below is
+    strictly stronger than the equality it replaces -- it pins the union, proves
+    the census half is untouched, and proves every extra id is a ledger claim
+    rather than something the generator invented.
+    """
     atlas = intake.read_atlas(ATLAS)
-    entries = intake.units(atlas)
+    census = intake.units(atlas)
+    entries = intake.surface(atlas, census)
     indexed = {entry["shard_id"] for entry in
                json.loads(intake.INDEX.read_text(encoding="utf-8"))["shards"]}
     assert {entry["shard_id"] for entry in entries} == indexed
+    census_ids = {entry["shard_id"] for entry in census}
+    assert census_ids <= indexed, "the census' own units must all be present"
+    minted = indexed - census_ids
+    assert minted, "the ledger has rows the census omits; they must be minted"
+    assert minted <= set(intake.wired_registry()), (
+        "every extra shard must be a claim in WIRED.json, not a generated unit")
     for entry in entries[:50]:
         assert (intake.REPO / entry["path"]).is_file(), entry["path"]
 
@@ -137,7 +154,7 @@ def test_a_residual_shard_names_its_count_instead_of_inventing_a_class():
 @needs_atlas
 def test_no_two_shards_share_a_path_on_a_case_insensitive_disk():
     """Kali carries both SCRIPTS/ and scripts/; Windows collapses them."""
-    paths = [entry["path"].lower() for entry in intake.units(intake.read_atlas(ATLAS))]
+    paths = [entry["path"].lower() for entry in intake.surface(intake.read_atlas(ATLAS))]
     assert len(paths) == len(set(paths)), "two shards would be written to one file"
 
 

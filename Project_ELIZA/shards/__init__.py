@@ -115,6 +115,12 @@ def describe(shard_id: str) -> Dict:
     claim = wired_ledger().get(shard_id)
     described["wired"] = claim is not None
     described["test"] = (claim or {}).get("test")
+    #: The dotted module `load()` returns the unit from, emitted by the generator
+    #: for a wired shard only. A consumer must not re-derive it: inferring the
+    #: owner from the path suffix is wrong for the five AOA units, whose target is
+    #: `adopted.aoa.event_bus` rather than `adopted.kali.AOA.core.event_bus`
+    #: (measured 2026-11-16).
+    described["target"] = entry.get("target")
     described["source_environment"] = "kali-linux"
     return described
 

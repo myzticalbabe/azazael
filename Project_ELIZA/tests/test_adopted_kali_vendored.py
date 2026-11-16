@@ -22,6 +22,7 @@ still passes the suite instead of failing for a reason about the host.
 """
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -32,7 +33,29 @@ if str(ELIZA) not in sys.path:
     sys.path.insert(0, str(ELIZA))
 
 import shards  # noqa: E402
-from tools.adopt_queue import check_shards  # noqa: E402
+
+
+def _adopt_queue():
+    """Load `adopt_queue` by path, not by package name.
+
+    `from tools.adopt_queue import ...` collected only when the suite ran with
+    `Project_ELIZA` as the working directory. From the repo root the name `tools`
+    is the **root** `tools/__init__.py`, and `Project_ELIZA/tools` carries no
+    `__init__.py` at all, so collection died with
+    `ModuleNotFoundError: No module named 'tools.adopt_queue'` -- the whole file
+    reported as a baseline failure while the control itself was healthy
+    (measured 2026-11-16). The module is written to be imported as a top-level
+    module: it puts its own directory on `sys.path` before `import
+    shard_intake`, so a path load is the shape it already expects.
+    """
+    path = ELIZA / "tools" / "adopt_queue.py"
+    spec = importlib.util.spec_from_file_location("eliza_adopt_queue", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+check_shards = _adopt_queue().check_shards
 
 VENDORED_TEST = "tests/test_adopted_kali_vendored.py"
 BATCH = 40
