@@ -264,7 +264,7 @@
           "corroboration": {
             "source_id": "S-WGIC",
             "quote": "Looking more broadly across the criminal justice system, one in three of all justice-involved women have been shown to meet criteria for post-traumatic stress disorder (PTSD), and 50% report PTSD over their lifetime (Lynch et al., 2017).",
-            "note": "extracted with pdftotext -layout from the PDF at the cited URL on 2026-11-16; the brief is quoting Lynch et al. 2017, so this is a second-hand figure corroborating a tier-B assessment, not a primary measurement"
+            "note": "verbatim in pdftotext -enc UTF-8 (reading order) from the PDF at the cited URL on 2026-11-16 -- -layout interleaves this brief's two columns, so layout text does not reproduce the sentence; the brief is quoting Lynch et al. 2017, so this is a second-hand figure corroborating a tier-B assessment, not a primary measurement"
           },
           "blind": false,
           "trunc": false,

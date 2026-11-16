@@ -1029,6 +1029,29 @@ def _graph_built_commit(path):
     return str(sha).lower(), ""
 
 
+def _freshness_receipt(store, head, built):
+    """(fresh, why) from tools/graphify_freshness.py -- one implementation only.
+
+    The receipt is minted by the tool that can actually run the extraction and
+    judged here by that same module, so the gate and the remedy cannot drift
+    into two opinions about one file. Any failure to load or judge is a
+    non-pass with its reason: never an exception, never a silent default.
+    """
+    tools_dir = str(Path(__file__).resolve().parent)
+    if tools_dir not in sys.path:
+        sys.path.insert(0, tools_dir)
+    try:
+        from graphify_freshness import receipt_verdict
+    except (ImportError, OSError) as exc:
+        _note("graphify_freshness import failed: %s" % exc)
+        return False, "freshness tool unavailable (%s)" % exc
+    try:
+        return receipt_verdict(store, head, built)
+    except (OSError, ValueError) as exc:
+        _note("freshness receipt judgement failed: %s" % exc)
+        return False, "freshness receipt unreadable (%s)" % exc
+
+
 def _git(root, *args):
     """(returncode, stdout-stripped). A git that will not run is recorded."""
     try:
@@ -1057,7 +1080,10 @@ def check_codegraph_freshness():
       PASS  every lane's --graph is the canonical store AND the store's
             built_at_commit is HEAD -- or HEAD has moved but
             `git diff <built>..HEAD -- src` is empty, in which case the graph
-            still describes the same content and is not stale.
+            still describes the same content and is not stale -- or a receipt
+            minted at HEAD by `tools/graphify_freshness.py --stamp` records
+            that a re-extraction found no topology change, with the receipt's
+            head, build commit and store hash all agreeing with this tree.
       FAIL  a lane points at a different graph file; the store is missing; the
             commit range shows changed files under src/; or the recorded build
             commit is not a commit of this repo (a phantom sha nothing can
@@ -1131,9 +1157,22 @@ def check_codegraph_freshness():
     if not changed:
         return (PASS, "built at %s; HEAD %s moved but src/ is unchanged since the build" % (
                     built[:8], head[:8]), "")
-    return (FAIL, "built at %s but HEAD is %s and %d src file(s) changed since" % (
-                built[:8], head[:8], len(changed.splitlines())),
-            "rebuild: scripts/graphify_bin.sh update src (a repo-root path writes an orphan no lane reads)")
+
+    # A data-only commit cannot advance `built_at_commit`: graphify returns
+    # before its write when topology is unchanged, so the store's own evidence
+    # can never answer this question for those commits. The receipt is that
+    # answer, and it is only accepted while it describes exactly this HEAD,
+    # this build and these bytes.
+    fresh, receipt_why = _freshness_receipt(CODEGRAPH_STORE, head, built)
+    if fresh:
+        return (PASS, "built at %s; HEAD %s moved with %d src file(s) changed, and a "
+                      "re-extraction at HEAD found no topology change (%s)" % (
+                          built[:8], head[:8], len(changed.splitlines()), receipt_why), "")
+    remedy = ("rebuild: scripts/graphify_bin.sh update src (a repo-root path writes an "
+              "orphan no lane reads); if it reports no topology change, prove it: "
+              "python tools/graphify_freshness.py --stamp")
+    return (FAIL, "built at %s but HEAD is %s and %d src file(s) changed since (%s)" % (
+                built[:8], head[:8], len(changed.splitlines()), receipt_why), remedy)
 
 
 # --------------------------------------------------------------------------
