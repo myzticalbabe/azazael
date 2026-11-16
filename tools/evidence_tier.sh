@@ -629,9 +629,11 @@ fi
 # Scans persisted assistant prose for permission-seeking language (AP-5).
 # Fail-open: a missing/locked store or any error never blocks the commit.
 # Report only — adjudication is human. Runs on 3.15t (pinned above).
+# --source all: this box's live transcripts are manicode (freebuff), so the
+# default slot alone can scan an absent store and report coverage it lacks.
 if [ -f "$SCRIPT_DIR/tools/transcript_ap5_gate.py" ]; then
     echo "[AP5] Scanning persisted assistant prose..."
-    "$PYTHON3" "$SCRIPT_DIR/tools/transcript_ap5_gate.py" --limit 500 2>&1 || true
+    "$PYTHON3" "$SCRIPT_DIR/tools/transcript_ap5_gate.py" --source all --limit 500 2>&1 || true
     echo ""
 fi
 
