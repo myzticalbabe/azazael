@@ -117,7 +117,7 @@ opentelemetry-sdk==1.39.1
 opentelemetry-semantic-conventions==0.60b1
 optree==0.18.0
 optuna==4.7.0
-packaging==25.0
+packaging==26.3
 pandas==2.3.3
 pandocfilters==1.5.1
 parso==0.8.6
