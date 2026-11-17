@@ -42,6 +42,10 @@ def _pams_record(content: str, role: str, session_id: str,
 
 
 PY316T = Path("C:/Azazael/.venvs/py316t/Scripts/python.exe")
+# 3.15t is the GIL sidecar: the interpreter carrying persistent_ai_memory.
+# Defined here because _pams_close_delegated() pins it; the name was used but
+# never bound, so --record died with NameError before writing a row.
+PY315T = Path("C:/Azazael/.venvs/py315t/Scripts/python.exe")
 
 
 def _pams_close_delegated(record: str, role: str, session_id: str,
