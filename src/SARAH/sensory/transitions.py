@@ -106,6 +106,41 @@ class Transitions:
         self._open: list[Ramp] = []
         self._cursor_ms = 0
 
+    # -- clinical seed (M16) ------------------------------------------------
+
+    def ramp_duration_from_recovery_latency(self, recovery_latency: float | None = None) -> int:
+        """Ramp length for a recovery-latency axis, in ms (M16).
+
+        A longer recovery latency gets a longer ramp, mapped across the whole
+        [MIN_RAMP_MS, MAX_RAMP_MS] band. Unmeasured returns the minimum: the
+        band is a floor, and an unmeasured user is not assumed to be slow.
+        """
+        if recovery_latency is None:
+            return MIN_RAMP_MS
+        if isinstance(recovery_latency, bool) or not isinstance(recovery_latency, (int, float)):
+            raise InvalidRamp(f"recovery_latency must be a number in [0, 1], got {recovery_latency!r}")
+        if not 0.0 <= float(recovery_latency) <= 1.0:
+            raise InvalidRamp(f"recovery_latency must be in [0, 1], got {recovery_latency!r}")
+        span = MAX_RAMP_MS - MIN_RAMP_MS
+        return int(round(MIN_RAMP_MS + span * float(recovery_latency)))
+
+    def ramp_for_profile(
+        self,
+        modality: str,
+        target: float,
+        profile: object,
+        *,
+        start_at_ms: int | None = None,
+    ) -> Ramp:
+        """Schedule a ramp whose duration comes from the profile's recovery latency."""
+        latency = getattr(profile, "recovery_latency", None)
+        return self.ramp(
+            modality,
+            target,
+            self.ramp_duration_from_recovery_latency(latency),
+            start_at_ms=start_at_ms,
+        )
+
     # -- scheduling ---------------------------------------------------------
 
     def ramp(

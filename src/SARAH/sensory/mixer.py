@@ -153,6 +153,32 @@ class Mixer:
         self._muted = frozenset()
         return self.levels()
 
+    # -- clinical seed (M16) ------------------------------------------------
+
+    N_FACTOR_GAIN_FLOOR = 0.15
+    """Quietest master an N factor may drive the gain to — never silence."""
+
+    def master_gain_from_N_factor(self, n_factor: float | None = None) -> float:
+        """Master gain for a neurodevelopmental spectrum factor (M16, reduce-only).
+
+        A higher N means more sensory load from the same stimulus, so gain only
+        falls. It can never rise above the current master, and it floors at
+        `N_FACTOR_GAIN_FLOOR` because "less intensity" must not become "nothing
+        on screen".
+        """
+        if n_factor is None:
+            return float(self.master)
+        if isinstance(n_factor, bool) or not isinstance(n_factor, (int, float)):
+            raise InvalidGain(f"n_factor must be a number in [0, 1], got {n_factor!r}")
+        if not 0.0 <= float(n_factor) <= 1.0:
+            raise InvalidGain(f"n_factor must be in [0, 1], got {n_factor!r}")
+        return max(self.N_FACTOR_GAIN_FLOOR, float(self.master) * (1.0 - 0.6 * float(n_factor)))
+
+    def apply_N_factor(self, n_factor: float | None = None) -> float:
+        """Set the master from an N factor and return it."""
+        self.set_master(self.master_gain_from_N_factor(n_factor))
+        return self.master
+
     def muted(self) -> tuple[str, ...]:
         return tuple(sorted(self._muted))
 
