@@ -1,20 +1,20 @@
 {
-  "recorded_at": "2026-11-15T15:10:19+00:00",
+  "recorded_at": "2026-11-17T15:32:54+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 884,
+  "files_scanned": 906,
   "category_counts": {
     "except_return_default": 10,
-    "import_inside_function": 1084,
+    "import_inside_function": 1097,
     "open_no_encoding": 2,
     "silent_except_continue": 3,
-    "silent_except_pass": 13,
+    "silent_except_pass": 14,
     "unicode_emoji": 1219
   },
-  "total_findings": 2331,
+  "total_findings": 2345,
   "tracked_only": true,
-  "writer_pid": 14568,
+  "writer_pid": 15528,
   "file_counts": {
     "AOA\\aoa_monitor.py": {
       "import_inside_function": 6
@@ -793,6 +793,9 @@
     "OPTIMIZ.py": {
       "import_inside_function": 4
     },
+    "ORCHESTRATION\\BIBL\\bibl_crawler.py": {
+      "silent_except_pass": 1
+    },
     "ORCHESTRATION\\HORUS.py": {
       "import_inside_function": 3
     },
@@ -881,6 +884,21 @@
       "import_inside_function": 1
     },
     "REAL_FRAMEWORK_TEST.py": {
+      "import_inside_function": 1
+    },
+    "SARAH\\affect\\companion.py": {
+      "import_inside_function": 1
+    },
+    "SARAH\\affect\\interocept.py": {
+      "import_inside_function": 3
+    },
+    "SARAH\\affect\\timeview.py": {
+      "import_inside_function": 4
+    },
+    "SARAH\\clinical\\crosswalk.py": {
+      "import_inside_function": 4
+    },
+    "SARAH\\profile.py": {
       "import_inside_function": 1
     },
     "SCRIPTS\\generate_telemetry.py": {
