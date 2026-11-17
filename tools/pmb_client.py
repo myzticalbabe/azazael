@@ -86,6 +86,37 @@ def read_token() -> str:
     return (pmb_home() / "daemon.token").read_text(encoding="utf-8").strip()
 
 
+def has_error(payload: object) -> bool:
+    """Did this payload come back as a rejection rather than an answer?
+
+    The MCP SDK hands every result back through `CallToolResult`, which carries
+    `isError` SIDEWAYS from the content. The first version joined the content
+    and threw that flag away, so `main()` printed a refusal and returned 0: a
+    caller reading only the exit status saw a successful recall that had
+    retrieved nothing. Three shapes count, because the daemon answers in three:
+    our own marker (set below), an MCP `isError` echo, and a JSON-RPC error
+    object (`{"code": -32600, "message": ...}`) -- measured in this session
+    against a stale session id, which `call` printed as a normal payload.
+    """
+    if isinstance(payload, str):
+        # Measured 2026-11-16: `call no_such_tool_xyz` came back as the plain
+        # text "Unknown tool: 'no_such_tool_xyz'" with `isError` UNSET, so a
+        # rejected call was indistinguishable from an answer at the exit code.
+        # Narrow prefix match, not "any text is suspicious": a real recall
+        # answer is text too, and treating answers as failures is the same
+        # defect in the opposite direction.
+        head = payload.strip().lower()[:40]
+        return head.startswith("unknown tool") or head.startswith("error")
+    if not isinstance(payload, dict):
+        return False
+    if payload.get("_pmb_error") or payload.get("isError"):
+        return True
+    if payload.get("error"):
+        return True
+    return "code" in payload and "message" in payload \
+        and "result" not in payload
+
+
 def call_tool(name: str, arguments: dict) -> object:
     """Call one PMB tool over a FRESH streamable-http session.
 
@@ -135,9 +166,20 @@ def call_tool(name: str, arguments: dict) -> object:
                 text = "".join(getattr(item, "text", "")
                                for item in result.content)
                 try:
-                    return json.loads(text)
+                    parsed = json.loads(text)
                 except (ValueError, TypeError):
-                    return text
+                    parsed = text
+                if getattr(result, "isError", False):
+                    # Marked, not dropped, and the parsed body is preserved so
+                    # a caller can read the daemon's own reason. A rejection
+                    # that arrives shaped like an answer is the defect this
+                    # marker exists to prevent.
+                    if isinstance(parsed, dict):
+                        marked = dict(parsed)
+                        marked["_pmb_error"] = True
+                        return marked
+                    return {"_pmb_error": True, "text": text}
+                return parsed
 
     return asyncio.run(go())
 
@@ -168,7 +210,25 @@ def _print_summary(payload: object) -> None:
             print("  -", str(text)[:140])
 
 
-def main() -> int:
+def _report_error(payload: object) -> int:
+    """Print the daemon's refusal and say, in one line, what it refused.
+
+    Takes either shape `has_error` recognises: a marked dict or a plain text
+    refusal. The first version called `.get` unconditionally and died with
+    AttributeError on the text shape -- a report of a refusal that printed a
+    traceback instead of the reason, i.e. the same silent failure one layer up.
+    """
+    if isinstance(payload, str):
+        text = payload
+    else:
+        text = payload.get("text")
+        if text is None:
+            text = payload.get("message") or payload.get("error") or payload
+    print("pmb_client: tool call rejected -- %s" % str(text)[:400])
+    return 1
+
+
+def main(argv: list[str] | None = None) -> int:
     # Wide-char payloads (goal titles with section signs, arrows, etc.) kill
     # print() on cp1252 consoles: UnicodeEncodeError -> rc=1 with empty
     # stdout, which reads as an unreadable daemon. Replace, never die; UTF-8
@@ -205,13 +265,20 @@ def main() -> int:
 
     sub.add_parser("status")
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.cmd == "status":
         url = discover_endpoint()
         try:
             payload = call_tool("project_overview", {"name": "azazael"})
             print("endpoint: %s" % url)
+            if has_error(payload):
+                # A reachable socket that refuses every tool is not a working
+                # daemon; reporting it as `reachable: True` is the same class
+                # of lie as exiting 0 on a rejected call.
+                print("reachable: False (tool error: %s)"
+                      % str(payload)[:200])
+                return 1
             print("reachable: True (%d key(s))"
                   % (len(payload) if isinstance(payload, dict) else 1))
         except Exception as exc:  # noqa: BLE001 — status must never raise
@@ -230,6 +297,10 @@ def main() -> int:
     else:
         payload = call_tool(args.tool, json.loads(args.args))
 
+    if has_error(payload):
+        if getattr(args, "json", False):
+            print(json.dumps(payload, default=str))
+        return _report_error(payload)
     if getattr(args, "json", False) and isinstance(payload, (dict, list)):
         print(json.dumps(payload, default=str))
     else:
