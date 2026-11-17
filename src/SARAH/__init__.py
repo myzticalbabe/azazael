@@ -10,6 +10,10 @@ __version__ = "2026-11-16"
 # Core substrate (B1)
 from .profile import SarahProfile, ProfileStore, Preview, ExitPort, ExitTicket, AXES
 
+# Executive function (B4)
+from .offload import Card, Offload, Step
+from .initiate import Invitation, Initiate
+
 # Sensory substrate (B2) - to be implemented
 # from .sensory import Mixer, Transitions, Pacing, Timer, Redundancy
 
@@ -43,6 +47,12 @@ __all__ = [
     "ExitPort",
     "ExitTicket",
     "AXES",
+    # Executive function (B4)
+    "Offload",
+    "Card",
+    "Step",
+    "Initiate",
+    "Invitation",
     # Clinical
     "ClinicalCrosswalk",
     "FHIRClinicalAdapter",
