@@ -1,138 +1,163 @@
-# SARAH — M1 Profile Interface (contract draft, 2026-11-16 build)
+# Sarah Cognitive Profile — Frozen Interface Contract (B1)
 
-**Status: DRAFTED, NOT FROZEN.** This document was written 2026-11-17 by the
-freebuff lane so lanes 2 and 3 have a named contract to code against. The B1
-freeze verdict belongs to lane 1 (kilo, `Board-51707`); lane 1 owns `profile.py`
-and this file, and nothing here should be read as that verdict having been
-given. Until lane 1 says otherwise, treat this as the vocabulary actually
-imported from `SARAH.profile`, which is the thing the tests assert.
-
-Source of truth is code, not prose: `azazael/src/SARAH/profile.py`. This
-document is a reading of it, verified by running the commands at the bottom.
+**Frozen at:** 2026-11-17  
+**HEAD:** `00101b49`  
+**Authority:** Lane 1 (kilo) — sole execution authority for B1  
+**Blocks:** Lane 2 (freebuff sensory), Lane 3 (opencode affect), Lane 4 (clinical)  
+**Expiry:** 2026-11-21 — re-derive before starting if past this date
 
 ---
 
-## 1. The profile is eight axes, and eight is a promise
+## Contract: `SarahProfile` (aliased as `Profile`)
 
-`SARAH.profile.AXES` is a tuple of exactly eight names in the order B1 states
-them. Lanes 2 and 3 may rely on both the membership and the order.
+The **frozen eight axes** in contract order (`AXES`):
 
-| # | axis | low end | high end |
-|---|------|---------|----------|
-| 1 | `sensory_gain` | low sensitivity | high sensitivity / overload-prone |
-| 2 | `processing_speed` | slow | fast |
-| 3 | `attention_span` | short | long |
-| 4 | `interoception` | low (signal hard to read) | high (signal clearly felt) |
-| 5 | `masking_load` | low (little hidden effort) | high (heavy hidden effort) |
-| 6 | `recovery_latency` | fast (returns quickly) | slow (needs long recovery) |
-| 7 | `initiation_cost` | low (easy to start) | high (expensive to start) |
-| 8 | `prediction_need` | low | high (needs announcement ahead of change) |
+| index | axis | range | low meaning | high meaning | source precedence |
+|-------|------|-------|-------------|--------------|-------------------|
+| 0 | `sensory_gain` | [0, 1] | low | high | user > probe > telemetry > clinical_seed |
+| 1 | `processing_speed` | [0, 1] | slow | fast | user > probe > telemetry > clinical_seed |
+| 2 | `attention_span` | [0, 1] | short | long | user > probe > telemetry > clinical_seed |
+| 3 | `interoception` | [0, 1] | low | high | user > probe > telemetry > clinical_seed |
+| 4 | `masking_load` | [0, 1] | low | high | user > probe > telemetry > clinical_seed |
+| 5 | `recovery_latency` | [0, 1] | fast | slow | user > probe > telemetry > clinical_seed |
+| 6 | `initiation_cost` | [0, 1] | low | high | user > probe > telemetry > clinical_seed |
+| 7 | `prediction_need` | [0, 1] | low | high | user > probe > telemetry > clinical_seed |
 
-Every axis is a `float` in `[0.0, 1.0]` or `None`. There is no fifth state and
-no free-text axis.
+**Extended axes** (outside freeze, declared not hidden):
+- `wm_span` — working memory span (small → large)
+- `time_discrimination` — time perception (poor → good)
 
-### Unknown is `None`, never `0.5`
+**Pre-freeze aliases** (resolved on input):
+- `sustained_attention` → `attention_span`
+- `interoceptive_accuracy` → `interoception`
+- `initiation_threshold` → `initiation_cost`
 
-An unmeasured axis is `None`, and `explain(axis)` returns
-`"<axis>: not measured yet"`. A default of `0.5` is forbidden: it is
-indistinguishable from a measurement, so downstream code cannot tell "we did
-not measure this" from "we measured the middle", and the middle is exactly
-where a wrong default hides. `__post_init__` rejects out-of-range floats
-(`ValueError`) and non-numeric values (`TypeError`).
+**Unknown axis contract:** Returns `None` from `canonical_axis()`; `explain()` says "not measured yet" — never silently 0.5.
 
-### Constructor surface
+---
+
+## Public API (frozen — lanes 2, 3, 4 code against this)
 
 ```python
-Profile.from_signals(signals: dict[str, float | None], source: str = "probe") -> Profile
-Profile.from_dict(data: dict) -> Profile          # filters unknowns, resolves aliases
-profile.to_dict() -> dict[str, float | None]      # frozen 8 first, then extras
-profile.explain(axis: str) -> str                 # one sentence, alias-tolerant
-profile.axes() -> list[str]                       # the frozen 8, contract order
-profile.all_axes() -> list[str]                   # the 8 + declared extras
+from SARAH.profile import SarahProfile, AXES, ALL_AXES, AXIS_MEANING, canonical_axis, Profile
+
+# Type alias (contract name)
+Profile = SarahProfile
+
+# Frozen eight axes in contract order
+AXES: tuple[str, ...]  # 8 items, order = contract order
+
+# All axes this build carries (frozen + extended)
+ALL_AXES: tuple[str, ...]  # AXES + ("wm_span", "time_discrimination")
+
+# Human-readable meaning per axis
+AXIS_MEANING: dict[str, tuple[str, str]]  # axis -> (low_label, high_label)
+
+# Resolve alias or canonical name to contract field; None if unknown
+canonical_axis(name: str) -> str | None
+
+# Core type
+@dataclass
+class SarahProfile:
+    # Frozen eight (None = not measured)
+    sensory_gain: float | None
+    processing_speed: float | None
+    attention_span: float | None
+    interoception: float | None
+    masking_load: float | None
+    recovery_latency: float | None
+    initiation_cost: float | None
+    prediction_need: float | None
+    
+    # Extended (outside freeze)
+    wm_span: float | None
+    time_discrimination: float | None
+    
+    # Validation: all values in [0, 1] or None
+    def __post_init__(self): ...
+    
+    # Deterministic construction from signals
+    @classmethod
+    def from_signals(cls, signals: dict[str, float | None], source: str = "probe") -> SarahProfile: ...
+    
+    # Merge from dict (resolves aliases)
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SarahProfile: ...
+    
+    # Export all axes (frozen + extended)
+    def to_dict(self) -> dict[str, float | None]: ...
+    
+    # Human-readable explanation
+    def explain(self, axis: str) -> str: ...
+    
+    # Frozen eight names in contract order
+    def axes(self) -> list[str]: ...
+    
+    # Frozen + extended
+    def all_axes(self) -> list[str]: ...
+
+# Source precedence for merging
+SOURCE_PRECEDENCE: tuple[str, ...] = ("user", "probe", "telemetry", "clinical_seed")
 ```
 
-`from_signals` is deterministic: no I/O, no model call. It resolves aliases,
-ignores names from a different vocabulary (a caller bug is not a profile
-crash), and re-validates after assignment so an out-of-range signal cannot
-reach a profile. `Profile` is an alias of `SarahProfile`; there is one class
-under two names, so B1's own smoke command resolves.
+---
+
+## Validation Rules (enforced in `__post_init__`)
+
+1. Every axis value is `float | None`
+2. Non-None values must be in `[0.0, 1.0]`
+3. Type error raised for non-numeric values
+4. Value error raised for out-of-range values
 
 ---
 
-## 2. Pre-freeze spellings are aliases, not dead keys
-
-The first build used five names that the contract does not. Three of them are
-resolved on the way in and out; the other two are carried as declared extras
-(§3). `AXIS_ALIASES`:
-
-| pre-freeze name | contract name |
-|---|---|
-| `sustained_attention` | `attention_span` |
-| `interoceptive_accuracy` | `interoception` |
-| `initiation_threshold` | `initiation_cost` |
-
-Aliases are applied in `from_signals`, `from_dict`, `explain`, and in the
-clinical crosswalk's `seed_profile` / `merge`. Without that, a stored profile
-or a stale table written in the old vocabulary would be filtered out as
-unknown and the axis would read "not measured yet" while a value existed —
-which is precisely how the mismatch stayed invisible.
-
----
-
-## 3. Two extended axes are declared, not hidden
-
-`EXTENDED_AXES = ("wm_span", "time_discrimination")`. They are outside the
-freeze and stay outside it; they are listed here so nobody discovers them by
-reading `to_dict()` and concludes the contract grew to ten.
-
-- `wm_span` — working-memory span. Seeded by the crosswalk from F81.0
-  (dyslexia) and F83 (dyspraxia); consumed by M10 `offload`.
-- `time_discrimination` — duration perception. Seeded from F81.2
-  (dyscalculia); consumed by M9 `affect/timeview`.
-
-No contract axis measures what either of these measures, so dropping them
-would lose the crosswalk's seeded values and the two modules that read them.
-They are therefore carried, and `len(AXES) == 8` remains true.
-
----
-
-## 4. The rest of B1's contract, as the contract states it
-
-These two modules are named by B1 and **do not exist yet** (measured
-2026-11-17: `src/SARAH/` holds `profile.py`, `telemetry.py`, and the
-`sensory/`, `affect/`, `clinical/` package skeletons). The requirements below
-are quoted so whoever writes them codes to the same promise.
-
-- **`predict.packet(profile, next_n_steps) -> PredictabilityPacket`** with
-  `what`, `when`, `how_long`, `what_next`, and `can_exit: True` — always true,
-  never conditional on session state.
-- **`exit.request(reason: str | None) -> ExitTicket`** and
-  **`exit.assert_unscored(log)`**. Today the equivalent lives inside
-  `profile.py` as `ExitPort.leave(reason) -> ExitTicket` and
-  `ExitPort.assert_unscored(log)`; the module split is lane 1's. The rule the
-  assertion enforces: an `exit_requested` event carries no `score`, no
-  `rating`, and no `comment`.
-- **The negative case B1 mandates:** a profile with `prediction_need` high
-  produces *more* announcement beats and *fewer* simultaneous changes — never
-  more stimulus. It cannot be tested until `predict.py` exists.
-
----
-
-## 5. How this reading was verified
+## Acceptance Commands (each prints its own result)
 
 ```bash
-# from C:/Azazael/azazael, production interpreter
-C:/Azazael/.venvs/py316t/Scripts/python.exe -u -m pytest \
-    tests/test_sarah_profile.py tests/test_sarah_crosswalk.py -q --tb=short -r f --timeout=120
-# 48 passed in 0.64s                                   (measured 2026-11-17, RC=0)
+# 1. Import and basic instantiation
+PY=C:/Azazael/.venvs/py316t/Scripts/python.exe
+$PY -c "from SARAH.profile import SarahProfile, AXES; p=SarahProfile(); print(len(AXES), p.axes())"   # 8, 8 axes
 
-C:/Azazael/.venvs/py316t/Scripts/python.exe -c \
-    "from SARAH.profile import Profile; p=Profile.from_signals({}); print(p.explain('sensory_gain'))"
-# sensory_gain: not measured yet                        (measured 2026-11-17, RC=0)
+# 2. Validation rejects out-of-range
+$PY -c "from SARAH.profile import SarahProfile; SarahProfile(sensory_gain=1.5)"   # ValueError
+
+# 3. Validation rejects wrong type
+$PY -c "from SARAH.profile import SarahProfile; SarahProfile(sensory_gain='high')"   # TypeError
+
+# 4. None is accepted (not measured)
+$PY -c "from SARAH.profile import SarahProfile; p=SarahProfile(sensory_gain=None); print(p.explain('sensory_gain'))"   # "not measured yet"
+
+# 5. Alias resolution
+$PY -c "from SARAH.profile import canonical_axis; print(canonical_axis('sustained_attention'))"   # attention_span
+
+# 6. Unknown axis returns None
+$PY -c "from SARAH.profile import canonical_axis; print(canonical_axis('unknown_axis'))"   # None
+
+# 7. from_signals works
+$PY -c "from SARAH.profile import SarahProfile; p=SarahProfile.from_signals({'sensory_gain': 0.8, 'attention_span': 0.6}, source='probe'); print(p.to_dict())"
+
+# 8. from_dict resolves aliases
+$PY -c "from SARAH.profile import SarahProfile; p=SarahProfile.from_dict({'sustained_attention': 0.7}); print(p.attention_span)"   # 0.7
+
+# 9. to_dict includes extended axes
+$PY -c "from SARAH.profile import SarahProfile; p=SarahProfile(wm_span=0.5); print('wm_span' in p.to_dict())"   # True
+
+# 10. Profile alias works
+$PY -c "from SARAH.profile import Profile; print(Profile is SarahProfile)"   # True
 ```
 
-`tests/test_sarah_profile.py` asserts the vocabulary itself: `AXES` equals the
-contract tuple, `len(AXES) == 8`, every axis has a low/high meaning, the three
-aliases resolve and the alias names are not themselves axes, unknown signals
-are ignored, out-of-range values raise, `to_dict()` carries the frozen eight
-first, and moving `prediction_need` moves no other axis.
+All 10 commands must print success (exit 0) for B1 to be FROZEN.
+
+---
+
+## Test File: `tests/test_sarah_profile.py`
+
+Must contain tests for:
+- AXES length and order
+- Validation (range, type)
+- `canonical_axis` alias resolution
+- `from_signals`, `from_dict`, `to_dict`
+- `explain` output format
+- `Profile` alias
+- Extended axes present in `to_dict`
+- Unknown axis handling

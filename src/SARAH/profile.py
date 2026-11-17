@@ -41,6 +41,25 @@ report every value the build actually holds.
 
 ALL_AXES = AXES + EXTENDED_AXES
 
+CONDITION_AXES = (
+    "n_factor",
+    "autism_specific",
+    "adhd_specific",
+    "cortical_hypo_specific",
+    "dyslexia_dcd_specific",
+)
+"""Population-level condition factors, a second declared group.
+
+The 2026-11-17 gap analysis asks for these on the profile. They are not axes:
+`N_factor` is a latent neurodevelopmental spectrum factor and the other four are
+condition-specific modifiers, so folding them into `ALL_AXES` would break B1's
+frozen `len(AXES) == 8` and the equality/to_dict key set that lanes 2 and 3 code
+against. They live in `SarahProfile.conditions` instead, and `to_full_dict()`
+serialises them alongside the axes -- a factor is a modifier of how an axis is
+read, never a measurement of it. A factor left `None` is unmeasured, exactly as
+an axis left `None` is, so no consumer can mistake absence for a default.
+"""
+
 AXIS_ALIASES = {
     "sustained_attention": "attention_span",
     "interoceptive_accuracy": "interoception",
@@ -80,6 +99,39 @@ def canonical_axis(name: str) -> str | None:
 SOURCE_PRECEDENCE = ("user", "probe", "telemetry", "clinical_seed")
 
 
+@dataclass(frozen=True)
+class ConditionFactors:
+    """The five condition factors, each optional and each in [0, 1].
+
+    `None` means "not measured", never 0.5: the same rule the axes follow. A
+    consumer that turns `None` into a default would be reporting a measurement
+    nobody made.
+    """
+
+    n_factor: float | None = None
+    autism_specific: float | None = None
+    adhd_specific: float | None = None
+    cortical_hypo_specific: float | None = None
+    dyslexia_dcd_specific: float | None = None
+
+    def __post_init__(self) -> None:
+        for name in CONDITION_AXES:
+            val = getattr(self, name)
+            if val is None:
+                continue
+            if isinstance(val, bool) or not isinstance(val, (int, float)):
+                raise TypeError(f"{name} must be float or None, got {type(val)}")
+            if not 0.0 <= float(val) <= 1.0:
+                raise ValueError(f"{name} must be in [0, 1], got {val}")
+
+    def to_dict(self) -> dict[str, float | None]:
+        return {name: getattr(self, name) for name in CONDITION_AXES}
+
+    def is_empty(self) -> bool:
+        """True when no factor was measured."""
+        return all(getattr(self, name) is None for name in CONDITION_AXES)
+
+
 @dataclass
 class SarahProfile:
     """Immutable 8-axis cognitive profile vector."""
@@ -97,6 +149,9 @@ class SarahProfile:
     # Extended axes (EXTENDED_AXES) -- outside the freeze, still carried
     wm_span: float | None = None
     time_discrimination: float | None = None
+
+    # Condition factors (CONDITION_AXES) -- modifiers, not axes
+    conditions: ConditionFactors | None = None
     
     # Source tracking per axis
     _sources: dict[str, str] = field(default_factory=dict, init=False, repr=False)
@@ -110,6 +165,16 @@ class SarahProfile:
                     raise TypeError(f"{axis} must be float or None, got {type(val)}")
                 if not 0.0 <= val <= 1.0:
                     raise ValueError(f"{axis} must be in [0, 1], got {val}")
+
+        # A dict here would be accepted by the field and unread by every
+        # consumer, so the type is checked where it enters the profile.
+        if self.conditions is not None and not isinstance(
+            self.conditions, ConditionFactors
+        ):
+            raise TypeError(
+                "conditions must be a ConditionFactors or None, got "
+                f"{type(self.conditions).__name__}"
+            )
     
     @classmethod
     def from_signals(cls, signals: dict[str, float | None], source: str = "probe") -> SarahProfile:
@@ -161,6 +226,60 @@ class SarahProfile:
     def all_axes(self) -> list[str]:
         """Return the frozen eight plus the extended axes this build carries."""
         return list(ALL_AXES)
+
+    # -- condition factors, readable without reaching through `.conditions` --
+
+    def factor(self, name: str) -> float | None:
+        """One condition factor by name, or None for an unknown name.
+
+        Returns None for a name this build does not carry, mirroring
+        `canonical_axis`: a caller can tell a different vocabulary from a typo.
+        """
+        if name not in CONDITION_AXES or self.conditions is None:
+            return None
+        return getattr(self.conditions, name)
+
+    def has_conditions(self) -> bool:
+        """True when at least one condition factor was measured."""
+        return self.conditions is not None and not self.conditions.is_empty()
+
+    @property
+    def n_factor(self) -> float | None:
+        return self.factor("n_factor")
+
+    @property
+    def N_factor(self) -> float | None:
+        """The gap analysis spells this factor `N_factor`; one value, two names."""
+        return self.factor("n_factor")
+
+    @property
+    def autism_specific(self) -> float | None:
+        return self.factor("autism_specific")
+
+    @property
+    def adhd_specific(self) -> float | None:
+        return self.factor("adhd_specific")
+
+    @property
+    def cortical_hypo_specific(self) -> float | None:
+        return self.factor("cortical_hypo_specific")
+
+    @property
+    def dyslexia_dcd_specific(self) -> float | None:
+        return self.factor("dyslexia_dcd_specific")
+
+    def to_full_dict(self) -> dict[str, Any]:
+        """Every axis plus the condition factors.
+
+        `to_dict()` deliberately keeps its ALL_AXES key set: B1 froze it and
+        `__eq__` rides on it. Persisting a profile means this method, not that
+        one, or the factors are dropped on the way to disk with no error.
+        """
+        data: dict[str, Any] = dict(self.to_dict())
+        data["conditions"] = (
+            self.conditions.to_dict() if self.conditions is not None else None
+        )
+        return data
     
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, SarahProfile):
