@@ -1,4 +1,30 @@
 {
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_AUDIO_REACTIVE.mp4": {
+  "bytes": 456263036,
+  "fps": 30.0,
+  "frames": 8944,
+  "rgb": [
+   183,
+   99,
+   3
+  ],
+  "seconds": 298.133008,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T23:04:11"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_AUDIO_REACTIVE_BEST.mp4": {
+  "bytes": 1289143771,
+  "fps": 30.0,
+  "frames": 8944,
+  "rgb": [
+   181,
+   98,
+   2
+  ],
+  "seconds": 298.133008,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T23:03:19"
+ },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_AURORA_VEIL.mp4": {
   "bytes": 1468799,
   "fps": 30.0,
@@ -23,7 +49,7 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T22:05:12"
+  "verified_at": "2026-11-16T22:13:11"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_EMBER_ASH.mp4": {
   "bytes": 2114979,
@@ -49,7 +75,7 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T22:05:20"
+  "verified_at": "2026-11-16T22:13:18"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_ORCHID_NEBULA.mp4": {
   "bytes": 1876744,
@@ -62,20 +88,20 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T22:05:13"
+  "verified_at": "2026-11-16T22:13:12"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_POWER_REFRESH.mp4": {
-  "bytes": 30112670,
+  "bytes": 8192729,
   "fps": 30.0,
   "frames": 300,
   "rgb": [
-   55,
-   133,
-   154
+   15,
+   92,
+   103
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T22:05:19"
+  "verified_at": "2026-11-16T22:13:17"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_SOLAR_FLARE.mp4": {
   "bytes": 2075726,
@@ -101,6 +127,6 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T22:05:16"
+  "verified_at": "2026-11-16T22:13:15"
  }
 }
