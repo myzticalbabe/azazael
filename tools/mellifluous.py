@@ -40,6 +40,8 @@ COMMANDS: dict[str, tuple[str, str, str]] = {
     "eight-verify": ("mcp_eight_verify", "argv", "eight-server MCP verification"),
     "proxy": ("pmb_floor_proxy", "bare", "floor proxy daemon (long-running)"),
     "supervisor": ("supervisor_mcp", "argv", "supervisor MCP (verdicts)"),
+    "native": ("native_tools", "argv", "build security tools from pinned sources"),
+    "native-build": ("build_native", "argv", "compile one .pyx into a GIL-free extension"),
 }
 
 
