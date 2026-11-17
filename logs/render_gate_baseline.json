@@ -23,7 +23,7 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T21:13:02"
+  "verified_at": "2026-11-16T22:05:12"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_EMBER_ASH.mp4": {
   "bytes": 2114979,
@@ -38,6 +38,19 @@
   "size": "1920x1080",
   "verified_at": "2026-11-16T21:13:03"
  },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_FRACTAL_JULIA.mp4": {
+  "bytes": 9033118,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   80,
+   18,
+   104
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T22:05:20"
+ },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_ORCHID_NEBULA.mp4": {
   "bytes": 1876744,
   "fps": 30.0,
@@ -49,7 +62,20 @@
   ],
   "seconds": 10.0,
   "size": "1920x1080",
-  "verified_at": "2026-11-16T21:13:04"
+  "verified_at": "2026-11-16T22:05:13"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_POWER_REFRESH.mp4": {
+  "bytes": 30112670,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   55,
+   133,
+   154
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T22:05:19"
  },
  "C:\\Users\\clint\\Desktop\\SCREENSAVER_SOLAR_FLARE.mp4": {
   "bytes": 2075726,
@@ -63,5 +89,18 @@
   "seconds": 10.0,
   "size": "1920x1080",
   "verified_at": "2026-11-16T21:13:05"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_STRAWBERRY_BLONDE.mp4": {
+  "bytes": 18625258,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   171,
+   89,
+   49
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T22:05:16"
  }
 }
