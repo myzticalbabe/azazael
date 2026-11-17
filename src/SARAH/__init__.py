@@ -10,15 +10,24 @@ __version__ = "2026-11-16"
 # Core substrate (B1)
 from .profile import SarahProfile, ProfileStore, Preview, ExitPort, ExitTicket, AXES
 
+# Exit-Anywhere (B1, M7) — the named surface B1 states; delegates to profile.ExitPort
+from .exit import assert_unscored, reachable_in_one_action, request
+
 # Executive function (B4)
 from .offload import Card, Offload, Step
 from .initiate import Invitation, Initiate
 
-# Sensory substrate (B2) - to be implemented
-# from .sensory import Mixer, Transitions, Pacing, Timer, Redundancy
+# Sensory substrate (B2, B6)
+from .sensory import Mixer, Pacing, Redundancy, Timer, Transitions
 
-# Affect core (B3) - to be implemented  
-# from .affect import Interocept, Affirmation, TimeView, LoadMeter, Companion
+# Affect core (B3, B4, B5)
+from .affect import (
+    AffirmationEngine,
+    Companion,
+    Interocept,
+    LoadMeter,
+    TimeView,
+)
 
 # Clinical integration (B8)
 from .clinical import ClinicalCrosswalk, FHIRClinicalAdapter, CrosswalkPMB, AxisProvenance
@@ -47,12 +56,28 @@ __all__ = [
     "ExitPort",
     "ExitTicket",
     "AXES",
+    # Exit-Anywhere (M7)
+    "request",
+    "assert_unscored",
+    "reachable_in_one_action",
     # Executive function (B4)
     "Offload",
     "Card",
     "Step",
     "Initiate",
     "Invitation",
+    # Sensory (M2-M5, M15)
+    "Mixer",
+    "Pacing",
+    "Redundancy",
+    "Timer",
+    "Transitions",
+    # Affect (M8, M9, M12-M14)
+    "AffirmationEngine",
+    "Companion",
+    "Interocept",
+    "LoadMeter",
+    "TimeView",
     # Clinical
     "ClinicalCrosswalk",
     "FHIRClinicalAdapter",
