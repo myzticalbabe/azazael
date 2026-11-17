@@ -53,3 +53,30 @@ wsl -d openSUSE-Tumbleweed -u root -- /usr/local/bin/python3.16t tools/native_to
 ```
 
 Expiry: these counts move with both distros' repos; re-measure before quoting next session.
+## Install result
+
+`zypper -n in -y --no-recommends` over the 473 packages that both Kali has installed
+and openSUSE names, in batches of 50 with a per-package retry so one bad name cannot sink
+a batch.
+
+| reading | value |
+| --- | --- |
+| requested | **473** |
+| present after install | **471** |
+| missing | **2** — `sslsplit`, `wfuzz` |
+| total RPMs on the openSUSE system after | **1840** |
+
+Both gaps are named with their cause, not rounded off:
+
+- `sslsplit` — `nothing provides 'libcrypto.so.1.1()(64bit)'`; Tumbleweed ships OpenSSL 3,
+  so this needs a compat library or a source build against 3.0.
+- `wfuzz` — PyPI 2.4.5 imports `collections.MutableMapping` (removed in Python 3.10) and
+  pins `pycurl<=7.43`, so it does not run on 3.16t unpatched. The recipe lane, not zypper,
+  is the route.
+
+Verify:
+
+```bash
+MSYS_NO_PATHCONV=1 wsl -d openSUSE-Tumbleweed -u root -- bash /mnt/c/Users/clint/tmp_dump_rpms.sh
+python C:/Users/clint/tmp_verify_install.py   # requested=473 present=471 missing=['sslsplit','wfuzz']
+```

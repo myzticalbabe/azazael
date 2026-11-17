@@ -1640,5 +1640,20 @@
     "zlib1g-dev",
     "zssh",
     "zutty"
-  ]
+  ],
+  "opensuse_install": {
+    "requested": 473,
+    "present_after_install": 471,
+    "missing": [
+      "sslsplit",
+      "wfuzz"
+    ],
+    "total_rpms_after": 1840,
+    "command": "zypper -n in -y --no-recommends (batches of 50, per-package retry on failure)",
+    "log": "C:/Users/clint/suse_install.log",
+    "gaps": {
+      "sslsplit": "nothing provides libcrypto.so.1.1()(64bit) - Tumbleweed ships OpenSSL 3; needs a compat lib or a source build against 3.0",
+      "wfuzz": "PyPI 2.4.5 imports collections.MutableMapping (removed in 3.10) and pins pycurl<=7.43, so it cannot run on 3.16t unpatched"
+    }
+  }
 }
