@@ -141,14 +141,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json.dumps(result, indent=2))
     else:
+        # Verdict FIRST, then the three readings it rests on. The hyper_edge
+        # leg quotes the first line; `pin C:/Azazael/.venvs/py315t/...` as that
+        # line states a fact about a file and no verdict at all, so a drifted
+        # hook would have read as an ordinary line of configuration.
+        print("interpreter_audit: %s -- %s"
+              % (result["verdict"], result["detail"]))
         print("interpreter_audit: pin      %s" % (result["pin"] or "<none>"))
         print("interpreter_audit: measured %s  gil_enabled=%s"
               % (result["measured_version"] or "<unmeasurable>",
                  result["gil_enabled"]))
         print("interpreter_audit: canon    %s"
               % (result["canon_claim"] or "<no claim>"))
-        print("interpreter_audit: %s -- %s"
-              % (result["verdict"], result["detail"]))
         print("interpreter_audit: DECISION OPEN (G3) -- which interpreter gates "
               "commits is the principal's call; this tool measures the pin, it "
               "does not move it.")

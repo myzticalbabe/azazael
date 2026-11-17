@@ -196,10 +196,10 @@ def main(argv: list[str] | None = None) -> int:
                           "stats": stats, "findings": findings,
                           "values_printed": False}, indent=2))
     else:
-        for r in findings:
-            where = "%s:%s" % (r["path"], r["line"]) if r["line"] else str(r["path"])
-            print("%-16s %-8s %-38s %s"
-                  % (r["detector"], r["kind"], where, r["detail"]))
+        # Population and denominator FIRST, one row per hit after: the
+        # hyper_edge leg quotes the first line, and `credentials-file name
+        # add_passwords.py` as that line names one file while hiding that 540
+        # were listed and 41 read. The count is part of the reading.
         print("disclosure_audit: population=untracked (not ignored) "
               "listed=%d scanned=%d skipped-large=%d skipped-binary=%d "
               "unreadable=%d"
@@ -207,6 +207,10 @@ def main(argv: list[str] | None = None) -> int:
                  stats["skipped-binary"], stats["unreadable"]))
         print("disclosure_audit: %d finding(s); no matched value is printed"
               % len(findings))
+        for r in findings:
+            where = "%s:%s" % (r["path"], r["line"]) if r["line"] else str(r["path"])
+            print("%-16s %-8s %-38s %s"
+                  % (r["detector"], r["kind"], where, r["detail"]))
 
     if args.strict:
         def _counts(row: dict[str, object]) -> bool:

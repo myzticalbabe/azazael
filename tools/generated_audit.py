@@ -206,11 +206,16 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"rows": rows, "counts": counts,
                           "excused": len(rows)}, indent=2))
     else:
-        for r in rows:
-            print("%-14s %-46s %s" % (r["verdict"], r["path"], r["detail"]))
+        # Summary FIRST, rows after. deep_dive's hyper_edge leg reads one line
+        # per auditor to build its leg line, and this tool used to print
+        # `PROVED ARC/esquire/pins.json ...` as that line: a per-path reading
+        # quoted as the whole population's verdict. A reading that hides its
+        # denominator is HED-9's defect, so the count leads.
         print("generated_audit: %d/%d excused paths accounted for (%s)"
               % (len(rows), len(rows),
                  ", ".join("%s=%d" % kv for kv in sorted(counts.items()))))
+        for r in rows:
+            print("%-14s %-46s %s" % (r["verdict"], r["path"], r["detail"]))
 
     failing = sum(counts.get(k, 0) for k in FAILING)
     if args.strict and failing:
