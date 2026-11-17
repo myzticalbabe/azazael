@@ -21,6 +21,11 @@ The two commits this lane added:
 - `2136ac50` — "state(toolset): record the openSUSE install result - 471 of 473
   landed, 2 named gaps" — 2 files, 43 insertions, 1 deletion.
 
+The install reading in `2136ac50`'s subject ("471 of 473 landed, 2 named gaps") is
+the **zypper pass only**. Both gaps were closed afterwards, outside zypper, and the
+corrected reading is in §2 and in the artifact's `gap_closure` block — do not read
+that commit subject as the current state.
+
 `git status --porcelain | wc -l` → **44**. That dirt is other lanes' in-flight
 work; this lane staged by explicit path only and left all of it untouched.
 
@@ -31,7 +36,9 @@ work; this lane staged by explicit path only and left all of it untouched.
 | The Kali toolset closure is measured, not recalled | `py316t -c "import json; d=json.load(open('state/kali_toolset_inventory_2026-11-17.json')); print(d['kali'])"` | 15 metapackages, 2115 closure packages, 1636 installed, 479 in closure not installed |
 | openSUSE's own name universe | same artifact, `d['opensuse']` | 6 enabled repos, **54,503** unique names, source `repodata primary.xml(.gz\|.zst)` |
 | Overlap between the two | same artifact, `d['match']` | 522 same-name RPM (24.68% of closure), 1593 without; of installed 473 same-name / 1163 not (28.91%) |
-| The install result | same artifact, `d['opensuse_install']` | `requested=473 present_after_install=471 missing=['sslsplit','wfuzz'] total_rpms_after=1840` |
+| The install result | same artifact, `d['opensuse_install']` | `requested=473 present_after_install=471 present_now=473 missing=[] total_rpms_after=1840` — 471 is the zypper pass; +2 closed outside it |
+| `sslsplit` is installed and runs | `wsl -d openSUSE-Tumbleweed -u root -- /usr/local/sbin/sslsplit -h` | usage text printed; binary 249,456 bytes, links `libssl.so.3`; built from source, `MAKE_RC=0` |
+| `wfuzz` is installed and fuzzes | `bash /mnt/c/Azazael/tmp_wfuzz_smoke.sh` against a local `http.server` | `WFUZZ_RC=0`, `Total requests: 2`, found `known` (301) and `absent` (404), target log records both GETs |
 | The native build lane holds | `python tools/native_tools.py --doctor` then `--build-all` | `8 of 8 recipes ready`; `all 8 ok`; 9 binaries present (mdk4 in `/usr/local/sbin`, rest `/usr/local/bin`) |
 | The bake lane merged with zero drops | `py316t tools/merge_bake_lane.py --lane state/bake_harvest_freebuff_2026-11-17.jsonl --apply` | `BASE=11273 ACCEPTED=40 MERGED=11313 DROPPED=0 SUPERSEDED=0` |
 | The harvest lane holds 40 rows | `wc -l state/bake_harvest_freebuff_2026-11-17.jsonl` | `40` (gitignored via `.gitignore:263`) |
@@ -73,12 +80,20 @@ and a quiet timestamp: `C:/Users/clint/Desktop/SCREENSAVER_AUDIO_REACTIVE_WAYS/M
   a lane default; it is unblocked only by an explicit GO.
 - **G: cannot take a 27 G `/root` tar as-is.** 30 G free of 477 G. Either compress
   first and verify it fits, or the unregister waits.
-- **`sslsplit` has no Tumbleweed RPM**: `nothing provides 'libcrypto.so.1.1()(64bit)'`
-  — Tumbleweed ships OpenSSL 3. Needs a compat package or a source build against 3.0.
-- **`wfuzz` cannot run on 3.16t unpatched**: PyPI 2.4.5 imports
-  `collections.MutableMapping` (removed in 3.10) and pins `pycurl<=7.43`. It was
-  half-installed at `/usr/local/bin/wfuzz` with `--no-deps` and fails on import.
-  It was **not deleted** — non-destructive default; the stub is documented, not hidden.
+- **`sslsplit` has no *installable* Tumbleweed RPM** — **closed 2026-11-17**, keep
+  the route: `nothing provides 'libcrypto.so.1.1()(64bit)'`, and
+  `zypper search --provides --match-exact` finds no provider anywhere. Fixed by
+  building from source against OpenSSL 3 with one compat macro for the removed
+  `ERR_GET_FUNC`; `/usr/local/sbin/sslsplit` exists (249,456 bytes) and `-h` prints
+  usage. Do not re-chase the RPM: it is `0.5.5-2.63` in the `security` repo and
+  cannot install on OpenSSL 3.
+- **`wfuzz` cannot run on 3.16t unpatched** — **closed 2026-11-17**, and the chain
+  is four deep: PyPI 2.4.5 imports `collections.MutableMapping` (removed in 3.10)
+  and pins `pycurl<=7.43`; pip >= 24.1 also rejects 3.1.0's metadata; `pkg_resources`
+  is gone from setuptools 84.2.1; `imp` was removed in 3.12 and `cgi` in 3.13. Fixed
+  with the hand-unpacked pure-Python 3.1.0 wheel, an `imp` -> `importlib.util`
+  patch, `legacy-cgi`, and `setuptools<81` (80.10.2). The broken 2.4.5 stub is
+  **preserved** at `/usr/local/bin/wfuzz-2.4.5.stub`, not deleted.
 - **`ffprobe --count_frames` over four 8944-frame files timed out at 180 s.** The
   frame counts in `MANIFEST.md` come from the render run's own probe; the
   container-level probe (`format=duration` + stream shape) is the cheap re-check
@@ -106,7 +121,7 @@ py316t C:/Users/clint/_board.py claim freebuff 10
 |---|---|
 | freebuff board | `available 0`, `open 0` — `claim` printed `NO OPEN TASKS` |
 | unregister `Ubuntu-26.04` | **blocked on user GO** (destructive; see §3) |
-| `sslsplit`, `wfuzz` | named gaps; each has a hard cause, neither is a mystery |
+| `sslsplit`, `wfuzz` | **closed 2026-11-17** — both installed and smoke-run; evidence in §2 and in the artifact's `gap_closure` block |
 | 1593 closure packages with no same-name RPM | not attempted; many are Kali-only or renamed, and the native lane covered the ones that mattered |
 | graphify labels | stale after rebuilds — LLM work behind `tools/graphify_label_safe.py --probe-only`, deliberately not run |
 

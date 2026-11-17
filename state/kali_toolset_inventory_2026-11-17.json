@@ -1644,14 +1644,34 @@
   "opensuse_install": {
     "requested": 473,
     "present_after_install": 471,
-    "missing": [
+    "present_now": 473,
+    "missing": [],
+    "missing_after_zypper": [
       "sslsplit",
       "wfuzz"
     ],
     "total_rpms_after": 1840,
     "command": "zypper -n in -y --no-recommends (batches of 50, per-package retry on failure)",
     "log": "C:/Users/clint/suse_install.log",
-    "gaps": {
+    "gap_closure": {
+      "closed_on": "2026-11-17",
+      "sslsplit": {
+        "resolution": "source build against OpenSSL 3 with an ERR_GET_FUNC compatibility macro",
+        "install_path": "/usr/local/sbin/sslsplit",
+        "binary_bytes": 249456,
+        "evidence": "MAKE_RC=0; links libssl.so.3 libcrypto.so.3 libnet.so.9 libevent-2.1 libpcap; -h prints usage",
+        "why_not_zypper": "RPM 0.5.5-2.63 exists in the security repo but is uninstallable: nothing provides libcrypto.so.1.1()(64bit), and zypper search --provides --match-exact finds no provider"
+      },
+      "wfuzz": {
+        "resolution": "hand-unpacked wfuzz 3.1.0 wheel, imp-to-importlib.util patch, legacy-cgi, setuptools<81",
+        "install_path": "/usr/local/bin/wfuzz",
+        "site_packages": "/usr/local/lib/python3.16t/site-packages",
+        "evidence": "WFUZZ_RC=0; Total requests: 2; found known (301) and absent (404); target server log records both GETs",
+        "preserved_stub": "/usr/local/bin/wfuzz-2.4.5.stub",
+        "why_not_zypper": "PyPI 2.4.5 imports the removed collections.MutableMapping, imp and cgi modules and pins pycurl<=7.43; pip >=24.1 also rejects 3.1.0 metadata"
+      }
+    },
+    "gaps_historical": {
       "sslsplit": "nothing provides libcrypto.so.1.1()(64bit) - Tumbleweed ships OpenSSL 3; needs a compat lib or a source build against 3.0",
       "wfuzz": "PyPI 2.4.5 imports collections.MutableMapping (removed in 3.10) and pins pycurl<=7.43, so it cannot run on 3.16t unpatched"
     }

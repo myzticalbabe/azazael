@@ -62,21 +62,42 @@ a batch.
 | reading | value |
 | --- | --- |
 | requested | **473** |
-| present after install | **471** |
-| missing | **2** — `sslsplit`, `wfuzz` |
+| present after the zypper pass | **471** |
+| closed outside zypper | **+2** — `sslsplit`, `wfuzz` |
+| **present now** | **473 / 473** |
 | total RPMs on the openSUSE system after | **1840** |
 
-Both gaps are named with their cause, not rounded off:
+Two packages did not come from zypper. Both are installed now, and both were proven
+by running them rather than by importing them:
 
-- `sslsplit` — `nothing provides 'libcrypto.so.1.1()(64bit)'`; Tumbleweed ships OpenSSL 3,
-  so this needs a compat library or a source build against 3.0.
-- `wfuzz` — PyPI 2.4.5 imports `collections.MutableMapping` (removed in Python 3.10) and
-  pins `pycurl<=7.43`, so it does not run on 3.16t unpatched. The recipe lane, not zypper,
-  is the route.
+- `sslsplit` — the RPM (`0.5.5-2.63`) exists in the `security` repo but is
+  uninstallable: `nothing provides 'libcrypto.so.1.1()(64bit)'`, and
+  `zypper search --provides --match-exact` finds no provider for it anywhere.
+  Built from source against OpenSSL 3 with a one-macro shim for the removed
+  `ERR_GET_FUNC`; installed to `/usr/local/sbin/sslsplit` (249,456 bytes),
+  `MAKE_RC=0`, links `libssl.so.3` / `libcrypto.so.3` / `libnet.so.9` /
+  `libevent-2.1` / `libpcap`, and `-h` prints usage.
+- `wfuzz` — the PyPI route fails in four independent places, in the order they
+  surface: pip >= 24.1 rejects 3.1.0's metadata (`pyparsing (>=2.4*)` ->
+  "Expected matching RIGHT_PARENTHESIS"), `pkg_resources` was removed in
+  setuptools 84.2.1, `import imp` was removed in 3.12, and `import cgi` was
+  removed in 3.13. Resolved by hand-unpacking the pure-Python 3.1.0 wheel into
+  `/usr/local/lib/python3.16t/site-packages`, patching `imp` to `importlib.util`,
+  installing `legacy-cgi`, and pinning `setuptools<81` (80.10.2). Live smoke:
+  `WFUZZ_RC=0`, "Total requests: 2", found `known` (301) and `absent` (404), with
+  the target's own server log recording both GETs. The broken 2.4.5 stub is
+  preserved at `/usr/local/bin/wfuzz-2.4.5.stub`, not deleted.
 
 Verify:
 
 ```bash
 MSYS_NO_PATHCONV=1 wsl -d openSUSE-Tumbleweed -u root -- bash /mnt/c/Users/clint/tmp_dump_rpms.sh
-python C:/Users/clint/tmp_verify_install.py   # requested=473 present=471 missing=['sslsplit','wfuzz']
+python C:/Users/clint/tmp_verify_install.py    # zypper pass: requested=473 present=471
+MSYS_NO_PATHCONV=1 wsl -d openSUSE-Tumbleweed -u root -- ls -l /usr/local/sbin/sslsplit /usr/local/bin/wfuzz
 ```
+
+`present_after_install: 471` is kept in
+`state/kali_toolset_inventory_2026-11-17.json` on purpose: that is what the zypper
+pass achieved, and overwriting it with 473 would destroy the denominator. The two
+packages closed outside zypper are recorded beside it as `gap_closure`, with
+`present_now: 473`.
