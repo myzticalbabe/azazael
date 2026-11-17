@@ -156,6 +156,13 @@ def hyper_edge_flags() -> dict:
         # Literal like the rest: a computed key would read as orphan_knob.
         "citation_audit": bool(setting("hyper_edge.citation_audit", True)),
         "reading_freshness": bool(setting("hyper_edge.reading_freshness", True)),
+        # The three readings the 2026-11-16 gap analysis named as missing:
+        # is a generated file still its generator's output, does the commit hook
+        # gate with the interpreter production actually runs, and is anything
+        # untracked carrying a credential. Literal keys, like the rest.
+        "generated_audit": bool(setting("hyper_edge.generated_audit", True)),
+        "interpreter_audit": bool(setting("hyper_edge.interpreter_audit", True)),
+        "disclosure_audit": bool(setting("hyper_edge.disclosure_audit", True)),
     }
 
 
@@ -175,6 +182,16 @@ HYPER_EDGE_TOOLS = [
     ("citation_audit", "tools/citation_audit.py", "hyper_edge.citation_audit"),
     ("reading_freshness", "tools/reading_freshness.py",
      "hyper_edge.reading_freshness"),
+    # Built 2026-11-16 from docs/GAP_ANALYSIS_2026-11-16.md (G2/G3 and the §3
+    # disclosure risk). Each is advisory on its own and ratchets with the block
+    # below; joining the leg is HED-8's "extend the default, do not shadow it",
+    # so they are one line per run rather than three commands nobody runs.
+    ("generated_audit", "tools/generated_audit.py",
+     "hyper_edge.generated_audit"),
+    ("interpreter_audit", "tools/interpreter_audit.py",
+     "hyper_edge.interpreter_audit"),
+    ("disclosure_audit", "tools/disclosure_audit.py",
+     "hyper_edge.disclosure_audit"),
 ]
 
 

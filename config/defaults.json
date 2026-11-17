@@ -110,7 +110,10 @@
     "strict_after_clean": 3,
     "leg_timeout_s": 300,
     "citation_audit": true,
-    "reading_freshness": true
+    "reading_freshness": true,
+    "generated_audit": true,
+    "interpreter_audit": true,
+    "disclosure_audit": true
   },
   "reading_audit": {
     "min_coverage": 0.0
