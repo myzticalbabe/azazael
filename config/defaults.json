@@ -121,6 +121,10 @@
   "head_audit": {
     "max_state_age_days": 0
   },
+  "render_gate": {
+    "ratchet": true,
+    "timeout_s": 300
+  },
   "settings_shadow": {
     "readers": [
       "read_default",

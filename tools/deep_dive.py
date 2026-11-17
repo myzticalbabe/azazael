@@ -134,6 +134,46 @@ def leg_golden_arrow_status(_payload):
             "summary": totals}
 
 
+def leg_render_ratchet(_payload):
+    """Compare the recorded clips against the written baseline.
+
+    A render is the one artefact here that costs minutes and leaves no diff, so
+    `logs/render_gate_baseline.json` is the only record of what was shipped. The
+    clips live outside the repository, so this leg names its population and
+    records absence instead of reading a missing file as agreement: a machine
+    that has never rendered is `skipped` with the count, never clean.
+    """
+    if not bool(setting("render_gate.ratchet", True)):
+        return {"status": "skipped", "detail": "render_gate.ratchet=false"}
+    baseline = ROOT / "logs" / "render_gate_baseline.json"
+    if not baseline.exists():
+        return {"status": "skipped",
+                "detail": "no logs/render_gate_baseline.json on this host -- nothing recorded"}
+    try:
+        recorded = json.loads(baseline.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("baseline unreadable, so nothing was compared: %s" % exc)
+    named = sorted(recorded)
+    present = [p for p in named if Path(p).exists()]
+    if not present:
+        return {"status": "skipped",
+                "detail": "%d clip(s) recorded, 0 present on this host -- nothing compared"
+                          % len(named)}
+    proc = subprocess.run([sys.executable, "tools/render_gate.py", "ratchet", *present,
+                           "--baseline", str(baseline), "--strict", "--tol", "45"],
+                          cwd=str(ROOT), capture_output=True, text=True,
+                          encoding="utf-8", errors="replace",
+                          timeout=float(setting("render_gate.timeout_s", 300)))
+    lines = [ln.strip() for ln in (proc.stdout or "").splitlines() if ln.strip()]
+    detail = "%s | %d of %d recorded clip(s) present on this host" % (
+        lines[-1] if lines else (proc.stderr or "no output")[-200:].strip(),
+        len(present), len(named))
+    if proc.returncode != 0:
+        return {"status": "error", "detail": detail}
+    return {"detail": detail,
+            "summary": {"present": len(present), "recorded": len(named)}}
+
+
 # Keys are written out in full and read at a call site, never assembled as
 # "hyper_edge." + name: settings_shadow resolves a read only when the reader is
 # called with a literal string, so a computed key (or one parked in a table)
@@ -607,6 +647,7 @@ FORENSIC_LEGS = [
     ("ast_audit", leg_ast_audit),
     ("evidence_gate", leg_evidence_gate),
     ("golden_arrow_status", leg_golden_arrow_status),
+    ("render_ratchet", leg_render_ratchet),
     ("hyper_edge", leg_hyper_edge),
     ("kernel", leg_kernel),
     ("swarm_view", leg_swarm_view),
