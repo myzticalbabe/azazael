@@ -67,7 +67,7 @@ python tools/arc_ledger.py --check
 
 ---
 
-### G2 — an exemption is proved by *naming*, not by *regenerating* — **OPEN**
+### G2 — an exemption is proved by *naming*, not by *regenerating* — **INSTRUMENT LANDED in `97aebbc6`**
 
 **Class:** shape-check standing in for a behaviour-check — the same defect class HED-10
 records twice, where a detector trusted a shape and reported a truth it had not tested.
@@ -85,6 +85,19 @@ that names the file in a comment and writes something else, for a generator whos
 output drifted from disk, and — the case that matters — for a generator that is never
 run. Five entries are currently exempt on this evidence.
 
+**Measured after the instrument landed.** `python tools/generated_audit.py` prints
+`5/5 excused paths accounted for (DRIFTED=1, NO-VERIFIER=2, PROVED=2)`. The DRIFTED
+entry is `docs/INDEX.md`: **disk 32 460 bytes against a 33 784-byte render**, so the
+index on disk names 287 documents where a fresh render names 298. The exemption is
+true for four entries and is currently concealing a stale file for the fifth — a
+finding that was invisible while the test only checked that a name appeared in a
+source file. The two `NO-VERIFIER` entries are `logs/basedpyright_*.json`, which
+record a MEASUREMENT rather than a rendering; they are registered with their reason
+and counted separately from PROVED rather than rounded into it.
+
+The instrument reads `GENERATED_PATHS` by import from `scripts/commit_gate.py`, never
+from a copy, so the table and its auditor cannot drift apart (HED-5).
+
 **Avenue.** Give each generator a `--check` contract and call it. `tools/arc_ledger.py`
 is the template already in the tree: `--check` renders, compares bytes, exits 0
 identical / 1 drifted-and-named / 2 unreadable. An entry whose generator exposes no
@@ -98,7 +111,24 @@ session's repair were both reacting to.
 
 ---
 
-### G3 — the interpreter claim has no check, and the tree contradicts it — **OPEN**
+### G3 — the interpreter claim has no check, and the tree contradicts it — **MEASURED; DECISION OPEN (G3)**
+
+**Measured 2026-11-16** by `python tools/interpreter_audit.py`, which runs the pin
+rather than reading it:
+
+```
+interpreter_audit: pin      C:/Azazael/.venvs/py315t/Scripts/python.exe
+interpreter_audit: measured 3.15  gil_enabled=False
+interpreter_audit: canon    3.16
+interpreter_audit: DRIFTED -- hook pin measures 3.15, canon claims 3.16
+interpreter_audit: DECISION OPEN (G3)
+```
+
+The drift is real and now falsifiable. The tool deliberately does **not** move the
+pin: 3.15t is free-threaded and is the documented GIL sidecar for packages with no
+`cp316t` wheel, so pinning it is a defensible engineering choice and pinning 3.16t
+is a defensible parity choice. Which one gates commits is the principal's call, so
+the tool reports and stops.
 
 **Class:** a canon sentence with no instrument. AGENTS.md §"Tooling facts" states:
 
@@ -262,14 +292,23 @@ root):** the tree root holds untracked `credentials_final.json`,
 that rule stages live credentials. This is a disclosure question for the principal —
 whether those files should exist untracked in a pushed tree at all.
 
+**Re-checkable since `97aebbc6`.** `python tools/disclosure_audit.py --strict` names
+its population (`untracked, not ignored`), its denominator
+(`listed=543 scanned=44 skipped-large=15 skipped-binary=484`), and fails on **three**
+files: `add_passwords.py`, `credentials_final.json`, `credentials_real.json`.
+`credentials_template.json` is labelled a template and excluded from `--strict`
+unless `--fail-on-template` is passed; the 13 PNGs under `evidence/` are labelled
+`screenshot` for the same reason. No matched value is ever printed — a scanner that
+prints the secret has made a second copy of the leak.
+
 ---
 
 ## 4. Order of work
 
 | # | gap | why here | price |
 |---|-----|----------|-------|
-| 1 | **G3** interpreter | cheapest, and it falsifies a live canon claim today | 2 lines + 1 test |
-| 2 | **G2** `--check` per generator | makes every exemption true and testable; unblocks G4 | ~40 lines |
+| 1 | ~~**G3** interpreter~~ | **landed `97aebbc6`**: `interpreter_audit.py` measures DRIFTED; the pin is the principal's call | done |
+| 2 | ~~**G2** `--check` per generator~~ | **landed `97aebbc6`**: `generated_audit.py` proves 4/5 and names `docs/INDEX.md` stale | done |
 | 3 | **G6** transport row | turns a silent dead tool path into a named gate row | ~1 hour |
 | 4 | **G5b** continue past an unreadable commit | one commit can refuse 1,908; ~15 lines | small |
 | 5 | **G5** batch the git calls | only past ~100-commit ranges | medium |
