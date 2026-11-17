@@ -12,12 +12,19 @@ Two parts:
      exceeds bulk thresholds unless ALLOW_BULK_COMMIT=1. Small focused
      commits always pass; deliberate bulk ops (frame untracking, snapshots)
      pass by declaring intent in the env.
-  1b. `commit_gate.py --hook --base REV` (push): judge `REV..HEAD` instead of
-     the index. Those are different questions and neither answers the other:
-     at push time the index holds whatever a concurrent lane has staged, so an
+  1b. `commit_gate.py --hook --base REV` (push): judge each commit in
+     `REV..HEAD` ON ITS OWN CHANGESET, not the union of the range. Two scopes
+     are kept apart here and neither answers the other. (a) The index is not the
+     range: at push time it holds whatever a concurrent lane staged, so an
      index-scoped run refuses a push over files the commit never touched
      (measured 2026-11-03: a 2-file commit blocked by 7 forensic files staged
-     by another lane). `REV..HEAD` is the commit being pushed.
+     by another lane). (b) The range is not the commit: the caps are per-commit
+     numbers, so `git diff REV HEAD` charges 29 focused commits as one
+     1,215-file changeset with 24 oversized files and demands
+     `ALLOW_BULK_COMMIT=1` for work that was already split (measured
+     2026-11-16). A commit's message authorises that commit only; a clean merge
+     is skipped and counted, a merge that edited files relative to every parent
+     is counted in the file tally, and each refusal names the sha to fix.
   2. `commit_gate.py review`: interactive worktree review -- groups changed
      files (source vs generated), shows per-file +/- and lets the operator
      stage exactly what the commit message will describe.
@@ -86,6 +93,19 @@ GENERATED_PATHS = {
     # declaration demanded for bytes no human wrote. Canon already names
     # SHARD_INDEX.json among the files nobody hand-edits.
     "Project_ELIZA/shards/SHARD_INDEX.json": "Project_ELIZA/tools/shard_intake.py",
+    # 2026-11-16: the two basedpyright artifacts are written by
+    # `tools/type_check_gate.py` (BASELINE / REPORT at lines 97-98) on every
+    # run, so a re-baseline of either is machine bytes, not hidden dirt.
+    "logs/basedpyright_report.json": "tools/type_check_gate.py",
+    "logs/basedpyright_baseline.json": "tools/type_check_gate.py",
+    # 2026-11-16: `ARC/esquire/pins.json` was the LAST commit the push range
+    # refused -- 155/51 lines in one file, and every reader of it is read-only
+    # (`esquire_pins.py`, `arc_pin_audit.py`, `arc_check.py`), so a re-dump was
+    # by construction a hand edit of a machine-shaped registry. The repair was
+    # to give the file the owner it lacked, not to widen this table:
+    # `tools/arc_ledger.py` renders it and reproduces HEAD's blob byte for byte
+    # (verified: 29,320 bytes + newline = 29,321, identical=True).
+    "ARC/esquire/pins.json": "tools/arc_ledger.py",
 }
 
 
@@ -121,10 +141,29 @@ def staged_statuses() -> dict[str, str]:
     return out
 
 
-def range_numstat(base: str) -> list[tuple[int, int, str]]:
-    """[(added, deleted, path)] for `base..HEAD` -- a commit, not the index."""
+def commits_in_range(base: str) -> list[tuple[str, list[str], str]]:
+    """[(sha, parents, message)] oldest-first for `base..HEAD`.
+
+    One `git log` for the whole range, with the parents carried in the format:
+    the loop below needs to know which commits are merges, and asking that per
+    commit would spend a subprocess per commit to learn one word.
+    """
+    raw = _git("log", "--reverse", "--format=%H%x1f%P%x1f%B%x1e",
+               "%s..HEAD" % base)
+    out = []
+    for chunk in raw.split("\x1e"):
+        chunk = chunk.strip("\n")
+        if not chunk:
+            continue
+        sha, _, rest = chunk.partition("\x1f")
+        parents, _, message = rest.partition("\x1f")
+        out.append((sha.strip(), parents.split(), message))
+    return out
+
+
+def _numstat_rows(raw: str) -> list[tuple[int, int, str]]:
     rows = []
-    for line in _git("diff", "--numstat", base, "HEAD").splitlines():
+    for line in raw.splitlines():
         parts = line.split("\t")
         if len(parts) != 3:
             continue
@@ -134,6 +173,120 @@ def range_numstat(base: str) -> list[tuple[int, int, str]]:
             added, deleted = -1, -1  # binary
         rows.append((added, deleted, parts[2]))
     return rows
+
+
+def commit_numstat(rev: str) -> list[tuple[int, int, str]]:
+    """[(added, deleted, path)] for ONE commit's own changeset.
+
+    `--root` makes a root commit report its whole tree as additions instead of
+    an empty diff (it has no parent to differ from), so the first commit of a
+    range is judged like any other.
+
+    A MERGE PRINTS NOTHING HERE, and that is diff-tree's default rather than a
+    failure: a merge differs from two parents at once, so "the diff" has no
+    single answer. `merge_extra_rows` asks the only question left.
+    """
+    return _numstat_rows(_git("diff-tree", "--no-commit-id", "--numstat", "-r",
+                              "--root", rev))
+
+
+def commit_statuses(rev: str) -> dict[str, str]:
+    """path -> status letter for ONE commit (A = that commit created it)."""
+    out: dict[str, str] = {}
+    for line in _git("diff-tree", "--no-commit-id", "--name-status", "-r",
+                     "--root", rev).splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            out[parts[-1].strip()] = parts[0].strip()
+    return out
+
+
+def merge_extra_rows(rev: str) -> list[tuple[int, int, str]]:
+    """Paths a MERGE changed relative to EVERY parent -- its own hand edits.
+
+    `--cc` prints only files that differ from all parents at once, which is
+    exactly an evil-merge resolution: a clean merge prints no rows. `-m` is
+    wrong here -- it prints each parent's diff and so counts every merged-in
+    file as if the merge had edited it (measured 2026-11-16). A combined diff
+    carries no line counts, so these are counted like binary rows: in the file
+    tally, out of the line tally.
+    """
+    rows = []
+    for line in _git("diff-tree", "--no-commit-id", "--cc", "--raw", "-r",
+                     rev).splitlines():
+        if "\t" not in line:
+            continue
+        head, path = line.split("\t", 1)
+        fields = head.split()
+        status = fields[-1] if fields else ""
+        if path.strip() and any(ch not in "." for ch in status):
+            rows.append((-1, -1, path.strip()))
+    return rows
+
+
+def _subject(message: str) -> str:
+    """First non-blank line of a message, for naming a commit in a refusal."""
+    for line in (message or "").splitlines():
+        if line.strip():
+            return line.strip()
+    return "(no message)"
+
+
+def commit_violations(base: str, max_lines: int, max_files: int
+                      ) -> tuple[list[str], int, int, int, int, int]:
+    """Judge `base..HEAD` ONE COMMIT AT A TIME.
+
+    Returns (problems, judged, declared, clean_merges, evil_merges, generated).
+
+    WHY PER COMMIT AND NOT PER RANGE (2026-11-16). The caps are per-commit
+    numbers -- 8 files, 150 changed lines in one file -- and this gate applied
+    them to `git diff base HEAD`: the UNION of the whole range. A push of 29
+    focused commits therefore read as one 1,215-file changeset carrying 24
+    oversized files, and the only way through was `ALLOW_BULK_COMMIT=1`: a
+    declaration spent on work that had already been split correctly, which is
+    what that constant is explicitly not for.
+
+    The union had a second defect, worse than the arithmetic. It has no
+    message, so "the commit's own message declares bulk" had already needed a
+    narrowing (2026-11-03) to survive contact with a range at all. Judging each
+    commit restores the rule instead of special-casing it: a commit's message
+    authorises that commit, and nothing else in the range.
+    """
+    problems: list[str] = []
+    judged = declared = clean_merges = evil_merges = generated = 0
+    for sha, parents, message in commits_in_range(base):
+        short = sha[:8]
+        if declares_bulk(message):
+            declared += 1
+            print("commit-gate: %s declares bulk in its own message -- excused "
+                  "(its neighbours are still judged)" % short)
+            continue
+        if len(parents) > 1:
+            rows = merge_extra_rows(sha)
+            if not rows:
+                clean_merges += 1
+                continue
+            evil_merges += 1
+            created: set[str] = set()
+            print("commit-gate: %s is a MERGE that changed %d path(s) relative "
+                  "to every parent -- counted, not skipped: %s"
+                  % (short, len(rows), ", ".join(r[2] for r in rows[:6])))
+        else:
+            rows = commit_numstat(sha)
+            created = {p for p, s in commit_statuses(sha).items() if "A" in s}
+        judged += 1
+        if not rows:
+            continue
+        generated += len([r for r in rows if r[2] and is_generated(r[2])])
+        problems.extend(evaluate(
+            rows, max_lines, max_files, created,
+            changeset="files in %s (%s)" % (short, _subject(message)[:64]),
+            remedy="Declare the bulk op in the message of %s -- a commit "
+                   "message authorises that commit only -- or split it."
+                   % short,
+            file_remedy="Split %s, or declare the bulk op in its own message."
+                        % short))
+    return problems, judged, declared, clean_merges, evil_merges, generated
 
 
 def declares_bulk(message: str) -> bool:
@@ -163,28 +316,11 @@ def single_commit_bulk_declaration(base: str) -> str | None:
     (`base..HEAD` = 1). A multi-commit push has no single message describing it
     and is judged by the caps like anything else.
     """
-    raw = _git("log", "--format=%H%x1f%B%x1e", "%s..HEAD" % base)
-    commits = []
-    for chunk in raw.split("\x1e"):
-        chunk = chunk.strip("\n")
-        if not chunk:
-            continue
-        sha, _, message = chunk.partition("\x1f")
-        commits.append((sha.strip(), message))
+    commits = commits_in_range(base)
     if len(commits) != 1:
         return None
-    sha, message = commits[0]
+    sha, _parents, message = commits[0]
     return sha if declares_bulk(message) else None
-
-
-def range_statuses(base: str) -> dict[str, str]:
-    """path -> status letter for the same range (A = created by it)."""
-    out: dict[str, str] = {}
-    for line in _git("diff", "--name-status", base, "HEAD").splitlines():
-        parts = line.split("\t")
-        if len(parts) >= 2:
-            out[parts[-1].strip()] = parts[0].strip()
-    return out
 
 
 def worktree_status() -> list[tuple[str, str]]:
@@ -323,6 +459,9 @@ def cmd_hook(base: str | None = None) -> int:
         return 0
     scope = "%s..HEAD" % base if base else "the staged index"
     if base:
+        # ONE COMMIT, ALREADY AUTHORISED: the fast path, kept because "the
+        # range's message" is unambiguous in exactly this case. It answers the
+        # same question as the loop below and authorises nothing wider.
         try:
             declared = single_commit_bulk_declaration(base)
         except Exception as exc:  # noqa: BLE001 - a named range must be readable
@@ -333,28 +472,47 @@ def cmd_hook(base: str | None = None) -> int:
             print("commit-gate: bulk declared in the message of %s, passing "
                   "(%s)" % (declared[:8], scope))
             return 0
-    try:
-        if base:
-            rows = range_numstat(base)
-            statuses = range_statuses(base)
-        else:
-            rows = staged_numstat()
-            statuses = staged_statuses()
-    except Exception as exc:
-        if base:
+        try:
+            problems, judged, declared_n, merges, evil, gen = commit_violations(
+                base, max_lines, max_files)
+        except Exception as exc:
             # A NAMED base that cannot be read is a caller error, not a broken
             # gate: passing loud here would go green on a range never read (a
             # typo, or a ref this clone does not have).
             print("commit-gate: cannot read %s (%s) -- refusing to pass on a "
                   "range that was not read" % (scope, exc))
             return 1
+        if judged + declared_n + merges == 0:
+            # An empty range is a wrong base far more often than a clean one.
+            print("commit-gate: %s is empty -- nothing to judge" % scope)
+            return 0
+        if gen:
+            print("commit-gate: %d generated file(s) across %s -- exempt from "
+                  "bulk caps (review: python scripts/commit_gate.py review)"
+                  % (gen, scope))
+        if problems:
+            print("commit-gate: BULK CHANGESET BLOCKED")
+            for p in problems:
+                print("  - " + p)
+            print("  Judged per commit: %d commit(s) on their own changeset, "
+                  "%d excused by their own message, %d clean merge(s) skipped, "
+                  "%d merge(s) with their own edits."
+                  % (judged, declared_n, merges, evil))
+            print("  Review with: git show --stat <the sha named above>")
+            return 1
+        print("commit-gate: %d commit(s) in %s judged on their own changeset, "
+              "each within the caps (%d excused by their own message, %d clean "
+              "merge(s) skipped, %d merge(s) with their own edits)"
+              % (judged, scope, declared_n, merges, evil))
+        return 0
+    try:
+        rows = staged_numstat()
+        statuses = staged_statuses()
+    except Exception as exc:
         # A broken gate must never block all commits; be loud instead.
         print("commit-gate: cannot read staged diff (%s) -- passing loud" % exc)
         return 0
     if not rows:
-        if base:
-            # An empty range is a wrong base far more often than a clean one.
-            print("commit-gate: %s is empty -- nothing to judge" % scope)
         return 0
     created = {p for p, s in statuses.items() if "A" in s}
     gen_count = len([r for r in rows if r[2] and is_generated(r[2])])
@@ -362,24 +520,13 @@ def cmd_hook(base: str | None = None) -> int:
         print("commit-gate: %d generated file(s) in %s -- exempt from bulk "
               "caps (review: python scripts/commit_gate.py review)"
               % (gen_count, scope))
-    if base:
-        problems = evaluate(
-            rows, max_lines, max_files, created,
-            changeset="files in %s..HEAD" % base,
-            remedy="Declare the bulk op in the message of the single commit "
-                   "being pushed (a commit message is the surface this gate "
-                   "reads), or push the commits separately.",
-            file_remedy="Split the commit, or declare the bulk op in its "
-                        "message.")
-    else:
-        problems = evaluate(rows, max_lines, max_files, created)
+    problems = evaluate(rows, max_lines, max_files, created)
     if not problems:
         return 0
     print("commit-gate: BULK CHANGESET BLOCKED")
     for p in problems:
         print("  - " + p)
-    print("  Review with: %s" % ("git show --stat %s..HEAD" % base if base
-                                 else "python scripts/commit_gate.py review"))
+    print("  Review with: python scripts/commit_gate.py review")
     return 1
 
 
