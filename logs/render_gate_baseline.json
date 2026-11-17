@@ -1,0 +1,67 @@
+{
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_AURORA_VEIL.mp4": {
+  "bytes": 1468799,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   32,
+   54,
+   67
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T21:12:59"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_DEEP_COBALT.mp4": {
+  "bytes": 18257056,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   47,
+   110,
+   160
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T21:13:02"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_EMBER_ASH.mp4": {
+  "bytes": 2114979,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   23,
+   11,
+   7
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T21:13:03"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_ORCHID_NEBULA.mp4": {
+  "bytes": 1876744,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   16,
+   4,
+   29
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T21:13:04"
+ },
+ "C:\\Users\\clint\\Desktop\\SCREENSAVER_SOLAR_FLARE.mp4": {
+  "bytes": 2075726,
+  "fps": 30.0,
+  "frames": 300,
+  "rgb": [
+   160,
+   43,
+   15
+  ],
+  "seconds": 10.0,
+  "size": "1920x1080",
+  "verified_at": "2026-11-16T21:13:05"
+ }
+}

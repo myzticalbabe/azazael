@@ -69,6 +69,8 @@ async function capture(browser, html, mp4, fps) {
   const url = 'file:///' + path.resolve(html).replace(/\\/g, '/');
   await page.goto(url, { waitUntil: 'load' });
   await page.evaluate(() => (document.fonts ? document.fonts.ready : null));
+  const renderer = await rendererOf(page);
+  log(`  raster: ${renderer}${isSoftwareRaster(renderer) ? '  [SOFTWARE -- 31x slower, see LAUNCH]' : ''}`);
   await page.evaluate(() => {
     window.__done = false;
     const f = document.getElementById('fade');
@@ -133,27 +135,161 @@ async function capture(browser, html, mp4, fps) {
   return { ok: true, frames, drawS };
 }
 
+const LAUNCH = {
+  headless: 'new',
+  // 2026-11-16: headless Chrome answers a canvas with SwiftShader unless told
+  // otherwise, and nothing raises when it does. Same page, same frames,
+  // measured on ORCHID_NEBULA: 35539 ms/frame on SwiftShader vs 1128 ms/frame
+  // on the Intel Arc (ANGLE/D3D11) -- 31.5x, with the art untouched. The five
+  // savers were rendering at 3-6 s/frame for this reason alone.
+  args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none',
+    '--disable-lcd-text', '--force-color-profile=srgb',
+    '--enable-gpu', '--use-angle=default'],
+};
+
+// What is actually rasterizing. Recorded, never assumed: a silent fallback to
+// software turns a six-minute render into a three-hour one.
+function isSoftwareRaster(renderer) {
+  return /swiftshader|llvmpipe|software/i.test(renderer || '');
+}
+
+async function rendererOf(page) {
+  return page.evaluate(() => {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return 'no-webgl';
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    return dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : 'webgl-no-debug-info';
+  });
+}
+
+/**
+ * --pilot: measure what a render WILL cost before paying for it.
+ *
+ * 2026-11-16: five savers were launched as one batch. Four ran at 3-6 s/frame;
+ * ORCHID_NEBULA drew a frame in 18.8 s and screenshotted in 18.7 s, so its 300
+ * frames were a three-hour job discovered an hour in. The driver's only timing
+ * output was `frame N/300` every 150 frames -- a progress line, not a forecast.
+ *
+ * This steps N frames, times the draw and the screenshot separately, projects
+ * the full timeline, and writes one sample PNG so the caller can measure the
+ * pixels before committing to the encode. Prints one `PILOT {json}` line and
+ * nothing else, so a caller can parse it without scraping prose.
+ */
+async function pilot(browser, html, opt) {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+  await page.evaluateOnNewDocument(() => { window.__capture = true; });
+  await page.goto('file:///' + path.resolve(html).replace(/\\/g, '/'), { waitUntil: 'load' });
+  await page.evaluate(() => (document.fonts ? document.fonts.ready : null));
+
+  const renderer = await rendererOf(page);
+  const facts = await page.evaluate(() => {
+    const cv = document.querySelector('canvas');
+    return {
+      canvas: cv ? (cv.width + 'x' + cv.height) : null,
+      total: typeof window.__TOTAL === 'number' ? window.__TOTAL :
+        (typeof window.__duration === 'number' ? window.__duration : null),
+      step: typeof window.__step === 'function',
+      draw: typeof window.__draw === 'function',
+      labels: typeof window.__labels === 'function',
+    };
+  });
+  if (!facts.step && !facts.draw) throw new Error(html + ': no window.__step or window.__draw');
+
+  const samples = [];
+  for (let i = 0; i < opt.frames; i++) {
+    const t = facts.total ? (i / opt.frames) * facts.total : (i * 1000 / opt.fps);
+    const a = Date.now();
+    if (facts.step) {
+      await page.evaluate((ms) => window.__step(ms), t);
+    } else {
+      await page.evaluate((ms) => new Promise((r) => { window.__draw(ms);
+        requestAnimationFrame(() => requestAnimationFrame(() => r(ms))); }), t);
+    }
+    const b = Date.now();
+    if (opt.shot) {
+      await page.screenshot({ path: opt.shot, clip: { x: 0, y: 0, width: 1920, height: 1080 } });
+    }
+    samples.push({ step_ms: b - a, shot_ms: Date.now() - b });
+  }
+  const total = facts.total || 10000;
+  const planned = Math.round(total / 1000 * opt.fps);
+  const mean = (k) => samples.reduce((s, x) => s + x[k], 0) / samples.length;
+  const perFrame = mean('step_ms') + mean('shot_ms');
+  const out = {
+    html,
+    canvas: facts.canvas,
+    total_timeline_ms: total,
+    fps: opt.fps,
+    planned_frames: planned,
+    samples,
+    step_ms: +mean('step_ms').toFixed(1),
+    shot_ms: +mean('shot_ms').toFixed(1),
+    ms_per_frame: +perFrame.toFixed(1),
+    projected_s: +(perFrame * planned / 1000).toFixed(1),
+    renderer: renderer,
+    software_raster: isSoftwareRaster(renderer),
+    contract: { total: facts.total !== null, step: facts.step, draw: facts.draw,
+      labels: facts.labels },
+  };
+  await page.close();
+  console.log('PILOT ' + JSON.stringify(out));
+  return out;
+}
+
 (async () => {
   const argv = process.argv.slice(2);
+  if (argv[0] === '--pilot') {
+    const html = argv[1];
+    if (!html) {
+      console.error('usage: node capture_yggdrasil.js --pilot <in.html> '
+        + '[--frames N] [--fps N] [--shot <png>]');
+      process.exit(2);
+    }
+    const opt = { frames: 5, fps: 30, shot: null };
+    for (let i = 2; i < argv.length; i += 2) {
+      const k = argv[i], v = argv[i + 1];
+      if (k === '--frames') opt.frames = parseInt(v, 10);
+      else if (k === '--fps') opt.fps = parseInt(v, 10);
+      else if (k === '--shot') opt.shot = v;
+      else { console.error('--pilot: unknown option ' + k); process.exit(2); }
+    }
+    const browser = await puppeteer.launch(LAUNCH);
+    let rc = 0;
+    try {
+      await pilot(browser, html, opt);
+    } catch (e) {
+      console.error('PILOT FAILED: ' + e.message);
+      rc = 1;
+    } finally {
+      await browser.close();
+    }
+    process.exit(rc);
+  }
   if (argv.length < 2) {
     console.error('usage: node capture_yggdrasil.js <in.html> <out.mp4> [fps] [<in2> <out2> [fps]]');
     process.exit(2);
   }
+  // 2026-11-16: this read fps BEFORE out while the usage line promised
+  // `html out [fps]`, so documented-order calls exited 2. Roles now come from
+  // the token: html first, `.mp4` is the output, all-digits is the fps.
   const jobs = [];
   for (let i = 0; i < argv.length;) {
     const html = argv[i++];
     let fps = 30;
-    if (/^\d+$/.test(argv[i] || '')) fps = parseInt(argv[i++], 10);
-    const out = argv[i++];
+    let fpsSeen = false;
+    let out = null;
+    for (let seen = 0; seen < 2 && i < argv.length; seen++) {
+      const tok = argv[i];
+      if (/^\d+$/.test(tok) && !fpsSeen) { fps = parseInt(tok, 10); fpsSeen = true; i++; continue; }
+      if (/\.mp4$/i.test(tok) && out === null) { out = tok; i++; continue; }
+      break;
+    }
     if (!out) { console.error('missing out.mp4 for ' + html); process.exit(2); }
     jobs.push({ html, out, fps });
   }
 
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none',
-      '--disable-lcd-text', '--force-color-profile=srgb'],
-  });
+  const browser = await puppeteer.launch(LAUNCH);
   let bad = 0;
   try {
     for (const j of jobs) {

@@ -125,12 +125,15 @@ They only make answers wrong.
   Measured 2026-11-09: gate, session_start, supervisor --verdict, and 7398 tests
   (type_check, pmb, mcp, agent_orders, anti_pattern, compliance) all pass under 3.16t.
   The "suite not proven" blocker is resolved.
-- **6,975 tests exist and nothing gates them.** (Collected 2026-11-05 by
-  `python tools/head_state.py --write`, which runs `pytest --collect-only -q` under
-  the 3.15t interpreter and writes `state/head.json`. This line said 5,380 for
-  three days, then 6,277 for three more, because no gate read this file — which is
-  why `tools/prompt_check.py` now does, and it is what caught the 6,277.) No stanza of
-  the commit hook runs pytest. Before concluding "the suite is slow", check that it is not *stuck*:
+- **The suite's size lives in `state/head.json`, never in a prompt.** At HEAD
+  `d7cd3bc1` that file records 7,760 tests. The 6,975 this line used to claim is a
+  historical reading (collected 2026-11-05 by `python tools/head_state.py --write`,
+  which runs `pytest --collect-only -q` and writes the file); it said 5,380 for
+  three days, then 6,277 for three more, because no gate read the file — which is
+  why `tools/prompt_check.py` now does, and it is what caught the 6,277. The hook
+  runs the index's test files (stanza 11, `tools/golden_arrow.py --staged`,
+  skippable with `ALLOW_FAST_COMMIT=1`); it still does not run the full suite.
+  Before concluding "the suite is slow", check that it is not *stuck*:
   metering helpers need a bound, and a test with no timeout can wedge a whole run
   (two did, for months — the compliance gate under test read a 5.4 GB store on
   every `check_all()`; it now costs 0.09 s, measured).
