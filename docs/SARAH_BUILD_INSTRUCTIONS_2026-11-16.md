@@ -327,6 +327,11 @@ $PY -c "import json;d=json.load(open('/tmp/sarah_run.json'));up=[e for e in d['e
 
 # 5. the tree is clean of the forbidden shapes
 grep -rnE 'sleep\(0\.01\)|streamlit|requests\.(get|post)' src/SARAH/ || echo "clean"
+
+# 6. every commit in the branch is judged on its OWN changeset (not the range's union)
+#    Base on the branch's OWN upstream -- not origin/main, which on this repo is 1,909
+#    commits away and contains an unreadable bulk snapshot (measured 2026-11-16).
+$PY scripts/commit_gate.py --hook --base '@{upstream}'      # RC=0; prints judged/declared counts
 ```
 
 `#4` printing a non-zero count is not a failing test to be silenced — it is the design defect
@@ -342,6 +347,41 @@ Record every error, near-miss and falsification at **encounter time** into
 `error_fix | lesson | mandate | sop_rule | violation | anti_pattern`.
 Do not defer to session end — reconstruction loses detail and over-weights what is still
 salient. Validate: `tools/merge_bake_lane.py --lane <file> --apply`.
+
+---
+
+## 8a. What the gate work adds to this build (2026-11-16)
+
+Four rules earned while unblocking this branch's 29-commit push. They are stated here,
+not folded into §3, because §3 is a count of *design* rules and adding a twelfth there
+would make its title wrong. Full evidence and the five open gaps:
+`docs/GAP_ANALYSIS_2026-11-16.md`.
+
+1. **A cap is a per-unit number until you prove otherwise.** The commit gate applied
+   per-commit caps (8 files, 150 lines/file) to a whole range's union and read 29 focused
+   commits as one 1,215-file changeset. In this build the same shape appears wherever a
+   budget is stated per module or per step: a *sum* over the run is not the same reading
+   as the worst single step, and reporting the sum as if it were the cap is how a clean
+   build gets refused. §5's caps are per-event; never check them against a total.
+2. **An exemption must be reproducible, not merely named.** `GENERATED_PATHS` exempts
+   files on the strength of a test that checks the generator's source *mentions* the
+   filename. Any module this build exempts from a check — a generated profile table, a
+   frozen baseline — carries the command that **regenerates it and compares bytes**
+   (`tools/arc_ledger.py --check` is the in-tree model: exit 0 identical, 1 drifted and
+   named, 2 unreadable). An exemption whose proof is a mention is an exemption nobody
+   has tested.
+3. **A green gate is not a live tool path.** In the same session the startup gate
+   reported `[PASS] pmb-daemon` while this client's pmb MCP session was dead
+   (`Session not found`, twice). The gate proved the daemon answered `initialize`; it
+   said nothing about the child the client holds. Before any step here reports done, the
+   command that decides it must be **run in this process**, not inferred from a gate that
+   passed somewhere else.
+4. **One unreadable step is named, never fatal.** A 31,426-file commit took 116 s to
+   read against a 60 s bound and the gate refused a 1,909-commit range on its account —
+   a real refusal, for the wrong reason, with no way to tell it from dirt. Any harness
+   this build uses over a set of steps records the step it could not read and keeps
+   going; it stops only when nothing was readable. A suite that aborts on its first
+   unreadable input reports "all steps bad" when it means "one step unknown".
 
 ---
 
