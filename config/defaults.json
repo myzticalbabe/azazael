@@ -23,5 +23,49 @@
   },
   "retention": {
     "composite_eviction": false
+  },
+  "hyper_edge": {
+    "reading_audit": true,
+    "settings_shadow": true,
+    "leg_ledger": true,
+    "head_audit": true,
+    "truncation": true,
+    "ctypes_restype": true,
+    "claim_agreement": true,
+    "drift_audit": true,
+    "fusion": true,
+    "agreement_floor": 0.955,
+    "agreement_rung_floor": 1.0,
+    "kernel": true,
+    "kernel_timeout_s": 180,
+    "strict": false,
+    "strict_after_clean": 3,
+    "leg_timeout_s": 300,
+    "citation_audit": true,
+    "reading_freshness": true,
+    "generated_audit": true,
+    "interpreter_audit": true,
+    "disclosure_audit": true
+  },
+  "reading_audit": {
+    "min_coverage": 0.0
+  },
+  "head_audit": {
+    "max_state_age_days": 0
+  },
+  "render_gate": {
+    "ratchet": true,
+    "timeout_s": 300
+  },
+  "swarm_view": {
+    "enabled": true,
+    "timeout_s": 180
+  },
+  "settings_shadow": {
+    "readers": [
+      "read_default",
+      "setting",
+      "get_default"
+    ]
   }
 }
