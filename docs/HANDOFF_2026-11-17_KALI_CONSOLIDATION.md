@@ -138,8 +138,10 @@ Three extraction passes were needed; the first two failed the same way:
 **Never retry a WSL → `/mnt/c` extraction of this archive.** The 9p write path
 hangs with zero byte movement and `wchan p9_client_rpc`; it does not recover, and
 `ps` keeps listing both processes, so liveness is not progress. Pass 3
-(`C:/Users/clint/tmp_win_extract.py`) walks the entire 207,919-entry inventory in
-240 s using CPython 3.16's stdlib `compression.zstd`.
+(`C:/Users/clint/ubuntu_root_salvage_2026-11-17/SALVAGE_EXTRACT.py`, preserved
+beside the salvage) walks the entire 207,919-entry inventory in 240 s using
+CPython 3.16's stdlib `compression.zstd`; the report it wrote is kept as
+`SALVAGE_REPORT.json` in the same folder.
 
 One trap inside pass 3 is worth keeping: `/root/azazael` contains a member whose
 **name** is a literal Windows path (`root/azazael/C:\Users\clint\azazael\logs`).
