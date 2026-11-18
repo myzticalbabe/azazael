@@ -292,7 +292,7 @@ def load_baseline() -> dict:
 def split_debt(rep: dict, known: dict) -> tuple:
     """(new failures, known debt). A HUNG file is never known debt.
 
-    Hanging is the one state that must not be grandfathered: a wedged test stops
+    Hanging is the one state with no legacy exemption: a wedged test stops
     reporting on everything queued behind it, so "it hung yesterday too" is an
     argument for fixing it today, not for recording it.
     """
