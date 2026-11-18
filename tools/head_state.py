@@ -223,7 +223,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     HEAD_FILE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n",
-                         encoding="utf-8", newline="\n")
+                         encoding="utf-8")
     print("wrote %s -- head %s, %s tests, %s skills"
           % (HEAD_FILE, state["short"], state["collected_tests"], state["skills"]))
     return 0
