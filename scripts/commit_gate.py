@@ -34,6 +34,18 @@ DEFAULT_MAX_FILES = 8
 GENERATED_SUFFIXES = (".ppm", ".png", ".log", ".jsonl", ".html")
 GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 
+#: Whole-file generators, keyed by the exact repo-relative path they OWN.
+#: An entry is a claim that one named tool rewrites this file top to bottom, so
+#: a large diff is the generator doing its job rather than hidden dirt.
+#: Exact paths only -- no globs, no suffixes.
+GENERATED_PATHS = {
+    "docs/INDEX.md": "tools/docs_index.py",
+    "Project_ELIZA/shards/SHARD_INDEX.json": "Project_ELIZA/tools/shard_intake.py",
+    "logs/basedpyright_report.json": "tools/type_check_gate.py",
+    "logs/basedpyright_baseline.json": "tools/type_check_gate.py",
+    "ARC/esquire/pins.json": "tools/arc_ledger.py",
+}
+
 
 def _git(*args: str) -> str:
     r = subprocess.run(["git", *args], capture_output=True, text=True,
