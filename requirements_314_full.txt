@@ -135,7 +135,7 @@ optimum==1.25.0
 optree==0.18.0
 optuna==4.8.0
 openvino==2024.6.0
-packaging==25.0
+packaging==26.3
 pandas==3.0.3
 pandocfilters==1.5.1
 parso==0.8.6
