@@ -46,11 +46,9 @@ STANDALONE_OK = [
     "test_cluster_worms.py",            # 5 tests (3s)
     "test_clusterworms_unit.py",        # 39 tests (30s, worm execution)
     "test_config_and_breaker.py",       # 36 tests (90s, config + breaker integration)
-    "test_nature_clusters_unit.py",     # 37 tests (120s, nature cluster execution)
     "test_worm_registry_integration.py", # 10 tests (10s, real worm registry end-to-end, no mocks)
     "test_worm_execute_all_integration.py", # 5 tests (15s, real worms through ClusterWORMZ.execute_all, no mocks)
     "test_worm_governance_integration.py",  # 6 tests (5s, real worm-governance audit path, no mocks)
-    "test_ncm_integration.py",          # 8 tests (60s, full NCM discovery workflow)
     "test_logging.py",                  # 12 tests (2s, structured JSON logging)
     "test_metrics.py",                  # 19 tests (2s, metrics, health, drift)
     "test_learning_worms.py",           # 21 tests (3s, DataPipelineWorm, FeatureEngineer)
@@ -67,14 +65,11 @@ STANDALONE_OK = [
 
 # Files that need more time on 3.15t (still pass, just slow)
 STANDALONE_SLOW = [
-    "test_metacluster_unit.py",         # 20+ tests (~800-900s, full MetaCluster orchestration)
     "test_server_integration.py",       # 21 tests (~10s, health + Prometheus live TCP servers)
 ]
 
 # Per-file timeouts (seconds) for slow orchestration tests
 TIMEOUT_OVERRIDES = {
-    "test_metacluster_unit.py": 1200,      # 20 min: discover_all 38s + 7 orchestration tests × ~102s each
-    "test_nature_clusters_unit.py": 360,   # 6 min for nature cluster execution
     "test_config_and_breaker.py": 180,     # 3 min for config + breaker tests
     "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
     "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
@@ -284,6 +279,7 @@ def print_summary(results):
     """Print a formatted summary of all test results."""
     total_pass = total_fail = total_tests = 0
     passed_files = segfault_files = timeout_files = fail_files = 0
+    missing_files = error_files = other_files = 0
 
     print("")
     print("=" * 60)
@@ -314,10 +310,23 @@ def print_summary(results):
             fail_files += 1
             total_fail += r["failed"]
             total_tests += r["passed"] + r["failed"]
+        elif r["status"] == "NOT_FOUND":
+            missing_files += 1
+        elif r["status"] == "ERROR":
+            error_files += 1
+        else:
+            # Any status this summary does not name would otherwise vanish
+            # from the Files line and leave the exit code unexplained.
+            other_files += 1
 
     print("=" * 60)
-    print("  Files: {} passed, {} segfault, {} timeout, {} fail".format(
-        passed_files, segfault_files, timeout_files, fail_files))
+    # Every result is counted here. Measured 2026-11-18: two NOT_FOUND entries
+    # printed "25 passed, 0 segfault, 0 timeout, 0 fail" beside exit 1, so the
+    # line disagreed with the verdict it was summarising.
+    print("  Files: {} passed, {} segfault, {} timeout, {} fail, "
+          "{} missing, {} error, {} other".format(
+              passed_files, segfault_files, timeout_files, fail_files,
+              missing_files, error_files, other_files))
     if total_tests > 0:
         print("  Tests: {} passed, {} failed (of {})".format(total_pass, total_fail, total_tests))
     print("=" * 60)
