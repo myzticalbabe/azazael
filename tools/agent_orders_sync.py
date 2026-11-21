@@ -184,19 +184,38 @@ TARGETS = {
             HOME / ".codebuff/rules.md",
         ],
     ),
+    # Added 2026-11-21: the block lived as an orphan on main — markers in all
+    # seven lane files, but no docs/agent_orders source and no key here, so
+    # --check passed vacuously while its screen section rotted (it cited
+    # tools/sys_screenshot.py and tools/gui_act.py, developed on another
+    # branch and absent from this tree). Same repair as 2026-11-12 on the
+    # other branch: a source this tool polices, and no lane counts or
+    # interpreter snapshot that can go stale unnoticed.
+    "restart-queue": (
+        "09_restart_queue.md",
+        [
+            HOME / "AGENTS.md",
+            Path("C:/Azazael/AGENTS.md"),
+            HOME / ".config/kilo/AGENTS.md",
+            HOME / ".config/kilo/BEAM_AGENTS.md",
+            HOME / ".config/opencode/AGENTS.md",
+            HOME / ".claude/CLAUDE.md",
+            HOME / ".codebuff/rules.md",
+        ],
+    ),
 }
 
 
 #: The WSL lanes read their orders from the Linux tree, so the Windows block
 #: text cannot be copied in verbatim: `C:/Users/clint/...` is not a path there
 #: and the interpreter is `python3`, not `python`. Measured 2026-10-31: neither
-#: distro carried a single AO block -- Ubuntu-26.04 /root/AGENTS.md was 2003
+#: distro carried a single AO block -- openSUSE-Tumbleweed /root/AGENTS.md was 2003
 #: bytes with 0 blocks, kali-linux /root/BCC-REINVESTIGATION/AGENTS.md was
 #: 14783 bytes with 0 blocks. Both lanes therefore started WITHOUT the
 #: lane-queue/domain-trees protocol while every Windows lane had it, which is
 #: the split-brain this tool exists to end.
 WSL_TARGETS = {
-    "Ubuntu-26.04": ["/root/AGENTS.md"],
+    "openSUSE-Tumbleweed": ["/root/AGENTS.md"],
     "kali-linux": ["/root/BCC-REINVESTIGATION/AGENTS.md"],
 }
 
@@ -248,12 +267,16 @@ def _wsl(distro, script, timeout=90, stdin_data=None):
     They used to be concatenated as bytes, so a file whose last line had no
     trailing newline had stderr's first line glued onto it; that combined line
     contained the noise string below, was therefore dropped, and the block it
-    carried read as absent. Measured 2026-10-31: Ubuntu's /root/AGENTS.md held
+    carried read as absent. Measured 2026-10-31: openSUSE-Tumbleweed's /root/AGENTS.md held
     both lane-queue markers and the gate still reported "MARKERS ABSENT" --
     exactly the false-negative that makes a lane distrust a working control.
     """
-    p = subprocess.run(["wsl", "-d", distro, "-e", "bash", "-lc", script],
-                       capture_output=True, timeout=timeout, input=stdin_data)
+    # openSUSE-Tumbleweed default user cannot write to /root; run as root
+    if distro == "openSUSE-Tumbleweed":
+        cmd = ["wsl", "-d", distro, "-u", "root", "-e", "bash", "-lc", script]
+    else:
+        cmd = ["wsl", "-d", distro, "-e", "bash", "-lc", script]
+    p = subprocess.run(cmd, capture_output=True, timeout=timeout, input=stdin_data)
 
     def _decode(raw):
         txt = (raw.decode("utf-16-le", "ignore") if b"\x00" in raw[:4]

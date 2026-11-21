@@ -5,15 +5,17 @@ instruction files and existed in no source, so its figures had no owner and no
 check: the shard counts below were three days stale and nothing could notice. One
 source now, generated into every lane, verified by `orders-in-sync`.
 
-- **Any moving picture, clip or multi-frame render:** read
-  `C:\Users\clint\YGGDRASIL_RENDER_PLAYBOOK_2026-10-30.md` before writing a
-  renderer. Frame index from the URL (never the clock), one Chrome profile per
+- **Any moving picture, clip or multi-frame render:** the 2026-10-30 playbook
+  (historical — YGGDRASIL_RENDER_PLAYBOOK_2026-10-30.md is not in this tree, so
+  the file reference is removed rather than left pointing at nothing) established
+  the method: frame index from the URL (never the clock), one Chrome profile per
   frame, absolute output paths, never edit a running bash script, verify frame
   count + 3 distinct hashes + read the decoded frames. Chrome/Puppeteer capture,
   never PIL.
-- **Forest clips (built, on disk):** `C:\Users\clint\yggdrasil_forest\YGGDRASIL_FOREST_{WINDOWS,UBUNTU,KALI}.mp4`;
-  per-environment measurements in `atlas_<env>.json` (1395 shards / 894 public — measured 2026-10-30). Ubuntu has no browser, so its clip was rendered by Kali's
-  chromium against Ubuntu's own data — the clip states this.
+- **Forest clips (historical 2026-10-30):** three environment renders were built
+  then (1395 shards / 894 public — measured 2026-10-30); per-environment
+  measurements live in the forest atlases (`atlas_<env>.json`). No mp4 renders
+  are on disk in this tree now — re-render before quoting clips as current.
 - **Kilo session history is archived and cleared.** Archive:
   `G:\KILO_SESSION_ARCHIVE_2026-10-30\` (`MANIFEST.json`, per-table
   `.jsonl.gz`, `schema.sql`, `dirs/*.tar.gz`; 561 282 rows, all hashes verified,
