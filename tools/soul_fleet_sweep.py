@@ -45,6 +45,12 @@ PROJECT_MARKERS = (
     "README.md", "LICENSE", "NOTICE", "CITATION.cff",
     "PUBLIC_MANIFEST.json", "src",
 )
+# A lone LICENSE is a text file, not a project (measured 2026-11-23:
+# tools_bin/ holds only LICENSE+bin+gh.zip and is a tool cache).
+# Require a code marker or at least two markers before calling it unborn.
+CODE_MARKERS = (
+    "pyproject.toml", "setup.py", "setup.cfg", "package.json", "src",
+)
 GENERATED_DIR_PARTS = ("build", "dist", "__pycache__")
 GENERATED_DIR_SUFFIXES = (".egg-info", ".dist-info")
 
@@ -123,7 +129,7 @@ def sweep(root: Path, checker: Path, only: set[str]) -> list[dict]:
             entries.append(check_repo(child, checker))
             continue
         markers = [m for m in PROJECT_MARKERS if (child / m).exists()]
-        if markers:
+        if len(markers) >= 2 or any(m in CODE_MARKERS for m in markers):
             entries.append({"path": child.name, "kind": "unborn", "findings": [
                 "UNBORN: project-like (%s) but not a repository -- invisible "
                 "to every gate; git init + adopt, or declare it an artefact "

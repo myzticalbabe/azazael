@@ -67,6 +67,15 @@ def test_unborn_project_dir_flagged(tmp_path):
     assert any("UNBORN" in f for f in match[0]["findings"])
 
 
+def test_license_only_dir_skipped(tmp_path):
+    """A lone LICENSE is a text file, not a project (tools_bin class)."""
+    d = tmp_path / "license-only"
+    d.mkdir()
+    (d / "LICENSE").write_text(SOUL_LICENSE, encoding="utf-8")
+    checker = sweep.Path(__file__).resolve().parents[1] / "tools" / "soul_licence_check.py"
+    assert sweep.sweep(tmp_path, checker, set()) == []
+
+
 def test_non_project_dir_skipped(tmp_path):
     (tmp_path / "notes").mkdir()
     checker = sweep.Path(__file__).resolve().parents[1] / "tools" / "soul_licence_check.py"
