@@ -3,7 +3,7 @@ message: "If you use this software, cite it as below. If you cite a measured fig
 title: "Project SHARDEX: Mirror a codebase, shatter it into content-addressed shards, forge a shard into a FLAME arena."
 version: 0.1.0
 date-released: "2026-11-01"
-license: CDDL-1.1
+license: "LicenseRef-SoulForge-1.0"
 type: software
 abstract: >-
   SHARDEX mirrors a codebase, shatters it into content-addressed shards,

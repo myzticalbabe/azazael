@@ -3,7 +3,7 @@ message: "If you use this software, cite it as below. If you cite a measured fig
 title: "Project FLAMING SWORD: Find, queue, fix, prove and land a sweep of one codebase."
 version: 0.1.0
 date-released: "2026-11-01"
-license: CDDL-1.1
+license: "LicenseRef-SoulForge-1.0"
 type: software
 abstract: >-
   FLAMING SWORD is a code quality sweep tool that finds, queues, fixes,

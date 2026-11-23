@@ -12,7 +12,7 @@ Thank you for considering a contribution to Project FLAME!
 
 ## Code Standards
 
-- **License**: All contributions must be compatible with CDDL-1.1 (the project license)
+- **License**: All contributions must be compatible with the Soul Forge License v1.0 (LicenseRef-SoulForge-1.0, SOUL LICENCE ONLY)
 - **Python**: 3.10+ (stdlib-only, no runtime dependencies)
 - **Architecture**: Fixed-step, integer timebase, deterministic simulation
 - **Style**: Follow the existing code style in the repository
@@ -55,4 +55,4 @@ See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under CDDL-1.1.
+By contributing, you agree that your contributions will be licensed under the Soul Forge License v1.0 (LicenseRef-SoulForge-1.0).

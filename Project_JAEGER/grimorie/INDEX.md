@@ -408,4 +408,4 @@ span:
 
 ## License
 
-CDDL-1.1 — see `../../LICENSE`.
+Soul Forge License v1.0 (LicenseRef-SoulForge-1.0) — see `../../LICENSE`. SOUL LICENCE ONLY.
