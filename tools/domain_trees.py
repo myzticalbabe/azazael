@@ -200,13 +200,13 @@ DOMAINS: Dict[str, Dict[str, Any]] = {
         # installed package directories of every environment named there.
         "stacks": "C:/Users/clint/yggdrasil_forest/dev_stack_census.json",
         "canon": [
-            "//wsl.localhost/Ubuntu-26.04/root/INTEL_NPU_IGPU_SETUP_GUIDE.md",
-            "//wsl.localhost/Ubuntu-26.04/root/WORKSPACE_HARDWARE_PROTOCOL.md",
-            "//wsl.localhost/Ubuntu-26.04/root/TENSORFLOW_BUILD_REPORT.md",
-            "//wsl.localhost/Ubuntu-26.04/root/UBUNTU_ARCHITECTURE_RECOVERY.md",
+            "//wsl.localhost/openSUSE-Tumbleweed/root/INTEL_NPU_IGPU_SETUP_GUIDE.md",
+            "//wsl.localhost/openSUSE-Tumbleweed/root/WORKSPACE_HARDWARE_PROTOCOL.md",
+            "//wsl.localhost/openSUSE-Tumbleweed/root/TENSORFLOW_BUILD_REPORT.md",
+            "//wsl.localhost/openSUSE-Tumbleweed/root/UBUNTU_ARCHITECTURE_RECOVERY.md",
         ],
         "note": ("oneAPI/XPU is Windows-only (torch +xpu, triton-xpu, intel sycl); "
-                 "Ubuntu torch is +cpu; Kali has no framework. Versions from dist-info"),
+                 "openSUSE torch is +cpu; Kali has no framework. Versions from dist-info"),
     },
     "edge0": {
         "label": "EDGE0 — INTEL",
@@ -899,7 +899,7 @@ def build_stacks(domain: str, spec: Dict[str, Any]) -> Dict[str, Any]:
             # "windows.classic-ml" ran into each other on the first still
             # ("windows.numericswindows.classic-ml"). The full name stays in the
             # atlas under `environment`.
-            env_short = {"windows": "win", "ubuntu": "ubu", "kali": "kali"}.get(env, env[:3])
+            env_short = {"windows": "win", "opensuse": "ops", "kali": "kali"}.get(env, env[:3])
             entry["environment"] = env
             atlas["trees"][f"{env_short}.{fam}"] = entry
             for k in ("modules", "lines", "classes", "funcs", "methods"):

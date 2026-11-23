@@ -165,7 +165,7 @@ def build_unified_map(root):
     # Environment awareness
     environments = {
         "windows": {"path": "C:/Azazael/azazael", "python": "3.15.0rc3", "status": "primary"},
-        "ubuntu": {"path": "/home/clint/azazael", "python": "3.14.x", "status": "synced"},
+        "opensuse": {"path": "/home/clint/azazael", "python": "3.14.x", "status": "synced"},
         "kali": {"path": "/root/azazael", "python": "3.14.6", "status": "synced"},
     }
 

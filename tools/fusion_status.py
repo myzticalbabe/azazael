@@ -25,7 +25,7 @@ import sys
 
 VHDX = {
     "kali-linux": r"E:\Kali\ext4.vhdx",
-    "Ubuntu-26.04": r"C:\wsl\Ubuntu-26.04\ext4.vhdx",
+    "openSUSE-Tumbleweed": r"C:\wsl\openSUSE-Tumbleweed\ext4.vhdx",
 }
 PY316T = {
     "windows": r"C:\Azazael\.venvs\py316t\Scripts\python.exe",

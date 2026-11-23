@@ -1472,7 +1472,7 @@ def _control_no_false_import_failure():
 # klass alone would teach a global ban on rendering, which is exactly the
 # over-generalization that produced the original destructive sweep.
 ENV_CONTRACT = {
-    "ubuntu": {
+    "opensuse": {
         # exact root-level names sync-ubuntu.exclude exists to keep OUT
         "forbidden": [
             "archive", "archived_unified", "build", "output", "logs",
@@ -1483,7 +1483,7 @@ ENV_CONTRACT = {
         # Vermillion LightFury runs in ALL environments, so a sibling copy is
         # required here, not forbidden. See the CORRECTION note above.
         "required_base": ["vermillion_lightfury"],
-        "why": ("Ubuntu-26.04 is the quartet's ML ACCELERATOR; sync-ubuntu.exclude "
+        "why": ("openSUSE-Tumbleweed is the quartet's ML ACCELERATOR; sync-opensuse.exclude "
                 "keeps it lean (~400 MB) and HTML->MP4 rendering belongs to Windows. "
                 "Vermillion LightFury is required in every pillar."),
     },
@@ -1512,8 +1512,8 @@ def _detect_environment(root):
     """Which pillar is this tree? The TREE decides, not the process.
 
     The first version read only the host OS, so a WSL process auditing
-    `/mnt/c/Users/clint/azazael` (the Windows mirror) labelled it "ubuntu" and
-    reported the Windows tree for Ubuntu-forbidden paths -- a total false
+    `/mnt/c/Users/clint/azazael` (the Windows mirror) labelled it "opensuse" and
+    reported the Windows tree for opensuse-forbidden paths -- a total false
     positive, caught by running it rather than by reasoning. The tree's
     location is the environment; the OS only breaks ties for a native tree.
     """
@@ -1531,8 +1531,8 @@ def _detect_environment(root):
         return "unknown"
     if "id=kali" in txt:
         return "kali"
-    if "id=ubuntu" in txt:
-        return "ubuntu"
+    if "id=opensuse" in txt or "id=opensuse-tumbleweed" in txt:
+        return "opensuse"
     return "unknown"
 
 

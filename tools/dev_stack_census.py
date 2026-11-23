@@ -79,14 +79,14 @@ ENV_ROOTS: Dict[str, List[str]] = {
         r"C:/Azazael/.venvs/bccpipe/Lib/site-packages",
         r"C:/Users/clint/AppData/Local/Programs/AI Playground/resources/ComfyUI/.venv/Lib/site-packages",
     ],
-    "ubuntu": [
-        r"//wsl.localhost/Ubuntu-26.04/root/py315t/lib/python3.15t/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/root/venv-interpreter/lib/python3.14t/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/root/abox-venv/lib/python3.14t/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/root/.local/lib/python3.14/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/root/venv-314-gil/lib/python3.14/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/root/open-interpreter/venv/lib/python3.14/site-packages",
-        r"//wsl.localhost/Ubuntu-26.04/usr/lib/python3/dist-packages",
+    "opensuse": [
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/py315t/lib/python3.15t/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/venv-interpreter/lib/python3.14t/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/abox-venv/lib/python3.14t/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/.local/lib/python3.14/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/venv-314-gil/lib/python3.14/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/root/open-interpreter/venv/lib/python3.14/site-packages",
+        r"//wsl.localhost/openSUSE-Tumbleweed/usr/lib/python3/dist-packages",
     ],
     "kali": [
         r"//wsl.localhost/kali-linux/root/.local/lib/python3.14t/site-packages",

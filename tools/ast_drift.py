@@ -56,7 +56,7 @@ def load(label):
 
 
 def compare():
-    envs = ["windows", "kali", "ubuntu"]
+    envs = ["windows", "kali", "opensuse"]
     mans = {e: load(e) for e in envs}
     for e in envs:
         print(f"{e:9} {len(mans[e])} files")

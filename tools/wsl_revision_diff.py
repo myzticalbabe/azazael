@@ -38,7 +38,7 @@ import os
 import sys
 from pathlib import Path
 
-DEFAULT_WSL_ROOT = "//wsl.localhost/Ubuntu-26.04/root/azazael"
+DEFAULT_WSL_ROOT = "//wsl.localhost/openSUSE-Tumbleweed/root/azazael"
 DEFAULT_SUBDIRS = ("src", "scripts", "tools", "tests")
 SKIP_DIRS = {"__pycache__", ".git", ".mypy_cache", ".pytest_cache",
              "node_modules", ".venv", "venv", ".ruff_cache"}
