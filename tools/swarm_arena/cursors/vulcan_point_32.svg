@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+     data-hotspot="6,4" data-role="link" data-name="vulcan-point-32">
+  <title>Vulcan salute link cursor, 32x32</title>
+  <desc>Same anatomy as vulcan_salute_32.svg, laid on its side: the hand leans so
+        the two pairs reach up-left and the palm trails to the bottom-right, which
+        is what separates the link pointer from the upright arrow at a glance.
+        Two deltas from the arrow are drawn in, not rotated in: the V is cut
+        deeper into the palm, and the thumb lobe runs longer so the silhouette
+        reads as a hand rather than a wedge. Hotspot is the index fingertip at
+        (6,4) — the leading point of the pair, not the topmost one.</desc>
+  <path d="M 6.00 4.00 L 10.11 2.61 L 12.17 5.34 L 18.28 11.83 L 15.15 4.21
+           L 15.06 2.69 L 18.80 1.52 L 22.10 8.25 L 23.77 10.82 L 26.85 15.12
+           Q 27.53 16.30 26.79 16.73 L 18.05 21.97 Q 16.66 22.97 16.06 21.94
+           L 14.11 18.56 L 7.96 20.14 Q 7.39 19.49 8.27 18.30 L 11.98 14.87
+           L 11.81 14.58 Z"
+        fill="#ffffff" stroke="#141414" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>

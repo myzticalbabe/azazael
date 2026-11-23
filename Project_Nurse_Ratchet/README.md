@@ -301,3 +301,28 @@ under this same license.
 ```
 
 Author: myzticalbabe · Forged: 2026-11-14 · Spirit: "Code is crystallized intention. Tend the fire."
+
+## Related Repositories
+
+| Repo | Description | Status |
+|------|-------------|--------|
+| azazael | Monorepo: worm registry, cluster system, agent harness | Active |
+| azazael-core | Installable, interpreter-agnostic repackaging | Active |
+| nurse-ratchet | Behavioural package: person state modelled | Active |
+| esquire-admissibility | AI-evidence admissibility gates | Active |
+| cradle | Composition over FLAMING SWORD, REAPER, GRIMOIRE | Active |
+| jaeger | Durable spans, JSONL ledger, stdlib only | Active |
+| madi | Browsing instrument: fetch, challenge taxonomy, scorer | Active |
+| grantforge | AI-native grant tooling | Active |
+| krampus | Composition: MellifluousML, Madi, Gamora, Eve, Lilith | Active |
+| shardex | Shard execution engine | Active |
+| flaming-sword | Defensive instrument: sentinel, compliance, formal verification | Active |
+| hydra-mlcluster | Adaptive ML cluster processing | Active |
+| persephone-sync | Cross-platform env sync | Active |
+| scribe | Documentation generation | Active |
+| ecosystem-orchestrator | ML platform install/orchestration | Active |
+| codex-video-engine | CODEX Studio desktop app + video engine | Active |
+| eliza | Companion runtime: shards, adopted trees | Active |
+| EveUnleashed | Gamora, Lucy, Jaeger, Berzerker AIO native on 3.16t | Active |
+| wasm-education | WASM Education Platform | Active |
+| myzticalbabe.github.io | Landing Hub + Domain Atlas | Active |

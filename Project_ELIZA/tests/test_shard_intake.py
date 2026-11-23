@@ -197,6 +197,31 @@ def test_the_surface_is_clean_against_the_real_atlas():
 
 
 @needs_atlas
+def test_every_census_mismatch_is_explained_and_strict_fails_on_them():
+    """Advisory is a classification, not a dumping ground.
+
+    The 107 wired ids the census does not corroborate used to make ``--check``
+    exit 1 permanently -- the same exit code as real drift, so the next real one
+    would have arrived indistinguishable. They are advisory now, but only
+    because each carries a named census fact, and ``--strict`` must still fail
+    on them; otherwise "advisory" has quietly become the word for "deleted".
+    A bucket the classifier invents cannot slip past either: an id whose reason
+    is not one of ``ADVISORY_KINDS`` stays a hard defect.
+    """
+    atlas = intake.read_atlas(ATLAS)
+    ok, problems, counts = intake.check(atlas)
+    assert ok, "\n".join(problems[:5])
+    assert set(counts["buckets"]) <= set(intake.ADVISORY_KINDS), counts["buckets"]
+    assert len(counts["advisory_lines"]) == sum(counts["buckets"].values()), counts
+    if not counts["advisory_lines"]:
+        pytest.skip("the census corroborates every wired id; there is nothing to "
+                    "be strict about")
+    strict_ok, strict_problems, _ = intake.check(atlas, strict=True)
+    assert not strict_ok
+    assert len(strict_problems) == len(counts["advisory_lines"])
+
+
+@needs_atlas
 def test_every_unit_in_the_atlas_has_a_stub():
     atlas = intake.read_atlas(ATLAS)
     entries = intake.units(atlas)

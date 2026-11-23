@@ -19,16 +19,8 @@ Two parts:
      (measured 2026-11-03: a 2-file commit blocked by 7 forensic files staged
      by another lane). `REV..HEAD` is the commit being pushed.
   1c. `commit_gate.py --hook --base REV --tip REV`: judge `base..tip`. The tip
-     exists because a push is not always a push of HEAD. `.githooks/pre-push`
-     only used to name a base when the pushed sha WAS HEAD; every other push
-     (pushing a commit that later commits sit on, or a ref that is not the
-     checked-out one) fell back to the index, so the changeset that actually left
-     the machine was never the one judged. The hook now names both ends.
-  1d. A push that carries several commits is judged COMMIT BY COMMIT, each
-     against the same caps pre-commit applies. Measuring the union of a push
-     charges it for a changeset no message describes -- measured 2026-11-15,
-     three commits of 2, 7 and 3 files were refused as "12 files". Nothing is
-     exempted: every commit still has to fit the caps on its own.
+     names the END of that range, for the case the pre-push hook runs while
+     HEAD has moved past the commit contained.
   2. `commit_gate.py review`: interactive worktree review -- groups changed
      files (source vs generated), shows per-file +/- and lets the operator
      stage exactly what the commit message will describe.
@@ -49,6 +41,14 @@ from pathlib import Path
 DEFAULT_MAX_LINES = 150
 DEFAULT_MAX_FILES = 8
 
+REPO = Path(__file__).resolve().parents[1]
+#: The same tool `tools/preflight_all.py` registers as `soulforge-selftest`, so
+#: the command this hook runs is the command the evidence tier runs.
+SOULFORGE_GATE = REPO / "tools" / "soulforge_gate.py"
+#: Bounded below the hook's own `timeout 300` around this file: a wedged exe
+#: must be named by the gate, not inherited by the commit.
+SOULFORGE_BUDGET = 280
+
 GENERATED_SUFFIXES = (".ppm", ".png", ".log", ".jsonl", ".html")
 GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 #: Dated machine snapshots: state/<name>-YYYY-MM-DD.json. These are
@@ -59,13 +59,22 @@ GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 #: and undated names stay judged like source.
 STATE_SNAPSHOT_RE = re.compile(
     r"^state/[A-Za-z0-9_][A-Za-z0-9_.-]*-\d{4}-\d{2}-\d{2}\.json$")
-#: Ledgers that a tool rewrites whole from the tree: its size IS the number of
-#: surfaces it describes, so a legitimate regeneration is 1000+ lines (measured
-#: 2026-11-15: `tools/bible_harvest.py --write` after a licence sweep rewrote
-#: eight READMEs produced 1,231 added lines in docs/bible/harvest.json). Held
-#: to an explicit list rather than a `docs/**/*.json` glob: a hand-written doc is
-#: still judged.
-GENERATED_LEDGERS = ("docs/bible/harvest.json",)
+
+#: Whole-file generators, keyed by the exact repo-relative path they OWN.
+#:
+#: An entry is a claim that one named tool rewrites this file top to bottom, so
+#: a large diff is the generator doing its job rather than hidden dirt -- the
+#: same reasoning as STATE_SNAPSHOT_RE, measured 2026-11-14: regenerating
+#: ``docs/INDEX.md`` touched 218 lines of a file no human edited and needed
+#: ``ALLOW_BULK_COMMIT=1`` to land, which is a declaration spent on a non-event.
+#:
+#: **Exact paths only.** No globs, no suffixes: ``docs/*.md`` would exempt every
+#: hand-written document in the tree, and a suffix rule would exempt the next
+#: one silently. The generator is named so tests/test_commit_gate.py can verify
+#: the claim against that tool's own source instead of trusting this table.
+GENERATED_PATHS = {
+    "docs/INDEX.md": "tools/docs_index.py",
+}
 
 
 def _git(*args: str) -> str:
@@ -101,7 +110,7 @@ def staged_statuses() -> dict[str, str]:
 
 
 def range_numstat(base: str, tip: str = "HEAD") -> list[tuple[int, int, str]]:
-    """[(added, deleted, path)] for `base..tip` -- commits, not the index."""
+    """[(added, deleted, path)] for `base..HEAD` -- a commit, not the index."""
     rows = []
     for line in _git("diff", "--numstat", base, tip).splitlines():
         parts = line.split("\t")
@@ -156,52 +165,6 @@ def single_commit_bulk_declaration(base: str, tip: str = "HEAD") -> str | None:
     return sha if declares_bulk(message) else None
 
 
-def range_commits(base: str, tip: str = "HEAD") -> list[tuple[str, str]]:
-    """[(sha, subject)] for the commits in `base..tip`, oldest first."""
-    raw = _git("log", "--reverse", "--format=%H%x1f%s%x1e",
-               "%s..%s" % (base, tip))
-    commits = []
-    for chunk in raw.split("\x1e"):
-        chunk = chunk.strip("\n")
-        if not chunk:
-            continue
-        sha, _, subject = chunk.partition("\x1f")
-        commits.append((sha.strip(), subject.strip()))
-    return commits
-
-
-def commit_numstat(sha: str) -> list[tuple[int, int, str]]:
-    """[(added, deleted, path)] for one commit against its parent.
-
-    `diff-tree --root` works for the first commit of a repository, where
-    `sha^` does not exist -- a range that starts at a root commit must still be
-    judged.
-    """
-    rows = []
-    for line in _git("diff-tree", "--no-commit-id", "--numstat", "-r",
-                     "--root", sha).splitlines():
-        parts = line.split("\t")
-        if len(parts) != 3:
-            continue
-        try:
-            added, deleted = int(parts[0]), int(parts[1])
-        except ValueError:
-            added, deleted = -1, -1  # binary
-        rows.append((added, deleted, parts[2]))
-    return rows
-
-
-def commit_statuses(sha: str) -> dict[str, str]:
-    """path -> status letter for one commit (A = created by that commit)."""
-    out: dict[str, str] = {}
-    for line in _git("diff-tree", "--no-commit-id", "--name-status", "-r",
-                     "--root", sha).splitlines():
-        parts = line.split("\t")
-        if len(parts) >= 2:
-            out[parts[-1].strip()] = parts[0].strip()
-    return out
-
-
 def range_statuses(base: str, tip: str = "HEAD") -> dict[str, str]:
     """path -> status letter for the same range (A = created by it)."""
     out: dict[str, str] = {}
@@ -223,11 +186,11 @@ def worktree_status() -> list[tuple[str, str]]:
 
 def is_generated(path: str) -> bool:
     p = path.replace("\\", "/")
+    if p in GENERATED_PATHS:
+        return True
     if any(p.startswith(d) for d in GENERATED_DIRS):
         return True
     if STATE_SNAPSHOT_RE.match(p):
-        return True
-    if p in GENERATED_LEDGERS:
         return True
     return p.lower().endswith(GENERATED_SUFFIXES)
 
@@ -281,6 +244,46 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     return problems
 
 
+def range_commits(base: str, tip: str = "HEAD") -> list[tuple[str, str]]:
+    """[(sha, subject)] for the commits in `base..tip`, oldest first."""
+    raw = _git("log", "--reverse", "--format=%H%x1f%s%x1e",
+               "%s..%s" % (base, tip))
+    commits = []
+    for chunk in raw.split("\x1e"):
+        chunk = chunk.strip("\n")
+        if not chunk:
+            continue
+        sha, _, subject = chunk.partition("\x1f")
+        commits.append((sha.strip(), subject.strip()))
+    return commits
+def commit_numstat(sha: str) -> list[tuple[int, int, str]]:
+    """[(added, deleted, path)] for one commit against its parent.
+
+    `diff-tree --root` works for the first commit of a repository, where
+    `sha^` does not exist -- a range that starts at a root commit must still be
+    judged.
+    """
+    rows = []
+    for line in _git("diff-tree", "--no-commit-id", "--numstat", "-r",
+                     "--root", sha).splitlines():
+        parts = line.split("\t")
+        if len(parts) != 3:
+            continue
+        try:
+            added, deleted = int(parts[0]), int(parts[1])
+        except ValueError:
+            added, deleted = -1, -1  # binary
+        rows.append((added, deleted, parts[2]))
+    return rows
+def commit_statuses(sha: str) -> dict[str, str]:
+    """path -> status letter for one commit (A = created by that commit)."""
+    out: dict[str, str] = {}
+    for line in _git("diff-tree", "--no-commit-id", "--name-status", "-r",
+                     "--root", sha).splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            out[parts[-1].strip()] = parts[0].strip()
+    return out
 def judge_commits(commits: list[tuple[str, str]], max_lines: int,
                   max_files: int, scope: str = "the push") -> int:
     """Judge each pushed commit against the same caps pre-commit applies.
@@ -327,6 +330,44 @@ def judge_commits(commits: list[tuple[str, str]], max_lines: int,
     print("  Review with: git show --stat <sha>  # the commit named above")
     return 1
 
+def soulforge_proof() -> int:
+    """Prove SOULFORGE from the built binary when this commit touches it.
+
+    WHY IT IS DELEGATED AND NOT INLINED. `.githooks/pre-commit` runs this file as
+    its first check, which makes `cmd_hook` the one surface that executes before
+    every commit -- so a proof placed here cannot be skipped by a lane that never
+    reads the tier. The proof itself lives in `tools/soulforge_gate.py` because
+    the tier registers the same file: one implementation, two callers. A second
+    copy here would drift, and the tier would keep certifying a binary the commit
+    path had stopped checking.
+
+    A MISSING SCRIPT PASSES LOUD, like every other unreadable gate in this file:
+    refusing all commits because an untracked helper is absent would block the
+    very commit that adds it. The tool returns 0 with a printed skip when the
+    index touches nothing under `tools/swarm_arena/`, so an unrelated commit
+    pays one subprocess and one line.
+    """
+    if not SOULFORGE_GATE.is_file():
+        print("commit-gate: %s is absent -- the SOULFORGE proof did not run"
+              % SOULFORGE_GATE)
+        return 0
+    try:
+        result = subprocess.run(
+            [sys.executable, str(SOULFORGE_GATE), "--staged"],
+            cwd=str(REPO), capture_output=True, text=True, timeout=SOULFORGE_BUDGET,
+            encoding="utf-8", errors="replace",
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print("commit-gate: the SOULFORGE proof could not finish (%s)" % exc)
+        return 1
+    for line in (result.stdout or "").strip().splitlines():
+        print("  %s" % line)
+    if result.returncode == 0:
+        return 0
+    print("  Fix: python tools/swarm_arena/build_soulforge.py"
+          " (a stale or missing binary has to be rebuilt, not declared)")
+    return 1
+
 
 def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
     """Judge a changeset. `base` names a commit (`base..HEAD`); None = the index.
@@ -338,6 +379,15 @@ def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
     adding to it -- a run that judged both would still be refused by the
     neighbour's desk drawer, which is the defect --base exists to remove.
     """
+    # Before the bulk checks and before ALLOW_BULK_COMMIT: declaring a bulk op
+    # makes a changeset big, it does not make a stale binary proved. A push
+    # range (`base`) is left to the tier's own row, which proves the same binary
+    # from the tree -- the index at push time also holds whatever another lane
+    # staged, and this proof must be about the commit's paths.
+    if base is None:
+        soulforge = soulforge_proof()
+        if soulforge:
+            return soulforge
     max_lines = int(os.environ.get("COMMIT_GATE_MAX_LINES",
                                    str(DEFAULT_MAX_LINES)))
     max_files = int(os.environ.get("COMMIT_GATE_MAX_FILES",
@@ -354,11 +404,12 @@ def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
             print("commit-gate: cannot read the messages of %s (%s) -- refusing "
                   "to pass on a range that was not read" % (scope, exc))
             return 1
-        if declared:
-            print("commit-gate: bulk declared in the message of %s, passing "
-                  "(%s)" % (declared[:8], scope))
-            return 0
         # A push is usually several commits; measure each one, not the union.
+        # Judging the union refused under-cap commits for a changeset no message
+        # describes (measured 2026-11-15: three commits of 2, 7 and 3 files,
+        # every one under the 8-file cap, refused as one 12-file range whose
+        # only remedies were a false bulk declaration or separate pushes).
+        # Each commit is measured on its own diff instead.
         try:
             commits = range_commits(base, tip)
         except Exception as exc:  # noqa: BLE001 - a named range must be read
@@ -367,6 +418,10 @@ def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
             return 1
         if len(commits) > 1:
             return judge_commits(commits, max_lines, max_files, scope)
+        if declared:
+            print("commit-gate: bulk declared in the message of %s, passing "
+                  "(%s)" % (declared[:8], scope))
+            return 0
     try:
         if base:
             rows = range_numstat(base, tip)
@@ -399,7 +454,7 @@ def cmd_hook(base: str | None = None, tip: str | None = None) -> int:
     if base:
         problems = evaluate(
             rows, max_lines, max_files, created,
-            changeset="files in %s..%s" % (base, tip),
+            changeset="files in %s" % scope,
             remedy="Declare the bulk op in the message of the single commit "
                    "being pushed (a commit message is the surface this gate "
                    "reads), or push the commits separately.",

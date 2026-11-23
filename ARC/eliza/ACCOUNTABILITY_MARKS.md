@@ -3,8 +3,10 @@
 **Inhabitant:** Project ELIZA, `Project_ELIZA/` — a therapeutic-agent loop plus the
 instruments that grade it.
 
-**State:** BUILT 2026-11-04, **verdict `GAPS`**, **two** errors, **four** carried
-figures, **two** declared gaps.
+**State:** BUILT 2026-11-04; re-read 2026-11-14 — **verdict `INCOMPLETE`**, **0** errors,
+**seven** carried figures, **two** declared gaps. `INCOMPLETE`, not `READY`, because
+`CARRIED_TIERS` is load-bearing: E1–E4 and E12–E14 quote figures no script in the tree
+emits, and closing that gap needs benchmarks that ship, not a ledger edit.
 
 ## Why this wing exists
 
@@ -28,8 +30,9 @@ Three of the four answers are uncomfortable, which is what a wing is for.
 
 ## The eleven pins
 
-Tier A is this ledger's own reading, taken from a command run on 2026-11-04. Tier B
-is the project's statement about itself, carried and labelled.
+Tier A is this ledger's own reading, taken from a command run on 2026-11-04, except E7 and
+E9 which were re-read on 2026-11-14. Tier B is the project's statement about itself,
+carried and labelled.
 
 | pin | surface | assertion | tier |
 | --- | --- | --- | --- |
@@ -39,20 +42,24 @@ is the project's statement about itself, carried and labelled.
 | E4 | persona traits | 45 evaluated constants across six domains | **B** carried |
 | E5 | crisis router | recall 0.94, precision 0.96, specificity 0.96, accuracy 0.95 over 113 rows | A |
 | E6 | crisis router failures | 3 crisis rows missed, 2 benign rows fired; the dev split is FITTED | A |
-| E7 | publication | the banner is not met: the gate fails with 2,053 failures | A |
+| E7 | publication | the banner is met: the gate passes with 0 failures over a 4,504-file git inventory | A |
 | E8 | safety precedence | no other stance can be chosen when risk is crisis — test passes | A |
-| E9 | disclosure policy | 49 shipped paths, 14 never_ship globs, 6 deny substrings; policy checks ok | A |
+| E9 | disclosure policy | 49 shipped paths, 28 never_ship globs, 6 deny substrings; policy checks ok | A |
 | E10 | test count | 220 tests collected, so the README's 111 is stale | A |
 | E11 | scope limitation | the project states this is not a clinical validation | A |
+| E12 | bypass | the bypass chain covers UJS, DOS, ProPublica, campaign finance and press | **B** carried |
+| E13 | ultra-loose | the tutorial rests on 10 flocks, 4 tiers and a proof standard | **B** carried |
+| E14 | concurrent | 16-core free-threaded, PMB/PAMS shared across Windows, WSL2 and Kali | **B** carried |
 
-### Four figures are carried, and E1–E4 say so
+### Seven figures are carried, and E1–E4 and E12–E14 say so
 
 The README publishes a turn latency, two intuition latencies, a correlation recovery
 and a constant count. **No script in the tree emits any of them.** Searching the
 project for `0.025`, `148.2`, `8.5 ` and `0.352` returns the README line and, for the
 first, one docstring; nothing else. So each is recorded at tier B with a
 `carried_because` naming that fact, and the ledger's `carried` line prints them:
-`E1, E2, E3, E4`.
+`E1, E2, E3, E4`. E12–E14 are carried for the same reason on the tables they quote —
+a portal list, a flock tally and a host description that no script in the tree emits.
 
 This is the difference the container exists to make. A project may say "0.025 ms"
 about itself; it may not say it *in a ledger* as though an auditor measured it. The
@@ -87,37 +94,55 @@ failures, and the tool labels it `[FITTED]` itself.
 None of this is a defect the wing found by inspection. It is what the project's own
 evaluation prints, and it belongs in the ledger at the same weight as the 0.94.
 
-### The publication banner is contradicted by the project's own gate
+### The publication banner was contradicted by the project's own gate — cleared 2026-11-14
 
 ```
-$ python tools/eliza_release_gate.py --check
-  required_files     ok
-  readme_disclosure  ok
-  issue_templates    ok
-  manifest_paths     ok
-  denied_paths       ok
+$ python tools/eliza_release_gate.py --check      # 2026-11-04, before the repair
   undeclared_files   2047 problem(s)
   secrets            6 problem(s)
 FAIL: 2053 failure(s)
 Publication is blocked.
 ```
 
+```
+$ python tools/eliza_release_gate.py --check      # 2026-11-14, after it
+  inventory          git: 4504 file(s), tracked plus untracked-not-ignored; 5196 ignored file(s) not scanned
+  required_files     ok
+  readme_disclosure  ok
+  issue_templates    ok
+  manifest_paths     ok
+  denied_paths       ok
+  undeclared_files   ok
+  secrets            ok
+PASS: 0 failure(s)
+```
+
 The README opens with **"PUBLIC, FULLY EXECUTABLE"** and the manifest's own status is
-`PRE-PUBLICATION`. The gate refuses the tree, so the banner is not met. That is the
-wing's two errors, and it is why the verdict is `GAPS` rather than `INCOMPLETE`.
+`PRE-PUBLICATION`. The gate refused the tree on 2026-11-04 and refuses nothing now;
+this section keeps both readings, because a cleared finding is only readable next to
+the reading it cleared.
 
-**What this does not prove:** that the six secret-shaped strings are live
-credentials. The gate reports an `assigned_secret` *shape* on a file and line, masked;
-it does not verify a key. All six are in `adopted/kali/CORE/` and `adopted/src/CORE/`,
-and every one of the 2,047 undeclared files in the sample is under `adopted/` as well.
+**What the old reading was, measured rather than guessed.** Its inventory was a
+filesystem walk of `Project_ELIZA/`, and 2,047 of the 2,053 findings were files under
+`adopted/` — a mirror that `.gitignore` excludes, so the repository carries none of
+them. The six secret-shaped strings were in the same mirror (`adopted/kali/CORE/`,
+`adopted/src/CORE/`), and three of them were false positives by construction:
+`api_key = "sk-1234567890abcdef"` in a scanner's own fixture, `token = CancellationToken()`
+in a docstring, and `api_key = _read_config_key(name)`, whose function name is long
+enough to match a `{16,}` value pattern.
 
-**The cause is structural, and it is recorded rather than fixed here.** The gate's
-`ship_roots` is `["Project_ELIZA"]`, so it scans everything beneath it — including
-`adopted/`, a subtree brought in after the gate was written. One adoption directory
-therefore makes publication unreachable (2,047 of 2,053 failures), and an allowlist
-that cannot be completed by declaring anything short of an entire adopted tree is a
-gate whose remedy is a decision about `ship_roots`, not a file list. That decision
-belongs to the project's owning lane; this wing grades and does not repair.
+**What was repaired, and what it does not claim.** The gate now takes its inventory
+from `git ls-files -c -o --exclude-standard` and prints which inventory ran, with the
+count it excluded, so the denominator is visible. `never_ship` grew from 14 to 28 to
+declare the 23 staging-root files that remained — forensic tooling, generated shards,
+adopted mirrors, dated investigation notes and tests of internal tools — and a
+`never_ship` match now counts as declared, because demanding a `ship` entry for a path
+the same manifest forbids publishing is a contradiction.
+
+**What this does not prove:** that the column of 49 shipped paths is the right column.
+A green run says every repository file is declared or denied; it says nothing about
+whether a declared file belongs in the public set, and 21 of the 28 `never_ship` rules
+are basename globs that deny that name anywhere in the tree.
 
 ### Two stale numbers, and one swallowed thread failure
 
@@ -182,7 +207,7 @@ a status is not a reading. What it does not prove: that the reading in the row i
 It is not a transcription of a past run: the wing reports today's answer, and it
 would go quiet the day the gate goes green.
 
-## Measured state, 2026-11-05
+## Measured state, 2026-11-05 (historical — superseded 2026-11-14, kept as the reading the GAPS verdict rested on)
 
 ```
 $ C:/Azazael/.venvs/py315t/Scripts/python.exe tools/eliza_arc_pins.py

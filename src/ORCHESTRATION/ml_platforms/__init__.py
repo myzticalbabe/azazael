@@ -69,7 +69,7 @@ def get_recommendation(task, gpu_available=True):
 
 def monitor_health():
     """Run health monitoring."""
-    from health_monitor import PlatformHealthMonitor
+    from .health_monitor import PlatformHealthMonitor
 
     monitor = PlatformHealthMonitor()
     monitor.print_status()

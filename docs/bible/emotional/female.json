@@ -2,7 +2,7 @@
  "schema": "azazael/bible@1",
  "title": "The Book of Her Weather",
  "status": "drafting",
- "updated": "2026-11-09",
+ "updated": "2026-11-14",
  "edition": {
   "name": "The Annotated Book of Her Weather",
   "basis": "the annotated study-Bible format: a book introduction, pericope headings, footnotes sorted by kind, a textual apparatus that preserves the reading this corpus corrects, and a glossary that points at the verse which explains it"
@@ -604,6 +604,29 @@
        "text": "Write down what she said, in her words. A record is a form of belief."
       }
      ]
+    },
+    {
+     "number": 3,
+     "sections": [
+      {
+       "before_verse": 1,
+       "heading": "The second injury, written down"
+      }
+     ],
+     "verses": [
+      {
+       "number": 1,
+       "text": "Being disbelieved is a second injury, and it is most often delivered by the one who was asked to help with the first."
+      },
+      {
+       "number": 2,
+       "text": "The doubt is not always loud. Sometimes it is a form to be filled in again, from the beginning, in your own words."
+      },
+      {
+       "number": 3,
+       "text": "A record kept in her words is a form of belief; a system that keeps none has already decided which accounts are worth keeping."
+      }
+     ]
     }
    ]
   },
@@ -738,6 +761,29 @@
       {
        "number": 3,
        "text": "Leave the decision with her, and the door open."
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "sections": [
+      {
+       "before_verse": 1,
+       "heading": "What it will not do with a doubt"
+      }
+     ],
+     "verses": [
+      {
+       "number": 1,
+       "text": "It refuses to treat an account it cannot verify as an account that is false."
+      },
+      {
+       "number": 2,
+       "text": "It refuses to require proof of the harm before making room for it."
+      },
+      {
+       "number": 3,
+       "text": "It refuses to call its own uncertainty caution when the uncertainty is about her."
       }
      ]
     }

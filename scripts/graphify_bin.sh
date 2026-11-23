@@ -20,11 +20,23 @@
 # resolver can no longer drift apart.
 #
 # Usage (drop-in for the graphify binary):
-#   scripts/graphify_bin.sh update C:/Azazael/azazael
+#   scripts/graphify_bin.sh update src
 #   GRAPHIFY_BIN=scripts/graphify_bin.sh scripts/graphify_refresh_all.sh
 #
 # Overrides:
 #   GRAPHIFY_PY  — interpreter to use, skipping resolution entirely.
+#   GRAPHIFY_ALLOW_SCOPE_DRIFT=1 — permit a graph write outside the store
+#                  codegraph reads (announced on stderr; see below).
+#
+# Scope guard (2026-11-14): before exec, tools/graphify_scope_guard.py decides
+# whether this invocation would write a graph nobody reads. graphify writes
+# beside whatever it is pointed at, so `cd <repo> && graphify update` (or a
+# plain `graphify .`) lands a graph in <repo>/graphify-out/ while every lane --
+# and the startup gate -- read <repo>/src/graphify-out/graph.json. The write
+# succeeded, so nothing complained; the store just stayed stale. The guard
+# computes the real out dir and exits 3 naming the remedy instead. Read
+# commands, and runs whose output lands outside this repo, pass through
+# untouched. A guard that cannot run is a loud failure, never a silent skip.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -76,4 +88,28 @@ if [ -z "$PY" ] || [ ! -x "$PY" ]; then
     }
 fi
 
-exec "$PY" -m graphify "$@"
+# Write-side scope guard. `|| exit $?` is load-bearing: this script runs with
+# `set -uo pipefail` and no -e, so an unhandled non-zero would fall through to
+# exec and produce exactly the orphan graph the guard exists to prevent.
+"$PY" "$ROOT/tools/graphify_scope_guard.py" --repo-root "$ROOT" -- "$@" || exit $?
+
+"$PY" -m graphify "$@"
+rc=$?
+
+# Post-write provenance (2026-11-14). graphify mints an `external` placeholder
+# node for every import whose target has no node, and normalize_id() is lossy
+# (`PIL` -> `pil`, `concurrent.futures` -> `concurrent_futures`, Rust `HashMap`
+# -> `hashmap`). After a rebuild the store alone cannot say whether a placeholder
+# was stdlib, an uninstalled package, or a non-Python import.
+# tools/placeholder_provenance.py records that classification beside the store;
+# it is a reading instrument separate from the guard's write decision. It never
+# changes graphify's exit status, and a failure is announced rather than
+# swallowed.
+case "${1:-}" in
+    update|extract|watch|cluster-only|label)
+        "$PY" "$ROOT/tools/placeholder_provenance.py" --repo-root "$ROOT" \
+            >&2 || echo \
+            "graphify_bin.sh: placeholder record failed (graph itself unaffected)" >&2
+        ;;
+esac
+exit "$rc"

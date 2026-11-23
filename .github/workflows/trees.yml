@@ -1,0 +1,98 @@
+# One CI fork per tree.
+#
+# The fork set is not typed here -- it is `ci/trees.json`, generated from
+# `git ls-files` by `ci/trees.py`. A tree appears in this matrix exactly when it
+# holds a tracked Python file, and the `registry` job fails when the committed
+# registry has drifted from the tree. That is what keeps the next project from
+# shipping without a job.
+#
+# Per-tree job, in order:
+#   1. `python_floor --only <tree>`  the tree's declared Python floor must not
+#                                    promise an interpreter its source cannot
+#                                    import (hard findings only; over-declared
+#                                    is advisory, printed, not fatal)
+#   2. `compileall <tree>`           every tracked module parses here
+#   3. `tree_job install <tree>`     installs the tree's own package, and skips
+#                                    with a named reason when the runner cannot
+#                                    satisfy the declared floor
+#   4. `tree_job test <tree>`        that tree's suite, when it owns one
+#
+# Version pin: 3.12, deliberately. Hosted runners have 3.9-3.13 and no 3.15 or
+# 3.16, which is the measured reason run 43622892785 failed ("Package
+# 'azazael' requires a different Python: 3.12.16 not in '>=3.15'"). The repo
+# root's `requires-python = ">=3.16"` is therefore never installed here.
+
+name: Trees
+
+on:
+  push:
+    paths:
+      - '**/*.py'
+      - '**/pyproject.toml'
+      - 'ci/**'
+      - '.github/workflows/trees.yml'
+  pull_request:
+    paths:
+      - '**/*.py'
+      - '**/pyproject.toml'
+      - 'ci/**'
+      - '.github/workflows/trees.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: trees-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  registry:
+    name: registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Registry matches the tracked tree
+        run: python ci/trees.py --check
+
+      - name: Expand the matrix
+        id: plan
+        run: echo "matrix=$(python ci/trees.py --matrix)" >> "$GITHUB_OUTPUT"
+
+  tree:
+    name: ${{ matrix.tree }}
+    needs: registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.registry.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Declarations match this tree's source
+        run: python tools/python_floor.py --check --only "${{ matrix.tree }}"
+
+      - name: Every tracked module parses on this interpreter
+        run: python -m compileall -q "${{ matrix.tree }}"
+
+      - name: Install this tree's package when its floor allows
+        run: python ci/tree_job.py install "${{ matrix.tree }}"
+
+      - name: Run this tree's suite
+        if: matrix.tests > 0
+        run: |
+          python -m pip install --quiet pytest pytest-timeout
+          python ci/tree_job.py test "${{ matrix.tree }}"

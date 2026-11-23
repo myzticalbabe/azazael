@@ -1266,3 +1266,65 @@ GIL_VERSION=3.14.8 bash scripts/rebuild_gil_sidecar.sh
 The interpreter comes from `astral-sh/python-build-standalone`
 (`…-install_only.tar.gz`; **no** `freethreaded` marker means the GIL build), so
 nothing is compiled. Full detail: `/root/PYTHON_CONSOLIDATION_2026-09-30.md`.
+
+## Rule 6: ASSERTION IS NOT EVIDENCE — Each Action Carries Its Instrument (MANDATORY — 2026-11-14)
+
+**Canon:** RULE 0Z-S in `MANDATES.md`. This section is the procedure; the rule is the reason.
+
+**The unit is the ACTION, not the session.** Verification does not propagate. Verifying
+action 1 does not verify action 2, even when the same tool was used, unless the tool was
+actually run on action 2's input.
+
+### Per-action checklist (run it before you report the action)
+
+1. **Name the instrument** before acting: the exact command that will show this action
+   either happened or did not. If no such command exists, the action is `UNVERIFIED` and
+   must be reported that way — do not proceed to report it as done.
+2. **Run it.** Preserve the exit status through any pipe (`set -o pipefail`), or the
+   passing text is a passing filter, not a passing test.
+3. **Quote the outcome line**, not a summary of it, and quote the denominator when the
+   instrument reports a fraction.
+4. **Assign the state**: `UNVERIFIED` / `RAN` / `BLIND` / `FALSIFIED`.
+5. **Report the state with the claim.** `RAN` may license the next action for the input
+   it covered. `UNVERIFIED` and `BLIND` may not license anything. `FALSIFIED` halts the
+   line of work until the failure is investigated (§0.7 ratchet).
+
+### Command shapes that count
+
+```bash
+# a check: command, exit, output line
+git show --stat HEAD                     # proves the commit has content
+python -m pytest tests/test_x.py -q      # "5 passed in 0.47s" + exit 0
+python tools/evidence_gate.py --only X   # the finding count, not the word PASS
+
+# an absence: name the surface, the root, the depth, the exclusions
+find . -name "render_tree*" 2>/dev/null            # root='.' ; exclusions as given
+grep -rn "token" --include="*.py" . | grep -v .venvs
+```
+
+An absence claim without its surface (root, depth, exclusions) is `UNVERIFIED` by
+definition, because the same sentence is true of a directory nobody looked in.
+
+### Shapes that do not count
+
+| shape | why it fails |
+| --- | --- |
+| "done" / "fixed" / "passes" alone | no invocation; `UNVERIFIED` |
+| a count with no denominator | `4/5` and `1/1` are indistinguishable (HED-9) |
+| another session's number | a measurement belongs to the run that made it |
+| a gate's summary line answering a narrower question | the instrument asked something else |
+| "the file does not exist" from an unstated surface | absence needs its surface named |
+
+### Report template (board, status row, handoff)
+
+```
+ACTION: <what changed>
+INSTRUMENT: <exact command>
+EXIT: <code>
+OUTPUT: <the line it printed>
+STATE: RAN | UNVERIFIED | BLIND | FALSIFIED
+```
+
+A retirement, a commit message and a status row that omit `INSTRUMENT` are defective, not
+terse — the reader cannot tell them from an assertion, and an assertion is what this rule
+exists to make visible.

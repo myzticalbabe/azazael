@@ -34,7 +34,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 VERDICT_READY = "READY"
 VERDICT_GAPS = "GAPS"
@@ -427,6 +427,176 @@ def gate_claims_are_pinned(
     return errors
 
 
+# --- the figure instrument ---------------------------------------------------
+#
+# A pin that says "this was measured" must say how a reader re-measures it. The
+# instrument named below is that "how" for the figures the project publishes
+# about itself; this gate runs it and compares what a pin recorded against what
+# the run printed. It refuses two things in particular: a pin that claims the
+# instrument without carrying a comparison, and a comparison against a reading
+# that moves between runs -- a timing compared pass/fail reports the machine's
+# mood as the project's behaviour.
+
+FIGURES = "tools/figures.py"
+
+#: The instrument's own declaration of what moves between runs. A declaration is
+#: authoritative where it exists: `_constant_durations` names the readings that a
+#: duration-shaped name would otherwise refuse -- a bound the caller passed in,
+#: not a time the run took. Measured 2026-11-14: a suffix test refused
+#: `loop.budget_ms`, which is 50.0 on every machine, and would have dropped the
+#: only assertion E1 makes about the budget.
+DECLARED_VOLATILE = "_volatile"
+DECLARED_CONSTANTS = "_constant_durations"
+
+#: Name-shaped fallback, used for any reading no declaration covers. A pin may
+#: quote such a reading in `measured`; it may not put one in `reproduced`.
+VOLATILE_SUFFIXES = ("_us", "_ms", "_ns", "_s", "_sec", "_seconds")
+VOLATILE_WORDS = ("latency", "elapsed", "throughput", "wall")
+
+
+def is_timing_name(reading: str) -> bool:
+    """True when a reading's name claims a duration or a throughput."""
+    name = reading.strip().lower()
+    if name.endswith(VOLATILE_SUFFIXES):
+        return True
+    return any(word in name for word in VOLATILE_WORDS)
+
+
+def declared(readings: Dict[str, Any], key: str) -> "Set[str]":
+    """One declaration list from the instrument, or the empty set when absent."""
+    value = readings.get(key)
+    if not isinstance(value, list):
+        return set()
+    return {str(item) for item in value}
+
+
+def volatile_readings(readings: Dict[str, Any]) -> "Set[str]":
+    """Readings a pin may quote but must not compare: the instrument's own set.
+
+    Anything the instrument declares volatile is volatile. Anything it declares a
+    constant duration is not, whatever its name looks like. Everything else with
+    a duration-shaped name stays volatile, so a declaration that forgets a reading
+    errs toward refusing the comparison rather than passing it.
+    """
+    constant = declared(readings, DECLARED_CONSTANTS)
+    return declared(readings, DECLARED_VOLATILE) | {
+        str(key) for key in readings if is_timing_name(str(key)) and str(key) not in constant
+    }
+
+
+def reading_matches(recorded: Any, printed: Any) -> bool:
+    """Same value and same kind. 1 and True are not the same reading."""
+    if isinstance(recorded, bool) or isinstance(printed, bool):
+        return isinstance(recorded, bool) and isinstance(printed, bool) and recorded == printed
+    if isinstance(recorded, (int, float)) and isinstance(printed, (int, float)):
+        return float(recorded) == float(printed)
+    return str(recorded) == str(printed)
+
+
+def figures_readings(project: Path) -> "Tuple[Dict[str, Any], Dict[str, str]]":
+    """Run the figure instrument once. Return (readings, blinded groups and reasons).
+
+    A non-zero exit is not fatal here: the instrument returns 2 when any group
+    blinded, and a group this ledger never pins (the host probe) may legitimately
+    blind on another machine. A pin that compares a blinded reading is caught
+    below, by name, with the instrument's own reason.
+    """
+    script = project / FIGURES
+    if not script.is_file():
+        raise Blinded("%s does not exist, so no published figure can be reproduced" % FIGURES)
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script), "--json"],
+            cwd=str(project),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=GATE_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        raise Blinded(
+            "%s did not finish within %ds, so its figures were not measured"
+            % (FIGURES, GATE_TIMEOUT_S)
+        )
+    except OSError as exc:
+        raise Blinded("%s could not be started: %s: %s" % (FIGURES, type(exc).__name__, exc))
+    try:
+        payload = json.loads(proc.stdout or "")
+    except ValueError as exc:
+        raise Blinded(
+            "%s printed no JSON reading (%s: %s), so no figure was measured"
+            % (FIGURES, type(exc).__name__, exc)
+        )
+    if not isinstance(payload, dict):
+        raise Blinded("%s printed a %s, not a reading object" % (FIGURES, type(payload).__name__))
+    blinded: Dict[str, str] = {}
+    for line in (proc.stderr or "").splitlines():
+        if line.startswith("BLIND "):
+            group, _, reason = line[len("BLIND "):].partition(":")
+            blinded[group.strip()] = reason.strip()
+    return payload, blinded
+
+
+def gate_figures_are_reproduced(
+    ledger: Dict[str, Any], pins: List[Dict[str, Any]], project: Path, manifest: Dict[str, Any]
+) -> List[str]:
+    """Every reproduction a pin claims must match the run this gate just performed."""
+    errors: List[str] = []
+    claimed = [pin for pin in pins if isinstance(pin.get("reproduced"), dict)]
+    silent = [
+        pin
+        for pin in pins
+        if str(pin.get("instrument") or "").strip() == FIGURES
+        and not isinstance(pin.get("reproduced"), dict)
+    ]
+    for pin in silent:
+        errors.append(
+            "%s names %s but carries no reproduced readings, so its figures are quoted "
+            "rather than compared" % (pin.get("id"), FIGURES)
+        )
+    if not claimed:
+        return errors
+
+    readings, blinded = figures_readings(project)
+    volatile = volatile_readings(readings)
+    for key in sorted(declared(readings, DECLARED_VOLATILE) & declared(readings, DECLARED_CONSTANTS)):
+        errors.append(
+            "%s is declared both volatile and constant, so the instrument does not say "
+            "whether a pin may compare it" % key
+        )
+    for pin in claimed:
+        pin_id = str(pin.get("id") or "?")
+        if str(pin.get("tier") or "") in CARRIED_TIERS:
+            errors.append(
+                "%s carries reproduced readings while presenting itself as tier %s: a "
+                "reading compared here is proof, so the tier must say so"
+                % (pin_id, pin.get("tier"))
+            )
+        for raw_key, recorded in sorted(pin["reproduced"].items()):
+            key = str(raw_key)
+            if key in volatile:
+                errors.append(
+                    "%s compares %s, which moves between runs: a timing is quoted in "
+                    "'measured', never compared" % (pin_id, key)
+                )
+                continue
+            if key not in readings:
+                group = key.split(".")[0]
+                reason = blinded.get(group)
+                detail = " (the %s group blinded: %s)" % (group, reason) if reason else ""
+                errors.append(
+                    "%s compares %s, which this run never printed%s" % (pin_id, key, detail)
+                )
+                continue
+            if not reading_matches(recorded, readings[key]):
+                errors.append(
+                    "%s records %s=%r and this run printed %r"
+                    % (pin_id, key, recorded, readings[key])
+                )
+    return errors
+
+
 GateFn = Callable[[Dict[str, Any], List[Dict[str, Any]], Path, Dict[str, Any]], List[str]]
 
 GATES: Dict[str, GateFn] = {
@@ -437,6 +607,7 @@ GATES: Dict[str, GateFn] = {
     "disclosure-manifest-is-closed": gate_disclosure_manifest_is_closed,
     "carried-claims-say-why": gate_carried_claims_say_why,
     "claims-are-pinned": gate_claims_are_pinned,
+    "figures-are-reproduced": gate_figures_are_reproduced,
     "publication-gate-passes": gate_publication_gate_passes,
 }
 

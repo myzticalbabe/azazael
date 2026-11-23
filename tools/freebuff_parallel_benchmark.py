@@ -149,7 +149,10 @@ def main():
         subprocess.run(["freebuff", "--version"], capture_output=True, check=True, timeout=30)
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("ERROR: freebuff CLI not found. Install with: npm install -g freebuff")
-        return
+        # A missing prerequisite is not a finished benchmark. This returned
+        # None through a guard that discarded it, so the ERROR line came with
+        # a success exit status.
+        return 1
     
     bench = FreebuffBenchmark(max_parallel=args.parallel)
     tasks = generate_coding_tasks(args.tasks)
@@ -176,4 +179,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

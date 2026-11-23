@@ -74,6 +74,11 @@
    "kind": "instrument"
   },
   {
+   "from": "tools/figures.py",
+   "to": "tools/figures.py",
+   "kind": "instrument"
+  },
+  {
    "from": "../tests/test_psyche_network.py",
    "to": "tests/test_psyche_network.py",
    "kind": "test"
@@ -320,6 +325,62 @@
   {
    "glob": "*.zip",
    "why": "archives of primary documents"
+  },
+  {
+   "glob": "*/tools/forensic_*.py",
+   "why": "forensic instruments that open case files: the method is publishable, the investigator's tooling and the paths it writes are not"
+  },
+  {
+   "glob": "adopt_queue.py",
+   "why": "adoption staging queue: internal ledger of what has not yet been wired, not a reader-facing artifact"
+  },
+  {
+   "glob": "db_pool.py",
+   "why": "internal connection pool configured for this host's databases, not a shipped instrument"
+  },
+  {
+   "glob": "evidence_container.py",
+   "why": "evidence container reader: it addresses raw case material, which the manifest never ships"
+  },
+  {
+   "glob": "shard_intake.py",
+   "why": "intake tool for the Kali class surface; the shards it generates are never shipped, so neither is the generator"
+  },
+  {
+   "glob": "ultra_loose.py",
+   "why": "ultra-loose source sweep driver over case material, internal to the investigation"
+  },
+  {
+   "glob": "*/shards/*",
+   "why": "the shard surface is generated from the Kali lane and is not part of the public release: the manifest ships curated eliza/ output only"
+  },
+  {
+   "glob": "*/adopted/*",
+   "why": "local adoption mirrors; a shipped copy goes through publicize.py to its eliza/ destination, never straight from adopted/"
+  },
+  {
+   "glob": "*/docs/*_2026-*.md",
+   "why": "dated internal engineering notes written against the live investigation; the curated reader docs are docs/index.md, docs/tutorial.md and docs/reference/"
+  },
+  {
+   "glob": "HARDWARE.md",
+   "why": "development-platform notes for this host, not a claim about what the software requires in general"
+  },
+  {
+   "glob": "WINDOWS_WSL_CONCURRENT.md",
+   "why": "host-specific concurrent-execution guide naming the BCC re-investigation, which this manifest never publishes"
+  },
+  {
+   "glob": "project_eliza/requiem.py",
+   "why": "staging-root copy, byte-identical to ../src/PSYCHE/requiem.py (sha256 cc5571cc...), which ships as eliza/psyche/requiem.py. Path-qualified on purpose: a bare 'requiem.py' rule also matched the canonical source and made denied_paths red (measured 2026-11-14)"
+  },
+  {
+   "glob": "test_adopted_event_bus.py",
+   "why": "test of adopted/ code that is itself never shipped, so publishing the test would publish a red suite"
+  },
+  {
+   "glob": "test_shard_intake.py",
+   "why": "test of the shard intake tool; both the generator and the shard surface are internal"
   }
  ],
  "deny_substrings": [

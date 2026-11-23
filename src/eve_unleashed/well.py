@@ -39,6 +39,14 @@ from eve_unleashed.soul_foundry import (
     quantize_q80,
 )
 
+# Aether auditors live in tools/, which is NOT on sys.path when this module is
+# imported as `eve_unleashed.well`; the bare imports below resolved only in
+# tests and CI, which is why the graph recorded both names as external
+# (measured 2026-11-14). Anchor the directory, keep the names as written.
+_TOOLS_DIR = Path(__file__).resolve().parent.parent.parent / "tools"
+if str(_TOOLS_DIR) not in sys.path:
+    sys.path.append(str(_TOOLS_DIR))
+
 try:  # Aether auditors live in tools/, on the path in tests and CI
     import reading_audit  # type: ignore
 except Exception:

@@ -439,12 +439,151 @@ def leg_kernel(_payload):
     return {"detail": "%s | %s" % (verdict, baseline) if baseline else verdict}
 
 
+SWARM_DIR = ROOT / "tools" / "swarm_arena"
+SWARM_INPUTS = ("arena_results.json", "elo_board.json")
+
+_SW_CURSORS = re.compile(r"^cursors:\s+(\d+)\s+drawn:\s+(\d+)\s+absent:\s+(\d+)\s+blind:\s+(.+)$")
+_SW_SCHEDULE = re.compile(r"^schedule:\s+(\d+)\s+ms slowest of\s+(\d+)\s+ms budget\s+"
+                          r"\(stagger\s+(\d+)\s+ms\)")
+_SW_LEDGER = re.compile(r"^ledger:\s+(.+?)\s+\((\d+)\s+rows")
+_SW_ROLLBACK = re.compile(r"^rollback:\s+(.+)$")
+
+
+def swarm_parse(lines):
+    """Read the cursor view's report lines. A missing line stays None, never 0."""
+    out = {"cursors": None, "drawn": None, "absent": None, "blind": "",
+           "slowest": None, "budget": None, "stagger": None,
+           "ledger": "", "ledger_rows": None, "rollback": ""}
+    for line in lines:
+        m = _SW_CURSORS.match(line)
+        if m:
+            out["cursors"], out["drawn"], out["absent"] = (int(m.group(1)),
+                                                             int(m.group(2)),
+                                                             int(m.group(3)))
+            out["blind"] = m.group(4).strip()
+            continue
+        m = _SW_SCHEDULE.match(line)
+        if m:
+            out["slowest"], out["budget"], out["stagger"] = (int(m.group(1)),
+                                                               int(m.group(2)),
+                                                               int(m.group(3)))
+            continue
+        m = _SW_LEDGER.match(line)
+        if m:
+            out["ledger"], out["ledger_rows"] = m.group(1), int(m.group(2))
+            continue
+        m = _SW_ROLLBACK.match(line)
+        if m:
+            out["rollback"] = m.group(1).strip()
+    return out
+
+
+def swarm_findings(rep, ledger_lines, page_bytes):
+    """Every way one run's numbers can disagree with the artifacts it wrote.
+
+    Kept apart from the leg so each branch can be exercised directly, because
+    every one of them is a defect class this tree has already paid for: a
+    denominator that moved (drawn not equal to cursors minus absent), an artifact
+    describing a different run (ledger rows against the plan), and a render that
+    wrote no page while still exiting 0 (the stale-artifact class).
+    """
+    bad = []
+    for key in ("cursors", "drawn", "absent", "slowest", "budget"):
+        if rep.get(key) is None:
+            bad.append("no %s line: a run whose report cannot be read cannot be checked"
+                       % key)
+    if bad:
+        return bad
+    if rep["slowest"] > rep["budget"]:
+        bad.append("slowest %d ms against a %d ms budget" % (rep["slowest"], rep["budget"]))
+    if rep["cursors"] < 1:
+        bad.append("the plan holds no cursor at all")
+    if (rep.get("blind") or "").lower() in ("", "none"):
+        if rep["drawn"] != rep["cursors"] - rep["absent"]:
+            bad.append("drawn %d is not cursors %d minus absent %d"
+                       % (rep["drawn"], rep["cursors"], rep["absent"]))
+        if rep["drawn"] < 1:
+            bad.append("nothing drawn: a page of empty slots is not a view")
+    if rep.get("ledger_rows") is None:
+        bad.append("no ledger line: the frames were never reported")
+    else:
+        if rep["ledger_rows"] != rep["cursors"]:
+            bad.append("ledger reports %d row(s) against %d planned cursor(s)"
+                       % (rep["ledger_rows"], rep["cursors"]))
+        if ledger_lines != rep["ledger_rows"]:
+            bad.append("ledger holds %d line(s) on disk against %d in its own row count"
+                       % (ledger_lines, rep["ledger_rows"]))
+    if page_bytes < 4096:
+        bad.append("page is %d byte(s): a render that wrote no page did not render"
+                   % page_bytes)
+    return bad
+
+
+def leg_swarm_view(_payload):
+    """Regenerate the salute-cursor view and re-check it against its own artifacts.
+
+    The view refuses a plan it cannot draw, but "the numbers printed" is exactly
+    the claim this tree has been wrong about before: a run that writes no page, or
+    a ledger that disagrees with the plan it describes, still exits 0 and reads
+    fine in a scrollback. So this leg re-derives the cheap invariants from the
+    run's own lines and from the files on disk, and a disagreement is an `error`
+    rather than a note. Running it IS the regeneration: the leg is the reason
+    `out/swarm_view.html` and its frame ledger are current on every pass.
+
+    Two states are recorded instead of failed. A tree with no `out/arena_results.json`
+    is `skipped` with the reason -- the view reads a finished arena run and does
+    not invent one, and a red gate on a fresh clone is the gate that gets switched
+    off. The rollback line is carried in the detail but is not fatal: a full pass
+    normally runs on a dirty worktree, so `NOT PROVEN` here is information; the
+    strict form stays `swarm_view.py --prove`, which exits 2 on any dirt.
+    """
+    if not bool(setting("swarm_view.enabled", True)):
+        return {"status": "skipped", "detail": "swarm_view.enabled=false"}
+    script = SWARM_DIR / "swarm_view.py"
+    out_dir = SWARM_DIR / "out"
+    if not script.exists():
+        return {"status": "skipped",
+                "detail": "tools/swarm_arena/swarm_view.py is not in this tree"}
+    absent = [name for name in SWARM_INPUTS if not (out_dir / name).exists()]
+    if absent:
+        return {"status": "skipped",
+                "detail": "no %s under tools/swarm_arena/out -- the view reads a "
+                          "finished arena run and does not invent one" % ", ".join(absent)}
+    bound = float(setting("swarm_view.timeout_s", 180))
+    proc = subprocess.run([sys.executable, str(script)], cwd=str(ROOT),
+                          capture_output=True, text=True, encoding="utf-8",
+                          errors="replace", timeout=bound)
+    lines = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+    rep = swarm_parse(lines)
+    page = out_dir / "swarm_view.html"
+    ledger = out_dir / "swarm_view_frames.jsonl"
+    page_bytes = page.stat().st_size if page.exists() else 0
+    ledger_lines = 0
+    if ledger.exists():
+        ledger_lines = sum(1 for row in ledger.read_text(encoding="utf-8").splitlines()
+                           if row.strip())
+    bad = swarm_findings(rep, ledger_lines, page_bytes)
+    if proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout or "").strip().splitlines()[-2:]
+        bad = ["exit %d: %s" % (proc.returncode, " | ".join(tail) or "no output")] + bad
+    detail = ("%s cursor(s), %s drawn, %s absent, blind %s | %s/%s ms | ledger %s row(s) | "
+              "page %.1f KB | rollback: %s"
+              % (rep.get("cursors"), rep.get("drawn"), rep.get("absent"),
+                 rep.get("blind") or "?", rep.get("slowest"), rep.get("budget"),
+                 rep.get("ledger_rows"), page_bytes / 1024.0,
+                 rep.get("rollback") or "not reported"))
+    if bad:
+        return {"status": "error", "detail": detail + " | FAILED: " + "; ".join(bad)}
+    return {"detail": detail}
+
+
 FORENSIC_LEGS = [
     ("ast_audit", leg_ast_audit),
     ("evidence_gate", leg_evidence_gate),
     ("golden_arrow_status", leg_golden_arrow_status),
     ("hyper_edge", leg_hyper_edge),
     ("kernel", leg_kernel),
+    ("swarm_view", leg_swarm_view),
 ]
 
 

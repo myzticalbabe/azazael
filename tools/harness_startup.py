@@ -10,8 +10,10 @@ when every check passes; exit 1 names what to fix, in order. Fast by design
 Usage: python tools/harness_startup.py [--strict]
   --strict: warnings (stale snapshots, unmerged lane rows) also fail.
 """
+import glob
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -19,12 +21,34 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY315T = r"C:\Azazael\.venvs\py315t\Scripts\python.exe"
 BUILD = r"C:\Azazael\.build"
-LANE = os.path.join(ROOT, "state", "bake_harvest_freebuff_2026-11-06.jsonl")
+LANE_GLOB = os.path.join(ROOT, "state", "bake_harvest_*.jsonl")
+LANE_DATE_RE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.jsonl$")
 GOAL = os.path.join(ROOT, "state", "harness_goal.json")
 RECIPES_SNAP = os.path.join(ROOT, "state", "adopt-recipes-2026-11-06.json")
 RECIPES_LIVE = os.path.join(BUILD, "adopt-recipes.json")
 
 CHECKS = []
+
+
+def newest_lane():
+    """(path of the newest dated lane file, how many dated lanes exist).
+
+    Returns (None, 0) when no dated lane exists. The lane used to be a
+    hard-coded state/bake_harvest_freebuff_2026-11-06.jsonl, so every lane
+    written after 2026-11-06 went unexamined while this check kept printing
+    PASS -- and the PASS line never named the file, which is why nothing
+    noticed. Sort by the _<YYYY-MM-DD>.jsonl suffix, never by the agent name
+    in the middle of the filename.
+    """
+    dated = []
+    for path in glob.glob(LANE_GLOB):
+        m = LANE_DATE_RE.search(path)
+        if m:
+            dated.append((m.group(1), path))
+    if not dated:
+        return None, 0
+    dated.sort()
+    return dated[-1][1], len(dated)
 
 
 def check(name):
@@ -85,16 +109,22 @@ def c_engines():
 
 @check("lane parses and merge is lossless (dry run)")
 def c_lane():
+    lane, n_lanes = newest_lane()
+    if lane is None:
+        return False, ("no state/bake_harvest_*_<YYYY-MM-DD>.jsonl lane file -- "
+                       "record one with tools/bake_row.py before trusting the bake loop")
+    name = os.path.basename(lane)
     sys.path.insert(0, HERE)
     from merge_bake_lane import merge_lanes
     try:
-        merged, dropped, accepted, base_n = merge_lanes([LANE])
+        merged, dropped, accepted, base_n = merge_lanes([lane])
     except Exception as e:
-        return False, "merge crashed: %r -- fix merge_bake_lane.py first" % e
+        return False, "merge crashed on %s: %r -- fix merge_bake_lane.py first" % (name, e)
     if dropped:
-        return False, "%d drops: %s -- fix rows, never force-merge" % (
-            len(dropped), dropped[:3])
-    return True, "BASE=%d ACCEPTED=%d MERGED=%d" % (base_n, accepted, len(merged))
+        return False, "%d drops in %s: %s -- fix rows, never force-merge" % (
+            len(dropped), name, dropped[:3])
+    return True, "lane=%s (newest of %d) BASE=%d ACCEPTED=%d MERGED=%d" % (
+        name, n_lanes, base_n, accepted, len(merged))
 
 
 @check("evolution loop alive (goal file current, iterations growing)")

@@ -414,6 +414,19 @@ def main(argv=None) -> int:
         _emit("session_start: stdout left un-reconfigured (%s); payloads now "
               "degrade to the console codec instead of failing" % _RECONFIGURE_ERROR)
 
+    # RULE 0Z-S, loaded before any task work. A rule that is only recalled is
+    # not loaded: the agent that most needs it is the one that has already
+    # decided it remembers the rule. So it is printed, every session, before
+    # the gate -- and it states the four states rather than the slogan, because
+    # "evidence not assertion" as a phrase is itself an assertion.
+    _emit("=== RULE 0Z-S: ASSERTION IS NOT EVIDENCE (per action, not per session) ===")
+    _emit("  every claim below/henceforth carries: command + exit + the line it printed")
+    _emit("  states: RAN (instrument ran, outcome quoted) | UNVERIFIED (no invocation,"
+          " may license nothing) | BLIND (could not run -- not a pass) |"
+          " FALSIFIED (contradicted -> halt this line, investigate)")
+    _emit("  coverage never propagates: verifying action 1 does not verify action 2")
+    _emit("  canon: MANDATES.md RULE 0Z-S | procedure: SOP.md Rule 6")
+    _emit("")
     _emit("=== MCP STARTUP GATE (standing order: before any task work) ===")
     gate_status = mcp_gate(fix="--no-fix" not in args)
     _emit("")

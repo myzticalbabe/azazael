@@ -324,6 +324,22 @@ def engram_records(db: Path = ENGRAM_DB, project: str = "azazael") -> Tuple[List
     return records, newest
 
 
+def _sha_surface(root: Path, relative: str, path: Path) -> Tuple[str, bool]:
+    """The hash the ledger must record: the blob that will be committed.
+
+    `stale()` judges the index-or-HEAD blob, so a ledger written from the
+    worktree hash disagreed with the very check that reads it: `--write`
+    recorded one file and `--check` compared another, and the disagreement
+    surfaced as a moved surface no regeneration could clear. Records the
+    committed blob, and says whether the worktree text differs from it, so a
+    count drawn from uncommitted text is visible rather than assumed away.
+    """
+    committed = _sha_committed(root, relative)
+    if committed is None:                       # untracked: the worktree is all there is
+        return _sha(path), False
+    return committed, _sha(path) != committed
+
+
 def harvest(root: Path = REPO, db: Path = ENGRAM_DB) -> Dict:
     surfaces: List[Dict] = []
     records: List[Dict] = []
@@ -333,7 +349,9 @@ def harvest(root: Path = REPO, db: Path = ENGRAM_DB) -> Dict:
         if not path.exists():
             continue
         extracted = _records_for(path, kind, mode)
-        surfaces.append({"path": relative, "sha": _sha(path), "records": len(extracted)})
+        sha, differs = _sha_surface(root, relative, path)
+        surfaces.append({"path": relative, "sha": sha, "records": len(extracted),
+                         "worktree_differs": differs})
         records.extend(extracted)
         seen.add(relative)
     for path in sorted(Path(root).glob(README_GLOB)):
@@ -341,7 +359,9 @@ def harvest(root: Path = REPO, db: Path = ENGRAM_DB) -> Dict:
         if relative in seen:
             continue
         extracted = _records_for(path, "limitation", "sectioned")
-        surfaces.append({"path": relative, "sha": _sha(path), "records": len(extracted)})
+        sha, differs = _sha_surface(root, relative, path)
+        surfaces.append({"path": relative, "sha": sha, "records": len(extracted),
+                         "worktree_differs": differs})
         records.extend(extracted)
     memory, newest = engram_records(db)
     records.extend(memory)

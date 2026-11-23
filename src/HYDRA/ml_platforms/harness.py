@@ -1,7 +1,12 @@
 import sys
 import os
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent / "ml_platforms"))
+# Anchor the package root (src/) rather than ml_platforms/ itself: the bare
+# `from health_monitor import` that insert existed to enable was recorded by the
+# graph as an external placeholder for an in-tree module (measured 2026-11-14).
+_SRC_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+if _SRC_ROOT not in sys.path:
+    sys.path.insert(0, _SRC_ROOT)
 
 # coding: utf-8
 """
@@ -181,7 +186,7 @@ def cmd_monitor(args):
     print("Running health monitor...")
 
     try:
-        from health_monitor import PlatformHealthMonitor
+        from ORCHESTRATION.ml_platforms.health_monitor import PlatformHealthMonitor
 
         monitor = PlatformHealthMonitor()  # type: ignore[reportCallIssue]
 

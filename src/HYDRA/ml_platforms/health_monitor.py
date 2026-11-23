@@ -23,12 +23,16 @@ _own_dir = str(Path(__file__).resolve().parent)
 if _own_dir in sys.path:
     sys.path.remove(_own_dir)
 
-# Import from canonical source
-_canonical_dir = str(Path(__file__).resolve().parent.parent.parent / "ORCHESTRATION" / "ml_platforms")
-if _canonical_dir not in sys.path:
-    sys.path.insert(0, _canonical_dir)
+# Import the canonical source by its package path. The previous form put
+# ORCHESTRATION/ml_platforms on sys.path and imported the bare name
+# `health_monitor`: ambiguous with this very file, order-dependent, and
+# invisible to the graph, which therefore minted an external placeholder for an
+# in-tree module (measured 2026-11-14).
+_src_root = str(Path(__file__).resolve().parent.parent.parent)  # src/
+if _src_root not in sys.path:
+    sys.path.insert(0, _src_root)
 
-from health_monitor import (  # type: ignore[import-not-found]
+from ORCHESTRATION.ml_platforms.health_monitor import (
     HealthStatus,
     HealthCheck,
     Alert,

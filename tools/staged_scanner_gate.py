@@ -41,6 +41,13 @@ moved on between `git commit` and `git push`, the pushed sha is an ancestor.
 Judging `base..HEAD` there would judge commits the push does not contain, and a
 refusal would name a changeset nobody is sending. With `--tip` the range is the
 one actually leaving the machine.
+
+Exit codes: `0` clean (or nothing staged), `1` an anti-pattern was ADDED, `2` the
+gate could not judge. `2` is not a pass and is returned for BOTH blind conditions
+- an unresolvable `--base`, and a scanner that cannot be imported. This file used
+to answer the first with `2` and the second with `0` ("passing loud"), which is
+the same blind reading with two different verdicts: a check whose scanner never
+loaded has certified nothing, whatever it printed.
 """
 from __future__ import annotations
 
@@ -132,9 +139,10 @@ def main() -> int:
 
     try:
         from CORE.compliance.scanner import ASTAntiPatternScanner  # noqa: F401
-    except Exception as exc:  # noqa: BLE001 - pass LOUD, never silently block
-        print(f"[StagedScanner] scanner unavailable ({exc}) - passing loud")
-        return 0
+    except Exception as exc:  # noqa: BLE001 - a check that never ran is not a pass
+        print(f"[StagedScanner] scanner unavailable ({exc}) - BLIND, refusing to "
+              f"pass a check that never ran")
+        return 2
 
     # `:0:` is the index. In commit mode the "after" side is HEAD's blob and the
     # "before" side is the base's, so nothing about the shared index is read.

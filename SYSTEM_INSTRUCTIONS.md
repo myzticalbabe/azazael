@@ -138,6 +138,7 @@ analysis, RULE 0U, RULE 0W, and the RULE 0B-E claim guard remain HALT-grade.
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
 - **RULE 0Z-G (No Busy Work):** Does this action result in actual code fixes/test passes/mandate codification? Is this a diagnostic re-run, report, or documentation padding? (Explain: [Yes, making X fix / No - CRITICAL busy work violation])
 - **RULE 0Z-H (Anti-Deflection):** Am I immediately recording a user-identified violation instead of deflecting with questions like "What do you want me to do?" (Explain: [Yes, recording now / N/A no violation identified / VIOLATION - deflecting])
+- **RULE 0Z-S (Assertion Is Not Evidence):** For THIS action, what is the instrument, and what did it print? State one of RAN (command + exit + output line quoted) / UNVERIFIED (no invocation — may license nothing) / BLIND (could not run — not a pass) / FALSIFIED (contradicted — halt and investigate). Does the evidence cover THIS action, or a neighbour it is being borrowed from? (Explain: [RAN: cmd -> exit -> line / UNVERIFIED - no invocation / BLIND - reason / FALSIFIED - halting])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
@@ -535,6 +536,7 @@ Copy and paste this exact block into your response and fill it out BEFORE modify
 - **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A]) For complex decisions (canonical doc changes, architecture, new features): has researcher-web + researcher-docs been queried to validate this decision tree against 2025-2026 industry standards? (Explain: [Yes, CITING: [source] / N/A - routine edit / NOT DONE - CRITICAL])
 - **RULE 0Z-G (No Busy Work):** Does this action result in actual code fixes/test passes/mandate codification? Is this a diagnostic re-run, report, or documentation padding? (Explain: [Yes, making X fix / No - CRITICAL busy work violation])
 - **RULE 0Z-H (Anti-Deflection):** Am I immediately recording a user-identified violation instead of deflecting with questions like "What do you want me to do?" (Explain: [Yes, recording now / N/A no violation identified / VIOLATION - deflecting])
+- **RULE 0Z-S (Assertion Is Not Evidence):** For THIS action, what is the instrument, and what did it print? State one of RAN (command + exit + output line quoted) / UNVERIFIED (no invocation — may license nothing) / BLIND (could not run — not a pass) / FALSIFIED (contradicted — halt and investigate). Does the evidence cover THIS action, or a neighbour it is being borrowed from? (Explain: [RAN: cmd -> exit -> line / UNVERIFIED - no invocation / BLIND - reason / FALSIFIED - halting])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 

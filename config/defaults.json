@@ -58,6 +58,7 @@
       "freebuff",
       "opencode"
     ],
+    "claim_scan_cap": 200,
     "claim_lease_seconds": 1800,
     "max_claim_limit": 10,
     "push_hook_enabled": true,
@@ -76,6 +77,10 @@
     "web_search": true,
     "web_timeout_s": 20,
     "max_queries": 3
+  },
+  "swarm_view": {
+    "enabled": true,
+    "timeout_s": 180
   },
   "fallback": {
     "on_error": "record-and-continue",

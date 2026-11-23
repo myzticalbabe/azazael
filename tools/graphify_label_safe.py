@@ -15,7 +15,8 @@ Usage:
       [--missing-only] [--batch-size N] [--max-concurrency N]
       [--probe-only] [--list-backends] [--dry-run] [--timeout SECS]
 
-  PATH defaults to the repo root (this file's grandparent). Extra label flags
+  PATH defaults to the canonical store root, ``src/`` -- the directory whose
+  ``graphify-out/graph.json`` codegraph actually reads. Extra label flags
   (--missing-only etc.) pass through to `graphify label`.
 
 Exit codes: 0 label ran (its exit preserved); 1 usage error;
@@ -34,6 +35,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 REPO = HERE.parent.parent  # tools/ -> repo root
 GRAPHIFY_BIN = REPO / "scripts" / "graphify_bin.sh"
+#: `graphify label` reads and writes ``<watch_path>/graphify-out`` (cli.py:2063,
+#: 2135), so the watch path has to be ``src``. A default of the repo root found
+#: no store beside it and exited 1 "no graph found" -- measured 2026-11-14.
+CANONICAL_WATCH = REPO / "src"
 
 # (backend, key env vars, default base url, default model, needs_endpoint)
 BACKENDS = (
@@ -53,6 +58,26 @@ BACKENDS = (
 )
 
 CHAT_PATH = "/chat/completions"
+
+
+def _shell() -> str:
+    """The bash that can actually open a Windows repo path.
+
+    Measured 2026-11-14: on Windows, ``subprocess`` resolves ``bash`` through
+    PATH to ``C:\\Windows\\System32\\bash.exe``, which is WSL. WSL bash cannot
+    open ``C:/Azazael/...`` and exits 127 with "No such file or directory" for
+    a script that exists, so the preflight would pass and the label pass would
+    never start. Git Bash is the shell this tree's scripts are written for, so
+    prefer it when installed and fall back to ``bash`` elsewhere.
+    """
+    roots = [os.environ.get("PROGRAMFILES"), os.environ.get("ProgramFiles"),
+             r"C:\Program Files"]
+    for root in [r for r in roots if r]:
+        for rel in (("Git", "bin", "bash.exe"), ("Git", "usr", "bin", "bash.exe")):
+            cand = Path(root).joinpath(*rel)
+            if cand.exists():
+                return str(cand)
+    return "bash"
 
 
 def _env_base(backend: str, default: str) -> str:
@@ -186,7 +211,9 @@ def pick_backend(explicit: str | None, model: str | None, timeout: float,
 
 
 def main(argv: list[str]) -> int:
-    path = str(REPO)
+    # POSIX form for the same reason the script path uses it below: a backslash
+    # path survives argv here, but forward slashes survive every hop.
+    path = CANONICAL_WATCH.as_posix()
     rest: list[str] = []
     backend = model = None
     timeout = 60.0
@@ -237,7 +264,7 @@ def main(argv: list[str]) -> int:
         return 2
     # POSIX form: Git Bash strips backslashes in absolute Windows paths
     # (bash C:\x -> C:x, exit 127). Forward slashes survive everywhere here.
-    cmd = ["bash", GRAPHIFY_BIN.as_posix(), "label", path,
+    cmd = [_shell(), GRAPHIFY_BIN.as_posix(), "label", path,
            f"--backend={chosen}"]
     if model:
         cmd.append(f"--model={model}")

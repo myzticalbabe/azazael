@@ -73,7 +73,7 @@ the Kali source rather than to import this module.
 """
 from __future__ import annotations
 
-WIRED = False
+WIRED = {wired}
 SHARD_ID = "{shard_id}"
 KIND = "{kind}"
 SOURCE_ENVIRONMENT = "kali-linux"
@@ -215,11 +215,20 @@ def units(atlas: Dict) -> List[Dict]:
             })
         total = int(meta.get("classes") or 0)
         if total > len(named):
-            # The atlas lists at most six classes per module (52 of 679 exceed it,
-            # holding 143 classes between them). Those classes are in the tree and
-            # reachable from the module, but the atlas never recorded their names,
-            # so they get one residual shard that states the count instead of
-            # fabricated per-class stubs.
+            # The atlas lists at most six classes per module. Measured 2026-11-14
+            # against atlas_kali-linux.json: 141 of 6 928 modules exceed the cap,
+            # holding 520 classes between them (the previous parenthetical here
+            # said "52 of 679", a reading of an atlas one tenth this size). Those
+            # classes are in the tree and reachable from the module, but the atlas
+            # never recorded their names, so they get one residual shard that
+            # states the count instead of fabricated per-class stubs.
+            #
+            # This guard cannot fire when the census under-reports: a module the
+            # census scores `classes: 0` that really defines nine yields NO shard
+            # at all, and `check()` cannot see it because the index and the atlas
+            # are read from the same census. Measured 2026-11-14: one such module
+            # among the 603 with a vendored copy, CODEX/CORE/azazael_pygame.py
+            # (census 0, source 9). Fixing it means re-censusing, not editing here.
             out.append({
                 "shard_id": "kali:%s#module" % module_name,
                 "kind": "module",
@@ -268,6 +277,12 @@ def render_index(entries: Sequence[Dict], atlas: Dict) -> str:
 
 def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
     written = 0
+    # Adoption survives regeneration. WIRED.json is the ledger and it is never
+    # rewritten here, so a --write that emitted WIRED = False for an adopted
+    # shard would put the tree and the ledger into disagreement: measured
+    # 2026-11-14, 1152 of 4085 stubs declare WIRED = True and every one of them
+    # is listed in WIRED.json. Regeneration must reproduce that, not undo it.
+    wired_ids = wired_registry()
     trees = {entry["tree"] for entry in entries}
     # Tree directories are generated wholesale: a shard that left the atlas must
     # not survive as an orphan file a reader can import.
@@ -301,7 +316,8 @@ def write(entries: Sequence[Dict], atlas: Dict) -> Dict:
                            klass_literal=literal, unnamed=entry.get("unnamed", 0),
                            kind=entry["kind"], source=entry["module"],
                            lines=entry["lines"], public_api=entry["public_api"],
-                           generated=entry["generated"], shard_id=entry["shard_id"])
+                           generated=entry["generated"], shard_id=entry["shard_id"],
+                           wired="True" if entry["shard_id"] in wired_ids else "False")
         path.write_text(text, encoding="utf-8", newline="\n")
         written += 1
     INDEX.write_text(render_index(entries, atlas), encoding="utf-8", newline="\n")
@@ -382,52 +398,85 @@ def _stub_problems(path: Path, entry: Dict, wired: Optional[Dict] = None) -> Lis
     return problems
 
 
-def check(atlas: Optional[Dict] = None) -> Tuple[bool, List[str], Dict]:
-    """Judge the shard surface. ``atlas=None`` judges the index-anchored half.
+#: Why the census does not corroborate a wired id, stated as a fact about the
+#: CENSUS rather than about the claim. Measured 2026-11-14: all 107 unmatched
+#: ids in ``WIRED.json`` resolve to a real file AND a real symbol under
+#: ``Project_ELIZA/adopted/kali/``, so the party that is silent is the atlas
+#: (a point-in-time census from 2026-11-09), not the ledger. Reporting those 107
+#: as defects made ``--check`` exit 1 permanently -- a gate that cannot pass is
+#: a gate nobody reads, and the twenty-first real one would have arrived
+#: indistinguishable from the 107 false ones.
+ADVISORY_KINDS = {
+    "redundant_residual": "the census now names every class of this module, so "
+                          "its #module residual shard is no longer needed",
+    "census_truncated": "the census records at most six classes per module and "
+                        "this module has more, so the class may be one of the "
+                        "unrecorded ones",
+    "census_silent": "the census names every class of this module and omits "
+                     "this one, while the vendored source has it",
+    "module_absent": "the census carries no module by this name",
+}
 
-    Two halves, answering different questions. The CENSUS half asks whether the
-    checked-in index still describes the Kali tree the census measured. The INDEX
-    half asks whether the stub files on disk are the stubs the index describes:
-    WIRED = False, the declared SHARD_ID and CLASS_NAME, a load() that raises, no
-    imports, no strays, and every WIRED.json claim naming a test that exists.
 
-    Only the first needs the Kali census, which lives outside this repo
-    (``~/yggdrasil_forest/atlas_kali-linux.json``, written on the Kali lane). The
-    second needs nothing but the index and this tree, so it can be judged on any
-    host. Refusing the whole gate for a missing census made the useful half
-    unreachable everywhere but the Kali lane, and the only green run there was
-    ``ALLOW_SHARD_INTAKE=1`` -- which judges NOTHING, including the half that was
-    available. Naming the census NOT JUDGED and judging the rest is strictly more
-    than the bypass did, and it is still not a claim that the census matched.
+def classify_unmatched(shard_id: str, modules: Dict) -> str:
+    """Which census fact leaves a wired id uncorroborated, or ``unclassified``.
 
-    A MATCHING census is still compared in full. A mismatched one is refused here
-    for a library caller that handed it over on purpose -- the same refusal
-    ``main`` gives ``--write``, which deletes the surface such a check describes.
+    This answers "why does the atlas not contain it", never "is it wrong". A
+    kind outside ``ADVISORY_KINDS`` means the classifier has no explanation for
+    the id, and an unexplained id must stay a hard problem: inventing a bucket
+    to absorb it would rebuild the lie this function exists to remove.
     """
+    if "#" not in shard_id:
+        return "unclassified"
+    module, _, klass = shard_id.partition("#")
+    module = module.split(":", 1)[1] if ":" in module else module
+    meta = modules.get(module)
+    if meta is None:
+        return "module_absent"
+    named = list(meta.get("top_classes") or [])
+    total = int(meta.get("classes") or 0)
+    if klass == "module":
+        # A residual id is minted only while the module has unrecorded classes;
+        # if the census now names them all, `units()` stops minting it.
+        return "redundant_residual" if total <= len(named) else "unclassified"
+    if klass in named:
+        # The id SHOULD have matched. It did not, so something other than the
+        # census cap is at work and this classifier cannot name it.
+        return "unclassified"
+    return "census_truncated" if total > len(named) else "census_silent"
+
+
+def check(atlas: Dict, strict: bool = False) -> Tuple[bool, List[str], Dict]:
+    """Two tiers: defects fail always, census mismatches fail only under strict.
+
+    ``strict`` is keyword-only-with-default because a caller outside this module
+    unpacks the 3-tuple (``Project_ELIZA/tests/test_shard_intake.py:66``).
+    """
+    if not same_census(atlas):
+        # Guarded here as well as in `main`: a library caller comparing two
+        # trees must be told it cannot, not handed defects to triage.
+        raise AtlasUnavailable(_census_mismatch(atlas))
     problems: List[str] = []
-    expected: Dict[str, Dict] = {}
-    if atlas is not None:
-        if not same_census(atlas):
-            # Guarded here as well as in `main`: a library caller comparing two trees
-            # must be told it cannot, not handed 4,623 defects to triage.
-            raise AtlasUnavailable(_census_mismatch(atlas))
-        expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
-                    for entry in units(atlas)}
+    advisories: List[str] = []
+    buckets: Dict[str, int] = {}
+    modules_by_name = atlas.get("modules") or {}
     assigned = wired_registry()
     if not INDEX.is_file():
         return False, ["%s is absent; run --write" % INDEX.relative_to(REPO)], {}
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     on_disk = {entry["path"]: {key: entry.get(key) for key in INDEX_KEYS}
                for entry in index.get("shards", [])}
-    if atlas is not None:
-        for path in sorted(set(expected) - set(on_disk)):
-            problems.append("%s is in the atlas but not the index" % path)
-        for path in sorted(set(on_disk) - set(expected)):
-            problems.append("%s is in the index but not the atlas (stale stub)" % path)
-        for path in sorted(set(on_disk) & set(expected)):
-            if on_disk[path] != expected[path]:
-                problems.append("%s disagrees with the atlas: index %r, atlas %r"
-                                % (path, on_disk[path], expected[path]))
+    units_by_path = {entry["path"]: entry for entry in units(atlas)}
+    expected = {entry["path"]: {key: entry[key] for key in INDEX_KEYS}
+                for entry in units(atlas)}
+    for path in sorted(set(expected) - set(on_disk)):
+        problems.append("%s is in the atlas but not the index" % path)
+    for path in sorted(set(on_disk) - set(expected)):
+        problems.append("%s is in the index but not the atlas (stale stub)" % path)
+    for path in sorted(set(on_disk) & set(expected)):
+        if on_disk[path] != expected[path]:
+            problems.append("%s disagrees with the atlas: index %r, atlas %r"
+                            % (path, on_disk[path], expected[path]))
     for entry in index.get("shards", []):
         file_path = REPO / entry["path"]
         if not file_path.is_file():
@@ -440,15 +489,20 @@ def check(atlas: Optional[Dict] = None) -> Tuple[bool, List[str], Dict]:
     #: atlas", which no gate run could catch while the ledger was empty -- the
     #: first adoption exercised the branch (measured 2026-11-03: five real ids,
     #: five false defects).
-    #: The ids a claim may name: the census's own when there is a census, the
-    #: index's otherwise. An id the index does not carry is not addressable, so
-    #: it is still refused -- the ledger is checked either way.
-    unit_ids = ({entry["shard_id"] for entry in units(atlas)} if atlas is not None
-                else {entry["shard_id"] for entry in index.get("shards", [])})
+    unit_ids = {entry["shard_id"] for entry in units_by_path.values()}
     for shard_id, claim in sorted(assigned.items()):
         if shard_id not in unit_ids:
-            problems.append("WIRED.json names %r, which is not in the atlas" % shard_id)
-            continue
+            kind = classify_unmatched(shard_id, modules_by_name)
+            if kind not in ADVISORY_KINDS:
+                problems.append("WIRED.json names %r, which is not in the atlas and "
+                                "no census fact explains it" % shard_id)
+                continue
+            buckets[kind] = buckets.get(kind, 0) + 1
+            advisories.append("%s: %s -- %s" % (kind, shard_id, ADVISORY_KINDS[kind]))
+            #: Deliberately NOT a `continue`. The control check used to sit
+            #: behind one, so every id the census did not corroborate went
+            #: unvalidated -- 107 of 1,152 adopted claims were a claim with no
+            #: check, which is the one thing this function exists to refuse.
         test = claim.get("test") if isinstance(claim, dict) else None
         if not isinstance(test, str) or not test.strip():
             problems.append("WIRED.json entry %r names no test: a wired shard is a "
@@ -456,23 +510,29 @@ def check(atlas: Optional[Dict] = None) -> Tuple[bool, List[str], Dict]:
         elif not (REPO / test).is_file():
             problems.append("WIRED.json entry %r names %r, which does not exist"
                             % (shard_id, test))
-    known = set(expected) if expected else set(on_disk)
     stray = [p for p in SHARDS.rglob("*.py")
              if p.name != "__init__.py"
-             and str(p.relative_to(REPO)).replace("\\", "/") not in known]
+             and str(p.relative_to(REPO)).replace("\\", "/") not in expected]
     for path in sorted(stray):
         problems.append("%s is not in the atlas: an adopted shard must be wired "
                         "deliberately, not left as a generated file"
                         % path.relative_to(REPO))
     counts = index.get("counts", {})
-    surface = expected if expected else on_disk
-    if counts.get("shards") != len(surface):
-        problems.append("index claims %r shards; its own entries number %d"
-                        % (counts.get("shards"), len(surface)))
-    return (not problems), problems, {"shards": len(surface),
-                                      "modules": len({e["module"] for e in surface.values()}),
-                                      "trees": len({e["tree"] for e in surface.values()}),
-                                      "wired": len(assigned)}
+    if counts.get("shards") != len(expected):
+        problems.append("index claims %r shards; the atlas yields %d"
+                        % (counts.get("shards"), len(expected)))
+    if strict:
+        # Promoted, not dropped: `--strict` is how a caller says it wants the
+        # census mismatches to fail too. Default stays advisory for HED-2's
+        # reason -- a gate red on the day it lands is a gate switched off.
+        problems.extend(advisories)
+        advisories = []
+    return (not problems), problems, {"shards": len(expected),
+                                      "modules": len({e["module"] for e in expected.values()}),
+                                      "trees": len({e["tree"] for e in expected.values()}),
+                                      "wired": len(assigned),
+                                      "advisory_lines": advisories,
+                                      "buckets": buckets}
 
 
 def adopt(shard_id: str, atlas: Dict) -> int:
@@ -502,12 +562,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--atlas", default=str(DEFAULT_ATLAS))
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--strict", action="store_true",
+                        help="with --check, fail on census mismatches as well")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--tree", help="limit --list to one tree")
     parser.add_argument("--adopt", metavar="SHARD_ID")
     args = parser.parse_args(argv)
 
-    # The declared escape the tier and the gate registry both advertise
+# The declared escape the tier and the gate registry both advertise
     # (ALLOW_SHARD_INTAKE=1). It lives HERE and not only in the tier stanza
     # because `tools/preflight_all.py` runs this tool directly, so the escape
     # the registry documented could not actually be used from the registry.
@@ -521,48 +583,38 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # a pass nor a verdict on the tree. Collapsing it into 1 let a missing input
     # read as a drifted surface, and the commit gate would then refuse a healthy
     # tree for a reason that has nothing to do with the tree.
-    # `--check` is the one mode that can say something without the census (see
-    # `check`), so a missing or mismatched census is NAMED there rather than
-    # turned into a refusal that reads like drift. Every mode that WRITES or
-    # ADOPTS against the census still refuses to run without the right one:
-    # `--write` deletes every tree directory under shards/ and rewrites the index,
-    # so against the wrong census it would erase 1,183 Kali shards and 1,152
-    # recorded adoptions while reporting success.
-    atlas: Optional[Dict] = None
-    census_note = ""
     try:
-        loaded = read_atlas(Path(args.atlas))
+        atlas = read_atlas(Path(args.atlas))
     except AtlasUnavailable as exc:
-        census_note = str(exc)
-    else:
-        if same_census(loaded):
-            atlas = loaded
-        else:
-            census_note = _census_mismatch(loaded)
-    if atlas is None:
-        if not args.check:
-            print("CANNOT JUDGE: %s" % census_note, file=sys.stderr)
-            return 2
-        print("census NOT JUDGED: %s" % census_note, file=sys.stderr)
-    entries = units(atlas) if atlas is not None else []
+        print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
+        return 2
+    entries = units(atlas)
 
     if args.write:
-        assert atlas is not None      # `main` returned 2 without a census
         result = write(entries, atlas)
         print("wrote %(written)d stub(s) across %(trees)d tree(s); index %(index)s"
               % result)
         return 0
     if args.check:
-        ok, problems, counts = check(atlas)
+        try:
+            ok, problems, counts = check(atlas, strict=args.strict)
+        except AtlasUnavailable as exc:
+            print("CANNOT JUDGE: %s" % exc, file=sys.stderr)
+            return 2
         for problem in problems:
             print("DEFECT: " + problem)
+        for line in counts.get("advisory_lines", []):
+            print("ADVISORY: " + line)
         print("%s -- %d shard(s), %d module(s) yielding units, %d tree(s), %d wired"
               % ("clean" if ok else "%d defect(s)" % len(problems),
                  counts.get("shards", 0), counts.get("modules", 0),
                  counts.get("trees", 0), counts.get("wired", 0)))
+        buckets = counts.get("buckets") or {}
+        if buckets:
+            print("  uncorroborated by the census, with the reason: " +
+                  ", ".join("%s=%d" % (key, buckets[key]) for key in sorted(buckets)))
         return 0 if ok else 1
     if args.adopt:
-        assert atlas is not None      # `main` returned 2 without a census
         return adopt(args.adopt, atlas)
     grouped: Dict[str, int] = {}
     for entry in entries:
