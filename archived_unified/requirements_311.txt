@@ -30,9 +30,9 @@ cloudpickle==3.1.2
 colorama==0.4.6
 colorlog==6.10.1
 comm==0.2.3
-confection==0.1.5
+confection==1.3.4
 contourpy==1.3.3
-cryptography==46.0.5
+cryptography==50.0.2
 cycler==0.12.1
 cymem==2.0.13
 databricks-sdk==0.88.0
@@ -52,7 +52,7 @@ flatbuffers==25.12.19
 fonttools==4.61.1
 fqdn==1.5.1
 frozenlist==1.8.0
-fsspec==2025.10.0
+fsspec==2026.9.0
 gast==0.7.0
 gitdb==4.0.12
 GitPython==3.1.46
@@ -68,7 +68,7 @@ h5py==3.15.1
 hf-xet==1.2.0
 httpcore==1.0.9
 httpx==0.28.1
-huey==2.6.0
+huey==3.5.4
 huggingface_hub==1.4.1
 idna==3.11
 importlib_metadata==8.7.1
@@ -141,7 +141,7 @@ opt_einsum==3.4.0
 optree==0.18.0
 optuna==4.7.0
 overrides==7.7.0
-packaging==25.0
+packaging==26.3
 pandas==2.3.3
 pandocfilters==1.5.1
 parso==0.8.6
@@ -191,13 +191,13 @@ six==1.17.0
 skops==0.13.0
 smart_open==7.5.0
 smmap==5.0.2
-soupsieve==2.8.3
+soupsieve==4.1
 spacy==3.8.11
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 SQLAlchemy==2.0.46
 sqlparse==0.5.5
-srsly==2.5.2
+srsly==3.0.1
 stack-data==0.6.3
 starlette==0.52.1
 sympy==1.14.0
@@ -237,6 +237,6 @@ Werkzeug==3.1.5
 widgetsnbextension==4.0.15
 wrapt==2.1.1
 xgboost==3.2.0
-xxhash==3.6.0
+xxhash==4.1.0
 yarl==1.22.0
 zipp==3.23.0
