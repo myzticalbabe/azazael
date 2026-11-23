@@ -122,6 +122,22 @@ def parse_lsremote_default(out: str) -> str | None:
     return None
 
 
+def remote_head_direct(url: str) -> str | None:
+    """Read the HEAD symref straight out of a local-path remote.
+    Measured 2026-11-23: `git ls-remote --symref` over local transport
+    returns rc=0 with EMPTY output -- no symref line is advertised -- so
+    file remotes (vermillion's class) were default-blind and fell through
+    to whatever the local origin/HEAD happened to say. A URL resolving
+    to a local dir gets its HEAD read directly; anything else: None."""
+    for c in (Path(url), Path(url) / ".git"):
+        if (c / "HEAD").is_file():
+            rc, out = run(["git", "symbolic-ref", "HEAD"], c)
+            if rc == 0 and out.strip().startswith("refs/heads/"):
+                return out.strip()[len("refs/heads/"):]
+            return None
+    return None
+
+
 def remote_default_branch(path: Path) -> tuple[str | None, str]:
     """(branch, source). Live ls-remote first (fetch-fresh: the local
     origin/HEAD symref goes stale after a default-branch switch --
@@ -141,6 +157,11 @@ def remote_default_branch(path: Path) -> tuple[str | None, str]:
         branch = parse_lsremote_default(proc.stdout or "")
         if branch:
             return branch, "remote"
+    rc, out = run(["git", "remote", "get-url", "origin"], path)
+    if rc == 0 and out.strip():
+        branch = remote_head_direct(out.strip())
+        if branch:
+            return branch, "remote-direct"
     rc, out = run(["git", "symbolic-ref", "refs/remotes/origin/HEAD"], path)
     if rc == 0 and out.strip():
         return out.strip().rsplit("/", 1)[-1], "local"
